@@ -15,6 +15,9 @@ export const ALL_FEEDBACK_PRIORITIES = 'ALL';
 
 export const ALL_TAB = 'All apps';
 
+/** The App filter's "every app" value (its label depends on the tab: "All my apps" or "All apps"). */
+export const ALL_APPS = 'ALL';
+
 export const FEEDBACK_STATUS_FILTER_OPTIONS: SortOption[] = [
   { value: ALL_FEEDBACK_STATUSES, label: 'All' },
   ...AI_APP_FEEDBACK_STATUSES.map((status) => ({ value: status, label: AI_APP_FEEDBACK_STATUS_LABELS[status] })),

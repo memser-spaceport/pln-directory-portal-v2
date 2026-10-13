@@ -1,0 +1,60 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ff820e;
+  border-radius: 8px;
+  background-color: #ffe8cc;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    gap: 4px;
+  }
+}
+
+.warning {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.warningText {
+  color: #ff820e;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 20px;
+
+  @media (min-width: 768px) {
+    font-size: 14px;
+  }
+}
+
+.separator {
+  display: none;
+
+  @media (min-width: 768px) {
+    display: block;
+    color: #adadad;
+  }
+}
+
+.message {
+  font-size: 12px;
+  line-height: 20px;
+
+  @media (min-width: 768px) {
+    font-size: 14px;
+  }
+}
+
+.link {
+  color: #156ff7;
+  font-size: 12px;
+  line-height: 20px;
+  cursor: pointer;
+
+  @media (min-width: 768px) {
+    font-size: 14px;
+  }
+}

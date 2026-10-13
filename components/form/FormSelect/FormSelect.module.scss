@@ -133,6 +133,10 @@
   &:hover {
     background: var(--Neutral-Slate-50);
   }
+
+  &.optionFocused {
+    background: rgba(27, 77, 255, 0.1);
+  }
 }
 
 .optionLabel {

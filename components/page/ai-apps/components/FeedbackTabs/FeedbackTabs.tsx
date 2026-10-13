@@ -9,16 +9,17 @@ export type FeedbackTab = 'comment' | 'feedback';
 
 type Props = {
   active: FeedbackTab;
-  /** Comments on the app, shown beside the Comment tab. */
+  /** Comments on the app, shown beside the Comments tab. */
   commentCount: number;
   onSelect: (tab: FeedbackTab) => void;
 };
 
 /**
- * The two doors of the feedback button on an app's page (prototype
- * ai-apps-comments): Feedback — the written form about the app, the primary
- * door — and Comment — point at something in the app. Heads both the comment card and
- * the feedback dialog, so switching between them reads as one panel.
+ * The switcher of the feedback drawer on an app's page (prototype
+ * ai-apps-feedback-drawer): Feedback — the written form about the app, the
+ * primary door — and Comments — the threads on the app, with comment mode on to
+ * point at something. It sits under the drawer's title and stays in place when
+ * the tab changes.
  */
 export function FeedbackTabs({ active, commentCount, onSelect }: Props) {
   return (
@@ -41,7 +42,7 @@ export function FeedbackTabs({ active, commentCount, onSelect }: Props) {
         onClick={() => onSelect('comment')}
       >
         <CommentIcon />
-        Comment
+        Comments
         {commentCount > 0 && <span className={s.count}>{commentCount}</span>}
       </button>
     </div>

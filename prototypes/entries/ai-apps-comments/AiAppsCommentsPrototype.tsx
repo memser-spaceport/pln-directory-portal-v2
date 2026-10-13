@@ -181,31 +181,27 @@ export default function AiAppsCommentsPrototype() {
           Visitor
         </button>
       </div>
-      {/* Review switch: which feedback the app page shows. Detail view only —
-          the grid's feedback is the same in both. */}
-      {standalone && (
-        <>
-          <span className={proto.roleLabel}>Feedback</span>
-          <div className={proto.segmented}>
-            <button
-              type="button"
-              data-active={feedbackMode === 'production'}
-              aria-pressed={feedbackMode === 'production'}
-              onClick={() => setFeedbackMode('production')}
-            >
-              Production
-            </button>
-            <button
-              type="button"
-              data-active={feedbackMode === 'proposal'}
-              aria-pressed={feedbackMode === 'proposal'}
-              onClick={() => setFeedbackMode('proposal')}
-            >
-              Proposal
-            </button>
-          </div>
-        </>
-      )}
+      {/* Review switch: which feedback the bubble shows, on both views. Proposal
+          adds the POC screenshots everywhere; Comment mode is app-page only. */}
+      <span className={proto.roleLabel}>Feedback</span>
+      <div className={proto.segmented}>
+        <button
+          type="button"
+          data-active={feedbackMode === 'production'}
+          aria-pressed={feedbackMode === 'production'}
+          onClick={() => setFeedbackMode('production')}
+        >
+          Production
+        </button>
+        <button
+          type="button"
+          data-active={feedbackMode === 'proposal'}
+          aria-pressed={feedbackMode === 'proposal'}
+          onClick={() => setFeedbackMode('proposal')}
+        >
+          Proposal
+        </button>
+      </div>
     </div>
   );
 
@@ -362,6 +358,7 @@ export default function AiAppsCommentsPrototype() {
         apps={apps}
         onSubmit={(f) => submitFeedback(f.appUid)}
         viewerName={(isCreator ? currentUser : visitorUser).name}
+        nativeCapture={feedbackMode === 'proposal'}
       />
     </div>
   );

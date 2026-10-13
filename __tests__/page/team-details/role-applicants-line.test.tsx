@@ -8,6 +8,7 @@ const count = (over: Partial<ApplicantCount> = {}): ApplicantCount => ({
   roleUid: 'role-1',
   applicantCount: 2,
   interestCount: 1,
+  suggestedCount: 0,
   newCount: 2,
   newestAvatars: ['https://example.com/a.jpg', 'https://example.com/b.jpg'],
   ...over,
@@ -72,10 +73,31 @@ describe('RoleApplicantsLine', () => {
     expect(screen.queryByText(/new/)).not.toBeInTheDocument();
   });
 
+  /* The line is the lead's way in to the Suggested tab too, so a role with only
+     suggestions still gets one. */
+  it('draws the line for a role that only has suggestions', () => {
+    const { container } = renderLine(
+      count({ applicantCount: 0, interestCount: 0, suggestedCount: 3, newCount: 0, newestAvatars: [] }),
+    );
+
+    expect(container.textContent).toContain('3 suggested');
+    expect(container.textContent).not.toContain('applicant');
+    expect(container.textContent).not.toContain('·');
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/teams/team-1/applicants?role=role-1');
+  });
+
+  it('names suggestions after the people who answered', () => {
+    const { container } = renderLine(count({ suggestedCount: 3 }));
+
+    expect(container.textContent).toContain('2 applicants · 1 interested · 3 suggested');
+  });
+
   /* A role posted yesterday with no applicants is normal. A zero under every
      row would turn the section into a scoreboard of the team's own postings. */
   it('renders nothing at all for a role nobody has answered', () => {
-    const { container } = renderLine(count({ applicantCount: 0, interestCount: 0, newCount: 0, newestAvatars: [] }));
+    const { container } = renderLine(
+      count({ applicantCount: 0, interestCount: 0, suggestedCount: 0, newCount: 0, newestAvatars: [] }),
+    );
 
     expect(container).toBeEmptyDOMElement();
   });

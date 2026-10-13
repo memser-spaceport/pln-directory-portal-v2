@@ -11,7 +11,10 @@ import type { IUserInfo } from '@/types/shared.types';
 
 const mockCookies = Cookies as unknown as { get: jest.Mock; set: jest.Mock };
 
-jest.mock('js-cookie', () => ({ __esModule: true, default: { get: jest.fn(), set: jest.fn() } }));
+jest.mock('js-cookie', () => ({
+  __esModule: true,
+  default: { get: jest.fn(), set: jest.fn(), remove: jest.fn() },
+}));
 
 jest.mock('@/services/members.service', () => ({
   updateUserDirectoryEmail: jest.fn(),

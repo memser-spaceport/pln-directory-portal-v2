@@ -1,0 +1,334 @@
+.root {
+  position: relative;
+  height: 100%;
+  /* A grid item defaults to `min-width: auto` — it refuses to be narrower than
+     its content's min-content width, so any unbreakable row inside it widens
+     the whole column. The tag chips cap their own width now, so nothing is
+     currently pushing; this keeps the card's width a fact about the grid
+     rather than about its longest line. */
+  min-width: 0;
+}
+
+// The creator's ⋯ menu, vertically centered on the app name's first line
+// (card padding-top 24px + half of the 28px name line-height).
+.actionSlot {
+  position: absolute;
+  top: 26px;
+  right: 14px;
+  z-index: 2;
+}
+
+// Visitor "App Details" action, in flow at the right of the footer row so it
+// sits on the author / update line.
+//
+// Transcribed from dev's AiAppCard.module.scss: colors and typography come from
+// the shared Button (border / neutral / xxs). This prototype used to draw it as
+// a reused TeamCard `.stage` pill, which predates dev shipping the real button —
+// the pill is gone from both this card and the detail bar in the same pass, so
+// the two entry points and production all read the same.
+.detailsButton {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.cardButton {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  height: 100%;
+  padding: 24px;
+  background-color: #fff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow:
+    0 4px 4px 0 rgba(15, 23, 42, 0.04),
+    0 0 1px 0 rgba(15, 23, 42, 0.12);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s,
+    transform 0.2s;
+
+  &:hover {
+    border-color: rgba(21, 111, 247, 0.26);
+    box-shadow: 0 0 0 2px rgba(21, 111, 247, 0.18);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #156ff7;
+    outline-offset: 2px;
+  }
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+// Reserve room for the creator's ⋯ menu so long names ellipsize instead of
+// sliding under it. (Visitors have no corner action — the name gets full width.)
+.nameRowMenu {
+  padding-right: 32px;
+}
+
+.name {
+  margin: 0;
+  color: #0f172a;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 28px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+.draftBadge {
+  flex-shrink: 0;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* ---- Failed deploy ------------------------------------------------------- */
+
+// Full-bleed banner across the top of the card. Negative margins cancel the
+// card's 24px padding so it meets the border, and the top corners follow the
+// card radius.
+.failStrip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: -24px -24px 0;
+  padding: 8px 16px;
+  border-radius: 12px 12px 0 0;
+}
+
+.failStripLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+
+  &::before {
+    content: '';
+    flex-shrink: 0;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+}
+
+// Nothing is serving — the app is broken for everyone.
+.failStripDanger {
+  background: rgba(210, 26, 14, 0.08);
+
+  .failStripLabel {
+    color: var(--foreground-error-primary, #d21a0e);
+  }
+}
+
+// Rolled back but still up. Amber, not red: the app works, the change just
+// didn't ship. Red here would read as an outage that isn't happening.
+.failStripWarning {
+  background: var(--background-warning-soft-surface, rgba(245, 158, 11, 0.1));
+
+  .failStripLabel {
+    color: var(--foreground-warning-primary, #b45309);
+  }
+}
+
+// The ⋯ menu is absolutely positioned against the name's first line; the banner
+// pushes that line down, so the menu has to follow or it lands on the banner.
+.rootNotice .actionSlot {
+  top: 60px;
+}
+
+// A failed app reads as inert: muted surface, dimmed text, no lift on hover.
+// The badge and the "See logs" link keep their colour — on a grey card they
+// become the only live things, which is exactly where attention should go.
+.rootFailed {
+  .cardButton {
+    background-color: #fbfcfd;
+    border-color: rgba(27, 56, 96, 0.1);
+    box-shadow: none;
+
+    &:hover {
+      border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+      box-shadow: none;
+    }
+  }
+
+  .name,
+  .description,
+  .creatorName,
+  .creatorTitle,
+  .deployed {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+
+  // Greyscale the avatar too, so nothing on the card reads as active.
+  .avatar {
+    filter: grayscale(1);
+    opacity: 0.7;
+  }
+}
+
+.seeLogsButton {
+  flex-shrink: 0;
+  padding: 2px 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+/* One line. Every card now carries a tag row, which answers "what kind of app
+   is this" better than the second sentence of a description does — so the
+   description is down to its opening clause and the card stops being three
+   blocks of text. (Dev clamps at 3 and reserves 60px for them.) */
+.description {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* `.body`'s 8px gap binds every block to the next one equally, which reads as
+   "these are all the same kind of line". The tags aren't: a set of labels
+   between a sentence above and a metrics row below wants to be seen as its own
+   band. 4px of margin on each side takes it to 12px without touching the gap,
+   which would move the name and the metrics too. */
+.tagsRow {
+  margin: 4px 0;
+}
+
+.footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: auto;
+}
+
+.author {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid rgba(14, 15, 17, 0.08);
+  margin-top: 2px;
+}
+
+.authorText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.authorLine {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.creatorTitle {
+  font-weight: 400;
+  color: #94a3b8;
+}
+
+.creatorName {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.deployed {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  color: #94a3b8;
+}
+
+/* Activity row. The container is production's NotificationFooter `.details`
+   (imported, not copied); this only pins the glyphs, whose parent `.data` is a
+   flex row with default `align-items: stretch` — an <svg> sized by attribute
+   has no CSS height to stop it growing to the 18px line box. */
+.metricsRow {
+  svg {
+    flex-shrink: 0;
+    align-self: center;
+  }
+}
+
+/* Atomic units inside the update note — a person's name and a relative time
+   are each a single word as far as the reader is concerned. */
+.noBreak {
+  white-space: nowrap;
+}

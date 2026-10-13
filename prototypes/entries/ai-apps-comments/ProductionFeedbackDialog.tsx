@@ -93,6 +93,8 @@ interface Props {
   viewerName?: string;
   /** Proposal: replaces the "Give feedback" title with the Feedback | Comment switch. */
   headerSlot?: React.ReactNode;
+  /** Proposal: the first row of the form — the "Comment on the app" door. */
+  topSlot?: React.ReactNode;
   /**
    * Proposal (the feedback POC): screenshots are native — our own redraw, no
    * browser share prompt — and the screenshot row becomes feedback-dev-kit's:
@@ -132,9 +134,10 @@ function getAnchorOverlayStyle(anchor: HTMLElement | null, placement: Placement)
  * Dropped as plumbing: react-query, image hosting, contact-support routing,
  * analytics. The rbac gate lives on the button.
  *
- * Proposal additions: the Feedback | Comment switch (`headerSlot`) and, with
- * `nativeCapture`, the feedback POC's screenshots (`PocScreenshots`): automatic
- * capture on open, Annotate / ✕ per picture, Whole page and Pick a part.
+ * Proposal additions: the "Comment on the app" door as the form's first row (`topSlot`) and, with
+ * `nativeCapture`, the feedback POC's screenshots (`PocScreenshots`): one
+ * automatic capture per piece of feedback (first open; kept across close /
+ * reopen; a fresh one only after sending), Annotate / ✕ per picture, Whole page and Pick a part.
  */
 export function ProductionFeedbackDialog({
   isOpen,
@@ -147,6 +150,7 @@ export function ProductionFeedbackDialog({
   onSubmit,
   viewerName = currentUser.name,
   headerSlot,
+  topSlot,
   nativeCapture = false,
 }: Props) {
   const [overlayStyle, setOverlayStyle] = useState<CSSProperties>();
@@ -183,18 +187,23 @@ export function ProductionFeedbackDialog({
   const [autoPending, setAutoPending] = useState(false);
   const isBusy = isCapturing || picking || Boolean(freezeSrc) || Boolean(cropSrc);
 
-  // POC: photograph the page behind the popover once per opening. The popover is
-  // left out of the picture rather than hidden, so nothing flickers.
+  // POC: photograph the page behind the popover once per piece of feedback — on
+  // the first open, and again only after the feedback has been sent
+  // (`onSubmitSuccess` resets the flag). Closing and reopening (✕, Cancel, Esc,
+  // the Comment tab) keeps the pictures, like the draft text, and takes no new
+  // one; a removed automatic picture stays removed. The component stays mounted
+  // between opens, so the ref survives. The popover is left out of the picture
+  // rather than hidden, so nothing flickers.
   const autoTakenRef = useRef(false);
   useEffect(() => {
     if (!isOpen) {
-      autoTakenRef.current = false;
       setAutoPending(false);
       return;
     }
     if (!nativeCapture || autoTakenRef.current) return;
     autoTakenRef.current = true;
     let cancelled = false;
+    let settled = false;
     setAutoPending(true);
     const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), AUTO_CAPTURE_TIMEOUT_MS));
     // A frame first, so the popover exists and can be left out.
@@ -202,6 +211,7 @@ export function ProductionFeedbackDialog({
       Promise.race([captureViewport([document.querySelector(`.${s.overlay}`)]), timeout])
         .catch(() => null)
         .then((src) => {
+          settled = true;
           if (cancelled) return;
           setAutoPending(false);
           if (src)
@@ -213,6 +223,8 @@ export function ProductionFeedbackDialog({
     });
     return () => {
       cancelled = true;
+      // Closed before the picture landed: nothing was taken, so the next open tries again.
+      if (!settled) autoTakenRef.current = false;
     };
   }, [isOpen, nativeCapture]);
 
@@ -276,7 +288,9 @@ export function ProductionFeedbackDialog({
 
   const onDialogClose = () => {
     resetCapture();
-    setScreenshots([]);
+    // POC: the pictures wait for the next open, like the draft text; they are
+    // cleared only once the feedback is sent. Production clears them on close.
+    if (!nativeCapture) setScreenshots([]);
     setEditingShotId(null);
     setPendingRemoveId(null);
     setSubmitAttempted(false);
@@ -287,6 +301,8 @@ export function ProductionFeedbackDialog({
     clearDraft();
     reset(getDefaults());
     setScreenshots([]);
+    // The next piece of feedback gets its own automatic picture on the next open.
+    autoTakenRef.current = false;
     setEditingShotId(null);
     setPendingRemoveId(null);
     resetCapture();
@@ -414,6 +430,7 @@ export function ProductionFeedbackDialog({
           <div className={s.content}>
             <FormProvider {...methods}>
               <div className={s.form}>
+                {topSlot}
                 <FormSelect
                   name="app"
                   label="Which app is this about?"

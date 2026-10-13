@@ -83,8 +83,11 @@ export function PinPanel({ pins, activePinId, onActivePinChange, onContinue, onC
         <p className={s.hint}>
           {pins.isPicking ? (
             <>
-              Click anything in the app. <kbd className={s.kbd}>⌥</kbd> selects its parent,{' '}
-              <kbd className={s.kbd}>Esc</kbd> stops.
+              Click anything in the app.
+              <span className={s.keyHint}>
+                {' '}
+                <kbd className={s.kbd}>⌥</kbd> selects its parent, <kbd className={s.kbd}>Esc</kbd> stops.
+              </span>
             </>
           ) : hasPins ? (
             'The app works normally between picks — open a menu or change page, then pin again.'

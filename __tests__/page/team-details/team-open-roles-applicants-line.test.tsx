@@ -39,7 +39,7 @@ const countsCalls: { enabled: boolean; teamUid: string }[] = [];
 jest.mock('@/services/jobs/hooks/useTeamApplicants', () => ({
   useApplicantCounts: (args: { enabled: boolean; teamUid: string }) => {
     countsCalls.push(args);
-    return { data: [{ roleUid: 'role-1', applicantCount: 2, interestCount: 1, newCount: 2, newestAvatars: [] }] };
+    return { data: [{ roleUid: 'role-1', applicantCount: 2, interestCount: 1, suggestedCount: 0, newCount: 2, newestAvatars: [] }] };
   },
 }));
 

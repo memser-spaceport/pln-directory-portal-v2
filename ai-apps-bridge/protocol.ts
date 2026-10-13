@@ -13,7 +13,7 @@
 export const BRIDGE_NS = 'pln-bridge';
 export const BRIDGE_VERSION = 1;
 
-export type BridgeCapability = 'pick' | 'describe' | 'crop' | 'locate' | 'capture';
+export type BridgeCapability = 'pick' | 'describe' | 'crop' | 'locate' | 'capture' | 'scroll';
 
 /** A rectangle in the app's viewport (CSS px). LabOS offsets it by the iframe's own rect. */
 export type BridgeRect = { x: number; y: number; w: number; h: number };
@@ -58,7 +58,13 @@ export type ParentMessage =
   | Msg<'crop', { pinId: string }>
   | Msg<'locate', { requests: LocateRequest[] }>
   /** A picture of the app as it is on screen (the viewport). `key` is LabOS's and comes back on the result. */
-  | Msg<'capture', { key: string }>;
+  | Msg<'capture', { key: string }>
+  /**
+   * A wheel the member turned over LabOS's Pick a part layer, which sits on top
+   * of the frame. `x`/`y`: where the pointer was, in the app's viewport (CSS px);
+   * `dx`/`dy`: how far to scroll. The bridge scrolls what a wheel there would have.
+   */
+  | Msg<'scroll', { x: number; y: number; dx: number; dy: number }>;
 
 /** App → LabOS. */
 export type AppMessage =
@@ -95,6 +101,8 @@ export const LIMITS = {
   locateKey: 100,
   /** A `capture` key (LabOS's correlation id). */
   captureKey: 40,
+  /** The most one `scroll` may move on each axis (CSS px), so a bad payload can't throw the page around. */
+  scrollDelta: 5000,
 } as const;
 
 /**

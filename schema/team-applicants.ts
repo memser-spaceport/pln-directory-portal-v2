@@ -109,6 +109,8 @@ export const applicantCountSchema = z
     roleUid: z.string().min(1),
     applicantCount: z.number(),
     interestCount: z.number(),
+    /** Candidates on the role's Suggested tab — people the matcher found, not people who answered. */
+    suggestedCount: z.number(),
     /** Unopened by this viewer, across BOTH lists. */
     newCount: z.number(),
     /**

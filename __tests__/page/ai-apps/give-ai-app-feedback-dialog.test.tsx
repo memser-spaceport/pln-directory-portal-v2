@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { act, render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import {
   AI_APP_FEEDBACK_DRAFT_KEY,
   FEEDBACK_PLACEHOLDER,
@@ -54,40 +54,61 @@ jest.mock('@/components/form/FormEditor', () => ({
   },
 }));
 
-jest.mock('react-select', () => ({
-  __esModule: true,
-  default: ({
-    options,
-    value,
-    onChange,
-    inputId,
-    placeholder,
-    menuPlacement,
-  }: {
-    options: Array<{ label: string; value: string }>;
-    value: { label: string; value: string } | null;
-    onChange: (value: { label: string; value: string } | null) => void;
-    inputId?: string;
-    placeholder?: string;
-    menuPlacement?: string;
-  }) => (
-    <div data-menu-placement={menuPlacement}>
-      <span data-testid={`selected-${inputId}`}>{value?.label ?? placeholder}</span>
-      {options.map((opt) => (
-        <button key={opt.value} type="button" onClick={() => onChange(opt)}>
-          {opt.label}
-        </button>
-      ))}
-      <input
-        id={inputId}
-        aria-label={inputId === 'app' ? 'Which app is this about?' : inputId}
-        readOnly
-        value={value?.label ?? ''}
-      />
-    </div>
-  ),
-  components: {},
-}));
+jest.mock('react-select', () => {
+  const React = require('react');
+  return {
+    __esModule: true,
+    default: React.forwardRef(function MockSelect(
+      {
+        options,
+        value,
+        onChange,
+        inputId,
+        placeholder,
+        menuPlacement,
+        onKeyDown,
+        onMenuOpen,
+        onMenuClose,
+      }: {
+        options: Array<{ label: string; value: string }>;
+        value: { label: string; value: string } | null;
+        onChange: (value: { label: string; value: string } | null, meta: { action: string }) => void;
+        inputId?: string;
+        placeholder?: string;
+        menuPlacement?: string;
+        onKeyDown?: (event: KeyboardEvent) => void;
+        onMenuOpen?: () => void;
+        onMenuClose?: () => void;
+      },
+      ref: React.Ref<{ focus: () => void; openMenu: () => void }>,
+    ) {
+      React.useImperativeHandle(ref, () => ({
+        focus: () => document.getElementById(inputId ?? '')?.focus(),
+        openMenu: () => onMenuOpen?.(),
+      }));
+      return (
+        <div data-menu-placement={menuPlacement}>
+          <span data-testid={`selected-${inputId}`}>{value?.label ?? placeholder}</span>
+          {options.map((opt) => (
+            <button key={opt.value} type="button" onClick={() => onChange(opt, { action: 'select-option' })}>
+              {opt.label}
+            </button>
+          ))}
+          <input
+            id={inputId}
+            aria-label={inputId === 'app' ? 'Which app is this about?' : inputId}
+            readOnly
+            value={value?.label ?? ''}
+            onKeyDown={onKeyDown}
+            onFocus={() => onMenuOpen?.()}
+            onBlur={() => onMenuClose?.()}
+          />
+        </div>
+      );
+    }),
+    components: {},
+  };
+});
 
 jest.mock('react-use', () => ({
   useMedia: () => false,
@@ -129,6 +150,8 @@ jest.mock('@/analytics/ai-apps.analytics', () => ({
     onFeedbackTooLarge: mockOnFeedbackTooLarge,
     onFeedbackShortcutUsed: mockOnFeedbackShortcutUsed,
     onFeedbackShortcutsHelpOpened: mockOnFeedbackShortcutsHelpOpened,
+    onFeedbackAppCapture: jest.fn(),
+    onFeedbackPickPartCancelled: jest.fn(),
   }),
 }));
 
@@ -304,6 +327,7 @@ describe('GiveAiAppFeedbackDialog', () => {
           getContext={() => context}
         />,
       );
+      fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'See pins' } });
       fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
 
       await waitFor(() => expect(mockMutate).toHaveBeenCalled());
@@ -333,6 +357,7 @@ describe('GiveAiAppFeedbackDialog', () => {
         />,
       );
       fireEvent.click(screen.getByRole('button', { name: 'Other App' }));
+      fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'See pins' } });
       fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
 
       await waitFor(() => expect(mockMutate).toHaveBeenCalled());
@@ -403,7 +428,7 @@ describe('GiveAiAppFeedbackDialog', () => {
     );
   });
 
-  it('allows image-only feedback', async () => {
+  it('sends an image in the note together with words', async () => {
     mockUseAiApps.mockReturnValue({
       apps: [{ uid: 'app-1', name: 'My App' }],
       isLoading: false,
@@ -413,13 +438,13 @@ describe('GiveAiAppFeedbackDialog', () => {
     render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
 
     fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), {
-      target: { value: '<p><img src="https://cdn.test/shot.png" alt="shot"></p>' },
+      target: { value: '<p>See <img src="https://cdn.test/shot.png" alt="shot"></p>' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
 
     await waitFor(() =>
       expect(mockMutate).toHaveBeenCalledWith(
-        { appUid: 'app-1', text: '![shot](https://cdn.test/shot.png)', reportKind: 'bug', priority: 'P2' },
+        { appUid: 'app-1', text: 'See ![shot](https://cdn.test/shot.png)', reportKind: 'bug', priority: 'P2' },
         expect.any(Object),
       ),
     );
@@ -450,6 +475,7 @@ describe('GiveAiAppFeedbackDialog', () => {
 
     expect(screen.queryByText('No apps available to give feedback on yet.')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: LABOS_AI_APPS_OPTION.label })).toBeInTheDocument();
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Hello' } });
     expect(screen.getByRole('button', { name: 'Send feedback' })).not.toBeDisabled();
   });
 
@@ -496,14 +522,14 @@ describe('GiveAiAppFeedbackDialog', () => {
 
     fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), {
       target: {
-        value: '<p><img src="data:image/png;base64,AAAA"></p>',
+        value: '<p>See <img src="data:image/png;base64,AAAA"></p>',
       },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
 
     await waitFor(() =>
       expect(mockMutate).toHaveBeenCalledWith(
-        { appUid: 'app-1', text: '![](https://cdn.test/hosted.png)', reportKind: 'bug', priority: 'P2' },
+        { appUid: 'app-1', text: 'See ![](https://cdn.test/hosted.png)', reportKind: 'bug', priority: 'P2' },
         expect.any(Object),
       ),
     );
@@ -521,7 +547,7 @@ describe('GiveAiAppFeedbackDialog', () => {
     render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
 
     fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), {
-      target: { value: '<p><img src="data:image/png;base64,AAAA"></p>' },
+      target: { value: '<p>See <img src="data:image/png;base64,AAAA"></p>' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
 
@@ -1163,6 +1189,7 @@ describe('GiveAiAppFeedbackDialog', () => {
     expect(mockOnFeedbackScreenshotRegionSelected).toHaveBeenCalled();
     expect(mockOnFeedbackScreenshotAdded).toHaveBeenCalledWith({ hasAnnotations: false });
 
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Broken layout' } });
     fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
 
     await waitFor(() => expect(mockMutate).toHaveBeenCalled());
@@ -1217,8 +1244,8 @@ describe('GiveAiAppFeedbackDialog', () => {
       expect(mockOnFeedbackScreenshotEditOpened).toHaveBeenCalled();
       await waitFor(() => expect(screen.getByRole('button', { name: 'Save changes' })).toBeInTheDocument());
 
-      fireEvent.click(screen.getByRole('button', { name: 'Comment' }));
-      expect(mockOnFeedbackScreenshotToolSelected).toHaveBeenCalledWith({ tool: 'comment' });
+      fireEvent.click(screen.getByRole('button', { name: 'Box' }));
+      expect(mockOnFeedbackScreenshotToolSelected).toHaveBeenCalledWith({ tool: 'rect' });
 
       fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
       expect(mockOnFeedbackScreenshotAnnotatorDiscarded).toHaveBeenCalledWith({ isEditing: true });
@@ -1305,6 +1332,19 @@ describe('GiveAiAppFeedbackDialog', () => {
       expect(screen.getByRole('heading', { name: 'Give feedback' })).toBeInTheDocument();
     });
 
+    /* LAB-2766: the annotator has no Comment tool, so its C key must not be listed. */
+    it('lists no Comment shortcut under Annotate', () => {
+      apps();
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Shortcuts' }));
+
+      const annotate = screen.getByRole('heading', { name: 'Annotate' }).closest('section')!;
+      const labels = Array.from(annotate.querySelectorAll('li > span:first-child')).map((el) => el.textContent);
+      expect(labels).toEqual(expect.arrayContaining(['Draw', 'Box', 'Oval', 'Arrow', 'Text']));
+      expect(labels).not.toContain('Comment');
+    });
+
     it('opens and closes the shortcut list on ?, outside text fields', async () => {
       apps();
       const onClose = jest.fn();
@@ -1322,6 +1362,44 @@ describe('GiveAiAppFeedbackDialog', () => {
         expect(screen.queryByRole('heading', { name: 'Keyboard shortcuts' })).not.toBeInTheDocument(),
       );
       expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('on the list, the same keys pick a part and send, and typing finds any app', async () => {
+      apps();
+      const onClose = jest.fn();
+      const capture = jest.fn().mockResolvedValue({ dataUrl: 'data:image/jpeg;base64,QQ==', width: 10, height: 10 });
+      render(<GiveAiAppFeedbackDialog variant="drawer" isOpen onClose={onClose} capture={capture} pickViewport />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Shortcuts' }));
+      expect(screen.getByText('Pick a part', { selector: 'span' })).toBeInTheDocument();
+      expect(screen.getByText('Open the app list')).toBeInTheDocument();
+      expect(screen.getByText('Move in the open list')).toBeInTheDocument();
+      expect(screen.getByText('Find an app in the open list')).toBeInTheDocument();
+      expect(screen.getByText('Open the list, or choose the highlighted app')).toBeInTheDocument();
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      const field = screen.getByLabelText('Which app is this about?');
+      fireEvent.keyDown(document, { key: 'A', ctrlKey: true, shiftKey: true });
+      expect(field).toHaveFocus();
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(onClose).not.toHaveBeenCalled();
+
+      fireEvent.click(screen.getByRole('button', { name: 'My App' }));
+      expect(screen.getByTestId('selected-app')).toHaveTextContent('My App');
+
+      fireEvent.keyDown(document, { key: 's', ctrlKey: true, shiftKey: true });
+      const overlay = screen.getByTestId('live-region-overlay');
+      expect(overlay).toBeInTheDocument();
+      fireEvent.click(within(overlay).getByRole('button', { name: 'Cancel' }));
+
+      fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Broken tile' } });
+      fireEvent.keyDown(document, { key: 'Enter', ctrlKey: true });
+      await waitFor(() =>
+        expect(mockMutate).toHaveBeenCalledWith(
+          expect.objectContaining({ appUid: 'app-1', text: expect.stringContaining('Broken tile') }),
+          expect.anything(),
+        ),
+      );
     });
 
     it('lists the keys that work', () => {
@@ -1362,6 +1440,26 @@ describe('GiveAiAppFeedbackDialog', () => {
       expect(cancel).toHaveAttribute('aria-keyshortcuts', 'Escape');
     });
 
+    /* jsdom can't evaluate the touch-only media query, so this holds the class
+       that carries it: a new key hint on a button without it would show on phones. */
+    it('marks every key hint on a button as one to hide on touch, and no key in the shortcut list', () => {
+      apps();
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+      const dialog = screen.getByRole('heading', { name: 'Give feedback' }).closest('[role="dialog"]') ?? document;
+      const buttonKeys = Array.from(dialog.querySelectorAll('button kbd'));
+      expect(buttonKeys.length).toBeGreaterThan(0);
+      buttonKeys.forEach((key) => expect(key).toHaveClass('kbdHint'));
+      expect(screen.getByRole('button', { name: 'Shortcuts' })).toHaveClass('shortcutsHelpLink');
+
+      fireEvent.click(screen.getByRole('button', { name: 'Shortcuts' }));
+
+      const sheet = screen.getByRole('heading', { name: 'Keyboard shortcuts' }).closest('[role="dialog"]');
+      const sheetKeys = Array.from(sheet!.querySelectorAll('kbd'));
+      expect(sheetKeys.length).toBeGreaterThan(0);
+      sheetKeys.forEach((key) => expect(key).not.toHaveClass('kbdHint'));
+    });
+
     it('submits on Cmd/Ctrl+Enter', async () => {
       apps();
       render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
@@ -1378,15 +1476,12 @@ describe('GiveAiAppFeedbackDialog', () => {
       expect(mockOnFeedbackShortcutUsed).toHaveBeenCalledWith({ action: 'submit' });
     });
 
-    it('shows validation instead of sending when the form is invalid', async () => {
+    it('on the list, LabOS - AI Apps is already selected', () => {
       apps();
-      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} />);
+      render(<GiveAiAppFeedbackDialog variant="drawer" isOpen onClose={jest.fn()} />);
 
-      sendChord();
-
-      await waitFor(() => expect(screen.getByText('Please select an app')).toBeInTheDocument());
-      expect(mockMutate).not.toHaveBeenCalled();
-      expect(mockOnFeedbackShortcutUsed).toHaveBeenCalledWith({ action: 'submit' });
+      expect(screen.getByTestId('selected-app')).toHaveTextContent(LABOS_AI_APPS_OPTION.label);
+      expect(screen.queryByText('Please select an app')).not.toBeInTheDocument();
     });
 
     it('does not send on Ctrl+Alt+Enter', () => {
@@ -1434,6 +1529,109 @@ describe('GiveAiAppFeedbackDialog', () => {
 
       await waitFor(() => expect(screen.getByAltText('Screenshot 1')).toBeInTheDocument());
       expect(mockMutate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Send is disabled while the message is empty', () => {
+    const sendButton = () => screen.getByRole('button', { name: 'Send feedback' });
+    const type = (value: string) =>
+      fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value } });
+    const sendChord = () => fireEvent.keyDown(document, { key: 'Enter', ctrlKey: true });
+
+    beforeEach(() =>
+      mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false }),
+    );
+
+    it('starts disabled when the form opens empty', () => {
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+      expect(sendButton()).toBeDisabled();
+    });
+
+    it('enables once the message has a non-whitespace character', () => {
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+      type('<p>x</p>');
+
+      expect(sendButton()).not.toBeDisabled();
+    });
+
+    it('disables again when the message is cleared or only whitespace', () => {
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+      type('<p>Nice app!</p>');
+      expect(sendButton()).not.toBeDisabled();
+
+      type('');
+      expect(sendButton()).toBeDisabled();
+
+      type('<p>   &nbsp; </p><p><br></p>');
+      expect(sendButton()).toBeDisabled();
+    });
+
+    it('treats whitespace-only Markdown as empty', () => {
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+      fireEvent.click(screen.getByRole('tab', { name: 'Markdown' }));
+      type('   \n\n  ');
+      expect(sendButton()).toBeDisabled();
+
+      type('# Bug');
+      expect(sendButton()).not.toBeDisabled();
+    });
+
+    it('stays disabled with only an image in the note, until text is typed', () => {
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+      type('<p><img src="https://cdn.test/shot.png" alt="shot"></p>');
+      expect(sendButton()).toBeDisabled();
+
+      type('<p>Look here <img src="https://cdn.test/shot.png" alt="shot"></p>');
+      expect(sendButton()).not.toBeDisabled();
+    });
+
+    it('stays disabled with an attached screenshot and no text', async () => {
+      (requestTabCapture as jest.Mock).mockResolvedValue({ getTracks: () => [{ stop: jest.fn() }] });
+      (grabVideoFrame as jest.Mock).mockResolvedValue(PIXEL_PNG);
+      (stopCaptureStream as jest.Mock).mockImplementation(() => undefined);
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Select region' })).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Select region' }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Add to feedback' })).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Add to feedback' }));
+      await waitFor(() => expect(screen.getByAltText('Screenshot 1')).toBeInTheDocument());
+
+      expect(sendButton()).toBeDisabled();
+      sendChord();
+      expect(mockMutate).not.toHaveBeenCalled();
+    });
+
+    it('ignores the send shortcut while the message is empty or whitespace only', () => {
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+      sendChord();
+      type('<p>  </p>');
+      sendChord();
+
+      expect(mockMutate).not.toHaveBeenCalled();
+      expect(mockOnFeedbackShortcutUsed).not.toHaveBeenCalled();
+    });
+
+    it('still sends a non-empty message from the shortcut once text is typed after an empty attempt', async () => {
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+      sendChord();
+      type('Nice app!');
+      sendChord();
+
+      await waitFor(() =>
+        expect(mockMutate).toHaveBeenCalledWith(
+          { appUid: 'app-1', text: 'Nice app!', reportKind: 'bug', priority: 'P2' },
+          expect.any(Object),
+        ),
+      );
     });
   });
 });
@@ -1676,5 +1874,132 @@ describe('GiveAiAppFeedbackDialog oversized submission', () => {
     await waitFor(() => expect(mockMutate).toHaveBeenCalled());
     expect(mockOnFeedbackTooLarge).not.toHaveBeenCalled();
     expect(toast.error).not.toHaveBeenCalled();
+  });
+});
+
+/* LAB-2759: the screen-share screenshot showed the feedback popup itself. */
+describe('GiveAiAppFeedbackDialog hides itself during a screen-share capture', () => {
+  const overlay = () => document.querySelector('[class*="overlay"]');
+
+  beforeEach(() => {
+    asCapableBrowser();
+    window.localStorage.clear();
+    mockUseCurrentUserStore.mockReturnValue({
+      currentUser: { uid: 'member-1', name: 'Ada Lovelace', email: 'ada@example.com' },
+    });
+    mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
+    (requestTabCapture as jest.Mock).mockReset();
+    (grabVideoFrame as jest.Mock).mockReset();
+    (stopCaptureStream as jest.Mock).mockReset();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    clearFormDraft(AI_APP_FEEDBACK_DRAFT_KEY);
+    clearFormDraft(APP_1_DRAFT_KEY);
+  });
+
+  it('is already hidden, with its host told, when the share prompt opens and when the frame is grabbed', async () => {
+    const onHiddenChange = jest.fn();
+    let hiddenAtPrompt: boolean | undefined;
+    let hiddenAtGrab: boolean | undefined;
+    (requestTabCapture as jest.Mock).mockImplementation(async () => {
+      hiddenAtPrompt = Boolean(overlay()?.className.includes('overlayHidden'));
+      return { getTracks: () => [{ stop: jest.fn() }] };
+    });
+    (grabVideoFrame as jest.Mock).mockImplementation(async () => {
+      hiddenAtGrab = Boolean(overlay()?.className.includes('overlayHidden'));
+      return PIXEL_PNG;
+    });
+
+    render(
+      <GiveAiAppFeedbackDialog
+        isOpen
+        onClose={jest.fn()}
+        appUid="app-1"
+        appName="My App"
+        onHiddenChange={onHiddenChange}
+      />,
+    );
+    expect(overlay()?.className).not.toMatch(/overlayHidden/);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Select region' })).toBeInTheDocument());
+
+    expect(hiddenAtPrompt).toBe(true);
+    expect(hiddenAtGrab).toBe(true);
+    expect(onHiddenChange).toHaveBeenLastCalledWith(true);
+  });
+
+  it('comes back with the new screenshot attached when the capture finishes', async () => {
+    const onHiddenChange = jest.fn();
+    (requestTabCapture as jest.Mock).mockResolvedValue({ getTracks: () => [{ stop: jest.fn() }] });
+    (grabVideoFrame as jest.Mock).mockResolvedValue(PIXEL_PNG);
+
+    render(
+      <GiveAiAppFeedbackDialog
+        isOpen
+        onClose={jest.fn()}
+        appUid="app-1"
+        appName="My App"
+        onHiddenChange={onHiddenChange}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Select region' })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Select region' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Add to feedback' })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Add to feedback' }));
+
+    await waitFor(() => expect(screen.getByAltText('Screenshot 1')).toBeInTheDocument());
+    expect(overlay()?.className).not.toMatch(/overlayHidden/);
+    expect(onHiddenChange).toHaveBeenCalledWith(true);
+    expect(onHiddenChange).toHaveBeenLastCalledWith(false);
+  });
+
+  it('comes back with nothing attached when the share prompt is cancelled', async () => {
+    const onHiddenChange = jest.fn();
+    (requestTabCapture as jest.Mock).mockRejectedValue(new CaptureError('cancelled', '', 'AbortError'));
+
+    render(
+      <GiveAiAppFeedbackDialog
+        isOpen
+        onClose={jest.fn()}
+        appUid="app-1"
+        appName="My App"
+        onHiddenChange={onHiddenChange}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+
+    await waitFor(() => expect(mockOnFeedbackScreenshotCaptureDenied).toHaveBeenCalled());
+    await waitFor(() => expect(overlay()?.className).not.toMatch(/overlayHidden/));
+    expect(onHiddenChange).toHaveBeenCalledWith(true);
+    expect(onHiddenChange).toHaveBeenLastCalledWith(false);
+    expect(screen.queryByAltText('Screenshot 1')).not.toBeInTheDocument();
+  });
+
+  it('comes back with nothing attached when the capture fails', async () => {
+    const onHiddenChange = jest.fn();
+    (requestTabCapture as jest.Mock).mockResolvedValue({ getTracks: () => [{ stop: jest.fn() }] });
+    (grabVideoFrame as jest.Mock).mockRejectedValue(new Error('grab failed'));
+
+    render(
+      <GiveAiAppFeedbackDialog
+        isOpen
+        onClose={jest.fn()}
+        appUid="app-1"
+        appName="My App"
+        onHiddenChange={onHiddenChange}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+
+    await waitFor(() => expect(mockOnFeedbackScreenshotCaptureFailed).toHaveBeenCalledWith({ stage: 'grab' }));
+    await waitFor(() => expect(overlay()?.className).not.toMatch(/overlayHidden/));
+    // It did hide: the dialog also reports `false` once on mount, so the last call alone proves nothing.
+    expect(onHiddenChange).toHaveBeenCalledWith(true);
+    expect(onHiddenChange).toHaveBeenLastCalledWith(false);
+    expect(screen.queryByAltText('Screenshot 1')).not.toBeInTheDocument();
   });
 });

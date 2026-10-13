@@ -28,17 +28,17 @@ export const SHOW_AI_APPS_ELEMENT_PINS: boolean = process.env.NEXT_PUBLIC_SHOW_A
  * still stored with feedback; nothing is shown on the page. Needs the bridge's
  * `locate` capability, which every app with the 1.15+ tag already has.
  */
-export const SHOW_AI_APPS_FEEDBACK_OVERLAY: boolean = false;
+export const SHOW_AI_APPS_FEEDBACK_OVERLAY: boolean = process.env.NEXT_PUBLIC_SHOW_AI_APPS_FEEDBACK_OVERLAY === 'true';
 
 /**
  * Comments on the live app, the Feedback / Comment tabs, and the pin mode that
- * came before them. Off for now, so every app's button is "Give feedback" and
- * opens the form; the bridge only adds instant screenshots there.
+ * came before them. Pinning also needs SHOW_AI_APPS_ELEMENT_PINS, and showing
+ * comments on the page needs SHOW_AI_APPS_FEEDBACK_OVERLAY.
  */
-export const SHOW_AI_APPS_COMMENTS = false;
+export const SHOW_AI_APPS_COMMENTS = true;
 
 /** Keep in sync with `AI_APPS_STARTER_KIT_VERSION` in pln-directory-portal web-api. */
-export const AI_APPS_STARTER_KIT_VERSION = '1.16';
+export const AI_APPS_STARTER_KIT_VERSION = '1.17';
 
 export const PL_INFRA_OS_APP_UID = 'cmst544z7008siz4g1d59fubr';
 export const PL_INFRA_OS_PATH = '/pl-infra-os';

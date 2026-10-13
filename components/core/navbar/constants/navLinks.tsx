@@ -163,9 +163,14 @@ export const NETWORK_INTELLIGENCE_DASH_LINK: ISubItem = {
   external: true,
 };
 
+export const PL_ATS_PROD_URL = 'https://ats.os.pl.xyz';
+
+// Each environment points at its own ATS (e.g. dev -> https://ats.dev.os.pl.xyz); unset or blank falls back to prod.
+export const getPlAtsUrl = (): string => process.env.NEXT_PUBLIC_PL_ATS_URL?.trim() || PL_ATS_PROD_URL;
+
 export const PL_ATS_LINK: ISubItem = {
   icon: <PlAtsIcon />,
-  href: 'https://ats.os.pl.xyz',
+  href: getPlAtsUrl(),
   title: 'PL ATS',
   description: 'AI-native sourcing and hiring pipeline for PL Infra',
   external: true,

@@ -93,10 +93,11 @@ export default function ActiveMemberOverview({
 
   const kpiRows = kpiWeights && kpiWeights.length > 0 ? kpiWeights : KPI_WEIGHTS_FALLBACK;
 
+  // Only pillars in the emissions schedule get a spoke or a history column. The API also returns pillars
+  // that exist only in the token tables (e.g. Capital), which would otherwise show up empty.
+  const scheduled = useMemo(() => new Set(kpiRows.map((row) => row.category)), [kpiRows]);
+
   const categoryStats = useMemo<CategoryStat[]>(() => {
-    // Only pillars in the emissions schedule get a spoke. The API also returns pillars that exist only in
-    // the token tables (e.g. Capital), which would otherwise show as an empty spoke.
-    const scheduled = new Set(kpiRows.map((row) => row.category));
     const inSchedule = (stats: CategoryStat[]) => stats.filter((stat) => scheduled.has(stat.name));
     // History rounds share one category list across every round, so the chart keeps its shape while browsing.
     if (selectedRound) return inSchedule(selectedRound.categories);
@@ -113,7 +114,7 @@ export default function ActiveMemberOverview({
           plaa: plaa.find((p) => p.name === name)?.value ?? 0,
         })),
     );
-  }, [kpiRows, roundStats, selectedRound]);
+  }, [scheduled, roundStats, selectedRound]);
 
   // The worked conversion example uses a real row from the schedule above, so its numbers always match it.
   const exampleRow =
@@ -132,14 +133,12 @@ export default function ActiveMemberOverview({
   const maxPlaa = Math.max(1, ...categoryStats.map((c) => c.plaa));
 
   const historyCategoryNames = useMemo(() => {
-    // Same rule as the radar: only pillars in the emissions schedule get a column.
-    const scheduled = new Set(kpiRows.map((row) => row.category));
     const names = new Set<string>();
     roundHistory.forEach((round) => round.categories.forEach((c) => names.add(c.name)));
     return Array.from(names)
       .filter((name) => scheduled.has(name))
       .sort();
-  }, [kpiRows, roundHistory]);
+  }, [scheduled, roundHistory]);
 
   const handleActivitiesClick = () => onOverviewActivitiesLinkClicked('/alignment-asset/activities', 'cta-banner');
   const handleFaqClick = () => onOverviewFaqLinkClicked('/alignment-asset/faqs');

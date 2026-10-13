@@ -140,12 +140,12 @@ function interpolatedBuybackY(rows: ChartRow[], index: number): number | null {
 // bar unless that collides with the NAV/PLAA pill or buyback chip at the
 // same index — the label moves to clear it, since it's the only one of
 // the three not anchored to a real plotted value.
-const renderTotalLabel = (rows: NavPoint[], offset: number = 10) => (props: any) => {
+const renderTotalLabel = (rows: NavPoint[]) => (props: any) => {
   const { x, y, width, value, index } = props;
   if (!value) return null;
   const row = rows[index] as ChartRow | undefined;
   const highlight = row && row.plvh > 0;
-  const defaultBaseline = y - offset;
+  const defaultBaseline = y - 10;
 
   // [top, bottom] of each price-series band this label might overlap.
   const bands: Array<[number, number]> = [];

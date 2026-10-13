@@ -56,6 +56,18 @@
   margin: 0 auto;
 }
 
+.lowerExplore {
+  margin-top: 24px;
+}
+
+.profileBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 948px;
+}
+
 .faqSection {
   display: flex;
   flex-direction: column;

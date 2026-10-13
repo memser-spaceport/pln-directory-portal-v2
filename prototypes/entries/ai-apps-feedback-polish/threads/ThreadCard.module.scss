@@ -1,0 +1,32 @@
+/* The annotated thumbnail: production's canvas, held to the thread card's width
+   and to the flat thumbnail's 160px cap. */
+.canvas {
+  display: block;
+  width: 100%;
+  max-height: 160px;
+
+  img,
+  canvas {
+    max-height: 160px;
+    object-fit: contain;
+  }
+}
+
+/* The ⋯ at the row's end, beside the name and time. */
+.menu {
+  margin-left: auto;
+}
+
+/* Editing in place: the reply field's textarea, Cancel / Save under it. */
+.edit {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.editActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

@@ -24,6 +24,8 @@ export enum JobsQueryKey {
   TeamApplicantCounts = 'team-applicant-counts',
   /** One role's applicants and interested members, as its team reads them. */
   RoleApplicants = 'role-applicants',
+  /** One role's suggested candidates, as its team reads them. Viewer-scoped like the two above. */
+  SuggestedCandidates = 'role-suggested-candidates',
 }
 
 /**

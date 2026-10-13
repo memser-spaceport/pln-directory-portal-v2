@@ -1,0 +1,18 @@
+@use 'styles/media';
+
+/*
+  Production's Drawer container lives inside a fixed overlay; with no overlay
+  the container is the fixed thing. Same layer as the overlay (10), and the list
+  scrolls inside rather than the drawer itself.
+*/
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 10;
+  overflow: hidden;
+
+  @include media.mobile-only {
+    width: 100vw !important;
+  }
+}

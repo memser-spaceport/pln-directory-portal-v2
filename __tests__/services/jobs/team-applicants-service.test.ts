@@ -125,7 +125,7 @@ describe('fetchApplicantCounts', () => {
   });
 
   it('hands back the counts array, not the envelope', async () => {
-    const count = { roleUid: 'r-1', applicantCount: 2, interestCount: 1, newCount: 3, newestAvatars: [] };
+    const count = { roleUid: 'r-1', applicantCount: 2, interestCount: 1, suggestedCount: 0, newCount: 3, newestAvatars: [] };
     mockFetch.mockResolvedValue(ok({ counts: [count] }));
 
     await expect(fetchApplicantCounts('team-1')).resolves.toEqual([count]);

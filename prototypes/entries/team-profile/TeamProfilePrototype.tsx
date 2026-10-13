@@ -156,6 +156,9 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
    * posts (see `canManageTeamPost`). Jobs are narrower (lead or admin).
    */
   const [view, setView] = useState<TeamPostRole>('lead');
+  /* Visitor seat: Follow and Request an intro in the header cluster (the Sep
+     28 decision, default) or as a row under About, to compare. */
+  const [actionsAt, setActionsAt] = useState<'header' | 'bio'>('header');
   const isTeamView = view !== 'public';
   // Demo-only: with one mock team, flipping status is the only way to see the
   // inactive treatment at all. It lives in the demo bar with the view switch,
@@ -707,6 +710,38 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
 
   const followCount = TEAM_FOLLOWER_COUNT;
 
+  /* The visitor's two presses, drawn in the header cluster (default) or in a
+     row under About (review band "Actions → Under bio"). */
+  const visitorFollow = (
+    <div className={local.followCol}>
+      <FollowPill
+        following={following}
+        onToggle={handleFollowToggle}
+        name={team.name ?? 'this team'}
+        size={isMobile ? 's' : 'xs'}
+      />
+      {/* Phone only. From tablet up the cluster is one row of presses and
+          carries no captions (the member page's rule since the Sep 28
+          standup): a caption wider than its pill widened Follow's column and
+          spread the row apart. On the phone stack it names the button, which
+          sits alone there. Height reserved once following so nothing jumps. */}
+      {isMobile && (
+        <p className={`${local.followCaption} ${following ? local.followCaptionHidden : ''}`}>
+          Follow to get updates &amp; announcements
+        </p>
+      )}
+    </div>
+  );
+  const visitorIntro = (
+    <RequestIntroButton
+      requested={intro.requested(teamIntroUid)}
+      onClick={() => intro.request({ uid: teamIntroUid, name: team.name ?? 'this team', kind: 'team' })}
+      name={team.name ?? 'this team'}
+      size={isMobile ? 's' : 'xs'}
+      className={local.introPress}
+    />
+  );
+
   return (
     <div className={local.page}>
       <div className={local.demoBar}>
@@ -732,6 +767,29 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
             ))}
           </div>
         </div>
+
+        {view === 'public' && (
+          <div className={local.demoGroup}>
+            <span className={local.demoLabel}>Actions</span>
+            <div className={local.demoSwitch}>
+              {(
+                [
+                  ['header', 'In header'],
+                  ['bio', 'Under bio'],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={`${local.demoBtn} ${actionsAt === value ? local.demoBtnActive : ''}`}
+                  onClick={() => setActionsAt(value)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className={local.demoGroup}>
           <span className={local.demoLabel}>Status</span>
@@ -861,6 +919,14 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
                   team={team}
                   facts={MOCK_TEAM_FACTS}
                   status={status}
+                  afterAbout={
+                    !isTeamView && actionsAt === 'bio' ? (
+                      <div className={local.bioActions}>
+                        {visitorIntro}
+                        {visitorFollow}
+                      </div>
+                    ) : undefined
+                  }
                   headerAction={
                     !isTeamView ? (
                       <div className={`${local.followHeader} ${local.followClusterMobile}`}>
@@ -871,29 +937,14 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
                             never lands under a different button. */}
                         <div className={local.headerActionRow}>
                           {askAiButton(local.fromTablet)}
-                          <div className={local.followCol}>
-                            <FollowPill
-                              following={following}
-                              onToggle={handleFollowToggle}
-                              name={team.name ?? 'this team'}
-                              size={isMobile ? 's' : 'xs'}
-                            />
-                            {/* Reserve the caption's height once following so nothing below jumps.
-                                The phone names the button, which no longer
-                                sits alone above it. */}
-                            <p className={`${local.followCaption} ${following ? local.followCaptionHidden : ''}`}>
-                              {isMobile ? 'Follow to get updates & announcements' : 'Get updates & announcements'}
-                            </p>
-                          </div>
-                          <RequestIntroButton
-                            requested={intro.requested(teamIntroUid)}
-                            onClick={() =>
-                              intro.request({ uid: teamIntroUid, name: team.name ?? 'this team', kind: 'team' })
-                            }
-                            name={team.name ?? 'this team'}
-                            size={isMobile ? 's' : 'xs'}
-                            className={local.introPress}
-                          />
+                          {/* Review band "Actions → Under bio" moves these two
+                              under About (see `afterAbout`); Ask AI stays. */}
+                          {actionsAt === 'header' && (
+                            <>
+                              {visitorFollow}
+                              {visitorIntro}
+                            </>
+                          )}
                           {/* Phone: Ask AI beside Follow as the member page's
                               outlined badge ("Use the same badge for team
                               profile as well"): the same object in every seat

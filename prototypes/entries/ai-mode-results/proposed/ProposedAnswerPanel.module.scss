@@ -1,0 +1,308 @@
+// A turn in the proposed answer (see ProposedAnswerPanel.tsx). The page frame
+// (scroll region, 768px column, pinned input) is the current panel's module.
+
+@use 'styles/media';
+
+/* Turns are separated by space, not boxes: 40px between an answer's last part
+   and the next question (32 on phones). */
+.turn {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+
+  & + & {
+    margin-top: 32px;
+
+    @include media.breakpoint-1024 {
+      margin-top: 40px;
+    }
+  }
+}
+
+/* The question: the asker's line, right-aligned, in a quiet bubble. Capped at
+   80% so a long question still reads as "theirs" against the answer's edge. */
+.askRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ask {
+  max-width: 80%;
+  margin: 0;
+  padding: 10px 16px;
+  border-radius: 18px 18px 4px 18px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  overflow-wrap: anywhere;
+}
+
+/* The answer's parts stand on spacing alone: 20px between prose, table,
+   results, actions and follow-ups. */
+.answer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  min-width: 0;
+}
+
+.retrieved {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.retrievedLabel {
+  font-weight: 500;
+}
+
+/* One section-label treatment for every part of the answer that has one. */
+.sectionTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+/* ---------------------------------------------------------------- actions */
+
+/* Sits right under what it acts on; pulled 8px closer than the 20px rhythm
+   because it belongs to the parts above, not to the follow-ups below. */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: -8px;
+}
+
+.actionsBusy {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.actionsRow {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  line-height: 0;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+
+  &:hover {
+    color: var(--foreground-neutral-secondary, #455468);
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+}
+
+.on,
+.on:hover {
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+/* Production's own image glyphs, painted with currentColor through a mask. */
+.mask {
+  display: block;
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  mask: var(--glyph) center / 16px 16px no-repeat;
+  -webkit-mask: var(--glyph) center / 16px 16px no-repeat;
+}
+
+.maskCopy {
+  --glyph: url('/icons/copy.svg');
+}
+
+.maskRefresh {
+  --glyph: url('/icons/refresh-circle.svg');
+}
+
+/* Between the answer's presses and the last turn's two. */
+.sep {
+  width: 1px;
+  height: 16px;
+  margin: 0 6px;
+  background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.receipt {
+  margin-left: 8px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* ---------------------------------------------------------------- feedback */
+
+/* The "why" after a thumbs-down: a panel on the soft surface, 12px radius
+   like the answer's other panels. */
+.why {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: -8px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--background-neutral-soft-surface, #f9fafb);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.whyHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.whyTitle {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.whySkip {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.whyChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.whyComment {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-neutral-primary, #fff);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  resize: none;
+
+  &::placeholder {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.whyFooter {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ---------------------------------------------------------------- follow-ups */
+
+.follow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.followList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  > li + li {
+    border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+}
+
+/* 44px rows; the hover wash bleeds 8px past the text edge so the text stays
+   on the answer's left edge. */
+.followRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: calc(100% + 16px);
+  min-height: 44px;
+  margin: 0 -8px;
+  padding: 10px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+
+  // Soft brand, like the sources pill and citations (2026-10-06), not grey.
+  &:hover:not(:disabled) {
+    color: var(--foreground-brand-primary, #1b4dff);
+    background: var(--background-brand-soft-surface, #f2f5ff);
+
+    .followGlyph {
+      color: var(--foreground-brand-primary, #1b4dff);
+    }
+  }
+
+  &:disabled {
+    cursor: default;
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: -2px;
+  }
+}
+
+.followGlyph {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  transition: color 0.15s ease;
+}

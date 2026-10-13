@@ -974,3 +974,24 @@
     padding-right: 16px;
   }
 }
+
+/* Review band "Actions → Under bio": Follow and the contact press as a row
+   under the bio's grey box, left-aligned with it, the primary first. The
+   header cluster's 8px between pills; 16px from the box (the card's section
+   rhythm). Phone: the header's own stack (full width, primary first). */
+.bioActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+}
+
+.pressFirst {
+  order: -1;
+}

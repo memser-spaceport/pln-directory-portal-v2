@@ -87,6 +87,15 @@ interface Props {
   tool?: AnnotatorTool;
   strokeColor?: string;
   readOnly?: boolean;
+  /**
+   * Whether comment pins can be placed, edited, moved or removed. Default false.
+   *
+   * Production leaves it off (LAB-2766): comments live in the feedback popup's
+   * Comments option now, so pins saved before that only show their note on a
+   * press. Only the prototypes under `prototypes/`, which still use the comment
+   * tool, turn it on.
+   */
+  commentsEditable?: boolean;
   className?: string;
 }
 
@@ -259,6 +268,7 @@ export function AnnotationCanvas({
   tool = 'draw',
   strokeColor = DEFAULT_DRAW_COLOR,
   readOnly = false,
+  commentsEditable = false,
   className,
 }: Props) {
   const imgRef = useRef<HTMLImageElement>(null);
@@ -292,6 +302,8 @@ export function AnnotationCanvas({
   const [dragPos, setDragPos] = useState<{ id: string; x: number; y: number } | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const inputId = useId();
+  /* Pins that only show their note: in a read-only view, or wherever comments are switched off. */
+  const pinsLocked = readOnly || !commentsEditable;
 
   const syncSize = () => {
     const img = imgRef.current;
@@ -657,7 +669,7 @@ export function AnnotationCanvas({
       shaping.current = { kind: tool, from: point, to: point };
       return;
     }
-    if (tool === 'comment') {
+    if (tool === 'comment' && commentsEditable) {
       if (draftRef.current) {
         event.preventDefault();
         saveDraft(true);
@@ -771,7 +783,7 @@ export function AnnotationCanvas({
   };
 
   const beginPinDrag = (event: React.PointerEvent<HTMLElement>, id: string, isDraft: boolean) => {
-    if (readOnly || event.button > 0) return;
+    if (pinsLocked || event.button > 0) return;
     event.stopPropagation();
     event.preventDefault();
     ignoreBlur.current = true;
@@ -820,7 +832,7 @@ export function AnnotationCanvas({
     if (!drag.moved) {
       if (!drag.isDraft) {
         const comment = annotationsRef.current.comments.find((item) => item.id === drag.id);
-        if (comment && !readOnly) {
+        if (comment && !pinsLocked) {
           if (draftRef.current && draftRef.current.id !== comment.id) saveDraft(true);
           openEdit(comment);
         } else {
@@ -886,7 +898,7 @@ export function AnnotationCanvas({
    * Only while the comment tool is active: with the draw tool the pins are
    * ordinary draggable objects and keep saying so.
    */
-  const pinKeepsCrosshair = !readOnly && tool === 'comment';
+  const pinKeepsCrosshair = !pinsLocked && tool === 'comment';
   const isEditingExisting = Boolean(draft && annotations.comments.some((comment) => comment.id === draft.id));
 
   const cancelDraft = () => {
@@ -1016,14 +1028,14 @@ export function AnnotationCanvas({
             type="button"
             className={clsx(
               s.pin,
-              !readOnly && !pinKeepsCrosshair && s.pinMove,
+              !pinsLocked && !pinKeepsCrosshair && s.pinMove,
               pinKeepsCrosshair && s.pinCrosshair,
               draggingId === comment.id && s.pinDragging,
             )}
             style={{ left: `${pos.x * 100}%`, top: `${pos.y * 100}%` }}
             aria-label={`Comment ${index + 1}`}
             onClick={
-              readOnly
+              pinsLocked
                 ? (event) => {
                     event.stopPropagation();
                     setActiveCommentId((id) => (id === comment.id ? null : comment.id));
@@ -1047,7 +1059,7 @@ export function AnnotationCanvas({
       {annotations.comments.map((comment) =>
         activeCommentId === comment.id ? (
           <div key={`${comment.id}-body`} className={s.bubble} style={panelPlacement(pinPosition(comment))}>
-            {!readOnly && (
+            {!pinsLocked && (
               <button
                 type="button"
                 className={s.remove}

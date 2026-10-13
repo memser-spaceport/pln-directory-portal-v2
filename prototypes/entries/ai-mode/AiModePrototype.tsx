@@ -41,6 +41,9 @@ import { buildCorpusScope } from '../ai-search/corpusScope';
 import hs from '../ai-search/AiSearchPrototype.module.scss';
 import demo from '../team-profile/TeamProfile.module.scss';
 
+import { AiSearchPage } from '../ai-search-page/AiSearchPage';
+import { withTitle, type SharedChat } from '../ai-search-page/mocks';
+
 import { AiModeSurface, type AiModeFrame, type AiModeRequest } from './AiModeSurface';
 import { seedThreads, threadTitle, whenLabel, type ChatThread } from './threads';
 
@@ -67,8 +70,11 @@ export default function AiModePrototype() {
   const [term, setTerm] = useState('');
   const [aiMode, setAiMode] = useState(false);
   const [request, setRequest] = useState<AiModeRequest | null>(null);
-  const [threads, setThreads] = useState<ChatThread[]>(seedThreads);
+  /* The ai-search-page's short generated titles, so the popover's recent chats
+     and the page's History read the same. */
+  const [threads, setThreads] = useState<ChatThread[]>(() => seedThreads().map(withTitle));
   const [activeId, setActiveId] = useState<number | null>(null);
+  const [shared, setShared] = useState<SharedChat | null>(null);
 
   const enterAi = useCallback((req: Omit<AiModeRequest, 'nonce'>) => {
     setSearchOpen(false);
@@ -185,18 +191,42 @@ export default function AiModePrototype() {
         )}
       </div>
 
-      <AiModeSurface
-        frame={frame}
-        open={aiMode}
-        onClose={() => setAiMode(false)}
-        threads={threads}
-        onThreadsChange={setThreads}
-        activeId={activeId}
-        onActiveIdChange={setActiveId}
-        request={request}
-        term={term}
-        onBackToSearch={backToSearch}
-      />
+      {/* The mode's page is the ai-search-page (/husky refactored), entered
+          from the popover and left back into it. It stays mounted while you
+          are back on search, so drafts and the rail's state are there when
+          you return. The modal alternative keeps ai-mode's own surface. */}
+      {frame === 'page' ? (
+        <div hidden={!aiMode}>
+          <AiSearchPage
+            signedIn
+            threads={threads}
+            onThreadsChange={setThreads}
+            activeId={activeId}
+            onActiveIdChange={setActiveId}
+            shared={shared}
+            onSharedChange={setShared}
+            onSignIn={() => {}}
+            onSignUp={() => {}}
+            request={request}
+            term={term}
+            onBackToSearch={backToSearch}
+            open={aiMode}
+          />
+        </div>
+      ) : (
+        <AiModeSurface
+          frame={frame}
+          open={aiMode}
+          onClose={() => setAiMode(false)}
+          threads={threads}
+          onThreadsChange={setThreads}
+          activeId={activeId}
+          onActiveIdChange={setActiveId}
+          request={request}
+          term={term}
+          onBackToSearch={backToSearch}
+        />
+      )}
 
       {!onAiPage && (
         <main className={hs.page}>

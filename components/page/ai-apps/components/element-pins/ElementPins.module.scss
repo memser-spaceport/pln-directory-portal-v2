@@ -125,6 +125,13 @@ $quiet: var(--foreground-neutral-secondary, #455468);
   color: $quiet;
 }
 
+/* Key hints; on a touch-only device there are no keys to press. */
+.keyHint {
+  @include media.no-fine-pointer {
+    display: none;
+  }
+}
+
 .kbd {
   padding: 0 4px;
   border-radius: 4px;

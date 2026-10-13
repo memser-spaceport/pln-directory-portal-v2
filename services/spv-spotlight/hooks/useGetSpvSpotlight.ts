@@ -9,8 +9,11 @@ import { getSpvSpotlight } from '@/services/spv-spotlight/spv-spotlight.service'
  * write the first anonymous read into a cache every later SSR request reuses,
  * and an admin's edits would never reach server-rendered pages. The page
  * passes its server read to the view as a prop instead.
+ *
+ * `enabled: false` skips the read altogether (a gated page has nothing to show
+ * a signed-out viewer, so it doesn't fetch what it would hide).
  */
-export function useGetSpvSpotlight(slug: string) {
+export function useGetSpvSpotlight(slug: string, { enabled = true }: { enabled?: boolean } = {}) {
   const { currentUser, isHydrated } = useCurrentUserStore();
   const authenticated = !!currentUser?.uid;
 
@@ -21,6 +24,6 @@ export function useGetSpvSpotlight(slug: string) {
     queryFn: () => getSpvSpotlight(slug, authenticated),
     // Wait for the auth store: an authenticated read fired before it hydrates
     // would go out anonymous and paint the wrong viewer state.
-    enabled: !!slug && isHydrated,
+    enabled: enabled && !!slug && isHydrated,
   });
 }

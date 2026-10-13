@@ -1,9 +1,5 @@
 @use 'styles/media';
 
-// The rail's widths come from sidebar.tsx (300px open, 64px collapsed).
-$rail-width: 300px;
-$rail-width-collapsed: 64px;
-
 .root {
   display: flex;
   align-items: center;
@@ -18,21 +14,11 @@ $rail-width-collapsed: 64px;
   }
 }
 
-// Pinned under the app header like the chat input is pinned to the bottom: the page scrolls, not the chat.
+// Sticky like the app header, so it keeps to the content width: a fixed bar ran under body's scrollbar.
 .pinned {
-  position: fixed;
+  position: sticky;
   top: var(--app-header-height);
-  right: 0;
-  left: 0;
   z-index: 2;
-
-  @include media.tablet-landscape {
-    left: $rail-width;
-
-    &[data-state='collapsed'] {
-      left: $rail-width-collapsed;
-    }
-  }
 }
 
 // The new-chat page has nothing to title: the bar only carries History while the rail is a drawer.

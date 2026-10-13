@@ -584,8 +584,7 @@ const Chat: React.FC<ChatProps> = ({
           margin: 0px auto;
           position: relative;
           overflow: hidden;
-          /* the pinned title bar is 56px tall */
-          padding: 82px 16px 90px 16px;
+          padding: 26px 16px 90px 16px;
         }
 
         .chat__messages-wrapper {

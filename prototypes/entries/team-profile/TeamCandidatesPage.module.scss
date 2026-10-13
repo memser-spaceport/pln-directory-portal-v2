@@ -471,25 +471,69 @@
   color: var(--foreground-neutral-tertiary, #8897ae);
 }
 
-.reasonChips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
+/* What didn't fit — one line of the lead's own words. The search field's
+ * box (border, 8px radius, 40px), so it reads as an input of this page. */
+.missInput {
+  flex: 1 1 240px;
+  min-width: 0;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  background: var(--background-base-white, #fff);
 
-.reasonChip {
-  white-space: nowrap;
-}
-
-/* The picked reason: the control-chip lineage's brand selected state. */
-.reasonChips .reasonChip.reasonChipOn {
-  &,
-  &:hover:not(:disabled) {
-    color: var(--foreground-brand-primary, #1b4dff);
-    border-color: var(--foreground-brand-primary, #1b4dff);
-    background: var(--background-brand-subtle, #e6eeff);
-    box-shadow: none;
+  &::placeholder {
+    color: var(--foreground-neutral-tertiary, #8897ae);
   }
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #5e718d;
+    box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
+  }
+}
+
+/* Message sent: the Reviewed state's paint on a status, not a press. */
+.sentStatus {
+  cursor: default;
+  user-select: none;
+}
+
+/* The role reminder at the head of the list: title, facts, a few sentences. */
+.roleSummary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.roleTitle {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.roleDesc {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 @include media.mobile-only {
@@ -517,35 +561,7 @@
   }
 }
 
-/* The note and its one control on a wrapping row: the sentence, then Edit
- * criteria after it, or on a line of its own when the sentence fills the width
- * (design-thinking lesson 12, sixth example). The note's own bottom margin
- * moves to the row. */
-.tabNoteRow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 2px 8px;
-  flex-shrink: 0;
-  margin: 0 0 12px;
-
-  .tabNote {
-    margin: 0;
-  }
-}
-
-/* `.tabNote` is `flex-shrink: 0` for the capped column; inside the wrapping row
- * that pinned the sentence at its full one-line width and clipped it at the
- * card. It has to give way so the row can wrap Edit criteria under it. */
-.tabNoteRow .tabNote {
-  flex: 0 1 auto;
-  min-width: 0;
-}
-
-/* The Suggested tab's two lines — what the list is, and what it was matched
- * on — as one block: 4px between them (they are one note), the block's 12px
- * below (lesson 11: a uniform margin would float the second line between the
- * first and the search). */
+/* The Suggested tab's note — what the list is — with the block's 12px below. */
 .suggestedNote {
   display: flex;
   flex-direction: column;
@@ -553,13 +569,7 @@
   flex-shrink: 0;
   margin: 0 0 12px;
 
-  .tabNote,
-  .tabNoteRow {
+  .tabNote {
     margin: 0;
   }
-}
-
-/* "Matched on" — the list's criteria are the value, this is its label. */
-.matchedOnLabel {
-  color: var(--foreground-neutral-tertiary, #8897ae);
 }

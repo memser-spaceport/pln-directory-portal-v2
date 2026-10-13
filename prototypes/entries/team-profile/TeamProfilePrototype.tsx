@@ -51,6 +51,7 @@ import { seedListingMeta, submitJobHref, type ListingMeta, type ListingStatus } 
    See the note on `TeamOpenRolesView`. */
 import { JobApplyFlowDrawer, type ApplyFlowStepId } from '../job-board/JobApplyFlowDrawer';
 import { FILLED_PROFILE, type MemberProfile } from '../job-board/viewerState';
+import { getJobDetail } from '../job-board/jobDetails';
 /* One kept set across the surfaces: a role bookmarked here is in the board's
    Saved tab, not in a second list belonging to this page. */
 import { useSavedItems } from '../save-shared/savedItems';
@@ -707,6 +708,10 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
         roleTitle={emailRole.roleTitle}
         people={sortSuggested(visibleSuggested(MOCK_SUGGESTED[emailRole.uid] ?? [], emailCriteria), emailCriteria)}
         criteria={emailCriteria}
+        postingHref={emailRole.applyUrl ?? undefined}
+        roleSummary={
+          MOCK_TEAM_ROLES ? firstSentence(getJobDetail(emailRole, MOCK_TEAM_ROLES.team).summary[0]) : undefined
+        }
         hrefFor={(personId) =>
           `/prototypes/team-profile?candidates=${emailRole.uid}&tab=suggested${personId ? `&candidate=${personId}` : ''}&signedout=1`
         }
@@ -912,6 +917,7 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
               .filter(Boolean)
               .join(' · '),
             postedAt: getJobDate(r),
+            summary: MOCK_TEAM_ROLES ? getJobDetail(r, MOCK_TEAM_ROLES.team).summary[0] : undefined,
             candidates: MOCK_CANDIDATES[r.uid] ?? [],
             interested: MOCK_INTERESTED[r.uid] ?? [],
             // Only a live listing has anyone to invite.
@@ -921,6 +927,7 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
           initialRoleUid={candidatesRole}
           initialTab={candidatesTab}
           initialSelectedId={candidatesPerson}
+          sender={{ name: 'Elena Marsh', role: 'Head of Engineering', avatar: 'https://i.pravatar.cc/96?img=47' }}
           onBack={() => {
             setCandidatesRole(null);
             setCandidatesPerson(undefined);
@@ -1345,4 +1352,10 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
       )}
     </div>
   );
+}
+
+/** "Protocol Labs is hiring X to work on Y." — the first sentence of a paragraph. */
+function firstSentence(text: string): string {
+  const end = text.search(/\.\s/);
+  return end === -1 ? text : text.slice(0, end + 1);
 }

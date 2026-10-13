@@ -119,7 +119,8 @@ export interface SuggestionReason {
 /**
  * A member suggested for one of the team's roles. They have done nothing —
  * that is the difference from the other two lists — so there is no date, no
- * note, no CV, no "new" and nothing to review. What the record adds is `met`
+ * note, no "new" and nothing to review. A CV shows only when the member
+ * stored one for their job search (LAB-2819: optional, never asked for). What the record adds is `met`
  * (which of the role's criteria their profile satisfies) and `reasons`.
  *
  * **Everyone here opted in.** Job search status is "Only visible to you", and
@@ -130,7 +131,7 @@ export interface SuggestionReason {
  * member — a band about you that you cannot see is the team's working, and one
  * you can see is a grade.
  */
-export type RoleSuggested = Omit<RoleCandidate, 'note' | 'appliedAt' | 'cv' | 'unseen' | 'reviewed'> & {
+export type RoleSuggested = Omit<RoleCandidate, 'note' | 'appliedAt' | 'unseen' | 'reviewed'> & {
   /** Ids of the role's criteria this profile meets. */
   met: string[];
   /**
@@ -297,6 +298,7 @@ export const MOCK_SUGGESTED: Record<string, RoleSuggested[]> = {
     {
       id: 'sug-1',
       memberId: 'ines-carvalho',
+      cv: { name: 'ines-carvalho-cv.pdf', url: '#', size: 192512 },
       name: 'Inês Carvalho',
       role: 'Senior Engineer · Saturn',
       title: 'Senior Engineer',
@@ -341,6 +343,7 @@ export const MOCK_SUGGESTED: Record<string, RoleSuggested[]> = {
     {
       id: 'sug-2',
       memberId: 'kofi-mensah',
+      cv: { name: 'kofi-mensah-cv.pdf', url: '#', size: 167936 },
       name: 'Kofi Mensah',
       role: 'Infrastructure Engineer · Filebase',
       title: 'Infrastructure Engineer',

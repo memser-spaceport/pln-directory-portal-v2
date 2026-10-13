@@ -20,11 +20,9 @@ import rowTone from '../job-board/JobReferRoleRow.module.scss';
 import mcb from '@/components/page/team-details/TeamMembers/components/MemberCardBase/MemberCardBase.module.scss';
 import tmvc from '@/components/page/team-details/TeamMembers/components/TeamMembersView/components/TeamMembersViewCard/TeamMembersViewCard.module.scss';
 
-import { Badge } from '@/components/common/Badge';
+import { MatchBadge } from './MatchBadge';
 
 import {
-  SUGGESTION_BAND_LABEL,
-  SUGGESTION_BAND_VARIANT,
   type RoleCandidate,
   type RoleInterested,
   type RoleSuggested,
@@ -43,6 +41,8 @@ interface Props {
    * with itself. The band stays in the pane's Why suggested.
    */
   rating?: 'good' | 'not';
+  /** Suggested rows only: when the lead messaged them (ISO) — said after the count. */
+  messagedAt?: string;
   /** Suggested rows only: the match band, at the row's right end. */
   match?: SuggestionMatch;
   /**
@@ -79,6 +79,7 @@ export function CandidateRow({
   selected,
   onSelect,
   rating,
+  messagedAt,
   match,
 }: Props) {
   return (
@@ -131,9 +132,10 @@ export function CandidateRow({
                   list's width; both are in the pane's Why suggested. */}
               {'reasons' in a && match && (
                 <p className={s.working}>
-                  {match.met === match.total
-                    ? `All ${match.total} requirements`
-                    : `${match.met} of ${match.total} requirements`}
+                  {/* One form for every row, "5 of 5" included: "All 5" broke the
+                      column's rhythm, and the numbers are what a lead compares. */}
+                  {`${match.met} of ${match.total} requirements`}
+                  {messagedAt && ` · Contacted ${formatRelativeDays(messagedAt)}`}
                 </p>
               )}
             </div>
@@ -154,9 +156,7 @@ export function CandidateRow({
               <span className={s.ratedNotLabel}>Not a match</span>
             ) : (
               match && (
-                <Badge variant={SUGGESTION_BAND_VARIANT[match.band]} className={s.matchBadge}>
-                  {SUGGESTION_BAND_LABEL[match.band]}
-                </Badge>
+                <MatchBadge band={match.band} />
               )
             )
           ) : (

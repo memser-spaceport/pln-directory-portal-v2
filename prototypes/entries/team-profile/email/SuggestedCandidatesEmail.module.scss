@@ -109,13 +109,6 @@
   transition: color 160ms ease;
 }
 
-// The page's badge, at the page's size (CandidateRow's `.matchBadge`).
-.band.band {
-  white-space: nowrap;
-  font-size: 12px;
-  line-height: 16px;
-  padding: 2px 6px;
-}
 
 .role {
   font-size: 12px;
@@ -159,4 +152,25 @@
   .name {
     transition: none;
   }
+}
+
+// The role title in the lede, as the link to its posting.
+.roleLink {
+  font-weight: 600;
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// One sentence from the posting under the lede — a quote, so a left rule.
+.roleSummary {
+  margin: 0 0 8px;
+  padding-left: 12px;
+  border-left: 2px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
 }

@@ -94,6 +94,14 @@ describe('Home page AI chat (HuskyAi): member-side ask event', () => {
     expect(onAiQuerySubmitted).toHaveBeenCalledTimes(4);
   });
 
+  it('records a blog-mode regenerate as submitType regenerate', async () => {
+    render(<HuskyAi isLoggedIn mode="blog" blogId="blog-1" initialChats={initialChats} />);
+
+    fireEvent.click(screen.getByText('regenerate'));
+    await waitFor(() => expect(submit).toHaveBeenCalledTimes(1));
+    expect(onAiQuerySubmitted).toHaveBeenCalledWith('Which teams work on storage?', 'home', 'regenerate');
+  });
+
   it('hands an empty query to the handler, which sends nothing for it', async () => {
     render(<HuskyAi isLoggedIn initialChats={initialChats} />);
 

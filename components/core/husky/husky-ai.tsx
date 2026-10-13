@@ -460,7 +460,7 @@ function HuskyAi({
           <div ref={chatCnRef} className="huskyai__cn" data-testid="blog-chat-container">
             <HuskyChat
               onFeedback={onFeedback}
-              onRegenerate={onHuskyInput}
+              onRegenerate={(query: string) => onHuskyInput(query, 'regenerate')}
               onQuestionEdit={onQuestionEdit}
               onPromptClicked={onPromptClicked}
               onShareClicked={onShareClicked}

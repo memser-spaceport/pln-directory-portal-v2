@@ -34,6 +34,59 @@ $padding-inline: 16px;
   }
 }
 
+// The row hosts its link and, on team and member rows, an Ask AI button beside it (a button can't sit inside a link).
+.foundItemHost {
+  position: relative;
+  list-style: none;
+}
+
+.foundItemLink {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+// Room for Ask AI at the end of the name line, so a long name or the availability badge stops short of it.
+.headerAskable {
+  padding-right: 64px;
+}
+
+.askAi {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 6px;
+  background: #fff;
+  color: #1b4dff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(27, 77, 255, 0.08);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #1b4dff;
+    outline-offset: 1px;
+  }
+}
+
+.askAiIcon {
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(285deg, #45d8ff 0%, #005bea 82.52%);
+  mask: url('/icons/ai-search.svg') center / contain no-repeat;
+}
+
 .header {
   display: flex;
   align-items: center;

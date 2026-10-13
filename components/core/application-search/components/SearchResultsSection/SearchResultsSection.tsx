@@ -1,5 +1,7 @@
 import React from 'react';
 
+import type { FoundItem } from '@/services/search/types';
+
 import { AllFoundItems } from './types';
 
 import { ResultsList } from './components/ResultsList';
@@ -14,6 +16,7 @@ interface Props {
   query: string;
   onSelect?: () => void;
   groupItems?: boolean;
+  onAskAi?: (item: FoundItem) => void;
 }
 
 const SECTION_TYPE_ICONS = {
@@ -25,14 +28,14 @@ const SECTION_TYPE_ICONS = {
 };
 
 export const SearchResultsSection = (props: Props) => {
-  const { title, items, groupItems = false, onSelect } = props;
+  const { title, items, groupItems = false, onSelect, onAskAi } = props;
 
   const itemsCount = items.length;
 
   if (groupItems) {
     return (
       <ResultsList title={title} itemsCount={itemsCount}>
-        <Top50Results items={items} onSelect={onSelect} />
+        <Top50Results items={items} onSelect={onSelect} onAskAi={onAskAi} />
       </ResultsList>
     );
   }
@@ -41,7 +44,7 @@ export const SearchResultsSection = (props: Props) => {
     <ResultsList title={title} itemsCount={itemsCount}>
       <ul className={s.list}>
         {items.map((item) => (
-          <SearchResultsItem key={item.uid} item={item} onSelect={onSelect} />
+          <SearchResultsItem key={item.uid} item={item} onSelect={onSelect} onAskAi={onAskAi} />
         ))}
       </ul>
     </ResultsList>

@@ -28,11 +28,13 @@ jest.mock('@/services/search/hooks/useRemoveRecentSearch', () => ({
 }));
 jest.mock('@/services/search/hooks/useChatHistory', () => ({ useChatHistory: () => ({ data: mockChats }) }));
 
-// The full-search modal is left as it is; these stand in for its heavy panels.
-jest.mock('@/components/core/application-search/components/AiChatPanel', () => ({ AiChatPanel: () => null }));
-jest.mock('@/components/core/application-search/components/FullSearchPanel', () => ({ FullSearchPanel: () => null }));
+// Stands in for the result rows: one press of the first row's Ask AI per section.
 jest.mock('@/components/core/application-search/components/SearchResultsSection', () => ({
-  SearchResultsSection: () => null,
+  SearchResultsSection: ({ items, onAskAi }: { items: any[]; onAskAi: (item: any) => void }) => (
+    <button type="button" onClick={() => onAskAi(items[0])}>
+      Ask AI about {items[0].name}
+    </button>
+  ),
 }));
 jest.mock('@/components/core/application-search/components/ContentLoader', () => ({ ContentLoader: () => null }));
 jest.mock('@/components/core/application-search/components/SearchCategories', () => ({
@@ -52,10 +54,7 @@ const chat = (threadId: string, title: string, daysAgo: number) => {
 
 const team = (name: string) => ({ uid: name, name, index: 'teams', image: undefined, matches: [] });
 
-const userInfo = {} as any;
-
-const renderDesktop = (isLoggedIn = true) =>
-  render(<AppSearchDesktop isLoggedIn={isLoggedIn} userInfo={userInfo} authToken="token" />);
+const renderDesktop = (isLoggedIn = true) => render(<AppSearchDesktop isLoggedIn={isLoggedIn} />);
 
 const typeTerm = (text: string) => {
   fireEvent.change(screen.getAllByRole('textbox')[0], { target: { value: text } });
@@ -194,6 +193,28 @@ describe('header search popover (desktop)', () => {
 
     expect(push).toHaveBeenCalledWith('/ai-search');
     expect(localStorage.getItem('input')).toBe('zzzz');
+  });
+
+  it("asks about a result row's team on the AI Search page from its Ask AI", () => {
+    mockResults = { ...mockResults, top: [team('Lumen Storage')] };
+    renderDesktop();
+    typeTerm('lumen');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ask AI about Lumen Storage' }));
+
+    expect(push).toHaveBeenCalledWith('/ai-search');
+    expect(localStorage.getItem('input')).toBe('Tell me about Lumen Storage');
+  });
+
+  it('keeps keyword results in the dropdown on Enter, with no AI chat modal', () => {
+    renderDesktop();
+    typeTerm('lumen');
+
+    fireEvent.keyUp(screen.getAllByRole('textbox')[0], { key: 'Enter' });
+
+    expect(screen.getByText(/Chat with AI Search about/)).toBeInTheDocument();
+    expect(push).not.toHaveBeenCalled();
+    expect(document.querySelectorAll('[role="dialog"]')).toHaveLength(0);
   });
 
   it('opens the AI Search page on a new chat from the AI badge', () => {

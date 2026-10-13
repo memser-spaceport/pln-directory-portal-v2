@@ -1,7 +1,7 @@
 import React from 'react';
 import { PlCubeMark } from '@/components/common/PlCubeMark/PlCubeMark';
 import { FOCUS_AREAS, PL_FACTS } from '@/components/page/explore-pl-network/data/content';
-import { EXPLORE_PL_NETWORK_PATH, PL_NETWORK_ORGANIZATIONS_LABEL } from '@/services/explore-pl-network/constants';
+import { EXPLORE_PL_NETWORK_PATH } from '@/services/explore-pl-network/constants';
 import { ArrowRightIcon } from '../icons';
 import s from './SpvExploreTile.module.scss';
 
@@ -57,7 +57,7 @@ export const SpvExploreMiniTile = ({ onClick }: Props) => (
     <span className={s.miniText}>
       <span className={s.miniTitle}>Explore the PL network</span>
       <span className={s.miniBody}>
-        {PL_NETWORK_ORGANIZATIONS_LABEL} organizations across AI, neurotech, digital rights and new economies
+        750+ teams across Neurotech, AI, Web3 and deep tech
       </span>
     </span>
     <span className={s.miniArrow} aria-hidden>

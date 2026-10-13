@@ -29,9 +29,8 @@ import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 import { SUPPORT_EMAIL, SUPPORT_URL } from '@/constants/plaa';
 import type { TrustHoldingsData } from '@/services/plaa/trust-holdings.service';
 import styles from './overview.module.scss';
-import type { CSSProperties, ReactNode } from 'react';
-
-const cssVars = (vars: Record<string, string>) => vars as CSSProperties;
+import type { ReactNode } from 'react';
+import { cssVars } from './css-vars';
 
 const SURUS_URL = 'https://app.surus.io/invest/PLAA1Trust';
 

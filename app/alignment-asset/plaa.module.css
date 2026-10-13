@@ -105,8 +105,7 @@
   padding: 0;
 }
 
-.plaa__content--fluid .plaa__content-inner,
-.plaa__content-inner--fluid {
+.plaa__content--fluid .plaa__content-inner {
   max-width: none;
   margin: 0;
 }

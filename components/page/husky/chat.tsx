@@ -16,6 +16,7 @@ import { ChatTitleBar } from './ChatTitleBar';
 import { createHuskyThread, createThreadTitle, duplicateThread } from '@/services/husky.service';
 import { useSidebar } from './sidebar';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
+import { useUnifiedSearchAnalytics, type AiQuerySubmitType } from '@/analytics/unified-search.analytics';
 import { toast } from '@/components/core/ToastContainer';
 import { experimental_useObject as useObject } from '@ai-sdk/react';
 import { z } from 'zod';
@@ -67,6 +68,7 @@ const Chat: React.FC<ChatProps> = ({
   const [isAnswerLoading, setIsAnswerLoading] = useState(false);
   const [question, setQuestion] = useState('');
   const analytics = useHuskyAnalytics();
+  const searchAnalytics = useUnifiedSearchAnalytics();
   const router = useRouter();
   // Someone else's shared chat: a follow-up makes the reader's own copy instead of changing this one.
   const isSharedView = !isOwnThread && from === 'detail';
@@ -229,9 +231,11 @@ const Chat: React.FC<ChatProps> = ({
     async ({
       question,
       type,
+      submitType = type,
     }: {
       question: string;
       type: 'prompt' | 'followup' | 'user-input';
+      submitType?: AiQuerySubmitType;
       previousContext?: { question: string; answer: string } | null;
     }) => {
       try {
@@ -282,6 +286,7 @@ const Chat: React.FC<ChatProps> = ({
           };
         }
 
+        searchAnalytics.onAiQuerySubmitted(question, 'ai-search-page', submitType);
         analytics.trackAiResponse('initiated', type, false, question);
 
         if (!hasRefreshToken) {
@@ -329,17 +334,19 @@ const Chat: React.FC<ChatProps> = ({
       addMessage,
       submitChat,
       analytics,
+      searchAnalytics,
     ],
   );
 
   // handle husky input submission
-  const onHuskyInput = (query: string) => handleChatSubmission({ question: query, type: 'user-input' });
+  const onHuskyInput = (query: string, submitType: AiQuerySubmitType = 'user-input') =>
+    handleChatSubmission({ question: query, type: 'user-input', submitType });
 
   const onRegenerate = (query: string) => {
     if (chatIsLoading) {
       return;
     }
-    onHuskyInput(query);
+    onHuskyInput(query, 'regenerate');
     analytics.trackRegenerate();
   };
 

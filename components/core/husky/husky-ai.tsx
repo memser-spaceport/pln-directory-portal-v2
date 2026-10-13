@@ -9,6 +9,7 @@ import HuskyFeedback from './husky-feedback';
 import { generateUUID, getParsedValue, getUniqueId } from '@/utils/common.utils';
 import { getUserCredentialsInfo } from '@/utils/fetch-wrapper';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
+import { useUnifiedSearchAnalytics, type AiQuerySubmitType } from '@/analytics/unified-search.analytics';
 import { incrementHuskyShareCount } from '@/services/discovery.service';
 import HuskyAsk from './husky-ask';
 import { z } from 'zod';
@@ -67,6 +68,7 @@ function HuskyAi({
     trackAiResponse,
     trackDisoverHuskyChatStopBtnClicked,
   } = useHuskyAnalytics();
+  const { onAiQuerySubmitted } = useUnifiedSearchAnalytics();
   const initialRunRef = useRef(false); // ref for prevent api call second time
   const [limitReached, setLimitReached] = useState<'warn' | 'info' | 'finalRequest' | 'close'>(); // daily limit
   const [question, setQuestion] = useState('');
@@ -201,10 +203,12 @@ function HuskyAi({
   const handleChatSubmission = async ({
     question,
     type,
+    submitType = type,
     previousContext = null,
   }: {
     question: string;
     type: 'prompt' | 'followup' | 'user-input';
+    submitType?: AiQuerySubmitType;
     previousContext?: { question: string; answer: string } | null;
   }) => {
     try {
@@ -243,6 +247,7 @@ function HuskyAi({
       ]);
 
       // Track analytics
+      onAiQuerySubmitted(question, 'home', submitType);
       trackAiResponse('initiated', type, mode === 'blog', question);
       if (type === 'user-input') {
         trackUserPrompt(question);
@@ -299,7 +304,8 @@ function HuskyAi({
   };
 
   // Handles user input and fetches the AI response
-  const onHuskyInput = (query: string) => handleChatSubmission({ question: query, type: 'user-input' });
+  const onHuskyInput = (query: string, submitType: AiQuerySubmitType = 'user-input') =>
+    handleChatSubmission({ question: query, type: 'user-input', submitType });
 
   // Edits the question and tracks the event
   const onQuestionEdit = (question: string) => {
@@ -319,7 +325,7 @@ function HuskyAi({
       return;
     }
     trackRegenerate();
-    await onHuskyInput(query);
+    await onHuskyInput(query, 'regenerate');
   };
 
   useEffect(() => {

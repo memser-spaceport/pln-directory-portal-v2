@@ -22,7 +22,7 @@ import Messages from '@/components/page/husky/messages';
 import ChatFeedback from '@/components/page/husky/chat-feedback';
 import RegisterFormLoader from '@/components/core/register/register-form-loader';
 import { clsx } from 'clsx';
-import { useUnifiedSearchAnalytics } from '@/analytics/unified-search.analytics';
+import { useUnifiedSearchAnalytics, type AiQuerySubmitType } from '@/analytics/unified-search.analytics';
 
 interface Props {
   isLoggedIn?: boolean;
@@ -207,9 +207,11 @@ export const AiChatPanel = ({
     async ({
       question,
       type,
+      submitType = type,
     }: {
       question: string;
       type: 'prompt' | 'followup' | 'user-input';
+      submitType?: AiQuerySubmitType;
       previousContext?: { question: string; answer: string } | null;
     }) => {
       try {
@@ -258,6 +260,7 @@ export const AiChatPanel = ({
           };
         }
 
+        searchAnalytics.onAiQuerySubmitted(question, 'header-dialog', submitType);
         analytics.trackAiResponse('initiated', type, false, question);
 
         if (!hasRefreshToken) {
@@ -296,12 +299,13 @@ export const AiChatPanel = ({
         analytics.trackAiResponse('error', type, false, question);
       }
     },
-    [isLoggedIn, checkAndSetThreadId, addMessage, submitChat, analytics],
+    [isLoggedIn, checkAndSetThreadId, addMessage, submitChat, analytics, searchAnalytics],
   );
 
   // handle husky input submission
   const onHuskyInput = useCallback(
-    (query: string) => handleChatSubmission({ question: query, type: 'user-input' }),
+    (query: string, submitType: AiQuerySubmitType = 'user-input') =>
+      handleChatSubmission({ question: query, type: 'user-input', submitType }),
     [],
   );
 
@@ -363,7 +367,7 @@ export const AiChatPanel = ({
       if (chatIsLoading || (!isOwnThread && fromRef.current === 'detail')) {
         return;
       }
-      onHuskyInput(query);
+      onHuskyInput(query, 'regenerate');
       analytics.trackRegenerate();
     },
     [chatIsLoading],

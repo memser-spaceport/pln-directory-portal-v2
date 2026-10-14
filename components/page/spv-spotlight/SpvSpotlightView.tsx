@@ -223,21 +223,25 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
     if (params) analytics.onOpenDataRoomClicked({ ...params, source });
   };
 
-  const requestDataRoomEmail = async () => {
-    if (sendingDataRoomEmailRef.current || !spotlight) return;
+  const requestDataRoomEmail = (source: SpvDataRoomSource) => {
+    if (sendingDataRoomEmailRef.current || !spotlight?.docSendUrl) return;
+    window.open(spotlight.docSendUrl, '_blank', 'noopener,noreferrer');
+    dataRoomClicked(source);
     sendingDataRoomEmailRef.current = true;
     setSendingDataRoomEmail(true);
     setDataRoomEmailError(false);
-    try {
-      const result = await requestDataRoomAccessEmail(spotlight.slug);
-      setSentDocSendUrl(result.docSendUrl);
-      toast.success('We sent the data room link to your inbox.');
-    } catch {
-      setDataRoomEmailError(true);
-    } finally {
-      sendingDataRoomEmailRef.current = false;
-      setSendingDataRoomEmail(false);
-    }
+    void requestDataRoomAccessEmail(spotlight.slug)
+      .then((result) => {
+        setSentDocSendUrl(result.docSendUrl);
+        toast.success('We sent an email connecting you to the SPV team.');
+      })
+      .catch(() => {
+        setDataRoomEmailError(true);
+      })
+      .finally(() => {
+        sendingDataRoomEmailRef.current = false;
+        setSendingDataRoomEmail(false);
+      });
   };
 
   // Production's AccountMenu logout; AuthBox (mounted on bare routes too) then
@@ -383,12 +387,12 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
     );
   }
 
-  // Approved viewers of an open spotlight get the DocSend. When the spotlight
-  // emails that link first, the URL stays hidden until the email has been sent.
   const dataRoomAlreadySent = spotlight.dataRoomEmailSent || !!sentDocSendUrl;
-  const requestDataRoom = viewState === 'open' && spotlight.emailOnDataRoomRequest && !dataRoomAlreadySent;
-  const dataRoomUrl = sentDocSendUrl ?? (viewState === 'open' ? spotlight.docSendUrl : null);
+  const dataRoomUrl = viewState === 'open' ? sentDocSendUrl ?? spotlight.docSendUrl : null;
+  const requestDataRoom = viewState === 'open' && spotlight.emailOnDataRoomRequest && !dataRoomAlreadySent && !!dataRoomUrl;
   const dataRoomLabel = spotlight.emailOnDataRoomRequest ? 'Open data room' : 'Access data room';
+  const requestLabel = sendingDataRoomEmail ? 'Sending…' : 'Request data room access';
+  const sentNote = sentDocSendUrl ? 'We sent an email connecting you to the SPV team.' : undefined;
   const closesLabel = formatSpvClosesAt(spotlight.closesAt);
 
   const cardAction = (() => {
@@ -420,9 +424,9 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
         if (requestDataRoom) {
           return (
             <SpvCardAction
-              label="Request data room access"
+              label={requestLabel}
               tone="success"
-              onClick={requestDataRoomEmail}
+              onClick={() => requestDataRoomEmail('deal-card')}
               disabled={sendingDataRoomEmail}
               note={
                 dataRoomEmailError ? (
@@ -440,7 +444,14 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
             href={dataRoomUrl}
             tone="success"
             onClick={() => dataRoomClicked('deal-card')}
-            note={closesLabel ? <SpvDataRoomNote closesLabel={closesLabel} /> : undefined}
+            note={
+              sentNote || closesLabel ? (
+                <>
+                  {sentNote}
+                  {closesLabel ? <SpvDataRoomNote closesLabel={closesLabel} /> : null}
+                </>
+              ) : undefined
+            }
           />
         ) : (
           <SpvCardStatus>Data room is being prepared</SpvCardStatus>
@@ -536,11 +547,11 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
           {(dataRoomUrl || requestDataRoom) && (
             <SpvDataRoomBand
               team={spotlight.team}
-              label={requestDataRoom ? 'Request data room access' : dataRoomLabel}
+              label={requestDataRoom ? requestLabel : dataRoomLabel}
               docSendUrl={requestDataRoom ? null : dataRoomUrl}
               closesLabel={closesLabel}
               disabled={sendingDataRoomEmail}
-              onClick={() => (requestDataRoom ? requestDataRoomEmail() : dataRoomClicked('band'))}
+              onClick={() => (requestDataRoom ? requestDataRoomEmail('band') : dataRoomClicked('band'))}
             />
           )}
 

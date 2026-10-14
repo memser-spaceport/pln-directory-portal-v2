@@ -357,6 +357,65 @@ describe('suggestedCandidatesResponseSchema with the LAB-2846 fields', () => {
   });
 });
 
+/**
+ * LAB-2854: criteria gain an optional short `label` and a `group`. Both are
+ * optional so an older backend parses, and a group this page has never heard
+ * of is read as Other rather than failing the whole tab.
+ */
+describe('suggestedCandidatesResponseSchema with structured criteria (LAB-2854)', () => {
+  const withCriterion = (roleCriterion: Record<string, unknown>, personCriterion: Record<string, unknown>) =>
+    suggestedCandidatesResponseSchema.parse({
+      suggestions: [suggestion(1, 'Strong match', { criteria: [personCriterion] })],
+      criteria: [roleCriterion],
+    });
+
+  it('reads label and group on both criterion shapes', () => {
+    const parsed = withCriterion(
+      { text: 'Five years of Rust', enabled: true, label: 'Rust', group: 'Skills' },
+      { text: 'Five years of Rust', matched: false, label: 'Rust', group: 'Skills' },
+    );
+
+    expect(parsed.criteria).toEqual([{ text: 'Five years of Rust', enabled: true, label: 'Rust', group: 'Skills' }]);
+    expect(parsed.suggestions[0].criteria).toEqual([
+      { text: 'Five years of Rust', matched: false, label: 'Rust', group: 'Skills' },
+    ]);
+  });
+
+  it('reads criteria without label or group, as an older backend sends them', () => {
+    const parsed = withCriterion({ text: 'A', enabled: true }, { text: 'A', matched: true });
+
+    expect(parsed.criteria).toEqual([{ text: 'A', enabled: true }]);
+    expect(parsed.suggestions[0].criteria).toEqual([{ text: 'A', matched: true }]);
+  });
+
+  it('reads an unknown group as Other instead of failing', () => {
+    const parsed = withCriterion(
+      { text: 'A', enabled: true, group: 'Education' },
+      { text: 'A', matched: true, group: 42 },
+    );
+
+    expect(parsed.criteria?.[0].group).toBe('Other');
+    expect(parsed.suggestions[0].criteria[0].group).toBe('Other');
+  });
+
+  it('reads a null group or label as no group and no label', () => {
+    const parsed = withCriterion(
+      { text: 'A', enabled: true, label: null, group: null },
+      { text: 'A', matched: true, group: null },
+    );
+
+    expect(parsed.criteria?.[0].group).toBeUndefined();
+    expect(parsed.criteria?.[0].label).toBeNull();
+    expect(parsed.suggestions[0].criteria[0].group).toBeUndefined();
+  });
+
+  it('still fails on an unknown field beside them', () => {
+    expect(() =>
+      withCriterion({ text: 'A', enabled: true, group: 'Skills', weight: 2 }, { text: 'A', matched: true }),
+    ).toThrow();
+  });
+});
+
 describe('selectShownSuggestions', () => {
   it('keeps the server’s order when it is already ranked', () => {
     expect(selectShownSuggestions([suggestion(1), suggestion(2)]).map((row) => row.memberUid)).toEqual(['m-1', 'm-2']);

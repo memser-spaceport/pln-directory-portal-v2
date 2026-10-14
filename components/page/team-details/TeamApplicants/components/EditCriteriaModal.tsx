@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import clsx from 'clsx';
 
 import { Button } from '@/components/common/Button';
@@ -9,6 +9,7 @@ import { Modal } from '@/components/common/Modal';
 import { CloseIcon } from '@/components/icons';
 import { CRITERIA_PROMPT_MAX_LENGTH, type RoleCriterion } from '@/schema/suggested-candidates';
 
+import { criterionLines, groupCriteria } from './criteriaGroups';
 import s from './EditCriteriaModal.module.scss';
 
 interface Props {
@@ -43,8 +44,15 @@ const disabledOf = (criteria: RoleCriterion[]) => new Set(criteria.filter((c) =>
  * posting does not, and the matcher reads it with the requirements. It is
  * saved with the switches, and an emptied box clears the saved prompt.
  *
- * Texts are the keys: the contract sends no ids, and the save names the
- * switched-off ones by text. The draft is reset from the saved list every time
+ * **Grouped, with short labels (LAB-2854, after Polina's prototype).** The
+ * requirements sit under Skills, Experience, Seniority, Location and Other,
+ * each row its short label over the full statement in grey: this is where the
+ * lead decides what counts, so it is the one place the whole sentence is
+ * spelled out. A backend that sends no groups gets one flat list, and a
+ * requirement with no label shows its statement alone, as before.
+ *
+ * Texts (the statements) are the keys: the contract sends no ids, and the
+ * save names the switched-off ones by text. The draft is reset from the saved list every time
  * the modal opens, so Cancel discards; a failed save leaves the modal open on
  * the draft, because the host keeps `isOpen` true.
  */
@@ -62,6 +70,8 @@ export function EditCriteriaModal({ isOpen, onClose, roleTitle, criteria, prompt
     }
   }
 
+  const headingId = useId();
+  const sections = groupCriteria(criteria);
   const saved = disabledOf(criteria);
   const onCount = criteria.filter((c) => !draft.has(c.text)).length;
   const promptText = promptDraft.trim();
@@ -90,10 +100,7 @@ export function EditCriteriaModal({ isOpen, onClose, roleTitle, criteria, prompt
             <h2 id="edit-criteria-title" className={s.title}>
               Edit criteria
             </h2>
-            <p className={s.subtitle}>
-              Choose which requirements of {roleTitle || 'this role'} count when we match people. Changes apply from
-              next week’s suggestions.
-            </p>
+            <p className={s.subtitle}>What counts as a fit for {roleTitle || 'this role'}.</p>
           </div>
           <button type="button" className={s.closeButton} onClick={onClose} aria-label="Close">
             <CloseIcon width={20} height={20} color="#0a0c11" />
@@ -101,23 +108,38 @@ export function EditCriteriaModal({ isOpen, onClose, roleTitle, criteria, prompt
         </div>
 
         <div className={s.content}>
-          <ul className={s.list} aria-label="Requirements">
-            {criteria.map((criterion, index) => {
-              const on = !draft.has(criterion.text);
-              const locked = on && onCount === 1;
-              return (
-                <li key={`${index}-${criterion.text}`}>
-                  <label className={clsx(s.row, locked && s.rowLocked)}>
-                    <Checkbox checked={on} disabled={locked || isSaving} onChange={() => toggle(criterion.text)} />
-                    <span className={s.rowText}>
-                      {criterion.text}
-                      {locked && <span className={s.hint}>At least one requirement stays on.</span>}
-                    </span>
-                  </label>
-                </li>
-              );
-            })}
-          </ul>
+          {sections.map(({ group, items }) => (
+            <div key={group ?? 'all'} className={s.group}>
+              {group && (
+                <p id={`${headingId}-${group}`} className={s.groupLabel}>
+                  {group}
+                </p>
+              )}
+              <ul
+                className={s.list}
+                aria-label={group ? undefined : 'Requirements'}
+                aria-labelledby={group ? `${headingId}-${group}` : undefined}
+              >
+                {items.map(({ criterion, index }) => {
+                  const on = !draft.has(criterion.text);
+                  const locked = on && onCount === 1;
+                  const { primary, statement } = criterionLines(criterion);
+                  return (
+                    <li key={`${index}-${criterion.text}`}>
+                      <label className={clsx(s.row, locked && s.rowLocked)}>
+                        <Checkbox checked={on} disabled={locked || isSaving} onChange={() => toggle(criterion.text)} />
+                        <span className={s.rowText}>
+                          {primary}
+                          {statement && <span className={s.statement}>{statement}</span>}
+                          {locked && <span className={s.hint}>At least one requirement stays on.</span>}
+                        </span>
+                      </label>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
 
           <div className={s.prompt}>
             <label className={s.promptLabel} htmlFor="edit-criteria-prompt">
@@ -142,12 +164,15 @@ export function EditCriteriaModal({ isOpen, onClose, roleTitle, criteria, prompt
         </div>
 
         <div className={s.footer}>
-          <Button style="border" variant="neutral" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button disabled={!changed || promptTooLong || isSaving} onClick={save}>
-            {isSaving ? 'Saving…' : 'Save'}
-          </Button>
+          <p className={s.footerNote}>Changes apply from next week’s suggestions.</p>
+          <div className={s.footerActions}>
+            <Button style="border" variant="neutral" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button disabled={!changed || promptTooLong || isSaving} onClick={save}>
+              {isSaving ? 'Saving…' : 'Save'}
+            </Button>
+          </div>
         </div>
       </div>
     </Modal>

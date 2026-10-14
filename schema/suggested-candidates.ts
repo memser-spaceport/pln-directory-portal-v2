@@ -18,11 +18,41 @@ import { z } from 'zod';
  * whole tab.
  */
 
+/**
+ * The headers a role's requirements sit under (LAB-2854), in the order the
+ * Edit criteria modal and the Why suggested pane show them.
+ */
+export const CRITERION_GROUPS = ['Skills', 'Experience', 'Seniority', 'Location', 'Other'] as const;
+export type CriterionGroup = (typeof CRITERION_GROUPS)[number];
+
+const isCriterionGroup = (value: unknown): value is CriterionGroup =>
+  (CRITERION_GROUPS as readonly unknown[]).includes(value);
+
+/**
+ * A requirement's group (LAB-2854). Absent (or null) on a backend that does
+ * not group yet, and the page then lists the requirements without headers.
+ * A value this page has never heard of is read as `Other` rather than failing
+ * the parse: a sixth group added on the server must not cost the whole tab.
+ */
+const criterionGroupSchema = z.preprocess(
+  (value) => (value === undefined || value === null ? undefined : isCriterionGroup(value) ? value : 'Other'),
+  z.enum(CRITERION_GROUPS).optional(),
+);
+
+/**
+ * The short name over the requirement's full statement (LAB-2854), at most 40
+ * characters on the server. Absent on an older backend; `text` stays the
+ * statement and the key either way.
+ */
+const criterionLabelSchema = z.string().nullable().optional();
+
 /** One of the role's requirements, and whether this profile shows it. */
 export const suggestedCriterionSchema = z
   .object({
     text: z.string().min(1),
     matched: z.boolean(),
+    label: criterionLabelSchema,
+    group: criterionGroupSchema,
   })
   .strict();
 
@@ -57,13 +87,17 @@ export const suggestedCandidateSchema = z
 /**
  * One of the ROLE's requirements and whether the team counts it when matching
  * (LAB-2846). Not the same thing as `suggestedCriterionSchema`, which says
- * whether one person meets a requirement. Keyed by its text: the contract
- * sends no ids, and `PUT match-criteria` names the switched-off ones by text.
+ * whether one person meets a requirement. Keyed by its text (the full
+ * statement): the contract sends no ids, and `PUT match-criteria` names the
+ * switched-off ones by text — also once the backend sends `label` and `group`
+ * (LAB-2854), which are for display only.
  */
 export const roleCriterionSchema = z
   .object({
     text: z.string().min(1),
     enabled: z.boolean(),
+    label: criterionLabelSchema,
+    group: criterionGroupSchema,
   })
   .strict();
 

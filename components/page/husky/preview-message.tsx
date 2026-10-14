@@ -7,8 +7,11 @@ import ChatMessageActions from '@/components/page/husky/chat-actions';
 import DirectoryResults from './directory-results';
 import { AnswerSources } from './AnswerSources';
 import { AnswerThumbs } from './AnswerThumbs';
+import { AnswerFeedbackReasons } from './AnswerFeedbackReasons';
+import { useAnswerFeedback } from './hooks/useAnswerFeedback';
 interface PreviewMessageProps {
   message: {
+    id: string;
     answer: string;
     question: string;
     relatedResults: Array<{ name: string; role: string }>;
@@ -18,7 +21,9 @@ interface PreviewMessageProps {
     actions: Array<{ name: string; type: string; directoryLink: string }>;
     isError?: boolean;
     sql: Array<{ name: string; type: string; source: string }>;
+    feedback?: { rating: number };
   };
+  threadId?: string;
   isLastIndex: boolean;
   onFollowupClicked: (question: string) => void;
   onRegenerate?: (question: string) => void;
@@ -43,8 +48,16 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({
   isStreaming,
   showRating,
   canRate,
+  threadId,
 }) => {
   const showThumbs = !isStreaming && !message.isError && showRating;
+  const { feedback, hasError, onUp, onDown, onSendReasons, onSkipReasons } = useAnswerFeedback({
+    answerId: message.id,
+    threadId,
+    question: message.question || '',
+    answer: message.answer || '',
+    savedVote: message.feedback,
+  });
 
   return (
     <div className={`preview-message`}>
@@ -104,16 +117,13 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({
             hideActions={message.isError || false}
             feedbackSlot={
               showThumbs && (
-                <AnswerThumbs
-                  key={`${message.question}::${message.answer}`}
-                  question={message.question || ''}
-                  answer={message.answer || ''}
-                  disabled={!canRate}
-                />
+                <AnswerThumbs feedback={feedback} hasError={hasError} disabled={!canRate} onUp={onUp} onDown={onDown} />
               )
             }
             sourcesSlot={!isStreaming && <AnswerSources sources={message.sources} sourceRefs={message.sourceRefs} />}
           />
+
+          {showThumbs && feedback === 'down' && <AnswerFeedbackReasons onSend={onSendReasons} onSkip={onSkipReasons} />}
         </div>
       )}
       <style jsx>{`

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Chat from './chat';
+import { generateUUID } from '@/utils/common.utils';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { useRouter } from 'next/navigation';
 import type { IVisitChat } from './types/visitChat';
@@ -61,7 +62,7 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
         localStorage.removeItem('initialChat');
         queueMicrotask(() => {
           setType(parsedChat.type);
-          setInitialMessages([{ ...parsedChat.message, isError: false }]);
+          setInitialMessages([{ ...parsedChat.message, id: generateUUID(), isError: false }]);
         });
       } catch (error) {
         console.error('Error parsing initial chat:', error);

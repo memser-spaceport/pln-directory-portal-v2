@@ -34,7 +34,7 @@ export const getSpvFaqItems = ({
   {
     question: 'How do I see the materials?',
     answer: emailOnDataRoomRequest
-      ? 'Request data room access emails you the DocSend link. After that email is sent, Open data room opens the link.'
+      ? 'Request data room access opens the data room and sends an email connecting you to the SPV team. After that, Open data room opens the link.'
       : "Access data room opens the SPV's data room on DocSend.",
   },
   {

@@ -429,31 +429,46 @@ describe('SpvSpotlightView — gated (the default)', () => {
       expect(screen.queryByRole('button', { name: /your investor profile/ })).not.toBeInTheDocument();
     });
 
-    it('emails the link from Request data room access, then opens it from Open data room', async () => {
-      mockRequestDataRoomEmail.mockResolvedValue({ docSendUrl: 'https://docsend.com/view/x' });
+    it('opens DocSend and emails the SPV team from Request data room access', async () => {
+      const open = jest.spyOn(window, 'open').mockImplementation(() => null);
+      let resolveSend: (value: { docSendUrl: string }) => void = () => undefined;
+      mockRequestDataRoomEmail.mockReturnValue(
+        new Promise((resolve) => {
+          resolveSend = resolve;
+        }),
+      );
       renderView('OPEN', 'APPROVED', {
         signedIn: true,
         initial: false,
-        overrides: { emailOnDataRoomRequest: true, dataRoomEmailSent: false, docSendUrl: null },
+        overrides: {
+          emailOnDataRoomRequest: true,
+          dataRoomEmailSent: false,
+          docSendUrl: 'https://docsend.com/view/x',
+        },
       });
       const request = within(dealCard()).getByRole('button', { name: /Request data room access/ });
       expect(
         within(band() as HTMLElement).getByRole('button', { name: /Request data room access/ }),
       ).toBeInTheDocument();
-      expect(screen.queryByRole('link', { name: /Open data room/ })).not.toBeInTheDocument();
 
       await userEvent.click(request);
 
+      expect(open).toHaveBeenCalledWith('https://docsend.com/view/x', '_blank', 'noopener,noreferrer');
+      expect(within(dealCard()).getByRole('button', { name: /Sending/ })).toBeDisabled();
+      resolveSend({ docSendUrl: 'https://docsend.com/view/x' });
+
       expect(mockRequestDataRoomEmail).toHaveBeenCalledWith(MOCK_SPV_SLUG);
-      expect(toast.success).toHaveBeenCalledWith('We sent the data room link to your inbox.');
-      expect(within(dealCard()).getByRole('link', { name: /Open data room/ })).toHaveAttribute(
+      expect(await within(dealCard()).findByRole('link', { name: /Open data room/ })).toHaveAttribute(
         'href',
         'https://docsend.com/view/x',
       );
+      expect(within(dealCard()).getByText('We sent an email connecting you to the SPV team.')).toBeInTheDocument();
+      expect(toast.success).toHaveBeenCalledWith('We sent an email connecting you to the SPV team.');
       expect(within(band() as HTMLElement).getByRole('link', { name: /Open data room/ })).toHaveAttribute(
         'href',
         'https://docsend.com/view/x',
       );
+      open.mockRestore();
     });
 
     it('opens the data room when the email was already sent', () => {
@@ -474,7 +489,7 @@ describe('SpvSpotlightView — gated (the default)', () => {
         'href',
         'https://docsend.com/view/x',
       );
-      expect(screen.getByText(/Request data room access emails you the DocSend link/)).toBeInTheDocument();
+      expect(screen.getByText(/Request data room access opens the data room and sends an email/)).toBeInTheDocument();
     });
 
     it('links the data room from the SPV card', () => {

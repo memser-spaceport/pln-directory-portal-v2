@@ -67,7 +67,9 @@ const ThreadItem = ({ thread, isActive, isMobile, toggleSidebar, handleDeleteMod
       className="sidebar__body__history__list__ul__li"
       onClick={handleClick}
     >
-      <span className="sidebar__body__history__list__ul__li__text">{thread.title}</span>
+      <span className="sidebar__body__history__list__ul__li__text" title={thread.title}>
+        {thread.title}
+      </span>
       <div className="sidebar__body__history__list__ul__li__actions">
         <button onClick={handleDeleteClick} className="sidebar__body__history__list__ul__li__actions__button">
           <img width={20} height={20} src="/icons/delete-icon.svg" alt="delete" />
@@ -865,6 +867,7 @@ const SkeletonLoader = () => (
         height: 2rem;
         border-radius: 0.375rem;
       }
+
       .skeleton {
         height: 1rem;
         border-radius: 0.375rem;

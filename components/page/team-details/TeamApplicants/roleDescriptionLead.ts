@@ -11,10 +11,12 @@ import { stripHtmlPreservingBreaks } from '@/utils/forum/stripHtml';
  */
 export function roleDescriptionLead(descriptionHtml: string | null | undefined): string {
   if (!descriptionHtml) return '';
-  const paragraphs = stripHtmlPreservingBreaks(descriptionHtml).split(/\n{2,}/);
-  for (const paragraph of paragraphs) {
-    const flat = paragraph.replace(/\s+/g, ' ').trim();
-    if (flat) return flat;
-  }
-  return '';
+  const paragraphs = stripHtmlPreservingBreaks(descriptionHtml)
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.replace(/\s+/g, ' ').trim())
+    .filter(Boolean);
+  // Postings often open with a heading ("About", "Who we are"); the lead is the first paragraph that reads as prose.
+  return paragraphs.find(isProse) ?? paragraphs[0] ?? '';
 }
+
+const isProse = (text: string): boolean => text.length >= 40 || /[.!?:]$/.test(text);

@@ -6,6 +6,7 @@ import { useMeasure } from 'react-use';
 import { ISLANDS, MAP_STATES, type IslandId } from '../data/islands';
 import type { PortfolioTeam } from '../data/portfolio';
 import { directoryUrl, displayNameOf } from '../data/directoryUrl';
+import { logoSrc } from '../data/logoSrc';
 import s from './PortfolioPanel.module.scss';
 
 /**
@@ -221,7 +222,7 @@ export const IslandsMap = ({ teams, header, onTileOpened, onProfileClicked }: Pr
                   >
                     <polygon points={HEX} fill={hovered?.logo.id === t.logo.id ? sink(t.color) : t.color} />
                     <image
-                      href={t.logo.logo}
+                      href={logoSrc(t.logo.logo)}
                       x={-LOGO / 2}
                       y={-LOGO / 2}
                       width={LOGO}
@@ -256,7 +257,7 @@ export const IslandsMap = ({ teams, header, onTileOpened, onProfileClicked }: Pr
             <div className={s.islandsCard} role="dialog" aria-label={displayNameOf(selected)}>
               <svg className={s.cardHex} viewBox="-9 -9 18 18" aria-hidden>
                 <polygon points={CARD_HEX} fill={islandOf(selected.island).color} />
-                <image href={selected.logo} x={-5.4} y={-5.4} width={10.8} height={10.8} />
+                <image href={logoSrc(selected.logo)} x={-5.4} y={-5.4} width={10.8} height={10.8} />
               </svg>
               <div className={s.cardBody}>
                 <span className={s.cardName}>{displayNameOf(selected)}</span>

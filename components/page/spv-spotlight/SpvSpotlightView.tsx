@@ -420,6 +420,7 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
           return (
             <SpvCardAction
               label="Request data room access"
+              tone="success"
               onClick={requestDataRoomEmail}
               disabled={sendingDataRoomEmail}
               note={

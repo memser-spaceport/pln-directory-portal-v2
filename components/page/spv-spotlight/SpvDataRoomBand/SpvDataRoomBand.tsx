@@ -50,7 +50,7 @@ export function SpvDataRoomBand({ team, label, docSendUrl, closesLabel, onClick,
         <SpvCardAction
           label={label}
           href={docSendUrl ?? undefined}
-          tone={docSendUrl ? 'success' : 'brand'}
+          tone="success"
           stretch={!!docSendUrl}
           onClick={onClick}
           disabled={disabled}

@@ -69,7 +69,15 @@ export async function requestSpvAccess(
 
 /** Sends the data room email once. The response carries the DocSend link for the next click. */
 export async function requestDataRoomAccessEmail(slug: string): Promise<{ docSendUrl: string }> {
-  const response = await customFetch(`${spotlightUrl(slug)}/data-room-access-email`, { method: 'POST' }, true);
+  const response = await customFetch(
+    `${spotlightUrl(slug)}/data-room-access-email`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    },
+    true,
+  );
   if (!response?.ok) {
     throw new Error('Failed to send the data room email');
   }

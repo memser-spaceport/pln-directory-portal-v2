@@ -444,6 +444,7 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
             href={dataRoomUrl}
             tone="success"
             onClick={() => dataRoomClicked('deal-card')}
+            wideNote={!!sentNote}
             note={
               sentNote || closesLabel ? (
                 <>

@@ -231,6 +231,7 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
     try {
       const result = await requestDataRoomAccessEmail(spotlight.slug);
       setSentDocSendUrl(result.docSendUrl);
+      toast.success('We sent the data room link to your inbox.');
     } catch {
       setDataRoomEmailError(true);
     } finally {

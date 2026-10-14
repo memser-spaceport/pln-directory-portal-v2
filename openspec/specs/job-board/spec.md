@@ -103,7 +103,7 @@ Apply SHALL leave the site for the team's own posting when the team does not tak
 
 ### Requirement: Suggestions response with or without contact and criteria fields
 
-The Suggested tab SHALL load when the suggestions response carries `contactedAt` per person and a role-level `criteria` list, and SHALL also load when it carries neither. Any other field the page does not know SHALL still fail the read.
+The Suggested tab SHALL load when the suggestions response carries `contactedAt` per person, a role-level `criteria` list and a role-level `criteriaPrompt` (string or null), and SHALL also load when it carries none of them. Any other field the page does not know SHALL still fail the read.
 
 #### Scenario: Older response without the new fields
 
@@ -119,21 +119,55 @@ The Suggested tab SHALL load when the suggestions response carries `contactedAt`
 - **THEN** the tab lists the suggestions
 - **AND** the "Why suggested" pane offers "Edit criteria"
 
-### Requirement: Role description on the Suggested tab
+### Requirement: List head on every tab
 
-The Suggested tab SHALL show a short plain-text description of the selected role, from the role the page already loaded, cut to at most two lines. A role without a description SHALL show no description line.
+Above the tabs, the candidates list SHALL show the selected role's title as a heading and, under it, the first non-empty paragraph of the role's posting as plain text, cut to at most three lines. This SHALL show on the Applied, Interested and Suggested tabs. A role without a description SHALL show the title and no paragraph.
 
 #### Scenario: Role with a description
 
-- **GIVEN** the selected role has a posting description
-- **WHEN** the lead opens the Suggested tab
-- **THEN** the tab shows the description as plain text, at most two lines, with no markup
+- **GIVEN** the selected role's posting is `<p>Build <strong>consensus</strong>.</p><p>More.</p>`
+- **WHEN** a lead opens any tab of the candidates page
+- **THEN** the list head shows the role title as a heading
+- **AND** under it "Build consensus." as plain text, at most three lines, with no markup
 
 #### Scenario: Role without a description
 
 - **GIVEN** the selected role has no posting description
-- **WHEN** the lead opens the Suggested tab
-- **THEN** no description line is shown and the rest of the tab is unchanged
+- **WHEN** a lead opens the candidates page
+- **THEN** the list head shows the role title and no paragraph
+
+### Requirement: Match band badge
+
+A suggestion's band SHALL show as a pill: "Strong match" with a green-to-blue-to-indigo gradient, "Good match" with a teal-green gradient, white text. It SHALL look the same as the badge in the suggested-candidates email.
+
+#### Scenario: Two bands in the list
+
+- **GIVEN** the Suggested tab lists a Strong match and a Good match
+- **WHEN** the lead reads the list
+- **THEN** each row shows its band as a gradient pill in its own tone
+
+### Requirement: Suggested row
+
+A row on the Suggested tab SHALL show three lines: the name, the person's role, and "N of M requirements". The count SHALL always read "N of M", also when the person meets all of them ("5 of 5"). When a lead of the team has contacted the person for this role, the count line SHALL end with "· Contacted <relative time>". The row SHALL show no Interested mark and no note; the pane shows both. Rows on the Applied and Interested tabs SHALL not change.
+
+#### Scenario: Person who meets every requirement
+
+- **GIVEN** a suggestion meets 5 of the role's 5 requirements
+- **WHEN** the lead reads the Suggested tab
+- **THEN** the row reads "5 of 5 requirements", not "All 5 requirements"
+
+#### Scenario: Contacted person
+
+- **GIVEN** a lead contacted a suggested member two days ago
+- **WHEN** the lead reads the Suggested tab
+- **THEN** the row reads "N of M requirements · Contacted 2d ago"
+
+#### Scenario: Interested person
+
+- **GIVEN** a suggested member said they are interested and wrote a note
+- **WHEN** the lead reads the Suggested tab
+- **THEN** the row shows no Interested mark and no note
+- **AND** opening the row shows the Interested mark and the whole note in the pane
 
 ### Requirement: Requirement count on a suggestion
 
@@ -147,15 +181,34 @@ The "Why suggested" pane SHALL show "N of M requirements", where M is the number
 
 ### Requirement: Edit a role's match criteria
 
-From the "Why suggested" pane, a lead SHALL be able to open "Edit criteria", switch each of the role's requirements on or off, and save. The modal SHALL say the change applies from next week's suggestions. The modal SHALL offer no free-text field.
+From the "Why suggested" pane, a lead SHALL be able to open "Edit criteria", switch each of the role's requirements on or off, write who they are looking for in one free-text box ("Tell us who you're looking for", at most 500 characters), and save both together. The box SHALL open on the saved prompt (`criteriaPrompt`). The modal SHALL say the change applies from next week's suggestions.
 
 #### Scenario: Lead saves switched-off requirements
 
 - **GIVEN** a lead opens "Edit criteria" for a role with requirements A, B and C, all on
 - **WHEN** the lead switches B off and saves
-- **THEN** the client sends `PUT /v1/job-openings/<roleUid>/match-criteria` with `{ "disabled": ["B"] }`
+- **THEN** the client sends `PUT /v1/job-openings/<roleUid>/match-criteria` with `{ "disabled": ["B"], "prompt": null }`
 - **AND** the modal closes
 - **AND** the current suggestions and their requirement counts do not change
+
+#### Scenario: Lead saves a prompt
+
+- **GIVEN** a lead opens "Edit criteria" and the role has no saved prompt
+- **WHEN** the lead types "Ran a storage network" in the box and saves
+- **THEN** the request body carries `"prompt": "Ran a storage network"` (trimmed) with the switches
+- **AND** the next open of the modal shows the saved prompt
+
+#### Scenario: Lead clears the prompt
+
+- **GIVEN** a role has a saved prompt
+- **WHEN** the lead empties the box and saves
+- **THEN** the request body carries `"prompt": null`
+- **AND** the prompt is cleared
+
+#### Scenario: Prompt too long
+
+- **WHEN** the box holds more than 500 characters
+- **THEN** Save is disabled
 
 #### Scenario: Saved switches survive a reload
 
@@ -204,12 +257,12 @@ If the server refuses a criteria save, the page SHALL show an error toast, keep 
 
 ### Requirement: Contact a suggested member
 
-On the Suggested tab, the pane SHALL offer "Contact" instead of the `mailto:` "Email" button. "Contact" SHALL open a modal with one message field, prefilled with a template, at most 2000 characters, and no subject. Send SHALL post the message through the platform. The Applied and Interested tabs SHALL keep "Email".
+On the Suggested tab, the pane SHALL offer "Contact" instead of the `mailto:` "Email" button. "Contact" SHALL open a modal with one message field, prefilled with a template, at most 2000 characters, and no subject. The template SHALL greet the member by first name, introduce the lead by first name with their role on the team (or just the team when the role is unknown), name the role, ask for a short call, and sign off with the lead's first name. The subtitle SHALL link the role to its public posting (`/jobs/openings/<uid>`) in a new tab. The field SHALL carry the helper "Say what caught your eye in <first name>'s profile". The send button SHALL read "Send email" and SHALL post the message through the platform. The Applied and Interested tabs SHALL keep "Email".
 
 #### Scenario: Lead sends a message
 
 - **GIVEN** a lead opens a suggested member who has not been contacted for this role
-- **WHEN** the lead presses "Contact", edits the prefilled message and presses Send
+- **WHEN** the lead presses "Contact", edits the prefilled message and presses "Send email"
 - **THEN** the client sends `POST /v1/job-openings/<roleUid>/suggested-candidates/<memberUid>/contact` with `{ "message": <text> }`
 - **AND** the modal closes
 - **AND** the button reads "Contacted · <date>" with the date from the server's `contactedAt`
@@ -218,7 +271,15 @@ On the Suggested tab, the pane SHALL offer "Contact" instead of the `mailto:` "E
 
 - **GIVEN** the Contact modal is open
 - **WHEN** the message is empty or longer than 2000 characters
-- **THEN** Send is disabled
+- **THEN** "Send email" is disabled
+
+#### Scenario: Prefilled template
+
+- **GIVEN** the lead is Maya Chen, Head of Engineering at Filecoin Foundation
+- **WHEN** she opens Contact for Ana Lopez on the Senior Rust Engineer role
+- **THEN** the message starts "Hi Ana," and introduces "I'm Maya, Head of Engineering at Filecoin Foundation. I'm hiring for our Senior Rust Engineer role."
+- **AND** it ends "Thanks," and "Maya"
+- **AND** "Senior Rust Engineer" in the subtitle links to `/jobs/openings/<roleUid>`
 
 #### Scenario: Other tabs keep Email
 
@@ -228,7 +289,7 @@ On the Suggested tab, the pane SHALL offer "Contact" instead of the `mailto:` "E
 
 #### Scenario: Analytics event on send
 
-- **GIVEN** a lead presses Send in the Contact modal
+- **GIVEN** a lead presses "Send email" in the Contact modal
 - **WHEN** the server accepts the message
 - **THEN** the page sends the PostHog event `job-suggested-candidate-contacted`
 - **AND** no event is sent when the lead only opens or closes the modal
@@ -261,3 +322,61 @@ If the server refuses a message for any reason other than 409, the page SHALL sh
 - **THEN** an error toast shows
 - **AND** the modal stays open with the message text unchanged
 - **AND** the button still reads "Contact"
+
+### Requirement: Candidates page URL params
+
+The candidates page (`/teams/<id>/applicants`) SHALL open the Suggested tab when the URL has `tab=suggested`. When the URL has `edit=criteria`, the page SHALL open the Suggested tab and, once the role's criteria have loaded, open "Edit criteria" once if the role has criteria to edit. The page SHALL then remove `edit` from the URL without a navigation. `suggested=<memberUid>` SHALL keep opening that person.
+
+#### Scenario: Link from the founder email
+
+- **GIVEN** a role with applicants and suggestions
+- **WHEN** a lead opens `/teams/T/applicants?role=R&tab=suggested`
+- **THEN** the page opens on the Suggested tab
+
+#### Scenario: Edit criteria link
+
+- **GIVEN** the role has criteria to edit
+- **WHEN** a lead opens `/teams/T/applicants?role=R&tab=suggested&edit=criteria`
+- **THEN** the "Edit criteria" modal opens once the criteria load
+- **AND** the URL no longer has `edit`, and a reload does not open the modal again
+
+#### Scenario: Edit criteria link for a role with nothing to edit
+
+- **GIVEN** the role has no criteria
+- **WHEN** a lead opens the page with `edit=criteria`
+- **THEN** no modal opens and `edit` is removed from the URL
+
+### Requirement: Suggested link on the role row
+
+On the team profile, a role's count line SHALL show "N suggested" as its own link when the role has suggestions. It SHALL open `/teams/<id>/applicants?role=<uid>&tab=suggested`. The applicants and interested count SHALL keep its own link, without `tab`.
+
+#### Scenario: Role with applicants and suggestions
+
+- **GIVEN** a role has 2 applicants and 3 suggestions
+- **WHEN** a lead reads the role row
+- **THEN** "2 applicants" links to `/teams/T/applicants?role=R`
+- **AND** "3 suggested" links to `/teams/T/applicants?role=R&tab=suggested`
+
+### Requirement: Narrow-screen back label
+
+On a narrow screen, with a person open, the control that returns to the list SHALL read "All candidates".
+
+#### Scenario: Back to the list
+
+- **GIVEN** a narrow screen and a person open in the pane
+- **WHEN** the lead presses "All candidates"
+- **THEN** the list shows again
+
+### Requirement: Suggested tab view analytics source
+
+The `job-suggested-candidates-viewed` event SHALL carry `source` and `utm_content`. `source` SHALL be `email` when the page was opened with `utm_source` `job_suggested_candidates_email` or `job_suggested_candidate_intro_email`, and `app` otherwise. Only the first Suggested tab view after arrival SHALL count as from email; a later role's view is `app` with `utm_content` null.
+
+#### Scenario: Arrival from the founder email
+
+- **WHEN** a lead opens the page with `utm_source=job_suggested_candidates_email&utm_content=all_matches` and the Suggested tab shows
+- **THEN** the event carries `source: "email"` and `utm_content: "all_matches"`
+
+#### Scenario: Arrival from the app
+
+- **WHEN** a lead opens the Suggested tab with no such `utm_source`
+- **THEN** the event carries `source: "app"`

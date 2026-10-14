@@ -4,6 +4,7 @@ import { memo } from 'react';
 
 interface MessagesProps {
   messages: {
+    id: string;
     answer: string;
     question: string;
     relatedResults: Array<{ name: string; role: string }>;
@@ -12,7 +13,9 @@ interface MessagesProps {
     actions: Array<{ name: string; type: string; directoryLink: string }>;
     isError?: boolean;
     sql: Array<{ name: string; type: string; source: string }>;
+    feedback?: { rating: number };
   }[];
+  threadId?: string;
   isAnswerLoading: boolean;
   statusLine?: string;
   onRegenerate?: (question: string) => void;
@@ -37,14 +40,16 @@ const Messages: React.FC<MessagesProps> = ({
   isStreaming,
   showRating,
   canRate,
+  threadId,
 }) => {
   return (
     <>
       <div className="chat__messages">
         {messages.map((message, index) => (
           <PreviewMessage
-            key={`message-${index}`}
+            key={message.id}
             message={message}
+            threadId={threadId}
             isLastIndex={index === messages.length - 1}
             onFollowupClicked={onFollowupClicked}
             onRegenerate={onRegenerate}

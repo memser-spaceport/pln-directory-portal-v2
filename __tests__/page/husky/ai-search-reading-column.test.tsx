@@ -20,8 +20,10 @@ jest.mock('@/analytics/husky.analytics', () => ({
 }));
 
 const saveFeedback = jest.fn();
+const removeFeedback = jest.fn();
 jest.mock('@/services/husky.service', () => ({
   saveFeedback: (...args: unknown[]) => saveFeedback(...args),
+  removeFeedback: (...args: unknown[]) => removeFeedback(...args),
 }));
 
 const getMemberInfo = jest.fn();
@@ -37,6 +39,7 @@ jest.mock('@/utils/fetch-wrapper', () => ({
 import PreviewMessage from '@/components/page/husky/preview-message';
 
 const baseMessage = {
+  id: 'answer-1',
   question: 'Which teams work on storage?',
   answer: 'Saturn Grid works on storage.',
   relatedResults: [],
@@ -58,11 +61,15 @@ const baseMessage = {
 const noop = () => {};
 const asyncNoop = async () => {};
 
-function renderMessage(overrides: Record<string, unknown> = {}, message = baseMessage) {
+function renderMessage(
+  overrides: Record<string, unknown> = {},
+  message: typeof baseMessage & { feedback?: { rating: number } } = baseMessage,
+) {
   return render(
     <PreviewMessage
       message={message}
       isLastIndex
+      threadId="thread-1"
       onFollowupClicked={noop}
       onRegenerate={noop}
       onQuestionEdit={noop}
@@ -124,15 +131,18 @@ describe('AI Search page answer: reading column layout', () => {
     expect(screen.getByRole('button', { name: 'Good answer' })).toBeInTheDocument();
   });
 
-  it('records a thumbs up once, shows the chosen state and blocks a second send', async () => {
+  it('saves a thumbs up for this answer and shows the receipt', async () => {
     saveFeedback.mockResolvedValue({ isSaved: true });
     renderMessage();
 
     const up = screen.getByRole('button', { name: 'Good answer' });
     fireEvent.click(up);
 
-    await waitFor(() => expect(up).toHaveAttribute('aria-pressed', 'true'));
-    expect(saveFeedback).toHaveBeenCalledTimes(1);
+    expect(up).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('status')).toHaveTextContent('Thanks for your response');
+    await waitFor(() =>
+      expect(trackFeedbackStatus).toHaveBeenCalledWith('success', 'up', 'Which teams work on storage?'),
+    );
     expect(saveFeedback).toHaveBeenCalledWith(
       'token',
       expect.objectContaining({
@@ -140,32 +150,93 @@ describe('AI Search page answer: reading column layout', () => {
         comment: '',
         prompt: 'Which teams work on storage?',
         response: 'Saturn Grid works on storage.',
+        threadId: 'thread-1',
+        questionId: 'answer-1',
       }),
     );
-    expect(trackFeedbackStatus).toHaveBeenCalledWith('success', 'up', 'Which teams work on storage?');
     expect(trackFeedbackClick).toHaveBeenCalledWith('Which teams work on storage?', 'Saturn Grid works on storage.');
-
-    const down = screen.getByRole('button', { name: 'Not helpful' });
-    expect(up).toBeDisabled();
-    expect(down).toBeDisabled();
-    fireEvent.click(down);
-    fireEvent.click(up);
-    expect(saveFeedback).toHaveBeenCalledTimes(1);
   });
 
-  it('sends a thumbs down as rating 1', async () => {
+  it('takes the vote back when the chosen thumb is pressed again', async () => {
+    saveFeedback.mockResolvedValue({ isSaved: true });
+    removeFeedback.mockResolvedValue({ isSaved: true });
+    renderMessage();
+
+    const up = screen.getByRole('button', { name: 'Good answer' });
+    fireEvent.click(up);
+    fireEvent.click(up);
+
+    expect(up).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    await waitFor(() => expect(removeFeedback).toHaveBeenCalledWith('token', 'answer-1'));
+    // The removal waits for the save, so the server ends on the last press.
+    expect(saveFeedback.mock.invocationCallOrder[0]).toBeLessThan(removeFeedback.mock.invocationCallOrder[0]);
+  });
+
+  it('switches the vote from up to down', async () => {
     saveFeedback.mockResolvedValue({ isSaved: true });
     renderMessage();
 
-    const down = screen.getByRole('button', { name: 'Not helpful' });
-    fireEvent.click(down);
+    fireEvent.click(screen.getByRole('button', { name: 'Good answer' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Not helpful' }));
 
-    await waitFor(() => expect(down).toHaveAttribute('aria-pressed', 'true'));
-    expect(saveFeedback).toHaveBeenCalledWith('token', expect.objectContaining({ rating: 1, comment: '' }));
-    expect(trackFeedbackStatus).toHaveBeenCalledWith('success', 'down', 'Which teams work on storage?');
+    expect(screen.getByRole('button', { name: 'Good answer' })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByRole('button', { name: 'Not helpful' })).toHaveAttribute('aria-pressed', 'true');
+    await waitFor(() => expect(saveFeedback).toHaveBeenCalledTimes(2));
+    expect(saveFeedback).toHaveBeenLastCalledWith('token', expect.objectContaining({ rating: 1 }));
+    expect(removeFeedback).not.toHaveBeenCalled();
   });
 
-  it('shows an inline error when the save fails and lets the member tap again', async () => {
+  it('asks what was wrong after a thumbs down and sends the picked reasons', async () => {
+    saveFeedback.mockResolvedValue({ isSaved: true });
+    renderMessage();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Not helpful' }));
+    await waitFor(() => expect(saveFeedback).toHaveBeenCalledWith('token', expect.objectContaining({ rating: 1 })));
+    expect(screen.getByText('What was wrong?')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Out of date' }));
+    fireEvent.change(screen.getByPlaceholderText('Anything else? (optional)'), { target: { value: ' Old team ' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    await waitFor(() => expect(screen.queryByText('What was wrong?')).not.toBeInTheDocument());
+    expect(saveFeedback).toHaveBeenLastCalledWith(
+      'token',
+      expect.objectContaining({ rating: 1, reasons: ['Out of date'], comment: 'Old team', questionId: 'answer-1' }),
+    );
+    expect(screen.getByRole('status')).toHaveTextContent('Thanks for your response');
+    expect(screen.getByRole('button', { name: 'Not helpful' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('closes the reasons on Skip without another request, keeping the thumbs down', async () => {
+    saveFeedback.mockResolvedValue({ isSaved: true });
+    renderMessage();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Not helpful' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Skip' }));
+
+    expect(screen.queryByText('What was wrong?')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Not helpful' })).toHaveAttribute('aria-pressed', 'true');
+    await waitFor(() =>
+      expect(trackFeedbackStatus).toHaveBeenCalledWith('success', 'down', 'Which teams work on storage?'),
+    );
+    expect(saveFeedback).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the picked reasons when sending them fails', async () => {
+    saveFeedback.mockResolvedValueOnce({ isSaved: true }).mockResolvedValueOnce({ isError: true, status: 500 });
+    renderMessage();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Not helpful' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Wrong matches' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/could not save your rating/i);
+    expect(screen.getByText('What was wrong?')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Send' })).not.toBeDisabled();
+  });
+
+  it('puts the thumbs back and shows an error when the save fails', async () => {
     saveFeedback.mockResolvedValueOnce({ isError: true, status: 500 }).mockResolvedValueOnce({ isSaved: true });
     renderMessage();
 
@@ -174,13 +245,20 @@ describe('AI Search page answer: reading column layout', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/could not save your rating/i);
     expect(trackFeedbackStatus).toHaveBeenCalledWith('error', 'up', 'Which teams work on storage?');
-    expect(up).not.toBeDisabled();
     expect(up).toHaveAttribute('aria-pressed', 'false');
 
     fireEvent.click(up);
-    await waitFor(() => expect(up).toHaveAttribute('aria-pressed', 'true'));
-    expect(saveFeedback).toHaveBeenCalledTimes(2);
+    expect(up).toHaveAttribute('aria-pressed', 'true');
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    await waitFor(() => expect(saveFeedback).toHaveBeenCalledTimes(2));
+  });
+
+  it('shows the vote saved before the chat was reopened', () => {
+    renderMessage({}, { ...baseMessage, feedback: { rating: 1 } });
+
+    expect(screen.getByRole('button', { name: 'Not helpful' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('status')).toHaveTextContent('Thanks for your response');
+    expect(screen.queryByText('What was wrong?')).not.toBeInTheDocument();
   });
 
   it('hides the thumbs for a signed-out viewer (the feedback call needs a token)', () => {
@@ -197,38 +275,10 @@ describe('AI Search page answer: reading column layout', () => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
     renderMessage();
 
-    const up = screen.getByRole('button', { name: 'Good answer' });
-    fireEvent.click(up);
-
-    await waitFor(() => expect(up).toHaveAttribute('aria-pressed', 'true'));
-    expect(saveFeedback).toHaveBeenCalledWith('token', expect.objectContaining({ rating: 5 }));
-  });
-
-  it('starts a different answer in the same list position with fresh thumbs', async () => {
-    saveFeedback.mockResolvedValue({ isSaved: true });
-    const { rerender } = renderMessage();
-
     fireEvent.click(screen.getByRole('button', { name: 'Good answer' }));
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Good answer' })).toBeDisabled());
 
-    rerender(
-      <PreviewMessage
-        message={{ ...baseMessage, question: 'Who funds storage?', answer: 'Acme funds storage.' }}
-        isLastIndex
-        onFollowupClicked={noop}
-        onRegenerate={noop}
-        onQuestionEdit={noop}
-        onCopyAnswer={asyncNoop}
-        isLoadingObject={false}
-        isAnswerLoading={false}
-        isStreaming={false}
-        showRating
-        canRate
-      />,
-    );
-
-    expect(screen.getByRole('button', { name: 'Good answer' })).not.toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Good answer' })).toHaveAttribute('aria-pressed', 'false');
+    await waitFor(() => expect(saveFeedback).toHaveBeenCalledWith('token', expect.objectContaining({ rating: 5 })));
+    expect(screen.getByRole('button', { name: 'Good answer' })).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('does not let a viewer rate an answer in a shared thread they do not own', () => {

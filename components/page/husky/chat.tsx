@@ -121,11 +121,12 @@ const Chat: React.FC<ChatProps> = ({
     },
   });
 
-  const addMessage = (question: string) => {
+  const addMessage = (question: string, id: string) => {
     setMessages((prev) => {
       const newMessages = [
         ...prev,
         {
+          id,
           question,
           answer: '',
           followUpQuestions: [],
@@ -260,7 +261,7 @@ const Chat: React.FC<ChatProps> = ({
         setOpenThreadId(threadId);
         const chatUid = generateUUID(); // check and set the thread ID for the current chat session
         setQuestion(question);
-        addMessage(question); // add new chat message
+        addMessage(question, chatUid); // add new chat message
 
         //
         const submitParams = {
@@ -540,6 +541,7 @@ const Chat: React.FC<ChatProps> = ({
               onCopyAnswer={onCopyAnswer}
               onQuestionEdit={onQuestionEdit}
               isStreaming={chatIsLoading}
+              threadId={openThreadId}
               showRating={isLoggedIn}
               canRate={isOwnThread || from !== 'detail'}
             />

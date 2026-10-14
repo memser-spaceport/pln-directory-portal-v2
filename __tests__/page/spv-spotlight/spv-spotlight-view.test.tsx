@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
+import { toast } from '@/components/core/ToastContainer';
 import { SpvSpotlightView } from '@/components/page/spv-spotlight/SpvSpotlightView';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useContactSupportStore } from '@/services/contact-support/store';
@@ -444,6 +445,7 @@ describe('SpvSpotlightView — gated (the default)', () => {
       await userEvent.click(request);
 
       expect(mockRequestDataRoomEmail).toHaveBeenCalledWith(MOCK_SPV_SLUG);
+      expect(toast.success).toHaveBeenCalledWith('We sent the data room link to your inbox.');
       expect(within(dealCard()).getByRole('link', { name: /Open data room/ })).toHaveAttribute(
         'href',
         'https://docsend.com/view/x',

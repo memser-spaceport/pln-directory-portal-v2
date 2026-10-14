@@ -9,10 +9,12 @@ import s from './SpvDataRoomBand.module.scss';
 
 type Props = {
   team: Pick<SpvTeam, 'name' | 'logoUrl' | 'fundingStage'>;
-  docSendUrl: string;
+  label: string;
+  docSendUrl: string | null;
   /** From formatSpvClosesAt; null hides the date. */
   closesLabel: string | null;
   onClick: () => void;
+  disabled?: boolean;
 };
 
 /**
@@ -24,7 +26,7 @@ type Props = {
  * over the band (SpvCardAction `stretch`). No click handler on the band itself,
  * so a click opens the DocSend once and fires one event.
  */
-export function SpvDataRoomBand({ team, docSendUrl, closesLabel, onClick }: Props) {
+export function SpvDataRoomBand({ team, label, docSendUrl, closesLabel, onClick, disabled }: Props) {
   const round = [team.name, formatSpvFundingStage(team.fundingStage)].filter(Boolean).join(' ');
 
   return (
@@ -45,7 +47,14 @@ export function SpvDataRoomBand({ team, docSendUrl, closesLabel, onClick }: Prop
         )}
       </div>
       <div className={s.action}>
-        <SpvCardAction label="Access data room" href={docSendUrl} tone="success" stretch onClick={onClick} />
+        <SpvCardAction
+          label={label}
+          href={docSendUrl ?? undefined}
+          tone="success"
+          stretch={!!docSendUrl}
+          onClick={onClick}
+          disabled={disabled}
+        />
       </div>
     </section>
   );

@@ -36,6 +36,7 @@ export const SpvCardAction = ({
   note,
   stretch = false,
   tone = 'brand',
+  disabled = false,
 }: {
   label: string;
   href?: string;
@@ -44,6 +45,7 @@ export const SpvCardAction = ({
   stretch?: boolean;
   /** Green for Access data room. The request button stays brand blue. */
   tone?: 'brand' | 'success';
+  disabled?: boolean;
 }) => (
   <div className={clsx(s.cardAction, note && s.cardActionWithNote)}>
     {href ? (
@@ -51,7 +53,11 @@ export const SpvCardAction = ({
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className={clsx(s.cardActionButton, tone === 'success' && s.cardActionButtonSuccess, stretch && s.cardActionButtonStretch)}
+        className={clsx(
+          s.cardActionButton,
+          tone === 'success' && s.cardActionButtonSuccess,
+          stretch && s.cardActionButtonStretch,
+        )}
         onClick={onClick}
       >
         {label} <ExternalIcon />
@@ -61,6 +67,7 @@ export const SpvCardAction = ({
         type="button"
         className={clsx(s.cardActionButton, tone === 'success' && s.cardActionButtonSuccess)}
         onClick={onClick}
+        disabled={disabled}
       >
         {label} <ArrowRightIcon />
       </button>

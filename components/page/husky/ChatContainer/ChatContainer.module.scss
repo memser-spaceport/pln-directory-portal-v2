@@ -1,0 +1,9 @@
+.root {
+  min-height: inherit;
+  display: flex;
+  flex-direction: column;
+}
+
+.body {
+  flex: 1;
+}

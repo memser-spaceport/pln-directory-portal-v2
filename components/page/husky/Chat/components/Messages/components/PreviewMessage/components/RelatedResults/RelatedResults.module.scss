@@ -1,0 +1,106 @@
+@use 'styles/media';
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.type {
+  font-size: 12px;
+  text-transform: capitalize;
+  width: fit-content;
+  color: #0f172a;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.root {
+  border: 1px solid #e2e8f0;
+  width: 100%;
+  background-color: #f5fafb;
+  padding: 12px 10px;
+  border-radius: 8px;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ff820e;
+  height: 36px;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  line-height: 20px;
+}
+
+.list {
+  width: 100%;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  margin-top: 10px;
+
+  @media (min-width: 475px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include media.breakpoint-1024 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.item {
+  background: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  width: 100%;
+  display: flex;
+  cursor: pointer;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #e2e8f0;
+}
+
+.itemContent {
+  overflow: hidden;
+  width: 100%;
+}
+
+.itemWrapper {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+}
+
+.name {
+  font-size: 14px;
+  line-height: 28px;
+  font-weight: 600;
+  gap: 6px;
+  color: #0f172a;
+  text-transform: capitalize;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  display: block;
+}
+
+.nameFull {
+  white-space: normal;
+  text-overflow: unset;
+  overflow: visible;
+  text-transform: none;
+}
+
+.iconWrapper {
+  width: 40px;
+  height: 40px;
+}
+
+.icon {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 1px;
+}

@@ -1,0 +1,14 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.5rem;
+  height: 2rem;
+  border-radius: 0.375rem;
+}
+
+.skeleton {
+  height: 1rem;
+  border-radius: 0.375rem;
+  background-color: rgba(0, 0, 0, 0.1);
+}

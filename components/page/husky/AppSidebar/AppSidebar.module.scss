@@ -1,0 +1,343 @@
+@use 'styles/media';
+
+.header {
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.logoContainer {
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+}
+
+.title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #0a0c11;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  white-space: nowrap;
+}
+
+.titleIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(285deg, #45d8ff 0%, #005bea 82.52%);
+  mask: url('/icons/ai-search.svg') center / contain no-repeat;
+}
+
+.logoIconButton {
+  background-color: transparent;
+}
+
+.newChat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 8px;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #1b4dff;
+  cursor: pointer;
+}
+
+.newChat:hover {
+  border-color: rgba(27, 56, 96, 0.24);
+}
+
+.newChatIcon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  background-color: currentColor;
+  mask: url('/icons/add.svg') center / contain no-repeat;
+}
+
+.body[data-state='collapsed'] .historyHeader:hover {
+  background-color: #f1f5f9;
+  cursor: pointer;
+}
+
+.newChatText {
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.body {
+  flex: 1;
+  padding: 0px 8px 10px 18px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.keep {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 12px 10px 0 0;
+  padding: 12px;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  border-radius: 8px;
+  background-color: #ffffff;
+}
+
+.body[data-state='collapsed'] .keep {
+  display: none;
+}
+
+.keepTitle {
+  margin: 0;
+  color: #0a0c11;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.keepText {
+  margin: 0;
+  color: #455468;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.keepActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.signUp,
+.signIn {
+  flex: 1;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+}
+
+.signUp {
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+.signIn {
+  border: none;
+  background-color: #156ff7;
+  color: #ffffff;
+}
+
+.signIn:hover {
+  background-color: #1d4ed8;
+}
+
+.empty {
+  display: flex;
+  justify-content: center;
+  height: 100%;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.history {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 10px 10px 0px 0px;
+}
+
+.historyHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.historyTitle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.historyTitleText {
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 22px;
+  color: #000000;
+}
+
+.threads {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.search {
+  padding-right: 10px;
+}
+
+.group + .group {
+  margin-top: 16px;
+}
+
+.groupLabel {
+  padding: 0 8px 4px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.footer {
+  display: none;
+  height: 64px;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 0.5px solid #cbd5e1;
+  padding: 0 20px 0 20px;
+}
+
+.shortcut {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.shortcutKey {
+  border: 0.5px solid #cbd5e1;
+  border-radius: 3px;
+  padding: 0 4px;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 20px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shortcutKey:first-of-type {
+  line-height: 16px;
+  height: 16px;
+  padding: 0 4px;
+}
+
+.shortcutKey:last-of-type {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+}
+
+.shortcutText {
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.shortcutPlus {
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.toggleSidebar {
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  padding: 8px;
+}
+
+.toggleSidebar:hover {
+  background-color: #f1f5f9;
+  border-radius: 4px;
+}
+
+@include media.tablet-landscape {
+  .body[data-state='collapsed'] .search {
+    display: none;
+  }
+
+  .header[data-state='collapsed'] {
+    padding: unset;
+  }
+
+  /* the collapsed rail keeps New chat as a full-width row between dividers */
+  .header[data-state='collapsed'] .newChat {
+    justify-content: center;
+    height: auto;
+    padding: 23px;
+    border: none;
+    border-top: 1px solid #0000001a;
+    border-bottom: 1px solid #0000001a;
+    border-radius: 0;
+    background-color: transparent;
+  }
+
+  .header[data-state='collapsed'] .newChat:hover {
+    background-color: #f1f5f9;
+  }
+
+  .header[data-state='collapsed'] .newChatText {
+    display: none;
+  }
+
+  .body[data-state='collapsed'] {
+    padding: unset;
+  }
+
+  .body[data-state='collapsed'] .historyHeader {
+    justify-content: center;
+    height: 60px;
+    border-bottom: 0.5px solid #cbd5e1;
+  }
+
+  .body[data-state='collapsed'] .historyTitleText {
+    display: none;
+  }
+
+  .footer[data-state='collapsed'] {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .footer[data-state='collapsed'] .shortcut {
+    display: none;
+  }
+
+  .footer[data-state='collapsed'] .toggleSidebar {
+    transform: scaleX(-1);
+  }
+
+  .body[data-state='collapsed'] .list {
+    display: none;
+  }
+
+  .footer {
+    display: flex;
+  }
+
+  .logoIconButton,
+  .header[data-state='collapsed'] .logoContainer {
+    display: none;
+  }
+}

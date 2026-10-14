@@ -21,8 +21,10 @@ jest.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
-jest.mock('@/components/page/husky/sidebar', () => ({
+jest.mock('@/components/page/husky/Sidebar', () => ({
   Sidebar: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+jest.mock('@/components/page/husky/hooks/useSidebar', () => ({
   useSidebar: () => ({
     toggleSidebar: jest.fn(),
     state: 'expanded',
@@ -56,8 +58,8 @@ jest.mock('@/utils/next-helpers', () => ({
 }));
 
 import { PAGE_ROUTES } from '@/utils/constants';
-import { ChatTitleBar } from '@/components/page/husky/ChatTitleBar';
-import AppSidebar from '@/components/page/husky/app-sidebar';
+import { ChatTitleBar } from '@/components/page/husky/Chat/components/ChatTitleBar';
+import { AppSidebar } from '@/components/page/husky/AppSidebar';
 import { metadata } from '@/app/ai-search/layout';
 
 const OLD_TEXT = /Husky|AI Chat|New Conversation|Threads/;

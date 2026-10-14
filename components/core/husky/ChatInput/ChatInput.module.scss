@@ -1,0 +1,129 @@
+.root {
+  position: relative;
+  width: 100%;
+  border-radius: 8px;
+  outline: 2px solid rgba(66, 125, 255, 1);
+  display: flex;
+  align-items: center;
+  background: linear-gradient(0deg, rgba(241, 245, 249, 0.3) 0%, rgba(241, 245, 249, 0.3) 100%), #fff;
+}
+
+.input {
+  width: 100%;
+  border: none;
+  outline: none;
+  border-radius: 8px;
+  padding: 10px 6px 6px 6px;
+  margin: 0px 48px 0px 0px;
+  resize: none;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.5;
+  max-height: 100px;
+  min-height: 44px;
+}
+
+.instruction {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 90px;
+  font-size: 12px;
+  color: rgba(100, 116, 139, 1);
+  white-space: nowrap;
+}
+
+.input:placeholder-shown + .instruction {
+  display: flex;
+}
+
+.input:not(:placeholder-shown) + .instruction {
+  display: none;
+}
+
+.tag {
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin: 0 2px;
+}
+
+.action {
+  position: absolute;
+  right: 4px;
+  transform: translateY(-50%);
+  top: 50%;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.submitDisabled {
+  background-color: #94a3b8 !important;
+  cursor: not-allowed !important;
+}
+
+.submitLoading {
+  background-color: #dbeafe !important;
+}
+
+.submitLoading:hover {
+  box-shadow: 0px 4px 8px 0px #5661f640;
+  border: 1.5px solid #93c5fd;
+}
+
+.submit {
+  display: flex;
+  width: 40px;
+  height: 40px;
+  padding: 5px;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+
+  border-radius: 4px;
+  border: 0.5px solid #cbd5e1;
+  background: #156ff7;
+}
+
+.loader {
+  background-color: #156ff7;
+  border-radius: 1.5px;
+  animation: scaleDown 1s infinite alternate ease-in-out;
+  width: 12px;
+  height: 12px;
+}
+
+@keyframes scaleDown {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(0.83); /* 10/12 = 0.83 */
+  }
+}
+
+.input::placeholder {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  .input {
+    font-size: 14px;
+    padding: 24px 30px 5px 16px;
+    margin: 0px 58px 0px 0px;
+    min-height: 64px;
+  }
+
+  .submit {
+    width: 40px;
+    height: 40px;
+  }
+
+  .action {
+    right: 12px;
+  }
+}

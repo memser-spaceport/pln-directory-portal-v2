@@ -1,5 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import fs from 'fs';
+import path from 'path';
 
 jest.mock('@/components/core/husky/husky-code-block', () => ({
   __esModule: true,
@@ -36,13 +38,12 @@ jest.mock('@/utils/fetch-wrapper', () => ({
   getUserCredentialsInfo: () => getUserCredentialsInfo(),
 }));
 
-import PreviewMessage from '@/components/page/husky/preview-message';
+import { PreviewMessage } from '@/components/page/husky/Chat/components/Messages/components/PreviewMessage';
 
 const baseMessage = {
   id: 'answer-1',
   question: 'Which teams work on storage?',
   answer: 'Saturn Grid works on storage.',
-  relatedResults: [],
   followUpQuestions: ['Who leads Saturn Grid?'],
   sources: ['https://news.example/acme'],
   sourceRefs: [
@@ -75,7 +76,6 @@ function renderMessage(
       onQuestionEdit={noop}
       onCopyAnswer={asyncNoop}
       isLoadingObject={false}
-      isAnswerLoading={false}
       isStreaming={false}
       showRating
       canRate
@@ -301,41 +301,29 @@ jest.mock('@ai-sdk/react', () => ({
   }),
 }));
 
-jest.mock('@/components/page/husky/sidebar', () => ({
+jest.mock('@/components/page/husky/hooks/useSidebar', () => ({
   useSidebar: () => ({ state: 'expanded', isMobile: false, toggleSidebar: jest.fn() }),
 }));
 
-import Chat from '@/components/page/husky/chat';
+import { Chat } from '@/components/page/husky/Chat';
 
 describe('AI Search page: reading column and pinned input', () => {
-  const renderChat = () =>
-    render(
-      <Chat
-        isLoggedIn
-        userInfo={{ name: 'Ada', email: 'ada@example.com', uid: 'm-1' } as any}
-        initialMessages={[baseMessage]}
-        isOwnThread
-      />,
-    );
+  const renderChat = () => render(<Chat isLoggedIn initialMessages={[baseMessage]} isOwnThread />);
 
-  // styled-jsx injects minified rules into document.head; compare without whitespace
+  // Jest applies no CSS, so the layout rules are read from the module; compare without whitespace
   const squash = (text: string) => text.replace(/\s+/g, '');
-  const pageStyles = () =>
-    squash(
-      Array.from(document.querySelectorAll('style'))
-        .map((style) => style.textContent)
-        .join('\n'),
-    );
+  const chatStyles = squash(
+    fs.readFileSync(path.join(process.cwd(), 'components/page/husky/Chat/Chat.module.scss'), 'utf8'),
+  );
 
   it('renders the thread in a 768px reading column with the input pinned at the same width', () => {
     renderChat();
-    const css = pageStyles();
 
-    expect(css).toContain(squash('max-width: calc(768px + 32px)'));
-    expect(css).toMatch(/\.chat__form-wrapper[^{]*\{[^}]*position:fixed;[^}]*width:min\(768px,calc\(100%-32px\)\)/);
-    expect(css).toContain(squash('width: min(768px, calc(100% - 300px - 32px))'));
-    expect(css).toContain(squash('width: min(768px, calc(100% - 64px - 32px))'));
-    expect(css).not.toContain('989px');
+    expect(chatStyles).toContain(squash('max-width: calc(768px + 32px)'));
+    expect(chatStyles).toMatch(/\.formWrapper\{[^}]*position:fixed;[^}]*width:min\(768px,calc\(100%-32px\)\)/);
+    expect(chatStyles).toMatch(/&\[data-state='expanded'\]\{[^}]*width:min\(768px,calc\(100%-300px-32px\)\)/);
+    expect(chatStyles).toMatch(/&\[data-state='collapsed'\]\{[^}]*width:min\(768px,calc\(100%-64px-32px\)\)/);
+    expect(chatStyles).not.toContain('989px');
     expect(screen.getByPlaceholderText('Go ahead, ask anything!')).toBeInTheDocument();
   });
 

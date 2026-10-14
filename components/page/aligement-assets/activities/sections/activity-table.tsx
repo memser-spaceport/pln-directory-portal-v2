@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { Activity } from '../types';
+import { isInfraOnlyActivity } from '../data';
 import { ACTIVITY_FORM_URL, ACTIVITY_CONFIRM_TOAST } from '@/constants/plaa';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { toast } from '@/components/core/ToastContainer';
@@ -166,6 +167,11 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
                     <div className="activity-card__top">
                       <span className="activity-card__category">{activity.category}</span>
                       <div className="activity-card__top-right">
+                        {isInfraOnlyActivity(activity) && (
+                          <span className="activity-card__infra-badge" title="Visible only to PL Infra team members">
+                            PL Infra only
+                          </span>
+                        )}
                         {activity.isSunset && (
                           <span className="activity-card__sunset-badge" title="Sunsetting at the end of this snapshot">
                             <Image src="/icons/sunset.svg" alt="Sunsetting" width={18} height={18} />
@@ -353,6 +359,19 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
           padding: 6px 12px;
           border-radius: 999px;
           white-space: normal;
+        }
+
+        .activity-card__infra-badge {
+          display: inline-flex;
+          align-items: center;
+          background: #ecf5f5;
+          border: 1px solid #b6d4d6;
+          color: #0c5259;
+          padding: 3px 10px;
+          border-radius: 999px;
+          font-size: 12px;
+          font-weight: 500;
+          white-space: nowrap;
         }
 
         .activity-card__sunset-badge {

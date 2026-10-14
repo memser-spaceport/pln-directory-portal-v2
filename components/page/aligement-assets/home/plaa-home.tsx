@@ -7,6 +7,7 @@ import type { PlaaHomeProps } from './home.types';
 import { formatNumber } from './home.types';
 import NavAreaChart from './nav-area-chart';
 import { activitiesData, isOpenActivity } from '../activities/data';
+import { useIsInfraMember } from '@/services/plaa/hooks/useIsInfraMember';
 import { isUnderutilized, normalizeCategory } from '../leaderboard/leaderboard.mapper';
 import PlaaProspectBanner from './plaa-prospect-banner';
 import PlaaDisclaimerBox from './plaa-disclaimer-box';
@@ -44,6 +45,7 @@ const NAV_DELTA_MONTHS = 3;
 export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
   const router = useRouter();
   const { onNavMenuClicked } = useAlignmentAssetsAnalytics();
+  const isInfraMember = useIsInfraMember();
 
   const isMember = variant === 'member';
 
@@ -107,7 +109,7 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
     isUnderutilized(categoryPoints.get(normalizeCategory(category)) ?? 0, busiestCategory);
 
   const teaserActivities = activitiesData.activities
-    .filter(isOpenActivity)
+    .filter((activity) => isOpenActivity(activity, isInfraMember))
     .sort((a, b) => {
       const boost = Number(isUnderutilised(b.category)) - Number(isUnderutilised(a.category));
       return boost !== 0 ? boost : parseInt(b.points, 10) - parseInt(a.points, 10);

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { triggerLoader } from '@/utils/common.utils';
 
-const CURRENT_ROUND_PATH = '/alignment-asset';
+const HOME_PATH = '/alignment-asset';
 
 /* ==========================================================================
    PlaaRoundSelector Component
@@ -20,19 +20,19 @@ interface PlaaRoundSelectorProps {
   onRoundNavigation?: () => void; // Callback to handle round navigation (e.g., close mobile menu)
 }
 
-function PlaaRoundSelector({
-  currentRound,
-  totalRounds,
-  viewingRound,
-  onRoundNavigation,
-}: PlaaRoundSelectorProps) {
+function PlaaRoundSelector({ currentRound, totalRounds, viewingRound, onRoundNavigation }: PlaaRoundSelectorProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   // Use viewingRound if provided, otherwise fall back to currentRound
   const [selectedRound, setSelectedRound] = useState(viewingRound ?? currentRound);
   const [inputValue, setInputValue] = useState(String(viewingRound ?? currentRound));
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { onRoundSelectorOpened, onRoundSelectorPrevClicked, onRoundSelectorNextClicked, onRoundSelectorGoToCurrentClicked } = useAlignmentAssetsAnalytics();
+  const {
+    onRoundSelectorOpened,
+    onRoundSelectorPrevClicked,
+    onRoundSelectorNextClicked,
+    onRoundSelectorGoToCurrentClicked,
+  } = useAlignmentAssetsAnalytics();
 
   // Sync selectedRound with viewingRound prop when it changes (e.g., direct URL access)
   useEffect(() => {
@@ -69,17 +69,15 @@ function PlaaRoundSelector({
   }, [isOpen]);
 
   const navigateToRound = (round: number) => {
-    
     // Check if we're already on the target URL
     const currentPath = window.location.pathname;
     const targetPath = `/alignment-asset/rounds/${round}`;
 
-    
     if (currentPath === targetPath) {
       // Already on this page, no need to navigate or show loader
       return;
     }
-    
+
     // Show loader on mobile
     // if (window.innerWidth < 1024) {
     //   // if (onRoundNavigation) {
@@ -87,7 +85,7 @@ function PlaaRoundSelector({
     //   // }
     //   triggerLoader(true);
     // }
-    
+
     router.push(targetPath);
   };
 
@@ -102,14 +100,13 @@ function PlaaRoundSelector({
   };
 
   const handleNextRound = () => {
-    if (selectedRound < totalRounds-1) {
+    if (selectedRound < totalRounds - 1) {
       const newRound = selectedRound + 1;
       onRoundSelectorNextClicked(selectedRound, newRound);
       setSelectedRound(newRound);
       setInputValue(String(newRound));
       navigateToRound(newRound);
-    }
-    else{
+    } else {
       handleGoToCurrent();
     }
   };
@@ -119,26 +116,26 @@ function PlaaRoundSelector({
     setSelectedRound(currentRound);
     setInputValue(String(currentRound));
     setIsOpen(false);
-    
+
     // Always close mobile menu if provided
     if (onRoundNavigation) {
       onRoundNavigation();
     }
-    
+
     // Check if we're already on the target URL
     const currentPath = window.location.pathname;
-    
-    if (currentPath === CURRENT_ROUND_PATH) {
+
+    if (currentPath === HOME_PATH) {
       // Already on this page, no need to navigate or show loader
       return;
     }
-    
+
     // Show loader on mobile
     if (window.innerWidth < 1024) {
       triggerLoader(true);
     }
-    
-    router.push(CURRENT_ROUND_PATH);
+
+    router.push(HOME_PATH);
   };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -173,29 +170,29 @@ function PlaaRoundSelector({
     // Navigate to the selected round page
     const currentPath = window.location.pathname;
     let targetPath: string;
-    
+
     if (isCurrentRound) {
-      targetPath = CURRENT_ROUND_PATH;
+      targetPath = HOME_PATH;
     } else {
       targetPath = `/alignment-asset/rounds/${selectedRound}`;
     }
-    
+
     // Always close mobile menu if provided
     if (onRoundNavigation) {
       onRoundNavigation();
     }
-    
+
     // Check if we're already on the target URL
     if (currentPath === targetPath) {
       // Already on this page, no need to navigate or show loader
       return;
     }
-    
+
     // Show loader on mobile
     if (window.innerWidth < 1024) {
       triggerLoader(true);
     }
-    
+
     router.push(targetPath);
   };
 
@@ -207,17 +204,13 @@ function PlaaRoundSelector({
   };
 
   const isCurrentRound = selectedRound === currentRound;
-  const displayText = isCurrentRound ? 'Current Round' : `Round ${selectedRound}`;
+  const displayText = isCurrentRound ? 'Home' : `Round ${selectedRound}`;
 
   return (
     <div className="round-selector-container">
       <div className="round-selector" ref={dropdownRef}>
         {/* Trigger Button - Split into two sections */}
-        <div
-          className="round-selector__trigger"
-          aria-expanded={isOpen}
-          aria-haspopup="listbox"
-        >
+        <div className="round-selector__trigger" aria-expanded={isOpen} aria-haspopup="listbox">
           {/* First Section - Round Label (navigates to round page) */}
           <button
             className="round-selector__trigger-label"
@@ -258,11 +251,7 @@ function PlaaRoundSelector({
 
         {/* Dropdown Panel */}
         {isOpen && (
-          <div
-            className="round-selector__dropdown"
-            role="listbox"
-            aria-label="Round selection"
-          >
+          <div className="round-selector__dropdown" role="listbox" aria-label="Round selection">
             {/* Navigation Row */}
             <div className="round-selector__nav">
               <span className="round-selector__nav-label">Round</span>
@@ -275,13 +264,7 @@ function PlaaRoundSelector({
                   disabled={selectedRound <= 1}
                   aria-label="Previous round"
                 >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
                       d="M10 12L6 8L10 4"
                       stroke="#94A3B8"
@@ -310,13 +293,7 @@ function PlaaRoundSelector({
                   disabled={selectedRound >= totalRounds}
                   aria-label="Next round"
                 >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
                       d="M6 4L10 8L6 12"
                       stroke="#94A3B8"
@@ -341,9 +318,9 @@ function PlaaRoundSelector({
                 <button
                   className="round-selector__dropdown-go-current"
                   onClick={handleGoToCurrent}
-                  aria-label="Go to current round"
+                  aria-label="Go to home"
                 >
-                  <span>Go to current round</span>
+                  <span>Go to home</span>
                   <svg
                     width="12"
                     height="12"
@@ -354,7 +331,7 @@ function PlaaRoundSelector({
                   >
                     <path
                       d="M2.5 6H9.5M9.5 6L6.5 3M9.5 6L6.5 9"
-                      stroke="#156FF7"
+                      stroke="#0B4F66"
                       strokeWidth="1.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -367,10 +344,9 @@ function PlaaRoundSelector({
         )}
       </div>
 
-       {/* Go to Current Round Link */}
       {!isCurrentRound && (
-        <button className="round-selector__go-current" onClick={handleGoToCurrent} aria-label="Go to current round">
-          <span>Go to current round</span>
+        <button className="round-selector__go-current" onClick={handleGoToCurrent} aria-label="Go to home">
+          <span>Go to home</span>
           <svg
             width="12"
             height="12"
@@ -381,7 +357,7 @@ function PlaaRoundSelector({
           >
             <path
               d="M2.5 6H9.5M9.5 6L6.5 3M9.5 6L6.5 9"
-              stroke="#156FF7"
+              stroke="#0B4F66"
               strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -411,7 +387,7 @@ function PlaaRoundSelector({
             align-items: center;
             justify-content: center;
             gap: 4px;
-            border: 1px solid #E2E8F0;
+            border: 1px solid #e2e8f0;
             border-radius: 12px;
             padding: ${isCurrentRound ? '8px 8px 8px 8px' : '8px 8px 4px 8px'};
           }
@@ -422,7 +398,7 @@ function PlaaRoundSelector({
             height: 35px;
             display: flex;
             align-items: center;
-            background-color: #F1F5F9;
+            background-color: #f1f5f9;
             border-radius: 8px;
             overflow: visible;
           }
@@ -433,8 +409,10 @@ function PlaaRoundSelector({
             inset: 0;
             border-radius: 8px;
             padding: 1px;
-            background: linear-gradient(71.47deg, #427DFF 8.43%, #44D5BB 87.45%);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);
+            -webkit-mask:
+              linear-gradient(#fff 0 0) content-box,
+              linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
             pointer-events: none;
@@ -463,7 +441,7 @@ function PlaaRoundSelector({
           .round-selector__trigger-separator {
             width: 1px;
             height: 20px;
-            background: linear-gradient(180deg, #427DFF 0%, #44D5BB 100%);
+            background: linear-gradient(180deg, #427dff 0%, #44d5bb 100%);
             opacity: 0.5;
             flex-shrink: 0;
           }
@@ -489,7 +467,7 @@ function PlaaRoundSelector({
           .round-selector__trigger-text {
             font-size: 12px;
             font-weight: 500;
-            color: #0F172A;
+            color: #0f172a;
             line-height: 100%;
             white-space: nowrap;
           }
@@ -588,7 +566,7 @@ function PlaaRoundSelector({
 
           .round-selector__nav-input:focus {
             outline: none;
-            border-color: #156ff7;
+            border-color: #0b4f66;
           }
 
           .round-selector__nav-of {
@@ -655,7 +633,7 @@ function PlaaRoundSelector({
             font-weight: 500;
             font-size: 12px;
             line-height: 100%;
-            color: #156FF7;
+            color: #0b4f66;
             transition: background-color 0.15s ease;
           }
 

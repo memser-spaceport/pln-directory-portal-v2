@@ -17,6 +17,7 @@ import {
 
 const mockGoToLogin = jest.fn();
 const mockRequestAccess = jest.fn();
+const mockRequestDataRoomEmail = jest.fn();
 const mockEmitAuthEvent = jest.fn();
 const mockClearAuthCookies = jest.fn();
 let mockShowExplore = false;
@@ -47,6 +48,10 @@ jest.mock('@/services/explore-pl-network/constants', () => ({
 jest.mock('@/services/spv-spotlight/hooks/useGetSpvSpotlight', () => ({ useGetSpvSpotlight: jest.fn() }));
 jest.mock('@/services/spv-spotlight/hooks/useRequestSpvAccess', () => ({
   useRequestSpvAccess: () => ({ mutateAsync: (...args: unknown[]) => mockRequestAccess(...args) }),
+}));
+jest.mock('@/services/spv-spotlight/spv-spotlight.service', () => ({
+  ...jest.requireActual('@/services/spv-spotlight/spv-spotlight.service'),
+  requestDataRoomAccessEmail: (...args: unknown[]) => mockRequestDataRoomEmail(...args),
 }));
 jest.mock('@/services/members/hooks/useMember', () => ({ useMember: () => ({ data: mockMember }) }));
 jest.mock('@/components/core/login/utils', () => ({
@@ -126,6 +131,7 @@ const requestButton = () => screen.queryByRole('button', { name: /Request access
 
 beforeEach(() => {
   mockGoToLogin.mockReset();
+  mockRequestDataRoomEmail.mockReset();
   mockEmitAuthEvent.mockReset();
   mockClearAuthCookies.mockReset();
   mockedUseGetSpvSpotlight.mockReset();
@@ -420,6 +426,53 @@ describe('SpvSpotlightView — gated (the default)', () => {
       renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
       expect(screen.queryByRole('region', { name: 'Your investor profile' })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: /your investor profile/ })).not.toBeInTheDocument();
+    });
+
+    it('emails the link from Request data room access, then opens it from Open data room', async () => {
+      mockRequestDataRoomEmail.mockResolvedValue({ docSendUrl: 'https://docsend.com/view/x' });
+      renderView('OPEN', 'APPROVED', {
+        signedIn: true,
+        initial: false,
+        overrides: { emailOnDataRoomRequest: true, dataRoomEmailSent: false, docSendUrl: null },
+      });
+      const request = within(dealCard()).getByRole('button', { name: /Request data room access/ });
+      expect(
+        within(band() as HTMLElement).getByRole('button', { name: /Request data room access/ }),
+      ).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: /Open data room/ })).not.toBeInTheDocument();
+
+      await userEvent.click(request);
+
+      expect(mockRequestDataRoomEmail).toHaveBeenCalledWith(MOCK_SPV_SLUG);
+      expect(within(dealCard()).getByRole('link', { name: /Open data room/ })).toHaveAttribute(
+        'href',
+        'https://docsend.com/view/x',
+      );
+      expect(within(band() as HTMLElement).getByRole('link', { name: /Open data room/ })).toHaveAttribute(
+        'href',
+        'https://docsend.com/view/x',
+      );
+    });
+
+    it('opens the data room when the email was already sent', () => {
+      renderView('OPEN', 'APPROVED', {
+        signedIn: true,
+        initial: false,
+        overrides: {
+          emailOnDataRoomRequest: true,
+          dataRoomEmailSent: true,
+          docSendUrl: 'https://docsend.com/view/x',
+        },
+      });
+      expect(within(dealCard()).getByRole('link', { name: /Open data room/ })).toHaveAttribute(
+        'href',
+        'https://docsend.com/view/x',
+      );
+      expect(within(band() as HTMLElement).getByRole('link', { name: /Open data room/ })).toHaveAttribute(
+        'href',
+        'https://docsend.com/view/x',
+      );
+      expect(screen.getByText(/Request data room access emails you the DocSend link/)).toBeInTheDocument();
     });
 
     it('links the data room from the SPV card', () => {

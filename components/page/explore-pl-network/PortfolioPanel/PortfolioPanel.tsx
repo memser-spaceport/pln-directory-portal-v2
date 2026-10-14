@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import { ISLANDS } from '../data/islands';
 import type { PortfolioTeam } from '../data/portfolio';
 import { directoryUrl, displayNameOf } from '../data/directoryUrl';
+import { logoSrc } from '../data/logoSrc';
 import { IslandsMap } from './IslandsMap';
 import s from './PortfolioPanel.module.scss';
 
@@ -115,7 +116,7 @@ const PortfolioList = ({
                     onClick={() => onProfileClicked(l)}
                   >
                     <span className={s.darkLogo} style={{ background: g.color }}>
-                      <img src={l.logo} alt="" loading="lazy" />
+                      <img src={logoSrc(l.logo)} alt="" loading="lazy" />
                     </span>
                     <span className={s.darkName}>{displayNameOf(l)}</span>
                   </a>

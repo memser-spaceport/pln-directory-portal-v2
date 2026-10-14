@@ -110,6 +110,17 @@ describe('PortfolioPanel', () => {
     // can pass the default 5s limit; alone it finishes well inside it.
   }, 15000);
 
+  it('loads every logo through the Next image endpoint, on the map and in the list', async () => {
+    const { user } = setup();
+    const optimized = (url: string) => `/_next/image?url=${encodeURIComponent(url)}&w=128&q=75`;
+    const tile = screen.getByRole('button', { name: team.name });
+    expect(tile.querySelector('image')).toHaveAttribute('href', optimized(team.logo));
+
+    await user.click(screen.getByRole('button', { name: 'List' }));
+    const row = screen.getByRole('link', { name: team.name });
+    expect(row.querySelector('img')).toHaveAttribute('src', optimized(team.logo));
+  }, 15000);
+
   it('does not report a view change when the current view is pressed again', async () => {
     const { user, onViewChanged } = setup();
     await user.click(screen.getByRole('button', { name: 'Map' }));

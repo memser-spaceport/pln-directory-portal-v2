@@ -4,9 +4,9 @@ import clsx from 'clsx';
 
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import type { SuggestedCandidate } from '@/schema/suggested-candidates';
+import { formatRelativeDays } from '@/utils/jobs.utils';
 
-import { InterestedBadge } from './InterestedBadge';
-import { interestNote, metCount } from './suggestionBand';
+import { metCount } from './suggestionBand';
 import { SuggestionBadge } from './SuggestionBadge';
 import row from './ApplicantRow.module.scss';
 import s from './SuggestedRow.module.scss';
@@ -21,19 +21,22 @@ interface Props {
 /**
  * One suggested person in the list (LAB-2771).
  *
- * The applicant row's geometry, with the band where an applicant has a date:
- * nothing happened, so there is no "when". Under the role, the band's working
- * as a count ("4 of 5 requirements"); the requirements themselves are the
- * pane's, where each one can be checked.
+ * It uses the applicant row's layout, with the band where an applicant has a
+ * date: a suggested person did nothing, so there is no "when".
  *
- * A member who said "I'm interested" carries an Interested mark beside the
- * band, and their note under the count, cut to two lines; the pane shows the
- * whole note (LAB-2789).
+ * Three lines (LAB-2853): name, role, and how many of the role's requirements
+ * the profile meets. The count always reads "N of M", "5 of 5" included,
+ * because the numbers are what a lead compares down the list. Once a lead of
+ * the team has contacted the person, the count line ends with
+ * "· Contacted <relative>".
+ *
+ * No Interested mark and no note here. The note was cut to two lines at the
+ * list's width, so the pane shows both instead, in full.
  */
 export function SuggestedRow({ suggestion, last, selected, onSelect }: Props) {
   const met = metCount(suggestion.criteria);
   const total = suggestion.criteria.length;
-  const note = interestNote(suggestion);
+  const contacted = suggestion.contactedAt ? formatRelativeDays(suggestion.contactedAt) : '';
 
   return (
     <button
@@ -54,21 +57,17 @@ export function SuggestedRow({ suggestion, last, selected, onSelect }: Props) {
             <span className={row.name}>{suggestion.name}</span>
           </span>
           {suggestion.role && <span className={row.role}>{suggestion.role}</span>}
-          {total > 0 && (
-            <span className={s.working}>
-              {met === total ? `All ${total} requirements` : `${met} of ${total} requirements`}
-            </span>
-          )}
-          {note && (
-            <span className={s.note} data-testid="suggested-interest-note">
-              {note}
+          {(total > 0 || contacted) && (
+            <span className={s.working} data-testid="suggested-row-working">
+              {total > 0 && `${met} of ${total} requirements`}
+              {total > 0 && contacted && ' · '}
+              {contacted && `Contacted ${contacted}`}
             </span>
           )}
         </span>
       </span>
 
       <span className={row.right}>
-        {suggestion.interested && <InterestedBadge />}
         <SuggestionBadge label={suggestion.label} />
       </span>
     </button>

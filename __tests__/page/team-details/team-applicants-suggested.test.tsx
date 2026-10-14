@@ -55,10 +55,18 @@ jest.mock('@/hooks/useIsBelowTabletLandscape', () => ({
 }));
 
 const routerReplace = jest.fn();
+let search = 'role=role-1';
 jest.mock('next/navigation', () => ({
   usePathname: () => '/teams/team-1/applicants',
   useRouter: () => ({ replace: routerReplace }),
-  useSearchParams: () => new URLSearchParams('role=role-1'),
+  useSearchParams: () => new URLSearchParams(search),
+}));
+
+/* The lead as the Contact template introduces them (LAB-2853). Stubbed: the
+   real hook reads the member endpoint. */
+const useContactSender = jest.fn();
+jest.mock('@/components/page/team-details/TeamApplicants/components/useContactSender', () => ({
+  useContactSender: (...args: unknown[]) => useContactSender(...args),
 }));
 
 const useSuggestedCandidates = jest.fn();
@@ -177,7 +185,7 @@ const setSuggestions = (
     ...extra,
   });
 
-const renderView = () =>
+const renderView = (props: Partial<React.ComponentProps<typeof TeamApplicantsView>> = {}) =>
   render(
     <TeamApplicantsView
       teamId="team-1"
@@ -187,6 +195,7 @@ const renderView = () =>
       initialCandidateUid={null}
       viewerUid="u1"
       isLoggedIn
+      {...props}
     />,
   );
 
@@ -196,6 +205,9 @@ const rowFor = (name: string) =>
 
 beforeEach(() => {
   isNarrow = false;
+  search = 'role=role-1';
+  useContactSender.mockReset();
+  useContactSender.mockReturnValue({ name: 'Maya Chen', role: 'Head of Engineering' });
   routerReplace.mockReset();
   toastError.mockReset();
   saveCriteriaMutate.mockReset();
@@ -261,6 +273,39 @@ describe('the Suggested tab', () => {
     expect(within(ben).getByText('Good match')).toBeInTheDocument();
     expect(within(ben).getByText('2 of 3 requirements')).toBeInTheDocument();
     expect(screen.queryByText(/Weak match/)).not.toBeInTheDocument();
+  });
+
+  /* LAB-2853: one form for every row, the full set included. */
+  it('says "3 of 3 requirements" for someone who meets them all, never "All 3"', async () => {
+    renderView();
+    await openSuggested();
+
+    expect(within(rowFor('Ana Lopez')!).getByText('3 of 3 requirements')).toBeInTheDocument();
+    expect(screen.queryByText(/^All \d/)).not.toBeInTheDocument();
+  });
+
+  it('paints the band as the gradient pill, Strong and Good in their own tones', async () => {
+    renderView();
+    await openSuggested();
+
+    const strong = within(rowFor('Ana Lopez')!).getByText('Strong match');
+    const good = within(rowFor('Ben Ito')!).getByText('Good match');
+    expect(strong.className).toMatch(/strong/);
+    expect(good.className).toMatch(/good/);
+    expect(strong.className).not.toMatch(/success|brand/);
+  });
+
+  it('adds when the person was contacted to the count line', async () => {
+    const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 - 60_000).toISOString();
+    setSuggestions([{ ...ANA, contactedAt: twoDaysAgo }, BEN]);
+
+    renderView();
+    await openSuggested();
+
+    expect(within(rowFor('Ana Lopez')!).getByTestId('suggested-row-working')).toHaveTextContent(
+      /^3 of 3 requirements\s·\sContacted 2d ago$/,
+    );
+    expect(within(rowFor('Ben Ito')!).getByTestId('suggested-row-working')).toHaveTextContent(/^2 of 3 requirements$/);
   });
 
   it('says why the people the team knows are missing', async () => {
@@ -338,7 +383,61 @@ describe('the Suggested tab', () => {
       team_id: 'team-1',
       job_id: 'role-1',
       count: 2,
+      source: 'app',
+      utm_content: null,
     });
+  });
+
+  /* LAB-2853: an arrival from one of the suggested-candidates emails. */
+  it.each(['job_suggested_candidates_email', 'job_suggested_candidate_intro_email'])(
+    'records the view as from email when utm_source is %s, with its utm_content',
+    async (utmSource) => {
+      search = `role=role-1&tab=suggested&utm_source=${utmSource}&utm_content=all_matches`;
+
+      renderView({ initialRoleUid: 'role-1', initialTab: 'suggested' });
+
+      await waitFor(() =>
+        expect(analytics.onJobSuggestedCandidatesViewed).toHaveBeenCalledWith({
+          team_id: 'team-1',
+          job_id: 'role-1',
+          count: 2,
+          source: 'email',
+          utm_content: 'all_matches',
+        }),
+      );
+    },
+  );
+
+  it('counts only the first view as the email’s; another role after it is from the app', async () => {
+    search = 'role=role-1&tab=suggested&utm_source=job_suggested_candidates_email&utm_content=all_matches';
+    setLists({ applications: [], interests: [] });
+    const ROLE_2 = { ...ROLE, uid: 'role-2', roleTitle: 'Developer Advocate' } as IJobRole;
+
+    renderView({ roles: [ROLE, ROLE_2], initialRoleUid: 'role-1', initialTab: 'suggested' });
+    await waitFor(() => expect(analytics.onJobSuggestedCandidatesViewed).toHaveBeenCalledTimes(1));
+    await userEvent.click(within(screen.getByTestId('role-picker')).getByText(/Developer Advocate/));
+
+    await waitFor(() => expect(analytics.onJobSuggestedCandidatesViewed).toHaveBeenCalledTimes(2));
+    expect(analytics.onJobSuggestedCandidatesViewed).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ job_id: 'role-1', source: 'email', utm_content: 'all_matches' }),
+    );
+    expect(analytics.onJobSuggestedCandidatesViewed).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ job_id: 'role-2', source: 'app', utm_content: null }),
+    );
+  });
+
+  it('records any other utm_source as from the app, keeping its utm_content', async () => {
+    search = 'role=role-1&utm_source=job_application_email&utm_content=x';
+
+    renderView({ initialTab: 'suggested' });
+
+    await waitFor(() =>
+      expect(analytics.onJobSuggestedCandidatesViewed).toHaveBeenCalledWith(
+        expect.objectContaining({ source: 'app', utm_content: 'x' }),
+      ),
+    );
   });
 
   it('offers Contact in place of a mailto: Email', async () => {
@@ -389,6 +488,7 @@ describe('the Suggested tab', () => {
 /**
  * LAB-2789: a suggestion from a member who said "I'm interested" (the flag
  * from LAB-2788) carries an Interested mark, and their note when they wrote one.
+ * LAB-2853: both live in the pane only; the row is name, role and count.
  */
 describe('interested members on the Suggested tab', () => {
   const interested = (base: SuggestedCandidate, note?: string | null): SuggestedCandidate => ({
@@ -397,40 +497,8 @@ describe('interested members on the Suggested tab', () => {
     ...(note !== undefined ? { note } : {}),
   });
 
-  it('marks an interested suggestion as Interested, in the design system tag style', async () => {
-    setSuggestions([interested(ANA, 'Keen to work on consensus.'), BEN]);
-
-    renderView();
-    await openSuggested();
-
-    const mark = within(rowFor('Ana Lopez')!).getByText('Interested');
-    expect(mark.className).toMatch(/default/);
-  });
-
-  it('shows the interested member’s note in the row', async () => {
-    setSuggestions([interested(ANA, 'Keen to work on consensus.'), BEN]);
-
-    renderView();
-    await openSuggested();
-
-    expect(within(rowFor('Ana Lopez')!).getByText('Keen to work on consensus.')).toBeInTheDocument();
-  });
-
-  it('shows the mark and no note area when the interested member wrote no note', async () => {
-    setSuggestions([interested(ANA), interested(BEN, '   ')]);
-
-    renderView();
-    await openSuggested();
-
-    for (const name of ['Ana Lopez', 'Ben Ito']) {
-      const row = rowFor(name)!;
-      expect(within(row).getByText('Interested')).toBeInTheDocument();
-      expect(within(row).queryByTestId('suggested-interest-note')).not.toBeInTheDocument();
-    }
-  });
-
-  it('shows no mark and no note for a suggestion that is not marked interested', async () => {
-    setSuggestions([ANA, { ...BEN, interested: false, note: 'A note the flag does not back.' }]);
+  it('shows neither the Interested mark nor the note in the row', async () => {
+    setSuggestions([interested(ANA, 'Keen to work on consensus.'), interested(BEN)]);
 
     renderView();
     await openSuggested();
@@ -438,8 +506,29 @@ describe('interested members on the Suggested tab', () => {
     for (const name of ['Ana Lopez', 'Ben Ito']) {
       const row = rowFor(name)!;
       expect(within(row).queryByText('Interested')).not.toBeInTheDocument();
-      expect(within(row).queryByTestId('suggested-interest-note')).not.toBeInTheDocument();
+      expect(within(row).queryByText('Keen to work on consensus.')).not.toBeInTheDocument();
     }
+  });
+
+  it('shows the mark and no note area in the pane when the interested member wrote no note', async () => {
+    setSuggestions([interested(ANA, '   '), BEN]);
+
+    renderView();
+    await openSuggested();
+
+    const pane = screen.getByTestId('pane');
+    expect(within(pane).getByText('Interested')).toBeInTheDocument();
+    expect(within(pane).queryByRole('blockquote')).not.toBeInTheDocument();
+    expect(within(pane).queryByLabelText('Their note')).not.toBeInTheDocument();
+  });
+
+  it('shows no note in the pane for a suggestion that is not marked interested', async () => {
+    setSuggestions([{ ...ANA, interested: false, note: 'A note the flag does not back.' }, BEN]);
+
+    renderView();
+    await openSuggested();
+
+    expect(within(screen.getByTestId('pane')).queryByText('Interested')).not.toBeInTheDocument();
     expect(screen.queryByText('A note the flag does not back.')).not.toBeInTheDocument();
   });
 
@@ -461,7 +550,7 @@ describe('interested members on the Suggested tab', () => {
     renderView();
     await openSuggested();
     await userEvent.click(screen.getByRole('button', { name: 'Contact Ana' }));
-    await userEvent.click(screen.getByRole('button', { name: 'Send' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Send email' }));
 
     expect(analytics.onJobSuggestedCandidateContacted).toHaveBeenCalledWith({
       team_id: 'team-1',
@@ -522,13 +611,13 @@ describe('Edit criteria on the Suggested tab', () => {
   it('saves, closes and records the event with the on and off counts', async () => {
     setSuggestions([ANA, BEN], {}, CRITERIA);
     const saved = CRITERIA.map((c) => ({ ...c, enabled: c.text !== 'Based in Europe' }));
-    saveCriteriaMutate.mockImplementation(answer({ data: saved }));
+    saveCriteriaMutate.mockImplementation(answer({ data: { criteria: saved, prompt: null } }));
 
     await openEditCriteria();
     await userEvent.click(screen.getByRole('checkbox', { name: /^Based in Europe/ }));
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
 
-    expect(saveCriteriaMutate).toHaveBeenCalledWith({ disabled: ['Based in Europe'] }, expect.anything());
+    expect(saveCriteriaMutate).toHaveBeenCalledWith({ disabled: ['Based in Europe'], prompt: null }, expect.anything());
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(analytics.onJobSuggestedCriteriaEdited).toHaveBeenCalledWith({
       team_id: 'team-1',
@@ -542,7 +631,9 @@ describe('Edit criteria on the Suggested tab', () => {
   it('leaves the requirement counts alone after a save', async () => {
     setSuggestions([ANA, BEN], {}, CRITERIA);
     saveCriteriaMutate.mockImplementation(
-      answer({ data: CRITERIA.map((c) => ({ ...c, enabled: c.text !== 'Based in Europe' })) }),
+      answer({
+        data: { criteria: CRITERIA.map((c) => ({ ...c, enabled: c.text !== 'Based in Europe' })), prompt: null },
+      }),
     );
 
     await openEditCriteria();
@@ -577,6 +668,118 @@ describe('Edit criteria on the Suggested tab', () => {
 
     expect(toastError).toHaveBeenCalledWith('Could not save the criteria. Please try again.');
   });
+
+  /* LAB-2853: the lead's own words ride the same save. */
+  it('opens on the saved prompt and saves it with the switches', async () => {
+    setSuggestions([ANA, BEN], { data: { suggestions: [ANA, BEN], criteria: CRITERIA, criteriaPrompt: 'Old words' } });
+    saveCriteriaMutate.mockImplementation(answer({ data: { criteria: CRITERIA, prompt: 'New words' } }));
+
+    await openEditCriteria();
+    const promptBox = screen.getByRole('textbox', { name: 'Tell us who you’re looking for' });
+    expect(promptBox).toHaveValue('Old words');
+    await userEvent.clear(promptBox);
+    await userEvent.type(promptBox, 'New words');
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(saveCriteriaMutate).toHaveBeenCalledWith({ disabled: [], prompt: 'New words' }, expect.anything());
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
+});
+
+/**
+ * LAB-2853: `?tab=suggested` opens the Suggested tab, and `?edit=criteria`
+ * also opens Edit criteria once — the founder email's links.
+ */
+describe('URL params from the founder email', () => {
+  const CRITERIA: RoleCriterion[] = [
+    { text: 'Five years of Rust', enabled: true },
+    { text: 'Based in Europe', enabled: true },
+  ];
+  let replaceState: jest.SpyInstance;
+
+  beforeEach(() => {
+    window.history.pushState({}, '', '/teams/team-1/applicants?role=role-1&tab=suggested&edit=criteria&utm_source=x');
+    replaceState = jest.spyOn(window.history, 'replaceState');
+  });
+
+  afterEach(() => {
+    replaceState.mockRestore();
+    window.history.pushState({}, '', '/');
+  });
+
+  it('opens on the Suggested tab with tab=suggested, even when someone applied', () => {
+    renderView({ initialRoleUid: 'role-1', initialTab: 'suggested' });
+
+    expect(rowFor('Ana Lopez')).toBeTruthy();
+    expect(rowFor('Devon Park')).toBeUndefined();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('ignores a tab value it does not know', () => {
+    renderView({ initialRoleUid: 'role-1', initialTab: 'bogus' });
+
+    expect(rowFor('Devon Park')).toBeTruthy();
+    expect(rowFor('Ana Lopez')).toBeUndefined();
+  });
+
+  it('opens Edit criteria once with edit=criteria, then drops edit from the URL without navigating', async () => {
+    setSuggestions([ANA, BEN], {}, CRITERIA);
+
+    renderView({ initialRoleUid: 'role-1', initialTab: 'suggested', initialEdit: 'criteria' });
+
+    expect(await screen.findByRole('dialog', { name: 'Edit criteria' })).toBeInTheDocument();
+    expect(rowFor('Ana Lopez')).toBeTruthy();
+    expect(replaceState).toHaveBeenCalledTimes(1);
+    expect(window.location.pathname + window.location.search).toBe(
+      '/teams/team-1/applicants?role=role-1&tab=suggested&utm_source=x',
+    );
+    expect(routerReplace).not.toHaveBeenCalled();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
+
+  it('waits for the criteria before opening Edit criteria', async () => {
+    setSuggestions(undefined);
+    const { rerender } = renderView({ initialRoleUid: 'role-1', initialEdit: 'criteria' });
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(replaceState).not.toHaveBeenCalled();
+
+    setSuggestions([ANA, BEN], {}, CRITERIA);
+    rerender(
+      <TeamApplicantsView
+        teamId="team-1"
+        teamName="Filecoin Foundation"
+        roles={[ROLE]}
+        initialRoleUid="role-1"
+        initialCandidateUid={null}
+        initialEdit="criteria"
+        viewerUid="u1"
+        isLoggedIn
+      />,
+    );
+
+    expect(await screen.findByRole('dialog', { name: 'Edit criteria' })).toBeInTheDocument();
+    expect(rowFor('Ana Lopez')).toBeTruthy();
+  });
+
+  it('opens no modal when the role has no criteria to edit, and still drops edit from the URL', async () => {
+    setSuggestions([ANA, BEN], {}, []);
+
+    renderView({ initialRoleUid: 'role-1', initialTab: 'suggested', initialEdit: 'criteria' });
+
+    await waitFor(() => expect(replaceState).toHaveBeenCalledTimes(1));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(window.location.search).not.toMatch(/edit=/);
+    expect(rowFor('Ana Lopez')).toBeTruthy();
+  });
+
+  it('keeps a shared suggested= link working alongside tab=suggested', () => {
+    renderView({ initialRoleUid: 'role-1', initialTab: 'suggested', initialSuggestedMemberUid: 'm-2' });
+
+    expect(screen.getByTestId('pane')).toHaveAttribute('data-member', 'm-2');
+  });
 });
 
 /**
@@ -595,8 +798,15 @@ describe('Contact on the Suggested tab', () => {
 
     expect(screen.getByRole('dialog', { name: 'Contact Ana' })).toBeInTheDocument();
     expect((screen.getByRole('textbox', { name: 'Message' }) as HTMLTextAreaElement).value).toMatch(
-      /^Hi Ana, I lead hiring for Senior Rust Engineer at Filecoin Foundation\./,
+      /^Hi Ana,\n\nI'm Maya, Head of Engineering at Filecoin Foundation\. I'm hiring for our Senior Rust Engineer role\./,
     );
+    expect(screen.getByRole('link', { name: /Senior Rust Engineer/ })).toHaveAttribute('href', '/jobs/openings/role-1');
+    expect(useContactSender).toHaveBeenLastCalledWith({
+      viewerUid: 'u1',
+      teamId: 'team-1',
+      isLoggedIn: true,
+      enabled: true,
+    });
     await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
@@ -611,7 +821,7 @@ describe('Contact on the Suggested tab', () => {
     const field = screen.getByRole('textbox', { name: 'Message' });
     await userEvent.clear(field);
     await userEvent.type(field, 'Hi Ana, fancy a chat?');
-    await userEvent.click(screen.getByRole('button', { name: 'Send' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Send email' }));
 
     expect(contactMutate).toHaveBeenCalledWith(
       { memberUid: 'm-1', message: 'Hi Ana, fancy a chat?' },
@@ -642,7 +852,7 @@ describe('Contact on the Suggested tab', () => {
     contactMutate.mockImplementation(answer({ error: new TeamApplicantsError(409, 'Already contacted') }));
 
     await openContact();
-    await userEvent.click(screen.getByRole('button', { name: 'Send' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Send email' }));
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(toastError).not.toHaveBeenCalled();
@@ -656,7 +866,7 @@ describe('Contact on the Suggested tab', () => {
     const field = screen.getByRole('textbox', { name: 'Message' });
     await userEvent.clear(field);
     await userEvent.type(field, 'My own words');
-    await userEvent.click(screen.getByRole('button', { name: 'Send' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Send email' }));
 
     expect(toastError).toHaveBeenCalledWith('This member has no email');
     expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -690,46 +900,51 @@ describe('Contact on the Suggested tab', () => {
   });
 });
 
-/** LAB-2847: the selected role's description, as plain text, on the Suggested tab. */
-describe('the role description on the Suggested tab', () => {
-  const renderWithRole = (role: IJobRole) =>
-    render(
-      <TeamApplicantsView
-        teamId="team-1"
-        teamName="Filecoin Foundation"
-        roles={[role]}
-        initialRoleUid={null}
-        initialCandidateUid={null}
-        viewerUid="u1"
-        isLoggedIn
-      />,
-    );
+/**
+ * LAB-2853: the list head on every tab — the role's title, then the posting's
+ * first paragraph as plain text. It replaced LAB-2847's Suggested-only summary.
+ */
+describe('the list head', () => {
+  const renderWithRole = (role: IJobRole) => renderView({ roles: [role] });
 
-  it('shows the posting as plain text with no markup', async () => {
+  it('names the role in a heading on the Applied tab', () => {
+    renderWithRole(ROLE);
+
+    expect(screen.getByRole('heading', { level: 2, name: 'Senior Rust Engineer' })).toBeInTheDocument();
+  });
+
+  it('shows the posting’s first paragraph as plain text, with no markup', () => {
     renderWithRole({
       ...ROLE,
       descriptionHtml:
-        '<h2>About</h2><p>Build <strong>consensus</strong> &amp; storage in Rust.</p><ul><li>Remote</li></ul>',
+        '<p>Build <strong>consensus</strong> &amp; storage<br>in Rust.</p><p>Second paragraph.</p><ul><li>Remote</li></ul>',
     } as IJobRole);
-    await openSuggested();
 
-    const summary = screen.getByTestId('suggested-role-summary');
-    expect(summary).toHaveTextContent('About Build consensus & storage in Rust. Remote');
-    expect(summary.innerHTML).not.toMatch(/<|&lt;/);
-    expect(summary.className).toMatch(/roleSummary/);
+    const lead = screen.getByTestId('role-description-lead');
+    expect(lead).toHaveTextContent(/^Build consensus & storage in Rust\.$/);
+    expect(lead.innerHTML).not.toMatch(/<|&lt;/);
+    expect(lead.className).toMatch(/roleLead/);
   });
 
-  it('shows no description line for a role without one', async () => {
-    renderWithRole({ ...ROLE, descriptionHtml: null } as IJobRole);
-    await openSuggested();
+  it('skips empty paragraphs to the first one with text', () => {
+    renderWithRole({ ...ROLE, descriptionHtml: '<p> </p><p></p><p>About the team.</p><p>More.</p>' } as IJobRole);
 
-    expect(screen.getByText(/People who worked at Filecoin Foundation are not suggested/)).toBeInTheDocument();
-    expect(screen.queryByTestId('suggested-role-summary')).not.toBeInTheDocument();
+    expect(screen.getByTestId('role-description-lead')).toHaveTextContent(/^About the team\.$/);
   });
 
-  it('is not shown on the Applied tab', () => {
+  it('keeps the same head on the Suggested tab', async () => {
     renderWithRole({ ...ROLE, descriptionHtml: '<p>Build consensus.</p>' } as IJobRole);
+    await openSuggested();
 
-    expect(screen.queryByTestId('suggested-role-summary')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Senior Rust Engineer' })).toBeInTheDocument();
+    expect(screen.getByTestId('role-description-lead')).toHaveTextContent('Build consensus.');
+    expect(screen.getByText(/People who worked at Filecoin Foundation are not suggested/)).toBeInTheDocument();
+  });
+
+  it('shows no paragraph for a role without a description', () => {
+    renderWithRole({ ...ROLE, descriptionHtml: null } as IJobRole);
+
+    expect(screen.getByRole('heading', { level: 2, name: 'Senior Rust Engineer' })).toBeInTheDocument();
+    expect(screen.queryByTestId('role-description-lead')).not.toBeInTheDocument();
   });
 });

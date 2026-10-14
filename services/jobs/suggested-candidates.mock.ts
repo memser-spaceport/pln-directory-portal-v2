@@ -1,5 +1,6 @@
 import {
   CONTACT_MESSAGE_MAX_LENGTH,
+  CRITERIA_PROMPT_MAX_LENGTH,
   type RoleCriterion,
   type suggestedCandidatesResponseSchema,
 } from '@/schema/suggested-candidates';
@@ -15,7 +16,8 @@ import type { z } from 'zod';
  *
  * - the suggestions still come from the server; `overlaySuggestedMock` fills in
  *   the role's `criteria` (from the people's own requirement texts when the
- *   server sent none) and each person's `contactedAt`;
+ *   server sent none), the role's `criteriaPrompt` (LAB-2853) and each
+ *   person's `contactedAt`;
  * - `PUT match-criteria` and `POST …/contact` are answered here, from a `Map`
  *   that lives as long as the page does. Nothing is sent to anyone.
  *
@@ -46,6 +48,8 @@ type SuggestedResponse = z.infer<typeof suggestedCandidatesResponseSchema>;
 
 /** Role uid → the texts switched off. */
 const disabledByRole = new Map<string, Set<string>>();
+/** Role uid → the lead's saved prompt (LAB-2853). */
+const promptByRole = new Map<string, string>();
 /** Role uid → the criteria texts the last read showed, so a save can refuse an unknown one. */
 const knownByRole = new Map<string, string[]>();
 /** `roleUid:memberUid` → when they were contacted. */
@@ -63,7 +67,7 @@ const criteriaFor = (roleUid: string, texts: string[], serverEnabled?: Map<strin
   }));
 };
 
-/** Fills `criteria` and `contactedAt` on a real read from the session state. */
+/** Fills `criteria`, `criteriaPrompt` and `contactedAt` on a real read from the session state. */
 export function overlaySuggestedMock(roleUid: string, response: SuggestedResponse): SuggestedResponse {
   const serverEnabled = response.criteria ? new Map(response.criteria.map((c) => [c.text, c.enabled])) : undefined;
   const texts = response.criteria
@@ -74,6 +78,7 @@ export function overlaySuggestedMock(roleUid: string, response: SuggestedRespons
   return {
     ...response,
     criteria: criteriaFor(roleUid, texts, serverEnabled),
+    criteriaPrompt: promptByRole.has(roleUid) ? promptByRole.get(roleUid) || null : (response.criteriaPrompt ?? null),
     suggestions: response.suggestions.map((row) => ({
       ...row,
       contactedAt: contactedAt.get(contactKey(roleUid, row.memberUid)) ?? row.contactedAt ?? null,
@@ -81,8 +86,16 @@ export function overlaySuggestedMock(roleUid: string, response: SuggestedRespons
   };
 }
 
-/** `PUT /v1/job-openings/:roleUid/match-criteria`, answered from session state. */
-export async function saveMatchCriteriaMock(roleUid: string, disabled: string[]): Promise<MockAnswer> {
+/**
+ * `PUT /v1/job-openings/:roleUid/match-criteria`, answered from session state.
+ * `prompt` follows the endpoint: `undefined` keeps the saved one, and `null` or
+ * blank clears it.
+ */
+export async function saveMatchCriteriaMock(
+  roleUid: string,
+  disabled: string[],
+  prompt?: string | null,
+): Promise<MockAnswer> {
   await latency();
   const known = knownByRole.get(roleUid);
   if (!known?.length) return { status: 409, body: { message: 'No criteria extracted for this role yet' } };
@@ -92,10 +105,18 @@ export async function saveMatchCriteriaMock(roleUid: string, disabled: string[])
   if (known.every((text) => disabled.includes(text))) {
     return { status: 400, body: { message: 'At least one criterion must stay enabled' } };
   }
+  const trimmed = typeof prompt === 'string' ? prompt.trim() : prompt;
+  if (typeof trimmed === 'string' && trimmed.length > CRITERIA_PROMPT_MAX_LENGTH) {
+    return { status: 400, body: { message: `Prompt must be at most ${CRITERIA_PROMPT_MAX_LENGTH} characters` } };
+  }
   if (MOCK_FAIL_CRITERIA_SAVE) return { status: 500, body: { message: 'Mock: criteria save failed' } };
 
   disabledByRole.set(roleUid, new Set(disabled));
-  return { status: 200, body: { criteria: criteriaFor(roleUid, known) } };
+  if (trimmed !== undefined) promptByRole.set(roleUid, trimmed || '');
+  return {
+    status: 200,
+    body: { criteria: criteriaFor(roleUid, known), prompt: promptByRole.get(roleUid) || null },
+  };
 }
 
 /** `POST …/suggested-candidates/:memberUid/contact`, answered from session state. */
@@ -121,6 +142,7 @@ export async function contactSuggestedCandidateMock(
 /** Test-only: forget the session state. */
 export function resetSuggestedMock() {
   disabledByRole.clear();
+  promptByRole.clear();
   knownByRole.clear();
   contactedAt.clear();
 }

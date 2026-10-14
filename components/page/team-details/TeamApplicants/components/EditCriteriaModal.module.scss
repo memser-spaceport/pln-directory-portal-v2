@@ -117,6 +117,70 @@
   color: var(--foreground-neutral-tertiary, #8897ae);
 }
 
+/* LAB-2853: the lead's own words, under the requirements. The label is at
+ * field-label weight because this is a field to fill, not a heading. */
+.prompt {
+  display: flex;
+  flex-direction: column;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(27, 56, 96, 0.12);
+}
+
+.promptLabel {
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.promptField {
+  width: 100%;
+  min-height: 96px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  background: var(--background-neutral-primary, #fff);
+  resize: vertical;
+
+  &::placeholder {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #5e718d;
+    box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
+  }
+
+  &[aria-invalid='true'] {
+    border-color: var(--border-error-primary, #d21a0e);
+  }
+}
+
+.count,
+.countOver {
+  margin: 6px 0 0;
+  align-self: flex-end;
+  font-size: 12px;
+  line-height: 18px;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.countOver {
+  color: var(--foreground-error-primary, #d21a0e);
+}
+
 .footer {
   display: flex;
   align-items: center;

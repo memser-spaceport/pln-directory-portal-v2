@@ -546,8 +546,16 @@ export const useJobsAnalytics = () => {
   };
 
   /* LAB-2771. `count` is how many people the tab showed, so the funnel can
-     tell a role with suggestions from one without. */
-  const onJobSuggestedCandidatesViewed = (args: { team_id: string; job_id: string | null; count: number }) => {
+     tell a role with suggestions from one without. LAB-2853: `source` is
+     'email' when the lead arrived from a suggested-candidates email (its
+     `utm_source`), else 'app'; `utm_content` says which link in it. */
+  const onJobSuggestedCandidatesViewed = (args: {
+    team_id: string;
+    job_id: string | null;
+    count: number;
+    source: 'email' | 'app';
+    utm_content: string | null;
+  }) => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_SUGGESTED_CANDIDATES_VIEWED, { ...args });
   };
 

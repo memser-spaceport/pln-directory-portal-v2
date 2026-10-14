@@ -276,6 +276,22 @@ describe('TeamApplicantsView', () => {
       expect(markSeen).not.toHaveBeenCalled();
     });
 
+    /* LAB-2853: the narrow pane's way back names the page's own people. */
+    it('labels the narrow pane’s way back "All candidates", and it returns to the list', async () => {
+      isNarrow = true;
+
+      renderView();
+      await userEvent.click(screen.getByRole('button', { name: /Devon Park/ }));
+
+      expect(screen.getByTestId('pane')).toHaveTextContent('Devon Park');
+      const back = screen.getByRole('button', { name: 'All candidates' });
+      expect(screen.queryByText('All applicants')).not.toBeInTheDocument();
+      await userEvent.click(back);
+
+      expect(screen.queryByTestId('pane')).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Devon Park/ })).toBeInTheDocument();
+    });
+
     it('leaves an empty role alone', () => {
       setLists({ applications: [], interests: [] });
 

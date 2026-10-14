@@ -81,8 +81,30 @@ describe('saveMatchCriteriaMock', () => {
           { text: 'A', enabled: true },
           { text: 'B', enabled: false },
         ],
+        prompt: null,
       },
     });
+  });
+
+  /* LAB-2853, the endpoint's rule: absent keeps, null or blank clears. */
+  it('saves, keeps and clears the prompt, and the next read carries it', async () => {
+    await expect(saveMatchCriteriaMock('r1', [], '  Ran a storage network  ')).resolves.toMatchObject({
+      body: { prompt: 'Ran a storage network' },
+    });
+    expect(overlaySuggestedMock('r1', { suggestions: [person('m1', ['A', 'B'])] }).criteriaPrompt).toBe(
+      'Ran a storage network',
+    );
+
+    await expect(saveMatchCriteriaMock('r1', ['B'])).resolves.toMatchObject({
+      body: { prompt: 'Ran a storage network' },
+    });
+
+    await expect(saveMatchCriteriaMock('r1', [], null)).resolves.toMatchObject({ body: { prompt: null } });
+    expect(overlaySuggestedMock('r1', { suggestions: [person('m1', ['A', 'B'])] }).criteriaPrompt).toBeNull();
+  });
+
+  it('refuses a prompt over 500 characters with a 400', async () => {
+    await expect(saveMatchCriteriaMock('r1', [], 'x'.repeat(501))).resolves.toMatchObject({ status: 400 });
   });
 
   it('refuses an unknown text and all of them off with a 400, as the API does', async () => {

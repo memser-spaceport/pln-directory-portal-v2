@@ -76,15 +76,28 @@ export const suggestedCandidatesResponseSchema = z
      * backend. Optional, so both backends parse.
      */
     criteria: z.array(roleCriterionSchema).optional(),
+    /**
+     * The lead's own words about who they are looking for (LAB-2853), or null
+     * when none is saved. Absent on a backend without it, so it is optional.
+     */
+    criteriaPrompt: z.string().nullable().optional(),
   })
   .strict();
 
-/** `PUT /v1/job-openings/:roleUid/match-criteria` answers the role's criteria as saved. */
+/**
+ * `PUT /v1/job-openings/:roleUid/match-criteria` answers the role's criteria
+ * and the saved prompt (LAB-2853). `prompt` is optional so a backend that does
+ * not have it yet still parses.
+ */
 export const matchCriteriaResponseSchema = z
   .object({
     criteria: z.array(roleCriterionSchema),
+    prompt: z.string().nullable().optional(),
   })
   .strict();
+
+/** The longest prompt the match-criteria endpoint takes, after trimming (LAB-2853). */
+export const CRITERIA_PROMPT_MAX_LENGTH = 500;
 
 /** `POST …/suggested-candidates/:memberUid/contact` answers when the message went out. */
 export const contactSuggestedResponseSchema = z

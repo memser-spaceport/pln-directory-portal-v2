@@ -1,6 +1,7 @@
 import {
   contactSuggestedCandidateMock,
   MOCK_FAIL_MARKER,
+  mockStructure,
   overlaySuggestedMock,
   resetSuggestedMock,
   saveMatchCriteriaMock,
@@ -31,9 +32,9 @@ describe('overlaySuggestedMock', () => {
     const out = overlaySuggestedMock('r1', { suggestions: [person('m1', ['A', 'B']), person('m2', ['B', 'C'])] });
 
     expect(out.criteria).toEqual([
-      { text: 'A', enabled: true },
-      { text: 'B', enabled: true },
-      { text: 'C', enabled: true },
+      { text: 'A', enabled: true, label: 'A', group: 'Other' },
+      { text: 'B', enabled: true, label: 'B', group: 'Other' },
+      { text: 'C', enabled: true, label: 'C', group: 'Other' },
     ]);
     expect(out.suggestions.map((row) => row.contactedAt)).toEqual([null, null]);
   });
@@ -46,14 +47,52 @@ describe('overlaySuggestedMock', () => {
         { text: 'B', enabled: false },
       ],
     };
-    expect(overlaySuggestedMock('r1', response).criteria).toEqual(response.criteria);
+    expect(overlaySuggestedMock('r1', response).criteria).toEqual([
+      { text: 'A', enabled: true, label: 'A', group: 'Other' },
+      { text: 'B', enabled: false, label: 'B', group: 'Other' },
+    ]);
 
     await saveMatchCriteriaMock('r1', ['A']);
 
     expect(overlaySuggestedMock('r1', response).criteria).toEqual([
-      { text: 'A', enabled: false },
-      { text: 'B', enabled: true },
+      { text: 'A', enabled: false, label: 'A', group: 'Other' },
+      { text: 'B', enabled: true, label: 'B', group: 'Other' },
     ]);
+  });
+
+  /* LAB-2854: labels and groups, so the grouped modal and pane can be clicked through. */
+  it('gives the role’s and each person’s criteria the same stand-in label and group', () => {
+    const statement = 'Five years of Rust in production systems, shipped end to end';
+    const out = overlaySuggestedMock('r1', { suggestions: [person('m1', [statement, 'Based in Europe'])] });
+
+    expect(out.criteria).toEqual([
+      { text: statement, enabled: true, label: 'Five years of Rust in production', group: 'Experience' },
+      { text: 'Based in Europe', enabled: true, label: 'Based in Europe', group: 'Location' },
+    ]);
+    expect(out.suggestions[0].criteria).toEqual([
+      { text: statement, matched: true, label: 'Five years of Rust in production', group: 'Experience' },
+      { text: 'Based in Europe', matched: true, label: 'Based in Europe', group: 'Location' },
+    ]);
+  });
+
+  it('keeps the server’s own label and group', () => {
+    const out = overlaySuggestedMock('r1', {
+      suggestions: [person('m1', ['A'])],
+      criteria: [{ text: 'A', enabled: true, label: 'Short A', group: 'Skills' }],
+    });
+
+    expect(out.criteria).toEqual([{ text: 'A', enabled: true, label: 'Short A', group: 'Skills' }]);
+    expect(out.suggestions[0].criteria).toEqual([{ text: 'A', matched: true, label: 'Short A', group: 'Skills' }]);
+  });
+
+  it('caps a stand-in label at 40 characters on a word boundary, and falls back to Other', () => {
+    const { label, group } = mockStructure('Communicates trade-offs clearly in writing to a distributed audience');
+
+    expect(label).toBe('Communicates trade-offs clearly in');
+    expect(label.length).toBeLessThanOrEqual(40);
+    expect(group).toBe('Other');
+    expect(mockStructure('Senior or above').group).toBe('Seniority');
+    expect(mockStructure('Hands-on Rust or Go').group).toBe('Skills');
   });
 
   it('fills contactedAt for a person the mock contacted', async () => {
@@ -78,8 +117,8 @@ describe('saveMatchCriteriaMock', () => {
       status: 200,
       body: {
         criteria: [
-          { text: 'A', enabled: true },
-          { text: 'B', enabled: false },
+          { text: 'A', enabled: true, label: 'A', group: 'Other' },
+          { text: 'B', enabled: false, label: 'B', group: 'Other' },
         ],
         prompt: null,
       },

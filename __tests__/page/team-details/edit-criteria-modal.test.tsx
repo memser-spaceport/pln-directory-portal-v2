@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 
@@ -68,7 +68,9 @@ describe('EditCriteriaModal', () => {
     await open();
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText(/Changes apply from next week’s suggestions/)).toBeInTheDocument();
+    /* LAB-2854: the prototype's subtitle, and the timing moved to the footer. */
+    expect(screen.getByText('What counts as a fit for Senior Rust Engineer.')).toBeInTheDocument();
+    expect(screen.getByText('Changes apply from next week’s suggestions.')).toBeInTheDocument();
     for (const name of ['A', 'B', 'C']) expect(box(name)).toHaveAttribute('aria-checked', 'true');
   });
 
@@ -220,5 +222,94 @@ describe('EditCriteriaModal', () => {
       expect(screen.getByText('501 / 500')).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
     });
+  });
+});
+
+/**
+ * LAB-2854: the requirements under Skills / Experience / Seniority / Location
+ * / Other headers, each row a short label over the full statement — and the
+ * flat list, statement alone, an older backend gets.
+ */
+describe('EditCriteriaModal with structured criteria', () => {
+  const STRUCTURED: RoleCriterion[] = [
+    { text: 'Working hours overlapping Europe', enabled: true, label: 'Europe hours', group: 'Location' },
+    { text: 'Hands-on proficiency in Rust', enabled: true, label: 'Rust', group: 'Skills' },
+    { text: 'Five years of infrastructure work', enabled: true, label: '5+ yrs infra', group: 'Experience' },
+    { text: 'Background in peer-to-peer protocols', enabled: false, label: 'Protocols', group: 'Skills' },
+    { text: 'Writes clearly', enabled: true, group: 'Other' },
+  ];
+
+  /* Each list's visible header, or null for the flat list. */
+  const headers = () =>
+    screen.getAllByRole('list').map((list) => {
+      const id = list.getAttribute('aria-labelledby');
+      return id ? document.getElementById(id)?.textContent : null;
+    });
+
+  it('groups the requirements under headers in the fixed order, hiding empty groups', async () => {
+    render(<Harness initial={STRUCTURED} />);
+    await open();
+
+    expect(headers()).toEqual(['Skills', 'Experience', 'Location', 'Other']);
+    expect(screen.queryByText('Seniority')).not.toBeInTheDocument();
+
+    const skills = screen.getByRole('list', { name: 'Skills' });
+    expect(within(skills).getAllByRole('checkbox')).toHaveLength(2);
+    expect(within(skills).getByText('Rust')).toBeInTheDocument();
+    expect(within(skills).getByText('Hands-on proficiency in Rust')).toBeInTheDocument();
+    expect(within(screen.getByRole('list', { name: 'Location' })).getByText('Europe hours')).toBeInTheDocument();
+  });
+
+  it('shows the statement alone when a requirement has no label', async () => {
+    render(<Harness initial={STRUCTURED} />);
+    await open();
+
+    const other = screen.getByRole('list', { name: 'Other' });
+    expect(within(other).getByRole('checkbox')).toHaveAccessibleName('Writes clearly');
+  });
+
+  it('still saves the switched-off statements, not the labels', async () => {
+    render(<Harness initial={STRUCTURED} />);
+    await open();
+    await userEvent.click(screen.getByRole('checkbox', { name: /^Rust\b/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(onSave).toHaveBeenCalledWith(['Hands-on proficiency in Rust', 'Background in peer-to-peer protocols'], null);
+  });
+
+  it('lists the requirements flat, with no headers, when none has a group', async () => {
+    render(
+      <Harness
+        initial={[
+          { text: 'Hands-on proficiency in Rust', enabled: true, label: 'Rust' },
+          { text: 'Writes clearly', enabled: true },
+        ]}
+      />,
+    );
+    await open();
+
+    expect(headers()).toEqual([null]);
+    const lists = screen.getAllByRole('list');
+    expect(lists[0]).toHaveAccessibleName('Requirements');
+    for (const group of ['Skills', 'Experience', 'Seniority', 'Location', 'Other']) {
+      expect(screen.queryByText(group)).not.toBeInTheDocument();
+    }
+    expect(within(lists[0]).getByText('Rust')).toBeInTheDocument();
+    expect(within(lists[0]).getByText('Hands-on proficiency in Rust')).toBeInTheDocument();
+  });
+
+  it('puts an ungrouped requirement under Other when the rest are grouped', async () => {
+    render(
+      <Harness
+        initial={[
+          { text: 'Writes clearly', enabled: true },
+          { text: 'Hands-on proficiency in Rust', enabled: true, label: 'Rust', group: 'Skills' },
+        ]}
+      />,
+    );
+    await open();
+
+    expect(headers()).toEqual(['Skills', 'Other']);
+    expect(within(screen.getByRole('list', { name: 'Other' })).getByText('Writes clearly')).toBeInTheDocument();
   });
 });

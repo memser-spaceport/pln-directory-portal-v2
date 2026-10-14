@@ -1,6 +1,7 @@
 import {
   CONTACT_MESSAGE_MAX_LENGTH,
   CRITERIA_PROMPT_MAX_LENGTH,
+  type CriterionGroup,
   type RoleCriterion,
   type suggestedCandidatesResponseSchema,
 } from '@/schema/suggested-candidates';
@@ -18,6 +19,11 @@ import type { z } from 'zod';
  *   the role's `criteria` (from the people's own requirement texts when the
  *   server sent none), the role's `criteriaPrompt` (LAB-2853) and each
  *   person's `contactedAt`;
+ * - every criterion, the role's and each person's, gets a `label` and a
+ *   `group` (LAB-2854) when the server sent none: the label is the
+ *   statement's first words, and the group is guessed from keywords
+ *   ({@link mockStructure}), so the grouped modal and pane can be clicked
+ *   through before the backend labels anything;
  * - `PUT match-criteria` and `POST …/contact` are answered here, from a `Map`
  *   that lives as long as the page does. Nothing is sent to anyone.
  *
@@ -50,8 +56,11 @@ type SuggestedResponse = z.infer<typeof suggestedCandidatesResponseSchema>;
 const disabledByRole = new Map<string, Set<string>>();
 /** Role uid → the lead's saved prompt (LAB-2853). */
 const promptByRole = new Map<string, string>();
-/** Role uid → the criteria texts the last read showed, so a save can refuse an unknown one. */
-const knownByRole = new Map<string, string[]>();
+/**
+ * Role uid → the criteria the last read showed (statement, label, group), so
+ * a save can refuse an unknown one and answer the same labels.
+ */
+const knownByRole = new Map<string, Structure[]>();
 /** `roleUid:memberUid` → when they were contacted. */
 const contactedAt = new Map<string, string>();
 
@@ -59,28 +68,74 @@ const contactKey = (roleUid: string, memberUid: string) => `${roleUid}:${memberU
 
 const latency = () => new Promise<void>((resolve) => setTimeout(resolve, process.env.NODE_ENV === 'test' ? 0 : 400));
 
-const criteriaFor = (roleUid: string, texts: string[], serverEnabled?: Map<string, boolean>): RoleCriterion[] => {
+interface Structure {
+  text: string;
+  label?: string | null;
+  group?: CriterionGroup;
+}
+
+const GROUP_KEYWORDS: [CriterionGroup, RegExp][] = [
+  ['Location', /\b(based|located|remote|hours|time ?zones?|europe|americas|asia|on-?site|relocat)/i],
+  ['Seniority', /\b(senior|staff|principal|lead|junior|mid-level|seniority)\b/i],
+  ['Experience', /\b(years?|yrs|experience|shipped|worked|track record|history)\b/i],
+  ['Skills', /\b(rust|go|golang|typescript|javascript|python|solidity|react|kubernetes|skills?|proficien)/i],
+];
+
+/** The words a label keeps: the server caps labels at 40 characters. */
+const LABEL_MAX = 40;
+
+/**
+ * A stand-in `label` and `group` for a statement the server did not label:
+ * the first words up to 40 characters, and the first keyword group that
+ * matches (`Other` when none does). Exported for the mock's test.
+ */
+export function mockStructure(text: string): { label: string; group: CriterionGroup } {
+  const group = GROUP_KEYWORDS.find(([, pattern]) => pattern.test(text))?.[0] ?? 'Other';
+  const words = text.replace(/[.,;:]+$/, '').split(/\s+/);
+  let label = '';
+  for (const word of words) {
+    const next = label ? `${label} ${word}` : word;
+    if (next.length > LABEL_MAX) break;
+    label = next;
+  }
+  return { label: label || text.slice(0, LABEL_MAX), group };
+}
+
+/** The server's label and group when it sent them, else the mock's. */
+const structureOf = (criterion: Structure): Structure => {
+  if (criterion.label || criterion.group)
+    return { text: criterion.text, label: criterion.label, group: criterion.group };
+  return { text: criterion.text, ...mockStructure(criterion.text) };
+};
+
+const criteriaFor = (roleUid: string, known: Structure[], serverEnabled?: Map<string, boolean>): RoleCriterion[] => {
   const disabled = disabledByRole.get(roleUid);
-  return texts.map((text) => ({
-    text,
-    enabled: disabled ? !disabled.has(text) : (serverEnabled?.get(text) ?? true),
+  return known.map((criterion) => ({
+    ...criterion,
+    enabled: disabled ? !disabled.has(criterion.text) : (serverEnabled?.get(criterion.text) ?? true),
   }));
 };
 
 /** Fills `criteria`, `criteriaPrompt` and `contactedAt` on a real read from the session state. */
 export function overlaySuggestedMock(roleUid: string, response: SuggestedResponse): SuggestedResponse {
   const serverEnabled = response.criteria ? new Map(response.criteria.map((c) => [c.text, c.enabled])) : undefined;
-  const texts = response.criteria
-    ? response.criteria.map((c) => c.text)
-    : Array.from(new Set(response.suggestions.flatMap((row) => row.criteria.map((c) => c.text))));
-  knownByRole.set(roleUid, texts);
+  const byText = new Map<string, Structure>();
+  for (const criterion of response.criteria ?? response.suggestions.flatMap((row) => row.criteria)) {
+    if (!byText.has(criterion.text)) byText.set(criterion.text, structureOf(criterion));
+  }
+  const known = Array.from(byText.values());
+  knownByRole.set(roleUid, known);
 
   return {
     ...response,
-    criteria: criteriaFor(roleUid, texts, serverEnabled),
+    criteria: criteriaFor(roleUid, known, serverEnabled),
     criteriaPrompt: promptByRole.has(roleUid) ? promptByRole.get(roleUid) || null : (response.criteriaPrompt ?? null),
     suggestions: response.suggestions.map((row) => ({
       ...row,
+      criteria: row.criteria.map((criterion) => ({
+        ...criterion,
+        ...(byText.get(criterion.text) ?? structureOf(criterion)),
+      })),
       contactedAt: contactedAt.get(contactKey(roleUid, row.memberUid)) ?? row.contactedAt ?? null,
     })),
   };
@@ -99,10 +154,11 @@ export async function saveMatchCriteriaMock(
   await latency();
   const known = knownByRole.get(roleUid);
   if (!known?.length) return { status: 409, body: { message: 'No criteria extracted for this role yet' } };
-  if (!Array.isArray(disabled) || disabled.some((text) => !known.includes(text))) {
+  const texts = known.map((criterion) => criterion.text);
+  if (!Array.isArray(disabled) || disabled.some((text) => !texts.includes(text))) {
     return { status: 400, body: { message: 'Unknown criterion' } };
   }
-  if (known.every((text) => disabled.includes(text))) {
+  if (texts.every((text) => disabled.includes(text))) {
     return { status: 400, body: { message: 'At least one criterion must stay enabled' } };
   }
   const trimmed = typeof prompt === 'string' ? prompt.trim() : prompt;

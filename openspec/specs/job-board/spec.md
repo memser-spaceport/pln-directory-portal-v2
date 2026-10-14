@@ -119,6 +119,36 @@ The Suggested tab SHALL load when the suggestions response carries `contactedAt`
 - **THEN** the tab lists the suggestions
 - **AND** the "Why suggested" pane offers "Edit criteria"
 
+#### Scenario: Criteria with labels and groups
+
+- **WHEN** the role's `criteria` items and each person's `criteria` items carry an optional `label` and `group`
+- **THEN** the tab loads, with or without them
+- **AND** a `group` other than Skills, Experience, Seniority, Location or Other is read as Other, and the tab still loads
+- **AND** any other unknown field on a criterion still fails the read
+
+### Requirement: Grouped requirements with short labels
+
+The "Edit criteria" modal and the "Why suggested" pane SHALL list the role's requirements under the headers Skills, Experience, Seniority, Location and Other, in that order, and SHALL hide a header with no requirements. Each requirement SHALL show its `label` with its full statement (`text`) under it in smaller grey text; a requirement without a label SHALL show its statement alone. When no requirement has a group, both SHALL list the requirements without headers. When only some have a group, the others SHALL be listed under Other. The statement SHALL stay the key a save names.
+
+#### Scenario: Grouped requirements
+
+- **GIVEN** a role's requirements carry the groups Skills, Location and Skills
+- **WHEN** a lead opens "Edit criteria" or the "Why suggested" pane
+- **THEN** the requirements show under "Skills" and then "Location", and no other header shows
+
+#### Scenario: Label over statement
+
+- **GIVEN** a requirement with label "Rust" and statement "Hands-on proficiency in Rust"
+- **WHEN** a lead reads it in the modal or the pane
+- **THEN** it reads "Rust" with "Hands-on proficiency in Rust" under it
+- **AND** switching it off and saving sends "Hands-on proficiency in Rust" in `disabled`
+
+#### Scenario: Older backend without labels or groups
+
+- **GIVEN** the role's requirements carry no `label` and no `group`
+- **WHEN** a lead opens the modal or the pane
+- **THEN** the requirements show as one list without headers, each as its statement
+
 ### Requirement: List head on every tab
 
 Above the tabs, the candidates list SHALL show the selected role's title as a heading and, under it, the first non-empty paragraph of the role's posting as plain text, cut to at most three lines. This SHALL show on the Applied, Interested and Suggested tabs. A role without a description SHALL show the title and no paragraph.
@@ -169,6 +199,23 @@ A row on the Suggested tab SHALL show three lines: the name, the person's role, 
 - **THEN** the row shows no Interested mark and no note
 - **AND** opening the row shows the Interested mark and the whole note in the pane
 
+### Requirement: Why suggested title and network block
+
+The "Why suggested" pane's title SHALL read "Why we suggested <first name>", using the first word of the member's name, or "Why we suggested them" when the name is blank. When the member said they are interested in the role or its team, the pane's body SHALL open with an "In the network" block reading "Pressed I'm interested on your team or this role", with the member's whole note under it when they wrote one. The block SHALL be absent when the member gave no such reason, and it SHALL not count towards "N of M requirements".
+
+#### Scenario: Interested member with a note
+
+- **GIVEN** Ana Lopez said she is interested and wrote "Keen to work on consensus."
+- **WHEN** the lead opens her on the Suggested tab
+- **THEN** the pane is titled "Why we suggested Ana"
+- **AND** its body opens with "In the network": "Pressed I'm interested on your team or this role" and her note under it
+
+#### Scenario: Member who is not interested
+
+- **GIVEN** a suggested member did not say they are interested
+- **WHEN** the lead opens them
+- **THEN** no "In the network" block shows
+
 ### Requirement: Requirement count on a suggestion
 
 The "Why suggested" pane SHALL show "N of M requirements", where M is the number of requirements listed for that person and N is how many of them the person meets.
@@ -181,7 +228,7 @@ The "Why suggested" pane SHALL show "N of M requirements", where M is the number
 
 ### Requirement: Edit a role's match criteria
 
-From the "Why suggested" pane, a lead SHALL be able to open "Edit criteria", switch each of the role's requirements on or off, write who they are looking for in one free-text box ("Tell us who you're looking for", at most 500 characters), and save both together. The box SHALL open on the saved prompt (`criteriaPrompt`). The modal SHALL say the change applies from next week's suggestions.
+From the "Why suggested" pane, a lead SHALL be able to open "Edit criteria", switch each of the role's requirements on or off, write who they are looking for in one free-text box ("Tell us who you're looking for", at most 500 characters, with a character counter), and save both together. The box SHALL open on the saved prompt (`criteriaPrompt`). The modal's subtitle SHALL read "What counts as a fit for <role title>." Its footer SHALL read "Changes apply from next week's suggestions." on the left, with Cancel and Save on the right.
 
 #### Scenario: Lead saves switched-off requirements
 
@@ -224,8 +271,9 @@ From the "Why suggested" pane, a lead SHALL be able to open "Edit criteria", swi
 
 #### Scenario: Modal states when the change applies
 
-- **WHEN** a lead opens "Edit criteria"
-- **THEN** the modal says the change applies from next week's suggestions
+- **WHEN** a lead opens "Edit criteria" for "Senior Rust Engineer"
+- **THEN** the subtitle reads "What counts as a fit for Senior Rust Engineer."
+- **AND** the footer reads "Changes apply from next week's suggestions." beside Cancel and Save
 
 #### Scenario: Analytics event on save
 

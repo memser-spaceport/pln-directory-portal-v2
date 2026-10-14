@@ -202,3 +202,25 @@ $brand: var(--foreground-brand-primary, #1b4dff);
     animation: none;
   }
 }
+
+/*
+  Phone (LAB-2796, prototype ai-apps-feedback-drawer): the drawer is the whole
+  screen, so "Add a comment" — which puts it aside for a tap on the app — is
+  pinned under the list; margin-top: auto keeps it down when the list is short.
+*/
+.phoneFooter {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding: 12px 24px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid $border;
+  background: #fff;
+}
+
+/* DS Button is inline-block: without flex the glyph sits on the baseline and gap is ignored. */
+.addButton.addButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+}

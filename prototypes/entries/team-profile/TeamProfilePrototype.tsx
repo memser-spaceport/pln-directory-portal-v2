@@ -40,6 +40,7 @@ import { TeamProjectsView } from './TeamProjectsView';
 import { TeamOpenRolesView } from './TeamOpenRolesView';
 import { TeamCandidatesPage, type CandidatesTab } from './TeamCandidatesPage';
 import { SuggestedCandidatesEmail } from './email/SuggestedCandidatesEmail';
+import { CandidatesSignInStep } from './CandidatesSignInStep';
 import { getJobDate, seniorityDisplayLabel } from '@/utils/jobs.utils';
 import { seedListingMeta, submitJobHref, type ListingMeta, type ListingStatus } from '../job-board/listings';
 /* The board's apply flow, mounted here so a role read from its team's page is
@@ -50,6 +51,7 @@ import { seedListingMeta, submitJobHref, type ListingMeta, type ListingStatus } 
    See the note on `TeamOpenRolesView`. */
 import { JobApplyFlowDrawer, type ApplyFlowStepId } from '../job-board/JobApplyFlowDrawer';
 import { FILLED_PROFILE, type MemberProfile } from '../job-board/viewerState';
+import { getJobDetail } from '../job-board/jobDetails';
 /* One kept set across the surfaces: a role bookmarked here is in the board's
    Saved tab, not in a second list belonging to this page. */
 import { useSavedItems } from '../save-shared/savedItems';
@@ -202,13 +204,17 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
   const [candidatesPerson, setCandidatesPerson] = useState<string | undefined>(undefined);
   // `?email=suggested`: the suggested-candidates email, as a review surface.
   const [suggestedEmailOpen, setSuggestedEmailOpen] = useState(false);
+  // `&signedout=1` (the email's links): the sign-in step before the page.
+  const [landingSignedOut, setLandingSignedOut] = useState(false);
   /**
-   * LANDING (LAB-2687 Comms). The suggested-candidates email and the bell
-   * notification both link here — `?candidates=<roleUid>&tab=suggested`, plus
-   * `&candidate=<id>` from a name in the email — and arrive on the Candidates
-   * page, on that role, Suggested tab open, as the team lead (the seat the
-   * email is sent to). Read once on mount; the real route would be
-   * `/teams/<id>/candidates?role=…&tab=suggested`.
+   * LANDING (LAB-2687 Comms, LAB-2819). The suggested-candidates email and the
+   * bell notification both link here — `?candidates=<roleUid>&tab=suggested`,
+   * plus `&candidate=<id>` from a card in the email — and arrive on the
+   * Candidates page, on that role, Suggested tab open, as the team lead (the
+   * seat the email is sent to). The email's links also carry `&signedout=1`:
+   * the page is for signed-in leads only, so the prototype plays the sign-in
+   * step first and then lands on the same role and person. Read once on mount;
+   * the real route would be `/teams/<id>/candidates?role=…&suggested=<memberUid>`.
    */
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
@@ -216,6 +222,7 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
     const role = q.get('candidates');
     if (!role) return;
     setView('lead');
+    if (q.get('signedout') === '1') setLandingSignedOut(true);
     const tab = q.get('tab');
     if (tab === 'suggested') setCandidatesTab('Suggested');
     else if (tab === 'interested') setCandidatesTab('Interested');
@@ -701,9 +708,31 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
         roleTitle={emailRole.roleTitle}
         people={sortSuggested(visibleSuggested(MOCK_SUGGESTED[emailRole.uid] ?? [], emailCriteria), emailCriteria)}
         criteria={emailCriteria}
-        hrefFor={(personId) =>
-          `/prototypes/team-profile?candidates=${emailRole.uid}&tab=suggested${personId ? `&candidate=${personId}` : ''}`
+        postingHref={emailRole.applyUrl ?? undefined}
+        roleSummary={
+          MOCK_TEAM_ROLES ? firstSentence(getJobDetail(emailRole, MOCK_TEAM_ROLES.team).summary[0]) : undefined
         }
+        hrefFor={(personId) =>
+          `/prototypes/team-profile?candidates=${emailRole.uid}&tab=suggested${personId ? `&candidate=${personId}` : ''}&signedout=1`
+        }
+      />
+    );
+  }
+
+  /* A signed-out lead from the email: sign in, then the page they asked for.
+     Takes the whole page, as the email does — production's is Privy's modal
+     over a page that has nothing to show yet. */
+  if (landingSignedOut && candidatesRole && teamRoles) {
+    const landingRole = teamRoles.roles.find((r) => r.uid === candidatesRole);
+    const person = candidatesPerson
+      ? (MOCK_SUGGESTED[candidatesRole] ?? []).find((p) => p.id === candidatesPerson)
+      : undefined;
+    return (
+      <CandidatesSignInStep
+        teamName={team.name ?? 'your team'}
+        roleTitle={landingRole?.roleTitle}
+        personName={person?.name}
+        onSignIn={() => setLandingSignedOut(false)}
       />
     );
   }
@@ -888,6 +917,7 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
               .filter(Boolean)
               .join(' · '),
             postedAt: getJobDate(r),
+            summary: MOCK_TEAM_ROLES ? getJobDetail(r, MOCK_TEAM_ROLES.team).summary[0] : undefined,
             candidates: MOCK_CANDIDATES[r.uid] ?? [],
             interested: MOCK_INTERESTED[r.uid] ?? [],
             // Only a live listing has anyone to invite.
@@ -897,6 +927,7 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
           initialRoleUid={candidatesRole}
           initialTab={candidatesTab}
           initialSelectedId={candidatesPerson}
+          sender={{ name: 'Elena Marsh', role: 'Head of Engineering', avatar: 'https://i.pravatar.cc/96?img=47' }}
           onBack={() => {
             setCandidatesRole(null);
             setCandidatesPerson(undefined);
@@ -1321,4 +1352,10 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
       )}
     </div>
   );
+}
+
+/** "Protocol Labs is hiring X to work on Y." — the first sentence of a paragraph. */
+function firstSentence(text: string): string {
+  const end = text.search(/\.\s/);
+  return end === -1 ? text : text.slice(0, end + 1);
 }

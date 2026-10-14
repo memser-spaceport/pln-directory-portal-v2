@@ -61,12 +61,13 @@ interface Props {
  */
 export function FeedbackDrawerFrame({ isOpen, wide, hidden, reserveSpace, label, children }: PropsWithChildren<Props>) {
   const panelRef = useRef<HTMLDivElement>(null);
-  /* The button that opened it steps aside, so focus moves into the drawer rather than stay on a hidden control. */
+  /* The button that opened it steps aside, so focus moves into the drawer rather than stay on a hidden control.
+     Same when the drawer comes back from stepping aside (a capture, or a comment placed on a phone). */
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || hidden) return;
     const panel = panelRef.current;
     if (panel && !panel.contains(document.activeElement)) panel.focus({ preventScroll: true });
-  }, [isOpen]);
+  }, [isOpen, hidden]);
 
   /* Tab stays in the drawer. The page beside it stays clickable (Pick a part, comments), so the
      background is not inert — only Tab is pulled back. While a capture hides the panel, the

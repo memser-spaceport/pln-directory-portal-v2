@@ -2,6 +2,7 @@
 
 import { clsx } from 'clsx';
 import { useState } from 'react';
+import { Button } from '@/components/common/Button/Button';
 import { getAvatarColor } from '@/components/page/ai-apps/AiAppFeedbackPage/utils/getAvatarColor';
 import {
   AI_APP_FEEDBACK_STATUSES,
@@ -36,6 +37,11 @@ type Props = {
   onSelect: (item: CommentListItem) => void;
   /** The overlay's state: an app that cannot locate says its comments open from the list. */
   status: OverlayStatus;
+  /**
+   * Phone (LAB-2796): the drawer covers the app, so there is no "click anywhere".
+   * "Add a comment", under the list, puts the drawer aside so a spot can be tapped.
+   */
+  onAddComment?: () => void;
 };
 
 function initials(name: string) {
@@ -131,21 +137,27 @@ function PinMarkIcon() {
  * Comments tab (LAB-2767), so the drawer's title, switcher and ✕ head it; above
  * the list it says how to leave a comment and who sees it.
  */
-export function CommentsDrawer({ items, openPinUid, onSelect, status }: Props) {
+export function CommentsDrawer({ items, openPinUid, onSelect, status, onAddComment }: Props) {
   const [filter, setFilter] = useState<Filter>('ALL');
   const shown = filter === 'ALL' ? items : items.filter((item) => item.pin.feedback.status === filter);
 
   return (
     <aside className={s.drawer} aria-label="Comments">
       <header className={s.head}>
-        <div className={s.hint}>
-          <p className={s.hintLead}>
-            {status === 'unsupported'
-              ? 'Click anywhere on the app to leave a comment. This app can’t show where earlier comments point; open them from the list.'
-              : 'Click anywhere on the app to leave a comment.'}
-          </p>
-          <p className={s.audience}>Everyone who can open this app can see it.</p>
-        </div>
+        {onAddComment ? (
+          <div className={s.hint}>
+            <p className={s.audience}>Everyone who can open this app can see them.</p>
+          </div>
+        ) : (
+          <div className={s.hint}>
+            <p className={s.hintLead}>
+              {status === 'unsupported'
+                ? 'Click anywhere on the app to leave a comment. This app can’t show where earlier comments point; open them from the list.'
+                : 'Click anywhere on the app to leave a comment.'}
+            </p>
+            <p className={s.audience}>Everyone who can open this app can see it.</p>
+          </div>
+        )}
         <select
           className={s.filter}
           aria-label="Show comments"
@@ -164,7 +176,9 @@ export function CommentsDrawer({ items, openPinUid, onSelect, status }: Props) {
       {shown.length === 0 ? (
         <p className={s.empty}>
           {items.length === 0
-            ? 'No comments yet. Click anywhere on the app to leave one.'
+            ? onAddComment
+              ? 'No comments yet.'
+              : 'No comments yet. Click anywhere on the app to leave one.'
             : `No ${AI_APP_FEEDBACK_STATUS_LABELS[filter as AiAppFeedbackStatus]} comments.`}
         </p>
       ) : (
@@ -178,6 +192,15 @@ export function CommentsDrawer({ items, openPinUid, onSelect, status }: Props) {
             />
           ))}
         </ul>
+      )}
+      {/* Phone: the way to write stays in reach under the list, however long it gets. */}
+      {onAddComment && (
+        <div className={s.phoneFooter}>
+          <Button size="s" className={s.addButton} onClick={onAddComment}>
+            <PinMarkIcon />
+            Add a comment
+          </Button>
+        </div>
       )}
     </aside>
   );

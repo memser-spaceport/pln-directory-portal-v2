@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useMedia } from 'react-use';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -441,6 +442,16 @@ export function AiAppDetailPage(props: Props) {
   // Comment mode (prototype `CommentLayer`): the feedback button toggles it; pins
   // are only drawn while it is on. Needs the app's bridge, and a running frame.
   const [commentModeOn, setCommentModeOn] = useState(false);
+  /*
+    Phone (LAB-2796, prototype ai-apps-feedback-drawer): the feedback drawer is the
+    whole screen there, so it can't sit beside the app. "Add a comment" (or a row
+    in the list) puts it aside and the app takes taps, under comment mode's bar;
+    Done brings the list back. Leaving the mode, or a window grown past a phone's,
+    ends it.
+  */
+  const isPhone = useMedia('(max-width: 639px)', false);
+  const [placing, setPlacing] = useState(false);
+  if (placing && (!commentModeOn || !isPhone)) setPlacing(false);
   // Shipped comments stay on the page, faded (prototype), so they're always fetched.
   // While the mode is on, other members' new comments come in without a reload.
   const feedbackPins = useAppFeedbackPins({
@@ -902,6 +913,7 @@ export function AiAppDetailPage(props: Props) {
                 },
                 body: <div ref={setCommentsListSlot} className={s.commentsListSlot} />,
                 closeRequest: drawerCloseRequest,
+                collapsed: placing,
               }
             : undefined
         }
@@ -927,6 +939,9 @@ export function AiAppDetailPage(props: Props) {
             setDrawerCloseRequest((n) => n + 1);
           }}
           elementPins={elementPins}
+          touch={isPhone}
+          placing={placing}
+          onPlacingChange={setPlacing}
           viewerName={currentUser?.name ?? 'You'}
           listSlot={commentsListSlot}
           viewer={

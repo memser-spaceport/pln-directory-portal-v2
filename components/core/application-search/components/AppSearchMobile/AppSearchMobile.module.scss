@@ -111,23 +111,22 @@ $padding-inline: 16px;
   }
 }
 
-.mobileContent {
-  padding-inline: 16px;
-  padding-bottom: 16px;
-  flex: 1;
-  overflow-y: auto; // Allow scrolling in AI chat content
-  overflow-x: hidden;
-
-  // Ensure proper scrolling behavior on mobile
-  -webkit-overflow-scrolling: touch;
-
-  // Handle mobile keyboard appearance
-  @supports (-webkit-touch-callout: none) {
-    // iOS Safari specific
-    min-height: 0; // Allow flex item to shrink below content size
-  }
+.idle {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 0;
 }
 
-.filtersWrapper {
-  padding: 10px 16px 6px;
+.hint {
+  margin: 0;
+  padding: 0 16px;
+  color: #8897ae;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+// The AI rows and the idle sections carry their own 16px inset, like the desktop dropdown's.
+.fullBleed {
+  margin-inline: -16px;
 }

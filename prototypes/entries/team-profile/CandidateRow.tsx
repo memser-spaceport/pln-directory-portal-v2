@@ -20,13 +20,10 @@ import rowTone from '../job-board/JobReferRoleRow.module.scss';
 import mcb from '@/components/page/team-details/TeamMembers/components/MemberCardBase/MemberCardBase.module.scss';
 import tmvc from '@/components/page/team-details/TeamMembers/components/TeamMembersView/components/TeamMembersViewCard/TeamMembersViewCard.module.scss';
 
-import { Badge } from '@/components/common/Badge';
+import { MatchBadge } from './MatchBadge';
 
 import {
-  SUGGESTION_BAND_LABEL,
-  SUGGESTION_BAND_VARIANT,
   type RoleCandidate,
-  type RoleCriterion,
   type RoleInterested,
   type RoleSuggested,
   type SuggestionMatch,
@@ -38,13 +35,16 @@ interface Props {
    *  is this row with its own date. */
   candidate: RoleCandidate | RoleInterested | RoleSuggested;
   /**
-   * Suggested rows only: when the team pressed **Invite to apply** (ISO).
+   * Suggested rows only: the lead's own rating (LAB-2819). Good match puts the
+   * button's check beside the name; Not a match fades the row and takes the
+   * band's slot, because "Strong match" beside the lead's "no" would argue
+   * with itself. The band stays in the pane's Why suggested.
    */
-  invitedAt?: string;
+  rating?: 'good' | 'not';
+  /** Suggested rows only: when the lead messaged them (ISO) — said after the count. */
+  messagedAt?: string;
   /** Suggested rows only: the match band, at the row's right end. */
   match?: SuggestionMatch;
-  /** Suggested rows only: the switched-on requirements the profile does not show. */
-  unmet?: RoleCriterion[];
   /**
    * Not looked at yet: the row is tinted and carries `● New`. Opening it
    * returns the row to the plain grey every other row wears — read is the row
@@ -78,9 +78,9 @@ export function CandidateRow({
   last,
   selected,
   onSelect,
-  invitedAt,
+  rating,
+  messagedAt,
   match,
-  unmet,
 }: Props) {
   return (
     <button type="button" className={clsx(tmvc.root, s.selectable)} onClick={onSelect} aria-pressed={selected}>
@@ -90,6 +90,7 @@ export function CandidateRow({
           [s.unread]: isNew,
           [s.selected]: selected,
           [s.suggestedRow]: 'reasons' in a,
+          [s.ratedNot]: rating === 'not',
         })}
       >
         <div className={clsx(mcb.left, s.left)}>
@@ -108,13 +109,12 @@ export function CandidateRow({
                     <ReviewCheckIcon size={16} state="bare" />
                   </span>
                 )}
-                {/* Invited: a fact about this person, so it rides the name like
-                    the Reviewed tick. At the right end it shared 75px with the
-                    match badge and ellipsised the role and the reason. */}
-                {invitedAt && (
-                  <span className={clsx(row.relative, rowTone.relativeTone, s.invitedMark)}>
-                    <ClockIcon />
-                    Invited {formatRelativeDays(invitedAt)}
+                {/* Rated a good match: the Good match button's own check, so
+                    the row and the bar read as one thing. Suggested rows never
+                    carry Reviewed, so the glyph has one meaning per tab. */}
+                {rating === 'good' && (
+                  <span className={s.reviewedMark} role="img" aria-label="Rated a good match" title="Good match">
+                    <ReviewCheckIcon size={16} state="bare" />
                   </span>
                 )}
               </div>
@@ -126,42 +126,16 @@ export function CandidateRow({
                   itself survived on one row in three. The pane's header shows
                   it on the first frame. */}
               <p className={mcb.role}>{a.role}</p>
-              {/* A suggested row's third line: the strongest network signal, in
-                  words. Only this row needs one — an candidate is in the list
-                  because they applied — and it is what the band at the right
-                  cannot say (see `SuggestionReasonKind`). No tick: the green
-                  check in this list already means Reviewed. */}
-              {/* The band's working, on every suggested row: how many of the
-                  role's requirements the profile meets, then the ones it
-                  doesn't, named — the standup's "✓ Rust, ✓ 5+ yrs infra,
-                  — no protocol experience", compressed for a 440px row. The
-                  met ones are a count, not a list: five labels don't fit, and
-                  what tells two Strong matches apart is what each is missing.
-                  No check glyph: the green check in this list already means
-                  Reviewed. The whole checklist, with evidence, is the pane's. */}
+              {/* A suggested row is three lines: name, role, and how many of
+                  the role's requirements the profile meets. The missing ones
+                  and the network reason were extra lines that cut off at the
+                  list's width; both are in the pane's Why suggested. */}
               {'reasons' in a && match && (
                 <p className={s.working}>
-                  <span className={s.workingCount}>
-                    {match.met === match.total
-                      ? `All ${match.total} requirements`
-                      : `${match.met} of ${match.total} requirements`}
-                  </span>
-                  {unmet?.map((c) => (
-                    <span key={c.id} className={s.workingUnmet}>
-                      <span className={s.workingDash} aria-hidden="true" />
-                      <span className={s.srOnly}>not on profile: </span>
-                      {c.label}
-                    </span>
-                  ))}
-                </p>
-              )}
-              {/* The strongest network signal, in words — what the band at the
-                  right cannot say (see `SuggestionReasonKind`). Only when there
-                  is one: a row with no signal ends at its working. */}
-              {'reasons' in a && a.reasons[0] && (
-                <p className={s.reason}>
-                  <span className={s.reasonText}>{a.reasons[0].text}</span>
-                  {a.reasons.length > 1 && <span className={s.reasonMore}>+{a.reasons.length - 1}</span>}
+                  {/* One form for every row, "5 of 5" included: "All 5" broke the
+                      column's rhythm, and the numbers are what a lead compares. */}
+                  {`${match.met} of ${match.total} requirements`}
+                  {messagedAt && ` · Contacted ${formatRelativeDays(messagedAt)}`}
                 </p>
               )}
             </div>
@@ -178,10 +152,12 @@ export function CandidateRow({
                both values: the word already tells Strong from Good, a hue on
                top would grade people, and the floor already means nobody here
                is a low match. */
-            match && (
-              <Badge variant={SUGGESTION_BAND_VARIANT[match.band]} className={s.matchBadge}>
-                {SUGGESTION_BAND_LABEL[match.band]}
-              </Badge>
+            rating === 'not' ? (
+              <span className={s.ratedNotLabel}>Not a match</span>
+            ) : (
+              match && (
+                <MatchBadge band={match.band} />
+              )
             )
           ) : (
             <span className={clsx(row.relative, rowTone.relativeTone)}>

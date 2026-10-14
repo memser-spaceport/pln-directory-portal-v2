@@ -1,5 +1,6 @@
 import React from 'react';
 
+import type { FoundItem } from '@/services/search/types';
 import { AllFoundItems } from '@/components/core/application-search/components/SearchResultsSection/types';
 
 import { MAX_ITEMS_TO_SHOW } from './constants';
@@ -15,10 +16,11 @@ import s from '@/components/core/application-search/components/SearchResultsSect
 interface Props {
   items: AllFoundItems;
   onSelect?: () => void;
+  onAskAi?: (item: FoundItem) => void;
 }
 
 export function Top50Results(props: Props) {
-  const { items, onSelect } = props;
+  const { items, onSelect, onAskAi } = props;
 
   const { state, showAll: showAllItems } = useGetGroupedItemsToRender(items);
 
@@ -33,7 +35,7 @@ export function Top50Results(props: Props) {
         <div className={ls.groupTitle}>{groupTitle}</div>
         <ul className={s.list}>
           {itemsToShow.map((item) => (
-            <SearchResultsItem key={item.uid} item={item} onSelect={onSelect} />
+            <SearchResultsItem key={item.uid} item={item} onSelect={onSelect} onAskAi={onAskAi} />
           ))}
         </ul>
         {hasMore && !showAll && (

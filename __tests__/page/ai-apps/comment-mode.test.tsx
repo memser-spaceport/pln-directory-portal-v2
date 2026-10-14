@@ -185,8 +185,9 @@ function makeController(bridge: Bridge, spies: Record<string, jest.Mock>): Eleme
     capabilities: ['pick', 'describe', 'crop', 'locate'],
     canCapture: false,
     capture: jest.fn(),
-    canScroll: false,
-    scrollApp: jest.fn(),
+    /* A bridge with `scroll` only when the test hands in its spy. */
+    canScroll: Boolean(spies.scrollApp),
+    scrollApp: spies.scrollApp ?? jest.fn(),
     isPicking: bridge.isPicking,
     pins: bridge.pins,
     onFrameLoad: jest.fn(),
@@ -233,6 +234,7 @@ function Harness({ bridge, spies, ...props }: HarnessProps) {
 function setup(
   props: Partial<React.ComponentProps<typeof CommentMode>> = {},
   bridge: Bridge = { pins: [], isPicking: true },
+  { canScroll = false }: { canScroll?: boolean } = {},
 ) {
   const iframe = document.createElement('iframe');
   document.body.appendChild(iframe);
@@ -250,7 +252,13 @@ function setup(
     }) as DOMRect;
   const appWindow = iframe.contentWindow as Window;
   jest.spyOn(appWindow, 'postMessage').mockImplementation(() => undefined);
-  const spies = { startPicking: jest.fn(), stopPicking: jest.fn(), removePin: jest.fn(), clearPins: jest.fn() };
+  const spies: Record<string, jest.Mock> = {
+    startPicking: jest.fn(),
+    stopPicking: jest.fn(),
+    removePin: jest.fn(),
+    clearPins: jest.fn(),
+    ...(canScroll ? { scrollApp: jest.fn() } : {}),
+  };
   const handlers = { onOpenPinChange: jest.fn(), onGoToPage: jest.fn(), onExit: jest.fn() };
   let base = { iframeRef: { current: iframe }, ...handlers, ...props };
   let bridgeNow = bridge;
@@ -1168,5 +1176,141 @@ describe('thread cards keep clear of the Comment card', () => {
 
   it('with no card measured yet it keeps to the window', () => {
     expect(keepClear(500, 700, 400, null)).toEqual({ left: 500, top: 492, maxHeight: 400 });
+  });
+});
+
+/* LAB-2796: on a phone the feedback drawer is the whole screen, so it steps aside ("placing") for a tap on the app. */
+describe('CommentMode — phone', () => {
+  const phone = (props: Partial<React.ComponentProps<typeof CommentMode>> = {}, opts?: { canScroll?: boolean }) =>
+    setup({ touch: true, placing: true, onPlacingChange: jest.fn(), ...props }, undefined, opts);
+
+  it('leads the list with "Add a comment" instead of "click anywhere", which puts the drawer aside', () => {
+    const onPlacingChange = jest.fn();
+    const t = phone({ placing: false, onPlacingChange });
+    expect(screen.queryByText(/Click anywhere on the app/)).toBeNull();
+    expect(screen.getByText('No comments yet.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Add a comment' }));
+    expect(onPlacingChange).toHaveBeenCalledWith(true);
+    /* Not placing yet: no bar over the drawer. */
+    expect(screen.queryByRole('region', { name: 'Add a comment' })).toBeNull();
+    t.cleanup();
+  });
+
+  it('keeps desktop as it was: no "Add a comment", no bar, and a pick opens the composer at once', () => {
+    const t = setup();
+    expect(screen.queryByRole('button', { name: 'Add a comment' })).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Add a comment' })).toBeNull();
+    t.bridgeIs({ pins: [picked('pin-1')], isPicking: false });
+    expect(screen.getByRole('dialog', { name: 'New comment' }).className).not.toMatch(/sheet/);
+    t.cleanup();
+  });
+
+  it('asks for a tap while placing, and Done brings the list back', () => {
+    const onPlacingChange = jest.fn();
+    const t = phone({ onPlacingChange });
+    const bar = screen.getByRole('region', { name: 'Add a comment' });
+    expect(bar).toHaveTextContent('Tap the part of the app your comment is about.');
+    fireEvent.click(within(bar).getByRole('button', { name: 'Done' }));
+    expect(onPlacingChange).toHaveBeenCalledWith(false);
+    t.cleanup();
+  });
+
+  it('a tap selects (outline + its name) instead of opening the composer; another tap moves the selection', () => {
+    const t = phone();
+    t.bridgeIs({ pins: [picked('pin-1')], isPicking: false });
+    expect(screen.queryByRole('dialog', { name: 'New comment' })).toBeNull();
+    const bar = screen.getByRole('region', { name: 'Add a comment' });
+    expect(bar).toHaveTextContent('Button “Save”');
+    expect(bar).toHaveTextContent('Tap again to pick something else.');
+    expect(screen.getByTestId('comment-mode-selection')).toBeInTheDocument();
+    /* Picking stays on while only a selection is pending, so a second tap can land. */
+    expect(t.spies.startPicking).toHaveBeenCalled();
+
+    const other = picked('pin-2', { element: { ...picked('pin-2').element, text: 'Cancel order' } });
+    t.bridgeIs({ pins: [picked('pin-1'), other], isPicking: false });
+    expect(t.spies.removePin).toHaveBeenCalledWith('pin-1');
+    expect(screen.getByRole('region', { name: 'Add a comment' })).toHaveTextContent('Button “Cancel order”');
+    t.cleanup();
+  });
+
+  it('Cancel drops the selection and its bridge pin', () => {
+    const t = phone();
+    t.bridgeIs({ pins: [picked('pin-1')], isPicking: false });
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(t.spies.removePin).toHaveBeenCalledWith('pin-1');
+    expect(screen.getByRole('region', { name: 'Add a comment' })).toHaveTextContent('Tap the part of the app');
+    expect(screen.queryByTestId('comment-mode-selection')).toBeNull();
+    t.cleanup();
+  });
+
+  it('the drawer coming back drops a selection never confirmed', () => {
+    const t = phone();
+    t.bridgeIs({ pins: [picked('pin-1')], isPicking: false });
+    t.propsAre({ placing: false });
+    expect(t.spies.removePin).toHaveBeenCalledWith('pin-1');
+    t.cleanup();
+  });
+
+  it('"Comment here" opens the composer as a bottom sheet, lifts the spot, and posts that element', async () => {
+    const t = phone({}, { canScroll: true });
+    t.bridgeIs({ pins: [picked('pin-1')], isPicking: false });
+    fireEvent.click(screen.getByRole('button', { name: 'Comment here' }));
+
+    const composer = screen.getByRole('dialog', { name: 'New comment' });
+    expect(composer.className).toMatch(/sheet/);
+    expect(composer.style.left).toBe('');
+    /* The bar steps out while the sheet is up; the composer owns the pin now. */
+    expect(screen.queryByRole('region', { name: 'Add a comment' })).toBeNull();
+    expect(t.spies.removePin).not.toHaveBeenCalled();
+    /* The tap point (10 + 100 × 0.2, 20 + 40 × 0.5) goes to the top fifth of a 700px frame. */
+    expect(t.spies.scrollApp).toHaveBeenCalledWith(30, 40, 0, -100);
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Comment' }), { target: { value: 'Too small' } });
+    await post();
+    expect(mockSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: 'COMMENT', pins: [expect.objectContaining({ selector: '#save' })] }),
+    );
+    t.cleanup();
+  });
+
+  it('without the bridge’s scroll the sheet still opens', () => {
+    const t = phone();
+    t.bridgeIs({ pins: [picked('pin-1')], isPicking: false });
+    fireEvent.click(screen.getByRole('button', { name: 'Comment here' }));
+    expect(screen.getByRole('dialog', { name: 'New comment' })).toBeInTheDocument();
+    t.cleanup();
+  });
+
+  it('a row puts the drawer aside and opens its thread as a sheet over the app, its pin lifted into view', () => {
+    const onPlacingChange = jest.fn();
+    const t = phone({ placing: false, onPlacingChange, pins: VIEW_PINS }, { canScroll: true });
+    placeAll(t);
+    fireEvent.click(screen.getByRole('button', { name: /Note a/ }));
+    expect(t.onOpenPinChange).toHaveBeenCalledWith('a');
+    expect(onPlacingChange).toHaveBeenCalledWith(true);
+
+    t.propsAre({ openPinUid: 'a', placing: true });
+    const card = screen.getByRole('dialog', { name: 'Comment by Ada Lovelace' });
+    expect(card.className).toMatch(/sheet/);
+    expect(card.style.left).toBe('');
+    /* Pin a: x 100 + 80 × 0.5, y 200 + 40 × 0.25 → 210, lifted to 140. */
+    expect(t.spies.scrollApp).toHaveBeenCalledWith(140, 210, 0, 70);
+    expect(t.spies.scrollApp).toHaveBeenCalledTimes(1);
+    /* No bar under an open thread. */
+    expect(screen.queryByRole('region', { name: 'Add a comment' })).toBeNull();
+    t.cleanup();
+  });
+
+  it('Esc steps back: the selection, then placing — never straight out of the mode', () => {
+    const onPlacingChange = jest.fn();
+    const t = phone({ onPlacingChange });
+    t.bridgeIs({ pins: [picked('pin-1')], isPicking: false });
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(t.spies.removePin).toHaveBeenCalledWith('pin-1');
+    expect(onPlacingChange).not.toHaveBeenCalled();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onPlacingChange).toHaveBeenCalledWith(false);
+    expect(t.onExit).not.toHaveBeenCalled();
+    t.cleanup();
   });
 });

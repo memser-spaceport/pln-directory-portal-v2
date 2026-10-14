@@ -154,7 +154,6 @@ describe('AI search share controls', () => {
     render(
       <ChatMessageActions
         onQuestionEdit={jest.fn()}
-        onFeedback={jest.fn()}
         onRegenerate={jest.fn()}
         onCopyAnswer={jest.fn()}
         answer="answer"

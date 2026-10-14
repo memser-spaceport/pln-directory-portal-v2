@@ -9,7 +9,9 @@ interface Props {
 export const HighlightedText: FC<Props> = ({ text, query }) => {
   if (!query) return <>{text}</>;
 
-  const parts = text.split(new RegExp(`(${query})`, 'gi'));
+  // The query is what the member typed: "c++" or "(" must match literally, not throw as a pattern.
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const parts = text.split(new RegExp(`(${escaped})`, 'gi'));
 
   return (
     <>

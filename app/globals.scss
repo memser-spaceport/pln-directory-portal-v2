@@ -96,7 +96,10 @@ body {
   /*height: auto !important;*/
   /*overflow: initial !important;*/
   overscroll-behavior: none;
-  scrollbar-gutter: stable;
+  // No scrollbar-gutter here. body is the scroll container (height: 100dvh),
+  // so a stable gutter on both html and body reserves an empty strip beside
+  // the scrollbar, and on short pages that do not scroll. The gutter stays
+  // on html.drawer-scroll-lock, and Modal sets it while scroll is locked.
 }
 
 .layout__header {

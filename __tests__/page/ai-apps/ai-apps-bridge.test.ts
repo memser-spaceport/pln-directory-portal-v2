@@ -118,6 +118,16 @@ describe('AI Apps bridge', () => {
     expect(appHandler).toHaveBeenCalledTimes(1);
   });
 
+  /* LAB-2796: iOS fires `click` on a plain element only when it looks clickable; the bridge listens on the window. */
+  it('makes every element look clickable to a finger while picking, and takes the rule away after', () => {
+    ctx = setup();
+    ctx.command('pick:start');
+    const style = ctx.doc.querySelector<HTMLStyleElement>('style[data-pln-bridge="cursor"]');
+    expect(style?.textContent).toContain('@media (pointer:coarse){*{cursor:pointer!important}}');
+    ctx.command('pick:stop');
+    expect(ctx.doc.querySelector('style[data-pln-bridge="cursor"]')).toBeNull();
+  });
+
   /* Members point at things; they don't read markup (feedback, 2026-10-02). */
   it('outlines the hovered element with no tag label, in the brand ring with a halo', () => {
     ctx = setup();

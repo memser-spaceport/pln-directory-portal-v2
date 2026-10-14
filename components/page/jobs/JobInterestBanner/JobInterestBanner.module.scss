@@ -46,6 +46,17 @@
 .confirmed {
   background: var(--background-success-soft-surface, #effaf4);
   border-color: var(--border-success-subtle, #a9e0c4);
+
+  /* LAB-2749: one row on every width — check, title and Undo on the first
+     line, the quoted note wrapping onto a full-width line beneath — as the
+     prototype's alert draws it. Top-aligned, not centred: centring put Undo in
+     the middle of a card that grows with every line of the note, and on the
+     stacked mobile layout it fell below the note altogether. Declared after
+     `.root` so it outranks its tablet-landscape `align-items: center`. */
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  row-gap: 6px;
 }
 
 /* The card, opened on its note (LAB-2713): the row layout gives way to a
@@ -73,6 +84,10 @@
 
   .composing & {
     align-items: flex-start;
+  }
+
+  .confirmed & {
+    flex: 1 1 0;
   }
 }
 
@@ -164,7 +179,11 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  margin-top: 6px;
+  /* Its own line under the title row, inset to the text column (24px check +
+     the lead's 12px gap) so it still reads as part of the confirmation. */
+  box-sizing: border-box;
+  width: calc(100% - 36px);
+  margin-left: 36px;
   padding: 8px 12px;
   border-radius: 8px;
   background: var(--background-base-white, #fff);
@@ -274,19 +293,25 @@
     .composing & {
       flex: 0 0 auto;
     }
+  }
 
-    /* The confirmed state's Undo is a link: no border, no background, so the
-       128px box that makes the CTA the design's 128x40 has nothing to draw and
-       only pushes four centred characters inwards. The two states then end at
-       two different x, one under the other, as the card toggles.
+  /* The confirmed state's Undo is a link: no border, no background, so the
+     128px box that makes the CTA the design's 128x40 has nothing to draw and
+     only pushes four centred characters inwards. The two states then end at
+     two different x, one under the other, as the card toggles. On the stacked
+     mobile layout it is not full-width either: it sits at the end of the title
+     row (LAB-2749).
 
-       Both properties are reset rather than left to `.link`'s own `padding: 0`
-       and `min-width: 0`, because those live in another CSS module and which of
-       two single-class rules wins is import order — not something this file
-       should be betting its alignment on. `.confirmed .action` outranks both. */
-    .confirmed & {
-      min-width: 0;
-      padding: 0;
-    }
+     Both properties are reset rather than left to `.link`'s own `padding: 0`
+     and `min-width: 0`, because those live in another CSS module and which of
+     two single-class rules wins is import order — not something this file
+     should be betting its alignment on. `.confirmed .action` outranks both.
+     The 2px puts its 20px line on the title's, which is centred in the 24px
+     check beside it. */
+  .confirmed & {
+    width: auto;
+    min-width: 0;
+    padding: 0;
+    margin-top: 2px;
   }
 }

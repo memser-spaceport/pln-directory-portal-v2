@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Protocol Labs Directory frontend — a Next.js 14.2.3 (App Router) application for browsing and managing members, teams, projects, events, and forum content in the Protocol Labs network. Uses React 18, TypeScript, SCSS modules, and Zustand/React Query for state management.
+Protocol Labs Directory frontend — a Next.js 16.2.3 (App Router) application for browsing and managing members, teams, projects, events, and forum content in the Protocol Labs network. Uses React 19.2.5, TypeScript, SCSS modules, and Zustand/React Query for state management. Node 22 (`.nvmrc`), npm (`package-lock.json`; `.npmrc` sets `legacy-peer-deps=true`).
 
 ## Commands
 
-- **Dev server:** `npm run dev` (runs on http://localhost:4200)
-- **Build:** `npm run build`
-- **Lint:** `npm run lint` (uses next lint with eslint)
+- **Dev server:** `npm run dev` (runs on http://localhost:4200; `predev` builds the AI Apps bridge first)
+- **Build:** `npm run build` (`prebuild` builds the AI Apps bridge first)
+- **Lint:** `npm run lint` (ESLint 9 CLI, `eslint . --ext .ts,.tsx`, flat config in `eslint.config.mjs`)
 - **Format:** `npm run prettier:all` (single quotes, 120 char width)
 - **Format check:** `npm run prettier:check`
 - **Run all tests:** `npm run test` (Jest with jsdom)
@@ -22,18 +22,20 @@ Protocol Labs Directory frontend — a Next.js 14.2.3 (App Router) application f
 
 ### App Router Structure (`app/`)
 
-Uses Next.js App Router with route groups. The root page (`/`) redirects to `/members`. Key routes:
-- `/members`, `/teams`, `/projects`, `/events`, `/forum` — main listing pages
+Uses Next.js App Router with route groups. The root page (`/`) redirects to `/home`. Key routes:
+- `/home`, `/members`, `/teams`, `/projects`, `/events`, `/forum`, `/jobs` — main listing pages
 - `/members/[id]`, `/teams/[id]`, `/projects/[id]` — detail pages
 - `/settings`, `/notifications`, `/sign-up`, `/ai-search` (AI Search; old `/husky` URLs redirect) — utility pages
 - `/demoday`, `/alignment-asset`, `/changelog` — feature pages
-- `/api/` — Next.js API routes (proxy-pdf, revalidate, contact-support, members-search, forum, teams)
+- `/api/` — Next.js API routes (ai-apps, contact-support, design-canvas, forum, jobs, members-search, og, plaa, revalidate, spotlight, teams)
 
 Route groups use parenthesized folders (e.g., `members/(members-page)/@content`, `@filters`) for parallel routes and layout composition.
 
+Next 16 request APIs are async: `await cookies()` / `await headers()`, and page/layout `params` and `searchParams` are Promises (`params: Promise<{ id: string }>`).
+
 ### Authentication Flow
 
-- **Middleware** (`middleware.ts`): Server-side auth via cookies (`authToken`, `refreshToken`, `userInfo`). Validates tokens on every request, refreshes expired tokens, and passes auth state via response headers.
+- **Proxy** (`proxy.ts`, the Next 16 name for middleware): Server-side auth via cookies (`authToken`, `refreshToken`, `userInfo`). Validates tokens on every request, refreshes expired tokens, and passes auth state via response headers.
 - **Client-side**: `getCookiesFromHeaders()` in `utils/next-helpers.ts` reads auth state from headers in Server Components. Client components use `getCookiesFromClient()` from `utils/third-party.helper.ts`.
 - **Fetch wrapper** (`utils/fetch-wrapper.ts`): `customFetch()` handles authenticated API calls with automatic token refresh and retry on 401.
 - **Auth provider**: Privy (`@privy-io/react-auth`) for login.
@@ -81,9 +83,9 @@ To comment current-cycle Linear issues with related PostHog events, run the `pos
 
 ### Testing
 
-- **Jest** with `@testing-library/react` — tests mirror the component structure in `__tests__/` (subdirectories: `core/`, `form/`, `page/`, `utils/`)
-- **Storybook + Vitest** — `vitest.config.ts` runs Storybook stories as browser tests via Playwright
-- Global mocks for `next/navigation`, `next/image`, `@tanstack/react-query`, and `quill-image-uploader` are in `jest.setup.js`
+- **Jest 29** with `@testing-library/react` — tests live in `__tests__/` and mirror the source structure (e.g. `core/`, `page/`, `ui/`, `services/`, `utils/`, `hooks/`); `proxy.test.ts` covers `proxy.ts`. Jest ignores `pl-design-system/`, `prototypes/` and `design-canvas/`.
+- **Storybook 9 + Vitest 3** — `vitest.config.ts` runs Storybook stories as browser tests via Playwright (Chromium)
+- Global mocks for `next/navigation`, `next/image`, `next/cache`, `@tanstack/react-query`, `nuqs`, `react-quill-new`, and `quill-image-uploader` are in `jest.setup.js`
 
 ### Path Aliases
 
@@ -95,9 +97,9 @@ Copy `.env.example` to `.env` for local setup. Key env vars: `DIRECTORY_API_URL`
 
 ## Conventions
 
-- ESLint extends `next/core-web-vitals` — `@next/next/no-img-element` and `jsx-a11y/alt-text` rules are disabled
+- ESLint flat config extends `eslint-config-next/core-web-vitals` and the Storybook plugin — `@next/next/no-img-element` and `jsx-a11y/alt-text` rules are disabled
 - Prettier: single quotes, 120 char print width
-- Dynamic imports with `{ ssr: false }` are used for client-only components in the root layout
+- Client-only components for the root layout are `dynamic(..., { ssr: false })` exports in `app/ClientDynamics.tsx` (a `'use client'` module; `ssr: false` is not allowed in Server Components)
 - React Query hooks follow the pattern: fetcher function + `useQuery`/`useMutation` wrapper with query keys from domain constants
 
 ## Agent skills
@@ -109,3 +111,7 @@ GitHub Issues on this repo (`memser-spaceport/pln-directory-portal-v2`), via the
 ### Domain docs
 
 Single-context: `CONTEXT.md` and `docs/adr/` at the repo root, neither of which exists yet — the skills create them lazily. See `docs/agents/domain.md`.
+
+## Keep this file current
+
+When a PR changes the stack (framework or runtime versions, package manager, scripts, test or lint tooling, folder conventions), the same PR updates this file and `AGENTS.md`. Specs under `openspec/specs/` describe product behaviour; this file describes how to work in the repo.

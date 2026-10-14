@@ -4,6 +4,7 @@ import { memo } from 'react';
 
 interface MessagesProps {
   messages: {
+    id: string;
     answer: string;
     question: string;
     relatedResults: Array<{ name: string; role: string }>;
@@ -12,19 +13,19 @@ interface MessagesProps {
     actions: Array<{ name: string; type: string; directoryLink: string }>;
     isError?: boolean;
     sql: Array<{ name: string; type: string; source: string }>;
+    feedback?: { rating: number };
   }[];
+  threadId?: string;
   isAnswerLoading: boolean;
   statusLine?: string;
-  onFeedback?: (question: string, answer: string) => Promise<void>;
   onRegenerate?: (question: string) => void;
   onQuestionEdit: (question: string) => void;
   onCopyAnswer: (answer: string) => Promise<void>;
   onFollowupClicked: (question: string) => void;
   isLoadingObject: boolean;
-  layout?: 'dialog' | 'page';
-  isStreaming?: boolean;
-  showRating?: boolean;
-  canRate?: boolean;
+  isStreaming: boolean;
+  showRating: boolean;
+  canRate: boolean;
 }
 
 const Messages: React.FC<MessagesProps> = ({
@@ -32,32 +33,30 @@ const Messages: React.FC<MessagesProps> = ({
   onFollowupClicked,
   isAnswerLoading,
   statusLine,
-  onFeedback,
   onRegenerate,
   onQuestionEdit,
   onCopyAnswer,
   isLoadingObject,
-  layout = 'dialog',
-  isStreaming = false,
-  showRating = true,
-  canRate = true,
+  isStreaming,
+  showRating,
+  canRate,
+  threadId,
 }) => {
   return (
     <>
       <div className="chat__messages">
         {messages.map((message, index) => (
           <PreviewMessage
-            key={`message-${index}`}
+            key={message.id}
             message={message}
+            threadId={threadId}
             isLastIndex={index === messages.length - 1}
             onFollowupClicked={onFollowupClicked}
-            onFeedback={onFeedback}
             onRegenerate={onRegenerate}
             onQuestionEdit={onQuestionEdit}
             onCopyAnswer={onCopyAnswer}
             isLoadingObject={isLoadingObject}
             isAnswerLoading={isAnswerLoading}
-            layout={layout}
             isStreaming={isStreaming && index === messages.length - 1}
             showRating={showRating}
             canRate={canRate}

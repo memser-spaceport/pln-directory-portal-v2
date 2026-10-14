@@ -13,7 +13,6 @@ interface LoadPlaaBotOptions {
   scriptUrl: string;
   webhookUrl: string;
   configUrl: string;
-  clientToken?: string;
 }
 
 export function resolvePlaaBotActivityId(portalActivityId: string): string | undefined {
@@ -65,12 +64,7 @@ function loadScript(src: string): Promise<HTMLScriptElement> {
   });
 }
 
-export async function loadPlaaBot({
-  scriptUrl,
-  webhookUrl,
-  configUrl,
-  clientToken,
-}: LoadPlaaBotOptions): Promise<void> {
+export async function loadPlaaBot({ scriptUrl, webhookUrl, configUrl }: LoadPlaaBotOptions): Promise<void> {
   const script = await loadScript(scriptUrl);
 
   if (script.dataset.initialised === 'true') {
@@ -81,7 +75,7 @@ export async function loadPlaaBot({
     throw new Error('PLAABot is not available after loading the widget script');
   }
 
-  window.PLAABot.init({ webhookUrl, configUrl, clientToken });
+  window.PLAABot.init({ webhookUrl, configUrl });
   script.dataset.initialised = 'true';
 }
 

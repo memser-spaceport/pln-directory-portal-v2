@@ -1,7 +1,6 @@
 export interface PlaaBotInitOptions {
   webhookUrl: string;
   configUrl: string;
-  clientToken?: string;
 }
 
 export interface PlaaBotApi {

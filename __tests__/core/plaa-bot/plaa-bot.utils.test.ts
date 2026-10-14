@@ -10,7 +10,6 @@ const OPTIONS = {
   scriptUrl: '/plaa-bot/plaa-bot-widget.min.js',
   webhookUrl: 'https://bot.example.com/webhook/plaa-activity-bot',
   configUrl: '/plaa-bot/activities.json',
-  clientToken: 'test',
 };
 
 function stubScriptLoad(onLoad: () => void = () => undefined, fail = false) {
@@ -77,10 +76,9 @@ describe('plaa-bot.utils', () => {
       const script = document.getElementById(PLAA_BOT_SCRIPT_ID) as HTMLScriptElement;
       expect(script.getAttribute('src')).toBe(OPTIONS.scriptUrl);
       expect(init).toHaveBeenCalledTimes(1);
-      expect(init).toHaveBeenCalledWith({
+      expect(init.mock.calls[0][0]).toStrictEqual({
         webhookUrl: OPTIONS.webhookUrl,
         configUrl: OPTIONS.configUrl,
-        clientToken: OPTIONS.clientToken,
       });
     });
 

@@ -81,7 +81,11 @@ describe('fetchSuggestedCandidates', () => {
   it('answers an empty list for a role with no suggestions', async () => {
     mockFetch.mockResolvedValue(ok({ suggestions: [] }));
 
-    await expect(fetchSuggestedCandidates('role-1')).resolves.toEqual({ suggestions: [], criteria: null });
+    await expect(fetchSuggestedCandidates('role-1')).resolves.toEqual({
+      suggestions: [],
+      criteria: null,
+      criteriaPrompt: null,
+    });
   });
 
   it('rejects a reader outside the team with a forbidden error', async () => {
@@ -142,7 +146,29 @@ describe('fetchSuggestedCandidates', () => {
   it('keeps an empty criteria list apart from a missing one', async () => {
     mockFetch.mockResolvedValue(ok({ suggestions: [], criteria: [] }));
 
-    await expect(fetchSuggestedCandidates('role-1')).resolves.toEqual({ suggestions: [], criteria: [] });
+    await expect(fetchSuggestedCandidates('role-1')).resolves.toEqual({
+      suggestions: [],
+      criteria: [],
+      criteriaPrompt: null,
+    });
+  });
+
+  it('answers the lead’s saved criteria prompt (LAB-2853)', async () => {
+    mockFetch.mockResolvedValue(
+      ok({ suggestions: [], criteria: [{ text: 'A', enabled: true }], criteriaPrompt: 'Ran a storage network' }),
+    );
+
+    await expect(fetchSuggestedCandidates('role-1')).resolves.toMatchObject({
+      criteriaPrompt: 'Ran a storage network',
+    });
+  });
+
+  it('answers criteriaPrompt null when the backend sends null or nothing', async () => {
+    mockFetch.mockResolvedValueOnce(ok({ suggestions: [], criteriaPrompt: null }));
+    await expect(fetchSuggestedCandidates('role-1')).resolves.toMatchObject({ criteriaPrompt: null });
+
+    mockFetch.mockResolvedValueOnce(ok({ suggestions: [] }));
+    await expect(fetchSuggestedCandidates('role-1')).resolves.toMatchObject({ criteriaPrompt: null });
   });
 
   it('fails loudly on a field the contract does not know', async () => {
@@ -163,22 +189,43 @@ describe('the Suggested tab’s writes', () => {
   });
 
   describe('saveMatchCriteria', () => {
-    it('PUTs the switched-off texts as JSON and answers the saved list', async () => {
+    it('PUTs the switched-off texts and the prompt as JSON and answers both as saved', async () => {
       const saved = [
         { text: 'A', enabled: true },
         { text: 'B', enabled: false },
       ];
-      mockFetch.mockResolvedValue(ok({ criteria: saved }));
+      mockFetch.mockResolvedValue(ok({ criteria: saved, prompt: 'Ran a storage network' }));
 
-      const criteria = await saveMatchCriteria('role/1', ['B']);
+      const result = await saveMatchCriteria('role/1', ['B'], 'Ran a storage network');
 
       const [url, init, withAuth] = mockFetch.mock.calls[0];
       expect(url).toMatch(/\/v1\/job-openings\/role%2F1\/match-criteria$/);
       expect(init.method).toBe('PUT');
       expect(init.headers).toEqual({ 'Content-Type': 'application/json' });
-      expect(JSON.parse(init.body)).toEqual({ disabled: ['B'] });
+      expect(JSON.parse(init.body)).toEqual({ disabled: ['B'], prompt: 'Ran a storage network' });
       expect(withAuth).toBe(true);
-      expect(criteria).toEqual(saved);
+      expect(result).toEqual({ criteria: saved, prompt: 'Ran a storage network' });
+    });
+
+    /* Absent `prompt` means "keep the saved one" on the endpoint, so the modal
+       clears it with an explicit null, and the key must survive serialising. */
+    it('sends prompt null explicitly to clear it', async () => {
+      mockFetch.mockResolvedValue(ok({ criteria: [{ text: 'A', enabled: true }], prompt: null }));
+
+      const result = await saveMatchCriteria('role-1', [], null);
+
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(body).toHaveProperty('prompt', null);
+      expect(result.prompt).toBeNull();
+    });
+
+    it('answers prompt null from a backend that does not send one', async () => {
+      mockFetch.mockResolvedValue(ok({ criteria: [{ text: 'A', enabled: true }] }));
+
+      await expect(saveMatchCriteria('role-1', [], 'Kept by nobody')).resolves.toEqual({
+        criteria: [{ text: 'A', enabled: true }],
+        prompt: null,
+      });
     });
 
     it.each([400, 403, 404, 409, 500])(
@@ -186,7 +233,7 @@ describe('the Suggested tab’s writes', () => {
       async (status) => {
         mockFetch.mockResolvedValue(fail(status, { message: `refused ${status}` }));
 
-        const error = await saveMatchCriteria('role-1', ['B']).catch((e) => e);
+        const error = await saveMatchCriteria('role-1', ['B'], null).catch((e) => e);
 
         expect(error).toBeInstanceOf(TeamApplicantsError);
         expect(error.status).toBe(status);
@@ -198,7 +245,7 @@ describe('the Suggested tab’s writes', () => {
     it('fails on an answer that drifts from the contract', async () => {
       mockFetch.mockResolvedValue(ok({ criteria: [{ text: 'A', enabled: true, id: 'x' }] }));
 
-      await expect(saveMatchCriteria('role-1', [])).rejects.toThrow();
+      await expect(saveMatchCriteria('role-1', [], null)).rejects.toThrow();
     });
   });
 
@@ -297,6 +344,16 @@ describe('suggestedCandidatesResponseSchema with the LAB-2846 fields', () => {
       }),
     ).toThrow();
     expect(() => suggestedCandidatesResponseSchema.parse({ suggestions: [], surprise: true })).toThrow();
+  });
+
+  it('reads criteriaPrompt as a string, null, or absent (LAB-2853)', () => {
+    expect(
+      suggestedCandidatesResponseSchema.parse({ suggestions: [], criteriaPrompt: 'Ran a storage network' }),
+    ).toMatchObject({ criteriaPrompt: 'Ran a storage network' });
+    expect(suggestedCandidatesResponseSchema.parse({ suggestions: [], criteriaPrompt: null })).toMatchObject({
+      criteriaPrompt: null,
+    });
+    expect(suggestedCandidatesResponseSchema.parse({ suggestions: [] }).criteriaPrompt).toBeUndefined();
   });
 });
 

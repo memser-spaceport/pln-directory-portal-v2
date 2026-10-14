@@ -51,6 +51,26 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
+/* LAB-2853: the role in the subtitle, linked to its public posting. */
+.roleLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
 .closeButton {
   display: flex;
   align-items: center;
@@ -91,9 +111,17 @@
   color: var(--foreground-neutral-primary, #0a0c11);
 }
 
+/* LAB-2853: the ask above the box, in the field-description style. */
+.helper {
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #64748b);
+}
+
 .field {
   width: 100%;
-  min-height: 160px;
+  min-height: 240px;
   padding: 10px 12px;
   border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   border-radius: 8px;

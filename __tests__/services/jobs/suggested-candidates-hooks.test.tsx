@@ -47,6 +47,7 @@ const seeded = (): SuggestedCandidatesResult => ({
     { text: 'A', enabled: true },
     { text: 'B', enabled: true },
   ],
+  criteriaPrompt: 'Old words',
 });
 
 const KEY = suggestedCandidatesQueryKey('u1', 'r1');
@@ -64,26 +65,38 @@ beforeEach(() => {
 });
 
 describe('useSaveMatchCriteria', () => {
-  it('writes the server’s saved list into the suggestions cache', async () => {
+  it('writes the server’s saved list and prompt into the suggestions cache', async () => {
     const saved = [
       { text: 'A', enabled: true },
       { text: 'B', enabled: false },
     ];
-    mockSave.mockResolvedValue(saved);
+    mockSave.mockResolvedValue({ criteria: saved, prompt: 'New words' });
     const { result } = renderHook(() => useSaveMatchCriteria({ roleUid: 'r1', viewerUid: 'u1' }), { wrapper });
 
-    act(() => result.current.mutate({ disabled: ['B'] }));
+    act(() => result.current.mutate({ disabled: ['B'], prompt: 'New words' }));
 
     await waitFor(() => expect(client.getQueryData<SuggestedCandidatesResult>(KEY)?.criteria).toEqual(saved));
-    expect(mockSave).toHaveBeenCalledWith('r1', ['B']);
+    expect(client.getQueryData<SuggestedCandidatesResult>(KEY)?.criteriaPrompt).toBe('New words');
+    expect(mockSave).toHaveBeenCalledWith('r1', ['B'], 'New words');
     expect(client.getQueryData<SuggestedCandidatesResult>(KEY)?.suggestions).toEqual(seeded().suggestions);
+  });
+
+  it('writes a cleared prompt as null', async () => {
+    mockSave.mockResolvedValue({ criteria: seeded().criteria, prompt: null });
+    const { result } = renderHook(() => useSaveMatchCriteria({ roleUid: 'r1', viewerUid: 'u1' }), { wrapper });
+
+    act(() => result.current.mutate({ disabled: [], prompt: null }));
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(client.getQueryData<SuggestedCandidatesResult>(KEY)?.criteriaPrompt).toBeNull();
+    expect(mockSave).toHaveBeenCalledWith('r1', [], null);
   });
 
   it('leaves the cache alone when the save fails', async () => {
     mockSave.mockRejectedValue(new TeamApplicantsError(500, 'nope'));
     const { result } = renderHook(() => useSaveMatchCriteria({ roleUid: 'r1', viewerUid: 'u1' }), { wrapper });
 
-    act(() => result.current.mutate({ disabled: ['B'] }));
+    act(() => result.current.mutate({ disabled: ['B'], prompt: null }));
 
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(client.getQueryData(KEY)).toEqual(seeded());

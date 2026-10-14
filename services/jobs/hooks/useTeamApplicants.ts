@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { ApplicantCount, ApplicantKind, TeamApplicant } from '@/schema/team-applicants';
-import type { RoleCriterion, SuggestedCandidate } from '@/schema/suggested-candidates';
+import type { SuggestedCandidate } from '@/schema/suggested-candidates';
 import { JobsQueryKey } from '@/services/jobs/constants';
 import {
   contactSuggestedCandidate,
@@ -13,6 +13,7 @@ import {
   isAlreadyContactedError,
   markApplicantSeen,
   saveMatchCriteria,
+  type SavedMatchCriteria,
   setApplicantReviewed,
   type SuggestedCandidatesResult,
   TeamApplicantsError,
@@ -241,11 +242,11 @@ export function useMarkApplicantSeen({
   });
 }
 
-/** The saved criteria, written into a cached read. Pure, for the hook and its tests. */
+/** The saved criteria and prompt, written into a cached read. Pure, for the hook and its tests. */
 export const withSavedCriteria = (
   old: SuggestedCandidatesResult | undefined,
-  criteria: RoleCriterion[],
-): SuggestedCandidatesResult | undefined => (old ? { ...old, criteria } : old);
+  { criteria, prompt }: SavedMatchCriteria,
+): SuggestedCandidatesResult | undefined => (old ? { ...old, criteria, criteriaPrompt: prompt } : old);
 
 /** One person's `contactedAt`, written into a cached read. Pure, for the hook and its tests. */
 export const withContactedAt = (
@@ -268,7 +269,8 @@ interface SuggestedWriteScope {
 }
 
 /**
- * Save which of the role's requirements count (LAB-2847).
+ * Save which of the role's requirements count (LAB-2847), and the lead's own
+ * words about who they are looking for (LAB-2853).
  *
  * **Not optimistic.** It runs from a modal with a pending Save, so there is no
  * on-screen state to roll back: on success the server's list goes into the
@@ -279,11 +281,12 @@ export function useSaveMatchCriteria({ roleUid, viewerUid }: SuggestedWriteScope
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ disabled }: { disabled: string[] }) => saveMatchCriteria(roleUid as string, disabled),
-    onSuccess: (criteria) => {
+    mutationFn: ({ disabled, prompt }: { disabled: string[]; prompt: string | null }) =>
+      saveMatchCriteria(roleUid as string, disabled, prompt),
+    onSuccess: (saved) => {
       if (!viewerUid || !roleUid) return;
       queryClient.setQueryData<SuggestedCandidatesResult>(suggestedCandidatesQueryKey(viewerUid, roleUid), (old) =>
-        withSavedCriteria(old, criteria),
+        withSavedCriteria(old, saved),
       );
     },
   });

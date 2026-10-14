@@ -89,6 +89,14 @@ export interface SuggestedCandidatesResult {
   suggestions: SuggestedCandidate[];
   /** `null` when the backend sent no criteria (an older backend) — the page then offers no "Edit criteria". */
   criteria: RoleCriterion[] | null;
+  /** The lead's own words about who they are looking for (LAB-2853); `null` when none is saved or the backend sends none. */
+  criteriaPrompt: string | null;
+}
+
+/** What a criteria save answers: the switches and the prompt as saved. */
+export interface SavedMatchCriteria {
+  criteria: RoleCriterion[];
+  prompt: string | null;
 }
 
 /**
@@ -226,27 +234,49 @@ export async function fetchSuggestedCandidates(roleUid: string): Promise<Suggest
   }
 
   const parsed = suggestedCandidatesResponseSchema.parse(await response.json());
-  const { suggestions, criteria } = SUGGESTED_ACTIONS_MOCKED ? overlaySuggestedMock(roleUid, parsed) : parsed;
+  const { suggestions, criteria, criteriaPrompt } = SUGGESTED_ACTIONS_MOCKED
+    ? overlaySuggestedMock(roleUid, parsed)
+    : parsed;
 
-  return { suggestions: selectShownSuggestions(suggestions), criteria: criteria ?? null };
+  return {
+    suggestions: selectShownSuggestions(suggestions),
+    criteria: criteria ?? null,
+    criteriaPrompt: criteriaPrompt ?? null,
+  };
 }
 
 /**
- * Switch some of the role's requirements off for matching (LAB-2847). Takes the
- * texts to switch OFF — every other requirement is on — and answers the whole
- * list as saved, which the caller writes back rather than trusting the press.
+ * Switch some of the role's requirements off for matching (LAB-2847), and save
+ * the lead's own words about who they are looking for (LAB-2853). Takes the
+ * texts to switch OFF (every other requirement is on) and the prompt. Answers
+ * both as saved, and the caller writes that back rather than trusting the
+ * press.
  *
- * 400 for an unknown text or all of them off, 403 outside the team, 409 when
- * the posting has no criteria extracted yet.
+ * `prompt` is always sent. On the endpoint a missing `prompt` keeps the saved
+ * one, and `null` or `""` clears it, so the modal sends `null` for an empty box
+ * to clear it on purpose.
+ *
+ * 400 for an unknown text, all of them off or a prompt over 500 characters,
+ * 403 outside the team, 409 when the posting has no criteria extracted yet.
  */
-export async function saveMatchCriteria(roleUid: string, disabled: string[]): Promise<RoleCriterion[]> {
-  if (SUGGESTED_ACTIONS_MOCKED) {
-    return matchCriteriaResponseSchema.parse(fromMock(await saveMatchCriteriaMock(roleUid, disabled))).criteria;
-  }
+export async function saveMatchCriteria(
+  roleUid: string,
+  disabled: string[],
+  prompt: string | null,
+): Promise<SavedMatchCriteria> {
+  const parsed = SUGGESTED_ACTIONS_MOCKED
+    ? matchCriteriaResponseSchema.parse(fromMock(await saveMatchCriteriaMock(roleUid, disabled, prompt)))
+    : await putMatchCriteria(roleUid, disabled, prompt);
 
+  /* A backend without the prompt answers none. `null` then, not what was
+     sent: the page should not claim a prompt the server never kept. */
+  return { criteria: parsed.criteria, prompt: parsed.prompt ?? null };
+}
+
+async function putMatchCriteria(roleUid: string, disabled: string[], prompt: string | null) {
   const response = await customFetch(
     `${JOB_OPENINGS_API_URL}/${encodeURIComponent(roleUid)}/match-criteria`,
-    jsonWrite({ disabled }, 'PUT'),
+    jsonWrite({ disabled, prompt }, 'PUT'),
     true,
   );
 
@@ -254,7 +284,7 @@ export async function saveMatchCriteria(roleUid: string, disabled: string[]): Pr
     throw await errorFrom(response, 'Could not save the criteria. Please try again.');
   }
 
-  return matchCriteriaResponseSchema.parse(await response.json()).criteria;
+  return matchCriteriaResponseSchema.parse(await response.json());
 }
 
 /**

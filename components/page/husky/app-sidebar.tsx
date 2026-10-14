@@ -374,7 +374,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
             </button>
           </div>
           <button onClick={handleNewConversation} className="sidebar__header__newConversation">
-            <img src="/icons/add.svg" alt="plus" />
+            <span className="sidebar__header__newConversation__icon" aria-hidden="true" />
             <span className="sidebar__header__newConversation__text">New chat</span>
           </button>
         </div>
@@ -516,15 +516,26 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         .sidebar__header__newConversation {
           display: flex;
           align-items: center;
-          justify-content: center;
-          gap: 4px;
-          padding: 14px 0px;
-          border-top: 1px solid #0000001a;
-          border-bottom: 1px solid #0000001a;
+          gap: 8px;
+          height: 36px;
+          padding: 0 8px;
+          border: 1px solid rgba(27, 56, 96, 0.12);
+          border-radius: 8px;
+          background-color: #ffffff;
+          color: #1b4dff;
+          cursor: pointer;
         }
 
         .sidebar__header__newConversation:hover {
-          background-color: #f1f5f9;
+          border-color: rgba(27, 56, 96, 0.24);
+        }
+
+        .sidebar__header__newConversation__icon {
+          flex-shrink: 0;
+          width: 16px;
+          height: 16px;
+          background-color: currentColor;
+          mask: url('/icons/add.svg') center / contain no-repeat;
         }
 
         .sidebar__body[data-state='collapsed'] .sidebar__body__history__header:hover {
@@ -534,9 +545,8 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
 
         .sidebar__header__newConversation__text {
           font-weight: 500;
-          font-size: 13px;
-          line-height: 14px;
-          color: #156ff7;
+          font-size: 14px;
+          line-height: 20px;
         }
 
         .sidebar__body {
@@ -772,8 +782,20 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
             padding: unset;
           }
 
+          /* the collapsed rail keeps New chat as a full-width row between dividers */
           .sidebar__header[data-state='collapsed'] .sidebar__header__newConversation {
+            justify-content: center;
+            height: auto;
             padding: 23px;
+            border: none;
+            border-top: 1px solid #0000001a;
+            border-bottom: 1px solid #0000001a;
+            border-radius: 0;
+            background-color: transparent;
+          }
+
+          .sidebar__header[data-state='collapsed'] .sidebar__header__newConversation:hover {
+            background-color: #f1f5f9;
           }
 
           .sidebar__header[data-state='collapsed'] .sidebar__header__newConversation__text {

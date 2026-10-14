@@ -25,15 +25,6 @@ import SnapshotRoundPicker, { RoundChangeMethod } from './snapshot-round-picker'
 import styles from './overview.module.scss';
 import { cssVars } from './css-vars';
 
-const KPI_WEIGHTS_FALLBACK: KpiWeightEntry[] = [
-  { category: 'Knowledge Sharing', weight: null, percentOfTotal: 22.58, emissionsPerSnapshot: 2258 },
-  { category: 'Projects', weight: null, percentOfTotal: 20.97, emissionsPerSnapshot: 2097 },
-  { category: 'Network Tooling', weight: null, percentOfTotal: 19.35, emissionsPerSnapshot: 1935 },
-  { category: 'Programs', weight: null, percentOfTotal: 18.55, emissionsPerSnapshot: 1855 },
-  { category: 'People/Talent', weight: null, percentOfTotal: 14.52, emissionsPerSnapshot: 1452 },
-  { category: 'Brand', weight: null, percentOfTotal: 4.03, emissionsPerSnapshot: 403 },
-];
-
 const MONTHLY_POOL = 10_000;
 const EXAMPLE_MY_POINTS = 100;
 const EXAMPLE_CATEGORY_POINTS = 1_000;
@@ -53,12 +44,6 @@ interface CategoryStat {
   points: number;
   plaa: number;
 }
-
-const CATEGORY_STATS_FALLBACK: CategoryStat[] = KPI_WEIGHTS_FALLBACK.map((row) => ({
-  name: row.category,
-  points: (row.emissionsPerSnapshot ?? 0) * 6,
-  plaa: row.emissionsPerSnapshot ?? 0,
-}));
 
 export interface RoundHistoryEntry {
   roundNumber: number;
@@ -89,7 +74,7 @@ export default function ActiveMemberOverview({
   const selectedRound = roundHistory.find((round) => round.roundNumber === selectedRoundNumber);
   const isCurrentRoundSelected = selectedRoundNumber !== undefined && selectedRoundNumber === currentRoundNumber;
 
-  const kpiRows = kpiWeights && kpiWeights.length > 0 ? kpiWeights : KPI_WEIGHTS_FALLBACK;
+  const kpiRows = useMemo(() => kpiWeights ?? [], [kpiWeights]);
 
   // Only pillars in the emissions schedule get a spoke or a history column. The API also returns pillars
   // that exist only in the token tables (e.g. Capital), which would otherwise show up empty.
@@ -102,7 +87,6 @@ export default function ActiveMemberOverview({
     const points = roundStats?.chart ?? [];
     const plaa = roundStats?.tokenChart ?? [];
     const names = new Set<string>([...points.map((p) => p.name), ...plaa.map((p) => p.name)]);
-    if (names.size === 0) return CATEGORY_STATS_FALLBACK;
     return inSchedule(
       Array.from(names)
         .sort()
@@ -118,9 +102,9 @@ export default function ActiveMemberOverview({
   const exampleRow =
     kpiRows.find((row) => row.category === 'Network Tooling' && row.percentOfTotal != null) ??
     kpiRows.find((row) => row.percentOfTotal != null) ??
-    KPI_WEIGHTS_FALLBACK[2];
-  const examplePercent = exampleRow.percentOfTotal ?? 0;
-  const examplePool = exampleRow.emissionsPerSnapshot ?? Math.round((MONTHLY_POOL * examplePercent) / 100);
+    kpiRows[0];
+  const examplePercent = exampleRow?.percentOfTotal ?? 0;
+  const examplePool = exampleRow?.emissionsPerSnapshot ?? Math.round((MONTHLY_POOL * examplePercent) / 100);
   const exampleShare = EXAMPLE_MY_POINTS / EXAMPLE_CATEGORY_POINTS;
   const examplePlaa = Math.floor(examplePool * exampleShare);
 
@@ -145,6 +129,10 @@ export default function ActiveMemberOverview({
     setSelectedRoundNumber(roundNumber);
   };
 
+  if (!roundStats || !exampleRow) {
+    return <div className={styles.unavailable}>Overview data is currently unavailable. Please try again later.</div>;
+  }
+
   return (
     <div className={styles.wrapper}>
       <OverviewTopline trustHoldings={trustHoldings} />
@@ -166,9 +154,7 @@ export default function ActiveMemberOverview({
               <div className={styles.snapshotHeaderDesc}>
                 {selectedRound
                   ? `Round ${selectedRound.roundNumber} — ${selectedRound.label}`
-                  : roundStats
-                    ? `Round ${roundStats.roundNumber} — ${roundStats.month} ${roundStats.year}`
-                    : 'Illustrative example, not a specific snapshot'}
+                  : `Round ${roundStats.roundNumber} — ${roundStats.month} ${roundStats.year}`}
               </div>
               {isConversionPending && (
                 <div className={styles.snapshotHeaderNote}>

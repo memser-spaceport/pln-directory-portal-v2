@@ -4,6 +4,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import ActiveMemberOverview, {
   RoundHistoryEntry,
 } from '@/components/page/aligement-assets/overview/active-member-overview';
+import type { KpiWeightEntry } from '@/services/plaa/kpi-weights.service';
 import type { RoundStatsResponse } from '@/services/plaa/rounds.service';
 
 const mockOnRoundChanged = jest.fn();
@@ -52,8 +53,15 @@ const HISTORY: RoundHistoryEntry[] = [
 
 const CURRENT = { roundNumber: 18, month: 'September', year: 2026 } as RoundStatsResponse;
 
+const KPI_WEIGHTS: KpiWeightEntry[] = [
+  { category: 'Network Tooling', weight: 1.2, percentOfTotal: 60, emissionsPerSnapshot: 6000 },
+  { category: 'Projects', weight: 0.8, percentOfTotal: 40, emissionsPerSnapshot: 4000 },
+];
+
+const UNAVAILABLE = 'Overview data is currently unavailable. Please try again later.';
+
 const renderOverview = (roundHistory = HISTORY, roundStats: RoundStatsResponse | undefined = CURRENT) =>
-  render(<ActiveMemberOverview roundStats={roundStats} roundHistory={roundHistory} />);
+  render(<ActiveMemberOverview kpiWeights={KPI_WEIGHTS} roundStats={roundStats} roundHistory={roundHistory} />);
 
 describe('ActiveMemberOverview snapshot round picker', () => {
   afterEach(() => jest.clearAllMocks());
@@ -125,10 +133,25 @@ describe('ActiveMemberOverview snapshot round picker', () => {
     expect(screen.queryByText(/Points convert to PLAA at the end of the snapshot period/)).not.toBeInTheDocument();
   });
 
-  it('hides the picker and shows the illustrative example without round data', () => {
-    render(<ActiveMemberOverview roundHistory={[]} />);
+  it('takes the schedule and the worked example from the live KPI weights', () => {
+    renderOverview();
 
-    expect(screen.getByText('Illustrative example, not a specific snapshot')).toBeInTheDocument();
-    expect(screen.queryByRole('combobox', { name: 'Snapshot round' })).not.toBeInTheDocument();
+    expect(screen.getAllByText('60.00%')).toHaveLength(2);
+    expect(screen.getByText('6,000 PLAA')).toBeInTheDocument();
+    expect(screen.queryByText('19.35%')).not.toBeInTheDocument();
+  });
+
+  it('shows the unavailable notice, not sample numbers, without a current round', () => {
+    render(<ActiveMemberOverview kpiWeights={KPI_WEIGHTS} roundHistory={[]} />);
+
+    expect(screen.getByText(UNAVAILABLE)).toBeInTheDocument();
+    expect(screen.queryByText('Points and PLAA collected by category')).not.toBeInTheDocument();
+  });
+
+  it.each([[undefined], [[]]])('shows the unavailable notice without KPI weights: %j', (kpiWeights) => {
+    render(<ActiveMemberOverview kpiWeights={kpiWeights} roundStats={CURRENT} roundHistory={HISTORY} />);
+
+    expect(screen.getByText(UNAVAILABLE)).toBeInTheDocument();
+    expect(screen.queryByText('Knowledge Sharing')).not.toBeInTheDocument();
   });
 });

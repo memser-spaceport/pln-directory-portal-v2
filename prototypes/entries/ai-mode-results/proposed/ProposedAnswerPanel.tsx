@@ -5,7 +5,7 @@ import clsx from 'clsx';
 
 import { Button } from '@/components/common/Button';
 import { Tag } from '@/components/ui/Tag';
-import ChatInput from '@/components/page/husky/chat-input';
+import { ChatInput } from '@/components/core/husky/ChatInput';
 import { NotePencilIcon, ThumbsDownIcon, ThumbsUpOutlinedIcon } from '@/components/icons';
 
 import { PlTeamOnlyPill } from '../../profile-shared/PlTeamOnlyPill';
@@ -210,8 +210,7 @@ function Message({ turn, isLast, busy, onFollowup, onRegenerate, onEdit, onFeedb
   /* A scoped answer reads the profile, so it has no external sources. */
   const refs = useMemo(() => (scoped ? [] : sourceRefsFor(turn.sources)), [scoped, turn.sources]);
   const prose = useMemo(() => withCitations(turn.shown, refs), [turn.shown, refs]);
-  const showResults =
-    !scoped && !streaming && turn.sql.length > 0 && !turn.blocks?.some((b) => b.kind === 'intros');
+  const showResults = !scoped && !streaming && turn.sql.length > 0 && !turn.blocks?.some((b) => b.kind === 'intros');
 
   return (
     <article className={s.turn}>
@@ -282,7 +281,15 @@ function Message({ turn, isLast, busy, onFollowup, onRegenerate, onEdit, onFeedb
  * hover. Orange is not in the PL palette, and grey slabs read as disabled
  * inputs.
  */
-function FollowUps({ questions, disabled, onAsk }: { questions: string[]; disabled: boolean; onAsk: (q: string) => void }) {
+function FollowUps({
+  questions,
+  disabled,
+  onAsk,
+}: {
+  questions: string[];
+  disabled: boolean;
+  onAsk: (q: string) => void;
+}) {
   return (
     <section className={s.follow} aria-label="Follow-up questions">
       <h3 className={s.sectionTitle}>Follow-up questions</h3>
@@ -391,7 +398,13 @@ function Actions({ turn, refs, isLast, busy, onRegenerate, onEdit, onFeedback }:
               >
                 <span className={clsx(s.mask, s.maskRefresh)} aria-hidden="true" />
               </button>
-              <button type="button" className={s.iconBtn} title="Edit question" aria-label="Edit question" onClick={onEdit}>
+              <button
+                type="button"
+                className={s.iconBtn}
+                title="Edit question"
+                aria-label="Edit question"
+                onClick={onEdit}
+              >
                 <NotePencilIcon width={16} height={16} />
               </button>
             </>

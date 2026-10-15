@@ -6,8 +6,8 @@ import clsx from 'clsx';
 import { Markdown } from '@/components/common/Markdown';
 import { Button } from '@/components/common/Button';
 import { Tag } from '@/components/ui/Tag';
-import FollowupQuestions from '@/components/page/husky/followup-questions';
-import ChatInput from '@/components/page/husky/chat-input';
+import { FollowupQuestions } from '@/components/core/husky/FollowupQuestions';
+import { ChatInput } from '@/components/core/husky/ChatInput';
 import { NotePencilIcon, ThumbsUpOutlinedIcon } from '@/components/icons';
 
 import { PlTeamOnlyPill } from '../profile-shared/PlTeamOnlyPill';
@@ -365,7 +365,6 @@ function Message({
             <FollowupQuestions
               followupQuestions={turn.followUpQuestions}
               onFollowupClicked={onFollowup}
-              isAnswerLoading={busy}
               isLoadingObject={busy}
             />
           )}

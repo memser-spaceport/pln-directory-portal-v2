@@ -14,7 +14,6 @@ type ComposerProps = React.ComponentProps<'textarea'> & {
   isLoadingObject?: boolean;
   /** Accepted for ChatInput parity; the page has no daily limit. */
   isLimitReached?: boolean;
-  onSubmit?: () => void;
   /** `home` is the new-chat page's field: two lines tall at rest. */
   size?: 'home' | 'thread';
 };
@@ -45,7 +44,6 @@ const Composer = React.forwardRef<HTMLTextAreaElement, ComposerProps>(function C
     isAnswerLoading,
     isLoadingObject,
     isLimitReached: _limit,
-    onSubmit: _submit,
     onChange,
     size = 'thread',
     defaultValue,

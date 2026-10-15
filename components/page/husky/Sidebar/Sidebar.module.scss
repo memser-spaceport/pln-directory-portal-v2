@@ -1,0 +1,86 @@
+@use 'styles/media';
+
+.mobile {
+  width: var(--sidebar-width);
+  max-width: 85vw;
+  background-color: #ffffff;
+  padding: 0;
+  color: var(--sidebar-foreground, #333);
+  height: calc(100svh - 82px);
+  transform: translateX(-100%);
+  animation: slideIn 0.3s ease-in-out forwards;
+}
+
+.mobileBackdrop {
+  position: fixed;
+  right: 0;
+  z-index: 3;
+  background-color: rgb(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  top: var(--app-header-height);
+}
+
+.mobileContent {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.root {
+  display: none;
+  box-shadow: 1px 0px 4px 0px #0000002e;
+
+  @include media.tablet-landscape {
+    display: block;
+  }
+}
+
+.gap {
+  height: 100%;
+  width: var(--sidebar-width);
+  transition: width 0.2s linear;
+  position: relative;
+}
+
+.content {
+  position: fixed;
+  bottom: 0;
+  z-index: 4;
+  height: calc(100vh - 82px);
+  width: var(--sidebar-width, 250px);
+  transition:
+    left 0.2s ease-in-out,
+    right 0.2s ease-in-out,
+    width 0.2s linear;
+  display: flex;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background-color: #ffffff;
+  color: var(--sidebar-foreground, #333);
+  transition: width 0.3s ease;
+}
+
+.root[data-state='collapsed'] .gap {
+  width: var(--sidebar-width-icon);
+}
+
+.root[data-state='collapsed'] .content {
+  width: var(--sidebar-width-icon);
+}

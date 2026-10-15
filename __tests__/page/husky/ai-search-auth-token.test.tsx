@@ -25,17 +25,17 @@ jest.mock('@/services/husky.service', () => ({
 }));
 jest.mock('@/analytics/husky.analytics', () => ({ useHuskyAnalytics: () => new Proxy({}, { get: () => jest.fn() }) }));
 jest.mock('@/components/core/ToastContainer', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
-jest.mock('@/components/page/husky/sidebar', () => ({ useSidebar: () => ({}) }));
-jest.mock('@/components/page/husky/messages', () => () => null);
-jest.mock('@/components/page/husky/chat-composer', () => () => null);
+jest.mock('@/components/page/husky/hooks/useSidebar', () => ({ useSidebar: () => ({}) }));
+jest.mock('@/components/page/husky/Chat/components/Messages', () => ({ Messages: () => null }));
+jest.mock('@/components/page/husky/Chat/components/ChatComposer', () => ({ ChatComposer: () => null }));
 jest.mock('@/components/core/husky/husky-limit-strip', () => () => null);
-jest.mock('@/components/page/husky/ChatHome', () => ({
+jest.mock('@/components/page/husky/Chat/components/ChatHome', () => ({
   ChatHome: ({ onSubmit }: { onSubmit: (q: string) => void }) => (
     <button onClick={() => onSubmit('Who can give us a warm intro to a fund?')}>ask</button>
   ),
 }));
 
-import Chat from '@/components/page/husky/chat';
+import { Chat } from '@/components/page/husky/Chat';
 import { getUserCredentials } from '@/utils/auth.utils';
 import { checkRefreshToken } from '@/utils/husky.utlils';
 
@@ -68,9 +68,7 @@ describe('AI Search page chat request', () => {
       authToken: 'member-jwt',
       userInfo: { uid: 'member-1', name: 'Member One', email: 'member@example.test' },
     });
-    render(
-      <Chat isLoggedIn userInfo={{ uid: 'member-1' } as any} initialMessages={[]} setInitialMessages={jest.fn()} />,
-    );
+    render(<Chat isLoggedIn initialMessages={[]} setInitialMessages={jest.fn()} />);
 
     fireEvent.click(screen.getByText('ask'));
     await waitFor(() => expect(submitChat).toHaveBeenCalled());
@@ -83,7 +81,7 @@ describe('AI Search page chat request', () => {
   it('sends no Authorization header for a signed-out visitor', async () => {
     (getUserCredentials as jest.Mock).mockResolvedValue({ authToken: null, userInfo: null });
     (checkRefreshToken as jest.Mock).mockReturnValue(false);
-    render(<Chat isLoggedIn={false} userInfo={null as any} initialMessages={[]} setInitialMessages={jest.fn()} />);
+    render(<Chat isLoggedIn={false} initialMessages={[]} setInitialMessages={jest.fn()} />);
 
     fireEvent.click(screen.getByText('ask'));
     await waitFor(() => expect(submitChat).toHaveBeenCalled());

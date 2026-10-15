@@ -8,8 +8,8 @@ import { PopoverDp } from '@/components/core/popover-dp';
 import HuskySourceCard from '@/components/core/husky/husky-source-card';
 import HuskyAnswerLoader from '@/components/core/husky/husky-answer-loader';
 import HuskyLimitStrip from '@/components/core/husky/husky-limit-strip';
-import FollowupQuestions from '@/components/page/husky/followup-questions';
-import ChatInput from '@/components/page/husky/chat-input';
+import { ChatInput } from '@/components/core/husky/ChatInput';
+import { FollowupQuestions } from '@/components/core/husky/FollowupQuestions';
 import {
   ArrowBackIcon,
   ArrowUpRightIcon,
@@ -261,7 +261,6 @@ export const AnswerView = ({
                 <FollowupQuestions
                   followupQuestions={turn.followUpQuestions}
                   onFollowupClicked={(question: string) => onAsk(question)}
-                  isAnswerLoading={isBusy}
                   isLoadingObject={isBusy}
                 />
               )}
@@ -420,7 +419,6 @@ export const AnswerView = ({
           isLoadingObject={status === 'streaming'}
           onStopStreaming={onStop}
           isLimitReached={limitLevel === 'warn'}
-          onSubmit={submitInput}
           onTextSubmit={submitInput}
         />
       </form>

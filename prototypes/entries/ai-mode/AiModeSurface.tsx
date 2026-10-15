@@ -6,7 +6,7 @@ import clsx from 'clsx';
 import { Modal } from '@/components/common/Modal';
 import { ConfirmDialog } from '@/components/core/ConfirmDialog';
 import { ArrowBackIcon, CloseIcon } from '@/components/icons';
-import ChatInput from '@/components/page/husky/chat-input';
+import { ChatInput } from '@/components/core/husky/ChatInput';
 import { AiSearchIcon } from '@/prototypes/components/AiSearchIcon/AiSearchIcon';
 
 // Production / ai-search stylesheets, so the rows are the rows already drawn.

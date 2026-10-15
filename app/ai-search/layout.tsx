@@ -1,5 +1,5 @@
-import { SidebarProvider } from '@/components/page/husky/sidebar';
-import AppSidebar from '@/components/page/husky/app-sidebar';
+import { AppSidebar } from '@/components/page/husky/AppSidebar';
+import { SidebarProvider } from '@/components/page/husky/SidebarProvider';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata } from 'next';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
@@ -9,7 +9,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
 
   return (
     <>
-      <SidebarProvider defaultOpen={true}>
+      <SidebarProvider>
         <AppSidebar isLoggedIn={isLoggedIn} />
         {children}
       </SidebarProvider>

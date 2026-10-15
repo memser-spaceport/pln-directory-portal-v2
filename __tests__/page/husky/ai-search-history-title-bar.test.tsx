@@ -41,7 +41,7 @@ jest.mock('react-toastify', () => ({
   toast: { loading: jest.fn(() => 'toast-id'), update: jest.fn() },
 }));
 
-import { groupThreadsByDate } from '@/components/page/husky/utils/groupThreadsByDate';
+import { groupThreadsByDate } from '@/components/page/husky/AppSidebar/utils/groupThreadsByDate';
 
 const now = new Date();
 const thread = (threadId: string, title: string, createdAt: Date) => ({
@@ -83,16 +83,18 @@ describe('AI Search history: date groups', () => {
 });
 
 describe('AI Search page: History rail and chat title bar', () => {
-  let AppSidebar: typeof import('@/components/page/husky/app-sidebar').default;
-  let ChatTitleBar: typeof import('@/components/page/husky/ChatTitleBar').ChatTitleBar;
+  let AppSidebar: typeof import('@/components/page/husky/AppSidebar').AppSidebar;
+  let ChatTitleBar: typeof import('@/components/page/husky/Chat/components/ChatTitleBar').ChatTitleBar;
 
   beforeAll(() => {
-    jest.doMock('@/components/page/husky/sidebar', () => ({
+    jest.doMock('@/components/page/husky/Sidebar', () => ({
       Sidebar: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    }));
+    jest.doMock('@/components/page/husky/hooks/useSidebar', () => ({
       useSidebar: () => ({ toggleSidebar, state: 'expanded', isMobile: false }),
     }));
-    AppSidebar = require('@/components/page/husky/app-sidebar').default;
-    ChatTitleBar = require('@/components/page/husky/ChatTitleBar').ChatTitleBar;
+    AppSidebar = require('@/components/page/husky/AppSidebar').AppSidebar;
+    ChatTitleBar = require('@/components/page/husky/Chat/components/ChatTitleBar').ChatTitleBar;
   });
 
   beforeEach(() => {
@@ -243,7 +245,8 @@ describe('AI Search rail shortcut', () => {
   });
 
   it('collapses and expands the rail with ⌘B on desktop', () => {
-    const { SidebarProvider, useSidebar } = jest.requireActual('@/components/page/husky/sidebar');
+    const { SidebarProvider } = jest.requireActual('@/components/page/husky/SidebarProvider');
+    const { useSidebar } = jest.requireActual('@/components/page/husky/hooks/useSidebar');
     const RailState = () => <span>{useSidebar().state}</span>;
     render(
       <SidebarProvider>

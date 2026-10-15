@@ -18,8 +18,10 @@ jest.mock('@/analytics/husky.analytics', () => ({
   useHuskyAnalytics: () => new Proxy({}, { get: () => jest.fn() }),
 }));
 
-jest.mock('@/components/page/husky/sidebar', () => ({
+jest.mock('@/components/page/husky/Sidebar', () => ({
   Sidebar: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+jest.mock('@/components/page/husky/hooks/useSidebar', () => ({
   useSidebar: () => ({ toggleSidebar: jest.fn(), setOpen, setOpenMobile, state: 'expanded', isMobile: false }),
 }));
 
@@ -34,8 +36,8 @@ jest.mock('@/utils/auth.utils', () => ({
   getUserCredentials: async () => ({ authToken: 'token' }),
 }));
 
-import { ChatTitleBar } from '@/components/page/husky/ChatTitleBar';
-import AppSidebar from '@/components/page/husky/app-sidebar';
+import { ChatTitleBar } from '@/components/page/husky/Chat/components/ChatTitleBar';
+import { AppSidebar } from '@/components/page/husky/AppSidebar';
 import { AI_SEARCH_RETURN_KEY, REOPEN_HEADER_SEARCH_EVENT } from '@/components/constants/aiSearchHandoff';
 
 const setWidth = (width: number) => Object.defineProperty(window, 'innerWidth', { configurable: true, value: width });

@@ -1,0 +1,67 @@
+@use 'styles/media';
+
+.home {
+  min-height: inherit;
+  display: flex;
+  justify-content: center;
+  position: relative;
+
+  @media (min-width: 768px) {
+    padding-top: 12vh;
+  }
+}
+
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  /* reading column: 768px of content plus the 16px page gutter on each side */
+  max-width: calc(768px + 32px);
+  box-sizing: border-box;
+  background-color: #f4faff;
+  margin: 0px auto;
+  position: relative;
+  overflow: hidden;
+  padding: 26px 16px 90px 16px;
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 20px;
+}
+
+/* pinned input: same width and centre as the reading column */
+.formWrapper {
+  position: fixed;
+  width: min(768px, calc(100% - 32px));
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+
+  /* from 960px the rail sits beside the chat */
+  @include media.tablet-landscape {
+    &[data-state='expanded'] {
+      left: calc(50% + 150px);
+      width: min(768px, calc(100% - 300px - 32px));
+    }
+
+    &[data-state='collapsed'] {
+      left: calc(50% + 32px);
+      width: min(768px, calc(100% - 64px - 32px));
+    }
+  }
+}
+
+.form {
+  padding-bottom: 10px;
+  width: 100%;
+
+  @media (min-width: 768px) {
+    padding: 20px 0px;
+  }
+}

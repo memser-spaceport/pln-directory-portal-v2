@@ -34,10 +34,9 @@ jest.mock('@/analytics/unified-search.analytics', () => ({
   useUnifiedSearchAnalytics: () => ({ onAiQuerySubmitted }),
 }));
 jest.mock('@/components/core/ToastContainer', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
-jest.mock('@/components/page/husky/sidebar', () => ({ useSidebar: () => ({}) }));
-jest.mock('@/components/page/husky/messages', () => ({
-  __esModule: true,
-  default: ({
+jest.mock('@/components/page/husky/hooks/useSidebar', () => ({ useSidebar: () => ({}) }));
+jest.mock('@/components/page/husky/Chat/components/Messages', () => ({
+  Messages: ({
     onFollowupClicked,
     onRegenerate,
   }: {
@@ -50,15 +49,15 @@ jest.mock('@/components/page/husky/messages', () => ({
     </>
   ),
 }));
-jest.mock('@/components/page/husky/chat-composer', () => () => null);
+jest.mock('@/components/page/husky/Chat/components/ChatComposer', () => ({ ChatComposer: () => null }));
 jest.mock('@/components/core/husky/husky-limit-strip', () => () => null);
-jest.mock('@/components/page/husky/ChatHome', () => ({
+jest.mock('@/components/page/husky/Chat/components/ChatHome', () => ({
   ChatHome: ({ onSubmit }: { onSubmit: (q: string) => void }) => (
     <button onClick={() => onSubmit('Who can give us a warm intro to a fund?')}>ask</button>
   ),
 }));
 
-import Chat from '@/components/page/husky/chat';
+import { Chat } from '@/components/page/husky/Chat';
 import { getUserCredentials } from '@/utils/auth.utils';
 import { checkRefreshToken, updateLimitType } from '@/utils/husky.utlils';
 
@@ -79,9 +78,7 @@ describe('AI Search page: member-side ask event', () => {
   });
 
   it('sends one event for a new question, with entryPoint ai-search-page', async () => {
-    render(
-      <Chat isLoggedIn userInfo={{ uid: 'member-1' } as any} initialMessages={[]} setInitialMessages={jest.fn()} />,
-    );
+    render(<Chat isLoggedIn initialMessages={[]} setInitialMessages={jest.fn()} />);
 
     fireEvent.click(screen.getByText('ask'));
     await waitFor(() => expect(submitChat).toHaveBeenCalled());
@@ -96,15 +93,7 @@ describe('AI Search page: member-side ask event', () => {
   });
 
   it('sends one event for a follow-up and for a regenerate', async () => {
-    render(
-      <Chat
-        isLoggedIn
-        id="thread-1"
-        userInfo={{ uid: 'member-1' } as any}
-        initialMessages={existingMessages}
-        setInitialMessages={jest.fn()}
-      />,
-    );
+    render(<Chat isLoggedIn id="thread-1" initialMessages={existingMessages} setInitialMessages={jest.fn()} />);
 
     fireEvent.click(screen.getByText('follow up'));
     await waitFor(() => expect(onAiQuerySubmitted).toHaveBeenCalledTimes(1));
@@ -122,9 +111,7 @@ describe('AI Search page: member-side ask event', () => {
   it('sends one event for a question handed over by another page', async () => {
     localStorage.setItem('input', 'Who builds on IPFS?');
 
-    render(
-      <Chat isLoggedIn userInfo={{ uid: 'member-1' } as any} initialMessages={[]} setInitialMessages={jest.fn()} />,
-    );
+    render(<Chat isLoggedIn initialMessages={[]} setInitialMessages={jest.fn()} />);
 
     await waitFor(() => expect(submitChat).toHaveBeenCalled());
     expect(onAiQuerySubmitted).toHaveBeenCalledTimes(1);
@@ -136,7 +123,7 @@ describe('AI Search page: member-side ask event', () => {
     (updateLimitType as jest.Mock).mockReturnValue('warn');
     (getUserCredentials as jest.Mock).mockResolvedValue({ authToken: null, userInfo: null });
 
-    render(<Chat isLoggedIn={false} userInfo={null as any} initialMessages={[]} setInitialMessages={jest.fn()} />);
+    render(<Chat isLoggedIn={false} initialMessages={[]} setInitialMessages={jest.fn()} />);
 
     fireEvent.click(screen.getByText('ask'));
     await waitFor(() => expect(getUserCredentials).toHaveBeenCalled());

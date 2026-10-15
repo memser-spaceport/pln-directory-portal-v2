@@ -29,6 +29,8 @@ import { isTeamInactive } from '../../utils/isTeamInactive';
 
 import { editTeamDetailsSchema } from './helpers';
 
+import { TeamLocationsInput } from './components/TeamLocationsInput';
+
 import s from './EditTeamDetailsForm.module.scss';
 
 type TOption = { label: string; value: string };
@@ -40,7 +42,7 @@ type TEditTeamDetailsForm = {
   shortDescription: string;
   dateFounded: string;
   teamSize: string;
-  location: string;
+  locations: { value: string }[];
   isActive: boolean;
   isFund: boolean;
   fundingStage: TOption | null;
@@ -88,7 +90,7 @@ export const EditTeamDetailsForm = ({ team, userInfo, onClose }: Props) => {
       shortDescription: team?.shortDescription || '',
       dateFounded: team?.dateFounded ? String(team.dateFounded) : '',
       teamSize: team?.teamSize === null || team?.teamSize === undefined ? '' : String(team.teamSize),
-      location: team?.location || '',
+      locations: (team?.locations?.length ? team.locations : ['']).map((value) => ({ value })),
       isActive: !isTeamInactive(team),
       isFund: team?.isFund ?? false,
       fundingStage: defaultFundingStage,
@@ -157,13 +159,16 @@ export const EditTeamDetailsForm = ({ team, userInfo, onClose }: Props) => {
       logoUid = undefined;
     }
 
+    const locations = formData.locations.map((location) => location.value.trim()).filter(Boolean);
+
     await commonOnSubmit({
       name: formData.name.trim(),
       shortDescription: formData.shortDescription.trim(),
       longDescription: formData.about,
       dateFounded: formData.dateFounded.trim() ? Number(formData.dateFounded.trim()) : null,
       teamSize: formData.teamSize.trim() || null,
-      location: formData.location.trim() || null,
+      location: locations[0] ?? null,
+      locations,
       ...(isAdmin ? { status: formData.isActive ? 'ACTIVE' : 'INACTIVE' } : {}),
       isFund: formData.isFund,
       fundingStage: formData.fundingStage
@@ -187,7 +192,7 @@ export const EditTeamDetailsForm = ({ team, userInfo, onClose }: Props) => {
         shortDescription: formData.shortDescription.trim(),
         dateFounded: formData.dateFounded.trim(),
         teamSize: formData.teamSize.trim(),
-        location: formData.location.trim(),
+        locations,
         isActive: formData.isActive,
         isFund: formData.isFund,
         fundingStage: formData.fundingStage?.value ?? null,
@@ -252,12 +257,7 @@ export const EditTeamDetailsForm = ({ team, userInfo, onClose }: Props) => {
               description="Employee count as a number, or a range label."
             />
 
-            <FormField
-              name="location"
-              placeholder="eg., San Francisco, United States"
-              label="Location"
-              description="Where your team is based."
-            />
+            <TeamLocationsInput />
 
             {isAdmin && (
               <FormSwitch

@@ -5,6 +5,7 @@ import React, { Fragment } from 'react';
 import { ITeam } from '@/types/teams.types';
 
 import { Divider } from '@/components/common/profile/Divider';
+import { TagsOverflow } from '@/components/common/profile/TagsOverflow';
 
 import { formatTeamSize } from './utils/formatTeamSize';
 import { formatFoundedYear } from './utils/formatFoundedYear';
@@ -17,6 +18,8 @@ interface Props {
   team: ITeam;
 }
 
+const LOCATIONS_TO_SHOW = 3;
+
 /**
  * The "Founded 2014 | 201–500 people | San Francisco, United States" line under the team name.
  * Every field is optional on the API, so only the ones a team actually filled in are rendered —
@@ -27,17 +30,18 @@ export const TeamProfileMeta = (props: Props) => {
 
   const founded = formatFoundedYear(team?.dateFounded);
   const teamSize = formatTeamSize(team?.teamSize);
-  const location = team?.location?.trim();
+  const locations = team?.locations ?? [];
 
   const items = [
     founded && { key: 'founded', content: founded },
     teamSize && { key: 'teamSize', content: teamSize },
-    location && {
+    locations.length > 0 && {
       key: 'location',
       content: (
         <>
           <LocationIcon />
-          <span>{location}</span>
+          <span>{locations.slice(0, LOCATIONS_TO_SHOW).join(' · ')}</span>
+          {locations.length > LOCATIONS_TO_SHOW && <TagsOverflow titles={locations.slice(LOCATIONS_TO_SHOW)} />}
         </>
       ),
     },

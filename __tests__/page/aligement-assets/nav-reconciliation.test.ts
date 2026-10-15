@@ -100,7 +100,7 @@ describe('September 2026', () => {
 describe('August 2026', () => {
   const aug = MONTHLY_RECONCILIATION['M8-2026'];
 
-  it('bridges Jul 31 to Aug 31 with the Class B interest as a contribution and a combined, inferred BTC/ETH/FIL residual', () => {
+  it('bridges Jul 31 to Aug 31 with the Class B interest as a contribution and BTC/ETH and FIL value changes', () => {
     expect(aug.totalChange).toBe(toCents('3,073,115.04'));
     expect(subtotals(aug)).toEqual({
       'Contributions & Distributions': toCents('3,073,635.17'),
@@ -108,11 +108,13 @@ describe('August 2026', () => {
       'Asset Value Changes': toCents('12,730.47'),
     });
     expect(amountOf('M8-2026', 'PLVH SPV')).toBeNull();
-    const residual = aug.lines.find((line) => line.category === 'valuation')!;
-    expect(residual.label).toBe('BTC, ETH & FIL (combined)');
-    expect(residual.status).toBe('inferred');
+    expect(amountOf('M8-2026', 'BTC & ETH')).toBe(toCents('60,295.67'));
+    expect(amountOf('M8-2026', 'FIL')).toBe(toCents('-47,565.20'));
+    const valuations = aug.lines.filter((line) => line.category === 'valuation');
+    expect(valuations.map((line) => line.status)).toEqual(['verified', 'verified']);
+    expect(valuations.flatMap((line) => line.sources).join(' ')).toContain('Jul 31 per Trust Holdings, Airtable');
     expect(aug.netActivity).toBe(toCents('3,080,071.12'));
-    expect(aug.needsReview).toBe(true);
+    expect(aug.needsReview).toBe(false);
   });
 });
 

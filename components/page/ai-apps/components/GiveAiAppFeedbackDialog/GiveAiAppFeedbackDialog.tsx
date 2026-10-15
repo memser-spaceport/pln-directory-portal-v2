@@ -1122,6 +1122,9 @@ export function GiveAiAppFeedbackDialog({
             logged: Boolean(currentUser),
             uid: currentUser?.uid || '',
             page: window.location.toString(),
+            /* Kind and Priority set the Type and priority of the Linear issue this becomes. */
+            ...(reportKind ? { reportKind } : {}),
+            ...(priority ? { priority } : {}),
           },
         },
         {

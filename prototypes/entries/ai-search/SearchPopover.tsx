@@ -73,6 +73,14 @@ interface SearchPopoverProps {
     onOpen: (id: number) => void;
     onShowAll: () => void;
   };
+  /**
+   * The header field carries its own AI badge, which hands the typed term to
+   * AI Search. Where that field is drawn (tablet-landscape up) the band would
+   * be a second door to the same place, taking the top of the list from the
+   * results (2026-10-15 review), so it goes; below that width the header is a
+   * glyph with no badge and the band stays the AI door.
+   */
+  aiInField?: boolean;
 }
 
 /**
@@ -111,11 +119,12 @@ export function SearchPopover({
   anchor,
   fieldInHeader = false,
   aiHistory,
+  aiInField = false,
 }: SearchPopoverProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [activeCategory, setActiveCategory] = useState<keyof SearchResult | null>('top');
   const [recent, setRecent] = useState(RECENT_SEARCHES);
-  const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
+  const [pos, setPos] = useState<{ top: number; right: number; width: number } | null>(null);
 
   /* Anchored to the header control it opened from: its bottom edge plus 8px,
      right-aligned to its right edge. Re-measured on open; the header is
@@ -131,7 +140,7 @@ export function SearchPopover({
          the card hung 6px left of the field it shares a width with. */
       const overlay = cardRef.current?.parentElement?.parentElement;
       const edge = overlay ? overlay.getBoundingClientRect().right : window.innerWidth;
-      setPos({ top: r.bottom + 8, right: edge - r.right });
+      setPos({ top: r.bottom + 8, right: edge - r.right, width: r.width });
     };
     measure();
     window.addEventListener('resize', measure);
@@ -190,7 +199,13 @@ export function SearchPopover({
       onClose={onClose}
       overlayClassname={clsx(s.overlay, fieldInHeader && s.overlayUnderField)}
       overlayStyle={
-        pos ? ({ '--pop-top': `${pos.top}px`, '--pop-right': `${pos.right}px` } as React.CSSProperties) : undefined
+        pos
+          ? ({
+              '--pop-top': `${pos.top}px`,
+              '--pop-right': `${pos.right}px`,
+              '--pop-anchor-width': `${pos.width}px`,
+            } as React.CSSProperties)
+          : undefined
       }
       className={s.container}
     >
@@ -216,7 +231,7 @@ export function SearchPopover({
 
         {/* The one AI door, above the list at every scroll position. At rest
             it names the offer; with a term it names the term. */}
-        <div className={s.askBar}>
+        <div className={clsx(s.askBar, aiInField && s.askBarCompactOnly)}>
           <div className={clsx(rs.root, s.askRowHost)}>
             <button type="button" className={clsx(rs.searchItem, s.rowButton)} onClick={() => onAskAi(term)}>
               <AiSearchIcon className={s.rowIcon} />
@@ -280,7 +295,23 @@ export function SearchPopover({
                   })}
                 </>
               )}
-              {total === 0 && <div className={clsx(rl.label, s.noResults)}>No results for &ldquo;{term}&rdquo;</div>}
+              {total === 0 && (
+                <div className={clsx(rl.label, s.noResults)}>
+                  No results for &ldquo;{term}&rdquo;
+                  {/* With the band gone, the empty list is the one place the
+                      badge's offer has to be said out loud: nothing else here
+                      answers the term. */}
+                  {aiInField && (
+                    <button
+                      type="button"
+                      className={clsx(sub.button, s.noResultsAsk, s.fieldOnly)}
+                      onClick={() => onAskAi(term)}
+                    >
+                      Ask AI Search instead
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           ) : (
             <div className={s.idle}>
@@ -337,7 +368,12 @@ export function SearchPopover({
                   </ul>
                 </div>
               )}
-              <p className={s.hint}>Search members, teams, projects, events and forum posts.</p>
+              <p className={s.hint}>
+                Search members, teams, projects, events and forum posts.
+                {/* The band's resting job — say the offer exists — handed to
+                    the badge it now points at. */}
+                {aiInField && <span className={s.fieldOnly}> Press AI to ask AI Search instead.</span>}
+              </p>
             </div>
           )}
         </div>

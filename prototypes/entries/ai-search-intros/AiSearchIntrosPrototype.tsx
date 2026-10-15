@@ -122,7 +122,7 @@ export default function AiSearchIntrosPrototype() {
         onSearchOpenChange={(open) => (open ? setSearchOpen(true) : closeSearch())}
         renderSearchModal={renderSearchModal}
         searchField={searchField}
-        onAiSearchClick={() => askAi('')}
+        onAiSearchClick={() => askAi(term)}
       />
 
       <AiSearchView

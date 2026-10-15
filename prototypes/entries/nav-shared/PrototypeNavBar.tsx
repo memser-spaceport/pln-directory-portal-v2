@@ -9,6 +9,7 @@ import { AiSearchIcon } from '@/prototypes/components/AiSearchIcon/AiSearchIcon'
 import {
   DIRECTORY_LINKS,
   EVENT_LINKS,
+  DEMO_DAY_LINK,
   JOBS_LINK,
   DEALS_LINK,
   FOUNDER_GUIDES_LINK,
@@ -161,6 +162,13 @@ interface PrototypeNavBarProps {
    * that holds what happened to *you*. The bell itself stays static.
    */
   bellDot?: boolean;
+  /**
+   * Job Board as its own item in the bar, between Events and Forum, instead of
+   * the first row of More, and Demo Day as the last row of Events instead of
+   * an item (`home-ai-ask`, 2026-10-15). Off by default: every other entry
+   * keeps production's arrangement.
+   */
+  jobsInBar?: boolean;
 }
 
 /** What the popover hangs under, in both the glyph and the field form. */
@@ -186,6 +194,7 @@ export function PrototypeNavBar({
   onAiSearchClick,
   searchField,
   bellDot = false,
+  jobsInBar = false,
 }: PrototypeNavBarProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   /* Giving feedback is a mode of the page, not a form over it: the header's
@@ -247,7 +256,7 @@ export function PrototypeNavBar({
   };
 
   return (
-    <header className={local.headerShell}>
+    <header className={clsx(local.headerShell, jobsInBar && local.headerJobsInBar)}>
       <NavigationMenu.Root className={s.Root}>
         <NavigationMenu.List className={s.List}>
           {/* Same destination as Home, one of them labelled. `newsHref` absent
@@ -303,7 +312,24 @@ export function PrototypeNavBar({
             onNavItemClickHandler={() => {}}
           />
 
-          <NavItemWithMenu icon={<EventsIcon />} label="Events" items={EVENT_LINKS} onNavItemClickHandler={() => {}} />
+          {/* With Job Board in the bar, Demo Day moves into Events as its last
+              row (production's own DEMO_DAY_LINK), so the row keeps its icons. */}
+          <NavItemWithMenu
+            icon={<EventsIcon />}
+            label="Events"
+            items={jobsInBar ? [...EVENT_LINKS, DEMO_DAY_LINK] : EVENT_LINKS}
+            onNavItemClickHandler={() => {}}
+          />
+
+          {/* Production's own link, icon and title, lifted out of More; the
+              href is the prototypes' board, as HIRING_LINK's is. */}
+          {jobsInBar && (
+            <NavigationMenu.Item className={s.menuItem}>
+              <a className={s.Trigger} href="/prototypes/job-board">
+                {JOBS_LINK.icon} {JOBS_LINK.title}
+              </a>
+            </NavigationMenu.Item>
+          )}
 
           <NavigationMenu.Item className={s.menuItem}>
             <a className={s.Trigger} href="#" onClick={(e) => e.preventDefault()}>
@@ -311,16 +337,18 @@ export function PrototypeNavBar({
             </a>
           </NavigationMenu.Item>
 
-          <NavigationMenu.Item className={s.menuItem}>
-            <a className={s.Trigger} href="#" onClick={(e) => e.preventDefault()}>
-              <DemoDayIcon /> Demo Day
-            </a>
-          </NavigationMenu.Item>
+          {!jobsInBar && (
+            <NavigationMenu.Item className={s.menuItem}>
+              <a className={s.Trigger} href="#" onClick={(e) => e.preventDefault()}>
+                <DemoDayIcon /> Demo Day
+              </a>
+            </NavigationMenu.Item>
+          )}
 
           <NavItemWithMenu
             icon={<MoreIcon />}
             label="More"
-            items={[JOBS_LINK, DEALS_LINK, FOUNDER_GUIDES_LINK]}
+            items={jobsInBar ? [DEALS_LINK, FOUNDER_GUIDES_LINK] : [JOBS_LINK, DEALS_LINK, FOUNDER_GUIDES_LINK]}
             onNavItemClickHandler={() => {}}
           />
 

@@ -437,6 +437,8 @@ export interface NewsfeedHostProps {
   hostSwitches?: boolean;
   /** Re-ranks the Network Updates heading when the host's lead slot carries the page headline. */
   newsTitleClassName?: string;
+  /** False drops Quick Actions for members (`home-ai-ask`: the field leads instead). The signed-out banner stays. */
+  quickActions?: boolean;
 }
 
 export default function NewsfeedPrototype({
@@ -447,6 +449,7 @@ export default function NewsfeedPrototype({
   leadSlot,
   newsTitleClassName,
   hostSwitches = true,
+  quickActions = true,
 }: NewsfeedHostProps = {}) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
@@ -1434,24 +1437,24 @@ export default function NewsfeedPrototype({
           </div>
         )}
         {hostSwitches && (
-        <div className={v0.switchBar}>
-          <span className={v0.switchLabel}>Events</span>
-          <div className={v0.switch} role="tablist" aria-label="Upcoming events in the next 30 days">
-            {EVENTS_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                role="tab"
-                aria-selected={eventsState === opt.value}
-                className={clsx(v0.switchBtn, eventsState === opt.value && v0.switchBtnActive)}
-                onClick={() => setEventsState(opt.value)}
-              >
-                {opt.label}
-              </button>
-            ))}
+          <div className={v0.switchBar}>
+            <span className={v0.switchLabel}>Events</span>
+            <div className={v0.switch} role="tablist" aria-label="Upcoming events in the next 30 days">
+              {EVENTS_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  role="tab"
+                  aria-selected={eventsState === opt.value}
+                  className={clsx(v0.switchBtn, eventsState === opt.value && v0.switchBtnActive)}
+                  onClick={() => setEventsState(opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <span className={clsx(v0.switchNote, local.reviewNote)}>{EVENTS_NOTE[eventsState]}</span>
           </div>
-          <span className={clsx(v0.switchNote, local.reviewNote)}>{EVENTS_NOTE[eventsState]}</span>
-        </div>
         )}
         {reviewExtras}
       </div>
@@ -1491,14 +1494,16 @@ export default function NewsfeedPrototype({
               Actions is a row of things only a member can do. */}
           {leadSlot}
           {signedIn ? (
-            <>
-              <div className={v0.qaDesktop}>
-                <QuickActionsMock />
-              </div>
-              <div className={v0.qaMobile}>
-                <MobileQuickActions />
-              </div>
-            </>
+            quickActions && (
+              <>
+                <div className={v0.qaDesktop}>
+                  <QuickActionsMock />
+                </div>
+                <div className={v0.qaMobile}>
+                  <MobileQuickActions />
+                </div>
+              </>
+            )
           ) : (
             <SignedOutBanner teamCount={bannerTeamCount} onSignIn={handleSignIn} />
           )}

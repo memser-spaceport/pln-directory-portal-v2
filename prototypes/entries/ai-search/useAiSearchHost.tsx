@@ -100,7 +100,7 @@ export function useAiSearchHost(viewer: AiSearchViewer) {
     onSearchOpenChange: setSearchOpen,
     renderSearchModal,
     searchField,
-    onAiSearchClick: () => askAi(''),
+    onAiSearchClick: () => askAi(term),
   };
 
   const layers = (

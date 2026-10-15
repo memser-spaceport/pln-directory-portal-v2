@@ -9,12 +9,15 @@
  *
  * IMPORTED:
  *  - newsfeed: the whole Home page; newsfeed-v0's review-band switch classes
- *  - ai-search: buildAnswer / prompts (mocked answers), AnswerStatus (the
- *    wait), DirectoryResultsCards, the answer card + prose classes
- *  - ai-search-page: the destination — it reads `?q=` (and `answered=1`,
- *    `viewer=out`) and opens that question as a thread; its Composer is the
- *    "Big field" version
+ *  - ai-search: buildAnswer / prompts (mocked answers), the answer card class
+ *  - ai-mode-results/proposed: the answer inside the card — ThinkingStatus,
+ *    AnswerProse (mentions + citation pills), AnswerShapes, EntityList,
+ *    SourcesButton
+ *  - ai-mode-results: the destination — it reads `?q=` (and `answered=1`,
+ *    `viewer=out`) and opens that question as a thread
+ *  - ai-search-page: its Composer is the "Big field" version
  *  - production: Markdown, CloseIcon; the AI Search mark (prototypes/components)
+ *  - ai-search SearchPopover (header search, `aiInField`) via useHeaderSearch
  */
 
 import React, { useState } from 'react';
@@ -25,10 +28,11 @@ import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
 
 import { HomeAsk, type AskViewer, type FieldSize } from './HomeAsk';
 import homeAsk from './HomeAsk.module.scss';
+import { useHeaderSearch } from './useHeaderSearch';
 
 const SIZES: { value: FieldSize; label: string; note: string }[] = [
-  { value: 'box', label: 'Search box', note: 'One line with the AI Search mark inside it.' },
   { value: 'composer', label: 'Big field', note: "The AI Search page's own field, two lines tall at rest." },
+  { value: 'box', label: 'Search box', note: 'One line with the AI Search mark inside it.' },
 ];
 
 function Switch<T extends string>({
@@ -77,8 +81,9 @@ const VIEWERS: { value: AskViewer; label: string; note: string }[] = [
 
 export default function HomeAiAskPrototype() {
   const [viewer, setViewer] = useState<AskViewer>('founder');
-  const [size, setSize] = useState<FieldSize>('box');
+  const [size, setSize] = useState<FieldSize>('composer');
   const [signedIn, setSignedIn] = useState(true);
+  const navExtras = useHeaderSearch(signedIn);
 
   const reviewExtras = (
     <>
@@ -90,10 +95,14 @@ export default function HomeAiAskPrototype() {
   );
 
   /* The field answers on Home (the overview); the host keeps one team and
-     upcoming events without their switches. */
+     upcoming events without their switches. The field leads the page alone:
+     no Quick Actions under it (2026-10-15). The header carries ai-mode's
+     search and Job Board as its own item. */
   return (
     <NewsfeedPrototype
       hostSwitches={false}
+      quickActions={false}
+      navExtras={navExtras}
       leadSlot={<HomeAsk mode="overview" size={size} signedIn={signedIn} viewer={viewer} />}
       reviewExtras={reviewExtras}
       onSignedInChange={setSignedIn}

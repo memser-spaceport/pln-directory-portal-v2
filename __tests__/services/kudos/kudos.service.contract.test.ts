@@ -44,11 +44,15 @@ const kudosFixture = {
 const feedPageFixture = {
   items: [kudosFixture],
   nextCursor: 'eyJjcmVhdGVkQXQiOiIyMDI2LTA3LTE5In0=',
+  total: 2,
+  totalPages: 2,
 } satisfies IKudosFeedPage;
 
 const lastFeedPageFixture = {
   items: [kudosFixture],
   nextCursor: null,
+  total: 1,
+  totalPages: 1,
 } satisfies IKudosFeedPage;
 
 const poolFixture = {
@@ -100,6 +104,12 @@ describe('kudos service — request contract', () => {
     expect(url).toBe('/api/plaa/kudos?limit=10&cursor=abc');
     expect(url).not.toContain('round');
     expect(init.method).toBeUndefined();
+  });
+
+  it('feed: sends the page number for numbered pages', async () => {
+    mockFetchOnce(feedPageFixture);
+    await getKudosFeed({ roundId: 'round-18', limit: 24, page: 3 });
+    expect((global.fetch as jest.Mock).mock.calls[0][0]).toBe('/api/plaa/kudos?limit=24&page=3');
   });
 
   it('feed: omits the query string entirely when no params given', async () => {

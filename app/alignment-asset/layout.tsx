@@ -1,7 +1,8 @@
 import { Metadata } from 'next';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import PlaaLayoutWrapper from '@/components/page/aligement-assets/plaa-layout-wrapper';
-import { BotpressWebchat } from '@/app/ClientDynamics';
+// TODO(deprecated): the Botpress webchat is replaced by the activity chat. Remove this and components/core/botpress.
+// import { BotpressWebchat } from '@/app/ClientDynamics';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 
 export const metadata: Metadata = {
@@ -33,7 +34,7 @@ export default async function PlaaLayout({ children }: { readonly children: Reac
   return (
     <PlaaLayoutWrapper isLoggedIn={isLoggedIn}>
       {children}
-      <BotpressWebchat />
+      {/* TODO(deprecated): Botpress webchat, see the import above. <BotpressWebchat /> */}
     </PlaaLayoutWrapper>
   );
 }

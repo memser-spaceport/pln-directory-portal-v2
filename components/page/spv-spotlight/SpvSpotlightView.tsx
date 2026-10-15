@@ -503,6 +503,10 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
                 if (params) analytics.onFounderProfileClicked({ ...params, member_uid: memberUid });
               }}
               onWebsiteClicked={websiteClicked}
+              onViewed={() => {
+                const params = baseParams();
+                if (params) analytics.onTeamCardViewed({ ...params, team_uid: spotlight.team.uid });
+              }}
             />
           </section>
 

@@ -58,6 +58,9 @@ export const useSpvSpotlightAnalytics = () => {
 
   const onPageViewed = (params: SpvSpotlightBaseParams) => captureEvent(SPV_SPOTLIGHT_ANALYTICS.ON_PAGE_VIEWED, params);
 
+  const onTeamCardViewed = (params: SpvSpotlightBaseParams & { team_uid: string }) =>
+    captureEvent(SPV_SPOTLIGHT_ANALYTICS.ON_TEAM_CARD_VIEWED, params);
+
   const onRequestAccessClicked = (params: SpvSpotlightBaseParams) =>
     captureEvent(SPV_SPOTLIGHT_ANALYTICS.ON_REQUEST_ACCESS_CLICKED, params);
 
@@ -101,6 +104,7 @@ export const useSpvSpotlightAnalytics = () => {
 
   return {
     onPageViewed,
+    onTeamCardViewed,
     onRequestAccessClicked,
     onRequestAccessSubmitted,
     onRequestAccessBlocked,

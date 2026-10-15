@@ -653,9 +653,9 @@ describe('SpvSpotlightView — gated (the default)', () => {
       mockMember = { memberInfo: { investorProfile: { type: 'ANGEL' } } };
       renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
       expect(screen.getByRole('region', { name: 'Your investor profile' })).toHaveTextContent(
-        "Set your preferences for check size, stage and sector, and we'll filter the deals you see to match. Update or review your investor profile",
+        "Set your preferences for check size, stage and sector, and we'll filter the deals you see to match. Review your investor profile",
       );
-      expect(screen.getByRole('button', { name: 'Update or review your investor profile' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Review your investor profile' })).toBeInTheDocument();
     });
 
     it('still says set up for a profile without a type (created by an access request)', () => {

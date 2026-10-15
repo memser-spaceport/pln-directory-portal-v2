@@ -502,6 +502,8 @@ describe('GiveAiAppFeedbackDialog', () => {
             logged: true,
             uid: 'member-1',
             page: expect.any(String),
+            reportKind: 'bug',
+            priority: 'P2',
           },
         },
         expect.objectContaining({ onSuccess: expect.any(Function) }),
@@ -509,6 +511,22 @@ describe('GiveAiAppFeedbackDialog', () => {
     );
     expect(mockMutate).not.toHaveBeenCalled();
     expect(mockOnFeedbackSubmitted).not.toHaveBeenCalled();
+  });
+
+  it('LabOS selection sends the picked Kind and Priority in the contact-support metadata', async () => {
+    mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: LABOS_AI_APPS_OPTION.label }));
+    fireEvent.click(screen.getByRole('button', { name: 'request' }));
+    fireEvent.click(screen.getByRole('button', { name: 'P0 — Blocking — nobody can work around this' }));
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Search is slow' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+
+    await waitFor(() => expect(mockContactSupportMutate).toHaveBeenCalledTimes(1));
+    expect(mockContactSupportMutate.mock.calls[0][0].metadata).toEqual(
+      expect.objectContaining({ reportKind: 'request', priority: 'P0' }),
+    );
   });
 
   it('uploads pasted data-URI images before submitting', async () => {

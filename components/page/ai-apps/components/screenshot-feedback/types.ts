@@ -99,6 +99,11 @@ export const EMPTY_ANNOTATIONS: AnnotationState = {
 
 export const ANNOTATED_SCREENSHOT_CLASS = 'ai-app-annotated-screenshot';
 export const ANNOTATION_ATTR = 'data-annotations';
+/**
+ * The same screenshot with its drawing merged in, uploaded next to the original.
+ * Places that can't render `data-annotations` (Linear issues, emails) use it.
+ */
+export const FLAT_SRC_ATTR = 'data-flat-src';
 
 export function serializeAnnotations(state: AnnotationState): string {
   return encodeURIComponent(JSON.stringify(state));

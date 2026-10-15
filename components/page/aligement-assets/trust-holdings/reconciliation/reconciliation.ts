@@ -55,6 +55,10 @@ export interface StatementHolding {
   // movement. carrying: held at cost/carrying value, so an unexplained
   // change is unclassified, never a gain.
   basis: 'market' | 'carrying';
+  // Where the opening value comes from when no trust statement prints it
+  // (e.g. the Trust Holdings table). Named source of record, so its
+  // valuation movement isn't flagged as inferred.
+  openingSource?: string;
   valuationLabel?: string;
   valuationNote?: string;
 }
@@ -226,7 +230,8 @@ function residualEntries(statement: TrustStatement, checks: ReconciliationCheck[
   return statement.holdings.flatMap((holding): Entry[] => {
     const flows = sum(statement.movements.filter((m) => m.holding === holding.id).map((m) => toCents(m.amount)));
     const residual = toCents(holding.closing) - toCents(holding.opening) - flows;
-    const source = `${holding.name}: ${holding.opening} → ${holding.closing}`;
+    const opening = holding.openingSource ? `${holding.opening} (${holding.openingSource})` : holding.opening;
+    const source = `${holding.name}: ${opening} → ${holding.closing}`;
 
     let corroborated: boolean | null = null;
     if (holding.openingUnrealized != null && holding.closingUnrealized != null) {
@@ -261,8 +266,9 @@ function residualEntries(statement: TrustStatement, checks: ReconciliationCheck[
         category: 'valuation',
         label: holding.valuationLabel ?? `${holding.name} Valuation Changes`,
         amount: residual,
-        // Verified only when the statement's own unrealized gain/loss moved by the same amount.
-        status: corroborated === true ? 'verified' : corroborated === false ? 'unresolved' : 'inferred',
+        // Verified when the statement's own unrealized gain/loss moved by the same amount, or
+        // when there is nothing to corroborate against but the opening value has a named source.
+        status: corroborated === false ? 'unresolved' : corroborated || holding.openingSource ? 'verified' : 'inferred',
         assets: holding.assets,
         source,
         note: holding.valuationNote,

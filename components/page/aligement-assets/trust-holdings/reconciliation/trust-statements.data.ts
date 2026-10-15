@@ -20,7 +20,8 @@ import { TrustStatement } from './reconciliation';
 // "7.26 PLAA Custody Statement" is the Protocol Labs custody account
 // (60 00 5004 3 00), which held nothing. So August's opening values come
 // from the August statement's "Value on JUL 31" column, which only gives
-// the two asset classes, not individual assets.
+// the two asset classes, not individual assets; the per-asset split comes
+// from the Trust Holdings table in Airtable.
 //
 // PLAA SPV LLC holds the Trust's Class B interest in PL Venture Holdings.
 // Two things move it, both reaching Surus as "ADJUST COST BASIS" lines:
@@ -34,6 +35,7 @@ const ACCOUNT = '20 00 5002 0 00';
 const MONEY_MARKET = 'Federated Hermes Government Obligations Fund';
 
 const OWNERSHIP_SOURCE = 'Signed Schedule I (Javier), per the PLAA team';
+const JUL_31_SOURCE = 'Jul 31 per Trust Holdings, Airtable';
 
 export const TRUST_STATEMENTS: TrustStatement[] = [
   {
@@ -64,20 +66,42 @@ export const TRUST_STATEMENTS: TrustStatement[] = [
         closing: '9,666,661.00',
         basis: 'carrying',
       },
+      // Jul 31 per-asset values aren't on any trust statement we have, so
+      // they come from the Trust Holdings table in Airtable (2026-07-01
+      // row), which stores whole dollars. BTC and ETH are taken as is; FIL
+      // is the remainder of the statement's $1,112,294.95 (Miscellaneous
+      // Assets $7,874,859.70 less the SPV's $6,762,564.75), 5 cents under
+      // Airtable's $897,902, so the opening still ties to the statement.
+      // Closing = the Aug 31 per-asset values on the statement.
       {
-        // Opening = Miscellaneous Assets at Jul 31 ($7,874,859.70) less the
-        // SPV's $6,762,564.75. Closing = Aug 31 BTC + ETH + FIL. Per-asset
-        // July values aren't on any trust statement we have, so the three
-        // reconcile as one holding.
-        id: 'digital',
-        name: 'BTC, ETH & FIL',
-        assets: ['BTC', 'ETH', 'FIL'],
-        opening: '1,112,294.95',
-        closing: '1,234,250.89',
+        id: 'btc',
+        name: 'BTC-BITCOIN',
+        assets: ['BTC'],
+        opening: '126,920.00',
+        closing: '158,700.87',
         basis: 'market',
-        valuationLabel: 'BTC, ETH & FIL (combined)',
-        valuationNote:
-          'Combined for BTC, ETH and FIL — their individual Jul 31 values are not on the trust statements, so the movement cannot be split by asset.',
+        openingSource: JUL_31_SOURCE,
+        valuationLabel: 'BTC & ETH',
+      },
+      {
+        id: 'eth',
+        name: 'ETH-ETHEREUM',
+        assets: ['ETH'],
+        opening: '87,473.00',
+        closing: '115,987.80',
+        basis: 'market',
+        openingSource: JUL_31_SOURCE,
+        valuationLabel: 'BTC & ETH',
+      },
+      {
+        id: 'fil',
+        name: 'FIL-FILECOIN',
+        assets: ['FIL'],
+        opening: '897,901.95',
+        closing: '959,562.22',
+        basis: 'market',
+        openingSource: JUL_31_SOURCE,
+        valuationLabel: 'FIL',
       },
     ],
     movements: [
@@ -119,7 +143,7 @@ export const TRUST_STATEMENTS: TrustStatement[] = [
       {
         category: 'assetContribution',
         amount: '109,225.47',
-        holding: 'digital',
+        holding: 'fil',
         asset: 'FIL',
         label: 'FIL Contributions',
         source: '08/27 RECEIVED FROM PL — 150,000 FIL at $0.728/unit (cost recorded $109,225.47)',

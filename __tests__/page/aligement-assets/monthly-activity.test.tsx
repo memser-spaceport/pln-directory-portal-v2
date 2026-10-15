@@ -109,10 +109,12 @@ describe('MonthlyActivity', () => {
     expect(screen.queryByRole('list')).toBeNull();
   });
 
-  it("footnotes August's combined BTC/ETH/FIL movement as inferred", () => {
+  it('splits August value changes by asset with no review flag', () => {
     render(<MonthlyActivity month="Aug '26" reconciliation={MONTHLY_RECONCILIATION['M8-2026']} />);
-    expect(screen.getByText(/Some movements are inferred/)).toBeTruthy();
-    expect(screen.getByRole('list').textContent).toContain('cannot be split by asset');
+    expect(screen.queryByText(/inferred/)).toBeNull();
+    expect(screen.queryByText(/combined/)).toBeNull();
+    expect(screen.getByText('BTC & ETH')).toBeTruthy();
+    expect(screen.getByText('FIL')).toBeTruthy();
   });
 
   it('says so when a month has no trust statement', () => {

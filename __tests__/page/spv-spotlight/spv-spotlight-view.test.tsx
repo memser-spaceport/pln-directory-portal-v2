@@ -72,6 +72,7 @@ const mockAnalytics: Record<string, jest.Mock> = {
   onOpenDataRoomClicked: jest.fn(),
   onSupportEmailClicked: jest.fn(),
   onInvestorProfileClicked: jest.fn(),
+  onTeamCardViewed: jest.fn(),
 };
 jest.mock('@/analytics/spv-spotlight.analytics', () => ({
   useSpvSpotlightAnalytics: () =>
@@ -490,6 +491,38 @@ describe('SpvSpotlightView — gated (the default)', () => {
         'https://docsend.com/view/x',
       );
       expect(screen.getByText(/Request data room access opens the data room and sends an email/)).toBeInTheDocument();
+    });
+
+    it('records a team card view when half of the card is on screen', async () => {
+      const original = global.IntersectionObserver;
+      global.IntersectionObserver = class {
+        constructor(private callback: IntersectionObserverCallback) {}
+        observe() {
+          this.callback(
+            [{ isIntersecting: true } as IntersectionObserverEntry],
+            this as unknown as IntersectionObserver,
+          );
+        }
+        unobserve() {}
+        disconnect() {}
+        takeRecords() {
+          return [];
+        }
+      } as unknown as typeof IntersectionObserver;
+
+      try {
+        renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
+        await waitFor(() => expect(mockAnalytics.onTeamCardViewed).toHaveBeenCalledTimes(1));
+        expect(mockAnalytics.onTeamCardViewed).toHaveBeenCalledWith(
+          expect.objectContaining({
+            spotlight_slug: MOCK_SPV_SLUG,
+            view_state: 'open',
+            team_uid: base.team.uid,
+          }),
+        );
+      } finally {
+        global.IntersectionObserver = original;
+      }
     });
 
     it('links the data room from the SPV card', () => {

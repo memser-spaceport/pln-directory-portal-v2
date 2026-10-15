@@ -2831,6 +2831,7 @@ export const EDITOR_ANALYTICS = {
 
 export const SPV_SPOTLIGHT_ANALYTICS = {
   ON_PAGE_VIEWED: 'spv-spotlight-page-viewed',
+  ON_TEAM_CARD_VIEWED: 'spv-spotlight-team-card-viewed',
   ON_REQUEST_ACCESS_CLICKED: 'spv-spotlight-request-access-clicked',
   ON_REQUEST_ACCESS_SUBMITTED: 'spv-spotlight-request-access-submitted',
   ON_REQUEST_ACCESS_BLOCKED: 'spv-spotlight-request-access-blocked',

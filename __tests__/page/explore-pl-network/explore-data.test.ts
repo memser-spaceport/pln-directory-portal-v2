@@ -51,6 +51,11 @@ describe('directoryUrl', () => {
     expect(directoryUrl(team(unmatched, 'fallback'))).toBe(`/teams?searchBy=${encodeURIComponent(unmatched.name)}`);
   });
 
+  it('links a project entry to its directory project page', () => {
+    const oso = PORTFOLIO_FALLBACK.find((r) => r.name === 'Open Source Observer')!;
+    expect(directoryUrl(team(oso, 'fallback'))).toBe('/projects/clot4l6jm001lwi028b7jmwk8');
+  });
+
   it('searches for a team with a uid the API did not return (e.g. inactive)', () => {
     expect(directoryUrl(team(matched, 'fallback'))).toBe(`/teams?searchBy=${encodeURIComponent(matched.name)}`);
   });

@@ -1,18 +1,23 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
 
-import { Markdown } from '@/components/common/Markdown';
 import { CloseIcon } from '@/components/icons';
 import { AiSearchIcon } from '@/prototypes/components/AiSearchIcon/AiSearchIcon';
 
 import { buildAnswer, SUGGESTED_PROMPTS, type CannedAnswer } from '../ai-search/mocks';
-import { AnswerStatus, USUAL_THINKING_MS } from '../ai-search/AnswerStatus';
-import { DirectoryResultsCards } from '../ai-search/DirectoryResultsCards';
-// The answer prose and card are the AI Search answer's own classes.
+import { USUAL_THINKING_MS } from '../ai-search/AnswerStatus';
+// The card frame is the AI Search answer's own class; what goes inside it is
+// ai-mode-results' proposed answer (2026-10-15: "this view is outdated").
 import ap from '../ai-search/AnswerPanel.module.scss';
+import { AnswerProse } from '../ai-mode-results/proposed/AnswerProse';
+import { AnswerShapes } from '../ai-mode-results/proposed/AnswerShapes';
+import { EntityList } from '../ai-mode-results/proposed/EntityList';
+import { SourcesButton } from '../ai-mode-results/proposed/SourcesButton';
+import { ThinkingStatus } from '../ai-mode-results/proposed/ThinkingStatus';
+import { sourceRefsFor, withCitations } from '../ai-mode-results/proposed/entities';
 import Composer from '../ai-search-page/Composer';
 import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
 
@@ -27,9 +32,8 @@ export type FieldSize = 'box' | 'composer';
 /** LAB-2704: portfolio founders get the PL team door first; other members see AI Search only. */
 export type AskViewer = 'founder' | 'member';
 
-const PAGE = '/prototypes/ai-search-page';
-/** The overview shows this many directory results; the rest are one press away. */
-const OVERVIEW_HITS = 4;
+/** The updated AI Search page (ai-mode-results, Proposed answers); it reads the same `?q=`. */
+const PAGE = '/prototypes/ai-mode-results';
 
 /** Three of AI Search's own prompts, reworded short enough to sit in one line. */
 const TRY: { label: string; question: string }[] = [
@@ -89,6 +93,8 @@ export function HomeAsk({
   const [composerKey, setComposerKey] = useState(0);
   const [value, setValue] = useState('');
   const [asked, setAsked] = useState<Asked | null>(null);
+  /* Numbered sources, matched by the citation pills in the prose. */
+  const refs = useMemo(() => sourceRefsFor(asked?.sources ?? []), [asked?.sources]);
 
   /* Switching modes or sizes starts over, so each is judged from rest. */
   useEffect(() => {
@@ -250,14 +256,19 @@ export function HomeAsk({
 
           {asked.status === 'thinking' ? (
             <div className={s.clearOfClose}>
-              <AnswerStatus hits={asked.sql} sourceCount={asked.sources.length} />
+              <ThinkingStatus hits={asked.sql} sourceCount={asked.sources.length} />
             </div>
           ) : (
             <>
-              <div className={clsx(ap.content, s.prose, s.clearOfClose)}>
-                <Markdown>{asked.answer}</Markdown>
+              <div className={clsx(s.prose, s.clearOfClose)}>
+                <AnswerProse markdown={withCitations(asked.answer, refs)} refs={refs} streaming={false} />
               </div>
-              {asked.sql.length > 0 && <DirectoryResultsCards hits={asked.sql.slice(0, OVERVIEW_HITS)} />}
+              {asked.blocks && asked.blocks.length > 0 && <AnswerShapes blocks={asked.blocks} />}
+              {/* Its own four-row cap and "Show all (N)" row. */}
+              {asked.sql.length > 0 && <EntityList hits={asked.sql} />}
+              <div>
+                <SourcesButton refs={refs} />
+              </div>
               <div className={s.overviewFoot}>
                 <a className={s.continue} href={pageUrl(asked.question, true)}>
                   Continue in AI Search

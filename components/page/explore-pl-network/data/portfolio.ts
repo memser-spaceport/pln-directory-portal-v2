@@ -6,11 +6,13 @@ import fallback from './portfolio.fallback.json';
  * MAP_STATES indexes them (generated on 2026-10-13 from marketing's PORTFOLIO
  * and the 2026-09-29 directory name-match snapshot; edit by hand from now on).
  * `uid` is the Directory team when matched; `name` is the Directory name when
- * matched and marketing's otherwise.
+ * matched and marketing's otherwise. `projectUid` is the Directory project for
+ * an entry that is a project, not a team.
  */
 export type PortfolioRow = {
   id: string;
   uid?: string;
+  projectUid?: string;
   name: string;
   island: IslandId;
   logo: string;

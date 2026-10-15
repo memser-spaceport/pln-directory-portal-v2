@@ -13,4 +13,10 @@ describe('logoSrc', () => {
       '/_next/image?url=https%3A%2F%2Fcdn.example%2Flogo.webp%3Fv%3D2%26x%3D1&w=128&q=75',
     );
   });
+
+  it('serves an SVG logo from its own host, since the image endpoint refuses SVGs', () => {
+    const url = 'https://cdn.example/Open%20Source%20Observer%20-%20White.svg';
+    expect(logoSrc(url)).toBe(url);
+    expect(logoSrc('https://cdn.example/logo.SVG?v=2')).toBe('https://cdn.example/logo.SVG?v=2');
+  });
 });

@@ -36,11 +36,11 @@ export default async function LeaderboardPage({ searchParams }: LeaderboardPageP
   const olderRounds = rounds.filter((round) => round.roundNumber < current.roundNumber);
   const leaderboardResult = await getLeaderboard(current.roundNumber);
 
-  const snapshots: LeaderboardSnapshot[] = [current, ...olderRounds]
-    .map(toSnapshot)
-    .sort((a, b) => b.roundNumber - a.roundNumber);
-
   const categories = weights?.items.map((item) => item.category) ?? [];
+
+  const snapshots: LeaderboardSnapshot[] = [current, ...olderRounds]
+    .map((round) => toSnapshot(round, categories))
+    .sort((a, b) => b.roundNumber - a.roundNumber);
   const entries = leaderboardResult.data?.entries ?? [];
   const { currentSnapshotData, cumulativeData } = splitLeaderboardEntries(entries);
 

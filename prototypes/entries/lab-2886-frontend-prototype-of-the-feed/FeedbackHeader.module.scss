@@ -1,0 +1,342 @@
+@use 'styles/media';
+
+/* Row values from production NavBar.module.scss (.Root, .right): 56px tall
+   below 960px and 80px from 960px (--app-navbar-height), 16px / 24px padding,
+   8px gap in the icon group. Only the colours are translated to tokens. */
+.root {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  height: 56px;
+  padding: 16px;
+  background: var(--background-base-white, #fff);
+  box-shadow: 0 1px 4px 0 var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  @include media.tablet-landscape {
+    height: 80px;
+    padding: 16px 24px;
+  }
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.logoMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: var(--background-base-white, #fff);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.logoText {
+  display: none;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+
+  @include media.tablet-portrait {
+    display: inline;
+  }
+}
+
+.nav {
+  display: none;
+  gap: 8px;
+
+  @include media.tablet-landscape {
+    display: flex;
+  }
+}
+
+/* production .Trigger: 40px, 8px 12px, 14/20 500 */
+.navItem {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 8px 12px;
+  color: var(--Text-text-menu, #475569);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.right {
+  margin-left: auto;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+/* Below 960px: the 40px search icon. From 960px: the search bar. */
+.searchBar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 14px;
+  line-height: 20px;
+  cursor: pointer;
+
+  @include media.tablet-landscape {
+    justify-content: flex-start;
+    width: 240px;
+    padding: 0 12px;
+    border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+}
+
+.searchText {
+  display: none;
+
+  @include media.tablet-landscape {
+    display: inline;
+  }
+}
+
+/* The room that the search bar gives up for the label (desktop only).
+   With the 8px gaps of the row, the label fits between search and the icon. */
+.labelRoom {
+  display: none;
+
+  @include media.tablet-landscape {
+    display: block;
+    width: 176px;
+    flex-shrink: 0;
+  }
+}
+
+.feedbackSeat {
+  position: relative;
+  display: inline-flex;
+}
+
+/* The 40px seat of the "?" (production .supportButton). */
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--Text-text-menu, #475569);
+  cursor: pointer;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: -1px;
+  }
+}
+
+.iconButtonActive {
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+/* The label: the brand pill of the AI Apps button (FloatingFeedbackButton.module.scss),
+   at the header's 32px. It floats, so it takes no room in the row and catches no clicks.
+   Below 960px it opens under the icon; from 960px it sits in the label room to the left. */
+.label {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 11;
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: var(--background-base-white, #fff);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  white-space: nowrap;
+  box-shadow: 0 6px 18px rgba(27, 77, 255, 0.3);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.28s ease,
+    transform 0.28s ease;
+
+  @include media.tablet-landscape {
+    top: 50%;
+    right: calc(100% + 8px);
+    transform: translate(8px, -50%);
+  }
+}
+
+.labelOn {
+  opacity: 1;
+  transform: none;
+
+  @include media.tablet-landscape {
+    transform: translate(0, -50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .label {
+    transition: none;
+  }
+}
+
+.kbd {
+  margin-left: 8px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.18);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+
+  @include media.no-fine-pointer {
+    display: none;
+  }
+}
+
+/* Menu chrome from production NavBar.module.scss .Popup. */
+.menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  min-width: 240px;
+  padding: 8px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: var(--background-base-white, #fff);
+  box-shadow:
+    0 10px 20px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06)),
+    0px 20px 65px -5px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+
+  /* Phones: centred under the icon, so it stays on screen when the icon is not at the right end. */
+  @include media.mobile-only {
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /* the hover bridge across the 10px gap */
+  &::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 0;
+    right: 0;
+    height: 10px;
+  }
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    outline: none;
+  }
+}
+
+.menuHint {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+
+  @include media.no-fine-pointer {
+    display: none;
+  }
+}
+
+.menuSeparator {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.signUp,
+.logIn {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.signUp {
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.logIn {
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: var(--background-base-white, #fff);
+}

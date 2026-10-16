@@ -486,6 +486,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     category: 'Demo Day',
     load: () => import('./entries/explore-pl-network/ExplorePlNetworkVisualPrototype'),
   },
+  {
+    key: 'lab-2886-frontend-prototype-of-the-feed',
+    title: 'Feedback icon in the header (option 4)',
+    description:
+      'The chat icon replaces the “?” in the header, in the same seat after search. On page load it shows “Give feedback” for 2.2 s, then only the icon. A click opens the feedback drawer with a page screenshot; hover or tap shows the menu with “Report a bug” and the support topics. Switches show the signed-out drawer and the AI Apps list page. LAB-2886.',
+    category: 'Cross-product',
+    load: () => import('./entries/lab-2886-frontend-prototype-of-the-feed/FrontendPrototypeOfTheFeedPrototype'),
+  },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).
   // {

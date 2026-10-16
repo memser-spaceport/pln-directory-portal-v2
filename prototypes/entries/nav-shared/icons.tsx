@@ -60,3 +60,40 @@ export const SearchGlyph = () => (
     />
   </svg>
 );
+
+/**
+ * The bar's icon weight, drawn as strokes (labos-feedback-button, 2026-10-16:
+ * "check line width of icons in the navbar"). Measured as rendered, the row
+ * mixed four weights: search 1.5px, bell 1.63px, production's (?) 2.06px
+ * (Phosphor bold at 22px) and CommentIcon 1.25px (its 16px art scaled to 20).
+ * These two are the same shapes at the search glyph's 1.5px, non-scaling, so
+ * they hold that weight at any box size.
+ */
+export const CommentGlyph = () => (
+  <svg width="20" height="20" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    {/* CommentIcon's outline, traced along the middle of its 1px wall. */}
+    <path
+      d="M2 4.5C2 3.95 2.45 3.5 3 3.5H13C13.55 3.5 14 3.95 14 4.5V11.5C14 12.05 13.55 12.5 13 12.5H5.2L2 15V4.5Z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+      vectorEffect="non-scaling-stroke"
+    />
+  </svg>
+);
+
+/** Phosphor Question (regular), the (?)'s own glyph one weight lighter. */
+export const HelpGlyph = () => (
+  <svg width="24" height="24" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="128" cy="128" r="96" stroke="#455468" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+    <circle cx="128" cy="180" r="12" fill="#455468" />
+    <path
+      d="M128 144v-8c17.67 0 32-12.54 32-28s-14.33-28-32-28-32 12.54-32 28v4"
+      stroke="#455468"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      vectorEffect="non-scaling-stroke"
+    />
+  </svg>
+);

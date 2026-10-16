@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, type MouseEvent } from 'react';
+import { useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import { Menu } from '@base-ui-components/react/menu';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import clsx from 'clsx';
@@ -34,6 +34,11 @@ export interface HelpFeedbackMenuProps {
   onAskAi?: () => void;
   /** One-time announcement on arrival, anchored to the (?). */
   callout?: boolean;
+  /** Where a mouse click lands. Default "Give feedback" (this proposal);
+   *  "Contact support" is develop's own HelpMenu (`labos-feedback-button`). */
+  clickTopic?: string;
+  /** Replaces production's HelpIcon in the trigger (the bar's 1.5px weight). */
+  glyph?: ReactNode;
 }
 
 /**
@@ -75,7 +80,14 @@ export interface HelpFeedbackMenuProps {
  * is a design-system decision, not this prototype's. Better none than a column
  * that is two-fifths made up.
  */
-export function HelpFeedbackMenu({ onPickTopic, onGiveFeedback, onAskAi, callout = false }: HelpFeedbackMenuProps) {
+export function HelpFeedbackMenu({
+  onPickTopic,
+  onGiveFeedback,
+  onAskAi,
+  callout = false,
+  clickTopic = CLICK_TOPIC,
+  glyph,
+}: HelpFeedbackMenuProps) {
   const pick = (topic: string) => (topic === CLICK_TOPIC && onGiveFeedback ? onGiveFeedback() : onPickTopic(topic));
   // PROTOTYPE: the callout opens on every page load and is never persisted as
   // dismissed — reviewers should meet it each time. In production dismissal
@@ -102,7 +114,7 @@ export function HelpFeedbackMenu({ onPickTopic, onGiveFeedback, onAskAi, callout
     event.preventBaseUIHandler?.();
     setMenuOpen(false);
     dismiss();
-    pick(CLICK_TOPIC);
+    pick(clickTopic);
   };
 
   return (
@@ -136,7 +148,7 @@ export function HelpFeedbackMenu({ onPickTopic, onGiveFeedback, onAskAi, callout
                 }}
                 onClick={onTriggerClick}
               >
-                <HelpIcon />
+                {glyph ?? <HelpIcon />}
               </Menu.Trigger>
             </span>
           </TooltipPrimitive.Trigger>

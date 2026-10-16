@@ -146,9 +146,9 @@ function FeedbackFab({
 
   /* The list page draws its own picture. Fetch its fonts while idle, before Give feedback. */
   useEffect(() => {
-    if (!isListSurface || !isVisible) return;
+    if (!isListSurface || !isVisible || !showButton) return;
     return scheduleFontCache();
-  }, [isListSurface, isVisible]);
+  }, [isListSurface, isVisible, showButton]);
 
   // Gated on `isVisible` rather than left bare: hooks run before the early
   // return below, so an ungated timer would spend its 2.2s while this renders
@@ -243,13 +243,13 @@ function FeedbackFab({
     }
   }
 
-  /* The open drawer owns its keys, `?` included. */
+  /* The open drawer owns its keys, `?` included. Global mode takes no page keys: on every
+     LabOS page Alt+F belongs to the browser (its File menu on Windows), and `?` to the page. */
   useEffect(() => {
-    if (!isVisible || !showButton || drawerOpen || isPinMode || shortcutsOpen) return;
+    if (global || !isVisible || drawerOpen || isPinMode || shortcutsOpen) return;
 
     const onKey = (event: KeyboardEvent) => {
-      /* `?` lists the AI Apps shortcuts; outside AI Apps the key stays the page's. */
-      if (!global && isShortcutsKey(event) && !isAnyDialogOpen()) {
+      if (isShortcutsKey(event) && !isAnyDialogOpen()) {
         event.preventDefault();
         analytics.onFeedbackShortcutsHelpOpened();
         setShortcutsOpen(true);
@@ -264,7 +264,7 @@ function FeedbackFab({
 
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [isVisible, showButton, drawerOpen, isPinMode, shortcutsOpen, startFeedback, analytics, global]);
+  }, [global, isVisible, drawerOpen, isPinMode, shortcutsOpen, startFeedback, analytics]);
 
   if (!isVisible) {
     return null;
@@ -286,7 +286,7 @@ function FeedbackFab({
             type="button"
             className={s.button}
             aria-label={name}
-            aria-keyshortcuts={shortcuts.openAria}
+            aria-keyshortcuts={global ? undefined : shortcuts.openAria}
             tabIndex={drawerOpen ? -1 : undefined}
             onClick={startFeedback}
           >
@@ -294,7 +294,7 @@ function FeedbackFab({
             <CommentIcon />
             <span className={s.label} aria-hidden>
               <span>{name}</span>
-              <kbd className={s.labelKbd}>{shortcuts.open}</kbd>
+              {!global && <kbd className={s.labelKbd}>{shortcuts.open}</kbd>}
             </span>
             {commentsAvailable && (commentMode?.count ?? 0) > 0 && (
               <span className={s.count} aria-label={`${commentMode?.count} comments`}>

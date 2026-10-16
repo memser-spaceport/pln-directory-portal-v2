@@ -546,6 +546,7 @@ export function GiveAiAppFeedbackDialog({
   const loadTicketRef = useRef(0);
 
   const placeHere = (): DraftPlace => {
+    if (labosOnly) return { labos: true };
     if (!appUid) return {};
     const appPath = getContext?.()?.appPath;
     return { appUid, appName, ...(appPath ? { screen: normalizeAppPath(appPath) } : {}) };
@@ -741,10 +742,11 @@ export function GiveAiAppFeedbackDialog({
     setOtherDrafts(
       listFeedbackDrafts().filter(
         /* No picker: a draft about another app (or the list) can't be sent from here, so only this app's other screens. */
-        (draft) => draft.key !== draftKey && (showAppPicker || draft.place?.appUid === appUid),
+        /* LabOS-wide: every draft goes to LabOS - AI Apps, so one draft and no list (LAB-2879). */
+        (draft) => !labosOnly && draft.key !== draftKey && (showAppPicker || draft.place?.appUid === appUid),
       ),
     );
-  }, [isOpen, draftKey, showDrafts, showAppPicker, appUid]);
+  }, [isOpen, draftKey, showDrafts, showAppPicker, appUid, labosOnly]);
 
   /* The draft in the panel is already kept as it stands. */
   const openDraft = (draft: SavedDraft) => {
@@ -754,6 +756,7 @@ export function GiveAiAppFeedbackDialog({
   };
 
   const placeLabel = (place: DraftPlace) => {
+    if (place.labos) return 'a LabOS page';
     if (!place.appUid) return 'AI Apps list';
     const name = apps.find((item) => item.uid === place.appUid)?.name ?? place.appName ?? 'An app';
     return place.screen ? `${name} · ${place.screen}` : name;

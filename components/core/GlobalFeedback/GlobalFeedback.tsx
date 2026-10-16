@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 
 import { useFeedbackAnalytics } from '@/analytics/feedback.analytics';
@@ -28,22 +29,26 @@ export function GlobalFeedback({ isLoggedIn }: Props) {
   const { openDrawer, closeDrawer } = useFeedbackDrawerStore((state) => state.actions);
   const analytics = useFeedbackAnalytics();
 
+  const showButton = !isAiAppsRoute(pathname) && !isBareRoute(pathname);
+
+  /* Stable between renders: the button keys its callbacks on this object. */
+  const global = useMemo(
+    () => ({
+      open,
+      showButton,
+      onOpen: () => {
+        analytics.onFeedbackButtonClick({ source: 'floating-button', page: pathname });
+        openDrawer();
+      },
+      onClose: closeDrawer,
+      onSent: () => analytics.onFeedbackSubmit({ page: pathname }),
+    }),
+    [open, showButton, pathname, analytics, openDrawer, closeDrawer],
+  );
+
   if (!isLoggedIn) {
     return null;
   }
 
-  return (
-    <FloatingFeedbackButton
-      global={{
-        open,
-        showButton: !isAiAppsRoute(pathname) && !isBareRoute(pathname),
-        onOpen: () => {
-          analytics.onFeedbackButtonClick({ source: 'floating-button', page: pathname });
-          openDrawer();
-        },
-        onClose: closeDrawer,
-        onSent: () => analytics.onFeedbackSubmit({ page: pathname }),
-      }}
-    />
-  );
+  return <FloatingFeedbackButton global={global} />;
 }

@@ -845,14 +845,15 @@ describe('FloatingFeedbackButton', () => {
       expect(screen.getByTestId('feedback-dialog')).toHaveAttribute('data-labos-only', 'true');
     });
 
-    it('the shortcut asks the host to open the drawer', () => {
+    it('leaves Alt+F to the browser and shows no shortcut hint', () => {
       mockUsePermissions.mockReturnValue({ permsSet: new Set(), isLoading: false });
       const props = globalProps();
 
       render(<FloatingFeedbackButton global={props} />);
       openChord();
 
-      expect(props.onOpen).toHaveBeenCalledTimes(1);
+      expect(props.onOpen).not.toHaveBeenCalled();
+      expect(screen.getByRole('button', { name: 'Give feedback' })).not.toHaveAttribute('aria-keyshortcuts');
     });
   });
 });

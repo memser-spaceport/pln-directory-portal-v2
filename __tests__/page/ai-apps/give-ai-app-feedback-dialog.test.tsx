@@ -550,6 +550,29 @@ describe('GiveAiAppFeedbackDialog', () => {
       expect(onSent).toHaveBeenCalledTimes(1);
     });
 
+    it('keeps its draft apart from the AI Apps list draft', async () => {
+      mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+      writeFormDraft(AI_APP_FEEDBACK_DRAFT_KEY, { message: 'About the AI Apps list', app: null });
+
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} variant="drawer" labosOnly />);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+      expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue('');
+      fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'About /members' } });
+
+      await waitFor(() =>
+        expect(readFormDraft(`${AI_APP_FEEDBACK_DRAFT_KEY}:labos-wide`)).toEqual(
+          expect.objectContaining({ message: 'About /members' }),
+        ),
+      );
+      expect(readFormDraft(AI_APP_FEEDBACK_DRAFT_KEY)).toEqual(
+        expect.objectContaining({ message: 'About the AI Apps list' }),
+      );
+      clearFormDraft(`${AI_APP_FEEDBACK_DRAFT_KEY}:labos-wide`);
+    });
+
     it('still loads the AI Apps list without labosOnly', () => {
       mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
 

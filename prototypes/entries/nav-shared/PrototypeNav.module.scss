@@ -16,6 +16,18 @@
   background-color: #ffffff;
 }
 
+/* `jobsInBar`: Job Board joins the row and Demo Day leaves it for the
+   Events menu, so the items keep their icons (an earlier pass hid them
+   below 1600px; "keep icons", 2026-10-15). */
+.headerJobsInBar {
+  /* Closer items (2026-10-15, "put navbar links closer"): production's 12px
+     side padding plus the row's 8px gap left 32px between labels; 6px makes
+     it 20, and the hover pill still clears the text. */
+  :global([class*='Trigger']:not([class*='navSearch'])) {
+    padding-inline: 6px;
+  }
+}
+
 /* The logo is a <button> on pages that own the feed and handle the click in
    place, so it needs the reset production's .logoWrapper (an anchor) assumes.
    Nothing visual changes — the logo looks and sits exactly where it does in
@@ -254,25 +266,24 @@
 /* ---------- The field you type in (`searchField`) ---------- */
 
 /* The slot holds the field's place in the row: the 40px glyph box below
-   tablet-landscape, 200px from there, 278px from 1440 up. The field has one
+   tablet-landscape; from there it takes whatever the row has left between the
+   last nav item and the icon cluster (2026-10-15 review: "the search bar is
+   smaller now… there is space on the left"). 200px is the floor, the old fixed
+   width, so the row's max-content and its overflow below ~1216 are unchanged;
+   600px is the ceiling, production's own `.root` max-width. The field has one
    width and keeps it while you type (Relume, Zendesk, Craft on Mobbin: the
-   field holds still and the dropdown does the growing). 278 is what the bar
-   has room for: measured at 1440 the nav's last item ends 86px left of a 200px
-   slot, so 278 leaves the same 8px the row gives it at narrower widths. Below
-   1440 there is no spare width, so it stays 200. The popover measures this
-   box, and its right edge is the field's right edge. */
+   field holds still and the dropdown does the growing). The popover measures
+   this box: its right edge is the field's, and it is never narrower. */
 .navSearchSlot {
   position: relative;
   display: inline-flex;
   flex-shrink: 0;
 
   @include tablet-landscape {
-    width: 200px;
+    flex: 1 1 200px;
+    min-width: 200px;
+    max-width: 600px;
     height: 36px;
-  }
-
-  @include desktop-hd {
-    width: 278px;
   }
 }
 
@@ -452,4 +463,97 @@
   height: 1px;
   margin-block: 6.5px;
   background-color: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+/* "Give feedback" in the bar (labos-feedback-button). The row's own vocabulary:
+   the nav items' 14/500 menu ink and the icon boxes' transparent-dark-4 hover,
+   with the search field's hairline so it reads as a button, not a destination
+   like Forum. Below 1440px it is a 40px glyph box, like the (?): beside
+   production's search field (floor 200px) the row has no room for the label
+   until then. */
+.navFeedback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  color: var(--Text-text-menu, #475569);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+  cursor: pointer;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  @media (min-width: 1440px) {
+    width: auto;
+    padding: 0 12px;
+    border-color: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    }
+  }
+
+  &[aria-expanded='true'] {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: -1px;
+  }
+}
+
+.navFeedbackLabel {
+  display: none;
+
+  @media (min-width: 1440px) {
+    display: inline;
+  }
+}
+
+/* The nav items drawn closer (labos-feedback-button, 2026-10-16: "put navbar
+   icons closer to each other" — the Home … PL Infra row). Production spaces
+   the labels 32px apart (12px side padding on each item + the list's 8px gap);
+   here 10px padding and a 4px gap put them 24px apart (18px was too close),
+   and the hover tint still
+   clears the label. The logo and the right-hand cluster (.navRight, a marker
+   with no styles) keep their spacing. Doubled class to beat
+   production's .Trigger without !important. */
+.listTight.listTight {
+  gap: 4px;
+
+  > :not(.navRight) > :is(a, button) {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+
+/* Marker only: lets .listTight skip the right-hand cluster. */
+.navRight {
+}
+
+/* A smaller field (labos-feedback-button, 2026-10-16: "make search field
+   smaller", then "a bit bigger"). Production's floor (200px) stays; the ceiling drops from 600px to
+   280px, so on wide screens the field stops growing and the row's spare width
+   goes to empty space instead. The popover under it keeps its own width. */
+.navSearchSlotNarrow.navSearchSlotNarrow {
+  @include tablet-landscape {
+    max-width: 280px;
+  }
 }

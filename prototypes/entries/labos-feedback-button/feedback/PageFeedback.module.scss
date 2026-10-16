@@ -1,0 +1,19 @@
+/* Page: the drawer title with the page it is about under it. */
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.about {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  strong {
+    font-weight: 500;
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}

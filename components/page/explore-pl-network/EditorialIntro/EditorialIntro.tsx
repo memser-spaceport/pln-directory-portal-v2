@@ -1,9 +1,10 @@
 import React from 'react';
-import { PORTFOLIO } from '../data/islands';
 import { EDITORIAL_HEADER, FOCUS_AREAS, PL_CONTEXT, PL_ENTITIES, PL_FACTS } from '../data/content';
 import s from './EditorialIntro.module.scss';
 
 type Props = {
+  /** Portfolio teams on the map, for the key figure. */
+  portfolioCount: number;
   onEntityClicked?: (name: string) => void;
 };
 
@@ -15,7 +16,7 @@ type Props = {
  * 3. Focus areas, in marketing's words.
  * 4. The PL entities as linked cards.
  */
-export const EditorialIntro = ({ onEntityClicked }: Props) => (
+export const EditorialIntro = ({ portfolioCount, onEntityClicked }: Props) => (
   <div className={s.editorial}>
     <header className={s.edHeader}>
       <span className={s.edOverline}>{EDITORIAL_HEADER.overline}</span>
@@ -31,7 +32,7 @@ export const EditorialIntro = ({ onEntityClicked }: Props) => (
       {PL_FACTS.map((f) => (
         <div key={f.label} className={s.edFact}>
           <dt className={s.edFactLabel}>{f.label}</dt>
-          <dd className={s.edFactValue}>{f.value === 'portfolio' ? PORTFOLIO.length : f.value}</dd>
+          <dd className={s.edFactValue}>{f.value === 'portfolio' ? portfolioCount : f.value}</dd>
         </div>
       ))}
     </dl>

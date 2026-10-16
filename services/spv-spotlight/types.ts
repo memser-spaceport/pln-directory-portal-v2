@@ -78,8 +78,12 @@ export type SpvSpotlight = {
   closesAt?: string | null;
   /** Admin-set SPV terms. Each value is display text. Null when unset. */
   spvDetails: SpvDetails;
-  /** Only sent when the viewer is APPROVED and the spotlight is OPEN; null otherwise. */
+  /** Only sent when the viewer is APPROVED and the spotlight is OPEN. */
   docSendUrl: string | null;
+  /** True when a click also emails the SPV team before the button only opens the data room. */
+  emailOnDataRoomRequest: boolean;
+  /** True when this viewer already received the data room email. */
+  dataRoomEmailSent: boolean;
   team: SpvTeam;
   /** Admin-configured images from the team's website, for the card's carousel. */
   media: SpvMedia[];

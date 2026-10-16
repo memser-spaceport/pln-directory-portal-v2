@@ -1,14 +1,14 @@
 import styles from './page.module.css';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
-import ChatContainer from '@/components/page/husky/chat-container';
+import { ChatContainer } from '@/components/page/husky/ChatContainer';
 
 export default async function HuskyPage() {
-  const { isLoggedIn, userInfo } = await getCookiesFromHeaders();
+  const { isLoggedIn } = await getCookiesFromHeaders();
 
   return (
     <div className={styles.husky}>
       <div className={styles.husky__container}>
-        <ChatContainer isLoggedIn={isLoggedIn} userInfo={userInfo} />
+        <ChatContainer isLoggedIn={isLoggedIn} />
       </div>
     </div>
   );

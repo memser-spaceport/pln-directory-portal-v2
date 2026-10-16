@@ -1,0 +1,62 @@
+.root {
+  list-style: none;
+  color: #455468;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 22px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 100%;
+  gap: 10px;
+}
+
+.text {
+  max-width: 100%;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.root:hover .actions,
+.root[data-active='true'] .actions {
+  opacity: 1;
+}
+
+.root:hover {
+  background-color: rgba(14, 15, 17, 0.04);
+}
+
+/* the open chat outranks the hovered one: a darker wash and the primary text colour */
+.root[data-active='true'] {
+  background-color: rgba(14, 15, 17, 0.06);
+  color: #0a0c11;
+}
+
+.deleteButton {
+  display: flex;
+  background-color: transparent;
+}
+
+.actions {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .actions {
+    display: flex;
+  }
+}

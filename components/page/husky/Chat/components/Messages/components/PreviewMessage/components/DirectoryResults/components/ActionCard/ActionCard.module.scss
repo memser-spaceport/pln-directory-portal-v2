@@ -1,0 +1,69 @@
+.root {
+  position: relative;
+  padding: 20px;
+  height: fit-content;
+
+  // Gradient border: the mask cuts the padding box out of the gradient, leaving a 1px ring.
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%) border-box;
+    -webkit-mask:
+      linear-gradient(#fff 0 0) padding-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: destination-out;
+    mask-composite: exclude;
+  }
+}
+
+.content {
+  width: 100%;
+}
+
+.wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.iconWrapper {
+  width: 40px;
+  height: 40px;
+}
+
+.icon {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 1px;
+  border-radius: 50%;
+}
+
+.name {
+  font-size: 18px;
+  line-height: 28px;
+  font-weight: 600;
+  display: flex;
+  gap: 6px;
+  color: #0f172a;
+  text-transform: capitalize;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  width: 90%;
+  display: block;
+}
+
+.type {
+  font-size: 14px;
+  text-transform: capitalize;
+  width: fit-content;
+  color: #0f172a;
+  font-weight: 500;
+  line-height: 20px;
+}

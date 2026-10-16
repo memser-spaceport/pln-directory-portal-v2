@@ -1,6 +1,6 @@
 import { plaaApiHeaders } from '@/services/plaa/plaa-api';
 
-// Cache tag for this fetch, used by /api/revalidate.
+// Retained for /api/revalidate consumers.
 export const TRUST_HOLDINGS_CACHE_TAG = 'trust-holdings';
 
 export interface NavPoint {
@@ -45,12 +45,18 @@ export interface TrustHoldingsData {
 export const getTrustHoldings = async (
   authToken?: string,
 ): Promise<{ data?: TrustHoldingsData; error?: { message: string } }> => {
+  // Without this, a build with PLAA_API_URL unset hangs prerendering: two pages
+  // share the cached fetch of the same invalid URL and the second never settles.
+  if (!process.env.PLAA_API_URL) {
+    return { error: { message: 'PLAA_API_URL is not configured' } };
+  }
+
   try {
     const url = `${process.env.PLAA_API_URL}/api/v1/trust-holdings`;
     const response = await fetch(url, {
       method: 'GET',
       headers: plaaApiHeaders(authToken),
-      next: { revalidate: 300, tags: [TRUST_HOLDINGS_CACHE_TAG] },
+      cache: 'no-store',
     });
 
     if (!response.ok) {

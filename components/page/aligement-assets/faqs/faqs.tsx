@@ -11,19 +11,45 @@ import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 import { DISCLOSURE_URL, SUPPORT_EMAIL } from '@/constants/plaa';
 import { KpiWeightEntry } from '@/services/plaa/kpi-weights.service';
 
-// Used only if the live fetch is unreachable or returns nothing.
-const KPI_WEIGHTS_FALLBACK: KpiWeightEntry[] = [
-  { category: 'Network Tooling', weight: 1.3, percentOfTotal: 18.57, emissionsPerSnapshot: 1857 },
-  { category: 'Knowledge Sharing', weight: 1.5, percentOfTotal: 21.43, emissionsPerSnapshot: 2143 },
-  { category: 'People/Talent', weight: 1.0, percentOfTotal: 14.29, emissionsPerSnapshot: 1429 },
-  { category: 'Programs', weight: 1.1, percentOfTotal: 15.71, emissionsPerSnapshot: 1571 },
-  { category: 'Brand', weight: 0.3, percentOfTotal: 4.29, emissionsPerSnapshot: 429 },
-  { category: 'Projects', weight: 1.4, percentOfTotal: 20.00, emissionsPerSnapshot: 2000 },
-  { category: 'Capital', weight: 0.4, percentOfTotal: 5.71, emissionsPerSnapshot: 571 },
-];
-
 const sumOf = (rows: KpiWeightEntry[], key: keyof Omit<KpiWeightEntry, 'category'>) =>
   rows.reduce((acc, r) => acc + (r[key] ?? 0), 0);
+
+export function KpiScheduleTable({ rows }: { rows: KpiWeightEntry[] | undefined }) {
+  if (!rows || rows.length === 0) {
+    return <p>The KPI emissions schedule is currently unavailable.</p>;
+  }
+  return (
+      <div style={{ overflowX: 'auto' }}>
+      <p style={{ fontWeight: 'bold', marginBottom: '8px' }}>KPI Emissions Schedule</p>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9em', border: '1px solid #e2e8f0' }}>
+          <thead>
+            <tr style={{ backgroundColor: '#f1f5f9' }}>
+              <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold', borderBottom: '2px solid #3b82f6' }}>KPI categories</th>
+              <th style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', borderBottom: '2px solid #3b82f6' }}>KPI Weight</th>
+              <th style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', borderBottom: '2px solid #3b82f6' }}>% of Total Emissions</th>
+              <th style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', borderBottom: '2px solid #3b82f6' }}>Emission Each Snapshot</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, i) => (
+              <tr key={row.category} style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: i % 2 === 1 ? '#f8fafc' : undefined }}>
+                <td style={{ fontWeight: 'bold', padding: '10px' }}>{row.category}</td>
+                <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>{row.weight != null ? row.weight.toFixed(4) : '—'}</td>
+                <td style={{ padding: '10px', textAlign: 'right' }}>{row.percentOfTotal != null ? `${row.percentOfTotal.toFixed(2)}%` : '—'}</td>
+                <td style={{ padding: '10px', textAlign: 'right' }}>{row.emissionsPerSnapshot != null ? row.emissionsPerSnapshot.toLocaleString('en-US') : '—'}</td>
+              </tr>
+            ))}
+            <tr style={{ backgroundColor: '#e0f2fe', fontWeight: 'bold' }}>
+              <td style={{ fontWeight: 'bold', padding: '10px' }}>Sum</td>
+              <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>{sumOf(rows, 'weight').toFixed(4)}</td>
+              <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>{sumOf(rows, 'percentOfTotal').toFixed(2)}%</td>
+              <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>{sumOf(rows, 'emissionsPerSnapshot').toLocaleString('en-US')}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+  );
+}
 
 export interface FAQItem {
   question: string;
@@ -38,8 +64,6 @@ export interface FAQCategoryData {
 }
 
 function buildFaqCategories(kpiWeights: KpiWeightEntry[] | undefined): FAQCategoryData[] {
-  const kpiRows = kpiWeights && kpiWeights.length > 0 ? kpiWeights : KPI_WEIGHTS_FALLBACK;
-
   return [
   {
     id: 'contact-support',
@@ -225,44 +249,16 @@ function buildFaqCategories(kpiWeights: KpiWeightEntry[] | undefined): FAQCatego
             <div style={{ backgroundColor: '#f1f5f9', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
               <p style={{ fontWeight: 'bold', marginBottom: '8px' }}>Example:</p>
               <ul style={{ paddingLeft: '20px', listStyleType: 'disc', marginBottom: '0' }}>
-                <li style={{ marginBottom: '4px' }}>Network Tooling gets 18.57% of 10,000 PLAA = 1,857 PLAA available for Network Tooling</li>
+                <li style={{ marginBottom: '4px' }}>Network Tooling gets 19.35% of 10,000 PLAA = 1,935 PLAA available for Network Tooling</li>
                 <li style={{ marginBottom: '4px' }}>You collected 100 points; everyone collected 1,000 points total</li>
                 <li style={{ marginBottom: '4px' }}>Your portion of points: 100 ÷ 1,000 = 10%</li>
-                <li>Your PLAA: 10% × 1,857 = ~186 PLAA</li>
+                <li>Your PLAA: 10% × 1,935 = ~194 PLAA</li>
               </ul>
             </div>
 
             <p style={{ marginBottom: '16px' }}>You can collect PLAA from multiple categories in the same period. Such PLAA may ultimately be settled through tokens and redeemed for cash or other consideration in accordance with the applicable settlement process.</p>
 
-            <div style={{ overflowX: 'auto' }}>
-            <p style={{ fontWeight: 'bold', marginBottom: '8px' }}>KPI Emissions Schedule</p>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9em', border: '1px solid #e2e8f0' }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#f1f5f9' }}>
-                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold', borderBottom: '2px solid #3b82f6' }}>KPI categories</th>
-                    <th style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', borderBottom: '2px solid #3b82f6' }}>KPI Weight</th>
-                    <th style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', borderBottom: '2px solid #3b82f6' }}>% of Total Emissions</th>
-                    <th style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', borderBottom: '2px solid #3b82f6' }}>Emission Each Snapshot</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {kpiRows.map((row, i) => (
-                    <tr key={row.category} style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: i % 2 === 1 ? '#f8fafc' : undefined }}>
-                      <td style={{ fontWeight: 'bold', padding: '10px' }}>{row.category}</td>
-                      <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>{row.weight != null ? row.weight.toFixed(4) : '—'}</td>
-                      <td style={{ padding: '10px', textAlign: 'right' }}>{row.percentOfTotal != null ? `${row.percentOfTotal.toFixed(2)}%` : '—'}</td>
-                      <td style={{ padding: '10px', textAlign: 'right' }}>{row.emissionsPerSnapshot != null ? row.emissionsPerSnapshot.toLocaleString('en-US') : '—'}</td>
-                    </tr>
-                  ))}
-                  <tr style={{ backgroundColor: '#e0f2fe', fontWeight: 'bold' }}>
-                    <td style={{ fontWeight: 'bold', padding: '10px' }}>Sum</td>
-                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>{sumOf(kpiRows, 'weight').toFixed(4)}</td>
-                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>{sumOf(kpiRows, 'percentOfTotal').toFixed(2)}%</td>
-                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>{sumOf(kpiRows, 'emissionsPerSnapshot').toLocaleString('en-US')}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+            <KpiScheduleTable rows={kpiWeights} />
           </div>
         ),
       },

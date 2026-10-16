@@ -32,23 +32,18 @@ export const PointsQueryKeys = {
 // Fetchers (bare async functions – easy to parallelise with Promise.all)
 // ---------------------------------------------------------------------------
 
-export async function fetchSnapshotPoints(
-  snapshotPeriod: string
-): Promise<SnapshotPointsResponse | null> {
+export async function fetchSnapshotPoints(snapshotPeriod: string): Promise<SnapshotPointsResponse | null> {
   const { authToken } = getCookiesFromClient();
   if (!authToken) return null;
 
   try {
-    const res = await fetch(
-      `/api/plaa/points?snapshotPeriod=${snapshotPeriod}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`,
-        },
-      }
-    );
+    const res = await fetch(`/api/plaa/points?snapshotPeriod=${encodeURIComponent(snapshotPeriod)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authToken}`,
+      },
+    });
 
     if (res.status === 403 || res.status === 404) return null;
     if (!res.ok) throw new Error(`Snapshot points request failed: ${res.status}`);

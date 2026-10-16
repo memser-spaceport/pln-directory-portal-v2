@@ -1,8 +1,8 @@
 import '@testing-library/jest-dom';
 import React, { createRef } from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import { ChatHome } from '@/components/page/husky/ChatHome';
-import ChatComposer from '@/components/page/husky/chat-composer';
+import { ChatHome } from '@/components/page/husky/Chat/components/ChatHome';
+import { ChatComposer } from '@/components/page/husky/Chat/components/ChatComposer';
 import { getChatQuestions } from '@/services/discovery.service';
 
 jest.mock('@/services/discovery.service', () => ({

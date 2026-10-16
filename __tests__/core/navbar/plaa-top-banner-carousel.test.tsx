@@ -61,10 +61,21 @@ describe('PlaaTopBannerCarousel', () => {
     jest.useRealTimers();
   });
 
-  it('renders nothing off alignment-asset routes', () => {
-    mockUsePathname.mockReturnValue('/members');
-    const { container } = render(<PlaaTopBannerCarousel />);
-    expect(container).toBeEmptyDOMElement();
+  it.each(['/members', '/home', '/alignment-assets', '/other/alignment-asset', null])(
+    'renders nothing off the exact alignment-asset route namespace: %s',
+    (pathname) => {
+      mockUsePathname.mockReturnValue(pathname);
+      const { container } = render(<PlaaTopBannerCarousel />);
+      expect(container).toBeEmptyDOMElement();
+      expect(mockUseCurrentSnapshotStatus).not.toHaveBeenCalled();
+      expect(mockUseBuybackBannerSlide).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['/alignment-asset', '/alignment-asset/overview'])('shows the PLAA banner on %s', (pathname) => {
+    mockUsePathname.mockReturnValue(pathname);
+    render(<PlaaTopBannerCarousel />);
+    expect(screen.getByTestId('snapshot-slide')).toBeInTheDocument();
   });
 
   it('renders nothing for a member without PLAA access', () => {

@@ -9,6 +9,7 @@ import { AiSearchIcon } from '@/prototypes/components/AiSearchIcon/AiSearchIcon'
 import {
   DIRECTORY_LINKS,
   EVENT_LINKS,
+  DEMO_DAY_LINK,
   JOBS_LINK,
   DEALS_LINK,
   FOUNDER_GUIDES_LINK,
@@ -33,7 +34,7 @@ import sub from '@/components/core/application-search/components/AiChatPanel/com
 import local from './PrototypeNav.module.scss';
 import help from './HelpFeedbackMenu.module.scss';
 
-import { HomeIcon, BellIcon, SearchGlyph } from './icons';
+import { HomeIcon, BellIcon, SearchGlyph, CommentGlyph, HelpGlyph } from './icons';
 import { LOGO_LABEL, scrollToTop } from './home';
 import { PrototypeSearchModal } from './PrototypeSearchModal';
 import { HelpFeedbackMenu, type HelpFeedbackMenuProps } from './HelpFeedbackMenu';
@@ -128,7 +129,12 @@ interface PrototypeNavBarProps {
    * `askAi` adds the optional "Ask AI" item, which opens the search overlay
    * (needs `searchable`); `key` remounts the menu, for re-showing the callout.
    */
-  helpMenu?: Pick<HelpFeedbackMenuProps, 'onPickTopic' | 'callout'> & { askAi?: boolean; key?: string };
+  helpMenu?: Pick<HelpFeedbackMenuProps, 'onPickTopic' | 'callout' | 'clickTopic'> & {
+    askAi?: boolean;
+    key?: string;
+    /** The (?) drawn at the bar's 1.5px stroke instead of production's bold glyph. */
+    strokeGlyph?: boolean;
+  };
   /**
    * Controlled form of the search dialog's open state, for pages that also
    * open it from somewhere other than the icon (a ⌘K shortcut, a page button).
@@ -161,6 +167,21 @@ interface PrototypeNavBarProps {
    * that holds what happened to *you*. The bell itself stays static.
    */
   bellDot?: boolean;
+  /**
+   * Job Board as its own item in the bar, between Events and Forum, instead of
+   * the first row of More, and Demo Day as the last row of Events instead of
+   * an item (`home-ai-ask`, 2026-10-15). Off by default: every other entry
+   * keeps production's arrangement.
+   */
+  jobsInBar?: boolean;
+  /**
+   * A labelled "Give feedback" button in the bar, before the (?)
+   * (`labos-feedback-button`, 2026-10-16). It opens the host's feedback drawer.
+   * With it, the (?) menu's Give feedback item opens the support form, as on
+   * develop, instead of comment mode. `inBar: false` draws no button (the
+   * floating variant). Off by default.
+   */
+  feedbackButton?: { onClick: () => void; expanded?: boolean; inBar?: boolean };
 }
 
 /** What the popover hangs under, in both the glyph and the field form. */
@@ -186,6 +207,8 @@ export function PrototypeNavBar({
   onAiSearchClick,
   searchField,
   bellDot = false,
+  jobsInBar = false,
+  feedbackButton,
 }: PrototypeNavBarProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   /* Giving feedback is a mode of the page, not a form over it: the header's
@@ -247,9 +270,9 @@ export function PrototypeNavBar({
   };
 
   return (
-    <header className={local.headerShell}>
+    <header className={clsx(local.headerShell, jobsInBar && local.headerJobsInBar)}>
       <NavigationMenu.Root className={s.Root}>
-        <NavigationMenu.List className={s.List}>
+        <NavigationMenu.List className={clsx(s.List, feedbackButton && local.listTight)}>
           {/* Same destination as Home, one of them labelled. `newsHref` absent
               means the page clears the dot in place, so the logo does what Home
               does there too rather than dead-ending on `#`. */}
@@ -303,7 +326,24 @@ export function PrototypeNavBar({
             onNavItemClickHandler={() => {}}
           />
 
-          <NavItemWithMenu icon={<EventsIcon />} label="Events" items={EVENT_LINKS} onNavItemClickHandler={() => {}} />
+          {/* With Job Board in the bar, Demo Day moves into Events as its last
+              row (production's own DEMO_DAY_LINK), so the row keeps its icons. */}
+          <NavItemWithMenu
+            icon={<EventsIcon />}
+            label="Events"
+            items={jobsInBar ? [...EVENT_LINKS, DEMO_DAY_LINK] : EVENT_LINKS}
+            onNavItemClickHandler={() => {}}
+          />
+
+          {/* Production's own link, icon and title, lifted out of More; the
+              href is the prototypes' board, as HIRING_LINK's is. */}
+          {jobsInBar && (
+            <NavigationMenu.Item className={s.menuItem}>
+              <a className={s.Trigger} href="/prototypes/job-board">
+                {JOBS_LINK.icon} {JOBS_LINK.title}
+              </a>
+            </NavigationMenu.Item>
+          )}
 
           <NavigationMenu.Item className={s.menuItem}>
             <a className={s.Trigger} href="#" onClick={(e) => e.preventDefault()}>
@@ -311,16 +351,18 @@ export function PrototypeNavBar({
             </a>
           </NavigationMenu.Item>
 
-          <NavigationMenu.Item className={s.menuItem}>
-            <a className={s.Trigger} href="#" onClick={(e) => e.preventDefault()}>
-              <DemoDayIcon /> Demo Day
-            </a>
-          </NavigationMenu.Item>
+          {!jobsInBar && (
+            <NavigationMenu.Item className={s.menuItem}>
+              <a className={s.Trigger} href="#" onClick={(e) => e.preventDefault()}>
+                <DemoDayIcon /> Demo Day
+              </a>
+            </NavigationMenu.Item>
+          )}
 
           <NavItemWithMenu
             icon={<MoreIcon />}
             label="More"
-            items={[JOBS_LINK, DEALS_LINK, FOUNDER_GUIDES_LINK]}
+            items={jobsInBar ? [DEALS_LINK, FOUNDER_GUIDES_LINK] : [JOBS_LINK, DEALS_LINK, FOUNDER_GUIDES_LINK]}
             onNavItemClickHandler={() => {}}
           />
 
@@ -338,13 +380,13 @@ export function PrototypeNavBar({
             />
           ) : null}
 
-          <div className={s.right}>
+          <div className={clsx(s.right, local.navRight)}>
             {/* The one item in this cluster that does something. Production wires
                 it to `ApplicationSearch` — an inline field in this row that grows
                 a dropdown, then promotes itself to an overlay on Enter. Here the
                 icon opens that overlay directly; see PrototypeSearchModal. */}
             {searchable && searchField ? (
-              <div className={local.navSearchSlot} data-search-anchor>
+              <div className={clsx(local.navSearchSlot, feedbackButton && local.navSearchSlotNarrow)} data-search-anchor>
                 {/* Below tablet-landscape: the glyph box, opening the popover
                     with its own field. */}
                 <button
@@ -446,11 +488,28 @@ export function PrototypeNavBar({
                 <span className={local.navSearchLabel}>Search</span>
               </span>
             )}
+            {feedbackButton && feedbackButton.inBar !== false && (
+              <button
+                type="button"
+                className={local.navFeedback}
+                onClick={feedbackButton.onClick}
+                aria-expanded={feedbackButton.expanded}
+                title="Give feedback"
+                aria-label="Give feedback"
+                data-feedback-capture-ignore=""
+              >
+                <CommentGlyph />
+                <span className={local.navFeedbackLabel}>Give feedback</span>
+              </button>
+            )}
             {helpMenu ? (
               <HelpFeedbackMenu
                 key={helpMenu.key}
                 onPickTopic={helpMenu.onPickTopic}
-                onGiveFeedback={() => setCommenting(true)}
+                /* With the feedback button the (?) is develop's own: every topic opens the support form. */
+                onGiveFeedback={feedbackButton ? undefined : () => setCommenting(true)}
+                clickTopic={helpMenu.clickTopic}
+                glyph={helpMenu.strokeGlyph ? <HelpGlyph /> : undefined}
                 callout={helpMenu.callout}
                 onAskAi={helpMenu.askAi ? () => setSearchOpen(true) : undefined}
               />
@@ -462,7 +521,7 @@ export function PrototypeNavBar({
                 className={clsx(help.contact, help.trigger)}
                 aria-label="Give feedback"
                 title="Give feedback"
-                onClick={() => setCommenting(true)}
+                onClick={feedbackButton?.onClick ?? (() => setCommenting(true))}
               >
                 <HelpIcon />
               </button>

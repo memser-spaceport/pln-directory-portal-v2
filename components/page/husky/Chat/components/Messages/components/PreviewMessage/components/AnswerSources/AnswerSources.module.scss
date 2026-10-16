@@ -1,0 +1,142 @@
+@use 'styles/mixins';
+
+// The pill sits at the end of the answer's actions row: its 24px height, and the grey the row's icons use.
+.pill {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 8px 0 4px;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  border-radius: 999px;
+  background: #fff;
+  color: #455468;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  cursor: pointer;
+
+  &:hover,
+  &[data-popup-open] {
+    border-color: rgba(27, 56, 96, 0.24);
+    background: rgba(14, 15, 17, 0.04);
+  }
+}
+
+.stack {
+  display: inline-flex;
+
+  .mark + .mark {
+    margin-left: -5px;
+  }
+}
+
+// A source's initial: 16px in the pill, 24px in a row.
+.mark {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px #fff;
+  background: #eef2ff;
+  color: #1b4dff;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.positioner {
+  z-index: 10000;
+}
+
+.popup {
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  padding: 4px;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(14, 15, 17, 0.1);
+  outline: none;
+}
+
+.title {
+  margin: 0;
+  padding: 8px 8px 4px;
+  color: #8897ae;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.list {
+  max-height: 264px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+
+  @include mixins.hide-scrollbar;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 8px;
+  text-decoration: none;
+
+  .mark {
+    width: 24px;
+    height: 24px;
+    box-shadow: none;
+    font-size: 12px;
+  }
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.04);
+
+    .out {
+      color: #455468;
+    }
+  }
+}
+
+.text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rowTitle,
+.origin {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rowTitle {
+  color: #0a0c11;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.origin {
+  color: #8897ae;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.out {
+  flex-shrink: 0;
+  color: #8897ae;
+}

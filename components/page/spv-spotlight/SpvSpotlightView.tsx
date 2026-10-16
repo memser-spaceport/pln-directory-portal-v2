@@ -31,6 +31,7 @@ import {
 import { formatSpvClosesAt } from '@/services/spv-spotlight/formatSpvClosesAt';
 import { useGetSpvSpotlight } from '@/services/spv-spotlight/hooks/useGetSpvSpotlight';
 import { useRequestSpvAccess } from '@/services/spv-spotlight/hooks/useRequestSpvAccess';
+import { requestDataRoomAccessEmail } from '@/services/spv-spotlight/spv-spotlight.service';
 import { isSpvLockedState, resolveSpvViewState, type SpvViewState } from '@/services/spv-spotlight/resolveSpvViewState';
 import {
   SpvAccessRequestBlockedError,
@@ -134,6 +135,10 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   // Email of a request made while signed out during this visit.
   const [signedOutRequestEmail, setSignedOutRequestEmail] = useState<string | null>(null);
+  const [sentDocSendUrl, setSentDocSendUrl] = useState<string | null>(null);
+  const [sendingDataRoomEmail, setSendingDataRoomEmail] = useState(false);
+  const [dataRoomEmailError, setDataRoomEmailError] = useState(false);
+  const sendingDataRoomEmailRef = useRef(false);
 
   const access: SpvViewerAccess | null = spotlight
     ? spotlight.viewerAccess === 'NONE' && signedOutRequestEmail
@@ -216,6 +221,35 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
   const dataRoomClicked = (source: SpvDataRoomSource) => {
     const params = baseParams();
     if (params) analytics.onOpenDataRoomClicked({ ...params, source });
+  };
+
+  const requestDataRoomEmail = (source: SpvDataRoomSource) => {
+    if (sendingDataRoomEmailRef.current || !spotlight?.docSendUrl) return;
+    // Open during the click so the browser allows the tab. DocSend loads only after the email send succeeds.
+    const docSendTab = window.open('', '_blank');
+    if (docSendTab) docSendTab.opener = null;
+    dataRoomClicked(source);
+    sendingDataRoomEmailRef.current = true;
+    setSendingDataRoomEmail(true);
+    setDataRoomEmailError(false);
+    void requestDataRoomAccessEmail(spotlight.slug)
+      .then((result) => {
+        setSentDocSendUrl(result.docSendUrl);
+        if (docSendTab && !docSendTab.closed) {
+          docSendTab.location.href = result.docSendUrl;
+        } else {
+          window.open(result.docSendUrl, '_blank', 'noopener,noreferrer');
+        }
+        toast.success('We sent an email connecting you to the SPV team.');
+      })
+      .catch(() => {
+        docSendTab?.close();
+        setDataRoomEmailError(true);
+      })
+      .finally(() => {
+        sendingDataRoomEmailRef.current = false;
+        setSendingDataRoomEmail(false);
+      });
   };
 
   // Production's AccountMenu logout; AuthBox (mounted on bare routes too) then
@@ -361,9 +395,12 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
     );
   }
 
-  // The DocSend only reaches approved viewers of an open spotlight; without it
-  // the card says the data room is being prepared and there's no band.
-  const dataRoomUrl = viewState === 'open' ? spotlight.docSendUrl : null;
+  const dataRoomAlreadySent = spotlight.dataRoomEmailSent || !!sentDocSendUrl;
+  const dataRoomUrl = viewState === 'open' ? sentDocSendUrl ?? spotlight.docSendUrl : null;
+  const requestDataRoom = viewState === 'open' && spotlight.emailOnDataRoomRequest && !dataRoomAlreadySent && !!dataRoomUrl;
+  const dataRoomLabel = spotlight.emailOnDataRoomRequest ? 'Open data room' : 'Access data room';
+  const requestLabel = sendingDataRoomEmail ? 'Sending…' : 'Request data room access';
+  const sentNote = sentDocSendUrl ? 'We sent an email connecting you to the SPV team.' : undefined;
   const closesLabel = formatSpvClosesAt(spotlight.closesAt);
 
   const cardAction = (() => {
@@ -392,15 +429,38 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
           />
         );
       case 'open':
-        // One label on every visit: without a DocSend integration the page can't
-        // know whether the investor already asked for access or has it.
+        if (requestDataRoom) {
+          return (
+            <SpvCardAction
+              label={requestLabel}
+              tone="success"
+              onClick={() => requestDataRoomEmail('deal-card')}
+              disabled={sendingDataRoomEmail}
+              note={
+                dataRoomEmailError ? (
+                  'The email did not send. Try again.'
+                ) : closesLabel ? (
+                  <SpvDataRoomNote closesLabel={closesLabel} />
+                ) : undefined
+              }
+            />
+          );
+        }
         return dataRoomUrl ? (
           <SpvCardAction
-            label="Access data room"
+            label={dataRoomLabel}
             href={dataRoomUrl}
             tone="success"
             onClick={() => dataRoomClicked('deal-card')}
-            note={closesLabel ? <SpvDataRoomNote closesLabel={closesLabel} /> : undefined}
+            wideNote={!!sentNote}
+            note={
+              sentNote || closesLabel ? (
+                <>
+                  {sentNote}
+                  {closesLabel ? <SpvDataRoomNote closesLabel={closesLabel} /> : null}
+                </>
+              ) : undefined
+            }
           />
         ) : (
           <SpvCardStatus>Data room is being prepared</SpvCardStatus>
@@ -433,7 +493,11 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
             onContactUs={() => contactUs('rejected')}
           />
 
-          <SpvDealCard fundName={spotlight.spvDetails.fundName} terms={dealTerms(spotlight.spvDetails)} action={cardAction} />
+          <SpvDealCard
+            fundName={spotlight.spvDetails.fundName}
+            terms={dealTerms(spotlight.spvDetails)}
+            action={cardAction}
+          />
 
           <section className={s.section} aria-label={`About ${spotlight.team.name}`}>
             <SpvTeamCard
@@ -447,6 +511,10 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
                 if (params) analytics.onFounderProfileClicked({ ...params, member_uid: memberUid });
               }}
               onWebsiteClicked={websiteClicked}
+              onViewed={() => {
+                const params = baseParams();
+                if (params) analytics.onTeamCardViewed({ ...params, team_uid: spotlight.team.uid });
+              }}
             />
           </section>
 
@@ -470,6 +538,7 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
                   : getSpvFaqItems({
                       supportEmail: spotlight.supportEmail,
                       onSupportEmailClicked: () => supportEmailClicked('faq-answer'),
+                      emailOnDataRoomRequest: spotlight.emailOnDataRoomRequest,
                     })
               }
               subtitle={
@@ -488,18 +557,23 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
             />
           </section>
 
-          {dataRoomUrl && (
+          {(dataRoomUrl || requestDataRoom) && (
             <SpvDataRoomBand
               team={spotlight.team}
-              docSendUrl={dataRoomUrl}
+              label={requestDataRoom ? requestLabel : dataRoomLabel}
+              docSendUrl={requestDataRoom ? null : dataRoomUrl}
               closesLabel={closesLabel}
-              onClick={() => dataRoomClicked('band')}
+              disabled={sendingDataRoomEmail}
+              onClick={() => (requestDataRoom ? requestDataRoomEmail('band') : dataRoomClicked('band'))}
             />
           )}
 
           {exploreTile}
 
-          <SpvFooter supportEmail={spotlight.supportEmail} onSupportEmailClicked={() => supportEmailClicked('footer')} />
+          <SpvFooter
+            supportEmail={spotlight.supportEmail}
+            onSupportEmailClicked={() => supportEmailClicked('footer')}
+          />
         </div>
       </div>
 

@@ -1,0 +1,169 @@
+@use 'styles/media';
+
+.root {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  background-color: #f5fafb;
+  border-radius: 8px;
+  padding: 12px 10px;
+}
+
+.desktop {
+  display: none;
+
+  @include media.breakpoint-1024 {
+    display: block;
+  }
+}
+
+.mobile {
+  display: block;
+
+  @include media.breakpoint-1024 {
+    display: none;
+  }
+}
+
+.count {
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 14px;
+  color: #0f172a;
+  margin-left: 21px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  font-size: 14px;
+  background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);
+  font-weight: 600;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.list {
+  width: 100%;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  margin-top: 10px;
+
+  @media (min-width: 475px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include media.breakpoint-1024 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.popupList {
+  width: 100%;
+  display: grid;
+  gap: 10px;
+  padding: 20px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  grid-auto-rows: fit-content(100%);
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+
+  @media (min-width: 475px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include media.breakpoint-1024 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+// Declared before .showAll so that .showAll's `background: none` still wins, as it did over the old scoped `button` rule.
+.button {
+  background: transparent;
+  cursor: pointer;
+}
+
+.showAll {
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 14px;
+  color: #156ff7;
+  background: none;
+  cursor: pointer;
+}
+
+.showAllMobile {
+  display: block;
+  width: fit-content;
+  margin-top: 6px;
+
+  @include media.breakpoint-1024 {
+    display: none;
+  }
+}
+
+.popupHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0px 15px;
+  border-bottom: 1px solid rgba(203, 213, 225, 1);
+  min-height: 48px;
+}
+
+.popupTitle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.popupTitleText {
+  font-size: 14px;
+  font-weight: 500;
+  background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);
+  font-weight: 600;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.popupCount {
+  color: #ffffff;
+  font-size: 12px;
+  line-height: 14px;
+  background-color: rgba(21, 111, 247, 1);
+  font-weight: 600;
+  padding: 4px 5px;
+  border-radius: 4px;
+}
+
+.popup {
+  background: white;
+  border-radius: 8px;
+  border: none;
+  max-height: 1000px;
+  margin: auto;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.popupWrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  max-height: 80vh;
+
+  @include media.breakpoint-1024 {
+    width: 939px;
+  }
+}

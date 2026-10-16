@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import { useCardVisibilityTracking } from '@/hooks/useCardVisibilityTracking';
 import clsx from 'clsx';
 import type { SpvTeamWebsiteSource } from '@/analytics/spv-spotlight.analytics';
 import type { SpvMedia, SpvTeam } from '@/services/spv-spotlight/types';
@@ -19,6 +20,8 @@ type Props = {
   action?: React.ReactNode;
   onFounderClicked?: (memberUid: string) => void;
   onWebsiteClicked?: (source: SpvTeamWebsiteSource) => void;
+  /** Fires once, when half of the card is on screen. */
+  onViewed?: () => void;
 };
 
 /**
@@ -36,6 +39,8 @@ export const SpvCardAction = ({
   note,
   stretch = false,
   tone = 'brand',
+  disabled = false,
+  wideNote = false,
 }: {
   label: string;
   href?: string;
@@ -44,6 +49,8 @@ export const SpvCardAction = ({
   stretch?: boolean;
   /** Green for Access data room. The request button stays brand blue. */
   tone?: 'brand' | 'success';
+  disabled?: boolean;
+  wideNote?: boolean;
 }) => (
   <div className={clsx(s.cardAction, note && s.cardActionWithNote)}>
     {href ? (
@@ -51,7 +58,11 @@ export const SpvCardAction = ({
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className={clsx(s.cardActionButton, tone === 'success' && s.cardActionButtonSuccess, stretch && s.cardActionButtonStretch)}
+        className={clsx(
+          s.cardActionButton,
+          tone === 'success' && s.cardActionButtonSuccess,
+          stretch && s.cardActionButtonStretch,
+        )}
         onClick={onClick}
       >
         {label} <ExternalIcon />
@@ -61,11 +72,12 @@ export const SpvCardAction = ({
         type="button"
         className={clsx(s.cardActionButton, tone === 'success' && s.cardActionButtonSuccess)}
         onClick={onClick}
+        disabled={disabled}
       >
         {label} <ArrowRightIcon />
       </button>
     )}
-    {note && <p className={s.cardActionNote}>{note}</p>}
+    {note && <p className={clsx(s.cardActionNote, wideNote && s.cardActionNoteWide)}>{note}</p>}
   </div>
 );
 
@@ -89,7 +101,15 @@ export const SpvCardStatus = ({ children }: { children: React.ReactNode }) => (
  * video were; About, Focus and Founders beside them. Founder tiles open the
  * founder's directory profile in a new tab, so the page stays where it is.
  */
-export function SpvTeamCard({ team, media, aboutOpen = false, action, onFounderClicked, onWebsiteClicked }: Props) {
+export function SpvTeamCard({
+  team,
+  media,
+  aboutOpen = false,
+  action,
+  onFounderClicked,
+  onWebsiteClicked,
+  onViewed,
+}: Props) {
   const [showFull, setShowFull] = useState(aboutOpen);
   const aboutHtml = useMemo(() => sanitizeSpvHtml(team.longDescription), [team.longDescription]);
   const collapsedAbout = useMemo(() => collapseSpvAbout(aboutHtml), [aboutHtml]);
@@ -98,6 +118,12 @@ export function SpvTeamCard({ team, media, aboutOpen = false, action, onFounderC
   // href would resolve as a path on this site.
   const website = rawWebsite && !/^https?:\/\//i.test(rawWebsite) ? `https://${rawWebsite}` : rawWebsite;
   const host = rawWebsite.replace(/^https?:\/\//i, '').replace(/\/$/, '');
+  const cardRef = useCardVisibilityTracking<HTMLElement>({
+    onVisible: () => onViewed?.(),
+    threshold: 0.5,
+    trackOnce: true,
+    enabled: !!onViewed,
+  });
 
   const facts: { label: string; value: React.ReactNode }[] = [
     { label: 'Stage', value: team.fundingStage || 'Not specified' },
@@ -131,7 +157,7 @@ export function SpvTeamCard({ team, media, aboutOpen = false, action, onFounderC
   ];
 
   return (
-    <article className={s.card} aria-label={team.name}>
+    <article ref={cardRef} className={s.card} aria-label={team.name}>
       <header className={s.identity}>
         <div className={s.logo}>{team.logoUrl && <img src={team.logoUrl} alt={`${team.name} logo`} />}</div>
         <div className={s.identityText}>

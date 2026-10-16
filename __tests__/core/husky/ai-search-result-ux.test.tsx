@@ -28,8 +28,10 @@ jest.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
-jest.mock('@/components/page/husky/sidebar', () => ({
+jest.mock('@/components/page/husky/Sidebar', () => ({
   Sidebar: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+jest.mock('@/components/page/husky/hooks/useSidebar', () => ({
   useSidebar: () => ({
     toggleSidebar: jest.fn(),
     state: 'expanded',
@@ -57,9 +59,9 @@ import { Markdown } from '@/components/common/Markdown';
 import HuskySourceCard from '@/components/core/husky/husky-source-card';
 import { DirectoryResultCards } from '@/components/core/application-search/components/DirectoryResultCards';
 import cards from '@/components/core/application-search/components/DirectoryResultCards/DirectoryResultCards.module.scss';
-import ChatMessageActions from '@/components/page/husky/chat-actions';
-import { ChatTitleBar } from '@/components/page/husky/ChatTitleBar';
-import AppSidebar from '@/components/page/husky/app-sidebar';
+import { ChatMessageActions } from '@/components/page/husky/Chat/components/Messages/components/PreviewMessage/components/ChatMessageActions';
+import { ChatTitleBar } from '@/components/page/husky/Chat/components/ChatTitleBar';
+import { AppSidebar } from '@/components/page/husky/AppSidebar';
 
 const newsRef = {
   index: 1,
@@ -154,7 +156,6 @@ describe('AI search share controls', () => {
     render(
       <ChatMessageActions
         onQuestionEdit={jest.fn()}
-        onFeedback={jest.fn()}
         onRegenerate={jest.fn()}
         onCopyAnswer={jest.fn()}
         answer="answer"

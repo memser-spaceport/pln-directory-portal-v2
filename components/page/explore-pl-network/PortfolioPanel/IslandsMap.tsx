@@ -3,9 +3,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { useMeasure } from 'react-use';
-import { ISLANDS, MAP_STATES, PORTFOLIO, type IslandId, type PortfolioLogo } from '../data/islands';
-import { TEAM_INFO } from '../data/teamInfo';
+import { ISLANDS, MAP_STATES, type IslandId } from '../data/islands';
+import type { PortfolioTeam } from '../data/portfolio';
 import { directoryUrl, displayNameOf } from '../data/directoryUrl';
+import { logoSrc } from '../data/logoSrc';
 import s from './PortfolioPanel.module.scss';
 
 /**
@@ -28,7 +29,7 @@ const CURRENT_YEAR = 2026;
 const YEARS = Array.from({ length: CURRENT_YEAR - FIRST_YEAR + 1 }, (_, i) => FIRST_YEAR + i);
 const PHONE_MAX_WIDTH = 768;
 
-type Tile = { x: number; y: number; logo: PortfolioLogo; island: IslandId; color: string };
+type Tile = { x: number; y: number; logo: PortfolioTeam; island: IslandId; color: string };
 
 const axialToXY = (q: number, r: number) => ({ x: SIZE * SQRT3 * (q + r / 2), y: 1.5 * SIZE * r });
 
@@ -62,14 +63,15 @@ const sink = (hex: string, k = 0.5) => {
   return `#${c(n >> 16)}${c((n >> 8) & 255)}${c(n & 255)}`;
 };
 
-const activeIn = (year: number) => (l: PortfolioLogo) =>
+const activeIn = (year: number) => (l: PortfolioTeam) =>
   l.startYear <= year && (l.endYear === null || year <= l.endYear);
 
-const tilesOf = (key: string, keep?: (l: PortfolioLogo) => boolean): Tile[] => {
+// MAP_STATES indexes the teams by their row in the fallback file, which `teams` keeps.
+const tilesOf = (teams: PortfolioTeam[], key: string, keep?: (l: PortfolioTeam) => boolean): Tile[] => {
   const flat = MAP_STATES[key] ?? [];
   const tiles: Tile[] = [];
   for (let i = 0; i < flat.length; i += 3) {
-    const logo = PORTFOLIO[flat[i]];
+    const logo = teams[flat[i]];
     if (!logo || (keep && !keep(logo))) continue;
     tiles.push({
       ...axialToXY(flat[i + 1], flat[i + 2]),
@@ -98,7 +100,7 @@ const FRAME = (() => {
 
 // The site's phone layout: islands in order, rows of `perRow` then
 // `perRow - 1`, a blank row between islands.
-const phoneTiles = (logos: PortfolioLogo[], perRow: number) => {
+const phoneTiles = (logos: PortfolioTeam[], perRow: number) => {
   const w = SIZE * SQRT3;
   const tiles: Tile[] = [];
   let row = 0;
@@ -126,18 +128,20 @@ const phoneTiles = (logos: PortfolioLogo[], perRow: number) => {
 };
 
 type Props = {
+  /** The merged teams, in fallback-file order. */
+  teams: PortfolioTeam[];
   /** Controls drawn inside the black box, above the map (the Map / List switch). */
   header?: React.ReactNode;
-  onTileOpened?: (logo: PortfolioLogo) => void;
-  onProfileClicked?: (logo: PortfolioLogo) => void;
+  onTileOpened?: (logo: PortfolioTeam) => void;
+  onProfileClicked?: (logo: PortfolioTeam) => void;
 };
 
-export const IslandsMap = ({ header, onTileOpened, onProfileClicked }: Props) => {
+export const IslandsMap = ({ teams, header, onTileOpened, onProfileClicked }: Props) => {
   const [ref, { width }] = useMeasure<HTMLDivElement>();
   const [focus, setFocus] = useState<IslandId | null>(null);
   const [year, setYear] = useState(CURRENT_YEAR);
   const [hovered, setHovered] = useState<Tile | null>(null);
-  const [selected, setSelected] = useState<PortfolioLogo | null>(null);
+  const [selected, setSelected] = useState<PortfolioTeam | null>(null);
 
   useEffect(() => {
     if (!selected) return;
@@ -146,7 +150,6 @@ export const IslandsMap = ({ header, onTileOpened, onProfileClicked }: Props) =>
     return () => document.removeEventListener('keydown', onKey);
   }, [selected]);
 
-  const info = selected ? TEAM_INFO[selected.id] : undefined;
   const isPhone = width > 0 && width < PHONE_MAX_WIDTH;
 
   const view = useMemo(() => {
@@ -154,24 +157,24 @@ export const IslandsMap = ({ header, onTileOpened, onProfileClicked }: Props) =>
     if (isPhone) {
       // ~50px tiles: the site's 6 / 5 tiles across a phone.
       const perRow = Math.max(1, Math.floor(width / 50));
-      const pool = PORTFOLIO.filter((l) => active(l) && (!focus || l.island === focus));
+      const pool = teams.filter((l) => active(l) && (!focus || l.island === focus));
       const { tiles, width: w, height: h } = phoneTiles(pool, perRow);
       return { tiles, viewBox: `0 0 ${w} ${h}`, showCube: false };
     }
     const viewBox = `${-FRAME.w} ${-FRAME.h} ${FRAME.w * 2} ${FRAME.h * 2}`;
-    const tiles = focus ? tilesOf(`${CURRENT_YEAR}:${focus}`, active) : tilesOf(String(year));
+    const tiles = focus ? tilesOf(teams, `${CURRENT_YEAR}:${focus}`, active) : tilesOf(teams, String(year));
     return { tiles, viewBox, showCube: true };
-  }, [isPhone, width, year, focus]);
+  }, [teams, isPhone, width, year, focus]);
 
   // Years in which the chosen island's teams joined read a step brighter.
   const brightYears = useMemo(
-    () => new Set(focus ? PORTFOLIO.filter((l) => l.island === focus).map((l) => l.startYear) : []),
-    [focus],
+    () => new Set(focus ? teams.filter((l) => l.island === focus).map((l) => l.startYear) : []),
+    [teams, focus],
   );
 
   const hoveredIsland = selected ? null : (hovered?.island ?? null);
   const stepYear = (d: number) => setYear((y) => Math.min(CURRENT_YEAR, Math.max(FIRST_YEAR, y + d)));
-  const open = (logo: PortfolioLogo) => {
+  const open = (logo: PortfolioTeam) => {
     setSelected(logo);
     onTileOpened?.(logo);
   };
@@ -219,7 +222,7 @@ export const IslandsMap = ({ header, onTileOpened, onProfileClicked }: Props) =>
                   >
                     <polygon points={HEX} fill={hovered?.logo.id === t.logo.id ? sink(t.color) : t.color} />
                     <image
-                      href={t.logo.logo}
+                      href={logoSrc(t.logo.logo)}
                       x={-LOGO / 2}
                       y={-LOGO / 2}
                       width={LOGO}
@@ -254,11 +257,11 @@ export const IslandsMap = ({ header, onTileOpened, onProfileClicked }: Props) =>
             <div className={s.islandsCard} role="dialog" aria-label={displayNameOf(selected)}>
               <svg className={s.cardHex} viewBox="-9 -9 18 18" aria-hidden>
                 <polygon points={CARD_HEX} fill={islandOf(selected.island).color} />
-                <image href={selected.logo} x={-5.4} y={-5.4} width={10.8} height={10.8} />
+                <image href={logoSrc(selected.logo)} x={-5.4} y={-5.4} width={10.8} height={10.8} />
               </svg>
               <div className={s.cardBody}>
                 <span className={s.cardName}>{displayNameOf(selected)}</span>
-                {info?.oneLiner && <p className={s.cardOneLiner}>{info.oneLiner}</p>}
+                {selected.oneLiner && <p className={s.cardOneLiner}>{selected.oneLiner}</p>}
                 <ul className={s.cardMeta}>
                   <li className={s.cardMetaItem}>
                     <svg className={s.cardMetaHex} viewBox="-9 -9 18 18" aria-hidden>
@@ -266,12 +269,12 @@ export const IslandsMap = ({ header, onTileOpened, onProfileClicked }: Props) =>
                     </svg>
                     {islandOf(selected.island).name}
                   </li>
-                  {info?.stage && <li className={s.cardMetaItem}>{info.stage}</li>}
+                  {selected.stage && <li className={s.cardMetaItem}>{selected.stage}</li>}
                   <li className={s.cardMetaItem}>In the network since {selected.startYear}</li>
-                  {info?.website && domainOf(info.website) && (
+                  {selected.website && domainOf(selected.website) && (
                     <li className={s.cardMetaItem}>
-                      <a className={s.cardWebsite} href={info.website} target="_blank" rel="noopener noreferrer">
-                        {domainOf(info.website)}
+                      <a className={s.cardWebsite} href={selected.website} target="_blank" rel="noopener noreferrer">
+                        {domainOf(selected.website)}
                       </a>
                     </li>
                   )}

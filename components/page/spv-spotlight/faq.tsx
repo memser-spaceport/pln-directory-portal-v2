@@ -24,15 +24,18 @@ const WHEN_CLOSED: FAQItem = {
 export const getSpvFaqItems = ({
   supportEmail,
   onSupportEmailClicked,
+  emailOnDataRoomRequest = false,
 }: {
   supportEmail: string;
   onSupportEmailClicked: () => void;
+  emailOnDataRoomRequest?: boolean;
 }): FAQItem[] => [
   WHAT_IS_SPOTLIGHT,
   {
     question: 'How do I see the materials?',
-    answer:
-      "Access data room opens the SPV's data room on DocSend and sends you an email from the PL Capital team with the link, so you can reply with questions.",
+    answer: emailOnDataRoomRequest
+      ? 'Request data room access opens the data room and sends an email connecting you to the SPV team. After that, Open data room opens the link.'
+      : "Access data room opens the SPV's data room on DocSend.",
   },
   {
     question: 'What does the investor profile do?',

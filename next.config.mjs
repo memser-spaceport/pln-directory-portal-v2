@@ -7,6 +7,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // The Docker image (see Dockerfile) sets NEXT_OUTPUT_STANDALONE=1 so that
+  // `next build` emits `.next/standalone`: the server plus only the traced
+  // node_modules it needs. Vercel and local builds keep the default output.
+  output: process.env.NEXT_OUTPUT_STANDALONE === '1' ? 'standalone' : undefined,
+
   // DELETE WITH: the `design-canvas/` folder.
   // The canvas capture runs a production build to photograph its frames. Without
   // this line CANVAS_BUILD_DIR is ignored, that build overwrites `.next`, and it
@@ -88,6 +93,16 @@ const nextConfig = {
       {
         source: '/alignment-asset/rounds',
         destination: '/alignment-asset',
+        permanent: true,
+      },
+      {
+        source: '/alignment-asset/incentive-model',
+        destination: '/alignment-asset/overview',
+        permanent: true,
+      },
+      {
+        source: '/alignment-asset/trust-holdings',
+        destination: '/alignment-asset/portfolio-holdings',
         permanent: true,
       },
       {

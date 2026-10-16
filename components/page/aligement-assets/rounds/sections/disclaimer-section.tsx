@@ -114,7 +114,7 @@ export default function DisclaimerSection({ children }: DisclaimerSectionProps) 
       
       <style jsx global>{`
         .disclaimer-section__link {
-          color: #156ff7;
+          color: #0b4f66;
           text-decoration: underline;
           font-style: italic;
           cursor: pointer;

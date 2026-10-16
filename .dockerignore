@@ -1,12 +1,35 @@
+# Build artifacts and caches
 .git
 .github
 .next
+.next-*
 node_modules
 coverage
 storybook-static
+out
+*.tsbuildinfo
+npm-debug.log*
+
+# Docker
 Dockerfile*
 .dockerignore
-npm-debug.log*
-.DS_Store
+
+# Local env (the pipeline writes .env.production into the context on purpose)
+.env
 .env.local
 .env*.local
+
+# Editors / OS / tooling not needed for `next build`
+.idea
+.vscode
+.vercel
+.claude
+.DS_Store
+*.bak
+
+# Not part of the app build
+.storybook
+stories
+__tests__
+docs
+*.md

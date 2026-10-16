@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
+import { toast } from '@/components/core/ToastContainer';
 import { SpvSpotlightView } from '@/components/page/spv-spotlight/SpvSpotlightView';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useContactSupportStore } from '@/services/contact-support/store';
@@ -17,6 +18,7 @@ import {
 
 const mockGoToLogin = jest.fn();
 const mockRequestAccess = jest.fn();
+const mockRequestDataRoomEmail = jest.fn();
 const mockEmitAuthEvent = jest.fn();
 const mockClearAuthCookies = jest.fn();
 let mockShowExplore = false;
@@ -48,6 +50,10 @@ jest.mock('@/services/spv-spotlight/hooks/useGetSpvSpotlight', () => ({ useGetSp
 jest.mock('@/services/spv-spotlight/hooks/useRequestSpvAccess', () => ({
   useRequestSpvAccess: () => ({ mutateAsync: (...args: unknown[]) => mockRequestAccess(...args) }),
 }));
+jest.mock('@/services/spv-spotlight/spv-spotlight.service', () => ({
+  ...jest.requireActual('@/services/spv-spotlight/spv-spotlight.service'),
+  requestDataRoomAccessEmail: (...args: unknown[]) => mockRequestDataRoomEmail(...args),
+}));
 jest.mock('@/services/members/hooks/useMember', () => ({ useMember: () => ({ data: mockMember }) }));
 jest.mock('@/components/core/login/utils', () => ({
   useLoginRedirect: () => mockGoToLogin,
@@ -66,6 +72,7 @@ const mockAnalytics: Record<string, jest.Mock> = {
   onOpenDataRoomClicked: jest.fn(),
   onSupportEmailClicked: jest.fn(),
   onInvestorProfileClicked: jest.fn(),
+  onTeamCardViewed: jest.fn(),
 };
 jest.mock('@/analytics/spv-spotlight.analytics', () => ({
   useSpvSpotlightAnalytics: () =>
@@ -126,6 +133,7 @@ const requestButton = () => screen.queryByRole('button', { name: /Request access
 
 beforeEach(() => {
   mockGoToLogin.mockReset();
+  mockRequestDataRoomEmail.mockReset();
   mockEmitAuthEvent.mockReset();
   mockClearAuthCookies.mockReset();
   mockedUseGetSpvSpotlight.mockReset();
@@ -422,6 +430,105 @@ describe('SpvSpotlightView — gated (the default)', () => {
       expect(screen.queryByRole('button', { name: /your investor profile/ })).not.toBeInTheDocument();
     });
 
+    it('opens DocSend after the data room email is sent', async () => {
+      const docSendTab = { closed: false, location: { href: '' }, opener: window, close: jest.fn() } as unknown as Window;
+      const open = jest.spyOn(window, 'open').mockImplementation(() => docSendTab);
+      let resolveSend: (value: { docSendUrl: string }) => void = () => undefined;
+      mockRequestDataRoomEmail.mockReturnValue(
+        new Promise((resolve) => {
+          resolveSend = resolve;
+        }),
+      );
+      renderView('OPEN', 'APPROVED', {
+        signedIn: true,
+        initial: false,
+        overrides: {
+          emailOnDataRoomRequest: true,
+          dataRoomEmailSent: false,
+          docSendUrl: 'https://docsend.com/view/x',
+        },
+      });
+      const request = within(dealCard()).getByRole('button', { name: /Request data room access/ });
+      expect(
+        within(band() as HTMLElement).getByRole('button', { name: /Request data room access/ }),
+      ).toBeInTheDocument();
+
+      await userEvent.click(request);
+
+      expect(open).toHaveBeenCalledTimes(1);
+      expect(open).toHaveBeenCalledWith('', '_blank');
+      expect(docSendTab.location.href).toBe('');
+      expect(within(dealCard()).getByRole('button', { name: /Sending/ })).toBeDisabled();
+      resolveSend({ docSendUrl: 'https://docsend.com/view/x' });
+
+      expect(mockRequestDataRoomEmail).toHaveBeenCalledWith(MOCK_SPV_SLUG);
+      expect(await within(dealCard()).findByRole('link', { name: /Open data room/ })).toHaveAttribute(
+        'href',
+        'https://docsend.com/view/x',
+      );
+      expect(docSendTab.location.href).toBe('https://docsend.com/view/x');
+      expect(within(dealCard()).getByText('We sent an email connecting you to the SPV team.')).toBeInTheDocument();
+      expect(toast.success).toHaveBeenCalledWith('We sent an email connecting you to the SPV team.');
+      expect(within(band() as HTMLElement).getByRole('link', { name: /Open data room/ })).toHaveAttribute(
+        'href',
+        'https://docsend.com/view/x',
+      );
+      open.mockRestore();
+    });
+
+    it('opens the data room when the email was already sent', () => {
+      renderView('OPEN', 'APPROVED', {
+        signedIn: true,
+        initial: false,
+        overrides: {
+          emailOnDataRoomRequest: true,
+          dataRoomEmailSent: true,
+          docSendUrl: 'https://docsend.com/view/x',
+        },
+      });
+      expect(within(dealCard()).getByRole('link', { name: /Open data room/ })).toHaveAttribute(
+        'href',
+        'https://docsend.com/view/x',
+      );
+      expect(within(band() as HTMLElement).getByRole('link', { name: /Open data room/ })).toHaveAttribute(
+        'href',
+        'https://docsend.com/view/x',
+      );
+      expect(screen.getByText(/Request data room access opens the data room and sends an email/)).toBeInTheDocument();
+    });
+
+    it('records a team card view when half of the card is on screen', async () => {
+      const original = global.IntersectionObserver;
+      global.IntersectionObserver = class {
+        constructor(private callback: IntersectionObserverCallback) {}
+        observe() {
+          this.callback(
+            [{ isIntersecting: true } as IntersectionObserverEntry],
+            this as unknown as IntersectionObserver,
+          );
+        }
+        unobserve() {}
+        disconnect() {}
+        takeRecords() {
+          return [];
+        }
+      } as unknown as typeof IntersectionObserver;
+
+      try {
+        renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
+        await waitFor(() => expect(mockAnalytics.onTeamCardViewed).toHaveBeenCalledTimes(1));
+        expect(mockAnalytics.onTeamCardViewed).toHaveBeenCalledWith(
+          expect.objectContaining({
+            spotlight_slug: MOCK_SPV_SLUG,
+            view_state: 'open',
+            team_uid: base.team.uid,
+          }),
+        );
+      } finally {
+        global.IntersectionObserver = original;
+      }
+    });
+
     it('links the data room from the SPV card', () => {
       renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
       const link = within(dealCard()).getByRole('link', { name: /Access data room/ });
@@ -550,9 +657,9 @@ describe('SpvSpotlightView — gated (the default)', () => {
       mockMember = { memberInfo: { investorProfile: { type: 'ANGEL' } } };
       renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
       expect(screen.getByRole('region', { name: 'Your investor profile' })).toHaveTextContent(
-        "Set your preferences for check size, stage and sector, and we'll filter the deals you see to match. Update or review your investor profile",
+        "Set your preferences for check size, stage and sector, and we'll filter the deals you see to match. Review your investor profile",
       );
-      expect(screen.getByRole('button', { name: 'Update or review your investor profile' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Review your investor profile' })).toBeInTheDocument();
     });
 
     it('still says set up for a profile without a type (created by an access request)', () => {

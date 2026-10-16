@@ -1,5 +1,7 @@
 .husky {
   width: 100%;
+  /* A flex item beside the rail: without this a long chat title in the title bar widens the page. */
+  min-width: 0;
   min-height: inherit;
   display: flex;
   flex-direction: column;

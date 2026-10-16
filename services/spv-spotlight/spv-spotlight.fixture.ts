@@ -13,6 +13,17 @@ const NETHOLABS: Omit<SpvSpotlight, 'slug' | 'status' | 'viewerAccess' | 'docSen
     'Netholabs builds digital mammals for neuroscience, drug discovery and mind uploading. Protocol Labs is leading an SPV into their round and opening it to a small group of outside investors.',
   supportEmail: 'spotlight@protocol.ai',
   closesAt: '2026-10-31T00:00:00.000Z',
+  spvDetails: {
+    fundName: null,
+    investment: null,
+    targetSpvSize: null,
+    minimumInvestment: null,
+    managementFee: null,
+    carriedInterest: null,
+    expenseReserve: null,
+    investorEligibility: null,
+    liquidity: null,
+  },
   team: {
     uid: 'cm4a4qvi70008wt023l05k4q5',
     name: 'Netholabs',
@@ -63,7 +74,7 @@ const NETHOLABS: Omit<SpvSpotlight, 'slug' | 'status' | 'viewerAccess' | 'docSen
 
 export function buildSpvSpotlight(
   status: SpvSpotlightStatus = 'OPEN',
-  viewerAccess: SpvViewerAccess = 'NONE',
+  viewerAccess: SpvViewerAccess = 'NONE'
 ): SpvSpotlight {
   return {
     ...NETHOLABS,

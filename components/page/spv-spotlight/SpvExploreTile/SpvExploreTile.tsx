@@ -49,3 +49,19 @@ export const SpvExploreTile = ({ onClick }: Props) => (
     <PlCubeMark className={s.art} />
   </a>
 );
+
+/** The invited page's small door to Explore. The locked page keeps the large tile. */
+export const SpvExploreMiniTile = ({ onClick }: Props) => (
+  <a className={s.mini} href={EXPLORE_PL_NETWORK_PATH} target="_blank" rel="noopener noreferrer" onClick={onClick}>
+    <PlCubeMark className={s.miniArt} />
+    <span className={s.miniText}>
+      <span className={s.miniTitle}>Explore the PL network</span>
+      <span className={s.miniBody}>
+        750+ teams across Neurotech, AI, Web3 and deep tech
+      </span>
+    </span>
+    <span className={s.miniArrow} aria-hidden>
+      <ArrowRightIcon />
+    </span>
+  </a>
+);

@@ -9,6 +9,7 @@ import s from './EmailPreferencesForm.module.scss';
 import { Newsletter } from '@/components/page/email-preferences/components/Newsletter';
 import { InvestorCommunications } from '@/components/page/email-preferences/components/InvestorCommunications';
 import { DemoDayUpdates } from '@/components/page/email-preferences/components/DemoDayUpdates';
+import { SuggestedCandidatesEmail } from '@/components/page/email-preferences/components/SuggestedCandidatesEmail';
 import { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
 import { InvestorSettings } from '@/services/members/hooks/useGetInvestorSettings';
 import { MemberInvestorSettings } from '@/services/members/hooks/useGetMemberInvestorSettings';
@@ -17,6 +18,7 @@ import { getMemberInfo } from '@/services/members.service';
 import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
 import { useInvestorAccess } from '@/services/access-control/hooks/useInvestorAccess';
 import { useCurrentUserStore } from '@/services/auth/store';
+import { SHOW_SUGGESTED_CANDIDATES_EMAIL } from '@/services/jobs/constants';
 
 interface Props {
   uid: string;
@@ -37,6 +39,8 @@ export const EmailPreferencesForm = ({ uid, userInfo, initialData }: Props) => {
   // The digest itself is available to everyone; forum access only controls
   // whether the "Forum activity" content type can be enabled inside it.
   const hasForumAccess = Boolean(currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'forum.read'));
+  // Only team leads get the suggested candidates email, so only they get its switch.
+  const isTeamLead = (userInfo.leadingTeams ?? []).length > 0;
 
   useEffect(() => {
     triggerLoader(false);
@@ -62,6 +66,7 @@ export const EmailPreferencesForm = ({ uid, userInfo, initialData }: Props) => {
       <ForumDigest userInfo={userInfo} initialData={initialData.settings} hasForumAccess={hasForumAccess} />
       {!v2IsInvestor && <Newsletter userInfo={userInfo} initialData={initialData.memberInfo} />}
       <DemoDayUpdates userInfo={userInfo} initialData={initialData.demoDaySubscription} />
+      {SHOW_SUGGESTED_CANDIDATES_EMAIL && isTeamLead && <SuggestedCandidatesEmail userInfo={userInfo} />}
       <InvestorCommunications
         userInfo={userInfo}
         initialData={initialData.investorSettings}

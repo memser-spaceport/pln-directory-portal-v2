@@ -94,7 +94,9 @@ jest.mock('@/services/jobs/hooks/useTeamApplicants', () => ({
   useRoleApplicants: (...args: unknown[]) => useRoleApplicants(...args),
   useMarkApplicantSeen: () => ({ mutate: markSeen }),
   useToggleApplicantReviewed: () => ({ mutate: toggleReviewed }),
-  useSuggestedCandidates: () => ({ data: [], isPending: false, isError: false }),
+  useSuggestedCandidates: () => ({ data: { suggestions: [], criteria: null }, isPending: false, isError: false }),
+  useSaveMatchCriteria: () => ({ mutate: jest.fn(), isPending: false }),
+  useContactSuggestedCandidate: () => ({ mutate: jest.fn(), isPending: false }),
 }));
 
 import { TeamApplicantsView } from '@/components/page/team-details/TeamApplicants';
@@ -272,6 +274,22 @@ describe('TeamApplicantsView', () => {
 
       expect(screen.queryByTestId('pane')).not.toBeInTheDocument();
       expect(markSeen).not.toHaveBeenCalled();
+    });
+
+    /* LAB-2853: the narrow pane's way back names the page's own people. */
+    it('labels the narrow pane’s way back "All candidates", and it returns to the list', async () => {
+      isNarrow = true;
+
+      renderView();
+      await userEvent.click(screen.getByRole('button', { name: /Devon Park/ }));
+
+      expect(screen.getByTestId('pane')).toHaveTextContent('Devon Park');
+      const back = screen.getByRole('button', { name: 'All candidates' });
+      expect(screen.queryByText('All applicants')).not.toBeInTheDocument();
+      await userEvent.click(back);
+
+      expect(screen.queryByTestId('pane')).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Devon Park/ })).toBeInTheDocument();
     });
 
     it('leaves an empty role alone', () => {

@@ -401,41 +401,167 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
-/* Invited to apply: the Reviewed state's paint on a status, not a press. */
-.invited {
+/* Suggested tab — Good match / Not a match, then Email past a divider
+ * (LAB-2819). Good match is the Reviewed switch (`.reviewBtn.isReviewed`);
+ * Not a match is the same bordered neutral at rest and a quiet grey once
+ * pressed — a verdict on the matcher, not an alarm, so no error red. */
+.ratingGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.actionsDivider {
+  align-self: stretch;
+  width: 1px;
+  margin: 4px 4px;
+  background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.notMatchIcon {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  transition: color 160ms ease;
+}
+
+.notMatchBtn:hover:not(:disabled) .notMatchIcon,
+.notMatchBtn:focus-visible .notMatchIcon {
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* Under `.paneActions` for the same specificity reason as `.isReviewed`. */
+.paneActions .notMatchBtn.isNotMatch {
+  &,
+  &:hover:not(:disabled),
+  &:active:not(:disabled) {
+    color: var(--foreground-neutral-primary, #0a0c11);
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    box-shadow: none;
+  }
+
+  .notMatchIcon {
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+/* Why not — a white strip under the bar, the bar's own card treatment. */
+.reasonStrip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 8px;
+  padding: 12px 16px;
+  background: var(--background-base-white, #fff);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.08);
+}
+
+.reasonLabel {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.reasonOptional {
+  margin-left: 4px;
+  font-weight: 400;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* What didn't fit — one line of the lead's own words. The search field's
+ * box (border, 8px radius, 40px), so it reads as an input of this page. */
+.missInput {
+  flex: 1 1 240px;
+  min-width: 0;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  background: var(--background-base-white, #fff);
+
+  &::placeholder {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #5e718d;
+    box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
+  }
+}
+
+/* Message sent: the Reviewed state's paint on a status, not a press. */
+.sentStatus {
   cursor: default;
   user-select: none;
 }
 
-/* The note and its one control on a wrapping row: the sentence, then Edit
- * criteria after it, or on a line of its own when the sentence fills the width
- * (design-thinking lesson 12, sixth example). The note's own bottom margin
- * moves to the row. */
-.tabNoteRow {
+/* The role reminder at the head of the list: title, facts, a few sentences. */
+.roleSummary {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 2px 8px;
-  flex-shrink: 0;
-  margin: 0 0 12px;
-
-  .tabNote {
-    margin: 0;
-  }
-}
-
-/* `.tabNote` is `flex-shrink: 0` for the capped column; inside the wrapping row
- * that pinned the sentence at its full one-line width and clipped it at the
- * card. It has to give way so the row can wrap Edit criteria under it. */
-.tabNoteRow .tabNote {
-  flex: 0 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 100%;
   min-width: 0;
 }
 
-/* The Suggested tab's two lines — what the list is, and what it was matched
- * on — as one block: 4px between them (they are one note), the block's 12px
- * below (lesson 11: a uniform margin would float the second line between the
- * first and the search). */
+.roleTitle {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.roleDesc {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@include media.mobile-only {
+  .actionsDivider {
+    display: none;
+  }
+
+  .paneActions {
+    flex-wrap: wrap;
+  }
+
+  .ratingGroup {
+    width: 100%;
+
+    > * {
+      flex: 1;
+      justify-content: center;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notMatchIcon {
+    transition: none;
+  }
+}
+
+/* The Suggested tab's note — what the list is — with the block's 12px below. */
 .suggestedNote {
   display: flex;
   flex-direction: column;
@@ -443,13 +569,7 @@
   flex-shrink: 0;
   margin: 0 0 12px;
 
-  .tabNote,
-  .tabNoteRow {
+  .tabNote {
     margin: 0;
   }
-}
-
-/* "Matched on" — the list's criteria are the value, this is its label. */
-.matchedOnLabel {
-  color: var(--foreground-neutral-tertiary, #8897ae);
 }

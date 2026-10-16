@@ -12,6 +12,8 @@ import h from '@/components/page/demo-day/FounderPendingView/components/ProfileS
 import act from '@/components/page/demo-day/DemoDayActionButtons/DemoDayActionButtons.module.scss';
 import { SpvMediaCarousel } from './SpvMediaCarousel';
 import type { WebsiteImage } from './netholabs';
+// PLC Neurotech's logo, from the deck via the UX updates doc (2026-10-09).
+import plcNeurotechLogo from './plc-neurotech-logo.png';
 import type { SpvTeam } from './teams';
 import s from './SpvSpotlight.module.scss';
 
@@ -20,16 +22,25 @@ const DIRECTORY_URL = 'https://os.pl.xyz';
 
 type Props = {
   team: SpvTeam;
-  facts: { location: string; teamSize: string };
-  summary: string;
-  images: WebsiteImage[];
-  // The team's full About (directory HTML). Collapsed to the summary by
-  // default; open from the start while a request waits for approval, when the
-  // team is the only thing left to read (2026-09-29 sync: "more team detail").
-  aboutHtml?: string;
+  facts: { offices: string[]; teamSize: string };
+  // The agreed description and traction. Collapsed to its first sentences and
+  // first traction line by default; open from the start while a request waits
+  // for approval, when the team is the only thing left to read (2026-09-29
+  // sync: "more team detail").
+  about: {
+    description: string;
+    collapsedSentences: number;
+    traction: string[];
+    tractionCollapsed: number;
+  };
   aboutOpen?: boolean;
+  images: WebsiteImage[];
+  // "Backed by" under the carousel (UX updates doc, 2026-10-09).
+  backedBy?: { name: string; href: string };
   // The card's call to action for this viewer: SpvCardAction or SpvCardStatus.
-  // Built by the page, which knows the viewer's state.
+  // Built by the page, which knows the viewer's state. Since the SPV card took
+  // the data-room button (call, 2026-10-12) the page passes none; the slot stays
+  // for the legacy request flow's spec.
   action?: React.ReactNode;
 };
 
@@ -44,8 +55,13 @@ export const SpvCardAction = ({
   href,
   onClick,
   note,
+  tone = 'brand',
 }: {
   label: string;
+  // The data-room door is green (UX updates doc, 2026-10-09), so it stands out
+  // from the blue links and labels across the page. The legacy request button
+  // keeps the brand blue.
+  tone?: 'brand' | 'success';
   // An href opens the DocSend in a new tab; otherwise it's a button.
   href?: string;
   onClick?: () => void;
@@ -61,12 +77,16 @@ export const SpvCardAction = ({
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className={clsx(act.primaryButton, s.cardActionButton)}
+          className={clsx(act.primaryButton, s.cardActionButton, tone === 'success' && s.cardActionButtonSuccess)}
         >
           {label} <ExternalIcon />
         </a>
       ) : (
-        <button type="button" className={clsx(act.primaryButton, s.cardActionButton)} onClick={onClick}>
+        <button
+          type="button"
+          className={clsx(act.primaryButton, s.cardActionButton, tone === 'success' && s.cardActionButtonSuccess)}
+          onClick={onClick}
+        >
           {label} <ArrowRightIcon />
         </button>
       )}
@@ -87,7 +107,7 @@ export const SpvCardStatus = ({ children }: { children: React.ReactNode }) => (
  * directory profile. PL Spotlight's card, reorganised (references from Mobbin,
  * 2026-09-29):
  * - identity (logo, name, one-liner) stands alone at the top;
- * - Stage, Headquarters, Team size and Website are a labelled key-value strip
+ * - Stage, Offices, Team size and Website are a labelled key-value strip
  *   (Linear's customer page, Wellfound's funding box) instead of a chip row;
  * - media left, reading column right (Fey's About, Wellfound's side panel):
  *   About, Focus tags, Founders, each under a small label (Attio / Pin);
@@ -102,15 +122,27 @@ export const SpvCardStatus = ({ children }: { children: React.ReactNode }) => (
  * do should sit beside the team's name, above the fold. On phones it drops
  * under the identity at full width. The founder tiles are the one way into the
  * directory: each opens that person's profile in a new tab.
- */ export function SpvTeamSpotlight({ team, facts, summary, images, aboutHtml, aboutOpen = false, action }: Props) {
+ */
+export function SpvTeamSpotlight({ team, facts, about, aboutOpen = false, images, backedBy, action }: Props) {
   const [showFull, setShowFull] = useState(aboutOpen);
   const website = team.team.website ?? '';
   const host = website.replace(/^https?:\/\//, '').replace(/\/$/, '');
   const tags = (team.team.industryTags ?? []).map((t) => t.title);
+  const sentences = about.description.match(/[^.!?]+[.!?]+(\s|$)/g) ?? [about.description];
+  const collapsedText = sentences.slice(0, about.collapsedSentences).join('').trim();
+  const hasMore = sentences.length > about.collapsedSentences || about.traction.length > about.tractionCollapsed;
 
   const factItems: { label: string; value: React.ReactNode }[] = [
     { label: 'Stage', value: team.team.fundingStage?.title ?? 'Not specified' },
-    { label: 'Headquarters', value: facts.location },
+    {
+      // Both offices, one per line (UX updates doc, 2026-10-09).
+      label: 'Offices',
+      value: facts.offices.map((o) => (
+        <span key={o} className={s.factLine}>
+          {o}
+        </span>
+      )),
+    },
     { label: 'Team size', value: `${facts.teamSize} people` },
     {
       label: 'Website',
@@ -148,24 +180,52 @@ export const SpvCardStatus = ({ children }: { children: React.ReactNode }) => (
       </dl>
 
       <div className={s.spotlightBody}>
-        <SpvMediaCarousel images={images} label={`${team.name}, from its website`} sourceUrl={website} />
+        {/* The carousel, then "Backed by" in the space under its caption,
+            beside the About copy (UX updates doc, 2026-10-09). */}
+        <div className={s.spotlightMedia}>
+          <SpvMediaCarousel images={images} label={`${team.name}, from its website`} sourceUrl={website} />
+          {backedBy && (
+            <div className={s.backedBy}>
+              <span className={s.asideLabel}>Backed by</span>
+              <a
+                className={s.backedByLink}
+                href={backedBy.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${backedBy.name} (opens in a new tab)`}
+              >
+                {/* A bordered chip with the external arrow, so the logo reads
+                    as a link (2026-10-12: "should be clear it's clickable"). */}
+                <img src={plcNeurotechLogo.src} alt={backedBy.name} className={s.backedByLogo} />
+                <ExternalIcon />
+              </a>
+            </div>
+          )}
+        </div>
 
         <div className={s.spotlightAside}>
           <section className={s.asideBlock}>
             <h4 className={s.asideLabel}>About</h4>
-            {showFull && aboutHtml ? (
-              <div className={s.spotlightAboutFull} dangerouslySetInnerHTML={{ __html: aboutHtml }} />
-            ) : (
-              <p className={s.spotlightSummaryText}>{summary}</p>
-            )}
-            {aboutHtml && (
+            {/* Collapsed, the first sentences and the first traction line
+                sit above "Show more", so investors read the strongest lines
+                first (UX updates doc, 2026-10-09). */}
+            <p className={s.spotlightSummaryText}>{showFull ? about.description : collapsedText}</p>
+            <div className={s.traction}>
+              <p className={s.tractionTitle}>Traction &amp; credibility</p>
+              <ul className={s.tractionList}>
+                {(showFull ? about.traction : about.traction.slice(0, about.tractionCollapsed)).map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            </div>
+            {hasMore && (
               <button
                 type="button"
                 className={s.aboutToggle}
                 onClick={() => setShowFull((v) => !v)}
                 aria-expanded={showFull}
               >
-                {showFull ? 'Show less' : 'Read all'}
+                {showFull ? 'Show less' : 'Show more'}
               </button>
             )}
           </section>

@@ -115,8 +115,9 @@ const renderView = (
   return render(<SpvSpotlightView slug={MOCK_SPV_SLUG} initialSpotlight={initial ? spotlight : null} />);
 };
 
-const topBar = () => screen.getByText('PL Spotlight').closest('header') as HTMLElement;
+const topBar = () => screen.getByRole('img', { name: 'PL Capital' }).closest('header') as HTMLElement;
 const card = () => screen.getByRole('article');
+const dealCard = () => screen.getByRole('region', { name: 'SPV details' });
 
 const band = () => screen.queryByRole('region', { name: 'Data room' });
 const dataRoomLinks = () => screen.queryAllByRole('link', { name: /Access data room/ });
@@ -145,8 +146,8 @@ describe('SpvSpotlightView — request flow (REQUEST_FLOW_ENABLED on)', () => {
     renderView('OPEN', 'NONE');
     expect(requestButton()).toBeInTheDocument();
 
-    expect(within(card()).getByText(/Already have an account\?/)).toBeInTheDocument();
-    await userEvent.click(within(card()).getByRole('button', { name: 'Sign in' }));
+    expect(within(dealCard()).getByText(/Already have an account\?/)).toBeInTheDocument();
+    await userEvent.click(within(dealCard()).getByRole('button', { name: 'Sign in' }));
     expect(mockGoToLogin).toHaveBeenCalledWith(
       expect.objectContaining({ returnTo: `/spv-spotlight/${MOCK_SPV_SLUG}` }),
     );
@@ -165,7 +166,7 @@ describe('SpvSpotlightView — request flow (REQUEST_FLOW_ENABLED on)', () => {
 
   it('opens the DocSend for an approved viewer of an open spotlight', () => {
     renderView('OPEN', 'APPROVED', { signedIn: true });
-    const link = within(card()).getByRole('link', { name: /Access data room/ });
+    const link = within(dealCard()).getByRole('link', { name: /Access data room/ });
     expect(link).toHaveAttribute('href', 'https://docsend.com/view/x');
     expect(link).toHaveAttribute('target', '_blank');
     expect(screen.getByRole('button', { name: 'Set up your investor profile' })).toBeInTheDocument();
@@ -321,16 +322,15 @@ describe('SpvSpotlightView — request flow (REQUEST_FLOW_ENABLED on)', () => {
 
   it('hides the Explore tile while the Explore landing is dark', () => {
     renderView('OPEN', 'NONE');
-    expect(screen.queryByRole('link', { name: /Explore the PL Network/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Explore the PL network/i })).not.toBeInTheDocument();
   });
 
   it('links the Explore tile to the landing once it ships', () => {
     mockShowExplore = true;
     renderView('OPEN', 'NONE');
-    const tile = screen.getByRole('link', { name: /Explore the PL Network/ });
+    const tile = screen.getByRole('link', { name: /Explore the PL network/ });
     expect(tile).toHaveAttribute('href', '/explore-pl-network');
-    // The same count the Explore landing states, not the map's portfolio size.
-    expect(within(tile).getByText('Organizations in the network').nextSibling).toHaveTextContent('750+');
+    expect(tile).toHaveTextContent('750+ teams across Neurotech, AI, Web3 and deep tech');
   });
 });
 
@@ -403,15 +403,15 @@ describe('SpvSpotlightView — gated (the default)', () => {
   });
 
   describe('approved', () => {
-    it('puts the investor profile card between the hero and the team card', () => {
+    it('puts the investor profile card between the team card and the FAQ', () => {
       renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
-      const heading = screen.getByRole('heading', { level: 1, name: base.title });
-      const profileCard = screen.getByRole('region', { name: 'Your investor profile' });
       const teamCard = screen.getByRole('article');
-      expect(heading.compareDocumentPosition(profileCard) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-      expect(profileCard.compareDocumentPosition(teamCard) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      const profileCard = screen.getByRole('region', { name: 'Your investor profile' });
+      const faq = screen.getByText('Questions investors ask');
+      expect(teamCard.compareDocumentPosition(profileCard) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(profileCard.compareDocumentPosition(faq) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
       expect(profileCard).toHaveTextContent(
-        "Tell us how you invest, and we'll only send you deals that fit your check size, stages and focus. Set up your investor profile",
+        "Set your preferences for check size, stage and sector, and we'll filter the deals you see to match.",
       );
     });
 
@@ -422,38 +422,66 @@ describe('SpvSpotlightView — gated (the default)', () => {
       expect(screen.queryByRole('button', { name: /your investor profile/ })).not.toBeInTheDocument();
     });
 
-    it('links the data room from the team card, its one filled primary', () => {
+    it('links the data room from the SPV card', () => {
       renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
-      const link = within(card()).getByRole('link', { name: /Access data room/ });
+      const link = within(dealCard()).getByRole('link', { name: /Access data room/ });
       expect(link).toHaveAttribute('href', 'https://docsend.com/view/x');
-      // The sentence is the profile's only door in the page body.
+      expect(within(card()).queryByRole('link', { name: /Access data room/ })).not.toBeInTheDocument();
       expect(screen.getAllByRole('button', { name: /your investor profile/ })).toHaveLength(1);
     });
 
-    it('notes the close date (UTC) and where the terms are under the card button', () => {
-      renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
-      expect(within(card()).getByText('Closes Oct 31, 2026')).toBeInTheDocument();
-      expect(within(card()).getByText('Allocation, minimum check and SPV terms are inside.')).toBeInTheDocument();
+    it('shows the set SPV terms and omits empty ones', () => {
+      renderView('OPEN', 'APPROVED', {
+        signedIn: true,
+        initial: false,
+        overrides: {
+          spvDetails: {
+            ...base.spvDetails,
+            fundName: 'PLC Neurotech SPV - Netholabs I LLC',
+            targetSpvSize: '$2,500,000',
+            minimumInvestment: '$25,000',
+            managementFee: '2% (one-time)',
+            expenseReserve: '3% of commitments',
+          },
+        },
+      });
+      const deal = dealCard();
+      expect(within(deal).getByRole('heading', { name: 'PLC Neurotech SPV - Netholabs I LLC' })).toBeInTheDocument();
+      expect(within(deal).getByText('Target SPV size')).toBeInTheDocument();
+      expect(within(deal).getByText('$2,500,000')).toBeInTheDocument();
+      expect(within(deal).getByText('Minimum investment')).toBeInTheDocument();
+      expect(within(deal).getByText('Management fee')).toBeInTheDocument();
+      expect(within(deal).getByText('Expense reserve')).toBeInTheDocument();
+      expect(within(deal).queryByText('Investment')).not.toBeInTheDocument();
+      expect(within(deal).queryByText('Liquidity')).not.toBeInTheDocument();
     });
 
-    it('drops every "Closes" line when the spotlight has no close date', () => {
+    it('notes the target close date under the SPV card button', () => {
+      renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
+      expect(within(dealCard()).getByText('Target close Oct 31, 2026')).toBeInTheDocument();
+      expect(screen.queryByText('Allocation, minimum check and SPV terms are inside.')).not.toBeInTheDocument();
+      expect(within(card()).getByRole('link', { name: 'PLC Neurotech (opens in a new tab)' })).toHaveAttribute(
+        'href',
+        'https://www.plneuro.xyz/',
+      );
+    });
+
+    it('drops the target close line when the spotlight has no close date', () => {
       renderView('OPEN', 'APPROVED', { signedIn: true, initial: false, overrides: { closesAt: null } });
-      expect(screen.queryByText(/Closes/)).not.toBeInTheDocument();
-      expect(within(card()).getByText('Allocation, minimum check and SPV terms are inside.')).toBeInTheDocument();
+      expect(screen.queryByText(/Target close/)).not.toBeInTheDocument();
       expect(band()).toBeInTheDocument();
     });
 
-    it('repeats the data room in a band between the Explore tile and the FAQ', () => {
+    it('repeats the data room in a band under the FAQ', () => {
       mockShowExplore = true;
       renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
       const region = band() as HTMLElement;
       expect(region).toBeInTheDocument();
       expect(within(region).getByRole('heading', { name: 'Netholabs SPV' })).toBeInTheDocument();
       expect(region).toHaveTextContent(
-        'Protocol Labs is leading an SPV into the Netholabs pre-seed round. The pitch, allocation, minimum check and SPV terms are in the data room.',
+        'Protocol Labs Capital is leading an SPV into the Netholabs pre-seed round. The pitch, allocation, minimum check and SPV terms are in the data room.',
       );
-      expect(within(region).getByText('Closes Oct 31, 2026')).toBeInTheDocument();
-      // One link (stretched over the band), nothing else to press.
+      expect(within(region).getByText('Target close Oct 31, 2026')).toBeInTheDocument();
       const links = within(region).getAllByRole('link');
       expect(links).toHaveLength(1);
       expect(links[0]).toHaveAccessibleName(/Access data room/);
@@ -461,10 +489,14 @@ describe('SpvSpotlightView — gated (the default)', () => {
       expect(links[0]).toHaveAttribute('target', '_blank');
       expect(within(region).queryAllByRole('button')).toHaveLength(0);
 
-      const explore = screen.getByRole('link', { name: /Explore the PL Network/ });
+      const explore = screen.getByRole('link', { name: /Explore the PL network/ });
+      const exploreCard = screen.getByRole('link', { name: /Explore the PL Network/ });
+      const profile = screen.getByRole('region', { name: 'Your investor profile' });
       const faq = screen.getByText('Questions investors ask');
-      expect(explore.compareDocumentPosition(region) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-      expect(region.compareDocumentPosition(faq) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(profile.compareDocumentPosition(explore) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(explore.compareDocumentPosition(faq) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(faq.compareDocumentPosition(region) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(region.compareDocumentPosition(exploreCard) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
 
     it('still reads when the team has no funding stage', () => {
@@ -473,14 +505,14 @@ describe('SpvSpotlightView — gated (the default)', () => {
         initial: false,
         overrides: { team: { ...base.team, fundingStage: null } },
       });
-      expect(band()).toHaveTextContent('Protocol Labs is leading an SPV into the Netholabs round.');
+      expect(band()).toHaveTextContent('Protocol Labs Capital is leading an SPV into the Netholabs round.');
     });
 
     it('has no band while the data room is being prepared (open, no DocSend yet)', () => {
       renderView('OPEN', 'APPROVED', { signedIn: true, initial: false, overrides: { docSendUrl: null } });
       expect(screen.getByText('Data room is being prepared')).toBeInTheDocument();
       expect(band()).not.toBeInTheDocument();
-      expect(screen.queryByText(/Closes/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Target close/)).not.toBeInTheDocument();
     });
 
     it.each([
@@ -490,15 +522,15 @@ describe('SpvSpotlightView — gated (the default)', () => {
       renderView(status, 'APPROVED', { signedIn: true, initial: false });
       expect(screen.getByText(line)).toBeInTheDocument();
       expect(band()).not.toBeInTheDocument();
-      expect(screen.queryByText(/Closes/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Target close/)).not.toBeInTheDocument();
     });
 
     it('tells the analytics which data room button was pressed', async () => {
       renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
-      await userEvent.click(within(card()).getByRole('link', { name: /Access data room/ }));
+      await userEvent.click(within(dealCard()).getByRole('link', { name: /Access data room/ }));
       expect(mockAnalytics.onOpenDataRoomClicked).toHaveBeenCalledTimes(1);
       expect(mockAnalytics.onOpenDataRoomClicked).toHaveBeenLastCalledWith(
-        expect.objectContaining({ source: 'team-card', view_state: 'open' }),
+        expect.objectContaining({ source: 'deal-card', view_state: 'open' }),
       );
       await userEvent.click(within(band() as HTMLElement).getByRole('link'));
       expect(mockAnalytics.onOpenDataRoomClicked).toHaveBeenCalledTimes(2);
@@ -518,9 +550,9 @@ describe('SpvSpotlightView — gated (the default)', () => {
       mockMember = { memberInfo: { investorProfile: { type: 'ANGEL' } } };
       renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
       expect(screen.getByRole('region', { name: 'Your investor profile' })).toHaveTextContent(
-        'Review your investor profile to keep the deals we send you matched to your check size, stages and focus.',
+        "Set your preferences for check size, stage and sector, and we'll filter the deals you see to match. Update or review your investor profile",
       );
-      expect(screen.getByRole('button', { name: 'Review your investor profile' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Update or review your investor profile' })).toBeInTheDocument();
     });
 
     it('still says set up for a profile without a type (created by an access request)', () => {
@@ -544,7 +576,7 @@ describe('SpvSpotlightView — gated (the default)', () => {
     it('asks the token-link questions', () => {
       renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
       expect(screen.getByText('How do I see the materials?')).toBeInTheDocument();
-      expect(screen.getByText(/^Access data room opens the team.s DocSend\./)).toBeInTheDocument();
+      expect(screen.getByText(/Access data room opens the SPV.s data room on DocSend/)).toBeInTheDocument();
       expect(screen.queryByText('Who can request access?')).not.toBeInTheDocument();
     });
 

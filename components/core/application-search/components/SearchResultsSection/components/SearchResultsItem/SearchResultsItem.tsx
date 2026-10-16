@@ -8,14 +8,15 @@ import { ForumResultItem } from './components/ForumResultItem/ForumResultItem';
 export interface SearchResultsItemProps {
   item: FoundItem | ForumFoundItem;
   onSelect?: () => void;
+  onAskAi?: (item: FoundItem) => void;
 }
 
 export function SearchResultsItem(props: SearchResultsItemProps) {
-  const { item, onSelect } = props;
+  const { item, onSelect, onAskAi } = props;
 
   if (item.index === 'forumThreads') {
     return <ForumResultItem item={item} onSelect={onSelect} />;
   }
 
-  return <ResultItem item={item} onSelect={onSelect} />;
+  return <ResultItem item={item} onSelect={onSelect} onAskAi={onAskAi} />;
 }

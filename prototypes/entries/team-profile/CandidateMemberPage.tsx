@@ -29,6 +29,7 @@ import office from '@/components/page/member-details/OfficeHoursDetails/componen
 import contact from '@/components/page/member-details/contact-details/ContactDetails.module.scss';
 import repo from '@/components/page/member-details/RepositoriesDetails/components/RepositoriesList/RepositoriesList.module.scss';
 
+import { CvAttachmentLine } from '../profile-shared/StoredCv/CvAttachmentLine';
 import type { RoleCandidate, RoleInterested, RoleSuggested } from './mocks';
 import s from './CandidateMemberPage.module.scss';
 
@@ -36,6 +37,17 @@ interface Props {
   candidate: RoleCandidate | RoleInterested | RoleSuggested;
   /** The section only this page has — rendered under the profile card. */
   application: ReactNode;
+  /**
+   * The short card (LAB-2819, design review 2026-10-13), for a suggested
+   * member: the profile card with LinkedIn / GitHub and **Full profile ↗**
+   * beside the name, the bio, why they were suggested, their CV when they
+   * stored one, and Experience. Everything else — office hours, contact
+   * details, teams, contributions, repositories — is one click away on the
+   * full profile. The lead is deciding whether to reach out, and that should
+   * not take a scroll; contact details are not how this page reaches anyone
+   * (the message goes through the platform).
+   */
+  compact?: { fullProfileHref: string };
 }
 
 /* Production's contact order and handle names (`contact-details/ContactDetails`). */
@@ -82,7 +94,7 @@ const VIEWER = { uid: 'viewer', name: 'Viewer', email: 'viewer@pl.org' } as unkn
  * text rather than a link to `/teams/<id>` (the mocked teams have no page),
  * and nothing is editable, because the viewer is never the owner.
  */
-export function CandidateMemberPage({ candidate, application }: Props) {
+export function CandidateMemberPage({ candidate, application, compact }: Props) {
   const p = candidate.profile;
 
   // The production components read an `IMember`; cast the fields they use.
@@ -172,6 +184,36 @@ export function CandidateMemberPage({ candidate, application }: Props) {
                   <p className={h.locationName}>{candidate.location}</p>
                 </div>
               </div>
+              {compact && (
+                <div className={s.links}>
+                  {p.linkedinHandle && (
+                    <a
+                      href={`https://www.linkedin.com/in/${p.linkedinHandle}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={s.socialLink}
+                      aria-label={`${candidate.name} on LinkedIn`}
+                    >
+                      <img src={getContactLogoByProvider('linkedin')} alt="" width={20} height={20} />
+                    </a>
+                  )}
+                  {p.githubHandle && (
+                    <a
+                      href={`https://github.com/${p.githubHandle}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={s.socialLink}
+                      aria-label={`${candidate.name} on GitHub`}
+                    >
+                      <img src={getContactLogoByProvider('github')} alt="" width={20} height={20} />
+                    </a>
+                  )}
+                  <a href={compact.fullProfileHref} target="_blank" rel="noreferrer" className={s.fullProfile}>
+                    Full profile
+                    <RepoLinkIcon />
+                  </a>
+                </div>
+              )}
             </div>
           </div>
 
@@ -202,6 +244,54 @@ export function CandidateMemberPage({ candidate, application }: Props) {
 
       {application}
 
+      {compact ? (
+        <>
+          {/* The CV, only when the member stored one for their job search. */}
+          {candidate.cv && (
+            <DetailsSection>
+              <DetailsSectionHeader title="CV" />
+              <a href={candidate.cv.url} target="_blank" rel="noopener noreferrer" className={s.cvLink}>
+                <CvAttachmentLine
+                  cv={{ fileName: candidate.cv.name, size: candidate.cv.size, uploadedAt: '2026-09-01T09:00:00.000Z' }}
+                  variant="chip"
+                />
+              </a>
+            </DetailsSection>
+          )}
+          <DetailsSection>
+            <DetailsSectionHeader
+              title={`Experience ${candidate.experience.length ? `(${candidate.experience.length})` : ''}`}
+            />
+            <ExperiencesList
+              data={candidate.experience}
+              member={member}
+              userInfo={VIEWER}
+              isEditable={false}
+              isLoading={false}
+              onEdit={() => {}}
+            />
+          </DetailsSection>
+        </>
+      ) : (
+        <FullSections candidate={candidate} member={member} handles={handles} />
+      )}
+    </div>
+  );
+}
+
+/** Everything under the application on the full page — production's order. */
+function FullSections({
+  candidate,
+  member,
+  handles,
+}: {
+  candidate: Props['candidate'];
+  member: IMember;
+  handles: Record<string, string | undefined>;
+}) {
+  const p = candidate.profile;
+  return (
+    <>
       {/* ---------- Office Hours (OfficeHoursView, visitor state) ----------
           Never for a job aspirant (LAB-2713): it is a member's offer to the
           network, and an aspirant has none to make — whatever the record holds. */}
@@ -364,7 +454,7 @@ export function CandidateMemberPage({ candidate, application }: Props) {
           )}
         </div>
       </DetailsSection>
-    </div>
+    </>
   );
 }
 

@@ -1,0 +1,58 @@
+/* The Suggested bar's own actions (LAB-2847). The bar's layout — the sticky
+ * card — stays shared with ApplicantsPaneBar.module.scss. */
+
+/* No stepper here (LAB-2837 feedback), so Contact is the bar's only child:
+   the shared `space-between` would put it on the left. */
+.root {
+  justify-content: flex-end;
+}
+
+/* Contact wears the applicants' Email treatment: one primary action per bar. */
+.contactBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--transparent-dark-12, rgba(15, 23, 42, 0.12));
+  background: var(--action-background-brand-normal, #1b4dff);
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow:
+    0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset,
+    0 4px 6px 0 var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset,
+    0 1px 5px 0 var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+
+  &:hover {
+    background: var(--action-background-brand-hover, #1740db);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+/* A state, not a control: no border, no hover, nothing that reads as pressable. */
+.contacted {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 0;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contactBtn {
+    transition: none;
+  }
+}

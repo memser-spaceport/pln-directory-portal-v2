@@ -1,22 +1,21 @@
-import { Badge } from '@/components/common/Badge';
 import type { SuggestionLabel } from '@/schema/suggested-candidates';
 
 import s from './SuggestionBadge.module.scss';
 
 /**
- * The band's DS `Badge` tone, as the design has it (LAB-2687): Strong in
- * success green, Good in brand blue. Both bands are recommendations, so neither
- * takes amber or red. One component so the row and the pane never disagree.
+ * The match band as a gradient pill (LAB-2853): a green → blue → indigo
+ * sweep with white text, the same as the badge in the suggested-candidates
+ * email, so a lead who comes from the email sees the same mark on the page.
+ *
+ * Only Strong match is marked (LAB-2837 feedback). Every suggested person is
+ * already a match, so a "Good match" pill on most rows said nothing; the mark
+ * is worth its space only where it singles someone out. Good renders nothing.
+ *
+ * A span, not the DS `Badge`. This overrides the fill, the border and the text
+ * colour, so a `Badge` underneath would only add styles to beat. One component
+ * so the row and the pane never disagree.
  */
-const SUGGESTION_BAND_VARIANT: Record<SuggestionLabel, 'success' | 'brand'> = {
-  'Strong match': 'success',
-  'Good match': 'brand',
-};
-
 export function SuggestionBadge({ label }: { label: SuggestionLabel }) {
-  return (
-    <Badge variant={SUGGESTION_BAND_VARIANT[label]} className={s.root}>
-      {label}
-    </Badge>
-  );
+  if (label !== 'Strong match') return null;
+  return <span className={s.root}>{label}</span>;
 }

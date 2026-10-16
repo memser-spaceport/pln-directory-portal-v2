@@ -546,8 +546,16 @@ export const useJobsAnalytics = () => {
   };
 
   /* LAB-2771. `count` is how many people the tab showed, so the funnel can
-     tell a role with suggestions from one without. */
-  const onJobSuggestedCandidatesViewed = (args: { team_id: string; job_id: string | null; count: number }) => {
+     tell a role with suggestions from one without. LAB-2853: `source` is
+     'email' when the lead arrived from a suggested-candidates email (its
+     `utm_source`), else 'app'; `utm_content` says which link in it. */
+  const onJobSuggestedCandidatesViewed = (args: {
+    team_id: string;
+    job_id: string | null;
+    count: number;
+    source: 'email' | 'app';
+    utm_content: string | null;
+  }) => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_SUGGESTED_CANDIDATES_VIEWED, { ...args });
   };
 
@@ -561,7 +569,8 @@ export const useJobsAnalytics = () => {
   };
 
   /* LAB-2789: `interested` compares the contact rate of members who said
-     "I'm interested" with the other suggestions. */
+     "I'm interested" with the other suggestions. LAB-2847: fires when the
+     server accepted a message sent through the platform (not on a 409). */
   const onJobSuggestedCandidateContacted = (args: {
     team_id: string;
     job_id: string | null;
@@ -570,6 +579,17 @@ export const useJobsAnalytics = () => {
     interested: boolean;
   }) => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_SUGGESTED_CANDIDATE_CONTACTED, { ...args });
+  };
+
+  /* LAB-2847: a lead saved which of the role's requirements count, after the
+     server accepted it. */
+  const onJobSuggestedCriteriaEdited = (args: {
+    team_id: string;
+    job_id: string | null;
+    enabled_count: number;
+    disabled_count: number;
+  }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_SUGGESTED_CRITERIA_EDITED, { ...args });
   };
 
   const onJobSaved = (args: { job_id: string; team_id: string; source: JobSurface }) => {
@@ -659,6 +679,7 @@ export const useJobsAnalytics = () => {
     onJobSuggestedCandidatesViewed,
     onJobSuggestedCandidateOpened,
     onJobSuggestedCandidateContacted,
+    onJobSuggestedCriteriaEdited,
     onJobSaved,
     onJobUnsaved,
     onJobSaveFailed,

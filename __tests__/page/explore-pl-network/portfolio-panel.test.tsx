@@ -69,7 +69,9 @@ describe('PortfolioPanel', () => {
     expect(row).toHaveAttribute('href', `/teams/${info.uid}`);
     await user.click(row);
     expect(onProfileClicked).toHaveBeenCalledWith(team, 'list');
-  });
+    // The list renders every portfolio row. Under a full Jest run that scan
+    // can pass the default 5s limit; alone it finishes well inside it.
+  }, 15000);
 
   it('does not report a view change when the current view is pressed again', async () => {
     const { user, onViewChanged } = setup();

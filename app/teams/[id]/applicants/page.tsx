@@ -126,6 +126,8 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
         initialRoleUid={searchParams?.role ?? null}
         initialCandidateUid={searchParams?.candidate ?? null}
         initialSuggestedMemberUid={searchParams?.suggested ?? null}
+        initialTab={searchParams?.tab ?? null}
+        initialEdit={searchParams?.edit ?? null}
         viewerUid={userInfo?.uid}
         isLoggedIn={!!isLoggedIn}
       />

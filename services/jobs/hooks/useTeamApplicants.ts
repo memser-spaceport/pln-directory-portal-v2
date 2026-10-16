@@ -6,11 +6,16 @@ import { ApplicantCount, ApplicantKind, TeamApplicant } from '@/schema/team-appl
 import type { SuggestedCandidate } from '@/schema/suggested-candidates';
 import { JobsQueryKey } from '@/services/jobs/constants';
 import {
+  contactSuggestedCandidate,
   fetchApplicantCounts,
   fetchRoleApplicants,
   fetchSuggestedCandidates,
+  isAlreadyContactedError,
   markApplicantSeen,
+  saveMatchCriteria,
+  type SavedMatchCriteria,
   setApplicantReviewed,
+  type SuggestedCandidatesResult,
   TeamApplicantsError,
 } from '@/services/jobs/team-applicants.service';
 
@@ -90,8 +95,10 @@ export const suggestedCandidatesQueryKey = (viewerUid: string, roleUid: string) 
   [JobsQueryKey.SuggestedCandidates, viewerUid, roleUid] as const;
 
 /**
- * One live role's suggested candidates (LAB-2771). Read-only: the team does
- * nothing to a suggestion that this page writes back.
+ * One live role's suggested candidates (LAB-2771), and the role's match
+ * criteria with them (LAB-2847). The page writes two things back — the
+ * criteria switches and a contact — through the mutations below, which patch
+ * this entry from the server's answer.
  *
  * Viewer-scoped for the reason the keys above give — the answer depends on who
  * asks (a non-member gets a 403) — and no refetch on focus for the reason
@@ -107,7 +114,7 @@ export function useSuggestedCandidates({
   viewerUid: string | undefined;
   enabled: boolean;
 }) {
-  return useQuery<SuggestedCandidate[]>({
+  return useQuery<SuggestedCandidatesResult>({
     queryKey: suggestedCandidatesQueryKey(viewerUid ?? '', roleUid ?? ''),
     queryFn: () => fetchSuggestedCandidates(roleUid as string),
     enabled: enabled && !!viewerUid && !!roleUid,
@@ -231,6 +238,82 @@ export function useMarkApplicantSeen({
           count.roleUid === roleUid ? { ...count, newCount: Math.max(0, count.newCount - 1) } : count,
         ),
       );
+    },
+  });
+}
+
+/** The saved criteria and prompt, written into a cached read. Pure, for the hook and its tests. */
+export const withSavedCriteria = (
+  old: SuggestedCandidatesResult | undefined,
+  { criteria, prompt }: SavedMatchCriteria,
+): SuggestedCandidatesResult | undefined => (old ? { ...old, criteria, criteriaPrompt: prompt } : old);
+
+/** One person's `contactedAt`, written into a cached read. Pure, for the hook and its tests. */
+export const withContactedAt = (
+  old: SuggestedCandidatesResult | undefined,
+  memberUid: string,
+  contactedAt: string,
+): SuggestedCandidatesResult | undefined =>
+  old
+    ? {
+        ...old,
+        suggestions: old.suggestions.map((row: SuggestedCandidate) =>
+          row.memberUid === memberUid ? { ...row, contactedAt } : row,
+        ),
+      }
+    : old;
+
+interface SuggestedWriteScope {
+  roleUid: string | undefined;
+  viewerUid: string | undefined;
+}
+
+/**
+ * Save which of the role's requirements count (LAB-2847), and the lead's own
+ * words about who they are looking for (LAB-2853).
+ *
+ * **Not optimistic.** It runs from a modal with a pending Save, so there is no
+ * on-screen state to roll back: on success the server's list goes into the
+ * cache, on failure nothing was touched. The suggestions themselves do not
+ * change — the switches apply from next week's run.
+ */
+export function useSaveMatchCriteria({ roleUid, viewerUid }: SuggestedWriteScope) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ disabled, prompt }: { disabled: string[]; prompt: string | null }) =>
+      saveMatchCriteria(roleUid as string, disabled, prompt),
+    onSuccess: (saved) => {
+      if (!viewerUid || !roleUid) return;
+      queryClient.setQueryData<SuggestedCandidatesResult>(suggestedCandidatesQueryKey(viewerUid, roleUid), (old) =>
+        withSavedCriteria(old, saved),
+      );
+    },
+  });
+}
+
+/**
+ * Message a suggested member through the platform (LAB-2847).
+ *
+ * Success patches that person's `contactedAt` from the server's answer. A 409
+ * — a co-lead got there first — re-reads the suggestions so the real date
+ * arrives; the caller treats it as done. Any other failure touches nothing.
+ */
+export function useContactSuggestedCandidate({ roleUid, viewerUid }: SuggestedWriteScope) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ memberUid, message }: { memberUid: string; message: string }) =>
+      contactSuggestedCandidate(roleUid as string, memberUid, message),
+    onSuccess: ({ contactedAt }, { memberUid }) => {
+      if (!viewerUid || !roleUid) return;
+      queryClient.setQueryData<SuggestedCandidatesResult>(suggestedCandidatesQueryKey(viewerUid, roleUid), (old) =>
+        withContactedAt(old, memberUid, contactedAt),
+      );
+    },
+    onError: (error) => {
+      if (!viewerUid || !roleUid || !isAlreadyContactedError(error)) return;
+      queryClient.invalidateQueries({ queryKey: suggestedCandidatesQueryKey(viewerUid, roleUid) });
     },
   });
 }

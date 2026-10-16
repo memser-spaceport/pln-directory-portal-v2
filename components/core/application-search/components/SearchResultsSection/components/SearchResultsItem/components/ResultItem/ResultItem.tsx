@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import parse from 'html-react-parser';
 import React, { useCallback } from 'react';
+import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
 
 import { SearchResultsItemProps } from '@/components/core/application-search/components/SearchResultsSection/components/SearchResultsItem';
@@ -19,13 +20,15 @@ interface Props extends SearchResultsItemProps {
 }
 
 export function ResultItem(props: Props) {
-  const { item, onSelect } = props;
+  const { item, onSelect, onAskAi } = props;
 
   const router = useRouter();
   const analytics = useUnifiedSearchAnalytics();
 
   const defaultAvatar = item.image || getDefaultAvatar(item?.name);
   const matchedName = item.matches.find((match) => match.field === 'name');
+  // Teams and members have a profile for AI Search to answer about.
+  const askAi = item.index === 'teams' || item.index === 'members' ? onAskAi : undefined;
 
   const onClick = useCallback(() => {
     analytics.onSearchResultClick(item);
@@ -38,19 +41,21 @@ export function ResultItem(props: Props) {
   const link = item.index === 'events' ? item.source?.eventUrl || '' : `/${item.index}/${item.uid}`;
 
   return (
-    <Link href={link} onClick={onClick} target={link.startsWith('http') ? '_blank' : '_self'}>
-      <li className={s.foundItem}>
-        <div className={s.header}>
+    <li className={clsx(s.foundItem, s.foundItemHost)}>
+      <Link
+        href={link}
+        onClick={onClick}
+        target={link.startsWith('http') ? '_blank' : '_self'}
+        className={s.foundItemLink}
+      >
+        <div className={clsx(s.header, askAi && s.headerAskable)}>
           <div className={s.avatar}>
             <Image src={defaultAvatar} alt={item.name} width={24} height={24} />
           </div>
           {matchedName ? (
             <div className={s.name}>{parse(matchedName.content)}</div>
           ) : (
-            <div className={s.name}>
-              {item.name}
-              {/*<HighlightedText text={item.name} query={query} />*/}
-            </div>
+            <div className={s.name}>{item.name}</div>
           )}
           {!!item.availableToConnect && (
             <div className={s.type}>
@@ -73,7 +78,13 @@ export function ResultItem(props: Props) {
               );
             })}
         </ul>
-      </li>
-    </Link>
+      </Link>
+      {askAi && (
+        <button type="button" className={s.askAi} onClick={() => askAi(item)}>
+          <span className={s.askAiIcon} aria-hidden="true" />
+          Ask AI
+        </button>
+      )}
+    </li>
   );
 }

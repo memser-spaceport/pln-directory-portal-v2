@@ -1,0 +1,61 @@
+/* Message <name> — the sender block and the footer. The shell is the deals
+ * modal's; the blocks are the apply step's (`JobApplicationPane.module.scss`). */
+
+.roleLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.sender {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.senderAvatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.senderText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.senderName {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.senderRole {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* The application step's lede sits under a drawer header that spaces it; in
+ * the modal's content it needs its own gap to the read-back below. */
+.lede.lede {
+  margin: 0 0 16px;
+}

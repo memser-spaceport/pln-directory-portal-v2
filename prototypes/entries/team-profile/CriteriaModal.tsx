@@ -26,7 +26,9 @@ interface Props {
   people: RoleSuggested[];
   /** Criteria currently switched off. */
   off: ReadonlySet<string>;
-  onSave: (off: Set<string>) => void;
+  /** The lead's own description of who they're looking for, in free text. */
+  prompt: string;
+  onSave: (off: Set<string>, prompt: string) => void;
 }
 
 /**
@@ -40,6 +42,13 @@ interface Props {
  * add new ones — a free-text criterion is a matching engine, and the postings
  * already say what the role asks for.
  *
+ * **And in the lead's own words (LAB-2819, 2026-10-13).** Under the
+ * checklist, one open field: who they're looking for, written freely. The
+ * checklist can only switch the posting's requirements off; the field is
+ * where a lead says what the posting doesn't ("has run a storage network in
+ * production", "open to people coming from research"), and the matcher reads
+ * it with the requirements. Mocked: it is kept per role and changes no counts.
+ *
  * **The footer says what the change does.** "3 members meet at least 3 of the
  * 5 requirements" moves as boxes are ticked, so turning off "Senior or above"
  * visibly brings someone in, and it is also the one place the floor is stated
@@ -50,13 +59,17 @@ interface Props {
  * switched off**: with none, every share is 0, so the box is inert rather than
  * the Save dead for a reason on another line.
  */
-export function CriteriaModal({ open, onClose, roleTitle, criteria, people, off, onSave }: Props) {
+export function CriteriaModal({ open, onClose, roleTitle, criteria, people, off, prompt, onSave }: Props) {
   const [draft, setDraft] = useState<Set<string>>(() => new Set(off));
+  const [promptDraft, setPromptDraft] = useState(prompt);
 
   // A fresh draft each time it opens, so Cancel really discards.
   useEffect(() => {
-    if (open) setDraft(new Set(off));
-  }, [open, off]);
+    if (open) {
+      setDraft(new Set(off));
+      setPromptDraft(prompt);
+    }
+  }, [open, off, prompt]);
 
   const toggle = (id: string) =>
     setDraft((prev) => {
@@ -67,7 +80,8 @@ export function CriteriaModal({ open, onClose, roleTitle, criteria, people, off,
     });
 
   const onCount = criteria.filter((c) => !draft.has(c.id)).length;
-  const changed = criteria.some((c) => draft.has(c.id) !== off.has(c.id));
+  const changed =
+    criteria.some((c) => draft.has(c.id) !== off.has(c.id)) || promptDraft.trim() !== prompt.trim();
   const shown = visibleSuggested(people, criteria, draft).length;
   // The floor in the lead's own units: the fewest switched-on requirements a
   // member can meet and still be a Good match (3 of 5, 3 of 4, 2 of 3).
@@ -113,6 +127,24 @@ export function CriteriaModal({ open, onClose, roleTitle, criteria, people, off,
                 </div>
               );
             })}
+
+            {/* The lead's own words, after the posting's requirements. */}
+            <div className={s.editGroup}>
+              {/* An ask in the lead's direction, at label weight rather than the
+                  group captions' grey: it is a field to fill, not a heading. */}
+              <label htmlFor="criteria-prompt" className={s.promptLabel}>
+                Tell us who you’re looking for
+              </label>
+              <textarea
+                id="criteria-prompt"
+                className={s.promptField}
+                rows={4}
+                maxLength={1000}
+                value={promptDraft}
+                onChange={(e) => setPromptDraft(e.target.value)}
+                placeholder="e.g. Has run a storage or networking service in production. Open to people coming from research."
+              />
+            </div>
           </div>
         </div>
 
@@ -128,7 +160,7 @@ export function CriteriaModal({ open, onClose, roleTitle, criteria, people, off,
             <Button
               disabled={!changed}
               onClick={() => {
-                onSave(draft);
+                onSave(draft, promptDraft.trim());
                 onClose();
               }}
             >

@@ -75,7 +75,10 @@ jest.mock('@/components/page/member-details/RepositoriesDetails', () => ({
   RepositoriesDetails: mockSection('repositories'),
 }));
 
-import { ApplicantPane } from '@/components/page/team-details/TeamApplicants/components/ApplicantPane';
+import {
+  ApplicantPane,
+  MemberProfilePane,
+} from '@/components/page/team-details/TeamApplicants/components/ApplicantPane';
 import { JOB_ASPIRANT_POLICY_CODE } from '@/services/jobs/job-board-viewer';
 import type { TeamApplicant } from '@/schema/team-applicants';
 import paneCss from '@/components/page/team-details/TeamApplicants/components/ApplicantPane.module.scss';
@@ -182,6 +185,18 @@ describe('the profile sections', () => {
 
     expect(screen.queryByTestId('teams')).not.toBeInTheDocument();
     expect(screen.getByTestId('office-hours')).toBeInTheDocument();
+  });
+
+  /* LAB-2837 feedback: the Suggested tab turns Office Hours off for everyone. */
+  it('withholds Office Hours from anyone when told to, and keeps every other section', () => {
+    mockMember = PL_MEMBER;
+    render(<MemberProfilePane memberUid="m-2" isLoggedIn section={<p>Why</p>} officeHours={false} />);
+
+    expect(screen.queryByTestId('office-hours')).not.toBeInTheDocument();
+    for (const id of ['profile-details', 'contact-details', 'teams', 'experience', 'contributions', 'repositories']) {
+      expect(screen.getByTestId(id)).toBeInTheDocument();
+    }
+    expect(screen.getByText('Why')).toBeInTheDocument();
   });
 
   it('changes nothing for a PL member with these fields filled in', () => {

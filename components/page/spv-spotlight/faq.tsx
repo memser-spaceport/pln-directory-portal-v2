@@ -8,7 +8,7 @@ import s from './SpvSpotlightView.module.scss';
 const WHAT_IS_SPOTLIGHT: FAQItem = {
   question: 'What is PL Spotlight?',
   answer:
-    "PL Spotlight is how Protocol Labs brings a small set of PL Network teams to outside investors. Each Spotlight is one SPV (special purpose vehicle) led by Protocol Labs into one team's round.",
+    "PL Spotlight is how Protocol Labs brings a small set of PL Network teams to outside investors. Each Spotlight is one SPV (special purpose vehicle) led by Protocol Labs Capital into one team's round.",
 };
 
 const WHEN_CLOSED: FAQItem = {
@@ -32,12 +32,12 @@ export const getSpvFaqItems = ({
   {
     question: 'How do I see the materials?',
     answer:
-      "Access data room opens the team's DocSend. On your first visit you ask for access there; once it is granted, the same button takes you straight to the pitch and the SPV terms. Nothing is uploaded to this page.",
+      "Access data room opens the SPV's data room on DocSend and sends you an email from the PL Capital team with the link, so you can reply with questions.",
   },
   {
     question: 'What does the investor profile do?',
     answer:
-      'It tells us your check size, stages and focus, so we only send you deals that fit. You can change it any time from the avatar menu.',
+      'It records your preferred check size, stage and sector, so the deals you see are filtered to match. You can change it any time from the avatar menu.',
   },
   {
     question: "Why can't I open this page?",

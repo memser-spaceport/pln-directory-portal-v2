@@ -12,14 +12,30 @@ import type { SpvTeam } from './teams';
 
 const UID = 'cm4a4qvi70008wt023l05k4q5';
 
+// The agreed description (UX updates doc, 2026-10-09). It replaces the
+// directory's About, which put London and the UK entity back on the page.
+const NETHOLABS_DESCRIPTION =
+  'Netholabs is building foundation models of living organisms from longitudinal, multimodal data spanning neural activity, physiology, behavior and environment. The thesis is that living systems contain learning rules and priors that current AI has not recovered from scale alone. Netholabs turns those signals into proprietary training data for frontier models today, while using the same data to train cross-species models of organisms. As those models become more predictive and individualized, they create a path toward new AI architectures, in-silico biology, and ultimately deeply individualized models of humans.';
+
+// "Incorporated mid-2024 in London" and "Recognized for leadership in the WBE /
+// neurotech space" are gone (location and the UK entity; unspecific). The first
+// line sits above "Show more", the other two behind it.
+const NETHOLABS_TRACTION = [
+  'Signed commercial agreements with a top-5 Asian frontier AI lab and a US biotech.',
+  'In scoping discussions toward a paid agreement with a leading US AI lab.',
+  'Qualified sales discussions with neurotech and BCI companies.',
+];
+
 const team = {
   ...MOCK_TEAM,
   id: UID,
   name: 'Netholabs',
   logo: 'https://pl-directory-images-prod.s3.us-west-1.amazonaws.com/a4a5cdb88798acfd.webp',
-  shortDescription: 'Digital mammals for neuroscience, drug discovery, and mind uploading.',
-  longDescription:
-    '<p>Netholabs is a London, UK based neuroscience startup at the frontier of neurotechnology + AI, advancing longitudinal neuroethology — i.e. capturing brain activity across natural behavior over extended timescales.</p><p>We build naturalistic environments, automate neural and behavioral data capture, and deploy AI models to analyze complex neural time series. Our work drives deeper insight into neural computation, disease ontology, and the foundational mechanisms of agency.</p><p>Our ultimate ambition: to derive scaling laws for whole-brain emulation and mind uploading in humans and achieve the first human mind upload.</p><p><strong>Traction &amp; Credibility</strong></p><ul><li>Incorporated mid-2024 in London (Netholabs Ltd)</li><li>Recognized for leadership in the WBE / neurotech space (via external funding, alliances, etc.)</li></ul>',
+  shortDescription:
+    'Netholabs is building foundation models of whole organisms to bring biological intelligence into the deep-learning era.',
+  // The agreed description and traction (UX updates doc, 2026-10-09), not the
+  // directory's About. The page renders NETHOLABS_ABOUT; this mirrors it.
+  longDescription: `<p>${NETHOLABS_DESCRIPTION}</p><p><strong>Traction &amp; Credibility</strong></p><ul>${NETHOLABS_TRACTION.map((l) => `<li>${l}</li>`).join('')}</ul>`,
   website: 'https://netholabs.com/',
   twitter: null,
   linkedinHandle: null,
@@ -59,7 +75,8 @@ export const netholabs: SpvTeam = {
   uid: UID,
   name: 'Netholabs',
   logoUrl: 'https://pl-directory-images-prod.s3.us-west-1.amazonaws.com/a4a5cdb88798acfd.webp',
-  shortDescription: 'Digital mammals for neuroscience, drug discovery, and mind uploading.',
+  shortDescription:
+    'Netholabs is building foundation models of whole organisms to bring biological intelligence into the deep-learning era.',
   docSendUrl: 'https://docsend.com/view/netholabs-spv',
   team,
   members: [
@@ -93,13 +110,28 @@ export const netholabs: SpvTeam = {
   cardTags: [{ title: 'Frontier Tech' }, { title: 'AI' }, { title: 'BCI' }],
 };
 
-// The card's facts line under the one-liner (the directory's size band and city).
-export const NETHOLABS_FACTS = { teamSize: '2–10', location: 'London, UK' };
+// The key facts strip. "Headquarters" became "Offices" with both cities (UX
+// updates doc, 2026-10-09): two lines, no flags.
+export const NETHOLABS_FACTS = { teamSize: '2–10', offices: ['San Francisco, US', 'London, UK'] };
 
-// The brief team card's summary: the directory About above, cut to three
-// sentences in the Spotlight's voice (third person, no traction list).
-export const NETHOLABS_SUMMARY =
-  'Netholabs is a London neuroscience startup working where neurotechnology meets AI. It builds naturalistic environments that record neural and behavioural data continuously, and AI models that read those long time series. The goal is scaling laws for whole-brain emulation, and in time the first human mind upload.';
+// The About block. Collapsed, the first two sentences of the description and
+// the first traction line sit above "Show more", so the strongest lines read
+// first; the rest is behind it.
+export const NETHOLABS_ABOUT = {
+  description: NETHOLABS_DESCRIPTION,
+  collapsedSentences: 2,
+  traction: NETHOLABS_TRACTION,
+  tractionCollapsed: 1,
+};
+
+// "Backed by" under the carousel: PLC Neurotech's logo (from the deck, via the
+// UX updates doc), linking to the PL Capital neurotech site in a new tab.
+// The URL is PL Neuro's (explore-pl-network/mocks), the neurotech site we
+// know; confirm it is the page legal and PL Capital mean.
+export const NETHOLABS_BACKED_BY = {
+  name: 'PLC Neurotech',
+  href: 'https://www.plneuro.xyz/',
+};
 
 export type WebsiteImage = {
   src: string;

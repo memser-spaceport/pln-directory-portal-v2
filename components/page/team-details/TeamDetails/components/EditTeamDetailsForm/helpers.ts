@@ -4,7 +4,7 @@ export const MIN_FOUNDED_YEAR = 1800;
 
 export const editTeamDetailsSchema = yup.object({
   name: yup.string().trim().required('Please add Team Name').max(150),
-  shortDescription: yup.string().trim().max(100, 'Max. 100 characters').defined(),
+  shortDescription: yup.string().trim().max(150, 'Max. 150 characters').defined(),
   dateFounded: yup
     .string()
     .trim()

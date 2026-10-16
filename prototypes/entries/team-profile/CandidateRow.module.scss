@@ -97,74 +97,14 @@
   color: var(--foreground-success-primary, #0a9952);
 }
 
-/* A suggested row's reason, under the role. The role line's own 12/18, in the
- * primary ink: same size, so it is one more line of the row and not a caption,
- * and one step darker than the role because it is the row's argument. One
- * line, ellipsised — the full list is the pane's first section — with the
- * "+2" kept outside the ellipsis so a long reason cannot swallow it. */
-.reason {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  min-width: 0;
-  margin: 2px 0 0;
-  font-size: 12px;
-  line-height: 18px;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-primary, #0a0c11);
-}
-
-.reasonText {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.reasonMore {
-  flex-shrink: 0;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-}
-/* A suggested row's working, under the role: "4 of 5 requirements" and then,
- * named, whatever the profile does not show. The role line's own 12/18. The
- * count takes the role's secondary ink; each miss the tertiary ink behind a
- * dash — the pane's own unmet mark, so row and checklist read as one list.
- * One line; a long miss ellipsises rather than wrapping the row. */
+/* A suggested row's third line: "4 of 5 requirements", the role line's own
+ * 12/18 and secondary ink. The full checklist is the pane's Why suggested. */
 .working {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  min-width: 0;
   margin: 2px 0 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
   font-size: 12px;
   line-height: 18px;
   letter-spacing: -0.2px;
   color: var(--foreground-neutral-secondary, #455468);
-}
-
-.workingCount {
-  flex-shrink: 0;
-}
-
-.workingUnmet {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-}
-
-.workingDash {
-  flex-shrink: 0;
-  width: 6px;
-  height: 1.5px;
-  border-radius: 1px;
-  background: currentColor;
 }
 
 .srOnly {
@@ -176,24 +116,18 @@
   white-space: nowrap;
 }
 
-/* The match badge at the row's right end: "Strong match" / "Good match",
- * colour-coded by band (see SUGGESTION_BAND_VARIANT). */
-.matchBadge.matchBadge {
-  white-space: nowrap;
-  flex-shrink: 0;
-  /* Smaller than the DS Badge's 14/20 ("Make matches badges smaller"): 12/16
-     type in 2x6 padding, ~22px with the border, a tag's size beside the name
-     rather than a second heading. */
-  font-size: 12px;
-  line-height: 16px;
-  padding: 2px 6px;
+/* Rated Not a match (LAB-2819): the row stays in its place — re-sorting under
+ * the cursor loses the lead's position — and fades, the way Care.com and
+ * Wrangle set passed people apart. The lead's verdict takes the band's slot. */
+.ratedNot .left {
+  opacity: 0.55;
 }
 
-/* "Invited today" beside the name: the row's clock + date in its own type, on
- * the name line so the right end is the match badge alone. `flex-shrink: 0` so
- * the name ellipsises before the date does. */
-.invitedMark {
-  flex-shrink: 0;
+.ratedNotLabel {
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
 }
 
 /* Phone: production stacks the Members row into a column and drops the right

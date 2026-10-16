@@ -69,6 +69,11 @@ export const useUnifiedSearchAnalytics = () => {
     captureEvent(UNIFIED_SEARCH_ANALYTICS_EVENTS.AI_QUERY_SUBMITTED, { searchValue, entryPoint, submitType });
   }
 
+  /** One event per full search whose text looks like an email. It never carries the search text. */
+  function onEmailQuerySubmitted() {
+    captureEvent(UNIFIED_SEARCH_ANALYTICS_EVENTS.EMAIL_QUERY_SUBMITTED, {});
+  }
+
   return {
     onAutocompleteSearch,
     onFullSearch,
@@ -79,5 +84,6 @@ export const useUnifiedSearchAnalytics = () => {
     onAiConversationHistoryClick,
     onAiConversationHistoryOpenClick,
     onAiQuerySubmitted,
+    onEmailQuerySubmitted,
   };
 };

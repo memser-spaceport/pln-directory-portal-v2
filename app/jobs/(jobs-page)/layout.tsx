@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { PAGE_ROUTES } from '@/utils/constants';
 import { listingPageMetadata } from '@/utils/seo';
+import { JOBS_BOARD_TITLE } from '@/services/jobs/jobSeoTitles';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
 import { JobsFilterUrlSync } from '@/components/page/jobs/JobsFilterUrlSync';
 
@@ -12,7 +13,7 @@ export default function Layout({ filters, content }: { filters: ReactNode; conte
 }
 
 export const metadata = listingPageMetadata({
-  title: 'Jobs | Protocol Labs Directory',
+  title: JOBS_BOARD_TITLE,
   description: 'Open roles across the Protocol Labs network. Filter by function, seniority, and focus area.',
   path: PAGE_ROUTES.JOBS,
 });

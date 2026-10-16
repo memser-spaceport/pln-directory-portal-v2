@@ -4,6 +4,7 @@ import { getJobOpening } from '@/app/actions/jobs.actions';
 import type { IJobRole, IJobTeamGroup } from '@/types/jobs.types';
 import { JobOpeningView } from '@/components/page/jobs/JobOpeningView/JobOpeningView';
 import { jobOpeningPath } from '@/services/jobs/job-detail-link';
+import { jobRoleSeoTitle } from '@/services/jobs/jobSeoTitles';
 import { buildJobPostingJsonLd, jobDescriptionHtml } from '@/services/jobs/job-posting-jsonld';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
@@ -49,9 +50,7 @@ export async function generateMetadata({ params }: PageProps, parent: ResolvingM
   const team = loaded.group.team;
 
   const location = role.location.length ? role.location.join(', ') : null;
-  const title = location
-    ? `${role.roleTitle} at ${team.name} (${location}) | Protocol Labs Directory`
-    : `${role.roleTitle} at ${team.name} | Protocol Labs Directory`;
+  const title = jobRoleSeoTitle(role, team);
   const description =
     htmlToPlainSnippet(jobDescriptionHtml(role.descriptionHtml)) ||
     `${role.roleTitle} at ${team.name}${location ? ` — ${location}` : ''}. Open role on the Protocol Labs Directory job board.`;

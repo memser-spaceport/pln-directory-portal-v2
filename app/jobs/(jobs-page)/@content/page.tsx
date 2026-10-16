@@ -7,6 +7,7 @@ import { absoluteUrl, listingPageMetadata } from '@/utils/seo';
 import { getJobByUid } from '@/services/jobs/getJobByUid';
 import { JOB_DETAIL_PARAM, jobOpeningPath } from '@/services/jobs/job-detail-link';
 import { getJobPreviewSnippet } from '@/services/jobs/jobPreviewSnippet';
+import { JOBS_BOARD_TITLE, jobRoleSeoTitle } from '@/services/jobs/jobSeoTitles';
 
 import { getJobsList } from '@/app/actions/jobs.actions';
 import type { ServerJobsPage } from '@/services/jobs/hooks/useJobsQueries';
@@ -21,7 +22,7 @@ type PageProps = {
 };
 
 const JOBS_LISTING_METADATA = listingPageMetadata({
-  title: 'Jobs | Protocol Labs Directory',
+  title: JOBS_BOARD_TITLE,
   description: 'Open roles across the Protocol Labs network. Filter by function, seniority, and focus area.',
   path: PAGE_ROUTES.JOBS,
 });
@@ -105,7 +106,7 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
   const description = getJobPreviewSnippet(role, team);
 
   return {
-    title: `${role.roleTitle} | Protocol Labs Directory`,
+    title: jobRoleSeoTitle(role, team),
     description,
     alternates: { canonical: jobUrl },
     openGraph: {

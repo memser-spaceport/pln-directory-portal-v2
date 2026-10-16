@@ -57,7 +57,7 @@ function Harness({
 }
 
 const field = () => screen.getByRole('textbox', { name: 'Message' });
-const send = () => screen.getByRole('button', { name: 'Send email' });
+const send = () => screen.getByRole('button', { name: 'Send' });
 const TEMPLATE = contactTemplate({
   firstName: 'Ana',
   roleTitle: 'Senior Rust Engineer',
@@ -188,11 +188,11 @@ describe('ContactSuggestedModal', () => {
       expect(field()).toHaveAccessibleDescription(/Say what caught your eye in Ana’s profile/);
     });
 
-    it('labels the button Send email', () => {
+    it('labels the button Send', () => {
       render(<Harness />);
 
       expect(send()).toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: 'Send' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Send email' })).not.toBeInTheDocument();
     });
   });
 });

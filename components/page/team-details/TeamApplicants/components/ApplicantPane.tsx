@@ -76,15 +76,21 @@ export function ApplicantPane({ applicant, isLoggedIn }: Props) {
  * Interest for someone who answered, Why suggested for someone the product
  * proposes (LAB-2771). The section is what the lead came to read, so it shows
  * even when the profile fails to load.
+ *
+ * `officeHours={false}` drops Office Hours for everyone (the Suggested tab,
+ * LAB-2837 feedback): a suggested person has not reached out, and a lead who
+ * wants to talk to them uses Contact, not their booking link.
  */
 export function MemberProfilePane({
   memberUid,
   isLoggedIn,
   section,
+  officeHours = true,
 }: {
   memberUid: string;
   isLoggedIn: boolean;
   section: ReactNode;
+  officeHours?: boolean;
 }) {
   const { currentUser: userInfo } = useCurrentUserStore();
   const { data: member, isLoading, isError } = useCandidateMember(memberUid, isLoggedIn);
@@ -123,7 +129,7 @@ export function MemberProfilePane({
 
       {section}
 
-      {!jobAspirant && (
+      {officeHours && !jobAspirant && (
         <ProfileSection name="Office Hours">
           <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
         </ProfileSection>

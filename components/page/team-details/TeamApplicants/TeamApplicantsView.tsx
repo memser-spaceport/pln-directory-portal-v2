@@ -529,16 +529,9 @@ export function TeamApplicantsView({
   const position = selected ? shown.findIndex((row) => row.uid === selected.uid) : -1;
 
   const selectedSuggested = shownSuggested.find((row) => row.memberUid === selectedUid) ?? null;
-  const suggestedPosition = selectedSuggested
-    ? shownSuggested.findIndex((row) => row.memberUid === selectedSuggested.memberUid)
-    : -1;
 
+  /* Applied and Interested only: the Suggested bar has no stepper (LAB-2837 feedback). */
   const step = (delta: number) => {
-    if (isSuggestedTab) {
-      const next = shownSuggested[suggestedPosition + delta];
-      if (next) selectSuggested(next);
-      return;
-    }
     const next = shown[position + delta];
     if (next) select(next);
   };
@@ -594,7 +587,6 @@ export function TeamApplicantsView({
     );
   };
 
-  const listLength = isSuggestedTab ? shownSuggested.length : shown.length;
   const hasSelection = isSuggestedTab ? !!selectedSuggested : !!selected;
 
   const showList = !isNarrow || !paneOpen;
@@ -702,11 +694,20 @@ export function TeamApplicantsView({
 
             {/* What this list is, in the one sentence nothing else here can say:
                 nobody on it did anything, and the people the team already knows
-                are left out on purpose. */}
+                are left out on purpose. Edit criteria ends it: it changes the
+                role, not the person in the pane (LAB-2837 feedback). */}
             {isSuggestedTab && (
-              <p className={s.suggestedNote}>
+              <p className={s.suggestedNote} data-testid="suggested-note">
                 The top {SUGGESTED_LIMIT} members matched to this role on their profile. They haven’t applied. People
                 who worked at {teamName || 'this team'} are not suggested.
+                {canEditCriteria && (
+                  <>
+                    {' '}
+                    <button type="button" className={s.editCriteria} onClick={() => setCriteriaOpen(true)}>
+                      Edit criteria
+                    </button>
+                  </>
+                )}
               </p>
             )}
 
@@ -761,21 +762,14 @@ export function TeamApplicantsView({
               <>
                 <SuggestedPaneBar
                   suggestion={selectedSuggested}
-                  position={suggestedPosition}
-                  total={listLength}
-                  onStep={step}
                   onContact={() => setContactMemberUid(selectedSuggested.memberUid)}
                 />
                 <MemberProfilePane
                   key={selectedSuggested.memberUid}
                   memberUid={selectedSuggested.memberUid}
                   isLoggedIn={isLoggedIn}
-                  section={
-                    <SuggestedWhy
-                      suggestion={selectedSuggested}
-                      onEditCriteria={canEditCriteria ? () => setCriteriaOpen(true) : undefined}
-                    />
-                  }
+                  section={<SuggestedWhy suggestion={selectedSuggested} />}
+                  officeHours={false}
                 />
               </>
             ) : !isSuggestedTab && selected ? (

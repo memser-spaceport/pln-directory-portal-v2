@@ -18,10 +18,12 @@ import {
 } from '@phosphor-icons/react';
 import { isUnderutilized, normalizeCategory } from './leaderboard.mapper';
 import type { LeaderboardCategoryWeight, LeaderboardSnapshot } from './leaderboard.types';
-import { activitiesData } from '../activities/data';
+import { activitiesData, isOpenActivity } from '../activities/data';
+import { useIsInfraMember } from '@/services/plaa/hooks/useIsInfraMember';
 
-const suggestionFor = (category: string): { title: string; points: string } | null => {
+const bestActivityFor = (category: string, isInfraMember: boolean): { title: string; points: string } | null => {
   const best = activitiesData.activities
+    .filter((activity) => isOpenActivity(activity, isInfraMember))
     .filter((activity) => normalizeCategory(activity.category) === normalizeCategory(category))
     .sort((a, b) => parseInt(b.points, 10) - parseInt(a.points, 10))[0];
   return best ? { title: best.activity, points: best.points } : null;
@@ -46,6 +48,8 @@ const percentDelta = (current: number, previous: number): string | null => {
 
 export default function SnapshotPanel({ snapshots, index, onIndexChange, categoryWeights }: SnapshotPanelProps) {
   const router = useRouter();
+  const isInfraMember = useIsInfraMember();
+  const suggestionFor = (category: string) => bestActivityFor(category, isInfraMember);
   const snapshot = snapshots[index];
   const previous = snapshots[index + 1] ?? null;
   // Category hovered on the radar or in the list beside it; highlighted in both.

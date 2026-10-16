@@ -58,7 +58,7 @@ The Suggested tab SHALL load when the suggestions response carries `contactedAt`
 
 ### Requirement: Edit a role's match criteria
 
-From the Suggested tab, a lead SHALL be able to open "Edit criteria", switch each of the role's requirements on or off, write who they are looking for in one free-text box (at most 500 characters, with a counter), and save both together. The box SHALL open on the saved prompt (`criteriaPrompt`). The modal's title SHALL read "Edit AI criteria" and its subtitle "What the AI matches members against for <role title>." Its footer SHALL read "Changes apply from next week's suggestions." with Cancel and Save.
+From the Suggested tab, a lead SHALL be able to open "Edit criteria", switch each of the role's requirements on or off, write who they are looking for in one free-text box (at most 500 characters, with a counter), and save both. The box SHALL open on the saved prompt (`criteriaPrompt`). The modal's title SHALL read "Edit AI criteria" and its subtitle "What the AI matches members against for <role title>." Its footer SHALL read "Changes apply from next week's suggestions." with Cancel and Save.
 
 #### Scenario: Lead saves switched-off requirements
 

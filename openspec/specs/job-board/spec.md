@@ -110,14 +110,14 @@ The Suggested tab SHALL load when the suggestions response carries `contactedAt`
 - **GIVEN** a lead of the team opens the Suggested tab of a live role
 - **WHEN** the suggestions response has no `contactedAt` and no `criteria`
 - **THEN** the tab lists the suggestions as before
-- **AND** no "Edit criteria" action is shown
+- **AND** no "Edit AI criteria" action is shown
 
 #### Scenario: Newer response with the new fields
 
 - **GIVEN** a lead of the team opens the Suggested tab of a live role
 - **WHEN** the response carries `contactedAt` for each person and a `criteria` list of `{ text, enabled }`
 - **THEN** the tab lists the suggestions
-- **AND** the "Why suggested" pane offers "Edit criteria"
+- **AND** the tab offers "Edit AI criteria" under its note
 
 #### Scenario: Criteria with labels and groups
 
@@ -228,7 +228,7 @@ The "Why suggested" pane SHALL show "N of M requirements", where M is the number
 
 ### Requirement: Edit a role's match criteria
 
-From the "Why suggested" pane, a lead SHALL be able to open "Edit criteria", switch each of the role's requirements on or off, write who they are looking for in one free-text box (at most 500 characters, with a character counter), and save both together. The box SHALL open on the saved prompt (`criteriaPrompt`). The modal's subtitle SHALL read "What counts as a fit for <role title>." Its footer SHALL read "Changes apply from next week's suggestions." on the left, with Cancel and Save on the right.
+From the Suggested tab, a lead SHALL be able to open "Edit criteria", switch each of the role's requirements on or off, write who they are looking for in one free-text box (at most 500 characters, with a counter), and save both. The box SHALL open on the saved prompt (`criteriaPrompt`). The modal's title SHALL read "Edit AI criteria" and its subtitle "What the AI matches members against for <role title>." Its footer SHALL read "Changes apply from next week's suggestions." with Cancel and Save.
 
 #### Scenario: Lead saves switched-off requirements
 
@@ -272,7 +272,8 @@ From the "Why suggested" pane, a lead SHALL be able to open "Edit criteria", swi
 #### Scenario: Modal states when the change applies
 
 - **WHEN** a lead opens "Edit criteria" for "Senior Rust Engineer"
-- **THEN** the subtitle reads "What counts as a fit for Senior Rust Engineer."
+- **THEN** the title reads "Edit AI criteria"
+- **AND** the subtitle reads "What the AI matches members against for Senior Rust Engineer."
 - **AND** the footer reads "Changes apply from next week's suggestions." beside Cancel and Save
 
 #### Scenario: Analytics event on save
@@ -450,3 +451,32 @@ In the "Edit criteria" modal, the free-text box label SHALL read "Help us sugges
 
 - **WHEN** a screen reader user moves to the free-text box
 - **THEN** the box is described by the helper text and by the counter "<n> / 500"
+
+### Requirement: Edit AI criteria button on the Suggested tab
+
+On the Suggested tab of the candidates page, under the tab note, the page SHALL show a small bordered grey button with the AI mark and the label "Edit AI criteria" when the role has criteria to edit. The button SHALL open the Edit criteria modal. The note SHALL NOT end in an "Edit criteria" link. The Suggested tab SHALL show no search field; the Applied and Interested tabs SHALL keep it, and a term typed there SHALL NOT filter the Suggested list.
+
+#### Scenario: Lead opens Edit AI criteria
+
+- **GIVEN** a lead opens the Suggested tab of a role with criteria
+- **WHEN** the lead presses "Edit AI criteria" under the note
+- **THEN** the Edit criteria modal opens
+- **AND** the note has no "Edit criteria" link
+
+#### Scenario: Role without criteria
+
+- **GIVEN** a role has no criteria, or the response carries none
+- **WHEN** a lead opens the Suggested tab
+- **THEN** no "Edit AI criteria" button shows
+
+#### Scenario: No search on Suggested
+
+- **GIVEN** a lead types "ana" in the search on the Applied tab
+- **WHEN** the lead opens the Suggested tab
+- **THEN** no search field shows
+- **AND** every suggested person is listed
+
+#### Scenario: Search stays on Applied and Interested
+
+- **WHEN** a lead opens the Applied or the Interested tab
+- **THEN** the "Search by name or role" field shows

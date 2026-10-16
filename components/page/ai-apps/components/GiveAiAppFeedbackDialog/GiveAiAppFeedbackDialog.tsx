@@ -277,6 +277,8 @@ interface Props {
    * list is not loaded — the member may have no AI Apps access.
    */
   labosOnly?: boolean;
+  /** The member hid the LabOS-wide floating button, after confirming. Set while that button shows. */
+  onHideButton?: () => void;
 }
 
 /**
@@ -382,6 +384,7 @@ export function GiveAiAppFeedbackDialog({
   altBody,
   collapsed = false,
   labosOnly = false,
+  onHideButton,
 }: Props) {
   const isDrawer = variant === 'drawer';
   const showingAlt = isDrawer && Boolean(altBody);
@@ -534,6 +537,7 @@ export function GiveAiAppFeedbackDialog({
   const [otherDrafts, setOtherDrafts] = useState<SavedDraft[]>([]);
   const [showDrafts, setShowDrafts] = useState(false);
   const [isDiscardPending, setIsDiscardPending] = useState(false);
+  const [isHidePending, setIsHidePending] = useState(false);
   const [showSent, setShowSent] = useState(false);
   const [isWide, setIsWide] = useState(false);
   /** The opening line of each report sent while this panel was open. */
@@ -584,6 +588,7 @@ export function GiveAiAppFeedbackDialog({
       setShortcutsOpen(false);
       setShowDrafts(false);
       setIsDiscardPending(false);
+      setIsHidePending(false);
       setShowSent(false);
       setSentReports([]);
     }
@@ -1123,7 +1128,7 @@ export function GiveAiAppFeedbackDialog({
 
       submitContactSupport(
         {
-          topic: 'AI Apps Feedback',
+          topic: 'LabOS Feedback',
           email,
           name,
           /* Support reads it as an email, which shows markdown as plain text. */
@@ -1133,6 +1138,8 @@ export function GiveAiAppFeedbackDialog({
             uid: currentUser?.uid || '',
             page: window.location.toString(),
           },
+          reportKind,
+          priority,
         },
         {
           onSuccess: () => {
@@ -1210,7 +1217,7 @@ export function GiveAiAppFeedbackDialog({
       }
 
       if (isShortcutsKey(event)) {
-        if (isBusy || isDiscardPending) return;
+        if (isBusy || isDiscardPending || isHidePending) return;
         event.preventDefault();
         analytics.onFeedbackShortcutsHelpOpened();
         setShortcutsOpen(true);
@@ -1262,6 +1269,7 @@ export function GiveAiAppFeedbackDialog({
     shortcutsOpen,
     pendingRemoveId,
     isDiscardPending,
+    isHidePending,
     isBusy,
     isPending,
     isOverLimit,
@@ -1277,7 +1285,7 @@ export function GiveAiAppFeedbackDialog({
     showAppPicker,
   ]);
 
-  const closeOnEscape = !isBusy && !pendingRemoveId && !shortcutsOpen && !isDiscardPending;
+  const closeOnEscape = !isBusy && !pendingRemoveId && !shortcutsOpen && !isDiscardPending && !isHidePending;
 
   /* Drawer: Esc closes it, as Modal's closeOnEscape does for the popover, unless something on top owns Esc
      (a confirm, the shortcuts sheet, a capture). On the Comments tab, comment mode owns Esc. */
@@ -1737,6 +1745,20 @@ export function GiveAiAppFeedbackDialog({
                   onCancel={() => setIsDiscardPending(false)}
                 />
               </ConfirmLayer>
+              <ConfirmLayer isOpen={isHidePending}>
+                <ConfirmDialog
+                  isOpen
+                  title="Hide the feedback button?"
+                  message="The button will no longer show on LabOS pages. You can turn it on again in Settings → General preferences. You can still give feedback from the (?) menu."
+                  confirmText="Hide button"
+                  cancelText="Keep"
+                  onConfirm={() => {
+                    setIsHidePending(false);
+                    onHideButton?.();
+                  }}
+                  onCancel={() => setIsHidePending(false)}
+                />
+              </ConfirmLayer>
 
               <div className={s.postingAs}>
                 <CommentIcon />
@@ -1748,6 +1770,12 @@ export function GiveAiAppFeedbackDialog({
             </div>
 
             <div className={s.footer}>
+              {onHideButton && (
+                <button type="button" className={s.hideButton} onClick={() => setIsHidePending(true)}>
+                  <EyeOffIcon />
+                  Hide button
+                </button>
+              )}
               <div className={clsx(s.footerActions, s.phoneFillRow)}>
                 {worthKeeping && (
                   <Button
@@ -2026,6 +2054,20 @@ function NarrowerIcon() {
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
       <path
         d="M1.5 8H6.5M9.5 8h5M3.5 5l3 3-3 3M12.5 5l-3 3 3 3"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function EyeOffIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path
+        d="M6.6 3.6A6.6 6.6 0 0 1 8 3.5c3.5 0 5.8 3 6.5 4.5a8.6 8.6 0 0 1-1.7 2.4M10.1 10.6A2.8 2.8 0 0 1 5.4 6.9M4.4 4.6C2.9 5.6 1.9 7 1.5 8c.7 1.5 3 4.5 6.5 4.5 1.4 0 2.6-.5 3.6-1.1M2 2l12 12"
         stroke="currentColor"
         strokeWidth="1.4"
         strokeLinecap="round"

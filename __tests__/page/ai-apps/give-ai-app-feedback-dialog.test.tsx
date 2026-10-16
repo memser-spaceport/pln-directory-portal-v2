@@ -494,7 +494,7 @@ describe('GiveAiAppFeedbackDialog', () => {
     await waitFor(() =>
       expect(mockContactSupportMutate).toHaveBeenCalledWith(
         {
-          topic: 'AI Apps Feedback',
+          topic: 'LabOS Feedback',
           email: 'ada@example.com',
           name: 'Ada Lovelace',
           message: '<p>Platform needs better docs</p>',
@@ -503,6 +503,8 @@ describe('GiveAiAppFeedbackDialog', () => {
             uid: 'member-1',
             page: expect.any(String),
           },
+          reportKind: 'bug',
+          priority: 'P2',
         },
         expect.objectContaining({ onSuccess: expect.any(Function) }),
       ),
@@ -513,6 +515,38 @@ describe('GiveAiAppFeedbackDialog', () => {
 
   /* LAB-2879: the LabOS-wide drawer, opened from every page outside AI Apps. */
   describe('LabOS-wide feedback (labosOnly)', () => {
+    it('offers Hide button only when the host can hide its button', () => {
+      mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+      const { rerender } = render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} variant="drawer" labosOnly />);
+      expect(screen.queryByRole('button', { name: 'Hide button' })).not.toBeInTheDocument();
+
+      rerender(
+        <GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} variant="drawer" labosOnly onHideButton={jest.fn()} />,
+      );
+      expect(screen.getByRole('button', { name: 'Hide button' })).toBeInTheDocument();
+    });
+
+    it('asks before hiding, and points to Settings to turn it on again', () => {
+      mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+      const onHideButton = jest.fn();
+      render(
+        <GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} variant="drawer" labosOnly onHideButton={onHideButton} />,
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: 'Hide button' }));
+      expect(screen.getByText('Hide the feedback button?')).toBeInTheDocument();
+      expect(screen.getByText(/turn it on again in Settings → General preferences/)).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Keep' }));
+      expect(onHideButton).not.toHaveBeenCalled();
+      expect(screen.queryByText('Hide the feedback button?')).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Hide button' }));
+      const confirm = screen.getAllByRole('button', { name: 'Hide button' }).at(-1)!;
+      fireEvent.click(confirm);
+      expect(onHideButton).toHaveBeenCalledTimes(1);
+    });
+
     it('hides the app picker and does not load the AI Apps list', () => {
       mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
 
@@ -539,8 +573,10 @@ describe('GiveAiAppFeedbackDialog', () => {
       await waitFor(() =>
         expect(mockContactSupportMutate).toHaveBeenCalledWith(
           expect.objectContaining({
-            topic: 'AI Apps Feedback',
+            topic: 'LabOS Feedback',
             message: '<p>The members page is slow</p>',
+            reportKind: 'bug',
+            priority: 'P2',
             metadata: expect.objectContaining({ page: expect.any(String) }),
           }),
           expect.objectContaining({ onSuccess: expect.any(Function) }),

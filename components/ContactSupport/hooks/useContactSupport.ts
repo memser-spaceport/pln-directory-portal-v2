@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from '@/components/core/ToastContainer';
 import { Metadata } from '@/components/ContactSupport/types';
+import type { AiAppFeedbackPriority, AiAppFeedbackReportKind } from '@/services/ai-app-feedback/constants';
 
 export type ContactSupportPayload = {
   topic: string;
@@ -8,6 +9,8 @@ export type ContactSupportPayload = {
   name: string;
   message: string;
   metadata?: Metadata;
+  reportKind?: AiAppFeedbackReportKind;
+  priority?: AiAppFeedbackPriority;
 };
 
 async function mutation(payload: ContactSupportPayload) {

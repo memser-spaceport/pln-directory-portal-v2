@@ -28,6 +28,7 @@ export interface MemberPreferencesResponse {
     showForumBanner?: boolean;
     showDemoDayConnectDialog?: boolean;
     showDemoDayInvestDialog?: boolean;
+    showFeedbackButton?: boolean;
   };
   isPreferenceAvailable: boolean;
 }
@@ -79,6 +80,7 @@ async function fetcher(uid: string | undefined): Promise<MemberPreferencesRespon
     showForumBanner: rawPreferences?.showForumBanner ?? true, // Default to true
     showDemoDayConnectDialog: rawPreferences?.showDemoDayConnectDialog ?? true, // Default to true
     showDemoDayInvestDialog: rawPreferences?.showDemoDayInvestDialog ?? true, // Default to true
+    showFeedbackButton: rawPreferences?.showFeedbackButton ?? true,
   };
 
   return {

@@ -845,15 +845,22 @@ describe('FloatingFeedbackButton', () => {
       expect(screen.getByTestId('feedback-dialog')).toHaveAttribute('data-labos-only', 'true');
     });
 
-    it('leaves Alt+F to the browser and shows no shortcut hint', () => {
+    it('opens from Alt+F as a shortcut, shows the hint, and leaves ? to the page', () => {
       mockUsePermissions.mockReturnValue({ permsSet: new Set(), isLoading: false });
       const props = globalProps();
 
       render(<FloatingFeedbackButton global={props} />);
       openChord();
 
-      expect(props.onOpen).not.toHaveBeenCalled();
-      expect(screen.getByRole('button', { name: 'Give feedback' })).not.toHaveAttribute('aria-keyshortcuts');
+      expect(props.onOpen).toHaveBeenCalledWith('shortcut');
+      expect(screen.getByRole('button', { name: 'Give feedback' })).toHaveAttribute(
+        'aria-keyshortcuts',
+        'Alt+F Control+Alt+Enter',
+      );
+      expect(screen.getByText('Alt+F', { selector: 'kbd' })).toBeInTheDocument();
+
+      fireEvent.keyDown(window, { key: '?', shiftKey: true });
+      expect(screen.queryByText('Keyboard shortcuts')).not.toBeInTheDocument();
     });
   });
 });

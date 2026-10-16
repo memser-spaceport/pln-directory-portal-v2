@@ -5,6 +5,7 @@ import { clsx } from 'clsx';
 import { usePermissions } from '@/services/rbac/hooks/usePermissions';
 import { canViewAiApps } from '@/services/rbac/utils/aiApps/canViewAiApps';
 import { SHOW_AI_APPS_COMMENTS } from '@/services/ai-apps/constants';
+import type { FeedbackButtonSource } from '@/analytics/feedback.analytics';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { CommentIcon } from '@/components/icons';
 import {
@@ -78,9 +79,10 @@ interface Props {
   global?: {
     open: boolean;
     showButton: boolean;
-    onOpen: () => void;
+    onOpen: (source?: FeedbackButtonSource) => void;
     onClose: () => void;
     onSent?: () => void;
+    onHideButton?: () => void;
   };
 }
 
@@ -243,13 +245,13 @@ function FeedbackFab({
     }
   }
 
-  /* The open drawer owns its keys, `?` included. Global mode takes no page keys: on every
-     LabOS page Alt+F belongs to the browser (its File menu on Windows), and `?` to the page. */
+  /* The open drawer owns its keys, `?` included. Global mode takes only the open keys, and only
+     where it draws the button (AI Apps pages answer them with their own): `?` belongs to the page. */
   useEffect(() => {
-    if (global || !isVisible || drawerOpen || isPinMode || shortcutsOpen) return;
+    if (!isVisible || !showButton || drawerOpen || isPinMode || shortcutsOpen) return;
 
     const onKey = (event: KeyboardEvent) => {
-      if (isShortcutsKey(event) && !isAnyDialogOpen()) {
+      if (!global && isShortcutsKey(event) && !isAnyDialogOpen()) {
         event.preventDefault();
         analytics.onFeedbackShortcutsHelpOpened();
         setShortcutsOpen(true);
@@ -257,6 +259,10 @@ function FeedbackFab({
       }
       if (!isOpenFeedbackKey(event)) return;
       event.preventDefault();
+      if (global) {
+        global.onOpen('shortcut');
+        return;
+      }
       analytics.onFeedbackShortcutUsed({ action: 'open' });
       /* What the button does while the drawer is closed. */
       startFeedback();
@@ -264,7 +270,7 @@ function FeedbackFab({
 
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [global, isVisible, drawerOpen, isPinMode, shortcutsOpen, startFeedback, analytics]);
+  }, [global, isVisible, showButton, drawerOpen, isPinMode, shortcutsOpen, startFeedback, analytics]);
 
   if (!isVisible) {
     return null;
@@ -286,7 +292,7 @@ function FeedbackFab({
             type="button"
             className={s.button}
             aria-label={name}
-            aria-keyshortcuts={global ? undefined : shortcuts.openAria}
+            aria-keyshortcuts={shortcuts.openAria}
             tabIndex={drawerOpen ? -1 : undefined}
             onClick={startFeedback}
           >
@@ -294,7 +300,7 @@ function FeedbackFab({
             <CommentIcon />
             <span className={s.label} aria-hidden>
               <span>{name}</span>
-              {!global && <kbd className={s.labelKbd}>{shortcuts.open}</kbd>}
+              <kbd className={s.labelKbd}>{shortcuts.open}</kbd>
             </span>
             {commentsAvailable && (commentMode?.count ?? 0) > 0 && (
               <span className={s.count} aria-label={`${commentMode?.count} comments`}>
@@ -391,6 +397,7 @@ function FeedbackFab({
         altBody={inCommentMode ? commentMode?.body : undefined}
         collapsed={inCommentMode && Boolean(commentMode?.collapsed)}
         labosOnly={Boolean(global)}
+        onHideButton={global?.onHideButton}
       />
 
       <ShortcutHelp isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} shortcuts={shortcuts} />

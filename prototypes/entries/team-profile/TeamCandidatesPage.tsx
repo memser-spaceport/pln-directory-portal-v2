@@ -55,6 +55,8 @@ import {
 } from './mocks';
 import { SuggestedWhy } from './SuggestedWhy';
 import { CriteriaModal } from './CriteriaModal';
+import { AiBriefModal } from './AiBriefModal';
+import { AiSearchIcon } from '@/prototypes/components/AiSearchIcon/AiSearchIcon';
 import s from './TeamCandidatesPage.module.scss';
 
 const APPLIED_TAB = 'Applied';
@@ -300,8 +302,7 @@ export function TeamCandidatesPage({
       else next[id] = { verdict };
       return next;
     });
-  const setMissNote = (id: string, note: string) =>
-    setRatings((prev) => ({ ...prev, [id]: { verdict: 'not', note } }));
+  const setMissNote = (id: string, note: string) => setRatings((prev) => ({ ...prev, [id]: { verdict: 'not', note } }));
   // Who the lead has messaged, and when; drafts kept per person so closing
   // the modal never costs what was typed. Session-local, like `seenIds`.
   const [messagedAt, setMessagedAt] = useState<Record<string, string>>({});
@@ -314,6 +315,7 @@ export function TeamCandidatesPage({
   // would keep it on the listing.
   const [criteriaOff, setCriteriaOff] = useState<Record<string, ReadonlySet<string>>>({});
   const [criteriaOpen, setCriteriaOpen] = useState(false);
+  const [briefOpen, setBriefOpen] = useState(false);
   // The lead's free-text prompt for the matcher, per role (CriteriaModal).
   const [criteriaPrompt, setCriteriaPrompt] = useState<Record<string, string>>({});
 
@@ -686,6 +688,26 @@ export function TeamCandidatesPage({
                 <p className={s.tabNote}>
                   Members of the Protocol Labs network, matched to this role on their profile. They haven’t applied.
                 </p>
+                {/* The role-level lever beside the list it re-ranks; Edit
+                    criteria stays on the person's "Why we suggested". Once
+                    written, the brief itself is the label, so the lead can
+                    see what the AI was told without opening it. */}
+                {(() => {
+                  const brief = criteriaPrompt[role.uid];
+                  return (
+                    <button type="button" className={s.briefDoor} onClick={() => setBriefOpen(true)}>
+                      <AiSearchIcon size={14} />
+                      {brief ? (
+                        <>
+                          <span className={s.briefText}>“{brief}”</span>
+                          <span className={s.briefEdit}>Edit</span>
+                        </>
+                      ) : (
+                        <span>Brief the AI on who you’re looking for</span>
+                      )}
+                    </button>
+                  );
+                })()}
               </div>
             )}
             <div className={s.searchWrap}>
@@ -823,6 +845,16 @@ export function TeamCandidatesPage({
         />
       )}
 
+      {role.suggested && (
+        <AiBriefModal
+          open={briefOpen}
+          onClose={() => setBriefOpen(false)}
+          roleTitle={role.title}
+          prompt={criteriaPrompt[role.uid] ?? ''}
+          onSave={(prompt) => setCriteriaPrompt((prev) => ({ ...prev, [role.uid]: prompt }))}
+        />
+      )}
+
       {role.suggested && criteria.length > 0 && (
         <CriteriaModal
           open={criteriaOpen}
@@ -831,10 +863,8 @@ export function TeamCandidatesPage({
           criteria={criteria}
           people={role.suggested}
           off={off}
-          prompt={criteriaPrompt[role.uid] ?? ''}
-          onSave={(next, prompt) => {
+          onSave={(next) => {
             setCriteriaOff((prev) => ({ ...prev, [role.uid]: next }));
-            setCriteriaPrompt((prev) => ({ ...prev, [role.uid]: prompt }));
             // The person in the pane may have dropped below the floor.
             setSelectedId(null);
           }}

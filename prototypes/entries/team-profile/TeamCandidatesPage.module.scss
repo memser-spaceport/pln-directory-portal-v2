@@ -573,3 +573,51 @@
     margin: 0;
   }
 }
+
+/* Brief the AI: a brand text action (Edit criteria's lineage) led by the AI
+ * Search mark. With a saved brief, the brief in secondary ink, one line,
+ * then Edit in brand. */
+.briefDoor {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  text-align: left;
+  color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+
+  > svg {
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.briefText {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: 400;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.briefEdit {
+  flex-shrink: 0;
+}

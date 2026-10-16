@@ -6,10 +6,6 @@ import {
   Coins,
   ArrowsLeftRight,
   TrendUp,
-  RocketLaunch,
-  Flask,
-  Code,
-  Strategy,
   Check,
   UserPlus,
   IdentificationCard,
@@ -31,6 +27,7 @@ import type { TrustHoldingsData } from '@/services/plaa/trust-holdings.service';
 import styles from './overview.module.scss';
 import type { ReactNode } from 'react';
 import { cssVars } from './css-vars';
+import { ROLE_ITEMS } from './role-items';
 
 const SURUS_URL = 'https://app.surus.io/invest/PLAA1Trust';
 
@@ -77,17 +74,6 @@ const ONBOARDING_STEPS = [
     description: 'Review and sign the trust documents — PPM and Rights Contract — via the Surus app.',
     icon: <FileText size={22} weight="regular" />,
   },
-];
-
-const ROLE_ITEMS = [
-  { role: 'Founders', description: 'driving new ventures', icon: <RocketLaunch size={19} weight="regular" /> },
-  { role: 'Researchers', description: 'accelerating frontier fields', icon: <Flask size={19} weight="regular" /> },
-  {
-    role: 'Builders',
-    description: 'shipping tools, products, and experiments',
-    icon: <Code size={19} weight="regular" />,
-  },
-  { role: 'Operators', description: 'coordinating teams and projects', icon: <Strategy size={19} weight="regular" /> },
 ];
 
 const BENEFIT_ITEMS = [

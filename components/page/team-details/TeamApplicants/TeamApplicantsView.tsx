@@ -12,6 +12,8 @@ import { SearchInput } from '@/components/common/filters/SearchInput';
 import { Tabs } from '@/components/ui/tabs/Tabs';
 import { DetailsSectionGreyContentContainer, NoDataBlock } from '@/components/common/profile/DetailsSection';
 import { filterSelectStyles } from '@/components/common/filters/FilterSelect';
+import btn from '@/components/common/Button/Button.module.scss';
+import { AiSearchIcon } from '@/components/icons/AiSearchIcon';
 import { ArrowUpRightIcon } from '@/components/icons/ArrowUpRightIcon';
 import { CaretLeftIcon } from '@/components/icons/CaretLeftIcon';
 import type { Option } from '@/components/form/FormSelect/types';
@@ -364,9 +366,9 @@ export function TeamApplicantsView({
         [row.name, row.headline, row.currentCompany].some((field) => field?.toLowerCase().includes(term)),
       )
     : rows;
-  const shownSuggested = term
-    ? suggestedRows.filter((row) => [row.name, row.role].some((field) => field?.toLowerCase().includes(term)))
-    : suggestedRows;
+  /* Suggested has no search (LAB-2904): five names need no filtering, and a
+     term typed on Applied or Interested must not narrow it. */
+  const shownSuggested = suggestedRows;
 
   const switchRole = (next: string) => {
     if (next === roleUid) return;
@@ -699,26 +701,36 @@ export function TeamApplicantsView({
 
             {/* What this list is, in the one sentence nothing else here can say:
                 nobody on it did anything, and the people the team already knows
-                are left out on purpose. Edit criteria ends it: it changes the
-                role, not the person in the pane (LAB-2837 feedback). */}
+                are left out on purpose. */}
             {isSuggestedTab && (
               <p className={s.suggestedNote} data-testid="suggested-note">
                 The top {SUGGESTED_LIMIT} members matched to this role on their profile. They haven’t applied. People
                 who worked at {teamName || 'this team'} are not suggested.
-                {canEditCriteria && (
-                  <>
-                    {' '}
-                    <button type="button" className={s.editCriteria} onClick={() => setCriteriaOpen(true)}>
-                      Edit criteria
-                    </button>
-                  </>
-                )}
               </p>
             )}
 
-            <div className={s.searchWrap}>
-              <SearchInput value={query} onChange={setQuery} placeholder="Search by name or role" />
-            </div>
+            {/* Suggested holds the top five, so it has no search: Edit AI criteria
+                takes its place, under the note, on the list's left edge. It changes
+                the role, not the person in the pane (LAB-2837 feedback). Grey, not
+                brand: Contact is the page's one brand action (LAB-2904). */}
+            {isSuggestedTab ? (
+              canEditCriteria && (
+                <div className={s.criteriaRow}>
+                  <button
+                    type="button"
+                    className={clsx(btn.root, btn.small, btn.border, btn.neutral, s.criteriaBtn)}
+                    onClick={() => setCriteriaOpen(true)}
+                  >
+                    <AiSearchIcon size={16} />
+                    Edit AI criteria
+                  </button>
+                </div>
+              )
+            ) : (
+              <div className={s.searchWrap}>
+                <SearchInput value={query} onChange={setQuery} placeholder="Search by name or role" />
+              </div>
+            )}
 
             {isSuggestedTab && shownSuggested.length > 0 ? (
               <div className={s.list}>

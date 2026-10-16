@@ -54,6 +54,25 @@ describe('Leaderboard PLAA conversion', () => {
     expect(screen.getByRole('img', { name: 'Points collected per activity category' })).toBeInTheDocument();
   });
 
+  it('marks PLAA as not published for a closed snapshot that has not converted yet', () => {
+    renderPanel([
+      snapshot({
+        plaaDistributed: 0,
+        categories: [
+          { name: 'Programs', value: 1200, plaa: 0 },
+          { name: 'Brand', value: 300, plaa: 0 },
+        ],
+      }),
+      snapshot({ roundNumber: 18, label: 'Round 18', plaaDistributed: 3200 }),
+    ]);
+
+    expect(screen.getByText('Pending')).toBeInTheDocument();
+    expect(screen.getAllByText(/PLAA for this snapshot is not published yet/).length).toBeGreaterThan(0);
+    expect(screen.queryByText('-100%')).not.toBeInTheDocument();
+    expect(screen.queryByText('PLAA distributed', { selector: '.lb-conv-head span' })).not.toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Points collected per activity category' })).toBeInTheDocument();
+  });
+
   it('offers "boost these" categories on the live snapshot and conversion bars on closed ones', () => {
     const lopsided = [
       { name: 'Programs', value: 1200, plaa: 2500 },

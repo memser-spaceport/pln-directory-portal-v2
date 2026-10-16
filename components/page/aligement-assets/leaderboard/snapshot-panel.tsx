@@ -62,8 +62,11 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
   const canOlder = index < snapshots.length - 1;
   const canNewer = index > 0;
 
-  // Mid-snapshot, points are in but PLAA hasn't converted yet.
-  const isConversionPending = snapshot.isCurrentRound && snapshot.plaaDistributed === 0;
+  // PLAA arrives after a snapshot closes, so a closed one can still be waiting for it.
+  const isConversionPending = snapshot.plaaDistributed === 0;
+  const pendingNote = snapshot.isCurrentRound
+    ? 'Points convert to PLAA when the snapshot closes'
+    : 'PLAA for this snapshot is not published yet';
 
   const metrics: Array<{
     key: string;
@@ -93,7 +96,7 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
       label: 'PLAA distributed',
       value: snapshot.plaaDistributed,
       previous: previous?.plaaDistributed ?? null,
-      pendingNote: isConversionPending ? 'Points convert to PLAA when the snapshot closes' : undefined,
+      pendingNote: isConversionPending ? pendingNote : undefined,
     },
   ];
 
@@ -198,7 +201,11 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
         <span className="snap-legend-item">
           <span className="snap-legend-dot snap-legend-dot--plaa" />
           PLAA distributed
-          {isConversionPending && <span className="snap-legend-note">· converts when the snapshot closes</span>}
+          {isConversionPending && (
+            <span className="snap-legend-note">
+              · {snapshot.isCurrentRound ? 'converts when the snapshot closes' : 'not published yet'}
+            </span>
+          )}
         </span>
       </div>
 
@@ -270,6 +277,8 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
               })}
             </div>
           </div>
+        ) : isConversionPending ? (
+          <p className="snap-copy snap-copy--muted">{pendingNote}.</p>
         ) : (
           <ConversionBars
             categories={snapshot.categories}

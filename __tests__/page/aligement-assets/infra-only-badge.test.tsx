@@ -17,32 +17,36 @@ const base = activitiesData.activities[0];
 const open: Activity = { ...base, id: 'open-one', activity: 'Open activity', audience: undefined };
 const infraOnly: Activity = { ...base, id: 'infra-one', activity: 'Infra activity', audience: 'pl-infra-members' };
 
-test('marks infra-only activity cards with the Infra icon badge', () => {
+const cardOf = (title: string) =>
+  screen.getByText(title, { selector: '.activity-card__title' }).closest('.activity-card')!;
+const keyItems = () =>
+  Array.from(screen.queryByLabelText('Activity icon key')?.querySelectorAll('.activities-key__item') ?? []);
+
+test('marks only infra-only activity cards with the infra badge', () => {
   render(<ActivityTable activities={[open, infraOnly]} onRowClick={jest.fn()} />);
-  const badges = screen.getAllByTitle('Only available to PL Infra team members');
-  expect(badges.length).toBeGreaterThan(0);
-  badges.forEach((badge) => expect(badge.closest('.activity-card')).toHaveTextContent('Infra activity'));
+  expect(cardOf('Infra activity').querySelector('.activity-card__infra-badge')).not.toBeNull();
+  expect(cardOf('Open activity').querySelector('.activity-card__infra-badge')).toBeNull();
 });
 
-test('notes in the modal that an infra-only activity is limited to PL Infra members', () => {
+test('adds the infra note to the modal only for infra-only activities', () => {
   const { rerender } = render(<ActivityDetailModal isOpen onClose={jest.fn()} activity={infraOnly} />);
-  expect(screen.getByText('This activity is only available to PL Infra team members.')).toBeInTheDocument();
+  expect(document.querySelector('.activity-modal__infra-note')).not.toBeNull();
 
   rerender(<ActivityDetailModal isOpen onClose={jest.fn()} activity={open} />);
-  expect(screen.queryByText('This activity is only available to PL Infra team members.')).not.toBeInTheDocument();
+  expect(document.querySelector('.activity-modal__infra-note')).toBeNull();
 });
 
 test('keys only the status icons that appear in the list', () => {
   const sunset: Activity = { ...open, id: 'sunset-one', isSunset: true };
-
   const { rerender } = render(<ActivityTable activities={[open, infraOnly, sunset]} onRowClick={jest.fn()} />);
-  expect(screen.getByText('PL Infra only')).toBeInTheDocument();
-  expect(screen.getByText('Sunsetting at the end of this snapshot')).toBeInTheDocument();
+  expect(keyItems().map((item) => item.querySelector('[class*="badge"]')?.className)).toEqual([
+    expect.stringContaining('infra'),
+    expect.stringContaining('sunset'),
+  ]);
 
-  // A non-infra member's list has no infra-only activities, so no infra key either.
   rerender(<ActivityTable activities={[open, sunset]} onRowClick={jest.fn()} />);
-  expect(screen.queryByText('PL Infra only')).not.toBeInTheDocument();
-  expect(screen.getByText('Sunsetting at the end of this snapshot')).toBeInTheDocument();
+  expect(keyItems()).toHaveLength(1);
+  expect(keyItems()[0].querySelector('.activity-card__sunset-badge')).not.toBeNull();
 
   rerender(<ActivityTable activities={[open]} onRowClick={jest.fn()} />);
   expect(screen.queryByLabelText('Activity icon key')).not.toBeInTheDocument();

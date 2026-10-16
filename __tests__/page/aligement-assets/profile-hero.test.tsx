@@ -148,13 +148,12 @@ describe('ProfileHero', () => {
     );
 
     expect(container.textContent).not.toMatch(/[▲▼]/);
-    // Hero uses the horizontal chevron variant (points right, rotates to left).
-    const caretSvg = container.querySelector('svg path[d="M9 6l6 6-6 6"]');
-    expect(caretSvg).toBeInTheDocument();
+    const toggle = screen.getByRole('button', { name: /show plaa balance breakdown/i });
+    const caret = () => Array.from(toggle.querySelectorAll('svg')).pop()?.getAttribute('style') ?? '';
+    expect(caret()).not.toContain('rotate(180deg)');
 
-    fireEvent.click(screen.getByRole('button', { name: /show plaa balance breakdown/i }));
-    const rotatedCaret = caretSvg?.closest('svg') as SVGElement;
-    expect(rotatedCaret.getAttribute('style')).toContain('rotate(180deg)');
+    fireEvent.click(toggle);
+    expect(caret()).toContain('rotate(180deg)');
   });
 
   it('renders the real balance with "Confirmed by Surus" only when balanceStatus is ready', () => {

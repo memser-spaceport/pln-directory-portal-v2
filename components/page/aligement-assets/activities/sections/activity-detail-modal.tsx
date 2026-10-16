@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Modal } from '@/components/common/Modal';
 import { CloseIcon } from '@/components/icons';
 import { Activity, PopupLink } from '../types';
+import { isInfraOnlyActivity } from '../data';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { ACTIVITY_FORM_URL, ACTIVITY_CONFIRM_TOAST } from '@/constants/plaa';
 import { toast } from '@/components/core/ToastContainer';
@@ -423,6 +424,13 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
               </p>
             )}
 
+            {isInfraOnlyActivity(activity) && (
+              <p className="activity-modal__infra-note">
+                <Image src="/icons/infra.svg" alt="" width={18} height={18} />
+                <span>This activity is only available to PL Infra team members.</span>
+              </p>
+            )}
+
             {activity.isSunset && (
               <p className="activity-modal__sunset-note">
                 <Image src="/icons/sunset.svg" alt="" width={18} height={18} />
@@ -784,6 +792,25 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
         }
 
         .activity-modal__sunset-note :global(img) {
+          flex-shrink: 0;
+        }
+
+        .activity-modal__infra-note {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin: 0;
+          padding: 10px 12px;
+          font-size: 14px;
+          line-height: 20px;
+          font-style: italic;
+          color: #1636b8;
+          background: rgba(27, 77, 255, 0.06);
+          border: 1px solid rgba(27, 77, 255, 0.22);
+          border-radius: 8px;
+        }
+
+        .activity-modal__infra-note :global(img) {
           flex-shrink: 0;
         }
 

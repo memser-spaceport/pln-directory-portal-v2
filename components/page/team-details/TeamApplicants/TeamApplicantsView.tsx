@@ -769,6 +769,7 @@ export function TeamApplicantsView({
                   memberUid={selectedSuggested.memberUid}
                   isLoggedIn={isLoggedIn}
                   section={<SuggestedWhy suggestion={selectedSuggested} />}
+                  officeHours={false}
                 />
               </>
             ) : !isSuggestedTab && selected ? (

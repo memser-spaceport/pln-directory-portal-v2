@@ -42,8 +42,8 @@ jest.mock('@/components/common/filters/SearchInput', () => ({
 
 jest.mock('@/components/page/team-details/TeamApplicants/components/ApplicantPane', () => ({
   ApplicantPane: ({ applicant }: any) => <div data-testid="pane">{applicant.name}</div>,
-  MemberProfilePane: ({ memberUid, section }: any) => (
-    <div data-testid="pane" data-member={memberUid}>
+  MemberProfilePane: ({ memberUid, section, officeHours = true }: any) => (
+    <div data-testid="pane" data-member={memberUid} data-office-hours={String(officeHours)}>
       {section}
     </div>
   ),
@@ -343,6 +343,14 @@ describe('the Suggested tab', () => {
       rank: 2,
       label: 'Good match',
     });
+  });
+
+  /* LAB-2837 feedback: a suggested person has not reached out; Contact is the way to talk to them. */
+  it('shows no Office Hours in the Suggested pane', async () => {
+    renderView();
+    await openSuggested();
+
+    expect(screen.getByTestId('pane')).toHaveAttribute('data-office-hours', 'false');
   });
 
   it('opens on the best match in the two-column layout', async () => {

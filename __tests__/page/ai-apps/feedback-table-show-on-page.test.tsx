@@ -101,3 +101,80 @@ describe('FeedbackTable: Kind and Priority', () => {
     ]);
   });
 });
+
+describe('FeedbackTable: Linear issue', () => {
+  const linear = (status: 'PENDING' | 'SYNCED' | 'FAILED' | 'SKIPPED', extra: object = {}) => ({
+    status,
+    identifier: null,
+    url: null,
+    lastError: null,
+    ...extra,
+  });
+
+  it('links a synced item to its issue in a new tab', () => {
+    render(
+      <FeedbackTable
+        rows={[
+          {
+            ...row('fb-1'),
+            linearIssue: linear('SYNCED', { identifier: 'ABC-123', url: 'https://linear.app/x/issue/ABC-123' }),
+          },
+        ]}
+        onStatusSelect={jest.fn()}
+        onImageClick={jest.fn()}
+      />,
+    );
+    const link = screen.getByRole('link', { name: 'ABC-123' });
+    expect(link).toHaveAttribute('href', 'https://linear.app/x/issue/ABC-123');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('says a pending item is on its way', () => {
+    render(
+      <FeedbackTable
+        rows={[{ ...row('fb-1'), linearIssue: linear('PENDING') }]}
+        onStatusSelect={jest.fn()}
+        onImageClick={jest.fn()}
+      />,
+    );
+    expect(screen.getByText('Sending to Linear…')).toBeInTheDocument();
+  });
+
+  it('flags a failed item, with the error in a tooltip', () => {
+    render(
+      <FeedbackTable
+        rows={[{ ...row('fb-1'), linearIssue: linear('FAILED', { lastError: 'Linear responded 503' }) }]}
+        onStatusSelect={jest.fn()}
+        onImageClick={jest.fn()}
+      />,
+    );
+    /* The shared Tooltip renders its trigger once per breakpoint. */
+    const [flag] = screen.getAllByText("Couldn't send to Linear");
+    expect(flag).toBeInTheDocument();
+    expect(screen.queryByText('Linear responded 503')).not.toBeInTheDocument();
+  });
+
+  it('shows nothing for an item that is not sent, or was skipped', () => {
+    render(
+      <FeedbackTable
+        rows={[{ ...row('fb-1'), linearIssue: null }, row('fb-2'), { ...row('fb-3'), linearIssue: linear('SKIPPED') }]}
+        onStatusSelect={jest.fn()}
+        onImageClick={jest.fn()}
+      />,
+    );
+    expect(screen.queryByText(/Linear/)).not.toBeInTheDocument();
+  });
+
+  it("never shows it on the submitter's own list", () => {
+    render(
+      <FeedbackTable
+        rows={[
+          { ...row('fb-1'), linearIssue: linear('SYNCED', { identifier: 'ABC-123', url: 'https://linear.app/x' }) },
+        ]}
+        onImageClick={jest.fn()}
+      />,
+    );
+    expect(screen.queryByRole('link', { name: 'ABC-123' })).not.toBeInTheDocument();
+  });
+});

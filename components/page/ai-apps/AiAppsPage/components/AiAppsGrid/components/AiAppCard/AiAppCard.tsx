@@ -29,6 +29,7 @@ interface Props {
   canManage?: boolean;
   onEdit?: () => void;
   onAccess?: () => void;
+  onLinear?: () => void;
   onDeployment?: () => void;
   onDelete?: () => void;
   /** Open the deployment-logs modal; `source` says which affordance was used. */
@@ -38,7 +39,7 @@ interface Props {
 }
 
 export function AiAppCard(props: Props) {
-  const { app, onSelect, canManage, onEdit, onAccess, onDeployment, onDelete, onLogs, onViewDetails } = props;
+  const { app, onSelect, canManage, onEdit, onAccess, onLinear, onDeployment, onDelete, onLogs, onViewDetails } = props;
   const analytics = useAiAppsAnalytics();
 
   const handleAuthorClick = (e: MouseEvent) => {
@@ -186,6 +187,7 @@ export function AiAppCard(props: Props) {
         app={app}
         onEdit={onEdit}
         onAccess={onAccess}
+        onLinear={onLinear}
         onDeployment={onDeployment}
         onLogs={() => onLogs?.('menu')}
         onDelete={onDelete}

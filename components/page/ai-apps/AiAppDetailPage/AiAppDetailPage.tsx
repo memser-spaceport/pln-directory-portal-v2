@@ -25,6 +25,7 @@ import { AppActionsMenu } from '@/components/page/ai-apps/AiAppsPage/components/
 import {
   EditAiAppModal,
   ManageAccessModal,
+  LinearTargetModal,
   DeploymentSettingsModal,
   DeploymentLogsModal,
   DeleteAiAppDialog,
@@ -52,7 +53,7 @@ interface Props {
   basePath: string;
 }
 
-type Action = 'edit' | 'access' | 'deployment' | 'logs' | 'delete';
+type Action = 'edit' | 'access' | 'linear' | 'deployment' | 'logs' | 'delete';
 
 const SETUP_STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Draft',
@@ -841,6 +842,7 @@ export function AiAppDetailPage(props: Props) {
             app={app}
             onEdit={() => setAction('edit')}
             onAccess={() => setAction('access')}
+            onLinear={() => setAction('linear')}
             onDeployment={() => setAction('deployment')}
             onLogs={() => {
               analytics.onDeploymentLogsOpened({
@@ -966,6 +968,7 @@ export function AiAppDetailPage(props: Props) {
       {action === 'access' && (
         <ManageAccessModal app={app} onClose={closeAction} onRedeploy={() => setAction('deployment')} />
       )}
+      {action === 'linear' && <LinearTargetModal app={app} onClose={closeAction} />}
       {action === 'deployment' && (
         <DeploymentSettingsModal app={app} onClose={closeAction} onDeployingChange={setIsRedeploying} />
       )}

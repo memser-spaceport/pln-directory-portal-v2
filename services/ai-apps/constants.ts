@@ -8,6 +8,8 @@ export enum AiAppsQueryKeys {
   AI_APP_LOGS = 'ai-app-logs',
   AI_APP_TAGS = 'ai-app-tags',
   AI_APP_ACCESS = 'ai-app-access',
+  AI_APP_LINEAR_TARGET = 'ai-app-linear-target',
+  AI_APP_LINEAR_TEAMS = 'ai-app-linear-teams',
   AI_APP_ACCESS_CANDIDATES = 'ai-app-access-candidates',
   AI_APP_PUBLIC_PATHS = 'ai-app-public-paths',
   AI_APP_TESTING_USERS = 'ai-app-testing-users',

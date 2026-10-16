@@ -638,6 +638,102 @@ export async function saveAiAppAccess(
   return parseAccessResponse(response, 'Saving failed. Please try again.');
 }
 
+export interface AiAppLinearProject {
+  id: string;
+  name: string;
+}
+
+/** A private Linear team the caller may send an app's feedback to. */
+export interface AiAppLinearTeam {
+  id: string;
+  key: string;
+  name: string;
+  projects: AiAppLinearProject[];
+}
+
+/** Where an app's private feedback goes in Linear; all null when it isn't sent. */
+export interface AiAppLinearTarget {
+  teamId: string | null;
+  projectId: string | null;
+  setAt: string | null;
+}
+
+export interface AiAppLinearResult<T> {
+  data: T | null;
+  error: string | null;
+  /** 503: Linear isn't configured in this environment. */
+  unavailable: boolean;
+  /** 403: the caller can't manage this app. */
+  forbidden: boolean;
+}
+
+export const AI_APP_LINEAR_UNAVAILABLE_MESSAGE = "Linear isn't set up for this environment";
+
+async function parseLinearResponse<T>(response: Response | undefined, fallback: string): Promise<AiAppLinearResult<T>> {
+  if (!response) {
+    return { data: null, error: fallback, unavailable: false, forbidden: false };
+  }
+  if (!response.ok) {
+    if (response.status === 503) {
+      return { data: null, error: AI_APP_LINEAR_UNAVAILABLE_MESSAGE, unavailable: true, forbidden: false };
+    }
+    if (response.status === 403) {
+      return {
+        data: null,
+        error: 'Only the app creator or a directory admin can manage where feedback goes.',
+        unavailable: false,
+        forbidden: true,
+      };
+    }
+    let message = response.status === 404 ? 'This app no longer exists.' : fallback;
+    if (response.status === 400) {
+      try {
+        const body = await response.json();
+        if (typeof body?.message === 'string' && body.message) {
+          message = body.message;
+        }
+      } catch {
+        // Non-JSON error body — keep the generic message.
+      }
+    }
+    return { data: null, error: message, unavailable: false, forbidden: false };
+  }
+  return { data: (await response.json()) as T, error: null, unavailable: false, forbidden: false };
+}
+
+/** The caller's own private Linear teams (every private team for a directory admin). */
+export async function fetchAiAppLinearTeams(): Promise<AiAppLinearResult<AiAppLinearTeam[]>> {
+  const response = await customFetch(`${AI_APPS_API_URL}/linear/teams`, { method: 'GET' }, true);
+  return parseLinearResponse(response, 'Could not load your Linear teams. Please try again.');
+}
+
+/** The app's Linear target. Creator or directory admin only. */
+export async function fetchAiAppLinearTarget(uid: string): Promise<AiAppLinearResult<AiAppLinearTarget>> {
+  const response = await customFetch(
+    `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/linear-target`,
+    { method: 'GET' },
+    true,
+  );
+  return parseLinearResponse(response, 'Could not load where feedback goes. Please try again.');
+}
+
+/** Sets the target (`{ teamId, projectId? }`) or stops sending (`{ teamId: null }`). */
+export async function saveAiAppLinearTarget(
+  uid: string,
+  input: { teamId: string | null; projectId?: string | null },
+): Promise<AiAppLinearResult<AiAppLinearTarget>> {
+  const response = await customFetch(
+    `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/linear-target`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    },
+    true,
+  );
+  return parseLinearResponse(response, 'Saving failed. Please try again.');
+}
+
 export interface AiAppPublicPathsSettings {
   publicPaths: string[];
   publicPathsGateReady: boolean;

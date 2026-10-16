@@ -12,6 +12,10 @@ export const ManageAccessModal = dynamic(
   () => import('@/components/page/ai-apps/AiAppsPage/components/ManageAccessModal').then((m) => m.ManageAccessModal),
   { ssr: false },
 );
+export const LinearTargetModal = dynamic(
+  () => import('@/components/page/ai-apps/AiAppsPage/components/LinearTargetModal').then((m) => m.LinearTargetModal),
+  { ssr: false },
+);
 export const DeploymentSettingsModal = dynamic(
   () =>
     import('@/components/page/ai-apps/AiAppsPage/components/DeploymentSettingsModal').then(

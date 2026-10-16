@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { AI_APP_FEEDBACK_PRIORITY_LABELS, type AiAppFeedbackStatus } from '@/services/ai-app-feedback/constants';
 import { SHOW_AI_APPS_COMMENTS, SHOW_AI_APPS_FEEDBACK_OVERLAY } from '@/services/ai-apps/constants';
-import type { AiAppFeedbackRow } from '@/services/ai-app-feedback/ai-app-feedback.service';
+import type { AiAppFeedbackLinearIssue, AiAppFeedbackRow } from '@/services/ai-app-feedback/ai-app-feedback.service';
 
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 
@@ -22,6 +22,35 @@ interface Props {
   /** Omitted on the submitter's own list: every row is theirs, so no From column, and the status is read-only. */
   readonly onStatusSelect?: (row: AiAppFeedbackRow, status: AiAppFeedbackStatus) => void;
   readonly onImageClick: (image: FeedbackImage) => void;
+}
+
+/** Where the item's Linear issue stands; nothing when it isn't sent. */
+export function LinearIssueChip({ issue }: { readonly issue: AiAppFeedbackLinearIssue | null | undefined }) {
+  if (!issue) return null;
+  if (issue.status === 'SYNCED' && issue.url) {
+    return (
+      <a className={s.linearChip} href={issue.url} target="_blank" rel="noopener noreferrer">
+        {issue.identifier ?? 'Linear issue'}
+      </a>
+    );
+  }
+  if (issue.status === 'PENDING') {
+    return <span className={s.linearPending}>Sending to Linear…</span>;
+  }
+  if (issue.status === 'FAILED') {
+    return (
+      <Tooltip
+        asChild
+        trigger={
+          <span className={s.linearFailed} tabIndex={0}>
+            Couldn&apos;t send to Linear
+          </span>
+        }
+        content={issue.lastError ?? 'Linear returned an error.'}
+      />
+    );
+  }
+  return null;
 }
 
 export function FeedbackTable({ rows, pendingFeedbackUid, onStatusSelect, onImageClick }: Props) {
@@ -97,11 +126,15 @@ export function FeedbackTable({ rows, pendingFeedbackUid, onStatusSelect, onImag
                 )}
                 <td>
                   {onStatusSelect ? (
-                    <FeedbackStatusSelector
-                      status={row.status}
-                      isPending={pendingFeedbackUid === row.uid}
-                      onStatusSelect={(status) => onStatusSelect(row, status)}
-                    />
+                    <div className={s.statusStack}>
+                      <FeedbackStatusSelector
+                        status={row.status}
+                        isPending={pendingFeedbackUid === row.uid}
+                        onStatusSelect={(status) => onStatusSelect(row, status)}
+                      />
+                      {/* The creator's / admins' view only: the submitter's list never carries it. */}
+                      <LinearIssueChip issue={row.linearIssue} />
+                    </div>
                   ) : (
                     <StatusBadge status={row.status} />
                   )}

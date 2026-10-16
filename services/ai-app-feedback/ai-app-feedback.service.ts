@@ -29,6 +29,15 @@ export interface AiAppFeedback {
   /** Set when its author changed the text. */
   editedAt?: string | null;
   member: { uid: string; name: string } | null;
+  /** The Linear issue this item became; only on the app creator's / admins' lists, null when it isn't sent. */
+  linearIssue?: AiAppFeedbackLinearIssue | null;
+}
+
+export interface AiAppFeedbackLinearIssue {
+  status: 'PENDING' | 'SYNCED' | 'FAILED' | 'SKIPPED';
+  identifier: string | null;
+  url: string | null;
+  lastError: string | null;
 }
 
 /** GET /v1/ai-apps/feedback also tags each row with the app's name and how many elements it pinned. */

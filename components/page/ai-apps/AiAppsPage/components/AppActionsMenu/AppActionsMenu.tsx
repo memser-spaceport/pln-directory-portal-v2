@@ -7,6 +7,7 @@ import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { MenuIcon } from '@/components/icons';
 import { AiApp } from '@/services/ai-apps/ai-apps.service';
 import { useAiApp } from '@/services/ai-apps/hooks/useAiApp';
+import { useAiAppLinearTarget } from '@/services/ai-apps/hooks/useAiAppLinearTarget';
 
 import s from './AppActionsMenu.module.scss';
 
@@ -71,6 +72,17 @@ function LogFileIcon() {
   );
 }
 
+/** A tray with an arrow leaving it: feedback sent on to another tool. */
+function SendToIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M2.5 9.5v2.5a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1V9.5" />
+      <path d="M8 10V2.5" />
+      <path d="M5.2 5.3 8 2.5l2.8 2.8" />
+    </svg>
+  );
+}
+
 function TrashIcon() {
   return (
     <svg {...iconProps}>
@@ -92,6 +104,8 @@ interface Props {
   onDeployment: () => void;
   /** Called when "Deployment logs" is chosen. */
   onLogs: () => void;
+  /** Called when "Send feedback to Linear" is chosen; the item is left out when not given. */
+  onLinear?: () => void;
   /** Called when "Delete app" is chosen. */
   onDelete: () => void;
 }
@@ -105,7 +119,7 @@ interface Props {
  * entirely; a failed check only degrades to disabled items — it must never
  * yank the menu out from under the pointer.
  */
-export function AppActionsMenu({ app, onEdit, onAccess, onDeployment, onLogs, onDelete }: Props) {
+export function AppActionsMenu({ app, onEdit, onAccess, onDeployment, onLogs, onLinear, onDelete }: Props) {
   const analytics = useAiAppsAnalytics();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -124,6 +138,10 @@ export function AppActionsMenu({ app, onEdit, onAccess, onDeployment, onLogs, on
   // if (accessDenied) return null;
 
   const verifying = confirmedCanManage !== true;
+
+  // Checked on open: 503 means Linear isn't configured here (item disabled with a note), 403 hides the item.
+  const linear = useAiAppLinearTarget(app.uid, { enabled: isOpen && !!onLinear });
+  const showLinearItem = !!onLinear && !linear.forbidden;
   const verifyFailed = errorKind === 'network';
 
   const handleOpenChange = (open: boolean) => {
@@ -160,6 +178,15 @@ export function AppActionsMenu({ app, onEdit, onAccess, onDeployment, onLogs, on
                 <LogFileIcon />
                 Deployment logs
               </Menu.Item>
+            )}
+            {showLinearItem && (
+              <Menu.Item className={s.item} disabled={verifying || linear.unavailable} onClick={onLinear}>
+                <SendToIcon />
+                Send feedback to Linear
+              </Menu.Item>
+            )}
+            {showLinearItem && linear.unavailable && (
+              <p className={s.verifyNote}>Linear isn&apos;t set up for this environment</p>
             )}
             <div className={s.divider} role="separator" />
             <Menu.Item className={`${s.item} ${s.destructive}`} disabled={verifying} onClick={onDelete}>

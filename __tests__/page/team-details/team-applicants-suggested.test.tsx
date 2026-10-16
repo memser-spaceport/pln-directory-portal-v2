@@ -769,12 +769,19 @@ describe('URL params from the founder email', () => {
 
   it('opens Edit criteria once with edit=criteria, then drops edit from the URL without navigating', async () => {
     setSuggestions([ANA, BEN], {}, CRITERIA);
+    // The history entry as Next leaves it: its own `__NA` state.
+    window.history.replaceState({ __NA: true }, '', window.location.href);
+    replaceState.mockClear();
 
     renderView({ initialRoleUid: 'role-1', initialTab: 'suggested', initialEdit: 'criteria' });
 
     expect(await screen.findByRole('dialog', { name: 'Edit criteria' })).toBeInTheDocument();
     expect(rowFor('Ana Lopez')).toBeTruthy();
     expect(replaceState).toHaveBeenCalledTimes(1);
+    /* LAB-2893: never hand Next its own state back. Next's patched replaceState
+       ignores the URL for a `__NA` state, keeps `edit=criteria` in its router
+       and writes it back later, so a reload reopened the modal. */
+    expect((replaceState.mock.calls[0][0] as { __NA?: boolean } | null)?.__NA).toBeUndefined();
     expect(window.location.pathname + window.location.search).toBe(
       '/teams/team-1/applicants?role=role-1&tab=suggested&utm_source=x',
     );

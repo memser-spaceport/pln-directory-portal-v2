@@ -1,25 +1,28 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { DebouncedInput } from '@/components/core/application-search/components/DebouncedInput';
-
-import s from './AppSearchDesktop.module.scss';
-import { useQueryClient } from '@tanstack/react-query';
-import { SearchQueryKeys } from '@/services/search/constants';
-import { RecentSearch } from '@/components/core/application-search/components/RecentSearch';
-import { ContentLoader } from '@/components/core/application-search/components/ContentLoader';
-import { NothingFound } from '@/components/core/application-search/components/NothingFound';
-import { SearchResultsSection } from '@/components/core/application-search/components/SearchResultsSection';
 import clsx from 'clsx';
-import { useOnClickOutside } from '@/hooks/useOnClickOutside';
-import { AiSearchEntries } from '@/components/core/application-search/components/AiSearchEntries';
-import { RecentAiChats } from '@/components/core/application-search/components/RecentAiChats';
+import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
+import { useRef, useState, useEffect, useCallback } from 'react';
+
+import type { FoundItem } from '@/services/search/types';
+
+import { SearchQueryKeys } from '@/services/search/constants';
+import { REOPEN_HEADER_SEARCH_EVENT } from '@/components/constants/aiSearchHandoff';
+
 import { openAiSearch } from '@/components/utils/openAiSearch';
 import { askAboutItem } from '@/components/core/application-search/utils/askAboutItem';
-import { REOPEN_HEADER_SEARCH_EVENT } from '@/components/constants/aiSearchHandoff';
-import { useFullApplicationSearch } from '@/services/search/hooks/useFullApplicationSearch';
+
+import { useOnClickOutside } from '@/hooks/useOnClickOutside';
 import { useRecordRecentSearch } from '@/services/search/hooks/useRecordRecentSearch';
+import { useFullApplicationSearch } from '@/services/search/hooks/useFullApplicationSearch';
+
+import { RecentSearch } from '@/components/core/application-search/components/RecentSearch';
+import { ContentLoader } from '@/components/core/application-search/components/ContentLoader';
+import { RecentAiChats } from '@/components/core/application-search/components/RecentAiChats';
+import { DebouncedInput } from '@/components/core/application-search/components/DebouncedInput';
 import { SearchCategories } from '@/components/core/application-search/components/SearchCategories';
-import type { FoundItem } from '@/services/search/types';
+import { SearchResultsSection } from '@/components/core/application-search/components/SearchResultsSection';
+
+import s from './AppSearchDesktop.module.scss';
 
 interface Props {
   isLoggedIn: boolean;
@@ -31,7 +34,7 @@ export const AppSearchDesktop = ({ isLoggedIn }: Props) => {
   const [isFocused, setFocused] = useState(false);
   const queryClient = useQueryClient();
   const router = useRouter();
-  const [activeCategory, setActiveCategory] = React.useState<
+  const [activeCategory, setActiveCategory] = useState<
     'top' | 'members' | 'teams' | 'projects' | 'forumThreads' | 'events' | null
   >('top');
 
@@ -109,19 +112,16 @@ export const AppSearchDesktop = ({ isLoggedIn }: Props) => {
   function renderContent() {
     if (!searchTerm) {
       return (
-        <>
-          <AiSearchEntries term="" onAsk={(question) => openAi({ question })} />
-          <div className={s.idle}>
-            {isLoggedIn && <RecentSearch onSelect={handleChange} />}
-            {isLoggedIn && (
-              <RecentAiChats
-                onOpenChat={(threadId) => openAi({ threadId })}
-                onShowAll={() => openAi({ showHistory: true })}
-              />
-            )}
-            <p className={s.hint}>Search members, teams, projects, events and forum posts.</p>
-          </div>
-        </>
+        <div className={s.idle}>
+          {isLoggedIn && <RecentSearch onSelect={handleChange} />}
+          {isLoggedIn && (
+            <RecentAiChats
+              onOpenChat={(threadId) => openAi({ threadId })}
+              onShowAll={() => openAi({ showHistory: true })}
+            />
+          )}
+          <p className={s.hint}>Search members, teams, projects, events and forum posts.</p>
+        </div>
       );
     }
 
@@ -138,52 +138,46 @@ export const AppSearchDesktop = ({ isLoggedIn }: Props) => {
         !data.forumThreads?.length)
     ) {
       return (
-        <>
-          <AiSearchEntries term={searchTerm} results={data} onAsk={(question) => openAi({ question })} />
-          <div style={{ padding: '8px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <SearchCategories data={data} activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
-            <NothingFound onClick={() => openAi({ question: searchTerm })} searchTerm={searchTerm} />
-          </div>
-        </>
+        <div className={clsx(s.content, s.noResultsContent)}>
+          <SearchCategories data={data} activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
+          <p className={s.noResults}>
+            No results for &ldquo;{searchTerm}&rdquo;
+            <button type="button" className={s.askAi} onClick={() => openAi({ question: searchTerm })}>
+              Ask AI Search instead
+            </button>
+          </p>
+        </div>
       );
     }
 
     return (
-      <>
-        <AiSearchEntries term={searchTerm} results={data} onAsk={(question) => openAi({ question })} />
-        <div style={{ padding: '8px 16px' }}>
-          <SearchCategories data={data} activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
-          {!!data.top?.length && (activeCategory === 'top' || activeCategory === null) && (
-            <SearchResultsSection
-              groupItems
-              items={data.top}
-              query={searchTerm}
-              onSelect={closeDropdown}
-              onAskAi={askAi}
-            />
-          )}
-          {!!data.members?.length && (activeCategory === 'members' || activeCategory === null) && (
-            <SearchResultsSection items={data.members} query={searchTerm} onSelect={closeDropdown} onAskAi={askAi} />
-          )}
-          {!!data.teams?.length && (activeCategory === 'teams' || activeCategory === null) && (
-            <SearchResultsSection items={data.teams} query={searchTerm} onSelect={closeDropdown} onAskAi={askAi} />
-          )}
-          {!!data.projects?.length && (activeCategory === 'projects' || activeCategory === null) && (
-            <SearchResultsSection items={data.projects} query={searchTerm} onSelect={closeDropdown} onAskAi={askAi} />
-          )}
-          {!!data.forumThreads?.length && (activeCategory === 'forumThreads' || activeCategory === null) && (
-            <SearchResultsSection
-              items={data.forumThreads}
-              query={searchTerm}
-              onSelect={closeDropdown}
-              onAskAi={askAi}
-            />
-          )}
-          {!!data.events?.length && (activeCategory === 'events' || activeCategory === null) && (
-            <SearchResultsSection items={data.events} query={searchTerm} onSelect={closeDropdown} onAskAi={askAi} />
-          )}
-        </div>
-      </>
+      <div className={s.content}>
+        <SearchCategories data={data} activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
+        {!!data.top?.length && (activeCategory === 'top' || activeCategory === null) && (
+          <SearchResultsSection
+            groupItems
+            items={data.top}
+            query={searchTerm}
+            onSelect={closeDropdown}
+            onAskAi={askAi}
+          />
+        )}
+        {!!data.members?.length && (activeCategory === 'members' || activeCategory === null) && (
+          <SearchResultsSection items={data.members} query={searchTerm} onSelect={closeDropdown} onAskAi={askAi} />
+        )}
+        {!!data.teams?.length && (activeCategory === 'teams' || activeCategory === null) && (
+          <SearchResultsSection items={data.teams} query={searchTerm} onSelect={closeDropdown} onAskAi={askAi} />
+        )}
+        {!!data.projects?.length && (activeCategory === 'projects' || activeCategory === null) && (
+          <SearchResultsSection items={data.projects} query={searchTerm} onSelect={closeDropdown} onAskAi={askAi} />
+        )}
+        {!!data.forumThreads?.length && (activeCategory === 'forumThreads' || activeCategory === null) && (
+          <SearchResultsSection items={data.forumThreads} query={searchTerm} onSelect={closeDropdown} onAskAi={askAi} />
+        )}
+        {!!data.events?.length && (activeCategory === 'events' || activeCategory === null) && (
+          <SearchResultsSection items={data.events} query={searchTerm} onSelect={closeDropdown} onAskAi={askAi} />
+        )}
+      </div>
     );
   }
 
@@ -198,7 +192,12 @@ export const AppSearchDesktop = ({ isLoggedIn }: Props) => {
         clearIcon={<span className={s.clearLabel}>Clear</span>}
         classes={{ root: s.inputRoot, input: s.input, clearBtn: s.clear }}
       />
-      <button type="button" className={s.aiBadge} onClick={() => openAi({})} aria-label="Open AI Search">
+      <button
+        type="button"
+        className={s.aiBadge}
+        onClick={() => openAi({ question: searchTerm.trim() || undefined })}
+        aria-label="Open AI Search"
+      >
         <span className={s.aiBadgeIcon} aria-hidden="true" />
         AI
       </button>

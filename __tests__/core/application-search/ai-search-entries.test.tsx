@@ -161,27 +161,35 @@ describe('header search popover (desktop)', () => {
     fireEvent.click(screen.getAllByRole('textbox')[0]);
 
     expect(screen.queryByText('Recent AI Search chats')).not.toBeInTheDocument();
-    expect(screen.getByText('Ask AI Search a question')).toBeInTheDocument();
+    expect(screen.getByText('Search members, teams, projects, events and forum posts.')).toBeInTheDocument();
   });
 
-  it('asks the typed term on the AI Search page', () => {
+  it('asks the typed term on the AI Search page from the AI badge', () => {
     renderDesktop();
-    typeTerm('filecoin');
+    typeTerm('  filecoin ');
 
-    fireEvent.click(screen.getByText(/Chat with AI Search about/));
+    fireEvent.click(screen.getByRole('button', { name: 'Open AI Search' }));
 
     expect(push).toHaveBeenCalledWith('/ai-search');
     expect(localStorage.getItem('input')).toBe('filecoin');
+    expect(JSON.parse(sessionStorage.getItem(AI_SEARCH_RETURN_KEY)!)).toEqual({
+      path: '/home?tab=news',
+      term: '  filecoin ',
+    });
   });
 
-  it('asks a suggested question on the AI Search page', () => {
+  it('starts results at the top, with no AI Search row or suggested questions, in any state', () => {
     renderDesktop();
+    fireEvent.click(screen.getAllByRole('textbox')[0]);
+    expect(screen.queryByText('Ask AI Search a question')).not.toBeInTheDocument();
+
     typeTerm('lumen');
+    expect(screen.queryByText(/Chat with AI Search about/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /What does Lumen Storage work on\?/ })).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /What does Lumen Storage work on\?/ }));
-
-    expect(push).toHaveBeenCalledWith('/ai-search');
-    expect(localStorage.getItem('input')).toBe('What does Lumen Storage work on?');
+    mockResults = { top: [], teams: [], members: [], projects: [], events: [], forumThreads: [] };
+    typeTerm('zzzz');
+    expect(screen.queryByText(/Chat with AI Search about/)).not.toBeInTheDocument();
   });
 
   it('sends a search with no results to the AI Search page, not the modal', () => {
@@ -189,7 +197,8 @@ describe('header search popover (desktop)', () => {
     renderDesktop();
     typeTerm('zzzz');
 
-    fireEvent.click(screen.getByText(/No results found/));
+    expect(screen.getByText(/No results for “zzzz”/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Ask AI Search instead' }));
 
     expect(push).toHaveBeenCalledWith('/ai-search');
     expect(localStorage.getItem('input')).toBe('zzzz');
@@ -207,18 +216,20 @@ describe('header search popover (desktop)', () => {
   });
 
   it('keeps keyword results in the dropdown on Enter, with no AI chat modal', () => {
+    mockResults = { ...mockResults, top: [team('Lumen Storage')] };
     renderDesktop();
     typeTerm('lumen');
 
     fireEvent.keyUp(screen.getAllByRole('textbox')[0], { key: 'Enter' });
 
-    expect(screen.getByText(/Chat with AI Search about/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Ask AI about Lumen Storage' })).toBeInTheDocument();
     expect(push).not.toHaveBeenCalled();
     expect(document.querySelectorAll('[role="dialog"]')).toHaveLength(0);
   });
 
-  it('opens the AI Search page on a new chat from the AI badge', () => {
+  it('opens the AI Search page on a new chat from the AI badge when nothing is typed', () => {
     renderDesktop();
+    typeTerm('   ');
 
     fireEvent.click(screen.getByRole('button', { name: 'Open AI Search' }));
 
@@ -227,6 +238,7 @@ describe('header search popover (desktop)', () => {
   });
 
   it('opens again with the term when the member comes back from AI Search', () => {
+    mockResults = { ...mockResults, top: [team('Lumen Storage')] };
     renderDesktop();
 
     act(() => {
@@ -234,7 +246,7 @@ describe('header search popover (desktop)', () => {
     });
 
     expect(screen.getAllByRole('textbox')[0]).toHaveValue('filecoin');
-    expect(screen.getByText(/Chat with AI Search about/)).toHaveTextContent('Chat with AI Search about “filecoin”');
+    expect(screen.getByRole('button', { name: 'Ask AI about Lumen Storage' })).toBeInTheDocument();
   });
 });
 

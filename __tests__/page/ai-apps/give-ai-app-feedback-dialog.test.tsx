@@ -116,7 +116,7 @@ jest.mock('react-use', () => ({
 }));
 
 jest.mock('@/services/ai-apps/hooks/useAiApps', () => ({
-  useAiApps: () => mockUseAiApps(),
+  useAiApps: (...args: unknown[]) => mockUseAiApps(...args),
 }));
 
 jest.mock('@/services/ai-app-feedback/hooks/useSubmitAiAppFeedback', () => ({
@@ -494,7 +494,7 @@ describe('GiveAiAppFeedbackDialog', () => {
     await waitFor(() =>
       expect(mockContactSupportMutate).toHaveBeenCalledWith(
         {
-          topic: 'AI Apps Feedback',
+          topic: 'LabOS Feedback',
           email: 'ada@example.com',
           name: 'Ada Lovelace',
           message: '<p>Platform needs better docs</p>',
@@ -503,12 +503,120 @@ describe('GiveAiAppFeedbackDialog', () => {
             uid: 'member-1',
             page: expect.any(String),
           },
+          reportKind: 'bug',
+          priority: 'P2',
         },
         expect.objectContaining({ onSuccess: expect.any(Function) }),
       ),
     );
     expect(mockMutate).not.toHaveBeenCalled();
     expect(mockOnFeedbackSubmitted).not.toHaveBeenCalled();
+  });
+
+  /* LAB-2879: the LabOS-wide drawer, opened from every page outside AI Apps. */
+  describe('LabOS-wide feedback (labosOnly)', () => {
+    it('offers Hide button only when the host can hide its button', () => {
+      mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+      const { rerender } = render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} variant="drawer" labosOnly />);
+      expect(screen.queryByRole('button', { name: 'Hide button' })).not.toBeInTheDocument();
+
+      rerender(
+        <GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} variant="drawer" labosOnly onHideButton={jest.fn()} />,
+      );
+      expect(screen.getByRole('button', { name: 'Hide button' })).toBeInTheDocument();
+    });
+
+    it('asks before hiding, and points to Settings to turn it on again', () => {
+      mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+      const onHideButton = jest.fn();
+      render(
+        <GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} variant="drawer" labosOnly onHideButton={onHideButton} />,
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: 'Hide button' }));
+      expect(screen.getByText('Hide the feedback button?')).toBeInTheDocument();
+      expect(screen.getByText(/turn it on again in Settings → General preferences/)).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Keep' }));
+      expect(onHideButton).not.toHaveBeenCalled();
+      expect(screen.queryByText('Hide the feedback button?')).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Hide button' }));
+      const confirm = screen.getAllByRole('button', { name: 'Hide button' }).at(-1)!;
+      fireEvent.click(confirm);
+      expect(onHideButton).toHaveBeenCalledTimes(1);
+    });
+
+    it('hides the app picker and does not load the AI Apps list', () => {
+      mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
+
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} variant="drawer" labosOnly />);
+
+      expect(screen.getByText('Give feedback')).toBeInTheDocument();
+      expect(screen.queryByLabelText('Which app is this about?')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'My App' })).not.toBeInTheDocument();
+      expect(mockUseAiApps).toHaveBeenCalledWith({ enabled: false });
+      expect(screen.queryByText(/Posting as/)).not.toBeInTheDocument();
+    });
+
+    it('sends to the same place as LabOS - AI Apps feedback and calls onSent', async () => {
+      mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+      const onSent = jest.fn();
+      mockContactSupportMutate.mockImplementation((_body, options) => options?.onSuccess?.());
+
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} variant="drawer" labosOnly onSent={onSent} />);
+
+      fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), {
+        target: { value: 'The members page is slow' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+
+      await waitFor(() =>
+        expect(mockContactSupportMutate).toHaveBeenCalledWith(
+          expect.objectContaining({
+            topic: 'LabOS Feedback',
+            message: '<p>The members page is slow</p>',
+            reportKind: 'bug',
+            priority: 'P2',
+            metadata: expect.objectContaining({ page: expect.any(String) }),
+          }),
+          expect.objectContaining({ onSuccess: expect.any(Function) }),
+        ),
+      );
+      expect(mockMutate).not.toHaveBeenCalled();
+      expect(onSent).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps its draft apart from the AI Apps list draft', async () => {
+      mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+      writeFormDraft(AI_APP_FEEDBACK_DRAFT_KEY, { message: 'About the AI Apps list', app: null });
+
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} variant="drawer" labosOnly />);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+      expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue('');
+      fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'About /members' } });
+
+      await waitFor(() =>
+        expect(readFormDraft(`${AI_APP_FEEDBACK_DRAFT_KEY}:labos-wide`)).toEqual(
+          expect.objectContaining({ message: 'About /members' }),
+        ),
+      );
+      expect(readFormDraft(AI_APP_FEEDBACK_DRAFT_KEY)).toEqual(
+        expect.objectContaining({ message: 'About the AI Apps list' }),
+      );
+      clearFormDraft(`${AI_APP_FEEDBACK_DRAFT_KEY}:labos-wide`);
+    });
+
+    it('still loads the AI Apps list without labosOnly', () => {
+      mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} />);
+
+      expect(mockUseAiApps).toHaveBeenCalledWith({ enabled: true });
+    });
   });
 
   it('uploads pasted data-URI images before submitting', async () => {

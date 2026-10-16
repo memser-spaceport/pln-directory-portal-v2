@@ -27,7 +27,11 @@ describe('useGetMenuItems', () => {
   it('hides "recommendations" when the member does not have it enabled', () => {
     const { result } = renderHook(() => useGetMenuItems(userInfo));
 
-    expect(names(result.current.preferences)).toEqual(['notification preferences', 'job preferences']);
+    expect(names(result.current.preferences)).toEqual([
+      'notification preferences',
+      'job preferences',
+      'general preferences',
+    ]);
   });
 
   it('slots "recommendations" between the notification and job preferences when enabled', () => {
@@ -39,6 +43,7 @@ describe('useGetMenuItems', () => {
       'notification preferences',
       'recommendations',
       'job preferences',
+      'general preferences',
     ]);
   });
 
@@ -70,7 +75,7 @@ describe('useGetMenuItems', () => {
     const { result } = renderHook(() => useGetMenuItems(userInfo));
     const all = Object.values(result.current).flat();
 
-    expect(all).toHaveLength(6);
+    expect(all).toHaveLength(7);
     all.forEach((item) => {
       expect(item.url).toMatch(/^\/settings\//);
       expect(item.icon).toMatch(/^\/icons\/.+\.svg$/);

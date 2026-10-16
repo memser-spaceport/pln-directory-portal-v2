@@ -24,6 +24,10 @@ export const PostHogPageview = dynamic(() => import('@/providers/analytics-provi
 export const RatingContainer = dynamic(() => import('@/components/core/office-hours-rating/rating-container'), {
   ssr: false,
 });
+// LAB-2879: the LabOS-wide feedback button and drawer. Client-only: it reads the window for screenshots and drafts.
+export const GlobalFeedback = dynamic(() => import('@/components/core/GlobalFeedback').then((m) => m.GlobalFeedback), {
+  ssr: false,
+});
 // TODO(deprecated): the Botpress webchat is replaced by the activity chat. Remove this and components/core/botpress.
 // export const BotpressWebchat = dynamic(
 //   () => import('@/components/core/botpress/BotpressWebchat').then((m) => m.BotpressWebchat),

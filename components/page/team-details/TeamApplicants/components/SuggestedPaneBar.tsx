@@ -1,9 +1,8 @@
 'use client';
 
+import clsx from 'clsx';
 import { format } from 'date-fns';
 
-import { CaretLeftIcon } from '@/components/icons/CaretLeftIcon';
-import { CaretRightIcon } from '@/components/icons/CaretRightIcon';
 import { EnvelopeIcon, ReviewCheckIcon } from '@/components/icons';
 import type { SuggestedCandidate } from '@/schema/suggested-candidates';
 
@@ -12,10 +11,6 @@ import s from './SuggestedPaneBar.module.scss';
 
 interface Props {
   suggestion: SuggestedCandidate;
-  /** Zero-based, within the list as it is currently filtered. */
-  position: number;
-  total: number;
-  onStep: (delta: number) => void;
   onContact: () => void;
 }
 
@@ -26,8 +21,12 @@ const contactedDate = (contactedAt: string): string | null => {
 };
 
 /**
- * The applicants bar for a suggested person (LAB-2771): where you are, how to
- * move, and Contact.
+ * The applicants bar for a suggested person (LAB-2771): Contact, on the right.
+ *
+ * **No previous / next and no "3 of 5" (LAB-2837 feedback).** The list beside
+ * the pane already shows who is selected and lets the lead pick anyone; on a
+ * phone, "All candidates" goes back to it. The Applied and Interested bars
+ * keep their stepper.
  *
  * **No Mark as reviewed.** The applicants' tick writes to an application or an
  * interest row, and a suggestion has neither — there is nothing on the server
@@ -39,36 +38,12 @@ const contactedDate = (contactedAt: string): string | null => {
  * from the server's `contactedAt` — a state, not a second way to send. The
  * Applied and Interested tabs keep their Email.
  */
-export function SuggestedPaneBar({ suggestion, position, total, onStep, onContact }: Props) {
+export function SuggestedPaneBar({ suggestion, onContact }: Props) {
   const firstName = suggestion.name.split(' ')[0] || suggestion.name;
   const contactedOn = suggestion.contactedAt ? contactedDate(suggestion.contactedAt) : null;
 
   return (
-    <div className={bar.root}>
-      <div className={bar.nav}>
-        <button
-          type="button"
-          className={bar.stepBtn}
-          aria-label="Previous candidate"
-          disabled={position <= 0}
-          onClick={() => onStep(-1)}
-        >
-          <CaretLeftIcon width={16} height={16} />
-        </button>
-        <button
-          type="button"
-          className={bar.stepBtn}
-          aria-label="Next candidate"
-          disabled={position < 0 || position >= total - 1}
-          onClick={() => onStep(1)}
-        >
-          <CaretRightIcon width={16} height={16} />
-        </button>
-        <span className={bar.position} role="status" aria-live="polite">
-          {position + 1} of {total}
-        </span>
-      </div>
-
+    <div className={clsx(bar.root, s.root)}>
       <div className={bar.actions}>
         {suggestion.contactedAt ? (
           <span className={s.contacted} data-testid="suggested-contacted">

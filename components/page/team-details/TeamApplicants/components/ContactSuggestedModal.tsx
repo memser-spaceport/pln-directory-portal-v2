@@ -160,7 +160,9 @@ export function ContactSuggestedModal({
             Cancel
           </Button>
           <Button disabled={!canSend} onClick={() => onSend(text.trim())}>
-            {isSending ? 'Sending…' : 'Send email'}
+            {/* "Send", not "Send email" (LAB-2837 feedback): the line above the
+                field already says it goes by email. */}
+            {isSending ? 'Sending…' : 'Send'}
           </Button>
         </div>
       </div>

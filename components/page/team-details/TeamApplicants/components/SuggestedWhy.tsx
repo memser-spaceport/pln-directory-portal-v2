@@ -45,17 +45,10 @@ import s from './SuggestedWhy.module.scss';
  * "Not on their profile". A backend that sends no groups gets the flat list,
  * and a requirement with no label shows its statement alone, as before.
  *
- * **Edit criteria** (LAB-2847) ends the header when the host passes
- * `onEditCriteria` — only when the backend sent the role's criteria. The
- * modal itself belongs to the view, which owns the role and the save.
+ * Edit criteria is not here: it changes the role, not this person, so it
+ * sits in the list column under the role (LAB-2837 feedback).
  */
-export function SuggestedWhy({
-  suggestion,
-  onEditCriteria,
-}: {
-  suggestion: SuggestedCandidate;
-  onEditCriteria?: () => void;
-}) {
+export function SuggestedWhy({ suggestion }: { suggestion: SuggestedCandidate }) {
   const met = metCount(suggestion.criteria);
   const total = suggestion.criteria.length;
   const reasons = networkReasons(suggestion);
@@ -73,11 +66,6 @@ export function SuggestedWhy({
           )}
           {suggestion.interested && <InterestedBadge />}
           <SuggestionBadge label={suggestion.label} />
-          {onEditCriteria && (
-            <button type="button" className={s.editCriteria} onClick={onEditCriteria}>
-              Edit criteria
-            </button>
-          )}
         </span>
       </DetailsSectionHeader>
       <DetailsSectionGreyContentContainer>

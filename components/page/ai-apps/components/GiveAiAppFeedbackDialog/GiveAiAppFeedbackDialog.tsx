@@ -1749,7 +1749,9 @@ export function GiveAiAppFeedbackDialog({
                 <ConfirmDialog
                   isOpen
                   title="Hide the feedback button?"
-                  message="The button will no longer show on LabOS pages. You can turn it on again in Settings → General preferences. You can still give feedback from the (?) menu."
+                  message={
+                    'The button will no longer show on LabOS pages. You can turn it on again in Settings → General preferences. You can still give feedback using the "?" menu next to search in the navigation bar.'
+                  }
                   confirmText="Hide button"
                   cancelText="Keep"
                   onConfirm={() => {

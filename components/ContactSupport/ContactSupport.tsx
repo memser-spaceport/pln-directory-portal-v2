@@ -4,9 +4,11 @@ import * as yup from 'yup';
 import isEmpty from 'lodash/isEmpty';
 import { FormProvider, useForm, type Resolver } from 'react-hook-form';
 import { useCallback, useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { yupResolver } from '@hookform/resolvers/yup';
 
 import { useContactSupportStore } from '@/services/contact-support/store';
+import { useFeedbackDrawerStore } from '@/services/feedback/store';
 import { ModalBase } from '@/components/common/ModalBase';
 import { QuestionCircleIcon } from '@/components/icons';
 import { LabeledInput } from '@/components/common/form/LabeledInput';
@@ -16,6 +18,7 @@ import { toast } from '@/components/core/ToastContainer';
 import { hostDataUriImages, isBlankHtml } from '@/utils/html';
 import { IUserInfo } from '@/types/shared.types';
 import { useCommonAnalytics } from '@/analytics/common.analytics';
+import { useFeedbackAnalytics } from '@/analytics/feedback.analytics';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 
 import { CONTACT_SUPPORT_TOPICS } from './constants';
@@ -103,6 +106,9 @@ export function ContactSupport(props: Props) {
   const { closeModal, updateTopic } = actions;
   const contactSupportMutation = useContactSupport();
   const analytics = useCommonAnalytics();
+  const { openDrawer: openFeedbackDrawer } = useFeedbackDrawerStore((state) => state.actions);
+  const feedbackAnalytics = useFeedbackAnalytics();
+  const pathname = usePathname() ?? '';
 
   const getDefaultValues = useCallback(() => {
     const { email = '', name = '' } = userInfo || {};
@@ -223,6 +229,14 @@ export function ContactSupport(props: Props) {
           <TopicPills
             value={selectedTopic}
             onChange={(next) => {
+              /* LAB-2879: for members, Give feedback is the LabOS feedback drawer, as from the (?) menu. */
+              const nextTopic = CONTACT_SUPPORT_TOPICS.find((topic) => topic.value === next);
+              if (nextTopic?.dialogParam === 'giveFeedback' && userInfo?.uid) {
+                feedbackAnalytics.onFeedbackButtonClick({ source: 'support-form', page: pathname });
+                closeModal();
+                openFeedbackDrawer();
+                return;
+              }
               setValue('topic', next, { shouldValidate: true });
               updateTopic(next);
               analytics.onContactSupportTopicPillSelected(next, getAnalyticsUserInfo(userInfo));

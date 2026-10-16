@@ -5,7 +5,7 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { FEEDBACK_ANALYTICS } from '@/utils/constants';
 
 /** Which door opened the LabOS-wide feedback drawer. */
-export type FeedbackButtonSource = 'floating-button' | 'shortcut' | 'help-menu';
+export type FeedbackButtonSource = 'floating-button' | 'shortcut' | 'help-menu' | 'support-form';
 
 /** Memoised on PostHog, so the LabOS-wide button's props stay stable across renders. */
 export const useFeedbackAnalytics = () => {

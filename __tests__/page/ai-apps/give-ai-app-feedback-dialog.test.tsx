@@ -536,6 +536,7 @@ describe('GiveAiAppFeedbackDialog', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Hide button' }));
       expect(screen.getByText('Hide the feedback button?')).toBeInTheDocument();
       expect(screen.getByText(/turn it on again in Settings → General preferences/)).toBeInTheDocument();
+      expect(screen.getByText(/using the "\?" menu next to search in the navigation bar/)).toBeInTheDocument();
 
       fireEvent.click(screen.getByRole('button', { name: 'Keep' }));
       expect(onHideButton).not.toHaveBeenCalled();

@@ -2,6 +2,7 @@
 
 import { useJobsAnalytics } from '@/analytics/jobs.analytics';
 import { MobileFilterWrapper } from '@/components/common/filters/MobileFilterWrapper';
+import { useIsClient } from '@/hooks/useIsClient';
 import { JobsFilterBody } from '@/components/page/jobs/JobsFilterBody';
 import { useInfiniteJobsList } from '@/services/jobs/hooks/useJobsQueries';
 import { useJobsFilterStore, useJobsFilterCount } from '@/services/jobs/store';
@@ -12,6 +13,7 @@ interface JobsMobileFiltersProps {
 }
 
 export default function JobsMobileFilters({ isLoggedIn }: JobsMobileFiltersProps) {
+  const isClient = useIsClient();
   const { params, setParam, clearParams } = useJobsFilterStore();
   const { totalRoles } = useInfiniteJobsList();
   const analytics = useJobsAnalytics();
@@ -31,6 +33,10 @@ export default function JobsMobileFilters({ isLoggedIn }: JobsMobileFiltersProps
       filter_state: {},
     });
   };
+
+  /* Not in the server HTML (LAB-2888): the store it reads is filled from the URL in the browser. The board above
+     it is server-rendered; this bar appears right after hydration with the URL's filters already in it. */
+  if (!isClient) return null;
 
   return (
     <MobileFilterWrapper

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useSyncExternalStore } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { authStatus } from '@/components/core/login/utils';
@@ -8,37 +8,22 @@ import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-qu
 
 import type { IJobTeamGroup, IJobsListResponse } from '@/types/jobs.types';
 
-import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
-
 import { JobsQueryKey } from '../constants';
 import { SAVED_PARAM } from '../savedParam';
-import { FILTER_VALUE_SEPARATOR, FILTER_VALUE_SEPARATOR_ENCODED } from '@/constants/filters';
+import { pickJobsParams } from '../jobsParams';
 
 import { fetchJobsFilters, fetchJobsList } from '../jobs.service';
 
-const SINGLE_VALUE_KEYS = ['q', 'sort', SAVED_PARAM] as const;
-const MULTI_VALUE_KEYS = ['roleCategory', 'seniority', 'focus', 'location', 'workplaceType'] as const;
+export { pickJobsParams } from '../jobsParams';
 
-export const pickJobsParams = (searchParams: URLSearchParams): URLSearchParams => {
-  const picked = new URLSearchParams();
-  for (const key of SINGLE_VALUE_KEYS) {
-    const value = searchParams.get(key);
-    if (value) picked.set(key, value);
-  }
-  for (const key of MULTI_VALUE_KEYS) {
-    const parts: string[] = [];
-    for (const raw of searchParams.getAll(key)) {
-      if (raw) parts.push(...raw.split(URL_QUERY_VALUE_SEPARATOR).filter(Boolean));
-    }
-    for (const v of [...new Set(parts)]) {
-      picked.append(key, v.replaceAll(FILTER_VALUE_SEPARATOR_ENCODED, FILTER_VALUE_SEPARATOR));
-    }
-  }
-  return picked;
-};
+const noSubscription = () => () => {};
+/* False on the server and in the hydrating render: the server can't read the session cookies `authStatus` reads,
+   so the board's server render (and the server page's fetch) always leave the saved scope out (LAB-2888). */
+const signedOutOnServer = () => false;
 
 export function useJobsSearchParams(): URLSearchParams {
   const raw = useSearchParams();
+  const isLoggedIn = useSyncExternalStore(noSubscription, authStatus.isLoggedIn, signedOutOnServer);
 
   return useMemo(() => {
     const picked = pickJobsParams(new URLSearchParams(raw.toString()));
@@ -46,16 +31,27 @@ export function useJobsSearchParams(): URLSearchParams {
        answers 401 rather than widening, which would put the whole board on the
        error state. A shared link, or a logout that left the box ticked, is how
        a signed-out visitor gets here. */
-    if (!authStatus.isLoggedIn()) {
+    if (!isLoggedIn) {
       picked.delete(SAVED_PARAM);
     }
     return picked;
-  }, [raw]);
+  }, [raw, isLoggedIn]);
 }
 
-export function useInfiniteJobsList() {
+/**
+ * The board's first page as the server fetched it (LAB-2888), and the `pickJobsParams` string it was fetched for.
+ * Rendered until the client's own fetch lands, so the server HTML carries the list and its role links.
+ */
+export type ServerJobsPage = { key: string; page: IJobsListResponse };
+
+export function useInfiniteJobsList(serverPage?: ServerJobsPage) {
   const params = useJobsSearchParams();
   const key = params.toString();
+  /* Placeholder, never `initialData`: the QueryClient is one module-level instance shared by every SSR request
+     (providers/QueryProvider.tsx), and placeholder data is never written to its cache, so one viewer's page
+     can't reach another's HTML. Only for the filters it was fetched for: after a filter change, the previous
+     page (keepPreviousData) is what stands in, as before. */
+  const fromServer = serverPage && serverPage.key === key ? serverPage.page : undefined;
 
   const query = useInfiniteQuery<IJobsListResponse>({
     queryKey: [JobsQueryKey.List, key],
@@ -67,7 +63,7 @@ export function useInfiniteJobsList() {
     },
     staleTime: 30_000,
     refetchOnWindowFocus: false,
-    placeholderData: keepPreviousData,
+    placeholderData: (previous) => previous ?? (fromServer ? { pages: [fromServer], pageParams: [1] } : undefined),
   });
 
   const groups: IJobTeamGroup[] = useMemo(() => query.data?.pages.flatMap((p) => p.groups) ?? [], [query.data]);

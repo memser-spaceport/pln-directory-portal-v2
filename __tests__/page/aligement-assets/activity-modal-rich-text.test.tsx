@@ -42,11 +42,10 @@ describe('Product testing activity: Max request', () => {
     expect(paragraph.textContent).not.toMatch(/\*\*|\]\(/);
   });
 
-  it('keeps the existing Factorio request and its link', () => {
-    expect(screen.getByRole('link', { name: 'Factorio Weekly Updates' })).toHaveAttribute(
-      'href',
-      '/pl-infra/ai-apps/cmst544z7008siz4g1d59fubr/weekly',
-    );
+  it('keeps the existing Factorio request and its link, in bold like Max', () => {
+    const factorio = screen.getByRole('link', { name: 'Factorio Weekly Updates' });
+    expect(factorio).toHaveAttribute('href', '/pl-infra/ai-apps/cmst544z7008siz4g1d59fubr/weekly');
+    expect(factorio.closest('strong')).not.toBeNull();
   });
 });
 

@@ -49,6 +49,12 @@ describe('useIsInfraMember', () => {
     );
   });
 
+  it('is false, without throwing, when the response has no policy list', () => {
+    mockUseQuery.mockReturnValue({ data: { memberUid: 'member-1' }, isError: false });
+
+    expect(renderHook(() => useIsInfraMember()).result.current).toBe(false);
+  });
+
   it('is true when /me/access lists the PL Infra Team policy', () => {
     mockUseQuery.mockReturnValue({
       data: {

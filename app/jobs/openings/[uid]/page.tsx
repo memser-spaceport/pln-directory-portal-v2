@@ -12,28 +12,32 @@ type PageProps = {
   params: Promise<{ uid: string }>;
 };
 
+/**
+ * Only a role the backend says is gone is "not found" (LAB-2887). A 5xx, a 429 or a network error is ours to
+ * retry, so it throws: Next answers 500 and Google comes back later. Turning every failure into a 404 with
+ * noindex told Google to drop live roles whenever the backend hiccuped.
+ */
+function throwUnlessGone(status: number | undefined): void {
+  if (status === 404 || status === 410) return;
+  throw new Error(`Job opening could not be loaded (${status ?? 'network error'})`);
+}
+
 export async function generateMetadata({ params }: PageProps, parent: ResolvingMetadata): Promise<Metadata> {
   const { uid } = await params;
   const result = await getJobOpening(uid);
   const pageUrl = absoluteUrl(jobOpeningPath(uid));
   const previousImages = (await parent).openGraph?.images || [];
 
-  if ('isError' in result) {
+  if ('isError' in result) throwUnlessGone(result.status);
+  const role = 'isError' in result ? undefined : result.data.roles[0];
+  if ('isError' in result || !role) {
     return {
       title: 'Job | Protocol Labs Directory',
       robots: { index: false, follow: false },
     };
   }
 
-  const group = result.data;
-  const role = group.roles[0];
-  const team = group.team;
-  if (!role) {
-    return {
-      title: 'Job | Protocol Labs Directory',
-      robots: { index: false, follow: false },
-    };
-  }
+  const team = result.data.team;
 
   const location = role.location.length ? role.location.join(', ') : null;
   const title = location
@@ -68,6 +72,7 @@ export default async function JobOpeningPage({ params }: PageProps) {
   const { uid } = await params;
   const [{ userInfo, isLoggedIn }, result] = await Promise.all([getCookiesFromHeaders(), getJobOpening(uid)]);
 
+  if ('isError' in result) throwUnlessGone(result.status);
   if ('isError' in result || !result.data.roles[0]) {
     notFound();
   }
@@ -85,7 +90,14 @@ export default async function JobOpeningPage({ params }: PageProps) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      {/* No markup for a role that can't be described honestly (buildJobPostingJsonLd). `<` escaped, as
+          Next's JSON-LD guide says: a description containing `</script>` must not end the tag. */}
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+        />
+      )}
       <JobOpeningView group={group} userInfo={userInfo} isLoggedIn={!!isLoggedIn} />
     </>
   );

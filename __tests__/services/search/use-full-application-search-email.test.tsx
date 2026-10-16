@@ -71,6 +71,16 @@ describe('header search by email (LAB-2881)', () => {
     expect(onEmailQuerySubmitted).toHaveBeenCalledWith();
   });
 
+  it('does not send the email-query event again when the same search is fetched again (retry, refetch)', async () => {
+    await runQueryFn('ana@protocol.ai');
+    await runQueryFn('ana@protocol.ai');
+
+    expect(onEmailQuerySubmitted).toHaveBeenCalledTimes(1);
+
+    await runQueryFn('ana@labs.io');
+    expect(onEmailQuerySubmitted).toHaveBeenCalledTimes(2);
+  });
+
   it('sends no email-query event for a search that is not email-like', async () => {
     await runQueryFn('juan');
 

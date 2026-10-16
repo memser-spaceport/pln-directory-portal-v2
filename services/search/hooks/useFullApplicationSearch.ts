@@ -35,6 +35,8 @@ async function fetcher(searchTerm: string) {
   return (await response.json()) as SearchResult;
 }
 
+let lastEmailQueryTracked: string | null = null;
+
 export function useFullApplicationSearch(searchTerm: string) {
   const analytics = useUnifiedSearchAnalytics();
 
@@ -42,7 +44,9 @@ export function useFullApplicationSearch(searchTerm: string) {
     queryKey: [SearchQueryKeys.GET_FULL_APPLICATION_SEARCH_RESULTS, searchTerm],
     queryFn: () => {
       analytics.onFullSearch(searchTerm);
-      if (isEmailQuery(searchTerm)) {
+      // queryFn also runs on retries and refetches; send the email event once per search term.
+      if (isEmailQuery(searchTerm) && lastEmailQueryTracked !== searchTerm) {
+        lastEmailQueryTracked = searchTerm;
         analytics.onEmailQuerySubmitted();
       }
 

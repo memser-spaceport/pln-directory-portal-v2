@@ -21,12 +21,17 @@ type Result<T> = { data: T } | { isError: true; status?: number; statusText?: st
  * Safe to personalize because nothing caches this: `cache: 'no-store'` here, and
  * the proxy route is `force-dynamic`.
  */
-export async function getJobsList(query: string, authToken?: string): Promise<Result<IJobsListResponse>> {
+export async function getJobsList(
+  query: string,
+  authToken?: string,
+  signal?: AbortSignal,
+): Promise<Result<IJobsListResponse>> {
   try {
     const response = await fetch(`${jobsAPI}?${query}`, {
       method: 'GET',
       headers: getHeader(authToken ?? ''),
       cache: 'no-store',
+      signal,
     });
     if (!response.ok) {
       return { isError: true, status: response.status, statusText: response.statusText };
@@ -55,12 +60,16 @@ export async function getJobsFilters(query: string, authToken?: string): Promise
   }
 }
 
+/** A role page waits this long for the backend, then errors (500, retryable) instead of hanging (LAB-2887). */
+const JOB_OPENING_TIMEOUT_MS = 10_000;
+
 export async function getJobOpening(uid: string): Promise<Result<IJobTeamGroup>> {
   try {
     const response = await fetch(`${jobsAPI}/${encodeURIComponent(uid)}`, {
       method: 'GET',
       headers: getHeader(''),
       next: { revalidate: 3600 },
+      signal: AbortSignal.timeout(JOB_OPENING_TIMEOUT_MS),
     });
     if (!response.ok) {
       return { isError: true, status: response.status, statusText: response.statusText };

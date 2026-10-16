@@ -5,10 +5,13 @@ import { Menu } from '@base-ui-components/react/menu';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import clsx from 'clsx';
 import { useMedia } from 'react-use';
+import { usePathname } from 'next/navigation';
 
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { useCommonAnalytics } from '@/analytics/common.analytics';
+import { useFeedbackAnalytics } from '@/analytics/feedback.analytics';
+import { useFeedbackDrawerStore } from '@/services/feedback/store';
 import { useContactSupportStore } from '@/services/contact-support/store';
 import { CONTACT_SUPPORT_TOPICS, type IContactSupportTopic } from '@/components/ContactSupport/constants';
 import { useOneTimeCallout } from '@/hooks/useOneTimeCallout';
@@ -68,6 +71,9 @@ export const HelpMenu = ({ userInfo, isLoggedIn }: Props) => {
   const analytics = useCommonAnalytics();
   const { openModal } = useContactSupportStore((store) => store.actions);
   const supportFormOpen = useContactSupportStore((store) => store.open);
+  const { openDrawer: openFeedbackDrawer } = useFeedbackDrawerStore((store) => store.actions);
+  const feedbackAnalytics = useFeedbackAnalytics();
+  const pathname = usePathname() ?? '';
 
   const canHover = useMedia('(hover: hover)', false);
   // Controlled, because base-ui's own answer to a press is not the one we want
@@ -162,6 +168,14 @@ export const HelpMenu = ({ userInfo, isLoggedIn }: Props) => {
     // always carried the item label — so the topics join a stream that already
     // has history rather than starting a parallel one.
     analytics.onNavGetHelpItemClicked(topic.label, getAnalyticsUserInfo(userInfo));
+    // LAB-2879: for members, Give feedback is the AI Apps feedback drawer (the
+    // one `GlobalFeedback` mounts). Signed-out visitors keep the support form
+    // until LAB-2882; the topic stays in the form's pill row either way.
+    if (topic.dialogParam === 'giveFeedback' && isLoggedIn) {
+      feedbackAnalytics.onFeedbackButtonClick({ source: 'help-menu', page: pathname });
+      openFeedbackDrawer();
+      return;
+    }
     openModal(undefined, topic.dialogParam);
   };
 

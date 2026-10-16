@@ -14,7 +14,8 @@ const DEPLOY_POLL_STEPS_MS: Array<[elapsedBelowMs: number, intervalMs: number]> 
   [5 * 60_000, 30_000],
 ];
 
-export function useAiApps() {
+/** `enabled: false` skips the request (the LabOS-wide feedback drawer has no app picker, LAB-2879). */
+export function useAiApps({ enabled = true }: { enabled?: boolean } = {}) {
   // When the first DEPLOYING app was observed — drives the backoff schedule.
   // Read/written only inside the refetchInterval callback (not during render).
   const deployPollStartedAtRef = useRef<number | null>(null);
@@ -22,6 +23,7 @@ export function useAiApps() {
   const { data, isLoading, isError } = useQuery<AiApp[]>({
     queryKey: [AiAppsQueryKeys.AI_APPS_LIST],
     queryFn: fetchAiApps,
+    enabled,
     staleTime: 5 * 60 * 1000,
     retry: 2,
     // Without this, a card-menu redeploy would strand a "Deploying" badge on

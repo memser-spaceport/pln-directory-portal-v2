@@ -271,6 +271,12 @@ interface Props {
    * comment is placed on the app — full screen, it would cover it (LAB-2796).
    */
   collapsed?: boolean;
+  /**
+   * LabOS-wide feedback (LAB-2879, every page outside AI Apps): the report
+   * always goes to "LabOS - AI Apps", so there is no app picker and the AI Apps
+   * list is not loaded — the member may have no AI Apps access.
+   */
+  labosOnly?: boolean;
 }
 
 /**
@@ -375,16 +381,17 @@ export function GiveAiAppFeedbackDialog({
   switchSlot,
   altBody,
   collapsed = false,
+  labosOnly = false,
 }: Props) {
   const isDrawer = variant === 'drawer';
   const showingAlt = isDrawer && Boolean(altBody);
   /* The form is what is on screen: the Comments tab leaves it mounted but not in charge of the keys. */
   const formActive = isOpen && !showingAlt;
   /* Drawer: inside an app the app is the context, so it is named, not asked. */
-  const showAppPicker = !isDrawer || !appUid;
+  const showAppPicker = !labosOnly && (!isDrawer || !appUid);
   const { currentUser } = useCurrentUserStore();
   const [overlayStyle, setOverlayStyle] = useState<CSSProperties>();
-  const { apps, isLoading: isAppsLoading } = useAiApps();
+  const { apps, isLoading: isAppsLoading } = useAiApps({ enabled: !labosOnly });
   const { mutate: submitAppFeedback, isPending: isAppFeedbackPending } = useSubmitAiAppFeedback();
   const { mutate: submitContactSupport, isPending: isContactSupportPending } = useContactSupport();
   const analytics = useAiAppsAnalytics();

@@ -34,6 +34,7 @@ import {
   CookieChecker,
   PostHogPageview,
   RatingContainer,
+  GlobalFeedback,
 } from './ClientDynamics';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -79,13 +80,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <PushNotificationsProvider authToken={authToken} enabled={isLoggedIn}>
                 <StoreInitializer userInfo={userInfo} />
                 <PostHogIdentifier />
-                <ContactSupportUrlSync />
+                <ContactSupportUrlSync isLoggedIn={isLoggedIn} />
                 {/* DELETE WITH: the `design-canvas/` folder — unwrap both, keep the components. */}
                 <AppChromeGate>
                   <SiteHeader userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
                 </AppChromeGate>
                 <AuthBox isLoggedIn={isLoggedIn} />
                 <ContactSupport userInfo={userInfo} />
+                <AppChromeGate>
+                  <GlobalFeedback isLoggedIn={isLoggedIn} />
+                </AppChromeGate>
                 <DemoDayStats />
                 <main className="layout__main">{children}</main>
                 <AppChromeGate>

@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import { HelpMenu } from '@/components/core/navbar/components/HelpMenu';
 import { useContactSupportStore } from '@/services/contact-support/store';
+import { useFeedbackDrawerStore } from '@/services/feedback/store';
 
 /**
  * The callout's storage now lives in `useOneTimeCallout` — local cache, member
@@ -36,6 +37,11 @@ const mockOnNavGetHelpItemClicked = jest.fn();
 const mockOnHelpMenuOpened = jest.fn();
 const mockOnHelpCalloutShown = jest.fn();
 const mockOnHelpCalloutDismissed = jest.fn();
+const mockOnFeedbackButtonClick = jest.fn();
+jest.mock('@/analytics/feedback.analytics', () => ({
+  useFeedbackAnalytics: () => ({ onFeedbackButtonClick: mockOnFeedbackButtonClick, onFeedbackSubmit: jest.fn() }),
+}));
+
 jest.mock('@/analytics/common.analytics', () => ({
   useCommonAnalytics: () => ({
     onNavGetHelpItemClicked: mockOnNavGetHelpItemClicked,
@@ -88,6 +94,7 @@ describe('HelpMenu', () => {
     // the callout.
     calloutStartsOpen = false;
     useContactSupportStore.getState().actions.closeModal();
+    useFeedbackDrawerStore.getState().actions.closeDrawer();
   });
 
   /*
@@ -219,6 +226,30 @@ describe('HelpMenu', () => {
       fireEvent.click(await screen.findByRole('menuitem', { name: 'Give feedback' }));
 
       expect(mockOnNavGetHelpItemClicked).toHaveBeenCalledWith('Give feedback', expect.anything());
+    });
+
+    /* LAB-2879: Give feedback opens the AI Apps feedback drawer for members. */
+    it('opens the feedback drawer, not the support form, on Give feedback for a member', async () => {
+      render(<HelpMenu isLoggedIn userInfo={userInfo} />);
+
+      pressHelp();
+      fireEvent.click(await screen.findByRole('menuitem', { name: 'Give feedback' }));
+
+      await waitFor(() => expect(useFeedbackDrawerStore.getState().open).toBe(true));
+      expect(useContactSupportStore.getState().open).toBe(false);
+      expect(mockOnFeedbackButtonClick).toHaveBeenCalledWith({ source: 'help-menu', page: '/mock-path' });
+    });
+
+    it('keeps the support form on Give feedback for a signed-out visitor', async () => {
+      render(<HelpMenu isLoggedIn={false} />);
+
+      pressHelp();
+      fireEvent.click(await screen.findByRole('menuitem', { name: 'Give feedback' }));
+
+      await waitFor(() => expect(useContactSupportStore.getState().open).toBe(true));
+      expect(useContactSupportStore.getState().topic).toBe('Give feedback');
+      expect(useFeedbackDrawerStore.getState().open).toBe(false);
+      expect(mockOnFeedbackButtonClick).not.toHaveBeenCalled();
     });
 
     it('reports the help door was used once, on the tap that opened the list', async () => {

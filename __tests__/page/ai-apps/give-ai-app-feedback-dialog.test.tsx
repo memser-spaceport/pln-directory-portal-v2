@@ -116,7 +116,7 @@ jest.mock('react-use', () => ({
 }));
 
 jest.mock('@/services/ai-apps/hooks/useAiApps', () => ({
-  useAiApps: () => mockUseAiApps(),
+  useAiApps: (...args: unknown[]) => mockUseAiApps(...args),
 }));
 
 jest.mock('@/services/ai-app-feedback/hooks/useSubmitAiAppFeedback', () => ({
@@ -509,6 +509,54 @@ describe('GiveAiAppFeedbackDialog', () => {
     );
     expect(mockMutate).not.toHaveBeenCalled();
     expect(mockOnFeedbackSubmitted).not.toHaveBeenCalled();
+  });
+
+  /* LAB-2879: the LabOS-wide drawer, opened from every page outside AI Apps. */
+  describe('LabOS-wide feedback (labosOnly)', () => {
+    it('hides the app picker and does not load the AI Apps list', () => {
+      mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
+
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} variant="drawer" labosOnly />);
+
+      expect(screen.getByText('Give feedback')).toBeInTheDocument();
+      expect(screen.queryByLabelText('Which app is this about?')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'My App' })).not.toBeInTheDocument();
+      expect(mockUseAiApps).toHaveBeenCalledWith({ enabled: false });
+    });
+
+    it('sends to the same place as LabOS - AI Apps feedback and calls onSent', async () => {
+      mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+      const onSent = jest.fn();
+      mockContactSupportMutate.mockImplementation((_body, options) => options?.onSuccess?.());
+
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} variant="drawer" labosOnly onSent={onSent} />);
+
+      fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), {
+        target: { value: 'The members page is slow' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+
+      await waitFor(() =>
+        expect(mockContactSupportMutate).toHaveBeenCalledWith(
+          expect.objectContaining({
+            topic: 'AI Apps Feedback',
+            message: '<p>The members page is slow</p>',
+            metadata: expect.objectContaining({ page: expect.any(String) }),
+          }),
+          expect.objectContaining({ onSuccess: expect.any(Function) }),
+        ),
+      );
+      expect(mockMutate).not.toHaveBeenCalled();
+      expect(onSent).toHaveBeenCalledTimes(1);
+    });
+
+    it('still loads the AI Apps list without labosOnly', () => {
+      mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} />);
+
+      expect(mockUseAiApps).toHaveBeenCalledWith({ enabled: true });
+    });
   });
 
   it('uploads pasted data-URI images before submitting', async () => {

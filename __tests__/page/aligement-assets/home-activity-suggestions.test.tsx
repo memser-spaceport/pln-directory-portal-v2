@@ -11,6 +11,8 @@ jest.mock('next/image', () => ({ __esModule: true, default: () => null }));
 jest.mock('@/analytics/alignment-assets.analytics', () => ({
   useAlignmentAssetsAnalytics: () => ({ onNavMenuClicked: jest.fn() }),
 }));
+const mockUseIsInfraMember = jest.fn(() => false);
+jest.mock('@/services/plaa/hooks/useIsInfraMember', () => ({ useIsInfraMember: () => mockUseIsInfraMember() }));
 
 const props: PlaaHomeProps = {
   variant: 'member',
@@ -95,11 +97,15 @@ test('points, category, review label and destination follow changes to the sourc
   expect(mockPush).toHaveBeenLastCalledWith('/alignment-asset/activities#current-record');
 });
 
-test.each<[Partial<Activity>, boolean]>([
-  [{ isSunset: true }, false],
-  [{ audience: 'pl-infra-members' }, false],
-  [{}, true],
-])('only activities open to every participant are suggested: %j', (overrides, visible) => {
+test.each<[Partial<Activity>, boolean, boolean]>([
+  [{ isSunset: true }, false, false],
+  [{ isSunset: true }, true, false],
+  [{ audience: 'pl-infra-members' }, false, false],
+  [{ audience: 'pl-infra-members' }, true, true],
+  [{ audience: 'pl-infra-members', isSunset: true }, true, false],
+  [{}, false, true],
+])('suggests %j to an infra member=%s: %s', (overrides, isInfraMember, visible) => {
+  mockUseIsInfraMember.mockReturnValue(isInfraMember);
   jest.replaceProperty(activitiesData, 'activities', [{ ...source[0], id: 'candidate', ...overrides }]);
   const { container } = render(<PlaaHome {...props} />);
   expect(cards(container)).toHaveLength(visible ? 1 : 0);

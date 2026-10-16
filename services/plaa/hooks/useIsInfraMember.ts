@@ -30,5 +30,6 @@ export function useIsInfraMember(): boolean {
   });
 
   if (!data || isError) return false;
-  return hasInfraPolicy(data.policies.map((policy) => policy.code));
+  // A response without a policy list means no infra policy, not a crash.
+  return hasInfraPolicy((data.policies ?? []).map((policy) => policy.code));
 }

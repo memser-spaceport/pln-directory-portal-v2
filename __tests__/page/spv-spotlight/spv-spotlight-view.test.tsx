@@ -431,8 +431,7 @@ describe('SpvSpotlightView — gated (the default)', () => {
     });
 
     it('opens DocSend after the data room email is sent', async () => {
-      const docSendTab = { closed: false, location: { href: '' }, opener: window, close: jest.fn() } as unknown as Window;
-      const open = jest.spyOn(window, 'open').mockImplementation(() => docSendTab);
+      const open = jest.spyOn(window, 'open').mockImplementation(() => null);
       let resolveSend: (value: { docSendUrl: string }) => void = () => undefined;
       mockRequestDataRoomEmail.mockReturnValue(
         new Promise((resolve) => {
@@ -455,9 +454,7 @@ describe('SpvSpotlightView — gated (the default)', () => {
 
       await userEvent.click(request);
 
-      expect(open).toHaveBeenCalledTimes(1);
-      expect(open).toHaveBeenCalledWith('', '_blank');
-      expect(docSendTab.location.href).toBe('');
+      expect(open).not.toHaveBeenCalled();
       expect(within(dealCard()).getByRole('button', { name: /Sending/ })).toBeDisabled();
       resolveSend({ docSendUrl: 'https://docsend.com/view/x' });
 
@@ -466,7 +463,7 @@ describe('SpvSpotlightView — gated (the default)', () => {
         'href',
         'https://docsend.com/view/x',
       );
-      expect(docSendTab.location.href).toBe('https://docsend.com/view/x');
+      expect(open).toHaveBeenCalledWith('https://docsend.com/view/x', '_blank', 'noopener,noreferrer');
       expect(within(dealCard()).getByText('We sent an email connecting you to the SPV team.')).toBeInTheDocument();
       expect(toast.success).toHaveBeenCalledWith('We sent an email connecting you to the SPV team.');
       expect(within(band() as HTMLElement).getByRole('link', { name: /Open data room/ })).toHaveAttribute(

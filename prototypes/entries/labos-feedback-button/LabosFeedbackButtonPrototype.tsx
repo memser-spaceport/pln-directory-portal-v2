@@ -100,7 +100,12 @@ export default function LabosFeedbackButtonPrototype() {
         navExtras={{
           ...headerSearch,
           jobsInBar: false,
-          helpMenu: { onPickTopic: setSupportTopic, callout: false, clickTopic: CONTACT_SUPPORT_TOPICS[0].value },
+          helpMenu: {
+            onPickTopic: setSupportTopic,
+            callout: false,
+            clickTopic: CONTACT_SUPPORT_TOPICS[0].value,
+            strokeGlyph: true,
+          },
           feedbackButton: signedIn ? { onClick: feedback.open, expanded: feedback.isOpen, inBar } : undefined,
         }}
         reviewExtras={

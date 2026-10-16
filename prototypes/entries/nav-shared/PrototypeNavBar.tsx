@@ -5,7 +5,6 @@ import clsx from 'clsx';
 import { NavigationMenu } from '@base-ui-components/react';
 
 import { NavItemWithMenu } from '@/components/core/navbar/components/NavItemWithMenu';
-import { CommentIcon } from '@/components/icons';
 import { AiSearchIcon } from '@/prototypes/components/AiSearchIcon/AiSearchIcon';
 import {
   DIRECTORY_LINKS,
@@ -35,7 +34,7 @@ import sub from '@/components/core/application-search/components/AiChatPanel/com
 import local from './PrototypeNav.module.scss';
 import help from './HelpFeedbackMenu.module.scss';
 
-import { HomeIcon, BellIcon, SearchGlyph } from './icons';
+import { HomeIcon, BellIcon, SearchGlyph, CommentGlyph, HelpGlyph } from './icons';
 import { LOGO_LABEL, scrollToTop } from './home';
 import { PrototypeSearchModal } from './PrototypeSearchModal';
 import { HelpFeedbackMenu, type HelpFeedbackMenuProps } from './HelpFeedbackMenu';
@@ -130,7 +129,12 @@ interface PrototypeNavBarProps {
    * `askAi` adds the optional "Ask AI" item, which opens the search overlay
    * (needs `searchable`); `key` remounts the menu, for re-showing the callout.
    */
-  helpMenu?: Pick<HelpFeedbackMenuProps, 'onPickTopic' | 'callout' | 'clickTopic'> & { askAi?: boolean; key?: string };
+  helpMenu?: Pick<HelpFeedbackMenuProps, 'onPickTopic' | 'callout' | 'clickTopic'> & {
+    askAi?: boolean;
+    key?: string;
+    /** The (?) drawn at the bar's 1.5px stroke instead of production's bold glyph. */
+    strokeGlyph?: boolean;
+  };
   /**
    * Controlled form of the search dialog's open state, for pages that also
    * open it from somewhere other than the icon (a ⌘K shortcut, a page button).
@@ -494,7 +498,7 @@ export function PrototypeNavBar({
                 aria-label="Give feedback"
                 data-feedback-capture-ignore=""
               >
-                <CommentIcon />
+                <CommentGlyph />
                 <span className={local.navFeedbackLabel}>Give feedback</span>
               </button>
             )}
@@ -505,6 +509,7 @@ export function PrototypeNavBar({
                 /* With the feedback button the (?) is develop's own: every topic opens the support form. */
                 onGiveFeedback={feedbackButton ? undefined : () => setCommenting(true)}
                 clickTopic={helpMenu.clickTopic}
+                glyph={helpMenu.strokeGlyph ? <HelpGlyph /> : undefined}
                 callout={helpMenu.callout}
                 onAskAi={helpMenu.askAi ? () => setSearchOpen(true) : undefined}
               />

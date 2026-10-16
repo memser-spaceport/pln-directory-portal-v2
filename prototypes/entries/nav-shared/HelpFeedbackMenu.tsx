@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, type MouseEvent } from 'react';
+import { useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import { Menu } from '@base-ui-components/react/menu';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import clsx from 'clsx';
@@ -37,6 +37,8 @@ export interface HelpFeedbackMenuProps {
   /** Where a mouse click lands. Default "Give feedback" (this proposal);
    *  "Contact support" is develop's own HelpMenu (`labos-feedback-button`). */
   clickTopic?: string;
+  /** Replaces production's HelpIcon in the trigger (the bar's 1.5px weight). */
+  glyph?: ReactNode;
 }
 
 /**
@@ -84,6 +86,7 @@ export function HelpFeedbackMenu({
   onAskAi,
   callout = false,
   clickTopic = CLICK_TOPIC,
+  glyph,
 }: HelpFeedbackMenuProps) {
   const pick = (topic: string) => (topic === CLICK_TOPIC && onGiveFeedback ? onGiveFeedback() : onPickTopic(topic));
   // PROTOTYPE: the callout opens on every page load and is never persisted as
@@ -145,7 +148,7 @@ export function HelpFeedbackMenu({
                 }}
                 onClick={onTriggerClick}
               >
-                <HelpIcon />
+                {glyph ?? <HelpIcon />}
               </Menu.Trigger>
             </span>
           </TooltipPrimitive.Trigger>

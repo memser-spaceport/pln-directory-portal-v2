@@ -72,6 +72,11 @@ jest.mock('@/analytics/husky.analytics', () => ({
   useHuskyAnalytics: () => ({ trackAiResponse: jest.fn() }),
 }));
 
+const onAiQuerySubmitted = jest.fn();
+jest.mock('@/analytics/unified-search.analytics', () => ({
+  useUnifiedSearchAnalytics: () => ({ onAiQuerySubmitted }),
+}));
+
 jest.mock('@/components/core/ToastContainer', () => ({
   toast: { error: jest.fn() },
 }));
@@ -345,5 +350,94 @@ describe('useHuskyChat', () => {
 
     expect(result.current.statusLine).toBe('Found 2 members');
     expect(result.current.turns[0].answer).toBe('');
+  });
+
+  describe('member-side ask event', () => {
+    it('sends one event per accepted submit: new question, follow-up and regenerate', async () => {
+      const { result } = renderHook(() => useHuskyChat({ isLoggedIn: true }));
+
+      await act(async () => {
+        await result.current.startThread('  who works on zk  ');
+      });
+      expect(onAiQuerySubmitted).toHaveBeenCalledTimes(1);
+      expect(onAiQuerySubmitted).toHaveBeenLastCalledWith('who works on zk', 'header-dialog', 'user-input');
+
+      act(() => stream.onFinish?.({}));
+      await act(async () => {
+        await result.current.ask('and in lisbon?');
+      });
+      expect(onAiQuerySubmitted).toHaveBeenCalledTimes(2);
+      expect(onAiQuerySubmitted).toHaveBeenLastCalledWith('and in lisbon?', 'header-dialog', 'followup');
+
+      await act(async () => {
+        await result.current.regenerate('and in lisbon?');
+      });
+      expect(onAiQuerySubmitted).toHaveBeenCalledTimes(3);
+      expect(onAiQuerySubmitted).toHaveBeenLastCalledWith('and in lisbon?', 'header-dialog', 'regenerate');
+    });
+
+    it('sends no event for an empty or whitespace-only question', async () => {
+      const { result } = renderHook(() => useHuskyChat({ isLoggedIn: true }));
+
+      await act(async () => {
+        await result.current.startThread('   ');
+      });
+
+      expect(onAiQuerySubmitted).not.toHaveBeenCalled();
+      expect(stream.submit).not.toHaveBeenCalled();
+    });
+
+    it('sends no event when the daily limit refuses the question', async () => {
+      checkRefreshToken.mockReturnValue(false);
+      getChatCount.mockReturnValue(11);
+
+      const { result } = renderHook(() => useHuskyChat({ isLoggedIn: false }));
+      await act(async () => {
+        await result.current.startThread('one too many');
+      });
+
+      expect(onAiQuerySubmitted).not.toHaveBeenCalled();
+    });
+
+    it('sends no event when the in-flight guard refuses a follow-up', async () => {
+      const { result } = renderHook(() => useHuskyChat({ isLoggedIn: true }));
+
+      await act(async () => {
+        await result.current.startThread('first');
+      });
+      await act(async () => {
+        await result.current.ask('too soon');
+      });
+
+      expect(onAiQuerySubmitted).toHaveBeenCalledTimes(1);
+    });
+
+    it('sends one event for two presses inside the credentials await window', async () => {
+      let release: (value: unknown) => void = () => {};
+      getUserCredentials.mockReturnValue(new Promise((resolve) => (release = resolve)));
+
+      const { result } = renderHook(() => useHuskyChat({ isLoggedIn: true }));
+      await act(async () => {
+        result.current.startThread('filecoin teams');
+        result.current.startThread('filecoin teams');
+        release({ authToken: 'token', userInfo: {} });
+      });
+
+      await waitFor(() => expect(stream.submit).toHaveBeenCalledTimes(1));
+      expect(onAiQuerySubmitted).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the one event when the answer fails or arrives in several chunks', async () => {
+      const { result } = renderHook(() => useHuskyChat({ isLoggedIn: true }));
+
+      await act(async () => {
+        await result.current.startThread('lisbon events');
+      });
+      emit({ content: 'Half', followUpQuestions: [] });
+      emit({ content: 'Half of an ans', followUpQuestions: [] });
+      emitError(new Error('boom'));
+
+      expect(onAiQuerySubmitted).toHaveBeenCalledTimes(1);
+    });
   });
 });

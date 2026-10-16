@@ -6,9 +6,10 @@ import { getHuskyHistory, deleteThread } from '@/services/husky.service';
 import { getUserCredentials } from '@/utils/auth.utils';
 import { triggerLoader } from '@/utils/common.utils';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { ConfirmDialog } from '@/components/core/ConfirmDialog';
 import { PAGE_ROUTES } from '@/utils/constants';
+import { AI_SEARCH_HISTORY_PARAM } from '@/components/constants/aiSearchHandoff';
 import { useLoginRedirect } from '@/components/core/login/utils';
 import { OPEN_VISIT_CHAT_EVENT } from './constants/visitChats';
 import { getVisitChats } from './utils/getVisitChats';
@@ -66,7 +67,9 @@ const ThreadItem = ({ thread, isActive, isMobile, toggleSidebar, handleDeleteMod
       className="sidebar__body__history__list__ul__li"
       onClick={handleClick}
     >
-      <span className="sidebar__body__history__list__ul__li__text">{thread.title}</span>
+      <span className="sidebar__body__history__list__ul__li__text" title={thread.title}>
+        {thread.title}
+      </span>
       <div className="sidebar__body__history__list__ul__li__actions">
         <button onClick={handleDeleteClick} className="sidebar__body__history__list__ul__li__actions__button">
           <img width={20} height={20} src="/icons/delete-icon.svg" alt="delete" />
@@ -144,7 +147,8 @@ const ThreadItem = ({ thread, isActive, isMobile, toggleSidebar, handleDeleteMod
 };
 
 const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
-  const { toggleSidebar, state, isMobile } = useSidebar();
+  const { toggleSidebar, setOpen, setOpenMobile, state, isMobile } = useSidebar();
+  const searchParams = useSearchParams();
   const [history, setHistory] = useState<IHistoryThread[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const analytics = useHuskyAnalytics();
@@ -310,6 +314,19 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
   const historyGroups = useMemo(() => groupThreadsByDate(shownHistory), [shownHistory]);
   const deleteSubject = deleteTarget?.title ? `“${deleteTarget.title}”` : 'This chat';
 
+  // "All chats" in the header search opens the page with History showing: the rail, or the drawer below 960px.
+  useEffect(() => {
+    if (searchParams.get(AI_SEARCH_HISTORY_PARAM) !== 'open') {
+      return;
+    }
+    if (window.innerWidth < 960) {
+      setOpenMobile(true);
+    } else {
+      setOpen(true);
+    }
+    router.replace(window.location.pathname, { scroll: false });
+  }, [searchParams, setOpen, setOpenMobile, router]);
+
   useEffect(() => {
     fetchHistory(true); // Show loading on initial fetch
 
@@ -350,12 +367,16 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
       <Sidebar>
         <div data-state={state} className="sidebar__header">
           <div className="sidebar__header__logo-container">
+            <span className="sidebar__header__title">
+              <span className="sidebar__header__title__icon" aria-hidden="true" />
+              AI Search
+            </span>
             <button className="sidebar__header__logo-icon-button" onClick={handleSidebarToggle}>
               <img src="/icons/sidenav-close.svg" alt="toggle sidebar" />
             </button>
           </div>
           <button onClick={handleNewConversation} className="sidebar__header__newConversation">
-            <img src="/icons/add.svg" alt="plus" />
+            <span className="sidebar__header__newConversation__icon" aria-hidden="true" />
             <span className="sidebar__header__newConversation__text">New chat</span>
           </button>
         </div>
@@ -471,22 +492,52 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
           height: 35px;
           display: flex;
           align-items: center;
-          justify-content: flex-end;
+          justify-content: space-between;
           padding-bottom: 12px;
+        }
+
+        .sidebar__header__title {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          color: #0a0c11;
+          font-size: 16px;
+          font-weight: 600;
+          line-height: 24px;
+          white-space: nowrap;
+        }
+
+        .sidebar__header__title__icon {
+          flex-shrink: 0;
+          width: 20px;
+          height: 20px;
+          background: linear-gradient(285deg, #45d8ff 0%, #005bea 82.52%);
+          mask: url('/icons/ai-search.svg') center / contain no-repeat;
         }
 
         .sidebar__header__newConversation {
           display: flex;
           align-items: center;
-          justify-content: center;
-          gap: 4px;
-          padding: 14px 0px;
-          border-top: 1px solid #0000001a;
-          border-bottom: 1px solid #0000001a;
+          gap: 8px;
+          height: 36px;
+          padding: 0 8px;
+          border: 1px solid rgba(27, 56, 96, 0.12);
+          border-radius: 8px;
+          background-color: #ffffff;
+          color: #1b4dff;
+          cursor: pointer;
         }
 
         .sidebar__header__newConversation:hover {
-          background-color: #f1f5f9;
+          border-color: rgba(27, 56, 96, 0.24);
+        }
+
+        .sidebar__header__newConversation__icon {
+          flex-shrink: 0;
+          width: 16px;
+          height: 16px;
+          background-color: currentColor;
+          mask: url('/icons/add.svg') center / contain no-repeat;
         }
 
         .sidebar__body[data-state='collapsed'] .sidebar__body__history__header:hover {
@@ -496,9 +547,8 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
 
         .sidebar__header__newConversation__text {
           font-weight: 500;
-          font-size: 13px;
-          line-height: 14px;
-          color: #156ff7;
+          font-size: 14px;
+          line-height: 20px;
         }
 
         .sidebar__body {
@@ -734,8 +784,20 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
             padding: unset;
           }
 
+          /* the collapsed rail keeps New chat as a full-width row between dividers */
           .sidebar__header[data-state='collapsed'] .sidebar__header__newConversation {
+            justify-content: center;
+            height: auto;
             padding: 23px;
+            border: none;
+            border-top: 1px solid #0000001a;
+            border-bottom: 1px solid #0000001a;
+            border-radius: 0;
+            background-color: transparent;
+          }
+
+          .sidebar__header[data-state='collapsed'] .sidebar__header__newConversation:hover {
+            background-color: #f1f5f9;
           }
 
           .sidebar__header[data-state='collapsed'] .sidebar__header__newConversation__text {
@@ -778,7 +840,8 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
             display: flex;
           }
 
-          .sidebar__header__logo-container {
+          .sidebar__header__logo-icon-button,
+          .sidebar__header[data-state='collapsed'] .sidebar__header__logo-container {
             display: none;
           }
         }
@@ -804,6 +867,7 @@ const SkeletonLoader = () => (
         height: 2rem;
         border-radius: 0.375rem;
       }
+
       .skeleton {
         height: 1rem;
         border-radius: 0.375rem;

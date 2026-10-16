@@ -4,3 +4,47 @@
 .column {
   min-width: 0;
 }
+
+/* The short card's links row (LAB-2819): LinkedIn and GitHub as production's
+ * contact logos, then Full profile — the click-through to everything the
+ * short card leaves out. Under the role line, inside the header's text column. */
+.links {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.socialLink {
+  display: inline-flex;
+  border-radius: 4px;
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+.fullProfile {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: none;
+
+  svg path {
+    fill: currentColor;
+  }
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.cvLink {
+  display: inline-flex;
+  text-decoration: none;
+}

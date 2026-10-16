@@ -21,6 +21,26 @@ export const saveFeedback = async (authToken: string, payload: any) => {
   };
 };
 
+export const removeFeedback = async (authToken: string, questionId: string) => {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/husky/chat/feedback/${questionId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    return {
+      isError: true,
+      status: response.status,
+    };
+  }
+
+  return {
+    isSaved: true,
+  };
+};
+
 export const getHuskyAugmentedInfo = async (
   authToken: string,
   query: string,
@@ -266,6 +286,7 @@ export const getHuskyThreadById = async (id: string, authToken: string) => {
       actions: item?.actions,
       followUpQuestions: item?.followUpQuestions,
       sql: item?.sqlData,
+      feedback: item?.feedback,
     };
   });
   return {

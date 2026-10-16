@@ -266,6 +266,11 @@ interface Props {
    * mounted under it, so a half-written note survives the switch.
    */
   altBody?: ReactNode;
+  /**
+   * Drawer, phone: it steps aside (kept mounted, list and form intact) while a
+   * comment is placed on the app — full screen, it would cover it (LAB-2796).
+   */
+  collapsed?: boolean;
 }
 
 /**
@@ -369,6 +374,7 @@ export function GiveAiAppFeedbackDialog({
   variant = 'popover',
   switchSlot,
   altBody,
+  collapsed = false,
 }: Props) {
   const isDrawer = variant === 'drawer';
   const showingAlt = isDrawer && Boolean(altBody);
@@ -1732,7 +1738,7 @@ export function GiveAiAppFeedbackDialog({
             </div>
 
             <div className={s.footer}>
-              <div className={s.footerActions}>
+              <div className={clsx(s.footerActions, s.phoneFillRow)}>
                 {worthKeeping && (
                   <Button
                     style="link"
@@ -1746,7 +1752,7 @@ export function GiveAiAppFeedbackDialog({
                 <Button
                   style="border"
                   variant="neutral"
-                  className={s.footerButton}
+                  className={clsx(s.footerButton, s.phoneFillButton)}
                   onClick={onClose}
                   aria-keyshortcuts="Escape"
                 >
@@ -1756,7 +1762,7 @@ export function GiveAiAppFeedbackDialog({
                   </kbd>
                 </Button>
                 <Button
-                  className={s.footerButton}
+                  className={clsx(s.footerButton, s.phoneFillButton)}
                   onClick={onSubmit}
                   disabled={isPending || isOverLimit || !hasMessageText}
                   aria-keyshortcuts={shortcuts.sendAria}
@@ -1780,7 +1786,7 @@ export function GiveAiAppFeedbackDialog({
         <FeedbackDrawerFrame
           isOpen={isOpen}
           wide={isWideShown}
-          hidden={isBusy}
+          hidden={isBusy || collapsed}
           reserveSpace={Boolean(appUid)}
           label={title}
         >

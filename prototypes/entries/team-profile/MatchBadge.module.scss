@@ -1,0 +1,26 @@
+/* The match band, gradient-filled — see MatchBadge.tsx. 12/16 type in 2×8,
+ * the row badge's size, fully rounded like the mock. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--Neutral-White, #fff);
+}
+
+.strong {
+  background-color: #4f7fc7;
+  background-image: linear-gradient(110deg, #8ae6a2 0%, #5b97d4 45%, #352a9a 100%);
+}
+
+/* Quieter than Strong and darkened a step from the mock's mid-tone, so the
+ * white label stays readable on its lightest stretch. */
+.good {
+  background-color: #5f9c97;
+  background-image: linear-gradient(110deg, #6a9aa3 0%, #7cbf98 50%, #64a39e 100%);
+}

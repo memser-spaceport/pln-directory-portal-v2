@@ -54,7 +54,6 @@ approve-pr.sh
 !/docs/adr/
 .graphifyignore
 graphify-out
-openspec
 
 # design feedback from the review canvas, with its annotated pictures. One reviewer's working notes:
 # consumed and then dead. The CAPTURED SCREENS in design-canvas/shots/ are committed on purpose, so a

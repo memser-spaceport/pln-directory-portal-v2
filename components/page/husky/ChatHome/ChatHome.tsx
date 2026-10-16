@@ -1,5 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 
+import { generateUUID } from '@/utils/common.utils';
+
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 
 import { checkIsLimitReached } from './utils/checkIsLimitReached';
@@ -58,7 +60,7 @@ export const ChatHome = (props: Props) => {
   const handlePromptSelect = (prompt: any) => {
     analytics.trackExplorationPromptSelection(prompt.question, 'husky-page');
     const links = prompt.answerSourceLinks?.map((item: any) => item?.link);
-    setMessages([{ ...prompt, sources: links, followUpQuestions: prompt.followupQuestions }]);
+    setMessages([{ ...prompt, id: generateUUID(), sources: links, followUpQuestions: prompt.followupQuestions }]);
     setType('blog');
   };
 

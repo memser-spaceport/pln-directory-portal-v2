@@ -22,19 +22,19 @@ interface Props {
  * fixes to this UI (`de644d92a` itself and `34e44d961`).
  *
  * DELETE WITH: `SHOW_AI_SEARCH_DIALOG`, once the dialog is promoted. Going with
- * it: the `AppSearchDesktop`, `AppSearchMobile`, `FullSearchPanel`,
- * `FullSearchResults`, `AiChatPanel`, `AiConversationHistory` and `NothingFound`
- * folders, and `services/search/hooks/useRecordRecentSearch.ts`.
+ * it: the `AppSearchDesktop`, `AppSearchMobile`, `FullSearchResults`,
+ * `AiSearchEntries`, `RecentAiChats` and `NothingFound` folders, and
+ * `services/search/hooks/useRecordRecentSearch.ts`.
  *
  * Two surfaces can be mounted at once here — unlike the dialog, which must pick
  * one at runtime — because each one's trigger *and* panel sit inside the same
  * media-query-hidden root. Nothing here portals to <body>.
  */
-export const LegacyApplicationSearch = ({ isLoggedIn, userInfo, authToken }: Props) => {
+export const LegacyApplicationSearch = ({ isLoggedIn }: Props) => {
   return (
     <>
-      <AppSearchDesktop isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
-      <AppSearchMobile isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
+      <AppSearchDesktop isLoggedIn={isLoggedIn} />
+      <AppSearchMobile isLoggedIn={isLoggedIn} />
     </>
   );
 };

@@ -256,14 +256,6 @@ export function JobInterestBanner(props: JobInterestBannerProps) {
               <span>{teamFollowOfferLabel(teamName)}</span>
             </label>
           )}
-          {/* The note, quoted back — the person's own words, so it sits on
-              white under the alert's voice rather than in it. */}
-          {sentNote && (
-            <div className={s.sentNote}>
-              <p className={s.sentLabel}>{interestNoteSentLabel(teamName)}</p>
-              <p className={s.sentValue}>{sentNote}</p>
-            </div>
-          )}
         </div>
       </div>
 
@@ -317,6 +309,18 @@ export function JobInterestBanner(props: JobInterestBannerProps) {
           {actionLabel}
         </button>
       </div>
+
+      {/* The note, quoted back — the person's own words, so it sits on white
+          under the alert's voice rather than in it. After the action, not in
+          the text column (LAB-2749): the design keeps Undo on the title's line
+          and draws the note as a full-width row beneath, so a long note grows
+          the card downwards instead of pulling Undo to its middle. */}
+      {sentNote && (
+        <div className={s.sentNote}>
+          <p className={s.sentLabel}>{interestNoteSentLabel(teamName)}</p>
+          <p className={s.sentValue}>{sentNote}</p>
+        </div>
+      )}
     </div>
   );
 }

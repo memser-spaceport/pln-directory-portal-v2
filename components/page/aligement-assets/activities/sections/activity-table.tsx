@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { Activity } from '../types';
+import { isInfraOnlyActivity } from '../data';
 import { ACTIVITY_FORM_URL, ACTIVITY_CONFIRM_TOAST } from '@/constants/plaa';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { toast } from '@/components/core/ToastContainer';
@@ -111,8 +112,33 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
     onRowClick(activity);
   };
 
+  // Key for the card status icons, listing only the ones that appear in this list.
+  const showInfraKey = activities.some(isInfraOnlyActivity);
+  const showSunsetKey = activities.some((activity) => activity.isSunset);
+
   return (
     <section className="activities-grouped-cards">
+      {(showInfraKey || showSunsetKey) && (
+        <div className="activities-key" aria-label="Activity icon key">
+          {showInfraKey && (
+            <span className="activities-key__item">
+              <span className="activity-card__infra-badge activities-key__badge">
+                <Image src="/icons/infra.svg" alt="" width={14} height={14} />
+              </span>
+              PL Infra only
+            </span>
+          )}
+          {showSunsetKey && (
+            <span className="activities-key__item">
+              <span className="activity-card__sunset-badge activities-key__badge">
+                <Image src="/icons/sunset.svg" alt="" width={14} height={14} />
+              </span>
+              Sunsetting at the end of this snapshot
+            </span>
+          )}
+        </div>
+      )}
+
       <div className="mobile-tabs-container">
         {SECTION_METADATA.map((section) => {
           const isActive = mobileActiveTab === section.id;
@@ -166,11 +192,6 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
                     <div className="activity-card__top">
                       <span className="activity-card__category">{activity.category}</span>
                       <div className="activity-card__top-right">
-                        {activity.isSunset && (
-                          <span className="activity-card__sunset-badge" title="Sunsetting at the end of this snapshot">
-                            <Image src="/icons/sunset.svg" alt="Sunsetting" width={18} height={18} />
-                          </span>
-                        )}
                         <div className="activity-card__points">
                           <Image src="/icons/points-icon.svg" alt="points-icon" width={16} height={16} />
                           <span className="activity-card__points-val">{activity.points} points</span>
@@ -182,6 +203,21 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
                       <h3 className="activity-card__title">{activity.activity}</h3>
                       <p className="activity-card__desc">{activity.networkValue}</p>
                     </div>
+
+                    {(isInfraOnlyActivity(activity) || activity.isSunset) && (
+                      <div className="activity-card__badges">
+                        {isInfraOnlyActivity(activity) && (
+                          <span className="activity-card__infra-badge" title="Only available to PL Infra team members">
+                            <Image src="/icons/infra.svg" alt="PL Infra only" width={18} height={18} />
+                          </span>
+                        )}
+                        {activity.isSunset && (
+                          <span className="activity-card__sunset-badge" title="Sunsetting at the end of this snapshot">
+                            <Image src="/icons/sunset.svg" alt="Sunsetting" width={18} height={18} />
+                          </span>
+                        )}
+                      </div>
+                    )}
 
                     <div className="activity-card__footer">
                       <div className="activity-card__tracking">
@@ -227,6 +263,26 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
           display: flex;
           flex-direction: column;
           gap: 32px;
+        }
+
+        /* Low-key: small muted text, sitting closer to the list than the 32px section gap. */
+        .activities-key {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px 20px;
+          margin-bottom: -16px;
+          font-size: 12px;
+          color: #64748b;
+        }
+
+        .activities-key__item {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .activities-key__badge {
+          padding: 2px 7px;
         }
 
         .activity-section {
@@ -352,7 +408,20 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
           background: #eff6ff;
           padding: 6px 12px;
           border-radius: 999px;
-          white-space: normal;
+          /* One line, so "Network Tooling" doesn't break across two. */
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+
+        /* Same shape as the sunset badge; blue matches the Infra pill on the PLAA profile page. */
+        .activity-card__infra-badge {
+          display: inline-flex;
+          align-items: center;
+          background: rgba(27, 77, 255, 0.08);
+          border: 1px solid rgba(27, 77, 255, 0.25);
+          padding: 3px 10px;
+          border-radius: 999px;
+          white-space: nowrap;
         }
 
         .activity-card__sunset-badge {
@@ -413,6 +482,14 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
           margin-top: auto;
           padding-top: 16px;
           border-top: 1px solid #f1f5f9;
+        }
+
+        /* Status icons sit just above the footer line, lined up over the button. */
+        .activity-card__badges {
+          display: flex;
+          justify-content: flex-end;
+          gap: 8px;
+          margin: 12px 0;
         }
 
         .activity-card__tracking {

@@ -1,14 +1,29 @@
 'use client';
 
+import { useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import CategoryRadar from './category-radar';
-import { ArrowRight, CaretLeft, CaretRight, Coins, Star, TrendDown, TrendUp, UsersThree } from '@phosphor-icons/react';
+import CategoryRadar, { PLAA_SERIES_COLOR, POINTS_SERIES_COLOR } from './category-radar';
+import ConversionBars from './conversion-bars';
+import { useTweenedValues } from './use-tweened-values';
+import {
+  ArrowRight,
+  CaretLeft,
+  CaretRight,
+  Coins,
+  HandCoins,
+  Star,
+  TrendDown,
+  TrendUp,
+  UsersThree,
+} from '@phosphor-icons/react';
 import { isUnderutilized, normalizeCategory } from './leaderboard.mapper';
 import type { LeaderboardCategoryWeight, LeaderboardSnapshot } from './leaderboard.types';
-import { activitiesData } from '../activities/data';
+import { activitiesData, isOpenActivity } from '../activities/data';
+import { useIsInfraMember } from '@/services/plaa/hooks/useIsInfraMember';
 
-const suggestionFor = (category: string): { title: string; points: string } | null => {
+const bestActivityFor = (category: string, isInfraMember: boolean): { title: string; points: string } | null => {
   const best = activitiesData.activities
+    .filter((activity) => isOpenActivity(activity, isInfraMember))
     .filter((activity) => normalizeCategory(activity.category) === normalizeCategory(category))
     .sort((a, b) => parseInt(b.points, 10) - parseInt(a.points, 10))[0];
   return best ? { title: best.activity, points: best.points } : null;
@@ -33,15 +48,38 @@ const percentDelta = (current: number, previous: number): string | null => {
 
 export default function SnapshotPanel({ snapshots, index, onIndexChange, categoryWeights }: SnapshotPanelProps) {
   const router = useRouter();
+  const isInfraMember = useIsInfraMember();
+  const suggestionFor = (category: string) => bestActivityFor(category, isInfraMember);
   const snapshot = snapshots[index];
   const previous = snapshots[index + 1] ?? null;
+  // Category hovered on the radar or in the list beside it; highlighted in both.
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  // Metric numbers count to their new values when moving between snapshots.
+  const animatedMetrics = useTweenedValues([
+    snapshot?.points ?? 0,
+    snapshot?.participants ?? 0,
+    snapshot?.plaaDistributed ?? 0,
+  ]);
 
   if (!snapshot) return null;
 
   const canOlder = index < snapshots.length - 1;
   const canNewer = index > 0;
 
-  const metrics = [
+  // PLAA arrives after a snapshot closes, so a closed one can still be waiting for it.
+  const isConversionPending = snapshot.plaaDistributed === 0;
+  const pendingNote = snapshot.isCurrentRound
+    ? 'Points convert to PLAA when the snapshot closes'
+    : 'PLAA for this snapshot is not published yet';
+
+  const metrics: Array<{
+    key: string;
+    icon: ReactNode;
+    label: string;
+    value: number;
+    previous: number | null;
+    pendingNote?: string;
+  }> = [
     {
       key: 'points',
       icon: <Coins size={16} color="var(--color-brand-text)" />,
@@ -55,6 +93,14 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
       label: 'Participants',
       value: snapshot.participants,
       previous: previous?.participants ?? null,
+    },
+    {
+      key: 'plaa',
+      icon: <HandCoins size={16} color="var(--color-brand-text)" />,
+      label: 'PLAA distributed',
+      value: snapshot.plaaDistributed,
+      previous: previous?.plaaDistributed ?? null,
+      pendingNote: isConversionPending ? pendingNote : undefined,
     },
   ];
 
@@ -108,8 +154,9 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
       </div>
 
       <div className="snap-metrics">
-        {metrics.map((metric) => {
-          const delta = metric.previous == null ? null : percentDelta(metric.value, metric.previous);
+        {metrics.map((metric, metricIndex) => {
+          const delta =
+            metric.pendingNote || metric.previous == null ? null : percentDelta(metric.value, metric.previous);
           const up = metric.previous == null || metric.value >= metric.previous;
           return (
             <div key={metric.key} className="snap-metric">
@@ -118,7 +165,9 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
                 <span>{metric.label}</span>
               </div>
               <div className="snap-metric-value-row">
-                <span className="snap-metric-value">{metric.value.toLocaleString('en-US')}</span>
+                <span className="snap-metric-value">
+                  {metric.pendingNote ? 'Pending' : Math.round(animatedMetrics[metricIndex]).toLocaleString('en-US')}
+                </span>
                 {delta && (
                   <span className={`snap-delta${up ? '' : ' snap-delta--down'}`}>
                     {up ? <TrendUp size={12} /> : <TrendDown size={12} />}
@@ -126,6 +175,7 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
                   </span>
                 )}
               </div>
+              {metric.pendingNote && <div className="snap-metric-vs">{metric.pendingNote}</div>}
               {delta && <div className="snap-metric-vs">vs {previous?.label}</div>}
             </div>
           );
@@ -141,62 +191,105 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
         <a href="/alignment-asset/overview">incentive model.</a>
       </p>
       <p className="snap-copy snap-copy--muted">
-        <span className="snap-green">Starred categories</span> are underutilized, so points make a bigger impact.
+        <span className="snap-green">Starred categories</span>{' '}
+        {snapshot.isCurrentRound
+          ? 'are underutilized, so points make a bigger impact.'
+          : 'were underutilized in this snapshot.'}
       </p>
 
+      <div className="snap-legend">
+        <span className="snap-legend-item">
+          <span className="snap-legend-dot snap-legend-dot--points" />
+          Points collected
+        </span>
+        <span className="snap-legend-item">
+          <span className="snap-legend-dot snap-legend-dot--plaa" />
+          PLAA distributed
+          {isConversionPending && (
+            <span className="snap-legend-note">
+              · {snapshot.isCurrentRound ? 'converts when the snapshot closes' : 'not published yet'}
+            </span>
+          )}
+        </span>
+      </div>
+
       <div className="snap-grid">
-        <CategoryRadar categories={snapshot.categories} />
-        <div>
-          <div className="snap-under-title">Underutilized — boost these</div>
-          <div className="snap-under-list">
-            {under.length === 0 && (
-              <p className="snap-copy snap-copy--muted">Every category is tracking evenly this snapshot.</p>
-            )}
-            {under.map((category) => {
-              const weight = weightFor(category.name);
-              const suggestion = suggestionFor(category.name);
-              const href = activitiesHref(category.name);
-              return (
-                <div
-                  key={category.name}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => router.push(href)}
-                  onKeyDown={(event) => event.key === 'Enter' && router.push(href)}
-                  className="snap-under"
-                >
-                  <span className="snap-under-icon">
-                    <Star weight="fill" size={18} color="#fff" />
-                  </span>
-                  <div className="snap-under-body">
-                    <div className="snap-under-name-row">
-                      <Star weight="fill" size={12} color="var(--color-brand)" />
-                      <span className="snap-under-name">{category.name}</span>
+        <CategoryRadar
+          categories={snapshot.categories}
+          showPlaa={!isConversionPending}
+          activeCategory={activeCategory}
+          onCategoryHover={setActiveCategory}
+        />
+        {/* Boosting only helps while a snapshot is open; a closed one shows how its points converted. */}
+        {snapshot.isCurrentRound ? (
+          <div>
+            <div className="snap-under-title">Underutilized — boost these</div>
+            <div className="snap-under-list">
+              {under.length === 0 && (
+                <p className="snap-copy snap-copy--muted">Every category is tracking evenly this snapshot.</p>
+              )}
+              {under.map((category) => {
+                const weight = weightFor(category.name);
+                const suggestion = suggestionFor(category.name);
+                const href = activitiesHref(category.name);
+                return (
+                  <div
+                    key={category.name}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => router.push(href)}
+                    onKeyDown={(event) => event.key === 'Enter' && router.push(href)}
+                    onMouseEnter={() => setActiveCategory(category.name)}
+                    onMouseLeave={() => setActiveCategory(null)}
+                    className={`snap-under${
+                      activeCategory === category.name
+                        ? ' snap-under--active'
+                        : under.some((card) => card.name === activeCategory)
+                          ? ' snap-under--dim'
+                          : ''
+                    }`}
+                  >
+                    <span className="snap-under-icon">
+                      <Star weight="fill" size={18} color="#fff" />
+                    </span>
+                    <div className="snap-under-body">
+                      <div className="snap-under-name-row">
+                        <Star weight="fill" size={12} color="var(--color-brand)" />
+                        <span className="snap-under-name">{category.name}</span>
+                      </div>
+                      <div className="snap-under-hint">
+                        {suggestion ? (
+                          <>
+                            {suggestion.title}
+                            {' · '}
+                            <b>{suggestion.points} pts</b>
+                          </>
+                        ) : (
+                          <>
+                            {weight?.percentOfTotal != null
+                              ? `${weight.percentOfTotal}% of the snapshot pool`
+                              : 'Open for contributions'}
+                            {' · '}
+                            <b>{category.value.toLocaleString('en-US')} pts collected</b>
+                          </>
+                        )}
+                      </div>
                     </div>
-                    <div className="snap-under-hint">
-                      {suggestion ? (
-                        <>
-                          {suggestion.title}
-                          {' · '}
-                          <b>{suggestion.points} pts</b>
-                        </>
-                      ) : (
-                        <>
-                          {weight?.percentOfTotal != null
-                            ? `${weight.percentOfTotal}% of the snapshot pool`
-                            : 'Open for contributions'}
-                          {' · '}
-                          <b>{category.value.toLocaleString('en-US')} pts collected</b>
-                        </>
-                      )}
-                    </div>
+                    <ArrowRight size={16} color="var(--color-brand)" />
                   </div>
-                  <ArrowRight size={16} color="var(--color-brand)" />
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
+        ) : isConversionPending ? (
+          <p className="snap-copy snap-copy--muted">{pendingNote}.</p>
+        ) : (
+          <ConversionBars
+            categories={snapshot.categories}
+            activeCategory={activeCategory}
+            onCategoryHover={setActiveCategory}
+          />
+        )}
       </div>
 
       <style jsx>{`
@@ -358,6 +451,33 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
           color: var(--color-brand-text);
           font-weight: 700;
         }
+        .snap-legend {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px 18px;
+          margin: 4px 0 4px;
+          font: var(--text-label-md);
+          color: var(--text-secondary);
+        }
+        .snap-legend-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+        }
+        .snap-legend-dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+        }
+        .snap-legend-dot--points {
+          background: ${POINTS_SERIES_COLOR};
+        }
+        .snap-legend-dot--plaa {
+          background: ${PLAA_SERIES_COLOR};
+        }
+        .snap-legend-note {
+          color: var(--text-tertiary);
+        }
         .snap-grid {
           display: flex;
           flex-wrap: wrap;
@@ -368,6 +488,8 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
           flex: 1 1 280px;
           min-width: 0;
           max-width: 420px;
+          /* Pinned to the top so the radar stays put whichever list sits beside it. */
+          align-self: flex-start;
         }
         .snap-grid > :global(:last-child) {
           flex: 1 1 260px;
@@ -397,8 +519,13 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
           cursor: pointer;
           transition:
             transform var(--duration-base),
-            box-shadow var(--duration-base);
+            box-shadow var(--duration-base),
+            opacity var(--duration-base);
         }
+        .snap-under--dim {
+          opacity: 0.45;
+        }
+        .snap-under--active,
         .snap-under:hover {
           transform: translateY(-2px);
           box-shadow:

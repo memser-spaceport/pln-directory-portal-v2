@@ -10,10 +10,19 @@ import {
   TeamApplicant,
 } from '@/schema/team-applicants';
 import {
+  contactSuggestedResponseSchema,
+  matchCriteriaResponseSchema,
+  RoleCriterion,
   SuggestedCandidate,
   selectShownSuggestions,
   suggestedCandidatesResponseSchema,
 } from '@/schema/suggested-candidates';
+import {
+  contactSuggestedCandidateMock,
+  type MockAnswer,
+  overlaySuggestedMock,
+  saveMatchCriteriaMock,
+} from '@/services/jobs/suggested-candidates.mock';
 import { customFetch } from '@/utils/fetch-wrapper';
 
 /**
@@ -54,13 +63,41 @@ const KIND_PATH: Record<ApplicantKind, string> = {
  * Type" before the handler runs. `job-interests.service.ts` carries the same
  * note and the same shape.
  */
-const jsonWrite = (body: unknown = {}) => ({
-  method: 'POST' as const,
+const jsonWrite = (body: unknown = {}, method: 'POST' | 'PUT' = 'POST') => ({
+  method,
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify(body),
 });
 
 export type { ApplicantCount, ApplicantKind, TeamApplicant };
+
+/**
+ * TEMPORARY (LAB-2847): routes the Suggested tab's two writes, and an overlay
+ * on its read, through `suggested-candidates.mock.ts` instead of the API.
+ *
+ * **Off by default — the real endpoints (backend #3509, LAB-2846) are used.**
+ * Flip it to `true` locally while the dev API you point at does not have those
+ * routes yet: the read still comes from the server, the mock fills in
+ * `criteria` / `contactedAt` and answers the two writes from session state.
+ * Cutover (tasks.md, "Workflow follow-up") deletes this constant and the mock
+ * module; no hook or component reads it.
+ */
+export const SUGGESTED_ACTIONS_MOCKED: boolean = false;
+
+/** What the Suggested tab reads in one request: the people, and the role's criteria. */
+export interface SuggestedCandidatesResult {
+  suggestions: SuggestedCandidate[];
+  /** `null` when the backend sent no criteria (an older backend) — the page then offers no "Edit criteria". */
+  criteria: RoleCriterion[] | null;
+  /** The lead's own words about who they are looking for (LAB-2853); `null` when none is saved or the backend sends none. */
+  criteriaPrompt: string | null;
+}
+
+/** What a criteria save answers: the switches and the prompt as saved. */
+export interface SavedMatchCriteria {
+  criteria: RoleCriterion[];
+  prompt: string | null;
+}
 
 /**
  * A refusal from the applicants endpoints.
@@ -86,6 +123,13 @@ export const isApplicantsForbiddenError = (error: unknown): boolean =>
   error instanceof TeamApplicantsError && error.status === 403;
 
 /**
+ * Someone on the team already contacted this member about this role. The page
+ * treats it as success: the member got one message, which is the point.
+ */
+export const isAlreadyContactedError = (error: unknown): boolean =>
+  error instanceof TeamApplicantsError && error.status === 409;
+
+/**
  * The server's own message, when it sent one worth reading.
  *
  * `customFetch` resolves to `undefined` when it gives up and logs the session
@@ -108,6 +152,15 @@ async function errorFrom(response: Response | undefined, fallback: string): Prom
     // A body we can't read is not worth failing differently over.
   }
   return new TeamApplicantsError(response.status, message);
+}
+
+/** A mock answer through the same refusal path a real one takes. TEMPORARY, with the mock. */
+function fromMock({ status, body }: MockAnswer): unknown {
+  if (status >= 400) {
+    const message = (body as { message?: string } | null)?.message ?? 'Request failed';
+    throw new TeamApplicantsError(status, message);
+  }
+  return body;
 }
 
 /**
@@ -164,8 +217,12 @@ export async function fetchRoleApplicants(
  * A live role's suggested candidates (LAB-2771): the top matches the product
  * proposes, best first. The server returns an empty list for a role that is
  * not live and answers 403 to anyone outside the hiring team.
+ *
+ * Also the role's match criteria (LAB-2847), which arrive in the same answer.
+ * `null` when the server did not send them, so the page can tell "an older
+ * backend" from "a role with no criteria" (`[]`).
  */
-export async function fetchSuggestedCandidates(roleUid: string): Promise<SuggestedCandidate[]> {
+export async function fetchSuggestedCandidates(roleUid: string): Promise<SuggestedCandidatesResult> {
   const response = await customFetch(
     `${JOB_OPENINGS_API_URL}/${encodeURIComponent(roleUid)}/suggested-candidates`,
     { method: 'GET' },
@@ -176,7 +233,89 @@ export async function fetchSuggestedCandidates(roleUid: string): Promise<Suggest
     throw await errorFrom(response, 'Could not load suggested candidates');
   }
 
-  return selectShownSuggestions(suggestedCandidatesResponseSchema.parse(await response.json()).suggestions);
+  const parsed = suggestedCandidatesResponseSchema.parse(await response.json());
+  const { suggestions, criteria, criteriaPrompt } = SUGGESTED_ACTIONS_MOCKED
+    ? overlaySuggestedMock(roleUid, parsed)
+    : parsed;
+
+  return {
+    suggestions: selectShownSuggestions(suggestions),
+    criteria: criteria ?? null,
+    criteriaPrompt: criteriaPrompt ?? null,
+  };
+}
+
+/**
+ * Switch some of the role's requirements off for matching (LAB-2847), and save
+ * the lead's own words about who they are looking for (LAB-2853). Takes the
+ * texts to switch OFF (every other requirement is on) and the prompt. Answers
+ * both as saved, and the caller writes that back rather than trusting the
+ * press.
+ *
+ * `prompt` is always sent. On the endpoint a missing `prompt` keeps the saved
+ * one, and `null` or `""` clears it, so the modal sends `null` for an empty box
+ * to clear it on purpose.
+ *
+ * 400 for an unknown text, all of them off or a prompt over 500 characters,
+ * 403 outside the team, 409 when the posting has no criteria extracted yet.
+ */
+export async function saveMatchCriteria(
+  roleUid: string,
+  disabled: string[],
+  prompt: string | null,
+): Promise<SavedMatchCriteria> {
+  const parsed = SUGGESTED_ACTIONS_MOCKED
+    ? matchCriteriaResponseSchema.parse(fromMock(await saveMatchCriteriaMock(roleUid, disabled, prompt)))
+    : await putMatchCriteria(roleUid, disabled, prompt);
+
+  /* A backend without the prompt answers none. `null` then, not what was
+     sent: the page should not claim a prompt the server never kept. */
+  return { criteria: parsed.criteria, prompt: parsed.prompt ?? null };
+}
+
+async function putMatchCriteria(roleUid: string, disabled: string[], prompt: string | null) {
+  const response = await customFetch(
+    `${JOB_OPENINGS_API_URL}/${encodeURIComponent(roleUid)}/match-criteria`,
+    jsonWrite({ disabled, prompt }, 'PUT'),
+    true,
+  );
+
+  if (!response?.ok) {
+    throw await errorFrom(response, 'Could not save the criteria. Please try again.');
+  }
+
+  return matchCriteriaResponseSchema.parse(await response.json());
+}
+
+/**
+ * Send a suggested member a message through the platform (LAB-2847). Answers
+ * when it went out.
+ *
+ * 409 means a lead already contacted them for this role — see
+ * `isAlreadyContactedError`. A 500 keeps no record, so a retry is allowed.
+ */
+export async function contactSuggestedCandidate(
+  roleUid: string,
+  memberUid: string,
+  message: string,
+): Promise<{ contactedAt: string }> {
+  if (SUGGESTED_ACTIONS_MOCKED) {
+    return contactSuggestedResponseSchema.parse(
+      fromMock(await contactSuggestedCandidateMock(roleUid, memberUid, message)),
+    );
+  }
+
+  const response = await customFetch(
+    `${JOB_OPENINGS_API_URL}/${encodeURIComponent(roleUid)}/suggested-candidates/${encodeURIComponent(memberUid)}/contact`,
+    jsonWrite({ message }),
+    true,
+  );
+
+  if (!response?.ok) {
+    throw await errorFrom(response, 'Could not send your message. Please try again.');
+  }
+
+  return contactSuggestedResponseSchema.parse(await response.json());
 }
 
 /**

@@ -94,7 +94,10 @@ export interface Activity {
    * Shows a "Sunset" badge on the activity card for activities being phased out.
    */
   isSunset?: boolean;
-  /** Set only when the activity is restricted; omitted means open to every PLAA participant. */
+  /**
+   * Set only when the activity is restricted; omitted means open to every PLAA participant.
+   * `pl-infra-members` activities are shown only to users holding the PL Infra team policy.
+   */
   audience?: 'pl-infra-members';
   popupContent: ActivityPopupContent;
 }
@@ -107,5 +110,3 @@ export interface ActivitiesData {
   };
   activities: Activity[];
 }
-
-

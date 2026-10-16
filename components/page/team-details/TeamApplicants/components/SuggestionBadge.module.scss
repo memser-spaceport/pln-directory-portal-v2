@@ -1,10 +1,18 @@
-/* Smaller than the DS Badge's 14/20, as in the design: a tag's size beside the
-   name rather than a second heading. Doubled class to outrank the Badge's own
-   padding and type. */
-.root.root {
-  white-space: nowrap;
+/* The Strong match band (LAB-2853): 12/16 type in 2×8 padding, fully
+   rounded. It matches the badge in the suggested-candidates email. A solid
+   `background-color` first, so the band still has a fill where a gradient
+   does not paint. */
+.root {
+  display: inline-flex;
+  align-items: center;
   flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
   font-size: 12px;
   line-height: 16px;
-  padding: 2px 6px;
+  font-weight: 500;
+  color: var(--Neutral-White, #fff);
+  background-color: #4f7fc7;
+  background-image: linear-gradient(110deg, #8ae6a2 0%, #5b97d4 45%, #352a9a 100%);
 }

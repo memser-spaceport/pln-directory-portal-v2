@@ -225,9 +225,6 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
 
   const requestDataRoomEmail = (source: SpvDataRoomSource) => {
     if (sendingDataRoomEmailRef.current || !spotlight?.docSendUrl) return;
-    // Open during the click so the browser allows the tab. DocSend loads only after the email send succeeds.
-    const docSendTab = window.open('', '_blank');
-    if (docSendTab) docSendTab.opener = null;
     dataRoomClicked(source);
     sendingDataRoomEmailRef.current = true;
     setSendingDataRoomEmail(true);
@@ -235,15 +232,10 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
     void requestDataRoomAccessEmail(spotlight.slug)
       .then((result) => {
         setSentDocSendUrl(result.docSendUrl);
-        if (docSendTab && !docSendTab.closed) {
-          docSendTab.location.href = result.docSendUrl;
-        } else {
-          window.open(result.docSendUrl, '_blank', 'noopener,noreferrer');
-        }
+        window.open(result.docSendUrl, '_blank', 'noopener,noreferrer');
         toast.success('We sent an email connecting you to the SPV team.');
       })
       .catch(() => {
-        docSendTab?.close();
         setDataRoomEmailError(true);
       })
       .finally(() => {

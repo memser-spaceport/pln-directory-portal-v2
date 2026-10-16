@@ -7,7 +7,7 @@ import type { IUserInfo } from '@/types/shared.types';
 import type { IJobAlert, IJobAlertFilterState } from '@/types/job-alerts.types';
 import type { IJobRole, IJobTeam, IJobTeamGroup, JobsSortKey } from '@/types/jobs.types';
 import { useJobsAnalytics } from '@/analytics/jobs.analytics';
-import { useInfiniteJobsList } from '@/services/jobs/hooks/useJobsQueries';
+import { useInfiniteJobsList, type ServerJobsPage } from '@/services/jobs/hooks/useJobsQueries';
 import { useMarkTeamInterest } from '@/services/jobs/hooks/useTeamInterest';
 import { OpenRoleInterestModal } from '@/components/page/jobs/OpenRoleInterestModal/OpenRoleInterestModal';
 import { isJobGoneError } from '@/services/jobs/job-interests.service';
@@ -60,9 +60,11 @@ const MOCK_USER_ALERT: IJobAlert = {
 interface JobsContentProps {
   userInfo: IUserInfo | undefined;
   isLoggedIn: boolean;
+  /** The first page as the server fetched it, so the board is in the server HTML (LAB-2888). */
+  serverPage?: ServerJobsPage;
 }
 
-export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) {
+export default function JobsContent({ userInfo, isLoggedIn, serverPage }: JobsContentProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const goToLogin = useLoginRedirect();
@@ -70,7 +72,7 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
   const analytics = useJobsAnalytics();
   const createMutation = useCreateJobAlert();
   const { groups, totalGroups, totalRoles, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, isError } =
-    useInfiniteJobsList();
+    useInfiniteJobsList(serverPage);
   const pendingSaveHandled = useRef(false);
   const autoApplyHandled = useRef(false);
 

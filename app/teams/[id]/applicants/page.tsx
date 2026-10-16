@@ -3,6 +3,10 @@ import { RedirectType, redirect } from 'next/navigation';
 
 import Error from '@/components/core/error';
 import { TeamApplicantsView } from '@/components/page/team-details/TeamApplicants';
+import {
+  applicantsEarlyRedirect,
+  type CandidatesLinkFields,
+} from '@/components/page/team-details/TeamApplicants/applicantsEarlyRedirect';
 import { canReadApplicants } from '@/components/page/team-details/TeamApplicants/canReadApplicants';
 import { knowsPermissions } from '@/components/page/team-details/utils/viewerPermissions';
 import { selectTeamOpenRoles } from '@/components/page/team-details/TeamOpenRoles/selectTeamOpenRoles';
@@ -37,10 +41,7 @@ import styles from './page.module.scss';
  * None of this is a security boundary — the endpoints enforce the same rule
  * server-side. This is the affordance.
  */
-async function Page(props: {
-  params: Promise<ITeamDetailParams>;
-  searchParams: Promise<{ role?: string; candidate?: string; suggested?: string }>;
-}) {
+async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: Promise<CandidatesLinkFields> }) {
   const params = await props.params;
   const searchParams = await props.searchParams;
   const teamId: string = params?.id;
@@ -51,14 +52,22 @@ async function Page(props: {
   /* The half of the rule that needs no team, before any fetch: with the flag off
      this route does not exist, and a signed-out reader can never pass it. A
      redirect is the cheapest way to say so without a 404 page that hints
-     something is coming.
+     something is coming. A signed-out reader goes to sign-in rather than the
+     profile, and comes back here with the same role and person (LAB-2818).
 
      A necessary condition of `canReadApplicants`, deliberately NOT a second copy
      of it — the authoritative call is below, once the team is in hand. The rest
      of the rule cannot be asked yet: excluding Protocol Labs reads the team's
      name, and all this route has up here is an id out of the URL. */
-  if (!SHOW_TEAM_APPLICANTS || !isLoggedIn) {
-    redirect(teamProfile, RedirectType.replace);
+  const earlyRedirect = applicantsEarlyRedirect({
+    flagOn: SHOW_TEAM_APPLICANTS,
+    isLoggedIn,
+    teamId,
+    searchParams,
+  });
+
+  if (earlyRedirect) {
+    redirect(earlyRedirect, RedirectType.replace);
   }
 
   const { team, roles, redirectTeamUid, isError, isNotFound } = await getPageData(teamId);
@@ -117,6 +126,8 @@ async function Page(props: {
         initialRoleUid={searchParams?.role ?? null}
         initialCandidateUid={searchParams?.candidate ?? null}
         initialSuggestedMemberUid={searchParams?.suggested ?? null}
+        initialTab={searchParams?.tab ?? null}
+        initialEdit={searchParams?.edit ?? null}
         viewerUid={userInfo?.uid}
         isLoggedIn={!!isLoggedIn}
       />

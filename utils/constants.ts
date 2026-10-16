@@ -134,6 +134,7 @@ export const JOBS_ANALYTICS = {
   ON_JOB_SUGGESTED_CANDIDATES_VIEWED: 'job-suggested-candidates-viewed',
   ON_JOB_SUGGESTED_CANDIDATE_OPENED: 'job-suggested-candidate-opened',
   ON_JOB_SUGGESTED_CANDIDATE_CONTACTED: 'job-suggested-candidate-contacted',
+  ON_JOB_SUGGESTED_CRITERIA_EDITED: 'job-suggested-criteria-edited',
   ON_JOB_SAVED: 'job-saved',
   ON_JOB_UNSAVED: 'job-unsaved',
   ON_JOB_SAVE_FAILED: 'job-save-failed',
@@ -297,6 +298,7 @@ export const SETTINGS_ANALYTICS_EVENTS = {
   FORUM_DIGEST_FORUM_ACTIVITY_TOGGLE_CLICKED: 'settings-forum-digest-forum-activity-toggle-clicked',
   SETTINGS_SUBSCRIBE_TO_DEMO_DAY_UPDATES_CHANGE: 'settings-subscribe-to-demo-day-updates-change',
   SETTINGS_DEMO_DAY_UPDATES_NOTIFICATION_TOGGLE_CLICKED: 'settings-demo-day-updates-notification-toggle-clicked',
+  SETTINGS_SUGGESTED_CANDIDATES_EMAIL_TOGGLE_CLICKED: 'settings-suggested-candidates-email-toggle-clicked',
 };
 
 export const JOIN_NETWORK_ANALYTICS_EVENTS = {

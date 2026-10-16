@@ -1,4 +1,4 @@
-import Chat from '@/components/page/husky/chat';
+import { Chat } from '@/components/page/husky/Chat';
 import styles from './page.module.css';
 import { getHuskyThreadById } from '@/services/husky.service';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
@@ -8,7 +8,7 @@ import { cookies } from 'next/headers';
 export default async function Page(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const { id } = params;
-  const { isLoggedIn, userInfo, authToken } = await getCookiesFromHeaders();
+  const { isLoggedIn, authToken } = await getCookiesFromHeaders();
   const { thread, isError } = await getPageData(id, authToken);
 
   if (isError) {
@@ -30,7 +30,6 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
       <Chat
         id={id}
         isLoggedIn={isLoggedIn}
-        userInfo={userInfo}
         initialMessages={thread?.chats ?? []}
         isOwnThread={isOwnThread}
         threadOwner={threadOwner}

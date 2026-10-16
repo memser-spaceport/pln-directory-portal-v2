@@ -1,0 +1,37 @@
+.root {
+  width: 100%;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ff820e;
+  height: 36px;
+  display: flex;
+  line-height: 20px;
+  gap: 4px;
+  align-items: center;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.item {
+  background: #f1f5f9;
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+  padding: 8px 14px;
+  border-radius: 8px;
+  line-height: 22px;
+  color: #000;
+}
+
+.list[data-state='loading'] .item {
+  pointer-events: none;
+  cursor: default;
+}

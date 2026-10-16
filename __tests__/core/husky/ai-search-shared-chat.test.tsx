@@ -30,8 +30,10 @@ jest.mock('@/analytics/husky.analytics', () => ({
     ),
 }));
 
-jest.mock('@/components/page/husky/sidebar', () => ({
+jest.mock('@/components/page/husky/Sidebar', () => ({
   Sidebar: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+jest.mock('@/components/page/husky/hooks/useSidebar', () => ({
   useSidebar: () => ({ toggleSidebar: jest.fn(), state: 'expanded', isMobile: false }),
 }));
 
@@ -85,9 +87,8 @@ jest.mock('@/components/core/ToastContainer', () => ({
   toast: { error: (...args: any[]) => toastError(...args), success: jest.fn(), info: jest.fn() },
 }));
 
-jest.mock('@/components/page/husky/messages', () => ({
-  __esModule: true,
-  default: ({
+jest.mock('@/components/page/husky/Chat/components/Messages', () => ({
+  Messages: ({
     messages,
     onFollowupClicked,
     onRegenerate,
@@ -107,11 +108,11 @@ jest.mock('@/components/page/husky/messages', () => ({
     </div>
   ),
 }));
-jest.mock('@/components/page/husky/ChatHome', () => ({ ChatHome: () => <div>chat home</div> }));
+jest.mock('@/components/page/husky/Chat/components/ChatHome', () => ({ ChatHome: () => <div>chat home</div> }));
 jest.mock('@/components/core/husky/husky-limit-strip', () => ({ __esModule: true, default: () => null }));
 
-import Chat from '@/components/page/husky/chat';
-import AppSidebar from '@/components/page/husky/app-sidebar';
+import { Chat } from '@/components/page/husky/Chat';
+import { AppSidebar } from '@/components/page/husky/AppSidebar';
 import {
   OPEN_VISIT_CHAT_EVENT,
   PENDING_VISIT_CHAT_KEY,
@@ -128,7 +129,6 @@ const renderSharedChat = (props: Partial<React.ComponentProps<typeof Chat>> = {}
     <Chat
       id="shared-1"
       isLoggedIn
-      userInfo={{} as any}
       initialMessages={sharedMessages}
       isOwnThread={false}
       threadOwner={owner}
@@ -307,16 +307,7 @@ describe('LAB-2776: signed out, the History rail stays', () => {
   });
 
   it("adds a signed-out visitor's answered chat, including a copy of a shared link, to this visit's chats", async () => {
-    render(
-      <Chat
-        id="copy-2"
-        isLoggedIn={false}
-        userInfo={{} as any}
-        initialMessages={sharedMessages}
-        isOwnThread
-        from="detail"
-      />,
-    );
+    render(<Chat id="copy-2" isLoggedIn={false} initialMessages={sharedMessages} isOwnThread from="detail" />);
 
     await waitFor(() => expect(getVisitChats()).toHaveLength(1));
     expect(getVisitChats()[0]).toMatchObject({ threadId: 'copy-2', title: 'Which teams work on storage?' });
@@ -324,7 +315,7 @@ describe('LAB-2776: signed out, the History rail stays', () => {
 
   it('stops a streaming answer when the visitor opens another chat from the rail', () => {
     mockChatLoading = true;
-    render(<Chat isLoggedIn={false} userInfo={{} as any} initialMessages={sharedMessages} />);
+    render(<Chat isLoggedIn={false} initialMessages={sharedMessages} />);
 
     act(() => {
       document.dispatchEvent(new Event(OPEN_VISIT_CHAT_EVENT));

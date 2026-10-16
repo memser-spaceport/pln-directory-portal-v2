@@ -195,7 +195,7 @@ export default function AiSearchPrototype() {
         onSearchOpenChange={(open) => (open ? setSearchOpen(true) : closeSearch())}
         renderSearchModal={renderSearchModal}
         searchField={searchField}
-        onAiSearchClick={() => askAi('')}
+        onAiSearchClick={() => askAi(term)}
       />
 
       <AnswerStatusVariantContext.Provider value={loader}>

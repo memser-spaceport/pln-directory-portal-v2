@@ -1,5 +1,6 @@
 'use client';
 
+import clsx from 'clsx';
 import Link from 'next/link';
 
 import type { ApplicantCount } from '@/schema/team-applicants';
@@ -29,6 +30,9 @@ interface Props {
  *
  * A `Link`, not a button: it goes to a page, so it should middle-click, open in
  * a new tab, and show its destination on hover like anything else that does.
+ *
+ * Two links when the role has both (LAB-2853): the answers open the page as it
+ * derives its tab, and "N suggested" opens it on the Suggested tab.
  */
 /**
  * What the line calls these people.
@@ -42,7 +46,7 @@ interface Props {
  * Only what is there is named: no "0 interested" trailing a role nobody has
  * pressed interest on.
  */
-function Tally({ applicants, interested, suggested }: { applicants: number; interested: number; suggested: number }) {
+function Tally({ applicants, interested }: { applicants: number; interested: number }) {
   return (
     <>
       {applicants > 0 && (
@@ -56,35 +60,60 @@ function Tally({ applicants, interested, suggested }: { applicants: number; inte
           <strong>{interested}</strong> interested
         </>
       )}
-      {(applicants > 0 || interested > 0) && suggested > 0 && ' · '}
-      {suggested > 0 && (
-        <>
-          <strong>{suggested}</strong> suggested
-        </>
-      )}
     </>
   );
 }
 
+/**
+ * The applicants page for one role, optionally on the Suggested tab
+ * (LAB-2853). `tab=suggested` is the same param the founder email's links
+ * carry.
+ */
+const applicantsHref = (teamId: string, roleUid: string, tab?: 'suggested') =>
+  `/teams/${teamId}/applicants?role=${encodeURIComponent(roleUid)}${tab ? `&tab=${tab}` : ''}`;
+
 export function RoleApplicantsLine({ teamId, roleUid, count }: Props) {
-  const total = (count?.applicantCount ?? 0) + (count?.interestCount ?? 0) + (count?.suggestedCount ?? 0);
-  if (!count || total === 0) return null;
+  const answered = (count?.applicantCount ?? 0) + (count?.interestCount ?? 0);
+  const suggested = count?.suggestedCount ?? 0;
+  if (!count || answered + suggested === 0) return null;
 
   const faces = count.newestAvatars.slice(0, 3);
 
   return (
-    <Link className={s.root} href={`/teams/${teamId}/applicants?role=${encodeURIComponent(roleUid)}`}>
-      {faces.length > 0 && (
-        <span className={s.faces} aria-hidden="true">
-          {faces.map((url) => (
-            <img key={url} className={s.face} src={url} alt="" loading="lazy" />
-          ))}
-        </span>
+    <div className={s.line}>
+      {answered > 0 && (
+        <Link className={s.root} href={applicantsHref(teamId, roleUid)}>
+          {faces.length > 0 && (
+            <span className={s.faces} aria-hidden="true">
+              {faces.map((url) => (
+                <img key={url} className={s.face} src={url} alt="" loading="lazy" />
+              ))}
+            </span>
+          )}
+          <span className={s.count}>
+            <Tally applicants={count.applicantCount} interested={count.interestCount} />
+          </span>
+          {count.newCount > 0 && <span className={s.newBadge}>● {count.newCount} new</span>}
+        </Link>
       )}
-      <span className={s.count}>
-        <Tally applicants={count.applicantCount} interested={count.interestCount} suggested={count.suggestedCount} />
-      </span>
-      {count.newCount > 0 && <span className={s.newBadge}>● {count.newCount} new</span>}
-    </Link>
+      {/* LAB-2853: "N suggested" is a link of its own, to the Suggested tab.
+          It names a different list from the count before it, so one press for
+          both would open on the wrong one. No faces: a facepile says "these
+          people did something", and a suggested person did nothing. */}
+      {suggested > 0 && (
+        <>
+          {answered > 0 && (
+            <span className={s.sep} aria-hidden="true">
+              {' · '}
+            </span>
+          )}
+          <Link className={clsx(s.root, s.suggestedLink)} href={applicantsHref(teamId, roleUid, 'suggested')}>
+            <span className={s.count}>
+              <strong>{suggested}</strong> suggested
+            </span>
+          </Link>
+        </>
+      )}
+    </div>
   );
 }

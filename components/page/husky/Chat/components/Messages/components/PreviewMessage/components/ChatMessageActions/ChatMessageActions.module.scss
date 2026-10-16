@@ -1,0 +1,25 @@
+.root {
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.container {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.item {
+  cursor: pointer;
+}
+
+.copy {
+  margin-top: 4px;
+}
+
+.container[data-state='loading'] .item {
+  cursor: default;
+  pointer-events: none;
+}

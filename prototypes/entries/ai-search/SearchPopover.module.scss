@@ -40,14 +40,14 @@
 /* Hung off the header control: `--pop-top` / `--pop-right` are measured from
    its box on open. Keep the lookup compact while leaving room for names and
    the AI action; the list scrolls inside the card when it reaches the fold.
-   Wider than the header field it hangs under (200/278px,
+   At least as wide as the header field it hangs under (200–600px,
    nav-shared/PrototypeNav.module.scss `.navSearchSlot`): the two share a
-   right edge, and the card runs further left. */
+   right edge, and below 520px of field the card runs further left. */
 .container.container {
   position: absolute;
   top: var(--pop-top, 88px);
   right: var(--pop-right, 24px);
-  width: 520px;
+  width: max(520px, var(--pop-anchor-width, 0px));
   max-width: calc(100vw - 24px);
   max-height: calc(100dvh - var(--pop-top, 88px) - 24px);
   display: flex;
@@ -77,6 +77,22 @@
   padding: 6px 16px;
   border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   background: #fff;
+}
+
+/* `aiInField`: the band only where the header has no field (and no badge). */
+.askBarCompactOnly {
+  @include media.tablet-landscape {
+    display: none;
+  }
+}
+
+/* `aiInField`: copy that names the header badge, so only where it is drawn. */
+.fieldOnly {
+  display: none;
+
+  @include media.tablet-landscape {
+    display: inline;
+  }
 }
 
 /* RecentSearch's `.root` carries 12px top margin + 8/16 padding for its place
@@ -160,6 +176,14 @@
    one row that answers it. */
 .noResults {
   padding: 8px 16px 0;
+}
+
+.noResultsAsk.noResultsAsk {
+  margin-left: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
 }
 
 /* Doubled so it beats production's media-query `top: 40px` at equal

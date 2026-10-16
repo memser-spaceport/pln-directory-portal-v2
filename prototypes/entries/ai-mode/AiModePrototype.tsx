@@ -138,6 +138,7 @@ export default function AiModePrototype() {
         onAskAbout={(item: FoundItem) => enterAi({ scope: buildCorpusScope(item) })}
         anchor={anchor}
         fieldInHeader
+        aiInField
         aiHistory={aiHistory}
       />
     ),
@@ -158,7 +159,10 @@ export default function AiModePrototype() {
         onSearchOpenChange={setSearchOpen}
         renderSearchModal={renderSearchModal}
         searchField={searchField}
-        onAiSearchClick={() => enterAi({})}
+        /* The badge sits in the field, so it asks what the field holds
+           (2026-10-15 review: it opened an empty chat and the words had to be
+           typed again). Empty field → the new-chat page. */
+        onAiSearchClick={() => enterAi(term.trim() ? { question: term.trim() } : {})}
       />
 
       {/* Review band: which frame the mode wears. Not part of the proposal. */}
@@ -238,13 +242,14 @@ export default function AiModePrototype() {
           </p>
           <ol className={hs.steps}>
             <li>
-              <strong>Click the header field.</strong> At rest the popover offers <em>Ask AI Search a question</em>,
-              your recent searches and, under them, <em>Recent AI Search chats</em> with <em>All chats</em> — the
-              signpost to where chats live.
+              <strong>Click the header field.</strong> At rest the popover lists your recent searches and, under
+              them, <em>Recent AI Search chats</em> with <em>All chats</em> — the signpost to where chats live. The
+              field fills the free width in the nav row.
             </li>
             <li>
-              <strong>Type</strong> <em>filecoin</em> and press <em>Chat with AI Search about “filecoin”</em>. AI Search
-              opens as a page: the answer in the middle, <em>History</em> on the left grouped by date, the new chat at
+              <strong>Type</strong> <em>filecoin</em> and press the <em>AI</em> badge in the field: “filecoin” is the
+              first question (on a phone, where the header is a glyph, the popover keeps its <em>Chat with AI
+              Search about “filecoin”</em> row). AI Search opens as a page: the answer in the middle, <em>History</em> on the left grouped by date, the new chat at
               the top of Today.
             </li>
             <li>

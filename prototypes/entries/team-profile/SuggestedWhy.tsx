@@ -60,11 +60,11 @@ interface Props {
  * before a Strong one, and it has no check or ✕ because it is a fact, not a
  * requirement. Absent when the member has none.
  *
- * **Edit criteria lives here (LAB-2819, after Juicebox's "Why we matched this
- * profile").** It sat under the tab note in the list column, which scrolls
- * away while the lead reads a person. The checklist is the thing it changes,
- * so the control sits in this header's action slot, where every profile
- * section keeps its Edit. The title says who, in words: "Why we suggested
+ * **Edit criteria moved back to the list (2026-10-16).** It sat in this
+ * header's action slot (LAB-2819), where as a link it read as text. It is now
+ * a bordered "Edit AI criteria" button under the list's tab note,
+ * the list's one door to the criteria; `onEditCriteria` stays for a host that
+ * wants it here instead. The title says who, in words: "Why we suggested
  * Inês". The evidence under each line reads as the argument (secondary
  * ink); a miss stays faded.
  *

@@ -152,6 +152,27 @@
   flex-shrink: 0;
 }
 
+/* Suggested tab: Edit AI criteria in the search's place, hugging its label on
+ * the list's left edge, with the search's 12px before the rows. */
+.criteriaRow {
+  display: flex;
+  flex-shrink: 0;
+  margin-bottom: 12px;
+}
+
+.criteriaBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* The product's AI mark, as Ask AI wears it on the team header. */
+.criteriaIcon {
+  flex-shrink: 0;
+}
+
 /* Full-bleed: the rows run to the card's left, right and bottom edges, so the
  * negative margins cancel `.listCol`'s 16px padding on those three sides.
  * Everything above the list (role facts, tabs, search) keeps the padding. */

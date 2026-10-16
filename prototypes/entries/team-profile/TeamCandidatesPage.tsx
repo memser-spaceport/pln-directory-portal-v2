@@ -38,6 +38,7 @@ import rowTone from '../job-board/JobReferRoleRow.module.scss';
 import { ClockIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/Icons';
 
 import { CvAttachmentLine } from '../profile-shared/StoredCv/CvAttachmentLine';
+import { AiSearchIcon } from '@/prototypes/components/AiSearchIcon/AiSearchIcon';
 import { EnvelopeIcon, ReviewCheckIcon } from './icons';
 import { CandidateRow } from './CandidateRow';
 import { CandidateMemberPage } from './CandidateMemberPage';
@@ -334,7 +335,8 @@ export function TeamCandidatesPage({
           ),
     [role, tab, suggestedShown, criteria, off],
   );
-  const term = query.trim().toLowerCase();
+  // Suggested has no search field, so a term typed on another tab can't filter it.
+  const term = tab === SUGGESTED_TAB ? '' : query.trim().toLowerCase();
   const shown = term
     ? newest.filter((a) => a.name.toLowerCase().includes(term) || a.role.toLowerCase().includes(term))
     : newest;
@@ -678,19 +680,43 @@ export function TeamCandidatesPage({
                 ]}
               />
             </div>
-            {/* What this list is, in the one sentence nothing else here can
-                say: nobody on it did anything, and all of them agreed to be
-                on it. */}
+            {/* What this list is — dev staging's copy: how many, that nobody on
+                it applied, and who is left out (the team's own people). */}
             {tab === SUGGESTED_TAB && (
               <div className={s.suggestedNote}>
                 <p className={s.tabNote}>
-                  Members of the Protocol Labs network, matched to this role on their profile. They haven’t applied.
+                  {suggestedShown.length === 1
+                    ? 'The top member matched to this role on their profile.'
+                    : `The top ${suggestedShown.length} members matched to this role on their profile.`}{' '}
+                  They haven’t applied. People who worked at {teamName} are not suggested.
                 </p>
               </div>
             )}
-            <div className={s.searchWrap}>
-              <SearchInput value={query} onChange={setQuery} placeholder="Search by name or role" />
-            </div>
+            {/* The Suggested tab has no search: it holds the top five, and five
+                names need no filtering. Its one control is the door to what the
+                AI matches against — a bordered button carrying the product's AI
+                mark and saying "AI" in its label, so the lead knows these are
+                the matcher's criteria (and its prompt), not a filter of their
+                own. Under the note, on the list's left edge. Grey, not brand:
+                Contact is the page's one brand press. */}
+            {tab === SUGGESTED_TAB ? (
+              criteria.length > 0 && (
+                <div className={s.criteriaRow}>
+                  <button
+                    type="button"
+                    className={clsx(btn.root, btn.small, btn.border, btn.neutral, s.criteriaBtn)}
+                    onClick={() => setCriteriaOpen(true)}
+                  >
+                    <AiSearchIcon size={16} className={s.criteriaIcon} />
+                    Edit AI criteria
+                  </button>
+                </div>
+              )
+            ) : (
+              <div className={s.searchWrap}>
+                <SearchInput value={query} onChange={setQuery} placeholder="Search by name or role" />
+              </div>
+            )}
             {shown.length ? (
               <div className={s.list} data-tour="candidate-list">
                 {shown.map((a, index) => (
@@ -743,7 +769,6 @@ export function TeamCandidatesPage({
                     criteria={criteria}
                     off={off}
                     match={suggestionMatch(selected, criteria, off)}
-                    onEditCriteria={criteria.length > 0 ? () => setCriteriaOpen(true) : undefined}
                   />
                 ) : !('note' in selected) ? (
                   /* The interest press: its date, the note when the candidate

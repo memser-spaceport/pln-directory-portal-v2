@@ -92,8 +92,10 @@ export function CriteriaModal({ open, onClose, roleTitle, criteria, people, off,
       <div className={ideaModalStyles.root}>
         <div className={dealModalStyles.header}>
           <div className={dealModalStyles.headerText}>
-            <h2 className={dealModalStyles.title}>Edit criteria</h2>
-            <p className={dealModalStyles.subtitle}>What counts as a fit for {roleTitle}.</p>
+            {/* Says "AI" the way the door does: these are what the matcher
+                reads, and the box below is a prompt it reads too. */}
+            <h2 className={dealModalStyles.title}>Edit AI criteria</h2>
+            <p className={dealModalStyles.subtitle}>What the AI matches members against for {roleTitle}.</p>
           </div>
           <button type="button" className={dealModalStyles.closeButton} onClick={onClose} aria-label="Close">
             <CloseIcon width={20} height={20} color="#0a0c11" />
@@ -133,7 +135,7 @@ export function CriteriaModal({ open, onClose, roleTitle, criteria, people, off,
               {/* An ask in the lead's direction, at label weight rather than the
                   group captions' grey: it is a field to fill, not a heading. */}
               <label htmlFor="criteria-prompt" className={s.promptLabel}>
-                Tell us who you’re looking for
+                Tell the AI who you’re looking for
               </label>
               <textarea
                 id="criteria-prompt"

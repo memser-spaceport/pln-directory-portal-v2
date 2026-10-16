@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // Validate required fields
-    const { topic, email, name, message } = body;
+    const { topic, email, name, message, reportKind, priority } = body;
 
     if (!email || !name || !message) {
       return NextResponse.json(
@@ -28,6 +28,8 @@ export async function POST(request: NextRequest) {
         name,
         message,
         metadata: body.metadata || {},
+        reportKind,
+        priority,
       }),
     });
 

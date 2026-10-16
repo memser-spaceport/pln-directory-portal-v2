@@ -198,26 +198,26 @@ describe('capturePageViewport', () => {
     expect(measured).toBe(false);
   });
 
-  it('detaches an unloaded image that sits fully off screen, then puts it back', async () => {
-    document.body.innerHTML = '<img id="off" alt=""><img id="on" alt="">';
+  it('detaches an unloaded image that sits fully off screen or is not rendered, then puts it back', async () => {
+    document.body.innerHTML = '<img id="off" alt=""><img id="on" alt=""><div hidden><img id="lazy" alt=""></div>';
     const off = byId('off') as HTMLImageElement;
     const on = byId('on') as HTMLImageElement;
+    const lazy = byId('lazy') as HTMLImageElement;
     box(off, BELOW);
     box(on, ON_SCREEN);
-    Object.defineProperty(off, 'complete', { configurable: true, get: () => false });
-    Object.defineProperty(on, 'complete', { configurable: true, get: () => false });
-    let offConnected: boolean | null = null;
-    let onConnected: boolean | null = null;
+    box(lazy, { top: 0, left: 0, width: 0, height: 0 });
+    /* jsdom renders nothing; a rendered image has client rects, one inside `display: none` has none. */
+    off.getClientRects = () => [rectOf(BELOW)] as unknown as DOMRectList;
+    on.getClientRects = () => [rectOf(ON_SCREEN)] as unknown as DOMRectList;
+    for (const img of [off, on, lazy]) Object.defineProperty(img, 'complete', { configurable: true, get: () => false });
+    let connected: boolean[] = [];
     mockCreateContext.mockImplementation(async (node: Node, options: object) => {
-      offConnected = off.isConnected;
-      onConnected = on.isConnected;
+      connected = [off.isConnected, on.isConnected, lazy.isConnected];
       return { node, ...options, drawImageCount: 0 };
     });
     await capturePageViewport();
-    expect(offConnected).toBe(false);
-    expect(onConnected).toBe(true);
-    expect(off.isConnected).toBe(true);
-    expect(on.isConnected).toBe(true);
+    expect(connected).toEqual([false, true, false]);
+    expect([off.isConnected, on.isConnected, lazy.isConnected]).toEqual([true, true, true]);
   });
 
   it('gives the renderer font files that were already prepared', async () => {

@@ -60,6 +60,12 @@ export const NAV_OPTIONS = [
   },
 ];
 
+/** LabOS-wide feedback (LAB-2879): the floating button and the (?) menu's Give feedback. */
+export const FEEDBACK_ANALYTICS = {
+  ON_FEEDBACK_BUTTON_CLICK: 'feedback-button-click',
+  ON_FEEDBACK_SUBMIT: 'feedback-submit',
+};
+
 export const JOBS_ANALYTICS = {
   ON_JOBS_PAGE_VIEWED: 'jobs-page-viewed',
   ON_JOBS_FILTERS_APPLIED: 'jobs-filters-applied',

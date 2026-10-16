@@ -100,9 +100,9 @@ export function EditCriteriaModal({ isOpen, onClose, roleTitle, criteria, prompt
         <div className={s.header}>
           <div className={s.headerText}>
             <h2 id="edit-criteria-title" className={s.title}>
-              Edit criteria
+              Edit AI criteria
             </h2>
-            <p className={s.subtitle}>What counts as a fit for {roleTitle || 'this role'}.</p>
+            <p className={s.subtitle}>What the AI matches members against for {roleTitle || 'this role'}.</p>
           </div>
           <button type="button" className={s.closeButton} onClick={onClose} aria-label="Close">
             <CloseIcon width={20} height={20} color="#0a0c11" />

@@ -71,8 +71,9 @@ describe('EditCriteriaModal', () => {
     await open();
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    /* LAB-2854: the prototype's subtitle, and the timing moved to the footer. */
-    expect(screen.getByText('What counts as a fit for Senior Rust Engineer.')).toBeInTheDocument();
+    /* LAB-2904: the title and subtitle say the AI matches on these. */
+    expect(screen.getByRole('heading', { name: 'Edit AI criteria' })).toBeInTheDocument();
+    expect(screen.getByText('What the AI matches members against for Senior Rust Engineer.')).toBeInTheDocument();
     expect(screen.getByText('Changes apply from next week’s suggestions.')).toBeInTheDocument();
     for (const name of ['A', 'B', 'C']) expect(box(name)).toHaveAttribute('aria-checked', 'true');
   });

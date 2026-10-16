@@ -583,9 +583,44 @@ describe('interested members on the Suggested tab', () => {
 
 /**
  * LAB-2847: the lead switches the role's requirements on or off. The action
- * sits at the end of the Suggested note in the list column, not in the
- * "Why suggested" pane: it changes the role, not the person (LAB-2837 feedback).
+ * sits in the list column, not in the "Why suggested" pane: it changes the
+ * role, not the person (LAB-2837 feedback). Since LAB-2904 it is an
+ * "Edit AI criteria" button under the Suggested note, in the search's place.
  */
+/** LAB-2904: Suggested lists the top five, so it has no search to narrow it. */
+describe('Search on the Suggested tab', () => {
+  it('shows no search field on Suggested', async () => {
+    renderView();
+    expect(screen.getByLabelText('Search by name or role')).toBeInTheDocument();
+
+    await openSuggested();
+
+    expect(screen.queryByLabelText('Search by name or role')).not.toBeInTheDocument();
+    expect(rowFor('Ana Lopez')).toBeTruthy();
+  });
+
+  it('keeps the search on Applied and Interested', async () => {
+    renderView();
+    await openSuggested();
+
+    await userEvent.click(screen.getByText(/^Interested/));
+    expect(screen.getByLabelText('Search by name or role')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByText(/^Applied/));
+    expect(screen.getByLabelText('Search by name or role')).toBeInTheDocument();
+  });
+
+  it('does not filter Suggested by a term typed on Applied', async () => {
+    renderView();
+    await userEvent.type(screen.getByLabelText('Search by name or role'), 'zzzz');
+
+    await openSuggested();
+
+    expect(rowFor('Ana Lopez')).toBeTruthy();
+    expect(rowFor('Ben')).toBeTruthy();
+  });
+});
+
 describe('Edit criteria on the Suggested tab', () => {
   const CRITERIA: RoleCriterion[] = [
     { text: 'Five years of Rust', enabled: true },
@@ -596,60 +631,63 @@ describe('Edit criteria on the Suggested tab', () => {
   const openEditCriteria = async () => {
     renderView();
     await openSuggested();
-    await userEvent.click(screen.getByRole('button', { name: 'Edit criteria' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Edit AI criteria' }));
   };
 
-  it('offers Edit criteria when the backend sent the role’s criteria', async () => {
+  it('offers Edit AI criteria when the backend sent the role’s criteria', async () => {
     setSuggestions([ANA, BEN], {}, CRITERIA);
 
     renderView();
     await openSuggested();
 
-    expect(screen.getByRole('button', { name: 'Edit criteria' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Edit AI criteria' })).toBeInTheDocument();
   });
 
-  it('puts Edit criteria in the role’s note, not in the person’s pane', async () => {
+  it('puts Edit AI criteria under the role’s note, not in it and not in the person’s pane', async () => {
     setSuggestions([ANA, BEN], {}, CRITERIA);
 
     renderView();
     await openSuggested();
 
-    const button = screen.getByRole('button', { name: 'Edit criteria' });
-    expect(screen.getByTestId('suggested-note')).toContainElement(button);
+    const note = screen.getByTestId('suggested-note');
+    const button = screen.getByRole('button', { name: 'Edit AI criteria' });
+    /* LAB-2904: a real button after the note, no text link at its end. */
+    expect(note).not.toContainElement(button);
+    expect(note).not.toHaveTextContent(/Edit criteria/);
+    expect(note.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(button.compareDocumentPosition(rowFor('Ana Lopez')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     // The pane is open on Ana, so the move is the claim, not an empty pane.
     expect(screen.getByRole('heading', { name: 'Why we suggested Ana' })).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: 'Edit criteria' })).toHaveLength(1);
+    expect(screen.getAllByRole('button', { name: 'Edit AI criteria' })).toHaveLength(1);
   });
 
-  it('offers Edit criteria when nobody is suggested, so a lead can loosen the role', async () => {
+  it('offers Edit AI criteria when nobody is suggested, so a lead can loosen the role', async () => {
     setSuggestions([], {}, CRITERIA);
 
     renderView();
     await openSuggested();
 
-    expect(screen.getByTestId('suggested-note')).toContainElement(
-      screen.getByRole('button', { name: 'Edit criteria' }),
-    );
+    expect(screen.getByRole('button', { name: 'Edit AI criteria' })).toBeInTheDocument();
   });
 
-  it('offers no Edit criteria on an older backend that sent none', async () => {
+  it('offers no Edit AI criteria on an older backend that sent none', async () => {
     setSuggestions([ANA, BEN], {}, null);
 
     renderView();
     await openSuggested();
 
     expect(screen.getByText('Led a Rust consensus rewrite.')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Edit criteria' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Edit AI criteria' })).not.toBeInTheDocument();
   });
 
-  it('offers no Edit criteria for a role with no criteria to switch', async () => {
+  it('offers no Edit AI criteria for a role with no criteria to switch', async () => {
     setSuggestions([ANA, BEN], {}, []);
 
     renderView();
     await openSuggested();
 
     expect(screen.getByText('Led a Rust consensus rewrite.')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Edit criteria' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Edit AI criteria' })).not.toBeInTheDocument();
   });
 
   it('saves, closes and records the event with the on and off counts', async () => {
@@ -777,7 +815,7 @@ describe('URL params from the founder email', () => {
 
     renderView({ initialRoleUid: 'role-1', initialTab: 'suggested', initialEdit: 'criteria' });
 
-    expect(await screen.findByRole('dialog', { name: 'Edit criteria' })).toBeInTheDocument();
+    expect(await screen.findByRole('dialog', { name: 'Edit AI criteria' })).toBeInTheDocument();
     expect(rowFor('Ana Lopez')).toBeTruthy();
     expect(replaceState).toHaveBeenCalledTimes(1);
     /* LAB-2893: never hand Next its own state back. Next's patched replaceState
@@ -814,7 +852,7 @@ describe('URL params from the founder email', () => {
       />,
     );
 
-    expect(await screen.findByRole('dialog', { name: 'Edit criteria' })).toBeInTheDocument();
+    expect(await screen.findByRole('dialog', { name: 'Edit AI criteria' })).toBeInTheDocument();
     expect(rowFor('Ana Lopez')).toBeTruthy();
   });
 

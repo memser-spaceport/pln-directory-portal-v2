@@ -237,7 +237,7 @@
   }
 }
 
-/* The Suggested tab's one sentence, between the tabs and the search (LAB-2771). */
+/* The Suggested tab's one sentence, between the tabs and Edit AI criteria (LAB-2771, LAB-2904). */
 .suggestedNote {
   margin: 0;
   font-size: 13px;
@@ -245,28 +245,23 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
-/* Edit criteria ends the note: it changes the role the note describes, not
-   the person in the pane (LAB-2837 feedback). A quiet text action — editing
-   what counts is a lead's occasional chore. */
-.editCriteria {
-  padding: 0;
-  border: none;
-  background: none;
-  font-family: inherit;
-  font-size: inherit;
-  font-weight: 500;
-  line-height: inherit;
-  color: var(--foreground-brand-primary, #1b4dff);
+/* Edit AI criteria, in the search's place on the Suggested tab (LAB-2904).
+   The column's 12px gap sits before the rows, as it did for the search. */
+.criteriaRow {
+  display: flex;
+  min-width: 0;
+}
+
+.criteriaBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
   white-space: nowrap;
-  cursor: pointer;
 
-  &:hover {
-    text-decoration: underline;
-  }
-
+  /* The shared Button styles set no focus ring; keyboard users need one. */
   &:focus-visible {
     outline: 2px solid var(--border-brand-primary, #1b4dff);
     outline-offset: 2px;
-    border-radius: 4px;
   }
 }

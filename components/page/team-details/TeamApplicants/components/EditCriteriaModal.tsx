@@ -42,7 +42,9 @@ const disabledOf = (criteria: RoleCriterion[]) => new Set(criteria.filter((c) =>
  * for, in their own words, up to 500 characters. The switches can only turn
  * the posting's requirements off. The box is where a lead says what the
  * posting does not, and the matcher reads it with the requirements. It is
- * saved with the switches, and an emptied box clears the saved prompt.
+ * saved with the switches, and an emptied box clears the saved prompt. Its
+ * label names the role and a helper text under it says the AI reads the box
+ * (LAB-2869, Polina's copy), so the lead knows the words change the matches.
  *
  * **Grouped, with short labels (LAB-2854, after Polina's prototype).** The
  * requirements sit under Skills, Experience, Seniority, Location and Other,
@@ -143,8 +145,11 @@ export function EditCriteriaModal({ isOpen, onClose, roleTitle, criteria, prompt
 
           <div className={s.prompt}>
             <label className={s.promptLabel} htmlFor="edit-criteria-prompt">
-              Tell us who you’re looking for
+              Help us suggest better members for {roleTitle || 'this role'}.
             </label>
+            <p id="edit-criteria-prompt-help" className={s.promptHelp}>
+              Tell the AI who you’re looking for
+            </p>
             <textarea
               id="edit-criteria-prompt"
               className={s.promptField}
@@ -154,7 +159,7 @@ export function EditCriteriaModal({ isOpen, onClose, roleTitle, criteria, prompt
               disabled={isSaving}
               onChange={(e) => setPromptDraft(e.target.value)}
               placeholder="e.g. Has run a storage or networking service in production. Open to people coming from research."
-              aria-describedby="edit-criteria-prompt-count"
+              aria-describedby="edit-criteria-prompt-help edit-criteria-prompt-count"
               aria-invalid={promptTooLong || undefined}
             />
             <p id="edit-criteria-prompt-count" className={promptTooLong ? s.countOver : s.count}>

@@ -22,10 +22,12 @@ function Harness({
   initial = ALL_ON,
   initialPrompt = null,
   outcome = 'ok',
+  roleTitle = 'Senior Rust Engineer',
 }: {
   initial?: RoleCriterion[];
   initialPrompt?: string | null;
   outcome?: 'ok' | 'fail';
+  roleTitle?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [criteria, setCriteria] = useState(initial);
@@ -38,7 +40,7 @@ function Harness({
       <EditCriteriaModal
         isOpen={open}
         onClose={() => setOpen(false)}
-        roleTitle="Senior Rust Engineer"
+        roleTitle={roleTitle}
         criteria={criteria}
         prompt={prompt}
         isSaving={false}
@@ -58,7 +60,8 @@ const onSave = jest.fn();
 /* Anchored, because a locked row's name carries its hint after the text. */
 const box = (name: string) => screen.getByRole('checkbox', { name: new RegExp(`^${name}\\b`) });
 const open = () => userEvent.click(screen.getByRole('button', { name: 'Open' }));
-const promptBox = () => screen.getByRole('textbox', { name: 'Tell us who you’re looking for' });
+const promptBox = () =>
+  screen.getByRole('textbox', { name: 'Help us suggest better members for Senior Rust Engineer.' });
 
 beforeEach(() => onSave.mockReset());
 
@@ -152,6 +155,25 @@ describe('EditCriteriaModal', () => {
       expect(promptBox()).toHaveValue('');
       expect(promptBox()).toHaveAttribute('maxLength', '500');
       expect(screen.getByText('0 / 500')).toBeInTheDocument();
+    });
+
+    /* LAB-2869: the label and the helper text say that the AI reads the box. */
+    it('labels the box with the role and says the AI reads it', async () => {
+      render(<Harness roleTitle="Storage Engineer" />);
+      await open();
+
+      const field = screen.getByRole('textbox', { name: 'Help us suggest better members for Storage Engineer.' });
+      expect(screen.getByText('Tell the AI who you’re looking for')).toBeInTheDocument();
+      expect(field).toHaveAccessibleDescription('Tell the AI who you’re looking for 0 / 500');
+    });
+
+    it('falls back to “this role” when the role has no title', async () => {
+      render(<Harness roleTitle="" />);
+      await open();
+
+      expect(
+        screen.getByRole('textbox', { name: 'Help us suggest better members for this role.' }),
+      ).toBeInTheDocument();
     });
 
     it('opens on the saved prompt', async () => {

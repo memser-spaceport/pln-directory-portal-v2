@@ -720,7 +720,9 @@ describe('Edit criteria on the Suggested tab', () => {
     saveCriteriaMutate.mockImplementation(answer({ data: { criteria: CRITERIA, prompt: 'New words' } }));
 
     await openEditCriteria();
-    const promptBox = screen.getByRole('textbox', { name: 'Tell us who you’re looking for' });
+    const promptBox = screen.getByRole('textbox', {
+      name: 'Help us suggest better members for Senior Rust Engineer.',
+    });
     expect(promptBox).toHaveValue('Old words');
     await userEvent.clear(promptBox);
     await userEvent.type(promptBox, 'New words');

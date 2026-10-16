@@ -228,7 +228,7 @@ The "Why suggested" pane SHALL show "N of M requirements", where M is the number
 
 ### Requirement: Edit a role's match criteria
 
-From the "Why suggested" pane, a lead SHALL be able to open "Edit criteria", switch each of the role's requirements on or off, write who they are looking for in one free-text box ("Tell us who you're looking for", at most 500 characters, with a character counter), and save both together. The box SHALL open on the saved prompt (`criteriaPrompt`). The modal's subtitle SHALL read "What counts as a fit for <role title>." Its footer SHALL read "Changes apply from next week's suggestions." on the left, with Cancel and Save on the right.
+From the "Why suggested" pane, a lead SHALL be able to open "Edit criteria", switch each of the role's requirements on or off, write who they are looking for in one free-text box (at most 500 characters, with a character counter), and save both together. The box SHALL open on the saved prompt (`criteriaPrompt`). The modal's subtitle SHALL read "What counts as a fit for <role title>." Its footer SHALL read "Changes apply from next week's suggestions." on the left, with Cancel and Save on the right.
 
 #### Scenario: Lead saves switched-off requirements
 
@@ -428,3 +428,25 @@ The `job-suggested-candidates-viewed` event SHALL carry `source` and `utm_conten
 
 - **WHEN** a lead opens the Suggested tab with no such `utm_source`
 - **THEN** the event carries `source: "app"`
+
+### Requirement: Criteria prompt box says the AI reads it
+
+In the "Edit criteria" modal, the free-text box label SHALL read "Help us suggest better members for <role title>." ("this role" when the role has no title). Under the label, a helper text SHALL read "Tell the AI who you're looking for". Assistive technology SHALL announce the helper text and the character counter with the box.
+
+#### Scenario: Label names the role
+
+- **GIVEN** a lead opens "Edit criteria" for "Storage Engineer"
+- **WHEN** the lead looks at the free-text box
+- **THEN** its label reads "Help us suggest better members for Storage Engineer."
+- **AND** the helper text "Tell the AI who you're looking for" shows under the label
+
+#### Scenario: Role without a title
+
+- **GIVEN** a role has an empty title
+- **WHEN** a lead opens "Edit criteria" for it
+- **THEN** the box label reads "Help us suggest better members for this role."
+
+#### Scenario: Screen reader hears the helper text and the counter
+
+- **WHEN** a screen reader user moves to the free-text box
+- **THEN** the box is described by the helper text and by the counter "<n> / 500"

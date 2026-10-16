@@ -8,7 +8,7 @@ import type { LeaderboardCategoryWeight, LeaderboardSnapshot } from './leaderboa
 import { activitiesData, canSeeActivity } from '../activities/data';
 import { useIsInfraMember } from '@/services/plaa/hooks/useIsInfraMember';
 
-const suggestionFor = (category: string, isInfraMember: boolean): { title: string; points: string } | null => {
+const bestActivityFor = (category: string, isInfraMember: boolean): { title: string; points: string } | null => {
   const best = activitiesData.activities
     .filter((activity) => canSeeActivity(activity, isInfraMember))
     .filter((activity) => normalizeCategory(activity.category) === normalizeCategory(category))
@@ -36,6 +36,8 @@ const percentDelta = (current: number, previous: number): string | null => {
 export default function SnapshotPanel({ snapshots, index, onIndexChange, categoryWeights }: SnapshotPanelProps) {
   const router = useRouter();
   const isInfraMember = useIsInfraMember();
+  // Suggest only activities this member can see; infra-only ones are left out for everyone else.
+  const suggestionFor = (category: string) => bestActivityFor(category, isInfraMember);
   const snapshot = snapshots[index];
   const previous = snapshots[index + 1] ?? null;
 
@@ -157,7 +159,7 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
             )}
             {under.map((category) => {
               const weight = weightFor(category.name);
-              const suggestion = suggestionFor(category.name, isInfraMember);
+              const suggestion = suggestionFor(category.name);
               const href = activitiesHref(category.name);
               return (
                 <div

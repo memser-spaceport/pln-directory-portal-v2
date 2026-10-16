@@ -480,3 +480,53 @@ On the Suggested tab of the candidates page, under the tab note, the page SHALL 
 
 - **WHEN** a lead opens the Applied or the Interested tab
 - **THEN** the "Search by name or role" field shows
+
+### Requirement: Candidates page sign-in
+
+The team Candidates page SHALL show candidates only to a signed-in lead of the team or a Directory admin. With the Candidates feature on, a signed-out visitor SHALL go to sign-in, with a return link to the same page that keeps only the link's page fields (`role`, `candidate`, `suggested`, `tab`, `edit`) and its tracking fields (`utm_source`, `utm_medium`, `utm_campaign`, `utm_term`, `utm_content`, `job_uid`). With the feature off, a signed-out visitor SHALL go to the team profile. A signed-in person whose sign-in data shows they are not a lead or an admin SHALL go to the team profile.
+
+#### Scenario: Signed-out lead opens a Candidates link
+
+- **GIVEN** the Candidates feature is on and the visitor is not signed in
+- **WHEN** the visitor opens `/teams/<id>/applicants?role=<roleUid>&suggested=<memberUid>`
+- **THEN** the visitor goes to sign-in, not to the team profile
+- **AND** no candidate is shown
+
+#### Scenario: Lead comes back after sign-in
+
+- **GIVEN** a lead of the team signed in from a Candidates link with `role` and `suggested`
+- **WHEN** sign-in completes
+- **THEN** the Candidates page opens with that role on the Suggested tab and that person open
+
+#### Scenario: Return link keeps only the Candidates and tracking fields
+
+- **GIVEN** the Candidates feature is on and the visitor is not signed in
+- **WHEN** the visitor opens a Candidates link with page fields, tracking fields and other query fields (such as a second `backlink`)
+- **THEN** the sign-in return link holds the page and tracking fields only
+
+#### Scenario: Every founder email link survives sign-in
+
+- **GIVEN** the Candidates feature is on and the lead is not signed in
+- **WHEN** the lead opens "View profile" (`role`, `tab=suggested`, `suggested`), "All top matches for this role" (`role`, `tab=suggested`) or "Edit criteria" (`role`, `tab=suggested`, `edit=criteria`), each with its `utm_*` fields and `job_uid`
+- **THEN** the sign-in return link holds every one of those fields
+- **AND** after sign-in the page opens that person, the Suggested tab, or the Edit criteria modal, and counts the view as from email
+
+#### Scenario: Signed-out visitor while the feature is off
+
+- **GIVEN** the Candidates feature is off and the visitor is not signed in
+- **WHEN** the visitor opens a Candidates link
+- **THEN** the visitor goes to the team profile, not to sign-in
+
+#### Scenario: Signed-in person who is not on the team
+
+- **GIVEN** a signed-in person who is not a lead of the team and is not a Directory admin
+- **AND** the sign-in data states the person's permissions
+- **WHEN** the person opens a Candidates link
+- **THEN** the person goes to the team profile
+
+#### Scenario: Signed-in person whose sign-in data has no permissions
+
+- **GIVEN** a signed-in person who is not a lead of the team
+- **AND** the sign-in data does not state the person's permissions
+- **WHEN** the person opens a Candidates link
+- **THEN** the page shows no candidates, because the server refuses them

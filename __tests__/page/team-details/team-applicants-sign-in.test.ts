@@ -44,7 +44,7 @@ describe('applicantsEarlyRedirect', () => {
     expect(backlinkOf(target)).toBe('/teams/team-1/applicants?role=role-1&candidate=cand-1');
   });
 
-  it('keeps only role, candidate and suggested from the link', () => {
+  it('keeps only the page and tracking fields from the link', () => {
     const target = ask({
       searchParams: {
         role: 'role-1',
@@ -52,10 +52,59 @@ describe('applicantsEarlyRedirect', () => {
         suggested: 'member-1',
         utm_source: 'email',
         backlink: 'https://evil.example',
+        other: 'x',
       } as Parameters<typeof applicantsEarlyRedirect>[0]['searchParams'],
     });
 
-    expect(backlinkOf(target)).toBe('/teams/team-1/applicants?role=role-1&candidate=cand-1&suggested=member-1');
+    expect(backlinkOf(target)).toBe(
+      '/teams/team-1/applicants?role=role-1&candidate=cand-1&suggested=member-1&utm_source=email',
+    );
+  });
+
+  /* The three links the founder email sends (backend `suggested-candidates-email.ts`):
+     each must come back from sign-in whole, or the lead lands on the wrong tab,
+     without the modal, or counted as an app view. */
+  describe('founder email links', () => {
+    const tracking = (content: string) => ({
+      utm_source: 'job_suggested_candidates_email',
+      utm_medium: 'email',
+      utm_content: content,
+      job_uid: 'role-1',
+    });
+    const trackingQuery = (content: string) =>
+      `utm_source=job_suggested_candidates_email&utm_medium=email&utm_content=${content}&job_uid=role-1`;
+
+    it('brings View profile back to that person on the Suggested tab', () => {
+      const target = ask({
+        searchParams: { role: 'role-1', tab: 'suggested', suggested: 'm1', ...tracking('profile') },
+      });
+
+      expect(backlinkOf(target)).toBe(
+        `/teams/team-1/applicants?role=role-1&suggested=m1&tab=suggested&${trackingQuery('profile')}`,
+      );
+    });
+
+    it('brings All top matches back to the Suggested tab', () => {
+      const target = ask({ searchParams: { role: 'role-1', tab: 'suggested', ...tracking('all') } });
+
+      expect(backlinkOf(target)).toBe(`/teams/team-1/applicants?role=role-1&tab=suggested&${trackingQuery('all')}`);
+    });
+
+    it('brings Edit criteria back with the modal still asked for', () => {
+      const target = ask({
+        searchParams: { role: 'role-1', tab: 'suggested', edit: 'criteria', ...tracking('criteria') },
+      });
+
+      expect(backlinkOf(target)).toBe(
+        `/teams/team-1/applicants?role=role-1&tab=suggested&edit=criteria&${trackingQuery('criteria')}`,
+      );
+    });
+
+    it('keeps a utm_campaign and utm_term too', () => {
+      const target = ask({ searchParams: { role: 'role-1', utm_campaign: 'weekly', utm_term: 'rust' } });
+
+      expect(backlinkOf(target)).toBe('/teams/team-1/applicants?role=role-1&utm_campaign=weekly&utm_term=rust');
+    });
   });
 
   it('returns to the bare page when the link has no fields', () => {

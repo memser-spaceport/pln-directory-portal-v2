@@ -1,7 +1,17 @@
 import { PAGE_ROUTES } from '@/utils/constants';
 
-/** The link fields the Candidates page reads. Nothing else survives sign-in. */
-const KEPT_FIELDS = ['role', 'candidate', 'suggested'] as const;
+/** The link fields the Candidates page reads: which role, person and tab open, and the Edit criteria modal. */
+const PAGE_FIELDS = ['role', 'candidate', 'suggested', 'tab', 'edit'] as const;
+
+/**
+ * The email's tracking fields. They ride through sign-in so the page still
+ * counts the arrival as from email (`job-suggested-candidates-viewed` reads
+ * `utm_source` and `utm_content`); `job_uid` tags the same click.
+ */
+const TRACKING_FIELDS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'job_uid'] as const;
+
+/** Everything that survives sign-in. Nothing else does. */
+const KEPT_FIELDS = [...PAGE_FIELDS, ...TRACKING_FIELDS] as const;
 
 export type CandidatesLinkFields = Partial<Record<(typeof KEPT_FIELDS)[number], string>>;
 
@@ -16,9 +26,9 @@ export type CandidatesLinkFields = Partial<Record<(typeof KEPT_FIELDS)[number], 
  * person the link names.
  *
  * The return link is the same `/members?backlink=...#login` form that
- * `proxy.ts` builds for protected routes. It is rebuilt from the three fields
- * the page reads, not copied from the request, so a link cannot carry anything
- * else (a second `backlink`, tracking fields) through sign-in.
+ * `proxy.ts` builds for protected routes. It is rebuilt from the fields the
+ * page reads and the email's tracking fields, not copied from the request, so
+ * a link cannot carry anything else (a second `backlink`) through sign-in.
  *
  * `isLoggedIn` is `unknown` for the reason given in `canReadApplicants`: it is
  * `''`, not `false`, for a signed-out request.

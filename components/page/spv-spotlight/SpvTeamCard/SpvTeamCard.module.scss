@@ -226,6 +226,17 @@
     text-wrap: pretty;
   }
 
+  .cardActionNoteWide {
+    width: 210px;
+    min-width: 210px;
+    text-wrap: balance;
+  }
+
+  &:has(.cardActionNoteWide) .cardActionButton {
+    width: fit-content;
+    align-self: flex-end;
+  }
+
   @include media.mobile-only {
     max-width: none;
   }

@@ -3,7 +3,6 @@ import { memo, ReactNode } from 'react';
 
 type ChatMessageActions = {
   onQuestionEdit: (ques: string) => void;
-  onFeedback?: (ques: string, answer: string) => Promise<void>;
   onRegenerate?: (ques: string) => void;
   onCopyAnswer: (answer: string) => Promise<void>;
   answer: string;
@@ -12,11 +11,11 @@ type ChatMessageActions = {
   hideActions: boolean;
   isLoadingObject: boolean;
   feedbackSlot?: ReactNode;
+  sourcesSlot?: ReactNode;
 };
 
 const ChatMessageActions = ({
   onQuestionEdit,
-  onFeedback,
   onRegenerate,
   onCopyAnswer,
   answer,
@@ -25,6 +24,7 @@ const ChatMessageActions = ({
   hideActions,
   isLoadingObject,
   feedbackSlot,
+  sourcesSlot,
 }: ChatMessageActions) => {
   return (
     <>
@@ -55,16 +55,9 @@ const ChatMessageActions = ({
               />
             </CopyText>
           )}
-          {onFeedback && (
-            <img
-              className="chat-message-actions__item"
-              title="Submit feedback"
-              onClick={() => onFeedback(question, answer)}
-              src="/icons/feedback.svg"
-            />
-          )}
           {feedbackSlot}
         </div>
+        {sourcesSlot}
       </div>
 
       <style jsx>{`

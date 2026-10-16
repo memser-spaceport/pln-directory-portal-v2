@@ -41,13 +41,17 @@ export const mockSpotlight = {
   // way the completed Demo Day renders its description. Placeholder wording;
   // the team facts under it come from Netholabs' real directory profile.
   description:
-    'Netholabs builds digital mammals for neuroscience, drug discovery and mind uploading. Protocol Labs is leading an SPV into their round and opening it to a small group of outside investors.',
-  docSendUrl: 'https://docsend.com/view/netholabs-spv',
-  // When the SPV stops taking commitments (review 2026-10-07: investors want
-  // the deadline). Set per spotlight in the back office; placeholder date.
-  closesOn: 'Oct 31, 2026',
-  // Placeholder — the SPV's reply-to is set per spotlight in the back office.
-  supportEmail: 'labos@plnetwork.io',
+    'Netholabs builds digital mammals for neuroscience, drug discovery and mind uploading. Protocol Labs Capital is leading an SPV into their round and opening it to a small group of outside investors.',
+  // The SPV's real data room on DocSend (Anuj, UX updates doc 2026-10-12).
+  docSendUrl: 'https://plcapital.docsend.com/view/s/7g3kzytntx75ha8v',
+  // When the SPV aims to stop taking commitments (review 2026-10-07: investors
+  // want the deadline). Shown as "Target close" since the UX updates doc
+  // (2026-10-09). Set per spotlight in the back office.
+  closesOn: 'Oct 16, 2026',
+  // The SPV's own mailbox (UX updates doc, 2026-10-09): a PL Capital
+  // distribution list, the page's contact address and the copy address on the
+  // automated data-room email. Michael to confirm.
+  supportEmail: 'netholabsspv@plcapital.xyz',
 };
 
 export const mockSignedInUser = {
@@ -153,6 +157,64 @@ export const APPLIED_EMAILS = ['maya@northfield.vc', 'applied@example.com'];
 
 // The teams (with their full team-page data and DocSend links) live in teams.ts.
 
+// The SPV card under the hero (call, 2026-10-12): five fields, the ones the UX
+// updates doc marks in bold. The fund name is the legal footer's. The four
+// terms are SAMPLE values (asked for 2026-10-12 so the card reads as filled),
+// typical of a small SPV, not Netholabs' real terms: replace with Michael's
+// numbers. A null value still renders as "To be confirmed". Whether the
+// minimum shows at all is open item 3.
+export type SpvDetail = { label: string; value: string | null };
+
+export const SPV_FUND_NAME = 'PLC Neurotech SPV - Netholabs I LLC';
+
+export const SPV_TERMS: SpvDetail[] = [
+  { label: 'Target SPV size', value: '$2,500,000' },
+  { label: 'Minimum investment', value: '$25,000' },
+  { label: 'Management fee', value: '2% (one-time)' },
+  { label: 'Expense reserve', value: '3% of commitments' },
+];
+
+// The lower half of the page, still being decided (UX updates doc, open item
+// 5). Compared in the demo bar:
+// - where the investor-profile card sits: before the Q&A or after it;
+// - what replaces the big Explore the PL Network card: one line of small text
+//   under the profile card, three small cards under the Q&A, or the line plus
+//   the big card under the Q&A.
+export type ProfilePlacement = 'beforeFaq' | 'afterFaq';
+
+export const PROFILE_PLACEMENT_OPTIONS: { value: ProfilePlacement; label: string }[] = [
+  { value: 'beforeFaq', label: 'Before Q&A' },
+  { value: 'afterFaq', label: 'After Q&A' },
+];
+
+export type ExploreOption = 'line' | 'cards' | 'lineAndCard';
+
+export const EXPLORE_OPTIONS: { value: ExploreOption; label: string }[] = [
+  { value: 'line', label: '1 · Small tile' },
+  { value: 'cards', label: '2 · Three cards' },
+  { value: 'lineAndCard', label: '3 · Small tile + big card' },
+];
+
+// Option 2's three small cards. PL Neuro and the PL network are the doc's; the
+// third is "to be chosen", so PL Capital (the SPV's lead) holds the slot.
+export const EXPLORE_CARDS = [
+  {
+    title: 'Explore PL Neuro',
+    body: 'Investment and research breaking through bottlenecks in neurotechnology and NeuroAI.',
+    href: 'https://www.plneuro.xyz/',
+  },
+  {
+    title: 'Explore the PL network',
+    body: '750+ organizations across AI, neurotech, digital rights and new economies.',
+    href: EXPLORE_PL_NETWORK_URL,
+  },
+  {
+    title: 'Explore PL Capital',
+    body: 'The family of venture funds leading this SPV. Third card to be chosen.',
+    href: 'https://plcapital.xyz/',
+  },
+];
+
 // The deal page's FAQ, for invited viewers only: the locked states show none
 // (2026-10-01: "you should have questions once you see the pitch"; logged out
 // it is just Contact us). Written for the token model; with the request flow
@@ -161,17 +223,20 @@ export const spvFaqItems: FAQItem[] = [
   {
     question: 'What is PL Spotlight?',
     answer:
-      "PL Spotlight is how Protocol Labs brings a small set of PL Network teams to outside investors. Each Spotlight is one SPV (special purpose vehicle) led by Protocol Labs into one team's round.",
+      "PL Spotlight is how Protocol Labs brings a small set of PL Network teams to outside investors. Each Spotlight is one SPV (special purpose vehicle) led by Protocol Labs Capital into one team's round.",
   },
   {
     question: 'How do I see the materials?',
     answer:
-      "Access data room opens the team's DocSend. On your first visit you ask for access there; once it is granted, the same button takes you straight to the pitch and the SPV terms. Nothing is uploaded to this page.",
+      // "The SPV's data room", not "the team's DocSend": it belongs to the SPV and
+      // holds the PL memo as well as the team's materials. Final wording waits
+      // on the access flow (UX updates doc, open item 2).
+      "Access data room opens the SPV's data room on DocSend and sends you an email from the PL Capital team with the link, so you can reply with questions.",
   },
   {
     question: 'What does the investor profile do?',
     answer:
-      'It tells us your check size, stages and focus, so we only send you deals that fit. You can change it any time from the avatar menu.',
+      'It records your preferred check size, stage and sector, so the deals you see are filtered to match. You can change it any time from the avatar menu.',
   },
   // Phrased as a question like the others, and the answer carries the address
   // itself (review 2026-10-07: "Where is contact us?" — the locked page's

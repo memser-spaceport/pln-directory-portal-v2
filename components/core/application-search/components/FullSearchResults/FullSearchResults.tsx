@@ -5,13 +5,14 @@ import s from './FullSearchResults.module.scss';
 import { ContentLoader } from '@/components/core/application-search/components/ContentLoader';
 import { SearchResultsSection } from '@/components/core/application-search/components/SearchResultsSection';
 import { useFullApplicationSearch } from '@/services/search/hooks/useFullApplicationSearch';
-import { SearchResult } from '@/services/search/types';
+import { FoundItem, SearchResult } from '@/services/search/types';
 import { SearchCategories } from '@/components/core/application-search/components/SearchCategories';
 import { NothingFound } from '@/components/core/application-search/components/NothingFound';
 
 interface Props {
   searchTerm: string;
   onTryAiSearch: () => void;
+  onAskAi?: (item: FoundItem) => void;
   onClose?: () => void;
   activeCategory: keyof SearchResult | null;
   setActiveCategory: (category: keyof SearchResult | null) => void;
@@ -22,6 +23,7 @@ interface Props {
 export const FullSearchResults = ({
   searchTerm,
   onTryAiSearch,
+  onAskAi,
   onClose,
   activeCategory,
   setActiveCategory,
@@ -112,6 +114,7 @@ export const FullSearchResults = ({
             items={item.values ?? []}
             query={searchTerm}
             onSelect={onClose}
+            onAskAi={onAskAi}
           />
         </CollapsibleSection>
       );

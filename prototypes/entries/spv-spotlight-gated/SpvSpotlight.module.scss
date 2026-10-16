@@ -863,7 +863,22 @@
 .navBrand {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 12px;
+}
+
+// PL Capital's cube + wordmark (2026-10-12), at the height the old 32px cube
+// read at: the wordmark carries the name, so 24px tall is enough.
+.navPlcLogo {
+  display: block;
+  width: auto;
+  height: 24px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.navDivider {
+  width: 1px;
+  height: 20px;
+  background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 }
 
 .navLabel {
@@ -1146,22 +1161,55 @@
 
 // ---- Investor profile ask (review 2026-10-07) --------------------------------
 // One sentence with a link, above the team card (Anuj: "a plain sentence w/ a
-// link vs a sectional tile"). Centred on a grey strip as wide as the card
-// (2026-10-07): the Explore tile's slate ground, no border, so it reads as a
+// link vs a sectional tile"). On a grey strip as wide as the card, text
+// left-aligned since 2026-10-12 (centred before): the Explore tile's slate
+// ground, no border, so it reads as a
 // note beside the card rather than a second card. Slate, not the soft surface
 // (#f9fafb), which barely separates from the white sheet.
+// 2026-10-12 "highlight a bit more": sentence left, a small bordered button at
+// the end; more padding, primary ink. On phones the button drops under the
+// sentence at full width.
 .profileAsk {
+  display: flex;
+  align-items: center;
+  gap: 16px;
   width: 100%;
   max-width: 948px;
   margin: 0 auto;
-  padding: 12px 16px;
+  padding: 16px 16px 16px 20px;
+  // Brand-tinted since 2026-10-12 ("stand out more than Explore"): the ask
+  // outranks the Explore tile under it, which went neutral.
+  border: 1px solid var(--border-brand-subtle, #aebfff);
   border-radius: 8px;
-  background: var(--background-neutral-subtle, #f1f5f9);
-  color: var(--foreground-neutral-secondary, #455468);
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  text-align: left;
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 16px;
+  }
+}
+
+.profileAskText {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 14px;
+  font-weight: 500;
   line-height: 20px;
-  text-align: center;
-  text-wrap: balance;
+}
+
+// Filled brand (2026-10-12) so the ask has the stronger press of the two;
+// still xs, below the page's green data-room button.
+.profileAskButton.profileAskButton {
+  flex-shrink: 0;
+  margin-left: auto;
+  white-space: nowrap;
+
+  @include media.mobile-only {
+    margin-left: 0;
+  }
 }
 
 // ---- Close date under the data-room button (review 2026-10-07) ---------------
@@ -1347,4 +1395,443 @@
 // Keeps a run of words on one line (the one-liner's tail).
 .noWrap {
   white-space: nowrap;
+}
+
+// ---- Netholabs UX updates (doc, 2026-10-09) -----------------------------------
+
+// The data-room door is green, so it stands out from the blue links and labels
+// across the page. Success 700, not 500: white 14px text on 500 (#11a75c) is
+// ~3:1, under AA; on 700 it is ~4.6:1. Same inset highlights as the brand
+// primary, with a green glow.
+.cardActionButton.cardActionButtonSuccess {
+  background: var(--semantic-success-700, #048746);
+  box-shadow:
+    0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset,
+    0 4px 6px 0 var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset,
+    0 1px 5px 0 rgba(4, 135, 70, 0.16);
+
+  &:hover,
+  .ctaBand:hover & {
+    background: var(--semantic-success-800, #046a37);
+  }
+
+  &:focus-visible {
+    outline-color: var(--semantic-success-700, #048746);
+  }
+}
+
+// A fact with more than one value (Offices: one city per line).
+.factLine {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ---- SPV card under the hero (call, 2026-10-12) -------------------------------
+// The deal before the team: the fund name and the data-room button on one row,
+// four terms in a strip under it. As wide as the team card, with its border,
+// radius and 32px side padding, so the two cards line up; thin by design, about
+// the height of the team card's identity header.
+.dealCard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 948px;
+  margin: 0 auto;
+  padding: 24px 32px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-neutral-base, #fff);
+  box-shadow: 0 4px 4px 0 rgba(15, 23, 42, 0.04);
+
+  @include media.mobile-only {
+    padding: 16px;
+  }
+}
+
+.dealHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+}
+
+.dealTitleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+// The team card's small section label.
+.dealOverline {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.dealTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 28px;
+  letter-spacing: -0.2px;
+}
+
+.dealAction {
+  flex-shrink: 0;
+}
+
+// The team card's fact strip, four across, hairline above.
+.dealTerms {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  @include media.mobile-only {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 12px;
+  }
+}
+
+.dealTerm {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding-inline: 20px;
+  border-left: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  &:first-child {
+    padding-left: 0;
+    border-left: none;
+  }
+
+  @include media.mobile-only {
+    padding-inline: 0 12px;
+    border-left: none;
+  }
+}
+
+.dealTermValue {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+// Not supplied yet: reads as a placeholder, not a term.
+.dealTermPending {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-weight: 400;
+  font-style: italic;
+}
+
+// The carousel column, with "Backed by" under its caption.
+.spotlightMedia {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.backedBy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+// A chip, not a bare logo (2026-10-12: "should be clear that it's
+// clickable"): bordered like the founder tiles, with the external arrow the
+// card's other links out carry, and a brand hover.
+.backedByLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-neutral-base, #fff);
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    border-color: var(--border-brand-subtle, #aebfff);
+    background: var(--background-brand-soft-surface, #f2f5ff);
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+// The PNG from the doc is opaque white with a wide margin round the mark and
+// wordmark: 48px tall draws them at ~24px, and the negative margins trim the
+// margin so the chip's padding is what shows. multiply drops the white ground
+// on the chip's brand hover.
+.backedByLogo {
+  display: block;
+  width: auto;
+  height: 48px;
+  margin: -12px -16px -12px -12px;
+  mix-blend-mode: multiply;
+}
+
+// Traction & credibility, under the description.
+.traction {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 60ch;
+}
+
+.tractionTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.tractionList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding-left: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 15px;
+  line-height: 24px;
+
+  @include media.mobile-only {
+    font-size: 14px;
+    line-height: 22px;
+  }
+}
+
+// The investor-profile card and, under it, the small Explore line.
+// 40px between the strip and the Explore tile (2026-10-12: "more space",
+// "even more", then "even more" again): two separate asks, set further
+// apart than the page's 24px section gap.
+.profileBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+
+  @include media.mobile-only {
+    gap: 32px;
+  }
+  width: 100%;
+  max-width: 948px;
+  margin: 0 auto;
+}
+
+// Options 1 and 3: the small Explore tile under the profile card (2026-10-12:
+// "should be a small tile and stand out more"). Hugs its content, left on the
+// content edge; brand-tinted ground and a brand arrow so it reads as a door.
+// Stretched to the profile strip's width (2026-10-12: "stretch explore the pl
+// network card"), so the two read as one column; the arrow keeps the far end.
+.exploreMini {
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  gap: 16px;
+  padding: 12px 20px 12px 12px;
+  // Neutral since 2026-10-12, so the profile ask above outranks it.
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-neutral-base, #fff);
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.2s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    box-shadow:
+      0 0 1px 0 rgba(15, 23, 42, 0.16),
+      0 8px 16px 0 rgba(15, 23, 42, 0.08);
+
+    .exploreMiniArrow {
+      transform: translateX(2px);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+.exploreMiniArt {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+}
+
+.exploreMiniText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.exploreMiniTitle {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.exploreMiniBody {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.exploreMiniArrow {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-left: auto;
+  color: var(--foreground-brand-primary, #1b4dff);
+  transition: transform 0.15s ease;
+}
+
+// The sections under the Q&A (data-room band, Explore, footer) get twice the
+// sheet's 24px gap above them, so they read as separate stops (2026-10-12:
+// "a bit more space").
+.lowerSection.lowerSection {
+  margin-top: 24px;
+}
+
+// SPV card: the PLC Neurotech mark beside the fund name.
+.dealIdentity {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+// The team card's logo tile, at 56px.
+.dealMark {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: var(--background-neutral-base, #fff);
+
+  img {
+    display: block;
+    width: 32px;
+    height: 32px;
+  }
+
+  @include media.mobile-only {
+    width: 48px;
+    height: 48px;
+
+    img {
+      width: 28px;
+      height: 28px;
+    }
+  }
+}
+
+// Option 2: the big Explore card as three small ones, under the Q&A.
+.exploreCards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+  max-width: 948px;
+  margin: 0 auto;
+
+  @include media.mobile-only {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+.exploreCard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-neutral-base, #fff);
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.2s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    box-shadow:
+      0 0 1px 0 rgba(15, 23, 42, 0.16),
+      0 8px 16px 0 rgba(15, 23, 42, 0.08);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+.exploreCardTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 22px;
+}
+
+.exploreCardBody {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+// Legal's footer runs to two paragraphs.
+.footerParagraph {
+  display: block;
+  margin-top: 8px;
+}
+
+// The Q&A right under the profile block: its section's 40px top padding came
+// on top of the sheet's 24px gap and read as a break (2026-10-12: "a bit less
+// space between it and Q&A"). 8px keeps the heading clear of the tile.
+.faqAfterProfile.faqAfterProfile {
+  padding-top: 8px;
 }

@@ -4,7 +4,7 @@ import React from 'react';
 import clsx from 'clsx';
 import { Menu } from '@base-ui-components/react/menu';
 import { Avatar } from '@base-ui-components/react/avatar';
-import { AppLogo } from '@/components/core/navbar/components/icons';
+import { PlCapitalLogo } from './PlCapitalLogo';
 // Production's navbar shell: the white bar and its shadow, the 48px logo slot,
 // the right-hand group and the item style (NavBar.module.scss). The component
 // itself runs analytics, search, notifications and the account menu, so only
@@ -50,10 +50,11 @@ type Props = {
  */
 export const SpvNavBar = ({ label, supportEmail, account, onSignIn, tone = 'light' }: Props) => (
   <header className={clsx(n.Root, s.navBar, { [s.navBarDark]: tone === 'dark' })}>
+    {/* PL Capital's mark, since Protocol Labs Capital leads the SPV (call,
+        2026-10-12), then the product's name after a hairline. */}
     <div className={s.navBrand}>
-      <span className={n.logoWrapper} aria-hidden>
-        <AppLogo />
-      </span>
+      <PlCapitalLogo className={s.navPlcLogo} />
+      <span className={s.navDivider} aria-hidden />
       <span className={s.navLabel}>{label}</span>
     </div>
     <div className={n.right}>

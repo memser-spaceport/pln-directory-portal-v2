@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 const push = jest.fn();
@@ -106,8 +106,8 @@ describe('LAB-2772: the AI chat page is AI Search at /ai-search', () => {
     expect(push).toHaveBeenLastCalledWith('/ai-search');
 
     push.mockClear();
-    render(<ChatTitleBar chat={{ threadId: 'thread-1', title: 'Storage teams' }} />);
-    fireEvent.click(screen.getByRole('button', { name: 'New chat' }));
+    const { container: titleBar } = render(<ChatTitleBar chat={{ threadId: 'thread-1', title: 'Storage teams' }} />);
+    fireEvent.click(within(titleBar).getByRole('button', { name: 'New chat' }));
     expect(push).toHaveBeenLastCalledWith('/ai-search');
   });
 });

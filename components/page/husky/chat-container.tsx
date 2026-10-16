@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Chat from './chat';
+import { generateUUID } from '@/utils/common.utils';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { useRouter } from 'next/navigation';
 import type { IVisitChat } from './types/visitChat';
@@ -17,6 +18,8 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
   const [initialMessages, setInitialMessages] = useState<any>([]);
   const [type, setType] = useState<string>('');
   const [visitThreadId, setVisitThreadId] = useState<string | undefined>();
+  // Each new chat mounts a fresh Chat, which asks a question handed over by the header search.
+  const [newChatCount, setNewChatCount] = useState(0);
   const analytics = useHuskyAnalytics();
   const router = useRouter();
 
@@ -24,6 +27,7 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
     setInitialMessages([]);
     setType('');
     setVisitThreadId(undefined);
+    setNewChatCount((count) => count + 1);
     analytics.trackMobileHeaderNewConversationClicked();
   };
 
@@ -58,7 +62,7 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
         localStorage.removeItem('initialChat');
         queueMicrotask(() => {
           setType(parsedChat.type);
-          setInitialMessages([{ ...parsedChat.message, isError: false }]);
+          setInitialMessages([{ ...parsedChat.message, id: generateUUID(), isError: false }]);
         });
       } catch (error) {
         console.error('Error parsing initial chat:', error);
@@ -76,7 +80,7 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
       <div className="chat-container">
         <div className="chat-container__body">
           <Chat
-            key={visitThreadId ?? 'new-chat'}
+            key={visitThreadId ?? `new-chat-${newChatCount}`}
             id={visitThreadId}
             isLoggedIn={isLoggedIn}
             userInfo={userInfo}
@@ -96,7 +100,6 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
 
         .chat-container__body {
           flex: 1;
-          overflow-y: auto;
         }
       `}</style>
     </>

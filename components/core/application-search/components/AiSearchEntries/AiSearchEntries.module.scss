@@ -1,0 +1,61 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 16px;
+  border-bottom: 1px solid rgba(27, 56, 96, 0.12);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px;
+  border: 0;
+  border-radius: 8px;
+  background: #f8fafc;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.04);
+  }
+}
+
+// The AI Search mark in its brand gradient, as the rail and the page draw it.
+.aiIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(285deg, #45d8ff 0%, #005bea 82.52%);
+  mask: url('/icons/ai-search.svg') center / contain no-repeat;
+}
+
+.icon {
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.arrow {
+  flex-shrink: 0;
+  color: #8897ae;
+}

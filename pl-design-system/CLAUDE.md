@@ -1,6 +1,6 @@
 # PL Design System — AI Agent Instructions
 
-This is the **Protocol Labs Design System** repository. It contains design tokens and React components extracted from Figma and implemented for use in Next.js 14 applications (primarily `pln-directory-portal-v2`).
+This is the **Protocol Labs Design System** repository. It contains design tokens and React components extracted from Figma, primarily for `pln-directory-portal-v2` (Next.js 16, React 19). This showcase app itself runs Next.js 14 and React 18 (see `package.json`).
 
 ---
 

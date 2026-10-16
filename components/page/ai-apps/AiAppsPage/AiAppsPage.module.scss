@@ -48,7 +48,8 @@
 
   @include media.mobile-only {
     width: 100%;
-    justify-content: flex-end;
+    /* Under the title on a phone, so it starts on the title's edge (prototype ai-apps-feedback-drawer, 2026-10-08). */
+    justify-content: flex-start;
   }
 }
 

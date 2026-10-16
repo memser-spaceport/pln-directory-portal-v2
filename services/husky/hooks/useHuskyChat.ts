@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
+import { useUnifiedSearchAnalytics, type AiQuerySubmitType } from '@/analytics/unified-search.analytics';
 import { toast } from '@/components/core/ToastContainer';
 import { createHuskyThread, createThreadTitle } from '@/services/husky.service';
 import { SearchQueryKeys } from '@/services/search/constants';
@@ -135,6 +136,7 @@ export function useHuskyChat({ isLoggedIn, isOwnThread = true, from, buildSubmit
 
   const queryClient = useQueryClient();
   const analytics = useHuskyAnalytics();
+  const searchAnalytics = useUnifiedSearchAnalytics();
   const limit = useDailyChatLimit();
 
   /* Everything the exposed callbacks close over goes through a ref refreshed
@@ -142,9 +144,9 @@ export function useHuskyChat({ isLoggedIn, isOwnThread = true, from, buildSubmit
      render and both analytics hooks return a fresh object literal, so a
      `useCallback` that listed them would be recreated every render — and a
      `useCallback` with an unstable dependency is not a memo, it is a comment. */
-  const latest = useRef({ isLoggedIn, isOwnThread, from, buildSubmitParams, analytics, limit });
+  const latest = useRef({ isLoggedIn, isOwnThread, from, buildSubmitParams, analytics, searchAnalytics, limit });
   useEffect(() => {
-    latest.current = { isLoggedIn, isOwnThread, from, buildSubmitParams, analytics, limit };
+    latest.current = { isLoggedIn, isOwnThread, from, buildSubmitParams, analytics, searchAnalytics, limit };
   });
 
   /* Resolved per request inside `fetch`, never at hook construction. The header
@@ -302,7 +304,7 @@ export function useHuskyChat({ isLoggedIn, isOwnThread = true, from, buildSubmit
   useEffect(() => () => abandonStream(), [abandonStream]);
 
   const send = useCallback(
-    async (question: string, { newThread }: { newThread: boolean }) => {
+    async (question: string, { newThread, submitType }: { newThread: boolean; submitType: AiQuerySubmitType }) => {
       const trimmed = question.trim();
       if (!trimmed) return;
       if (!latest.current.isOwnThread) return;
@@ -357,6 +359,7 @@ export function useHuskyChat({ isLoggedIn, isOwnThread = true, from, buildSubmit
         };
         const params = (latest.current.buildSubmitParams?.(base) ?? base) as HuskySubmitParams;
 
+        latest.current.searchAnalytics.onAiQuerySubmitted(trimmed, 'header-dialog', submitType);
         latest.current.analytics.trackAiResponse('initiated', 'user-input', false, trimmed);
 
         /* Submit first. Thread registration used to be awaited *before* this,
@@ -398,15 +401,18 @@ export function useHuskyChat({ isLoggedIn, isOwnThread = true, from, buildSubmit
   /** A new conversation. Always a new thread — never a turn appended to the
    *  last one, which is what the old id-reuse rule produced once the hook
    *  outlived the dialog. */
-  const startThread = useCallback((question: string) => send(question, { newThread: true }), [send]);
+  const startThread = useCallback(
+    (question: string) => send(question, { newThread: true, submitType: 'user-input' }),
+    [send],
+  );
 
   /** A follow-up in the open conversation. */
-  const ask = useCallback((question: string) => send(question, { newThread: false }), [send]);
+  const ask = useCallback((question: string) => send(question, { newThread: false, submitType: 'followup' }), [send]);
 
   const regenerate = useCallback(
     (question: string) => {
       abandonStream();
-      return send(question, { newThread: false });
+      return send(question, { newThread: false, submitType: 'regenerate' });
     },
     [abandonStream, send],
   );

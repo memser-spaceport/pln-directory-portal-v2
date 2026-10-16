@@ -1,23 +1,33 @@
-import { ISLANDS, MAP_STATES, PORTFOLIO } from '@/components/page/explore-pl-network/data/islands';
-import { TEAM_INFO } from '@/components/page/explore-pl-network/data/teamInfo';
+import { ISLANDS, MAP_STATES } from '@/components/page/explore-pl-network/data/islands';
+import { PORTFOLIO_FALLBACK, type PortfolioTeam } from '@/components/page/explore-pl-network/data/portfolio';
 import { directoryUrl, displayNameOf } from '@/components/page/explore-pl-network/data/directoryUrl';
 import { EXPLORE_PORTFOLIO_TEAM_COUNT } from '@/services/explore-pl-network/constants';
 
-describe('Explore PL Network static data', () => {
+describe('Explore PL Network fallback data', () => {
   it('has the portfolio the SPV tile advertises', () => {
-    expect(PORTFOLIO).toHaveLength(EXPLORE_PORTFOLIO_TEAM_COUNT);
+    expect(PORTFOLIO_FALLBACK).toHaveLength(EXPLORE_PORTFOLIO_TEAM_COUNT);
   });
 
-  it('puts every logo on a known island', () => {
-    const islands = new Set(ISLANDS.map((i) => i.id));
-    expect(PORTFOLIO.filter((l) => !islands.has(l.island))).toEqual([]);
+  it("keeps marketing's row order, which MAP_STATES indexes", () => {
+    // Generated from islands.ts PORTFOLIO; a reorder would move every tile.
+    expect(PORTFOLIO_FALLBACK.map((r) => r.id)).toMatchSnapshot();
   });
 
-  it('only places logos that exist, on every map state', () => {
+  it('matches 259 rows to a directory uid', () => {
+    expect(PORTFOLIO_FALLBACK.filter((r) => r.uid)).toHaveLength(259);
+  });
+
+  it('puts every row on a known island', () => {
+    const islands = new Set<string>(ISLANDS.map((i) => i.id));
+    expect(PORTFOLIO_FALLBACK.filter((r) => !islands.has(r.island))).toEqual([]);
+  });
+
+  it('only places rows that exist, on every map state', () => {
     for (const [key, flat] of Object.entries(MAP_STATES)) {
       expect(flat.length % 3).toBe(0);
       for (let i = 0; i < flat.length; i += 3) {
-        if (!PORTFOLIO[flat[i]]) throw new Error(`MAP_STATES['${key}'] points at missing logo index ${flat[i]}`);
+        if (flat[i] >= PORTFOLIO_FALLBACK.length)
+          throw new Error(`MAP_STATES['${key}'] points at missing row ${flat[i]}`);
       }
     }
   });
@@ -29,19 +39,29 @@ describe('Explore PL Network static data', () => {
 });
 
 describe('directoryUrl', () => {
-  const matched = PORTFOLIO.find((l) => TEAM_INFO[l.id]?.uid)!;
-  const unmatched = PORTFOLIO.find((l) => !TEAM_INFO[l.id]?.uid)!;
+  const matched = PORTFOLIO_FALLBACK.find((r) => r.uid)!;
+  const unmatched = PORTFOLIO_FALLBACK.find((r) => !r.uid)!;
+  const team = (row: typeof matched, source: PortfolioTeam['source']): PortfolioTeam => ({ ...row, source });
 
-  it('links a matched logo to its directory profile, relative to this environment', () => {
-    expect(directoryUrl(matched)).toBe(`/teams/${TEAM_INFO[matched.id]!.uid}`);
+  it('links a team the API returned to its directory profile, relative to this environment', () => {
+    expect(directoryUrl(team(matched, 'db'))).toBe(`/teams/${matched.uid}`);
   });
 
   it('falls back to a directory search by name', () => {
-    expect(directoryUrl(unmatched)).toBe(`/teams?searchBy=${encodeURIComponent(unmatched.name)}`);
+    expect(directoryUrl(team(unmatched, 'fallback'))).toBe(`/teams?searchBy=${encodeURIComponent(unmatched.name)}`);
   });
 
-  it("prefers the directory's name over marketing's caps", () => {
-    expect(displayNameOf(matched)).toBe(TEAM_INFO[matched.id]!.displayName);
-    expect(displayNameOf(unmatched)).toBe(unmatched.name);
+  it('links a project entry to its directory project page', () => {
+    const oso = PORTFOLIO_FALLBACK.find((r) => r.name === 'Open Source Observer')!;
+    expect(directoryUrl(team(oso, 'fallback'))).toBe('/projects/clot4l6jm001lwi028b7jmwk8');
+  });
+
+  it('searches for a team with a uid the API did not return (e.g. inactive)', () => {
+    expect(directoryUrl(team(matched, 'fallback'))).toBe(`/teams?searchBy=${encodeURIComponent(matched.name)}`);
+  });
+
+  it("shows the merged name: the directory's where matched, marketing's otherwise", () => {
+    expect(displayNameOf(team(matched, 'db'))).toBe(matched.name);
+    expect(displayNameOf(team(unmatched, 'fallback'))).toBe(unmatched.name);
   });
 });

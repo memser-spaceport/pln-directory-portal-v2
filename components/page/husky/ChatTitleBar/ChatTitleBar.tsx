@@ -8,7 +8,9 @@ import { PAGE_ROUTES } from '@/utils/constants';
 
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 
-import { TrashIcon } from '@/components/icons';
+import { TrashIcon, ArrowBackIcon } from '@/components/icons';
+
+import { goBackToSearch } from './utils/goBackToSearch';
 
 import { useSidebar } from '../sidebar';
 
@@ -28,7 +30,7 @@ export const ChatTitleBar = (props: Props) => {
   const { chat } = props;
 
   const router = useRouter();
-  const { state, toggleSidebar } = useSidebar();
+  const { toggleSidebar } = useSidebar();
   const analytics = useHuskyAnalytics();
 
   // Someone else's shared chat is read here; Delete belongs to the copy a follow-up makes.
@@ -50,7 +52,12 @@ export const ChatTitleBar = (props: Props) => {
   };
 
   return (
-    <div className={clsx(s.root, chat ? s.pinned : s.bare)} data-state={state}>
+    <div className={clsx(s.root, chat ? s.pinned : s.bare)}>
+      <button type="button" className={s.back} onClick={() => goBackToSearch(router)}>
+        <ArrowBackIcon width={16} height={16} />
+        <span className={clsx(s.backLabel, chat && s.backLabelBesideChat)}>Back to search</span>
+      </button>
+      {chat && <span className={s.barDivider} aria-hidden="true" />}
       <button type="button" className={clsx(s.button, s.belowRail)} onClick={openHistory}>
         <img src="/icons/history.svg" alt="" width={18} height={18} />
         History

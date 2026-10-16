@@ -1,5 +1,9 @@
 import { customFetch } from '@/utils/fetch-wrapper';
-import { getSpvSpotlight, requestSpvAccess } from '@/services/spv-spotlight/spv-spotlight.service';
+import {
+  getSpvSpotlight,
+  requestDataRoomAccessEmail,
+  requestSpvAccess,
+} from '@/services/spv-spotlight/spv-spotlight.service';
 import {
   SpvAccessRequestBlockedError,
   SpvAccessRequestValidationError,
@@ -46,6 +50,16 @@ describe('spv-spotlight.service', () => {
   it('throws on other failures instead of painting an empty page', async () => {
     mockedFetch.mockResolvedValueOnce(response(500, {}));
     await expect(getSpvSpotlight('x', true)).rejects.toThrow();
+  });
+
+  it('posts the data room email as JSON', async () => {
+    mockedFetch.mockResolvedValueOnce(response(200, { docSendUrl: 'https://docsend.com/view/x' }));
+    await expect(requestDataRoomAccessEmail('s')).resolves.toEqual({ docSendUrl: 'https://docsend.com/view/x' });
+    const [url, init, authenticated] = mockedFetch.mock.calls[0];
+    expect(url).toMatch(/\/v1\/spv-spotlights\/s\/data-room-access-email$/);
+    expect(init.headers['Content-Type']).toBe('application/json');
+    expect(init.body).toBe('{}');
+    expect(authenticated).toBe(true);
   });
 
   it('posts JSON with a Content-Type (customFetch adds none)', async () => {

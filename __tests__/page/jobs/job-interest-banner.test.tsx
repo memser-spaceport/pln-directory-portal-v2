@@ -246,6 +246,21 @@ describe('the banner itself', () => {
     expect(screen.getByText('Happy to talk through the Rust side.')).toBeInTheDocument();
   });
 
+  /* LAB-2749: Undo sits on the confirmation's first line, beside the title,
+     with the quoted note below both — the prototype's `InterestStrip` alert.
+     It used to follow the note, so the card centred it against a block that
+     grew with every line of the note. */
+  it('puts Undo on the title line, above the quoted note', () => {
+    renderBanner({ isInterested: true, note: 'Line one\nLine two\nLine three' });
+
+    const title = screen.getByText(INTEREST_CONFIRMED_TITLE);
+    const undo = action();
+    const noteLabel = screen.getByText(interestNoteSentLabel(TEAM_NAME));
+
+    expect(title.compareDocumentPosition(undo) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(undo.compareDocumentPosition(noteLabel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it('draws no note block when the signal carried none', () => {
     renderBanner({ isInterested: true, note: null });
 

@@ -3,6 +3,13 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { usePostHog } from 'posthog-js/react';
 import { ForumFoundItem, FoundItem } from '@/services/search/types';
 
+/** Where a member asked an AI search question. */
+export type AiQueryEntryPoint = 'header-dialog' | 'ai-search-page' | 'home';
+/** How the question was submitted. */
+export type AiQuerySubmitType = 'user-input' | 'prompt' | 'followup' | 'regenerate';
+
+const AI_QUERY_MAX_LENGTH = 500;
+
 export const useUnifiedSearchAnalytics = () => {
   const postHogProps = usePostHog();
 
@@ -53,6 +60,20 @@ export const useUnifiedSearchAnalytics = () => {
     captureEvent(UNIFIED_SEARCH_ANALYTICS_EVENTS.AI_CONVERSATION_HISTORY_OPEN_CLICK, {});
   }
 
+  /** The member-side ask: one event per accepted AI search submit, sent before the answer arrives. */
+  function onAiQuerySubmitted(query: string, entryPoint: AiQueryEntryPoint, submitType: AiQuerySubmitType) {
+    const searchValue = query.trim().slice(0, AI_QUERY_MAX_LENGTH);
+    if (!searchValue) {
+      return;
+    }
+    captureEvent(UNIFIED_SEARCH_ANALYTICS_EVENTS.AI_QUERY_SUBMITTED, { searchValue, entryPoint, submitType });
+  }
+
+  /** One event per full search whose text looks like an email. It never carries the search text. */
+  function onEmailQuerySubmitted() {
+    captureEvent(UNIFIED_SEARCH_ANALYTICS_EVENTS.EMAIL_QUERY_SUBMITTED, {});
+  }
+
   return {
     onAutocompleteSearch,
     onFullSearch,
@@ -62,5 +83,7 @@ export const useUnifiedSearchAnalytics = () => {
     onRecentSearchDeleteClick,
     onAiConversationHistoryClick,
     onAiConversationHistoryOpenClick,
+    onAiQuerySubmitted,
+    onEmailQuerySubmitted,
   };
 };

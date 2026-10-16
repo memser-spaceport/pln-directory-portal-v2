@@ -1,0 +1,89 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+// Same type as FormField's label and description, which the rows themselves don't carry.
+.label {
+  color: #475569;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.hq {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.remove {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #64748b;
+  cursor: pointer;
+
+  &:hover {
+    color: #0f172a;
+    border-color: #94a3b8;
+  }
+}
+
+.add {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #1b4dff;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+}
+
+.description {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+}
+
+.error {
+  margin: 0;
+  color: var(--action-border-error-focus);
+  font-size: 12px;
+  line-height: 18px;
+}

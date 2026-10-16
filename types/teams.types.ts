@@ -83,6 +83,7 @@ export interface ITeamResponse {
   dateFounded?: number | null;
   teamSize?: string | number | null;
   location?: string | null;
+  locations?: string[];
   status?: TeamStatus | null;
   linkedinHandle?: string | null;
   createdAt?: string;
@@ -168,8 +169,10 @@ export interface ITeam {
   dateFounded?: number | null;
   /** Employee count (as a number) or a range label (e.g. "11-50"). Stored as text by the API. */
   teamSize?: string | number | null;
-  /** Free-text place label, e.g. "San Francisco, United States". */
+  /** The HQ, always `locations[0]`. Free-text place label, e.g. "San Francisco, United States". */
   location?: string | null;
+  /** Free-text place labels; the first one is the HQ. */
+  locations?: string[];
   /** Absent or null counts as `ACTIVE` — see `isTeamInactive`. */
   status?: TeamStatus | null;
   blog?: string | null;

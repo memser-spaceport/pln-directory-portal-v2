@@ -1760,13 +1760,16 @@ export function GiveAiAppFeedbackDialog({
                 />
               </ConfirmLayer>
 
-              <div className={s.postingAs}>
-                <CommentIcon />
-                <span>
-                  Posting as <strong>{currentUser?.name ?? 'you'}</strong> · visible to the app&apos;s author and LabOS
-                  admins
-                </span>
-              </div>
+              {/* LabOS-wide feedback goes to support, not to an app's author. */}
+              {!labosOnly && (
+                <div className={s.postingAs}>
+                  <CommentIcon />
+                  <span>
+                    Posting as <strong>{currentUser?.name ?? 'you'}</strong> · visible to the app&apos;s author and
+                    LabOS admins
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className={s.footer}>

@@ -556,6 +556,7 @@ describe('GiveAiAppFeedbackDialog', () => {
       expect(screen.queryByLabelText('Which app is this about?')).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'My App' })).not.toBeInTheDocument();
       expect(mockUseAiApps).toHaveBeenCalledWith({ enabled: false });
+      expect(screen.queryByText(/Posting as/)).not.toBeInTheDocument();
     });
 
     it('sends to the same place as LabOS - AI Apps feedback and calls onSent', async () => {

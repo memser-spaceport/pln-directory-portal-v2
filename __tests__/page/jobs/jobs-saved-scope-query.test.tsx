@@ -27,6 +27,8 @@ jest.mock('next/navigation', () => ({
 }));
 
 const mockIsLoggedIn = jest.fn(() => true);
+// The board reads the session through useIsLoggedIn (LAB-2888: hydration-safe, false on the server).
+jest.mock('@/hooks/useIsLoggedIn', () => ({ useIsLoggedIn: () => mockIsLoggedIn() }));
 jest.mock('@/components/core/login/utils', () => ({
   authStatus: { isLoggedIn: () => mockIsLoggedIn() },
 }));

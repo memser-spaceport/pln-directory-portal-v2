@@ -21,12 +21,17 @@ type Result<T> = { data: T } | { isError: true; status?: number; statusText?: st
  * Safe to personalize because nothing caches this: `cache: 'no-store'` here, and
  * the proxy route is `force-dynamic`.
  */
-export async function getJobsList(query: string, authToken?: string): Promise<Result<IJobsListResponse>> {
+export async function getJobsList(
+  query: string,
+  authToken?: string,
+  signal?: AbortSignal,
+): Promise<Result<IJobsListResponse>> {
   try {
     const response = await fetch(`${jobsAPI}?${query}`, {
       method: 'GET',
       headers: getHeader(authToken ?? ''),
       cache: 'no-store',
+      signal,
     });
     if (!response.ok) {
       return { isError: true, status: response.status, statusText: response.statusText };

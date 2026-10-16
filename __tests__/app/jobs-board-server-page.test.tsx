@@ -1,6 +1,9 @@
 /**
+ * @jest-environment node
+ *
  * LAB-2888: the board's server page fetches page 1 for the URL's filters the way the browser does, so the
- * server HTML carries the list and a link to every role.
+ * server HTML carries the list and a link to every role. Node: a server component, and jsdom has no
+ * `AbortSignal.timeout`.
  */
 const mockGetJobsList = jest.fn();
 jest.mock('@/app/actions/jobs.actions', () => ({ getJobsList: (...args: unknown[]) => mockGetJobsList(...args) }));
@@ -37,6 +40,8 @@ it('fetches page 1 with the viewer token and the API mapping, keyed like the bro
   expect(api.get('page')).toBe('1');
   expect(api.has('utm_source')).toBe(false);
   expect(token).toBe('token-1');
+  // Bounded: a slow backend leaves the list to the browser instead of making a slow page.
+  expect(mockGetJobsList.mock.calls[0][2]).toBeInstanceOf(AbortSignal);
   expect(props.serverPage).toEqual({
     key: 'roleCategory=Engineering&roleCategory=Design&workplaceType=remote',
     page: LIST,

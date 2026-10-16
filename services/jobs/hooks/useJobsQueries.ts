@@ -1,9 +1,9 @@
 'use client';
 
-import { useMemo, useSyncExternalStore } from 'react';
+import { useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-import { authStatus } from '@/components/core/login/utils';
+import { useIsLoggedIn } from '@/hooks/useIsLoggedIn';
 import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
 import type { IJobTeamGroup, IJobsListResponse } from '@/types/jobs.types';
@@ -14,16 +14,12 @@ import { pickJobsParams } from '../jobsParams';
 
 import { fetchJobsFilters, fetchJobsList } from '../jobs.service';
 
-export { pickJobsParams } from '../jobsParams';
-
-const noSubscription = () => () => {};
-/* False on the server and in the hydrating render: the server can't read the session cookies `authStatus` reads,
-   so the board's server render (and the server page's fetch) always leave the saved scope out (LAB-2888). */
-const signedOutOnServer = () => false;
-
 export function useJobsSearchParams(): URLSearchParams {
   const raw = useSearchParams();
-  const isLoggedIn = useSyncExternalStore(noSubscription, authStatus.isLoggedIn, signedOutOnServer);
+  /* False on the server and in the hydrating render (LAB-2888), so the board's server render — and the server
+     page's fetch — always leave the saved scope out and agree with it. The `authToken` cookie it reads is also
+     exactly what `/api/jobs/list` forwards, and the saved scope is refused without it. */
+  const isLoggedIn = useIsLoggedIn();
 
   return useMemo(() => {
     const picked = pickJobsParams(new URLSearchParams(raw.toString()));
@@ -42,7 +38,11 @@ export function useJobsSearchParams(): URLSearchParams {
  * The board's first page as the server fetched it (LAB-2888), and the `pickJobsParams` string it was fetched for.
  * Rendered until the client's own fetch lands, so the server HTML carries the list and its role links.
  */
-export type ServerJobsPage = { key: string; page: IJobsListResponse };
+export type ServerJobsPage = {
+  /** `pickJobsParams(...).toString()` for the URL it was fetched for — compared with the client's own key. */
+  key: string;
+  page: IJobsListResponse;
+};
 
 export function useInfiniteJobsList(serverPage?: ServerJobsPage) {
   const params = useJobsSearchParams();

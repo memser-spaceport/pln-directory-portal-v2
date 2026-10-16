@@ -32,11 +32,14 @@ export default async function Page({ searchParams }: PageProps) {
   return <JobsContent userInfo={userInfo} isLoggedIn={!!isLoggedIn} serverPage={serverPage} />;
 }
 
+/** How long the board's server render waits for its first page before leaving the list to the browser. */
+const SERVER_PAGE_TIMEOUT_MS = 3_000;
+
 /**
  * Page 1 of the board for the URL's filters, fetched the way the browser fetches it — the same param picking
  * (`pickJobsParams`), the same API mapping and the viewer's own token, as `/api/jobs/list` does — so the server
- * HTML carries the list and a link to every role (LAB-2888). A failure returns nothing and the board loads in
- * the browser, as it always has.
+ * HTML carries the list and a link to every role (LAB-2888). A failure, or no answer within 3 s, returns nothing
+ * and the board loads in the browser, as it always has — a slow backend never makes a slow page.
  *
  * The saved scope is always left out, signed in or not: the hydrating render can't see the session either
  * (`useJobsSearchParams`), and the two must agree. A signed-in viewer's saved list loads right after.
@@ -55,7 +58,11 @@ async function getServerJobsPage(
 
   const withPage = new URLSearchParams(picked);
   withPage.set('page', '1');
-  const result = await getJobsList(jobsBrowserSearchParamsToApiQuery(withPage), authToken || undefined);
+  const result = await getJobsList(
+    jobsBrowserSearchParamsToApiQuery(withPage),
+    authToken || undefined,
+    AbortSignal.timeout(SERVER_PAGE_TIMEOUT_MS),
+  );
   return 'isError' in result ? undefined : { key, page: result.data };
 }
 

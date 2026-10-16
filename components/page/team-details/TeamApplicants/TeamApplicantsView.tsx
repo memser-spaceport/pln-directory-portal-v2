@@ -77,8 +77,13 @@ export const SUGGESTED_EMAIL_UTM_SOURCES = ['job_suggested_candidates_email', 'j
  * Drop `?edit=` from the address bar without a navigation, once it has been
  * acted on, so a reload or a shared copy of the URL does not open the modal
  * again. `replaceState` rather than `router.replace`, so the server page does
- * not render again for a param it never reads. This is the same idiom as
- * `writeJobDetailParam`.
+ * not render again for a param it never reads.
+ *
+ * The state is `null`, never `window.history.state` (LAB-2893). Next patches
+ * `replaceState` and only takes the new URL into its router when the state is
+ * not its own: handed back Next's `__NA` state, it left the router holding the
+ * old URL and wrote `edit=criteria` back on its next history sync, so a reload
+ * reopened the modal.
  */
 function stripEditParam() {
   if (typeof window === 'undefined') return;
@@ -87,7 +92,7 @@ function stripEditParam() {
     if (!url.searchParams.has('edit')) return;
     url.searchParams.delete('edit');
     const search = url.searchParams.toString();
-    window.history.replaceState(window.history.state, '', `${url.pathname}${search ? `?${search}` : ''}${url.hash}`);
+    window.history.replaceState(null, '', `${url.pathname}${search ? `?${search}` : ''}${url.hash}`);
   } catch {
     // A URL we cannot rewrite is not worth failing the page over.
   }

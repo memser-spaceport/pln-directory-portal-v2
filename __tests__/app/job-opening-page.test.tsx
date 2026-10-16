@@ -43,7 +43,7 @@ beforeEach(() => {
 });
 
 describe('a role the backend says is gone', () => {
-  it.each([404, 410])('answers not found with noindex for a backend %i', async (status) => {
+  it.each([400, 404, 410])('answers not found with noindex for a backend %i', async (status) => {
     mockGetJobOpening.mockResolvedValue({ isError: true, status });
 
     await expect(JobOpeningPage({ params })).rejects.toThrow('NEXT_NOT_FOUND');

@@ -192,13 +192,30 @@ describe('buildJobPostingJsonLd', () => {
       expect(places).toEqual([place('US', 'San Francisco'), place('GB', 'London')]);
     });
 
-    it.each([['EU'], ['Europe'], ['APAC'], ['Motif'], ['Motif - Main'], ['Hybrid'], ['Atlantis']])(
+    it.each([['EU'], ['Europe'], ['APAC'], ['Motif'], ['Motif - Main'], ['Atlantis']])(
       'gives an on-site role located only in %j no markup, not a made-up place or a false remote',
       (location) => {
         expect(buildOrNull({ workMode: null, location: [location] })).toBeNull();
-        expect(buildOrNull({ workMode: 'hybrid', location: [location] })).toBeNull();
+        expect(buildOrNull({ workMode: 'in-office', location: [location] })).toBeNull();
       },
     );
+
+    /* LAB-2887: "TELECOMMUTE for remote or hybrid; otherwise the place is left out." */
+    it.each([
+      ['a hybrid work mode', { workMode: 'hybrid', location: ['EU'] }],
+      ['a "Hybrid" location', { workMode: null, location: ['Hybrid', 'APAC'] }],
+    ])('marks a role with %s and no resolvable office as TELECOMMUTE', (_label, overrides) => {
+      const jsonLd = build(overrides);
+      expect(jsonLd.jobLocationType).toBe('TELECOMMUTE');
+      expect(jsonLd.jobLocation).toBeUndefined();
+      expect(jsonLd.applicantLocationRequirements).toEqual({ '@type': 'Country', name: 'Worldwide' });
+    });
+
+    it('gives a hybrid role with a resolvable office that office, not TELECOMMUTE', () => {
+      const jsonLd = build({ workMode: 'hybrid', location: ['London', 'Hybrid'] });
+      expect(jsonLd.jobLocation).toEqual([place('GB', 'London')]);
+      expect(jsonLd.jobLocationType).toBeUndefined();
+    });
 
     it('keeps a remote role that names only a region as remote, worldwide', () => {
       const jsonLd = build({ workMode: 'remote', location: ['EU'] });

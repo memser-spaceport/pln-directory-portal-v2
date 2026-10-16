@@ -11,9 +11,11 @@
  */
 const GETRO_SECTIONS = ['companies', 'jobs', 'talent-network', 'job-alerts'];
 
-const LEGACY_JOB_BOARD_REDIRECTS = GETRO_SECTIONS.flatMap((section) => [
-  { source: `/jobs/${section}`, destination: '/jobs', permanent: true },
-  { source: `/jobs/${section}/:path*`, destination: '/jobs', permanent: true },
-]);
+// `:path*` matches zero segments too, so one rule covers both `/jobs/companies` and everything under it.
+const LEGACY_JOB_BOARD_REDIRECTS = GETRO_SECTIONS.map((section) => ({
+  source: `/jobs/${section}/:path*`,
+  destination: '/jobs',
+  permanent: true,
+}));
 
 module.exports = { LEGACY_JOB_BOARD_REDIRECTS };

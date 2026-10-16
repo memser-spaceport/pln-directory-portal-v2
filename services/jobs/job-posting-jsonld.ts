@@ -34,7 +34,6 @@ const NOT_A_PLACE = new Set([
   'latam',
   'africa',
   'middle east',
-  'hybrid',
   'onsite',
   'on-site',
   'in office',
@@ -137,6 +136,7 @@ function baseSalary(pay: IJobPay | null | undefined) {
 function resolveJobLocation(role: IJobRole): { remote: boolean; places: ParsedPlace[] } {
   const places: ParsedPlace[] = [];
   let remoteToken = false;
+  let hybridToken = false;
   let hasLocationText = false;
 
   for (const value of role.location) {
@@ -147,23 +147,30 @@ function resolveJobLocation(role: IJobRole): { remote: boolean; places: ParsedPl
       remoteToken = true;
       continue;
     }
+    if (parsed === 'hybrid') {
+      hybridToken = true;
+      continue;
+    }
     places.push(parsed);
   }
 
-  const remoteWork = REMOTE_WORK_MODES.has((role.workMode ?? '').toLowerCase());
-  // A role with no location at all is treated as remote, as before. A role whose locations all fail to resolve
-  // is not: it gets no markup (see buildJobPostingJsonLd) instead of a false "remote, worldwide".
-  const remote = remoteWork || remoteToken || !hasLocationText;
+  const workMode = (role.workMode ?? '').toLowerCase();
+  const hybrid = workMode === 'hybrid' || hybridToken;
+  // A role with no location at all is treated as remote, as before, and so is a hybrid role whose office can't
+  // be resolved (LAB-2887: "TELECOMMUTE for remote or hybrid"). An on-site role whose locations all fail to
+  // resolve is not: it gets no markup (see buildJobPostingJsonLd) instead of a false "remote, worldwide".
+  const remote = REMOTE_WORK_MODES.has(workMode) || remoteToken || !hasLocationText || (hybrid && !places.length);
 
   return { remote, places };
 }
 
-/** A place with a country, 'remote', or null for anything that names no resolvable place. */
-function parseLocation(raw: string): ParsedPlace | 'remote' | null {
+/** A place with a country, 'remote', 'hybrid', or null for anything that names no resolvable place. */
+function parseLocation(raw: string): ParsedPlace | 'remote' | 'hybrid' | null {
   const trimmed = raw.trim();
   if (!trimmed) return null;
   const whole = normalize(trimmed);
   if (REMOTE_LOCATION_TOKENS.has(whole)) return 'remote';
+  if (whole === 'hybrid') return 'hybrid';
   if (NOT_A_PLACE.has(whole)) return null;
 
   const parts = trimmed

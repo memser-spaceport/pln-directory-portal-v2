@@ -1,6 +1,7 @@
 import type { Metadata, ResolvingMetadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getJobOpening } from '@/app/actions/jobs.actions';
+import type { IJobRole, IJobTeamGroup } from '@/types/jobs.types';
 import { JobOpeningView } from '@/components/page/jobs/JobOpeningView/JobOpeningView';
 import { jobOpeningPath } from '@/services/jobs/job-detail-link';
 import { buildJobPostingJsonLd, jobDescriptionHtml } from '@/services/jobs/job-posting-jsonld';
@@ -12,32 +13,40 @@ type PageProps = {
   params: Promise<{ uid: string }>;
 };
 
+/** Backend answers that mean the role isn't there: removed, closed, or a uid that was never valid. */
+const GONE_STATUSES = new Set([400, 404, 410]);
+
 /**
- * Only a role the backend says is gone is "not found" (LAB-2887). A 5xx, a 429 or a network error is ours to
- * retry, so it throws: Next answers 500 and Google comes back later. Turning every failure into a 404 with
- * noindex told Google to drop live roles whenever the backend hiccuped.
+ * The role and its team, or null when the backend says the role is gone (LAB-2887). Any other failure — a 5xx,
+ * a 429, a timeout, a network error — is ours to retry, so it throws: Next answers 500 and Google comes back
+ * later. Turning every failure into a 404 with noindex told Google to drop live roles whenever the backend
+ * hiccuped.
  */
-function throwUnlessGone(status: number | undefined): void {
-  if (status === 404 || status === 410) return;
-  throw new Error(`Job opening could not be loaded (${status ?? 'network error'})`);
+async function loadRole(uid: string): Promise<{ group: IJobTeamGroup; role: IJobRole } | null> {
+  const result = await getJobOpening(uid);
+  if ('isError' in result) {
+    if (result.status !== undefined && GONE_STATUSES.has(result.status)) return null;
+    throw new Error(`Job opening could not be loaded (${result.status ?? 'network error or timeout'})`);
+  }
+  const role = result.data.roles[0];
+  return role ? { group: result.data, role } : null;
 }
 
 export async function generateMetadata({ params }: PageProps, parent: ResolvingMetadata): Promise<Metadata> {
   const { uid } = await params;
-  const result = await getJobOpening(uid);
+  const loaded = await loadRole(uid);
   const pageUrl = absoluteUrl(jobOpeningPath(uid));
   const previousImages = (await parent).openGraph?.images || [];
 
-  if ('isError' in result) throwUnlessGone(result.status);
-  const role = 'isError' in result ? undefined : result.data.roles[0];
-  if ('isError' in result || !role) {
+  if (!loaded) {
     return {
       title: 'Job | Protocol Labs Directory',
       robots: { index: false, follow: false },
     };
   }
 
-  const team = result.data.team;
+  const { role } = loaded;
+  const team = loaded.group.team;
 
   const location = role.location.length ? role.location.join(', ') : null;
   const title = location
@@ -70,15 +79,10 @@ export async function generateMetadata({ params }: PageProps, parent: ResolvingM
 
 export default async function JobOpeningPage({ params }: PageProps) {
   const { uid } = await params;
-  const [{ userInfo, isLoggedIn }, result] = await Promise.all([getCookiesFromHeaders(), getJobOpening(uid)]);
+  const [{ userInfo, isLoggedIn }, loaded] = await Promise.all([getCookiesFromHeaders(), loadRole(uid)]);
+  if (!loaded) notFound();
 
-  if ('isError' in result) throwUnlessGone(result.status);
-  if ('isError' in result || !result.data.roles[0]) {
-    notFound();
-  }
-
-  const group = result.data;
-  const role = group.roles[0];
+  const { group, role } = loaded;
   const pageUrl = absoluteUrl(jobOpeningPath(role.uid));
   const descriptionHtml = jobDescriptionHtml(role.descriptionHtml);
   const jsonLd = buildJobPostingJsonLd({

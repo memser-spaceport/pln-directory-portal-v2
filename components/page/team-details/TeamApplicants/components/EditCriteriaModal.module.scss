@@ -161,6 +161,13 @@
   color: var(--foreground-neutral-primary, #0a0c11);
 }
 
+.promptHelp {
+  margin: -2px 0 8px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
 .promptField {
   width: 100%;
   min-height: 96px;

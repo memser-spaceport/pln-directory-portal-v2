@@ -17,7 +17,9 @@ jest.mock('@/app/jobs/(jobs-page)/@content/JobsContent', () => ({
 }));
 jest.mock('@/services/jobs/getJobByUid', () => ({ getJobByUid: jest.fn() }));
 
-import Page from '@/app/jobs/(jobs-page)/@content/page';
+import Page, { generateMetadata } from '@/app/jobs/(jobs-page)/@content/page';
+import { metadata as layoutMetadata } from '@/app/jobs/(jobs-page)/layout';
+import { getJobByUid } from '@/services/jobs/getJobByUid';
 
 const LIST = { page: 1, limit: 50, total: 1, totalGroups: 1, totalRoles: 3, groups: [] };
 
@@ -65,4 +67,31 @@ it('passes nothing when the fetch fails, so the board loads in the browser as be
 
   expect(props.serverPage).toBeUndefined();
   expect(props.isLoggedIn).toBe(true);
+});
+
+/* LAB-2889: the board and its ?job= link preview name "Protocol Labs Jobs". */
+describe('titles', () => {
+  it('titles the board "Protocol Labs Jobs | LabOS"', async () => {
+    expect(layoutMetadata.title).toBe('Protocol Labs Jobs | LabOS');
+    expect(await generateMetadata({ searchParams: Promise.resolve({}) })).toMatchObject({
+      title: 'Protocol Labs Jobs | LabOS',
+    });
+  });
+
+  it('titles a ?job= link preview like the role page it points at', async () => {
+    (getJobByUid as jest.Mock).mockResolvedValue({
+      role: {
+        uid: 'role-1',
+        roleTitle: 'Rust Engineer',
+        location: ['Berlin'],
+        descriptionHtml: '',
+        postedDate: '2026-10-01',
+      },
+      team: { uid: 'team-1', name: 'PL Neuro' },
+    });
+
+    const metadata = await generateMetadata({ searchParams: Promise.resolve({ job: 'role-1' }) });
+
+    expect(metadata.title).toBe('Rust Engineer at PL Neuro (Berlin) | Protocol Labs Jobs');
+  });
 });

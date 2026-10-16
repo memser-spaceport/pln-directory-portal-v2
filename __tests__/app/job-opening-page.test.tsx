@@ -77,6 +77,9 @@ describe('a live role', () => {
 
     const metadata = await generateMetadata({ params }, parent);
     expect(metadata.robots).toBeUndefined();
+    // LAB-2889: the title names "Protocol Labs Jobs", in the page title and its Open Graph card alike.
+    expect(metadata.title).toBe('Engineer at Acme | Protocol Labs Jobs');
+    expect(metadata.openGraph?.title).toBe('Engineer at Acme | Protocol Labs Jobs');
 
     const { container } = render(await JobOpeningPage({ params }));
     const script = container.querySelector('script[type="application/ld+json"]')?.innerHTML ?? '';

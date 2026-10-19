@@ -2,6 +2,7 @@ import React from 'react';
 
 import { SORT_OPTIONS } from '@/utils/constants';
 import { useFilterStore } from '@/services/members/store';
+import { useIsClient } from '@/hooks/useIsClient';
 import { MembersFilter } from '@/components/page/members/MembersFilter';
 import { useGetMembersFilterCount } from '@/components/page/members/hooks/useGetMembersFilterCount';
 import { MobileFilterWrapper } from '@/components/common/filters/MobileFilterWrapper';
@@ -26,6 +27,7 @@ export const MembersMobileFilters = ({
   isUserLoggedIn,
   searchParams: propsSearchParams,
 }: MembersMobileFiltersProps) => {
+  const isClient = useIsClient();
   const { params, setParam } = useFilterStore();
   const currentSort = params.get('sort') || SORT_OPTIONS.ASCENDING;
   const filterCount = useGetMembersFilterCount();
@@ -43,6 +45,10 @@ export const MembersMobileFilters = ({
   const handleFilterClose = () => {
     analytics.onFilterCloseClicked(userInfo as IAnalyticsUserInfo);
   };
+
+  /* Not in the server HTML (LAB-2888): the store it reads is filled from the URL in the browser. The list below
+     it is server-rendered; this bar appears right after hydration with the URL's filters already in it. */
+  if (!isClient) return null;
 
   return (
     <MobileFilterWrapper

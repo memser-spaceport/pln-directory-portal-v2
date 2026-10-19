@@ -25,13 +25,24 @@ const team: IJobTeam = {
   jobReferEmail: null,
 };
 
-const build = (overrides: Partial<IJobRole> = {}, descriptionHtml = '') =>
+const buildOrNull = (overrides: Partial<IJobRole> = {}, descriptionHtml = '') =>
   buildJobPostingJsonLd({
     role: role(overrides),
     team,
     pageUrl: 'https://os.pl.xyz/jobs/openings/role-1',
     descriptionHtml,
   });
+
+const build = (overrides: Partial<IJobRole> = {}, descriptionHtml = '') => {
+  const jsonLd = buildOrNull(overrides, descriptionHtml);
+  if (!jsonLd) throw new Error('expected a JobPosting');
+  return jsonLd;
+};
+
+const place = (addressCountry: string, addressLocality?: string) => ({
+  '@type': 'Place',
+  address: { '@type': 'PostalAddress', ...(addressLocality ? { addressLocality } : {}), addressCountry },
+});
 
 describe('jobDescriptionHtml', () => {
   it('sanitizes ingest markup', () => {
@@ -59,17 +70,12 @@ describe('buildJobPostingJsonLd', () => {
     expect(jsonLd.title).toBe('Protocol Engineer');
     expect(jsonLd.url).toBe('https://os.pl.xyz/jobs/openings/role-1');
     expect(jsonLd.datePosted).toBe('2026-05-01T00:00:00.000Z');
-    expect(jsonLd.validThrough).toBe('2026-07-30T00:00:00.000Z');
+    expect(jsonLd).not.toHaveProperty('validThrough');
     expect(jsonLd.employmentType).toBe('FULL_TIME');
     expect(jsonLd.baseSalary).toBeUndefined();
     expect(jsonLd.jobLocationType).toBe('TELECOMMUTE');
-    expect(jsonLd.applicantLocationRequirements).toEqual({ '@type': 'Country', name: 'Worldwide' });
-    expect(jsonLd.jobLocation).toEqual([
-      {
-        '@type': 'Place',
-        address: { '@type': 'PostalAddress', addressLocality: 'Berlin' },
-      },
-    ]);
+    expect(jsonLd.applicantLocationRequirements).toEqual({ '@type': 'Country', name: 'DE' });
+    expect(jsonLd.jobLocation).toEqual([place('DE', 'Berlin')]);
     expect(jsonLd.hiringOrganization).toEqual({
       '@type': 'Organization',
       name: 'Protocol Labs',
@@ -96,9 +102,7 @@ describe('buildJobPostingJsonLd', () => {
 
   it('falls back to detectionDate then lastUpdated when postedDate is empty', () => {
     expect(build({ postedDate: null }).datePosted).toBe('2026-04-01T00:00:00.000Z');
-    expect(build({ postedDate: null }).validThrough).toBe('2026-06-30T00:00:00.000Z');
     expect(build({ postedDate: null, detectionDate: null }).datePosted).toBe('2026-05-02T00:00:00.000Z');
-    expect(build({ postedDate: null, detectionDate: null }).validThrough).toBe('2026-07-31T00:00:00.000Z');
   });
 
   it('emits the public pay range as baseSalary', () => {
@@ -139,26 +143,12 @@ describe('buildJobPostingJsonLd', () => {
     const jsonLd = build({ workMode: 'in-office', location: ['Berlin'] });
     expect(jsonLd.jobLocationType).toBeUndefined();
     expect(jsonLd.applicantLocationRequirements).toBeUndefined();
-    expect(jsonLd.jobLocation).toEqual([
-      {
-        '@type': 'Place',
-        address: { '@type': 'PostalAddress', addressLocality: 'Berlin' },
-      },
-    ]);
+    expect(jsonLd.jobLocation).toEqual([place('DE', 'Berlin')]);
   });
 
   it('parses country from city, state and country location strings', () => {
     const jsonLd = build({ workMode: 'in-office', location: ['San Francisco, CA', 'Lisbon, Portugal'] });
-    expect(jsonLd.jobLocation).toEqual([
-      {
-        '@type': 'Place',
-        address: { '@type': 'PostalAddress', addressLocality: 'San Francisco', addressCountry: 'US' },
-      },
-      {
-        '@type': 'Place',
-        address: { '@type': 'PostalAddress', addressLocality: 'Lisbon', addressCountry: 'PT' },
-      },
-    ]);
+    expect(jsonLd.jobLocation).toEqual([place('US', 'San Francisco'), place('PT', 'Lisbon')]);
   });
 
   it('uses a country location as applicantLocationRequirements when the role is remote', () => {
@@ -166,5 +156,72 @@ describe('buildJobPostingJsonLd', () => {
     expect(jsonLd.jobLocationType).toBe('TELECOMMUTE');
     expect(jsonLd.jobLocation).toBeUndefined();
     expect(jsonLd.applicantLocationRequirements).toEqual({ '@type': 'Country', name: 'US' });
+  });
+
+  /* LAB-2887: every location string on the live board (2026-10-16), and what Google gets for it. */
+  describe('locations Google accepts', () => {
+    it.each([
+      ['San Francisco', place('US', 'San Francisco')],
+      ['New York', place('US', 'New York')],
+      ['San Mateo', place('US', 'San Mateo')],
+      ['Hong Kong', place('HK', 'Hong Kong')],
+      ['Hamburg', place('DE', 'Hamburg')],
+      ['London', place('GB', 'London')],
+      ['Berlin', place('DE', 'Berlin')],
+      ['Houston, Texas', place('US', 'Houston')],
+      ['US', place('US')],
+      ['China', place('CN')],
+      ['Singapore', place('SG', 'Singapore')],
+      ['Portugal', place('PT')],
+      ['India', place('IN')],
+    ])('an on-site role in %j gets a place with a country', (location, expected) => {
+      expect(build({ workMode: null, location: [location] }).jobLocation).toEqual([expected]);
+    });
+
+    it('reads a US state code as the US, not as the country sharing its letters', () => {
+      expect(build({ workMode: null, location: ['San Francisco, CA'] }).jobLocation).toEqual([
+        place('US', 'San Francisco'),
+      ]);
+      expect(build({ workMode: null, location: ['Wilmington, DE'] }).jobLocation).toEqual([place('US', 'Wilmington')]);
+      expect(build({ workMode: null, location: ['Berlin, DE'] }).jobLocation).toEqual([place('DE', 'Berlin')]);
+    });
+
+    it('never emits a place without a country', () => {
+      const all = ['San Francisco', 'EU', 'Europe', 'APAC', 'Hybrid', 'Motif', 'Motif - Main', 'Atlantis', 'London'];
+      const places = build({ workMode: null, location: all }).jobLocation as { address: object }[];
+      expect(places).toEqual([place('US', 'San Francisco'), place('GB', 'London')]);
+    });
+
+    it.each([['EU'], ['Europe'], ['APAC'], ['Motif'], ['Motif - Main'], ['Atlantis']])(
+      'gives an on-site role located only in %j no markup, not a made-up place or a false remote',
+      (location) => {
+        expect(buildOrNull({ workMode: null, location: [location] })).toBeNull();
+        expect(buildOrNull({ workMode: 'in-office', location: [location] })).toBeNull();
+      },
+    );
+
+    /* LAB-2887: "TELECOMMUTE for remote or hybrid; otherwise the place is left out." */
+    it.each([
+      ['a hybrid work mode', { workMode: 'hybrid', location: ['EU'] }],
+      ['a "Hybrid" location', { workMode: null, location: ['Hybrid', 'APAC'] }],
+    ])('marks a role with %s and no resolvable office as TELECOMMUTE', (_label, overrides) => {
+      const jsonLd = build(overrides);
+      expect(jsonLd.jobLocationType).toBe('TELECOMMUTE');
+      expect(jsonLd.jobLocation).toBeUndefined();
+      expect(jsonLd.applicantLocationRequirements).toEqual({ '@type': 'Country', name: 'Worldwide' });
+    });
+
+    it('gives a hybrid role with a resolvable office that office, not TELECOMMUTE', () => {
+      const jsonLd = build({ workMode: 'hybrid', location: ['London', 'Hybrid'] });
+      expect(jsonLd.jobLocation).toEqual([place('GB', 'London')]);
+      expect(jsonLd.jobLocationType).toBeUndefined();
+    });
+
+    it('keeps a remote role that names only a region as remote, worldwide', () => {
+      const jsonLd = build({ workMode: 'remote', location: ['EU'] });
+      expect(jsonLd.jobLocationType).toBe('TELECOMMUTE');
+      expect(jsonLd.jobLocation).toBeUndefined();
+      expect(jsonLd.applicantLocationRequirements).toEqual({ '@type': 'Country', name: 'Worldwide' });
+    });
   });
 });

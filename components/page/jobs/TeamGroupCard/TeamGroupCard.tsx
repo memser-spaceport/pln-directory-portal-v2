@@ -22,6 +22,7 @@ import { isProtocolLabsTeam } from '@/services/jobs/protocol-labs-team';
 
 import s from './TeamGroupCard.module.scss';
 import { useCurrentUserStore } from '@/services/auth/store';
+import { jobOpeningPath } from '@/services/jobs/job-detail-link';
 
 const INITIAL_ROLES_SHOWN = 3;
 const MAX_FOCUS_CHIPS = 100;
@@ -77,6 +78,7 @@ function TeamGroupCardImpl({
   const { team, roles, totalRoles } = group;
 
   const visibleRoles = expanded ? roles : roles.slice(0, INITIAL_ROLES_SHOWN);
+  const collapsedRoles = expanded ? [] : roles.slice(INITIAL_ROLES_SHOWN);
   const newCount = roles.filter((r) => isNew(getJobDate(r))).length;
 
   const focusTags = useGetFocusTags(team);
@@ -161,6 +163,19 @@ function TeamGroupCardImpl({
           isPending={openRole!.pendingTeamUid === team.uid}
           onExpressInterest={() => openRole!.onExpressInterest(team)}
         />
+      )}
+
+      {/* LAB-2888: the roles behind "View all" are still links in the HTML, so a crawler finds every role page
+          from the board, not only the first three per team. `hidden` keeps them out of view, out of the tab
+          order and away from screen readers; expanding renders the real rows above. */}
+      {collapsedRoles.length > 0 && (
+        <ul hidden data-testid="collapsed-role-links">
+          {collapsedRoles.map((role) => (
+            <li key={role.uid}>
+              <a href={jobOpeningPath(role.uid)}>{role.roleTitle}</a>
+            </li>
+          ))}
+        </ul>
       )}
 
       {roles.length > INITIAL_ROLES_SHOWN && (

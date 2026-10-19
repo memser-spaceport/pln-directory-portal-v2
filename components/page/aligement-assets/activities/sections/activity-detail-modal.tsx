@@ -6,11 +6,16 @@ import Image from 'next/image';
 import { Modal } from '@/components/common/Modal';
 import { CloseIcon } from '@/components/icons';
 import { Activity, PopupLink } from '../types';
+import { isInfraOnlyActivity } from '../data';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { ACTIVITY_FORM_URL, ACTIVITY_CONFIRM_TOAST } from '@/constants/plaa';
 import { toast } from '@/components/core/ToastContainer';
 import { openPlaaBotForActivity } from '@/components/core/plaa-bot/plaa-bot.utils';
 import { PLAA_BOT_ANALYTICS_TARGET } from '@/components/core/plaa-bot/constants';
+
+// Inline markdown allowed in activity copy: [label](https://… or /path) and **bold**.
+const MARKDOWN_LINK = /\[([^\]]+)\]\((https?:\/\/[^\s)]+|\/[^\s)]*)\)/g;
+const BOLD = /\*\*(.+?)\*\*/;
 
 interface ActivityDetailModalProps {
   isOpen: boolean;
@@ -154,6 +159,49 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
     return parts;
   }
 
+  /**
+   * Renders copy that may carry inline markdown: `[label](url)` links and `**bold**`.
+   * Plain stretches still pick up the activity's `links` by matching their text.
+   */
+  function renderRichText(text: string, links?: PopupLink[]) {
+    const parts: React.ReactNode[] = [];
+    let key = 0;
+    let cursor = 0;
+    const plain = (segment: string) =>
+      segment.split(BOLD).forEach((piece, index) => {
+        if (!piece) return;
+        // split() with a capture group puts the bold text at odd indexes.
+        parts.push(
+          index % 2 === 1 ? (
+            <strong key={key++}>{renderTextWithLinks(piece, links)}</strong>
+          ) : (
+            <React.Fragment key={key++}>{renderTextWithLinks(piece, links)}</React.Fragment>
+          ),
+        );
+      });
+
+    for (const match of Array.from(text.matchAll(MARKDOWN_LINK))) {
+      const [whole, label, url] = match;
+      const start = match.index ?? 0;
+      plain(text.slice(cursor, start));
+      const labelText = label.replace(/\*\*/g, '');
+      parts.push(
+        <Link
+          key={key++}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="activity-modal__link"
+          onClick={() => handleLinkClick(labelText, url)}
+        >
+          {label.startsWith('**') && label.endsWith('**') ? <strong>{labelText}</strong> : labelText}
+        </Link>,
+      );
+      cursor = start + whole.length;
+    }
+    plain(text.slice(cursor));
+    return parts;
+  }
   return (
     <>
       <Modal isOpen={isOpen} onClose={onClose}>
@@ -168,7 +216,7 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
             {popupContent.subtitle && <h3 className="activity-modal__subtitle">{popupContent.subtitle}</h3>}
 
             {popupContent.description && (
-              <p className="activity-modal__description">{renderTextWithLinks(popupContent.description, allLinks)}</p>
+              <p className="activity-modal__description">{renderRichText(popupContent.description, allLinks)}</p>
             )}
 
             {popupContent.overview && (
@@ -177,7 +225,7 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                   <h3 className="activity-modal__section-title">👀 Overview</h3>
                   {popupContent.overview.split('\n\n').map((para, index) => (
                     <p key={index} className="activity-modal__description">
-                      {renderTextWithLinks(para, allLinks)}
+                      {renderRichText(para, allLinks)}
                     </p>
                   ))}
                 </section>
@@ -186,7 +234,7 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                   <section className="activity-modal__section">
                     <h3 className="activity-modal__section-title">🤝 Network Benefits</h3>
                     <p className="activity-modal__description">
-                      {renderTextWithLinks(popupContent.networkBenefits, allLinks)}
+                      {renderRichText(popupContent.networkBenefits, allLinks)}
                     </p>
                   </section>
                 )}
@@ -201,7 +249,7 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                     <ol className="activity-modal__rules">
                       {popupContent.rules.map((rule, index) => (
                         <li key={index} className="activity-modal__rule">
-                          {renderTextWithLinks(rule, allLinks)}
+                          {renderRichText(rule, allLinks)}
                         </li>
                       ))}
                     </ol>
@@ -225,9 +273,7 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
             )}
 
             {popupContent.submissionNote && (
-              <p className="activity-modal__submission-note">
-                {renderTextWithLinks(popupContent.submissionNote, allLinks)}
-              </p>
+              <p className="activity-modal__submission-note">{renderRichText(popupContent.submissionNote, allLinks)}</p>
             )}
 
             {/* Points Awarded Section */}
@@ -375,6 +421,13 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
             {popupContent.disclaimer && (
               <p className="activity-modal__disclaimer">
                 <strong>Disclaimer:</strong> {popupContent.disclaimer}
+              </p>
+            )}
+
+            {isInfraOnlyActivity(activity) && (
+              <p className="activity-modal__infra-note">
+                <Image src="/icons/infra.svg" alt="" width={18} height={18} />
+                <span>This activity is only available to PL Infra team members.</span>
               </p>
             )}
 
@@ -739,6 +792,25 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
         }
 
         .activity-modal__sunset-note :global(img) {
+          flex-shrink: 0;
+        }
+
+        .activity-modal__infra-note {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin: 0;
+          padding: 10px 12px;
+          font-size: 14px;
+          line-height: 20px;
+          font-style: italic;
+          color: #1636b8;
+          background: rgba(27, 77, 255, 0.06);
+          border: 1px solid rgba(27, 77, 255, 0.22);
+          border-radius: 8px;
+        }
+
+        .activity-modal__infra-note :global(img) {
           flex-shrink: 0;
         }
 

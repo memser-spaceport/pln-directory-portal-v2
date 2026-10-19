@@ -134,6 +134,7 @@ export const activitiesData: ActivitiesData = {
       frequency: 'Repeatable',
       verificationType: 'Manual Review',
       cta: 'submit',
+      audience: 'pl-infra-members',
       popupContent: {
         title: 'Submit a Deal Debrief',
         overview: 'Share the lesson, not just the deal. Submit a substantive debrief through the PL Deal Debrief app, drawing on your own perspective on a VC, M&A, or other deal. Explain what worked, what was challenging, and what others could learn (without disclosing confidential, privileged, or identifying deal information).',
@@ -262,9 +263,10 @@ export const activitiesData: ActivitiesData = {
       frequency: 'Repeatable',
       verificationType: 'Manual Review',
       cta: 'confirm',
+      audience: 'pl-infra-members',
       popupContent: {
         title: 'Provide Product Testing + Feedback',
-        overview: `Test an approved product, tool, workflow, or process on a real work task and provide meaningful, actionable feedback on the experience.\n\nCurrent eligible requests for product testing:\n\nFactorio Weekly Updates — Submit your weekly update, then provide feedback using the LabOS feedback feature in the bottom-right corner of the screen. Collect an additional 100 points for sharing meaningful feedback on the broader UX and the features you would find most useful in your daily workflow. Feedback will be eligible for points through Saturday, October 31, 2026.`,
+        overview: `Test an approved product, tool, workflow, or process on a real work task and provide meaningful, actionable feedback on the experience.\n\nCurrent eligible requests for product testing:\n\n**Factorio Weekly Updates** — Submit your weekly update, then provide feedback using the LabOS feedback feature in the bottom-right corner of the screen. Collect an additional 100 points for sharing meaningful feedback on the broader UX and the features you would find most useful in your daily workflow. Feedback will be eligible for points through Saturday, October 31, 2026.\n\n[**Max**](https://os.pl.xyz/pl-infra/ai-apps/cmunhqj0l00hgsd4fl7e86h4g) — Get set up on Max, explore your initial Radar results, and complete the [Max First Impressions Survey](https://claude.ai/artifact/U11kcPTw19MN3ruXrgdHjB?sk=HkBoSTEdQyiG9wCWD_487g) to share feedback on ease of use and the relevance of the outputs. Collect 100 points for completing the test and survey. Feedback is eligible through Saturday, October 31, 2026.`,
         networkBenefits: 'Helps teams improve shared products and workflows through real-world use, identifying friction, missing capabilities, and opportunities to improve the user experience.',
         rules: [
           'Participate in an eligible product-testing request and complete the defined task',
@@ -489,6 +491,7 @@ export const activitiesData: ActivitiesData = {
       frequency: 'Recurring',
       verificationType: 'Manual Review',
       cta: 'confirm',
+      audience: 'pl-infra-members',
       popupContent: {
         title: 'Contribute a Reusable Prompt or Skill',
         overview: 'Contribute a reusable resource, prompt or AI skill to the PLaybook for PL Infra users. Receive 100 points for an approved resource or prompt and also 250 points for an approved skill, up to 350 points total.',
@@ -509,20 +512,23 @@ export const activitiesData: ActivitiesData = {
     {
       id: 'update-directory-profile',
       category: 'Network Tooling',
-      activity: 'Setup Your PL Directory Profile',
-      networkValue: 'Complete your PL Network profile, so other members can get to know you',
+      activity: 'Update Your PL Directory Profile',
+      networkValue: 'Bring your PL Network profile up to date so members can find you, reach you, and see what you work on',
       points: '250',
       frequency: 'One-Time',
       verificationType: 'Auto',
       cta: 'confirm',
       popupContent: {
-        title: 'Setup Your PL Directory Profile',
-        overview: 'Set up your PL Directory profile with all the fields required below.',
-        networkBenefits: 'Improves member discoverability and makes office hours, project contributions, and contact paths easier to find.',
+        title: 'Update Your PL Directory Profile',
+        overview: 'Update your PL Directory profile so other members can see what you work on and how to reach you. This activity has restarted with new requirements, so everyone can collect points for it, including members who completed the previous version.\n\nOpen your profile in the Directory and complete each section: Contact Details, Your CV, Project Contributions, and Office Hours.',
+        networkBenefits: 'Makes members easier to find and contact, shows the projects people have contributed to, and gives the network better context for introductions, hiring, and collaboration.',
         rules: [
-          'You must provide your name, email, role, LinkedIn, and Telegram',
-          'You must list at least one Project Contribution (i.e. name of the project and a quick summary of impact there)',
-          'You must setup office hours and have a live office hours link'
+          'Your profile must include your name, email, role, LinkedIn, and Telegram',
+          'In Contact Details, turn on **Show contact details to PL network members** (contact details are never displayed publicly)',
+          'Upload your CV in the **Your CV** section (PDF, up to 5MB)',
+          'List at least one **Project Contribution** with the project name, your role, and a short summary of your impact',
+          'Set up office hours and have a live office hours link',
+          'Optional but encouraged: add your **GitHub** handle in Contact Details. It is not required for this activity, but it helps verify other activities that use GitHub'
         ]
       }
     },

@@ -18,6 +18,8 @@ export type DraftPlace = {
   appName?: string;
   /** The app's own path, inside the app. */
   screen?: string;
+  /** The LabOS-wide drawer (LAB-2879): any page outside AI Apps, kept apart from the AI Apps list's draft. */
+  labos?: boolean;
 };
 
 export type NoteView = 'rich' | 'markdown';
@@ -50,6 +52,7 @@ export type DraftPictures = {
 type Envelope = { v: 1; savedAt: number; data: DraftWords };
 
 export function feedbackDraftKey(place: DraftPlace): string {
+  if (place.labos) return `${AI_APP_FEEDBACK_DRAFT_KEY}:labos-wide`;
   if (!place.appUid) return AI_APP_FEEDBACK_DRAFT_KEY;
   return `${AI_APP_FEEDBACK_DRAFT_KEY}:${place.appUid}${place.screen ? `:${place.screen}` : ''}`;
 }

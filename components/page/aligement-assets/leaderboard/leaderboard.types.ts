@@ -7,7 +7,10 @@ export interface LeaderboardSnapshot {
   isCurrentRound: boolean;
   points: number;
   participants: number;
-  categories: Array<{ name: string; value: number }>;
+  /** Total PLAA the snapshot's points converted into; 0 until the snapshot closes. */
+  plaaDistributed: number;
+  /** `value` = points collected, `plaa` = PLAA distributed, per category. */
+  categories: Array<{ name: string; value: number; plaa: number }>;
 }
 
 export interface LeaderboardCategoryWeight {

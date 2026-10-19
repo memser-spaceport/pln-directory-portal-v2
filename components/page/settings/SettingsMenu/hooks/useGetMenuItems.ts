@@ -34,6 +34,13 @@ export function useGetMenuItems(userInfo: IUserInfo) {
       activeIcon: '/icons/briefcase-blue.svg',
     });
 
+    preferences.push({
+      name: 'general preferences',
+      url: '/settings/general',
+      icon: '/icons/settings.svg',
+      activeIcon: '/icons/settings-blue.svg',
+    });
+
     return {
       preferences,
       account: [

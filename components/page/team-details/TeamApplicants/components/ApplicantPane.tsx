@@ -1,7 +1,6 @@
 'use client';
 
 import { type ReactNode, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 
 import { CvAttachmentLine } from '@/components/common/profile/StoredCv';
 import { CvPreviewModal } from '@/components/common/profile/StoredCv/CvPreviewModal';
@@ -24,11 +23,9 @@ import { ClockIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferR
 import { isJobAspirantMember } from '@/components/page/member-details/job-aspirant-profile';
 import type { TeamApplicant } from '@/schema/team-applicants';
 import { useCurrentUserStore } from '@/services/auth/store';
-import { MembersQueryKeys } from '@/services/members/constants';
-import { getMember } from '@/services/members.service';
-import { isAdminUser } from '@/utils/user/isAdminUser';
 import { formatRelativeDays } from '@/utils/jobs.utils';
 
+import { useCandidateMember } from './useCandidateMember';
 import s from './ApplicantPane.module.scss';
 
 interface Props {
@@ -75,45 +72,25 @@ export function ApplicantPane({ applicant, isLoggedIn }: Props) {
 }
 
 /**
- * The member as `/members/[id]` shows them. The same key and the same call the
- * member page and the investor drawer make, so a profile already read elsewhere
- * in this session is a cache hit — and the Suggested tab's bar, which reads the
- * address for its Email press, shares this one fetch with the pane under it.
- */
-export function useCandidateMember(memberUid: string, isLoggedIn: boolean) {
-  const { currentUser: userInfo } = useCurrentUserStore();
-  const isAdmin = isAdminUser(userInfo);
-
-  return useQuery({
-    queryKey: [MembersQueryKeys.GET_MEMBER, memberUid, isLoggedIn, userInfo?.uid],
-    queryFn: () =>
-      getMember(
-        memberUid,
-        { with: 'image,skills,location,teamMemberRoles.team' },
-        isLoggedIn,
-        userInfo,
-        !isAdmin,
-        true,
-      ),
-    enabled: !!memberUid,
-    select: (data) => data?.data?.formattedData,
-  });
-}
-
-/**
  * The profile sections around one section of the page's own: Application or
  * Interest for someone who answered, Why suggested for someone the product
  * proposes (LAB-2771). The section is what the lead came to read, so it shows
  * even when the profile fails to load.
+ *
+ * `officeHours={false}` drops Office Hours for everyone (the Suggested tab,
+ * LAB-2837 feedback): a suggested person has not reached out, and a lead who
+ * wants to talk to them uses Contact, not their booking link.
  */
 export function MemberProfilePane({
   memberUid,
   isLoggedIn,
   section,
+  officeHours = true,
 }: {
   memberUid: string;
   isLoggedIn: boolean;
   section: ReactNode;
+  officeHours?: boolean;
 }) {
   const { currentUser: userInfo } = useCurrentUserStore();
   const { data: member, isLoading, isError } = useCandidateMember(memberUid, isLoggedIn);
@@ -152,7 +129,7 @@ export function MemberProfilePane({
 
       {section}
 
-      {!jobAspirant && (
+      {officeHours && !jobAspirant && (
         <ProfileSection name="Office Hours">
           <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
         </ProfileSection>

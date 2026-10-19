@@ -136,9 +136,35 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 8px;
+  gap: 4px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--border-neutral-subtle, #e2e8f0);
+}
+
+/* LAB-2853: the role's title heads the list on every tab. */
+.roleTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  overflow-wrap: anywhere;
+}
+
+/* LAB-2853: the posting's first paragraph, three lines at most — enough to
+   read the people against without leaving for the posting. */
+.roleLead {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+  overflow-wrap: anywhere;
 }
 
 .roleFacts {
@@ -149,6 +175,7 @@
 }
 
 .postingLink {
+  margin-top: 4px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -210,10 +237,31 @@
   }
 }
 
-/* The Suggested tab's one sentence, between the tabs and the search (LAB-2771). */
+/* The Suggested tab's one sentence, between the tabs and Edit AI criteria (LAB-2771, LAB-2904). */
 .suggestedNote {
   margin: 0;
   font-size: 13px;
   line-height: 18px;
   color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* Edit AI criteria, in the search's place on the Suggested tab (LAB-2904).
+   The column's 12px gap sits before the rows, as it did for the search. */
+.criteriaRow {
+  display: flex;
+  min-width: 0;
+}
+
+.criteriaBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  white-space: nowrap;
+
+  /* The shared Button styles set no focus ring; keyboard users need one. */
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
 }

@@ -106,7 +106,7 @@ export default function LearnMoreSection({ data }: LearnMoreSectionProps) {
 
       <style jsx global>{`
         .learn-more-section__link {
-          color: #156ff7;
+          color: #0b4f66;
           text-decoration: underline;
           text-underline-position: from-font;
           font-weight: 500;

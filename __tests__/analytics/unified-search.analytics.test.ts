@@ -56,3 +56,23 @@ describe('useUnifiedSearchAnalytics.onAiQuerySubmitted', () => {
     expect(capture).not.toHaveBeenCalled();
   });
 });
+
+describe('useUnifiedSearchAnalytics.onEmailQuerySubmitted (LAB-2881)', () => {
+  afterEach(() => {
+    capture.mockClear();
+  });
+
+  it('sends the email-query event with the user props and no search text', () => {
+    const { result } = renderHook(() => useUnifiedSearchAnalytics());
+
+    result.current.onEmailQuerySubmitted();
+
+    expect(UNIFIED_SEARCH_ANALYTICS_EVENTS.EMAIL_QUERY_SUBMITTED).toBe('unified-search-email-query-submitted');
+    expect(capture).toHaveBeenCalledTimes(1);
+    expect(capture).toHaveBeenCalledWith('unified-search-email-query-submitted', {
+      loggedInUserUid: 'u1',
+      loggedInUserEmail: 'ada@example.com',
+      loggedInUserName: 'Ada Lovelace',
+    });
+  });
+});

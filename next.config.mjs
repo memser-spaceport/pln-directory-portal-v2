@@ -2,6 +2,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { withPostHogConfig } from '@posthog/nextjs-config';
 import aiSearchRedirects from './utils/ai-search-redirects.js';
+import legacyJobBoardRedirects from './utils/legacy-job-board-redirects.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -96,11 +97,22 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: '/alignment-asset/incentive-model',
+        destination: '/alignment-asset/overview',
+        permanent: true,
+      },
+      {
+        source: '/alignment-asset/trust-holdings',
+        destination: '/alignment-asset/portfolio-holdings',
+        permanent: true,
+      },
+      {
         source: '/pitch/:slug',
         destination: '/spotlight/:slug',
         permanent: true,
       },
       ...aiSearchRedirects.AI_SEARCH_REDIRECTS,
+      ...legacyJobBoardRedirects.LEGACY_JOB_BOARD_REDIRECTS,
     ];
   },
   env: {

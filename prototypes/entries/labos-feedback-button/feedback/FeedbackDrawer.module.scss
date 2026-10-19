@@ -1,0 +1,161 @@
+@use 'styles/media';
+
+/*
+  The feedback drawer (see FeedbackDrawer.tsx). Layers only: production's
+  Drawer container, the dialog's .overlayWide / .modalContainerWide and its
+  .root/.header are imported by class and kept as they are; these rules turn the
+  anchored popover's box into a full-height column.
+*/
+
+/*
+  The fixed layer the panel slides along. Narrow, it lets clicks through to the
+  page (the panel takes them back): you comment on, and pick parts of, the app
+  beside it. Wide adds production's .overlayWide, whose scrim does block the
+  page. z-index: above the page and the floating button (9), below every Modal
+  (9999), which is where the confirms, the shortcuts sheet and the annotator
+  open, and below the select menus' portal (10000).
+*/
+.frame {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.frameWide {
+  pointer-events: auto;
+}
+
+/* Doubled: Drawer's .container (720px) and the dialog's .modalContainer load in either order. */
+.panel.panel {
+  max-width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+  pointer-events: auto;
+
+  @include media.mobile-only {
+    width: 100vw;
+  }
+}
+
+.panelNarrow.panelNarrow {
+  width: 480px;
+
+  @include media.mobile-only {
+    width: 100vw;
+  }
+}
+
+/* Production's .modalContainerWide width, restated: Drawer's .container would otherwise win it back. */
+.panelWide.panelWide {
+  width: min(1120px, 80vw);
+
+  @include media.mobile-only {
+    width: 100vw;
+  }
+}
+
+/* The dialog's .root is a rounded, shadowed popover capped to the window; in a drawer it is the column. */
+.root.root {
+  height: 100%;
+  max-height: none;
+  border-radius: 0;
+  box-shadow: none;
+
+  /*
+    Quill's snow theme sets .ql-container { height: 100% }. In the popover its
+    parent's height is auto, so that resolves to nothing; in a fixed-height
+    drawer it resolves to the whole editor (toolbar included), and the box ran
+    42px past its field onto "Kind". The editor's min-height still sizes it.
+  */
+  :global(.ql-container) {
+    height: auto;
+  }
+}
+
+/* The app's name can be long; it gives way before the header's controls do. */
+.title.title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.headerActions.headerActions {
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+.formLinks {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* With the switch under it, the header's rule moves below the switch: title and switch are one block. */
+.headerWithSwitch.headerWithSwitch {
+  padding-bottom: 12px;
+  border-bottom: none;
+}
+
+/* The switch on the left; on the Feedback tab the form's own links (Drafts, Shortcuts) on the right. */
+.switchRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+  padding: 0 24px 16px;
+  /* Production .header's rule, literal, so it matches the footer's rule. */
+  border-bottom: 1px solid rgba(203, 213, 225, 0.5);
+}
+
+/*
+  Wide / Narrow, labelled (review 2026-10-05: "today it's just two arrows").
+  The glyph stays; the word beside it is the state a press gives you, drawn as
+  the dialog's own key-hint chip (.kbd: 11/14, 600, grey wash) so it reads as a
+  hint on the control, not a second button. The round hover disc of
+  .closeButton becomes a 6px-radius one to fit the wider control.
+*/
+.sizeToggle.sizeToggle {
+  gap: 6px;
+  padding: 4px 6px 4px 4px;
+  border-radius: 6px;
+}
+
+.sizeLabel.sizeLabel {
+  white-space: nowrap;
+}
+
+/* The form stays mounted under the Comments tab, so a half-written note survives the switch. */
+.formPane {
+  display: contents;
+}
+
+.paneHidden {
+  display: none;
+}
+
+/* The comments list fills what is left of the drawer and scrolls inside. */
+.altPane {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* The floating button steps aside while its drawer is open, at every width; ✕ and Esc bring it back. */
+.fabHidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Phone: the drawer is the whole screen; the reviewers' bubble steps out so it doesn't cover Send. */
+@include media.mobile-only {
+  :global(body[data-feedback-drawer-open] [data-comment-layer]) {
+    display: none;
+  }
+}

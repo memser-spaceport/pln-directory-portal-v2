@@ -241,3 +241,22 @@
   font-weight: 500;
   color: var(--foreground-neutral-primary, #0a0c11);
 }
+
+/* Brief the AI: the AI Search mark leads the title, at the title's own
+ * line height. */
+.briefTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Where the words go, and the dev counter, on one 12px line under the field. */
+.briefMeta {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}

@@ -1,6 +1,10 @@
+@use 'styles/media';
+
 .headerRight {
   display: inline-flex;
   align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -12,9 +16,10 @@
   white-space: nowrap;
 }
 
-/* LAB-2789: the interested member's own words, whole, above the matcher's. */
+/* LAB-2789: the interested member's own words, whole, under their interest
+   press in the network block (LAB-2854). */
 .note {
-  margin: 0 0 12px;
+  margin: 4px 0 0;
   padding-left: 10px;
   border-left: 2px solid var(--border-neutral-subtle, #e2e8f0);
   font-size: 14px;
@@ -25,10 +30,38 @@
 }
 
 .blurb {
-  margin: 0 0 12px;
+  margin: 0;
   font-size: 14px;
   line-height: 22px;
   color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* LAB-2854: the prototype's card — a small group caption in a 96px left
+ * column ("Experience" fits on one line), its rows on the right, stacking
+ * above them on a phone. */
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.group {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+
+  @include media.mobile-only {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+}
+
+.groupLabel {
+  margin: 0;
+  font-size: 12px;
+  line-height: 22px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
 }
 
 .list {
@@ -64,6 +97,14 @@
   justify-content: center;
 }
 
+/* A network reason's mark: a fact, not a requirement, so no tick or dash. */
+.dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--foreground-neutral-tertiary, #8897ae);
+}
+
 .dash {
   width: 8px;
   height: 1.5px;
@@ -75,6 +116,19 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* The full statement under its short label, in the secondary ink; a miss
+   fades it with its row. */
+.statement {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.unmet .statement {
+  color: var(--foreground-neutral-tertiary, #8897ae);
 }
 
 .evidence {

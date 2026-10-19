@@ -239,7 +239,9 @@ type ParkedMedia = { node: Element; parent: Node; next: Node | null };
 /**
  * `createContext` waits for every img and video in the document, up to the
  * timeout. An image fully outside the viewport is not in the picture, so it
- * must not hold the capture. It is detached for the wait and put back after.
+ * must not hold the capture. Nor does one that is not rendered: a lazy image
+ * inside `display: none` never loads, so it held every capture for the full
+ * timeout. It is detached for the wait and put back after.
  */
 function parkUnloadedOffscreenMedia(): ParkedMedia[] {
   const parked: ParkedMedia[] = [];
@@ -251,10 +253,11 @@ function parkUnloadedOffscreenMedia(): ParkedMedia[] {
       (node instanceof HTMLImageElement && !node.complete) ||
       (node instanceof HTMLVideoElement && node.readyState < 2);
     if (!waiting) return;
+    const rendered = node.getClientRects().length > 0;
     const box = node.getBoundingClientRect();
-    if (!(box.width > 0 && box.height > 0)) return;
-    const outside = box.bottom <= 0 || box.top >= height || box.right <= 0 || box.left >= width;
-    if (!outside) return;
+    const outside =
+      box.width > 0 && box.height > 0 && (box.bottom <= 0 || box.top >= height || box.right <= 0 || box.left >= width);
+    if (rendered && !outside) return;
     parked.push({ node, parent: node.parentNode, next: node.nextSibling });
     node.remove();
   });

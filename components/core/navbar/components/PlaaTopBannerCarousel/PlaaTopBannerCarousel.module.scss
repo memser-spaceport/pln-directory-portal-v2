@@ -12,6 +12,11 @@
 
 .slide {
   animation: plaaBannerFade 220ms ease;
+
+  // Only slides inside the PLAA-route carousel; standalone banners keep their colors.
+  > div {
+    background-color: #0c5259;
+  }
 }
 
 @keyframes plaaBannerFade {

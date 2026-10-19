@@ -24,6 +24,8 @@ export const ScrollToTopButton = () => {
         [s.visible]: scrollDirection === 'down',
       })}
       onClick={scrollToTop}
+      /* The LabOS-wide feedback button moves up while this is on the page (LAB-2879). */
+      data-floating-corner-control=""
     >
       <ArrowUpIcon />
     </button>

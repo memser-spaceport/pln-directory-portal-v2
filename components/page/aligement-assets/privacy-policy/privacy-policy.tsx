@@ -617,7 +617,7 @@ export default function PrivacyPolicyPage() {
         }
 
         .privacy-policy__link {
-          color: #156ff7;
+          color: #0b4f66;
           text-decoration: underline;
           cursor: pointer;
         }
@@ -700,7 +700,7 @@ export default function PrivacyPolicyPage() {
         }
 
         .privacy-policy__link {
-          color: #156ff7;
+          color: #0b4f66;
           text-decoration: underline;
           cursor: pointer;
         }

@@ -1,0 +1,28 @@
+{
+  "activities": [
+    {
+      "id": "network_introduction",
+      "name": "Make a Network Introduction",
+      "category": "Programs",
+      "points_value": 500
+    },
+    {
+      "id": "high_value_connector",
+      "name": "High Value Connector",
+      "category": "Programs",
+      "points_value": 1000
+    },
+    {
+      "id": "x_space",
+      "name": "Host or Co-Host an X Space",
+      "category": "Brand",
+      "points_value": 500
+    },
+    {
+      "id": "propose_activity",
+      "name": "Propose a New Activity for the PLAA",
+      "category": "Programs",
+      "points_value": 250
+    }
+  ]
+}

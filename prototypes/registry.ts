@@ -367,6 +367,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/help-feedback-menu/HelpFeedbackMenuPrototype'),
   },
   {
+    key: 'labos-feedback-button',
+    title: 'Give feedback — on every LabOS page',
+    description:
+      'Home, with production\'s header search field (AI badge inside), and one "Give feedback" button that would sit on every LabOS page, opening the AI Apps feedback drawer (Anuj, 2026-10-15). The review band switches where the button lives: In the navbar (a labelled button before the (?), a glyph box below 1440px) or Floating (AI Apps\' own pill, bottom-right, which says its name and then settles to a glyph). Either way the drawer is the AI Apps one on page terms: titled Give feedback with "About this page · Home" under it, no app picker, a screenshot of the page taken on open with production\'s LabOS-page capture (what the AI Apps list uses), Whole page and Pick a part (a drag over the window), annotate, Kind and Priority, Rich / Markdown note, drafts, and the sent screen. F opens it from anywhere. The (?) is develop\'s: hover lists the five support topics, a click opens production\'s Contact support form (topic pills, prefilled email and name, mocked send). Signed out, neither door shows. Everything mocked; nothing is sent.',
+    category: 'Cross-product',
+    load: () => import('./entries/labos-feedback-button/LabosFeedbackButtonPrototype'),
+  },
+  {
     key: 'ai-search',
     title: 'Search in two sizes',
     description:

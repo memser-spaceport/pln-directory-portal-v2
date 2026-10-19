@@ -14,7 +14,7 @@ export const SpvInvestorProfileCard = ({ hasProfile, onOpen }: Props) => (
   <p className={s.root}>
     {"Set your preferences for check size, stage and sector, and we'll filter the deals you see to match. "}
     <button type="button" className={s.link} onClick={onOpen}>
-      {hasProfile ? 'Update or review your investor profile' : 'Set up your investor profile'}
+      {hasProfile ? 'Review your investor profile' : 'Set up your investor profile'}
     </button>
   </p>
 );

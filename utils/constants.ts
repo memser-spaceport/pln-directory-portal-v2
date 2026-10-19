@@ -60,6 +60,12 @@ export const NAV_OPTIONS = [
   },
 ];
 
+/** LabOS-wide feedback (LAB-2879): the floating button and the (?) menu's Give feedback. */
+export const FEEDBACK_ANALYTICS = {
+  ON_FEEDBACK_BUTTON_CLICK: 'feedback-button-click',
+  ON_FEEDBACK_SUBMIT: 'feedback-submit',
+};
+
 export const JOBS_ANALYTICS = {
   ON_JOBS_PAGE_VIEWED: 'jobs-page-viewed',
   ON_JOBS_FILTERS_APPLIED: 'jobs-filters-applied',
@@ -134,6 +140,7 @@ export const JOBS_ANALYTICS = {
   ON_JOB_SUGGESTED_CANDIDATES_VIEWED: 'job-suggested-candidates-viewed',
   ON_JOB_SUGGESTED_CANDIDATE_OPENED: 'job-suggested-candidate-opened',
   ON_JOB_SUGGESTED_CANDIDATE_CONTACTED: 'job-suggested-candidate-contacted',
+  ON_JOB_SUGGESTED_CRITERIA_EDITED: 'job-suggested-criteria-edited',
   ON_JOB_SAVED: 'job-saved',
   ON_JOB_UNSAVED: 'job-unsaved',
   ON_JOB_SAVE_FAILED: 'job-save-failed',
@@ -297,6 +304,7 @@ export const SETTINGS_ANALYTICS_EVENTS = {
   FORUM_DIGEST_FORUM_ACTIVITY_TOGGLE_CLICKED: 'settings-forum-digest-forum-activity-toggle-clicked',
   SETTINGS_SUBSCRIBE_TO_DEMO_DAY_UPDATES_CHANGE: 'settings-subscribe-to-demo-day-updates-change',
   SETTINGS_DEMO_DAY_UPDATES_NOTIFICATION_TOGGLE_CLICKED: 'settings-demo-day-updates-notification-toggle-clicked',
+  SETTINGS_SUGGESTED_CANDIDATES_EMAIL_TOGGLE_CLICKED: 'settings-suggested-candidates-email-toggle-clicked',
 };
 
 export const JOIN_NETWORK_ANALYTICS_EVENTS = {
@@ -629,6 +637,7 @@ export const UNIFIED_SEARCH_ANALYTICS_EVENTS = {
   AI_CONVERSATION_HISTORY_CLICK: 'unified-search-ai-conversation-history-clicked',
   AI_CONVERSATION_HISTORY_OPEN_CLICK: 'unified-search-ai-conversation-history-open-clicked',
   AI_QUERY_SUBMITTED: 'unified-search-ai-query-submitted',
+  EMAIL_QUERY_SUBMITTED: 'unified-search-email-query-submitted',
 };
 
 export const FORUM_ANALYTICS_EVENTS = {
@@ -2831,6 +2840,7 @@ export const EDITOR_ANALYTICS = {
 
 export const SPV_SPOTLIGHT_ANALYTICS = {
   ON_PAGE_VIEWED: 'spv-spotlight-page-viewed',
+  ON_TEAM_CARD_VIEWED: 'spv-spotlight-team-card-viewed',
   ON_REQUEST_ACCESS_CLICKED: 'spv-spotlight-request-access-clicked',
   ON_REQUEST_ACCESS_SUBMITTED: 'spv-spotlight-request-access-submitted',
   ON_REQUEST_ACCESS_BLOCKED: 'spv-spotlight-request-access-blocked',

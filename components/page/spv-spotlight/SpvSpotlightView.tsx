@@ -225,7 +225,6 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
 
   const requestDataRoomEmail = (source: SpvDataRoomSource) => {
     if (sendingDataRoomEmailRef.current || !spotlight?.docSendUrl) return;
-    window.open(spotlight.docSendUrl, '_blank', 'noopener,noreferrer');
     dataRoomClicked(source);
     sendingDataRoomEmailRef.current = true;
     setSendingDataRoomEmail(true);
@@ -233,6 +232,7 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
     void requestDataRoomAccessEmail(spotlight.slug)
       .then((result) => {
         setSentDocSendUrl(result.docSendUrl);
+        window.open(result.docSendUrl, '_blank', 'noopener,noreferrer');
         toast.success('We sent an email connecting you to the SPV team.');
       })
       .catch(() => {
@@ -503,6 +503,10 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
                 if (params) analytics.onFounderProfileClicked({ ...params, member_uid: memberUid });
               }}
               onWebsiteClicked={websiteClicked}
+              onViewed={() => {
+                const params = baseParams();
+                if (params) analytics.onTeamCardViewed({ ...params, team_uid: spotlight.team.uid });
+              }}
             />
           </section>
 

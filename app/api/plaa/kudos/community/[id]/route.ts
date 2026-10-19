@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveAuthHeader } from '../../_auth';
+import { plaaUpstreamUrl } from '../../../_upstream';
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -18,9 +19,13 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     }
 
     const { id } = await context.params;
+    const url = plaaUpstreamUrl(baseUrl, ['kudos', 'community', id]);
+    if (!url) {
+      return NextResponse.json({ error: 'Invalid kudos id' }, { status: 400 });
+    }
     const body = await request.text();
 
-    const res = await fetch(`${baseUrl}/api/v1/kudos/community/${id}`, {
+    const res = await fetch(url, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: authHeader },
       body,

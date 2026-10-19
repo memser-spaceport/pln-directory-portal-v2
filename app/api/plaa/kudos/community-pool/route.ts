@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveAuthHeader } from '../_auth';
+import { plaaUpstreamUrl } from '../../_upstream';
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,9 +15,9 @@ export async function GET(request: NextRequest) {
     }
 
     const roundId = new URL(request.url).searchParams.get('round_id');
-    const query = roundId ? `?round_id=${encodeURIComponent(roundId)}` : '';
+    const url = plaaUpstreamUrl(baseUrl, ['kudos', 'community-pool'], { round_id: roundId }) as string;
 
-    const res = await fetch(`${baseUrl}/api/v1/kudos/community-pool${query}`, {
+    const res = await fetch(url, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json', Authorization: authHeader },
     });

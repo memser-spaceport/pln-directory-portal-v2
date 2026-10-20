@@ -1764,7 +1764,7 @@ export function GiveAiAppFeedbackDialog({
               </ConfirmLayer>
 
               {/* LabOS-wide feedback goes to support, not to an app's author. */}
-              {!labosOnly && (
+              {!labosOnly && app.value !== LABOS_AI_APPS_OPTION.value && (
                 <div className={s.postingAs}>
                   <CommentIcon />
                   <span>

@@ -1,6 +1,6 @@
 import { cache } from 'react';
 
-import { getTeam } from '@/services/teams.service';
+import { getTeam, getTeamUIDByAirtableId } from '@/services/teams.service';
 import { AIRTABLE_REGEX } from '@/utils/constants';
 
 /**
@@ -20,4 +20,21 @@ export async function isTeamNotFound(id: string): Promise<boolean> {
   }
   const result = await getTeamProfileLookup(id);
   return !!result?.error && result.error.status === 404;
+}
+
+/**
+ * The team uid behind an old Airtable record id (`/teams/rec…` links from the previous directory), or nothing when the
+ * lookup fails or finds no team (LAB-2924).
+ */
+export async function getTeamUidForAirtableId(id: string): Promise<string | undefined> {
+  try {
+    const result = await getTeamUIDByAirtableId(id);
+    // The list endpoint answers `{ count, teams: [...] }`. The page's own Airtable branch still reads a bare array,
+    // which is why these links stopped redirecting at all; both shapes are accepted here.
+    const teams = Array.isArray(result) ? result : result?.teams;
+    const uid = Array.isArray(teams) ? teams[0]?.uid : undefined;
+    return typeof uid === 'string' && uid ? uid : undefined;
+  } catch {
+    return undefined;
+  }
 }

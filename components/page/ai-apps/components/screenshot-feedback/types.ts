@@ -99,6 +99,8 @@ export const EMPTY_ANNOTATIONS: AnnotationState = {
 
 export const ANNOTATED_SCREENSHOT_CLASS = 'ai-app-annotated-screenshot';
 export const ANNOTATION_ATTR = 'data-annotations';
+/** The hosted screenshot with its drawings in it, for a plain-image reader (support Telegram). */
+export const FLAT_SRC_ATTR = 'data-flat-src';
 
 export function serializeAnnotations(state: AnnotationState): string {
   return encodeURIComponent(JSON.stringify(state));

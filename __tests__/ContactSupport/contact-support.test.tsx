@@ -105,6 +105,26 @@ describe('ContactSupport', () => {
     );
   });
 
+  /* LAB-2919: support's Telegram alert names the page the request came from. */
+  it('sends the current page in metadata', async () => {
+    render(<ContactSupport userInfo={userInfo} />);
+
+    fireEvent.change(screen.getByLabelText('support-message'), { target: { value: '<p>Search is broken</p>' } });
+
+    const submit = screen.getByRole('button', { name: 'Submit' });
+    await waitFor(() => expect(submit).toBeEnabled());
+    fireEvent.click(submit);
+
+    await waitFor(() =>
+      expect(mockMutate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          metadata: expect.objectContaining({ page: window.location.toString() }),
+        }),
+        expect.any(Object),
+      ),
+    );
+  });
+
   it('submits HTML from the editor', async () => {
     render(<ContactSupport />);
 

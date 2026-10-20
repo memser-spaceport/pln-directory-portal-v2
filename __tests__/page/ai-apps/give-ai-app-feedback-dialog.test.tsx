@@ -10,6 +10,7 @@ import { toast } from '@/components/core/ToastContainer';
 import { clearFormDraft, readFormDraft, writeFormDraft } from '@/utils/formDraftStorage';
 import {
   AttachImageError,
+  appendScreenshots,
   CaptureError,
   attachImageFile,
   grabVideoFrame,
@@ -166,6 +167,8 @@ jest.mock('@/components/page/ai-apps/components/screenshot-feedback', () => {
   const actual = jest.requireActual('@/components/page/ai-apps/components/screenshot-feedback');
   return {
     ...actual,
+    /* The real one, watched: LAB-2919 checks which sends ask for the flattened screenshot. */
+    appendScreenshots: jest.fn((...args: unknown[]) => actual.appendScreenshots(...args)),
     requestTabCapture: jest.fn(),
     grabVideoFrame: jest.fn(),
     stopCaptureStream: jest.fn(),
@@ -1313,6 +1316,52 @@ describe('GiveAiAppFeedbackDialog', () => {
       appName: 'My App',
       screenshotCount: 1,
       hasAnnotations: false,
+    });
+  });
+
+  /* LAB-2919: support's Telegram shows a plain image and the page the feedback came from. */
+  describe('LabOS feedback for the support channel', () => {
+    const takeScreenshot = async () => {
+      (requestTabCapture as jest.Mock).mockResolvedValue({ getTracks: () => [{ stop: jest.fn() }] });
+      (grabVideoFrame as jest.Mock).mockResolvedValue(PIXEL_PNG);
+      (stopCaptureStream as jest.Mock).mockImplementation(() => undefined);
+      fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Select region' })).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Select region' }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Add to feedback' })).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Add to feedback' }));
+      await waitFor(() => expect(screen.getByAltText('Screenshot 1')).toBeInTheDocument());
+    };
+
+    beforeEach(() => {
+      mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
+    });
+
+    it('asks for the flattened screenshot and sends the current page', async () => {
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+      fireEvent.click(screen.getByRole('button', { name: LABOS_AI_APPS_OPTION.label }));
+      await takeScreenshot();
+      fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Broken layout' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+
+      await waitFor(() => expect(mockContactSupportMutate).toHaveBeenCalled());
+      expect(appendScreenshots).toHaveBeenCalledWith(expect.any(String), expect.any(Array), { flatten: true });
+      const payload = mockContactSupportMutate.mock.calls[0][0] as { message: string; metadata: { page: string } };
+      expect(payload.metadata.page).toBe(window.location.toString());
+      expect(payload.message).toContain('https://cdn.test/hosted.png');
+      /* No drawings on this screenshot: nothing to flatten. */
+      expect(payload.message).not.toContain('data-flat-src');
+      expect(mockMutate).not.toHaveBeenCalled();
+    });
+
+    it('does not flatten for feedback on an app', async () => {
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+      await takeScreenshot();
+      fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Broken layout' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+
+      await waitFor(() => expect(mockMutate).toHaveBeenCalled());
+      expect(appendScreenshots).toHaveBeenCalledWith(expect.any(String), expect.any(Array), { flatten: false });
     });
   });
 

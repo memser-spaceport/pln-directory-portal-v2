@@ -53,6 +53,29 @@ Every page under `/sign-up` SHALL be marked `noindex, follow`, whatever its quer
 - **WHEN** a crawler requests `/sign-up?returnTo=/members/M`
 - **THEN** the page carries `<meta name="robots" content="noindex, follow">`
 
+### Requirement: Main pages name the searches they should be found for
+
+The home page, members, teams, projects, the events calendar, the job board and the Demo Day landing page SHALL each have a title and a description of their own, and no two of them SHALL share either. Each SHALL name "Protocol Labs". The home page SHALL also name "innovation network", and Demo Day SHALL name "venture investors" and "VC". The job board keeps the title "Protocol Labs Jobs | LabOS".
+
+#### Scenario: Home page
+
+- **WHEN** a crawler requests `/home`
+- **THEN** its title and description both contain "Protocol Labs" and "innovation network"
+
+#### Scenario: Demo Day
+
+- **WHEN** a crawler requests `/demoday`
+- **THEN** its title and description both contain "venture investors" and "VC"
+
+### Requirement: Share cards match the search result
+
+On those pages, `og:title`, `og:description`, `twitter:title` and `twitter:description` SHALL equal the page's title and description.
+
+#### Scenario: A listing page is shared
+
+- **WHEN** a link to `/members` is shared
+- **THEN** the card's title and description are the page's own title and description
+
 ### Requirement: Demo Day dashboards are not indexed
 
 Pages under a Demo Day (`/demoday/<id>/…`) SHALL be marked `noindex, follow`; they are dashboards for its admins, founders and investors. The event's landing page (`/demoday/<id>`) and its completed view (`/demoday/<id>/completed`) SHALL be indexable, each with its own address as canonical.

@@ -17,9 +17,13 @@ export function listingPageMetadata(opts: { title: string; description: string; 
     title: opts.title,
     description: opts.description,
     alternates: { canonical: url },
+    // Share cards say the same as the search result (LAB-2923): without these, og:title and og:description fall back
+    // to nothing page-specific.
     openGraph: {
       type: 'website',
       url,
+      title: opts.title,
+      description: opts.description,
       images: [
         {
           url: SOCIAL_IMAGE_URL,
@@ -32,6 +36,8 @@ export function listingPageMetadata(opts: { title: string; description: string; 
     },
     twitter: {
       card: 'summary_large_image',
+      title: opts.title,
+      description: opts.description,
       images: [SOCIAL_IMAGE_URL],
     },
   };

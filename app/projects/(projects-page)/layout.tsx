@@ -11,7 +11,8 @@ export default function Layout({ filters, content }: { filters: ReactNode; conte
 
 export const metadata = listingPageMetadata({
   title: 'Projects | Protocol Labs Directory',
+  // Its own description (LAB-2923): it shared the directory's generic one with the sign-up pages.
   description:
-    'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
+    'Browse projects across the Protocol Labs network: what each one builds, the team that maintains it and the teams contributing to it.',
   path: PAGE_ROUTES.PROJECTS,
 });

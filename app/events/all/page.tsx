@@ -18,7 +18,8 @@ export default async function Page() {
 
 export const metadata = listingPageMetadata({
   title: 'Events | Protocol Labs Directory',
-  description: 'Explore upcoming events, join IRL gatherings, and connect with teams across the ecosystem.',
+  description:
+    'Upcoming Protocol Labs network events: join IRL gatherings, conferences and meetups, and connect with teams across the ecosystem.',
   // Its own address: `/events` only redirects here, so naming it as canonical pointed Google at a redirect (LAB-2924).
   path: EVENTS_LIST_PATH,
 });

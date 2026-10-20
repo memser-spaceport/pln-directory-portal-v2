@@ -40,6 +40,8 @@ export function listingPageMetadata(opts: { title: string; description: string; 
 export function htmlToPlainSnippet(html: string | null | undefined, max = 160): string {
   if (!html) return '';
   const text = html
+    // Inline formatting joins its neighbours ("<b>labs</b>." is "labs."); any other tag separates words.
+    .replace(/<\/?(?:a|abbr|b|code|em|i|mark|s|small|span|strong|sub|sup|u)\b[^>]*>/gi, '')
     .replace(/<[^>]+>/g, ' ')
     .replace(/&nbsp;/gi, ' ')
     .replace(/\s+/g, ' ')

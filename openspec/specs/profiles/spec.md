@@ -90,3 +90,19 @@ A profile page SHALL NOT answer 404 when the directory API fails for any reason 
 - **GIVEN** a signed-in member who is still pending approval
 - **WHEN** they open their own profile
 - **THEN** the page does not answer 404 and shows their profile once it loads, as today
+
+### Requirement: A profile describes itself in its own words
+
+The meta description of a team or project profile SHALL be the profile's own text as plain text, not a template shared by every profile. A team uses its short description, then its long one; a project uses its tagline, then its description. Only a profile with none of these SHALL use "<name> on Protocol Labs Directory".
+
+#### Scenario: Team with a short description
+
+- **GIVEN** a team whose short description is "Builds open **labs**."
+- **WHEN** a client requests its profile
+- **THEN** the meta description and the share-card descriptions are "Builds open labs."
+
+#### Scenario: Project with no text of its own
+
+- **GIVEN** a project with no tagline and no description
+- **WHEN** a client requests its profile
+- **THEN** the meta description is "<name> on Protocol Labs Directory"

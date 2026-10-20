@@ -12,6 +12,7 @@ import { getProject, getProjectOsoDetails } from '@/services/projects.service';
 import { getAllTeams } from '@/services/teams.service';
 import { hasProjectDeleteAccess, hasProjectEditAccess } from '@/utils/common.utils';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
+import { htmlToPlainSnippet } from '@/utils/seo';
 import styles from './page.module.css';
 import { getFocusAreas } from '@/services/common.service';
 import { IFocusArea } from '@/types/shared.types';
@@ -260,9 +261,13 @@ export async function generateMetadata(props: IGenerateMetadata, parent: Resolvi
   const previousImages = (await parent).openGraph?.images || [];
   const logo = project?.logo || SOCIAL_IMAGE_URL;
   const pageUrl = `${process.env.APPLICATION_BASE_URL}${PAGE_ROUTES.PROJECTS}/${projectId}`;
-  const description = project?.name
-    ? `${project.name} on Protocol Labs Directory`
-    : 'Explore projects across the Protocol Labs network.';
+  // The project's own words, so each profile has a description of its own rather than one template (LAB-2923).
+  const description =
+    htmlToPlainSnippet(project?.tagline) ||
+    htmlToPlainSnippet(project?.description) ||
+    (project?.name
+      ? `${project.name} on Protocol Labs Directory`
+      : 'Explore projects across the Protocol Labs network.');
   return {
     title: `${project?.name} | Protocol Labs Directory`,
     description,
@@ -270,7 +275,9 @@ export async function generateMetadata(props: IGenerateMetadata, parent: Resolvi
     openGraph: {
       type: 'website',
       url: pageUrl,
+      description,
       images: [logo, ...previousImages],
     },
+    twitter: { description },
   };
 }

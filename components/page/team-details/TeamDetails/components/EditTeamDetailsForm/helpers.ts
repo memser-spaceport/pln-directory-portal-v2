@@ -2,6 +2,7 @@ import * as yup from 'yup';
 
 export const MIN_FOUNDED_YEAR = 1800;
 export const MAX_TEAM_LOCATIONS = 10;
+export const MAX_TEAM_LOCATION_LENGTH = 100;
 
 export const editTeamDetailsSchema = yup.object({
   name: yup.string().trim().required('Please add Team Name').max(150),
@@ -34,6 +35,11 @@ export const editTeamDetailsSchema = yup.object({
     .array()
     .of(yup.object({ value: yup.string().trim().defined() }))
     .max(MAX_TEAM_LOCATIONS, `Add up to ${MAX_TEAM_LOCATIONS} locations`)
+    .test(
+      'primary-location',
+      'Add a primary location, or make one of your other locations primary',
+      ([primary, ...others] = []) => !!primary.value?.trim() || others.every((location) => !location.value?.trim()),
+    )
     .test('unique-locations', 'Each location can only be added once', (locations = []) => {
       const filled = locations.map((location) => location.value?.trim().toLowerCase()).filter(Boolean);
       return new Set(filled).size === filled.length;

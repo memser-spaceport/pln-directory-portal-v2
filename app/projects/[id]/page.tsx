@@ -18,6 +18,7 @@ import { IFocusArea } from '@/types/shared.types';
 import SelectedFocusAreas from '@/components/core/selected-focus-area';
 import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { Metadata, ResolvingMetadata } from 'next';
+import { notFound } from 'next/navigation';
 import ProjectStats from '@/components/page/project-details/stats';
 import { BackButton } from '@/components/ui/BackButton';
 import React from 'react';
@@ -25,10 +26,15 @@ import React from 'react';
 export default async function ProjectDetails(props: any) {
   const params = await props.params;
   const projectId = params?.id;
-  const { isError, userInfo, hasEditAccess, hasDeleteAccess, project, focusAreas, authToken, osoInfo } =
+  const { isError, isNotFound, userInfo, hasEditAccess, hasDeleteAccess, project, focusAreas, authToken, osoInfo } =
     await getPageData(projectId);
   const showProjectStats =
     osoInfo?.forkCount > 0 || osoInfo?.starCount > 0 || osoInfo?.repositoryCount > 0 || osoInfo?.contributorCount > 0;
+
+  // A real 404 only when the API says the project does not exist (LAB-2922); any other failure keeps the error page.
+  if (isNotFound) {
+    notFound();
+  }
 
   if (isError) {
     return <Error />;
@@ -142,6 +148,18 @@ const getPageData = async (projectId: string) => {
       getProject(projectId, {}),
       getFocusAreas('Project', {}),
     ]);
+    if (projectResponse?.error?.status === 404) {
+      return {
+        isError: false,
+        isNotFound: true,
+        isLoggedIn,
+        userInfo,
+        hasEditAccess,
+        hasDeleteAccess,
+        project,
+        authToken,
+      };
+    }
     if (projectResponse?.error || focusAreaResponse?.error) {
       return {
         isError: true,

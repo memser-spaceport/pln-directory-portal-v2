@@ -7,13 +7,14 @@ import { TeamDetails } from '@/components/page/team-details/TeamDetails';
 import { TeamMembers } from '@/components/page/team-details/TeamMembers';
 import { getMembers } from '@/services/members.service';
 import { getAllTeams, getTeam, getTeamUIDByAirtableId } from '@/services/teams.service';
+import { getTeamProfileLookup } from '@/services/teams/teamProfileLookup';
 import { IMember } from '@/types/members.types';
 import { IFormatedTeamProject, ITeam, ITeamDetailParams } from '@/types/teams.types';
 import { hasProjectEditAccess, sortMemberByRole } from '@/utils/common.utils';
 import { AIRTABLE_REGEX, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata, ResolvingMetadata } from 'next';
-import { RedirectType, redirect } from 'next/navigation';
+import { RedirectType, notFound, redirect } from 'next/navigation';
 import styles from './page.module.css';
 import { getFocusAreas } from '@/services/common.service';
 import { IFocusArea } from '@/types/shared.types';
@@ -65,7 +66,12 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
     redirect(`/teams/${redirectTeamUid}`, RedirectType.replace);
   }
 
-  if (isNotFound || isError) {
+  // A real 404 only when the API says the team does not exist (LAB-2922); any other failure keeps the error page.
+  if (isNotFound) {
+    notFound();
+  }
+
+  if (isError) {
     return <Error />;
   }
 
@@ -259,6 +265,11 @@ async function getPageData(teamId: string) {
         // profile, and a jobs-API blip must not take the team page down with it.
         getJobsList(`teamUid=${encodeURIComponent(teamId)}&limit=1`),
       ]);
+    if (teamResponse?.error?.status === 404) {
+      isNotFound = true;
+      return { isNotFound, team, userInfo };
+    }
+
     teamNews = teamNewsResponse;
     followers = followersResponse;
     openRoles = selectTeamOpenRoles(jobsResponse, teamId);
@@ -340,8 +351,9 @@ async function getPageData(teamId: string) {
     };
   } catch (error: any) {
     console.error(error);
-    isNotFound = true;
-    return { isNotFound, team, isLoggedIn };
+    // A thrown lookup is a failure, not a missing team: it keeps the error page and its 200 (LAB-2922).
+    isError = true;
+    return { isError, team, isLoggedIn };
   }
 }
 
@@ -353,9 +365,8 @@ type IGenerateMetadata = {
 export async function generateMetadata(props: IGenerateMetadata, parent: ResolvingMetadata): Promise<Metadata> {
   const params = await props.params;
   const teamId = params.id;
-  const teamResonse = await getTeam(teamId, {
-    with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member',
-  });
+  // Shared with the layout's not-found check, so the two make one request (LAB-2922).
+  const teamResonse = await getTeamProfileLookup(teamId);
   if (teamResonse?.error) {
     return {
       title: 'Protocol Labs Directory',

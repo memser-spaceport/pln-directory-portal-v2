@@ -115,3 +115,5 @@ Single-context: `CONTEXT.md` and `docs/adr/` at the repo root, neither of which 
 ## Keep this file current
 
 When a PR changes the stack (framework or runtime versions, package manager, scripts, test or lint tooling, folder conventions), the same PR updates this file and `AGENTS.md`. Specs under `openspec/specs/` describe product behaviour; this file describes how to work in the repo.
+
+OpenSpec: a PR that changes how a module works must update `openspec/specs/<capability>/spec.md` in the same PR. Full rule: `AGENTS.md`.

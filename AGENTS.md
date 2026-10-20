@@ -111,3 +111,11 @@ To add a prototype: create `prototypes/entries/<key>/` (component + `mocks.ts`),
 ## Keep This File Current
 
 When a PR changes the stack (framework or runtime versions, package manager, scripts, test or lint tooling, folder conventions), the same PR updates this file and `CLAUDE.md`. Specs under `openspec/specs/` describe product behaviour; this file describes how to work in the repo.
+
+## OpenSpec
+
+A PR that changes how a module works must update that module's spec at `openspec/specs/<capability>/spec.md` in the same PR.
+If that spec does not exist yet, the PR creates it.
+This applies to agent PRs and to human PRs.
+A PR that does not change module behaviour (refactor, styles, tests, or docs) does not need a spec change.
+Archive the matching change under `openspec/changes/` in that same PR, so `openspec/specs/` updates when the code merges.

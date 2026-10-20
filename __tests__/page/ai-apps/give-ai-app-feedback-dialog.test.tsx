@@ -277,6 +277,18 @@ describe('GiveAiAppFeedbackDialog', () => {
     expect(mockContactSupportMutate).not.toHaveBeenCalled();
   });
 
+  it('hides the Posting as hint when LabOS - AI Apps is selected', () => {
+    mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+    expect(screen.getByText(/Posting as/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: LABOS_AI_APPS_OPTION.label }));
+
+    expect(screen.getByTestId('selected-app')).toHaveTextContent(LABOS_AI_APPS_OPTION.label);
+    expect(screen.queryByText(/Posting as/)).not.toBeInTheDocument();
+  });
+
   describe('pins and context (feedback in context)', () => {
     const pin = {
       id: 'pin-1',

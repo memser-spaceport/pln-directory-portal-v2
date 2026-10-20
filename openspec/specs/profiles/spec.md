@@ -106,3 +106,20 @@ The meta description of a team or project profile SHALL be the profile's own tex
 - **GIVEN** a project with no tagline and no description
 - **WHEN** a client requests its profile
 - **THEN** the meta description is "<name> on Protocol Labs Directory"
+
+### Requirement: Old team links redirect to the team
+
+A team profile requested by its old Airtable record id (`/teams/rec…`) SHALL redirect permanently (308) to the team's profile at its uid. If the lookup fails or finds no team, the page SHALL show its error, not a 404.
+
+#### Scenario: Known Airtable id
+
+- **GIVEN** a team whose Airtable record id is `recA` and whose uid is `T`
+- **WHEN** a client requests `/teams/recA`
+- **THEN** the response is a 308 redirect to `/teams/T`
+
+#### Scenario: Unknown Airtable id
+
+- **GIVEN** no team has the Airtable record id `recZ`
+- **WHEN** a client requests `/teams/recZ`
+- **THEN** the response is not a 404 and the page shows the error message
+

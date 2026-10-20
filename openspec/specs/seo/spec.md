@@ -52,3 +52,27 @@ Every page under `/sign-up` SHALL be marked `noindex, follow`, whatever its quer
 
 - **WHEN** a crawler requests `/sign-up?returnTo=/members/M`
 - **THEN** the page carries `<meta name="robots" content="noindex, follow">`
+
+### Requirement: Demo Day dashboards are not indexed
+
+Pages under a Demo Day (`/demoday/<id>/…`) SHALL be marked `noindex, follow`; they are dashboards for its admins, founders and investors. The event's landing page (`/demoday/<id>`) and its completed view (`/demoday/<id>/completed`) SHALL be indexable, each with its own address as canonical.
+
+#### Scenario: Investor dashboard
+
+- **WHEN** a crawler requests `/demoday/<id>/investor`
+- **THEN** the page is marked `noindex, follow`
+
+#### Scenario: Completed view
+
+- **WHEN** a crawler requests `/demoday/<id>/completed`
+- **THEN** the page is indexable and its canonical address is `/demoday/<id>/completed`
+
+### Requirement: Canonical addresses have one slash after the host
+
+Every canonical address SHALL be the page's path on the site's base URL, with exactly one slash between them, whether or not the configured base URL ends in "/".
+
+#### Scenario: Base URL with a trailing slash
+
+- **GIVEN** the base URL is configured as `https://os.pl.xyz/`
+- **WHEN** a crawler requests `/teams/T`
+- **THEN** its canonical address is `https://os.pl.xyz/teams/T`

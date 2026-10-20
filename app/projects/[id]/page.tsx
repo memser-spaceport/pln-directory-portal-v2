@@ -12,7 +12,7 @@ import { getProject, getProjectOsoDetails } from '@/services/projects.service';
 import { getAllTeams } from '@/services/teams.service';
 import { hasProjectDeleteAccess, hasProjectEditAccess } from '@/utils/common.utils';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
-import { htmlToPlainSnippet } from '@/utils/seo';
+import { absoluteUrl, htmlToPlainSnippet } from '@/utils/seo';
 import styles from './page.module.css';
 import { getFocusAreas } from '@/services/common.service';
 import { IFocusArea } from '@/types/shared.types';
@@ -260,7 +260,9 @@ export async function generateMetadata(props: IGenerateMetadata, parent: Resolvi
   const project = projectResponse?.data?.formattedData;
   const previousImages = (await parent).openGraph?.images || [];
   const logo = project?.logo || SOCIAL_IMAGE_URL;
-  const pageUrl = `${process.env.APPLICATION_BASE_URL}${PAGE_ROUTES.PROJECTS}/${projectId}`;
+  // Through absoluteUrl, which drops a trailing slash on the base: joined by hand, a base ending in "/" gave a
+  // canonical of "https://host//projects/…" (LAB-2924).
+  const pageUrl = absoluteUrl(`${PAGE_ROUTES.PROJECTS}/${projectId}`);
   // The project's own words, so each profile has a description of its own rather than one template (LAB-2923).
   const description =
     htmlToPlainSnippet(project?.tagline) ||

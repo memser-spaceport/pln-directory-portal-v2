@@ -73,3 +73,23 @@ describe('project profile description', () => {
     expect((await projectMetadata(props, parent)).description).toBe('Lab Tool on Protocol Labs Directory');
   });
 });
+
+/* LAB-2924: the canonical was joined by hand, so a base URL ending in "/" (as on the feature env) produced
+   "https://host//teams/…". Search engines read that as a different page from the profile. */
+describe('profile canonical with a trailing slash on the base URL', () => {
+  const original = process.env.APPLICATION_BASE_URL;
+  beforeEach(() => {
+    process.env.APPLICATION_BASE_URL = 'https://os.pl.xyz/';
+  });
+  afterEach(() => {
+    process.env.APPLICATION_BASE_URL = original;
+  });
+
+  it('has one slash between host and path, on teams and projects', async () => {
+    mockGetTeam.mockResolvedValue(team({}));
+    mockGetProject.mockResolvedValue(project({}));
+
+    expect((await teamMetadata(props, parent)).alternates?.canonical).toBe('https://os.pl.xyz/teams/uid-1');
+    expect((await projectMetadata(props, parent)).alternates?.canonical).toBe('https://os.pl.xyz/projects/uid-1');
+  });
+});

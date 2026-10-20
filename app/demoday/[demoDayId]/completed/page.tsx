@@ -1,3 +1,4 @@
+import { publicDemoDayPageMetadata } from '@/app/demoday/[demoDayId]/publicDemoDayPageMetadata';
 import { redirect } from 'next/navigation';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getDemoDayState } from '@/app/actions/demo-day.actions';
@@ -18,4 +19,9 @@ export default async function CompletedPage(props: { params: Promise<{ demoDayId
   }
 
   return <DemodayCompletedView initialDemoDayState={demoDayState} isLoggedIn={isLoggedIn} userInfo={userInfo} />;
+}
+
+export async function generateMetadata(props: { params: Promise<{ demoDayId: string }> }) {
+  const { demoDayId } = await props.params;
+  return publicDemoDayPageMetadata(demoDayId, '/completed');
 }

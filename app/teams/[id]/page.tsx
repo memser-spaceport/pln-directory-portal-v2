@@ -13,7 +13,7 @@ import { IFormatedTeamProject, ITeam, ITeamDetailParams } from '@/types/teams.ty
 import { hasProjectEditAccess, sortMemberByRole } from '@/utils/common.utils';
 import { AIRTABLE_REGEX, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
-import { htmlToPlainSnippet } from '@/utils/seo';
+import { absoluteUrl, htmlToPlainSnippet } from '@/utils/seo';
 import { Metadata, ResolvingMetadata } from 'next';
 import { RedirectType, notFound, redirect } from 'next/navigation';
 import styles from './page.module.css';
@@ -393,7 +393,9 @@ export async function generateMetadata(props: IGenerateMetadata, parent: Resolvi
   const team = teamResonse?.data?.formatedData;
   const previousImages = (await parent).openGraph?.images || [];
   const logo = team?.logo || SOCIAL_IMAGE_URL;
-  const pageUrl = `${process.env.APPLICATION_BASE_URL}${PAGE_ROUTES.TEAMS}/${teamId}`;
+  // Through absoluteUrl, which drops a trailing slash on the base: joined by hand, a base ending in "/" gave a
+  // canonical of "https://host//teams/…" (LAB-2924).
+  const pageUrl = absoluteUrl(`${PAGE_ROUTES.TEAMS}/${teamId}`);
   // The team's own words, so each profile has a description of its own rather than one template (LAB-2923).
   const description =
     htmlToPlainSnippet(team?.shortDescription) ||

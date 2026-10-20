@@ -30,13 +30,13 @@
 }
 
 /*
-  LabOS-wide mode (LAB-2879). A page with its own control in this corner marks
-  it with `data-floating-corner-control` (the forum's scroll-to-top, 24px from
-  the bottom), and from tablet-landscape up, where both sit 24px from the
-  bottom, the button moves one step up so it covers neither (LAB-2274). Below
-  that the button already sits at 72px, above the bottom nav and that control.
+  A page with its own control in this corner marks it with
+  `data-floating-corner-control` (the forum's scroll-to-top, 24px from the
+  bottom), and from tablet-landscape up, where both sit 24px from the bottom,
+  the button moves one step up so it covers neither (LAB-2274). Below that the
+  button already sits at 72px, above the bottom nav and that control.
 */
-:global(body:has([data-floating-corner-control])) .wrapGlobal {
+:global(body:has([data-floating-corner-control])) .wrap {
   @include media.tablet-landscape {
     bottom: 72px;
   }

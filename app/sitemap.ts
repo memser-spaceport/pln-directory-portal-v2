@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { PAGE_ROUTES } from '@/utils/constants';
+import { DEMO_DAY_PATH, EVENTS_LIST_PATH, PAGE_ROUTES } from '@/utils/constants';
 import { jobOpeningPath } from '@/services/jobs/job-detail-link';
 import { getApplicationBaseUrl } from '@/utils/seo';
 
@@ -9,7 +9,8 @@ const STATIC_PATHS = [
   PAGE_ROUTES.MEMBERS,
   PAGE_ROUTES.PROJECTS,
   PAGE_ROUTES.JOBS,
-  PAGE_ROUTES.EVENTS,
+  EVENTS_LIST_PATH,
+  DEMO_DAY_PATH,
 ];
 
 type SitemapEntity = { uid: string; lastModified?: Date };

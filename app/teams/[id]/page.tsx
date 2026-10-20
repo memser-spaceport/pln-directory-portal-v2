@@ -13,6 +13,7 @@ import { IFormatedTeamProject, ITeam, ITeamDetailParams } from '@/types/teams.ty
 import { hasProjectEditAccess, sortMemberByRole } from '@/utils/common.utils';
 import { AIRTABLE_REGEX, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
+import { htmlToPlainSnippet } from '@/utils/seo';
 import { Metadata, ResolvingMetadata } from 'next';
 import { RedirectType, notFound, redirect } from 'next/navigation';
 import styles from './page.module.css';
@@ -393,9 +394,11 @@ export async function generateMetadata(props: IGenerateMetadata, parent: Resolvi
   const previousImages = (await parent).openGraph?.images || [];
   const logo = team?.logo || SOCIAL_IMAGE_URL;
   const pageUrl = `${process.env.APPLICATION_BASE_URL}${PAGE_ROUTES.TEAMS}/${teamId}`;
-  const description = team?.name
-    ? `${team.name} on Protocol Labs Directory`
-    : 'Explore teams across the Protocol Labs network.';
+  // The team's own words, so each profile has a description of its own rather than one template (LAB-2923).
+  const description =
+    htmlToPlainSnippet(team?.shortDescription) ||
+    htmlToPlainSnippet(team?.longDescription) ||
+    (team?.name ? `${team.name} on Protocol Labs Directory` : 'Explore teams across the Protocol Labs network.');
   return {
     title: `${team?.name} | Protocol Labs Directory`,
     description,
@@ -403,7 +406,9 @@ export async function generateMetadata(props: IGenerateMetadata, parent: Resolvi
     openGraph: {
       type: 'website',
       url: pageUrl,
+      description,
       images: [logo, ...previousImages],
     },
+    twitter: { description },
   };
 }

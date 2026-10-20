@@ -44,4 +44,14 @@ describe('seo utils', () => {
     expect(htmlToPlainSnippet('<p>Senior engineer at <strong>Acme</strong></p>')).toBe('Senior engineer at Acme');
     expect(htmlToPlainSnippet('<p>abcdefghij</p>', 8)).toBe('abcdefg…');
   });
+
+  /* LAB-2923: profile descriptions come from rich text. Inline formatting must not split a word from its punctuation,
+     while block tags and line breaks still separate words. */
+  it('joins inline formatting to its neighbours and separates blocks', () => {
+    expect(htmlToPlainSnippet('<p>Builds open <b>labs</b>.</p>')).toBe('Builds open labs.');
+    expect(htmlToPlainSnippet('<p>See <a href="https://x.y">our site</a>, then <em>apply</em>!</p>')).toBe(
+      'See our site, then apply!',
+    );
+    expect(htmlToPlainSnippet('<p>One</p><p>Two<br>Three</p><ul><li>Four</li></ul>')).toBe('One Two Three Four');
+  });
 });

@@ -11,8 +11,12 @@
 const mockNotFound = jest.fn(() => {
   throw new Error('NEXT_NOT_FOUND');
 });
+const mockPermanentRedirect = jest.fn((url: string) => {
+  throw new Error(`NEXT_REDIRECT ${url}`);
+});
 jest.mock('next/navigation', () => ({
   notFound: () => mockNotFound(),
+  permanentRedirect: (url: string) => mockPermanentRedirect(url),
   redirect: jest.fn(),
   RedirectType: { replace: 'replace' },
   useRouter: () => ({ push: jest.fn(), replace: jest.fn(), refresh: jest.fn() }),
@@ -25,10 +29,11 @@ jest.mock('@/utils/next-helpers', () => ({
 }));
 
 const mockGetTeam = jest.fn();
+const mockGetTeamUIDByAirtableId = jest.fn();
 jest.mock('@/services/teams.service', () => ({
   getTeam: (...args: unknown[]) => mockGetTeam(...args),
   getAllTeams: jest.fn().mockResolvedValue({ data: { formattedData: [] } }),
-  getTeamUIDByAirtableId: jest.fn().mockResolvedValue([{ uid: 'team-uid' }]),
+  getTeamUIDByAirtableId: (...args: unknown[]) => mockGetTeamUIDByAirtableId(...args),
 }));
 const mockGetProject = jest.fn();
 jest.mock('@/services/projects.service', () => ({
@@ -89,11 +94,37 @@ describe.each([
   });
 });
 
-it('never answers not found for an old Airtable team id, which the page redirects', async () => {
-  mockGetTeam.mockResolvedValue({ error: { status: 404, statusText: 'Not Found' } });
+describe('an old Airtable team id (LAB-2924)', () => {
+  const airtableProps = { ...layoutProps, params: Promise.resolve({ id: 'recAbCdEfGhIjKlMn' }) };
 
-  await expect(
-    (TeamLayout as AsyncComponent)({ ...layoutProps, params: Promise.resolve({ id: 'recAbCdEfGhIjKlMn' }) }),
-  ).resolves.toBe('profile');
-  expect(mockNotFound).not.toHaveBeenCalled();
+  beforeEach(() => {
+    mockPermanentRedirect.mockClear();
+    mockGetTeamUIDByAirtableId.mockReset();
+  });
+
+  it("redirects permanently to the team's uid, from the layout, so the response is a real redirect", async () => {
+    // What the API answers today, and the bare array the page's older branch expected.
+    mockGetTeamUIDByAirtableId.mockResolvedValue({ count: 1, teams: [{ uid: 'team-uid' }] });
+    await expect((TeamLayout as AsyncComponent)(airtableProps)).rejects.toThrow('NEXT_REDIRECT /teams/team-uid');
+
+    mockGetTeamUIDByAirtableId.mockResolvedValue([{ uid: 'team-uid' }]);
+    await expect((TeamLayout as AsyncComponent)(airtableProps)).rejects.toThrow('NEXT_REDIRECT /teams/team-uid');
+    expect(mockNotFound).not.toHaveBeenCalled();
+  });
+
+  it('falls through to the page when the lookup fails or finds nothing, and never answers not found', async () => {
+    mockGetTeam.mockResolvedValue({ error: { status: 404, statusText: 'Not Found' } });
+
+    mockGetTeamUIDByAirtableId.mockResolvedValue({ count: 0, teams: [] });
+    await expect((TeamLayout as AsyncComponent)(airtableProps)).resolves.toBe('profile');
+
+    mockGetTeamUIDByAirtableId.mockResolvedValue({ error: { statusText: 'Service Unavailable' } });
+    await expect((TeamLayout as AsyncComponent)(airtableProps)).resolves.toBe('profile');
+
+    mockGetTeamUIDByAirtableId.mockRejectedValue(new TypeError('fetch failed'));
+    await expect((TeamLayout as AsyncComponent)(airtableProps)).resolves.toBe('profile');
+
+    expect(mockPermanentRedirect).not.toHaveBeenCalled();
+    expect(mockNotFound).not.toHaveBeenCalled();
+  });
 });

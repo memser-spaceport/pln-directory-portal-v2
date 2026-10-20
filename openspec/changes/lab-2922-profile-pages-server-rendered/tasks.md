@@ -23,18 +23,22 @@ Two PRs into `lab-2876`: groups 1 to 3 (editor fix, 404s, project profile), then
 
 ## 4. Member profile body in the server HTML (D3)
 
-- [ ] 4.1 Move the client body to `components/page/member-details/MemberDetailsPage.tsx`, taking `memberId` and `serverMember`. Make `app/members/[id]/page.tsx` an async Server Component that fetches the public member (`with: 'image,skills,location,teamMemberRoles.team'`, signed out), applies 2.3, and renders it. Verify: `tsc` is clean and the existing member-details tests are green.
-- [ ] 4.2 Pass `placeholderData: serverMember` to the member `useQuery`. While `isPlaceholderData` is true, render the public view (`isLoggedIn=false`, no `userInfo`, `isOwner=false`). Verify: a test renders the body with a `serverMember` and a signed-in owner, and asserts no edit control shows until the query resolves, then that edit controls appear.
+- [x] 4.1 Move the client body to `components/page/member-details/MemberDetailsPage.tsx`, taking `memberId` and `serverMember`. Make `app/members/[id]/page.tsx` an async Server Component that fetches the public member (`with: 'image,skills,location,teamMemberRoles.team'`, signed out), applies 2.3, and renders it. Verify: `tsc` is clean and the existing member-details tests are green.
+- [x] 4.2 Pass `placeholderData: serverMember` to the member `useQuery`. While `isPlaceholderData` is true, render the public view (`isLoggedIn=false`, no `userInfo`, `isOwner=false`). Verify: a test renders the body with a `serverMember` and a signed-in owner, and asserts no edit control shows until the query resolves, then that edit controls appear.
 - [ ] 4.3 Check the member profile locally: its server HTML contains the member's name, role, team names and bio, and no email address. Opening it in a browser, signed out and signed in as the owner, shows no hydration warning in the console. Fix each hook that renders differently on the server at its source. Verify: the curl check passes, and the browser console is clean in both cases.
+    - Done (2026-10-20): the server HTML of `/members/cldvnzqfd0287u21km8g49s20` (dev API) has the name, team, role and bio, with no email and no client-render fallback. Signed out, the browser console shows no hydration warning.
+    - **Pending:** a signed-in owner pass in a browser. Local sign-in goes through Privy, so a human must do it.
 
 ## 5. Teams list in the server HTML (D4)
 
-- [ ] 5.1 Extract the teams list query builder to `services/teams/teamsListQuery.ts` (no `'use client'`) and use it from `useInfiniteTeamsList`'s fetcher. Verify: a unit test shows the builder's output is unchanged for sort, investment focus and priorities.
-- [ ] 5.2 `TeamsFilterUrlSync` wraps only the filter rail in the teams layout. Verify: add teams to `__tests__/app/listing-layouts-gate.test.tsx`.
-- [ ] 5.3 The `@content` page fetches page 1 with the viewer's token and passes `serverPage` (`{ key, items, total, followingTotal }`), or nothing on failure. Verify: a page test covers success and failure.
-- [ ] 5.4 `useInfiniteTeamsList` drops the unused `initialData` seed and shows `serverPage` as `placeholderData` while hydrating or when the query equals `serverPage.key`. Verify: hook tests cover (a) a hydrating render with an empty store shows the server page, (b) a matching key shows it, (c) a different filter key does not.
-- [ ] 5.5 `TeamsContent` shows the list without waiting for filter values. `TeamList` and `TeamsToolbar` tolerate undefined `filterValues`. Verify: a test renders `TeamsContent` with a server page while filter values are loading, and finds the team links.
+- [x] 5.1 Extract the teams list query builder to `services/teams/teamsListQuery.ts` (no `'use client'`) and use it from `useInfiniteTeamsList`'s fetcher. Verify: a unit test shows the builder's output is unchanged for sort, investment focus and priorities.
+- [x] 5.2 `TeamsFilterUrlSync` wraps only the filter rail in the teams layout. Verify: add teams to `__tests__/app/listing-layouts-gate.test.tsx`.
+- [x] 5.3 The `@content` page fetches page 1 with the viewer's token and passes `serverPage` (`{ key, items, total, followingTotal }`), or nothing on failure. The fetch lives in `services/teams/getServerTeamsPage.ts`, because a page file may not export helpers. Verify: a test of that module covers success, the key, repeated params and failure.
+- [x] 5.4 `useInfiniteTeamsList` drops the unused `initialData` seed and shows `serverPage` as `placeholderData` while hydrating or when the query equals `serverPage.key`. Verify: hook tests cover (a) a hydrating render with an empty store shows the server page, (b) a matching key shows it, (c) a different filter key does not.
+- [x] 5.5 `TeamsContent` shows the list without waiting for filter values. `TeamList` and `TeamsToolbar` tolerate undefined `filterValues`. Verify: a test renders `TeamsContent` with a server page while filter values are loading, and finds the team links.
 - [ ] 5.6 Check the teams list locally: the server HTML of `/teams` and `/teams?searchBy=<text>` has team names and `/teams/<uid>` links matching what the browser shows after load. In a browser, filtering, the Following tab and infinite scroll work, and the console shows no hydration warning. Verify: the curl check passes, and a manual browser pass works.
+    - Done (2026-10-20): `/teams` and `/teams?searchBy=lab` have 50 team links each in the server HTML, with no fallbacks. The browser shows the same teams (72 for "lab"). Clear All switches to all 1,020 teams, infinite scroll goes from 50 to 200 teams, and there is no hydration warning. The one Next issue was the React DevTools extension's own "bug in React" message.
+    - **Pending:** the Following tab, which needs a signed-in user.
 
 ## 6. Ship
 

@@ -1,10 +1,16 @@
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
+import { getServerTeamsPage } from '@/services/teams/getServerTeamsPage';
 import TeamsContent from './TeamsContent';
 
-async function Page() {
-  const { userInfo, isLoggedIn } = await getCookiesFromHeaders();
+type PageProps = {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
 
-  return <TeamsContent userInfo={userInfo} isLoggedIn={Boolean(isLoggedIn)} />;
+async function Page({ searchParams }: PageProps) {
+  const [{ userInfo, isLoggedIn, authToken }, params] = await Promise.all([getCookiesFromHeaders(), searchParams]);
+  const serverPage = await getServerTeamsPage(params, authToken);
+
+  return <TeamsContent userInfo={userInfo} isLoggedIn={Boolean(isLoggedIn)} serverPage={serverPage} />;
 }
 
 export default Page;

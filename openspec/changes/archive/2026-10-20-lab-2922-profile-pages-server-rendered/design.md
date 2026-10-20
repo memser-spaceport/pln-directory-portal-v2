@@ -48,7 +48,7 @@ See proposal.md for the motivation. These facts shape the approach (code at `e81
 ### D3. Member profile: Server Component page, public member as `placeholderData`
 
 - `page.tsx` becomes an async Server Component. It awaits `params`, fetches the public member signed out, with the same `with` fields the client uses (`image,skills,location,teamMemberRoles.team`), applies D2, and renders `<MemberDetails memberId serverMember />`.
-- The current client body moves to `components/page/member-details/MemberDetailsPage.tsx` (or similar). Its `useQuery` gets `placeholderData: serverMember` (already in the shape `select` returns, so it bypasses `select`, which takes `data.data.formattedData`).
+- The current client body moves to `components/page/member-details/MemberDetailsPage.tsx` (or similar). Its `useQuery` gets `placeholderData: serverMember`. That is the raw `getMember` result (`{ data: { formattedData } }`), because TanStack Query v5 runs `select` on placeholder data too (checked in `query-core` 5.83's `queryObserver`).
 - **Public view while on placeholder.** While `isPlaceholderData` is true, the body renders as a signed-out visitor would: `isLoggedIn=false`, no `userInfo`, `isOwner=false`. This matches the server HTML in the hydrating render, and it stops an owner opening an edit form prefilled from the redacted public record. When the viewer's own fetch lands, edit controls and private fields appear.
 - `useSearchParams` stays in the client body (`prefillEmail`/`returnTo`). The route is dynamic (it reads cookies), so this does not bail the page out to client rendering.
 

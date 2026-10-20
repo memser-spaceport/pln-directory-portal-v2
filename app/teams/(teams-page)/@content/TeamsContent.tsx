@@ -17,23 +17,26 @@ import { useTeamsFilters } from '../hooks/useGetTeamsFilterValues';
 import { useGetTeamsFilterAsObjectFromStore } from '@/hooks/teams/useGetTeamsFilterAsObjectFromStore';
 import { useTeamFilterStore } from '@/services/teams';
 import { useInfiniteTeamsList } from '@/services/teams/hooks/useInfiniteTeamsList';
+import type { ServerTeamsPage } from '@/services/teams/teamsListQuery';
 import { useFollowingTeamsCount } from '@/services/follow/hooks/useFollowingTeamsCount';
 import { FollowingEmptyState } from '@/components/page/teams/FollowingEmptyState';
 
 interface TeamsContentProps {
   userInfo: IUserInfo | undefined;
   isLoggedIn: boolean;
+  /** Page 1 as the server fetched it, so the list is in the server HTML (LAB-2922). */
+  serverPage?: ServerTeamsPage;
 }
 
 export default function TeamsContent(props: TeamsContentProps) {
-  const { userInfo, isLoggedIn } = props;
+  const { userInfo, isLoggedIn, serverPage } = props;
 
   const searchParams = useGetTeamsFilterAsObjectFromStore();
   const clearParams = useTeamFilterStore((s) => s.clearParams);
   const isFollowingOnly = searchParams.followingOnly === 'true';
 
   // Use the shared hook for filters
-  const { filterValues, isLoading: isLoadingFilters, isError: isFiltersError } = useTeamsFilters(searchParams);
+  const { filterValues, isError: isFiltersError } = useTeamsFilters(searchParams);
 
   // Single source of truth for the grid, the toolbar's total count, and pagination.
   const {
@@ -46,7 +49,7 @@ export default function TeamsContent(props: TeamsContentProps) {
     isLoading: isLoadingTeams,
     isError: isTeamsError,
     isRefetching,
-  } = useInfiniteTeamsList({ searchParams });
+  } = useInfiniteTeamsList({ searchParams }, { serverPage });
 
   // Lives in its own cache entry, decoupled from the active tab, so it stays accurate
   // whether the user is following/unfollowing from the All tab or the Following tab.
@@ -76,7 +79,10 @@ export default function TeamsContent(props: TeamsContentProps) {
   const closeTeamNews = useCallback(() => setNewsModal(null), []);
   const isMobile = useIsMobile();
 
-  const isLoading = isLoadingTeams || isLoadingFilters;
+  /* The list does not wait for the filter values (LAB-2922). They only label the mobile filter sheet, which tolerates
+     their absence, and on the server they are never fetched: waiting for them kept the server-rendered page 1 behind
+     the skeleton. */
+  const isLoading = isLoadingTeams;
   const isError = isTeamsError || isFiltersError;
 
   // Manage loader visibility

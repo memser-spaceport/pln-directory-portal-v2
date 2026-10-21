@@ -128,6 +128,22 @@ describe('ForumDigest', () => {
       expect(screen.getByText('Network news')).toBeInTheDocument();
     });
 
+    it('links to News preferences while Network news is on (LAB-2941)', () => {
+      mockGetForumDigestSettings.mockReturnValue({ data: enabledData });
+      render(<ForumDigest userInfo={userInfo} initialData={enabledData} hasForumAccess />);
+      expect(screen.getByRole('link', { name: 'News preferences' })).toHaveAttribute(
+        'href',
+        '/settings/news-preferences?from=settings',
+      );
+    });
+
+    it('hides the News preferences link while Network news is off', () => {
+      const newsOff = { ...enabledData, forumDigestNewsEnabled: false };
+      mockGetForumDigestSettings.mockReturnValue({ data: newsOff });
+      render(<ForumDigest userInfo={userInfo} initialData={newsOff} hasForumAccess />);
+      expect(screen.queryByRole('link', { name: 'News preferences' })).not.toBeInTheDocument();
+    });
+
     it('mutates forumDigestForumEnabled and fires analytics when the forum-activity toggle is clicked', () => {
       mockGetForumDigestSettings.mockReturnValue({ data: enabledData });
       render(<ForumDigest userInfo={userInfo} initialData={enabledData} hasForumAccess />);

@@ -51,12 +51,12 @@ For You on Home SHALL show only news whose category is among the member's chosen
 - **THEN** For You is the same as before this change
 
 ### Requirement: Profile signals
-"Suggested from your profile" SHALL list, read-only, each team the member belongs to, with that team's focus areas and industry tags, marked as set by the team. A member with no team SHALL see that their suggestions then come only from teams they follow.
+"Suggested from your profile" SHALL list, read-only, each team the member belongs to, with that team's focus areas, industry tags and community affiliations (the attributes For You and the digest match other teams on). The values are set on the team's profile. A member with no team SHALL see that their suggestions then come only from teams they follow.
 
 #### Scenario: Member on a team
 - **GIVEN** a member of a team with focus areas and industry tags
 - **WHEN** they open News preferences
-- **THEN** the section shows the team's name with its focus areas and industry tags, and no editing controls
+- **THEN** the section shows the team's name, linking to the team, with its focus areas, industry tags and communities, and no editing controls
 
 ### Requirement: Teams you follow
 The Teams you follow section SHALL list the teams the member follows, each with a Follow/Following control. Unfollowing SHALL keep the team in the list until the page is left, so it can be followed again in place. With no followed teams, the section SHALL show an empty state that links to Teams.

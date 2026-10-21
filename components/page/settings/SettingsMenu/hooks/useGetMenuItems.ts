@@ -16,6 +16,13 @@ export function useGetMenuItems(userInfo: IUserInfo) {
         icon: '/icons/bell.svg',
         activeIcon: '/icons/bell-blue.svg',
       },
+      // What shapes For You and the digest's news (LAB-2941).
+      {
+        name: 'news preferences',
+        url: '/settings/news-preferences',
+        icon: '/icons/globe.svg',
+        activeIcon: '/icons/globe-blue.svg',
+      },
     ];
 
     if (recommendationsEnabled) {

@@ -1,16 +1,18 @@
 import Link from 'next/link';
-
 import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
-import { PAGE_ROUTES } from '@/utils/constants';
-
 import s from './ForYouHint.module.scss';
 
 interface ForYouHintProps {
   memberUid?: string;
 }
 
+/**
+ * For You's one-line explanation. "Tune For You" (LAB-2941) opens News
+ * preferences, which holds the categories, the profile signals and the teams
+ * followed; the profile link lives there now.
+ */
 export function ForYouHint({ memberUid }: ForYouHintProps) {
-  const { onTeamNewsForYouUpdateProfileClicked } = useTeamNewsAnalytics();
+  const { onTeamNewsForYouTuneClicked } = useTeamNewsAnalytics();
 
   return (
     <p className={s.root}>
@@ -19,15 +21,12 @@ export function ForYouHint({ memberUid }: ForYouHintProps) {
         <>
           {' '}
           <Link
-            href={`${PAGE_ROUTES.MEMBERS}/${memberUid}?backTo=${encodeURIComponent(PAGE_ROUTES.HOME)}`}
+            href="/settings/news-preferences?from=feed"
             className={s.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => onTeamNewsForYouUpdateProfileClicked(memberUid)}
+            onClick={() => onTeamNewsForYouTuneClicked(memberUid)}
           >
-            Update your profile
-          </Link>{' '}
-          to make it more relevant.
+            Tune For You
+          </Link>
         </>
       ) : null}
     </p>

@@ -2203,7 +2203,7 @@ describe('TeamNews', () => {
       expect(
         screen.getByText(/For you: Curated based on your profile, primary team attributes, and the teams you follow/),
       ).toBeInTheDocument();
-      expect(screen.queryByRole('link', { name: /Update your profile/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Tune For You' })).not.toBeInTheDocument();
       expect(screen.getByText('Headline mem-1')).toBeInTheDocument();
       expect(screen.queryByText('Headline mem-same-old')).not.toBeInTheDocument();
       expect(screen.queryByText('Headline mem-0')).not.toBeInTheDocument();
@@ -2211,7 +2211,34 @@ describe('TeamNews', () => {
       expect(screen.queryByText('Headline other-1')).not.toBeInTheDocument();
     });
 
-    it('explains the personalized feed and links to the member profile', () => {
+    it('narrows For You news to the News preferences categories, but not All (LAB-2941)', () => {
+      renderTeamNews(
+        <TeamNews groups={forYouGroups} forYouTeamUids={['team-mem', 'team-rec']} newsCategories={['LAUNCH']} />,
+      );
+
+      // Mem Team's newest story is FUNDING (off), so its latest LAUNCH story stands in.
+      expect(screen.getByText('Headline mem-0')).toBeInTheDocument();
+      expect(screen.queryByText('Headline mem-1')).not.toBeInTheDocument();
+      expect(screen.getByText('Headline rec-1')).toBeInTheDocument();
+
+      fireEvent.click(within(catRow()).getByRole('button', { name: /All categories/ }));
+      expect(screen.getByText('Headline mem-1')).toBeInTheDocument();
+    });
+
+    it('treats every category on as no narrowing', () => {
+      renderTeamNews(
+        <TeamNews
+          groups={forYouGroups}
+          forYouTeamUids={['team-mem', 'team-rec']}
+          newsCategories={['FUNDING', 'LAUNCH', 'PARTNERSHIP', 'ANNOUNCEMENT', 'MILESTONE', 'OTHER']}
+        />,
+      );
+
+      expect(screen.getByText('Headline mem-1')).toBeInTheDocument();
+      expect(screen.queryByText('Headline mem-0')).not.toBeInTheDocument();
+    });
+
+    it('explains the personalized feed and links to News preferences', () => {
       useCurrentUserStore.setState({ currentUser: { uid: 'user-1' }, isHydrated: true });
       try {
         renderTeamNews(<TeamNews groups={forYouGroups} forYouTeamUids={['team-mem', 'team-rec']} />);
@@ -2219,9 +2246,10 @@ describe('TeamNews', () => {
         expect(
           screen.getByText(/For you: Curated based on your profile, primary team attributes, and the teams you follow/),
         ).toBeInTheDocument();
-        const profileLink = screen.getByRole('link', { name: /Update your profile/ });
-        expect(profileLink).toHaveAttribute('href', '/members/user-1?backTo=%2Fhome');
-        expect(profileLink).toHaveAttribute('target', '_blank');
+        expect(screen.getByRole('link', { name: 'Tune For You' })).toHaveAttribute(
+          'href',
+          '/settings/news-preferences?from=feed',
+        );
 
         fireEvent.click(within(catRow()).getByRole('button', { name: /All categories/ }));
 

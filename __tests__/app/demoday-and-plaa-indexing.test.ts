@@ -12,7 +12,6 @@ jest.mock('@/services/plaa/summary.service', () => ({ getPlaaSummary: jest.fn() 
 import { generateMetadata as demoDayLayoutMetadata } from '@/app/demoday/[demoDayId]/layout';
 import { generateMetadata as demoDayLandingMetadata } from '@/app/demoday/[demoDayId]/page';
 import { generateMetadata as demoDayCompletedMetadata } from '@/app/demoday/[demoDayId]/completed/page';
-import { metadata as plaaMetadata } from '@/app/alignment-asset/page';
 
 const params = { params: Promise.resolve({ demoDayId: 'plf25' }) };
 
@@ -34,6 +33,12 @@ it.each([
 });
 
 it('gives /alignment-asset its own canonical address', () => {
-  // A static export, built when the module loads, so it carries whatever base URL the environment had then.
-  expect(String(plaaMetadata.alternates?.canonical)).toMatch(/^https?:\/\/[^/]+\/alignment-asset$/);
+  /* A static export, built when the module loads, so the base URL must be set before the module is loaded: CI has
+     none, and the local env files do. */
+  process.env.APPLICATION_BASE_URL = 'https://os.pl.xyz';
+  let canonical: unknown;
+  jest.isolateModules(() => {
+    canonical = require('@/app/alignment-asset/page').metadata.alternates?.canonical;
+  });
+  expect(canonical).toBe('https://os.pl.xyz/alignment-asset');
 });

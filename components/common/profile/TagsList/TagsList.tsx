@@ -3,6 +3,8 @@ import clsx from 'clsx';
 import { Tag } from '@/components/ui/Tag';
 import CustomTooltip from '@/components/ui/Tooltip/Tooltip';
 
+import { TagsOverflow } from '../TagsOverflow';
+
 import s from './TagsList.module.scss';
 
 interface Props {
@@ -39,24 +41,7 @@ export function TagsList(props: Props) {
       })}
 
       {tagsNum > tagsToShow && (
-        <CustomTooltip
-          forceTooltip
-          trigger={
-            <div>
-              <Tag variant="primary" value={'+' + (tagsNum - tagsToShow).toString()} className={classes?.tag} />
-            </div>
-          }
-          content={
-            <div>
-              {tags
-                ?.slice(tagsToShow, tagsNum)
-                .map((tag) => tag?.title)
-                .join(',|')
-                .split('|')
-                .map((tag) => <div key={tag}>{tag}</div>)}
-            </div>
-          }
-        />
+        <TagsOverflow titles={tags.slice(tagsToShow).map((tag) => tag.title)} className={classes?.tag} />
       )}
     </div>
   );

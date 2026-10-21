@@ -24,7 +24,9 @@ permissions:
 env:
   PREVIEW_DOMAIN: preview.dev.os.pl.xyz
   VERCEL_SCOPE: polaris-01
-  VERCEL_CLI: vercel@63.1.0
+  # The REST API instead of the Vercel CLI: the CLI loads the token's user first, which fails
+  # with "User not found (404)" for team-scoped tokens.
+  VERCEL_API: https://api.vercel.com
 
 jobs:
   alias:
@@ -55,13 +57,24 @@ jobs:
           DEPLOYMENT_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url }}
           NUMBERS: ${{ steps.prs.outputs.numbers }}
         run: |
-          if [ -z "$VERCEL_TOKEN" ]; then
+          token=$(printf '%s' "$VERCEL_TOKEN" | tr -d '[:space:]')
+          if [ -z "$token" ]; then
             echo "::error::Secret VERCEL_TOKEN is not set"
             exit 1
           fi
+          deployment=${DEPLOYMENT_URL#https://}
+          deployment=${deployment%/}
           for n in $NUMBERS; do
-            npx --yes "$VERCEL_CLI" alias set "$DEPLOYMENT_URL" "pr-$n.$PREVIEW_DOMAIN" \
-              --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE"
+            host="pr-$n.$PREVIEW_DOMAIN"
+            code=$(curl -sS -o response.json -w '%{http_code}' -X POST \
+              "$VERCEL_API/v2/deployments/$deployment/aliases?slug=$VERCEL_SCOPE" \
+              -H "Authorization: Bearer $token" -H "Content-Type: application/json" \
+              -d "{\"alias\":\"$host\"}")
+            if [ "$code" != "200" ]; then
+              echo "::error::Vercel answered $code for $host: $(cat response.json)"
+              exit 1
+            fi
+            echo "https://$host -> https://$deployment"
           done
 
       - name: Post or update the preview link on the PR
@@ -96,9 +109,33 @@ jobs:
           NUMBER: ${{ github.event.pull_request.number }}
         run: |
           # PRs from forks get no secrets; their alias stays until removed by hand.
-          if [ -z "$VERCEL_TOKEN" ]; then
+          token=$(printf '%s' "$VERCEL_TOKEN" | tr -d '[:space:]')
+          if [ -z "$token" ]; then
             echo "No VERCEL_TOKEN, skipping"
             exit 0
           fi
-          npx --yes "$VERCEL_CLI" alias rm "pr-$NUMBER.$PREVIEW_DOMAIN" --yes \
-            --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE" || echo "No alias to remove"
+          host="pr-$NUMBER.$PREVIEW_DOMAIN"
+          # DELETE takes the alias id, not its hostname.
+          code=$(curl -sS -o alias.json -w '%{http_code}' \
+            "$VERCEL_API/v2/aliases/$host?slug=$VERCEL_SCOPE" -H "Authorization: Bearer $token")
+          # A missing alias comes back as 404, or as 204 with an empty body.
+          if [ "$code" = "404" ] || [ "$code" = "204" ]; then
+            echo "No alias $host"
+            exit 0
+          fi
+          if [ "$code" != "200" ]; then
+            echo "::error::Vercel answered $code for $host: $(cat alias.json)"
+            exit 1
+          fi
+          uid=$(jq -r '.uid // empty' alias.json)
+          if [ -z "$uid" ]; then
+            echo "No alias $host"
+            exit 0
+          fi
+          code=$(curl -sS -o response.json -w '%{http_code}' -X DELETE \
+            "$VERCEL_API/v2/aliases/$uid?slug=$VERCEL_SCOPE" -H "Authorization: Bearer $token")
+          if [ "$code" != "200" ]; then
+            echo "::error::Vercel answered $code deleting $host: $(cat response.json)"
+            exit 1
+          fi
+          echo "Removed $host"

@@ -112,11 +112,20 @@ describe('an old Airtable team id (LAB-2924)', () => {
     expect(mockNotFound).not.toHaveBeenCalled();
   });
 
-  it('falls through to the page when the lookup fails or finds nothing, and never answers not found', async () => {
-    mockGetTeam.mockResolvedValue({ error: { status: 404, statusText: 'Not Found' } });
-
+  /* An id the API knows no team for, such as one Search Console reported (recWJ7gY2ZHGwXTzP), answered 200 with an
+     error page: a "soft 404" (LAB-2924). It is a real 404 now. */
+  it('answers not found when the lookup succeeds and finds no team', async () => {
     mockGetTeamUIDByAirtableId.mockResolvedValue({ count: 0, teams: [] });
-    await expect((TeamLayout as AsyncComponent)(airtableProps)).resolves.toBe('profile');
+    await expect((TeamLayout as AsyncComponent)(airtableProps)).rejects.toThrow('NEXT_NOT_FOUND');
+
+    mockNotFound.mockClear();
+    mockGetTeamUIDByAirtableId.mockResolvedValue([]);
+    await expect((TeamLayout as AsyncComponent)(airtableProps)).rejects.toThrow('NEXT_NOT_FOUND');
+    expect(mockPermanentRedirect).not.toHaveBeenCalled();
+  });
+
+  it('falls through to the page when the lookup fails, and never answers not found', async () => {
+    mockGetTeam.mockResolvedValue({ error: { status: 404, statusText: 'Not Found' } });
 
     mockGetTeamUIDByAirtableId.mockResolvedValue({ error: { statusText: 'Service Unavailable' } });
     await expect((TeamLayout as AsyncComponent)(airtableProps)).resolves.toBe('profile');

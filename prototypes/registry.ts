@@ -534,6 +534,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     category: 'Demo Day',
     load: () => import('./entries/explore-pl-network/ExplorePlNetworkVisualPrototype'),
   },
+  {
+    key: 'lab-2948-prototype-a-better-mcp-connect',
+    title: 'MCP connect and agent control in Settings',
+    description:
+      'The MCP card in Settings, Email & Accounts, with mock data: how to connect an agent for each client, each agent with its access level (read-only or make changes) and its last actions, the outward actions that wait for your confirm, and revoke. Marks show the parts that need new backend work. LAB-2948.',
+    category: 'AI Apps',
+    load: () => import('./entries/lab-2948-prototype-a-better-mcp-connect/PrototypeABetterMcpConnectPrototype'),
+  },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).
   // {

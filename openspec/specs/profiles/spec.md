@@ -109,7 +109,7 @@ The meta description of a team or project profile SHALL be the profile's own tex
 
 ### Requirement: Old team links redirect to the team
 
-A team profile requested by its old Airtable record id (`/teams/rec…`) SHALL redirect permanently (308) to the team's profile at its uid. If the lookup fails or finds no team, the page SHALL show its error, not a 404.
+A team profile requested by its old Airtable record id (`/teams/rec…`) SHALL redirect permanently (308) to the team's profile at its uid. An id that belongs to no team SHALL answer 404. If the lookup itself fails, the page SHALL show its error, not a 404.
 
 #### Scenario: Known Airtable id
 
@@ -121,5 +121,11 @@ A team profile requested by its old Airtable record id (`/teams/rec…`) SHALL r
 
 - **GIVEN** no team has the Airtable record id `recZ`
 - **WHEN** a client requests `/teams/recZ`
+- **THEN** the response status is 404 and the page is the site's not-found page
+
+#### Scenario: Airtable lookup fails
+
+- **GIVEN** the API fails while looking up the Airtable record id `recA`
+- **WHEN** a client requests `/teams/recA`
 - **THEN** the response is not a 404 and the page shows the error message
 

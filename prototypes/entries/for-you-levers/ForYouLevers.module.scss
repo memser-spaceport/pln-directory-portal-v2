@@ -1,0 +1,276 @@
+@use 'styles/media';
+
+// No background of its own: the app body's #f1f5f9 shows, as on /home, so
+// ForYouHint's #f9fafb slab reads against it the way it does in production.
+.page {
+  min-height: 100vh;
+}
+
+// ---------- Prototype chrome (variant + feed switches) ----------
+
+.switcher {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 12px 24px;
+  border-bottom: 1px dashed var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  @include media.mobile-only {
+    padding: 12px 16px;
+  }
+}
+
+.switchGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.switchLabel {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.segmented {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  overflow-x: auto;
+}
+
+.segment {
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--foreground-neutral-secondary, #455468);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.segmentActive {
+  background: #fff;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  box-shadow: 0 1px 2px rgba(14, 15, 17, 0.08);
+}
+
+// ---------- Page layout (production TeamNews `.layout` columns) ----------
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 24px 96px;
+
+  @include media.desktop {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+
+  @include media.mobile-only {
+    padding: 16px 16px 96px;
+  }
+}
+
+.feedCol {
+  min-width: 0;
+}
+
+.railCol {
+  @include media.desktop {
+    position: sticky;
+    top: 88px;
+  }
+}
+
+.feedHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.feedTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+}
+
+.count {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+// ---------- Hint variants (on top of production's ForYouHint `.root`) ----------
+
+.hintBlock {
+  margin-bottom: 16px;
+
+  // The production slab carries its own bottom margin; inside a block the block owns it.
+  > :first-child {
+    margin-bottom: 0;
+  }
+}
+
+.hintRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+.hintLabel {
+  margin-right: 6px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-weight: 500;
+}
+
+.hintButton {
+  flex-shrink: 0;
+
+  @include media.mobile-only {
+    width: 100%;
+  }
+}
+
+.linkButton {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.inlinePanel.inlinePanel {
+  margin-top: 8px;
+}
+
+.panelEmpty {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+// ---------- Thin-feed ask ----------
+
+.thinAsk.thinAsk {
+  margin-bottom: 16px;
+}
+
+.thinTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.thinBody {
+  margin: 2px 0 12px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.thinRows {
+  display: flex;
+  flex-direction: column;
+}
+
+// ---------- Card additions ----------
+
+.card {
+  transition:
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.cardNew.cardNew {
+  border-color: var(--border-brand-subtle, rgba(27, 77, 255, 0.32));
+  animation: arrive 0.5s ease-out;
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.headText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.reason {
+  overflow: hidden;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.newTag {
+  flex-shrink: 0;
+  padding: 2px 6px;
+  border-radius: 9999px;
+  background: var(--background-brand-subtle, rgba(27, 77, 255, 0.08));
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.railPulse.railPulse {
+  border-color: var(--foreground-brand-primary, #1b4dff);
+  box-shadow: 0 0 0 4px rgba(27, 77, 255, 0.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cardNew.cardNew {
+    animation: none;
+  }
+}

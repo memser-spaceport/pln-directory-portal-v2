@@ -1,0 +1,526 @@
+// home-refactor-b — ask-first, one column. Composition, the scope chips, the
+// prompt cards and the week module's row anatomy. Card shells, rows, tabs,
+// composer and answer are production / sibling classes (see the reuse map in
+// HomeRefactorBPrototype.tsx). Token + fallback pairs from prototypes/CLAUDE.md
+// §4 and the neighbouring sheets named inline.
+
+@use 'styles/media';
+@use 'styles/mixins';
+
+/* ---------- Page: one 760px column, no rail ---------- */
+
+/* Plane's measure. The AI Search page's composer is 760px too, so the field
+   is the same width it is on its own page, and everything under it lines up
+   to it. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+  max-width: 792px; // 760 + 2 × 16 gutter
+  margin: 0 auto;
+  padding: 32px 16px 96px;
+
+  @include media.tablet-landscape {
+    gap: 40px;
+    padding-top: 64px;
+  }
+}
+
+/* ---------- Greeting ---------- */
+
+.greeting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+/* The page headline at Home's own 28 → 32 size (v0.sectionTitle), one rank. */
+.hello {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 36px;
+  letter-spacing: -0.6px;
+
+  @include media.breakpoint-1024 {
+    font-size: 32px;
+    line-height: 42px;
+    letter-spacing: -0.75px;
+  }
+}
+
+.date {
+  margin: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* ---------- Composer + scope ---------- */
+
+.ask {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.fieldWrap {
+  position: relative;
+}
+
+/* The Composer's `home` size: two lines plus its 56px bottom band, where the
+   chips sit (left) beside the send (right). */
+.composer.composer {
+  textarea {
+    min-height: 112px;
+  }
+}
+
+.scopes {
+  position: absolute;
+  left: 12px;
+  right: 56px; // clear of the 32px send at right: 12px
+  bottom: 12px;
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  @include mixins.hide-scrollbar;
+}
+
+/* A control chip (the DS's second lineage, memory: two chip lineages): white
+   with a subtle edge at rest, the brand triple on hover and when on, the
+   brand outline for focus. Copied from TeamUpdatesLink.badge / RouteChip. */
+.scopeChip {
+  flex-shrink: 0;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 999px;
+  background: var(--background-neutral-primary, #fff);
+  color: var(--foreground-neutral-secondary, #455468);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease,
+    border-color 0.12s ease;
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--background-brand-subtle, #eef2ff);
+      border-color: var(--border-brand-subtle, #aebfff);
+      color: var(--foreground-brand-primary, #1b4dff);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.scopeChipOn.scopeChipOn {
+  background: var(--background-brand-subtle, #eef2ff);
+  border-color: var(--border-brand-primary, #1b4dff);
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+/* ---------- Small section heads (Plane's grey labels) ---------- */
+
+.smallHead {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+/* ---------- "Start with a question" ---------- */
+
+.prompts {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.promptRow {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  /* Phones: one row you swipe, each card most of the screen wide. */
+  @include media.mobile-only {
+    grid-auto-columns: 78%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    margin: 0 -16px;
+    padding: 0 16px 4px;
+    scroll-padding: 0 16px;
+    @include mixins.hide-scrollbar;
+  }
+}
+
+.promptItem {
+  display: flex;
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+/* The news card's shell (NewsCard .card: white, 16px radius, the two-layer
+   shadow and its lift on hover) at a smaller padding, as a button. */
+.promptCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 16px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--background-neutral-primary, #fff);
+  box-shadow:
+    0 0 1px 0 rgba(15, 23, 42, 0.12),
+    0 4px 4px 0 rgba(15, 23, 42, 0.04);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: box-shadow 0.12s ease;
+
+  &:hover {
+    box-shadow:
+      0 0 1px 0 rgba(15, 23, 42, 0.16),
+      0 6px 8px 0 rgba(15, 23, 42, 0.06);
+  }
+
+  &:hover .promptQuestion {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+.promptKind,
+.kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+
+  svg {
+    flex-shrink: 0;
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+}
+
+.promptQuestion {
+  flex: 1;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  transition: color 0.12s ease;
+}
+
+.promptFrom {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+  @include mixins.ellipse-text;
+}
+
+/* ---------- The week module ---------- */
+
+.module.module {
+  gap: 0;
+  padding: 20px 20px 16px;
+  cursor: default;
+
+  &:hover {
+    box-shadow:
+      0 0 1px 0 rgba(15, 23, 42, 0.12),
+      0 4px 4px 0 rgba(15, 23, 42, 0.04);
+  }
+
+  @include media.mobile-only {
+    padding: 16px 16px 12px;
+  }
+}
+
+.moduleHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+/* A's section title (homeAsk.homeNewsTitle: 20/28, 600). */
+.moduleTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+  letter-spacing: -0.2px;
+}
+
+/* DS Tabs (underline), compacted to 14px for a module, with a hairline under
+   the list so the indicator has something to sit on. */
+.tabsRoot {
+  margin: 4px -20px 0;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  @include media.mobile-only {
+    margin: 4px -16px 0;
+    padding: 0 4px;
+  }
+}
+
+.tab.tab {
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.tabBadge {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.lists {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.groupHead {
+  margin: 16px 0 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  > li:not(:last-child) > * {
+    border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+}
+
+/* NewsCard .cardFlat, turned into a row: logo left, text right. The flat
+   card's own divider rule keys on :last-child of the <a>, which is alone in
+   its <li>, so `.rows` draws the hairlines instead. */
+.row.row {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  text-align: left;
+
+  &:first-child {
+    padding-top: 14px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+
+  &:hover .rowTitle {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.avatarRound.avatarRound {
+  border-radius: 50%;
+}
+
+.rowText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.rowKicker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.kindSub {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-weight: 400;
+}
+
+.rowTime {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.rowTitle.rowTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  transition: color 0.12s ease;
+}
+
+.rowMeta.rowMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 6px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.rowSource {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-weight: 500;
+}
+
+.rowMetaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.moduleFoot {
+  padding-top: 12px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.seeAllRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+}
+
+.seeAllLabel {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* A's "See all" link (brand, 14/20 500), with the arrow aligned. */
+.seeAll {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- Picked repos strip ---------- */
+
+.strip {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stripHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.stripSub {
+  margin: 2px 0 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* A's RepoCard, 280px each, one row you scroll sideways; the strip bleeds
+   to the column edge so the next card peeks. */
+.stripRow {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 280px;
+  gap: 12px;
+  margin: 0 -16px;
+  padding: 4px 16px 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 0 16px;
+  list-style: none;
+  @include mixins.hide-scrollbar;
+
+  /* Desktop: three cards fit the column, so no sideways scroll and no card
+     cut at the column edge; "See all" carries the other three. */
+  @include media.tablet-landscape {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+    padding: 4px 0 8px;
+    overflow: visible;
+
+    > li:nth-child(n + 4) {
+      display: none;
+    }
+  }
+}
+
+.stripItem {
+  display: flex;
+  scroll-snap-align: start;
+
+  > * {
+    width: 100%;
+  }
+}

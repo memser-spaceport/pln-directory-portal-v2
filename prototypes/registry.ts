@@ -159,6 +159,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/demoday-tag-placements/DemodayTagPlacementsPrototype'),
   },
   {
+    key: 'team-locations',
+    title: 'Team locations — primary and remove',
+    description:
+      'LAB-2829 feedback on the multi-location field in the team profile\'s Edit Profile Details card, Current (the LAB-2830 feature env, transcribed) beside Proposed. Proposed keeps the same locations array with locations[0] first, but calls it the primary location rather than the HQ (the slot was filled from the old "where your team is based" field, and remote teams may have no HQ). One list: the first row wears a blue Primary badge (DS Badge, Blue · Light · md) in the slot where every other row has "Make primary" (swaps it to the top), and each row removes with the product\'s grey trash mark inside the field instead of a field-height bordered ✕. Removing the primary promotes the next row. No resting empty row beyond the first (Add location appends and focuses one), and saving stays the form\'s one Save — inside the member profile\'s section-editing pattern: Cancel/Save under the fields, the rest of the team page muted while the card is open, and the save status bar once the card is scrolled away ("Editing Profile Details" / "Unsaved changes in Profile Details" with Keep editing and Save changes).',
+    category: 'Teams',
+    load: () => import('./entries/team-locations/TeamLocationsPrototype'),
+  },
+  {
     key: 'onboarding',
     title: 'New member profile — first fill',
     description:
@@ -239,6 +247,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/newsfeed/NewsfeedPrototype'),
   },
   {
+    key: 'for-you-levers',
+    title: 'For You — explaining the levers',
+    description:
+      'Four variants of the For You hint, switched with ?variant= (current / follow / explain / thin-feed), plus a Quiet / Busy week switch. Only the confirmed inputs are named: your teams, the teams you follow, and Teams-to-follow focus-area matches. Following or unfollowing changes the mocked For You list straight away, so each variant shows cause and effect. Analytics events are console.logged with a variant property. The README lists open questions for the backend team.',
+    category: 'Newsfeed',
+    load: () => import('./entries/for-you-levers/ForYouLeversPrototype'),
+  },
+  {
     key: 'notifications-hub',
     title: 'Notifications — bell panel',
     description:
@@ -261,6 +277,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'Recreation of the Settings › Email Preferences tab (settings menu + all sections) from the real components. The one change: the old "Forum Digest" is renamed "Digest" (it actually carries forum activity + network news) and gains per-content toggles, so a member can keep the digest but switch Network news off independently.',
     category: 'Newsfeed',
     load: () => import('./entries/email-preferences/EmailPreferencesPrototype'),
+  },
+  {
+    key: 'digest-topics',
+    title: 'News preferences',
+    description:
+      'A new Settings page (after Email Preferences) for what shapes For You AND the digest: news categories, Suggested from your profile (skills, focus areas, read-only), Teams you follow. Email Preferences keeps delivery + one link here. Doors: digest email, For You hint, settings menu (?from=digest|feed|settings, ?persona).',
+    category: 'Newsfeed',
+    load: () => import('./entries/digest-topics/DigestTopicsPrototype'),
   },
   {
     key: 'settings-contact-details',
@@ -421,6 +445,22 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'The Home prototype (newsfeed) with AI Search\'s field leading the page; for members it replaces Quick Actions (signed out, the banner stays under it). The header carries ai-mode\'s search — the field fills the free width, results hang under it without the "Chat with AI Search about…" row, and its AI badge opens AI Search with what you typed — and Job Board as its own item between Events and Forum (out of More; Demo Day moves into the Events menu as its last row so the row fits with its icons).It opens on the Big field (the AI Search page\'s own composer, two lines at rest); the review band\'s Field switch offers the one-line Search box, which reads as a search box, not a chat composer:the AI Search mark and name inside one line, Enter to ask, an Ask button only once there is text, and "Try" plus three questions as a line of links (not pills, so they are not read as another row of feed filters). Enter shows Google\'s AI Overview pattern — one short answer under the field with the AI Search wait, the prose, the first four directory results and "Continue in AI Search", which opens the ai-search-page with that answer as a thread; there is no follow-up box on Home, so it never becomes a third chat. LAB-2704 (review band Viewer → Portfolio founder): the same field takes general requests for the PL team. The placeholder names both jobs; text that reads as a request ("Help me get intros to investors in climate tech") gets a "Send this to the PL team" draft instead of an AI answer — editable, sent with the founder\'s profile and team, confirmed in place with "The PL team has your request" and where the reply goes. Each card has a labelled door to the other (Search the network instead / Send to the PL team instead). Works signed out too (the page opens as a guest; no request door). Everything mocked.',
     category: 'Newsfeed',
     load: () => import('./entries/home-ai-ask/HomeAiAskPrototype'),
+  },
+  {
+    key: 'home-refactor',
+    title: 'Home refactor — AI Search hero + editorial sections',
+    description:
+      'Exploration, not a committed design. Home opens on an open AI Search field (typeable, three Try prompts; Enter answers under the field or opens AI Search, switchable), then editorial sections in a deliberate order: This week in the network (lead story + rows), From the forum (author on top), Open roles in the network as the rail beside them, and a curated Selected GitHub repos grid from network teams. Built from home-ai-ask, newsfeed and newsfeed-v0 pieces; the repo card is new. Open questions in its README.',
+    category: 'Newsfeed',
+    load: () => import('./entries/home-refactor/HomeRefactorPrototype'),
+  },
+  {
+    key: 'home-refactor-b',
+    title: 'Home refactor B — ask-first, one column',
+    description:
+      'Version B of Home refactor, same brief and same week of content, different structure. Exploration, not a committed design. One 760px column with no rail: a greeting with the date, an AI composer with scope chips inside it (Anything · People · Teams · Jobs · Repos change the placeholder and the prompts), "Start with a question" cards built from this week\'s jobs, news, forum and repos (a card fills and submits the field; the inline answer and Continue in AI Search are A\'s), then ONE "This week in the network" module, tabs All · News · Forum · Jobs · Repos · Events over compact rows that open A\'s modals, each tab ending in See all. A small Picked repos strip keeps the curated idea visible. The navbar search hides while the composer is on screen (switchable). Mocks are re-dated to the viewer\'s week. Mobbin references and the A/B comparison in its README.',
+    category: 'Newsfeed',
+    load: () => import('./entries/home-refactor-b/HomeRefactorBPrototype'),
   },
   {
     key: 'guided-tour',

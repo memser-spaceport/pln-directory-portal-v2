@@ -1,0 +1,509 @@
+// home-refactor — page composition only. Cards, rows, field and answer are the
+// production / sibling-prototype classes (see the reuse map in the .tsx).
+// Token + fallback pairs from prototypes/CLAUDE.md §4 and neighbouring sheets.
+
+@use 'styles/media';
+
+/* app/home/page.module.css `.home__cn` gives width + 14px/50px padding; the
+   gap between sections is ours (production's 20/40 is for a single feed). */
+.page.page {
+  gap: 40px;
+
+  @include media.tablet-landscape {
+    gap: 56px;
+  }
+}
+
+/* ---------- Hero ---------- */
+
+/* The field leads alone, centred on a 760px measure — the AI Search page's
+   composer width class, not the 1200px page, so it reads as one question. */
+.hero {
+  width: 100%;
+  max-width: 760px;
+  margin: 8px auto 0;
+
+  @include media.tablet-landscape {
+    margin-top: 24px;
+  }
+
+  h1 {
+    text-align: center;
+  }
+
+  /* HomeAsk's "Try" line, centred under a centred field. */
+  p {
+    justify-content: center;
+  }
+}
+
+/* ---------- Editorial grid ---------- */
+
+.editorial {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'news'
+    'forum'
+    'jobs';
+  gap: 40px;
+
+  @include media.tablet-landscape {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    grid-template-areas:
+      'news  jobs'
+      'forum jobs';
+    grid-template-rows: auto 1fr;
+    column-gap: 32px;
+    row-gap: 56px;
+  }
+}
+
+.areaNews {
+  grid-area: news;
+}
+.areaForum {
+  grid-area: forum;
+}
+.areaJobs {
+  grid-area: jobs;
+  min-width: 0;
+
+  @include media.tablet-landscape {
+    /* Aligns the rail card's top with the News band, under the section head. */
+    padding-top: 52px;
+  }
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.sectionHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.sectionHeadText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sectionSub {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.seeAll {
+  flex-shrink: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+}
+
+.forumGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+
+  @include media.desktop {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ---------- Jobs rail ---------- */
+
+/* Jobs + Events stack in the rail; the stack (not one card) sticks, so the
+   events card never slides under a sticky jobs card. */
+.railStack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  @include media.tablet-landscape {
+    position: sticky;
+    top: 88px;
+  }
+}
+
+/* ---------- Events rail ---------- */
+
+.dateTile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+}
+
+.dateMonth {
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.dateDay {
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.eventLink.eventLink {
+  text-decoration: none;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.jobsCard.jobsCard {
+}
+
+.railHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.jobRow.jobRow {
+  justify-content: flex-start;
+  gap: 12px;
+
+  &:hover > span:last-child {
+    opacity: 1;
+  }
+}
+
+.jobLogo.jobLogo {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  font-size: 10px;
+}
+
+.jobText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.jobTitle.jobTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Repos: announcement band (RepoBanner) ---------- */
+
+.repoBanner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  padding: 24px 20px;
+  border: 1px solid var(--border-brand-subtle, #aebfff);
+  border-radius: 16px;
+  background: linear-gradient(
+    120deg,
+    var(--background-brand-soft-surface, #f2f5ff) 0%,
+    var(--background-neutral-primary, #fff) 100%
+  );
+
+  @include media.tablet-landscape {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 40px;
+    padding: 32px;
+    align-items: center;
+  }
+}
+
+.repoBannerLead {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.repoBannerEyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.repoBannerWeek {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.repoBannerTitle {
+  margin: 0;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-wrap: balance;
+}
+
+.repoBannerText {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  strong {
+    font-weight: 600;
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.repoBannerLeadMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.repoBannerActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-top: 20px;
+}
+
+.repoBannerBtnInner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  vertical-align: middle;
+}
+
+.repoBannerAttribution {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.repoBannerList {
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: var(--background-neutral-primary, #fff);
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+}
+
+.repoBannerListHead {
+  margin: 0;
+  padding: 6px 8px 4px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.repoBannerRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover {
+    background: var(--background-brand-soft-surface, #f2f5ff);
+
+    .repoBannerRowName {
+      color: var(--foreground-brand-primary, #1b4dff);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: -2px;
+  }
+}
+
+.repoBannerRowText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.repoBannerRowName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.repoBannerRowMeta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.repoBannerRowGlyph {
+  display: flex;
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* ---------- Repos: card (RepoCard, still used by version B) ---------- */
+
+.repoGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+
+  @include media.tablet-portrait {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include media.desktop {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.repoCard.repoCard {
+  justify-content: space-between;
+
+  &:hover .repoNameText {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+/* The team name is a label here, not its own link (the whole card goes to
+   GitHub), so no underline-on-hover. */
+.repoTeam.repoTeam:hover {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-decoration: none;
+}
+
+.repoBody {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.repoName.repoName {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.repoNameText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.12s ease;
+}
+
+.repoOwner {
+  font-weight: 400;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.repoGlyph {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.repoDesc.repoDesc {
+  margin-top: -6px;
+}
+
+.repoMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 16px;
+  row-gap: 4px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+
+  svg {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+}
+
+.langDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}

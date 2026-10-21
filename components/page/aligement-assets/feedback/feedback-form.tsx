@@ -82,8 +82,18 @@ export default function FeedbackForm({
   const isValid = !errors.title && !errors.description && !errors.link;
 
   // AC-T5.1: focus lands on the type selector, Esc closes, unsaved text asks first.
+  // On close, focus returns to whatever opened the modal and the page gets its
+  // scroll back — otherwise the reader is dropped at the top of the document.
   useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     typeGroupRef.current?.querySelector<HTMLButtonElement>('button')?.focus();
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      opener?.focus?.();
+    };
   }, []);
 
   useEffect(() => {

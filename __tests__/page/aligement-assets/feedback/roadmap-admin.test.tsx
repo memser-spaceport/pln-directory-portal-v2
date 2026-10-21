@@ -131,13 +131,14 @@ describe('AC-T7.7 narrow viewport', () => {
 
     const tabs = screen.getAllByRole('tab');
     expect(tabs).toHaveLength(4);
-    // Only the selected column's content is on screen.
-    expect(screen.getByRole('region', { name: 'Under Review' })).toBeInTheDocument();
-    expect(screen.queryByRole('region', { name: 'To Do' })).not.toBeInTheDocument();
+    // Only the selected column is on screen, and it is that tab's panel.
+    // The panel takes its name from the tab, which carries the item count.
+    expect(screen.getByRole('tabpanel', { name: /Under Review/ })).toBeInTheDocument();
+    expect(screen.queryByRole('tabpanel', { name: /To Do/ })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('tab', { name: /To Do/ }));
-    expect(screen.getByRole('region', { name: 'To Do' })).toBeInTheDocument();
-    expect(screen.queryByRole('region', { name: 'Under Review' })).not.toBeInTheDocument();
+    expect(screen.getByRole('tabpanel', { name: /To Do/ })).toBeInTheDocument();
+    expect(screen.queryByRole('tabpanel', { name: /Under Review/ })).not.toBeInTheDocument();
   });
 
   it('renders all four columns at desktop width', () => {

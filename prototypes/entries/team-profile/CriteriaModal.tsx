@@ -82,8 +82,10 @@ export function CriteriaModal({ open, onClose, roleTitle, criteria, people, off,
       <div className={ideaModalStyles.root}>
         <div className={dealModalStyles.header}>
           <div className={dealModalStyles.headerText}>
-            <h2 className={dealModalStyles.title}>Edit criteria</h2>
-            <p className={dealModalStyles.subtitle}>What counts as a fit for {roleTitle}.</p>
+            {/* Says "AI" the way the door does: these are what the matcher
+                reads. The lead's own words live in AiBriefModal. */}
+            <h2 className={dealModalStyles.title}>Edit AI criteria</h2>
+            <p className={dealModalStyles.subtitle}>What the AI matches members against for {roleTitle}.</p>
           </div>
           <button type="button" className={dealModalStyles.closeButton} onClick={onClose} aria-label="Close">
             <CloseIcon width={20} height={20} color="#0a0c11" />

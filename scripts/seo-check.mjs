@@ -143,6 +143,8 @@ for (const prefix of ['/members/', '/teams/', '/projects/']) {
 
 // Unknown profiles are real 404s (profiles).
 for (const kind of ['members', 'teams', 'projects']) await checkStatus(`/${kind}/${UNKNOWN_ID}`, 404);
+// An old Airtable record id that belongs to no team is a real 404 too, not a 200 error page.
+await checkStatus('/teams/recAbCdEfGhIjKlMn', 404);
 
 // One address per page (seo, job-board).
 await checkRedirect('/', '/home');

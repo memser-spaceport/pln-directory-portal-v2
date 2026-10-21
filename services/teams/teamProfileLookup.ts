@@ -22,19 +22,27 @@ export async function isTeamNotFound(id: string): Promise<boolean> {
   return !!result?.error && result.error.status === 404;
 }
 
+/** What looking up an old Airtable record id found. */
+export type AirtableTeamLookup = { kind: 'found'; uid: string } | { kind: 'missing' } | { kind: 'failed' };
+
 /**
- * The team uid behind an old Airtable record id (`/teams/rec…` links from the previous directory), or nothing when the
- * lookup fails or finds no team (LAB-2924).
+ * The team behind an old Airtable record id (`/teams/rec…` links from the previous directory), LAB-2924.
+ *
+ * Three outcomes, because they answer differently: a team found redirects to it, an id the API knows no team for is a
+ * real 404 (answering 200 with an error page was a "soft 404" Search Console flagged), and a lookup that failed keeps
+ * the error page so a crawler retries.
  */
-export async function getTeamUidForAirtableId(id: string): Promise<string | undefined> {
+export async function lookUpAirtableTeam(id: string): Promise<AirtableTeamLookup> {
   try {
     const result = await getTeamUIDByAirtableId(id);
-    // The list endpoint answers `{ count, teams: [...] }`. The page's own Airtable branch still reads a bare array,
-    // which is why these links stopped redirecting at all; both shapes are accepted here.
+    // The list endpoint answers `{ count, teams: [...] }`; the page's older branch read a bare array. Both are read.
     const teams = Array.isArray(result) ? result : result?.teams;
-    const uid = Array.isArray(teams) ? teams[0]?.uid : undefined;
-    return typeof uid === 'string' && uid ? uid : undefined;
+    if (!Array.isArray(teams)) {
+      return { kind: 'failed' };
+    }
+    const uid = teams[0]?.uid;
+    return typeof uid === 'string' && uid ? { kind: 'found', uid } : { kind: 'missing' };
   } catch {
-    return undefined;
+    return { kind: 'failed' };
   }
 }

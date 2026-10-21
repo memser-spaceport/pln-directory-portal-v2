@@ -13,7 +13,8 @@ export const getProject = async (id: string, options: any) => {
     requestOPtions,
   );
   if (!response?.ok) {
-    return { error: { statusText: response?.statusText } };
+    // The status lets the profile page answer a real 404 for an unknown project (LAB-2922).
+    return { error: { status: response?.status, statusText: response?.statusText } };
   }
 
   const result = await response?.json();

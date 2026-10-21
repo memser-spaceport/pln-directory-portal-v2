@@ -1,3 +1,4 @@
+import { absoluteUrl } from '@/utils/seo';
 import Error from '@/components/core/error';
 import { TeamContactInfo } from '@/components/page/team-details/TeamContactInfo';
 import Funding from '@/components/page/team-details/funding';
@@ -226,7 +227,7 @@ export async function generateMetadata(props: IGenerateMetadata, parent: Resolvi
     title: `${team?.name} - Fundraising | Protocol Labs Directory`,
     openGraph: {
       type: 'website',
-      url: `${process.env.APPLICATION_BASE_URL}${PAGE_ROUTES.TEAMS}/${teamId}/fundraising`,
+      url: absoluteUrl(`${PAGE_ROUTES.TEAMS}/${teamId}/fundraising`),
       images: [logo, ...previousImages],
     },
   };

@@ -7,6 +7,7 @@
   },
   "scripts": {
     "build:ai-apps-bridge": "node scripts/build-ai-apps-bridge.mjs",
+    "seo:check": "node scripts/seo-check.mjs",
     "predev": "npm run build:ai-apps-bridge",
     "prebuild": "npm run build:ai-apps-bridge",
     "dev": "next dev -p 4200",

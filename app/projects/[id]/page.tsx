@@ -12,12 +12,14 @@ import { getProject, getProjectOsoDetails } from '@/services/projects.service';
 import { getAllTeams } from '@/services/teams.service';
 import { hasProjectDeleteAccess, hasProjectEditAccess } from '@/utils/common.utils';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
+import { absoluteUrl, htmlToPlainSnippet } from '@/utils/seo';
 import styles from './page.module.css';
 import { getFocusAreas } from '@/services/common.service';
 import { IFocusArea } from '@/types/shared.types';
 import SelectedFocusAreas from '@/components/core/selected-focus-area';
 import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { Metadata, ResolvingMetadata } from 'next';
+import { notFound } from 'next/navigation';
 import ProjectStats from '@/components/page/project-details/stats';
 import { BackButton } from '@/components/ui/BackButton';
 import React from 'react';
@@ -25,10 +27,15 @@ import React from 'react';
 export default async function ProjectDetails(props: any) {
   const params = await props.params;
   const projectId = params?.id;
-  const { isError, userInfo, hasEditAccess, hasDeleteAccess, project, focusAreas, authToken, osoInfo } =
+  const { isError, isNotFound, userInfo, hasEditAccess, hasDeleteAccess, project, focusAreas, authToken, osoInfo } =
     await getPageData(projectId);
   const showProjectStats =
     osoInfo?.forkCount > 0 || osoInfo?.starCount > 0 || osoInfo?.repositoryCount > 0 || osoInfo?.contributorCount > 0;
+
+  // A real 404 only when the API says the project does not exist (LAB-2922); any other failure keeps the error page.
+  if (isNotFound) {
+    notFound();
+  }
 
   if (isError) {
     return <Error />;
@@ -142,6 +149,18 @@ const getPageData = async (projectId: string) => {
       getProject(projectId, {}),
       getFocusAreas('Project', {}),
     ]);
+    if (projectResponse?.error?.status === 404) {
+      return {
+        isError: false,
+        isNotFound: true,
+        isLoggedIn,
+        userInfo,
+        hasEditAccess,
+        hasDeleteAccess,
+        project,
+        authToken,
+      };
+    }
     if (projectResponse?.error || focusAreaResponse?.error) {
       return {
         isError: true,
@@ -241,10 +260,16 @@ export async function generateMetadata(props: IGenerateMetadata, parent: Resolvi
   const project = projectResponse?.data?.formattedData;
   const previousImages = (await parent).openGraph?.images || [];
   const logo = project?.logo || SOCIAL_IMAGE_URL;
-  const pageUrl = `${process.env.APPLICATION_BASE_URL}${PAGE_ROUTES.PROJECTS}/${projectId}`;
-  const description = project?.name
-    ? `${project.name} on Protocol Labs Directory`
-    : 'Explore projects across the Protocol Labs network.';
+  // Through absoluteUrl, which drops a trailing slash on the base: joined by hand, a base ending in "/" gave a
+  // canonical of "https://host//projects/…" (LAB-2924).
+  const pageUrl = absoluteUrl(`${PAGE_ROUTES.PROJECTS}/${projectId}`);
+  // The project's own words, so each profile has a description of its own rather than one template (LAB-2923).
+  const description =
+    htmlToPlainSnippet(project?.tagline) ||
+    htmlToPlainSnippet(project?.description) ||
+    (project?.name
+      ? `${project.name} on Protocol Labs Directory`
+      : 'Explore projects across the Protocol Labs network.');
   return {
     title: `${project?.name} | Protocol Labs Directory`,
     description,
@@ -252,7 +277,9 @@ export async function generateMetadata(props: IGenerateMetadata, parent: Resolvi
     openGraph: {
       type: 'website',
       url: pageUrl,
+      description,
       images: [logo, ...previousImages],
     },
+    twitter: { description },
   };
 }

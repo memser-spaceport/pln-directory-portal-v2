@@ -129,11 +129,14 @@ export const getTeam = async (
     cache: 'no-store',
   };
   const response = await fetch(`${teamsAPI}/${id}?${new URLSearchParams(options)}`, requestOPtions);
-  const result = await response?.json();
 
+  // The status lets the profile page answer a real 404 for an unknown team (LAB-2922). Checked before parsing: an
+  // error body need not be JSON.
   if (!response?.ok) {
-    return { error: { statusText: response?.statusText } };
+    return { error: { status: response?.status, statusText: response?.statusText } };
   }
+
+  const result = await response.json();
 
   const formatedData = {
     id: result?.uid,

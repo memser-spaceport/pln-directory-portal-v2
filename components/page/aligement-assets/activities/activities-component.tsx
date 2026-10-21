@@ -4,7 +4,8 @@ import HeroSection from './sections/hero-section';
 import ActivityTable from './sections/activity-table';
 import ActivityDetailModal from './sections/activity-detail-modal';
 import SupportSection from '../rounds/sections/support-section';
-import { activitiesData } from './data';
+import { activitiesData, canSeeActivity } from './data';
+import { useIsInfraMember } from '@/services/plaa/hooks/useIsInfraMember';
 import { Activity } from './types';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
@@ -27,17 +28,19 @@ export default function ActivitiesComponent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const categoryParam = searchParams?.get('category') ?? null;
+  const isInfraMember = useIsInfraMember();
+  const activities = activitiesData.activities.filter((activity) => canSeeActivity(activity, isInfraMember));
   const matching = categoryParam
-    ? activitiesData.activities.filter((a) => a.category.toLowerCase() === categoryParam.toLowerCase())
+    ? activities.filter((a) => a.category.toLowerCase() === categoryParam.toLowerCase())
     : [];
   const activeCategory = matching.length > 0 ? categoryParam : null;
-  const visibleActivities = activeCategory ? matching : activitiesData.activities;
+  const visibleActivities = activeCategory ? matching : activities;
 
   // Derive the open activity from the URL hash rather than syncing it into state.
   const hash = useHash();
   const activityId = hash ? (hash.startsWith('#') ? hash.slice(1) : hash) : null;
   const selectedActivity =
-    activityId && activityId !== 'login' ? (activitiesData.activities.find((a) => a.id === activityId) ?? null) : null;
+    activityId && activityId !== 'login' ? (activities.find((a) => a.id === activityId) ?? null) : null;
   const isModalOpen = selectedActivity !== null;
 
   // Update the hash and notify useHash (pushState alone doesn't emit 'hashchange').

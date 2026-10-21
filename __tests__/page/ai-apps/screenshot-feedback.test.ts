@@ -16,6 +16,12 @@ jest.mock('@/services/registration.service', () => ({
   saveRegistrationImage: (file: File) => mockSaveRegistrationImage(file),
 }));
 
+/* The real one draws through `new Image()` and a 2D canvas, which jsdom lacks; it has its own tests. */
+const mockFlattenAnnotations = jest.fn();
+jest.mock('@/components/page/ai-apps/components/screenshot-feedback/flattenAnnotations', () => ({
+  flattenAnnotations: (...args: unknown[]) => mockFlattenAnnotations(...args),
+}));
+
 const SAMPLE: AnnotationState = {
   version: 1,
   strokes: [
@@ -96,5 +102,83 @@ describe('annotatedScreenshotHtml / appendScreenshots', () => {
     expect(result).toContain('https://cdn.test/hosted.png');
     expect(result).toContain(serializeAnnotations(SAMPLE));
     expect(mockSaveRegistrationImage).toHaveBeenCalledTimes(1);
+  });
+});
+
+/* LAB-2919: support's Telegram shows a plain image, so LabOS feedback also sends the drawn-on screenshot flattened. */
+describe('appendScreenshots with flatten', () => {
+  const FLAT_PNG = 'data:image/png;base64,RkxBVA==';
+  const EMPTY: AnnotationState = { version: 1, strokes: [], shapes: [], comments: [] };
+
+  beforeEach(() => {
+    /* The raw screenshot is uploaded first, then the flattened one. */
+    mockSaveRegistrationImage
+      .mockResolvedValueOnce({ image: { url: 'https://cdn.test/raw.png' } })
+      .mockResolvedValueOnce({ image: { url: 'https://cdn.test/flat.png' } });
+    mockFlattenAnnotations.mockResolvedValue(FLAT_PNG);
+  });
+
+  afterEach(() => {
+    mockSaveRegistrationImage.mockReset();
+    jest.clearAllMocks();
+  });
+
+  const imgTag = (html: string) => html.match(/<img\b[^>]*>/)?.[0] ?? '';
+
+  it('uploads the flattened screenshot and writes its URL as data-flat-src, keeping src and data-annotations', async () => {
+    const html = await appendScreenshots('', [{ id: 's1', imageDataUrl: PIXEL_PNG, annotations: SAMPLE }], {
+      flatten: true,
+    });
+
+    expect(mockFlattenAnnotations).toHaveBeenCalledWith(PIXEL_PNG, SAMPLE);
+    expect(mockSaveRegistrationImage).toHaveBeenCalledTimes(2);
+    const tag = imgTag(html);
+    expect(tag).toContain('src="https://cdn.test/raw.png"');
+    expect(tag).toContain('data-flat-src="https://cdn.test/flat.png"');
+    expect(tag).toContain(`data-annotations="${serializeAnnotations(SAMPLE)}"`);
+  });
+
+  it('adds no data-flat-src and makes no extra upload for a screenshot with no drawings', async () => {
+    const html = await appendScreenshots('', [{ id: 's1', imageDataUrl: PIXEL_PNG, annotations: EMPTY }], {
+      flatten: true,
+    });
+
+    expect(mockFlattenAnnotations).not.toHaveBeenCalled();
+    expect(mockSaveRegistrationImage).toHaveBeenCalledTimes(1);
+    expect(html).not.toContain('data-flat-src');
+  });
+
+  it('sends the raw screenshot only when flattening fails', async () => {
+    mockFlattenAnnotations.mockRejectedValue(new Error('The screenshot could not be drawn'));
+
+    const html = await appendScreenshots('', [{ id: 's1', imageDataUrl: PIXEL_PNG, annotations: SAMPLE }], {
+      flatten: true,
+    });
+
+    expect(imgTag(html)).toContain('src="https://cdn.test/raw.png"');
+    expect(html).not.toContain('data-flat-src');
+  });
+
+  it('sends the raw screenshot only when the flattened upload fails', async () => {
+    mockSaveRegistrationImage.mockReset();
+    mockSaveRegistrationImage
+      .mockResolvedValueOnce({ image: { url: 'https://cdn.test/raw.png' } })
+      .mockResolvedValueOnce(null);
+
+    const html = await appendScreenshots('', [{ id: 's1', imageDataUrl: PIXEL_PNG, annotations: SAMPLE }], {
+      flatten: true,
+    });
+
+    expect(mockSaveRegistrationImage).toHaveBeenCalledTimes(2);
+    expect(imgTag(html)).toContain('src="https://cdn.test/raw.png"');
+    expect(html).not.toContain('data-flat-src');
+  });
+
+  it('does not flatten unless asked', async () => {
+    const html = await appendScreenshots('', [{ id: 's1', imageDataUrl: PIXEL_PNG, annotations: SAMPLE }]);
+
+    expect(mockFlattenAnnotations).not.toHaveBeenCalled();
+    expect(mockSaveRegistrationImage).toHaveBeenCalledTimes(1);
+    expect(html).not.toContain('data-flat-src');
   });
 });

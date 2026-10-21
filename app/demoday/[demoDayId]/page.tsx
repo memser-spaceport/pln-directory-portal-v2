@@ -1,3 +1,4 @@
+import { publicDemoDayPageMetadata } from '@/app/demoday/[demoDayId]/publicDemoDayPageMetadata';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getDemoDayState, getMemberInfo } from '@/app/actions/demo-day.actions';
 import { IUserInfo } from '@/types/shared.types';
@@ -67,4 +68,9 @@ export default async function DemoDayLandingPage(props: { params: Promise<{ demo
   }
 
   return <Landing initialDemoDayState={demoDayState || undefined} />;
+}
+
+export async function generateMetadata(props: { params: Promise<{ demoDayId: string }> }) {
+  const { demoDayId } = await props.params;
+  return publicDemoDayPageMetadata(demoDayId);
 }

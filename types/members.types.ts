@@ -287,6 +287,7 @@ export interface IMemberPreferences {
   showTwitter: boolean;
   showLinkedin: boolean;
   showTelegram: boolean;
+  showGithub?: boolean;
   showGithubHandle: boolean;
   showGithubProjects: boolean;
   showBluesky?: boolean;

@@ -422,6 +422,35 @@
   padding-right: 10px;
 }
 
+/* The LabOS-wide drawer's way out of its floating button: there, but not competing with Send. */
+.hideButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+  border: none;
+  background: none;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  /* Its own line above Cancel / Send, which share the row in halves on a phone. */
+  @include media.mobile-only {
+    flex-basis: 100%;
+  }
+
+  &:hover {
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-primary, #156ff7);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
 /**
  * The whole offer, hidden on a phone.
  *

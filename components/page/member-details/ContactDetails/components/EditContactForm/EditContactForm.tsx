@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormField } from '@/components/form/FormField';
-import { IMember, IMemberPreferences } from '@/types/members.types';
+import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { TEditContactForm } from '@/components/page/member-details/ContactDetails/types';
 import { EditFormControls } from '@/components/common/profile/EditFormControls';
@@ -16,6 +16,8 @@ import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
 import { getProfileFromURL } from '@/utils/common.utils';
 import { toSocialFieldInputValue } from '@/utils/profile/toSocialFieldInputValue';
 
+import { CONTACT_VISIBILITY_KEYS } from './constants/contactVisibilityKeys';
+import { isSharingContacts } from './utils/isSharingContacts';
 import { buildEditContactSchema } from './formSchema';
 
 import s from './EditContactForm.module.scss';
@@ -53,7 +55,7 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
       twitter: toSocialFieldInputValue('twitter', member.twitter),
       bluesky: toSocialFieldInputValue('bluesky', member.blueskyHandle),
       email: member.email,
-      shareContacts: getDefaultToggleValue(member.preferences),
+      shareContacts: isSharingContacts(member.preferences),
     },
     resolver: yupResolver(schema),
   });
@@ -80,21 +82,13 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
     }
 
     const preferencesPayload = {
+      ...Object.fromEntries(CONTACT_VISIBILITY_KEYS.map((key) => [key, formData.shareContacts])),
       bluesky: formData.shareContacts,
       discord: formData.shareContacts,
       email: formData.shareContacts,
       github: formData.shareContacts,
       githubProjects: formData.shareContacts,
       linkedin: formData.shareContacts,
-      showDiscord: formData.shareContacts,
-      showEmail: formData.shareContacts,
-      showGithub: formData.shareContacts,
-      showGithubHandle: formData.shareContacts,
-      showGithubProjects: formData.shareContacts,
-      showLinkedin: formData.shareContacts,
-      showTelegram: formData.shareContacts,
-      showTwitter: formData.shareContacts,
-      showBluesky: formData.shareContacts,
       telegram: formData.shareContacts,
       twitter: formData.shareContacts,
     };
@@ -260,25 +254,3 @@ const EditIcon = () => (
     />
   </svg>
 );
-
-function getDefaultToggleValue(prefs?: IMemberPreferences) {
-  if (!prefs) {
-    return true;
-  }
-
-  const keys = Object.keys(prefs).filter((key) => key.startsWith('show')) as (keyof IMemberPreferences)[];
-
-  let res = true;
-
-  keys.forEach((key) => {
-    const value = prefs[key];
-
-    if (!value) {
-      res = false;
-
-      return;
-    }
-  });
-
-  return res;
-}

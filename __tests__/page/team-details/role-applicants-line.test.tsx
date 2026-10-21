@@ -83,13 +83,42 @@ describe('RoleApplicantsLine', () => {
     expect(container.textContent).toContain('3 suggested');
     expect(container.textContent).not.toContain('applicant');
     expect(container.textContent).not.toContain('·');
-    expect(screen.getByRole('link')).toHaveAttribute('href', '/teams/team-1/applicants?role=role-1');
+    /* LAB-2853: straight to the Suggested tab, the list it names. */
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/teams/team-1/applicants?role=role-1&tab=suggested');
   });
 
+  /* The "● N new" mark belongs to the answers, so it sits before the
+     suggested link (LAB-2853); with nothing new the line reads as one run. */
   it('names suggestions after the people who answered', () => {
-    const { container } = renderLine(count({ suggestedCount: 3 }));
+    const { container } = renderLine(count({ suggestedCount: 3, newCount: 0 }));
 
     expect(container.textContent).toContain('2 applicants · 1 interested · 3 suggested');
+  });
+
+  /* LAB-2853: "N suggested" is its own link, so each press opens the list it names. */
+  it('links "N suggested" to the Suggested tab, apart from the answers', () => {
+    renderLine(count({ suggestedCount: 3, newCount: 2 }));
+
+    const links = screen.getAllByRole('link');
+    expect(links).toHaveLength(2);
+    expect(links[0]).toHaveAttribute('href', '/teams/team-1/applicants?role=role-1');
+    expect(links[0]).toHaveTextContent(/2 applicants · 1 interested/);
+    expect(links[0]).toHaveTextContent(/2 new/);
+    expect(links[0]).not.toHaveTextContent(/suggested/);
+    expect(links[1]).toHaveAttribute('href', '/teams/team-1/applicants?role=role-1&tab=suggested');
+    expect(links[1]).toHaveTextContent(/^3 suggested$/);
+  });
+
+  it('encodes the role uid in the suggested link', () => {
+    render(
+      <RoleApplicantsLine
+        teamId="team-1"
+        roleUid="role/1"
+        count={count({ applicantCount: 0, interestCount: 0, suggestedCount: 1, newCount: 0, newestAvatars: [] })}
+      />,
+    );
+
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/teams/team-1/applicants?role=role%2F1&tab=suggested');
   });
 
   /* A role posted yesterday with no applicants is normal. A zero under every

@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { ContactSupport } from '@/components/ContactSupport/ContactSupport';
 import { useContactSupportStore } from '@/services/contact-support/store';
+import { useFeedbackDrawerStore } from '@/services/feedback/store';
 import { toast } from '@/components/core/ToastContainer';
 
 const mockMutate = jest.fn();
@@ -54,9 +55,10 @@ const userInfo = { uid: 'member-1', name: 'Ada Lovelace', email: 'ada@example.co
 
 /** The modal title is a plain div, and every topic name is also a pill button —
  *  so the selector is what tells the two apart. */
-const modalTitle = () => screen.getByText(/^(Contact support|Ask a question|Give feedback|Share an idea|Report a bug)$/, {
-  selector: 'div',
-});
+const modalTitle = () =>
+  screen.getByText(/^(Contact support|Ask a question|Give feedback|Share an idea|Report a bug)$/, {
+    selector: 'div',
+  });
 
 describe('ContactSupport', () => {
   beforeEach(() => {
@@ -97,6 +99,26 @@ describe('ContactSupport', () => {
           email: 'ada@example.com',
           name: 'Ada Lovelace',
           message: '<h2>Search is broken</h2><p>See screenshot</p>',
+        }),
+        expect.any(Object),
+      ),
+    );
+  });
+
+  /* LAB-2919: support's Telegram alert names the page the request came from. */
+  it('sends the current page in metadata', async () => {
+    render(<ContactSupport userInfo={userInfo} />);
+
+    fireEvent.change(screen.getByLabelText('support-message'), { target: { value: '<p>Search is broken</p>' } });
+
+    const submit = screen.getByRole('button', { name: 'Submit' });
+    await waitFor(() => expect(submit).toBeEnabled());
+    fireEvent.click(submit);
+
+    await waitFor(() =>
+      expect(mockMutate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          metadata: expect.objectContaining({ page: window.location.toString() }),
         }),
         expect.any(Object),
       ),
@@ -213,7 +235,8 @@ describe('ContactSupport', () => {
     });
 
     it('moves the title and the field label onto the chosen topic', () => {
-      render(<ContactSupport userInfo={userInfo} />);
+      /* Signed out: members leave the form for the feedback drawer on Give feedback (below). */
+      render(<ContactSupport />);
 
       expect(modalTitle()).toHaveTextContent('Contact support');
       expect(screen.getByLabelText('support-message')).toHaveAttribute('data-field-label', 'Describe the issue');
@@ -224,6 +247,18 @@ describe('ContactSupport', () => {
       expect(screen.getByRole('radio', { name: 'Give feedback' })).toBeChecked();
       expect(screen.getByLabelText('support-message')).toHaveAttribute('data-field-label', 'Your feedback');
       expect(screen.getByPlaceholderText('Share your thoughts...')).toBeInTheDocument();
+    });
+
+    // LAB-2879: the (?) menu sends members to the feedback drawer, so the pill does too.
+    it('sends a member who picks Give feedback to the feedback drawer', () => {
+      useFeedbackDrawerStore.getState().actions.closeDrawer();
+      render(<ContactSupport userInfo={userInfo} />);
+
+      fireEvent.click(screen.getByRole('radio', { name: 'Give feedback' }));
+
+      expect(useContactSupportStore.getState().open).toBe(false);
+      expect(useFeedbackDrawerStore.getState().open).toBe(true);
+      useFeedbackDrawerStore.getState().actions.closeDrawer();
     });
 
     // The store's topic is what ContactSupportUrlSync turns into `?dialog=`.

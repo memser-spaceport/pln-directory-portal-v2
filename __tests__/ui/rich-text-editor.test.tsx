@@ -16,7 +16,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import isEqual from 'lodash/isEqual';
 
-import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
+import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditorClient';
 
 // Overrides the null-rendering stub from jest.setup.js: this suite asserts on
 // the props ReactQuill receives, so the stub must record them.

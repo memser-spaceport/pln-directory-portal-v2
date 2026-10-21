@@ -1,4 +1,5 @@
 import { MemberNotificationSettings } from '@/services/members/types';
+import { readNewsCategories } from '@/utils/news-categories';
 
 export const getMemberNotificationSettings = async (uid: string, authToken: string) => {
   const url = `${process.env.DIRECTORY_API_URL}/v1/notification/settings/${uid}`;
@@ -61,5 +62,6 @@ export const getMemberPreferences = async (uid: string, authToken: string) => {
     preferenceSettings,
     memberPreferences,
     isPreferenceAvailable: rawPreferences.isnull,
+    newsCategories: readNewsCategories(rawPreferences),
   };
 };

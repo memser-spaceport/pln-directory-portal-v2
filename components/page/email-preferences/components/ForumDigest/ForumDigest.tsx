@@ -10,6 +10,7 @@ import { Switch } from '@base-ui-components/react/switch';
 import { clsx } from 'clsx';
 import { useUpdateForumDigestSettings } from '@/services/forum/hooks/useUpdateForumDigestSettings';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import Skeleton from 'react-loading-skeleton';
@@ -347,6 +348,16 @@ export const ForumDigest = ({
               <div className={s.desc}>
                 Funding, launches, partnerships, and milestones from teams across the network.
               </div>
+              {/* The one link to where the news itself is chosen (LAB-2941). */}
+              {(data?.forumDigestNewsEnabled ?? true) && (
+                <p className={s.crossLink}>
+                  Choose which news you get in{' '}
+                  <Link href="/settings/news-preferences?from=settings" className={s.crossLinkAnchor}>
+                    News preferences
+                  </Link>
+                  . It also shapes For You on Home.
+                </p>
+              )}
             </div>
           </>
         )}

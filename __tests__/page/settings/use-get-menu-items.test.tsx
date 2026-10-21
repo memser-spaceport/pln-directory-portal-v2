@@ -29,6 +29,7 @@ describe('useGetMenuItems', () => {
 
     expect(names(result.current.preferences)).toEqual([
       'notification preferences',
+      'news preferences',
       'job preferences',
       'general preferences',
     ]);
@@ -41,6 +42,7 @@ describe('useGetMenuItems', () => {
 
     expect(names(result.current.preferences)).toEqual([
       'notification preferences',
+      'news preferences',
       'recommendations',
       'job preferences',
       'general preferences',
@@ -75,7 +77,7 @@ describe('useGetMenuItems', () => {
     const { result } = renderHook(() => useGetMenuItems(userInfo));
     const all = Object.values(result.current).flat();
 
-    expect(all).toHaveLength(7);
+    expect(all).toHaveLength(8);
     all.forEach((item) => {
       expect(item.url).toMatch(/^\/settings\//);
       expect(item.icon).toMatch(/^\/icons\/.+\.svg$/);

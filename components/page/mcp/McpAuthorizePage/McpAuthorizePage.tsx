@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 import { useMcpAnalytics } from '@/analytics/mcp.analytics';
 import { Button } from '@/components/common/Button/Button';
+import { Checkbox } from '@/components/common/Checkbox';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useMcpAccess } from '@/services/rbac/hooks/useMcpAccess';
 import { approveMcpOAuth } from '@/services/mcp/mcp.service';
@@ -20,6 +21,7 @@ export function McpAuthorizePage() {
   const { currentUser, isHydrated } = useCurrentUserStore();
   const { canConnect, isLoading: accessLoading } = useMcpAccess();
   const [isApproving, setIsApproving] = useState(false);
+  const [allowChanges, setAllowChanges] = useState(false);
   const [viewOverride, setViewOverride] = useState<View | null>(null);
   const trackedViewRef = useRef<string | null>(null);
 
@@ -92,6 +94,7 @@ export function McpAuthorizePage() {
       codeChallengeMethod: 'S256',
       state,
       resource,
+      allowChanges,
     });
     setIsApproving(false);
     if ('redirectUrl' in result) {
@@ -105,7 +108,7 @@ export function McpAuthorizePage() {
     }
     analytics.onConnectError({ clientId, errorKind: 'approve_failed' });
     setViewOverride('error');
-  }, [clientId, redirectUri, codeChallenge, state, resource, analytics]);
+  }, [clientId, redirectUri, codeChallenge, state, resource, allowChanges, analytics]);
 
   return (
     <div className={s.page}>
@@ -134,6 +137,18 @@ export function McpAuthorizePage() {
             <p className={s.body}>
               Allow <strong>{clientName}</strong> to access LabOS as you.
             </p>
+            <ul className={s.scopes}>
+              <li className={s.scope}>
+                <Checkbox checked disabled />
+                <span>Read the directory, events and forum</span>
+              </li>
+              <li className={s.scope}>
+                <label className={s.scopeLabel}>
+                  <Checkbox checked={allowChanges} onChange={setAllowChanges} disabled={isApproving} />
+                  <span>Make changes for me (feedback status, introductions)</span>
+                </label>
+              </li>
+            </ul>
             <div className={s.actions}>
               <Button size="m" style="border" variant="neutral" onClick={denyRedirect} disabled={isApproving}>
                 Deny

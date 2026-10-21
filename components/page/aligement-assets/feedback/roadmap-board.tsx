@@ -64,6 +64,8 @@ export default function RoadmapBoard({
               type="button"
               role="tab"
               aria-selected={activeColumn === status}
+              id={`fb-board-tab-${status}`}
+              aria-controls={`fb-board-panel-${status}`}
               className={`fb-board__tab ${activeColumn === status ? 'fb-board__tab--active' : ''}`}
               onClick={() => setActiveColumn(status)}
             >
@@ -80,7 +82,15 @@ export default function RoadmapBoard({
           const items = all.slice(0, limit);
 
           return (
-            <section key={status} className="fb-col" aria-label={STATUS_LABELS[status]}>
+            <section
+              key={status}
+              className="fb-col"
+              aria-label={STATUS_LABELS[status]}
+              // Narrow: the column IS the tab's panel. Wide: four peer regions.
+              {...(isNarrow
+                ? { role: 'tabpanel', id: `fb-board-panel-${status}`, 'aria-labelledby': `fb-board-tab-${status}` }
+                : {})}
+            >
               <header className="fb-col__head">
                 <h3 className="fb-col__title">{STATUS_LABELS[status]}</h3>
                 <span className="fb-col__count">{all.length}</span>

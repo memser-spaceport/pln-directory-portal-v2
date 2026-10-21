@@ -20,9 +20,11 @@ export default function FeedbackStyles() {
     <style jsx global>{`
       .fb-page {
         --fb-brand: #1b4cfe;
-        --fb-brand-dark: #133c4;
+        --fb-brand-dark: #133cc4;
         --fb-ink: #0f172a;
         --fb-muted: #64748b;
+        /* Dimmer than --fb-muted but still AA on a tinted chip (4.58:1). */
+        --fb-muted-strong: #5b6878;
         --fb-hairline: #e2e8f0;
         --fb-surface: #ffffff;
         --fb-raised: #f8fafc;
@@ -114,7 +116,9 @@ export default function FeedbackStyles() {
       .fb-linkbtn {
         background: none;
         border: 0;
-        padding: 0;
+        /* WCAG 2.5.8: the hit area clears 24px even though the text is 13px. */
+        padding: 6px 2px;
+        min-height: 24px;
         font-size: 13px;
         color: var(--fb-muted);
         cursor: pointer;
@@ -133,7 +137,8 @@ export default function FeedbackStyles() {
         appearance: none;
         background: none;
         border: 0;
-        padding: 10px 14px;
+        min-height: 44px;
+        padding: 12px 14px;
         font-size: 14px;
         font-weight: 600;
         color: var(--fb-muted);
@@ -290,7 +295,8 @@ export default function FeedbackStyles() {
       }
       .fb-badge--muted {
         background: #f1f5f9;
-        color: #94a3b8;
+        /* #94a3b8 measured 2.34:1 here and failed AA. */
+        color: var(--fb-muted-strong);
       }
       .fb-badge--type {
         background: transparent;
@@ -344,7 +350,9 @@ export default function FeedbackStyles() {
         border: 1px solid var(--fb-hairline);
         background: var(--fb-surface);
         border-radius: 999px;
-        padding: 6px 12px;
+        /* Thumb-sized: this is the only way to change column on a phone. */
+        min-height: 44px;
+        padding: 10px 14px;
         font-size: 13px;
         font-weight: 600;
         color: var(--fb-muted);
@@ -471,7 +479,8 @@ export default function FeedbackStyles() {
         border: 0;
         background: none;
         text-align: left;
-        padding: 8px 10px;
+        min-height: 40px;
+        padding: 10px;
         border-radius: 6px;
         font-size: 13px;
         cursor: pointer;
@@ -658,7 +667,7 @@ export default function FeedbackStyles() {
       }
       .fb-completed__month {
         margin: 0 0 6px;
-        font-size: 13px
+        font-size: 13px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.02em;
@@ -704,6 +713,8 @@ export default function FeedbackStyles() {
         line-height: 1;
         color: var(--fb-muted);
         cursor: pointer;
+        min-height: 44px;
+        min-width: 44px;
         padding: 4px 8px;
       }
       .fb-form {
@@ -819,6 +830,8 @@ export default function FeedbackStyles() {
         appearance: none;
         background: none;
         border: 0;
+        min-height: 24px;
+        padding: 4px 2px;
         color: var(--fb-muted);
         text-decoration: underline;
         cursor: pointer;

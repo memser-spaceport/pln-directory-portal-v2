@@ -54,20 +54,24 @@ export default function MemberDisplay({
           gap: 8px;
           min-width: 0;
         }
+        /* The Directory's --text-* tokens are mounted per PLAA page (see
+           plaa-home-tokens) and are absent on this route, so this component
+           states its own sizes and falls back to the board's local ink. */
         .fb-member__avatar {
           border-radius: 999px;
           color: #fff;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          font: var(--text-label-sm);
+          font-size: 11px;
           font-weight: 600;
+          line-height: 1;
           flex: none;
         }
         .fb-member__name {
-          font: var(--text-label-md);
+          font-size: 13px;
           font-weight: 600;
-          color: var(--text-primary);
+          color: var(--fb-ink, #0f172a);
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
@@ -78,7 +82,7 @@ export default function MemberDisplay({
           border-radius: 999px;
           background: #eef2ff;
           color: #1b4cfe;
-          font: var(--text-label-sm);
+          font-size: 12px;
           font-weight: 600;
         }
       `}</style>

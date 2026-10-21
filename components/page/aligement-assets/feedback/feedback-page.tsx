@@ -160,6 +160,8 @@ export default function FeedbackPage() {
             role="tab"
             aria-selected={tab === name}
             className={`fb-tabs__tab ${tab === name ? 'fb-tabs__tab--active' : ''}`}
+            id={`fb-tab-${name}`}
+            aria-controls="fb-tabpanel"
             onClick={() => setParam({ tab: name === 'ideas' ? undefined : name })}
             data-testid={`fb-tab-${name}`}
           >
@@ -212,7 +214,7 @@ export default function FeedbackPage() {
         </div>
       )}
 
-      <div className="fb-panel" role="tabpanel">
+      <div className="fb-panel" role="tabpanel" id="fb-tabpanel" aria-labelledby={`fb-tab-${tab}`} tabIndex={-1}>
         {tab === 'roadmap' ? (
           roadmapQuery.isLoading ? (
             <LoadingRows />

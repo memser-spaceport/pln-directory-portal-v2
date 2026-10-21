@@ -1,5 +1,6 @@
 'use client';
 
+import { feedbackNavTarget } from './feedback/feedback.utils';
 import { triggerLoader } from '@/utils/common.utils';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -77,8 +78,8 @@ const menuItems: Array<{
   {
     name: 'feedback',
     label: 'Feedback',
-    url: 'https://forms.gle/NAKxJ8RUqmUf9fmQ9',
-    isExternal: true,
+    // Flag off: the Google Form, as before. Flag on: the board (§7 T-8).
+    ...feedbackNavTarget(),
     secondary: true,
   },
   { name: 'terms-of-use', label: 'Terms of Use', url: '/alignment-asset/terms-of-use', secondary: true },

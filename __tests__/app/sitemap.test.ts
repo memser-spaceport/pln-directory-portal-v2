@@ -50,4 +50,15 @@ describe('sitemap', () => {
     expect(byUrl['https://os.pl.xyz/members/member-1']?.lastModified).toBeUndefined();
     expect(byUrl['https://os.pl.xyz/home']?.lastModified).toBeUndefined();
   });
+
+  /* LAB-2923 / LAB-2924: every static URL is an address Google should index as is. `/events` only redirects to the
+     calendar, and Demo Day was missing. */
+  it('lists the events calendar and Demo Day by their own addresses, and no redirect', async () => {
+    (global.fetch as jest.Mock).mockImplementation(() => jsonOk({}));
+
+    const urls = (await sitemap()).map((entry) => entry.url);
+
+    expect(urls).toEqual(expect.arrayContaining(['https://os.pl.xyz/events/all', 'https://os.pl.xyz/demoday']));
+    expect(urls).not.toContain('https://os.pl.xyz/events');
+  });
 });

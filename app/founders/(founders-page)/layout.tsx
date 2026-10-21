@@ -11,7 +11,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
   openGraph: {
     title: 'Founder DB | Protocol Labs Directory',
-    images: [{ url: `${process.env.APPLICATION_BASE_URL}${SOCIAL_IMAGE_URL}` }],
+    // SOCIAL_IMAGE_URL is already absolute; prefixing the base made the share image URL invalid.
+    images: [{ url: SOCIAL_IMAGE_URL }],
   },
   twitter: { card: 'summary_large_image', images: [SOCIAL_IMAGE_URL] },
 };

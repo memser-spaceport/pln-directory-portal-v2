@@ -1,0 +1,141 @@
+# Gives every open PR a stable preview URL on our own domain: https://pr-<number>.preview.dev.os.pl.xyz
+#
+# Privy refuses wildcard origins on *.vercel.app, so login only works on our domain (LAB-2931).
+# The host sits under dev.os.pl.xyz so the auth cookies (COOKIE_DOMAIN=dev.os.pl.xyz) are accepted.
+#
+# Needs:
+#   - secret VERCEL_TOKEN: a Vercel token with access to the Polaris_01 team
+#   - DNS (zone pl.xyz): CNAME *.preview.dev.os -> the project's Vercel CNAME target
+#   - Privy dev app: allowed origin https://*.preview.dev.os.pl.xyz
+#
+# No code from the PR is checked out or run here.
+name: Preview alias
+
+on:
+  deployment_status:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+env:
+  PREVIEW_DOMAIN: preview.dev.os.pl.xyz
+  VERCEL_SCOPE: polaris-01
+  # The REST API instead of the Vercel CLI: the CLI loads the token's user first, which fails
+  # with "User not found (404)" for team-scoped tokens.
+  VERCEL_API: https://api.vercel.com
+
+jobs:
+  alias:
+    if: >-
+      github.event_name == 'deployment_status' &&
+      github.event.deployment_status.state == 'success' &&
+      github.event.deployment.environment == 'Preview'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: preview-alias-${{ github.event.deployment.sha }}
+    steps:
+      - name: Find open PRs whose head is this commit
+        id: prs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.deployment.sha }}
+        run: |
+          # Only the PR head counts, so a slow build of an older commit never replaces a newer one.
+          numbers=$(gh api "repos/$GITHUB_REPOSITORY/pulls?state=open&per_page=100" --paginate \
+            --jq ".[] | select(.head.sha == \"$SHA\") | .number" | tr '\n' ' ' | xargs)
+          echo "PR numbers: ${numbers:-none}"
+          echo "numbers=$numbers" >> "$GITHUB_OUTPUT"
+
+      - name: Point pr-<number>.${{ env.PREVIEW_DOMAIN }} at this deployment
+        if: steps.prs.outputs.numbers != ''
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          DEPLOYMENT_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url }}
+          NUMBERS: ${{ steps.prs.outputs.numbers }}
+        run: |
+          token=$(printf '%s' "$VERCEL_TOKEN" | tr -d '[:space:]')
+          if [ -z "$token" ]; then
+            echo "::error::Secret VERCEL_TOKEN is not set"
+            exit 1
+          fi
+          deployment=${DEPLOYMENT_URL#https://}
+          deployment=${deployment%/}
+          for n in $NUMBERS; do
+            host="pr-$n.$PREVIEW_DOMAIN"
+            code=$(curl -sS -o response.json -w '%{http_code}' -X POST \
+              "$VERCEL_API/v2/deployments/$deployment/aliases?slug=$VERCEL_SCOPE" \
+              -H "Authorization: Bearer $token" -H "Content-Type: application/json" \
+              -d "{\"alias\":\"$host\"}")
+            if [ "$code" != "200" ]; then
+              echo "::error::Vercel answered $code for $host: $(cat response.json)"
+              exit 1
+            fi
+            echo "https://$host -> https://$deployment"
+          done
+
+      - name: Post or update the preview link on the PR
+        if: steps.prs.outputs.numbers != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMBERS: ${{ steps.prs.outputs.numbers }}
+          SHA: ${{ github.event.deployment.sha }}
+        run: |
+          marker='<!-- preview-alias -->'
+          for n in $NUMBERS; do
+            body="$marker
+          Preview (login works here): https://pr-$n.$PREVIEW_DOMAIN
+
+          Commit: \`${SHA:0:7}\`"
+            id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$n/comments" --paginate \
+              --jq "[.[] | select(.body | startswith(\"$marker\")) | .id] | first // empty")
+            if [ -n "$id" ]; then
+              gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" -f body="$body" > /dev/null
+            else
+              gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$n/comments" -f body="$body" > /dev/null
+            fi
+          done
+
+  cleanup:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Remove pr-<number>.${{ env.PREVIEW_DOMAIN }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          # PRs from forks get no secrets; their alias stays until removed by hand.
+          token=$(printf '%s' "$VERCEL_TOKEN" | tr -d '[:space:]')
+          if [ -z "$token" ]; then
+            echo "No VERCEL_TOKEN, skipping"
+            exit 0
+          fi
+          host="pr-$NUMBER.$PREVIEW_DOMAIN"
+          # DELETE takes the alias id, not its hostname.
+          code=$(curl -sS -o alias.json -w '%{http_code}' \
+            "$VERCEL_API/v2/aliases/$host?slug=$VERCEL_SCOPE" -H "Authorization: Bearer $token")
+          # A missing alias comes back as 404, or as 204 with an empty body.
+          if [ "$code" = "404" ] || [ "$code" = "204" ]; then
+            echo "No alias $host"
+            exit 0
+          fi
+          if [ "$code" != "200" ]; then
+            echo "::error::Vercel answered $code for $host: $(cat alias.json)"
+            exit 1
+          fi
+          uid=$(jq -r '.uid // empty' alias.json)
+          if [ -z "$uid" ]; then
+            echo "No alias $host"
+            exit 0
+          fi
+          code=$(curl -sS -o response.json -w '%{http_code}' -X DELETE \
+            "$VERCEL_API/v2/aliases/$uid?slug=$VERCEL_SCOPE" -H "Authorization: Bearer $token")
+          if [ "$code" != "200" ]; then
+            echo "::error::Vercel answered $code deleting $host: $(cat response.json)"
+            exit 1
+          fi
+          echo "Removed $host"

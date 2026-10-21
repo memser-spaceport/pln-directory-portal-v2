@@ -17,6 +17,14 @@ describe('sanitizeAiAppFeedbackHtml', () => {
     expect(out).toContain('ai-app-annotated-screenshot');
   });
 
+  it('keeps data-flat-src next to src on screenshot images (LAB-2919)', () => {
+    const out = sanitizeAiAppFeedbackHtml(
+      `<p><img src="https://cdn.test/raw.png" data-annotations="${encoded}" data-flat-src="https://cdn.test/flat.png"></p>`,
+    );
+    expect(out).toContain('src="https://cdn.test/raw.png"');
+    expect(out).toContain('data-flat-src="https://cdn.test/flat.png"');
+  });
+
   it('still strips scripts', () => {
     expect(sanitizeAiAppFeedbackHtml('<p>hi<script>alert(1)</script></p>')).toBe('<p>hi</p>');
   });

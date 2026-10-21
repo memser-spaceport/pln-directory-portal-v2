@@ -9,13 +9,18 @@
  * Only Getro's own top-level sections are listed: `/jobs/openings/<uid>` (role pages) and `/jobs/<pdf-slug>`
  * (job description PDFs) must keep working. CommonJS so both `next.config.mjs` and Jest can load it.
  */
-const GETRO_SECTIONS = ['companies', 'jobs', 'talent-network', 'job-alerts'];
+const GETRO_SECTIONS = ['companies', 'jobs', 'talent-network', 'job-alerts', 'cookie-policy'];
 
 // `:path*` matches zero segments too, so one rule covers both `/jobs/companies` and everything under it.
-const LEGACY_JOB_BOARD_REDIRECTS = GETRO_SECTIONS.map((section) => ({
-  source: `/jobs/${section}/:path*`,
-  destination: '/jobs',
-  permanent: true,
-}));
+const LEGACY_JOB_BOARD_REDIRECTS = [
+  ...GETRO_SECTIONS.map((section) => ({
+    source: `/jobs/${section}/:path*`,
+    destination: '/jobs',
+    permanent: true,
+  })),
+  /* Getro links without the `/jobs` prefix: `os.pl.xyz/companies/<company>/jobs/<id>` (LAB-2924). Google still crawls
+     them, and 47 of the 999 sampled 404s in Search Console's crawl stats were these. No route here serves `/companies`. */
+  { source: '/companies/:path*', destination: '/jobs', permanent: true },
+];
 
 module.exports = { LEGACY_JOB_BOARD_REDIRECTS };

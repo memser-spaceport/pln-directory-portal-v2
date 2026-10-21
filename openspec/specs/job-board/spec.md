@@ -34,8 +34,24 @@ The board SHALL accept `?job=<uid>` on `/jobs`. The link preview metadata SHALL 
 
 - **GIVEN** a role with uid `R` is open
 - **WHEN** a crawler fetches `/jobs?job=R`
-- **THEN** the page title is `<role title> | Protocol Labs Directory`
+- **THEN** the page title is `<role title> at <team name> (<location>) | Protocol Labs Jobs`, with the location part left out when the role has none
 - **AND** the canonical URL is `/jobs/openings/R`
+
+### Requirement: Old job board links
+
+Links from the old Getro job board SHALL redirect permanently (308) to `/jobs`. These are `/jobs/companies/…`, `/jobs/jobs/…`, `/jobs/talent-network/…`, `/jobs/job-alerts/…` and `/jobs/cookie-policy`, and the same Getro links without the `/jobs` prefix (`/companies/…`). Role permalinks and the board's own pages SHALL NOT redirect.
+
+#### Scenario: Getro role link
+
+- **GIVEN** an indexed Getro URL such as `/jobs/companies/protocol-labs/jobs` or `/companies/toku-2/jobs/37650942-payroll-manager`
+- **WHEN** a visitor or a crawler requests it
+- **THEN** the response is a 308 redirect to `/jobs`
+
+#### Scenario: The board's own pages are untouched
+
+- **GIVEN** the board, a role permalink `/jobs/openings/R` or a team profile `/teams/T`
+- **WHEN** a visitor requests it
+- **THEN** it is served as before, with no redirect
 
 ### Requirement: Save a role
 

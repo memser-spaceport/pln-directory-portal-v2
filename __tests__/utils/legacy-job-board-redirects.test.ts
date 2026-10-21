@@ -22,6 +22,10 @@ describe('LAB-2887: old Getro job board URLs redirect to the job board', () => {
     '/jobs/talent-network',
     '/jobs/talent-network/join',
     '/jobs/job-alerts',
+    // LAB-2924, from Search Console's crawl stats: Getro's own pages, and its links without the /jobs prefix.
+    '/jobs/cookie-policy',
+    '/companies/toku-2/jobs/37650942-payroll-manager',
+    '/companies/harvard-university',
   ])('%s redirects permanently to /jobs', (from) => {
     expect(redirectFor(from)).toEqual({ destination: '/jobs', permanent: true });
   });
@@ -32,7 +36,12 @@ describe('LAB-2887: old Getro job board URLs redirect to the job board', () => {
     '/jobs/head-of-engineering',
     '/jobs/redirect',
     '/jobs/unsubscribed',
-    '/companies/protocol-labs/jobs',
+    /* Root `/companies/…` used to be left alone here, on the belief that Getro forwards everything under `/jobs/`.
+       Search Console's crawl stats show Google requesting root `/companies/…` Getro links (LAB-2924), so they redirect
+       too; these are the real routes beside them that must not. */
+    '/teams/cldvnt643004ju21kuruu5gx5',
+    '/projects',
+    '/company',
   ])('leaves %s alone', (pathname) => {
     expect(redirectFor(pathname)).toBeNull();
   });

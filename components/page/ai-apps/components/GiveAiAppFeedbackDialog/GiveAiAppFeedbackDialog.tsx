@@ -1089,7 +1089,8 @@ export function GiveAiAppFeedbackDialog({
       trimmedMessage = await hostDataUriImages(trimmedMessage);
       /* The rest follows the note as HTML blocks, which markdown carries as they are. */
       let attached = isHere ? '' : `<p>Started on ${escapeHtml(placeLabel(draftPlace))}</p>`;
-      attached = await appendScreenshots(attached, screenshots);
+      /* Support's Telegram shows a plain image, so LabOS feedback also sends each drawn-on screenshot flattened. */
+      attached = await appendScreenshots(attached, screenshots, { flatten: app.value === LABOS_AI_APPS_OPTION.value });
       if (pins.length > 0) {
         const crops = await hostPinCrops(pins);
         attached = appendPinsHtml(attached, pins, crops);
@@ -1763,7 +1764,7 @@ export function GiveAiAppFeedbackDialog({
               </ConfirmLayer>
 
               {/* LabOS-wide feedback goes to support, not to an app's author. */}
-              {!labosOnly && (
+              {!labosOnly && app?.value !== LABOS_AI_APPS_OPTION.value && (
                 <div className={s.postingAs}>
                   <CommentIcon />
                   <span>

@@ -284,9 +284,11 @@ const getPageData = async (deepLinkedNewsUid?: string) => {
   }
 };
 
+// Names the searches the site should be found for (LAB-2923): "Protocol Labs" and "innovation network".
 const HOME_METADATA: Metadata = listingPageMetadata({
-  title: 'Home | Protocol Labs Directory',
-  description: 'The Protocol Labs Directory drives breakthroughs in computing to push humanity forward.',
+  title: 'Protocol Labs Directory: the innovation network',
+  description:
+    'The Protocol Labs innovation network: the teams, members, projects, events and open roles driving breakthroughs in computing to push humanity forward.',
   path: PAGE_ROUTES.HOME,
 });
 

@@ -1,3 +1,12 @@
+/**
+ * The events calendar's own address. `/events` is a section prefix the navigation matches on, and as a URL it only
+ * redirects here, so canonical links and the sitemap must name this one (LAB-2924).
+ */
+export const EVENTS_LIST_PATH = '/events/all';
+
+/** The Demo Day landing page, public and indexable (LAB-2923). */
+export const DEMO_DAY_PATH = '/demoday';
+
 export const PAGE_ROUTES = {
   HOME: '/home',
   MEMBERS: '/members',

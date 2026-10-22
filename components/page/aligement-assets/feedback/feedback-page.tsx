@@ -18,21 +18,23 @@ import FeedbackForm, { FeedbackFormValues } from './feedback-form';
 import IdeasList from './ideas-list';
 import RoadmapBoard from './roadmap-board';
 import TriageList from './triage-list';
-import { EmptyState, ErrorState, LoadingRows } from './feedback-bits';
+import { ErrorState, LoadingRows } from './feedback-bits';
 import FeedbackStyles from './feedback-styles';
-import { groupByMonth } from './feedback.utils';
 
-type Tab = 'ideas' | 'roadmap' | 'completed' | 'mine' | 'triage';
+// No Completed tab: the Roadmap's fourth column already shows shipped work.
+type Tab = 'ideas' | 'roadmap' | 'mine' | 'triage';
 
 const TAB_LABELS: Record<Tab, string> = {
   ideas: 'Ideas',
   roadmap: 'Roadmap',
-  completed: 'Completed',
   mine: 'My submissions',
   triage: 'Triage',
 };
 
-const PUBLIC_TABS: Tab[] = ['ideas', 'roadmap', 'completed', 'mine'];
+const PUBLIC_TABS: Tab[] = ['ideas', 'roadmap', 'mine'];
+
+/** Triage is admin-only, both as a tab and as a reachable ?tab= value. */
+const tabsFor = (isAdmin: boolean): Tab[] => (isAdmin ? [...PUBLIC_TABS, 'triage'] : PUBLIC_TABS);
 
 /**
  * Feedback Board (§6).
@@ -50,7 +52,9 @@ export default function FeedbackPage() {
   const isAdmin = me?.is_admin ?? false;
 
   const tabParam = (searchParams.get('tab') ?? 'ideas') as Tab;
-  const tab: Tab = (isAdmin ? [...PUBLIC_TABS, 'triage'] : PUBLIC_TABS).includes(tabParam) ? tabParam : 'ideas';
+  // An unknown or non-permitted tab falls back to Ideas, so ?tab=triage does
+  // nothing for a non-admin and an old ?tab=completed link still lands safely.
+  const tab: Tab = tabsFor(isAdmin).includes(tabParam) ? tabParam : 'ideas';
   const sort = (searchParams.get('sort') ?? 'top') as 'top' | 'new';
   const typeFilter = (searchParams.get('type') ?? '') as FeedbackType | '';
   const statusFilter = (searchParams.get('status') ?? 'open') as 'open' | 'all';
@@ -80,11 +84,7 @@ export default function FeedbackPage() {
       sort,
       ...(typeFilter ? { type: typeFilter } : {}),
       ...(tab === 'mine' ? { mine: true } : {}),
-      ...(tab === 'completed'
-        ? { status: 'completed' as const }
-        : statusFilter === 'open'
-          ? { status: 'open' as const }
-          : {}),
+      ...(statusFilter === 'open' ? { status: 'open' as const } : {}),
     }),
     [sort, typeFilter, tab, statusFilter],
   );
@@ -153,7 +153,7 @@ export default function FeedbackPage() {
       </header>
 
       <nav className="fb-tabs" role="tablist" aria-label="Feedback views">
-        {(isAdmin ? [...PUBLIC_TABS, 'triage' as Tab] : PUBLIC_TABS).map((name) => (
+        {tabsFor(isAdmin).map((name) => (
           <button
             key={name}
             type="button"
@@ -245,8 +245,6 @@ export default function FeedbackPage() {
           <LoadingRows />
         ) : listQuery.isError ? (
           <ErrorState onRetry={() => listQuery.refetch()} />
-        ) : tab === 'completed' ? (
-          <CompletedView items={listQuery.data?.items ?? []} onVote={handleVote} />
         ) : (
           <IdeasList
             items={listQuery.data?.items ?? []}
@@ -271,24 +269,6 @@ export default function FeedbackPage() {
       )}
 
       <FeedbackStyles />
-    </div>
-  );
-}
-
-/** Completed tab (F-6): every completed item, grouped by month. */
-function CompletedView({ items, onVote }: { items: FeedbackItem[]; onVote: (item: FeedbackItem) => void }) {
-  const groups = groupByMonth(items);
-  if (!groups.length) {
-    return <EmptyState message="Nothing shipped from the board yet." />;
-  }
-  return (
-    <div className="fb-completed">
-      {groups.map(([month, monthItems]) => (
-        <section key={month} className="fb-completed__group">
-          <h2 className="fb-completed__month">{month}</h2>
-          <IdeasList items={monthItems} onVote={onVote} emptyMessage="" />
-        </section>
-      ))}
     </div>
   );
 }

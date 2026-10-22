@@ -29,9 +29,9 @@ export default function FeedbackStyles() {
         --fb-surface: #ffffff;
         --fb-raised: #f8fafc;
 
-        /* 90% of the shell, with a ceiling so the Ideas rows don't stretch to
+        /* 94% of the shell, with a ceiling so the Ideas rows don't stretch to
            an unreadable line length on a wide monitor. */
-        width: 90%;
+        width: 94%;
         max-width: 1440px;
         margin: 0 auto;
         padding: 32px 20px 96px;
@@ -134,7 +134,9 @@ export default function FeedbackStyles() {
         gap: 4px;
         border-bottom: 1px solid var(--fb-hairline);
         margin-bottom: 20px;
-        overflow-x: auto;
+        /* Wrap rather than scroll: four short tabs never need a scrollbar, and
+           a hidden one would leave the overflowing tab unreachable. */
+        flex-wrap: wrap;
       }
       .fb-tabs__tab {
         appearance: none;

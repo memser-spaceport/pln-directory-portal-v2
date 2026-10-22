@@ -89,14 +89,24 @@ describe('Triage is admin-only', () => {
   });
 });
 
-describe('page width', () => {
-  it('fills 90% of the shell with a readable ceiling', () => {
-    const styles = require('fs').readFileSync(
-      require('path').join(process.cwd(), 'components/page/aligement-assets/feedback/feedback-styles.tsx'),
-      'utf8',
-    );
-    const rule = styles.match(/\.fb-page\s*\{([^}]*)\}/)[1];
-    expect(rule).toMatch(/width:\s*90%/);
+describe('stylesheet', () => {
+  const styles: string = require('fs').readFileSync(
+    require('path').join(process.cwd(), 'components/page/aligement-assets/feedback/feedback-styles.tsx'),
+    'utf8',
+  );
+  const ruleFor = (selector: string): string => styles.match(new RegExp(`\\${selector}\\s*\\{([^}]*)\\}`))![1];
+
+  it('fills most of the shell with a readable ceiling', () => {
+    const rule = ruleFor('.fb-page');
+    const width = Number(rule.match(/width:\s*(\d+)%/)![1]);
+    expect(width).toBeGreaterThanOrEqual(90);
     expect(rule).toMatch(/max-width:\s*\d+px/);
+  });
+
+  it('wraps the tabs instead of giving them a scrollbar', () => {
+    const rule = ruleFor('.fb-tabs');
+    expect(rule).toMatch(/flex-wrap:\s*wrap/);
+    // The declaration, not the word "overflow" that appears in the comment.
+    expect(rule).not.toMatch(/overflow(-[xy])?\s*:/);
   });
 });

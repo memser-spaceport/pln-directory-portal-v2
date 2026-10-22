@@ -27,7 +27,10 @@ async function proxy(request: NextRequest, path: string[]): Promise<NextResponse
     return NextResponse.json({ error: 'Authorization header is required' }, { status: 401 });
   }
 
-  const baseUrl = process.env.PLAA_API_URL;
+  // PLAA_FEEDBACK_API_URL lets a developer run only the Feedback Board against
+  // a local plaa-service while the rest of PLAA keeps reading a deployed one.
+  // Unset everywhere else, where both resolve to the same upstream.
+  const baseUrl = process.env.PLAA_FEEDBACK_API_URL || process.env.PLAA_API_URL;
   if (!baseUrl) {
     return NextResponse.json({ error: 'PLAA_API_URL is not configured' }, { status: 500 });
   }

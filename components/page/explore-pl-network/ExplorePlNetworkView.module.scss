@@ -1,7 +1,7 @@
 @use 'styles/media';
 
 // The completed Demo Day template, as SPV Spotlight uses it: grey page, white
-// sheet, and its section titles (CompletedDemoDayTeamsList) and FAQ spacing.
+// sheet, and its section titles (CompletedDemoDayTeamsList).
 .page {
   min-height: 100vh;
   background: var(--background-neutral-subtle, #f1f5f9);
@@ -115,38 +115,5 @@
   @include media.mobile-only {
     gap: 32px;
     padding-top: 32px;
-  }
-}
-
-.sectionFaq {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 1184px;
-  padding-top: 40px;
-
-  @include media.mobile-only {
-    padding-top: 32px;
-  }
-}
-
-.infoText {
-  margin: 0;
-  color: var(--foreground-neutral-secondary, #455468);
-  text-align: center;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 24px;
-  letter-spacing: -0.3px;
-}
-
-.infoLink {
-  color: var(--foreground-brand-secondary_inverted, #4174ff);
-  font-weight: 500;
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
   }
 }

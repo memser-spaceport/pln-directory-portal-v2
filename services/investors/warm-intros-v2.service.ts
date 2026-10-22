@@ -209,7 +209,11 @@ export async function regenerateWarmIntro(
 ): Promise<{ status: 'started' | 'already_running'; uid: string }> {
   const res = await customFetch(
     `${BASE}/investors/${encodeURIComponent(profileUid)}/regenerate`,
-    { method: 'POST' },
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    },
     true,
   );
   if (!res) throw new Error('Refresh failed');

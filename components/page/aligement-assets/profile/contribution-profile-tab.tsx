@@ -47,6 +47,27 @@ function niceMax(value: number): number {
 
 const MAX_X_LABELS = 6;
 
+const TOOLTIP_ROW_HEIGHT = 18;
+const TOOLTIP_TITLE_OFFSET = 37;
+
+/**
+ * What the hover card lists, balance first: the line being hovered is the
+ * balance, and the rows under it explain how it moved.
+ */
+function tooltipRows(entry: ContributionHistoryEntry, hasPointsData: boolean): Array<{ label: string; value: string }> {
+  // An open snapshot's PLAA is provisional, so its figures read Pending here
+  // exactly as they do in the table below.
+  const plaaValue = (amount: number) => (entry.isPending ? PENDING_LABEL : amount.toLocaleString());
+  const rows = [
+    { label: 'PLAA balance', value: plaaValue(entry.cum) },
+    // Everything the balance gained this snapshot: activities plus infra rewards.
+    { label: 'New PLAA', value: plaaValue(entry.plaa + entry.infra) },
+    { label: 'PLAA redeemed', value: dashOr(entry.redeemed) },
+  ];
+  if (hasPointsData) rows.push({ label: 'Points collected', value: dashOr(entry.points) });
+  return rows;
+}
+
 function pickLabelIndices(length: number, maxLabels: number): Set<number> {
   if (length <= maxLabels) return new Set(Array.from({ length }, (_, i) => i));
   const indices = new Set<number>();
@@ -201,24 +222,32 @@ export default function ContributionProfileTab({ entries, currentBalance, totalR
           {hoveredIndex !== null && (() => {
             const entry = entries[hoveredIndex];
             const dot = chart.dots[hoveredIndex];
-            const boxW = 140;
-            const boxH = hasPointsData ? 64 : 42;
+            const rows = tooltipRows(entry, hasPointsData);
+            const boxW = 172;
+            const boxH = TOOLTIP_TITLE_OFFSET + rows.length * TOOLTIP_ROW_HEIGHT + 10;
             const boxX = Math.min(Math.max(dot.cx - boxW / 2, PLOT_LEFT), PLOT_RIGHT - boxW);
-            const boxY = Math.max(dot.cy - boxH - 14, PLOT_TOP);
+            // Above the dot where there is room, below it near the top edge, so a
+            // high balance point does not sit under its own tooltip.
+            const above = dot.cy - boxH - 14;
+            const boxY = above >= PLOT_TOP ? above : Math.min(dot.cy + 14, PLOT_BOTTOM - boxH);
             return (
               <g style={{ pointerEvents: 'none' }}>
                 <rect x={boxX} y={boxY} width={boxW} height={boxH} rx="8" fill="#156ff7" />
                 <text x={boxX + 12} y={boxY + 19} textAnchor="start" fontSize="11" fontWeight="700" fill="#ffffff">
                   {entry.period}
                 </text>
-                {hasPointsData && (
-                  <text x={boxX + 12} y={boxY + 37} textAnchor="start" fontSize="10" fill="#dbeafe">
-                    Points collected: {dashOr(entry.points)}
+                {rows.map((row, i) => (
+                  <text
+                    key={row.label}
+                    x={boxX + 12}
+                    y={boxY + TOOLTIP_TITLE_OFFSET + i * TOOLTIP_ROW_HEIGHT}
+                    textAnchor="start"
+                    fontSize="10"
+                    fill="#dbeafe"
+                  >
+                    {row.label}: {row.value}
                   </text>
-                )}
-                <text x={boxX + 12} y={boxY + (hasPointsData ? 55 : 37)} textAnchor="start" fontSize="10" fill="#dbeafe">
-                  PLAA balance: {entry.isPending ? PENDING_LABEL : entry.cum.toLocaleString()}
-                </text>
+                ))}
               </g>
             );
           })()}

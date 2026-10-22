@@ -58,13 +58,32 @@ const NAV_LINE_WIDTH = 2;
 
 const digitalTotal = (p: { btc: number; eth: number; fil: number }) => p.btc + p.eth + p.fil;
 
-const KEY_ITEMS = [
+// The three line series the reader can switch off from the key.
+type SeriesToggle = 'nav' | 'buyback' | 'issuance';
+
+type HiddenSeries = Record<SeriesToggle, boolean>;
+
+const KEY_ITEMS: {
+  label: string;
+  color: string;
+  line: boolean;
+  dashed: boolean;
+  monthlyOnly?: boolean;
+  toggle?: SeriesToggle;
+}[] = [
   { label: 'PLVH', color: SERIES_COLORS.plvh, line: false, dashed: false },
   { label: 'Digital assets', color: SERIES_COLORS.digital, line: false, dashed: false },
   { label: 'US Treasuries', color: SERIES_COLORS.treasuries, line: false, dashed: false },
-  { label: 'NAV / PLAA', color: SERIES_COLORS.nav, line: true, dashed: false },
-  { label: 'Buyback clearing price', color: BUYBACK_COLOR, line: true, dashed: true },
-  { label: 'PLAA issuance', color: SERIES_COLORS.issuance, line: true, dashed: false, monthlyOnly: true },
+  { label: 'NAV / PLAA', color: SERIES_COLORS.nav, line: true, dashed: false, toggle: 'nav' },
+  { label: 'Buyback clearing price', color: BUYBACK_COLOR, line: true, dashed: true, toggle: 'buyback' },
+  {
+    label: 'PLAA issuance',
+    color: SERIES_COLORS.issuance,
+    line: true,
+    dashed: false,
+    monthlyOnly: true,
+    toggle: 'issuance',
+  },
 ];
 
 const keyMarkerStyle = (item: { color: string; dashed: boolean }) =>
@@ -335,11 +354,13 @@ function NavChart({
   markers,
   showPreliminaryNote,
   showIssuance = false,
+  hidden,
 }: {
   data: NavPoint[];
   markers: Record<string, BuybackMarker>;
   showPreliminaryNote?: boolean;
   showIssuance?: boolean;
+  hidden: HiddenSeries;
 }) {
   // A period with no auction plots no point — breaks the buyback track into
   // dotted spans between auctions.
@@ -356,7 +377,8 @@ function NavChart({
   // series get proportionally narrower bars.
   const dense = chartData.length > 8;
   const barSize = dense ? 40 : 92;
-  const hasBuybacks = chartData.some((d) => d.buyback != null);
+  const hasBuybacks = chartData.some((d) => d.buyback != null) && !hidden.buyback;
+  const plotIssuance = showIssuance && !hidden.issuance;
   if (!chartData.length) {
     return <p className="th-chart__empty">No data available for this view yet.</p>;
   }
@@ -375,7 +397,7 @@ function NavChart({
           />
           <YAxis yAxisId="nav" hide domain={[0, (max: number) => max * 1.15]} />
           <YAxis yAxisId="perPlaa" hide domain={[0, PER_PLAA_DOMAIN_MAX]} />
-          {showIssuance && (
+          {plotIssuance && (
             <YAxis
               yAxisId="issuance"
               orientation="right"
@@ -396,7 +418,7 @@ function NavChart({
               }}
             />
           )}
-          {showIssuance && (
+          {plotIssuance && (
             <Line
               className="th-issuance-line"
               yAxisId="issuance"
@@ -415,16 +437,18 @@ function NavChart({
           <Bar yAxisId="nav" dataKey="plvh" stackId="nav" fill={SERIES_COLORS.plvh} barSize={barSize} radius={[4, 4, 0, 0]}>
             <LabelList dataKey="nav" content={renderTotalLabel(chartData)} />
           </Bar>
-          <Line
-            yAxisId="perPlaa"
-            type="linear"
-            dataKey="navPerPlaa"
-            stroke={SERIES_COLORS.nav}
-            strokeWidth={NAV_LINE_WIDTH}
-            dot={{ r: 3, fill: SERIES_COLORS.nav, strokeWidth: 0 }}
-            label={renderNavLabel}
-            isAnimationActive={false}
-          />
+          {!hidden.nav && (
+            <Line
+              yAxisId="perPlaa"
+              type="linear"
+              dataKey="navPerPlaa"
+              stroke={SERIES_COLORS.nav}
+              strokeWidth={NAV_LINE_WIDTH}
+              dot={{ r: 3, fill: SERIES_COLORS.nav, strokeWidth: 0 }}
+              label={renderNavLabel}
+              isAnimationActive={false}
+            />
+          )}
           {/* Auctions are months apart, so the track is dotted through the
               periods that had none rather than implying a price in between. */}
           {hasBuybacks && (
@@ -633,6 +657,7 @@ function capstoneMetrics(data: TrustHoldingsData, buybacks: TrustBuyback[]): Buy
 
 export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHoldingsData; buybacks?: TrustBuyback[] }) {
   const [view, setView] = useState<ViewMode>('quarterly-graph');
+  const [hidden, setHidden] = useState<HiddenSeries>({ nav: false, buyback: false, issuance: false });
   const { onNavMenuClicked } = useAlignmentAssetsAnalytics();
   useScrollDepthTracking('trust-holdings');
 
@@ -687,20 +712,46 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
             </div>
 
             <ul className="th-key">
-              {KEY_ITEMS.filter((item) => !item.monthlyOnly || view === 'monthly-graph').map((item) => (
-                <li key={item.label} className="th-key__item">
+              {KEY_ITEMS.filter((item) => !item.monthlyOnly || view === 'monthly-graph').map((item) => {
+                const marker = (
                   <span
                     className={`th-key__marker ${item.line ? 'th-key__marker--line' : ''}`}
                     style={keyMarkerStyle(item)}
                   />
-                  {item.label}
-                </li>
-              ))}
+                );
+                const toggle = item.toggle;
+                return (
+                  <li key={item.label} className="th-key__item">
+                    {toggle ? (
+                      <label className="th-key__toggle">
+                        <input
+                          type="checkbox"
+                          className="th-key__checkbox"
+                          data-testid={`th-key-${toggle}`}
+                          checked={!hidden[toggle]}
+                          onChange={() => setHidden((prev) => ({ ...prev, [toggle]: !prev[toggle] }))}
+                        />
+                        {marker}
+                        {item.label}
+                      </label>
+                    ) : (
+                      <>
+                        {marker}
+                        {item.label}
+                      </>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
-          {view === 'quarterly-graph' && <NavChart data={data.quarterly} markers={buybackMarkers} showPreliminaryNote />}
-          {view === 'monthly-graph' && <NavChart data={monthlyWindow} markers={buybackMarkers} showIssuance />}
+          {view === 'quarterly-graph' && (
+            <NavChart data={data.quarterly} markers={buybackMarkers} showPreliminaryNote hidden={hidden} />
+          )}
+          {view === 'monthly-graph' && (
+            <NavChart data={monthlyWindow} markers={buybackMarkers} showIssuance hidden={hidden} />
+          )}
           {view === 'table' && <NavTable data={data.monthly} />}
         </div>
       </section>
@@ -970,6 +1021,30 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           width: 18px;
           height: 3px;
           border-radius: 2px;
+        }
+
+        .th-key__toggle {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          cursor: pointer;
+          user-select: none;
+        }
+
+        .th-key__checkbox {
+          width: 14px;
+          height: 14px;
+          margin: 0;
+          cursor: pointer;
+          accent-color: #0090ff;
+        }
+
+        .th-key__toggle:has(.th-key__checkbox:not(:checked)) {
+          color: #94a3b8;
+        }
+
+        .th-key__toggle:has(.th-key__checkbox:not(:checked)) .th-key__marker {
+          opacity: 0.35;
         }
 
         /* Chart sits on a subtle panel band (Figma "crow": #f8fafc, 16px top pad). */

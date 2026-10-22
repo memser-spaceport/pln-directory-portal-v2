@@ -138,6 +138,67 @@ describe('ContributionProfileTab', () => {
     expect(screen.queryByText('PLAA balance: 35')).not.toBeInTheDocument();
   });
 
+  describe('the hover card accounts for the whole snapshot', () => {
+    /** The rows of the hover card, in the order they are drawn. */
+    function tooltipRows(container: HTMLElement): string[] {
+      return Array.from(container.querySelectorAll('svg text[fill="#dbeafe"]')).map((n) => n.textContent ?? '');
+    }
+
+    it('lists balance, new PLAA, redeemed, and points for the hovered snapshot', () => {
+      const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
+      const hoverZones = Array.from(container.querySelectorAll('rect[fill="transparent"]'));
+
+      // Jul 2026: 45 from activities + 30 infra = 75 new, 50 redeemed, balance 112.
+      fireEvent.mouseEnter(hoverZones[2]);
+      expect(tooltipRows(container)).toEqual([
+        'PLAA balance: 112',
+        'New PLAA: 75',
+        'PLAA redeemed: 50',
+        'Points collected: 450',
+      ]);
+    });
+
+    it('shows a snapshot with nothing redeemed as 0 rather than omitting the row', () => {
+      const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
+      const hoverZones = Array.from(container.querySelectorAll('rect[fill="transparent"]'));
+
+      fireEvent.mouseEnter(hoverZones[0]);
+      expect(tooltipRows(container)).toEqual([
+        'PLAA balance: 35',
+        'New PLAA: 35',
+        'PLAA redeemed: 0',
+        'Points collected: 350',
+      ]);
+    });
+
+    it('reads Pending for an open snapshot, whose PLAA is not final', () => {
+      const pending: ContributionHistoryEntry[] = [
+        ...entries,
+        { period: 'Aug 2026', points: 120, plaa: 12, infra: 8, redeemed: null, isPending: true, cum: 112 },
+      ];
+      const { container } = render(<ContributionProfileTab entries={pending} currentBalance={112} totalRedeemed={50} />);
+      const hoverZones = Array.from(container.querySelectorAll('rect[fill="transparent"]'));
+
+      fireEvent.mouseEnter(hoverZones[3]);
+      expect(tooltipRows(container)).toEqual([
+        'PLAA balance: Pending',
+        'New PLAA: Pending',
+        'PLAA redeemed: —',
+        'Points collected: 120',
+      ]);
+    });
+
+    it('drops only the points row when the member has no points data', () => {
+      const noPoints: ContributionHistoryEntry[] = [
+        { period: 'May 2026', points: null, plaa: 100, infra: 900, redeemed: 200, isPending: false, cum: 800 },
+      ];
+      const { container } = render(<ContributionProfileTab entries={noPoints} currentBalance={800} totalRedeemed={200} />);
+
+      fireEvent.mouseEnter(container.querySelectorAll('rect[fill="transparent"]')[0]);
+      expect(tooltipRows(container)).toEqual(['PLAA balance: 800', 'New PLAA: 1,000', 'PLAA redeemed: 200']);
+    });
+  });
+
   describe('a period with no points data (still loading or settled empty)', () => {
     const realEntries: ContributionHistoryEntry[] = [
       { period: 'May 2026', points: null, plaa: 100, infra: 900, redeemed: null, isPending: false, cum: 1000 },

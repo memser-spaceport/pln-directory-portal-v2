@@ -1,4 +1,3 @@
-import type { FAQItem } from '@/app/constants/demoday';
 import { PL_NETWORK_ORGANIZATIONS_LABEL } from '@/services/explore-pl-network/constants';
 
 // Editorial copy for the Explore PL Network landing, copied from the approved
@@ -63,8 +62,8 @@ export const PL_ENTITIES = [
   {
     name: 'Protocol Labs',
     line: 'The innovation network driving breakthroughs in computing to push humanity forward.',
-    href: 'https://protocol.ai/',
-    domain: 'protocol.ai',
+    href: 'https://pl.xyz/',
+    domain: 'pl.xyz',
   },
   {
     name: 'PL R&D',
@@ -91,20 +90,3 @@ export const PL_ENTITIES = [
     domain: 'plneuro.xyz',
   },
 ] as const;
-
-export const PL_CAPITAL_URL = 'https://plcapital.xyz/';
-
-// What an investor new to PL asks. The Spotlight questions live on the SPV
-// Spotlight page's own Q&A (design review, 2026-09-29), not here.
-export const EXPLORE_FAQ_ITEMS: FAQItem[] = [
-  {
-    question: 'What is the PL Network?',
-    answer:
-      'The PL Network is the group of teams Protocol Labs has founded, funded or accelerated, plus the people who work in them. Teams share infrastructure, events and talent, and many build on each other’s work.',
-  },
-  {
-    question: 'Which teams are listed here?',
-    answer:
-      'Every team in the Protocol Labs portfolio with a public directory profile. Each profile is maintained by the team itself and by PL — founders, focus areas, projects and recent news.',
-  },
-];

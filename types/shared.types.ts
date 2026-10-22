@@ -12,26 +12,28 @@ export interface IUserInfo {
   mainTeamName?: string;
   isTierViewer?: boolean;
   signUpSource?: string;
+  /** In the cookie, entries carry only `code` (UserInfoChecker's compactRbac);
+   *  the API's names and descriptions overflowed it. */
   rbac?: {
     status: 'PENDING' | 'VERIFIED' | 'APPROVED' | 'REJECTED';
     policies: {
-      uid: string;
+      uid?: string;
       code: string;
-      name: string;
-      description: null;
-      role: string;
-      group: string;
+      name?: string;
+      description?: null;
+      role?: string;
+      group?: string;
     }[];
     effectivePermissions: {
-      uid: string;
+      uid?: string;
       code: string;
-      description: string;
+      description?: string;
     }[];
     roles: {
-      uid: string;
+      uid?: string;
       code: string;
-      name: string;
-      description: string;
+      name?: string;
+      description?: string;
     }[];
   } | null;
 }

@@ -53,3 +53,21 @@ The feedback screenshot of a LabOS page SHALL show the page when the page has a 
 - **WHEN** the screenshot is taken
 - **THEN** the screenshot shows the page and the frame on screen, or an empty video area when the browser does not allow reading the frame
 - **AND** the video keeps playing
+
+### Requirement: A failed screenshot says why when the cause is known
+When an instant screenshot in the feedback form fails because the page or app took too long, the form SHALL say that it took too long. When the cause is anything else, the form SHALL show the general message. A failed automatic screenshot SHALL ask the member to add a screenshot; a failed Whole page or Pick a part SHALL say that trying again uses screen sharing.
+
+#### Scenario: The automatic screenshot fails
+- **GIVEN** the member opens the feedback form
+- **WHEN** the automatic screenshot fails for a cause the form does not name
+- **THEN** the form says it could not capture the page and asks the member to add a screenshot
+
+#### Scenario: The capture takes too long
+- **GIVEN** the member opens the feedback form on a page that takes too long to draw
+- **WHEN** the automatic screenshot runs out of time
+- **THEN** the form says that the page took too long and asks the member to add a screenshot
+
+#### Scenario: Whole page or Pick a part fails
+- **GIVEN** the member chooses Whole page or Pick a part
+- **WHEN** the capture takes too long
+- **THEN** the form says that the page took too long and that trying again uses screen sharing

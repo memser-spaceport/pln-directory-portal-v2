@@ -3,7 +3,7 @@
   "version": "plaa-v7.22",
   "private": true,
   "engines": {
-    "node": ">=20.9.0"
+    "node": "22.x"
   },
   "scripts": {
     "build:ai-apps-bridge": "node scripts/build-ai-apps-bridge.mjs",

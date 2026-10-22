@@ -27,7 +27,8 @@ import {
   getTeamNewsPopular,
 } from '@/services/team-news/team-news.service';
 import { getNewsPreviewSnippet } from '@/services/team-news/newsPreviewSnippet';
-import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
+import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem, TeamNewsEventType } from '@/types/team-news.types';
+import { getMemberPreferences } from '@/services/preferences.service';
 import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
 import type { MyAccessResponse } from '@/services/access-control/access-control.service';
 import {
@@ -56,6 +57,7 @@ export default async function Home(props: HomeProps) {
     quickActionsOhResolved,
     teamsCount,
     deepLinkedNewsItem,
+    newsCategories,
   } = await getPageData(news);
 
   if (isError) {
@@ -81,6 +83,7 @@ export default async function Home(props: HomeProps) {
               popularItems={popularItems}
               initialDigestSettings={initialDigestSettings}
               deepLinkedItem={deepLinkedNewsItem}
+              newsCategories={newsCategories}
             />
           </div>
           <div className={styles.home__cn__focusarea}>
@@ -110,6 +113,7 @@ const getPageData = async (deepLinkedNewsUid?: string) => {
   let popularItems: ITeamNewsPopularItem[] = [];
   let initialDigestSettings: ForumDigestSettings | null = null;
   let deepLinkedNewsItem: ITeamNewsItem | null = null;
+  let newsCategories: TeamNewsEventType[] | undefined;
 
   let teamsCount = 0;
 
@@ -159,6 +163,16 @@ const getPageData = async (deepLinkedNewsUid?: string) => {
 
   const teamsCountPromise = isLoggedIn ? Promise.resolve(null) : getTeamList('', 1, 1).catch(() => null);
 
+  // News preferences (LAB-2941) narrow For You from the first paint: TeamNews
+  // decides its initial tab during the first render. A failed read means every
+  // category, i.e. For You exactly as before.
+  const newsCategoriesPromise: Promise<TeamNewsEventType[] | undefined> =
+    isLoggedIn && userInfo?.uid && authToken
+      ? getMemberPreferences(userInfo.uid, authToken)
+          .then((result) => ('newsCategories' in result ? result.newsCategories : undefined))
+          .catch(() => undefined)
+      : Promise.resolve(undefined);
+
   try {
     const [
       teamFocusAreaResponse,
@@ -171,6 +185,7 @@ const getPageData = async (deepLinkedNewsUid?: string) => {
       myAccessResponse,
       teamsCountResponse,
       deepLinkedNewsResponse,
+      newsCategoriesResponse,
     ] = await Promise.all([
       getFocusAreas('Team', {}),
       getFocusAreas('Project', {}),
@@ -182,6 +197,7 @@ const getPageData = async (deepLinkedNewsUid?: string) => {
       myAccessPromise,
       teamsCountPromise,
       deepLinkedNewsPromise,
+      newsCategoriesPromise,
     ]);
 
     teamNewsGroups = teamNewsResponse?.groups ?? [];
@@ -191,6 +207,7 @@ const getPageData = async (deepLinkedNewsUid?: string) => {
     initialDigestSettings = digestSettingsResponse;
     teamsCount = teamsCountResponse?.totalItems ?? 0;
     deepLinkedNewsItem = deepLinkedNewsResponse;
+    newsCategories = newsCategoriesResponse;
 
     if (isLoggedIn && myAccessResponse) {
       quickActionsState = resolveQuickActionsState(
@@ -254,6 +271,7 @@ const getPageData = async (deepLinkedNewsUid?: string) => {
       popularItems,
       initialDigestSettings,
       deepLinkedNewsItem,
+      newsCategories,
       quickActionsState,
       quickActionsOhResolved,
       teamsCount,

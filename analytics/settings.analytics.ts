@@ -6,6 +6,9 @@ import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDige
 
 export type ForumDigestAnalyticsSource = 'home-feed' | 'settings';
 
+/** How a member reached News preferences (the page's `from` param). */
+export type NewsPreferencesArrival = 'digest' | 'feed' | 'settings';
+
 export interface ForumDigestOptionSelectParams extends ForumDigestSettings {
   source: ForumDigestAnalyticsSource;
 }
@@ -237,7 +240,32 @@ export const useSettingsAnalytics = () => {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_EMAIL_CHANGE_CANCELLED);
   }
 
+  // News preferences (LAB-2941)
+  function onNewsPreferencesOpened(from: NewsPreferencesArrival) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_OPENED, { from });
+  }
+
+  function onNewsPreferencesCategoryToggled(params: { category: string; on: boolean; from: NewsPreferencesArrival }) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_CATEGORY_TOGGLED, params);
+  }
+
+  function onNewsPreferencesSaveFailed(params: { section: 'categories' | 'teams'; teamUid?: string }) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_SAVE_FAILED, params);
+  }
+
+  function onNewsPreferencesFollowToggled(params: {
+    teamUid: string;
+    following: boolean;
+    from: NewsPreferencesArrival;
+  }) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_FOLLOW_TOGGLED, params);
+  }
+
   return {
+    onNewsPreferencesOpened,
+    onNewsPreferencesCategoryToggled,
+    onNewsPreferencesSaveFailed,
+    onNewsPreferencesFollowToggled,
     recordSettingsSideMenuClick,
     recordManageTeamsTeamChange,
     recordManageTeamSave,

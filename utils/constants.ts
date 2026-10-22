@@ -314,6 +314,11 @@ export const SETTINGS_ANALYTICS_EVENTS = {
   SETTINGS_SUBSCRIBE_TO_DEMO_DAY_UPDATES_CHANGE: 'settings-subscribe-to-demo-day-updates-change',
   SETTINGS_DEMO_DAY_UPDATES_NOTIFICATION_TOGGLE_CLICKED: 'settings-demo-day-updates-notification-toggle-clicked',
   SETTINGS_SUGGESTED_CANDIDATES_EMAIL_TOGGLE_CLICKED: 'settings-suggested-candidates-email-toggle-clicked',
+  // News preferences (LAB-2941)
+  SETTINGS_NEWS_PREFERENCES_OPENED: 'settings-news-preferences-opened',
+  SETTINGS_NEWS_PREFERENCES_CATEGORY_TOGGLED: 'settings-news-preferences-category-toggled',
+  SETTINGS_NEWS_PREFERENCES_SAVE_FAILED: 'settings-news-preferences-save-failed',
+  SETTINGS_NEWS_PREFERENCES_FOLLOW_TOGGLED: 'settings-news-preferences-follow-toggled',
 };
 
 export const JOIN_NETWORK_ANALYTICS_EVENTS = {
@@ -726,6 +731,7 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   // told apart from a chip nobody saw.
   TEAM_NEWS_COUNT_CHIP_SHOWN: 'team-news-count-chip-shown',
   TEAM_NEWS_FOR_YOU_UPDATE_PROFILE_CLICKED: 'team-news-for-you-update-profile-clicked',
+  TEAM_NEWS_FOR_YOU_TUNE_CLICKED: 'team-news-for-you-tune-clicked',
   TEAM_NEWS_SHOW_MORE_CLICKED: 'team-news-show-more-clicked',
   TEAM_NEWS_CARD_CLICKED: 'team-news-card-clicked',
   TEAM_NEWS_DETAIL_MODAL_OPENED: 'team-news-detail-modal-opened',

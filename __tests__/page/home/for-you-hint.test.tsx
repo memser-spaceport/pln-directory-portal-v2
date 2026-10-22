@@ -1,10 +1,10 @@
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 
-const onTeamNewsForYouUpdateProfileClicked = jest.fn();
+const onTeamNewsForYouTuneClicked = jest.fn();
 
 jest.mock('@/analytics/team-news.analytics', () => ({
-  useTeamNewsAnalytics: () => ({ onTeamNewsForYouUpdateProfileClicked }),
+  useTeamNewsAnalytics: () => ({ onTeamNewsForYouTuneClicked }),
 }));
 
 import { ForYouHint } from '@/components/page/home/TeamNews/components/ForYouHint/ForYouHint';
@@ -14,19 +14,21 @@ describe('ForYouHint', () => {
     jest.clearAllMocks();
   });
 
-  it('names followed teams as an input', () => {
+  it('names followed teams as an input, with no link for a guest', () => {
     render(<ForYouHint />);
     expect(
       screen.getByText(/For you: Curated based on your profile, primary team attributes, and the teams you follow/),
     ).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /Update your profile/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
-  it('reports the Update your profile click', () => {
+  it('links "Tune For You" to News preferences and reports the click (LAB-2941)', () => {
     render(<ForYouHint memberUid="user-1" />);
 
-    fireEvent.click(screen.getByRole('link', { name: /Update your profile/ }));
+    const link = screen.getByRole('link', { name: 'Tune For You' });
+    expect(link).toHaveAttribute('href', '/settings/news-preferences?from=feed');
+    fireEvent.click(link);
 
-    expect(onTeamNewsForYouUpdateProfileClicked).toHaveBeenCalledWith('user-1');
+    expect(onTeamNewsForYouTuneClicked).toHaveBeenCalledWith('user-1');
   });
 });

@@ -287,26 +287,45 @@ describe('opening the form attaches the app', () => {
   });
 
   it('says so when the automatic capture fails, without opening a screen share', async () => {
-    renderDialog(() => Promise.reject(new Error('timeout')));
+    renderDialog(() => Promise.reject(new Error('capture-missing')));
     await flush();
 
-    expect(screen.getByText(/Couldn’t capture the app automatically/)).toBeInTheDocument();
+    expect(screen.getByText('Couldn’t capture the app automatically — add a screenshot below.')).toBeInTheDocument();
     expect(requestTabCapture).not.toHaveBeenCalled();
     expect(mockAnalytics.onFeedbackAppCapture).toHaveBeenCalledWith(
-      expect.objectContaining({ source: 'auto', outcome: 'failed', error: 'timeout' }),
+      expect.objectContaining({ source: 'auto', outcome: 'failed', error: 'capture-missing' }),
     );
   });
 
-  it('skips quietly when the page is too heavy to draw in time, but still records it', async () => {
-    renderDialog(() => Promise.reject(new Error('too-slow')));
+  it.each([
+    ['too heavy to draw in time', 'too-slow'],
+    ['never answered', 'timeout'],
+  ])('says the app took too long when it was %s, and asks for a screenshot', async (_, reason) => {
+    renderDialog(() => Promise.reject(new Error(reason)));
     await flush();
 
+    expect(screen.getByText('The app took too long to capture — add a screenshot below.')).toBeInTheDocument();
     expect(screen.queryByText(/Couldn’t capture the app automatically/)).not.toBeInTheDocument();
     expect(screen.queryByRole('img', { name: /^Screenshot \d$/ })).not.toBeInTheDocument();
     expect(requestTabCapture).not.toHaveBeenCalled();
     expect(mockAnalytics.onFeedbackAppCapture).toHaveBeenCalledWith(
-      expect.objectContaining({ source: 'auto', outcome: 'failed', error: 'too-slow' }),
+      expect.objectContaining({ source: 'auto', outcome: 'failed', error: reason }),
     );
+  });
+
+  it('on a LabOS page, says the page took too long', async () => {
+    render(
+      <GiveAiAppFeedbackDialog
+        isOpen
+        onClose={jest.fn()}
+        variant="drawer"
+        capture={() => Promise.reject(new Error('too-slow'))}
+        pickViewport
+      />,
+    );
+    await flush();
+
+    expect(screen.getByText('The page took too long to capture — add a screenshot below.')).toBeInTheDocument();
   });
 
   it('attaches nothing on an app without the bridge, and keeps the screen-share button', () => {
@@ -555,7 +574,7 @@ describe('adding screenshots', () => {
   });
 
   it('a failed capture is reported, and only the NEXT click falls back to screen sharing', async () => {
-    const capture = jest.fn().mockResolvedValueOnce(shot(SHOT_A)).mockRejectedValueOnce(new Error('timeout'));
+    const capture = jest.fn().mockResolvedValueOnce(shot(SHOT_A)).mockRejectedValueOnce(new Error('capture-missing'));
     renderDialog(capture);
     await flush();
 
@@ -568,6 +587,33 @@ describe('adding screenshots', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Whole page' }));
     await waitFor(() => expect(requestTabCapture).toHaveBeenCalledTimes(1));
     expect(capture).toHaveBeenCalledTimes(2);
+  });
+
+  it('Whole page says the app took too long when the capture ran out of time', async () => {
+    const capture = jest.fn().mockResolvedValueOnce(shot(SHOT_A)).mockRejectedValueOnce(new Error('too-slow'));
+    renderDialog(capture);
+    await flush();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Whole page' }));
+    await flush();
+
+    expect(toast.error).toHaveBeenCalledWith(
+      'The app took too long to capture. Try again — it will use screen sharing.',
+    );
+  });
+
+  it('Pick a part says the app took too long when the app never answered', async () => {
+    const capture = jest.fn().mockResolvedValueOnce(shot(SHOT_A)).mockRejectedValueOnce(new Error('timeout'));
+    renderDialog(capture);
+    await flush();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Pick a part' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Drag done' }));
+    await flush();
+
+    expect(toast.error).toHaveBeenCalledWith(
+      'The app took too long to capture. Try again — it will use screen sharing.',
+    );
   });
 
   it(`stops at ${MAX_SCREENSHOTS} screenshots`, async () => {

@@ -69,6 +69,7 @@ export default function ItemDetailContainer({ id }: { id: string }) {
         isAdmin={me?.is_admin ?? false}
         currentMemberUid={currentMemberUid}
         commentPending={addComment.isPending}
+        votesRemaining={me?.vote_budget.remaining}
         onVote={() => {
           analytics[item.has_voted ? 'onUnvoted' : 'onVoted'](item.type, item.status);
           vote.mutate({ id: item.id, voted: item.has_voted });

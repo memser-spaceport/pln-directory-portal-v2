@@ -34,11 +34,13 @@ export default function RoadmapBoard({
   isAdmin,
   onVote,
   onMove,
+  votesRemaining,
 }: {
   roadmap: RoadmapResponse;
   isAdmin: boolean;
   onVote: (item: FeedbackItem) => void;
   onMove: (id: string, toStatus: FeedbackStatus, note?: string, duplicateOfId?: string) => void;
+  votesRemaining?: number;
 }) {
   const [isNarrow, setIsNarrow] = useState(false);
   const [activeColumn, setActiveColumn] = useState<RoadmapColumn>('under_review');
@@ -111,7 +113,7 @@ export default function RoadmapBoard({
                         {item.title}
                       </Link>
                       <div className="fb-card__foot">
-                        <VoteButton item={item} onToggle={() => onVote(item)} />
+                        <VoteButton item={item} onToggle={() => onVote(item)} votesRemaining={votesRemaining} />
                         <span className="fb-card__comments">
                           <span aria-hidden="true">💬</span> {item.comment_count}
                         </span>

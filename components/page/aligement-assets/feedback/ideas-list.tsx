@@ -17,11 +17,13 @@ export default function IdeasList({
   emptyMessage,
   emptyAction,
   showPrivateMarker,
+  votesRemaining,
 }: {
   items: FeedbackItem[];
   onVote: (item: FeedbackItem) => void;
   emptyMessage: string;
   emptyAction?: React.ReactNode;
+  votesRemaining?: number;
   /** My submissions marks a member's own private bugs. */
   showPrivateMarker?: boolean;
 }) {
@@ -33,7 +35,7 @@ export default function IdeasList({
     <ul className="fb-list">
       {items.map((item) => (
         <li key={item.id} className="fb-row">
-          <VoteButton item={item} onToggle={() => onVote(item)} />
+          <VoteButton item={item} onToggle={() => onVote(item)} votesRemaining={votesRemaining} />
 
           <div className="fb-row__main">
             <Link href={`/alignment-asset/feedback/${item.id}`} className="fb-row__title">

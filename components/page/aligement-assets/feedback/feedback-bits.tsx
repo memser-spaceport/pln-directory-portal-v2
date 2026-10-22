@@ -34,13 +34,22 @@ export function VoteButton({
   item,
   onToggle,
   pending,
+  votesRemaining,
 }: {
   item: FeedbackItem;
   onToggle: () => void;
   pending?: boolean;
+  /** Undefined until the viewer's budget loads; the cap is not enforced then. */
+  votesRemaining?: number;
 }) {
   const votable = canVote(item.status);
-  const reason = votable ? '' : voteDisabledReason(item.status);
+  // Removing a vote is always allowed \u2014 that is how a member frees one up.
+  const outOfVotes = !item.has_voted && votesRemaining === 0;
+  const reason = !votable
+    ? voteDisabledReason(item.status)
+    : outOfVotes
+      ? "You've used all your upvotes. Remove one to vote for this instead."
+      : '';
 
   return (
     <button
@@ -48,7 +57,7 @@ export function VoteButton({
       className={`fb-vote ${item.has_voted ? 'fb-vote--on' : ''}`}
       aria-pressed={item.has_voted}
       aria-label={`${item.has_voted ? 'Remove your vote from' : 'Vote for'} ${item.title}`}
-      disabled={!votable || pending}
+      disabled={!votable || outOfVotes || pending}
       title={reason || undefined}
       onClick={onToggle}
       data-testid={`fb-vote-${item.id}`}

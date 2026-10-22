@@ -31,6 +31,7 @@ export default function ItemDetail({
   onMove,
   onRetryLinear,
   commentPending,
+  votesRemaining,
 }: {
   item: FeedbackItem;
   comments: FeedbackComment[];
@@ -43,6 +44,7 @@ export default function ItemDetail({
   onMove: (toStatus: FeedbackStatus, note?: string, duplicateOfId?: string) => void;
   onRetryLinear: () => void;
   commentPending?: boolean;
+  votesRemaining?: number;
 }) {
   const [draft, setDraft] = useState('');
 
@@ -99,7 +101,7 @@ export default function ItemDetail({
           </p>
         )}
 
-        <VoteButton item={item} onToggle={onVote} />
+        <VoteButton item={item} onToggle={onVote} votesRemaining={votesRemaining} />
       </div>
 
       {item.status_events && item.status_events.length > 0 && (

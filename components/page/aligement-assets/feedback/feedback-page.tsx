@@ -50,6 +50,7 @@ export default function FeedbackPage() {
 
   const { data: me } = useFeedbackMe();
   const isAdmin = me?.is_admin ?? false;
+  const voteBudget = me?.vote_budget;
 
   const tabParam = (searchParams.get('tab') ?? 'ideas') as Tab;
   // An unknown or non-permitted tab falls back to Ideas, so ?tab=triage does
@@ -84,7 +85,10 @@ export default function FeedbackPage() {
       sort,
       ...(typeFilter ? { type: typeFilter } : {}),
       ...(tab === 'mine' ? { mine: true } : {}),
-      ...(statusFilter === 'open' ? { status: 'open' as const } : {}),
+      // Ideas is work still up for discussion: anything already being built is
+      // the Roadmap's job. My submissions keeps showing everything of yours,
+      // including the item that just got picked up.
+      ...(statusFilter === 'open' ? { status: tab === 'mine' ? ('open' as const) : ('proposed' as const) } : {}),
     }),
     [sort, typeFilter, tab, statusFilter],
   );
@@ -144,8 +148,25 @@ export default function FeedbackPage() {
         <div>
           <h1 className="fb-page__title">Feedback</h1>
           <p className="fb-page__intro">
-            Suggest features, report bugs, and follow what the PLAA team is building.
+            A single place to suggest new features, upvote feature ideas from others, report any bugs, and follow
+            what the PLAA team is currently building.
           </p>
+          {voteBudget && (
+            <p className="fb-page__budget" data-testid="fb-vote-budget">
+              {voteBudget.remaining === 0 ? (
+                <>
+                  <strong>No upvotes left.</strong> Remove one to vote for something else.
+                </>
+              ) : (
+                <>
+                  <strong>
+                    {voteBudget.remaining} of {voteBudget.limit}
+                  </strong>{' '}
+                  upvotes left. They free up when an item ships.
+                </>
+              )}
+            </p>
+          )}
         </div>
         <button type="button" className="fb-btn fb-btn--primary fb-page__cta" onClick={() => openForm('header')}>
           Give feedback
@@ -226,6 +247,7 @@ export default function FeedbackPage() {
               isAdmin={isAdmin}
               onVote={handleVote}
               onMove={handleMove}
+              votesRemaining={voteBudget?.remaining}
             />
           )
         ) : tab === 'triage' ? (
@@ -249,6 +271,7 @@ export default function FeedbackPage() {
           <IdeasList
             items={listQuery.data?.items ?? []}
             onVote={handleVote}
+            votesRemaining={voteBudget?.remaining}
             showPrivateMarker={tab === 'mine'}
             emptyMessage={
               tab === 'mine' ? "You haven't submitted anything yet." : 'No ideas yet. Be the first to suggest one.'

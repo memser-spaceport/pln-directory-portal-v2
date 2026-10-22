@@ -103,11 +103,30 @@ export interface CreateFeedbackInput {
 
 export interface FeedbackListParams {
   type?: FeedbackType;
-  status?: 'open' | FeedbackStatus;
+  /** `proposed` is open-but-not-started: the Ideas tab. */
+  status?: 'open' | 'proposed' | FeedbackStatus;
   sort?: 'top' | 'new';
   mine?: boolean;
   cursor?: string;
   limit?: number;
+}
+
+/** Upvotes a member is currently spending, and what is left. */
+export interface VoteBudget {
+  limit: number;
+  used: number;
+  remaining: number;
+}
+
+export interface FeedbackMe {
+  is_admin: boolean;
+  vote_budget: VoteBudget;
+}
+
+export interface VoteResponse {
+  vote_count: number;
+  has_voted: boolean;
+  budget: VoteBudget;
 }
 
 /** Thrown with the upstream's status so callers can tell 429 from 409. */

@@ -7,6 +7,7 @@ import {
   FeedbackItem,
   FeedbackListParams,
   FeedbackListResponse,
+  FeedbackMe,
   FeedbackStatus,
   FeedbackType,
 } from './feedback.types';
@@ -108,10 +109,27 @@ export function useVote() {
     onMutate: async ({ id, voted }) => {
       await queryClient.cancelQueries({ queryKey: [FeedbackQueryKeys.LIST] });
       await queryClient.cancelQueries({ queryKey: [FeedbackQueryKeys.ITEM, id] });
+      await queryClient.cancelQueries({ queryKey: [FeedbackQueryKeys.ME] });
 
       const previousLists = queryClient.getQueriesData<FeedbackListResponse>({ queryKey: [FeedbackQueryKeys.LIST] });
       const previousItem = queryClient.getQueryData<FeedbackItem>([FeedbackQueryKeys.ITEM, id]);
+      const previousMe = queryClient.getQueryData<FeedbackMe>([FeedbackQueryKeys.ME]);
       const delta = voted ? -1 : 1;
+
+      // Spend or refund locally so the remaining count and the disabled state
+      // of every other vote button move with the click, not a round trip later.
+      queryClient.setQueryData<FeedbackMe>([FeedbackQueryKeys.ME], (old) =>
+        old
+          ? {
+              ...old,
+              vote_budget: {
+                ...old.vote_budget,
+                used: Math.max(0, old.vote_budget.used + delta),
+                remaining: Math.max(0, old.vote_budget.remaining - delta),
+              },
+            }
+          : old,
+      );
 
       const patch = (item: FeedbackItem): FeedbackItem =>
         item.id === id ? { ...item, has_voted: !voted, vote_count: item.vote_count + delta } : item;
@@ -121,7 +139,7 @@ export function useVote() {
       );
       queryClient.setQueryData<FeedbackItem>([FeedbackQueryKeys.ITEM, id], (old) => (old ? patch(old) : old));
 
-      return { previousLists, previousItem, id };
+      return { previousLists, previousItem, previousMe, id };
     },
 
     onError: (_error, _variables, context) => {
@@ -129,6 +147,19 @@ export function useVote() {
       if (context?.previousItem) {
         queryClient.setQueryData([FeedbackQueryKeys.ITEM, context.id], context.previousItem);
       }
+      // Refused at the cap: hand the vote back rather than leaving the member
+      // looking one short.
+      if (context?.previousMe) {
+        queryClient.setQueryData([FeedbackQueryKeys.ME], context.previousMe);
+      }
+    },
+
+    // The server is authoritative on the budget: a vote freed by an item
+    // shipping elsewhere only shows up here.
+    onSuccess: (data) => {
+      queryClient.setQueryData<FeedbackMe>([FeedbackQueryKeys.ME], (old) =>
+        old ? { ...old, vote_budget: data.budget } : old,
+      );
     },
 
     onSettled: (_data, _error, variables) => invalidate(variables.id),

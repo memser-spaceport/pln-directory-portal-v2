@@ -7,9 +7,11 @@ import {
   FeedbackItem,
   FeedbackListParams,
   FeedbackListResponse,
+  FeedbackMe,
   FeedbackStatus,
   FeedbackType,
   RoadmapResponse,
+  VoteResponse,
 } from './feedback.types';
 
 const BASE = '/api/plaa/feedback';
@@ -56,7 +58,7 @@ function listQuery(params: FeedbackListParams): string {
 }
 
 export const feedbackApi = {
-  me: () => request<{ is_admin: boolean }>('/me'),
+  me: () => request<FeedbackMe>('/me'),
 
   list: (params: FeedbackListParams) => request<FeedbackListResponse>(`/items${listQuery(params)}`),
 
@@ -80,10 +82,9 @@ export const feedbackApi = {
     return request<FeedbackItem>('/items', { method: 'POST', body: form });
   },
 
-  addVote: (id: string) => request<{ vote_count: number; has_voted: boolean }>(`/items/${id}/vote`, { method: 'PUT' }),
+  addVote: (id: string) => request<VoteResponse>(`/items/${id}/vote`, { method: 'PUT' }),
 
-  removeVote: (id: string) =>
-    request<{ vote_count: number; has_voted: boolean }>(`/items/${id}/vote`, { method: 'DELETE' }),
+  removeVote: (id: string) => request<VoteResponse>(`/items/${id}/vote`, { method: 'DELETE' }),
 
   comments: (id: string, cursor?: string) =>
     request<FeedbackCommentListResponse>(

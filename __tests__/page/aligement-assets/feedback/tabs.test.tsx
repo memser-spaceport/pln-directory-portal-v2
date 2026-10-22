@@ -19,10 +19,14 @@ jest.mock('next/link', () => ({
 }));
 
 const mockMe = jest.fn();
+const listParams = jest.fn();
 
 jest.mock('@/services/plaa/feedback/useFeedback', () => ({
   useFeedbackMe: () => mockMe(),
-  useFeedbackList: () => ({ data: { items: [item()] }, isLoading: false, isError: false, refetch: jest.fn() }),
+  useFeedbackList: (params: unknown) => {
+    listParams(params);
+    return { data: { items: [item()] }, isLoading: false, isError: false, refetch: jest.fn() };
+  },
   useFeedbackRoadmap: () => ({ data: emptyRoadmap, isLoading: false, isError: false, refetch: jest.fn() }),
   useFeedbackTriage: () => ({ data: { items: [] }, isLoading: false, isError: false, refetch: jest.fn() }),
   useVote: () => ({ mutate: jest.fn() }),
@@ -86,6 +90,25 @@ describe('Triage is admin-only', () => {
     mockMe.mockReturnValue({ data: undefined });
     render(<FeedbackPage />);
     expect(tabNames()).not.toContain('Triage');
+  });
+});
+
+describe('Ideas hides work already in progress', () => {
+  it('asks for proposed items only', () => {
+    renderPage({ isAdmin: false });
+    expect(listParams).toHaveBeenLastCalledWith(expect.objectContaining({ status: 'proposed' }));
+  });
+
+  it('still shows a member their own in-progress submissions', () => {
+    renderPage({ isAdmin: false, tab: 'mine' });
+    expect(listParams).toHaveBeenLastCalledWith(expect.objectContaining({ mine: true, status: 'open' }));
+  });
+
+  it('drops the status filter entirely when the member picks All', () => {
+    searchParams.set('status', 'all');
+    renderPage({ isAdmin: false });
+    searchParams.delete('status');
+    expect(listParams).toHaveBeenLastCalledWith(expect.not.objectContaining({ status: expect.anything() }));
   });
 });
 

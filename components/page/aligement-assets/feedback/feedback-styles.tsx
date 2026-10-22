@@ -68,7 +68,17 @@ export default function FeedbackStyles() {
         margin: 0;
         color: var(--fb-muted);
         font-size: 15px;
-        max-width: 52ch;
+        /* Wide enough that the longer subheader sets as two lines, not four. */
+        max-width: 72ch;
+      }
+      .fb-page__budget {
+        margin: 8px 0 0;
+        font-size: 13px;
+        color: var(--fb-muted);
+      }
+      .fb-page__budget strong {
+        color: var(--fb-ink);
+        font-weight: 600;
       }
 
       /* ---------- buttons ---------- */

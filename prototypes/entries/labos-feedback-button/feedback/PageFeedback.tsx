@@ -12,7 +12,7 @@ import {
 } from '@/components/page/ai-apps/components/screenshot-feedback/capturePage';
 
 // Production stylesheet, verbatim.
-import s from '@/components/page/ai-apps/components/FloatingFeedbackButton/FloatingFeedbackButton.module.scss';
+import s from '@/components/page/ai-apps/components/FeedbackFabButton/FeedbackFabButton.module.scss';
 
 import { GiveAiAppFeedbackDialog, type SubmittedFeedback } from './FeedbackDialog';
 import dw from './FeedbackDrawer.module.scss';

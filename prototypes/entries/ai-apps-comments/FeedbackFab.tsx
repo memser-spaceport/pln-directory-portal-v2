@@ -7,7 +7,7 @@ import { Button } from '@/components/common/Button/Button';
 import { CloseIcon, CommentIcon } from '@/components/icons';
 // Production stylesheet, verbatim: the 48px brand pill, the label that spends
 // itself on arrival, the hover/focus peek.
-import s from '@/components/page/ai-apps/components/FloatingFeedbackButton/FloatingFeedbackButton.module.scss';
+import s from '@/components/page/ai-apps/components/FeedbackFabButton/FeedbackFabButton.module.scss';
 // The feedback popover's card, header and ✕ — the comment card is the same card, smaller.
 import fd from '@/components/page/ai-apps/components/GiveAiAppFeedbackDialog/GiveAiAppFeedbackDialog.module.scss';
 

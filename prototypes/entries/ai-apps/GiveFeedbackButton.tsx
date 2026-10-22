@@ -6,7 +6,7 @@ import { Button } from '@/components/common/Button';
 import { CommentIcon } from '@/components/icons';
 import { isOpenFeedbackChord, useShortcutLabels } from '@/components/page/ai-apps/shortcutKeys';
 // Production stylesheet: `.button` is just the icon/label row.
-import fb from '@/components/page/ai-apps/components/FloatingFeedbackButton/FloatingFeedbackButton.module.scss';
+import fb from '@/components/page/ai-apps/components/FeedbackFabButton/FeedbackFabButton.module.scss';
 
 import { GiveFeedbackDialog } from './GiveFeedbackDialog';
 import type { AiAppWithDoc } from './mocks';

@@ -36,11 +36,9 @@ jest.mock('@/components/page/ai-apps/components/GiveAiAppFeedbackDialog', () => 
     pickViewport,
     scrollApp,
     collapsed,
-    labosOnly,
     onSent,
   }: {
     collapsed?: boolean;
-    labosOnly?: boolean;
     onSent?: () => void;
     onHiddenChange?: (hidden: boolean) => void;
     bridgeMissing?: boolean;
@@ -64,7 +62,6 @@ jest.mock('@/components/page/ai-apps/components/GiveAiAppFeedbackDialog', () => 
         data-scroll={scrollApp ? 'yes' : 'no'}
         data-collapsed={collapsed ? 'true' : 'false'}
         data-bridge-missing={bridgeMissing ? 'true' : 'false'}
-        data-labos-only={labosOnly ? 'true' : 'false'}
       >
         {switchSlot}
         {altBody ?? <span>Feedback form</span>}
@@ -780,87 +777,6 @@ describe('FloatingFeedbackButton', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
       expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
       expect(screen.queryByRole('tab')).not.toBeInTheDocument();
-    });
-  });
-
-  /* LAB-2879: the LabOS-wide button, mounted once in the root layout. */
-  describe('global mode', () => {
-    const openChord = () => fireEvent.keyDown(window, { key: 'ƒ', code: 'KeyF', altKey: true });
-    const globalProps = (over: Partial<{ open: boolean; showButton: boolean }> = {}) => ({
-      open: false,
-      showButton: true,
-      onOpen: jest.fn(),
-      onClose: jest.fn(),
-      onSent: jest.fn(),
-      ...over,
-    });
-
-    it('shows the button to a member without AI Apps access', () => {
-      mockUsePermissions.mockReturnValue({ permsSet: new Set(), isLoading: false });
-
-      render(<FloatingFeedbackButton global={globalProps()} />);
-
-      expect(screen.getByRole('button', { name: 'Give feedback' })).toBeInTheDocument();
-    });
-
-    it('asks the host to open the drawer and sends no AI Apps event', () => {
-      mockUsePermissions.mockReturnValue({ permsSet: new Set(), isLoading: false });
-      const props = globalProps();
-
-      render(<FloatingFeedbackButton global={props} />);
-      fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
-
-      expect(props.onOpen).toHaveBeenCalledTimes(1);
-      expect(screen.queryByTestId('feedback-dialog')).not.toBeInTheDocument();
-      expect(mockCapture).not.toHaveBeenCalledWith('ai_apps_feedback_dialog_opened', expect.anything());
-    });
-
-    it('draws the LabOS-only drawer with a picture of the page when the host opens it', () => {
-      mockUsePermissions.mockReturnValue({ permsSet: new Set(), isLoading: false });
-      const props = globalProps({ open: true });
-
-      render(<FloatingFeedbackButton global={props} />);
-
-      const dialog = screen.getByTestId('feedback-dialog');
-      expect(dialog).toHaveAttribute('data-variant', 'drawer');
-      expect(dialog).toHaveAttribute('data-labos-only', 'true');
-      expect(dialog).toHaveAttribute('data-capture', 'page');
-
-      fireEvent.click(screen.getByRole('button', { name: 'Send it' }));
-      expect(props.onSent).toHaveBeenCalledTimes(1);
-      fireEvent.click(screen.getByRole('button', { name: 'Close feedback' }));
-      expect(props.onClose).toHaveBeenCalledTimes(1);
-    });
-
-    it('without the button (AI Apps pages) still draws the drawer and leaves the shortcut alone', () => {
-      mockUsePermissions.mockReturnValue({ permsSet: new Set(), isLoading: false });
-      const props = globalProps({ showButton: false });
-
-      const { rerender } = render(<FloatingFeedbackButton global={props} />);
-      expect(screen.queryByRole('button', { name: 'Give feedback' })).not.toBeInTheDocument();
-      openChord();
-      expect(props.onOpen).not.toHaveBeenCalled();
-
-      rerender(<FloatingFeedbackButton global={{ ...props, open: true }} />);
-      expect(screen.getByTestId('feedback-dialog')).toHaveAttribute('data-labos-only', 'true');
-    });
-
-    it('opens from Alt+F as a shortcut, shows the hint, and leaves ? to the page', () => {
-      mockUsePermissions.mockReturnValue({ permsSet: new Set(), isLoading: false });
-      const props = globalProps();
-
-      render(<FloatingFeedbackButton global={props} />);
-      openChord();
-
-      expect(props.onOpen).toHaveBeenCalledWith('shortcut');
-      expect(screen.getByRole('button', { name: 'Give feedback' })).toHaveAttribute(
-        'aria-keyshortcuts',
-        'Alt+F Control+Alt+Enter',
-      );
-      expect(screen.getByText('Alt+F', { selector: 'kbd' })).toBeInTheDocument();
-
-      fireEvent.keyDown(window, { key: '?', shiftKey: true });
-      expect(screen.queryByText('Keyboard shortcuts')).not.toBeInTheDocument();
     });
   });
 });

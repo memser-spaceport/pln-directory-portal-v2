@@ -20,6 +20,7 @@ const AUTH = { authorization: 'Bearer member-token' };
 
 beforeEach(() => {
   process.env.PLAA_API_URL = UPSTREAM;
+  delete process.env.PLAA_FEEDBACK_API_URL;
   global.fetch = jest.fn();
 });
 
@@ -45,7 +46,22 @@ describe('auth and configuration', () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it('500s when PLAA_API_URL is unset', async () => {
+  it('prefers PLAA_FEEDBACK_API_URL so only this board can be pointed elsewhere', async () => {
+    process.env.PLAA_FEEDBACK_API_URL = 'http://localhost:3000';
+    upstreamReplies({ items: [] });
+
+    await GET(makeRequest('http://portal/api/plaa/feedback/items', { headers: AUTH }), context(['items']));
+    expect(fetchCall()[0]).toBe('http://localhost:3000/api/v1/feedback/items');
+  });
+
+  it('falls back to PLAA_API_URL when the feedback override is unset', async () => {
+    upstreamReplies({ items: [] });
+
+    await GET(makeRequest('http://portal/api/plaa/feedback/items', { headers: AUTH }), context(['items']));
+    expect(fetchCall()[0]).toBe(`${UPSTREAM}/api/v1/feedback/items`);
+  });
+
+  it('500s when neither upstream is configured', async () => {
     delete process.env.PLAA_API_URL;
     const response = await GET(
       makeRequest('http://portal/api/plaa/feedback/items', { headers: AUTH }),

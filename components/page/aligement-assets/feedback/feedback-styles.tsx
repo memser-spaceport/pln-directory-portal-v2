@@ -29,7 +29,10 @@ export default function FeedbackStyles() {
         --fb-surface: #ffffff;
         --fb-raised: #f8fafc;
 
-        max-width: 920px;
+        /* 90% of the shell, with a ceiling so the Ideas rows don't stretch to
+           an unreadable line length on a wide monitor. */
+        width: 90%;
+        max-width: 1440px;
         margin: 0 auto;
         padding: 32px 20px 96px;
         color: var(--fb-ink);
@@ -658,20 +661,6 @@ export default function FeedbackStyles() {
         display: grid;
         gap: 10px;
         justify-items: start;
-      }
-
-      /* ---------- completed ---------- */
-      .fb-completed {
-        display: grid;
-        gap: 28px;
-      }
-      .fb-completed__month {
-        margin: 0 0 6px;
-        font-size: 13px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.02em;
-        color: var(--fb-muted);
       }
 
       /* ---------- form ---------- */

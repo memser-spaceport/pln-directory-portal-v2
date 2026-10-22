@@ -50,22 +50,7 @@ export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export function formatMonth(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-}
-
 /** Card footer line: "Moved to In Progress · Oct 21" (§2). */
 export function lastMoveLine(status: FeedbackStatus, statusChangedAt: string): string {
   return `Moved to ${STATUS_LABELS[status]} · ${formatDate(statusChangedAt)}`;
-}
-
-/** Completed items grouped newest month first, for the Completed tab (F-6). */
-export function groupByMonth<T extends { completed_at: string | null }>(items: T[]): [string, T[]][] {
-  const groups = new Map<string, T[]>();
-  for (const item of items) {
-    if (!item.completed_at) continue;
-    const key = formatMonth(item.completed_at);
-    groups.set(key, [...(groups.get(key) ?? []), item]);
-  }
-  return [...groups.entries()];
 }

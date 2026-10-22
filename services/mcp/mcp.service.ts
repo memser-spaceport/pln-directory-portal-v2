@@ -34,6 +34,8 @@ export async function approveMcpOAuth(body: {
   codeChallengeMethod: 'S256';
   state?: string;
   resource?: string;
+  /** The member ticked "Make changes for me". False = read-only grant. */
+  allowChanges: boolean;
 }): Promise<{ redirectUrl: string } | { error: 'forbidden' | 'failed' }> {
   const response = await customFetch(
     `${MCP_API_URL}/oauth/approve`,

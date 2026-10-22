@@ -42,6 +42,32 @@
   }
 }
 
+.scopes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 12px 16px;
+  list-style: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.scope,
+.scopeLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 20px;
+  color: #0f172a;
+}
+
+.scopeLabel {
+  cursor: pointer;
+}
+
 .actions {
   display: flex;
   justify-content: center;

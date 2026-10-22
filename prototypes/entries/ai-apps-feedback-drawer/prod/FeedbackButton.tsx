@@ -12,7 +12,7 @@ import {
 import type { AppCapture } from '@/components/page/ai-apps/components/element-pins/useElementPins';
 
 // Production stylesheet, verbatim.
-import s from '@/components/page/ai-apps/components/FloatingFeedbackButton/FloatingFeedbackButton.module.scss';
+import s from '@/components/page/ai-apps/components/FeedbackFabButton/FeedbackFabButton.module.scss';
 
 import { CAPTURE_IGNORE_ATTR } from '../threads/nativeCapture';
 import { GiveAiAppFeedbackDialog, ShortcutHelp, type MockAppOption, type SubmittedFeedback } from './FeedbackDialog';

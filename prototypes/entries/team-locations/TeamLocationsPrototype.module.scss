@@ -1,0 +1,123 @@
+@use 'styles/media';
+
+.page {
+  min-height: 100vh;
+  // Room for the floating save status bar, so the last card can scroll clear of it.
+  padding-bottom: 120px;
+  background: var(--background-neutral-default, #f1f5f9);
+}
+
+// Review band — the team-profile entry's demo switch, verbatim.
+.demoBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  max-width: 1264px;
+  margin: 0 auto;
+  padding: 12px 16px;
+}
+
+.demoLabel {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12px;
+}
+
+.demoSwitch {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 9999px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.demoBtn {
+  border: none;
+  cursor: pointer;
+  border-radius: 9999px;
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  background: transparent;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.demoBtnActive {
+  background: var(--Neutral-White, #fff);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  box-shadow:
+    0 0 1px 0 rgba(15, 23, 42, 0.12),
+    0 4px 4px 0 rgba(15, 23, 42, 0.04);
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+
+  @include media.tablet-landscape {
+    padding-inline: 16px;
+  }
+}
+
+// EditTeamDetailsForm.module.scss .form / .panel, verbatim with colours as token pairs.
+.form {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 16px;
+  background: var(--Neutral-White, #fff);
+
+  @include media.tablet-landscape {
+    border-radius: 8px;
+    border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+    box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.06);
+    padding: 24px;
+  }
+}
+
+// Scaffold content for the muted cards below the editor.
+.otherRows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+// Prototype-only readout: what Save wrote, HQ first.
+.savedLine {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding-inline: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 18px;
+
+  @include media.tablet-landscape {
+    padding-inline: 0;
+  }
+}
+
+.savedLabel {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-weight: 500;
+}

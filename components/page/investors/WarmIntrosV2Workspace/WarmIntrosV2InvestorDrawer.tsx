@@ -9,6 +9,7 @@ import { SectorTagsList } from '@/components/page/investors/SectorTagsList/Secto
 import { getContactLogoByProvider } from '@/utils/profile/getContactLogoByProvider';
 import { useMasterProfile } from '@/services/investors/hooks/useMasterProfile';
 import { useWarmIntrosV2PathsForInvestor } from '@/services/investors/hooks/useWarmIntrosV2PathsForInvestor';
+import { useWarmIntroRefresh } from '@/services/investors/hooks/useWarmIntroRefresh';
 import type { SectorTag } from '@/services/investors/types';
 import type { WarmIntrosV2PathListItem } from '@/services/investors/warm-intros-v2.types';
 import { ListMembershipTags } from './ListMembershipTags';
@@ -101,6 +102,7 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
   const { data: masterProfile } = useMasterProfile(profileUid, {
     enabled: open && !!profileUid,
   });
+  const refresh = useWarmIntroRefresh(profileUid, open && canEdit);
 
   const [showAlternates, setShowAlternates] = useState(true);
   const coInvestments = useMemo(() => parseCoInvestments(masterProfile?.coInvestments), [masterProfile?.coInvestments]);
@@ -227,6 +229,19 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
             <button type="button" className={s.backBtn} onClick={onClose} aria-label="Close">
               ← Back
             </button>
+            {canEdit && profileUid ? (
+              <>
+                <button
+                  type="button"
+                  className={s.refreshBtn}
+                  disabled={refresh.running}
+                  onClick={() => refresh.start()}
+                >
+                  {refresh.running ? 'Refreshing…' : 'Refresh warm intro'}
+                </button>
+                {refresh.error ? <span className={s.refreshError}>{refresh.error}</span> : null}
+              </>
+            ) : null}
           </div>
 
           <div className={s.content}>

@@ -117,6 +117,35 @@ describe('McpAuthorizePage analytics', () => {
     expect(locationAssign).toHaveBeenCalledWith('http://127.0.0.1:9/cb?code=1');
   });
 
+  it('asks for read-only access by default and sends allowChanges false', async () => {
+    mockApprove.mockResolvedValue({ redirectUrl: 'http://127.0.0.1:9/cb?code=1' });
+    render(<McpAuthorizePage />);
+
+    expect(screen.getByText('Read the directory, events and forum')).toBeInTheDocument();
+    const changes = screen.getByRole('checkbox', { name: 'Make changes for me (feedback status, introductions)' });
+    expect(changes).not.toBeChecked();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Allow' }));
+
+    await waitFor(() => expect(mockApprove).toHaveBeenCalledTimes(1));
+    expect(mockApprove).toHaveBeenCalledWith(
+      expect.objectContaining({ clientId: 'mcp_client_abc', allowChanges: false }),
+    );
+  });
+
+  it('sends allowChanges true when the member ticks Make changes for me', async () => {
+    mockApprove.mockResolvedValue({ redirectUrl: 'http://127.0.0.1:9/cb?code=1' });
+    render(<McpAuthorizePage />);
+
+    const changes = screen.getByRole('checkbox', { name: 'Make changes for me (feedback status, introductions)' });
+    fireEvent.click(changes);
+    expect(changes).toBeChecked();
+    fireEvent.click(screen.getByRole('button', { name: 'Allow' }));
+
+    await waitFor(() => expect(mockApprove).toHaveBeenCalledTimes(1));
+    expect(mockApprove).toHaveBeenCalledWith(expect.objectContaining({ allowChanges: true }));
+  });
+
   it('fires denied with user_denied on Deny', () => {
     render(<McpAuthorizePage />);
 

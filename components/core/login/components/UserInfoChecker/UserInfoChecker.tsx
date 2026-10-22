@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef } from 'react';
 import { useCookie } from 'react-use';
+import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 
@@ -45,6 +46,29 @@ function getLeadingTeamIds(teamMemberRoles: TeamMemberRoleLike[] | undefined): s
   );
 }
 
+type MemberRbac = {
+  status?: string;
+  policies?: { code: string }[];
+  effectivePermissions?: { code: string }[];
+  roles?: { code: string }[];
+};
+
+/**
+ * The rbac the cookie keeps: the status and the codes, which is all its readers
+ * use. The API's entries also carry names and descriptions, and for a member
+ * with many permissions that pushes the cookie past the browser's ~4 KB cap,
+ * where the browser drops the write without an error (LAB-2956).
+ */
+export function compactRbac(rbac: MemberRbac): NonNullable<IUserInfo['rbac']> {
+  const codes = (entries: { code: string }[] | undefined) => (entries ?? []).map(({ code }) => ({ code }));
+  return {
+    status: rbac.status as NonNullable<IUserInfo['rbac']>['status'],
+    policies: codes(rbac.policies),
+    effectivePermissions: codes(rbac.effectivePermissions),
+    roles: codes(rbac.roles),
+  };
+}
+
 /**
  * UserInfoChecker - Syncs user info between cookie and server
  *
@@ -65,6 +89,26 @@ export function UserInfoChecker({ uid }: { uid: string }) {
     postHog.reset();
   }, [postHog]);
 
+  /**
+   * Writes the cookie and the store, then refreshes the server-rendered tree,
+   * but only if the browser kept the cookie. A refresh can't see a write the
+   * browser dropped, and on a 404 page Next turns router.refresh() into a full
+   * reload: refreshing after a dropped write reloaded the page forever, since
+   * every reload found the same mismatch (LAB-2956).
+   */
+  const syncUserInfo = useCallback(
+    (next: IUserInfo) => {
+      const serialized = JSON.stringify(next);
+      expireSharedCookie('userInfo');
+      setUserInfoCookie(serialized);
+      useCurrentUserStore.getState().actions.setCurrentUserFromApi(next);
+      if (Cookies.get('userInfo') === serialized) {
+        router.refresh();
+      }
+    },
+    [router, setUserInfoCookie],
+  );
+
   useEffect(() => {
     if (!userInfoCookie || !member?.memberInfo) {
       return;
@@ -82,23 +126,21 @@ export function UserInfoChecker({ uid }: { uid: string }) {
     if (parsedCookie.uid !== memberInfo.uid) return;
 
     const memberPermissions = memberInfo.rbac.effectivePermissions;
-    const memberPermissionCodes = memberPermissions?.map((p: { code: string }) => p.code);
+    const memberPermissionCodes = memberPermissions?.map((p: { code: string }) => p.code) ?? [];
 
     // Compare the CURRENT COOKIE against API data (not the server-rendered prop).
     // The server prop is stale until router.refresh() runs, so using it here would
     // cause a permanent loop. The cookie is the ground truth: once it matches the API,
     // there is nothing left to do in this block.
     const cookieRbac = parsedCookie.rbac as typeof memberInfo.rbac | undefined | null;
-    const cookiePermCodes = cookieRbac?.effectivePermissions?.map((p: { code: string }) => p.code);
+    // A missing list and an empty one are the same: compactRbac stores [] for
+    // either, and treating them as different would rewrite the cookie forever.
+    const cookiePermCodes = cookieRbac?.effectivePermissions?.map((p: { code: string }) => p.code) ?? [];
     const cookieRbacChanged =
       cookieRbac?.status !== memberInfo.rbac?.status || !areRolesEqual(cookiePermCodes, memberPermissionCodes);
 
     if (cookieRbacChanged) {
-      const updatedRbac = { ...(parsedCookie as IUserInfo), rbac: memberInfo.rbac };
-      expireSharedCookie('userInfo');
-      setUserInfoCookie(JSON.stringify(updatedRbac));
-      useCurrentUserStore.getState().actions.setCurrentUserFromApi(updatedRbac);
-      router.refresh();
+      syncUserInfo({ ...(parsedCookie as IUserInfo), rbac: compactRbac(memberInfo.rbac) });
       return;
     }
 
@@ -113,11 +155,7 @@ export function UserInfoChecker({ uid }: { uid: string }) {
     // Handle roles changes
     const serverRoles = memberInfo.memberRoles?.map((r: { name: string }) => r.name) || [];
     if (!areRolesEqual(serverRoles, parsedCookie.roles as [])) {
-      const updatedRoles = { ...(parsedCookie as IUserInfo), roles: serverRoles };
-      expireSharedCookie('userInfo');
-      setUserInfoCookie(JSON.stringify(updatedRoles));
-      useCurrentUserStore.getState().actions.setCurrentUserFromApi(updatedRoles);
-      router.refresh();
+      syncUserInfo({ ...(parsedCookie as IUserInfo), roles: serverRoles });
       return;
     }
 
@@ -129,27 +167,15 @@ export function UserInfoChecker({ uid }: { uid: string }) {
       serverLeadingTeams.some((teamUid) => !cookieLeadingTeams.includes(teamUid));
 
     if (leadingTeamsChanged) {
-      const updatedLeadingTeams = { ...(parsedCookie as IUserInfo), leadingTeams: serverLeadingTeams };
-      expireSharedCookie('userInfo');
-      setUserInfoCookie(JSON.stringify(updatedLeadingTeams));
-      useCurrentUserStore.getState().actions.setCurrentUserFromApi(updatedLeadingTeams);
-      router.refresh();
+      syncUserInfo({ ...(parsedCookie as IUserInfo), leadingTeams: serverLeadingTeams });
       return;
     }
 
     // Handle name or profile image changes
     if (memberInfo.name !== parsedCookie.name || memberInfo.imageUrl !== parsedCookie.profileImageUrl) {
-      const updatedProfile = {
-        ...(parsedCookie as IUserInfo),
-        name: memberInfo.name,
-        profileImageUrl: memberInfo.imageUrl,
-      };
-      expireSharedCookie('userInfo');
-      setUserInfoCookie(JSON.stringify(updatedProfile));
-      useCurrentUserStore.getState().actions.setCurrentUserFromApi(updatedProfile);
-      router.refresh();
+      syncUserInfo({ ...(parsedCookie as IUserInfo), name: memberInfo.name, profileImageUrl: memberInfo.imageUrl });
     }
-  }, [handleLogout, member, router, setUserInfoCookie, userInfoCookie]);
+  }, [member, syncUserInfo, userInfoCookie]);
 
   return null;
 }

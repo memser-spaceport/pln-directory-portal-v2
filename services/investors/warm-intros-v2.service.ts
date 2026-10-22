@@ -183,3 +183,41 @@ export async function listWarmPathFeedback(
     offset: typeof json.offset === 'number' ? json.offset : (params.offset ?? 0),
   };
 }
+
+export type WarmIntroRefreshRun = {
+  uid: string;
+  status: 'RUNNING' | 'COMPLETED' | 'FAILED' | 'SKIPPED';
+  investorProfileUid: string | null;
+  startedAt: string;
+  finishedAt: string | null;
+  error: string | null;
+};
+
+export async function getWarmIntroRefresh(profileUid: string): Promise<{ run: WarmIntroRefreshRun | null }> {
+  const res = await customFetch(
+    `${BASE}/investors/${encodeURIComponent(profileUid)}/regenerate`,
+    { method: 'GET' },
+    true,
+  );
+  if (!res || !res.ok) return { run: null };
+  const json = await res.json();
+  return { run: json?.run ?? null };
+}
+
+export async function regenerateWarmIntro(
+  profileUid: string,
+): Promise<{ status: 'started' | 'already_running'; uid: string }> {
+  const res = await customFetch(
+    `${BASE}/investors/${encodeURIComponent(profileUid)}/regenerate`,
+    { method: 'POST' },
+    true,
+  );
+  if (!res) throw new Error('Refresh failed');
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok && res.status !== 202) {
+    const message = typeof json?.message === 'string' ? json.message : 'Refresh failed';
+    throw new Error(message);
+  }
+  return json as { status: 'started' | 'already_running'; uid: string };
+}
+

@@ -6,7 +6,7 @@ Treat this repository as a **Next.js frontend monolith** using the App Router.
 
 ## Tech Stack
 
-- **Node.js:** **22** (`.nvmrc`). `package.json` `engines` requires `>=20.9.0` (the Next 16 minimum); the Docker image builds on `node:20-alpine`.
+- **Node.js:** **22.23.4** (`.nvmrc`, also the Docker `NODE_VERSION`). `package.json` `engines` is `22.x`, which Vercel uses to pick the runtime major; the Docker image builds on `node:22.23.4-alpine`. Bump `.nvmrc` and the Dockerfile together.
 - **Package manager:** npm (`package-lock.json`). `.npmrc` sets `legacy-peer-deps=true`.
 - **Next.js:** `16.2.3` (App Router)
 - **React / React DOM:** `19.2.5`

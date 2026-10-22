@@ -34,3 +34,22 @@ The feedback drawer and the help-menu support form SHALL send the address of the
 - **GIVEN** a member is on a member profile page
 - **WHEN** the member sends LabOS feedback or a support request
 - **THEN** the request carries the address of that profile page
+
+### Requirement: The page screenshot works on pages with video
+The feedback screenshot of a LabOS page SHALL show the page when the page has a video. A video SHALL NOT delay the screenshot or stop playing because of it. A video on screen SHALL be drawn from the frame it shows when the browser allows reading that frame; otherwise its area SHALL be empty. Images the page shows SHALL appear even when the browser cached them without CORS headers.
+
+#### Scenario: A page with a pitch video
+- **GIVEN** a member is on the active Demo Day page with a team pitch video on screen
+- **WHEN** the member opens the feedback form
+- **THEN** the screenshot shows the page, with the pitch deck preview and the video area
+
+#### Scenario: The video is still loading
+- **GIVEN** the pitch video on screen has not loaded its first frame
+- **WHEN** the screenshot is taken
+- **THEN** the screenshot shows the page without waiting for the video, and the video area is empty
+
+#### Scenario: The video plays
+- **GIVEN** the pitch video on screen is playing
+- **WHEN** the screenshot is taken
+- **THEN** the screenshot shows the page and the frame on screen, or an empty video area when the browser does not allow reading the frame
+- **AND** the video keeps playing

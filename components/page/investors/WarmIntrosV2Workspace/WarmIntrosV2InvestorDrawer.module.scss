@@ -19,6 +19,28 @@
   will-change: transform;
 }
 
+.refreshBtn {
+  margin-left: auto;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.refreshBtn:disabled {
+  cursor: default;
+  color: #9ca3af;
+}
+
+.refreshError {
+  margin-left: 8px;
+  color: #b91c1c;
+  font-size: 12px;
+}
+
 .backBtn {
   display: inline-flex;
   align-items: center;

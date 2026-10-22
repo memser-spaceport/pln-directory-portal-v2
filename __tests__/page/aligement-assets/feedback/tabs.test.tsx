@@ -2,6 +2,7 @@ import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 
 import FeedbackPage from '@/components/page/aligement-assets/feedback/feedback-page';
+import { RoadmapResponse } from '@/services/plaa/feedback/feedback.types';
 import { emptyRoadmap, item } from './__fixtures__/feedback.fixtures';
 
 const searchParams = new URLSearchParams();
@@ -20,6 +21,7 @@ jest.mock('next/link', () => ({
 
 const mockMe = jest.fn();
 const listParams = jest.fn();
+const mockRoadmap = jest.fn<RoadmapResponse, []>(() => emptyRoadmap);
 
 jest.mock('@/services/plaa/feedback/useFeedback', () => ({
   useFeedbackMe: () => mockMe(),
@@ -27,7 +29,7 @@ jest.mock('@/services/plaa/feedback/useFeedback', () => ({
     listParams(params);
     return { data: { items: [item()] }, isLoading: false, isError: false, refetch: jest.fn() };
   },
-  useFeedbackRoadmap: () => ({ data: emptyRoadmap, isLoading: false, isError: false, refetch: jest.fn() }),
+  useFeedbackRoadmap: () => ({ data: mockRoadmap(), isLoading: false, isError: false, refetch: jest.fn() }),
   useFeedbackTriage: () => ({ data: { items: [] }, isLoading: false, isError: false, refetch: jest.fn() }),
   useVote: () => ({ mutate: jest.fn() }),
   useCreateFeedback: () => ({ mutate: jest.fn(), isPending: false, error: null }),
@@ -45,6 +47,14 @@ function renderPage({ isAdmin, tab }: { isAdmin: boolean; tab?: string }) {
   mockMe.mockReturnValue({ data: { is_admin: isAdmin } });
   render(<FeedbackPage />);
 }
+
+/** A roadmap with a card in every column, so each one can be checked. */
+const populatedRoadmap = {
+  under_review: [item({ id: 'r1', status: 'under_review' })],
+  todo: [item({ id: 'r2', status: 'todo' })],
+  in_progress: [item({ id: 'r3', status: 'in_progress' })],
+  completed: [item({ id: 'r4', status: 'completed' })],
+};
 
 function tabNames() {
   return screen.getAllByRole('tab').map((element) => element.textContent);
@@ -90,6 +100,32 @@ describe('Triage is admin-only', () => {
     mockMe.mockReturnValue({ data: undefined });
     render(<FeedbackPage />);
     expect(tabNames()).not.toContain('Triage');
+  });
+});
+
+describe('AC-T7.3 Move to is admin-only on the roadmap', () => {
+  beforeEach(() => mockRoadmap.mockReturnValue(populatedRoadmap));
+  afterEach(() => mockRoadmap.mockReturnValue(emptyRoadmap));
+
+  it('gives a member no Move to control on any card', () => {
+    renderPage({ isAdmin: false, tab: 'roadmap' });
+
+    expect(screen.getAllByTestId(/^fb-card-r/)).toHaveLength(4); // the cards are there
+    expect(screen.queryAllByTestId(/-moveto$/)).toHaveLength(0); // the controls are not
+    expect(screen.queryByRole('button', { name: /move to/i })).not.toBeInTheDocument();
+  });
+
+  it('gives an admin one on every card', () => {
+    renderPage({ isAdmin: true, tab: 'roadmap' });
+    expect(screen.queryAllByTestId(/-moveto$/)).toHaveLength(4);
+  });
+
+  it('hides it from a member whose admin flag has not loaded yet', () => {
+    mockMe.mockReturnValue({ data: undefined });
+    searchParams.set('tab', 'roadmap');
+    render(<FeedbackPage />);
+    searchParams.delete('tab');
+    expect(screen.queryAllByTestId(/-moveto$/)).toHaveLength(0);
   });
 });
 

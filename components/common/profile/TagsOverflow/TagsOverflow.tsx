@@ -6,14 +6,20 @@ import s from './TagsOverflow.module.scss';
 interface Props {
   titles: string[];
   className?: string;
+  classes?: {
+    trigger?: string;
+  };
 }
 
 export function TagsOverflow(props: Props) {
-  const { titles, className } = props;
+  const { titles, className, classes } = props;
 
   return (
     <CustomTooltip
       forceTooltip
+      classes={{
+        trigger: classes?.trigger,
+      }}
       trigger={
         <div>
           <Tag variant="primary" value={`+${titles.length}`} className={className} />

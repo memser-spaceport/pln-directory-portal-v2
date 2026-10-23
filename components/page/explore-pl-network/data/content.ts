@@ -90,3 +90,13 @@ export const PL_ENTITIES = [
     domain: 'plneuro.xyz',
   },
 ] as const;
+
+/** The sections linked from the top bar, in page order. The ids are the page's anchors (#portfolio). */
+export const EXPLORE_SECTIONS = [
+  { id: 'focus-areas', label: 'Focus areas' },
+  { id: 'entities', label: 'Entities' },
+  { id: 'portfolio', label: 'Portfolio' },
+  { id: 'investors', label: 'Investors' },
+] satisfies { id: string; label: string }[];
+
+export type ExploreSectionId = (typeof EXPLORE_SECTIONS)[number]['id'];

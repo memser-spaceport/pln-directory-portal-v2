@@ -6,7 +6,7 @@ import { SpvTopBar } from '@/components/page/spv-spotlight/SpvTopBar/SpvTopBar';
 import { SpvFooter } from '@/components/page/spv-spotlight/SpvFooter/SpvFooter';
 import { useExplorePlNetworkAnalytics, type ExploreTeamParams } from '@/analytics/explore-pl-network.analytics';
 import { aileron } from './aileron';
-import { EXPLORE_SUPPORT_EMAIL } from './data/content';
+import { EXPLORE_SECTIONS, EXPLORE_SUPPORT_EMAIL, type ExploreSectionId } from './data/content';
 import type { PortfolioTeam } from './data/portfolio';
 import { EditorialIntro } from './EditorialIntro/EditorialIntro';
 import { PortfolioPanel } from './PortfolioPanel/PortfolioPanel';
@@ -27,6 +27,13 @@ const teamParams = (logo: PortfolioTeam): ExploreTeamParams => ({
  * list); the VC logo wall; footer. Static marketing copy; the portfolio
  * teams come merged from the Directory and the fallback file (page.tsx).
  */
+// The body scrolls in this app, not the document: scroll both to reach the top.
+const scrollToTop = () => {
+  document.body.scrollTo?.({ top: 0, behavior: 'smooth' });
+  window.scrollTo?.({ top: 0, behavior: 'smooth' });
+  window.history.replaceState(null, '', window.location.pathname + window.location.search);
+};
+
 export function ExplorePlNetworkView({ teams }: { teams: PortfolioTeam[] }) {
   const analytics = useExplorePlNetworkAnalytics();
 
@@ -38,7 +45,15 @@ export function ExplorePlNetworkView({ teams }: { teams: PortfolioTeam[] }) {
 
   return (
     <div className={clsx(s.page, aileron.variable)}>
-      <SpvTopBar label="Protocol Labs Network" />
+      <SpvTopBar
+        label="Protocol Labs Network"
+        sections={EXPLORE_SECTIONS}
+        onSectionClick={(id, source) => analytics.onSectionLinkClicked({ section: id as ExploreSectionId, source })}
+        onBrandClick={() => {
+          scrollToTop();
+          analytics.onLogoClicked();
+        }}
+      />
 
       <div className={s.root}>
         <div className={s.content}>
@@ -66,7 +81,7 @@ export function ExplorePlNetworkView({ teams }: { teams: PortfolioTeam[] }) {
             />
           </section>
 
-          <section className={s.sectionPartners}>
+          <section id="investors" className={s.sectionPartners}>
             <ExploreLogoWall onShowAllToggled={(expanded) => analytics.onLogoWallShowAllToggled({ expanded })} />
           </section>
 

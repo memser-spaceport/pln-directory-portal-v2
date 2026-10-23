@@ -2,6 +2,9 @@ import { usePostHog } from 'posthog-js/react';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { EXPLORE_PL_NETWORK_ANALYTICS } from '@/utils/constants';
 
+import type { ExploreSectionId } from '@/components/page/explore-pl-network/data/content';
+import type { SpvSectionSource } from '@/components/page/spv-spotlight/SpvTopBar/SpvSectionNav/SpvSectionNav';
+
 export type ExplorePortfolioView = 'map' | 'list';
 
 /** A portfolio team as analytics sees it: marketing's logo id, the directory uid when matched. */
@@ -54,6 +57,11 @@ export const useExplorePlNetworkAnalytics = () => {
   const onEntityClicked = (params: { entity: string }) =>
     captureEvent(EXPLORE_PL_NETWORK_ANALYTICS.ON_ENTITY_CLICKED, params);
 
+  const onSectionLinkClicked = (params: { section: ExploreSectionId; source: SpvSectionSource }) =>
+    captureEvent(EXPLORE_PL_NETWORK_ANALYTICS.ON_SECTION_LINK_CLICKED, params);
+
+  const onLogoClicked = () => captureEvent(EXPLORE_PL_NETWORK_ANALYTICS.ON_LOGO_CLICKED);
+
   return {
     onPageViewed,
     onPortfolioViewChanged,
@@ -62,5 +70,7 @@ export const useExplorePlNetworkAnalytics = () => {
     onListShowAllToggled,
     onLogoWallShowAllToggled,
     onEntityClicked,
+    onSectionLinkClicked,
+    onLogoClicked,
   };
 };

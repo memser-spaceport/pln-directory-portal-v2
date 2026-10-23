@@ -35,9 +35,9 @@ type Props = {
   /** 'dark' over a black page (the Explore landing). */
   tone?: 'light' | 'dark';
   /** The page's sections as links after the mark (the Explore landing). Left out, there are no nav items. */
-  sections?: SpvSection[];
+  sections?: readonly SpvSection[];
   onSectionClick?: (id: string, source: SpvSectionSource) => void;
-  /** Makes the mark and name a "Back to top" button. Left out, the logo isn't a link. */
+  /** Makes the mark and name a back-to-top button. Left out, the logo isn't a link. */
   onBrandClick?: () => void;
 };
 
@@ -77,7 +77,12 @@ export const SpvTopBar = ({
   return (
     <header className={clsx(s.root, { [s.dark]: tone === 'dark', [s.withSections]: sections?.length })}>
       {onBrandClick ? (
-        <button type="button" className={clsx(s.brand, s.brandButton)} onClick={onBrandClick} aria-label="Back to top">
+        <button
+          type="button"
+          className={clsx(s.brand, s.brandButton)}
+          onClick={onBrandClick}
+          aria-label={`${label}: back to top`}
+        >
           {brand}
         </button>
       ) : (

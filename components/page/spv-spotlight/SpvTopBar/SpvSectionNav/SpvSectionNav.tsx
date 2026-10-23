@@ -10,7 +10,7 @@ export type SpvSection = { id: string; label: string };
 export type SpvSectionSource = 'header' | 'header-mobile';
 
 type Props = {
-  sections: SpvSection[];
+  sections: readonly SpvSection[];
   tone?: 'light' | 'dark';
   onSectionClick?: (id: string, source: SpvSectionSource) => void;
 };
@@ -19,6 +19,11 @@ type Props = {
 const SECOND_ROW_QUERY = '(max-width: 1199px)';
 // A section counts as current once its top is this close under the bar.
 const ACTIVE_OFFSET = 48;
+
+const isScrolledToEnd = () =>
+  [document.body, document.documentElement].some(
+    (el) => el.scrollHeight > el.clientHeight && el.scrollTop + el.clientHeight >= el.scrollHeight - 2,
+  );
 
 /**
  * The page's sections as links in the top bar: the bar is the table of
@@ -30,21 +35,30 @@ export const SpvSectionNav = ({ sections, tone = 'light', onSectionClick }: Prop
   const [active, setActive] = useState<string | null>(null);
   const navRef = useRef<HTMLElement>(null);
 
-  // The body scrolls in this app, not the document, so listen in capture.
+  // The body scrolls in this app, not the document, so listen in capture;
+  // one measure per frame.
   useEffect(() => {
-    const onScroll = () => {
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
       const bar = navRef.current?.closest('header')?.getBoundingClientRect().bottom || 64;
       let current: string | null = null;
       for (const { id } of sections) {
         const el = document.getElementById(id);
         if (el && el.getBoundingClientRect().top <= bar + ACTIVE_OFFSET) current = id;
       }
+      // At the end of the page the last section may never reach the bar.
+      if (current && isScrolledToEnd()) current = sections[sections.length - 1].id;
       setActive(current);
     };
-    onScroll();
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(measure);
+    };
+    measure();
     window.addEventListener('scroll', onScroll, true);
     window.addEventListener('resize', onScroll);
     return () => {
+      cancelAnimationFrame(frame);
       window.removeEventListener('scroll', onScroll, true);
       window.removeEventListener('resize', onScroll);
     };
@@ -56,7 +70,8 @@ export const SpvSectionNav = ({ sections, tone = 'light', onSectionClick }: Prop
     if (sections.some((x) => x.id === id)) document.getElementById(id)?.scrollIntoView({ block: 'start' });
   }, [sections]);
 
-  // In the sideways row, keep the current link in view.
+  // In the sideways row, keep the current link in view. Not smooth: the page
+  // may be in a smooth scroll to the clicked section.
   useEffect(() => {
     const nav = navRef.current;
     const link = nav?.querySelector<HTMLElement>('[aria-current]');
@@ -64,11 +79,13 @@ export const SpvSectionNav = ({ sections, tone = 'light', onSectionClick }: Prop
     const { left, right } = link.getBoundingClientRect();
     const box = nav.getBoundingClientRect();
     if (left < box.left || right > box.right) {
-      nav.scrollTo?.({ left: nav.scrollLeft + left - box.left - 16, behavior: 'smooth' });
+      nav.scrollLeft += left - box.left - 16;
     }
   }, [active]);
 
   const go = (id: string) => (e: React.MouseEvent) => {
+    // A new tab or window keeps the browser's own handling of #id.
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     e.preventDefault();
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     window.history.replaceState(null, '', `#${id}`);

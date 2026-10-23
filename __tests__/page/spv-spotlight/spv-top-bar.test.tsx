@@ -8,7 +8,7 @@ describe('SpvTopBar', () => {
     render(<SpvTopBar label="SPV Spotlight" supportEmail="spv@example.com" />);
     expect(screen.getByText('SPV Spotlight')).toBeInTheDocument();
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Back to top' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /back to top/ })).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Contact us' })).toHaveAttribute('href', 'mailto:spv@example.com');
   });
 });

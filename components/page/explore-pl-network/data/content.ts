@@ -97,6 +97,6 @@ export const EXPLORE_SECTIONS = [
   { id: 'entities', label: 'Entities' },
   { id: 'portfolio', label: 'Portfolio' },
   { id: 'investors', label: 'Investors' },
-] satisfies { id: string; label: string }[];
+] as const satisfies readonly { id: string; label: string }[];
 
 export type ExploreSectionId = (typeof EXPLORE_SECTIONS)[number]['id'];

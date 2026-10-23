@@ -13,6 +13,13 @@ import { PortfolioPanel } from './PortfolioPanel/PortfolioPanel';
 import { ExploreLogoWall } from './ExploreLogoWall/ExploreLogoWall';
 import s from './ExplorePlNetworkView.module.scss';
 
+// The body scrolls in this app, not the document: scroll both to reach the top.
+const scrollToTop = () => {
+  document.body.scrollTo?.({ top: 0, behavior: 'smooth' });
+  window.scrollTo?.({ top: 0, behavior: 'smooth' });
+  window.history.replaceState(null, '', window.location.pathname + window.location.search);
+};
+
 const teamParams = (logo: PortfolioTeam): ExploreTeamParams => ({
   logo_id: logo.id,
   team_uid: logo.uid ?? null,
@@ -27,13 +34,6 @@ const teamParams = (logo: PortfolioTeam): ExploreTeamParams => ({
  * list); the VC logo wall; footer. Static marketing copy; the portfolio
  * teams come merged from the Directory and the fallback file (page.tsx).
  */
-// The body scrolls in this app, not the document: scroll both to reach the top.
-const scrollToTop = () => {
-  document.body.scrollTo?.({ top: 0, behavior: 'smooth' });
-  window.scrollTo?.({ top: 0, behavior: 'smooth' });
-  window.history.replaceState(null, '', window.location.pathname + window.location.search);
-};
-
 export function ExplorePlNetworkView({ teams }: { teams: PortfolioTeam[] }) {
   const analytics = useExplorePlNetworkAnalytics();
 

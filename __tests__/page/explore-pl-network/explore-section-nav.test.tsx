@@ -41,7 +41,14 @@ describe('Explore PL Network section links', () => {
     Element.prototype.scrollTo = jest.fn();
     window.scrollTo = jest.fn();
     window.history.replaceState(null, '', '/explore-pl-network');
+    // The scroll handler measures once per frame: run the frame at once.
+    jest.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
+      cb(0);
+      return 0;
+    });
   });
+
+  afterEach(() => jest.restoreAllMocks());
 
   it('shows the four section links after the mark, in order, and no FAQ', () => {
     render(<ExplorePlNetworkView teams={teams} />);
@@ -49,7 +56,7 @@ describe('Explore PL Network section links', () => {
     expect(links.map((a) => a.textContent)).toEqual(SECTIONS.map((x) => x.label));
     links.forEach((a, i) => expect(a).toHaveAttribute('href', `#${SECTIONS[i].id}`));
     expect(nav().queryByRole('link', { name: /FAQ/i })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Back to top' })).toHaveTextContent('Protocol Labs Network');
+    expect(screen.getByRole('button', { name: /back to top/ })).toHaveTextContent('Protocol Labs Network');
   });
 
   it('gives every linked section its anchor on the page', () => {
@@ -95,6 +102,29 @@ describe('Explore PL Network section links', () => {
     ).toHaveLength(1);
   });
 
+  it('marks the last section at the end of the page, where it cannot reach the bar', () => {
+    render(<ExplorePlNetworkView teams={teams} />);
+    placeSections({ 'focus-areas': -2400, entities: -1800, portfolio: -900, investors: 300 });
+    Object.defineProperty(document.body, 'scrollHeight', { configurable: true, value: 3000 });
+    Object.defineProperty(document.body, 'clientHeight', { configurable: true, value: 800 });
+    document.body.scrollTop = 2200;
+    act(() => {
+      fireEvent.scroll(document.body);
+    });
+    expect(nav().getByRole('link', { name: 'Investors' })).toHaveAttribute('aria-current', 'location');
+    delete (document.body as unknown as Record<string, unknown>).scrollHeight;
+    delete (document.body as unknown as Record<string, unknown>).clientHeight;
+    document.body.scrollTop = 0;
+  });
+
+  it('leaves a modifier click (new tab) to the browser', () => {
+    render(<ExplorePlNetworkView teams={teams} />);
+    const notCancelled = fireEvent.click(nav().getByRole('link', { name: 'Investors' }), { metaKey: true });
+    expect(notCancelled).toBe(true);
+    expect(scrollIntoView).not.toHaveBeenCalled();
+    expect(mockAnalytics.onSectionLinkClicked).not.toHaveBeenCalled();
+  });
+
   it('marks no link above the first section', () => {
     render(<ExplorePlNetworkView teams={teams} />);
     placeSections({ 'focus-areas': 900, entities: 1500, portfolio: 2400, investors: 3500 });
@@ -112,7 +142,7 @@ describe('Explore PL Network section links', () => {
     const user = userEvent.setup();
     window.history.replaceState(null, '', '/explore-pl-network#entities');
     render(<ExplorePlNetworkView teams={teams} />);
-    await user.click(screen.getByRole('button', { name: 'Back to top' }));
+    await user.click(screen.getByRole('button', { name: /back to top/ }));
     expect(window.scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
     expect(window.location.hash).toBe('');
     expect(mockAnalytics.onLogoClicked).toHaveBeenCalled();

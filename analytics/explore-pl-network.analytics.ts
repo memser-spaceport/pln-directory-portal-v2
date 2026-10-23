@@ -3,9 +3,11 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { EXPLORE_PL_NETWORK_ANALYTICS } from '@/utils/constants';
 
 import type { ExploreSectionId } from '@/components/page/explore-pl-network/data/content';
-import type { SpvSectionSource } from '@/components/page/spv-spotlight/SpvTopBar/SpvSectionNav/SpvSectionNav';
 
 export type ExplorePortfolioView = 'map' | 'list';
+
+/** The top bar's section links: beside the mark, or in their second row on narrow screens. */
+export type ExploreSectionSource = 'header' | 'header-mobile';
 
 /** A portfolio team as analytics sees it: marketing's logo id, the directory uid when matched. */
 export type ExploreTeamParams = {
@@ -57,7 +59,7 @@ export const useExplorePlNetworkAnalytics = () => {
   const onEntityClicked = (params: { entity: string }) =>
     captureEvent(EXPLORE_PL_NETWORK_ANALYTICS.ON_ENTITY_CLICKED, params);
 
-  const onSectionLinkClicked = (params: { section: ExploreSectionId; source: SpvSectionSource }) =>
+  const onSectionLinkClicked = (params: { section: ExploreSectionId; source: ExploreSectionSource }) =>
     captureEvent(EXPLORE_PL_NETWORK_ANALYTICS.ON_SECTION_LINK_CLICKED, params);
 
   const onLogoClicked = () => captureEvent(EXPLORE_PL_NETWORK_ANALYTICS.ON_LOGO_CLICKED);

@@ -37,7 +37,7 @@ While the visitor scrolls, the link of the section under the bar SHALL be marked
 
 ### Requirement: The mark goes back to the top
 
-The mark and name SHALL be a "Back to top" button. A click SHALL scroll smoothly to the top of the page and SHALL remove the section hash from the address.
+The mark and name SHALL be a back-to-top button (named "Protocol Labs Network: back to top"). A click SHALL scroll smoothly to the top of the page and SHALL remove the section hash from the address.
 
 #### Scenario: Click on the mark
 

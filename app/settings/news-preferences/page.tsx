@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { Metadata } from 'next';
 import { SettingsMenu } from '@/components/page/settings/SettingsMenu';
 import SettingsBackButton from '@/components/page/settings/settings-back-btn';
@@ -8,7 +8,7 @@ import { getMemberInfo } from '@/services/members.service';
 import { getMemberPreferences } from '@/services/preferences.service';
 import { getTeam } from '@/services/teams.service';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
-import { NEWS_PREFERENCE_CATEGORIES } from '@/utils/news-categories';
+import { NEWS_PREFERENCE_CATEGORIES, SHOW_NEWS_PREFERENCES } from '@/utils/news-categories';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import styles from './page.module.css';
 
@@ -16,6 +16,8 @@ const ARRIVALS: NewsPreferencesArrival[] = ['digest', 'feed', 'settings'];
 
 /** Settings → News preferences (LAB-2939/2941). */
 async function NewsPreferencesPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  if (!SHOW_NEWS_PREFERENCES) notFound();
+
   const [{ isLoggedIn, userInfo, authToken }, resolvedSearchParams] = await Promise.all([
     getCookiesFromHeaders(),
     searchParams,

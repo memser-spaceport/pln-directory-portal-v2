@@ -1,8 +1,8 @@
 @use 'styles/media';
 
-// Beside the mark on desktop; below it, a second row of the bar, edge to edge
-// past the bar's padding (16px, 24px from tablet-landscape), that scrolls
-// sideways.
+// Centred in the bar on desktop (SpvTopBar .withSections); below it, a second
+// row of the bar, edge to edge past the bar's padding (16px, 24px from
+// tablet-landscape), that scrolls sideways.
 .nav {
   order: 3;
   flex-basis: calc(100% + 32px);
@@ -25,7 +25,7 @@
   @include media.desktop {
     order: 0;
     flex-basis: auto;
-    margin-inline: 24px 0;
+    margin-inline: 0;
     padding: 0;
     overflow-x: visible;
   }

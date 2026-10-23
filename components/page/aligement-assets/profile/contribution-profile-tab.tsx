@@ -37,6 +37,24 @@ function pointsLabel(points: number, isPending: boolean): string {
   return `${points.toLocaleString()} points${isPending ? ' so far' : ''}`;
 }
 
+function usd(amount: number): string {
+  return `$${Math.round(amount).toLocaleString()}`;
+}
+
+/** Prices carry cents: rounding $1.48 to $1 would lose the whole figure. */
+function pricePerPlaa(price: number): string {
+  return `$${price.toFixed(2)}`;
+}
+
+/**
+ * What a month's redemption fetched, and at what price. "avg" is not decoration:
+ * it marks a month whose redemptions cleared at more than one auction price, so
+ * the rate shown is a blend rather than a price anyone actually got.
+ */
+function redeemedValueLabel(amountUsd: number, price: number, isAverage: boolean): string {
+  return `${usd(amountUsd)} at ${isAverage ? 'avg ' : ''}${pricePerPlaa(price)}`;
+}
+
 /** Sums what is known: a month with no figure is left out rather than voiding the whole total. */
 function sumKnown(entries: ContributionHistoryEntry[], pick: (e: ContributionHistoryEntry) => number | null): number | null {
   let total: number | null = null;
@@ -46,6 +64,25 @@ function sumKnown(entries: ContributionHistoryEntry[], pick: (e: ContributionHis
     total = (total ?? 0) + v;
   }
   return total;
+}
+
+/**
+ * The lifetime dollar figure, over the months that have a price.
+ *
+ * The PLAA total beside it stays the full amount: dropping unpriced months
+ * from it would understate how much was redeemed. The rate is therefore an
+ * average over what could be priced, which is why it always reads "avg".
+ */
+function priceableTotals(entries: ContributionHistoryEntry[]): { usd: number; price: number } | null {
+  let usdTotal = 0;
+  let plaaTotal = 0;
+  for (const entry of entries) {
+    if (entry.redeemedUsd === null || entry.redeemed === null) continue;
+    usdTotal += entry.redeemedUsd;
+    plaaTotal += entry.redeemed;
+  }
+  if (plaaTotal === 0) return null;
+  return { usd: usdTotal, price: usdTotal / plaaTotal };
 }
 
 function niceMax(value: number): number {
@@ -144,6 +181,7 @@ export default function ContributionProfileTab({ entries, currentBalance, totalR
   const newestFirst = [...entries].reverse();
 
   const totalPoints = sumKnown(entries, (e) => e.points);
+  const redeemedTotals = priceableTotals(entries);
   // An open snapshot's PLAA is not final, so it stays out of the totals until it closes.
   const closedEntries = entries.filter((e) => !e.isPending);
   const totalPlaa = closedEntries.reduce((sum, p) => sum + p.plaa, 0);
@@ -318,7 +356,14 @@ export default function ContributionProfileTab({ entries, currentBalance, totalR
               <span className={`${styles.right} ${styles.secondary}`}>
                 {entry.isPending ? PENDING_LABEL : entry.infra.toLocaleString()}
               </span>
-              <span className={`${styles.right} ${styles.tertiary}`}>{dashOr(entry.redeemed)}</span>
+              <span className={`${styles.right} ${styles.stackedCell} ${styles.tertiary}`}>
+                <span>{dashOr(entry.redeemed)}</span>
+                {entry.redeemedUsd !== null && entry.redeemedPrice !== null && (
+                  <span className={styles.usdLine}>
+                    {redeemedValueLabel(entry.redeemedUsd, entry.redeemedPrice, entry.redeemedPriceIsAverage)}
+                  </span>
+                )}
+              </span>
               <span className={styles.balanceChip}>{entry.isPending ? PENDING_LABEL : entry.cum.toLocaleString()}</span>
             </div>
           ))}
@@ -330,7 +375,14 @@ export default function ContributionProfileTab({ entries, currentBalance, totalR
               {totalPoints !== null && <span className={styles.pointsLine}>{pointsLabel(totalPoints, false)}</span>}
             </span>
             <span className={`${styles.footerValue} ${styles.secondary}`}>{totalInfra.toLocaleString()}</span>
-            <span className={`${styles.footerValue} ${styles.tertiary}`}>{dashOr(totalRedeemed)}</span>
+            <span className={`${styles.footerValue} ${styles.stackedCell} ${styles.tertiary}`}>
+              <span>{dashOr(totalRedeemed)}</span>
+              {redeemedTotals !== null && (
+                <span className={styles.usdLine}>
+                  {usd(redeemedTotals.usd)} &middot; avg {pricePerPlaa(redeemedTotals.price)}
+                </span>
+              )}
+            </span>
             <span className={styles.balanceChip}>{currentBalance === null ? '—' : currentBalance.toLocaleString()}</span>
           </div>
         </div>

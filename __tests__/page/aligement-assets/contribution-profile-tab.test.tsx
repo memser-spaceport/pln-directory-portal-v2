@@ -5,9 +5,9 @@ import ContributionProfileTab from '@/components/page/aligement-assets/profile/c
 import type { ContributionHistoryEntry } from '@/services/plaa/hooks/useProfileData';
 
 const entries: ContributionHistoryEntry[] = [
-  { period: 'May 2026', points: 350, plaa: 35, infra: 0, redeemed: 0, isPending: false, cum: 35 },
-  { period: 'Jun 2026', points: 220, plaa: 22, infra: 30, redeemed: 0, isPending: false, cum: 87 },
-  { period: 'Jul 2026', points: 450, plaa: 45, infra: 30, redeemed: 50, isPending: false, cum: 112 },
+  { period: 'May 2026', points: 350, plaa: 35, infra: 0, redeemed: 0, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 35 },
+  { period: 'Jun 2026', points: 220, plaa: 22, infra: 30, redeemed: 0, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 87 },
+  { period: 'Jul 2026', points: 450, plaa: 45, infra: 30, redeemed: 50, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 112 },
 ];
 
 describe('ContributionProfileTab', () => {
@@ -174,7 +174,7 @@ describe('ContributionProfileTab', () => {
     it('reads Pending for an open snapshot, whose PLAA is not final', () => {
       const pending: ContributionHistoryEntry[] = [
         ...entries,
-        { period: 'Aug 2026', points: 120, plaa: 12, infra: 8, redeemed: null, isPending: true, cum: 112 },
+        { period: 'Aug 2026', points: 120, plaa: 12, infra: 8, redeemed: null, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: true, cum: 112 },
       ];
       const { container } = render(<ContributionProfileTab entries={pending} currentBalance={112} totalRedeemed={50} />);
       const hoverZones = Array.from(container.querySelectorAll('rect[fill="transparent"]'));
@@ -190,7 +190,7 @@ describe('ContributionProfileTab', () => {
 
     it('drops only the points row when the member has no points data', () => {
       const noPoints: ContributionHistoryEntry[] = [
-        { period: 'May 2026', points: null, plaa: 100, infra: 900, redeemed: 200, isPending: false, cum: 800 },
+        { period: 'May 2026', points: null, plaa: 100, infra: 900, redeemed: 200, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 800 },
       ];
       const { container } = render(<ContributionProfileTab entries={noPoints} currentBalance={800} totalRedeemed={200} />);
 
@@ -201,9 +201,9 @@ describe('ContributionProfileTab', () => {
 
   describe('a period with no points data (still loading or settled empty)', () => {
     const realEntries: ContributionHistoryEntry[] = [
-      { period: 'May 2026', points: null, plaa: 100, infra: 900, redeemed: null, isPending: false, cum: 1000 },
-      { period: 'Jun 2026', points: null, plaa: 0, infra: 0, redeemed: null, isPending: false, cum: 1000 },
-      { period: 'Jul 2026', points: null, plaa: 50, infra: 0, redeemed: null, isPending: false, cum: 1050 },
+      { period: 'May 2026', points: null, plaa: 100, infra: 900, redeemed: null, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 1000 },
+      { period: 'Jun 2026', points: null, plaa: 0, infra: 0, redeemed: null, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 1000 },
+      { period: 'Jul 2026', points: null, plaa: 50, infra: 0, redeemed: null, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 1050 },
     ];
 
     it('hides the points bars and left axis, keeps the real PLAA balance line and right axis', () => {
@@ -256,6 +256,9 @@ describe('ContributionProfileTab', () => {
       points: 100,
       plaa: 10,
       infra: 0,
+      redeemedUsd: null,
+      redeemedPrice: null,
+      redeemedPriceIsAverage: false,
       redeemed: 0,
       isPending: false,
       cum: (i + 1) * 10,
@@ -292,8 +295,8 @@ describe('ContributionProfileTab', () => {
   describe('an open snapshot (not yet closed)', () => {
     // cum on the open row carries the confirmed balance forward; its own PLAA is not in it yet.
     const withPending: ContributionHistoryEntry[] = [
-      { period: 'May 2026', points: 350, plaa: 35, infra: 0, redeemed: null, isPending: false, cum: 35 },
-      { period: 'Jun 2026', points: 220, plaa: 22, infra: 30, redeemed: null, isPending: true, cum: 35 },
+      { period: 'May 2026', points: 350, plaa: 35, infra: 0, redeemed: null, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 35 },
+      { period: 'Jun 2026', points: 220, plaa: 22, infra: 30, redeemed: null, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: true, cum: 35 },
     ];
 
     const pendingRow = () => screen.getAllByText('Jun 2026')[1].closest('[class*="dataRow"]') as HTMLElement;
@@ -343,8 +346,8 @@ describe('ContributionProfileTab', () => {
 
   it('renders a per-period redeemed figure when one is attributed to that month', () => {
     const redeemed: ContributionHistoryEntry[] = [
-      { period: 'May 2026', points: 350, plaa: 35, infra: 0, redeemed: null, isPending: false, cum: 35 },
-      { period: 'Jun 2026', points: 220, plaa: 22, infra: 30, redeemed: 640, isPending: false, cum: 87 },
+      { period: 'May 2026', points: 350, plaa: 35, infra: 0, redeemed: null, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 35 },
+      { period: 'Jun 2026', points: 220, plaa: 22, infra: 30, redeemed: 640, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 87 },
     ];
     render(<ContributionProfileTab entries={redeemed} currentBalance={35} totalRedeemed={640} />);
 
@@ -360,9 +363,9 @@ describe('ContributionProfileTab', () => {
 
   it('totals the points it has, rather than blanking the whole total when one month has none', () => {
     const someMissing: ContributionHistoryEntry[] = [
-      { period: 'May 2026', points: 350, plaa: 35, infra: 0, redeemed: null, isPending: false, cum: 35 },
-      { period: 'Jun 2026', points: null, plaa: 22, infra: 30, redeemed: null, isPending: false, cum: 87 },
-      { period: 'Jul 2026', points: 450, plaa: 45, infra: 30, redeemed: null, isPending: false, cum: 112 },
+      { period: 'May 2026', points: 350, plaa: 35, infra: 0, redeemed: null, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 35 },
+      { period: 'Jun 2026', points: null, plaa: 22, infra: 30, redeemed: null, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 87 },
+      { period: 'Jul 2026', points: 450, plaa: 45, infra: 30, redeemed: null, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 112 },
     ];
     render(<ContributionProfileTab entries={someMissing} currentBalance={112} totalRedeemed={null} />);
 
@@ -376,6 +379,88 @@ describe('ContributionProfileTab', () => {
 
     const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
     expect(within(totalRow).queryByText(/points/)).not.toBeInTheDocument();
+  });
+
+  describe('what a redemption fetched', () => {
+    const priced: ContributionHistoryEntry[] = [
+      {
+        period: 'May 2026',
+        points: 350,
+        plaa: 35,
+        infra: 0,
+        redeemed: 180,
+        redeemedUsd: 256,
+        redeemedPrice: 1.42,
+        redeemedPriceIsAverage: false,
+        isPending: false,
+        cum: 35,
+      },
+      {
+        period: 'Jul 2026',
+        points: 450,
+        plaa: 45,
+        infra: 30,
+        redeemed: 400,
+        redeemedUsd: 592,
+        redeemedPrice: 1.48,
+        redeemedPriceIsAverage: false,
+        isPending: false,
+        cum: 112,
+      },
+    ];
+
+    function rowFor(period: string): HTMLElement {
+      return screen.getAllByText(period)[1].closest('[class*="dataRow"]') as HTMLElement;
+    }
+
+    it('shows the dollar value and the price it cleared at, under the PLAA', () => {
+      render(<ContributionProfileTab entries={priced} currentBalance={112} totalRedeemed={580} />);
+
+      const redeemedCell = rowFor('Jul 2026').children[3];
+      expect(redeemedCell.children[0].textContent).toBe('400');
+      expect(redeemedCell.children[1].textContent).toBe('$592 at $1.48');
+    });
+
+    it('marks a blended rate as an average, so it is not read as a price anyone got', () => {
+      const blended = [{ ...priced[1], redeemedPrice: 1.468, redeemedPriceIsAverage: true }];
+      render(<ContributionProfileTab entries={blended} currentBalance={112} totalRedeemed={400} />);
+
+      expect(screen.getByText('$592 at avg $1.47')).toBeInTheDocument();
+    });
+
+    it('shows the PLAA alone when the month has no price, rather than a fabricated figure', () => {
+      const unpriced = [{ ...priced[1], redeemedUsd: null, redeemedPrice: null }];
+      render(<ContributionProfileTab entries={unpriced} currentBalance={112} totalRedeemed={400} />);
+
+      const redeemedCell = rowFor('Jul 2026').children[3];
+      expect(redeemedCell.textContent).toBe('400');
+      expect(screen.queryByText(/\$/)).not.toBeInTheDocument();
+    });
+
+    it('totals the dollars across months and shows the lifetime average rate', () => {
+      render(<ContributionProfileTab entries={priced} currentBalance={112} totalRedeemed={580} />);
+
+      const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
+      expect(within(totalRow).getByText('580')).toBeInTheDocument();
+      // 848 over 580 PLAA = 1.462...
+      expect(within(totalRow).getByText('$848 \u00b7 avg $1.46')).toBeInTheDocument();
+    });
+
+    it('leaves the dollar total off when no month could be priced', () => {
+      const unpriced = priced.map((e) => ({ ...e, redeemedUsd: null, redeemedPrice: null }));
+      render(<ContributionProfileTab entries={unpriced} currentBalance={112} totalRedeemed={580} />);
+
+      const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
+      expect(within(totalRow).getByText('580')).toBeInTheDocument();
+      expect(within(totalRow).queryByText(/\$/)).not.toBeInTheDocument();
+    });
+
+    it('rounds dollars to whole units but keeps cents on the price', () => {
+      const awkward = [{ ...priced[1], redeemedUsd: 591.62, redeemedPrice: 1.4795 }];
+      render(<ContributionProfileTab entries={awkward} currentBalance={112} totalRedeemed={400} />);
+
+      expect(screen.getByText('$592 at $1.48')).toBeInTheDocument();
+    });
   });
 
   describe('row order', () => {
@@ -411,7 +496,7 @@ describe('ContributionProfileTab', () => {
     it('puts an open snapshot at the top, above the closed periods', () => {
       const withPending: ContributionHistoryEntry[] = [
         ...entries,
-        { period: 'Aug 2026', points: 120, plaa: 12, infra: 8, redeemed: null, isPending: true, cum: 112 },
+        { period: 'Aug 2026', points: 120, plaa: 12, infra: 8, redeemed: null, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: true, cum: 112 },
       ];
       render(<ContributionProfileTab entries={withPending} currentBalance={112} totalRedeemed={50} />);
 

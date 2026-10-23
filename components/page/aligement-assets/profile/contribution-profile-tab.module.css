@@ -197,6 +197,14 @@
   color: #4a72ff;
 }
 
+/* What a redemption fetched: supporting detail, so quieter than the PLAA above it. */
+.usdLine {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+  color: #8897ae;
+}
+
 .secondary {
   color: #455468;
 }

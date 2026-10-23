@@ -30,6 +30,11 @@ jest.mock('@/services/plaa/hooks/useRedemptionHistory', () => ({
   useRedemptionHistory: () => mockUseRedemptionHistory(),
 }));
 
+const mockUseBuybackPrices = jest.fn();
+jest.mock('@/services/plaa/hooks/useBuybackPrices', () => ({
+  useBuybackPrices: () => mockUseBuybackPrices(),
+}));
+
 const mockUseSnapshotLifecycle = jest.fn();
 jest.mock('@/services/plaa/hooks/useSnapshotLifecycle', () => ({
   useSnapshotLifecycle: () => mockUseSnapshotLifecycle(),
@@ -64,6 +69,7 @@ describe('useProfileData', () => {
     mockUseProfilePlaaHistory.mockReturnValue({ data: undefined, isLoading: false });
     mockUseSnapshotPointsHistory.mockReturnValue({});
     mockUseRedemptionHistory.mockReturnValue({ data: undefined });
+    mockUseBuybackPrices.mockReturnValue({ data: undefined });
     mockUseSnapshotLifecycle.mockReturnValue({ data: undefined });
     mockUseIsInfraMember.mockReturnValue(false);
   });
@@ -223,10 +229,11 @@ describe('useProfileData', () => {
       mockUseProfilePlaaHistory.mockReturnValue({ data: REAL_HISTORY, isLoading: false });
       const { result } = renderHook(() => useProfileDataDefault());
 
+      const unpriced = { redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false };
       expect(result.current.contributionHistory).toEqual([
-        { period: 'May 2026', points: null, plaa: 100, infra: 900, redeemed: null, isPending: false, cum: 1000 },
-        { period: 'Jun 2026', points: null, plaa: 0, infra: 0, redeemed: null, isPending: false, cum: 1000 },
-        { period: 'Jul 2026', points: null, plaa: 50, infra: 0, redeemed: null, isPending: false, cum: 1050 },
+        { period: 'May 2026', points: null, plaa: 100, infra: 900, redeemed: null, ...unpriced, isPending: false, cum: 1000 },
+        { period: 'Jun 2026', points: null, plaa: 0, infra: 0, redeemed: null, ...unpriced, isPending: false, cum: 1000 },
+        { period: 'Jul 2026', points: null, plaa: 50, infra: 0, redeemed: null, ...unpriced, isPending: false, cum: 1050 },
       ]);
     });
   });

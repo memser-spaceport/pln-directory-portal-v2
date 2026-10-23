@@ -9,11 +9,20 @@ jest.mock('@/services/members/hooks/useMemberNotificationsSettings', () => ({
   useMemberNotificationsSettings: (uid: string | undefined) => mockSettings(uid),
 }));
 
+let mockShowNewsPreferences = true;
+jest.mock('@/utils/news-categories', () => ({
+  ...jest.requireActual('@/utils/news-categories'),
+  get SHOW_NEWS_PREFERENCES() {
+    return mockShowNewsPreferences;
+  },
+}));
+
 const userInfo = { uid: 'm1', name: 'Mira Chen' } as IUserInfo;
 
 const names = (items: Array<{ name: string }>) => items.map((item) => item.name);
 
 beforeEach(() => {
+  mockShowNewsPreferences = true;
   mockSettings.mockReturnValue({ data: { recommendationsEnabled: false } });
 });
 
@@ -29,12 +38,28 @@ describe('useGetMenuItems', () => {
 
     expect(names(result.current.preferences)).toEqual([
       'notification preferences',
+      'news preferences',
       'job preferences',
       'general preferences',
     ]);
   });
 
   it('slots "recommendations" between the notification and job preferences when enabled', () => {
+    mockSettings.mockReturnValue({ data: { recommendationsEnabled: true } });
+
+    const { result } = renderHook(() => useGetMenuItems(userInfo));
+
+    expect(names(result.current.preferences)).toEqual([
+      'notification preferences',
+      'news preferences',
+      'recommendations',
+      'job preferences',
+      'general preferences',
+    ]);
+  });
+
+  it('leaves "news preferences" out while the page is flagged off', () => {
+    mockShowNewsPreferences = false;
     mockSettings.mockReturnValue({ data: { recommendationsEnabled: true } });
 
     const { result } = renderHook(() => useGetMenuItems(userInfo));
@@ -75,7 +100,7 @@ describe('useGetMenuItems', () => {
     const { result } = renderHook(() => useGetMenuItems(userInfo));
     const all = Object.values(result.current).flat();
 
-    expect(all).toHaveLength(7);
+    expect(all).toHaveLength(8);
     all.forEach((item) => {
       expect(item.url).toMatch(/^\/settings\//);
       expect(item.icon).toMatch(/^\/icons\/.+\.svg$/);

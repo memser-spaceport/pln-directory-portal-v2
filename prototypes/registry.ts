@@ -282,7 +282,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'digest-topics',
     title: 'News preferences',
     description:
-      'A new Settings page (after Email Preferences) for what shapes For You AND the digest: news categories, Suggested from your profile (skills, focus areas, read-only), Teams you follow. Email Preferences keeps delivery + one link here. Doors: digest email, For You hint, settings menu (?from=digest|feed|settings, ?persona).',
+      'A new Settings page (after Email Preferences) for what shapes For You AND the digest: topic hashtags (prefilled, unsubscribe in place), Teams you follow. Email Preferences keeps delivery + one link here. Doors: digest email, For You hint, settings menu (?from=digest|feed|settings, ?persona).',
     category: 'Newsfeed',
     load: () => import('./entries/digest-topics/DigestTopicsPrototype'),
   },
@@ -463,6 +463,15 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/home-refactor-b/HomeRefactorBPrototype'),
   },
   {
+    // LOCAL VIEWING COPY of PR #3341 (branch polina/lab-2948-…). Edit in C:\PL Network\pln-lab-2948; don't commit on this branch.
+    key: 'lab-2948-prototype-a-better-mcp-connect',
+    title: 'MCP connect and agent control in Settings',
+    description:
+      'The MCP card in Settings, Email & Accounts, with mock data: actions waiting for your confirm on top, one card per agent with its access (read-only or make changes), its last actions and View all activity, the connect steps per client, what agents can do in LabOS, and revoke. Dashed tags mark the parts that need new backend work. LAB-2948.',
+    category: 'AI Apps',
+    load: () => import('./entries/lab-2948-prototype-a-better-mcp-connect/PrototypeABetterMcpConnectPrototype'),
+  },
+  {
     key: 'guided-tour',
     title: 'Guided tours — candidates, warm intros',
     description:
@@ -533,6 +542,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'The Visual direction of the Explore PL Network landing (the Editorial one is explore-pl-network), for investors who don’t know Protocol Labs. It leads with motion: under a dark top bar, the PL cube as a full-width black hero, our own view in which the 281 active portfolio logos fill the Protocol Labs cube mark, narrow gaps between its six facets, shaded by face, categories as contiguous regions, drifting slowly with a shimmer (clipped and faded on phones). The hero is the portfolio, so the lede and a pulsing “Click any logo to meet the team” pill say it is clickable; a click opens the team card, and a category or year below the map dims the rest in place. Then marketing’s General Info as a readable block with the focus areas beside Protocol Labs’ PL Summit 2024 talk (a YouTube poster that loads the player on press), the PL entities as a light row of links, the “raised from top VCs” logo wall, an FAQ and the footer. No separate portfolio section.',
     category: 'Demo Day',
     load: () => import('./entries/explore-pl-network/ExplorePlNetworkVisualPrototype'),
+  },
+  {
+    key: 'explore-pl-network-sections',
+    title: 'Explore PL Network — section nav',
+    description:
+      'The live os.pl.xyz/explore-pl-network page (the Editorial direction) with its sections as links in the top bar: Focus areas, Entities, Portfolio, Investors and FAQ between the PL Network wordmark and Contact us. A link scrolls smoothly to its section, landing below the sticky bar, and the section under the bar is marked as current while you scroll. The wordmark returns to the top. Under 960px the links drop to a second row that scrolls sideways. Shares the page with explore-pl-network; the other two entries are unchanged.',
+    category: 'Demo Day',
+    load: () => import('./entries/explore-pl-network/ExplorePlNetworkSectionsPrototype'),
   },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).

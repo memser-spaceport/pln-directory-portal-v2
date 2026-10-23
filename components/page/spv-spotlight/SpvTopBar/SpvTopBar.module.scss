@@ -25,6 +25,55 @@
   gap: 4px;
 }
 
+// With section links (the Explore landing): on desktop the links sit centred
+// in the bar, as in the prototype (equal flexible sides: the mark and the right
+// group). Below desktop the links wrap to a second row (SpvSectionNav), so the
+// bar grows from 64px to 100px there.
+.withSections {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  height: auto;
+  min-height: 64px;
+  padding-top: 8px;
+  padding-bottom: 0;
+
+  .right {
+    margin-left: auto;
+  }
+
+  @include media.desktop {
+    flex-wrap: nowrap;
+    gap: 16px;
+    padding-bottom: 8px;
+
+    .brand,
+    .right {
+      flex: 1 0 0;
+      min-width: max-content;
+    }
+
+    .right {
+      justify-content: flex-end;
+    }
+  }
+}
+
+.brandButton {
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
 .logo {
   display: flex;
   align-items: center;

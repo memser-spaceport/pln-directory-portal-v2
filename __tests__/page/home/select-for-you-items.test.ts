@@ -46,3 +46,26 @@ describe('selectForYouItems', () => {
     expect(selected.map((i) => i.uid)).toEqual(['same-late', 'other']);
   });
 });
+
+describe('selectForYouItems with News preferences categories (LAB-2941)', () => {
+  const funding = makeItem('fund', 'team-a', { eventType: 'FUNDING', eventDate: '2026-05-03T12:00:00.000Z' });
+  const launch = makeItem('launch', 'team-a', { eventType: 'LAUNCH', eventDate: '2026-05-02T12:00:00.000Z' });
+  const otherTeam = makeItem('other', 'team-b', { eventType: 'FUNDING' });
+  const teams = new Set(['team-a', 'team-b']);
+
+  it('keeps every category when none is given', () => {
+    expect(selectForYouItems([funding, launch, otherTeam], teams).map((i) => i.uid)).toEqual(['fund', 'other']);
+  });
+
+  it('drops news outside the categories', () => {
+    expect(selectForYouItems([funding, launch, otherTeam], teams, new Set(['LAUNCH'])).map((i) => i.uid)).toEqual([
+      'launch',
+    ]);
+  });
+
+  it("picks a team's latest story among the kept categories, not its latest overall", () => {
+    expect(
+      selectForYouItems([funding, launch], new Set(['team-a']), new Set(['LAUNCH', 'OTHER'])).map((i) => i.uid),
+    ).toEqual(['launch']);
+  });
+});

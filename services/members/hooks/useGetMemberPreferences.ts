@@ -1,6 +1,8 @@
 import { MembersQueryKeys } from '@/services/members/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { useQuery } from '@tanstack/react-query';
+import type { TeamNewsEventType } from '@/types/team-news.types';
+import { readNewsCategories } from '@/utils/news-categories';
 
 export interface MemberPreferencesResponse {
   preferenceSettings: {
@@ -31,6 +33,8 @@ export interface MemberPreferencesResponse {
     showFeedbackButton?: boolean;
   };
   isPreferenceAvailable: boolean;
+  /** News preferences (LAB-2939): every category unless the member narrowed them. */
+  newsCategories: TeamNewsEventType[];
 }
 
 async function fetcher(uid: string | undefined): Promise<MemberPreferencesResponse | null> {
@@ -87,6 +91,9 @@ async function fetcher(uid: string | undefined): Promise<MemberPreferencesRespon
     preferenceSettings,
     memberPreferences,
     isPreferenceAvailable: rawPreferences.isnull,
+    // Top level rather than in memberPreferences: forms that echo that object
+    // back in a PATCH must not carry it along.
+    newsCategories: readNewsCategories(rawPreferences),
   };
 }
 

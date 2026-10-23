@@ -1,10 +1,19 @@
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 
+const onTeamNewsForYouTuneClicked = jest.fn();
 const onTeamNewsForYouUpdateProfileClicked = jest.fn();
 
 jest.mock('@/analytics/team-news.analytics', () => ({
-  useTeamNewsAnalytics: () => ({ onTeamNewsForYouUpdateProfileClicked }),
+  useTeamNewsAnalytics: () => ({ onTeamNewsForYouTuneClicked, onTeamNewsForYouUpdateProfileClicked }),
+}));
+
+let mockShowNewsPreferences = true;
+jest.mock('@/utils/news-categories', () => ({
+  ...jest.requireActual('@/utils/news-categories'),
+  get SHOW_NEWS_PREFERENCES() {
+    return mockShowNewsPreferences;
+  },
 }));
 
 import { ForYouHint } from '@/components/page/home/TeamNews/components/ForYouHint/ForYouHint';
@@ -12,21 +21,38 @@ import { ForYouHint } from '@/components/page/home/TeamNews/components/ForYouHin
 describe('ForYouHint', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockShowNewsPreferences = true;
   });
 
-  it('names followed teams as an input', () => {
+  it('names followed teams as an input, with no link for a guest', () => {
     render(<ForYouHint />);
     expect(
       screen.getByText(/For you: Curated based on your profile, primary team attributes, and the teams you follow/),
     ).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /Update your profile/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
-  it('reports the Update your profile click', () => {
+  it('links "Tune For You" to News preferences and reports the click (LAB-2941)', () => {
     render(<ForYouHint memberUid="user-1" />);
 
-    fireEvent.click(screen.getByRole('link', { name: /Update your profile/ }));
+    const link = screen.getByRole('link', { name: 'Tune For You' });
+    expect(link).toHaveAttribute('href', '/settings/news-preferences?from=feed');
+    fireEvent.click(link);
+
+    expect(onTeamNewsForYouTuneClicked).toHaveBeenCalledWith('user-1');
+  });
+
+  it('keeps the profile link while News preferences is flagged off', () => {
+    mockShowNewsPreferences = false;
+    render(<ForYouHint memberUid="user-1" />);
+
+    expect(screen.queryByRole('link', { name: 'Tune For You' })).not.toBeInTheDocument();
+    const link = screen.getByRole('link', { name: 'Update your profile' });
+    expect(link).toHaveAttribute('href', '/members/user-1?backTo=%2Fhome');
+    expect(screen.getByText(/to make it more relevant/)).toBeInTheDocument();
+    fireEvent.click(link);
 
     expect(onTeamNewsForYouUpdateProfileClicked).toHaveBeenCalledWith('user-1');
+    expect(onTeamNewsForYouTuneClicked).not.toHaveBeenCalled();
   });
 });

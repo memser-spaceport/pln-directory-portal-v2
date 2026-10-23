@@ -287,9 +287,19 @@ interface Props {
  * runs against the latest state rather than a closure.
  */
 type AutoShot =
-  | { token: number; status: 'waiting' | 'draft' | 'attached' | 'failed' | 'skipped' | 'removed' }
+  | { token: number; status: 'waiting' | 'draft' | 'attached' | 'removed' }
   | { token: number; status: 'capturing'; late?: boolean }
-  | { token: number; status: 'landed'; dataUrl: string };
+  | { token: number; status: 'landed'; dataUrl: string }
+  | { token: number; status: 'failed'; tooSlow: boolean };
+
+/**
+ * The one capture failure the member is told the cause of: past the drawing
+ * budget (`too-slow`), or an app's bridge that never answered (`timeout`).
+ * Every other cause gets the general message; none has anything to act on.
+ */
+function tookTooLong(error: unknown): boolean {
+  return error instanceof Error && (error.message === CAPTURE_TOO_SLOW || error.message === 'timeout');
+}
 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -637,9 +647,7 @@ export function GiveAiAppFeedbackDialog({
         });
       })
       .catch((error: unknown) => {
-        /* A page too heavy to draw in time gets no picture and no apology: the member never asked for one. */
-        const tooSlow = error instanceof Error && error.message === CAPTURE_TOO_SLOW;
-        settle({ token: autoToken, status: tooSlow ? 'skipped' : 'failed' });
+        settle({ token: autoToken, status: 'failed', tooSlow: tookTooLong(error) });
         analyticsRef.current.onFeedbackAppCapture({
           appUid,
           source: 'auto',
@@ -920,7 +928,11 @@ export function GiveAiAppFeedbackDialog({
       });
       /* No automatic screen share: the browser only allows one straight from a click. */
       setBridgeFailed(true);
-      toast.error(`Couldn’t capture the ${captureNoun}. Try again — it will use screen sharing.`);
+      toast.error(
+        tookTooLong(error)
+          ? `The ${captureNoun} took too long to capture. Try again — it will use screen sharing.`
+          : `Couldn’t capture the ${captureNoun}. Try again — it will use screen sharing.`,
+      );
       return null;
     } finally {
       setIsRequestedCapture(false);
@@ -1523,7 +1535,9 @@ export function GiveAiAppFeedbackDialog({
                       )}
                       {auto?.status === 'failed' && screenshots.length === 0 && (
                         <p className={s.shotNote}>
-                          Couldn’t capture the {captureNoun} automatically — add a screenshot below.
+                          {auto.tooSlow
+                            ? `The ${captureNoun} took too long to capture — add a screenshot below.`
+                            : `Couldn’t capture the ${captureNoun} automatically — add a screenshot below.`}
                         </p>
                       )}
                       {screenshots.map((shot, index) => (

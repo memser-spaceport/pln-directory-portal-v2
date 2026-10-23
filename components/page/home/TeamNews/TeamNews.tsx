@@ -7,7 +7,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } fr
 
 import type { IFeedForumPost, IFeedForumPostLikeStatus } from '@/types/feed.types';
 import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
-import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
+import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem, TeamNewsEventType } from '@/types/team-news.types';
+import { narrowsNewsCategories } from '@/utils/news-categories';
 
 import {
   useTeamNewsAnalytics,
@@ -115,6 +116,10 @@ interface TeamNewsProps {
    *  which must stay the 14-day corpus. Null when there is no deep link, or
    *  when the story is already in `groups`. */
   deepLinkedItem?: ITeamNewsItem | null;
+  /** The member's News preferences categories (LAB-2941), loaded server-side
+   *  so the first paint is already narrowed. Omitted = every category. Narrows
+   *  For You news only; All, forum posts and jobs are untouched. Frozen at mount. */
+  newsCategories?: TeamNewsEventType[];
 }
 
 export const TeamNews = ({
@@ -125,12 +130,16 @@ export const TeamNews = ({
   pageSize = 6,
   initialDigestSettings = null,
   deepLinkedItem = null,
+  newsCategories,
 }: TeamNewsProps) => {
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
   const [initialForYouTeamUids] = useState<ReadonlySet<string>>(() => new Set(forYouTeamUids));
+  const [forYouCategories] = useState<ReadonlySet<string> | undefined>(() =>
+    newsCategories && narrowsNewsCategories(newsCategories) ? new Set(newsCategories) : undefined,
+  );
   const [activeCategory, setActiveCategory] = useState<TeamNewsCategoryId>(() => {
     const items = sortAllTabItemsByEventDate(dedupeByUid([...groups.flatMap((g) => g.items), ...allTabExtraItems]));
-    return selectForYouItems(items, new Set(forYouTeamUids)).length > 0 ? FOR_YOU_CAT : ALL_CAT;
+    return selectForYouItems(items, initialForYouTeamUids, forYouCategories).length > 0 ? FOR_YOU_CAT : ALL_CAT;
   });
   const [expanded, setExpanded] = useState(false);
   const [query, setQuery] = useState('');
@@ -251,13 +260,13 @@ export const TeamNews = ({
   }, [activeTab, allItems, groups, upvoteOverlay, viewedUids]);
 
   const forYouItemsForActiveTab = useMemo(
-    () => selectForYouItems(itemsForActiveTab, initialForYouTeamUids),
-    [itemsForActiveTab, initialForYouTeamUids],
+    () => selectForYouItems(itemsForActiveTab, initialForYouTeamUids, forYouCategories),
+    [itemsForActiveTab, initialForYouTeamUids, forYouCategories],
   );
 
   const hasForYouNews = useMemo(
-    () => selectForYouItems(allItems, initialForYouTeamUids).length > 0,
-    [allItems, initialForYouTeamUids],
+    () => selectForYouItems(allItems, initialForYouTeamUids, forYouCategories).length > 0,
+    [allItems, initialForYouTeamUids, forYouCategories],
   );
 
   // Jobs matched to this member — the whole match (two-week window,

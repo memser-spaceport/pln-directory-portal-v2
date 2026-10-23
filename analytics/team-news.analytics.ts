@@ -243,6 +243,11 @@ export const useTeamNewsAnalytics = () => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FOR_YOU_UPDATE_PROFILE_CLICKED, { memberUid });
   };
 
+  /** The For You hint's "Tune For You" link to News preferences (LAB-2941). */
+  const onTeamNewsForYouTuneClicked = (memberUid: string) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FOR_YOU_TUNE_CLICKED, { memberUid });
+  };
+
   const onTeamNewsShowMoreClicked = (item: ITeamNewsItem, position: number) => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_SHOW_MORE_CLICKED, {
       itemUid: item.uid,
@@ -765,6 +770,7 @@ export const useTeamNewsAnalytics = () => {
     onTeamNewsCountChipClicked,
     onTeamNewsCountChipShown,
     onTeamNewsForYouUpdateProfileClicked,
+    onTeamNewsForYouTuneClicked,
     onTeamNewsShowMoreClicked,
     onTeamNewsCardClicked,
     onTeamNewsDetailModalOpened,

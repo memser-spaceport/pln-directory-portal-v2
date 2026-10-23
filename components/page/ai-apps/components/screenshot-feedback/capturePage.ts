@@ -37,7 +37,27 @@ const SHELL_ATTR = 'data-feedback-capture-shell';
  */
 const FOLLOW_CHILD_LIMIT = 32;
 const CAPTURE_BUDGET_MS = 5000;
+const FETCH_TIMEOUT_MS = 8000;
 const DRAW_RETRY_CAP = 3;
+/** Set for one capture on the element a video's still goes in front of, in the clone. */
+const STILL_BEFORE_ATTR = 'data-feedback-capture-still-before';
+/** …or on the video's parent, when nothing follows the video there. */
+const STILL_END_ATTR = 'data-feedback-capture-still-end';
+const STILL_STYLE_PROPERTIES = [
+  'position',
+  'top',
+  'right',
+  'bottom',
+  'left',
+  'z-index',
+  'width',
+  'height',
+  'margin',
+  'border-radius',
+  'object-fit',
+  'object-position',
+  'transform',
+];
 
 const BLOCK_TAGS = new Set([
   'DIV',
@@ -96,9 +116,7 @@ function canShell(el: Element): boolean {
 
 function isFullyOutside(box: DOMRect): boolean {
   return (
-    box.width > 0 &&
-    box.height > 0 &&
-    (box.bottom <= 0 || box.top > window.innerHeight || box.left > window.innerWidth)
+    box.width > 0 && box.height > 0 && (box.bottom <= 0 || box.top > window.innerHeight || box.left > window.innerWidth)
   );
 }
 
@@ -241,18 +259,15 @@ type ParkedMedia = { node: Element; parent: Node; next: Node | null };
  * timeout. An image fully outside the viewport is not in the picture, so it
  * must not hold the capture. Nor does one that is not rendered: a lazy image
  * inside `display: none` never loads, so it held every capture for the full
- * timeout. It is detached for the wait and put back after.
+ * timeout. It is detached for the wait and put back after. Videos are handled
+ * by `standInForVideos`.
  */
-function parkUnloadedOffscreenMedia(): ParkedMedia[] {
+function parkUnloadedOffscreenImages(): ParkedMedia[] {
   const parked: ParkedMedia[] = [];
   const width = window.innerWidth;
   const height = window.innerHeight;
-  document.querySelectorAll('img, video').forEach((node) => {
-    if (!(node instanceof HTMLElement) || !node.parentNode) return;
-    const waiting =
-      (node instanceof HTMLImageElement && !node.complete) ||
-      (node instanceof HTMLVideoElement && node.readyState < 2);
-    if (!waiting) return;
+  document.querySelectorAll('img').forEach((node) => {
+    if (!node.parentNode || node.complete) return;
     const rendered = node.getClientRects().length > 0;
     const box = node.getBoundingClientRect();
     const outside =
@@ -269,6 +284,143 @@ function restoreParked(parked: ParkedMedia[]) {
     if (node.isConnected) continue;
     parent.insertBefore(node, next);
   }
+}
+
+function hasCurrentFrame(video: HTMLVideoElement): boolean {
+  return video.readyState >= 2 && video.videoWidth > 0;
+}
+
+/** The frame on screen, or null when the browser will not hand it over (a cross-origin source it treats as tainted). */
+function currentFrame(video: HTMLVideoElement): string | null {
+  const scale = Math.min(1, MAX_EDGE / Math.max(video.videoWidth, video.videoHeight));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(video.videoWidth * scale);
+  canvas.height = Math.round(video.videoHeight * scale);
+  try {
+    canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/jpeg', 0.85);
+  } catch {
+    return null;
+  }
+}
+
+/** The video as a box of the same size and place: its frame when there is one, empty otherwise. */
+function stillOf(video: HTMLVideoElement, frame: string | null): HTMLElement {
+  const still = frame ? Object.assign(document.createElement('img'), { src: frame }) : document.createElement('div');
+  const computed = getComputedStyle(video);
+  STILL_STYLE_PROPERTIES.forEach((prop) => still.style.setProperty(prop, computed.getPropertyValue(prop)));
+  still.style.setProperty('display', computed.display === 'inline' ? 'inline-block' : computed.display);
+  return still;
+}
+
+/**
+ * The library re-downloads a video into a fresh element and seeks it, with no
+ * timeout, before drawing it: seconds for a playing pitch video, the whole
+ * capture lost for one still loading. No video reaches it; a still stands in.
+ * A video with a frame stays on the page untouched, so playback goes on, and
+ * its still is put in the clone where it was. One still loading has no frame
+ * to lose: its empty still takes its place on the page for the capture, which
+ * keeps it out of the library's media wait without moving the layout.
+ */
+function standInForVideos(): { stills: HTMLElement[]; restore: () => void } {
+  const stills: HTMLElement[] = [];
+  const marked: Element[] = [];
+  const swapped: Array<[HTMLVideoElement, HTMLElement]> = [];
+  const parked: ParkedMedia[] = [];
+  const mark = (el: Element, attr: string, index: number) => {
+    el.setAttribute(attr, `${el.getAttribute(attr) ?? ''} ${index}`.trim());
+    marked.push(el);
+  };
+  document.querySelectorAll('video').forEach((video) => {
+    if (ignored(video) || !video.parentNode) {
+      return;
+    }
+    const rendered = video.getClientRects().length > 0;
+    if (!hasCurrentFrame(video)) {
+      if (rendered) {
+        const still = stillOf(video, null);
+        video.replaceWith(still);
+        swapped.push([video, still]);
+      } else {
+        parked.push({ node: video, parent: video.parentNode, next: video.nextSibling });
+        video.remove();
+      }
+      return;
+    }
+    if (!rendered) {
+      return;
+    }
+    const box = video.getBoundingClientRect();
+    const onScreen = box.bottom > 0 && box.top < window.innerHeight && box.right > 0 && box.left < window.innerWidth;
+    const index = stills.push(stillOf(video, onScreen ? currentFrame(video) : null)) - 1;
+    let next = video.nextElementSibling;
+    while (next instanceof HTMLVideoElement) {
+      next = next.nextElementSibling;
+    }
+    if (next) {
+      mark(next, STILL_BEFORE_ATTR, index);
+    } else if (video.parentElement) {
+      mark(video.parentElement, STILL_END_ATTR, index);
+    }
+  });
+  return {
+    stills,
+    restore: () => {
+      swapped.forEach(([video, still]) => still.replaceWith(video));
+      restoreParked(parked);
+      marked.forEach((el) => {
+        el.removeAttribute(STILL_BEFORE_ATTR);
+        el.removeAttribute(STILL_END_ATTR);
+      });
+    },
+  };
+}
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+/**
+ * An image the page loaded without CORS is cached without its CORS headers, and
+ * the library's `force-cache` fetch fails on that copy. Only then is it fetched
+ * again past the cache: revalidating every image costs a round trip each, which
+ * a slow connection can't afford inside the capture budget. False hands the
+ * image back to the library, which draws its placeholder.
+ */
+async function fetchImage(url: string): Promise<string | false> {
+  for (const cache of ['force-cache', 'no-cache'] as const) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    try {
+      const response = await fetch(url, { cache, signal: controller.signal });
+      if (response.ok) {
+        return await blobToDataUrl(await response.blob());
+      }
+    } catch {
+      continue;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  return false;
+}
+
+function placeStills(root: Node, stills: HTMLElement[]) {
+  if (!(root instanceof Element)) {
+    return;
+  }
+  const take = (el: Element, attr: string) => {
+    const indices = (el.getAttribute(attr) ?? '').split(' ').map(Number);
+    el.removeAttribute(attr);
+    return indices.map((index) => stills[index]);
+  };
+  root.querySelectorAll(`[${STILL_BEFORE_ATTR}]`).forEach((el) => el.before(...take(el, STILL_BEFORE_ATTR)));
+  root.querySelectorAll(`[${STILL_END_ATTR}]`).forEach((el) => el.append(...take(el, STILL_END_ATTR)));
 }
 
 async function renderViewport(): Promise<PageCapture> {
@@ -292,6 +444,9 @@ async function renderViewport(): Promise<PageCapture> {
     const parent = shellParent(node);
     if (parent instanceof Element && parent.hasAttribute(SHELL_ATTR)) return false;
     if (!(node instanceof Element)) return true;
+    if (node instanceof HTMLVideoElement) {
+      return false;
+    }
     const box = node.getBoundingClientRect();
     if (node.tagName === 'IMG') {
       return !(box.bottom < 0 || box.top > height || box.right < 0 || box.left > width);
@@ -306,8 +461,9 @@ async function renderViewport(): Promise<PageCapture> {
     return !(box.top > height || box.left > width);
   };
   let context: Context<HTMLElement> | undefined;
-  const parked = parkUnloadedOffscreenMedia();
   const fontCss = await ensureFontCache();
+  const parked = parkUnloadedOffscreenImages();
+  const videos = standInForVideos();
   try {
     context = await createContext(document.documentElement, {
       type: 'image/jpeg',
@@ -316,14 +472,16 @@ async function renderViewport(): Promise<PageCapture> {
       scale: Math.min(window.devicePixelRatio || 1, 2, MAX_EDGE / Math.max(width, height, 1)),
       quality: 0.85,
       backgroundColor: backgroundBehind(document.body),
-      timeout: 8000,
+      timeout: FETCH_TIMEOUT_MS,
       ...(fontCss ? { font: { cssText: fontCss } } : {}),
       includeStyleProperties: paintedStyleProperties(),
       features: { restoreScrollPosition: true, copyScrollbar: false },
+      fetchFn: fetchImage,
       filter: keepNode,
       onCloneNode: (root) => {
         pinShells(root);
         placeTagged(root);
+        placeStills(root, videos.stills);
       },
       onEmbedNode: () => {
         checkBudget();
@@ -334,6 +492,7 @@ async function renderViewport(): Promise<PageCapture> {
     return { dataUrl, width, height };
   } finally {
     restoreParked(parked);
+    videos.restore();
     if (context) destroyContext(context);
     placed.forEach((el) => el.removeAttribute(PLACE_ATTR));
     shells.forEach((el) => el.removeAttribute(SHELL_ATTR));

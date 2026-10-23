@@ -220,6 +220,130 @@ describe('capturePageViewport', () => {
     expect([off.isConnected, on.isConnected, lazy.isConnected]).toEqual([true, true, true]);
   });
 
+  describe('videos', () => {
+    /* jsdom has no media pipeline or canvas: a video's state and the frame grab are stubbed. */
+    const videoIn = (html: string, state: { readyState: number; rect?: typeof ON_SCREEN }) => {
+      document.body.innerHTML = html;
+      const video = document.querySelector('video') as HTMLVideoElement;
+      const rect = state.rect ?? ON_SCREEN;
+      Object.defineProperty(video, 'readyState', { configurable: true, get: () => state.readyState });
+      Object.defineProperty(video, 'videoWidth', { configurable: true, get: () => 640 });
+      Object.defineProperty(video, 'videoHeight', { configurable: true, get: () => 360 });
+      box(video, rect);
+      video.getClientRects = () => [rectOf(rect)] as unknown as DOMRectList;
+      return video;
+    };
+    const stubFrame = (toDataURL: () => string) => {
+      jest
+        .spyOn(HTMLCanvasElement.prototype, 'getContext')
+        .mockReturnValue({ drawImage: jest.fn() } as unknown as CanvasRenderingContext2D);
+      jest.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockImplementation(toDataURL);
+    };
+    const cloneWith = (check: (clone: HTMLElement) => void) =>
+      mockDomToJpeg.mockImplementation(async (context: FakeContext) => {
+        const clone = document.documentElement.cloneNode(true) as HTMLElement;
+        clone.querySelectorAll('video').forEach((v) => v.remove());
+        context.onCloneNode(clone);
+        check(clone);
+        return 'data:image/jpeg;base64,AAAA';
+      });
+
+    it('never hands a video to the renderer', async () => {
+      const video = videoIn('<div><video></video></div>', { readyState: 4 });
+      stubFrame(() => 'data:image/jpeg;base64,FRAME');
+
+      await capturePageViewport();
+
+      expect(captureOptions().filter(video)).toBe(false);
+    });
+
+    it('puts the frame on screen where the video was, and leaves the playing video alone', async () => {
+      const video = videoIn('<div id="player"><video></video><div id="controls"></div></div>', { readyState: 4 });
+      stubFrame(() => 'data:image/jpeg;base64,FRAME');
+      let connectedDuringCapture = false;
+      mockCreateContext.mockImplementation(async (node: Node, options: object) => {
+        connectedDuringCapture = video.isConnected;
+        return { node, ...options, drawImageCount: 0 };
+      });
+      cloneWith((clone) => {
+        const still = clone.querySelector('#controls')!.previousElementSibling as HTMLImageElement;
+        expect(still.tagName).toBe('IMG');
+        expect(still.src).toBe('data:image/jpeg;base64,FRAME');
+      });
+
+      await capturePageViewport();
+
+      expect(connectedDuringCapture).toBe(true);
+      expect(byId('controls').hasAttribute('data-feedback-capture-still-before')).toBe(false);
+    });
+
+    it('leaves an empty box when the browser will not hand over the frame', async () => {
+      videoIn('<div id="player"><video></video></div>', { readyState: 4 });
+      stubFrame(() => {
+        throw new DOMException('The canvas has been tainted', 'SecurityError');
+      });
+      cloneWith((clone) => {
+        const still = clone.querySelector('#player')!.lastElementChild!;
+        expect(still.tagName).toBe('DIV');
+      });
+
+      await capturePageViewport();
+
+      expect(byId('player').hasAttribute('data-feedback-capture-still-end')).toBe(false);
+    });
+
+    it('stands an empty box in for a video still loading during the capture, then puts the video back', async () => {
+      const video = videoIn('<div id="player"><video></video></div>', { readyState: 0 });
+      let duringCapture: { connected: boolean; standIn: string | undefined } | undefined;
+      mockCreateContext.mockImplementation(async (node: Node, options: object) => {
+        duringCapture = { connected: video.isConnected, standIn: byId('player').firstElementChild?.tagName };
+        return { node, ...options, drawImageCount: 0 };
+      });
+
+      await capturePageViewport();
+
+      expect(duringCapture).toEqual({ connected: false, standIn: 'DIV' });
+      expect(byId('player').firstElementChild).toBe(video);
+    });
+  });
+
+  describe('images', () => {
+    const mockFetch = (outcomes: Array<'ok' | 'fail'>) => {
+      const fetchMock = jest.fn();
+      outcomes.forEach((outcome) =>
+        outcome === 'ok'
+          ? fetchMock.mockResolvedValueOnce({ ok: true, blob: async () => new Blob(['img'], { type: 'image/png' }) })
+          : fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch')),
+      );
+      Object.defineProperty(window, 'fetch', { configurable: true, writable: true, value: fetchMock });
+      return fetchMock;
+    };
+    const cacheModes = (fetchMock: jest.Mock) => fetchMock.mock.calls.map(([, init]) => init.cache);
+
+    it('takes an image from the cache when the cached copy can be read', async () => {
+      await capturePageViewport();
+      const fetchMock = mockFetch(['ok']);
+
+      expect(await captureOptions().fetchFn('https://cdn.example/a.png')).toMatch(/^data:image\/png/);
+      expect(cacheModes(fetchMock)).toEqual(['force-cache']);
+    });
+
+    it('fetches an image again past the cache when its cached copy fails CORS', async () => {
+      await capturePageViewport();
+      const fetchMock = mockFetch(['fail', 'ok']);
+
+      expect(await captureOptions().fetchFn('https://cdn.example/a.png')).toMatch(/^data:image\/png/);
+      expect(cacheModes(fetchMock)).toEqual(['force-cache', 'no-cache']);
+    });
+
+    it('hands an image that cannot be fetched back to the renderer', async () => {
+      await capturePageViewport();
+      mockFetch(['fail', 'fail']);
+
+      expect(await captureOptions().fetchFn('https://cdn.example/a.png')).toBe(false);
+    });
+  });
+
   it('gives the renderer font files that were already prepared', async () => {
     const style = document.createElement('style');
     style.textContent = "@font-face { font-family: 'Test'; src: url('/fonts/page.woff2') format('woff2'); }";

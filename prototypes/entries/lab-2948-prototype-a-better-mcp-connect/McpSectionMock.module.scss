@@ -1,0 +1,604 @@
+@use 'styles/media';
+
+/* New UI on the PL scale (14/20, 12/16). The card frame, rows, labels and code
+   come from production's McpSection.module.scss; token+fallback pairs are copied
+   from production stylesheets. */
+
+/* ---- Shared bits ---- */
+
+.blockHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+}
+
+.blockTitle {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.label {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.help {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+
+  strong {
+    font-weight: 600;
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.meta {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* Prototype-only marker for missing backend work: dashed outline, muted text,
+   no fill, so it reads as an annotation and never competes with real UI. */
+.backendTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px dashed var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.linkBtn {
+  padding: 0;
+}
+
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.textLink {
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* ---- Needs your confirm: one block, first in the section ---- */
+
+.pending {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border-brand-subtle, #aebfff);
+  background: var(--background-brand-soft-surface, #f2f5ff);
+}
+
+.pendingList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pendingItem {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #fff);
+
+  @include media.mobile-only {
+    flex-direction: column;
+  }
+}
+
+.pendingBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.pendingTop {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pendingText {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.preview {
+  margin: 0;
+  padding-left: 8px;
+  border-left: 2px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.pendingActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+
+  @include media.mobile-only {
+    width: 100%;
+
+    > * {
+      flex: 1;
+    }
+  }
+}
+
+/* ---- Agent card: production's `.item` frame (border, radius, width), stacked into rows ---- */
+
+.agent {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+}
+
+.agentTop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+}
+
+.agentMark {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  /* White + hairline: a brand mark needs a plain ground; a grey tile muddies Claude's orange. */
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-neutral-primary, #fff);
+}
+
+/* Logo + client name inside a Connect tab. */
+.tabLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.agentId {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Mintlify's settings row: label + description left, control right. */
+.settingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px;
+  border-top: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+}
+
+.settingText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.segmented {
+  flex-shrink: 0;
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  border-radius: 8px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+
+  @include media.mobile-only {
+    order: -1;
+    width: 100%;
+  }
+}
+
+.segment {
+  flex: 1;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.segmentActive {
+  background: var(--background-base-white, #fff);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+}
+
+.activity {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-top: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+}
+
+.actions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.action {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  > .meta {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+}
+
+.actionText {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* The kind of act, after the text: a muted word, not a chip (reads are the resting state). */
+.kind {
+  margin-left: 8px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+
+  &::before {
+    content: '· ';
+  }
+}
+
+.kindRejected {
+  color: var(--foreground-warning-primary, #b45309);
+}
+
+/* ---- Revoke: quiet text at rest, PandaDoc-style inline confirm ---- */
+
+.revokeWrap {
+  position: relative;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.revoke {
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+
+  &:hover,
+  &[aria-expanded='true'] {
+    color: var(--foreground-error-primary, #d21a0e);
+  }
+}
+
+.popover {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 5;
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #fff);
+  box-shadow: 0 4px 16px 0 var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
+}
+
+.popoverTitle {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.popoverActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* ---- Connect block ---- */
+
+.connect {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.urlRow,
+.codeRow {
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+}
+
+.urlText {
+  min-width: 0;
+}
+
+.tabs {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.step {
+  display: flex;
+  gap: 12px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.stepNumber {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.stepBody {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+
+  > .codeRow {
+    align-self: stretch;
+  }
+}
+
+.stepLink {
+  align-self: flex-start;
+}
+
+/* ---- Activity drawer ---- */
+
+.drawerHead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 24px 12px;
+  border-bottom: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+  background: var(--background-base-white, #fff);
+
+  @include media.mobile-only {
+    padding: 16px 16px 12px;
+  }
+}
+
+.drawerTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.drawerTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 28px;
+}
+
+.drawerClose {
+  margin-left: auto;
+}
+
+.drawerBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 24px 32px;
+
+  @include media.mobile-only {
+    padding: 12px 16px 24px;
+  }
+}
+
+.dayGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dayTitle {
+  margin: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.drawerRowMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* ---- What agents can do ---- */
+
+.capList {
+  margin: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.capRow {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+
+  &:first-child {
+    padding-top: 0;
+  }
+
+  @include media.mobile-only {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
+.capLevel {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.capText {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.capNext {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.capNextLabel {
+  font-weight: 500;
+}
+
+.capFoot {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}

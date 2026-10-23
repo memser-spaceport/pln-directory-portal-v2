@@ -54,8 +54,13 @@
   width: 100%;
   max-width: 1184px;
   padding-top: 40px;
-  // The page's anchors (#portfolio) land below the sticky top bar.
-  scroll-margin-top: 80px;
+  // The page's anchors (#portfolio) land below the sticky top bar: 64px,
+  // 100px below desktop with the section links' second row.
+  scroll-margin-top: 116px;
+
+  @include media.desktop {
+    scroll-margin-top: 80px;
+  }
 
   @include media.mobile-only {
     gap: 32px;
@@ -111,6 +116,12 @@
   gap: 40px;
   width: 100%;
   max-width: 1184px;
+  // #investors, as .sectionTeams.
+  scroll-margin-top: 116px;
+
+  @include media.desktop {
+    scroll-margin-top: 80px;
+  }
 
   @include media.mobile-only {
     gap: 32px;

@@ -2879,4 +2879,6 @@ export const EXPLORE_PL_NETWORK_ANALYTICS = {
   ON_LIST_SHOW_ALL_TOGGLED: 'explore-pl-network-list-show-all-toggled',
   ON_LOGO_WALL_SHOW_ALL_TOGGLED: 'explore-pl-network-logo-wall-show-all-toggled',
   ON_ENTITY_CLICKED: 'explore-pl-network-entity-clicked',
+  ON_SECTION_LINK_CLICKED: 'explore-pl-network-section-link-clicked',
+  ON_LOGO_CLICKED: 'explore-pl-network-logo-clicked',
 };

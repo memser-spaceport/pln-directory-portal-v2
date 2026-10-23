@@ -12,17 +12,18 @@
  * own on/off, frequency, Save button and recommendationsEnabled flag).
  *
  * Sections:
- *   Categories ............. the Home feed's categories; narrows For You + digest,
- *                            never the All tab on Home (that stays for browsing)
- *   Suggested from profile . Skills + Focus areas, read-only, links to the profile
+ *   Topics ................. hashtag topics (invented; backend supplies the real
+ *                            list), prefilled per member, unsubscribe/resubscribe
+ *                            in place. Replaces the feed categories AND the team
+ *                            focus areas as what shapes For You + digest.
  *   Teams you follow ....... production FollowButton; unfollow is undoable in place
  *
  * Doors in (prototype switch "Arrived"):
  *   digest email "Update preferences" → ?from=digest
  *   For You hint "Tune For You"       → ?from=feed
  *   settings menu                     → ?from=settings
- * Arriving from the digest or the feed lands on the biggest gap (no skills →
- * profile; no follows → teams; else categories) and outlines it until the
+ * Arriving from the digest or the feed lands on the biggest gap (no topics →
+ * topics; no follows → teams; else topics) and outlines it until the
  * first change. Other switch: ?persona=complete|investor|empty.
  *
  * Reuse map:
@@ -31,14 +32,13 @@
  *   ForumDigest.module.scss ....................... Digest card, frequency field, option rows
  *   Newsletter.module.scss ........................ cards + bordered rows + Switch
  *   ./SettingsMenu ................................ copy of the settings menu + News preferences item
- *   TeamNews/utils/getEventTypeConfig ............. category labels
  *   components/ui/FollowButton .................... follow / following toggle
- *   NEW: category chips are multi-select CONTROL chips (brand hover,
- *   aria-pressed, check mark). Not the feed's .cat pill (single-select) and not
- *   Badge (label lineage, no interaction states).
+ *   NEW: topic chips are multi-select CONTROL chips (brand hover,
+ *   aria-pressed, check mark = subscribed). Not the feed's .cat pill
+ *   (single-select) and not Badge (label lineage, no interaction states).
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { clsx } from 'clsx';
 import { Switch } from '@base-ui-components/react/switch';
@@ -49,11 +49,9 @@ import formCss from '@/components/page/email-preferences/components/EmailPrefere
 import digestCss from '@/components/page/email-preferences/components/ForumDigest/ForumDigest.module.scss';
 import toggleCss from '@/components/page/email-preferences/components/Newsletter/Newsletter.module.scss';
 import { FollowButton } from '@/components/ui/FollowButton';
-import { getEventTypeConfig } from '@/components/page/home/TeamNews/utils/getEventTypeConfig';
-import type { TeamNewsEventType } from '@/types/team-news.types';
 
 import { SettingsMenu, type SettingsPage } from './SettingsMenu';
-import { CATEGORIES, PERSONAS, type Persona } from './mocks';
+import { PERSONAS, TOPICS, type Persona } from './mocks';
 import s from './DigestTopicsPrototype.module.scss';
 
 const Select = dynamic(() => import('react-select'), {
@@ -172,7 +170,7 @@ const PlusIcon = () => (
 );
 
 type Arrival = 'digest' | 'feed' | 'settings';
-type Gap = 'profile' | 'teams' | 'categories';
+type Gap = 'topics' | 'teams';
 
 const ARRIVALS: { v: Arrival; label: string }[] = [
   { v: 'digest', label: 'Digest email' },
@@ -205,28 +203,32 @@ export default function DigestTopicsPrototype() {
   const [showInvestor, setShowInvestor] = useState(false);
 
   // News preferences
-  const [categories, setCategories] = useState<TeamNewsEventType[]>(CATEGORIES);
+  const [topics, setTopics] = useState<string[]>(PERSONAS.complete.topics);
   const [unfollowed, setUnfollowed] = useState<string[]>([]);
   const [touched, setTouched] = useState(false);
-  const [saved, setSaved] = useState<null | 'categories' | 'teams'>(null);
+  const [saved, setSaved] = useState<null | 'topics' | 'teams'>(null);
 
   const refs = {
-    categories: useRef<HTMLDivElement>(null),
-    profile: useRef<HTMLDivElement>(null),
+    topics: useRef<HTMLDivElement>(null),
     teams: useRef<HTMLDivElement>(null),
   };
 
   useEffect(() => {
     const p = readParams();
     setPersona(p.persona);
+    setTopics(PERSONAS[p.persona].topics);
     setArrival(p.arrival);
     setMounted(true);
   }, []);
 
   const mock = PERSONAS[persona];
-  // The biggest gap gets the arrival outline. Skills first: the one input this
-  // page can't change itself, so it has to say where to go.
-  const gap: Gap = mock.skills.length === 0 ? 'profile' : mock.follows.length === 0 ? 'teams' : 'categories';
+  // The biggest gap gets the arrival outline: no topics, then no follows.
+  const gap: Gap = mock.topics.length > 0 && mock.follows.length === 0 ? 'teams' : 'topics';
+  // Subscribed topics first, frozen per member, so chips don't jump when toggled.
+  const topicOrder = useMemo(
+    () => [...mock.topics, ...TOPICS.filter((t) => !mock.topics.includes(t))],
+    [mock],
+  );
   const arriving = arrival !== 'settings' && page === 'news preferences' && !touched;
 
   useEffect(() => {
@@ -248,15 +250,15 @@ export default function DigestTopicsPrototype() {
     window.history.replaceState(null, '', url);
   };
 
-  const reset = () => {
+  const reset = (p: Persona = persona) => {
     setTouched(false);
     setUnfollowed([]);
-    setCategories(CATEGORIES);
+    setTopics(PERSONAS[p].topics);
   };
 
   const switchPersona = (p: Persona) => {
     setPersona(p);
-    reset();
+    reset(p);
     syncUrl(p, arrival);
   };
 
@@ -268,13 +270,12 @@ export default function DigestTopicsPrototype() {
     syncUrl(persona, a);
   };
 
-  const toggleCategory = (c: TeamNewsEventType) => {
-    const on = categories.includes(c);
-    if (on && categories.length === 1) return; // keep at least one; the chip is disabled anyway
-    setCategories(on ? categories.filter((x) => x !== c) : [...categories, c]);
+  const toggleTopic = (topic: string) => {
+    const on = topics.includes(topic);
+    setTopics(on ? topics.filter((x) => x !== topic) : [...topics, topic]);
     setTouched(true);
-    setSaved('categories');
-    console.log('[analytics]', 'news_pref_category_toggled', { category: c, on: !on, arrival });
+    setSaved('topics');
+    console.log('[analytics]', on ? 'news_pref_topic_unsubscribed' : 'news_pref_topic_subscribed', { topic, arrival });
   };
 
   const toggleFollow = (uid: string) => {
@@ -291,7 +292,6 @@ export default function DigestTopicsPrototype() {
 
   if (!mounted) return <div className={shellCss.privacy} />;
 
-  const allOn = categories.length === CATEGORIES.length;
   const lit = (g: Gap) => arriving && gap === g;
   const followingCount = mock.follows.filter((t) => !unfollowed.includes(t.uid)).length;
   const arrivalWhere = arrival === 'digest' ? 'your digest' : 'For You';
@@ -388,118 +388,53 @@ export default function DigestTopicsPrototype() {
     <div className={formCss.root}>
       <div className={s.pageHead}>
         <h5 className={formCss.title}>News Preferences</h5>
-        <p className={s.pageIntro}>These shape For You on Home and the news in your email digest.</p>
+        <p className={s.pageIntro}>
+          These shape For You on Home and the news in your email digest. To change how often the digest arrives,
+          go to{' '}
+          <button type="button" className={s.inlineLink} onClick={() => setPage('email preferences')}>
+            Email Preferences
+          </button>
+          .
+        </p>
       </div>
 
-      {/* Categories */}
-      <div
-        ref={refs.categories}
-        className={clsx(toggleCss.root, s.card, lit('categories') && s.cardHighlight)}
-      >
+      {/* Topics */}
+      <div ref={refs.topics} className={clsx(toggleCss.root, s.card, lit('topics') && s.cardHighlight)}>
         <div className={clsx(toggleCss.header, s.cardHeader)}>
-          Categories
-          {saved === 'categories' && <SavedNote />}
+          Topics{topics.length > 0 && ` · ${topics.length}`}
+          {saved === 'topics' && <SavedNote />}
         </div>
         <div className={toggleCss.content}>
-          {lit('categories') && (
-            <p className={s.arrivalNote}>Choose the kinds of news you want in {arrivalWhere}.</p>
+          {lit('topics') && (
+            <p className={s.arrivalNote}>
+              {topics.length === 0
+                ? `Subscribe to a few topics to get news that fits your work in ${arrivalWhere}.`
+                : `Unsubscribe from topics you don’t want in ${arrivalWhere}.`}
+            </p>
           )}
-          <div className={s.rowHead}>
-            <div className={toggleCss.desc}>
-              {allOn
-                ? 'You get every kind of news. Browsing All on Home always shows everything.'
-                : `You get ${categories.length} of ${CATEGORIES.length} kinds of news. Browsing All on Home always shows everything.`}
-            </div>
-            {!allOn && (
-              <button
-                type="button"
-                className={s.inlineLink}
-                onClick={() => {
-                  setCategories(CATEGORIES);
-                  setSaved('categories');
-                }}
-              >
-                Select all
-              </button>
-            )}
+          <div className={toggleCss.desc}>
+            {mock.prefilledFrom && `We picked these from ${mock.prefilledFrom}. `}
+            {topics.length > 0
+              ? 'News tagged with them shows up in For You and your digest. Click one to unsubscribe.'
+              : 'You’re not subscribed to any topics. Pick some to get news tagged with them in For You and your digest.'}
           </div>
-          <div className={s.chips} role="group" aria-label="News categories">
-            {CATEGORIES.map((c) => {
-              const on = categories.includes(c);
-              const last = on && categories.length === 1;
-              const { label } = getEventTypeConfig(c);
+          <div className={s.chips} role="group" aria-label="Topics">
+            {topicOrder.map((topic) => {
+              const on = topics.includes(topic);
               return (
                 <button
-                  key={c}
+                  key={topic}
                   type="button"
                   className={clsx(s.chip, on && s.chipOn)}
                   aria-pressed={on}
-                  disabled={last}
-                  title={last ? 'Keep at least one category' : undefined}
-                  onClick={() => toggleCategory(c)}
+                  title={on ? `Unsubscribe from #${topic}` : `Subscribe to #${topic}`}
+                  onClick={() => toggleTopic(topic)}
                 >
-                  {on ? <CheckIcon /> : <PlusIcon />}
-                  {label}
+                  {on ? <CheckIcon /> : <PlusIcon />}#{topic}
                 </button>
               );
             })}
           </div>
-        </div>
-      </div>
-
-      {/* Suggested from your profile */}
-      <div ref={refs.profile} className={clsx(toggleCss.root, s.card, lit('profile') && s.cardHighlight)}>
-        <div className={toggleCss.header}>Suggested from your profile</div>
-        <div className={toggleCss.content}>
-          {lit('profile') && (
-            <p className={s.arrivalNote}>Add your skills to your profile so we can suggest news that fits your work.</p>
-          )}
-          <div className={toggleCss.desc}>We also suggest news that matches these. They’re changed on your profile.</div>
-          <dl className={s.signals}>
-            <div className={s.signal}>
-              <dt className={s.signalLabel}>Skills</dt>
-              <dd className={s.signalValue}>
-                {mock.skills.length > 0 ? (
-                  <span>{mock.skills.join(', ')}</span>
-                ) : (
-                  <span className={s.signalEmpty}>None yet</span>
-                )}
-                <a href="#" className={s.inlineLink} onClick={(e) => e.preventDefault()}>
-                  {mock.skills.length > 0 ? 'Edit skills' : 'Add skills'}
-                </a>
-              </dd>
-            </div>
-            <div className={s.signal}>
-              <dt className={s.signalLabel}>Focus areas</dt>
-              <dd className={s.signalValue}>
-                {mock.focus?.from === 'team' && (
-                  <span>
-                    {mock.focus.areas.join(', ')}
-                    <span className={s.signalMeta}>
-                      {' · set by '}
-                      <a href={`/teams/${mock.focus.teamUid}`} className={s.inlineLink} onClick={(e) => e.preventDefault()}>
-                        {mock.focus.teamName}
-                      </a>
-                    </span>
-                  </span>
-                )}
-                {mock.focus?.from === 'investor' && (
-                  <>
-                    <span>
-                      {mock.focus.areas.join(', ')}
-                      <span className={s.signalMeta}> · your investment focus</span>
-                    </span>
-                    <a href="#" className={s.inlineLink} onClick={(e) => e.preventDefault()}>
-                      Edit investment focus
-                    </a>
-                  </>
-                )}
-                {!mock.focus && (
-                  <span className={s.signalEmpty}>None. Focus areas come from the team you’re on.</span>
-                )}
-              </dd>
-            </div>
-          </dl>
         </div>
       </div>
 

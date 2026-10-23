@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import clsx from 'clsx';
 import { PORTFOLIO } from './islands';
 import { DIRECTION_COPY, FOCUS_AREAS, PL_CONTEXT, PL_ENTITIES, PL_FACTS } from './mocks';
 import s from './ExplorePlNetwork.module.scss';
@@ -39,7 +40,7 @@ export const EditorialIntro = () => {
         ))}
       </dl>
 
-      <section className={s.edSection} aria-labelledby="ed-focus">
+      <section id="focus-areas" className={clsx(s.edSection, s.anchorFlush)} aria-labelledby="ed-focus">
         <h2 id="ed-focus" className={s.edSectionTitle}>
           Focus areas
         </h2>
@@ -54,7 +55,7 @@ export const EditorialIntro = () => {
         </ol>
       </section>
 
-      <section className={s.edSection} aria-labelledby="ed-entities">
+      <section id="entities" className={clsx(s.edSection, s.anchorFlush)} aria-labelledby="ed-entities">
         <h2 id="ed-entities" className={s.edSectionTitle}>
           Protocol Labs entities
         </h2>

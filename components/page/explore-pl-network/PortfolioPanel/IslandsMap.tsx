@@ -16,7 +16,9 @@ import s from './PortfolioPanel.module.scss';
  * - Hover: the other islands dim, the hovered island glows, the tile darkens.
  * - Click: the map dims and the name card opens (one-liner, stage, since-year,
  *   website and the directory profile are ours: the site's card stops at the name).
- * - Footer: the category row and the 2014–2026 year strip.
+ * - Footer: the category row and the 2014–2026 year strip. The strip is hidden
+ *   (SHOW_YEAR_CONTROL) until the past-year data is correct (LAB-2877): the map
+ *   then shows the current year only.
  * - Under 768px: the site's phone layout, islands as rows of tiles.
  */
 
@@ -28,6 +30,8 @@ const FIRST_YEAR = 2014;
 const CURRENT_YEAR = 2026;
 const YEARS = Array.from({ length: CURRENT_YEAR - FIRST_YEAR + 1 }, (_, i) => FIRST_YEAR + i);
 const PHONE_MAX_WIDTH = 768;
+// LAB-2877: past-year data is not accurate. Set to true to bring the year strip back.
+const SHOW_YEAR_CONTROL = false;
 
 type Tile = { x: number; y: number; logo: PortfolioTeam; island: IslandId; color: string };
 
@@ -318,39 +322,41 @@ export const IslandsMap = ({ teams, header, onTileOpened, onProfileClicked }: Pr
           })}
         </div>
 
-        <div className={s.yearRow}>
-          <button
-            type="button"
-            className={s.yearArrow}
-            onClick={() => stepYear(-1)}
-            aria-label="Previous year"
-            disabled={year === FIRST_YEAR}
-          >
-            <Arrow dir="left" />
-          </button>
-          <div className={clsx(s.yearStrip, { [s.yearStripFocused]: !!focus })}>
-            {YEARS.map((y) => (
-              <button
-                key={y}
-                type="button"
-                className={clsx(s.year, { [s.yearBright]: brightYears.has(y), [s.yearOn]: y === year })}
-                aria-pressed={y === year}
-                onClick={() => setYear(y)}
-              >
-                {y}
-              </button>
-            ))}
+        {SHOW_YEAR_CONTROL && (
+          <div className={s.yearRow}>
+            <button
+              type="button"
+              className={s.yearArrow}
+              onClick={() => stepYear(-1)}
+              aria-label="Previous year"
+              disabled={year === FIRST_YEAR}
+            >
+              <Arrow dir="left" />
+            </button>
+            <div className={clsx(s.yearStrip, { [s.yearStripFocused]: !!focus })}>
+              {YEARS.map((y) => (
+                <button
+                  key={y}
+                  type="button"
+                  className={clsx(s.year, { [s.yearBright]: brightYears.has(y), [s.yearOn]: y === year })}
+                  aria-pressed={y === year}
+                  onClick={() => setYear(y)}
+                >
+                  {y}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              className={s.yearArrow}
+              onClick={() => stepYear(1)}
+              aria-label="Next year"
+              disabled={year === CURRENT_YEAR}
+            >
+              <Arrow dir="right" />
+            </button>
           </div>
-          <button
-            type="button"
-            className={s.yearArrow}
-            onClick={() => stepYear(1)}
-            aria-label="Next year"
-            disabled={year === CURRENT_YEAR}
-          >
-            <Arrow dir="right" />
-          </button>
-        </div>
+        )}
       </div>
     </div>
   );

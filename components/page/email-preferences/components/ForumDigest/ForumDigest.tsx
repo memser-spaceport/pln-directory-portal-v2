@@ -13,6 +13,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
+import { SHOW_NEWS_PREFERENCES } from '@/utils/news-categories';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 const Select = dynamic(() => import('react-select'), {
@@ -349,7 +350,7 @@ export const ForumDigest = ({
                 Funding, launches, partnerships, and milestones from teams across the network.
               </div>
               {/* The one link to where the news itself is chosen (LAB-2941). */}
-              {(data?.forumDigestNewsEnabled ?? true) && (
+              {SHOW_NEWS_PREFERENCES && (data?.forumDigestNewsEnabled ?? true) && (
                 <p className={s.crossLink}>
                   Choose which news you get in{' '}
                   <Link href="/settings/news-preferences?from=settings" className={s.crossLinkAnchor}>

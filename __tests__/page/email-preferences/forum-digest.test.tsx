@@ -5,6 +5,14 @@ import { ForumDigest } from '@/components/page/email-preferences/components/Foru
 import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
 import type { IUserInfo } from '@/types/shared.types';
 
+let mockShowNewsPreferences = true;
+jest.mock('@/utils/news-categories', () => ({
+  ...jest.requireActual('@/utils/news-categories'),
+  get SHOW_NEWS_PREFERENCES() {
+    return mockShowNewsPreferences;
+  },
+}));
+
 // react-select wrapped in next/dynamic({ ssr: false }) is complex to drive
 // through its real portal-rendered dropdown in jsdom. Mocked here with a
 // synchronous stub exposing each option as a plain button — these tests cover
@@ -135,6 +143,17 @@ describe('ForumDigest', () => {
         'href',
         '/settings/news-preferences?from=settings',
       );
+    });
+
+    it('hides the News preferences link while the page is flagged off', () => {
+      mockShowNewsPreferences = false;
+      try {
+        mockGetForumDigestSettings.mockReturnValue({ data: enabledData });
+        render(<ForumDigest userInfo={userInfo} initialData={enabledData} hasForumAccess />);
+        expect(screen.queryByRole('link', { name: 'News preferences' })).not.toBeInTheDocument();
+      } finally {
+        mockShowNewsPreferences = true;
+      }
     });
 
     it('hides the News preferences link while Network news is off', () => {

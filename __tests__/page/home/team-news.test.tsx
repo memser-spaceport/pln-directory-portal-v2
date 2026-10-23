@@ -93,6 +93,14 @@ const mockOnFeedHiringRoleClicked = jest.fn();
 const mockOnFeedHiringViewAllClicked = jest.fn();
 const mockOnFeedDealClicked = jest.fn();
 
+let mockShowNewsPreferences = true;
+jest.mock('@/utils/news-categories', () => ({
+  ...jest.requireActual('@/utils/news-categories'),
+  get SHOW_NEWS_PREFERENCES() {
+    return mockShowNewsPreferences;
+  },
+}));
+
 jest.mock('@/analytics/team-news.analytics', () => ({
   useTeamNewsAnalytics: () => ({
     onTeamNewsTabClicked: (...a: unknown[]) => mockOnTabClicked(...a),

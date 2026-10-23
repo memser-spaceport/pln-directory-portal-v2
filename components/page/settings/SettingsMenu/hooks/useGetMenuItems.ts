@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 
 import { IUserInfo } from '@/types/shared.types';
 import { useMemberNotificationsSettings } from '@/services/members/hooks/useMemberNotificationsSettings';
+import { SHOW_NEWS_PREFERENCES } from '@/utils/news-categories';
 
 export function useGetMenuItems(userInfo: IUserInfo) {
   const { data } = useMemberNotificationsSettings(userInfo.uid);
@@ -16,14 +17,17 @@ export function useGetMenuItems(userInfo: IUserInfo) {
         icon: '/icons/bell.svg',
         activeIcon: '/icons/bell-blue.svg',
       },
-      // What shapes For You and the digest's news (LAB-2941).
-      {
+    ];
+
+    // What shapes For You and the digest's news (LAB-2941), while flagged on.
+    if (SHOW_NEWS_PREFERENCES) {
+      preferences.push({
         name: 'news preferences',
         url: '/settings/news-preferences',
         icon: '/icons/globe.svg',
         activeIcon: '/icons/globe-blue.svg',
-      },
-    ];
+      });
+    }
 
     if (recommendationsEnabled) {
       preferences.push({

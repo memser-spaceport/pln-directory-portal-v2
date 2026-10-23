@@ -30,6 +30,7 @@ import { getNewsPreviewSnippet } from '@/services/team-news/newsPreviewSnippet';
 import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem, TeamNewsEventType } from '@/types/team-news.types';
 import { getMemberPreferences } from '@/services/preferences.service';
 import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
+import { SHOW_NEWS_PREFERENCES } from '@/utils/news-categories';
 import type { MyAccessResponse } from '@/services/access-control/access-control.service';
 import {
   resolveQuickActionsState,
@@ -165,9 +166,10 @@ const getPageData = async (deepLinkedNewsUid?: string) => {
 
   // News preferences (LAB-2941) narrow For You from the first paint: TeamNews
   // decides its initial tab during the first render. A failed read means every
-  // category, i.e. For You exactly as before.
+  // category, i.e. For You exactly as before; so does the page being flagged
+  // off, since nobody could then see or change the categories.
   const newsCategoriesPromise: Promise<TeamNewsEventType[] | undefined> =
-    isLoggedIn && userInfo?.uid && authToken
+    SHOW_NEWS_PREFERENCES && isLoggedIn && userInfo?.uid && authToken
       ? getMemberPreferences(userInfo.uid, authToken)
           .then((result) => ('newsCategories' in result ? result.newsCategories : undefined))
           .catch(() => undefined)

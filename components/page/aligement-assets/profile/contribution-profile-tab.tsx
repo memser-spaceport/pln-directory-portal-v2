@@ -28,6 +28,15 @@ function dashOr(value: number | null): string {
   return value === null ? '—' : value.toLocaleString();
 }
 
+/**
+ * Points sit under the PLAA they produced rather than in a column of their own:
+ * they are the input, not a second currency. An open snapshot says "so far",
+ * since its count is still rising.
+ */
+function pointsLabel(points: number, isPending: boolean): string {
+  return `${points.toLocaleString()} points${isPending ? ' so far' : ''}`;
+}
+
 /** Sums what is known: a month with no figure is left out rather than voiding the whole total. */
 function sumKnown(entries: ContributionHistoryEntry[], pick: (e: ContributionHistoryEntry) => number | null): number | null {
   let total: number | null = null;
@@ -129,6 +138,10 @@ export default function ContributionProfileTab({ entries, currentBalance, totalR
 
   const hasPointsData = entries.some((e) => e.points !== null);
   const chart = buildChart(entries, hasPointsData);
+
+  // The chart reads left to right from the oldest period; the table leads with
+  // the newest, which is the one a member came to look at.
+  const newestFirst = [...entries].reverse();
 
   const totalPoints = sumKnown(entries, (e) => e.points);
   // An open snapshot's PLAA is not final, so it stays out of the totals until it closes.
@@ -287,19 +300,20 @@ export default function ContributionProfileTab({ entries, currentBalance, totalR
           </div>
           <div className={styles.headerRow}>
             <span>Snapshot</span>
-            <span>Points</span>
             <span>Activities</span>
             <span>Infra rewards</span>
             <span>Redeemed</span>
             <span className={styles.brand}>Balance</span>
           </div>
 
-          {entries.map((entry) => (
+          {newestFirst.map((entry) => (
             <div key={entry.period} className={styles.dataRow}>
               <span className={styles.period}>{entry.period}</span>
-              <span className={`${styles.right} ${styles.points}`}>{dashOr(entry.points)}</span>
-              <span className={`${styles.right} ${styles.secondary}`}>
-                {entry.isPending ? PENDING_LABEL : entry.plaa.toLocaleString()}
+              <span className={`${styles.right} ${styles.stackedCell} ${styles.secondary}`}>
+                <span>{entry.isPending ? PENDING_LABEL : entry.plaa.toLocaleString()}</span>
+                {entry.points !== null && (
+                  <span className={styles.pointsLine}>{pointsLabel(entry.points, entry.isPending)}</span>
+                )}
               </span>
               <span className={`${styles.right} ${styles.secondary}`}>
                 {entry.isPending ? PENDING_LABEL : entry.infra.toLocaleString()}
@@ -311,8 +325,10 @@ export default function ContributionProfileTab({ entries, currentBalance, totalR
 
           <div className={styles.footerRow}>
             <span className={styles.footerLabel}>Total to date</span>
-            <span className={`${styles.footerValue} ${styles.points}`}>{dashOr(totalPoints)}</span>
-            <span className={`${styles.footerValue} ${styles.secondary}`}>{totalPlaa.toLocaleString()}</span>
+            <span className={`${styles.footerValue} ${styles.stackedCell} ${styles.secondary}`}>
+              <span>{totalPlaa.toLocaleString()}</span>
+              {totalPoints !== null && <span className={styles.pointsLine}>{pointsLabel(totalPoints, false)}</span>}
+            </span>
             <span className={`${styles.footerValue} ${styles.secondary}`}>{totalInfra.toLocaleString()}</span>
             <span className={`${styles.footerValue} ${styles.tertiary}`}>{dashOr(totalRedeemed)}</span>
             <span className={styles.balanceChip}>{currentBalance === null ? '—' : currentBalance.toLocaleString()}</span>

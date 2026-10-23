@@ -17,3 +17,26 @@
   letter-spacing: -0.2px;
   overflow-wrap: anywhere;
 }
+
+.location {
+  position: relative;
+  display: block;
+  padding-left: 20px;
+}
+
+/* Hangs in the padding: inline, the line could break after it and leave it alone above the text. */
+.icon {
+  position: absolute;
+  top: 2px;
+  left: 0;
+}
+
+.divider {
+  margin: 0 4px;
+}
+
+.overflowTrigger {
+  display: inline-block;
+  margin-left: 4px;
+  vertical-align: middle;
+}

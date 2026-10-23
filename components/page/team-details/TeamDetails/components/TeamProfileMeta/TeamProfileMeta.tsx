@@ -1,6 +1,7 @@
 'use client';
 
-import React, { Fragment } from 'react';
+import React, { Fragment, ReactNode } from 'react';
+import { clsx } from 'clsx';
 
 import { ITeam } from '@/types/teams.types';
 
@@ -39,9 +40,28 @@ export const TeamProfileMeta = (props: Props) => {
       key: 'location',
       content: (
         <>
-          <LocationIcon />
-          <span>{locations.slice(0, LOCATIONS_TO_SHOW).join(' · ')}</span>
-          {locations.length > LOCATIONS_TO_SHOW && <TagsOverflow titles={locations.slice(LOCATIONS_TO_SHOW)} />}
+          <LocationIcon className={s.icon} />
+          {locations.slice(0, LOCATIONS_TO_SHOW).reduce((acc: ReactNode[], location, index, all) => {
+            acc.push(<span key={`${index}-value`}>{location}</span>);
+
+            if (all.length - 1 !== index) {
+              acc.push(
+                <span className={s.divider} key={`${index}-separator`}>
+                  ·
+                </span>,
+              );
+            }
+
+            return acc;
+          }, [])}
+          {locations.length > LOCATIONS_TO_SHOW && (
+            <TagsOverflow
+              titles={locations.slice(LOCATIONS_TO_SHOW)}
+              classes={{
+                trigger: s.overflowTrigger,
+              }}
+            />
+          )}
         </>
       ),
     },
@@ -56,7 +76,7 @@ export const TeamProfileMeta = (props: Props) => {
       {items.map((item, index) => (
         <Fragment key={item.key}>
           {index > 0 && <Divider />}
-          <div className={s.item}>{item.content}</div>
+          <div className={clsx(s.item, item.key === 'location' && s.location)}>{item.content}</div>
         </Fragment>
       ))}
     </div>

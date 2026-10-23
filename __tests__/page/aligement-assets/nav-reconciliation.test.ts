@@ -65,11 +65,10 @@ describe('September 2026', () => {
 
   it('classifies each movement as expected', () => {
     expect(amountOf('M9-2026', 'Cash Contributions')).toBe(toCents('110,000.00'));
-    expect(amountOf('M9-2026', 'FIL Contributions')).toBe(toCents('193,361.77'));
+    expect(amountOf('M9-2026', 'Digital Asset Contributions')).toBe(toCents('193,361.77'));
     expect(amountOf('M9-2026', 'Auction Proceeds Paid')).toBeNull();
     expect(amountOf('M9-2026', 'Interest Income')).toBe(toCents('1,541.39'));
-    expect(amountOf('M9-2026', 'Legal Expenses')).toBe(toCents('-1,675.00'));
-    expect(amountOf('M9-2026', 'Trust Administrative Expenses')).toBe(toCents('-14,583.33'));
+    expect(amountOf('M9-2026', 'Administrative Expenses')).toBe(toCents('-16,258.33'));
     expect(amountOf('M9-2026', 'PLVH SPV Class B Interest Adjustment')).toBe(toCents('1,182,382.00'));
     expect(amountOf('M9-2026', 'PLVH SPV')).toBe(toCents('-4,849.00'));
     expect(amountOf('M9-2026', 'BTC & ETH')).toBe(toCents('20,314.00'));
@@ -81,8 +80,7 @@ describe('September 2026', () => {
     expect(sep.activity).toEqual({
       contributions: toCents('1,485,743.77'),
       interest: toCents('1,541.39'),
-      legal: toCents('-1,675.00'),
-      admin: toCents('-14,583.33'),
+      admin: toCents('-16,258.33'),
     });
     expect(sep.netActivity).toBe(toCents('1,471,026.83'));
   });

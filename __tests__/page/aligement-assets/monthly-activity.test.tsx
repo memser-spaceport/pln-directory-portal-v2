@@ -80,14 +80,13 @@ describe('MonthlyActivity', () => {
       'Opening NAV (Aug 31)$11,465,145.94',
       'Contributions & Distributions+$1,485,743.77',
       'Cash Contributions+$110,000.00',
-      'FIL Contributions+$193,361.77',
+      'Digital Asset Contributions+$193,361.77',
       'PLVH SPV Class B Interest Adjustment+$1,182,382.00',
       'Trust\u2019s Class B interest in PL Venture Holdings: 93.78% (from 83.25%)',
       'Auction Proceeds Paid—',
       'Income & Expenses\u2212$14,716.94',
       'Interest Income+$1,541.39',
-      'Legal Expenses\u2212$1,675.00',
-      'Trust Administrative Expenses\u2212$14,583.33',
+      'Administrative Expenses\u2212$16,258.33',
       'Asset Value Changes+$536,157.65',
       'PLVH SPV\u2212$4,849.00',
       'BTC & ETH+$20,314.00',
@@ -97,8 +96,7 @@ describe('MonthlyActivity', () => {
     expect(rowsOf(activity)).toEqual([
       'Trust Contributions+$1,485,743.77',
       'Interest Income+$1,541.39',
-      'Legal Expenses\u2212$1,675.00',
-      'Trust Administrative Expenses\u2212$14,583.33',
+      'Administrative Expenses\u2212$16,258.33',
       'Net Financial Activity+$1,471,026.83',
     ]);
   });

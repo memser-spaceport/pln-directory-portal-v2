@@ -16,7 +16,6 @@ export type MovementCategory =
   | 'cashContribution'
   | 'assetContribution'
   | 'interest'
-  | 'legal'
   | 'admin'
   | 'auctionProceeds'
   | 'spvContribution'
@@ -32,7 +31,7 @@ export interface StatementMovement {
   // The StatementHolding.id whose balance this lands in.
   holding: string;
   asset?: string;
-  // Display label override, e.g. 'FIL Contributions'.
+  // Display label override; lines with the same label merge into one row.
   label?: string;
   // Statement line(s), as printed. Never participant names.
   source: string;
@@ -114,13 +113,12 @@ export interface ReconciliationCheck {
 }
 
 // Auction payouts are a distribution, so they stay in the bridge only.
-export type ActivityCategory = 'contributions' | 'interest' | 'legal' | 'admin';
+export type ActivityCategory = 'contributions' | 'interest' | 'admin';
 
 export const ACTIVITY_CATEGORIES: { key: ActivityCategory; label: string }[] = [
   { key: 'contributions', label: 'Trust Contributions' },
   { key: 'interest', label: 'Interest Income' },
-  { key: 'legal', label: 'Legal Expenses' },
-  { key: 'admin', label: 'Trust Administrative Expenses' },
+  { key: 'admin', label: 'Administrative Expenses' },
 ];
 
 export interface MonthReconciliation {
@@ -166,10 +164,9 @@ const worst = (statuses: ClassificationStatus[]): ClassificationStatus =>
 
 const CATEGORY_LABELS: Record<MovementCategory, string> = {
   cashContribution: 'Cash Contributions',
-  assetContribution: 'Asset Contributions',
+  assetContribution: 'Digital Asset Contributions',
   interest: 'Interest Income',
-  legal: 'Legal Expenses',
-  admin: 'Trust Administrative Expenses',
+  admin: 'Administrative Expenses',
   auctionProceeds: 'Auction Proceeds Paid',
   spvContribution: 'PLVH SPV Class B Interest Adjustment',
   spvValuation: 'PLVH SPV',
@@ -186,7 +183,7 @@ const GROUPS: { key: BridgeGroupKey; label: string; categories: MovementCategory
     label: 'Contributions & Distributions',
     categories: ['cashContribution', 'assetContribution', 'spvContribution', 'auctionProceeds'],
   },
-  { key: 'incomeExpenses', label: 'Income & Expenses', categories: ['interest', 'legal', 'admin'] },
+  { key: 'incomeExpenses', label: 'Income & Expenses', categories: ['interest', 'admin'] },
   { key: 'valuation', label: 'Asset Value Changes', categories: ['spvValuation', 'valuation'] },
   { key: 'unclassified', label: 'Unclassified NAV Movement', categories: ['unclassified'] },
 ];
@@ -199,7 +196,6 @@ const ALWAYS_SHOWN = new Set<MovementCategory>([
   'spvContribution',
   'auctionProceeds',
   'interest',
-  'legal',
   'admin',
   'spvValuation',
 ]);
@@ -209,7 +205,6 @@ const ACTIVITY_OF: Partial<Record<MovementCategory, ActivityCategory>> = {
   assetContribution: 'contributions',
   spvContribution: 'contributions',
   interest: 'interest',
-  legal: 'legal',
   admin: 'admin',
 };
 
@@ -364,7 +359,6 @@ export function reconcileMonth(statement: TrustStatement): MonthReconciliation {
   const activity: Record<ActivityCategory, Cents | null> = {
     contributions: null,
     interest: null,
-    legal: null,
     admin: null,
   };
   lines.forEach((line) => {

@@ -145,7 +145,6 @@ export const TRUST_STATEMENTS: TrustStatement[] = [
         amount: '109,225.47',
         holding: 'fil',
         asset: 'FIL',
-        label: 'FIL Contributions',
         source: '08/27 RECEIVED FROM PL — 150,000 FIL at $0.728/unit (cost recorded $109,225.47)',
         status: 'verified',
       },
@@ -240,7 +239,7 @@ export const TRUST_STATEMENTS: TrustStatement[] = [
         status: 'verified',
       },
       {
-        category: 'legal',
+        category: 'admin',
         amount: '-1,425.00',
         holding: 'cash',
         source: '09/08 LEGAL FEE PAID TO MORRIS NICHOLS INVOICE #2609414 DATED 8/31/26',
@@ -265,7 +264,6 @@ export const TRUST_STATEMENTS: TrustStatement[] = [
         amount: '193,361.77',
         holding: 'fil',
         asset: 'FIL',
-        label: 'FIL Contributions',
         source: '09/14 RECEIVED FROM PL — 200,000 FIL at $0.967/unit (cost recorded $193,361.77)',
         status: 'verified',
       },
@@ -279,7 +277,7 @@ export const TRUST_STATEMENTS: TrustStatement[] = [
         note: 'Recorded at $10,849,043.00 as Class B ownership rose to 93.78%.',
       },
       {
-        category: 'legal',
+        category: 'admin',
         amount: '-250.00',
         holding: 'cash',
         source: '09/29 BLUE SKY FILING FEES',

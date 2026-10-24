@@ -4,6 +4,7 @@ import { withPostHogConfig } from '@posthog/nextjs-config';
 import aiSearchRedirects from './utils/ai-search-redirects.js';
 import legacyJobBoardRedirects from './utils/legacy-job-board-redirects.js';
 import eventsRedirects from './utils/events-redirects.js';
+import imageRemotePatterns from './utils/image-remote-patterns.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -143,12 +144,7 @@ const nextConfig = {
     PLAA_API_URL: process.env.PLAA_API_URL,
   },
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**',
-      },
-    ],
+    remotePatterns: imageRemotePatterns.IMAGE_REMOTE_PATTERNS,
   },
   productionBrowserSourceMaps: true,
 };

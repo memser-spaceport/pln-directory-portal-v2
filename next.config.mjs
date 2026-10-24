@@ -39,6 +39,13 @@ const nextConfig = {
     ignoreBuildErrors: !!process.env.CANVAS_BUILD_DIR || process.env.NEXT_PUBLIC_CANVAS_VIEW_ONLY === '1',
   },
 
+  // Next 16.4 type-checks with the TypeScript CLI by default, which checks the whole project,
+  // `__tests__/` included. The in-process checker (the 16.2 behaviour) checks the app code and
+  // skips test files, as before; Jest compiles the tests.
+  experimental: {
+    useTypeScriptCli: false,
+  },
+
   // DELETE WITH: the `design-canvas/` folder.
   // The captured frames live in `design-canvas/shots/`, outside `public/` on
   // purpose, and NOTHING IMPORTS THEM — the shots route reads them off disk by

@@ -12,6 +12,7 @@ const IMAGE_HOSTS = [
   'xmwhmjwf0rjrrlhw.public.blob.vercel-storage.com',
 ];
 
+/** @type {import('next/dist/shared/lib/image-config').RemotePattern[]} */
 const IMAGE_REMOTE_PATTERNS = IMAGE_HOSTS.map((hostname) => ({ protocol: 'https', hostname }));
 
 module.exports = { IMAGE_REMOTE_PATTERNS };

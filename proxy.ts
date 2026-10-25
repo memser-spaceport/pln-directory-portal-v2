@@ -79,8 +79,32 @@ function migrateSessionCookiesToHost(req: NextRequest, response: NextResponse, a
   }
 }
 
+const AUTH_STATE_HEADERS = ['authToken', 'refreshToken', 'userInfo', 'isLoggedIn'] as const;
+
 const LEGACY_DEEP_LINK_ROUTES = [/^\/pl-infra-os$/, /^\/pl-infra\/ai-apps\/[^/]+$/];
 const RELATIVE_PATH_PROBE_BASE = 'https://placeholder.invalid';
+
+// Server Components read the request. A response header would reach the browser.
+// A client can send these names, so drop that copy before this proxy sets its own.
+function pageRequestHeaders(req: NextRequest): Headers {
+  const headers = new Headers(req.headers);
+  for (const name of AUTH_STATE_HEADERS) headers.delete(name);
+  return headers;
+}
+
+function setSignedInRequestHeaders(
+  headers: Headers,
+  session: { authToken: string; refreshToken: string; userInfo: string },
+) {
+  headers.set('authToken', session.authToken);
+  headers.set('refreshToken', session.refreshToken);
+  headers.set('userInfo', session.userInfo);
+  headers.set('isLoggedIn', 'true');
+}
+
+function nextPage(requestHeaders: Headers): NextResponse {
+  return NextResponse.next({ request: { headers: requestHeaders } });
+}
 
 // AI App deep links used to carry the open subpage as `?path=`; those links
 // are still shared and bookmarked, so send them to the segment form
@@ -106,7 +130,7 @@ export async function proxy(req: NextRequest) {
   const legacyRedirect = legacyDeepLinkRedirect(req);
   if (legacyRedirect) return legacyRedirect;
 
-  const response = NextResponse.next();
+  const requestHeaders = pageRequestHeaders(req);
   const refreshTokenFromCookie = req?.cookies?.get('refreshToken');
   const authTokenFromCookie = req?.cookies?.get('authToken');
   const userInfo = req?.cookies?.get('userInfo');
@@ -120,6 +144,7 @@ export async function proxy(req: NextRequest) {
     }
 
     if (!refreshTokenFromCookie) {
+      const response = nextPage(requestHeaders);
       clearSessionCookies(response);
       return response;
     }
@@ -130,12 +155,12 @@ export async function proxy(req: NextRequest) {
 
       // Priority 1: Check for force logout (regardless of active status)
       if (validCheckResponse?.forceLogout) {
-        clearSessionCookies(response);
-
         // Redirect to login if accessing protected route after force logout
         if (isProtectedRoute(pathname)) {
           return createLoginRedirect(req, pathname);
         }
+        const response = nextPage(requestHeaders);
+        clearSessionCookies(response);
         return response;
       }
 
@@ -143,10 +168,12 @@ export async function proxy(req: NextRequest) {
       isValidAuthToken = (validCheckResponse && validCheckResponse?.active) || false;
       if (isValidAuthToken && userInfo?.value) {
         // Only set logged in if we have valid userInfo
-        response.headers.set('refreshToken', refreshTokenFromCookie?.value as string);
-        response.headers.set('authToken', authTokenFromCookie?.value as string);
-        response.headers.set('userInfo', encodeURIComponent(userInfo.value));
-        response.headers.set('isLoggedIn', 'true');
+        setSignedInRequestHeaders(requestHeaders, {
+          refreshToken: refreshTokenFromCookie.value,
+          authToken: authTokenFromCookie?.value as string,
+          userInfo: encodeURIComponent(userInfo.value),
+        });
+        const response = nextPage(requestHeaders);
         migrateSessionCookiesToHost(req, response, authToken);
         return response;
       }
@@ -161,6 +188,12 @@ export async function proxy(req: NextRequest) {
       const refreshTokenExpiry = decodeToken(refreshToken) as any;
       if (accessToken && refreshToken && userInfo && userInfo.uid) {
         // Only set logged in if userInfo has a valid uid
+        setSignedInRequestHeaders(requestHeaders, {
+          refreshToken: JSON.stringify(refreshToken),
+          authToken: JSON.stringify(accessToken),
+          userInfo: encodeURIComponent(JSON.stringify(userInfo)),
+        });
+        const response = nextPage(requestHeaders);
         // refreshToken/userInfo stay on LabOS's own host; authToken is shared with AI Apps while the switch is on.
         response.cookies.set('refreshToken', JSON.stringify(refreshToken), {
           maxAge: calculateExpiry(refreshTokenExpiry?.exp),
@@ -180,29 +213,25 @@ export async function proxy(req: NextRequest) {
           path: '/',
         });
         expireSharedCookies(response, hostOnlySessionCookies());
-        response.headers.set('refreshToken', JSON.stringify(refreshToken));
-        response.headers.set('authToken', JSON.stringify(accessToken));
-        response.headers.set('userInfo', encodeURIComponent(JSON.stringify(userInfo)));
-        response.headers.set('isLoggedIn', 'true');
         return response;
       }
     } else {
-      clearSessionCookies(response);
-
       // Redirect to login if accessing protected route with invalid tokens
       if (isProtectedRoute(pathname)) {
         return createLoginRedirect(req, pathname);
       }
+      const response = nextPage(requestHeaders);
+      clearSessionCookies(response);
       return response;
     }
   } catch (err) {
     console.error(err);
-    clearSessionCookies(response);
-
     // Redirect to login if accessing protected route and an error occurred
     if (isProtectedRoute(pathname)) {
       return createLoginRedirect(req, pathname);
     }
+    const response = nextPage(requestHeaders);
+    clearSessionCookies(response);
     return response;
   }
 }

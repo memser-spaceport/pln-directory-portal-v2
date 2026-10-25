@@ -55,6 +55,14 @@ function setCookies(res: Response) {
   });
 }
 
+/** Auth state is forwarded on the request. The page response must not carry the tokens. */
+function expectSignedIn(res: Response) {
+  expect(res.headers.get('x-middleware-request-isloggedin')).toBe('true');
+  expect(res.headers.get('authToken')).toBeNull();
+  expect(res.headers.get('refreshToken')).toBeNull();
+  expect(res.headers.get('userInfo')).toBeNull();
+}
+
 const SESSION = {
   authToken: JSON.stringify('access.jwt'),
   refreshToken: JSON.stringify('refresh.jwt'),
@@ -76,7 +84,7 @@ describe('proxy: host-only refreshToken/userInfo', () => {
     const res = await proxy(request('/home', SESSION));
     const cookies = setCookies(res!);
 
-    expect(res!.headers.get('isLoggedIn')).toBe('true');
+    expectSignedIn(res!);
     // Host-only rewrite with the same values.
     expect(cookies).toEqual(
       expect.arrayContaining([
@@ -107,7 +115,7 @@ describe('proxy: host-only refreshToken/userInfo', () => {
 
     const res = await proxy(request('/home', { ...SESSION, sessionScope: 'host' }));
 
-    expect(res!.headers.get('isLoggedIn')).toBe('true');
+    expectSignedIn(res!);
     expect(setCookies(res!)).toEqual([]);
   });
 
@@ -120,7 +128,7 @@ describe('proxy: host-only refreshToken/userInfo', () => {
 
     const res = await proxy(request('/home', SESSION));
 
-    expect(res!.headers.get('isLoggedIn')).toBe('true');
+    expectSignedIn(res!);
     expect(setCookies(res!)).toEqual([]);
     spy.mockRestore();
   });
@@ -135,7 +143,7 @@ describe('proxy: host-only refreshToken/userInfo', () => {
     const cookies = setCookies(res!);
     const live = cookies.filter((c) => !c.expired);
 
-    expect(res!.headers.get('isLoggedIn')).toBe('true');
+    expectSignedIn(res!);
     expect(live).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ name: 'authToken', domain: DOMAIN }),
@@ -225,7 +233,7 @@ describe('proxy: host-only refreshToken/userInfo', () => {
       const res = await proxy(request('/home', SESSION));
       const cookies = setCookies(res!);
 
-      expect(res!.headers.get('isLoggedIn')).toBe('true');
+      expectSignedIn(res!);
       expect(cookies.filter((c) => c.expired)).toEqual([]);
       expect(cookies).toEqual(
         expect.arrayContaining([expect.objectContaining({ name: 'refreshToken', expired: false })]),
@@ -248,7 +256,7 @@ describe('proxy: AI_APPS_SHARE_AUTH_TOKEN=false (LabOS stops sharing authToken)'
     const res = await proxy(request('/home', { ...SESSION, sessionScope: 'host' }));
     const cookies = setCookies(res!);
 
-    expect(res!.headers.get('isLoggedIn')).toBe('true');
+    expectSignedIn(res!);
     expect(cookies).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

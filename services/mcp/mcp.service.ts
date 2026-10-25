@@ -27,6 +27,39 @@ export async function revokeMcpAuthorization(uid: string): Promise<boolean> {
   return !!response?.ok;
 }
 
+export type McpOAuthClientInfo = {
+  client_id: string;
+  client_name: string;
+  redirect_host: string | null;
+  redirect_uri_registered: boolean;
+};
+
+export async function fetchMcpOAuthClient(
+  clientId: string,
+  redirectUri: string,
+): Promise<McpOAuthClientInfo | { error: 'not_found' | 'failed' }> {
+  try {
+    const query = new URLSearchParams({ redirect_uri: redirectUri });
+    const response = await fetch(
+      `${process.env.DIRECTORY_API_URL}/oauth/clients/${encodeURIComponent(clientId)}?${query.toString()}`,
+      { cache: 'no-store' },
+    );
+    if (response.status === 404) {
+      return { error: 'not_found' };
+    }
+    if (!response.ok) {
+      return { error: 'failed' };
+    }
+    const data = (await response.json()) as McpOAuthClientInfo;
+    if (typeof data?.client_name !== 'string' || typeof data.redirect_uri_registered !== 'boolean') {
+      return { error: 'failed' };
+    }
+    return data;
+  } catch {
+    return { error: 'failed' };
+  }
+}
+
 export async function approveMcpOAuth(body: {
   clientId: string;
   redirectUri: string;

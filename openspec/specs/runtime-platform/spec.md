@@ -70,3 +70,19 @@ A Node runtime change SHALL NOT reach production unless the lint, Jest, build an
 - **GIVEN** a member signs in on a deployment that runs the new runtime
 - **WHEN** they open their settings, notifications and the AI Apps (PL Infra) dashboard
 - **THEN** the pages load their data with no errors compared with the old runtime
+
+### Requirement: Image optimizer fetches only from listed hosts
+
+The Next.js image endpoint SHALL fetch and optimise remote images only from an explicit list of https hosts (LAB-2978). It SHALL refuse a URL whose host is not on the list, and the list SHALL contain no wildcard host. A new image host is added to the list by a code change.
+
+#### Scenario: Image from a listed host
+
+- **GIVEN** an image URL on a listed host, for example `pl-directory-images-prod.s3.us-west-1.amazonaws.com`
+- **WHEN** a page renders it through the Next.js image endpoint
+- **THEN** the image renders as before
+
+#### Scenario: Image from a host that is not listed
+
+- **GIVEN** an image URL on a host that is not on the list
+- **WHEN** a client requests it through the Next.js image endpoint
+- **THEN** the endpoint refuses the request and does not fetch the URL

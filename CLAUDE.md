@@ -35,7 +35,7 @@ Next 16 request APIs are async: `await cookies()` / `await headers()`, and page/
 
 ### Authentication Flow
 
-- **Proxy** (`proxy.ts`, the Next 16 name for middleware): Server-side auth via cookies (`authToken`, `refreshToken`, `userInfo`). Validates tokens on every request, refreshes expired tokens, and passes auth state via response headers.
+- **Proxy** (`proxy.ts`, the Next 16 name for middleware): Server-side auth via cookies (`authToken`, `refreshToken`, `userInfo`). Validates tokens on every request, refreshes expired tokens, and passes auth state to Server Components on the forwarded request. It ignores client-sent `authToken`, `refreshToken`, `userInfo`, and `isLoggedIn` headers. Page responses do not include `authToken`, `refreshToken`, or `userInfo`.
 - **Client-side**: `getCookiesFromHeaders()` in `utils/next-helpers.ts` reads auth state from headers in Server Components. Client components use `getCookiesFromClient()` from `utils/third-party.helper.ts`.
 - **Fetch wrapper** (`utils/fetch-wrapper.ts`): `customFetch()` handles authenticated API calls with automatic token refresh and retry on 401.
 - **Auth provider**: Privy (`@privy-io/react-auth`) for login.

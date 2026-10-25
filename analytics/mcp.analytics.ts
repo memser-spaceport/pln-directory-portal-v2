@@ -4,10 +4,10 @@ import { usePostHog } from 'posthog-js/react';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { MCP_ANALYTICS_EVENTS } from '@/utils/constants';
 
-export type McpConnectView = 'invalid' | 'signedOut' | 'pending' | 'denied' | 'error';
+export type McpConnectView = 'invalid' | 'signedOut' | 'pending' | 'denied' | 'error' | 'closeTab';
 export type McpSnippetType = 'server' | 'claude' | 'codex';
 export type McpConnectDenyReason = 'user_denied' | 'missing_permission';
-export type McpConnectErrorKind = 'approve_failed' | 'redirect_invalid';
+export type McpConnectErrorKind = 'approve_failed' | 'redirect_invalid' | 'client_unknown';
 
 export type McpWarmPathParams = {
   warmPathUid: string;

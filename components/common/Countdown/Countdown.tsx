@@ -1,5 +1,6 @@
 import React from 'react';
 import Countdown from 'react-countdown';
+import { useIsClient } from '@/hooks/useIsClient';
 import s from './Countdown.module.scss';
 
 interface CountdownComponentProps {
@@ -56,5 +57,10 @@ const CountdownRenderer: React.FC<CountdownRendererProps> = ({ days, hours, minu
 };
 
 export const CountdownComponent: React.FC<CountdownComponentProps> = ({ targetDate, title }) => {
+  /* Counts from the current time, so a server render could never match the browser's first one (LAB-2930): render in
+     the browser only, from hydration on. */
+  const isClient = useIsClient();
+  if (!isClient) return null;
+
   return <Countdown date={targetDate} renderer={(props) => <CountdownRenderer {...props} />} />;
 };

@@ -62,6 +62,13 @@ describe('sessionCookieAttributes', () => {
     },
   );
 
+  it('keeps Secure behind the ingress, where the request URL is the pod address http://localhost:4200', () => {
+    const podRequest = req('http://localhost:4200/home', { host: 'os.pl.xyz', 'x-forwarded-proto': 'https' });
+    expect(sessionCookieAttributes('refreshToken', podRequest)).toEqual(
+      expect.objectContaining({ secure: true, httpOnly: true, sameSite: 'lax' }),
+    );
+  });
+
   it('keeps Secure on a deployed host even when the server sees http: (TLS ends at the load balancer)', () => {
     expect(sessionCookieAttributes('authToken', req('http://os.pl.xyz/home')).secure).toBe(true);
   });
@@ -133,6 +140,26 @@ describe('isSameOriginRequest', () => {
     ['an unparsable Origin', 'null'],
   ])('rejects %s', (_label, origin) => {
     expect(isSameOriginRequest(req('https://os.pl.xyz/api/auth/session', { origin }))).toBe(false);
+  });
+
+  it('accepts the public Origin behind the ingress, where the request URL is the pod address', () => {
+    expect(
+      isSameOriginRequest(
+        req('http://localhost:4200/api/auth/session', {
+          origin: 'https://directory-portal-lab-2988.os.pl.xyz',
+          host: 'directory-portal-lab-2988.os.pl.xyz',
+          'x-forwarded-proto': 'https',
+        }),
+      ),
+    ).toBe(true);
+    expect(
+      isSameOriginRequest(
+        req('http://localhost:4200/api/auth/session', {
+          origin: 'https://evil.example',
+          host: 'directory-portal-lab-2988.os.pl.xyz',
+        }),
+      ),
+    ).toBe(false);
   });
 
   it('rejects a request without Origin', () => {

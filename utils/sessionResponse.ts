@@ -5,6 +5,7 @@ import {
   hostOnlySessionCookies,
   SESSION_MARKER_COOKIE,
   SESSION_SCOPE_COOKIE,
+  publicRequestLocation,
   sessionCookieFlags,
   sessionScopeValue,
 } from './sessionCookies';
@@ -31,7 +32,7 @@ export function sessionCookieAttributes(name: string, req: NextRequest): Session
   const shared = name === 'authToken' && !hostOnlySessionCookies().includes(name) && process.env.COOKIE_DOMAIN;
   return {
     path: '/',
-    ...sessionCookieFlags(req.nextUrl),
+    ...sessionCookieFlags(publicRequestLocation(req)),
     httpOnly: name === 'refreshToken',
     ...(shared ? { domain: process.env.COOKIE_DOMAIN } : {}),
   };
@@ -68,14 +69,14 @@ export function setSessionCookies(response: NextResponse, req: NextRequest, toke
 }
 
 /**
- * True when the request comes from a LabOS page on this host. Compares hosts, not origins: behind the load balancer
- * the server can see `http:` while the browser's Origin says `https:`.
+ * True when the request comes from a LabOS page on this host: the browser's Origin host equals the public host the
+ * request was sent to (publicRequestLocation; behind the ingress `req.nextUrl` carries the pod's own address).
  */
 export function isSameOriginRequest(req: NextRequest): boolean {
   const origin = req.headers.get('origin');
   if (!origin) return false;
   try {
-    return new URL(origin).host === req.nextUrl.host;
+    return new URL(origin).host === publicRequestLocation(req).host;
   } catch {
     return false;
   }

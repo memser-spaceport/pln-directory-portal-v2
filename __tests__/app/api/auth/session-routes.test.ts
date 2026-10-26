@@ -136,6 +136,42 @@ describe('POST /api/auth/session', () => {
   );
 });
 
+describe('behind the ingress (request URL is the pod address)', () => {
+  const ENV_HOST = 'directory-portal-lab-2988.os.pl.xyz';
+  const podPost = (path: string, body?: unknown, cookie?: string) =>
+    new NextRequest(`http://localhost:4200${path}`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        origin: `https://${ENV_HOST}`,
+        host: ENV_HOST,
+        'x-forwarded-proto': 'https',
+        ...(cookie ? { cookie } : {}),
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+
+  it('session: accepts the public same-origin request and sets Secure cookies', async () => {
+    const res = await establish(podPost('/api/auth/session', TOKENS));
+    const live = setCookies(res).filter((c) => !c.expired);
+
+    expect(res.status).toBe(204);
+    for (const c of live) expect(c).toEqual(expect.objectContaining({ secure: true, lax: true }));
+    expect(live.find((c) => c.name === 'refreshToken')?.httpOnly).toBe(true);
+  });
+
+  it('refresh and logout: accept the public same-origin request', async () => {
+    mockedRenew.mockResolvedValue({
+      ok: true,
+      data: { accessToken: 'access2.jwt', refreshToken: 'refresh2.jwt', userInfo: { uid: 'm-1' } },
+    });
+    const cookie = `refreshToken=${encodeURIComponent(JSON.stringify('refresh.jwt'))}`;
+
+    expect((await refresh(podPost('/api/auth/refresh', undefined, cookie))).status).toBe(200);
+    expect((await logout(podPost('/api/auth/logout'))).status).toBe(204);
+  });
+});
+
 describe('POST /api/auth/refresh', () => {
   const cookie = `refreshToken=${encodeURIComponent(JSON.stringify('refresh.jwt'))}`;
 

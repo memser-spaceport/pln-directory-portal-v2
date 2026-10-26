@@ -28,11 +28,11 @@ const mockedDecode = decodeToken as jest.Mock;
 
 const nowSec = () => Math.floor(Date.now() / 1000);
 
-function request(path: string, cookies: Record<string, string>, origin = ORIGIN) {
+function request(path: string, cookies: Record<string, string>, origin = ORIGIN, extra: Record<string, string> = {}) {
   const cookie = Object.entries(cookies)
     .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
     .join('; ');
-  return new NextRequest(`${origin}${path}`, { headers: cookie ? { cookie } : {} });
+  return new NextRequest(`${origin}${path}`, { headers: { ...(cookie ? { cookie } : {}), ...extra } });
 }
 
 /** Parsed Set-Cookie headers: name → { value, attrs } (a name may appear twice: host-only + Domain expiry). */
@@ -290,6 +290,30 @@ describe('proxy: host-only refreshToken/userInfo', () => {
         expect.arrayContaining([expect.objectContaining({ name: 'refreshToken', expired: false })]),
       );
     });
+  });
+});
+
+describe('proxy: behind the ingress (request URL is the pod address)', () => {
+  it('keeps Secure and the httpOnly refresh token on a refreshed session', async () => {
+    mockedCheck.mockResolvedValue({ active: false });
+    mockedRenew.mockResolvedValue({
+      data: { accessToken: 'access2.jwt', refreshToken: 'refresh2.jwt', userInfo: { uid: 'm-1' } },
+    });
+
+    const res = await proxy(
+      request('/home', SESSION, 'http://localhost:4200', {
+        host: 'directory-portal-lab-2988.os.pl.xyz',
+        'x-forwarded-proto': 'https',
+      }),
+    );
+    const live = setCookies(res!).filter((c) => !c.expired);
+
+    expect(live.length).toBeGreaterThan(0);
+    for (const c of live) {
+      expect(c).toEqual(
+        expect.objectContaining({ secure: true, sameSite: 'lax', httpOnly: c.name === 'refreshToken' }),
+      );
+    }
   });
 });
 

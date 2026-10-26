@@ -35,6 +35,24 @@ export function sessionCookieFlags(location: { protocol: string; hostname: strin
  */
 export const SESSION_MARKER_COOKIE = 'sessionExpiresAt';
 
+/**
+ * The public host and protocol of a request. Behind the ingress Next sees its own listen address
+ * (`http://localhost:4200`) in `req.nextUrl`; the load balancer keeps the browser's Host header and adds
+ * X-Forwarded-Proto. Locally there are no forwarded headers and Host is `localhost:<port>`.
+ */
+export function publicRequestLocation(req: { headers: Headers; nextUrl: URL }) {
+  const first = (value: string | null) => value?.split(',')[0].trim() || null;
+  const host = first(req.headers.get('x-forwarded-host')) ?? first(req.headers.get('host')) ?? req.nextUrl.host;
+  const proto = first(req.headers.get('x-forwarded-proto'));
+  let hostname = req.nextUrl.hostname;
+  try {
+    hostname = new URL(`http://${host}`).hostname;
+  } catch {
+    // keep the URL's hostname
+  }
+  return { host, hostname, protocol: proto ? `${proto.replace(/:$/, '')}:` : req.nextUrl.protocol };
+}
+
 /** Every cookie that makes up a LabOS session. */
 export const SESSION_COOKIES = ['refreshToken', 'authToken', 'userInfo', SESSION_MARKER_COOKIE] as const;
 

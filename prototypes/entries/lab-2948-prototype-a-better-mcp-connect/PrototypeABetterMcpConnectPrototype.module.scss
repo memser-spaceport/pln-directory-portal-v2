@@ -58,8 +58,12 @@
   cursor: pointer;
 }
 
-.email {
-  color: var(--foreground-neutral-primary, #0a0c11);
-  font-size: 14px;
-  line-height: 20px;
+.discoveryPage {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 24px 16px;
 }

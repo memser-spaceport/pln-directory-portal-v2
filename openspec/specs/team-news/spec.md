@@ -117,3 +117,37 @@ The Tags section SHALL offer the focus areas that tagged at least one news story
 - **GIVEN** the list of tags cannot be loaded
 - **WHEN** a member opens News preferences
 - **THEN** the Tags section shows the member's chosen tags and says the full list could not be loaded, and Teams you follow still works
+
+### Requirement: For You matches news by tags
+
+With News preferences on, Home's For You view SHALL show a story when its team is one of the member's own or followed teams, or when it shares any tag with the member's tags (a parent focus area also matches its children). Teams related to the member's teams SHALL no longer match on their own. For You SHALL keep the newest story per team. When the backend does not send the member's tags, or News preferences is off, For You SHALL match the member's own, followed and related teams as before. The All view SHALL never be narrowed.
+
+#### Scenario: A tag brings in another team's story
+
+- **GIVEN** News preferences on and a member tagged AI
+- **WHEN** a team they have no link to posts a story tagged AI
+- **THEN** the story appears in For You
+
+#### Scenario: A related team without a matching tag
+
+- **GIVEN** News preferences on
+- **WHEN** a team related to the member's team posts a story that matches none of their tags
+- **THEN** the story is not in For You, and it is still in the All view
+
+#### Scenario: Only a tag matches
+
+- **GIVEN** News preferences on and a member with no own or followed teams' news, but a story matching their tag
+- **WHEN** they open Home
+- **THEN** For You is shown and holds that story
+
+#### Scenario: A tag change shows on the next visit
+
+- **GIVEN** a member who adds a tag on News preferences
+- **WHEN** they next open Home
+- **THEN** For You matches the new tag
+
+#### Scenario: News preferences off
+
+- **GIVEN** News preferences off
+- **WHEN** a member opens Home
+- **THEN** For You matches their own, followed and related teams as before

@@ -130,6 +130,10 @@ export interface ITeamNewsGroupedResponse {
   allTabExtraItems?: ITeamNewsItem[];
   /** Memberships ∪ follows ∪ Teams-to-follow matches; empty for anonymous. */
   forYouTeamUids?: string[];
+  /** The viewer's news tags, parents expanded to children (LAB-2999); empty for anonymous. */
+  forYouTags?: string[];
+  /** Memberships ∪ follows, without the related teams (LAB-2999); empty for anonymous. */
+  forYouOwnTeamUids?: string[];
 }
 
 export interface TeamCluster {

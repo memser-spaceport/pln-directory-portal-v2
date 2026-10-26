@@ -166,3 +166,14 @@ export interface ITeamNewsFiltersResponse {
  * returns no row for a team with nothing recent. Both render as no chip.
  */
 export type ITeamNewsCountsResponse = Record<string, number>;
+
+/** A news tag a member can choose: a focus area, by slug (LAB-2998). */
+export interface INewsTag {
+  slug: string;
+  title: string;
+}
+
+/** A top-level focus area with the second-level ones news used under it (`GET /v1/team-news/tags`). */
+export interface INewsTagGroup extends INewsTag {
+  children: INewsTag[];
+}

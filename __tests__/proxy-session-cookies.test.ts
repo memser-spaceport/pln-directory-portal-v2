@@ -28,11 +28,11 @@ const mockedDecode = decodeToken as jest.Mock;
 
 const nowSec = () => Math.floor(Date.now() / 1000);
 
-function request(path: string, cookies: Record<string, string>, origin = ORIGIN) {
+function request(path: string, cookies: Record<string, string>, origin = ORIGIN, extra: Record<string, string> = {}) {
   const cookie = Object.entries(cookies)
     .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
     .join('; ');
-  return new NextRequest(`${origin}${path}`, { headers: cookie ? { cookie } : {} });
+  return new NextRequest(`${origin}${path}`, { headers: { ...(cookie ? { cookie } : {}), ...extra } });
 }
 
 /** Parsed Set-Cookie headers: name → { value, attrs } (a name may appear twice: host-only + Domain expiry). */
@@ -263,6 +263,25 @@ describe('proxy: session cookie flags (LAB-2988)', () => {
     mockedCheck.mockResolvedValue({ active: true });
 
     const cookies = live((await proxy(request('/home', SESSION)))!);
+
+    expect(cookies.length).toBeGreaterThan(0);
+    for (const c of cookies) expect(c).toEqual(expect.objectContaining({ sameSite: 'lax', secure: true }));
+  });
+
+  it('keeps Secure behind the ingress, where Next sees its own http://localhost address', async () => {
+    mockedCheck.mockResolvedValue({ active: false });
+    mockedRenew.mockResolvedValue({
+      data: { accessToken: 'access2.jwt', refreshToken: 'refresh2.jwt', userInfo: { uid: 'm-1' } },
+    });
+
+    const cookies = live(
+      (await proxy(
+        request('/home', SESSION, 'http://localhost:4200', {
+          host: 'directory-portal-lab-2988.os.pl.xyz',
+          'x-forwarded-proto': 'https',
+        }),
+      ))!,
+    );
 
     expect(cookies.length).toBeGreaterThan(0);
     for (const c of cookies) expect(c).toEqual(expect.objectContaining({ sameSite: 'lax', secure: true }));

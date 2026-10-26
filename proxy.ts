@@ -7,6 +7,7 @@ import {
   expireSharedCookies,
   hostOnlySessionCookies,
   SESSION_SCOPE_COOKIE,
+  publicRequestLocation,
   sessionCookieFlags,
   sessionScopeValue,
   shareAuthTokenWithApps,
@@ -68,7 +69,7 @@ function migrateSessionCookiesToHost(req: NextRequest, response: NextResponse, a
     const refreshExpiry = calculateExpiry((decodeToken(refreshToken.replace(/"/g, '')) as any)?.exp);
     const accessExpiry = calculateExpiry((decodeToken(authToken) as any)?.exp);
     if (!(refreshExpiry > 0) || !(accessExpiry > 0)) return;
-    const flags = sessionCookieFlags(req.nextUrl);
+    const flags = sessionCookieFlags(publicRequestLocation(req));
     response.cookies.set('refreshToken', refreshToken, { maxAge: refreshExpiry, path: '/', ...flags });
     response.cookies.set('userInfo', userInfo, { maxAge: accessExpiry, path: '/', ...flags });
     if (!shareAuthTokenWithApps() && authTokenCookie) {
@@ -196,7 +197,7 @@ export async function proxy(req: NextRequest) {
           userInfo: encodeURIComponent(JSON.stringify(userInfo)),
         });
         const response = nextPage(requestHeaders);
-        const flags = sessionCookieFlags(req.nextUrl);
+        const flags = sessionCookieFlags(publicRequestLocation(req));
         // refreshToken/userInfo stay on LabOS's own host; authToken is shared with AI Apps while the switch is on.
         response.cookies.set('refreshToken', JSON.stringify(refreshToken), {
           maxAge: calculateExpiry(refreshTokenExpiry?.exp),

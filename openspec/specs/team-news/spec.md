@@ -18,6 +18,14 @@ Signed-in members SHALL have a News preferences page in Settings, listed right a
 - **WHEN** they open the News preferences page
 - **THEN** they are asked to log in, and land on News preferences after logging in
 
+### Requirement: News preferences flag
+The News preferences page SHALL be on only when the build sets `NEXT_PUBLIC_SHOW_NEWS_PREFERENCES` to `true`; it is off by default. When it is off, `/settings/news-preferences` SHALL return not found, the settings menu and Email Preferences SHALL NOT link to it, the For You hint SHALL link to the member's profile ("Update your profile") in place of "Tune For You", and For You SHALL NOT apply saved categories.
+
+#### Scenario: Flag off
+- **GIVEN** a build without `NEXT_PUBLIC_SHOW_NEWS_PREFERENCES=true`
+- **WHEN** a signed-in member opens `/settings/news-preferences`
+- **THEN** the page is not found, and the settings menu has no "news preferences" item
+
 ### Requirement: News categories
 The Categories section SHALL offer six chips: Funding, Launch, Partnership, Announcement, Milestone and Other. They show the member's saved choice, or all six when nothing is saved. Toggling a chip SHALL save at once and show "Saved". The last chip that is on SHALL NOT be switchable off. "Select all" SHALL turn every chip back on.
 

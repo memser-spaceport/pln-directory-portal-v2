@@ -1,6 +1,12 @@
 import Cookies from 'js-cookie';
 import { z } from 'zod';
-import { isHostOnlySessionCookie, SESSION_SCOPE_COOKIE, sharedCookieDomain } from './sessionCookies';
+import { endSession } from '@/services/session.service';
+import {
+  isHostOnlySessionCookie,
+  SESSION_MARKER_COOKIE,
+  SESSION_SCOPE_COOKIE,
+  sharedCookieDomain,
+} from './sessionCookies';
 
 /**
  * Ends the member's app-scoped sessions in deployed AI Apps (LAB-2695). Fire-and-forget, so sign-out never waits
@@ -21,15 +27,20 @@ export const revokeAiAppSessions = () => {
   }
 };
 
-export const clearAllAuthCookies = () => {
+/**
+ * Signs the browser out. The server clears the session cookies, including the httpOnly refresh token that scripts
+ * can't remove; await it before reloading or navigating, so the page never loads with the old session.
+ */
+export const clearAllAuthCookies = async () => {
   revokeAiAppSessions();
+  await endSession();
   removeCookie('directory_idToken');
   removeCookie('verified');
   removeCookie('directory_isEmailVerification');
   removeCookie('authToken');
-  removeCookie('refreshToken');
   removeCookie('userInfo');
   removeCookie(SESSION_SCOPE_COOKIE);
+  removeCookie(SESSION_MARKER_COOKIE);
   removeCookie('page_params');
   removeCookie('privy-token');
   removeCookie('privy-session');
@@ -60,12 +71,30 @@ export const expireSharedCookie = (name: string) => {
   }
 };
 
+const LOOPBACK_HOSTS = ['localhost', '127.0.0.1', '[::1]'];
+
 /**
- * Sets a LabOS session cookie. refreshToken/userInfo are written host-only and their old shared copy is removed, so
- * deployed AI Apps on sibling subdomains never receive them; authToken stays on COOKIE_DOMAIN, where apps read it.
+ * Flags for a session cookie written by browser code, matching the server's (utils/sessionResponse.ts): SameSite=Lax
+ * and Path=/ always, Secure except on plain-HTTP localhost.
+ */
+export const clientSessionCookieAttributes = (): Cookies.CookieAttributes => {
+  const insecureLocal =
+    typeof window !== 'undefined' &&
+    window.location.protocol === 'http:' &&
+    LOOPBACK_HOSTS.includes(window.location.hostname.toLowerCase());
+  return { path: '/', sameSite: 'lax', secure: !insecureLocal };
+};
+
+/**
+ * Sets a script-readable LabOS session cookie (authToken, userInfo) with the session flags. userInfo is written
+ * host-only and its old shared copy is removed, so deployed AI Apps on sibling subdomains never receive it; authToken
+ * stays on COOKIE_DOMAIN while LabOS shares it with apps. `refreshToken` is httpOnly and only the server writes it.
  */
 export const setSessionCookie = (name: string, value: string, options: Cookies.CookieAttributes = {}) => {
-  const attributes: Cookies.CookieAttributes = { path: '/', ...options };
+  if (name === 'refreshToken') {
+    throw new Error('refreshToken is httpOnly; only the server sets it');
+  }
+  const attributes: Cookies.CookieAttributes = { ...options, ...clientSessionCookieAttributes() };
   delete attributes.domain;
   if (isHostOnlySessionCookie(name)) {
     expireSharedCookie(name);
@@ -73,6 +102,15 @@ export const setSessionCookie = (name: string, value: string, options: Cookies.C
     return;
   }
   Cookies.set(name, value, { ...attributes, domain: process.env.COOKIE_DOMAIN || '' });
+};
+
+/** True while a LabOS session exists. Reads the script-readable session marker; `refreshToken` is httpOnly. */
+export const hasSession = (): boolean => Boolean(Cookies.get(SESSION_MARKER_COOKIE));
+
+/** When the session ends, from the session marker; null when there is no session. */
+export const getSessionExpiry = (): Date | null => {
+  const exp = Number(Cookies.get(SESSION_MARKER_COOKIE));
+  return Number.isFinite(exp) && exp > 0 ? new Date(exp * 1000) : null;
 };
 
 export const isLink = (text: string): boolean => {
@@ -87,6 +125,5 @@ export const isLink = (text: string): boolean => {
 
 export const getCookiesFromClient = () => {
   const authToken = Cookies.get('authToken')?.replace(/"/g, '');
-  const refreshToken = Cookies.get('refreshToken')?.replace(/"/g, '');
-  return { authToken, refreshToken };
+  return { authToken };
 };

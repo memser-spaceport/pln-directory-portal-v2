@@ -11,11 +11,23 @@ import tabCss from '@/components/page/connected-accounts/ConnectedAccounts.modul
 // Production's toast; `ToastContainer` is mounted in the root layout.
 import { toast } from '@/components/core/ToastContainer';
 
-import { AgentCapabilities } from './AgentCapabilities';
+import { DiscoveryMock } from './DiscoveryMock';
 import { McpSectionMock } from './McpSectionMock';
 import { SettingsBackButtonMock } from './SettingsBackButtonMock';
 import { BUILT_ITEM, SettingsMenuMock } from './SettingsMenuMock';
-import { type AccessLevel, type Agent, type AgentAction, mockAgents, mockEmail, mockPending } from './mocks';
+import {
+  type Agent,
+  type AgentAction,
+  type Feature,
+  type PendingAction,
+  PRESETS,
+  type PresetKey,
+  type Scope,
+  type Scopes,
+  mockAgents,
+  mockPending,
+  presetScopes,
+} from './mocks';
 import { BackendTagsContext } from './shared';
 import s from './PrototypeABetterMcpConnectPrototype.module.scss';
 
@@ -24,24 +36,27 @@ const DESKTOP_QUERY = '(min-width: 1024px)';
 /** The phone line (styles/media mobile-only), where the activity drawer takes the whole screen. */
 const PHONE_QUERY = '(max-width: 639px)';
 
-type Scenario = 'empty' | 'connected' | 'pending';
+type Scenario = 'empty' | 'connected' | 'pending' | 'discovery';
 
 const SCENARIOS: [Scenario, string][] = [
   ['empty', 'No agents'],
   ['connected', 'Connected'],
   ['pending', 'Pending confirms'],
+  ['discovery', 'Discovery in search'],
 ];
 
 /** Fixed "now" for new history rows, same as the mock clock in shared.tsx. */
 const NOW_ISO = '2026-10-21T20:00:00Z';
 
 /**
- * LAB-2948: a better MCP section in Settings → Email & Accounts.
+ * LAB-2948: an MCP sub-tab in Settings, after the MCP strategy decisions of 2026-10-23.
  *
- * The page is production's Email & Accounts tab with the MCP card changed
- * (McpSectionMock) and one card added under it (AgentCapabilities). Linked
- * accounts are left out: they do not change here. The review band switches
- * between the three states and shows or hides the backend-gap tags.
+ * The page is production's settings shell with a new "mcp" item in the rail;
+ * MCP is no longer part of Email & Accounts. The tab holds the MCP card
+ * (McpSectionMock): waiting confirms, one card per agent with its feature
+ * permissions, connect steps and revoke. The review band switches between the
+ * states, shows one in-product discovery example (DiscoveryMock), and shows or
+ * hides the backend-gap tags.
  */
 export default function PrototypeABetterMcpConnectPrototype() {
   // base-ui Tabs and the framer-motion Drawer are client-only; gate so SSR === first client render.
@@ -75,7 +90,7 @@ export default function PrototypeABetterMcpConnectPrototype() {
 
   const switchScenario = (next: Scenario) => {
     setScenario(next);
-    setAgents(next === 'empty' ? [] : mockAgents);
+    setAgents(next === 'empty' || next === 'discovery' ? [] : mockAgents);
     setPending(next === 'pending' ? mockPending : []);
   };
 
@@ -84,20 +99,27 @@ export default function PrototypeABetterMcpConnectPrototype() {
   const addToHistory = (agentUid: string, action: AgentAction) =>
     setAgents((current) => current.map((a) => (a.uid === agentUid ? { ...a, actions: [action, ...a.actions] } : a)));
 
-  const onAccessChange = (uid: string, access: AccessLevel) => {
+  /** A scope below read-write cannot send, so what the agent prepared for that feature is dropped. */
+  const applyScopes = (uid: string, scopes: Scopes, message: string) => {
+    setAgents((current) => current.map((a) => (a.uid === uid ? { ...a, scopes } : a)));
+    const stillAllowed = (p: PendingAction) => p.agentUid !== uid || scopes[p.feature] === 'write';
+    const dropped = pending.filter((p) => !stillAllowed(p)).length;
+    setPending((current) => current.filter(stillAllowed));
+    toast.success(
+      `${message}${dropped ? ` ${dropped} waiting ${dropped === 1 ? 'action was' : 'actions were'} dropped.` : ''}`,
+    );
+  };
+
+  const onPreset = (uid: string, preset: PresetKey) => {
+    const label = PRESETS.find((p) => p.key === preset)?.label ?? '';
+    applyScopes(uid, presetScopes(preset), `${nameOf(uid)} uses the ${label} template now.`);
+  };
+
+  const onScopeChange = (uid: string, feature: Feature, scope: Scope) => {
     const agent = agents.find((a) => a.uid === uid);
-    if (!agent || agent.access === access) return;
-    setAgents((current) => current.map((a) => (a.uid === uid ? { ...a, access } : a)));
-    if (access === 'read') {
-      // A read-only agent cannot send, so what it prepared is dropped, and the toast says how much.
-      const dropped = pending.filter((p) => p.agentUid === uid).length;
-      setPending((current) => current.filter((p) => p.agentUid !== uid));
-      toast.success(
-        `${agent.clientName} is read-only now.${dropped ? ` ${dropped} waiting ${dropped === 1 ? 'action was' : 'actions were'} dropped.` : ''}`,
-      );
-    } else {
-      toast.success(`${agent.clientName} can make changes now.`);
-    }
+    if (!agent || agent.scopes[feature.key] === scope) return;
+    const what = scope === 'off' ? 'off' : scope === 'read' ? 'read-only' : 'read and write';
+    applyScopes(uid, { ...agent.scopes, [feature.key]: scope }, `${feature.title} is ${what} for ${agent.clientName}.`);
   };
 
   const onRevoke = (uid: string) => {
@@ -162,11 +184,23 @@ export default function PrototypeABetterMcpConnectPrototype() {
     );
   }
 
+  if (scenario === 'discovery') {
+    return (
+      <BackendTagsContext.Provider value={showTags}>
+        <div className={s.discoveryPage}>
+          {reviewBand}
+          <h5 className={tabCss.title}>Members search (example)</h5>
+          <DiscoveryMock onSetUp={() => switchScenario('empty')} />
+        </div>
+      </BackendTagsContext.Provider>
+    );
+  }
+
   return (
     <BackendTagsContext.Provider value={showTags}>
       <div className={shellCss.privacy}>
         <div className={shellCss.privacy__backbtn}>
-          <SettingsBackButtonMock title="Connected Accounts" onBack={() => setMenuOpen(true)} />
+          <SettingsBackButtonMock title="MCP" onBack={() => setMenuOpen(true)} />
         </div>
         <div className={shellCss.privacy__main}>
           <aside className={shellCss.privacy__main__aside}>
@@ -175,26 +209,18 @@ export default function PrototypeABetterMcpConnectPrototype() {
           <div className={shellCss.privacy__main__content}>
             <div className={tabCss.root}>
               {reviewBand}
-              <h5 className={tabCss.title}>Email & Accounts</h5>
-
-              <div className={tabCss.card}>
-                <div className={tabCss.cardHeader}>Email</div>
-                <div className={tabCss.cardContent}>
-                  <span className={s.email}>{mockEmail}</span>
-                </div>
-              </div>
+              <h5 className={tabCss.title}>MCP</h5>
 
               <McpSectionMock
                 agents={agents}
                 pending={pending}
                 fullScreenDrawer={isPhone}
-                onAccessChange={onAccessChange}
+                onPreset={onPreset}
+                onScopeChange={onScopeChange}
                 onRevoke={onRevoke}
                 onConfirm={onConfirm}
                 onReject={onReject}
               />
-
-              <AgentCapabilities />
             </div>
           </div>
         </div>

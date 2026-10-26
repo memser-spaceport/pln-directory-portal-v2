@@ -13,11 +13,14 @@ import mcp from '@/components/page/connected-accounts/McpSection.module.scss';
 
 import { ActivityDrawer } from './ActivityDrawer';
 import { ClientLogo } from './ClientLogo';
+import { FeaturePermissions } from './FeaturePermissions';
 import {
-  type AccessLevel,
   type Agent,
   type ClientKey,
+  type Feature,
   type PendingAction,
+  type PresetKey,
+  type Scope,
   getSetupSteps,
   mockServerUrl,
 } from './mocks';
@@ -27,7 +30,7 @@ import s from './McpSectionMock.module.scss';
 const CLIENTS: { name: string; value: ClientKey }[] = [
   { name: 'Claude Code', value: 'claude-code' },
   { name: 'Codex', value: 'codex' },
-  { name: 'Claude.ai', value: 'claude-ai' },
+  { name: 'Claude app', value: 'claude-app' },
   { name: 'Others', value: 'other' },
 ];
 
@@ -42,19 +45,14 @@ const CLIENT_TABS = CLIENTS.map(({ name, value }) => ({
   ),
 }));
 
-/** GitHub's app-permission wording: the level in bold, then what it reaches, in one line. */
-const ACCESS_HELP: Record<AccessLevel, { lead: string; rest: string }> = {
-  read: { lead: 'Read', rest: ' access to LabOS as you. It changes nothing.' },
-  write: { lead: 'Read and write', rest: ' access. Anything other people will see waits for your confirm.' },
-};
-
 const RECENT_COUNT = 3;
 
 interface Props {
   agents: Agent[];
   pending: PendingAction[];
   fullScreenDrawer: boolean;
-  onAccessChange: (uid: string, access: AccessLevel) => void;
+  onPreset: (uid: string, preset: PresetKey) => void;
+  onScopeChange: (uid: string, feature: Feature, scope: Scope) => void;
   onRevoke: (uid: string) => void;
   onConfirm: (id: string) => void;
   onReject: (id: string) => void;
@@ -64,7 +62,8 @@ export function McpSectionMock({
   agents,
   pending,
   fullScreenDrawer,
-  onAccessChange,
+  onPreset,
+  onScopeChange,
   onRevoke,
   onConfirm,
   onReject,
@@ -81,7 +80,8 @@ export function McpSectionMock({
       <div className={mcp.header}>MCP</div>
       <div className={mcp.content}>
         <p className={mcp.desc}>
-          Connect Claude Code, Codex, Claude.ai or any MCP client to LabOS. The agent acts as you.
+          Connect Claude Code, Codex, the Claude app or any MCP client to LabOS. The agent acts as you, only in the
+          features you allow.
         </p>
 
         {/* The only part that asks something of the member, so it leads (lesson 20: one object per pending state). */}
@@ -126,11 +126,13 @@ export function McpSectionMock({
 
         {connected && (
           <ul className={mcp.list}>
-            {agents.map((agent) => (
+            {agents.map((agent, index) => (
               <AgentCard
                 key={agent.uid}
                 agent={agent}
-                onAccessChange={onAccessChange}
+                defaultOpen={index === 0}
+                onPreset={onPreset}
+                onScopeChange={onScopeChange}
                 onRevoke={onRevoke}
                 onViewAll={() => setActivityFilter(agent.uid)}
               />
@@ -160,17 +162,20 @@ export function McpSectionMock({
 
 function AgentCard({
   agent,
-  onAccessChange,
+  defaultOpen,
+  onPreset,
+  onScopeChange,
   onRevoke,
   onViewAll,
 }: {
   agent: Agent;
-  onAccessChange: (uid: string, access: AccessLevel) => void;
+  defaultOpen: boolean;
+  onPreset: (uid: string, preset: PresetKey) => void;
+  onScopeChange: (uid: string, feature: Feature, scope: Scope) => void;
   onRevoke: (uid: string) => void;
   onViewAll: () => void;
 }) {
   const recent = agent.actions.slice(0, RECENT_COUNT);
-  const help = ACCESS_HELP[agent.access];
 
   return (
     <li className={s.agent}>
@@ -186,33 +191,13 @@ function AgentCard({
         <RevokeButton name={agent.clientName} onRevoke={() => onRevoke(agent.uid)} />
       </div>
 
-      {/* Mintlify's settings row: what it is on the left, the control on the right. */}
-      <div className={s.settingRow}>
-        <div className={s.settingText}>
-          <div className={s.labelRow}>
-            <span className={s.label}>Access</span>
-            <BackendTag>Needs backend: change access after consent</BackendTag>
-          </div>
-          <p className={s.help}>
-            <strong>{help.lead}</strong>
-            {help.rest}
-          </p>
-        </div>
-        <div className={s.segmented} role="radiogroup" aria-label={`Access for ${agent.clientName}`}>
-          {(['read', 'write'] as AccessLevel[]).map((level) => (
-            <button
-              key={level}
-              type="button"
-              role="radio"
-              aria-checked={agent.access === level}
-              className={clsx(s.segment, { [s.segmentActive]: agent.access === level })}
-              onClick={() => onAccessChange(agent.uid, level)}
-            >
-              {level === 'read' ? 'Read-only' : 'Make changes'}
-            </button>
-          ))}
-        </div>
-      </div>
+      <FeaturePermissions
+        agentName={agent.clientName}
+        scopes={agent.scopes}
+        defaultOpen={defaultOpen}
+        onPreset={(preset) => onPreset(agent.uid, preset)}
+        onScopeChange={(feature, scope) => onScopeChange(agent.uid, feature, scope)}
+      />
 
       <div className={s.activity}>
         <div className={s.blockHead}>

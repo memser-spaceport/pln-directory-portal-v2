@@ -2,53 +2,46 @@
 
 Route: `/prototypes/lab-2948-prototype-a-better-mcp-connect`. Mock data only.
 
-Settings → Email & Accounts: the production MCP card is redesigned, and a "What agents can do in LabOS" card sits under it. The rail, back bar, tab frame, card frame, Button, Badge, Tabs, Drawer, CopyButton, CloseIcon and toast all come from production.
+Revised to the MCP strategy decisions of 2026-10-23 (ticket description) and Polina's call notes on LAB-2948. Settings has a new **mcp** sub-tab in the rail; MCP is no longer part of Email & Accounts. The rail, back bar, tab frame, card frame, Button, Badge, Tabs, Drawer, CopyButton, CloseIcon and toast all come from production.
 
 ## Review band
 
-- **No agents / Connected / Pending confirms**: reach every scenario. Confirm, Reject, the access switch and Revoke all work on local state.
+- **No agents / Connected / Pending confirms**: reach every scenario. Confirm, Reject, the permission templates, the per-feature controls and Revoke all work on local state.
+- **Discovery in search**: one in-product discovery example, a contextual suggestion in member search. "Set up in Settings" opens the MCP sub-tab with no agent yet.
 - **Show backend tags**: hides the gap tags so screenshots stay clean.
 
-## Scenarios → where they live
+## What the page shows
 
-| Scenario                                       | Where                                                                                                                                                                 |
-| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| No agent: how to connect, per client           | "No agents": the Connect block is open. Server URL with copy, then tabs (Claude Code · Codex · Claude.ai · Others), each with 3 numbered steps and a copyable command |
-| Each agent: name, connected, last used, access | One card per agent                                                                                                                                                    |
-| Change read-only ↔ make changes, no reconnect | The segmented control on each card. It applies at once with a toast. Going read-only drops that agent's waiting actions and says how many                             |
-| Last actions as the member, then the full list | "Recent actions as you" (last 3), then **View all activity**, a drawer grouped by day and filterable by agent                                                         |
-| Outward actions waiting for confirm            | "Needs your confirm", above the agents. Confirm / Reject per row. Both land in the activity record                                                                    |
-| Revoke one agent                               | Grey **Revoke** text, then an inline confirm popover                                                                                                                  |
+| Ask (call notes)                                                                                          | Where                                                                                                                                                                                                       |
+| --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. MCP sub-tab, separate from Connected Accounts                                                          | Rail item "mcp" under Account; page title "MCP"                                                                                                                                                             |
+| 2. Connected clients, connected date, last used, revoke; setup steps per client when nothing is connected | One card per agent; "No agents": the Connect block (Claude Code · Codex · Claude app · Others)                                                                                                              |
+| 3. Feature permissions as a PostHog-style scope picker, with templates                                    | "Feature permissions" on each agent card: template Read-only / Read and write, then "Adjust each feature" with Off / Read / Read and write per feature. A change to one feature makes the template "Custom" |
+| 4. First features: news feed, forum, search; job board as read-only search; no sign-up or login           | The feature list. News feed and search are read-only by nature. Job board offers Read only                                                                                                                  |
+| 5. Forum posts and office-hour bookings need the outward confirm                                          | Forum and Office hours carry "Sends after your confirm". Their waiting items show in "Needs your confirm". Setting the feature below Read and write drops what that agent prepared for it                   |
+| 6. Features an admin turned off                                                                           | Events: "Off for all members", muted, control disabled. The admin control is a separate surface and is not built                                                                                            |
+| 7. In-product discovery                                                                                   | Review band "Discovery in search" (placeholder copy until Horizon)                                                                                                                                          |
+| 8. Backend marks                                                                                          | Dashed tags, below                                                                                                                                                                                          |
+
+The older scenarios stay: the last actions as the member with **View all activity** (drawer grouped by day, filter by agent), and the confirm queue on top.
 
 ## Backend gaps (dashed tags)
 
-- `Needs LAB-2903`: the "Needs your confirm" queue.
+- `Needs LAB-2996`: per-feature on/off for each connection, and the admin switch for everyone (LAB-2996 builds the endpoints; no admin UI).
+- `Needs backend: change access after consent`: read versus read-and-write after connect. LAB-2902/2943 set it only at consent.
+- `Needs LAB-2903`: the "Needs your confirm" queue and the outward features.
 - `Needs LAB-2901`: "Recent actions as you" and the activity drawer (the "via agent" record).
-- `Needs backend: change access after consent`: the access switch. LAB-2902/2943 set access only at consent.
-- `Proposed in LAB-2944`: the "Proposed" lines in the capabilities card. They come from the spike's priority list, which is not decided yet.
+- `Admin control: separate surface`: the admin view is not in this prototype.
+- `Placeholder copy: Horizon`: the discovery text.
 
 ## Decisions
 
-- **The confirm queue leads the card.** It is the only part that asks the member for something. It shows only when something waits. One block holds all the waiting items (design-thinking lesson 20). Confirm is primary and Reject is bordered neutral. The full-width pair sits under each row on phones.
-- **Access is a two-option segmented control on a settings row.** The label and the one-line meaning sit on the left; the control sits on the right (Mintlify). The meaning uses GitHub's plain "**Read** / **Read and write** access…" wording. The labels match the consent screen's words: Read-only / Make changes. The control sits next to its own meaning, with no separate explainer (lesson 16).
-- **Revoke is quiet at rest.** It is grey text that turns red on hover, and the inline popover holds the one red button (PandaDoc). Production's bordered red Revoke was the loudest thing on every card.
-- **Connect collapses once an agent exists.** It becomes one "Connect another agent" button that opens the same block with a close ✕. The server URL becomes its own copy row (Magnific, Descript), so the Claude.ai and Others steps say "paste the server URL" and do not repeat it. Production's separate "Status: Connected" line is gone, because the agent list already says it.
-- **One-click only where it is real.** The Claude.ai tab has an "Open Claude.ai connectors" button. Claude Code and Codex have copy-paste commands. I did not invent an "Add in 1 click" deep link that LabOS has not checked.
-- **Activity rows label only what is not a read.** Reads are the resting state. Changes, "Sent after your confirm" and "Rejected by you" (amber) carry a muted word. The drawer keeps sent and rejected items next to the rest, like Juicebox's Completed/Skipped.
-- **Copy cut.** The old pending hint ("These actions reach other people. Nothing is sent until you confirm.") is gone. The block title and the Confirm button already say it (lesson 15).
-
-## Open question → "What agents can do in LabOS"
-
-The answer is yes, compactly, in the spike's own split. Every row comes from the [LAB-2944 spike table](https://linear.app/protocollabs/document/spike-mcp-spike-table-of-all-user-actions-in-labos-with-mcp-coverage-a4a6b285352c):
-
-- **Read** (today): members, teams, projects, events, forum threads, the PL portfolio, investors and warm intros, own AI Apps feedback. Proposed next: jobs (P0), news feed, notifications.
-- **Change**, with Make changes only (today): warm-intro notes and feedback, investor field locks, AI Apps feedback status. Proposed next: own profile (P0), saved jobs and alerts, RSVP (P1).
-- **Send to others**, which waits for confirm: nothing today. Proposed: forum posts and replies (P0), team news (P1 after Anuj's review), job applications (P1).
-- **Stays with you**: the spike's "should not be covered" reasons (login, uploads, legal consent, keys, and 20.11, connecting agents itself).
-
-The card links to the full table ("See all 231 actions") instead of reproducing it.
-
-The mock activity uses real tools from the spike (search_members, get_team, get_forum_thread, search_events, get_warm_intro_investor, submit_warm_path_note, update_ai_app_feedback_status). The waiting items are the spike's outward rows 13.6, 4.14 and 6.6. The old "Request an intro" and "Updated your bio" mocks are gone: no tool or table row backs them today.
+- **The confirm queue leads the card.** It is the only part that asks the member for something. It shows only when something waits.
+- **Templates first, features on demand.** The template row (PostHog's preset) answers the common case in one click. The feature list opens under "Adjust each feature" (open on the first agent), so three agents do not stack eighteen rows.
+- **Read and write is offered only where it exists.** A feature without a write action (news feed, search, job board) shows "Read and write" disabled with a tooltip, not hidden, so the three columns stay aligned.
+- **The features list answers "which features MCP covers".** The old "What agents can do in LabOS" card is gone: the per-agent list shows what is available now.
+- **Revoke is quiet at rest.** Grey text that turns red on hover; the inline popover holds the one red button.
+- **Connect collapses once an agent exists** into "Connect another agent".
 
 ## Mobbin references
 
@@ -64,7 +57,7 @@ The mock activity uses real tools from the spike (search_members, get_team, get_
 
 ## Open questions
 
-1. Does a forum reply need the LAB-2903 confirm, or is Make changes consent enough? The spike's "Not yet known" list asks the same. The prototype assumes the confirm.
-2. When an agent goes read-only, are its waiting actions dropped (as here) or kept until it is upgraded again?
-3. Can an agent apply to a job for the member at all? The spike leaves this open. The third waiting item depends on the answer.
-4. Is there a Claude.ai deep link that pre-fills a custom connector? If so, the Claude.ai tab gets a real one-click button.
+1. Final job board permission: the prototype offers read-only search and no applications (job applications are off for L0/L1 members and job aspirants).
+2. When a feature goes below Read and write, are its waiting actions dropped (as here) or kept?
+3. Which feature does an admin turn off first? Events is only the example.
+4. Is there a Claude app deep link that pre-fills a custom connector? If so, the Claude app tab gets a real one-click button.

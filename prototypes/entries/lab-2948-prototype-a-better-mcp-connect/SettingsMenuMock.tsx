@@ -12,9 +12,13 @@ import itemCss from '@/components/page/settings/SettingsMenu/components/Settings
  * Production reads the member's notification settings over the network, tracks clicks and
  * routes by pathname; here the items are static and only "email & accounts" is built.
  * The items and their order are production's `useGetMenuItems` without
- * "recommendations" (shown only when the member has it on).
+ * "recommendations" (shown only when the member has it on), plus the new
+ * "mcp" sub-tab (MCP strategy decision, 2026-10-23: MCP leaves Email & Accounts).
  */
-const ACCOUNT = [{ name: 'email & accounts', icon: '/icons/email.svg', activeIcon: '/icons/email-blue.svg' }];
+const ACCOUNT = [
+  { name: 'email & accounts', icon: '/icons/email.svg', activeIcon: '/icons/email-blue.svg' },
+  { name: 'mcp', icon: '/icons/link-gray.svg', activeIcon: '/icons/link-blue.svg' },
+];
 
 const PREFERENCES = [
   { name: 'notification preferences', icon: '/icons/bell.svg', activeIcon: '/icons/bell-blue.svg' },
@@ -24,7 +28,7 @@ const PREFERENCES = [
 
 type Item = (typeof ACCOUNT)[number];
 
-export const BUILT_ITEM = 'email & accounts';
+export const BUILT_ITEM = 'mcp';
 
 export function SettingsMenuMock({ activeItem, onSelect }: { activeItem: string; onSelect: (name: string) => void }) {
   const renderItem = (item: Item) => {

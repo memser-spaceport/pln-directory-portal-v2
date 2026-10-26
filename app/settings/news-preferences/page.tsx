@@ -2,19 +2,17 @@ import { notFound, redirect } from 'next/navigation';
 import { Metadata } from 'next';
 import { SettingsMenu } from '@/components/page/settings/SettingsMenu';
 import SettingsBackButton from '@/components/page/settings/settings-back-btn';
-import { NewsPreferences, buildTeamSignals, pickSignalTeamUids } from '@/components/page/news-preferences';
+import { NewsPreferences } from '@/components/page/news-preferences';
 import type { NewsPreferencesArrival } from '@/analytics/settings.analytics';
-import { getMemberInfo } from '@/services/members.service';
 import { getMemberPreferences } from '@/services/preferences.service';
-import { getTeam } from '@/services/teams.service';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
-import { NEWS_PREFERENCE_CATEGORIES, SHOW_NEWS_PREFERENCES } from '@/utils/news-categories';
+import { SHOW_NEWS_PREFERENCES } from '@/utils/news-categories';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import styles from './page.module.css';
 
 const ARRIVALS: NewsPreferencesArrival[] = ['digest', 'feed', 'settings'];
 
-/** Settings → News preferences (LAB-2939/2941). */
+/** Settings → News preferences (LAB-2939/2941; tags since LAB-3000). */
 async function NewsPreferencesPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   if (!SHOW_NEWS_PREFERENCES) notFound();
 
@@ -32,25 +30,9 @@ async function NewsPreferencesPage({ searchParams }: { searchParams: Promise<Rec
     ? (resolvedSearchParams.from as NewsPreferencesArrival)
     : 'settings';
 
-  const [preferences, memberInfo] = await Promise.all([
-    getMemberPreferences(userInfo.uid, authToken).catch(() => null),
-    getMemberInfo(userInfo.uid, authToken).catch(() => null),
-  ]);
-  const initialCategories = (preferences && 'newsCategories' in preferences
-    ? preferences.newsCategories
-    : undefined) ?? [...NEWS_PREFERENCE_CATEGORIES];
-
-  // What For You and the digest match on: each of the member's teams (main
-  // team first, at most 5), one team request each.
-  const teamUids = pickSignalTeamUids(memberInfo && 'data' in memberInfo ? memberInfo.data?.teamMemberRoles : []);
-  const teams = await Promise.all(
-    teamUids.map((teamUid) =>
-      getTeam(teamUid, {}, authToken)
-        .then((result: any) => result?.data?.formatedData ?? null)
-        .catch(() => null),
-    ),
-  );
-  const signals = buildTeamSignals(teams);
+  // The backend seeds a member who never saved tags with their teams' focus areas (LAB-2998).
+  const preferences = await getMemberPreferences(userInfo.uid, authToken).catch(() => null);
+  const newsTags = preferences && 'newsTags' in preferences ? preferences : null;
 
   const roles = userInfo.roles ?? [];
   const isAdmin = roles.includes('DIRECTORYADMIN');
@@ -66,7 +48,12 @@ async function NewsPreferencesPage({ searchParams }: { searchParams: Promise<Rec
           <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} userInfo={userInfo} />
         </aside>
         <div className={styles.privacy__main__content}>
-          <NewsPreferences uid={userInfo.uid} from={from} initialCategories={initialCategories} signals={signals} />
+          <NewsPreferences
+            uid={userInfo.uid}
+            from={from}
+            initialTags={newsTags?.newsTags ?? []}
+            initialTagsSeeded={newsTags?.newsTagsSeeded ?? false}
+          />
         </div>
       </div>
     </div>

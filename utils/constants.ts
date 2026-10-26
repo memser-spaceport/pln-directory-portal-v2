@@ -316,7 +316,7 @@ export const SETTINGS_ANALYTICS_EVENTS = {
   SETTINGS_SUGGESTED_CANDIDATES_EMAIL_TOGGLE_CLICKED: 'settings-suggested-candidates-email-toggle-clicked',
   // News preferences (LAB-2941)
   SETTINGS_NEWS_PREFERENCES_OPENED: 'settings-news-preferences-opened',
-  SETTINGS_NEWS_PREFERENCES_CATEGORY_TOGGLED: 'settings-news-preferences-category-toggled',
+  SETTINGS_NEWS_PREFERENCES_TAG_TOGGLED: 'settings-news-preferences-tag-toggled',
   SETTINGS_NEWS_PREFERENCES_SAVE_FAILED: 'settings-news-preferences-save-failed',
   SETTINGS_NEWS_PREFERENCES_FOLLOW_TOGGLED: 'settings-news-preferences-follow-toggled',
 };

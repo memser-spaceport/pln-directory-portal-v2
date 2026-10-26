@@ -2,25 +2,29 @@ import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 
 import { NewsPreferences } from '@/components/page/news-preferences/NewsPreferences';
-import type { NewsTeamSignal } from '@/components/page/news-preferences/buildTeamSignals';
+import type { INewsTagGroup } from '@/types/team-news.types';
 
-const mockSetNewsCategories = jest.fn();
+const mockSetNewsTags = jest.fn();
 const mockToggleFollow = jest.fn();
 const mockAnalytics = {
   onNewsPreferencesOpened: jest.fn(),
-  onNewsPreferencesCategoryToggled: jest.fn(),
+  onNewsPreferencesTagToggled: jest.fn(),
   onNewsPreferencesSaveFailed: jest.fn(),
   onNewsPreferencesFollowToggled: jest.fn(),
 };
-let mockPreferences: { newsCategories: string[] } | undefined;
+let mockPreferences: { newsTags: string[]; newsTagsSeeded: boolean } | undefined;
+let mockTagList: { data?: INewsTagGroup[]; isError: boolean };
 let mockFollowed: Array<{ uid: string; name: string; logoUrl: string | null }> = [];
 const mockToastError = jest.fn();
 
 jest.mock('@/services/members/hooks/useGetMemberPreferences', () => ({
   useGetMemberPreferences: () => ({ data: mockPreferences }),
 }));
-jest.mock('@/services/members/hooks/useSetNewsCategories', () => ({
-  useSetNewsCategories: () => mockSetNewsCategories,
+jest.mock('@/services/members/hooks/useSetNewsTags', () => ({
+  useSetNewsTags: () => mockSetNewsTags,
+}));
+jest.mock('@/services/team-news/hooks/useNewsTags', () => ({
+  useNewsTags: () => mockTagList,
 }));
 jest.mock('@/services/follow/hooks/useFollowedTeams', () => ({
   useFollowedTeams: () => ({ data: mockFollowed, isPending: false }),
@@ -32,22 +36,36 @@ jest.mock('@/analytics/settings.analytics', () => ({ useSettingsAnalytics: () =>
 jest.mock('@/components/core/ToastContainer', () => ({ toast: { error: (...a: unknown[]) => mockToastError(...a) } }));
 jest.mock('@/utils/common.utils', () => ({ triggerLoader: jest.fn() }));
 
-const ALL = ['FUNDING', 'LAUNCH', 'PARTNERSHIP', 'ANNOUNCEMENT', 'MILESTONE', 'OTHER'] as const;
-const signals: NewsTeamSignal[] = [
-  { teamUid: 't1', teamName: 'Lumen', focusAreas: ['AI & Robotics'], industryTags: ['Storage'], communities: [] },
+/** The shape `GET /v1/team-news/tags` returns (LAB-2998). */
+const TAG_LIST: INewsTagGroup[] = [
+  { slug: 'ai-robotics', title: 'AI & Robotics', children: [{ slug: 'ai', title: 'AI' }] },
+  {
+    slug: 'economies-governance',
+    title: 'Economies & Governance',
+    children: [
+      { slug: 'desci', title: 'DeSci' },
+      { slug: 'defi', title: 'DeFi' },
+    ],
+  },
 ];
 
 function renderPage(props: Partial<React.ComponentProps<typeof NewsPreferences>> = {}) {
-  return render(<NewsPreferences uid="m1" from="settings" initialCategories={[...ALL]} signals={signals} {...props} />);
+  return render(
+    <NewsPreferences uid="m1" from="settings" initialTags={['desci']} initialTagsSeeded={false} {...props} />,
+  );
 }
 
-const chip = (name: string) =>
-  within(screen.getByRole('group', { name: 'News categories' })).getByRole('button', { name });
+const yourTags = () => screen.getByRole('group', { name: 'Your tags' });
+const group = (name: string) => screen.getByRole('group', { name });
+const chip = (scope: HTMLElement, name: string) => within(scope).getByRole('button', { name });
 
-describe('NewsPreferences (LAB-2941)', () => {
+describe('NewsPreferences tags (LAB-3000)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // clearAllMocks keeps implementations: a failing save would leak into the next test.
+    mockSetNewsTags.mockReset();
     mockPreferences = undefined;
+    mockTagList = { data: TAG_LIST, isError: false };
     mockFollowed = [{ uid: 'acme', name: 'Acme', logoUrl: null }];
   });
 
@@ -56,73 +74,88 @@ describe('NewsPreferences (LAB-2941)', () => {
     expect(mockAnalytics.onNewsPreferencesOpened).toHaveBeenCalledWith('digest');
   });
 
-  it('saves a category switched off, in category order, and records it', () => {
+  it('has a Tags section and no Categories or Suggested section', () => {
     renderPage();
-    fireEvent.click(chip('Funding'));
-
-    expect(mockSetNewsCategories).toHaveBeenCalledWith(
-      ['LAUNCH', 'PARTNERSHIP', 'ANNOUNCEMENT', 'MILESTONE', 'OTHER'],
-      expect.objectContaining({ onSuccess: expect.any(Function), onError: expect.any(Function) }),
-    );
-    expect(mockAnalytics.onNewsPreferencesCategoryToggled).toHaveBeenCalledWith({
-      category: 'FUNDING',
-      on: false,
-      from: 'settings',
-    });
+    expect(screen.getByText(/^Tags/)).toBeInTheDocument();
+    expect(screen.queryByText('Categories')).not.toBeInTheDocument();
+    expect(screen.queryByText('Suggested from your profile')).not.toBeInTheDocument();
   });
 
-  it('shows the change at once, before the save returns, and puts it back if the save fails', () => {
+  it("shows the member's tags first, then the rest under their top-level focus area", () => {
     renderPage();
-    fireEvent.click(chip('Funding'));
-    expect(chip('Funding')).toHaveAttribute('aria-pressed', 'false');
-    expect(screen.getByText(/You get 5 of 6 kinds of news/)).toBeInTheDocument();
 
-    act(() => mockSetNewsCategories.mock.calls[0][1].onError());
-    expect(chip('Funding')).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByText(/You get every kind of news/)).toBeInTheDocument();
+    expect(chip(yourTags(), 'DeSci')).toHaveAttribute('aria-pressed', 'true');
+    expect(chip(group('AI & Robotics'), 'AI & Robotics')).toHaveAttribute('aria-pressed', 'false');
+    expect(chip(group('AI & Robotics'), 'AI')).toBeInTheDocument();
+    // DeSci is pinned, so it is not repeated under its parent.
+    expect(within(group('Economies & Governance')).queryByRole('button', { name: 'DeSci' })).not.toBeInTheDocument();
+    expect(chip(group('Economies & Governance'), 'DeFi')).toBeInTheDocument();
   });
 
-  it('shows "Saved" after a successful save and records a failed one', () => {
+  it('adds a tag: saves the whole list, records it, and shows "Saved"', () => {
+    mockSetNewsTags.mockImplementation((_next: string[], opts: { onSuccess: () => void }) => opts.onSuccess());
     renderPage();
-    fireEvent.click(chip('Launch'));
-    const { onSuccess, onError } = mockSetNewsCategories.mock.calls[0][1];
 
-    act(() => onSuccess());
+    fireEvent.click(chip(group('AI & Robotics'), 'AI'));
+
+    expect(mockSetNewsTags).toHaveBeenCalledWith(['desci', 'ai'], expect.any(Object));
+    expect(mockAnalytics.onNewsPreferencesTagToggled).toHaveBeenCalledWith({ tag: 'ai', on: true, from: 'settings' });
+    expect(chip(group('AI & Robotics'), 'AI')).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('status')).toHaveTextContent('Saved');
-
-    act(() => onError());
-    expect(mockAnalytics.onNewsPreferencesSaveFailed).toHaveBeenCalledWith({ section: 'categories' });
   });
 
-  it('reads the saved categories and keeps the last one on', () => {
-    mockPreferences = { newsCategories: ['LAUNCH'] };
+  it('keeps a removed tag in place so it can be added back', () => {
     renderPage();
 
-    expect(chip('Launch')).toBeDisabled();
-    expect(chip('Launch')).toHaveAttribute('aria-pressed', 'true');
-    expect(chip('Funding')).toHaveAttribute('aria-pressed', 'false');
-    expect(screen.getByText(/You get 1 of 6 kinds of news/)).toBeInTheDocument();
+    fireEvent.click(chip(yourTags(), 'DeSci'));
 
-    fireEvent.click(screen.getByRole('button', { name: 'Select all' }));
-    expect(mockSetNewsCategories).toHaveBeenCalledWith([...ALL], expect.anything());
+    expect(mockSetNewsTags).toHaveBeenCalledWith([], expect.any(Object));
+    expect(chip(yourTags(), 'DeSci')).toHaveAttribute('aria-pressed', 'false');
   });
 
-  it('offers no Deals or Hiring chip', () => {
+  it('puts the tags back when the save fails, and records it', () => {
+    mockSetNewsTags.mockImplementation((_next: string[], opts: { onError: () => void }) => opts.onError());
     renderPage();
-    expect(within(screen.getByRole('group', { name: 'News categories' })).getAllByRole('button')).toHaveLength(6);
-    expect(screen.queryByRole('button', { name: /Deals|Hiring/ })).not.toBeInTheDocument();
+
+    fireEvent.click(chip(group('AI & Robotics'), 'AI'));
+
+    expect(chip(group('AI & Robotics'), 'AI')).toHaveAttribute('aria-pressed', 'false');
+    expect(mockAnalytics.onNewsPreferencesSaveFailed).toHaveBeenCalledWith({ section: 'tags' });
   });
 
-  it("lists the member's teams with what news is matched on", () => {
+  it('explains seeded tags, and saves them together with the first change', () => {
+    renderPage({ initialTags: ['desci'], initialTagsSeeded: true });
+    expect(screen.getByText(/We picked these from your teams’ focus areas/)).toBeInTheDocument();
+
+    fireEvent.click(chip(group('AI & Robotics'), 'AI'));
+
+    expect(mockSetNewsTags).toHaveBeenCalledWith(['desci', 'ai'], expect.any(Object));
+    expect(screen.queryByText(/We picked these from your teams’ focus areas/)).not.toBeInTheDocument();
+  });
+
+  it('prefers the client query over the server-read tags once it loads', () => {
+    mockPreferences = { newsTags: ['desci', 'defi'], newsTagsSeeded: false };
     renderPage();
-    expect(screen.getByRole('link', { name: 'Lumen' })).toHaveAttribute('href', '/teams/t1');
-    expect(screen.getByText('AI & Robotics, Storage')).toBeInTheDocument();
-    expect(screen.queryByText(/Skills/)).not.toBeInTheDocument();
+    expect(chip(group('Economies & Governance'), 'DeFi')).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText(/^Tags · 2/)).toBeInTheDocument();
   });
 
-  it('explains suggestions for a member with no team', () => {
-    renderPage({ signals: [] });
-    expect(screen.getByText(/suggestions come only from the teams you follow/)).toBeInTheDocument();
+  it('shows the empty state once every tag is removed', () => {
+    renderPage();
+    fireEvent.click(chip(yourTags(), 'DeSci'));
+    expect(
+      screen.getByText(/You have no tags, so For You and your digest show news from your own and followed teams only/),
+    ).toBeInTheDocument();
+  });
+
+  it('keeps the chosen tags and says so when the tag list cannot load', () => {
+    mockTagList = { data: undefined, isError: true };
+    renderPage({ initialTags: ['desci'] });
+
+    // No title without the list, so the chip shows the slug.
+    expect(chip(yourTags(), 'desci')).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText(/We couldn’t load the list of tags/)).toBeInTheDocument();
+    expect(screen.getByText(/Teams you follow/)).toBeInTheDocument();
   });
 
   it('unfollows in place and can follow again', async () => {
@@ -164,9 +197,14 @@ describe('NewsPreferences (LAB-2941)', () => {
   });
 
   describe('arrival from the digest or the feed', () => {
-    it('points a member who follows teams at Categories', () => {
+    it('points a member who follows teams at Tags', () => {
       renderPage({ from: 'feed' });
-      expect(screen.getByText('Choose the kinds of news you want in For You.')).toBeInTheDocument();
+      expect(screen.getByText('Remove tags you don’t want in For You.')).toBeInTheDocument();
+    });
+
+    it('invites a member with no tags to add some', () => {
+      renderPage({ from: 'digest', initialTags: [] });
+      expect(screen.getByText('Add a few tags to get news that fits your work in your digest.')).toBeInTheDocument();
     });
 
     it('points a member who follows no teams at Teams you follow', () => {
@@ -175,15 +213,15 @@ describe('NewsPreferences (LAB-2941)', () => {
       expect(screen.getByText('Follow teams to see their news in your digest.')).toBeInTheDocument();
     });
 
-    it('ends after the first change, and never shows from the settings menu', () => {
+    it('ends after the first change', () => {
       renderPage({ from: 'feed' });
-      fireEvent.click(chip('Funding'));
-      expect(screen.queryByText(/Choose the kinds of news/)).not.toBeInTheDocument();
+      fireEvent.click(chip(group('AI & Robotics'), 'AI'));
+      expect(screen.queryByText(/Remove tags you don’t want/)).not.toBeInTheDocument();
     });
 
     it('is absent when opened from the settings menu', () => {
       renderPage({ from: 'settings' });
-      expect(screen.queryByText(/Choose the kinds of news/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Remove tags you don’t want/)).not.toBeInTheDocument();
     });
   });
 });

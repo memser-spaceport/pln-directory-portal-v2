@@ -42,19 +42,6 @@
   line-height: 20px;
 }
 
-.rowHead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
-  width: 100%;
-
-  > button {
-    flex: none;
-    white-space: nowrap;
-  }
-}
-
 .saved {
   display: inline-flex;
   align-items: center;
@@ -135,58 +122,28 @@
 
 // ---------- Suggested from your profile (read-only signals) ----------
 
-.signals {
+.tagGroups {
   display: flex;
   flex-direction: column;
+  gap: 12px;
   width: 100%;
-  margin: 8px 0 0;
+  margin-top: 4px;
+  padding-top: 12px;
   border-top: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
 }
 
-.signal {
-  display: grid;
-  grid-template-columns: 112px minmax(0, 1fr);
-  gap: 4px 16px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
-
-  &:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-  }
-
-  @include media.mobile-only {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-.signalLabel {
-  color: var(--foreground-neutral-tertiary, #8897ae);
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-}
-
-.signalValue {
+.tagGroup {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 4px 16px;
-  margin: 0;
-  color: var(--foreground-neutral-primary, #0a0c11);
-  font-size: 14px;
-  line-height: 20px;
-
-  > a {
-    flex: none;
-    white-space: nowrap;
-  }
+  flex-direction: column;
+  gap: 6px;
 }
 
-.signalMeta,
-.signalEmpty {
+.tagGroupTitle {
+  margin: 0;
   color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
 }
 
 .inlineLink {

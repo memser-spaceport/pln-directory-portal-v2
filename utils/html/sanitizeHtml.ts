@@ -27,6 +27,15 @@ let allowedStyleProperties: readonly string[] | null = null;
 // else (url(), var(), expression(), escapes, strings) is dropped.
 const SAFE_COLOR_VALUE = /^(?:#[0-9a-f]{3,8}|[a-z]+|(?:rgba?|hsla?)\([\d\s.,%/deg]*\))$/i;
 
+// The values each keepable property may take. A property a profile lists but
+// this map does not know is dropped.
+const SAFE_STYLE_VALUES: Record<string, RegExp> = {
+  color: SAFE_COLOR_VALUE,
+  'background-color': SAFE_COLOR_VALUE,
+  'text-align': /^(?:left|right|center|justify|start|end)$/i,
+  'white-space': /^(?:normal|nowrap|pre|pre-wrap|pre-line|break-spaces)$/i,
+};
+
 export function filterStyle(style: string, properties: readonly string[]): string {
   return style
     .replace(/\/\*[\s\S]*?\*\//g, '')
@@ -39,7 +48,7 @@ export function filterStyle(style: string, properties: readonly string[]): strin
         .slice(colon + 1)
         .replace(/!important\s*$/i, '')
         .trim();
-      if (!properties.includes(property) || !SAFE_COLOR_VALUE.test(value)) return null;
+      if (!properties.includes(property) || !SAFE_STYLE_VALUES[property]?.test(value)) return null;
       return `${property}: ${value}`;
     })
     .filter(Boolean)

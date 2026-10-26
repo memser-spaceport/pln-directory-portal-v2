@@ -20,8 +20,10 @@ export type SanitizeProfile = Config & { styleProperties?: readonly string[] };
  * - `class` stays because Quill formatting is class-based (`ql-align-*`,
  *   `ql-indent-*`) and mentions carry one. A class can change layout, not run code.
  * - Tables stay for founder methodology.
- * - `style` keeps text and background color from the editor's color picker and
- *   nothing else (see `styleProperties`).
+ * - `style` keeps text and background color from the editor's color picker,
+ *   plus text alignment and white-space handling that pasted event
+ *   descriptions carry, each with keyword or color values only (see
+ *   `styleProperties` and `sanitizeHtml`'s value rules).
  * - No `img`: these editors are text-only, and a remote image is an
  *   uncontrolled third-party request.
  */
@@ -79,7 +81,24 @@ export const RICH_TEXT_SANITIZE_CONFIG: SanitizeProfile = {
   // DOMPurify runs ALLOWED_URI_REGEXP against every attribute it does not know
   // to be URI-safe, and `colspan="2"` is not a URL.
   ADD_URI_SAFE_ATTR: ['colspan', 'rowspan'],
-  styleProperties: ['color', 'background-color'],
+  styleProperties: ['color', 'background-color', 'text-align', 'white-space'],
+};
+
+/**
+ * Founder sourcing methodology (`how_it_works_html`), written by the founder
+ * sourcing pipeline rather than by members. Its flow diagrams are inline SVG
+ * inside `<figure>`, styled by an SVG `<style>` block and wired with `id` /
+ * `marker-end="url(#…)"` references, so it takes DOMPurify's HTML + SVG
+ * profiles instead of an explicit tag list. DOMPurify's default URI check
+ * stays: a custom one would reject plain values such as `x="440"`.
+ * Scripts, event handlers and `javascript:` URLs are still removed, and the
+ * same controls as PRD_SANITIZE_CONFIG are forbidden.
+ */
+export const METHODOLOGY_SANITIZE_CONFIG: SanitizeProfile = {
+  USE_PROFILES: { html: true, svg: true },
+  FORBID_TAGS: ['form', 'input', 'button', 'textarea', 'select', 'base', 'meta', 'link', 'iframe'],
+  FORBID_ATTR: ['name'],
+  styleProperties: RICH_TEXT_SANITIZE_CONFIG.styleProperties,
 };
 
 /**
@@ -304,6 +323,7 @@ export const SEARCH_HIGHLIGHT_SANITIZE_CONFIG: SanitizeProfile = {
 
 export const SANITIZE_PROFILES = {
   richText: RICH_TEXT_SANITIZE_CONFIG,
+  methodology: METHODOLOGY_SANITIZE_CONFIG,
   comment: COMMENT_SANITIZE_CONFIG,
   forumPost: FORUM_POST_SANITIZE_CONFIG,
   aiAppFeedback: AI_APP_FEEDBACK_SANITIZE_CONFIG,

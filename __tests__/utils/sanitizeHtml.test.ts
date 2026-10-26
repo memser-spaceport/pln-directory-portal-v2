@@ -137,6 +137,54 @@ describe('sanitizeHtml profiles', () => {
     expect(sanitizeHtml('<p style="color: red">x</p>', 'prd')).toBe('<p>x</p>');
   });
 
+  it('keeps event description alignment and spacing', () => {
+    const p = dom(
+      sanitizeHtml('<p style="text-align: center; white-space: pre-wrap; font-size: 40px">Agenda</p>'),
+    ).querySelector('p')!;
+    expect(p.style.textAlign).toBe('center');
+    expect(p.style.whiteSpace).toBe('pre-wrap');
+    expect(p.style.fontSize).toBe('');
+  });
+
+  describe('methodology', () => {
+    const DIAGRAM =
+      '<h2>How it works</h2><figure><svg class="ms-svg" viewBox="0 0 880 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Flow" aria-describedby="d1">' +
+      '<title>Flow</title><desc id="d1">Steps</desc>' +
+      '<defs><marker id="ms-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path class="ms-arrowhead" d="M0,0 L10,5 L0,10 z"></path></marker>' +
+      '<style>.ms-node{fill:#eef2f7}</style></defs>' +
+      '<rect class="ms-node" x="40" y="20" width="200" height="60" rx="8"></rect>' +
+      '<text class="ms-text" x="140" y="55" text-anchor="middle"><tspan x="140" y="50">Source</tspan></text>' +
+      '<line class="ms-edge" x1="440" y1="88" x2="440" y2="120" marker-end="url(#ms-arrow)"></line>' +
+      '</svg></figure><table><tbody><tr><td><code>score</code></td></tr></tbody></table>';
+
+    it('keeps the flow diagrams, their style block and marker references', () => {
+      const root = dom(sanitizeHtml(DIAGRAM, 'methodology'));
+      expect(root.querySelector('figure > svg')).not.toBeNull();
+      expect(root.querySelector('svg style')?.textContent).toBe('.ms-node{fill:#eef2f7}');
+      expect(root.querySelector('marker#ms-arrow path')).not.toBeNull();
+      expect(root.querySelector('line')?.getAttribute('marker-end')).toBe('url(#ms-arrow)');
+      expect(root.querySelector('rect')?.getAttribute('x')).toBe('40');
+      expect(root.querySelector('tspan')?.textContent).toBe('Source');
+      expect(root.querySelector('table code')?.textContent).toBe('score');
+    });
+
+    it('still removes scripts, handlers and javascript: links inside the SVG', () => {
+      const root = dom(
+        sanitizeHtml(
+          '<svg><script>alert(1)</script><rect onload="steal()" width="1"></rect><a href="javascript:alert(1)"><text>x</text></a><foreignObject><iframe src="https://evil.example"></iframe></foreignObject></svg><form><input></form>',
+          'methodology',
+        ),
+      );
+      expect(root.querySelector('script, iframe, form, input, foreignObject')).toBeNull();
+      expect(onAttributes(root)).toEqual([]);
+      expect(root.querySelector('a')?.getAttribute('href') ?? null).toBeNull();
+    });
+
+    it('is not what richText does', () => {
+      expect(dom(sanitizeHtml(DIAGRAM)).querySelector('svg')).toBeNull();
+    });
+  });
+
   it('keeps only highlight markup in search snippets', () => {
     expect(
       sanitizeHtml('<em class="x" onclick="y">match</em> <a href="https://e.example">l</a><b>b</b>', 'searchHighlight'),
@@ -161,6 +209,23 @@ describe('filterStyle', () => {
     ['color: red !important', 'color: red'],
   ])('%s → %s', (input, expected) => {
     expect(filterStyle(input, colors)).toBe(expected);
+  });
+
+  const layout = ['text-align', 'white-space'];
+
+  it.each([
+    ['text-align: center', 'text-align: center'],
+    ['white-space: pre-wrap', 'white-space: pre-wrap'],
+    ['text-align: center; white-space: pre-wrap; position: absolute', 'text-align: center; white-space: pre-wrap'],
+    ['text-align: url(https://evil.example/x)', ''],
+    ['white-space: expression(alert(1))', ''],
+    ['text-align: -webkit-center', ''],
+  ])('%s → %s', (input, expected) => {
+    expect(filterStyle(input, layout)).toBe(expected);
+  });
+
+  it('drops a listed property it has no value rule for', () => {
+    expect(filterStyle('position: fixed', ['position'])).toBe('');
   });
 });
 

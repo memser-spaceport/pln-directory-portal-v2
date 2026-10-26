@@ -38,7 +38,7 @@ Every page that shows member-written or AI-generated HTML SHALL remove script el
 
 ### Requirement: Allowed formatting still shows
 
-Member and AI HTML SHALL keep paragraphs, line breaks, links, bold, italic, underline, strikethrough, ordered and unordered lists, headings, blockquotes, code, horizontal rules and tables. Text color and background color set in the editor SHALL be kept. Other inline styles SHALL be removed.
+Member and AI HTML SHALL keep paragraphs, line breaks, links, bold, italic, underline, strikethrough, ordered and unordered lists, headings, blockquotes, code, horizontal rules and tables. Inline text color, background color, text alignment and white-space handling SHALL be kept when their values are plain colors or keywords. Other inline styles SHALL be removed.
 
 #### Scenario: Formatted bio
 
@@ -53,11 +53,34 @@ Member and AI HTML SHALL keep paragraphs, line breaks, links, bold, italic, unde
 - **THEN** "red" shows in red
 - **AND** the span has no `position` and no `background-image` style
 
+#### Scenario: Event description alignment
+
+- **GIVEN** an IRL event description with `<p style="text-align: center; white-space: pre-wrap; font-size: 40px">Agenda</p>`
+- **WHEN** a visitor views the event
+- **THEN** "Agenda" is centered and keeps its line breaks
+- **AND** the paragraph has no `font-size` style
+
 #### Scenario: Methodology table
 
 - **GIVEN** founder methodology HTML that contains a `<table>` with header and body rows
 - **WHEN** a member opens the founder methodology modal
 - **THEN** the table shows with its rows and cells
+
+### Requirement: Founder methodology diagrams show
+
+Founder methodology HTML, which the founder sourcing pipeline writes, SHALL keep its inline SVG flow diagrams: figures, SVG shapes and text, the SVG style block, and marker references. Scripts, event handlers, form controls, iframes and `javascript:` URLs SHALL still be removed from it, including inside SVG.
+
+#### Scenario: Flow diagram
+
+- **GIVEN** methodology HTML with a `<figure><svg>` diagram that has a `<style>` block, a `<marker id>` and lines with `marker-end="url(#…)"`
+- **WHEN** a member opens the founder methodology modal
+- **THEN** the diagram shows with its boxes, labels and arrowheads
+
+#### Scenario: Script inside the SVG
+
+- **GIVEN** methodology HTML whose SVG contains `<script>`, an `onload` attribute or an `<a href="javascript:…">`
+- **WHEN** a member opens the founder methodology modal
+- **THEN** none of them reach the page
 
 ### Requirement: Links in member or AI HTML are safe
 

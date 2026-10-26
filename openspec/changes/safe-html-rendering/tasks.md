@@ -29,6 +29,9 @@
 - [x] 4.7 `core/navbar/notification-card.tsx`: render the title as a text child. Verify with a test that a member name `<img src=x onerror=alert(1)>` shows as literal text.
 - [x] 4.8 Run `git grep -n "dangerouslySetInnerHTML" -- components app`. Verify that the only hits are the two JSON-LD pages and `changelog-list.tsx` (`SafeHtml` and `safeHtmlProps` set the prop without the JSX attribute).
 
+- [x] 4.9 Run the tag and inline-style inventory on dev and prod (read-only) for every field `richText` renders. Verify that every tag and style property in real data is either kept or knowingly dropped. Prod finding: methodology SVG diagrams, and `text-align` / `white-space` on about 130 event descriptions.
+- [x] 4.10 Add the `methodology` profile, and `text-align` / `white-space` keyword rules to `richText`. Verify with `__tests__/utils/sanitizeHtml.test.ts` (diagram kept; script, handler and `javascript:` inside SVG removed; event alignment kept) and by sanitizing the prod methodology document with no tag or attribute lost.
+
 ## 5. Lint guard
 
 - [x] 5.1 Add the rules from design §6 to `eslint.config.mjs` and the three reasoned `eslint-disable-next-line` comments. Verify that `npx eslint components app utils` reports zero `react/no-danger` and zero `no-restricted-imports` errors.

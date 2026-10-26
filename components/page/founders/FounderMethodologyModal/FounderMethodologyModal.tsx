@@ -52,7 +52,7 @@ export function FounderMethodologyModal({ open, onClose, triggerRef }: Props) {
 
             {!isLoading && !data && <p className={s.empty}>Methodology will appear after the first data push.</p>}
 
-            {!isLoading && data && html && <SafeHtml className={s.htmlContent} html={html} />}
+            {!isLoading && data && html && <SafeHtml className={s.htmlContent} profile="methodology" html={html} />}
 
             {!isLoading && data && !html && markdown && (
               <div className={s.markdown}>

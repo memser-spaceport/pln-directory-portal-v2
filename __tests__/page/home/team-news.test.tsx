@@ -2294,6 +2294,37 @@ describe('TeamNews', () => {
       expect(screen.queryByText('Headline rec-1')).not.toBeInTheDocument();
     });
 
+    describe('matching by tags (LAB-3001)', () => {
+      const taggedElsewhere = { ...unmatchedItem, tags: ['AI '] };
+      const tagGroups: ITeamNewsGroup[] = [
+        { focusArea: FA_AI, total: 4, items: [membershipLatest, membershipOlderDay, recommendedItem, taggedElsewhere] },
+      ];
+
+      it("keeps a story sharing the member's tag from any team, and drops related teams that match none", () => {
+        renderTeamNews(<TeamNews groups={tagGroups} forYouTeamUids={['team-mem']} forYouTags={['ai']} />);
+
+        expect(within(catRow()).getByRole('button', { name: /For You/ })).toHaveClass(/catActive/);
+        expect(screen.getByText('Headline other-1')).toBeInTheDocument();
+        expect(screen.getByText('Headline mem-1')).toBeInTheDocument();
+        expect(screen.queryByText('Headline mem-0')).not.toBeInTheDocument();
+        expect(screen.queryByText('Headline rec-1')).not.toBeInTheDocument();
+      });
+
+      it('opens on For You when only a tag matches', () => {
+        renderTeamNews(<TeamNews groups={tagGroups} forYouTeamUids={[]} forYouTags={['ai']} />);
+
+        expect(within(catRow()).getByRole('button', { name: /For You/ })).toHaveClass(/catActive/);
+        expect(screen.getByText('Headline other-1')).toBeInTheDocument();
+        expect(screen.queryByText('Headline mem-1')).not.toBeInTheDocument();
+      });
+
+      it('hides the pill when neither a team nor a tag matches', () => {
+        renderTeamNews(<TeamNews groups={tagGroups} forYouTeamUids={[]} forYouTags={['neurotech']} />);
+
+        expect(within(catRow()).queryByRole('button', { name: /For You/ })).not.toBeInTheDocument();
+      });
+    });
+
     it('mixes in forum posts created in the last 7 days and drops older ones from the same 14-day list', () => {
       const day = 24 * 60 * 60 * 1000;
       const makePost = (

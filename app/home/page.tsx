@@ -21,6 +21,7 @@ import { Welcome } from '@/components/page/home/Welcome';
 import { DigestEmailHomeLinkCapture } from '@/components/page/home/DigestEmailHomeLinkCapture';
 import { QuickActions } from '@/components/page/home/QuickActions';
 import { TeamNews, AutoMarkNewsNotification, MarkHomeVisited } from '@/components/page/home/TeamNews';
+import { resolveForYouMatch, type ForYouMatch } from '@/components/page/home/TeamNews/utils/resolveForYouMatch';
 import {
   getTeamNewsGroupedByFocusArea,
   getTeamNewsItemByUid,
@@ -28,6 +29,7 @@ import {
 } from '@/services/team-news/team-news.service';
 import { getNewsPreviewSnippet } from '@/services/team-news/newsPreviewSnippet';
 import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
+import { SHOW_NEWS_PREFERENCES } from '@/utils/news-categories';
 import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
 import type { MyAccessResponse } from '@/services/access-control/access-control.service';
 import {
@@ -49,7 +51,7 @@ export default async function Home(props: HomeProps) {
     focusAreas,
     teamNewsGroups,
     teamNewsAllTabExtraItems,
-    teamNewsForYouTeamUids,
+    teamNewsForYouMatch,
     popularItems,
     initialDigestSettings,
     quickActionsState,
@@ -77,7 +79,8 @@ export default async function Home(props: HomeProps) {
             <TeamNews
               groups={teamNewsGroups}
               allTabExtraItems={teamNewsAllTabExtraItems}
-              forYouTeamUids={teamNewsForYouTeamUids}
+              forYouTeamUids={teamNewsForYouMatch.teamUids}
+              forYouTags={teamNewsForYouMatch.tags}
               popularItems={popularItems}
               initialDigestSettings={initialDigestSettings}
               deepLinkedItem={deepLinkedNewsItem}
@@ -106,7 +109,7 @@ const getPageData = async (deepLinkedNewsUid?: string) => {
   let projectFocusAreas: IFocusArea[] = [];
   let teamNewsGroups: ITeamNewsGroup[] = [];
   let teamNewsAllTabExtraItems: ITeamNewsItem[] = [];
-  let teamNewsForYouTeamUids: string[] = [];
+  let teamNewsForYouMatch: ForYouMatch = { teamUids: [] };
   let popularItems: ITeamNewsPopularItem[] = [];
   let initialDigestSettings: ForumDigestSettings | null = null;
   let deepLinkedNewsItem: ITeamNewsItem | null = null;
@@ -186,7 +189,7 @@ const getPageData = async (deepLinkedNewsUid?: string) => {
 
     teamNewsGroups = teamNewsResponse?.groups ?? [];
     teamNewsAllTabExtraItems = teamNewsResponse?.allTabExtraItems ?? [];
-    teamNewsForYouTeamUids = teamNewsResponse?.forYouTeamUids ?? [];
+    teamNewsForYouMatch = resolveForYouMatch(teamNewsResponse, SHOW_NEWS_PREFERENCES);
     popularItems = popularResponse?.items ?? [];
     initialDigestSettings = digestSettingsResponse;
     teamsCount = teamsCountResponse?.totalItems ?? 0;
@@ -221,7 +224,7 @@ const getPageData = async (deepLinkedNewsUid?: string) => {
         featuredData,
         teamNewsGroups,
         teamNewsAllTabExtraItems,
-        teamNewsForYouTeamUids,
+        teamNewsForYouMatch,
         popularItems,
         initialDigestSettings,
         deepLinkedNewsItem,
@@ -250,7 +253,7 @@ const getPageData = async (deepLinkedNewsUid?: string) => {
       discoverData,
       teamNewsGroups,
       teamNewsAllTabExtraItems,
-      teamNewsForYouTeamUids,
+      teamNewsForYouMatch,
       popularItems,
       initialDigestSettings,
       deepLinkedNewsItem,
@@ -273,7 +276,7 @@ const getPageData = async (deepLinkedNewsUid?: string) => {
       discoverData,
       teamNewsGroups,
       teamNewsAllTabExtraItems,
-      teamNewsForYouTeamUids,
+      teamNewsForYouMatch,
       popularItems,
       initialDigestSettings,
       deepLinkedNewsItem,

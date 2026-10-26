@@ -10,6 +10,8 @@ jest.mock('js-cookie', () => ({
 const mockedCookies = Cookies as jest.Mocked<typeof Cookies>;
 const DOMAIN = '.os.pl.xyz';
 const EXPIRES = new Date('2030-01-01T00:00:00Z');
+// jsdom serves the page on http://localhost: no Secure there (local dev); SameSite=Lax always.
+const FLAGS = { path: '/', sameSite: 'lax', secure: false };
 
 describe('LabOS session cookie helpers', () => {
   beforeEach(() => {
@@ -21,7 +23,7 @@ describe('LabOS session cookie helpers', () => {
     setSessionCookie(name, '"value"', { expires: EXPIRES, domain: DOMAIN });
 
     expect(mockedCookies.remove).toHaveBeenCalledWith(name, { path: '/', domain: DOMAIN });
-    expect(mockedCookies.set).toHaveBeenCalledWith(name, '"value"', { path: '/', expires: EXPIRES });
+    expect(mockedCookies.set).toHaveBeenCalledWith(name, '"value"', { ...FLAGS, expires: EXPIRES });
     expect(mockedCookies.remove.mock.invocationCallOrder[0]).toBeLessThan(
       mockedCookies.set.mock.invocationCallOrder[0],
     );
@@ -31,7 +33,7 @@ describe('LabOS session cookie helpers', () => {
     setSessionCookie('authToken', '"jwt"', { expires: EXPIRES });
 
     expect(mockedCookies.set).toHaveBeenCalledWith('authToken', '"jwt"', {
-      path: '/',
+      ...FLAGS,
       expires: EXPIRES,
       domain: DOMAIN,
     });
@@ -43,7 +45,7 @@ describe('LabOS session cookie helpers', () => {
     try {
       setSessionCookie('authToken', '"jwt"', { expires: EXPIRES });
       expect(mockedCookies.remove).toHaveBeenCalledWith('authToken', { path: '/', domain: DOMAIN });
-      expect(mockedCookies.set).toHaveBeenCalledWith('authToken', '"jwt"', { path: '/', expires: EXPIRES });
+      expect(mockedCookies.set).toHaveBeenCalledWith('authToken', '"jwt"', { ...FLAGS, expires: EXPIRES });
     } finally {
       delete process.env.AI_APPS_SHARE_AUTH_TOKEN;
     }
@@ -56,7 +58,7 @@ describe('LabOS session cookie helpers', () => {
     expireSharedCookie('userInfo');
 
     expect(mockedCookies.remove).not.toHaveBeenCalled();
-    expect(mockedCookies.set).toHaveBeenCalledWith('refreshToken', '"r"', { path: '/', expires: EXPIRES });
+    expect(mockedCookies.set).toHaveBeenCalledWith('refreshToken', '"r"', { ...FLAGS, expires: EXPIRES });
   });
 
   it('logout revokes the member’s AI App sessions with the current token, fire-and-forget', () => {
@@ -97,7 +99,7 @@ describe('LabOS session cookie helpers', () => {
       expireSharedCookie('userInfo');
 
       expect(mockedCookies.remove).not.toHaveBeenCalled();
-      expect(mockedCookies.set).toHaveBeenCalledWith('refreshToken', '"r"', { path: '/', expires: EXPIRES });
+      expect(mockedCookies.set).toHaveBeenCalledWith('refreshToken', '"r"', { ...FLAGS, expires: EXPIRES });
     },
   );
 

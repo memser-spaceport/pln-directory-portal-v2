@@ -28,11 +28,11 @@ const mockedDecode = decodeToken as jest.Mock;
 
 const nowSec = () => Math.floor(Date.now() / 1000);
 
-function request(path: string, cookies: Record<string, string>) {
+function request(path: string, cookies: Record<string, string>, origin = ORIGIN) {
   const cookie = Object.entries(cookies)
     .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
     .join('; ');
-  return new NextRequest(`${ORIGIN}${path}`, { headers: cookie ? { cookie } : {} });
+  return new NextRequest(`${origin}${path}`, { headers: cookie ? { cookie } : {} });
 }
 
 /** Parsed Set-Cookie headers: name → { value, attrs } (a name may appear twice: host-only + Domain expiry). */
@@ -51,6 +51,8 @@ function setCookies(res: Response) {
       value: value.join('='),
       domain: a.domain as string | undefined,
       expired: a['max-age'] === '0' || String(a.expires ?? '').includes('1970'),
+      secure: a.secure === true,
+      sameSite: typeof a.samesite === 'string' ? a.samesite.toLowerCase() : undefined,
     };
   });
 }
@@ -239,6 +241,44 @@ describe('proxy: host-only refreshToken/userInfo', () => {
         expect.arrayContaining([expect.objectContaining({ name: 'refreshToken', expired: false })]),
       );
     });
+  });
+});
+
+describe('proxy: session cookie flags (LAB-2988)', () => {
+  const live = (res: Response) => setCookies(res).filter((c) => !c.expired);
+
+  it('sets SameSite=Lax and Secure on every cookie of a refreshed session', async () => {
+    mockedCheck.mockResolvedValue({ active: false });
+    mockedRenew.mockResolvedValue({
+      data: { accessToken: 'access2.jwt', refreshToken: 'refresh2.jwt', userInfo: { uid: 'm-1' } },
+    });
+
+    const cookies = live((await proxy(request('/home', SESSION)))!);
+
+    expect(cookies.map((c) => c.name).sort()).toEqual(['authToken', 'refreshToken', 'sessionScope', 'userInfo']);
+    for (const c of cookies) expect(c).toEqual(expect.objectContaining({ sameSite: 'lax', secure: true }));
+  });
+
+  it('sets the flags on cookies rewritten by the one-time host-only move', async () => {
+    mockedCheck.mockResolvedValue({ active: true });
+
+    const cookies = live((await proxy(request('/home', SESSION)))!);
+
+    expect(cookies.length).toBeGreaterThan(0);
+    for (const c of cookies) expect(c).toEqual(expect.objectContaining({ sameSite: 'lax', secure: true }));
+  });
+
+  it('leaves Secure off on plain-HTTP localhost so local sign-in keeps working', async () => {
+    process.env.COOKIE_DOMAIN = 'localhost';
+    mockedCheck.mockResolvedValue({ active: false });
+    mockedRenew.mockResolvedValue({
+      data: { accessToken: 'access2.jwt', refreshToken: 'refresh2.jwt', userInfo: { uid: 'm-1' } },
+    });
+
+    const cookies = live((await proxy(request('/home', SESSION, 'http://localhost:4200')))!);
+
+    expect(cookies.length).toBeGreaterThan(0);
+    for (const c of cookies) expect(c).toEqual(expect.objectContaining({ sameSite: 'lax', secure: false }));
   });
 });
 

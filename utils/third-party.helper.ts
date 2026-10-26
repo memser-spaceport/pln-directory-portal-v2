@@ -1,6 +1,11 @@
 import Cookies from 'js-cookie';
 import { z } from 'zod';
-import { isHostOnlySessionCookie, SESSION_SCOPE_COOKIE, sharedCookieDomain } from './sessionCookies';
+import {
+  isHostOnlySessionCookie,
+  SESSION_SCOPE_COOKIE,
+  sessionCookieFlags,
+  sharedCookieDomain,
+} from './sessionCookies';
 
 /**
  * Ends the member's app-scoped sessions in deployed AI Apps (LAB-2695). Fire-and-forget, so sign-out never waits
@@ -60,12 +65,19 @@ export const expireSharedCookie = (name: string) => {
   }
 };
 
+/** Path and flags for a session cookie written by browser code; the same rule as the proxy's (sessionCookieFlags). */
+export const clientSessionCookieAttributes = (): Cookies.CookieAttributes => ({
+  path: '/',
+  ...(typeof window === 'undefined' ? {} : sessionCookieFlags(window.location)),
+});
+
 /**
- * Sets a LabOS session cookie. refreshToken/userInfo are written host-only and their old shared copy is removed, so
- * deployed AI Apps on sibling subdomains never receive them; authToken stays on COOKIE_DOMAIN, where apps read it.
+ * Sets a LabOS session cookie with the session flags (SameSite=Lax, Secure outside local HTTP). refreshToken/userInfo
+ * are written host-only and their old shared copy is removed, so deployed AI Apps on sibling subdomains never receive
+ * them; authToken stays on COOKIE_DOMAIN, where apps read it.
  */
 export const setSessionCookie = (name: string, value: string, options: Cookies.CookieAttributes = {}) => {
-  const attributes: Cookies.CookieAttributes = { path: '/', ...options };
+  const attributes: Cookies.CookieAttributes = { ...options, ...clientSessionCookieAttributes() };
   delete attributes.domain;
   if (isHostOnlySessionCookie(name)) {
     expireSharedCookie(name);

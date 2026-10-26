@@ -15,6 +15,19 @@ export const shareAuthTokenWithApps = () =>
 export const hostOnlySessionCookies = (): readonly string[] =>
   shareAuthTokenWithApps() ? ['refreshToken', 'userInfo'] : ['refreshToken', 'userInfo', 'authToken'];
 
+const LOOPBACK_HOSTS = ['localhost', '127.0.0.1', '[::1]', '::1'];
+
+/**
+ * Flags on every LabOS session cookie, for the proxy and for browser writes alike: SameSite=Lax always; Secure except
+ * on plain-HTTP localhost/loopback (local dev). Decided by host, not protocol alone: TLS ends at the load balancer, so
+ * the server can see `http:` on a deployed host. `Lax`, not `Strict`: a member arriving from an email or Telegram link
+ * must bring the session with them.
+ */
+export function sessionCookieFlags(location: { protocol: string; hostname: string }) {
+  const insecureLocal = location.protocol === 'http:' && LOOPBACK_HOSTS.includes(location.hostname.toLowerCase());
+  return { sameSite: 'lax' as const, secure: !insecureLocal };
+}
+
 /** Every cookie that makes up a LabOS session. */
 export const SESSION_COOKIES = ['refreshToken', 'authToken', 'userInfo'] as const;
 

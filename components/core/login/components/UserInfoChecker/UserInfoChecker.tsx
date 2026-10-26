@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 
 import { useMember } from '@/services/members/hooks/useMember';
-import { clearAllAuthCookies, expireSharedCookie } from '@/utils/third-party.helper';
+import { clearAllAuthCookies, clientSessionCookieAttributes, expireSharedCookie } from '@/utils/third-party.helper';
 import { authEvents } from '@/components/core/login/utils';
 import { broadcastLogout } from '../BroadcastChannel';
 import { IUserInfo } from '@/types/shared.types';
@@ -100,7 +100,7 @@ export function UserInfoChecker({ uid }: { uid: string }) {
     (next: IUserInfo) => {
       const serialized = JSON.stringify(next);
       expireSharedCookie('userInfo');
-      setUserInfoCookie(serialized);
+      setUserInfoCookie(serialized, clientSessionCookieAttributes());
       useCurrentUserStore.getState().actions.setCurrentUserFromApi(next);
       if (Cookies.get('userInfo') === serialized) {
         router.refresh();

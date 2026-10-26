@@ -37,13 +37,17 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const showWarningUseCaseA = !member?.officeHours;
   const showWarningUseCaseB = !member?.ohInterest?.length || !member?.ohHelpWith?.length;
   const showIncomplete = !editView && isOwner && (showWarningUseCaseA || showWarningUseCaseB);
-  const { data: officeHoursValidationOnLoad } = useValidateOfficeHoursQuery(member?.id, isLoggedIn);
+  // The link check answers 403 to anyone but the owner or an admin (LAB-3006): other viewers skip it and can open the link.
+  const canCheckLink = isOwner || isAdmin;
+  const { data: officeHoursValidationOnLoad } = useValidateOfficeHoursQuery(member?.id, isLoggedIn && canCheckLink);
   const officeHoursValidation = {
-    isValid: !officeHoursValidationOnLoad
-      ? member.ohStatus === 'OK' || member?.ohStatus === 'NOT_FOUND' || member?.ohStatus === null
-      : officeHoursValidationOnLoad?.ohStatus === 'OK' ||
-        officeHoursValidationOnLoad?.ohStatus === 'NOT_FOUND' ||
-        officeHoursValidationOnLoad?.ohStatus === null,
+    isValid:
+      !canCheckLink ||
+      (!officeHoursValidationOnLoad
+        ? member.ohStatus === 'OK' || member?.ohStatus === 'NOT_FOUND' || member?.ohStatus === null
+        : officeHoursValidationOnLoad?.ohStatus === 'OK' ||
+          officeHoursValidationOnLoad?.ohStatus === 'NOT_FOUND' ||
+          officeHoursValidationOnLoad?.ohStatus === null),
   };
 
   useMobileNavVisibility(editView);

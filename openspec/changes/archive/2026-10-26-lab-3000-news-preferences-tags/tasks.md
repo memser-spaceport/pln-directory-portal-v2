@@ -23,6 +23,6 @@ One PR from `lab-2969-3000` into `lab-2969`. The backend contract comes from LAB
 
 ## 4. Check and ship
 
-- [ ] 4.1 Run the page locally with the flag on against the LAB-2998 branch's API (or the feature env): seeded member, member with saved tags, member with none. Check the browser console for hydration warnings.
+- [x] 4.1 Run the page locally with the flag on against the LAB-2998 branch's API (or the feature env): seeded member, member with saved tags, member with none. Check the browser console for hydration warnings.
 - [x] 4.2 Run `npm run lint` and `npm run test`.
-- [ ] 4.3 Run `npx -y @fission-ai/openspec@1.14.1 validate --json`, then archive this change in the same PR.
+- [x] 4.3 Run `npx -y @fission-ai/openspec@1.14.1 validate --json`, then archive this change in the same PR.

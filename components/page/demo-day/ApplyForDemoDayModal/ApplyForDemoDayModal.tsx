@@ -31,6 +31,7 @@ import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import clsx from 'clsx';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { SearchIcon } from '@/components/icons';
+import { SafeHtml } from '@/components/ui/SafeHtml';
 
 const applySchema = yup.object().shape(
   {
@@ -555,9 +556,7 @@ export const ApplyForDemoDayModal: React.FC<Props> = ({
           )}
         </div>
 
-        {demoDayData?.description && (
-          <p className={s.description} dangerouslySetInnerHTML={{ __html: demoDayData.description }} />
-        )}
+        {demoDayData?.description && <SafeHtml as="p" className={s.description} html={demoDayData.description} />}
 
         {showLoader || isAutoSubmitting ? (
           <div className={s.loaderContainer}>

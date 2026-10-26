@@ -97,7 +97,8 @@ Copy `.env.example` to `.env` for local setup. Key env vars: `DIRECTORY_API_URL`
 
 ## Conventions
 
-- ESLint flat config extends `eslint-config-next/core-web-vitals` and the Storybook plugin — `@next/next/no-img-element` and `jsx-a11y/alt-text` rules are disabled
+- ESLint flat config extends `eslint-config-next/core-web-vitals` and the Storybook plugin — `@next/next/no-img-element` and `jsx-a11y/alt-text` rules are disabled; `react/no-danger` is an error, and `dompurify` / `isomorphic-dompurify` / `html-react-parser` imports are restricted to `utils/html/`
+- Member- or AI-written HTML renders only through `SafeHtml` (`@/components/ui/SafeHtml`), `safeHtmlProps` (styled-jsx components) or `parseSafeHtml` (`@/utils/html`), with a named profile from `utils/html/sanitizeProfiles.ts` (`richText` by default)
 - Prettier: single quotes, 120 char print width
 - Client-only components for the root layout are `dynamic(..., { ssr: false })` exports in `app/ClientDynamics.tsx` (a `'use client'` module; `ssr: false` is not allowed in Server Components)
 - React Query hooks follow the pattern: fetcher function + `useQuery`/`useMutation` wrapper with query keys from domain constants

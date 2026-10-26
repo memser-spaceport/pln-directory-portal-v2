@@ -4,7 +4,6 @@ import { clsx } from 'clsx';
 import Link from 'next/link';
 import Linkify from 'react-linkify';
 import { useMedia } from 'react-use';
-import parse from 'html-react-parser';
 import { formatDistanceToNow } from 'date-fns';
 import { Avatar } from '@base-ui-components/react/avatar';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -24,6 +23,7 @@ import { NestedComment } from '../../types';
 
 import s from './CommentItem.module.scss';
 import { isAdminUser } from '@/utils/user/isAdminUser';
+import { parseSafeHtml } from '@/utils/html';
 
 const MAX_DEPTH = 2; // Support 3 levels: 0 (comment), 1 (reply), 2 (reply to reply)
 
@@ -159,7 +159,7 @@ export const CommentItem = (props: Props) => {
                     );
                   }}
                 >
-                  {parse(processedContent)}
+                  {parseSafeHtml(processedContent, 'forumPost')}
                 </Linkify>
               );
             })()}

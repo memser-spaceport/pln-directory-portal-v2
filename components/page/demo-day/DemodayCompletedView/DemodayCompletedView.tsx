@@ -35,6 +35,7 @@ import { ChatIcon, EditIcon, ArrowRight } from './components/Icons';
 import { CompletedDemoDayTeamsList } from './components/CompletedDemoDayTeamsList';
 
 import s from './DemodayCompletedView.module.scss';
+import { SafeHtml } from '@/components/ui/SafeHtml';
 
 interface DemodayCompletedViewProps {
   initialDemoDayState?: DemoDayState;
@@ -143,7 +144,7 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = (props)
             </div>
             <div className={s.headline}>
               <h1 className={s.title}>{initialDemoDayState?.title}</h1>
-              <p className={s.body} dangerouslySetInnerHTML={{ __html: initialDemoDayState?.description || '' }} />
+              <SafeHtml as="p" className={s.body} html={initialDemoDayState?.description || ''} />
             </div>
           </div>
 

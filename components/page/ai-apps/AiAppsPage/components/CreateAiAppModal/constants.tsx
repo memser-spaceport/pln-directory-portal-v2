@@ -57,6 +57,13 @@ export const MODAL_INTRO =
 
 export const MODAL_WHATS_NEW_SECTIONS: { version: string; items: string[] }[] = [
   {
+    version: '1.19',
+    items: [
+      'New apps build on Node 22. Node 20 is end-of-life and no longer gets security fixes',
+      'On your next deploy, your agent moves an existing app to Node 22, checks that it still runs, and tells you',
+    ],
+  },
+  {
     version: '1.18',
     items: [
       'When your app checks the signed-in member from its own server, it now names itself, so LabOS refuses a session meant for another app',

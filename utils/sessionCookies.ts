@@ -28,15 +28,23 @@ export function sessionCookieFlags(location: { protocol: string; hostname: strin
   return { sameSite: 'lax' as const, secure: !insecureLocal };
 }
 
+/**
+ * Script-readable session marker: the refresh token's `exp` (epoch seconds), never a credential. `refreshToken` is
+ * httpOnly, so browser code checks this cookie to know whether a session exists and when it ends. It is written and
+ * cleared together with `refreshToken`.
+ */
+export const SESSION_MARKER_COOKIE = 'sessionExpiresAt';
+
 /** Every cookie that makes up a LabOS session. */
-export const SESSION_COOKIES = ['refreshToken', 'authToken', 'userInfo'] as const;
+export const SESSION_COOKIES = ['refreshToken', 'authToken', 'userInfo', SESSION_MARKER_COOKIE] as const;
 
 /**
- * Host-only marker: which session cookies the middleware already rewrote host-only for this browser. `host` =
- * refreshToken/userInfo; `host-all` = authToken as well. A switch flip re-runs the move once.
+ * Migration marker: which session cookie layout the proxy already rewrote for this browser. `host` =
+ * refreshToken/userInfo host-only; `host-all` = authToken as well; the `:2` revision adds the Secure/SameSite flags,
+ * the httpOnly refreshToken and the session marker. A switch flip or a new revision re-runs the rewrite once.
  */
 export const SESSION_SCOPE_COOKIE = 'sessionScope';
-export const sessionScopeValue = () => (shareAuthTokenWithApps() ? 'host' : 'host-all');
+export const sessionScopeValue = () => (shareAuthTokenWithApps() ? 'host:2' : 'host-all:2');
 
 /**
  * The COOKIE_DOMAIN whose copies of a cookie are separate from LabOS's host-only ones, or null when there are none.

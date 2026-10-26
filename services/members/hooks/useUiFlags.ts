@@ -41,7 +41,7 @@ async function fetcher(uid: string | undefined): Promise<UiFlags> {
  * into the cache.
  *
  * `enabled: !!uid` is load-bearing, not a tidy-up. `customFetch(..., true)`
- * with no refresh token calls `logoutUser()`, toasts and reloads the page, so
+ * with no session calls `logoutUser()`, toasts and reloads the page, so
  * firing this for a signed-out visitor would be a visible bug rather than a
  * quiet no-op.
  */

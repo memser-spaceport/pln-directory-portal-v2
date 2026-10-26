@@ -82,8 +82,8 @@ export function UserInfoChecker({ uid }: { uid: string }) {
   const rejectedRef = useRef(false);
   const postHog = usePostHog();
 
-  const handleLogout = useCallback(() => {
-    clearAllAuthCookies();
+  const handleLogout = useCallback(async () => {
+    await clearAllAuthCookies();
     authEvents.emit('auth:logout');
     broadcastLogout();
     postHog.reset();

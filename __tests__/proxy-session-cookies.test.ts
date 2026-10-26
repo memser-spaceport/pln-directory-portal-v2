@@ -51,6 +51,7 @@ function setCookies(res: Response) {
       value: value.join('='),
       domain: a.domain as string | undefined,
       expired: a['max-age'] === '0' || String(a.expires ?? '').includes('1970'),
+      httpOnly: a.httponly === true,
       secure: a.secure === true,
       sameSite: typeof a.samesite === 'string' ? a.samesite.toLowerCase() : undefined,
     };
@@ -79,6 +80,8 @@ beforeEach(() => {
   }));
 });
 
+const ALL_SESSION_COOKIES = ['authToken', 'refreshToken', 'sessionExpiresAt', 'sessionScope', 'userInfo'];
+
 describe('proxy: host-only refreshToken/userInfo', () => {
   it('moves a valid session’s refreshToken/userInfo off the shared domain once, keeping the member signed in', async () => {
     mockedCheck.mockResolvedValue({ active: true });
@@ -102,20 +105,44 @@ describe('proxy: host-only refreshToken/userInfo', () => {
           domain: undefined,
           expired: false,
         }),
-        expect.objectContaining({ name: 'sessionScope', value: 'host', domain: undefined, expired: false }),
+        expect.objectContaining({
+          name: 'sessionScope',
+          value: encodeURIComponent('host:2'),
+          domain: undefined,
+          expired: false,
+        }),
         // Shared copies expired.
         expect.objectContaining({ name: 'refreshToken', domain: DOMAIN, expired: true }),
         expect.objectContaining({ name: 'userInfo', domain: DOMAIN, expired: true }),
       ]),
     );
-    // authToken stays exactly as it is: apps still read it.
-    expect(cookies.filter((c) => c.name === 'authToken')).toEqual([]);
+    // authToken keeps its value and stays on the shared domain, where apps still read it.
+    expect(cookies.filter((c) => c.name === 'authToken')).toEqual([
+      expect.objectContaining({ value: encodeURIComponent(SESSION.authToken), domain: DOMAIN, expired: false }),
+    ]);
+  });
+
+  it('rewrites a pre-flags session once: httpOnly refreshToken, Secure/SameSite=Lax on all, session marker added', async () => {
+    mockedCheck.mockResolvedValue({ active: true });
+
+    const res = await proxy(request('/home', { ...SESSION, sessionScope: 'host' }));
+    const live = setCookies(res!).filter((c) => !c.expired);
+
+    expectSignedIn(res!);
+    expect(live.map((c) => c.name).sort()).toEqual(ALL_SESSION_COOKIES);
+    for (const cookie of live) {
+      expect(cookie).toEqual(
+        expect.objectContaining({ secure: true, sameSite: 'lax', httpOnly: cookie.name === 'refreshToken' }),
+      );
+    }
+    const refreshExp = mockedDecode('refresh.jwt').exp;
+    expect(live.find((c) => c.name === 'sessionExpiresAt')?.value).toBe(String(refreshExp));
   });
 
   it('does nothing to cookies once the session is already host-only', async () => {
     mockedCheck.mockResolvedValue({ active: true });
 
-    const res = await proxy(request('/home', { ...SESSION, sessionScope: 'host' }));
+    const res = await proxy(request('/home', { ...SESSION, sessionScope: 'host:2' }));
 
     expectSignedIn(res!);
     expect(setCookies(res!)).toEqual([]);
@@ -158,6 +185,28 @@ describe('proxy: host-only refreshToken/userInfo', () => {
       ['refreshToken', DOMAIN],
       ['userInfo', DOMAIN],
     ]);
+    for (const cookie of live) {
+      expect(cookie).toEqual(
+        expect.objectContaining({ secure: true, sameSite: 'lax', httpOnly: cookie.name === 'refreshToken' }),
+      );
+    }
+    expect(live.map((c) => c.name).sort()).toEqual(ALL_SESSION_COOKIES);
+  });
+
+  it('leaves Secure off on plain-HTTP localhost so local sign-in keeps working', async () => {
+    process.env.COOKIE_DOMAIN = 'localhost';
+    mockedCheck.mockResolvedValue({ active: false });
+    mockedRenew.mockResolvedValue({
+      data: { accessToken: 'access2.jwt', refreshToken: 'refresh2.jwt', userInfo: { uid: 'm-1' } },
+    });
+
+    const cookies = setCookies((await proxy(request('/home', SESSION, 'http://localhost:4200')))!);
+
+    expect(cookies.length).toBeGreaterThan(0);
+    for (const cookie of cookies) {
+      expect(cookie).toEqual(expect.objectContaining({ secure: false, sameSite: 'lax' }));
+    }
+    expect(cookies.find((c) => c.name === 'refreshToken')?.httpOnly).toBe(true);
   });
 
   it.each<[string, Record<string, string>, () => void]>([
@@ -171,7 +220,7 @@ describe('proxy: host-only refreshToken/userInfo', () => {
     const res = await proxy(request('/home', cookies));
     const cleared = setCookies(res!).filter((c) => c.expired);
 
-    for (const name of ['refreshToken', 'authToken', 'userInfo']) {
+    for (const name of ['refreshToken', 'authToken', 'userInfo', 'sessionExpiresAt']) {
       expect(cleared).toEqual(expect.arrayContaining([expect.objectContaining({ name, domain: undefined })]));
       expect(cleared).toEqual(expect.arrayContaining([expect.objectContaining({ name, domain: DOMAIN })]));
     }
@@ -193,7 +242,7 @@ describe('proxy: host-only refreshToken/userInfo', () => {
       setCookies(res!)
         .map((c) => c.name)
         .sort(),
-    ).toEqual(['refreshToken', 'sessionScope', 'userInfo']);
+    ).toEqual(ALL_SESSION_COOKIES);
   });
 
   /* Local dev sets COOKIE_DOMAIN=localhost. Browsers read `Domain=localhost` (or an IP) as the host-only cookie
@@ -210,7 +259,7 @@ describe('proxy: host-only refreshToken/userInfo', () => {
       const cookies = setCookies((await proxy(request('/home', SESSION)))!);
 
       expect(cookies.filter((c) => c.expired)).toEqual([]);
-      expect(cookies.map((c) => c.name).sort()).toEqual(['refreshToken', 'sessionScope', 'userInfo']);
+      expect(cookies.map((c) => c.name).sort()).toEqual(ALL_SESSION_COOKIES);
     });
 
     it('with authToken host-only too (AI_APPS_SHARE_AUTH_TOKEN=false), still expires nothing it wrote', async () => {
@@ -244,44 +293,6 @@ describe('proxy: host-only refreshToken/userInfo', () => {
   });
 });
 
-describe('proxy: session cookie flags (LAB-2988)', () => {
-  const live = (res: Response) => setCookies(res).filter((c) => !c.expired);
-
-  it('sets SameSite=Lax and Secure on every cookie of a refreshed session', async () => {
-    mockedCheck.mockResolvedValue({ active: false });
-    mockedRenew.mockResolvedValue({
-      data: { accessToken: 'access2.jwt', refreshToken: 'refresh2.jwt', userInfo: { uid: 'm-1' } },
-    });
-
-    const cookies = live((await proxy(request('/home', SESSION)))!);
-
-    expect(cookies.map((c) => c.name).sort()).toEqual(['authToken', 'refreshToken', 'sessionScope', 'userInfo']);
-    for (const c of cookies) expect(c).toEqual(expect.objectContaining({ sameSite: 'lax', secure: true }));
-  });
-
-  it('sets the flags on cookies rewritten by the one-time host-only move', async () => {
-    mockedCheck.mockResolvedValue({ active: true });
-
-    const cookies = live((await proxy(request('/home', SESSION)))!);
-
-    expect(cookies.length).toBeGreaterThan(0);
-    for (const c of cookies) expect(c).toEqual(expect.objectContaining({ sameSite: 'lax', secure: true }));
-  });
-
-  it('leaves Secure off on plain-HTTP localhost so local sign-in keeps working', async () => {
-    process.env.COOKIE_DOMAIN = 'localhost';
-    mockedCheck.mockResolvedValue({ active: false });
-    mockedRenew.mockResolvedValue({
-      data: { accessToken: 'access2.jwt', refreshToken: 'refresh2.jwt', userInfo: { uid: 'm-1' } },
-    });
-
-    const cookies = live((await proxy(request('/home', SESSION, 'http://localhost:4200')))!);
-
-    expect(cookies.length).toBeGreaterThan(0);
-    for (const c of cookies) expect(c).toEqual(expect.objectContaining({ sameSite: 'lax', secure: false }));
-  });
-});
-
 describe('proxy: AI_APPS_SHARE_AUTH_TOKEN=false (LabOS stops sharing authToken)', () => {
   beforeEach(() => {
     process.env.AI_APPS_SHARE_AUTH_TOKEN = 'false';
@@ -293,7 +304,7 @@ describe('proxy: AI_APPS_SHARE_AUTH_TOKEN=false (LabOS stops sharing authToken)'
   it('moves authToken host-only too, once, for a session that already had refreshToken/userInfo moved', async () => {
     mockedCheck.mockResolvedValue({ active: true });
 
-    const res = await proxy(request('/home', { ...SESSION, sessionScope: 'host' }));
+    const res = await proxy(request('/home', { ...SESSION, sessionScope: 'host:2' }));
     const cookies = setCookies(res!);
 
     expectSignedIn(res!);
@@ -306,14 +317,14 @@ describe('proxy: AI_APPS_SHARE_AUTH_TOKEN=false (LabOS stops sharing authToken)'
           expired: false,
         }),
         expect.objectContaining({ name: 'authToken', domain: DOMAIN, expired: true }),
-        expect.objectContaining({ name: 'sessionScope', value: 'host-all' }),
+        expect.objectContaining({ name: 'sessionScope', value: encodeURIComponent('host-all:2') }),
       ]),
     );
   });
 
   it('leaves an already fully host-only session alone', async () => {
     mockedCheck.mockResolvedValue({ active: true });
-    const res = await proxy(request('/home', { ...SESSION, sessionScope: 'host-all' }));
+    const res = await proxy(request('/home', { ...SESSION, sessionScope: 'host-all:2' }));
     expect(setCookies(res!)).toEqual([]);
   });
 

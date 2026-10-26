@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
-import { decodeToken } from '@/utils/auth.utils';
+import { getSessionExpiry } from '@/utils/third-party.helper';
 import { authEvents, LinkMethod } from '@/components/core/login/utils';
 
 function LinkAuthAccounts() {
@@ -32,11 +32,10 @@ function LinkAuthAccounts() {
       setUserLinkedAccounts([]);
     }
     function authAccountsHandler(linkedAccounts: string) {
-      const refreshToken = Cookies.get('refreshToken');
-      if (refreshToken) {
-        const refreshTokenExpiry = decodeToken(JSON.parse(refreshToken));
+      const sessionExpiry = getSessionExpiry();
+      if (sessionExpiry) {
         Cookies.set('authLinkedAccounts', JSON.stringify(linkedAccounts), {
-          expires: new Date(refreshTokenExpiry.exp * 1000),
+          expires: sessionExpiry,
           path: '/',
           domain: process.env.COOKIE_DOMAIN || '',
         });

@@ -1,11 +1,20 @@
 import Cookies from 'js-cookie';
 
-import { clearAllAuthCookies, expireSharedCookie, setSessionCookie } from '@/utils/third-party.helper';
+import { endSession } from '@/services/session.service';
+import {
+  clearAllAuthCookies,
+  expireSharedCookie,
+  getSessionExpiry,
+  hasSession,
+  setSessionCookie,
+} from '@/utils/third-party.helper';
 
 jest.mock('js-cookie', () => ({
   __esModule: true,
   default: { set: jest.fn(), remove: jest.fn(), get: jest.fn() },
 }));
+
+jest.mock('@/services/session.service', () => ({ endSession: jest.fn().mockResolvedValue(undefined) }));
 
 const mockedCookies = Cookies as jest.Mocked<typeof Cookies>;
 const DOMAIN = '.os.pl.xyz';
@@ -19,7 +28,8 @@ describe('LabOS session cookie helpers', () => {
     process.env.COOKIE_DOMAIN = DOMAIN;
   });
 
-  it.each(['refreshToken', 'userInfo'])('writes %s host-only and removes the shared copy first', (name) => {
+  it('writes userInfo host-only with the session flags and removes the shared copy first', () => {
+    const name = 'userInfo';
     setSessionCookie(name, '"value"', { expires: EXPIRES, domain: DOMAIN });
 
     expect(mockedCookies.remove).toHaveBeenCalledWith(name, { path: '/', domain: DOMAIN });
@@ -54,21 +64,37 @@ describe('LabOS session cookie helpers', () => {
   it('touches no domain when COOKIE_DOMAIN is empty (local dev)', () => {
     process.env.COOKIE_DOMAIN = '';
 
-    setSessionCookie('refreshToken', '"r"', { expires: EXPIRES });
+    setSessionCookie('userInfo', '"u"', { expires: EXPIRES });
     expireSharedCookie('userInfo');
 
     expect(mockedCookies.remove).not.toHaveBeenCalled();
-    expect(mockedCookies.set).toHaveBeenCalledWith('refreshToken', '"r"', { ...FLAGS, expires: EXPIRES });
+    expect(mockedCookies.set).toHaveBeenCalledWith('userInfo', '"u"', { ...FLAGS, expires: EXPIRES });
   });
 
-  it('logout revokes the member’s AI App sessions with the current token, fire-and-forget', () => {
+  it('refuses to write refreshToken: it is httpOnly and only the server sets it', () => {
+    expect(() => setSessionCookie('refreshToken', '"r"', { expires: EXPIRES })).toThrow();
+    expect(mockedCookies.set).not.toHaveBeenCalled();
+  });
+
+  it('reads the session from the script-readable marker', () => {
+    mockedCookies.get.mockImplementation(((name: string) =>
+      name === 'sessionExpiresAt' ? '1893456000' : undefined) as any);
+    expect(hasSession()).toBe(true);
+    expect(getSessionExpiry()).toEqual(new Date(1893456000 * 1000));
+
+    mockedCookies.get.mockReturnValue(undefined as any);
+    expect(hasSession()).toBe(false);
+    expect(getSessionExpiry()).toBeNull();
+  });
+
+  it('logout revokes the member’s AI App sessions with the current token, fire-and-forget', async () => {
     process.env.DIRECTORY_API_URL = 'https://api.test';
     mockedCookies.get.mockImplementation(((name: string) => (name === 'authToken' ? '"jwt"' : undefined)) as any);
     const fetchMock = jest.fn().mockRejectedValue(new Error('offline'));
     (global as any).fetch = fetchMock;
     Object.defineProperty(window, 'localStorage', { value: { clear: jest.fn() }, configurable: true });
 
-    expect(() => clearAllAuthCookies()).not.toThrow();
+    await expect(clearAllAuthCookies()).resolves.toBeUndefined();
     expect(fetchMock).toHaveBeenCalledWith(
       'https://api.test/v1/ai-apps/sessions/revoke',
       expect.objectContaining({
@@ -80,13 +106,13 @@ describe('LabOS session cookie helpers', () => {
     expect(mockedCookies.remove).toHaveBeenCalledWith('authToken', { path: '/' });
   });
 
-  it('logout without a token makes no revoke call', () => {
+  it('logout without a token makes no revoke call', async () => {
     mockedCookies.get.mockReturnValue(undefined as any);
     const fetchMock = jest.fn();
     (global as any).fetch = fetchMock;
     Object.defineProperty(window, 'localStorage', { value: { clear: jest.fn() }, configurable: true });
 
-    clearAllAuthCookies();
+    await clearAllAuthCookies();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -95,20 +121,24 @@ describe('LabOS session cookie helpers', () => {
     (domain) => {
       process.env.COOKIE_DOMAIN = domain;
 
-      setSessionCookie('refreshToken', '"r"', { expires: EXPIRES });
+      setSessionCookie('userInfo', '"u"', { expires: EXPIRES });
       expireSharedCookie('userInfo');
 
       expect(mockedCookies.remove).not.toHaveBeenCalled();
-      expect(mockedCookies.set).toHaveBeenCalledWith('refreshToken', '"r"', { ...FLAGS, expires: EXPIRES });
+      expect(mockedCookies.set).toHaveBeenCalledWith('userInfo', '"u"', { ...FLAGS, expires: EXPIRES });
     },
   );
 
-  it('logout clears host-only and shared copies, including the migration marker', () => {
+  it('logout ends the session on the server (httpOnly refreshToken) before clearing the readable cookies', async () => {
     Object.defineProperty(window, 'localStorage', { value: { clear: jest.fn() }, configurable: true });
 
-    clearAllAuthCookies();
+    await clearAllAuthCookies();
 
-    for (const name of ['authToken', 'refreshToken', 'userInfo', 'sessionScope']) {
+    expect(endSession).toHaveBeenCalled();
+    expect((endSession as jest.Mock).mock.invocationCallOrder[0]).toBeLessThan(
+      mockedCookies.remove.mock.invocationCallOrder[0],
+    );
+    for (const name of ['authToken', 'userInfo', 'sessionScope', 'sessionExpiresAt']) {
       expect(mockedCookies.remove).toHaveBeenCalledWith(name, { path: '/' });
       expect(mockedCookies.remove).toHaveBeenCalledWith(name, { path: '/', domain: DOMAIN });
     }

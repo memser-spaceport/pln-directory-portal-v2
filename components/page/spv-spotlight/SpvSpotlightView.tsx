@@ -246,8 +246,8 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
 
   // Production's AccountMenu logout; AuthBox (mounted on bare routes too) then
   // reloads the tab, so the page re-reads as signed out.
-  const signOut = () => {
-    clearAllAuthCookies();
+  const signOut = async () => {
+    await clearAllAuthCookies();
     authEvents.emit('auth:logout');
     toast.success(TOAST_MESSAGES.LOGOUT_MSG);
     broadcastLogout();

@@ -31,3 +31,44 @@
   line-height: 18px;
   letter-spacing: -0.2px;
 }
+
+// Clickable hashtags (LAB-3010): brand text links, as `.topicLink` in the
+// newsfeed prototype. The 4px padding is cancelled by the negative margin, so
+// the tap target grows without moving the line.
+.links {
+  column-gap: 12px;
+  row-gap: 2px;
+}
+
+.link {
+  padding: 4px 0;
+  margin: -4px 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+// The tag the feed is filtered by: the filter chip's brand-soft fill, so the
+// chip and every matching tag read as the same selected thing.
+.linkActive {
+  padding: 2px 6px;
+  margin: -2px 0;
+  border-radius: 4px;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  font-weight: 600;
+}

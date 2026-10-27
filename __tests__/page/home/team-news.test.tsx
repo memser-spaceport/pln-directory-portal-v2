@@ -101,6 +101,8 @@ jest.mock('@/utils/news-categories', () => ({
   },
 }));
 
+const mockOnTagFilterApplied = jest.fn();
+const mockOnTagFilterCleared = jest.fn();
 jest.mock('@/analytics/team-news.analytics', () => ({
   useTeamNewsAnalytics: () => ({
     onTeamNewsTabClicked: (...a: unknown[]) => mockOnTabClicked(...a),
@@ -129,7 +131,17 @@ jest.mock('@/analytics/team-news.analytics', () => ({
     onFeedHiringViewAllClicked: (...a: unknown[]) => mockOnFeedHiringViewAllClicked(...a),
     onFeedDealClicked: (...a: unknown[]) => mockOnFeedDealClicked(...a),
     onTeamNewsForYouUpdateProfileClicked: jest.fn(),
+    onTeamNewsTagFilterApplied: (...a: unknown[]) => mockOnTagFilterApplied(...a),
+    onTeamNewsTagFilterCleared: (...a: unknown[]) => mockOnTagFilterCleared(...a),
   }),
+}));
+
+// The topic list behind the `#tag` chips (LAB-3003). Null by default, so no chip
+// renders and every other test in this file sees the cards exactly as before;
+// the tag-filter tests below switch it on.
+let mockTopicSlugs: ReadonlySet<string> | null = null;
+jest.mock('@/services/team-news/hooks/useNewsTopicSlugs', () => ({
+  useNewsTopicSlugs: () => mockTopicSlugs,
 }));
 
 // Forum posts reach the feed through this hook. Default: none, which is what the
@@ -2211,7 +2223,7 @@ describe('TeamNews', () => {
       expect(
         screen.getByText(/For you: Curated based on your profile, primary team attributes, and the teams you follow/),
       ).toBeInTheDocument();
-      expect(screen.queryByRole('link', { name: 'Tune For You' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Update' })).not.toBeInTheDocument();
       expect(screen.getByText('Headline mem-1')).toBeInTheDocument();
       expect(screen.queryByText('Headline mem-same-old')).not.toBeInTheDocument();
       expect(screen.queryByText('Headline mem-0')).not.toBeInTheDocument();
@@ -2227,7 +2239,7 @@ describe('TeamNews', () => {
         expect(
           screen.getByText(/For you: Curated based on your profile, primary team attributes, and the teams you follow/),
         ).toBeInTheDocument();
-        expect(screen.getByRole('link', { name: 'Tune For You' })).toHaveAttribute(
+        expect(screen.getByRole('link', { name: 'Update' })).toHaveAttribute(
           'href',
           '/settings/news-preferences?from=feed',
         );
@@ -2582,6 +2594,164 @@ describe('TeamNews', () => {
 
       expect(screen.getByText('0 Views')).toBeInTheDocument();
       expect(screen.queryByText('1 Views')).not.toBeInTheDocument();
+    });
+  });
+  describe('tag filter (LAB-3010)', () => {
+    const tagged = (uid: string, tags: string[], focus = 'AI & Robotics', eventType: TeamNewsEventType = 'LAUNCH') => ({
+      ...makeItem(uid, eventType, [focus]),
+      tags,
+    });
+    const aiStory = tagged('t-ai', ['ai', 'launch']);
+    const aiStoryTwo = tagged('t-ai-2', ['decentralized-storage', 'ai'], 'Digital Human Rights', 'FUNDING');
+    const storageStory = tagged('t-storage', ['decentralized-storage'], 'Digital Human Rights');
+    const untagged = tagged('t-none', []);
+    const tagGroups: ITeamNewsGroup[] = [
+      { focusArea: FA_AI, total: 2, items: [aiStory, untagged] },
+      { focusArea: FA_DHR, total: 2, items: [aiStoryTwo, storageStory] },
+    ];
+    const feedList = () => document.querySelector('[data-news-feed-list]') as HTMLElement;
+    const tagButton = (scope: HTMLElement, tag: string) =>
+      within(scope).getAllByRole('button', { name: `Show only #${tag} updates` })[0];
+
+    beforeEach(() => {
+      mockShowNewsPreferences = true;
+      mockTopicSlugs = new Set(['ai', 'decentralized-storage']);
+    });
+    afterEach(() => {
+      mockTopicSlugs = null;
+    });
+
+    it('filters the feed to stories tagged exactly that tag, with a Filter chip and its count', () => {
+      renderTeamNews(<TeamNews groups={tagGroups} pageSize={20} />);
+      fireEvent.click(tagButton(feedList(), 'ai'));
+
+      const feed = feedList();
+      expect(within(feed).getByText('Headline t-ai')).toBeInTheDocument();
+      expect(within(feed).getByText('Headline t-ai-2')).toBeInTheDocument();
+      expect(within(feed).queryByText('Headline t-storage')).not.toBeInTheDocument();
+      expect(within(feed).queryByText('Headline t-none')).not.toBeInTheDocument();
+      expect(screen.getByText('Filter:')).toBeInTheDocument();
+      expect(screen.getByText('2 updates')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Show all updates instead of just #ai' })).toBeInTheDocument();
+      expect(mockOnTagFilterApplied).toHaveBeenCalledWith({ tag: 'ai', via: 'card', itemCount: 2 });
+      // The tag is its own target: the row under it does not open the story.
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      // Every #ai on the page now reads as selected.
+      within(feed)
+        .getAllByRole('button', { name: 'Stop filtering by #ai' })
+        .forEach((b) => expect(b).toHaveAttribute('aria-pressed', 'true'));
+    });
+
+    it('opens the tag on the All tab and All categories, with counts for the filtered stories only', () => {
+      renderTeamNews(<TeamNews groups={tagGroups} pageSize={20} />);
+      fireEvent.click(screen.getByRole('tab', { name: /Digital Human Rights/ }));
+      fireEvent.click(within(catRow()).getByRole('button', { name: /Funding/ }));
+
+      fireEvent.click(tagButton(feedList(), 'ai'));
+
+      expect(screen.getByRole('tab', { name: /^All/ })).toHaveAttribute('aria-selected', 'true');
+      expect(within(catRow()).getByRole('button', { name: /All categories/ })).toHaveClass(/catActive/);
+      // AI & Robotics holds one #ai story now, not two stories.
+      expect(screen.getByRole('tab', { name: /AI & Robotics/ })).toHaveTextContent('1');
+      expect(within(catRow()).getByRole('button', { name: /Launch/ })).toHaveTextContent('1');
+    });
+
+    it('clears with the chip × or by clicking the active tag again', () => {
+      renderTeamNews(<TeamNews groups={tagGroups} pageSize={20} />);
+      fireEvent.click(tagButton(feedList(), 'ai'));
+      fireEvent.click(screen.getByRole('button', { name: 'Show all updates instead of just #ai' }));
+      expect(screen.queryByText('Filter:')).not.toBeInTheDocument();
+      expect(within(feedList()).getByText('Headline t-none')).toBeInTheDocument();
+      expect(mockOnTagFilterCleared).toHaveBeenLastCalledWith({ tag: 'ai', via: 'chip' });
+
+      fireEvent.click(tagButton(feedList(), 'ai'));
+      fireEvent.click(within(feedList()).getAllByRole('button', { name: 'Stop filtering by #ai' })[0]);
+      expect(screen.queryByText('Filter:')).not.toBeInTheDocument();
+      expect(mockOnTagFilterCleared).toHaveBeenLastCalledWith({ tag: 'ai', via: 'card' });
+    });
+
+    it('closes the detail modal and filters the feed when a tag is clicked inside it', () => {
+      renderTeamNews(<TeamNews groups={tagGroups} pageSize={20} />);
+      fireEvent.click(within(feedList()).getByRole('button', { name: 'Headline t-storage' }));
+      const dialog = screen.getByRole('dialog');
+
+      fireEvent.click(tagButton(dialog, 'decentralized-storage'));
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Show all updates instead of just #decentralized-storage' }),
+      ).toBeInTheDocument();
+      expect(within(feedList()).queryByText('Headline t-ai')).not.toBeInTheDocument();
+      expect(mockOnTagFilterApplied).toHaveBeenCalledWith({ tag: 'decentralized-storage', via: 'modal', itemCount: 2 });
+    });
+
+    it('hides forum posts and deals while filtering', () => {
+      const forumPost: IFeedForumPost = {
+        uid: 'fp_1',
+        tid: 1,
+        mainPid: 1,
+        title: 'A forum thread',
+        body: 'Body',
+        author: { memberUid: 'm-1', name: 'Matt Curran', avatarUrl: null, role: null },
+        focusAreas: [],
+        category: 'Intros',
+        createdAt: '2026-07-01T00:00:00.000Z',
+        lastActivityAt: '2026-07-01T00:00:00.000Z',
+        forumTopicUrl: '/forum/topics/5/1',
+        commentCount: 0,
+        likeCount: 0,
+        viewCount: 0,
+        viewerHasLiked: false,
+      };
+      mockUseFeedSocial.mockReturnValue(feedSocial([forumPost], true));
+      mockUseFeedDeals.mockReturnValue({
+        deals: [
+          {
+            uid: 'd1',
+            vendorName: 'Vendor d1',
+            vendorTeamUid: null,
+            logoUid: null,
+            category: 'Infrastructure',
+            audience: 'ALL_FOUNDERS',
+            shortDescription: 'Perk d1',
+            status: 'ACTIVE',
+            createdAt: '2026-08-01T00:00:00.000Z',
+            updatedAt: '2026-08-01T00:00:00.000Z',
+            isRedeemed: false,
+            isUsing: false,
+            teamsRedemptionCount: 0,
+            teamsUsingCount: 0,
+            logoUrl: null,
+          } as IDeal,
+        ],
+      });
+      renderTeamNews(<TeamNews groups={tagGroups} pageSize={20} />);
+      expect(within(feedList()).getByText('A forum thread')).toBeInTheDocument();
+      expect(within(feedList()).getByText('Vendor d1')).toBeInTheDocument();
+
+      fireEvent.click(tagButton(feedList(), 'ai'));
+
+      expect(within(feedList()).queryByText('A forum thread')).not.toBeInTheDocument();
+      expect(within(feedList()).queryByText('Vendor d1')).not.toBeInTheDocument();
+    });
+
+    it('says when the tag and a search match nothing, in the prototype wording', () => {
+      jest.useFakeTimers();
+      renderTeamNews(<TeamNews groups={tagGroups} pageSize={20} />);
+      fireEvent.click(tagButton(feedList(), 'ai'));
+      const inputs = screen.getAllByPlaceholderText('Search by news, teams…');
+      fireEvent.change(inputs[inputs.length - 1], { target: { value: 'zzz' } });
+      act(() => jest.advanceTimersByTime(700));
+
+      expect(screen.getByText('No updates match “zzz” in #ai.')).toBeInTheDocument();
+      jest.useRealTimers();
+    });
+
+    it('keeps the chips grey labels with no filter when the flag is off', () => {
+      mockShowNewsPreferences = false;
+      renderTeamNews(<TeamNews groups={tagGroups} pageSize={20} />);
+      expect(within(feedList()).queryByRole('button', { name: /Show only #/ })).not.toBeInTheDocument();
+      expect(screen.queryByText('Filter:')).not.toBeInTheDocument();
     });
   });
 });

@@ -732,6 +732,10 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_COUNT_CHIP_SHOWN: 'team-news-count-chip-shown',
   TEAM_NEWS_FOR_YOU_UPDATE_PROFILE_CLICKED: 'team-news-for-you-update-profile-clicked',
   TEAM_NEWS_FOR_YOU_TUNE_CLICKED: 'team-news-for-you-tune-clicked',
+  // A `#tag` on a Home story narrows the feed to that tag (LAB-3010); cleared by
+  // the filter chip's × or by clicking the active tag again.
+  TEAM_NEWS_TAG_FILTER_APPLIED: 'team-news-tag-filter-applied',
+  TEAM_NEWS_TAG_FILTER_CLEARED: 'team-news-tag-filter-cleared',
   TEAM_NEWS_SHOW_MORE_CLICKED: 'team-news-show-more-clicked',
   TEAM_NEWS_CARD_CLICKED: 'team-news-card-clicked',
   TEAM_NEWS_DETAIL_MODAL_OPENED: 'team-news-detail-modal-opened',

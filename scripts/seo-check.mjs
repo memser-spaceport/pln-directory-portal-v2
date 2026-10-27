@@ -4,7 +4,7 @@
  * redirects, canonical addresses, noindex pages, and a sample of the sitemap. Fetches as a crawler does: no cookies,
  * no JavaScript.
  *
- *   npm run seo:check -- https://directory-portal-lab-2876.os.pl.xyz [--sample 20]
+ *   npm run seo:check -- https://directory-portal-lab-2876.os.pl.xyz [--sample 20] [--demoday plw26]
  *
  * Exits non-zero when any check fails. The specs it checks: openspec/specs/{profiles,teams,job-board,seo}.
  */
@@ -13,9 +13,12 @@ const args = process.argv.slice(2);
 const base = (args.find((a) => /^https?:\/\//.test(a)) ?? '').replace(/\/$/, '');
 const sampleIndex = args.indexOf('--sample');
 const sampleSize = sampleIndex >= 0 ? Number(args[sampleIndex + 1]) : 15;
+// A Demo Day that exists on the target. The sitemap lists only /demoday, so it can't be found there.
+const demoDayIndex = args.indexOf('--demoday');
+const demoDaySlug = demoDayIndex >= 0 ? args[demoDayIndex + 1] : 'plw26';
 
 if (!base) {
-  console.error('Usage: node scripts/seo-check.mjs <base-url> [--sample N]');
+  console.error('Usage: node scripts/seo-check.mjs <base-url> [--sample N] [--demoday <slug>]');
   process.exit(2);
 }
 
@@ -74,6 +77,26 @@ async function checkProfile(path) {
     `${path} shows "${name}" in its server HTML`,
     ok,
     `${status}${hasClientFallback(html) ? ', client fallback' : ''}`,
+  );
+}
+
+/** A Demo Day's public page carries its content (LAB-2930). A finished one redirects to its completed view. */
+async function checkDemoDay(slug) {
+  let path = `/demoday/${slug}`;
+  let page = await get(path);
+  if ((page.status === 307 || page.status === 308) && locationPath(page.location) === `${path}/completed`) {
+    path = `${path}/completed`;
+    page = await get(path);
+  }
+  const { status, html } = page;
+  const heading = visibleText(html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)?.[1] ?? '').trim();
+  const skeleton = html.includes('skeletonContainer');
+  const teams = path.endsWith('/completed') ? linkCount(html, '/teams/') : null;
+  const ok = status === 200 && !!heading && !skeleton && !hasClientFallback(html) && (teams === null || teams > 0);
+  record(
+    `${path} shows "${heading}" in its server HTML`,
+    ok,
+    `${status}${teams === null ? '' : `, ${teams} team links`}${skeleton ? ', skeleton' : ''}`,
   );
 }
 
@@ -145,6 +168,11 @@ for (const prefix of ['/members/', '/teams/', '/projects/']) {
 for (const kind of ['members', 'teams', 'projects']) await checkStatus(`/${kind}/${UNKNOWN_ID}`, 404);
 // An old Airtable record id that belongs to no team is a real 404 too, not a 200 error page.
 await checkStatus('/teams/recAbCdEfGhIjKlMn', 404);
+
+// Public Demo Day pages carry their content, and an unknown Demo Day is a real 404 (seo).
+await checkDemoDay(demoDaySlug);
+await checkStatus(`/demoday/${UNKNOWN_ID}`, 404);
+await checkStatus(`/demoday/${UNKNOWN_ID}/completed`, 404);
 
 // One address per page (seo, job-board).
 await checkRedirect('/', '/home');

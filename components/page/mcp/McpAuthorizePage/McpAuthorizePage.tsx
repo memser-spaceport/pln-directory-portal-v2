@@ -3,16 +3,56 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-import { useMcpAnalytics } from '@/analytics/mcp.analytics';
+import { useMcpAnalytics, type McpConnectErrorKind, type McpConnectView } from '@/analytics/mcp.analytics';
 import { Button } from '@/components/common/Button/Button';
 import { Checkbox } from '@/components/common/Checkbox';
 import { useCurrentUserStore } from '@/services/auth/store';
+import { approveMcpOAuth, fetchMcpOAuthClient } from '@/services/mcp/mcp.service';
 import { useMcpAccess } from '@/services/rbac/hooks/useMcpAccess';
-import { approveMcpOAuth } from '@/services/mcp/mcp.service';
 
 import s from './McpAuthorizePage.module.scss';
 
-type View = 'loading' | 'invalid' | 'signedOut' | 'pending' | 'denied' | 'error';
+type View = McpConnectView | 'loading';
+
+type ClientCheck =
+  | { state: 'loading' }
+  | { state: 'not_found' }
+  | { state: 'invalid_redirect' }
+  | { state: 'failed' }
+  | { state: 'ready'; clientName: string; redirectHost: string | null };
+
+function redirectUrl(uri: string): URL | null {
+  try {
+    return new URL(uri);
+  } catch {
+    return null;
+  }
+}
+
+function isHttpRedirect(url: URL): boolean {
+  return url.protocol === 'http:' || url.protocol === 'https:';
+}
+
+function trustedRedirectHost(
+  redirectUri: string,
+  redirectHost: string | null,
+  registered: boolean,
+): { ok: true; redirectHost: string | null } | { ok: false } {
+  if (!registered) {
+    return { ok: false };
+  }
+  const url = redirectUrl(redirectUri);
+  if (!url) {
+    return { ok: false };
+  }
+  if (!isHttpRedirect(url)) {
+    return redirectHost === null ? { ok: true, redirectHost: null } : { ok: false };
+  }
+  if (!redirectHost || url.hostname.toLowerCase() !== redirectHost.toLowerCase()) {
+    return { ok: false };
+  }
+  return { ok: true, redirectHost };
+}
 
 export function McpAuthorizePage() {
   const router = useRouter();
@@ -23,6 +63,7 @@ export function McpAuthorizePage() {
   const [isApproving, setIsApproving] = useState(false);
   const [allowChanges, setAllowChanges] = useState(false);
   const [viewOverride, setViewOverride] = useState<View | null>(null);
+  const [clientCheck, setClientCheck] = useState<ClientCheck>({ state: 'loading' });
   const trackedViewRef = useRef<string | null>(null);
 
   const clientId = searchParams.get('client_id') ?? '';
@@ -31,9 +72,40 @@ export function McpAuthorizePage() {
   const codeChallengeMethod = searchParams.get('code_challenge_method') ?? 'S256';
   const state = searchParams.get('state') ?? undefined;
   const resource = searchParams.get('resource') ?? undefined;
-  const clientName = searchParams.get('client_name') || 'this agent';
 
   const paramsValid = Boolean(clientId && redirectUri && codeChallenge && codeChallengeMethod === 'S256');
+  const requestKey = paramsValid ? `${clientId}\0${redirectUri}` : '';
+  const [seenRequestKey, setSeenRequestKey] = useState(requestKey);
+  if (seenRequestKey !== requestKey) {
+    setSeenRequestKey(requestKey);
+    setClientCheck({ state: 'loading' });
+    setViewOverride(null);
+  }
+
+  useEffect(() => {
+    if (!paramsValid) {
+      return;
+    }
+    let cancelled = false;
+    fetchMcpOAuthClient(clientId, redirectUri).then((result) => {
+      if (cancelled) {
+        return;
+      }
+      if ('error' in result) {
+        setClientCheck({ state: result.error === 'not_found' ? 'not_found' : 'failed' });
+        return;
+      }
+      const trusted = trustedRedirectHost(redirectUri, result.redirect_host, result.redirect_uri_registered);
+      if (!trusted.ok) {
+        setClientCheck({ state: 'invalid_redirect' });
+        return;
+      }
+      setClientCheck({ state: 'ready', clientName: result.client_name, redirectHost: trusted.redirectHost });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [paramsValid, clientId, redirectUri]);
 
   const view: View = useMemo(() => {
     if (viewOverride) {
@@ -41,6 +113,12 @@ export function McpAuthorizePage() {
     }
     if (!paramsValid) {
       return 'invalid';
+    }
+    if (clientCheck.state === 'loading') {
+      return 'loading';
+    }
+    if (clientCheck.state !== 'ready') {
+      return 'error';
     }
     if (!isHydrated || accessLoading) {
       return 'loading';
@@ -52,18 +130,27 @@ export function McpAuthorizePage() {
       return 'denied';
     }
     return 'pending';
-  }, [viewOverride, paramsValid, isHydrated, accessLoading, currentUser, canConnect]);
+  }, [viewOverride, paramsValid, clientCheck, isHydrated, accessLoading, currentUser, canConnect]);
 
   useEffect(() => {
     if (view === 'loading') return;
-    const key = `${clientId}:${view}`;
+    const key = `${clientId}:${view}:${clientCheck.state}`;
     if (trackedViewRef.current === key) return;
     trackedViewRef.current = key;
     analytics.onConnectPageViewed({ view, clientId });
     if (view === 'denied') {
       analytics.onConnectDenied({ clientId, reason: 'missing_permission' });
     }
-  }, [view, clientId, analytics]);
+    const errorKind: McpConnectErrorKind | null =
+      clientCheck.state === 'not_found'
+        ? 'client_unknown'
+        : clientCheck.state === 'invalid_redirect'
+          ? 'redirect_invalid'
+          : null;
+    if (errorKind) {
+      analytics.onConnectError({ clientId, errorKind });
+    }
+  }, [view, clientId, clientCheck.state, analytics]);
 
   const onSignIn = useCallback(() => {
     analytics.onConnectSignInClicked({ clientId });
@@ -72,18 +159,22 @@ export function McpAuthorizePage() {
 
   const denyRedirect = useCallback(() => {
     analytics.onConnectDenied({ clientId, reason: 'user_denied' });
-    try {
-      const url = new URL(redirectUri);
-      url.searchParams.set('error', 'access_denied');
-      if (state) {
-        url.searchParams.set('state', state);
-      }
-      window.location.assign(url.toString());
-    } catch {
+    if (clientCheck.state !== 'ready' || !clientCheck.redirectHost) {
+      setViewOverride('closeTab');
+      return;
+    }
+    const url = redirectUrl(redirectUri);
+    if (!url || !isHttpRedirect(url) || url.hostname.toLowerCase() !== clientCheck.redirectHost.toLowerCase()) {
       analytics.onConnectError({ clientId, errorKind: 'redirect_invalid' });
       setViewOverride('error');
+      return;
     }
-  }, [redirectUri, state, analytics, clientId]);
+    url.searchParams.set('error', 'access_denied');
+    if (state) {
+      url.searchParams.set('state', state);
+    }
+    window.location.assign(url.toString());
+  }, [redirectUri, state, analytics, clientId, clientCheck]);
 
   const onApprove = useCallback(async () => {
     setIsApproving(true);
@@ -110,6 +201,13 @@ export function McpAuthorizePage() {
     setViewOverride('error');
   }, [clientId, redirectUri, codeChallenge, state, resource, allowChanges, analytics]);
 
+  const clientName = clientCheck.state === 'ready' ? clientCheck.clientName : '';
+  const redirectHost = clientCheck.state === 'ready' ? clientCheck.redirectHost : null;
+  const errorCopy =
+    clientCheck.state === 'not_found' || clientCheck.state === 'invalid_redirect'
+      ? 'This connect link is not valid. Ask your agent to try again.'
+      : 'Something went wrong completing this connection. Please try again.';
+
   return (
     <div className={s.page}>
       <div className={s.card}>
@@ -125,6 +223,12 @@ export function McpAuthorizePage() {
           <>
             <p className={s.body}>
               Sign in to LabOS to allow <strong>{clientName}</strong> to access LabOS as you.
+              {redirectHost ? (
+                <>
+                  {' '}
+                  This page returns to <strong>{redirectHost}</strong>.
+                </>
+              ) : null}
             </p>
             <Button size="m" onClick={onSignIn}>
               Sign in to continue
@@ -136,6 +240,12 @@ export function McpAuthorizePage() {
           <>
             <p className={s.body}>
               Allow <strong>{clientName}</strong> to access LabOS as you.
+              {redirectHost ? (
+                <>
+                  {' '}
+                  This page returns to <strong>{redirectHost}</strong>.
+                </>
+              ) : null}
             </p>
             <ul className={s.scopes}>
               <li className={s.scope}>
@@ -167,9 +277,9 @@ export function McpAuthorizePage() {
           </p>
         )}
 
-        {view === 'error' && (
-          <p className={s.body}>Something went wrong completing this connection. Please try again.</p>
-        )}
+        {view === 'closeTab' && <p className={s.body}>You can close this tab.</p>}
+
+        {view === 'error' && <p className={s.body}>{errorCopy}</p>}
       </div>
     </div>
   );

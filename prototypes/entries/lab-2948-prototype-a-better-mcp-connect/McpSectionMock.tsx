@@ -31,7 +31,7 @@ import {
   mockServerUrl,
 } from './mocks';
 import { PermissionsDrawer } from './Permissions';
-import { AgentMark, BackendTag, formatAgo, formatDate } from './shared';
+import { AgentMark, BackendTag } from './shared';
 import s from './McpSectionMock.module.scss';
 
 const CLIENTS: { name: string; value: ClientKey }[] = [
@@ -58,16 +58,20 @@ interface Props {
   viewer: Viewer;
   onLevelsChange: (uid: string, next: Levels) => void;
   onRevoke: (uid: string) => void;
+  /** Mount with a connection's Permissions drawer already open (the agent's request link). */
+  initialEditing?: Editing;
 }
+
+type Editing = { uid: string; preset?: Partial<Levels>; request?: { ask: string; tried: string } };
 
 /**
  * MCP connections. Each connection has its own access (2026-10-26 review):
  * it starts Read only on the consent screen, and its card has a Permissions link
  * (the scope editor in a drawer with one Save) next to View activity and Revoke.
  */
-export function McpSectionMock({ agents, fullScreenDrawer, viewer, onLevelsChange, onRevoke }: Props) {
+export function McpSectionMock({ agents, fullScreenDrawer, viewer, onLevelsChange, onRevoke, initialEditing }: Props) {
   const [connectOpen, setConnectOpen] = useState(false);
-  const [editing, setEditing] = useState<{ uid: string; preset?: Partial<Levels> } | null>(null);
+  const [editing, setEditing] = useState<Editing | null>(initialEditing ?? null);
   // `undefined` = drawer closed; `null` = open on all agents; a uid = open on that agent.
   const [activityFilter, setActivityFilter] = useState<string | null | undefined>(undefined);
 
@@ -117,6 +121,7 @@ export function McpSectionMock({ agents, fullScreenDrawer, viewer, onLevelsChang
         key={editing ? `${editing.uid}-${JSON.stringify(editing.preset ?? {})}` : 'closed'}
         agent={agents.find((agent) => agent.uid === editing?.uid) ?? null}
         preset={editing?.preset}
+        request={editing?.request}
         viewer={viewer}
         fullScreen={fullScreenDrawer}
         onSave={(uid, next) => {
@@ -154,12 +159,14 @@ function AgentCard({
             </Badge>
             {agent.account && <BackendTag>Needs the account email from the client</BackendTag>}
           </div>
-          <div className={s.meta}>
-            {agent.account && <span className={s.agentAccount}>{agent.account} · </span>}
-            Connected {formatDate(agent.connectedAt)} · Last used{' '}
-            {agent.lastUsedAt ? formatAgo(agent.lastUsedAt) : 'never'}
-            {status === 'expired' && ' · Reconnect from the client to use it again'}
-          </div>
+          {/* Connected / last used dates were cut (2026-10-27); the status badge carries recency. */}
+          {(agent.account || status === 'expired') && (
+            <div className={s.meta}>
+              {agent.account && <span className={s.agentAccount}>{agent.account}</span>}
+              {agent.account && status === 'expired' && ' · '}
+              {status === 'expired' && 'Reconnect from the client to use it again'}
+            </div>
+          )}
         </div>
         <div className={s.agentActions}>
           <Button size="s" style="link" className={clsx(s.linkBtn, s.editLink)} onClick={onEditAccess}>

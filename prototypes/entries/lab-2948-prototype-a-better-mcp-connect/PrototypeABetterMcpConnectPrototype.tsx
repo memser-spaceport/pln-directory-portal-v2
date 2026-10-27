@@ -16,19 +16,20 @@ import { PrototypeNavBar } from '../nav-shared/PrototypeNavBar';
 import { LaunchBanner } from './LaunchBanner';
 import { McpHintsPreview } from './McpHints';
 import { McpSectionMock } from './McpSectionMock';
-import { AccessRequestView } from './AccessRequest';
+import { AgentRequestReply } from './AccessRequest';
 import { ConsentScreen } from './Permissions';
 import { SettingsBackButtonMock } from './SettingsBackButtonMock';
 import { BUILT_ITEM, SettingsMenuMock } from './SettingsMenuMock';
 import {
-  type AccessRequest,
   type Agent,
   type AgentAction,
   type Levels,
   type Viewer,
   agentName,
+  getWriteLock,
   mockAgents,
   mockClaudeAccounts,
+  mockRequests,
   templateLevels,
 } from './mocks';
 import { BackendTagsContext } from './shared';
@@ -110,6 +111,8 @@ export default function PrototypeABetterMcpConnectPrototype() {
   const onLevelsChange = (uid: string, next: Levels) => {
     setAgents((current) => current.map((a) => (a.uid === uid ? { ...a, levels: next } : a)));
     toast.success(`${nameOf(uid)}: access saved.`);
+    // Saving from the request link lands on the plain Settings page.
+    if (scenario === 'request') setScenario('connected');
   };
 
   /**
@@ -142,16 +145,17 @@ export default function PrototypeABetterMcpConnectPrototype() {
     toast.success(`${agentName({ clientName: consentClient, account })} is connected, read only.`);
   };
 
-  /** The request page's Allow: that one feature goes to write, then back to Settings to see it. */
-  const onAllowRequest = (request: AccessRequest) => {
-    setAgents((current) =>
-      current.map((a) =>
-        a.uid === request.agentUid ? { ...a, levels: { ...a.levels, [request.scope]: 'write' } } : a,
-      ),
-    );
-    setScenario('connected');
-    toast.success(`${nameOf(request.agentUid)} can now ${request.ask}.`);
-  };
+  // The agent's request link opens Settings with that connection's drawer open and the feature set to write.
+  const [requestId, setRequestId] = useState(mockRequests[0].id);
+  const request = mockRequests.find((item) => item.id === requestId)!;
+  const requestEditing =
+    scenario === 'request' && !getWriteLock(request.scope, viewer)
+      ? {
+          uid: request.agentUid,
+          preset: { [request.scope]: 'write' } as Partial<Levels>,
+          request: { ask: request.ask, tried: request.tried },
+        }
+      : undefined;
 
   const onRevoke = (uid: string) => {
     const name = nameOf(uid);
@@ -194,21 +198,6 @@ export default function PrototypeABetterMcpConnectPrototype() {
         <PrototypeNavBar hasUnreadNews={false} isLoggedIn />
         <div className={s.hintsBand}>{reviewBand}</div>
         <McpHintsPreview onSetUp={() => switchScenario('empty')} />
-      </BackendTagsContext.Provider>
-    );
-  }
-
-  // The request page is a LabOS page the agent's link opens, so no settings shell either.
-  if (scenario === 'request') {
-    return (
-      <BackendTagsContext.Provider value={showTags}>
-        <div className={s.consentBand}>{reviewBand}</div>
-        <AccessRequestView
-          agents={agents}
-          viewer={viewer}
-          onAllow={onAllowRequest}
-          onDecline={() => setScenario('connected')}
-        />
       </BackendTagsContext.Provider>
     );
   }
@@ -259,9 +248,21 @@ export default function PrototypeABetterMcpConnectPrototype() {
             <div className={tabCss.root}>
               {reviewBand}
 
+              {/* Access request: what the agent said (review context), then the Settings page its link opens. */}
+              {scenario === 'request' && (
+                <AgentRequestReply
+                  agents={agents}
+                  viewer={viewer}
+                  requestId={requestId}
+                  onRequestChange={setRequestId}
+                />
+              )}
+
               <h5 className={tabCss.title}>MCP connections</h5>
 
               <McpSectionMock
+                key={scenario === 'request' ? requestId : 'settings'}
+                initialEditing={requestEditing}
                 agents={agents}
                 fullScreenDrawer={isPhone}
                 viewer={viewer}

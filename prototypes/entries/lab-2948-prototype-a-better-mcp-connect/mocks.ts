@@ -389,4 +389,4 @@ export const mockRequests: AccessRequest[] = [
   },
 ];
 
-export const requestUrl = (id: string) => `labos.plnetwork.io/mcp/allow/${id}`;
+export const requestUrl = (id: string) => `labos.plnetwork.io/settings/mcp?request=${id}`;

@@ -239,7 +239,8 @@ export function PrivyModals() {
         const formattedResult = structuredClone(result);
         delete formattedResult.userInfo.isFirstTimeLogin;
 
-        saveTokens(formattedResult, user as User);
+        // Throws when the server refuses the session; the catch below shows the sign-in error.
+        await saveTokens(formattedResult, user as User);
         await loginUser(result);
         analytics.onDirectoryLoginSuccess({ isAutoLogin: false });
       }

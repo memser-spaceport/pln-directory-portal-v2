@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 
 import type { AiAppFeedbackStatus } from '@/services/ai-app-feedback/constants';
 import type { AiAppFeedbackRow } from '@/services/ai-app-feedback/ai-app-feedback.service';
@@ -65,6 +65,8 @@ interface Props {
   canReview: boolean;
   onViewChange: (view: FeedbackView) => void;
   onStatusChange: (row: AiAppFeedbackRow, status: AiAppFeedbackStatus) => void;
+  /** Optional content under the tabs row (the MCP prototype puts its hint here). Nothing renders without it. */
+  notice?: ReactNode;
 }
 
 /**
@@ -80,7 +82,7 @@ interface Props {
  * status selector (read-only on your own items), lightbox, Export CSV and the
  * page stylesheet.
  */
-export function FeedbackPage({ view, received, mine, canReview, onViewChange, onStatusChange }: Props) {
+export function FeedbackPage({ view, received, mine, canReview, onViewChange, onStatusChange, notice }: Props) {
   const active: FeedbackView = canReview ? view : 'mine';
   const feedback = active === 'received' ? received : mine;
 
@@ -188,6 +190,8 @@ export function FeedbackPage({ view, received, mine, canReview, onViewChange, on
           )}
           {feedback.length > 0 && filters}
         </div>
+
+        {notice}
 
         {feedback.length === 0 ? (
           <div className={s.state}>{emptyCopy}</div>

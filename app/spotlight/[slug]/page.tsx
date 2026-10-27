@@ -112,6 +112,7 @@ export default async function SpotlightPage(props: PageProps) {
       {access && (
         <script
           type="application/ld+json"
+          // eslint-disable-next-line react/no-danger -- JSON-LD from serializeJsonLd, which escapes it for a script tag
           dangerouslySetInnerHTML={{ __html: serializeJsonLd(buildSpotlightJsonLd(access, pageUrl)) }}
         />
       )}

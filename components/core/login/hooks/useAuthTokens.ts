@@ -1,5 +1,6 @@
 import Cookies from 'js-cookie';
-import { setSessionCookie } from '@/utils/third-party.helper';
+import { hasSession } from '@/utils/third-party.helper';
+import { endSession, establishSession } from '@/services/session.service';
 import { User } from '@privy-io/react-auth';
 import { decodeToken } from '@/utils/auth.utils';
 import { usePostHog } from 'posthog-js/react';
@@ -48,28 +49,23 @@ export function useAuthTokens() {
   const postHog = usePostHog();
 
   /**
-   * Saves session cookies without requiring a Privy user (e.g. login-token redeem)
+   * Starts the session without requiring a Privy user (e.g. login-token redeem). LabOS's server stores the session
+   * cookies (refreshToken httpOnly); throws when it refuses the tokens, so the caller shows its sign-in error.
    */
   const saveSessionTokens = useCallback(
-    (response: TokenResponse, linkedAccounts = '') => {
-      const accessTokenExpiry = decodeToken(response.accessToken);
+    async (response: TokenResponse, linkedAccounts = '') => {
       const refreshTokenExpiry = decodeToken(response.refreshToken);
 
       localStorage.removeItem('stateUid');
 
-      setSessionCookie('authToken', JSON.stringify(response.accessToken), {
-        expires: new Date(accessTokenExpiry.exp * 1000),
+      const established = await establishSession({
+        accessToken: response.accessToken,
+        refreshToken: response.refreshToken,
+        userInfo: response.userInfo,
       });
-
-      setSessionCookie('refreshToken', JSON.stringify(response.refreshToken), {
-        expires: new Date(refreshTokenExpiry.exp * 1000),
-        path: '/',
-      });
-
-      setSessionCookie('userInfo', JSON.stringify(response.userInfo), {
-        expires: new Date(accessTokenExpiry.exp * 1000),
-        path: '/',
-      });
+      if (!established) {
+        throw new Error('Session could not be started');
+      }
 
       Cookies.set('authLinkedAccounts', JSON.stringify(linkedAccounts), {
         expires: new Date(refreshTokenExpiry.exp * 1000),
@@ -90,9 +86,7 @@ export function useAuthTokens() {
    * Saves tokens and user info to cookies after successful authentication
    */
   const saveTokens = useCallback(
-    (response: TokenResponse, user: User) => {
-      saveSessionTokens(response, getLinkedAccounts(user));
-    },
+    (response: TokenResponse, user: User) => saveSessionTokens(response, getLinkedAccounts(user)),
     [saveSessionTokens],
   );
 
@@ -102,8 +96,7 @@ export function useAuthTokens() {
   const isLoggedIn = useCallback((): boolean => {
     const userInfo = Cookies.get('userInfo');
     const accessToken = Cookies.get('accessToken');
-    const refreshToken = Cookies.get('refreshToken');
-    return Boolean(userInfo || accessToken || refreshToken);
+    return Boolean(userInfo || accessToken || hasSession());
   }, []);
 
   /**
@@ -120,12 +113,12 @@ export function useAuthTokens() {
   }, []);
 
   /**
-   * Clears auth-related cookies
+   * Clears auth-related cookies; the httpOnly refresh token is cleared by the server
    */
-  const clearAuthCookies = useCallback(() => {
+  const clearAuthCookies = useCallback(async () => {
+    await endSession();
     Cookies.remove('authLinkedAccounts');
     Cookies.remove('authToken');
-    Cookies.remove('refreshToken');
     Cookies.remove('userInfo');
   }, []);
 

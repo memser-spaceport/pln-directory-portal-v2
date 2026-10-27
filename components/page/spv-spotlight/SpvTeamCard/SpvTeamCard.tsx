@@ -10,6 +10,7 @@ import { collapseSpvAbout } from '@/utils/html/collapseSpvAbout';
 import { ArrowRightIcon, ArrowUpRightIcon, ExternalIcon, LockIcon } from '../icons';
 import { SpvMediaCarousel } from '../SpvMediaCarousel/SpvMediaCarousel';
 import s from './SpvTeamCard.module.scss';
+import { SafeHtml } from '@/components/ui/SafeHtml';
 
 type Props = {
   team: SpvTeam;
@@ -205,10 +206,7 @@ export function SpvTeamCard({
           <section className={s.asideBlock}>
             <h3 className={s.asideLabel}>About</h3>
             {aboutHtml ? (
-              <div
-                className={s.aboutFull}
-                dangerouslySetInnerHTML={{ __html: showFull ? aboutHtml : collapsedAbout.html }}
-              />
+              <SafeHtml className={s.aboutFull} profile="spv" html={showFull ? aboutHtml : collapsedAbout.html} />
             ) : null}
             {aboutHtml && collapsedAbout.hasMore && (
               <button

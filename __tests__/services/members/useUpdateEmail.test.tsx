@@ -7,6 +7,7 @@ import { triggerLoader } from '@/utils/common.utils';
 import { toast } from '@/components/core/ToastContainer';
 import Cookies from 'js-cookie';
 import type { IUserInfo } from '@/types/shared.types';
+import { establishSession } from '@/services/session.service';
 
 const mockCookies = Cookies as unknown as { get: jest.Mock; set: jest.Mock };
 
@@ -30,6 +31,10 @@ jest.mock('@/components/core/ToastContainer', () => ({
 
 jest.mock('@/utils/auth.utils', () => ({
   decodeToken: () => ({ exp: 2_000_000_000 }),
+}));
+
+jest.mock('@/services/session.service', () => ({
+  establishSession: jest.fn(),
 }));
 
 const onUpdateEmailClicked = jest.fn();
@@ -171,7 +176,8 @@ describe('useUpdateEmail', () => {
       await waitFor(() => expect(toast.error).toHaveBeenCalledWith(expect.stringContaining('Email already in use')));
     });
 
-    it('reissues the auth cookies when the change goes through', async () => {
+    it('reissues the session through the server when the change goes through', async () => {
+      (establishSession as jest.Mock).mockResolvedValue(true);
       const reload = jest.fn();
       Object.defineProperty(window, 'location', {
         configurable: true,
@@ -187,18 +193,40 @@ describe('useUpdateEmail', () => {
       await emitPrivyResult('new@plrs.xyz');
 
       await waitFor(() => expect(reload).toHaveBeenCalled());
-      expect(mockCookies.set).toHaveBeenCalledWith('authToken', JSON.stringify('new-access'), expect.anything());
-      expect(mockCookies.set).toHaveBeenCalledWith('refreshToken', JSON.stringify('new-refresh'), expect.anything());
-      expect(mockCookies.set).toHaveBeenCalledWith(
-        'userInfo',
-        JSON.stringify({ uid: 'member-1', email: 'new@plrs.xyz' }),
-        expect.anything(),
-      );
+      expect(establishSession).toHaveBeenCalledWith({
+        accessToken: 'new-access',
+        refreshToken: 'new-refresh',
+        userInfo: { uid: 'member-1', email: 'new@plrs.xyz' },
+      });
+      // refreshToken is httpOnly: browser code never writes it.
+      expect(mockCookies.set).not.toHaveBeenCalledWith('refreshToken', expect.anything(), expect.anything());
       expect(onUpdateEmailSuccess).toHaveBeenCalledWith(
         { newEmail: 'new@plrs.xyz', oldEmail: 'old@plrs.xyz' },
         undefined,
       );
       expect(toast.success).toHaveBeenCalledWith('Email Updated Successfully');
+    });
+
+    it('reports a failure and does not reload when the server refuses the new session', async () => {
+      const reload = jest.fn();
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: { ...window.location, reload },
+      });
+      (establishSession as jest.Mock).mockResolvedValue(false);
+      (updateUserDirectoryEmail as jest.Mock).mockResolvedValue({
+        accessToken: 'new-access',
+        refreshToken: 'new-refresh',
+        userInfo: { uid: 'member-1', email: 'new@plrs.xyz' },
+      });
+      const onFailure = jest.fn();
+      renderUpdateEmail(onFailure);
+
+      await emitPrivyResult('new@plrs.xyz');
+
+      await waitFor(() => expect(onFailure).toHaveBeenCalledWith(expect.objectContaining({ reason: 'unexpected' })));
+      expect(reload).not.toHaveBeenCalled();
+      expect(onUpdateEmailSuccess).not.toHaveBeenCalled();
     });
   });
 

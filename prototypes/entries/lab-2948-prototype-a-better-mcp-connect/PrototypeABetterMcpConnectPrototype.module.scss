@@ -63,3 +63,16 @@
   font-size: 14px;
   line-height: 20px;
 }
+
+/* The review band above the consent page, which has no settings column to sit in. */
+.consentBand {
+  max-width: 640px;
+  margin: 16px auto 0;
+  padding: 0 16px;
+}
+
+.hintsBand {
+  max-width: 1200px;
+  margin: 16px auto 0;
+  padding: 0 16px;
+}

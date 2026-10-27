@@ -36,9 +36,7 @@ export function FeedbackBody({ text, onImageClick }: Props) {
     <div className={s.messageBlock}>
       {/* Image-only feedback is a supported submission, and an empty ql-editor
           block for it would add padding under nothing. */}
-      {textHtml.trim() && (
-        <QuillContent html={textHtml} className={s.richMessage} sanitize={sanitizeAiAppFeedbackHtml} />
-      )}
+      {textHtml.trim() && <QuillContent html={textHtml} className={s.richMessage} profile="aiAppFeedback" />}
       {images.length > 0 && (
         <ul className={s.shotStrip}>
           {images.map((image, index) => (

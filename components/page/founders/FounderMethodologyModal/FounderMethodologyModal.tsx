@@ -5,6 +5,7 @@ import { Markdown } from '@/components/common/Markdown';
 import { useGetFounderMethodology } from '@/services/founders/hooks/useGetFounderMethodology';
 import type { FounderMethodologyPayload } from '@/services/founders/types';
 import s from './FounderMethodologyModal.module.scss';
+import { SafeHtml } from '@/components/ui/SafeHtml';
 
 interface Props {
   open: boolean;
@@ -49,13 +50,9 @@ export function FounderMethodologyModal({ open, onClose, triggerRef }: Props) {
           <div className={s.body}>
             {isLoading && <p className={s.muted}>Loading methodology…</p>}
 
-            {!isLoading && !data && (
-              <p className={s.empty}>Methodology will appear after the first data push.</p>
-            )}
+            {!isLoading && !data && <p className={s.empty}>Methodology will appear after the first data push.</p>}
 
-            {!isLoading && data && html && (
-              <div className={s.htmlContent} dangerouslySetInnerHTML={{ __html: html }} />
-            )}
+            {!isLoading && data && html && <SafeHtml className={s.htmlContent} profile="methodology" html={html} />}
 
             {!isLoading && data && !html && markdown && (
               <div className={s.markdown}>

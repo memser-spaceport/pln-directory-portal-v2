@@ -50,7 +50,7 @@ const setWidth = (width: number) => Object.defineProperty(window, 'innerWidth', 
 
 beforeEach(() => {
   jest.clearAllMocks();
-  Cookies.remove('refreshToken');
+  Cookies.remove('sessionExpiresAt');
   Cookies.remove('dailyChats');
   useCurrentUserStore.setState({ currentUser: null } as any);
   (getChatQuestions as jest.Mock).mockResolvedValue({ data: [] });
@@ -123,7 +123,7 @@ describe('AI Search new-chat page: signed-out daily limit', () => {
   });
 
   it('shows no notice to a signed-in member, whatever the count', async () => {
-    Cookies.set('refreshToken', JSON.stringify('refresh-jwt'));
+    Cookies.set('sessionExpiresAt', '2000000000');
     Cookies.set('dailyChats', '50');
     const { onSubmit } = renderHome();
     await flushFrame();

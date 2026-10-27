@@ -17,6 +17,7 @@ import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 import { ExpandableDescription } from '@/components/common/ExpandableDescription';
 
 import s from './About.module.scss';
+import { SafeHtml } from '@/components/ui/SafeHtml';
 
 interface Props {
   about: string;
@@ -121,7 +122,7 @@ export const About = (props: Props) => {
 
       {!showEditor && (
         <ExpandableDescription onShowMore={onShowMoreClickHandler} onShowLess={onShowLessClickHandler}>
-          <div className={s.content} dangerouslySetInnerHTML={{ __html: aboutContent }} />
+          <SafeHtml className={s.content} html={aboutContent} />
         </ExpandableDescription>
       )}
     </div>

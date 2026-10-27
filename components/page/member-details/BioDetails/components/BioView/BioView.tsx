@@ -8,6 +8,7 @@ import { EditButton } from '@/components/common/profile/EditButton';
 import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
 
 import s from './BioView.module.scss';
+import { SafeHtml } from '@/components/ui/SafeHtml';
 
 interface Props {
   member: IMember;
@@ -30,7 +31,7 @@ export const BioView = ({ member, isLoggedIn, userInfo, isEditable, showIncomple
 
       <div className={clsx(s.content)}>
         {hasBio && member.bio ? (
-          <div className={s.bioContent} dangerouslySetInnerHTML={{ __html: member.bio }} />
+          <SafeHtml className={s.bioContent} html={member.bio} />
         ) : (
           <div className={s.officeHoursSection}>
             <div className={s.col}>

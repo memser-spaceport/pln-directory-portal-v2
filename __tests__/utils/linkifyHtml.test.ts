@@ -23,9 +23,9 @@ describe('linkifyHtml', () => {
   });
 
   it('escapes a URL that would otherwise break out of the href attribute', () => {
-    // URL_REGEX matches everything up to whitespace, `"` included. QuillContent
-    // renders this function's output with NO sanitizer, so escaping here is the
-    // only thing standing between a crafted URL and an event handler.
+    // URL_REGEX matches everything up to whitespace, `"` included. Escaping here
+    // keeps a crafted URL from becoming an event handler even before the
+    // sanitizer that runs after linkify.
     const out = linkifyHtml('https://x.test/"onmouseover="alert(1)');
 
     expect(out).not.toContain('onmouseover="alert(1)"');

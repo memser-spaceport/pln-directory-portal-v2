@@ -3,7 +3,8 @@
 import { useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
-import DOMPurify from 'isomorphic-dompurify';
+import { sanitizeHtml } from '@/utils/html';
+import { SafeHtml } from '@/components/ui/SafeHtml';
 
 import { ArrowBackIcon, CloseIcon } from '@/components/icons';
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -51,27 +52,6 @@ interface NewsDetailBodyProps {
    *  Escape/backdrop closers, so the first Escape closes the popover, not the modal. */
   onShareOpenChange?: (open: boolean) => void;
 }
-
-// contentHtml comes from the AI enrichment pipeline — the least trusted markup
-// in the app, and the app ships no CSP, so this sanitizer is the only defense
-// layer (same rationale as PrdContent's). Enrichment output is 2–5 paragraphs
-// with inline emphasis and the odd link/list — allow exactly that, nothing else.
-const CONTENT_SANITIZE_CONFIG = {
-  ALLOWED_TAGS: ['p', 'strong', 'em', 'b', 'i', 'a', 'ul', 'ol', 'li', 'br'],
-  ALLOWED_ATTR: ['href'],
-  ALLOWED_URI_REGEXP: /^https?:/i,
-};
-
-// Registered once at module scope — DOMPurify hooks are global and stack if
-// added per render. Forcing target/rel after sanitizing is the canonical
-// cure53 pattern (before, they'd be stripped). Idempotent alongside the same
-// hook registered by other consumers (PrdContent).
-DOMPurify.addHook('afterSanitizeAttributes', (node) => {
-  if (node.tagName === 'A' && node.hasAttribute('href')) {
-    node.setAttribute('target', '_blank');
-    node.setAttribute('rel', 'noopener noreferrer');
-  }
-});
 
 /**
  * One story, in full — header, body and footer actions, as three siblings for
@@ -139,10 +119,7 @@ export function NewsDetailBody({
   const sources = getNewsSourcesWithPrimaryFallback(item);
   // Rich body from the API where present (older items fall back to the plain
   // summary until re-enriched server-side). Sanitized — never render raw.
-  const sanitizedContentHtml = useMemo(
-    () => (item.contentHtml ? DOMPurify.sanitize(item.contentHtml, CONTENT_SANITIZE_CONFIG) : null),
-    [item.contentHtml],
-  );
+  const sanitizedContentHtml = useMemo(() => sanitizeHtml(item.contentHtml, 'teamNews') || null, [item.contentHtml]);
 
   return (
     <>
@@ -205,7 +182,7 @@ export function NewsDetailBody({
         </h3>
 
         {sanitizedContentHtml ? (
-          <div className={s.content} dangerouslySetInnerHTML={{ __html: sanitizedContentHtml }} />
+          <SafeHtml className={s.content} profile="teamNews" html={sanitizedContentHtml} />
         ) : (
           item.summary && <p className={clsx(s.content, s.contentPlain)}>{item.summary}</p>
         )}

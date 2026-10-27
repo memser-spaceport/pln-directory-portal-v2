@@ -6,6 +6,7 @@ import { TagsSelector } from '@/components/core/tags-selector/TagsSelector';
 import { useFormContext } from 'react-hook-form';
 import s from '@/components/core/submit-ask-dialog/SubmitAskDialog.module.scss';
 import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
+import { SafeHtml } from '@/components/ui/SafeHtml';
 
 export const AskDetails = () => {
   const {
@@ -35,7 +36,7 @@ export const AskDetails = () => {
       <FormField label="Describe what you need help with*">
         <div className="addaskcnt__desc__edtr">
           {disabled ? (
-            <p className={s.content} dangerouslySetInnerHTML={{ __html: description }} />
+            <SafeHtml as="p" className={s.content} html={description} />
           ) : (
             <RichTextEditor
               value={description}

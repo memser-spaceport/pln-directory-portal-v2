@@ -88,7 +88,7 @@ beforeEach(() => {
   localStorage.clear();
   sessionStorage.clear();
   Cookies.remove('dailyChats');
-  Cookies.set('refreshToken', JSON.stringify('refresh-jwt'));
+  Cookies.set('sessionExpiresAt', '2000000000');
 });
 
 describe('AI Search chat: asking and streaming', () => {
@@ -215,7 +215,7 @@ describe('AI Search chat: a question handed over by another page', () => {
 
 describe('AI Search chat: signed-out daily limit', () => {
   beforeEach(() => {
-    Cookies.remove('refreshToken');
+    Cookies.remove('sessionExpiresAt');
   });
 
   it('refuses the question past the limit and shows the limit strip', async () => {

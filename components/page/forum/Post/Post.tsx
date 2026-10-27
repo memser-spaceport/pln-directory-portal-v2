@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useMemo } from 'react';
-import parse from 'html-react-parser';
 import Linkify from 'react-linkify';
 
 import s from './Post.module.scss';
@@ -36,6 +35,7 @@ import { isAdminUser } from '@/utils/user/isAdminUser';
 import { setStoredForumPostLike } from '@/utils/forumPostLikeStorage';
 import { imageFloatClass } from '@/utils/richText/imageFloatClass';
 import { decodeImageLayoutFromSrc } from '@/utils/html/decodeImageLayoutFromSrc';
+import { parseSafeHtml } from '@/utils/html';
 
 // Function to process markdown images and prepare content for Linkify
 export const processPostContent = (content: string) => {
@@ -333,7 +333,7 @@ export const Post = () => {
                   );
                 }}
               >
-                {parse(processedContent)}
+                {parseSafeHtml(processedContent, 'forumPost')}
               </Linkify>
             );
           })()}

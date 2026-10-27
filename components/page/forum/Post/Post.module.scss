@@ -237,8 +237,17 @@
     min-height: 1lh;
   }
 
+  // The sanitizer drops the inline style processPostContent puts on markdown
+  // images; these rules stand in for it. A wrapped image takes its margins
+  // from its float class.
   img {
     max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+
+    &:not([class*='ql-img-float']) {
+      margin: 8px 0;
+    }
   }
 
   a {

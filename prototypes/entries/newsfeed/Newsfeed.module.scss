@@ -462,6 +462,28 @@
   background: var(--background-brand-soft-surface, #f2f5ff);
 }
 
+/* Topic chip + its Follow, kept together so the row can wrap between groups
+   but never between a chip and the action that belongs to it. */
+.topicScope {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Quieter than the "Filter:" label: a fact about the chip, not a control. */
+.topicCount {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  white-space: nowrap;
+}
+
+.toastLink {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
 .scopeChipLabel.scopeChipLabel {
   cursor: default;
   color: var(--foreground-neutral-secondary, #455468);

@@ -35,8 +35,8 @@ interface ModalContent {
   onCancel?: () => void;
 }
 
-function handleLogout() {
-  clearAllAuthCookies();
+async function handleLogout() {
+  await clearAllAuthCookies();
   authEvents.emit('auth:logout');
   broadcastLogout();
 }

@@ -15,15 +15,12 @@ import {
   type Agent,
   type Levels,
   SCOPES,
-  SPIKE_TABLE_URL,
-  type Scope,
   type ScopeKey,
   type ScopeLevel,
   type Template,
   type Viewer,
   getWriteLock,
   templateLevels,
-  agentName,
   templateOf,
 } from './mocks';
 import { BackendTag } from './shared';
@@ -110,12 +107,7 @@ export function ScopeEditor({
         ))}
       </ul>
 
-      <p className={s.permFoot}>
-        Sign-in, sign-up and adding connections always stay in LabOS.{' '}
-        <a href={SPIKE_TABLE_URL} target="_blank" rel="noreferrer" className={s.textLink}>
-          See every action
-        </a>
-      </p>
+      <p className={s.permFoot}>Sign-in, sign-up and adding connections always stay in LabOS.</p>
     </div>
   );
 }
@@ -199,57 +191,15 @@ export function Acknowledge({
 }
 
 /**
- * Shown on Save when the edit turns write on somewhere. It names exactly what
- * this connection will be able to do as the member, in front of other people.
- */
-function WriteConsent({
-  name,
-  added,
-  onBack,
-  onConfirm,
-}: {
-  name: string;
-  added: Scope[];
-  onBack: () => void;
-  onConfirm: () => void;
-}) {
-  const [checked, setChecked] = useState(false);
-
-  return (
-    <div className={s.writeConsent}>
-      <h4 className={s.writeConsentTitle}>Let {name} act for you?</h4>
-      <p className={s.help}>With write, {name} can do these as you, and other members will see them as yours:</p>
-      <ul className={s.writeList}>
-        {added.map((scope) => (
-          <li key={scope.key}>
-            <strong>{scope.name}:</strong> {scope.write}
-          </li>
-        ))}
-      </ul>
-      <Acknowledge checked={checked} onChange={setChecked}>
-        I understand {name} can do these as me.
-      </Acknowledge>
-      <div className={s.writeConsentActions}>
-        <Button size="s" variant="neutral" style="border" className={s.btn} onClick={onBack}>
-          Back
-        </Button>
-        <Button size="s" variant="primary" className={s.btn} disabled={!checked} onClick={onConfirm}>
-          Turn on write and save
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-/**
  * Settings: one connection's permissions, opened from its Access row. Changes
- * are a draft until Save; if the draft turns write on anywhere, Save goes
- * through WriteConsent first. Mount it per connection (key by uid) so each
+ * are a draft until Save, and Save saves: no second consent step for write
+ * (removed 2026-10-27; each row already says what write lets it do). Mount it per connection (key by uid) so each
  * open starts from that connection's saved access.
  */
 export function PermissionsDrawer({
   agent,
   preset,
+  request,
   viewer,
   fullScreen,
   onSave,
@@ -258,21 +208,20 @@ export function PermissionsDrawer({
   agent: Agent | null;
   /** Opens with these rows already changed (the card's "Allow" on a blocked action). */
   preset?: Partial<Levels>;
+  /** Opened from the agent's "allow it here" link: what it asked for, shown above the rows. */
+  request?: { ask: string; tried: string };
   viewer: Viewer;
   fullScreen: boolean;
   onSave: (uid: string, next: Levels) => void;
   onClose: () => void;
 }) {
   const [draft, setDraft] = useState<Levels | null>(agent ? { ...agent.levels, ...preset } : null);
-  const [asking, setAsking] = useState(false);
 
   if (!agent || !draft) {
     return <Drawer isOpen={false} onClose={onClose} width={640} fullScreen={fullScreen} />;
   }
 
-  const name = agentName(agent);
   const changed = SCOPES.some((scope) => draft[scope.key] !== agent.levels[scope.key]);
-  const added = SCOPES.filter((scope) => draft[scope.key] === 'write' && agent.levels[scope.key] !== 'write');
 
   const save = () => onSave(agent.uid, draft);
 
@@ -291,28 +240,27 @@ export function PermissionsDrawer({
         </div>
       </div>
       <div className={s.drawerBody}>
-        {asking ? (
-          <WriteConsent name={name} added={added} onBack={() => setAsking(false)} onConfirm={save} />
-        ) : (
-          <ScopeEditor levels={draft} viewer={viewer} onChange={(next) => setDraft(next)} />
+        {request && (
+          <div className={s.requestNote}>
+            <span className={s.label}>
+              {agent.clientName} asked to {request.ask}
+            </span>
+            <p className={s.help}>
+              It tried to {request.tried.charAt(0).toLowerCase() + request.tried.slice(1)}. It’s set to Read and write
+              below; save to allow it.
+            </p>
+          </div>
         )}
+        <ScopeEditor levels={draft} viewer={viewer} onChange={(next) => setDraft(next)} />
       </div>
-      {!asking && (
-        <div className={s.drawerFoot}>
-          <Button size="m" variant="neutral" style="border" className={s.btn} onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            size="m"
-            variant="primary"
-            className={s.btn}
-            disabled={!changed}
-            onClick={() => (added.length ? setAsking(true) : save())}
-          >
-            Save
-          </Button>
-        </div>
-      )}
+      <div className={s.drawerFoot}>
+        <Button size="m" variant="neutral" style="border" className={s.btn} onClick={onClose}>
+          Cancel
+        </Button>
+        <Button size="m" variant="primary" className={s.btn} disabled={!changed} onClick={save}>
+          Save
+        </Button>
+      </div>
     </Drawer>
   );
 }
@@ -357,13 +305,12 @@ export function ConsentScreen({
         <div className={s.consentBody}>
           <div className={s.consentSection}>
             <div className={s.labelRow}>
-              <span className={s.label}>Read only</span>
+              <span className={s.label}>Read only (default)</span>
               <BackendTag>Needs scopes on the MCP server</BackendTag>
             </div>
             <p className={s.help}>
-              {clientName} can read what you can read in LabOS: members, teams, projects, the forum, news, events and
-              open roles. It can’t post, contact anyone or book anything. To let it, turn on write later in Settings,
-              under MCP connections.
+              {clientName} can view what you can view in LabOS: members, teams, projects, the forum, news, events and
+              open roles. You can give it more access or less at any time in Settings → MCP connections.
             </p>
           </div>
           <div className={s.consentNotice}>

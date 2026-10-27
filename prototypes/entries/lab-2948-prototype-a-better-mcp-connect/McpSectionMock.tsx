@@ -28,16 +28,16 @@ import {
   agentName,
   agentStatus,
   getSetupSteps,
+  templateOf,
   mockServerUrl,
 } from './mocks';
 import { PermissionsDrawer } from './Permissions';
-import { AgentMark, BackendTag, formatAgo, formatDate } from './shared';
+import { AgentMark, BackendTag } from './shared';
 import s from './McpSectionMock.module.scss';
 
 const CLIENTS: { name: string; value: ClientKey }[] = [
   { name: 'Claude Code', value: 'claude-code' },
   { name: 'Codex', value: 'codex' },
-  { name: 'Claude.ai', value: 'claude-ai' },
   { name: 'Others', value: 'other' },
 ];
 
@@ -58,16 +58,20 @@ interface Props {
   viewer: Viewer;
   onLevelsChange: (uid: string, next: Levels) => void;
   onRevoke: (uid: string) => void;
+  /** Mount with a connection's Permissions drawer already open (the agent's request link). */
+  initialEditing?: Editing;
 }
+
+type Editing = { uid: string; preset?: Partial<Levels>; request?: { ask: string; tried: string } };
 
 /**
  * MCP connections. Each connection has its own access (2026-10-26 review):
  * it starts Read only on the consent screen, and its card has a Permissions link
  * (the scope editor in a drawer with one Save) next to View activity and Revoke.
  */
-export function McpSectionMock({ agents, fullScreenDrawer, viewer, onLevelsChange, onRevoke }: Props) {
+export function McpSectionMock({ agents, fullScreenDrawer, viewer, onLevelsChange, onRevoke, initialEditing }: Props) {
   const [connectOpen, setConnectOpen] = useState(false);
-  const [editing, setEditing] = useState<{ uid: string; preset?: Partial<Levels> } | null>(null);
+  const [editing, setEditing] = useState<Editing | null>(initialEditing ?? null);
   // `undefined` = drawer closed; `null` = open on all agents; a uid = open on that agent.
   const [activityFilter, setActivityFilter] = useState<string | null | undefined>(undefined);
 
@@ -77,10 +81,18 @@ export function McpSectionMock({ agents, fullScreenDrawer, viewer, onLevelsChang
     <section className={mcp.root}>
       <div className={mcp.header}>Connections</div>
       <div className={mcp.content}>
-        <p className={mcp.desc}>
-          Connect Claude Code, Codex, Claude.ai or any MCP client to LabOS. Each connection acts as you, within its own
-          access. New connections start read only.
-        </p>
+        {/* Why connect, before how (Anuj, 2026-10-27). */}
+        <div className={mcp.desc}>
+          <p className={s.useCasesLead}>Use LabOS from your AI sessions in Claude, Codex or any MCP client:</p>
+          <ul className={s.useCases}>
+            <li>Post updates about your team or project, like a product launch or a job opening</li>
+            <li>Search teams, members, open roles and investors</li>
+            <li>Hand off tasks, like updating your profile or RSVPing to events</li>
+          </ul>
+          <p className={s.useCasesLead}>
+            Each connection acts as you, within its own access. New connections start read only.
+          </p>
+        </div>
 
         {connected && (
           <ul className={mcp.list}>
@@ -88,6 +100,7 @@ export function McpSectionMock({ agents, fullScreenDrawer, viewer, onLevelsChang
               <AgentCard
                 key={agent.uid}
                 agent={agent}
+                viewer={viewer}
                 onEditAccess={() => setEditing({ uid: agent.uid })}
                 onRevoke={onRevoke}
                 onViewAll={() => setActivityFilter(agent.uid)}
@@ -117,6 +130,7 @@ export function McpSectionMock({ agents, fullScreenDrawer, viewer, onLevelsChang
         key={editing ? `${editing.uid}-${JSON.stringify(editing.preset ?? {})}` : 'closed'}
         agent={agents.find((agent) => agent.uid === editing?.uid) ?? null}
         preset={editing?.preset}
+        request={editing?.request}
         viewer={viewer}
         fullScreen={fullScreenDrawer}
         onSave={(uid, next) => {
@@ -131,11 +145,13 @@ export function McpSectionMock({ agents, fullScreenDrawer, viewer, onLevelsChang
 
 function AgentCard({
   agent,
+  viewer,
   onEditAccess,
   onRevoke,
   onViewAll,
 }: {
   agent: Agent;
+  viewer: Viewer;
   onEditAccess: () => void;
   onRevoke: (uid: string) => void;
   onViewAll: () => void;
@@ -154,12 +170,14 @@ function AgentCard({
             </Badge>
             {agent.account && <BackendTag>Needs the account email from the client</BackendTag>}
           </div>
-          <div className={s.meta}>
-            {agent.account && <span className={s.agentAccount}>{agent.account} · </span>}
-            Connected {formatDate(agent.connectedAt)} · Last used{' '}
-            {agent.lastUsedAt ? formatAgo(agent.lastUsedAt) : 'never'}
-            {status === 'expired' && ' · Reconnect from the client to use it again'}
-          </div>
+          {/* Connected / last used dates were cut (2026-10-27); the status badge carries recency. */}
+          {(agent.account || status === 'expired') && (
+            <div className={s.meta}>
+              {agent.account && <span className={s.agentAccount}>{agent.account}</span>}
+              {agent.account && status === 'expired' && ' · '}
+              {status === 'expired' && 'Reconnect from the client to use it again'}
+            </div>
+          )}
         </div>
         <div className={s.agentActions}>
           <Button size="s" style="link" className={clsx(s.linkBtn, s.editLink)} onClick={onEditAccess}>
@@ -173,7 +191,7 @@ function AgentCard({
         </div>
       </div>
       <div className={s.scopeRow}>
-        <ScopeChips levels={agent.levels} onMore={onEditAccess} />
+        <ScopeChips levels={agent.levels} viewer={viewer} onMore={onEditAccess} />
       </div>
       {/* Phones: the same action as a full-width secondary button under the chips (the link is hidden there). */}
       <div className={s.editMobile}>
@@ -193,8 +211,30 @@ const SCOPE_CHIP_COUNT = 4;
  * in priority order. The first four show; "+N more" opens the full list in the
  * Permissions drawer, the card's only way in (so with nothing hidden, the same
  * chip reads "Edit").
+ *
+ * A connection still on a template reads as one chip instead (Anuj,
+ * 2026-10-27: the common case, read only by default, at a glance).
  */
-function ScopeChips({ levels, onMore }: { levels: Levels; onMore: () => void }) {
+function ScopeChips({ levels, viewer, onMore }: { levels: Levels; viewer: Viewer; onMore: () => void }) {
+  const template = templateOf(levels, viewer);
+  if (template !== 'custom') {
+    return (
+      <ul className={s.scopeChips} aria-label="Permissions">
+        <li>
+          {/* A control chip, like "+N more": it opens the Permissions drawer. */}
+          <button
+            type="button"
+            className={clsx(badgeCss.root, badgeCss.default, s.scopeChip, s.scopeMore)}
+            aria-label={`${template === 'read' ? 'Read only (default)' : 'Read and write'}. Edit permissions`}
+            onClick={onMore}
+          >
+            {template === 'read' ? 'Read only (default)' : 'Read and write'}
+          </button>
+        </li>
+      </ul>
+    );
+  }
+
   const chips = SCOPES.filter((scope) => levels[scope.key] !== 'none').map(
     (scope) => `${scope.key.replace(/-/g, '_')}:${levels[scope.key]}`,
   );
@@ -302,6 +342,10 @@ function AgentMenu({ name, onViewAll, onRevoke }: { name: string; onViewAll?: ()
   );
 }
 
+/**
+ * How to connect, in LAB-2993's order (Anuj, 2026-10-27): the Claude app first,
+ * with no terminal, then the commands for developers.
+ */
 function ConnectBlock({ connected, onClose }: { connected: boolean; onClose: () => void }) {
   const [client, setClient] = useState<ClientKey>('claude-code');
 
@@ -316,48 +360,68 @@ function ConnectBlock({ connected, onClose }: { connected: boolean; onClose: () 
         )}
       </div>
 
-      <div className={clsx(mcp.row, s.urlRow)}>
-        <div className={s.urlText}>
-          <div className={mcp.label}>MCP server URL</div>
-          <code className={mcp.code}>{mockServerUrl}</code>
-        </div>
-        <CopyButton text={mockServerUrl} />
+      <div className={s.connectGroup}>
+        <span className={s.groupTitle}>
+          <ClientLogo client="claude-ai" />
+          Claude app (web, desktop, mobile)
+        </span>
+        <SetupSteps steps={getSetupSteps('claude-ai', mockServerUrl)} stepKey="claude-app" />
+        <p className={s.help}>
+          After this, LabOS works in Claude on web, desktop and mobile. If you don’t see Add custom connector, ask your
+          Claude workspace admin to add LabOS.
+        </p>
       </div>
 
-      <Tabs
-        tabs={CLIENT_TABS}
-        value={client}
-        onValueChange={(v) => setClient(v as ClientKey)}
-        variant="pill"
-        classes={{ root: s.tabs }}
-      />
-      <ol className={s.steps}>
-        {getSetupSteps(client, mockServerUrl).map((step, index) => (
-          <li key={`${client}-${index}`} className={s.step}>
-            <span className={s.stepNumber}>{index + 1}</span>
-            <div className={s.stepBody}>
-              <span>{step.text}</span>
-              {step.code && (
-                <div className={clsx(mcp.row, s.codeRow)}>
-                  <code className={mcp.code}>{step.code}</code>
-                  <CopyButton text={step.code} />
-                </div>
-              )}
-              {step.link && (
-                <Button
-                  size="s"
-                  variant="secondary"
-                  style="border"
-                  className={clsx(s.btn, s.stepLink)}
-                  onClick={() => window.open(step.link?.href, '_blank', 'noopener')}
-                >
-                  {step.link.label}
-                </Button>
-              )}
-            </div>
-          </li>
-        ))}
-      </ol>
+      <div className={s.connectGroup}>
+        <span className={s.groupTitle}>For developers</span>
+        <div className={clsx(mcp.row, s.urlRow)}>
+          <div className={s.urlText}>
+            <div className={mcp.label}>MCP server URL</div>
+            <code className={mcp.code}>{mockServerUrl}</code>
+          </div>
+          <CopyButton text={mockServerUrl} />
+        </div>
+        <Tabs
+          tabs={CLIENT_TABS}
+          value={client}
+          onValueChange={(v) => setClient(v as ClientKey)}
+          variant="pill"
+          classes={{ root: s.tabs }}
+        />
+        <SetupSteps steps={getSetupSteps(client, mockServerUrl)} stepKey={client} />
+      </div>
     </div>
+  );
+}
+
+function SetupSteps({ steps, stepKey }: { steps: ReturnType<typeof getSetupSteps>; stepKey: string }) {
+  return (
+    <ol className={s.steps}>
+      {steps.map((step, index) => (
+        <li key={`${stepKey}-${index}`} className={s.step}>
+          <span className={s.stepNumber}>{index + 1}</span>
+          <div className={s.stepBody}>
+            <span>{step.text}</span>
+            {step.code && (
+              <div className={clsx(mcp.row, s.codeRow)}>
+                <code className={mcp.code}>{step.code}</code>
+                <CopyButton text={step.code} />
+              </div>
+            )}
+            {step.link && (
+              <Button
+                size="s"
+                variant="secondary"
+                style="border"
+                className={clsx(s.btn, s.stepLink)}
+                onClick={() => window.open(step.link?.href, '_blank', 'noopener')}
+              >
+                {step.link.label}
+              </Button>
+            )}
+          </div>
+        </li>
+      ))}
+    </ol>
   );
 }

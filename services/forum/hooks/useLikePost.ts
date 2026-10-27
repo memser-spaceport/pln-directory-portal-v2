@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { customFetch } from '@/utils/fetch-wrapper';
 import { ForumQueryKeys } from '@/services/forum/constants';
+import { forumFetch } from '@/services/forum/forum.service';
 import { TopicResponse } from '@/services/forum/hooks/useForumPost';
 import { toast } from '@/components/core/ToastContainer';
 import { setStoredForumPostLike } from '@/utils/forumPostLikeStorage';
@@ -17,22 +17,12 @@ interface MutationParams {
 // for the same endpoint. Previously this only ever PUT, so an already-liked
 // post had no way to unlike.
 async function mutation({ pid, isLiked }: MutationParams) {
-  const token = process.env.CUSTOM_FORUM_AUTH_TOKEN;
   const nextLiked = !isLiked;
 
-  const response = await customFetch(
-    `${process.env.FORUM_API_URL}/api/v3/posts/${pid}/vote`,
-    {
-      method: nextLiked ? 'PUT' : 'DELETE',
-      ...(nextLiked ? { body: JSON.stringify({ delta: 1 }) } : {}),
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      credentials: 'include',
-    },
-    !token,
-  );
+  const response = await forumFetch(`/api/v3/posts/${pid}/vote`, {
+    method: nextLiked ? 'PUT' : 'DELETE',
+    ...(nextLiked ? { body: JSON.stringify({ delta: 1 }) } : {}),
+  });
 
   if (!response?.ok) {
     const res = await response?.json();

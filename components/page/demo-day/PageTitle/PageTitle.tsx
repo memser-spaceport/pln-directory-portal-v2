@@ -33,7 +33,9 @@ export function PageTitle(props: PageTitleProps) {
     <div className={s.root}>
       <h1 className={`${s.title} ${size === 'small' && s.small}`}>{title}</h1>
       {description ? (
-        <p
+        /* A div, because the description is rich-text HTML in its own <p>s: a <p> around it can't survive the server
+           HTML (the browser splits nested paragraphs) and fails hydration (LAB-2930). */
+        <div
           className={`${s.description} ${size === 'small' && s.small}`}
           dangerouslySetInnerHTML={{ __html: description }}
         />

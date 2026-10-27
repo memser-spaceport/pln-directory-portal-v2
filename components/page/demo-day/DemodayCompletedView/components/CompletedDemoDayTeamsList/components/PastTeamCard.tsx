@@ -5,6 +5,7 @@ import Image from 'next/image';
 import React, { useCallback, MouseEvent } from 'react';
 
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { useIsClient } from '@/hooks/useIsClient';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 
 import { Badge } from '@/components/common/Badge';
@@ -24,6 +25,7 @@ export function PastTeamCard(props: Props) {
   const { uid, name, logoUrl, newsCount, shortDescription } = team;
 
   const defaultAvatarImage = useDefaultAvatar(team?.name ?? '');
+  const isClient = useIsClient();
   const { onCompletedViewTeamCardClicked } = useDemoDayAnalytics();
 
   const { isPending, isFollowing, toggleFollow } = useFollowDemoDayTeam(team);
@@ -63,7 +65,10 @@ export function PastTeamCard(props: Props) {
         <div className={s.nameRow}>
           <div className={s.nameGroup}>
             <div className={s.name}>{name}</div>
-            {newsCount > 0 && (
+            {/* A link inside the card's link: the HTML parser can't nest them, so from the server HTML the card would
+                come apart and fail hydration (LAB-2930). Shown from hydration on, as it was before the page rendered
+                on the server. */}
+            {isClient && newsCount > 0 && (
               <a
                 target="_blank"
                 href={`${teamPageUrl}?highlight=news`}

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { ForumQueryKeys } from '@/services/forum/constants';
-import { customFetch } from '@/utils/fetch-wrapper';
+import { forumFetch } from '@/services/forum/forum.service';
 
 type CategoriesResponse = {
   categories: [
@@ -198,18 +198,7 @@ type CategoriesResponse = {
 };
 
 async function fetcher() {
-  const token = process.env.CUSTOM_FORUM_AUTH_TOKEN;
-  const response = await customFetch(
-    `${process.env.FORUM_API_URL}/api/categories`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      credentials: 'include',
-    },
-    !token,
-  );
+  const response = await forumFetch('/api/categories');
 
   if (!response?.ok) {
     return [];

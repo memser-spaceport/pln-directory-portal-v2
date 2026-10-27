@@ -1,32 +1,33 @@
 import { customFetch } from '@/utils/fetch-wrapper';
 
 /**
- * One place that knows how to call NodeBB.
- *
- * Every forum hook was repeating the same four lines (base URL, JSON header,
- * optional `CUSTOM_FORUM_AUTH_TOKEN` bearer, `credentials: 'include'`, and the
- * "send the directory token only when there's no forum token" rule). The feed
- * now calls NodeBB too — the directory backend stopped proxying forum posts in
- * BE PR #3293 — so this is shared rather than copied a fifth time.
+ * Browser calls to NodeBB go through `/api/forum/nodebb`. The forum bearer
+ * token stays on that server route. The third argument is false so this call
+ * does not put the member directory token on the browser request: the route
+ * reads the session cookie and chooses the NodeBB bearer.
  *
  * Returns customFetch's response, which may be `undefined` when the wrapper
  * logs the user out mid-flight: callers must guard with `response?.ok`.
  */
 export function forumFetch(path: string, init: RequestInit = {}) {
-  const token = process.env.CUSTOM_FORUM_AUTH_TOKEN;
+  const callerHeaders: Record<string, string> = {};
+  if (init.headers) {
+    new Headers(init.headers).forEach((value, key) => {
+      if (key !== 'authorization') callerHeaders[key] = value;
+    });
+  }
 
   return customFetch(
-    `${process.env.FORUM_API_URL}${path}`,
+    `/api/forum/nodebb${path}`,
     {
       ...init,
       headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...init.headers,
+        ...callerHeaders,
+        'content-type': 'application/json',
       },
       credentials: 'include',
     },
-    !token,
+    false,
   );
 }
 

@@ -1041,8 +1041,14 @@
 }
 
 .agentReplyLink {
+  padding: 0;
+  border: 0;
+  background: none;
   color: #93c5fd;
+  font: inherit;
+  text-align: left;
   text-decoration: underline;
+  cursor: pointer;
 }
 
 /* Top of the Permissions drawer when the agent's link opened it. */
@@ -1118,5 +1124,42 @@
     > button {
       width: 100%;
     }
+  }
+}
+
+/* Connect block: the Claude app group, then For developers (LAB-2993 order). */
+.connectGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+
+  & + & {
+    padding-top: 12px;
+    border-top: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+  }
+}
+
+.groupTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+/* Section intro: why connect, as a short list (Anuj, 2026-10-27). */
+.useCasesLead {
+  margin: 0;
+}
+
+.useCases {
+  margin: 4px 0 8px;
+  padding-left: 20px;
+
+  li + li {
+    margin-top: 2px;
   }
 }

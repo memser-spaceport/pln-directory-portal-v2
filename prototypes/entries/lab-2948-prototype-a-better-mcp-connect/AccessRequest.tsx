@@ -12,19 +12,22 @@ import s from './McpSectionMock.module.scss';
  * agent says so in one line with a link (or, for a feature admins switched off,
  * says it can't). The link opens Settings → MCP connections with that
  * connection's Permissions drawer open and the feature already set to write
- * (2026-10-27: no separate request page). Saving goes through the same write
- * consent as any other change, so the agent never grants itself anything.
+ * (2026-10-27: no separate request page). Only the member's Save grants it,
+ * so the agent never grants itself anything.
  */
 export function AgentRequestReply({
   agents,
   viewer,
   requestId,
   onRequestChange,
+  onOpenLink,
 }: {
   agents: Agent[];
   viewer: Viewer;
   requestId: string;
   onRequestChange: (id: string) => void;
+  /** The link in the agent's reply: opens the drawer again (the member may have closed it). */
+  onOpenLink: () => void;
 }) {
   const request = mockRequests.find((item) => item.id === requestId)!;
   const agent = agents.find((item) => item.uid === request.agentUid);
@@ -70,17 +73,24 @@ export function AgentRequestReply({
         ) : (
           <p className={s.agentReplyText}>
             I couldn’t do that: {agent.clientName} can only read the {scope.name} in LabOS. To let me {request.ask},
-            allow it here: <span className={s.agentReplyLink}>{requestUrl(request.id)}</span>
+            allow it here:{' '}
+            <button type="button" className={s.agentReplyLink} onClick={onOpenLink}>
+              {requestUrl(request.id)}
+            </button>
           </p>
         )}
       </div>
 
       {lock ? (
         <p className={s.requestNone}>
-          No link: a feature that is switched off has nothing to allow, so Settings opens as usual.
+          No link: a feature that is switched off has nothing to allow. The agent can still point to Settings → MCP
+          connections, which has its own address (labos.plnetwork.io/settings/mcp).
         </p>
       ) : (
-        <p className={s.requestNone}>The link opens this connection’s permissions in Settings, below.</p>
+        <p className={s.requestNone}>
+          The link opens Settings → MCP connections (its own address, /settings/mcp) with this connection’s permissions
+          open. Click it to open them again.
+        </p>
       )}
     </div>
   );

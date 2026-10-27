@@ -176,7 +176,7 @@ export type AgentAction = {
 export type Agent = {
   uid: string;
   clientName: string;
-  /** The account signed in on the client (its email), so two accounts of one client can be told apart. Needs the client to share it. */
+  /** The account signed in on the client (its email), shown on every card (2026-10-27). Needs the client to share it. */
   account?: string;
   /** What this connection may do. Starts Read only on connect; changed per connection in Settings. */
   levels: Levels;
@@ -246,6 +246,7 @@ export const mockAgents: Agent[] = [
   {
     uid: 'agent-claude-code',
     clientName: 'Claude Code',
+    account: 'alex.chen@gmail.com',
     levels: mockScopeLevels,
     connectedAt: '2026-10-03T10:12:00Z',
     lastUsedAt: '2026-10-21T19:50:00Z',
@@ -286,6 +287,7 @@ export const mockAgents: Agent[] = [
   {
     uid: 'agent-codex',
     clientName: 'Codex',
+    account: 'alex.chen@gmail.com',
     levels: templateLevels('read', 'member'),
     connectedAt: '2026-10-11T14:30:00Z',
     lastUsedAt: '2026-10-19T13:22:00Z',
@@ -305,6 +307,7 @@ export const mockAgents: Agent[] = [
   {
     uid: 'agent-claude-ai',
     clientName: 'Claude.ai',
+    account: 'alex.chen@gmail.com',
     levels: templateLevels('read', 'member'),
     connectedAt: '2026-10-20T16:45:00Z',
     lastUsedAt: null,
@@ -316,7 +319,7 @@ export type ClientKey = 'claude-code' | 'codex' | 'claude-ai' | 'other';
 
 export type SetupStep = { text: string; code?: string; link?: { label: string; href: string } };
 
-const CONSENT_STEP = 'On the LabOS screen, choose what it can do and approve.';
+const CONSENT_STEP = 'Sign in to LabOS and approve. It starts with read-only access.';
 
 export function getSetupSteps(client: ClientKey, serverUrl: string): SetupStep[] {
   switch (client) {
@@ -335,11 +338,11 @@ export function getSetupSteps(client: ClientKey, serverUrl: string): SetupStep[]
     case 'claude-ai':
       return [
         {
-          text: 'In Claude.ai, open Connectors and click "Add custom connector".',
-          link: { label: 'Open Claude.ai connectors', href: 'https://claude.ai/settings/connectors' },
+          text: 'In Claude, open Settings → Connectors → Add custom connector.',
+          link: { label: 'Open Claude connectors', href: 'https://claude.ai/settings/connectors' },
         },
-        { text: 'Name it "LabOS" and paste the server URL.' },
-        { text: `Click "Connect". ${CONSENT_STEP}` },
+        { text: 'Name it "LabOS" and paste the LabOS MCP server URL. Select Add, then Connect.', code: serverUrl },
+        { text: CONSENT_STEP },
       ];
     default:
       return [

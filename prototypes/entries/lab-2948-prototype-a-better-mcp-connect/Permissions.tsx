@@ -15,7 +15,6 @@ import {
   type Agent,
   type Levels,
   SCOPES,
-  SPIKE_TABLE_URL,
   type ScopeKey,
   type ScopeLevel,
   type Template,
@@ -108,12 +107,7 @@ export function ScopeEditor({
         ))}
       </ul>
 
-      <p className={s.permFoot}>
-        Sign-in, sign-up and adding connections always stay in LabOS.{' '}
-        <a href={SPIKE_TABLE_URL} target="_blank" rel="noreferrer" className={s.textLink}>
-          See every action
-        </a>
-      </p>
+      <p className={s.permFoot}>Sign-in, sign-up and adding connections always stay in LabOS.</p>
     </div>
   );
 }
@@ -311,13 +305,12 @@ export function ConsentScreen({
         <div className={s.consentBody}>
           <div className={s.consentSection}>
             <div className={s.labelRow}>
-              <span className={s.label}>Read only</span>
+              <span className={s.label}>Read only (default)</span>
               <BackendTag>Needs scopes on the MCP server</BackendTag>
             </div>
             <p className={s.help}>
-              {clientName} can read what you can read in LabOS: members, teams, projects, the forum, news, events and
-              open roles. It can’t post, contact anyone or book anything. To let it, turn on write later in Settings,
-              under MCP connections.
+              {clientName} can view what you can view in LabOS: members, teams, projects, the forum, news, events and
+              open roles. You can give it more access or less at any time in Settings → MCP connections.
             </p>
           </div>
           <div className={s.consentNotice}>

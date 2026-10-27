@@ -127,8 +127,10 @@ export default function PrototypeABetterMcpConnectPrototype() {
       )!;
 
   const onApprove = () => {
-    // A second account of a client already connected arrives with its own email (mocked).
-    const account = agents.some((agent) => agent.clientName === consentClient) ? 'alex.chen@protocol.ai' : undefined;
+    // Every connection carries its account email; a second account of the same client has another one (mocked).
+    const account = agents.some((agent) => agent.clientName === consentClient)
+      ? 'alex.chen@protocol.ai'
+      : 'alex.chen@gmail.com';
     setAgents((current) => [
       ...current,
       {
@@ -147,6 +149,8 @@ export default function PrototypeABetterMcpConnectPrototype() {
 
   // The agent's request link opens Settings with that connection's drawer open and the feature set to write.
   const [requestId, setRequestId] = useState(mockRequests[0].id);
+  // Bumped by the link in the agent's reply, so the drawer opens again after it was closed.
+  const [requestOpens, setRequestOpens] = useState(0);
   const request = mockRequests.find((item) => item.id === requestId)!;
   const requestEditing =
     scenario === 'request' && !getWriteLock(request.scope, viewer)
@@ -255,13 +259,14 @@ export default function PrototypeABetterMcpConnectPrototype() {
                   viewer={viewer}
                   requestId={requestId}
                   onRequestChange={setRequestId}
+                  onOpenLink={() => setRequestOpens((n) => n + 1)}
                 />
               )}
 
               <h5 className={tabCss.title}>MCP connections</h5>
 
               <McpSectionMock
-                key={scenario === 'request' ? requestId : 'settings'}
+                key={scenario === 'request' ? `${requestId}-${requestOpens}` : 'settings'}
                 initialEditing={requestEditing}
                 agents={agents}
                 fullScreenDrawer={isPhone}

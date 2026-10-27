@@ -20,6 +20,7 @@ import { UpvoteButton } from '../NewsCard/components/UpvoteButton';
 import { NewsShareMenu } from '../NewsShareMenu';
 import { ViewCount } from '../ViewCount/ViewCount';
 import { FeedCommentsThread } from '../FeedCommentsThread/FeedCommentsThread';
+import { NewsTagChips } from '../NewsTagChips';
 
 import newsCardStyles from '../NewsCard/NewsCard.module.scss';
 import s from './NewsDetailModal.module.scss';
@@ -199,6 +200,8 @@ export function NewsDetailBody({
           <span className={newsCardStyles.sep} aria-hidden="true" />
           <span className={newsCardStyles.time}>{formatTimeAgo(item.eventDate)}</span>
         </div>
+
+        <NewsTagChips tags={item.tags} variant="detail" />
 
         <h3 id={TITLE_ID} className={s.title}>
           {item.title}

@@ -1,0 +1,33 @@
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+}
+
+// The filled grey tag of DealCard (.tag + .tagDefault) at the compact card's
+// 12px, as the newsfeed prototype's TopicTags renders it.
+.chip {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  padding: 2px 10px;
+  border-radius: 9999px;
+  background: rgba(14, 15, 17, 0.06);
+  color: #455468;
+
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+}

@@ -22,6 +22,7 @@ import { CommentButton } from '../NewsCard/components/CommentButton/CommentButto
 import { NewsShareMenu } from '../NewsShareMenu';
 import { SourceList } from '../SourceList/SourceList';
 import { ViewCount } from '../ViewCount/ViewCount';
+import { NewsTagChips } from '../NewsTagChips';
 import { FeedCommentsThread, feedThreadDomId } from '../FeedCommentsThread/FeedCommentsThread';
 import { hasNewsSource } from '../../utils/getNewsSources';
 
@@ -269,6 +270,7 @@ function StoryRow({
     >
       <h3 className={newsCardStyles.headline}>{story.title}</h3>
       {story.summary && <p className={s.summary}>{story.summary}</p>}
+      <NewsTagChips tags={story.tags} variant="card" />
       <div className={newsCardStyles.metaLine}>
         <div className={newsCardStyles.meta}>
           <span className={newsCardStyles.eventType}>

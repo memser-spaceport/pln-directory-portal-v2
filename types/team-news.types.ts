@@ -171,6 +171,13 @@ export interface ITeamNewsFiltersResponse {
  */
 export type ITeamNewsCountsResponse = Record<string, number>;
 
+/** One row of `GET /v1/focus-areas` (no `type`): every focus area, flat, with its parent. */
+export interface INewsFocusArea {
+  uid: string;
+  title: string;
+  parentUid: string | null;
+}
+
 /** A news tag a member can choose: a focus area, by slug (LAB-2998). */
 export interface INewsTag {
   slug: string;

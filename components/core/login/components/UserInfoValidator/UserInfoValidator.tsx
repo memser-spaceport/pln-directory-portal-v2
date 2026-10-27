@@ -5,13 +5,12 @@ import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { usePostHog } from 'posthog-js/react';
 
-import { renewAccessToken } from '@/services/auth.service';
-import { clearAllAuthCookies, setSessionCookie } from '@/utils/third-party.helper';
+import { refreshSession } from '@/services/session.service';
+import { clearAllAuthCookies, hasSession } from '@/utils/third-party.helper';
 import { authEvents } from '@/components/core/login/utils';
 import { broadcastLogout } from '../BroadcastChannel';
 import { SessionExpiredModal } from '../modals/SessionExpiredModal';
 import { IUserInfo } from '@/types/shared.types';
-import { decodeToken } from '@/utils/auth.utils';
 
 interface UserInfoValidatorProps {
   userInfo: IUserInfo | null | undefined;
@@ -34,8 +33,8 @@ export function UserInfoValidator({ userInfo, isLoggedIn, authToken }: UserInfoV
   const [showSessionExpired, setShowSessionExpired] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
 
-  const handleLogout = useCallback(() => {
-    clearAllAuthCookies();
+  const handleLogout = useCallback(async () => {
+    await clearAllAuthCookies();
     authEvents.emit('auth:logout');
     broadcastLogout();
     postHog.reset();
@@ -53,7 +52,7 @@ export function UserInfoValidator({ userInfo, isLoggedIn, authToken }: UserInfoV
       return;
     }
 
-    const refreshToken = Cookies.get('refreshToken');
+    const sessionExists = hasSession();
     const authTokenFromCookie = Cookies.get('authToken');
     const userInfoFromCookie = Cookies.get('userInfo');
 
@@ -68,53 +67,30 @@ export function UserInfoValidator({ userInfo, isLoggedIn, authToken }: UserInfoV
     }
 
     const hasValidUserInfo = (userInfo?.uid || parsedUserInfo?.uid) && (userInfo || parsedUserInfo);
-    const hasTokens = refreshToken || authToken || authTokenFromCookie;
+    const hasTokens = sessionExists || authToken || authTokenFromCookie;
 
     // Case 1: We have tokens but no valid userInfo (invalid state - try to restore)
-    if (hasTokens && !hasValidUserInfo && refreshToken) {
+    if (hasTokens && !hasValidUserInfo && sessionExists) {
       setIsValidating(true);
 
-      // Try to restore userInfo by refreshing the token
+      // Try to restore userInfo by refreshing the session (the server rewrites the cookies)
       const attemptRestore = async () => {
         try {
-          const refreshTokenValue = refreshToken.replace(/"/g, '');
-          const renewResponse = await renewAccessToken(refreshTokenValue);
-
-          if (renewResponse.ok && renewResponse.data) {
-            const { accessToken, refreshToken: newRefreshToken, userInfo: newUserInfo } = renewResponse.data;
-
-            if (accessToken && newRefreshToken && newUserInfo && newUserInfo.uid) {
-              // Restore cookies
-              const accessTokenExpiry = decodeToken(accessToken) as any;
-              const refreshTokenExpiry = decodeToken(newRefreshToken) as any;
-
-              setSessionCookie('refreshToken', JSON.stringify(newRefreshToken), {
-                expires: new Date(refreshTokenExpiry.exp * 1000),
-                path: '/',
-              });
-              setSessionCookie('authToken', JSON.stringify(accessToken), {
-                expires: new Date(accessTokenExpiry.exp * 1000),
-                path: '/',
-              });
-              setSessionCookie('userInfo', JSON.stringify(newUserInfo), {
-                expires: new Date(accessTokenExpiry.exp * 1000),
-                path: '/',
-              });
-
-              // Refresh the page to reload with valid userInfo
-              router.refresh();
-              return;
-            }
+          const session = await refreshSession();
+          if (session?.userInfo?.uid) {
+            // Refresh the page to reload with valid userInfo
+            router.refresh();
+            return;
           }
 
           // If refresh failed, show session expired modal
           setShowSessionExpired(true);
           // Clear cookies after showing modal
-          clearAllAuthCookies();
+          await clearAllAuthCookies();
         } catch (error) {
           console.error('Failed to restore userInfo:', error);
           setShowSessionExpired(true);
-          clearAllAuthCookies();
+          await clearAllAuthCookies();
         } finally {
           setIsValidating(false);
         }

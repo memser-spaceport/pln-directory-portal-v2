@@ -95,6 +95,9 @@ import { ForumPostModal } from '../newsfeed-v0/ForumPostModal';
 import { EVENT_TYPE_LABEL } from '../newsfeed-v0/eventMeta';
 import { isNarrowed, summarizeView, viewHashKey, type FeedView } from '../newsfeed-v0/feedView';
 import { FollowToast } from '../follow-shared/FollowToast';
+import { FollowButton } from '../follow-shared/FollowButton';
+import sortCss from '@/components/common/filters/SortDropdown/SortDropdown.module.scss';
+import { PERSONAS } from '../digest-topics/mocks';
 // Replaces the inherited production header/bottom bar, both hidden by
 // nav-shared's stylesheet. This route IS Home, so it has to render the nav that
 // says so — inheriting production's chrome here showed a navbar with no route
@@ -165,6 +168,13 @@ const PAGE_SIZE = 6;
  * the feed again and every pill counts what is under it.
  */
 const SHOW_TOP_STORIES = false;
+
+/**
+ * The Post news door (header on phones, after Sort on desktop). Hidden on request
+ * 2026-10-27; the compose modal and its publish path stay wired, so flipping
+ * this back restores the button as it was.
+ */
+const SHOW_POST_NEWS = false;
 
 /**
  * Whether the For You slice has anything at all this week — production's
@@ -561,6 +571,21 @@ export default function NewsfeedPrototype({
    * network.
    */
   const [teamFilter, setTeamFilter] = useState('');
+  /**
+   * Topic scope, set by clicking a hashtag on a card or in a reader. '' = no
+   * topic. Exact tag match, not the search box: typing "ai" also finds
+   * "maintain", and a click on `#ai` has to return only what was tagged `#ai`.
+   */
+  const [topicFilter, setTopicFilter] = useState('');
+  /**
+   * The member's subscribed topics, seeded from the same mock News preferences
+   * starts from (`digest-topics`, the complete persona). Following from the
+   * topic chip is the door to that page's Topics list that sits where the
+   * interest shows up — a reader clicking `#storage` again and again.
+   */
+  const [followedTopics, setFollowedTopics] = useState<Set<string>>(() => new Set(PERSONAS.complete.topics));
+  const [topicToast, setTopicToast] = useState<string | null>(null);
+  const topicChipRef = useRef<HTMLSpanElement>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
@@ -607,6 +632,18 @@ export default function NewsfeedPrototype({
     const t = setTimeout(() => setToast(null), 4000);
     return () => clearTimeout(t);
   }, [toast]);
+
+  useEffect(() => {
+    if (!topicToast) return;
+    const t = setTimeout(() => setTopicToast(null), 4000);
+    return () => clearTimeout(t);
+  }, [topicToast]);
+
+  // A tag is clicked deep in the feed (or in a reader over it); the result is the
+  // top of a re-cut feed, so bring the chip that says what happened into view.
+  useEffect(() => {
+    if (topicFilter) topicChipRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, [topicFilter]);
 
   useEffect(() => {
     if (!subToast) return;
@@ -742,6 +779,7 @@ export default function NewsfeedPrototype({
       authored: Boolean((story as NewsItemWithPost).post),
       bodyHtml: (story as NewsItemWithPost).post ? story.contentHtml : undefined,
       editedAt: (story as NewsItemWithPost).post?.editedAt,
+      tags: story.tags,
     });
 
   /**
@@ -893,6 +931,40 @@ export default function NewsfeedPrototype({
     window.history.replaceState(null, '', `${window.location.pathname}${search ? `?${search}` : ''}`);
   };
 
+  /**
+   * A hashtag click. Closes whichever reader it came from and opens the topic
+   * whole: back to All tabs and All categories. Clicking `#storage` asks "what's
+   * tagged storage", not "what's tagged storage within For you" — left on the
+   * default For You pill it showed 2 of the week's 6.
+   */
+  const selectTopic = (tag: string) => {
+    setDetail(null);
+    setForumDetail(null);
+    // The active hashtag reads as selected on every card, so clicking it again
+    // turns the filter off — the chip's × isn't the only way out.
+    if (tag === topicFilter) {
+      setTopicFilter('');
+      return;
+    }
+    setTopicFilter(tag);
+    setActiveFocus(ALL_TAB);
+    setActiveCategory(ALL_CAT);
+    setExpanded(false);
+  };
+
+  /** Follow confirms and names where it's managed; unfollow is quiet, like teams. */
+  const toggleTopicFollow = (tag: string) => {
+    const next = new Set(followedTopics);
+    if (next.has(tag)) {
+      next.delete(tag);
+      setTopicToast(null);
+    } else {
+      next.add(tag);
+      setTopicToast(tag);
+    }
+    setFollowedTopics(next);
+  };
+
   // ---------- The spine ----------
 
   // Both on, permanently — the caps below are what keep them from crowding news.
@@ -906,7 +978,10 @@ export default function NewsfeedPrototype({
     // announcement of the same thing is dropped rather than said twice. With
     // hiring switched off the roll-up isn't there to carry it, so it stays.
     const withHiring = showHiring ? items.filter((i) => !SUPERSEDED_BY_HIRING.has(i.uid)) : items;
-    if (!teamFilter) return withHiring;
+    // The topic scope narrows the whole page for the same reason the team scope
+    // does: tab and pill counts have to describe the cards under them.
+    const byTopic = (list: ITeamNewsItem[]) => (topicFilter ? list.filter((i) => i.tags.includes(topicFilter)) : list);
+    if (!teamFilter) return byTopic(withHiring);
 
     // The team scope narrows the whole page, not just the card list — so tab and
     // category counts describe the team you asked for rather than the network
@@ -917,8 +992,8 @@ export default function NewsfeedPrototype({
     // feed's mock is an editorial week; the job board's and the teams grid's are
     // their own). A badge must still land on the stories it counted, so a team
     // this week doesn't cover is served from the shared fixture instead.
-    return scoped.length ? scoped : getTeamNews(teamFilter);
-  }, [showHiring, teamFilter, curatedItems]);
+    return byTopic(scoped.length ? scoped : getTeamNews(teamFilter));
+  }, [showHiring, teamFilter, topicFilter, curatedItems]);
 
   /**
    * Monitor reads the whole week, unfiltered by the editorial levers — a standing
@@ -954,6 +1029,7 @@ export default function NewsfeedPrototype({
     SHOW_TOP_STORIES &&
     topStoryItem !== null &&
     isRestingCategory &&
+    !topicFilter &&
     !isNarrowed({ ...view, category: ALL_CAT as FeedView['category'] });
 
   /** Every uid the block owns, so none of them can also appear as a feed card. */
@@ -1028,8 +1104,10 @@ export default function NewsfeedPrototype({
   const forYouForumPosts = useMemo(() => {
     if (teamFilter) return [];
     const scoped = activeFocus === ALL_TAB ? FORUM_POSTS : FORUM_POSTS.filter((p) => p.focusArea === activeFocus);
-    return scoped.filter((p) => p.createdAt >= FOR_YOU_FORUM_CUTOFF);
-  }, [activeFocus, teamFilter]);
+    return scoped.filter(
+      (p) => p.createdAt >= FOR_YOU_FORUM_CUTOFF && (!topicFilter || p.tags.includes(topicFilter)),
+    );
+  }, [activeFocus, teamFilter, topicFilter]);
 
   const categoriesWithCounts = useMemo(() => {
     const activeDiscussionsCount = scopedItems.filter((i) => hasExistingDiscussion(i.discussion)).length;
@@ -1068,14 +1146,17 @@ export default function NewsfeedPrototype({
     // what earned a feed slot is one click away.
     // Both counts obey the team scope for the same reason the pill counts above
     // do: a pill reading "Deals 3" over an empty scoped feed is a defect.
-    const hiringCount = teamFilter
-      ? HIRING_SIGNALS.filter((h) => h.teamUid === teamFilter).length
-      : HIRING_SIGNALS.length;
+    // Roll-ups carry no tags, so a topic scope leaves them out — and their pill.
+    const hiringCount = topicFilter
+      ? 0
+      : teamFilter
+        ? HIRING_SIGNALS.filter((h) => h.teamUid === teamFilter).length
+        : HIRING_SIGNALS.length;
     if (showHiring && hiringCount > 0) out.push({ id: HIRING_CAT, label: 'Hiring', count: hiringCount });
     // No Deals pill: cut with the rest of the row. Perk cards still reach the
     // spine through their weekly cap.
     return out;
-  }, [scopedItems, forYouItems, forYouForumPosts, showHiring, teamFilter, signedIn]);
+  }, [scopedItems, forYouItems, forYouForumPosts, showHiring, teamFilter, topicFilter, signedIn]);
 
   /**
    * The same list the pills rendered, shaped for a dropdown.
@@ -1130,9 +1211,9 @@ export default function NewsfeedPrototype({
     const scoped =
       activeCategory === FOR_YOU_CAT
         ? forYouForumPosts
-        : activeFocus === ALL_TAB
-          ? FORUM_POSTS
-          : FORUM_POSTS.filter((p) => p.focusArea === activeFocus);
+        : (activeFocus === ALL_TAB ? FORUM_POSTS : FORUM_POSTS.filter((p) => p.focusArea === activeFocus)).filter(
+            (p) => !topicFilter || p.tags.includes(topicFilter),
+          );
     const q = query.trim().toLowerCase();
     if (!q) return scoped;
     return scoped.filter(
@@ -1143,7 +1224,10 @@ export default function NewsfeedPrototype({
         p.category.toLowerCase().includes(q) ||
         p.tags.some((t) => t.toLowerCase().includes(q)),
     );
-  }, [activeCategory, activeFocus, query, teamFilter, forYouForumPosts]);
+  }, [activeCategory, activeFocus, query, teamFilter, topicFilter, forYouForumPosts]);
+
+  /** The topic chip's count: every story card under the filter, news and posts alike. */
+  const topicCount = searchedItems.length + forumPosts.length;
 
   /**
    * Hiring is supporting signal, not the story — so the mixed feed carries at
@@ -1156,6 +1240,7 @@ export default function NewsfeedPrototype({
   const hiringEntries = useMemo(() => {
     if (!showHiring) return [];
     if (activeCategory !== ALL_CAT && activeCategory !== HIRING_CAT) return [];
+    if (topicFilter) return [];
     // Hiring rides beside the stories rather than in them, so the team scope has
     // to be applied to it separately — otherwise "Updates from Protocol Labs"
     // carries another team's open roles. Its own hiring is still an update.
@@ -1167,7 +1252,7 @@ export default function NewsfeedPrototype({
         )
       : scoped;
     return activeCategory === HIRING_CAT ? matched : matched.slice(0, HIRING_IN_MIXED_FEED);
-  }, [showHiring, activeCategory, query, teamFilter]);
+  }, [showHiring, activeCategory, query, teamFilter, topicFilter]);
 
   /**
    * Deals get a tighter cap than hiring, and a shape test on top of it: a perk
@@ -1182,7 +1267,7 @@ export default function NewsfeedPrototype({
     if (activeCategory !== ALL_CAT && activeCategory !== DEALS_CAT) return [];
     // A vendor deal belongs to the network, not to a team — under a team scope
     // there is no version of it that is "an update from this team".
-    if (teamFilter) return [];
+    if (teamFilter || topicFilter) return [];
     const q = query.trim().toLowerCase();
     const matched = q
       ? PERK_SIGNALS.filter(
@@ -1192,7 +1277,7 @@ export default function NewsfeedPrototype({
     // The pill shows everything /deals holds; the feed shows only what earned it.
     if (activeCategory === DEALS_CAT) return matched;
     return matched.filter((p) => p.shape === 'announcement').slice(0, PERKS_IN_MIXED_FEED);
-  }, [showPerks, activeCategory, query, teamFilter]);
+  }, [showPerks, activeCategory, query, teamFilter, topicFilter]);
 
   const entries = useMemo<FeedEntry[]>(() => {
     const clusterDate = (c: TeamCluster) =>
@@ -1317,6 +1402,8 @@ export default function NewsfeedPrototype({
             commentsFor={commentsFor}
             onAddComment={addComment}
             onOpenStory={openStoryDetail}
+            onSelectTopic={selectTopic}
+            activeTopic={topicFilter}
           />
         </div>
       );
@@ -1349,6 +1436,8 @@ export default function NewsfeedPrototype({
         isCommentLiked={isLiked}
         onToggleCommentLike={toggleLike}
         onOpenDetail={() => setForumDetail(entry.post)}
+        onSelectTopic={selectTopic}
+        activeTopic={topicFilter}
       />
     );
   };
@@ -1527,7 +1616,7 @@ export default function NewsfeedPrototype({
                   />
                   {/* Phone: Post news at the end of the header row, beside the
                       title — the sort row has no room for a third control. */}
-                  {signedIn && (
+                  {SHOW_POST_NEWS && signedIn && (
                     <span className={clsx(local.postNewsHeaderSlot, v0.sortMobile)}>
                       <FeedPostNewsButton onPost={openCompose} />
                     </span>
@@ -1611,6 +1700,48 @@ export default function NewsfeedPrototype({
                       </button>
                     </span>
                   )}
+                  {/* Topic scope chip — the team chip's twin, set by a hashtag click.
+                    No "Tagged" prefix: the `#` says what it is. Follow sits beside it
+                    (not inside — a button within a chip that has its own ×) and
+                    adds the topic to News preferences. */}
+                  {topicFilter && (
+                    <span className={local.topicScope}>
+                      {/* Labeled like "Sort by:" further along this row (same
+                          class), so the chip reads as the feed's filter rather
+                          than as one more hashtag. */}
+                      <span className={sortCss.sortByLabel}>Filter:</span>
+                      <span ref={topicChipRef} className={clsx(v0.savedView, v0.savedFilterChip, local.scopeChip)}>
+                        <span className={clsx(v0.savedViewBody, local.scopeChipLabel)}>
+                          <strong>#{topicFilter}</strong>
+                        </span>
+                        <button
+                          type="button"
+                          className={v0.savedViewDelete}
+                          aria-label={`Show all updates instead of just #${topicFilter}`}
+                          onClick={() => setTopicFilter('')}
+                        >
+                          <svg viewBox="0 0 12 12" fill="none" aria-hidden>
+                            <path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                          </svg>
+                        </button>
+                      </span>
+                      {/* How much the topic holds, the way a topic page states its
+                          size (Medium's "1.3M stories", Mammoth's "172 people
+                          talking") — and the honest answer to "is it worth following". */}
+                      <span className={local.topicCount}>
+                        {topicCount} {topicCount === 1 ? 'update' : 'updates'}
+                      </span>
+                      {signedIn && (
+                        <FollowButton
+                          following={followedTopics.has(topicFilter)}
+                          onClick={() => toggleTopicFollow(topicFilter)}
+                          name={`#${topicFilter}`}
+                          size="xs"
+                          tertiary
+                        />
+                      )}
+                    </span>
+                  )}
                   {/* Mobile only — the pill row above holds desktop. */}
                   <span className={v0.sortMobile}>
                     <MobileFeedSort
@@ -1639,7 +1770,7 @@ export default function NewsfeedPrototype({
                       with. Desktop only — on a phone this row already holds
                       Type and Sort edge to edge, so the button stands in the
                       header instead (see there). */}
-                  {signedIn && (
+                  {SHOW_POST_NEWS && signedIn && (
                     <span className={clsx(local.postNewsSlot, v0.sortDesktop)}>
                       <FeedPostNewsButton onPost={openCompose} />
                     </span>
@@ -1670,7 +1801,14 @@ export default function NewsfeedPrototype({
                 subscription, and there is no address on file to send it to.
                 Offering it anyway would put a second, quieter sign-in ask under
                 the banner that is already making one. */}
-              {signedIn && narrowed && activeCategory !== FOR_YOU_CAT && !subscription && !subscribeDismissed && (
+              {/* Not under a topic scope either: the chip's Follow already makes
+                  that offer, and two asks for one interest is one too many. */}
+              {signedIn &&
+                narrowed &&
+                !topicFilter &&
+                activeCategory !== FOR_YOU_CAT &&
+                !subscription &&
+                !subscribeDismissed && (
                 <div className={clsx(v0.tabsConstrain, v0.tabsConstrainBanner, local.railGutterConstrain)}>
                   <SubscribeBanner
                     label={summarizeView(view, teamFilterName)}
@@ -1702,7 +1840,11 @@ export default function NewsfeedPrototype({
 
               {entries.length === 0 ? (
                 <div className={s.empty}>
-                  {query.trim() ? `No updates match “${query.trim()}”.` : 'No updates in this filter.'}
+                  {query.trim()
+                    ? `No updates match “${query.trim()}”${topicFilter ? ` in #${topicFilter}` : ''}.`
+                    : topicFilter
+                      ? `No #${topicFilter} updates in this filter.`
+                      : 'No updates in this filter.'}
                 </div>
               ) : (
                 <>
@@ -1788,6 +1930,8 @@ export default function NewsfeedPrototype({
           onAddComment={(text, parentUid) => detail && addComment(detail.id, text, parentUid)}
           isCommentLiked={isLiked}
           onToggleCommentLike={toggleLike}
+          onSelectTopic={selectTopic}
+          activeTopic={topicFilter}
         />
 
         <ForumPostModal
@@ -1800,6 +1944,8 @@ export default function NewsfeedPrototype({
           onAddComment={(text, parentUid) => forumDetail && addComment(forumDetail.uid, text, parentUid)}
           isCommentLiked={isLiked}
           onToggleCommentLike={toggleLike}
+          onSelectTopic={selectTopic}
+          activeTopic={topicFilter}
         />
 
         {/* Says what following just did, not only where to undo it.
@@ -1814,6 +1960,18 @@ export default function NewsfeedPrototype({
           <FollowToast>
             You&apos;re now following {toast} — their updates join <strong>For you</strong> and appear first in your
             feed. Manage who you follow from your profile.
+          </FollowToast>
+        )}
+
+        {/* Names what a topic follow does and where the full list lives — News
+            preferences owns Topics; this was a shortcut into it. */}
+        {topicToast && (
+          <FollowToast>
+            You&apos;re now following <strong>#{topicToast}</strong> — it shapes <strong>For you</strong> and your weekly
+            digest.{' '}
+            <a href="/prototypes/digest-topics?from=feed" className={local.toastLink}>
+              Manage topics
+            </a>
           </FollowToast>
         )}
 

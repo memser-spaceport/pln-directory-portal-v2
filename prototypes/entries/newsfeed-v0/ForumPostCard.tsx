@@ -15,6 +15,7 @@ import type { ForumPost, FeedComment } from './mocks';
 import { LikeButton, CommentButton, ViewCount, SaveButton } from './FeedActions';
 import { ShareMenu } from './ShareMenu';
 import { CommentsThread } from './CommentsThread';
+import { TopicTags } from './TopicTags';
 
 interface Props {
   post: ForumPost;
@@ -33,6 +34,10 @@ interface Props {
    *  same way a story is — one list, one bookmark. */
   saved?: boolean;
   onToggleSave?: () => void;
+  /** Present = the post's hashtags are links that filter the feed to that topic. */
+  onSelectTopic?: (tag: string) => void;
+  /** The feed's current topic filter, shown selected on the tags. */
+  activeTopic?: string;
 }
 
 /**
@@ -54,6 +59,8 @@ export function ForumPostCard({
   onOpenDetail,
   saved = false,
   onToggleSave,
+  onSelectTopic,
+  activeTopic,
 }: Props) {
   const [threadOpen, setThreadOpen] = useState(false);
 
@@ -105,6 +112,7 @@ export function ForumPostCard({
           </a>
         </h3>
         <p className={local.summary}>{post.body}</p>
+        <TopicTags tags={post.tags} className={local.topicTags} onSelect={onSelectTopic} active={activeTopic} />
         <div className={local.footer}>
           <span className={local.source}>
             <span className={local.metaForum}>Discussion</span>

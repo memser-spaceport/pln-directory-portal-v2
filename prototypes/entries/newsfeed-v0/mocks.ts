@@ -34,6 +34,7 @@ function item(
 const INFRA: ITeamNewsItem[] = [
   item({
     uid: 'n1',
+    tags: ['infrastructure', 'storage', 'p2p'],
     teamUid: 'protocol-labs',
     teamName: 'Protocol Labs',
     eventType: 'ANNOUNCEMENT',
@@ -46,6 +47,7 @@ const INFRA: ITeamNewsItem[] = [
   }),
   item({
     uid: 'n2',
+    tags: ['research', 'open-source'],
     teamUid: 'drand',
     teamName: 'drand',
     eventType: 'ANNOUNCEMENT',
@@ -59,6 +61,7 @@ const INFRA: ITeamNewsItem[] = [
   // "Top story" marker when the lead is picked by importance, not recency.
   item({
     uid: 'n11',
+    tags: ['ai', 'depin'],
     teamUid: 'lattice-compute',
     teamName: 'Lattice Compute',
     eventType: 'ANNOUNCEMENT',
@@ -69,6 +72,7 @@ const INFRA: ITeamNewsItem[] = [
   }),
   item({
     uid: 'n3',
+    tags: ['fundraising', 'depin', 'ai'],
     teamUid: 'lattice-compute',
     teamName: 'Lattice Compute',
     eventType: 'FUNDING',
@@ -79,6 +83,7 @@ const INFRA: ITeamNewsItem[] = [
   }),
   item({
     uid: 'n4',
+    tags: ['open-source'],
     teamUid: 'protocol-labs',
     teamName: 'Protocol Labs',
     eventType: 'MILESTONE',
@@ -92,6 +97,7 @@ const INFRA: ITeamNewsItem[] = [
   // demoing the "+N more" collapse on the second card in the feed.
   item({
     uid: 'n12',
+    tags: ['ai', 'open-source', 'fundraising'],
     teamUid: 'protocol-labs',
     teamName: 'Protocol Labs',
     eventType: 'ANNOUNCEMENT',
@@ -103,6 +109,7 @@ const INFRA: ITeamNewsItem[] = [
   }),
   item({
     uid: 'n13',
+    tags: ['infrastructure', 'storage', 'networking'],
     teamUid: 'protocol-labs',
     teamName: 'Protocol Labs',
     eventType: 'LAUNCH',
@@ -117,6 +124,7 @@ const INFRA: ITeamNewsItem[] = [
 const STORAGE: ITeamNewsItem[] = [
   item({
     uid: 'n5',
+    tags: ['storage', 'ai', 'desci'],
     teamUid: 'filecoin-foundation',
     teamName: 'Filecoin Foundation',
     eventType: 'LAUNCH',
@@ -128,6 +136,7 @@ const STORAGE: ITeamNewsItem[] = [
   }),
   item({
     uid: 'n6',
+    tags: ['storage'],
     teamUid: 'filecoin-foundation',
     teamName: 'Filecoin Foundation',
     eventType: 'MILESTONE',
@@ -139,6 +148,7 @@ const STORAGE: ITeamNewsItem[] = [
   }),
   item({
     uid: 'n7',
+    tags: ['storage', 'rust'],
     teamUid: 'lattice-compute',
     teamName: 'Lattice Compute',
     eventType: 'LAUNCH',
@@ -153,6 +163,7 @@ const STORAGE: ITeamNewsItem[] = [
 const NETWORKING: ITeamNewsItem[] = [
   item({
     uid: 'n8',
+    tags: ['networking', 'p2p'],
     teamUid: 'libp2p',
     teamName: 'libp2p',
     eventType: 'PARTNERSHIP',
@@ -164,6 +175,7 @@ const NETWORKING: ITeamNewsItem[] = [
   }),
   item({
     uid: 'n9',
+    tags: ['privacy', 'governance'],
     teamUid: 'protocol-labs',
     teamName: 'Protocol Labs',
     eventType: 'PARTNERSHIP',
@@ -177,6 +189,7 @@ const NETWORKING: ITeamNewsItem[] = [
   // API has no generated summary for an item.
   item({
     uid: 'n10',
+    tags: ['networking', 'p2p', 'rust'],
     teamUid: 'libp2p',
     teamName: 'libp2p',
     eventType: 'ANNOUNCEMENT',
@@ -300,7 +313,7 @@ export const FORUM_POSTS: ForumPost[] = [
     category: 'Compute',
     focusArea: 'Infrastructure',
     createdAt: '2026-06-27T18:30:00.000Z',
-    tags: ['compute', 'pricing'],
+    tags: ['ai', 'depin', 'infrastructure'],
     views: 342,
   },
   {
@@ -313,7 +326,7 @@ export const FORUM_POSTS: ForumPost[] = [
     category: 'Networking',
     focusArea: 'Networking',
     createdAt: '2026-06-21T09:15:00.000Z',
-    tags: ['libp2p', 'spec'],
+    tags: ['networking', 'p2p'],
     views: 514,
   },
   {
@@ -326,7 +339,7 @@ export const FORUM_POSTS: ForumPost[] = [
     category: 'Storage',
     focusArea: 'Storage',
     createdAt: '2026-06-25T14:45:00.000Z',
-    tags: ['filecoin', 'ai-data'],
+    tags: ['ai', 'storage', 'desci'],
     views: 207,
   },
   {
@@ -339,7 +352,7 @@ export const FORUM_POSTS: ForumPost[] = [
     category: 'Community',
     focusArea: 'Infrastructure',
     createdAt: '2026-06-19T11:20:00.000Z',
-    tags: ['onboarding', 'grants'],
+    tags: ['open-source', 'fundraising'],
     views: 903,
   },
 ];

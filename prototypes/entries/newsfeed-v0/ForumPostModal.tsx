@@ -14,6 +14,7 @@ import type { ForumPost, FeedComment } from './mocks';
 import { LikeButton, CommentCount, ViewCount } from './FeedActions';
 import { CommentsThread } from './CommentsThread';
 import { ShareMenu } from './ShareMenu';
+import { TopicTags } from './TopicTags';
 // Reuse the news detail modal's shell (card / header / scrolling body / pinned
 // footer / close / full-screen-on-mobile) so the two detail views feel like one
 // system — only the CONTENT is forum-native here.
@@ -31,6 +32,10 @@ interface Props {
   /** Like state for comments and replies, keyed by comment uid. */
   isCommentLiked: (commentUid: string) => boolean;
   onToggleCommentLike: (commentUid: string) => void;
+  /** Present = the hashtags are links that filter the feed (the parent closes the modal). */
+  onSelectTopic?: (tag: string) => void;
+  /** The feed's current topic filter, shown selected on the tags. */
+  activeTopic?: string;
 }
 
 /**
@@ -49,6 +54,8 @@ export function ForumPostModal({
   onAddComment,
   isCommentLiked,
   onToggleCommentLike,
+  onSelectTopic,
+  activeTopic,
 }: Props) {
   // One address for the post, used by both outbound actions. Mock posts have no
   // real thread, so they fall back to the forum index.
@@ -77,6 +84,8 @@ export function ForumPostModal({
             <span className={s.kicker}>Discussion</span>
             <h2 className={s.title}>{post.title}</h2>
             <p className={s.summary}>{post.body}</p>
+            {/* The hashtags say what they are — no label, same as the news modal. */}
+            <TopicTags tags={post.tags} max={Infinity} onSelect={onSelectTopic} active={activeTopic} />
             <CommentsThread
               heading
               comments={comments}

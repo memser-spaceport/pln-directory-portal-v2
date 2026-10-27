@@ -7,17 +7,23 @@ import {
 } from '@/utils/news-tag-chips';
 
 describe('focusAreaSlug', () => {
+  // These must match the backend's slugify (apps/web-api/src/utils/helper/helper.ts),
+  // which wrote the tags on news items.
   it('lowercases and joins words with a dash', () => {
     expect(focusAreaSlug('Digital Human Rights')).toBe('digital-human-rights');
     expect(focusAreaSlug('AI')).toBe('ai');
   });
 
-  it('turns & into a space, so "AI & Robotics" is ai-robotics', () => {
+  it('drops other characters instead of turning them into a dash, as the backend does', () => {
     expect(focusAreaSlug('AI & Robotics')).toBe('ai-robotics');
-    expect(focusAreaSlug('Science&Tech')).toBe('science-tech');
+    expect(focusAreaSlug('VR/AR')).toBe('vrar');
+    expect(focusAreaSlug('Climate / ReFi')).toBe('climate-refi');
+    expect(focusAreaSlug("Founder's Fund")).toBe('founders-fund');
+    expect(focusAreaSlug('Science&Tech')).toBe('sciencetech');
   });
 
-  it('collapses runs of other characters and trims the dashes', () => {
+  it('keeps underscores, collapses dashes and trims them', () => {
+    expect(focusAreaSlug('DePIN_infra')).toBe('depin_infra');
     expect(focusAreaSlug('  Web3 / DeFi (core)!  ')).toBe('web3-defi-core');
   });
 });

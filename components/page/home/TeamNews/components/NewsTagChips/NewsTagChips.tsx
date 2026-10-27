@@ -1,6 +1,5 @@
 'use client';
 
-import { Badge } from '@/components/common/Badge';
 import { useNewsTopicSlugs } from '@/services/team-news/hooks/useNewsTopicSlugs';
 import { SHOW_NEWS_PREFERENCES } from '@/utils/news-categories';
 import { getNewsTagChips, NEWS_CARD_TOPIC_LIMIT } from '@/utils/news-tag-chips';
@@ -15,7 +14,8 @@ interface NewsTagChipsProps {
 
 /**
  * A news item's tags as `#slug` chips (LAB-3003), behind NEXT_PUBLIC_SHOW_NEWS_PREFERENCES.
- * Not clickable. Renders nothing until the focus areas load, and nothing when no tag
+ * Not clickable, so grey label chips: the filled tag the feed's deal cards wear,
+ * as in Polina's newsfeed prototype (`prototypes/entries/newsfeed-v0/TopicTags.tsx`). Renders nothing until the focus areas load, and nothing when no tag
  * qualifies, so the layout stays as it was.
  */
 export function NewsTagChips({ tags, variant }: NewsTagChipsProps) {
@@ -33,7 +33,7 @@ export function NewsTagChips({ tags, variant }: NewsTagChipsProps) {
     <ul className={s.list} aria-label="Tags">
       {chips.map((tag) => (
         <li key={tag} className={s.item}>
-          <Badge className={s.chip}>#{tag}</Badge>
+          <span className={s.chip}>#{tag}</span>
         </li>
       ))}
     </ul>

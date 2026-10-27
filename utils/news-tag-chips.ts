@@ -27,15 +27,20 @@ export const NEWS_VERB_TAGS: ReadonlySet<string> = new Set([
 export const NEWS_CARD_TOPIC_LIMIT = 3;
 
 /**
- * A focus area's tag slug: lowercase, `&` as a space, each run of other
- * characters as one `-`, no leading or trailing `-`. "AI & Robotics" -> `ai-robotics`.
+ * A focus area's tag slug, exactly as the backend writes news tags: a copy of
+ * `slugify` in `apps/web-api/src/utils/helper/helper.ts`. Spaces become `-`,
+ * other non-word characters are dropped (not turned into `-`), so "VR/AR" is
+ * `vrar` and "AI & Robotics" is `ai-robotics`. Keep the two in step: any
+ * difference hides that focus area's chips.
  */
 export function focusAreaSlug(title: string): string {
   return title
     .toLowerCase()
-    .replace(/&/g, ' ')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+    .replace(/\s+/g, '-')
+    .replace(/[^\w-]+/g, '')
+    .replace(/--+/g, '-')
+    .replace(/^-+/, '')
+    .replace(/-+$/, '');
 }
 
 /** Slugs of the top two levels of focus areas (roots and their direct children). */

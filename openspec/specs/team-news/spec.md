@@ -7,13 +7,13 @@ Describes what a signed-in member sees in the Home feed's For You view, and the 
 
 ### Requirement: News preferences page
 
-Signed-in members SHALL have a News preferences page in Settings, listed right after the email preferences item. It holds two sections: Tags and Teams you follow. Signed-out visitors SHALL be sent to log in and returned to the page afterwards.
+Signed-in members SHALL have a News preferences page in Settings, listed right after the email preferences item. It holds two sections, Topics and Teams you follow, under an intro that links to Email Preferences for the digest frequency. Signed-out visitors SHALL be sent to log in and returned to the page afterwards.
 
 #### Scenario: Open from the settings menu
 
 - **GIVEN** a signed-in member on any settings page
 - **WHEN** they choose "news preferences" in the settings menu
-- **THEN** the News preferences page opens with the Tags and Teams you follow sections, and no Categories section
+- **THEN** the News preferences page opens with the Topics and Teams you follow sections, and no Categories section
 
 #### Scenario: Signed-out visitor
 
@@ -22,7 +22,7 @@ Signed-in members SHALL have a News preferences page in Settings, listed right a
 - **THEN** they are asked to log in, and land on News preferences after logging in
 
 ### Requirement: Teams you follow
-The Teams you follow section SHALL list the teams the member follows, each with a Follow/Following control. Unfollowing SHALL keep the team in the list until the page is left, so it can be followed again in place. With no followed teams, the section SHALL show an empty state that links to Teams.
+The Teams you follow section SHALL list the teams the member follows, each with a Follow/Following control and, when the backend sends it, the team's focus area under its name. Unfollowing SHALL keep the team in the list until the page is left, so it can be followed again in place. With no followed teams, the section SHALL show an empty state that links to Teams.
 
 #### Scenario: Unfollow and undo
 - **GIVEN** a member following Acme
@@ -42,13 +42,13 @@ The page SHALL be reachable from three places:
 - a "Tune For You" link in Home's For You hint (`from=feed`);
 - the settings menu (`from=settings`).
 
-Arriving with `from=digest` or `from=feed` SHALL outline one section until the member's first change: Teams you follow when they follow no teams, otherwise Tags. Email Preferences SHALL link to the page under its Network news setting.
+Arriving with `from=digest` or `from=feed` SHALL outline one section until the member's first change: Teams you follow when they have topics but follow no teams, otherwise Topics. Email Preferences SHALL link to the page under its Network news setting.
 
 #### Scenario: From the For You hint
 
 - **GIVEN** a signed-in member who follows at least one team, on Home's For You view
 - **WHEN** they click "Tune For You"
-- **THEN** News preferences opens with Tags outlined
+- **THEN** News preferences opens with Topics outlined
 
 #### Scenario: From Email Preferences
 
@@ -80,7 +80,7 @@ The For You hint SHALL record `team-news-for-you-tune-clicked`.
 
 ### Requirement: News tags
 
-The Tags section SHALL offer the focus areas that tagged at least one news story in the last 90 days, plus any tag the member already has. Each tag SHALL show its focus-area title, grouped under its parent focus area, with the member's chosen tags first in the order they had when the page opened. Choosing or removing a tag SHALL save at once and show "Saved". The member SHALL be able to remove every tag.
+The Topics section SHALL offer the news tags (focus-area slugs) that tagged at least one news story in the last 90 days, plus any tag the member already has, as one flat list of `#slug` chips: the member's chosen tags first in the order they had when the page opened, then the rest. Subscribing or unsubscribing SHALL save at once and show "Saved". The member SHALL be able to unsubscribe from every topic.
 
 #### Scenario: Add a tag
 
@@ -104,7 +104,7 @@ The Tags section SHALL offer the focus areas that tagged at least one news story
 
 - **GIVEN** a member with one tag chosen
 - **WHEN** they remove it
-- **THEN** the removal is saved, and the section explains that For You and the digest show news from their own and followed teams only
+- **THEN** the removal is saved, and the section says they're not subscribed to any topics and invites them to pick some
 
 #### Scenario: Save fails
 
@@ -116,7 +116,7 @@ The Tags section SHALL offer the focus areas that tagged at least one news story
 
 - **GIVEN** the list of tags cannot be loaded
 - **WHEN** a member opens News preferences
-- **THEN** the Tags section shows the member's chosen tags and says the full list could not be loaded, and Teams you follow still works
+- **THEN** the Topics section shows the member's chosen topics and says the full list could not be loaded, and Teams you follow still works
 
 ### Requirement: For You matches news by tags
 

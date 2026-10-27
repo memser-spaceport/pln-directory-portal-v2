@@ -5,15 +5,15 @@
  * For You on Home and the news in the email digest. Ported from
  * prototypes/entries/digest-topics.
  *
- *   Tags ................... focus areas used by news (`GET /v1/team-news/tags`);
- *                            the member's own first, then the rest grouped under
- *                            their top-level focus area. A member who never saved
- *                            starts with their teams' focus areas (seeded)
+ *   Topics ................. news tags (focus-area slugs used by news,
+ *                            `GET /v1/team-news/tags`) as one flat list of
+ *                            `#slug` chips, the member's own first. A member who
+ *                            never saved starts with their teams' focus areas
  *   Teams you follow ....... FollowButton; an unfollowed row stays until the page
  *                            is left, so it can be undone in place
  *
  * Arriving from the digest or the feed (`from`) outlines the biggest gap until
- * the first change: no followed teams → Teams you follow, else Tags.
+ * the first change: topics but no followed teams → Teams you follow, else Topics.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -32,7 +32,6 @@ import { useFollowedTeams } from '@/services/follow/hooks/useFollowedTeams';
 import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
 import { followedTeamUidsQueryKey } from '@/services/follow/hooks/useFollowedTeamUids';
 import { toast } from '@/components/core/ToastContainer';
-import type { INewsTag } from '@/types/team-news.types';
 import { triggerLoader } from '@/utils/common.utils';
 
 import s from './NewsPreferences.module.scss';
@@ -99,7 +98,7 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
   }, [saved]);
 
   const follows = useMemo(() => followedTeams ?? [], [followedTeams]);
-  const gap: Gap = follows.length === 0 ? 'teams' : 'tags';
+  const gap: Gap = tags.length > 0 && follows.length === 0 ? 'teams' : 'tags';
   const arriving = from !== 'settings' && !touched && !followsPending;
 
   useEffect(() => {
@@ -112,31 +111,12 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
   const lit = (g: Gap) => arriving && gap === g;
   const arrivalWhere = from === 'digest' ? 'your digest' : 'For You';
 
-  const titles = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const group of tagGroups ?? []) {
-      map.set(group.slug, group.title);
-      for (const child of group.children) map.set(child.slug, child.title);
-    }
-    return map;
-  }, [tagGroups]);
-  // A chosen tag that news no longer uses isn't in the list: it shows by slug.
-  const titleOf = (slug: string) => titles.get(slug) ?? slug;
-
-  // Everything not pinned, under its top-level focus area (the parent is a chip too).
-  const groups = useMemo(
-    () =>
-      (tagGroups ?? [])
-        .map((group) => ({
-          slug: group.slug,
-          title: group.title,
-          tags: [{ slug: group.slug, title: group.title }, ...group.children].filter(
-            (tag: INewsTag) => !pinned.includes(tag.slug),
-          ),
-        }))
-        .filter((group) => group.tags.length > 0),
-    [tagGroups, pinned],
-  );
+  // One flat list, as in the prototype: the member's own topics first, then the
+  // rest in the tag list's order (each focus area followed by its children).
+  const order = useMemo(() => {
+    const rest = (tagGroups ?? []).flatMap((group) => [group.slug, ...group.children.map((child) => child.slug)]);
+    return [...pinned, ...rest.filter((slug) => !pinned.includes(slug))];
+  }, [tagGroups, pinned]);
 
   const saveTags = (next: string[]) => {
     const previous = tags;
@@ -191,7 +171,7 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
 
   // A render function, not a component: a component defined here would remount
   // every chip on each render and drop keyboard focus after a toggle.
-  const renderTagChip = ({ slug, title }: INewsTag) => {
+  const renderTagChip = (slug: string) => {
     const on = tags.includes(slug);
     return (
       <button
@@ -199,11 +179,10 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
         type="button"
         className={clsx(s.chip, on && s.chipOn)}
         aria-pressed={on}
-        title={on ? `Remove ${title}` : `Add ${title}`}
+        title={on ? `Unsubscribe from #${slug}` : `Subscribe to #${slug}`}
         onClick={() => toggleTag(slug)}
       >
-        {on ? <CheckIcon /> : <PlusIcon />}
-        {title}
+        {on ? <CheckIcon /> : <PlusIcon />}#{slug}
       </button>
     );
   };
@@ -214,48 +193,42 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
     <div className={formCss.root}>
       <div className={s.pageHead}>
         <h5 className={formCss.title}>News Preferences</h5>
-        <p className={s.pageIntro}>These shape For You on Home and the news in your email digest.</p>
+        <p className={s.pageIntro}>
+          These shape For You on Home and the news in your email digest. To change how often the digest arrives, go to{' '}
+          <Link href="/settings/email" className={s.inlineLink}>
+            Email Preferences
+          </Link>
+          .
+        </p>
       </div>
 
-      {/* Tags */}
+      {/* Topics */}
       <div ref={refs.tags} className={clsx(toggleCss.root, s.card, lit('tags') && s.cardHighlight)}>
         <div className={clsx(toggleCss.header, s.cardHeader)}>
-          Tags{tags.length > 0 && ` · ${tags.length}`}
+          Topics{tags.length > 0 && ` · ${tags.length}`}
           {saved === 'tags' && <SavedNote />}
         </div>
         <div className={toggleCss.content}>
           {lit('tags') && (
             <p className={s.arrivalNote}>
               {tags.length === 0
-                ? `Add a few tags to get news that fits your work in ${arrivalWhere}.`
-                : `Remove tags you don’t want in ${arrivalWhere}.`}
+                ? `Subscribe to a few topics to get news that fits your work in ${arrivalWhere}.`
+                : `Unsubscribe from topics you don’t want in ${arrivalWhere}.`}
             </p>
           )}
           <div className={toggleCss.desc}>
             {seeded && 'We picked these from your teams’ focus areas. '}
             {tags.length > 0
-              ? 'News tagged with them shows up in For You and your digest. Click a tag to add or remove it.'
-              : 'You have no tags, so For You and your digest show news from your own and followed teams only. Add tags to get news on those topics.'}
+              ? 'News tagged with them shows up in For You and your digest. Click one to unsubscribe.'
+              : 'You’re not subscribed to any topics. Pick some to get news tagged with them in For You and your digest.'}
           </div>
-          {pinned.length > 0 && (
-            <div className={s.chips} role="group" aria-label="Your tags">
-              {pinned.map((slug) => renderTagChip({ slug, title: titleOf(slug) }))}
-            </div>
-          )}
-          {groups.length > 0 && (
-            <div className={s.tagGroups}>
-              {groups.map((group) => (
-                <div key={group.slug} className={s.tagGroup}>
-                  <p className={s.tagGroupTitle}>{group.title}</p>
-                  <div className={s.chips} role="group" aria-label={group.title}>
-                    {group.tags.map(renderTagChip)}
-                  </div>
-                </div>
-              ))}
+          {order.length > 0 && (
+            <div className={s.chips} role="group" aria-label="Topics">
+              {order.map(renderTagChip)}
             </div>
           )}
           {tagListFailed && (
-            <p className={s.emptyLine}>We couldn’t load the list of tags. Your tags above are still saved.</p>
+            <p className={s.emptyLine}>We couldn’t load the list of topics. Your topics are still saved.</p>
           )}
         </div>
       </div>
@@ -284,6 +257,7 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
                       <Link href={`/teams/${t.uid}`} className={s.teamName}>
                         {t.name}
                       </Link>
+                      {t.focusArea && <span className={s.teamMeta}>{t.focusArea}</span>}
                     </div>
                     <FollowButton
                       following={following}

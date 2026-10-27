@@ -55,9 +55,12 @@ function renderPage(props: Partial<React.ComponentProps<typeof NewsPreferences>>
   );
 }
 
-const yourTags = () => screen.getByRole('group', { name: 'Your tags' });
-const group = (name: string) => screen.getByRole('group', { name });
-const chip = (scope: HTMLElement, name: string) => within(scope).getByRole('button', { name });
+const topics = () => screen.getByRole('group', { name: 'Topics' });
+const chip = (name: string) => within(topics()).getByRole('button', { name });
+const chipNames = () =>
+  within(topics())
+    .getAllByRole('button')
+    .map((b) => b.textContent);
 
 describe('NewsPreferences tags (LAB-3000)', () => {
   beforeEach(() => {
@@ -74,52 +77,57 @@ describe('NewsPreferences tags (LAB-3000)', () => {
     expect(mockAnalytics.onNewsPreferencesOpened).toHaveBeenCalledWith('digest');
   });
 
-  it('has a Tags section and no Categories or Suggested section', () => {
+  it('has a Topics section and no Categories or Suggested section', () => {
     renderPage();
-    expect(screen.getByText(/^Tags/)).toBeInTheDocument();
+    expect(screen.getByText(/^Topics/)).toBeInTheDocument();
     expect(screen.queryByText('Categories')).not.toBeInTheDocument();
     expect(screen.queryByText('Suggested from your profile')).not.toBeInTheDocument();
   });
 
-  it("shows the member's tags first, then the rest under their top-level focus area", () => {
+  it("shows one flat list of #topics, the member's own first, then the rest in the list's order", () => {
     renderPage();
 
-    expect(chip(yourTags(), 'DeSci')).toHaveAttribute('aria-pressed', 'true');
-    expect(chip(group('AI & Robotics'), 'AI & Robotics')).toHaveAttribute('aria-pressed', 'false');
-    expect(chip(group('AI & Robotics'), 'AI')).toBeInTheDocument();
-    // DeSci is pinned, so it is not repeated under its parent.
-    expect(within(group('Economies & Governance')).queryByRole('button', { name: 'DeSci' })).not.toBeInTheDocument();
-    expect(chip(group('Economies & Governance'), 'DeFi')).toBeInTheDocument();
+    expect(chipNames()).toEqual(['#desci', '#ai-robotics', '#ai', '#economies-governance', '#defi']);
+    expect(chip('#desci')).toHaveAttribute('aria-pressed', 'true');
+    expect(chip('#ai')).toHaveAttribute('aria-pressed', 'false');
+    expect(chip('#desci')).toHaveAttribute('title', 'Unsubscribe from #desci');
+    expect(chip('#ai')).toHaveAttribute('title', 'Subscribe to #ai');
+    expect(screen.queryByText('AI & Robotics')).not.toBeInTheDocument();
+  });
+
+  it('links to Email Preferences for the digest frequency', () => {
+    renderPage();
+    expect(screen.getByRole('link', { name: 'Email Preferences' })).toHaveAttribute('href', '/settings/email');
   });
 
   it('adds a tag: saves the whole list, records it, and shows "Saved"', () => {
     mockSetNewsTags.mockImplementation((_next: string[], opts: { onSuccess: () => void }) => opts.onSuccess());
     renderPage();
 
-    fireEvent.click(chip(group('AI & Robotics'), 'AI'));
+    fireEvent.click(chip('#ai'));
 
     expect(mockSetNewsTags).toHaveBeenCalledWith(['desci', 'ai'], expect.any(Object));
     expect(mockAnalytics.onNewsPreferencesTagToggled).toHaveBeenCalledWith({ tag: 'ai', on: true, from: 'settings' });
-    expect(chip(group('AI & Robotics'), 'AI')).toHaveAttribute('aria-pressed', 'true');
+    expect(chip('#ai')).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('status')).toHaveTextContent('Saved');
   });
 
   it('keeps a removed tag in place so it can be added back', () => {
     renderPage();
 
-    fireEvent.click(chip(yourTags(), 'DeSci'));
+    fireEvent.click(chip('#desci'));
 
     expect(mockSetNewsTags).toHaveBeenCalledWith([], expect.any(Object));
-    expect(chip(yourTags(), 'DeSci')).toHaveAttribute('aria-pressed', 'false');
+    expect(chip('#desci')).toHaveAttribute('aria-pressed', 'false');
   });
 
   it('puts the tags back when the save fails, and records it', () => {
     mockSetNewsTags.mockImplementation((_next: string[], opts: { onError: () => void }) => opts.onError());
     renderPage();
 
-    fireEvent.click(chip(group('AI & Robotics'), 'AI'));
+    fireEvent.click(chip('#ai'));
 
-    expect(chip(group('AI & Robotics'), 'AI')).toHaveAttribute('aria-pressed', 'false');
+    expect(chip('#ai')).toHaveAttribute('aria-pressed', 'false');
     expect(mockAnalytics.onNewsPreferencesSaveFailed).toHaveBeenCalledWith({ section: 'tags' });
   });
 
@@ -127,7 +135,7 @@ describe('NewsPreferences tags (LAB-3000)', () => {
     renderPage({ initialTags: ['desci'], initialTagsSeeded: true });
     expect(screen.getByText(/We picked these from your teams’ focus areas/)).toBeInTheDocument();
 
-    fireEvent.click(chip(group('AI & Robotics'), 'AI'));
+    fireEvent.click(chip('#ai'));
 
     expect(mockSetNewsTags).toHaveBeenCalledWith(['desci', 'ai'], expect.any(Object));
     expect(screen.queryByText(/We picked these from your teams’ focus areas/)).not.toBeInTheDocument();
@@ -136,15 +144,17 @@ describe('NewsPreferences tags (LAB-3000)', () => {
   it('prefers the client query over the server-read tags once it loads', () => {
     mockPreferences = { newsTags: ['desci', 'defi'], newsTagsSeeded: false };
     renderPage();
-    expect(chip(group('Economies & Governance'), 'DeFi')).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByText(/^Tags · 2/)).toBeInTheDocument();
+    expect(chip('#defi')).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText(/^Topics · 2/)).toBeInTheDocument();
   });
 
   it('shows the empty state once every tag is removed', () => {
     renderPage();
-    fireEvent.click(chip(yourTags(), 'DeSci'));
+    fireEvent.click(chip('#desci'));
     expect(
-      screen.getByText(/You have no tags, so For You and your digest show news from your own and followed teams only/),
+      screen.getByText(
+        /You’re not subscribed to any topics. Pick some to get news tagged with them in For You and your digest./,
+      ),
     ).toBeInTheDocument();
   });
 
@@ -152,10 +162,16 @@ describe('NewsPreferences tags (LAB-3000)', () => {
     mockTagList = { data: undefined, isError: true };
     renderPage({ initialTags: ['desci'] });
 
-    // No title without the list, so the chip shows the slug.
-    expect(chip(yourTags(), 'desci')).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByText(/We couldn’t load the list of tags/)).toBeInTheDocument();
+    expect(chipNames()).toEqual(['#desci']);
+    expect(chip('#desci')).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText(/We couldn’t load the list of topics/)).toBeInTheDocument();
     expect(screen.getByText(/Teams you follow/)).toBeInTheDocument();
+  });
+
+  it("shows a followed team's focus area under its name when the backend sends one", () => {
+    mockFollowed = [{ uid: 'acme', name: 'Acme', logoUrl: null, focusArea: 'Digital Human Rights' } as never];
+    renderPage();
+    expect(screen.getByText('Digital Human Rights')).toBeInTheDocument();
   });
 
   it('unfollows in place and can follow again', async () => {
@@ -197,31 +213,42 @@ describe('NewsPreferences tags (LAB-3000)', () => {
   });
 
   describe('arrival from the digest or the feed', () => {
-    it('points a member who follows teams at Tags', () => {
+    it('points a member who follows teams at Topics', () => {
       renderPage({ from: 'feed' });
-      expect(screen.getByText('Remove tags you don’t want in For You.')).toBeInTheDocument();
+      expect(screen.getByText('Unsubscribe from topics you don’t want in For You.')).toBeInTheDocument();
     });
 
-    it('invites a member with no tags to add some', () => {
+    it('invites a member with no topics to subscribe to some', () => {
       renderPage({ from: 'digest', initialTags: [] });
-      expect(screen.getByText('Add a few tags to get news that fits your work in your digest.')).toBeInTheDocument();
+      expect(
+        screen.getByText('Subscribe to a few topics to get news that fits your work in your digest.'),
+      ).toBeInTheDocument();
     });
 
-    it('points a member who follows no teams at Teams you follow', () => {
+    it('points a member with topics who follows no teams at Teams you follow', () => {
       mockFollowed = [];
       renderPage({ from: 'digest' });
       expect(screen.getByText('Follow teams to see their news in your digest.')).toBeInTheDocument();
     });
 
+    it('points a member with no topics and no follows at Topics first', () => {
+      mockFollowed = [];
+      renderPage({ from: 'digest', initialTags: [] });
+      expect(
+        screen.getByText('Subscribe to a few topics to get news that fits your work in your digest.'),
+      ).toBeInTheDocument();
+      expect(screen.queryByText('Follow teams to see their news in your digest.')).not.toBeInTheDocument();
+    });
+
     it('ends after the first change', () => {
       renderPage({ from: 'feed' });
-      fireEvent.click(chip(group('AI & Robotics'), 'AI'));
-      expect(screen.queryByText(/Remove tags you don’t want/)).not.toBeInTheDocument();
+      fireEvent.click(chip('#ai'));
+      expect(screen.queryByText(/Unsubscribe from topics you don’t want/)).not.toBeInTheDocument();
     });
 
     it('is absent when opened from the settings menu', () => {
       renderPage({ from: 'settings' });
-      expect(screen.queryByText(/Remove tags you don’t want/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Unsubscribe from topics you don’t want/)).not.toBeInTheDocument();
     });
   });
 });

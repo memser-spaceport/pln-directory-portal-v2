@@ -166,3 +166,10 @@ export interface ITeamNewsFiltersResponse {
  * returns no row for a team with nothing recent. Both render as no chip.
  */
 export type ITeamNewsCountsResponse = Record<string, number>;
+
+/** One row of `GET /v1/focus-areas` (no `type`): every focus area, flat, with its parent. */
+export interface INewsFocusArea {
+  uid: string;
+  title: string;
+  parentUid: string | null;
+}

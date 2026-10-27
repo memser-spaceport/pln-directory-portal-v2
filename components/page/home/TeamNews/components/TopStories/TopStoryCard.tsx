@@ -19,6 +19,7 @@ import { CommentButton } from '../NewsCard/components/CommentButton/CommentButto
 import { NewsShareMenu } from '../NewsShareMenu';
 import { SourceList } from '../SourceList/SourceList';
 import { ViewCount } from '../ViewCount/ViewCount';
+import { NewsTagChips } from '../NewsTagChips';
 
 import newsCardStyles from '../NewsCard/NewsCard.module.scss';
 import s from './TopStories.module.scss';
@@ -151,6 +152,8 @@ export function TopStoryCard({
         <h2 className={s.leadTitle}>{story.title}</h2>
         {story.summary && <p className={s.leadSummary}>{story.summary}</p>}
       </button>
+
+      <NewsTagChips tags={story.tags} variant="card" />
 
       <div className={newsCardStyles.metaLine}>
         <div className={newsCardStyles.meta}>

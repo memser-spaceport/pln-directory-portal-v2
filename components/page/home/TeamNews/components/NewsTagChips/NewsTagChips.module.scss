@@ -1,0 +1,20 @@
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  min-width: 0;
+}
+
+// Badge's own default variant, sized to the card's 12px meta line.
+.chip {
+  min-width: 0;
+  font-size: 12px;
+  line-height: 16px;
+}

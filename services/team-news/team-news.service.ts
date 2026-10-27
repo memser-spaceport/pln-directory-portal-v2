@@ -5,10 +5,12 @@ import type {
   ITeamNewsItem,
   ITeamNewsPopularResponse,
   ITeamNewsUpvoteStatus,
+  INewsFocusArea,
 } from '@/types/team-news.types';
 import { getHeader } from '@/utils/common.utils';
 import { TEAM_NEWS_DEFAULT_WINDOW_DAYS, TEAM_NEWS_POPULAR_LIMIT, TEAM_NEWS_PREVIEW_LIMIT } from './constants';
 import { MOCK_TEAM_NEWS_GROUPED_RESPONSE } from './team-news.mock-data';
+import { getNewsTopicSlugs } from '@/utils/news-tag-chips';
 
 interface FetchGroupedOptions {
   windowDays?: number;
@@ -263,4 +265,17 @@ export async function getTeamNewsItemByUid(uid: string): Promise<ITeamNewsItem |
   } catch {
     return null;
   }
+}
+
+/**
+ * The news tags that are topics (LAB-3003): slugs of the top two levels of
+ * focus areas. Public. Throws on failure, so the chips stay hidden rather than
+ * showing every tag as a free-form extra.
+ */
+export async function getNewsTopicSlugList(): Promise<string[]> {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/focus-areas`);
+  if (!response.ok) {
+    throw new Error(`Failed to load focus areas (${response.status})`);
+  }
+  return getNewsTopicSlugs((await response.json()) as INewsFocusArea[]);
 }

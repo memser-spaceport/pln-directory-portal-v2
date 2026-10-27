@@ -8,9 +8,9 @@ import type {
   INewsFocusArea,
 } from '@/types/team-news.types';
 import { getHeader } from '@/utils/common.utils';
+import { getNewsTopicSlugs } from '@/utils/news-tag-chips';
 import { TEAM_NEWS_DEFAULT_WINDOW_DAYS, TEAM_NEWS_POPULAR_LIMIT, TEAM_NEWS_PREVIEW_LIMIT } from './constants';
 import { MOCK_TEAM_NEWS_GROUPED_RESPONSE } from './team-news.mock-data';
-import { getNewsTopicSlugs } from '@/utils/news-tag-chips';
 
 interface FetchGroupedOptions {
   windowDays?: number;

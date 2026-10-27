@@ -100,3 +100,21 @@ The For You hint SHALL record `team-news-for-you-tune-clicked`.
 #### Scenario: Page opened from the digest
 - **WHEN** a member opens News preferences from the digest link
 - **THEN** `settings-news-preferences-opened` is recorded with `from` = `digest`
+
+### Requirement: News tag chips
+With `NEXT_PUBLIC_SHOW_NEWS_PREFERENCES` on, news items SHALL show their tags as `#slug` chips that are not clickable. A tag is a topic when it equals the slug of a top-two-level focus area. Home feed rows and the Top stories card SHALL show up to 3 topics, in tag order. The detail modal, wherever it opens, SHALL show every topic, then the other tags. Legacy verb tags (`launch`, `fund`, `$`, ...) SHALL never show. With the flag off, nothing SHALL change.
+
+#### Scenario: Card shows topics only
+- **GIVEN** the flag on and an item tagged `ai`, `launch` and `longevity`
+- **WHEN** its Home feed row or Top stories card renders
+- **THEN** it shows one chip, `#ai`
+
+#### Scenario: Detail modal shows topics, then extras
+- **GIVEN** the same item
+- **WHEN** its detail modal opens from Home or from a team or member profile
+- **THEN** it shows `#ai` and `#longevity`, and no `#launch`
+
+#### Scenario: No tags
+- **GIVEN** an item with no tags
+- **WHEN** its card renders
+- **THEN** no chip row renders

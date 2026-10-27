@@ -15,7 +15,8 @@ jest.mock('@/utils/news-categories', () => ({
   },
 }));
 
-const mockTopicSlugs = new Set(['ai', 'digital-human-rights', 'decentralized-storage', 'ai-robotics']);
+const TOPICS = new Set(['ai', 'digital-human-rights', 'decentralized-storage', 'ai-robotics']);
+let mockTopicSlugs: ReadonlySet<string> | null = TOPICS;
 jest.mock('@/services/team-news/hooks/useNewsTopicSlugs', () => ({
   useNewsTopicSlugs: () => mockTopicSlugs,
 }));
@@ -107,6 +108,7 @@ beforeAll(() => {
 
 beforeEach(() => {
   mockFlag = true;
+  mockTopicSlugs = TOPICS;
 });
 
 describe('news tag chips (LAB-3003)', () => {
@@ -156,6 +158,12 @@ describe('news tag chips (LAB-3003)', () => {
         <NewsDetailBody item={makeItem(MIXED)} onClose={jest.fn()} onBack={jest.fn()} onUpvoteToggle={jest.fn()} />,
       );
       expect(chipTexts()).toEqual(['#ai', '#longevity']);
+    });
+
+    it('renders no chip row until the focus areas load', () => {
+      mockTopicSlugs = null;
+      render(<NewsDetailModal item={makeItem(MIXED)} onClose={jest.fn()} onUpvoteToggle={jest.fn()} />);
+      expect(screen.queryByRole('list', { name: 'Tags' })).not.toBeInTheDocument();
     });
 
     it('renders no chip row with the flag off', () => {

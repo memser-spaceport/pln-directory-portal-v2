@@ -269,8 +269,8 @@ export async function getTeamNewsItemByUid(uid: string): Promise<ITeamNewsItem |
 
 /**
  * The news tags that are topics (LAB-3003): slugs of the top two levels of
- * focus areas. Public. Throws on failure, so the chips stay hidden rather than
- * showing every tag as a free-form extra.
+ * focus areas. Public. Throws on failure; the chips then stay hidden (see
+ * useNewsTopicSlugs) rather than showing every tag as a free-form extra.
  */
 export async function getNewsTopicSlugList(): Promise<string[]> {
   const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/focus-areas`);

@@ -7,13 +7,12 @@ import { SHOW_NEWS_PREFERENCES } from '@/utils/news-categories';
 import { TeamNewsQueryKeys } from '../constants';
 import { getNewsTopicSlugList } from '../team-news.service';
 
-const EMPTY: ReadonlySet<string> = new Set();
-
 /**
  * The focus-area slugs that make a news tag a topic (LAB-3003). One request per
- * session, and none while the news-preferences flag is off. Empty until loaded.
+ * session, and none while the news-preferences flag is off. Null until loaded
+ * (and after a failure): without the list, topics and extras can't be told apart.
  */
-export function useNewsTopicSlugs(): ReadonlySet<string> {
+export function useNewsTopicSlugs(): ReadonlySet<string> | null {
   const { data } = useQuery({
     queryKey: [TeamNewsQueryKeys.TOPIC_SLUGS],
     queryFn: getNewsTopicSlugList,
@@ -21,5 +20,5 @@ export function useNewsTopicSlugs(): ReadonlySet<string> {
     staleTime: 60 * 60 * 1000,
     retry: 1,
   });
-  return useMemo(() => (Array.isArray(data) ? new Set(data) : EMPTY), [data]);
+  return useMemo(() => (Array.isArray(data) ? new Set(data) : null), [data]);
 }

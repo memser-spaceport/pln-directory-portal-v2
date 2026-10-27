@@ -15,11 +15,12 @@ interface NewsTagChipsProps {
 
 /**
  * A news item's tags as `#slug` chips (LAB-3003), behind NEXT_PUBLIC_SHOW_NEWS_PREFERENCES.
- * Not clickable. Renders nothing when no tag qualifies, so the layout stays as it was.
+ * Not clickable. Renders nothing until the focus areas load, and nothing when no tag
+ * qualifies, so the layout stays as it was.
  */
 export function NewsTagChips({ tags, variant }: NewsTagChipsProps) {
   const topicSlugs = useNewsTopicSlugs();
-  if (!SHOW_NEWS_PREFERENCES) return null;
+  if (!SHOW_NEWS_PREFERENCES || !topicSlugs) return null;
 
   const chips = getNewsTagChips(
     tags,

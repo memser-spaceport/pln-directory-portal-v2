@@ -6,6 +6,7 @@ import type {
   ITeamNewsPopularResponse,
   ITeamNewsUpvoteStatus,
   INewsFocusArea,
+  INewsTagGroup,
 } from '@/types/team-news.types';
 import { getHeader } from '@/utils/common.utils';
 import { getNewsTopicSlugs } from '@/utils/news-tag-chips';
@@ -278,4 +279,17 @@ export async function getNewsTopicSlugList(): Promise<string[]> {
     throw new Error(`Failed to load focus areas (${response.status})`);
   }
   return getNewsTopicSlugs((await response.json()) as INewsFocusArea[]);
+}
+
+/**
+ * News tags members can choose on News preferences (LAB-2998): focus areas used
+ * by news in the last 90 days, grouped under their top-level focus area. Public.
+ * Throws on failure so the page can say the list could not be loaded.
+ */
+export async function getNewsTags(): Promise<INewsTagGroup[]> {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/team-news/tags`);
+  if (!response.ok) {
+    throw new Error(`Failed to load news tags (${response.status})`);
+  }
+  return (await response.json()) as INewsTagGroup[];
 }

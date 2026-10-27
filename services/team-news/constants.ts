@@ -6,6 +6,7 @@ export enum TeamNewsQueryKeys {
   LATEST_AT = 'team-news-latest-at',
   NEWS_COUNTS = 'team-news-counts',
   TOPIC_SLUGS = 'team-news-topic-slugs',
+  TAGS = 'team-news-tags',
 }
 
 /**

@@ -245,11 +245,11 @@ export const useSettingsAnalytics = () => {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_OPENED, { from });
   }
 
-  function onNewsPreferencesCategoryToggled(params: { category: string; on: boolean; from: NewsPreferencesArrival }) {
-    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_CATEGORY_TOGGLED, params);
+  function onNewsPreferencesTagToggled(params: { tag: string; on: boolean; from: NewsPreferencesArrival }) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_TAG_TOGGLED, params);
   }
 
-  function onNewsPreferencesSaveFailed(params: { section: 'categories' | 'teams'; teamUid?: string }) {
+  function onNewsPreferencesSaveFailed(params: { section: 'tags' | 'teams'; teamUid?: string }) {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_SAVE_FAILED, params);
   }
 
@@ -263,7 +263,7 @@ export const useSettingsAnalytics = () => {
 
   return {
     onNewsPreferencesOpened,
-    onNewsPreferencesCategoryToggled,
+    onNewsPreferencesTagToggled,
     onNewsPreferencesSaveFailed,
     onNewsPreferencesFollowToggled,
     recordSettingsSideMenuClick,

@@ -130,6 +130,10 @@ export interface ITeamNewsGroupedResponse {
   allTabExtraItems?: ITeamNewsItem[];
   /** Memberships ∪ follows ∪ Teams-to-follow matches; empty for anonymous. */
   forYouTeamUids?: string[];
+  /** The viewer's news tags, parents expanded to children (LAB-2999); empty for anonymous. */
+  forYouTags?: string[];
+  /** Memberships ∪ follows, without the related teams (LAB-2999); empty for anonymous. */
+  forYouOwnTeamUids?: string[];
 }
 
 export interface TeamCluster {
@@ -172,4 +176,15 @@ export interface INewsFocusArea {
   uid: string;
   title: string;
   parentUid: string | null;
+}
+
+/** A news tag a member can choose: a focus area, by slug (LAB-2998). */
+export interface INewsTag {
+  slug: string;
+  title: string;
+}
+
+/** A top-level focus area with the second-level ones news used under it (`GET /v1/team-news/tags`). */
+export interface INewsTagGroup extends INewsTag {
+  children: INewsTag[];
 }

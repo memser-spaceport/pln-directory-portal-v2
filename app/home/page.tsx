@@ -21,16 +21,16 @@ import { Welcome } from '@/components/page/home/Welcome';
 import { DigestEmailHomeLinkCapture } from '@/components/page/home/DigestEmailHomeLinkCapture';
 import { QuickActions } from '@/components/page/home/QuickActions';
 import { TeamNews, AutoMarkNewsNotification, MarkHomeVisited } from '@/components/page/home/TeamNews';
+import { resolveForYouMatch, type ForYouMatch } from '@/components/page/home/TeamNews/utils/resolveForYouMatch';
 import {
   getTeamNewsGroupedByFocusArea,
   getTeamNewsItemByUid,
   getTeamNewsPopular,
 } from '@/services/team-news/team-news.service';
 import { getNewsPreviewSnippet } from '@/services/team-news/newsPreviewSnippet';
-import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem, TeamNewsEventType } from '@/types/team-news.types';
-import { getMemberPreferences } from '@/services/preferences.service';
-import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
+import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
 import { SHOW_NEWS_PREFERENCES } from '@/utils/news-categories';
+import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
 import type { MyAccessResponse } from '@/services/access-control/access-control.service';
 import {
   resolveQuickActionsState,
@@ -51,14 +51,13 @@ export default async function Home(props: HomeProps) {
     focusAreas,
     teamNewsGroups,
     teamNewsAllTabExtraItems,
-    teamNewsForYouTeamUids,
+    teamNewsForYouMatch,
     popularItems,
     initialDigestSettings,
     quickActionsState,
     quickActionsOhResolved,
     teamsCount,
     deepLinkedNewsItem,
-    newsCategories,
   } = await getPageData(news);
 
   if (isError) {
@@ -80,11 +79,11 @@ export default async function Home(props: HomeProps) {
             <TeamNews
               groups={teamNewsGroups}
               allTabExtraItems={teamNewsAllTabExtraItems}
-              forYouTeamUids={teamNewsForYouTeamUids}
+              forYouTeamUids={teamNewsForYouMatch.teamUids}
+              forYouTags={teamNewsForYouMatch.tags}
               popularItems={popularItems}
               initialDigestSettings={initialDigestSettings}
               deepLinkedItem={deepLinkedNewsItem}
-              newsCategories={newsCategories}
             />
           </div>
           <div className={styles.home__cn__focusarea}>
@@ -110,11 +109,10 @@ const getPageData = async (deepLinkedNewsUid?: string) => {
   let projectFocusAreas: IFocusArea[] = [];
   let teamNewsGroups: ITeamNewsGroup[] = [];
   let teamNewsAllTabExtraItems: ITeamNewsItem[] = [];
-  let teamNewsForYouTeamUids: string[] = [];
+  let teamNewsForYouMatch: ForYouMatch = { teamUids: [] };
   let popularItems: ITeamNewsPopularItem[] = [];
   let initialDigestSettings: ForumDigestSettings | null = null;
   let deepLinkedNewsItem: ITeamNewsItem | null = null;
-  let newsCategories: TeamNewsEventType[] | undefined;
 
   let teamsCount = 0;
 
@@ -164,17 +162,6 @@ const getPageData = async (deepLinkedNewsUid?: string) => {
 
   const teamsCountPromise = isLoggedIn ? Promise.resolve(null) : getTeamList('', 1, 1).catch(() => null);
 
-  // News preferences (LAB-2941) narrow For You from the first paint: TeamNews
-  // decides its initial tab during the first render. A failed read means every
-  // category, i.e. For You exactly as before; so does the page being flagged
-  // off, since nobody could then see or change the categories.
-  const newsCategoriesPromise: Promise<TeamNewsEventType[] | undefined> =
-    SHOW_NEWS_PREFERENCES && isLoggedIn && userInfo?.uid && authToken
-      ? getMemberPreferences(userInfo.uid, authToken)
-          .then((result) => ('newsCategories' in result ? result.newsCategories : undefined))
-          .catch(() => undefined)
-      : Promise.resolve(undefined);
-
   try {
     const [
       teamFocusAreaResponse,
@@ -187,7 +174,6 @@ const getPageData = async (deepLinkedNewsUid?: string) => {
       myAccessResponse,
       teamsCountResponse,
       deepLinkedNewsResponse,
-      newsCategoriesResponse,
     ] = await Promise.all([
       getFocusAreas('Team', {}),
       getFocusAreas('Project', {}),
@@ -199,17 +185,15 @@ const getPageData = async (deepLinkedNewsUid?: string) => {
       myAccessPromise,
       teamsCountPromise,
       deepLinkedNewsPromise,
-      newsCategoriesPromise,
     ]);
 
     teamNewsGroups = teamNewsResponse?.groups ?? [];
     teamNewsAllTabExtraItems = teamNewsResponse?.allTabExtraItems ?? [];
-    teamNewsForYouTeamUids = teamNewsResponse?.forYouTeamUids ?? [];
+    teamNewsForYouMatch = resolveForYouMatch(teamNewsResponse, SHOW_NEWS_PREFERENCES);
     popularItems = popularResponse?.items ?? [];
     initialDigestSettings = digestSettingsResponse;
     teamsCount = teamsCountResponse?.totalItems ?? 0;
     deepLinkedNewsItem = deepLinkedNewsResponse;
-    newsCategories = newsCategoriesResponse;
 
     if (isLoggedIn && myAccessResponse) {
       quickActionsState = resolveQuickActionsState(
@@ -240,7 +224,7 @@ const getPageData = async (deepLinkedNewsUid?: string) => {
         featuredData,
         teamNewsGroups,
         teamNewsAllTabExtraItems,
-        teamNewsForYouTeamUids,
+        teamNewsForYouMatch,
         popularItems,
         initialDigestSettings,
         deepLinkedNewsItem,
@@ -269,11 +253,10 @@ const getPageData = async (deepLinkedNewsUid?: string) => {
       discoverData,
       teamNewsGroups,
       teamNewsAllTabExtraItems,
-      teamNewsForYouTeamUids,
+      teamNewsForYouMatch,
       popularItems,
       initialDigestSettings,
       deepLinkedNewsItem,
-      newsCategories,
       quickActionsState,
       quickActionsOhResolved,
       teamsCount,
@@ -293,7 +276,7 @@ const getPageData = async (deepLinkedNewsUid?: string) => {
       discoverData,
       teamNewsGroups,
       teamNewsAllTabExtraItems,
-      teamNewsForYouTeamUids,
+      teamNewsForYouMatch,
       popularItems,
       initialDigestSettings,
       deepLinkedNewsItem,

@@ -19,8 +19,9 @@ export default function ExperienceDescription({ description = '' }: { descriptio
   return (
     <div className={styles.memberDetail__experience__item__detail__description}>
       {clean && (
+        // A div, not a <p>: the description is rich-text HTML with its own <p>s, which a <p> cannot hold in
+        // server HTML (LAB-2930).
         <SafeHtml
-          as="p"
           html={isClipped ? clipped : clean}
           className={styles.memberDetail__experience__item__detail__description__text}
         />

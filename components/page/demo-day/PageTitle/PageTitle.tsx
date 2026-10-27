@@ -34,7 +34,9 @@ export function PageTitle(props: PageTitleProps) {
     <div className={s.root}>
       <h1 className={`${s.title} ${size === 'small' && s.small}`}>{title}</h1>
       {description ? (
-        <SafeHtml as="p" className={`${s.description} ${size === 'small' && s.small}`} html={description} />
+        /* A div, because the description is rich-text HTML in its own <p>s: a <p> around it can't survive the server
+           HTML (the browser splits nested paragraphs) and fails hydration (LAB-2930). */
+        <SafeHtml className={`${s.description} ${size === 'small' && s.small}`} html={description} />
       ) : null}
       {subtitle ? <div className={s.subtitle}>{subtitle}</div> : null}
     </div>

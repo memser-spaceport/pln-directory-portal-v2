@@ -187,15 +187,15 @@ const initDirectoryLogin = async () => {
 
 ### Step 7: Save Tokens
 
-On successful token exchange, tokens are saved to cookies.
+On successful token exchange, the browser hands the tokens to LabOS's server (`POST /api/auth/session`), which sets
+the session cookies. `refreshToken` is httpOnly, so browser code never writes or reads it. The call throws when the
+server refuses the tokens, and PrivyModals shows its sign-in error.
 
-**File:** `hooks/auth/useAuthTokens.ts`
+**File:** `hooks/useAuthTokens.ts`
 
 ```typescript
-const saveTokens = (response: TokenResponse, user: User) => {
-  Cookies.set('authToken', JSON.stringify(response.accessToken), { ... });
-  Cookies.set('refreshToken', JSON.stringify(response.refreshToken), { ... });
-  Cookies.set('userInfo', JSON.stringify(response.userInfo), { ... });
+const saveTokens = async (response: TokenResponse, user: User) => {
+  if (!(await establishSession(response))) throw new Error('Session could not be started');
   Cookies.set('authLinkedAccounts', JSON.stringify(authLinkedAccounts), { ... });
 
   // Identify user in PostHog
@@ -266,7 +266,8 @@ User clicks "Sign in"
 User clicks "Logout"
         |
         v
-clearAllAuthCookies()
+await clearAllAuthCookies()   POST /api/auth/logout clears every session cookie,
+        |                     including the httpOnly refreshToken
         |
         v
 authEvents.emit('auth:logout')
@@ -386,7 +387,7 @@ authEvents.emit('auth:link-account', 'updateEmail')
          |
          v  Call updateUserDirectoryEmail() API
          |  Receive new tokens
-         |  Update cookies (authToken, refreshToken, userInfo)
+         |  POST /api/auth/session (server sets the session cookies)
          |  Show success toast
          |  Reload page
 ```
@@ -471,7 +472,7 @@ User navigates with expired cookies
         |
         v
 +------------------+
-|  CookieChecker   |  Detects authToken/refreshToken expired
+|  CookieChecker   |  Detects the sessionExpiresAt marker is gone
 +--------+---------+
          |
          v  Expired tokens detected
@@ -609,7 +610,7 @@ unsubscribe();
 
 ```typescript
 export const authStatus = {
-  isLoggedIn: () => Boolean(Cookies.get('userInfo') || Cookies.get('authToken')),
+  isLoggedIn: () => Boolean(Cookies.get('userInfo') || Cookies.get('authToken') || hasSession()),
   getUserInfo: (): IUserInfo | null => { ... },
 };
 
@@ -644,12 +645,31 @@ authEvents.on('auth:invalid-email', (errorCode) => {
 
 ## Cookies Reference
 
-| Cookie | Content | Expiry |
-|--------|---------|--------|
-| `authToken` | JWT access token | Token expiry |
-| `refreshToken` | JWT refresh token | Token expiry |
-| `userInfo` | User profile data | Token expiry |
-| `authLinkedAccounts` | Linked OAuth providers | Token expiry |
+Only the server writes `refreshToken`: the proxy (`proxy.ts`) and the `app/api/auth/*` routes, through
+`utils/sessionResponse.ts`. Every session cookie has `SameSite=Lax` and `Secure`. `Secure` is left off only on plain
+`http://localhost` / loopback, so a LabOS opened over plain HTTP on any other host (a LAN IP, for example) loses
+its session cookies.
+
+| Cookie | Content | Expiry | Scripts can read | Domain |
+|--------|---------|--------|------------------|--------|
+| `authToken` | JWT access token | Access token expiry | yes | `COOKIE_DOMAIN` while shared with AI Apps, else host-only |
+| `refreshToken` | JWT refresh token | Refresh token expiry | **no (httpOnly)** | host-only |
+| `userInfo` | User profile data | Access token expiry | yes | host-only |
+| `sessionExpiresAt` | Refresh token `exp` (epoch seconds); no credential | Refresh token expiry | yes | host-only |
+| `sessionScope` | Cookie layout revision the proxy migrated to | Refresh token expiry | yes | host-only |
+| `authLinkedAccounts` | Linked OAuth providers | Refresh token expiry | yes | `COOKIE_DOMAIN` |
+
+Browser code checks for a session with `hasSession()` (reads `sessionExpiresAt`), not with `refreshToken`.
+
+### Session routes
+
+| Route | What it does |
+|-------|--------------|
+| `POST /api/auth/session` | Same-origin only. Validates the issued tokens and sets the session cookies (sign-in, invite login, email change). |
+| `POST /api/auth/refresh` | Renews from the httpOnly cookie; returns `{ accessToken, userInfo }` only. 401 plus cleared cookies when it fails. |
+| `POST /api/auth/logout` | Clears host-only and shared copies of every session cookie. |
+
+Browser callers use `services/session.service.ts` (`establishSession`, single-flight `refreshSession`, `endSession`).
 
 ## Typed Auth Events
 

@@ -1,8 +1,9 @@
 import { publicDemoDayPageMetadata } from '@/app/demoday/[demoDayId]/publicDemoDayPageMetadata';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getDemoDayState, getMemberInfo } from '@/app/actions/demo-day.actions';
+import { isDemoDayMissing } from '@/app/demoday/[demoDayId]/isDemoDayMissing';
 import { IUserInfo } from '@/types/shared.types';
-import { redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { checkInvestorProfileComplete, isDemoDayParticipantInvestor } from '@/utils/member.utils';
 import { Landing } from '@/components/page/demo-day/Landing';
 
@@ -14,6 +15,7 @@ export default async function DemoDayLandingPage(props: { params: Promise<{ demo
   // Fetch initial data on the server side
   let demoDayState = null;
   let memberData = null;
+  let demoDayMissing = false;
 
   try {
     const [demoDayResult, memberResult] = await Promise.all([
@@ -23,8 +25,15 @@ export default async function DemoDayLandingPage(props: { params: Promise<{ demo
 
     demoDayState = demoDayResult?.data || null;
     memberData = memberResult?.data || null;
+    demoDayMissing = isDemoDayMissing(demoDayResult);
   } catch (error) {
     console.error('Error fetching initial data:', error);
+  }
+
+  /* An unknown slug used to render the loading skeleton forever, as an indexable 200 under its own canonical
+     (LAB-2930). Only the API's 404 means "no such Demo Day": any other failure keeps the page as it was. */
+  if (demoDayMissing) {
+    notFound();
   }
 
   // Server-side redirect logic (moved from client component)

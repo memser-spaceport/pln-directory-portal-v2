@@ -1,182 +1,119 @@
-import { renewAccessToken } from '@/services/auth.service';
-import { decodeToken } from './auth.utils';
+import { refreshSession } from '@/services/session.service';
 import Cookies from 'js-cookie';
 import { getParsedValue } from './common.utils';
 import { toast } from '@/components/core/ToastContainer';
 import { TOAST_MESSAGES } from './constants';
-import { clearAllAuthCookies, setSessionCookie } from './third-party.helper';
+import { clearAllAuthCookies, hasSession } from './third-party.helper';
 import { authEvents } from '@/components/core/login/utils';
 
 const getAuthInfoFromCookie = () => {
   const userInfo = getParsedValue(Cookies.get('userInfo'));
   const authToken = getParsedValue(Cookies.get('authToken'));
-  const refreshToken = getParsedValue(Cookies.get('refreshToken'));
-  return { userInfo, authToken, refreshToken };
+  return { userInfo, authToken };
+};
+
+const signOutAndReload = async () => {
+  await logoutUser();
+  toast.success(TOAST_MESSAGES.LOGOUT_MSG);
+  window.location.reload();
 };
 
 export const customFetch = async (url: string, options: any, isIncludeToken: boolean) => {
   if (isIncludeToken) {
-    const { authToken, refreshToken } = getAuthInfoFromCookie();
-    if (!refreshToken) {
-      logoutUser();
-      toast.success(TOAST_MESSAGES.LOGOUT_MSG);
-      window.location.reload();
+    const { authToken } = getAuthInfoFromCookie();
+    if (!hasSession()) {
+      await signOutAndReload();
       return;
     }
 
-    if (!authToken && refreshToken) {
+    if (!authToken) {
       try {
-        const tokens = await renewTokens(refreshToken);
-        if (!tokens || !tokens.accessToken || !tokens.refreshToken || !tokens.userInfo) {
-          logoutUser();
-          toast.success(TOAST_MESSAGES.LOGOUT_MSG);
-          window.location.reload();
+        const session = await refreshSession();
+        if (!session) {
+          await signOutAndReload();
           return;
         }
-        const { accessToken: newAuthToken, refreshToken: newRefreshToken, userInfo } = tokens;
-        setNewTokenAndUserInfoAtClientSide({ refreshToken: newRefreshToken, accessToken: newAuthToken, userInfo });
-        const response = await fetch(url, {
+        return await fetch(url, {
           ...options,
           headers: {
             ...options.headers,
-            Authorization: `Bearer ${newAuthToken}`,
+            Authorization: `Bearer ${session.accessToken}`,
           },
         });
-        return response;
       } catch (error) {
-        logoutUser();
-        toast.success(TOAST_MESSAGES.LOGOUT_MSG);
-        window.location.reload();
+        await signOutAndReload();
         return;
       }
     }
 
-    if (authToken) {
-      let response = await fetch(url, {
-        ...options,
-        headers: {
-          ...options.headers,
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        Authorization: `Bearer ${authToken}`,
+      },
+    });
 
-      if (!response.ok && response.status === 401) {
-        const newResponse = await retryApi(url, options);
-        if (!newResponse.ok && newResponse.status === 401) {
-          logoutUser();
-          toast.success(TOAST_MESSAGES.LOGOUT_MSG);
-          window.location.reload();
-        } else if (!newResponse.ok) {
-          return newResponse;
-        }
-        return newResponse;
-      } else if (!response.ok) {
-        return response;
+    if (!response.ok && response.status === 401) {
+      const newResponse = await retryApi(url, options);
+      if (!newResponse.ok && newResponse.status === 401) {
+        await signOutAndReload();
       }
-      return response;
+      return newResponse;
     }
+    return response;
   }
   return await fetch(url, options);
 };
 
-export const setNewTokenAndUserInfoAtClientSide = (details: any) => {
-  const { refreshToken, accessToken, userInfo } = details;
-  const accessTokenExpiry = decodeToken(accessToken) as any;
-  const refreshTokenExpiry = decodeToken(refreshToken) as any;
-
-  if (refreshToken && accessToken && userInfo) {
-    setSessionCookie('authToken', JSON.stringify(accessToken), {
-      expires: new Date(accessTokenExpiry.exp * 1000),
-      path: '/',
-    });
-
-    setSessionCookie('refreshToken', JSON.stringify(refreshToken), {
-      expires: new Date(refreshTokenExpiry.exp * 1000),
-      path: '/',
-    });
-    setSessionCookie('userInfo', JSON.stringify(userInfo), {
-      expires: new Date(accessTokenExpiry.exp * 1000),
-      path: '/',
-    });
-  }
-};
-
-const renewTokens = async (refreshToken: string) => {
-  const renewAccessTokenResponse = await renewAccessToken(refreshToken);
-
-  // If refresh failed, return null to signal failure
-  if (!renewAccessTokenResponse?.ok || !renewAccessTokenResponse?.data) {
-    return null;
-  }
-
-  return renewAccessTokenResponse.data;
-};
-
+/** Renews the session on the server (the refresh token is httpOnly) and repeats the call once. */
 const retryApi = async (url: string, options: any) => {
-  const { refreshToken } = getAuthInfoFromCookie();
-
-  if (!refreshToken) {
-    logoutUser();
-    toast.success(TOAST_MESSAGES.LOGOUT_MSG);
-    window.location.reload();
+  const session = hasSession() ? await refreshSession() : null;
+  if (!session) {
+    await signOutAndReload();
     return new Response(null, { status: 401 });
   }
 
   try {
-    const tokens = await renewTokens(refreshToken);
-    if (!tokens || !tokens.accessToken || !tokens.refreshToken || !tokens.userInfo) {
-      logoutUser();
-      toast.success(TOAST_MESSAGES.LOGOUT_MSG);
-      window.location.reload();
-      return new Response(null, { status: 401 });
-    }
-
-    const { accessToken: newAuthToken, refreshToken: newRefreshToken, userInfo } = tokens;
-    setNewTokenAndUserInfoAtClientSide({ refreshToken: newRefreshToken, accessToken: newAuthToken, userInfo });
     return await fetch(url, {
       ...options,
       headers: {
         ...options.headers,
-        Authorization: `Bearer ${newAuthToken}`,
+        Authorization: `Bearer ${session.accessToken}`,
       },
     });
   } catch (error) {
-    logoutUser();
-    toast.success(TOAST_MESSAGES.LOGOUT_MSG);
-    window.location.reload();
+    await signOutAndReload();
     return new Response(null, { status: 401 });
   }
 };
 
-export const logoutUser = () => {
-  clearAllAuthCookies();
+/** Signs the browser out; await it before reloading or navigating. */
+export const logoutUser = async () => {
+  await clearAllAuthCookies();
   authEvents.emit('auth:logout');
 };
 
 export const getUserCredentialsInfo = async () => {
-  const { authToken, refreshToken, userInfo } = getAuthInfoFromCookie();
+  const { authToken, userInfo } = getAuthInfoFromCookie();
   if (userInfo && authToken) {
     return {
       newUserInfo: userInfo,
       newAuthToken: authToken,
-      newRefreshToken: refreshToken,
     };
-  } else if ((!userInfo || !authToken) && refreshToken) {
-    const renewOuput = await renewAccessToken(refreshToken);
-    if (!renewOuput.ok) {
+  } else if (hasSession()) {
+    const session = await refreshSession();
+    if (!session) {
       return {
         isLoginRequired: true,
-        status: renewOuput?.status,
+        status: 401,
       };
     }
-    setNewTokenAndUserInfoAtClientSide({ ...renewOuput?.data });
     return {
-      newUserInfo: renewOuput?.data?.userInfo,
-      newAuthToken: renewOuput?.data?.accessToken,
-      newRefreshToken: renewOuput?.data?.refreshToken,
+      newUserInfo: session.userInfo,
+      newAuthToken: session.accessToken,
     };
   }
-  // logoutUser()
   return {
     isLoginRequired: true,
   };

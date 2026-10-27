@@ -2,8 +2,8 @@
 import HuskyEmptyChat from '@/components/core/husky/husky-empty-chat';
 import { useEffect, useRef, useState } from 'react';
 import Cookies from 'js-cookie';
+import { hasSession } from '@/utils/third-party.helper';
 import { DAILY_CHAT_LIMIT } from '@/utils/constants';
-import { getParsedValue } from '@/utils/common.utils';
 
 const Husky = () => {
   const [limitReached, setLimitReached] = useState<boolean>(false); // daily limit check
@@ -11,8 +11,7 @@ const Husky = () => {
   const [isShrunk, setIsShrunk] = useState(false); // Track whether header is shrunk
 
   const checkIsLimitReached = () => {
-    const refreshToken = getParsedValue(Cookies.get('refreshToken'));
-    if (!refreshToken) {
+    if (!hasSession()) {
       const chatCount = parseInt(Cookies.get('dailyChats') || '0', 10);
       return DAILY_CHAT_LIMIT <= chatCount;
     }

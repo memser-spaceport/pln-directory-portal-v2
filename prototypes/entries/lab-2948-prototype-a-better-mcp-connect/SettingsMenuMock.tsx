@@ -2,31 +2,49 @@
 
 import { clsx } from 'clsx';
 
+import { Badge } from '@/components/common/Badge';
 // Production classes, reused so the rail tracks production's look.
 import menuCss from '@/components/page/settings/SettingsMenu/SettingsMenu.module.scss';
 import groupCss from '@/components/page/settings/SettingsMenu/components/SettingsMenuGroup/SettingsMenuGroup.module.scss';
 import itemCss from '@/components/page/settings/SettingsMenu/components/SettingsMenuGroup/components/SettingsMenuItem/SettingsMenuItem.module.scss';
 
+import s from './McpSectionMock.module.scss';
+
 /**
  * COPY-SIMPLIFY of production's `SettingsMenu` (components/page/settings/SettingsMenu).
  * Production reads the member's notification settings over the network, tracks clicks and
- * routes by pathname; here the items are static and only "email & accounts" is built.
+ * routes by pathname; here the items are static and only the agents tab is built.
  * The items and their order are production's `useGetMenuItems` without
- * "recommendations" (shown only when the member has it on).
+ * "recommendations" (shown only when the member has it on), plus the new
+ * "MCP connections" tab under Account (2026-10-26: MCP gets its own sub-tab).
+ * Its "New" badge is the first discovery surface: it stays until the member
+ * opens the tab once.
  */
-const ACCOUNT = [{ name: 'email & accounts', icon: '/icons/email.svg', activeIcon: '/icons/email-blue.svg' }];
+const ACCOUNT = [
+  { name: 'email & accounts', icon: '/icons/email.svg', activeIcon: '/icons/email-blue.svg', isNew: false },
+  { name: 'MCP connections', icon: '/icons/link-gray.svg', activeIcon: '/icons/link-blue.svg', isNew: true },
+];
 
 const PREFERENCES = [
-  { name: 'notification preferences', icon: '/icons/bell.svg', activeIcon: '/icons/bell-blue.svg' },
-  { name: 'job preferences', icon: '/icons/briefcase.svg', activeIcon: '/icons/briefcase-blue.svg' },
-  { name: 'general preferences', icon: '/icons/settings.svg', activeIcon: '/icons/settings-blue.svg' },
+  { name: 'notification preferences', icon: '/icons/bell.svg', activeIcon: '/icons/bell-blue.svg', isNew: false },
+  { name: 'job preferences', icon: '/icons/briefcase.svg', activeIcon: '/icons/briefcase-blue.svg', isNew: false },
+  { name: 'general preferences', icon: '/icons/settings.svg', activeIcon: '/icons/settings-blue.svg', isNew: false },
 ];
 
 type Item = (typeof ACCOUNT)[number];
 
-export const BUILT_ITEM = 'email & accounts';
+export const BUILT_ITEM = 'MCP connections';
 
-export function SettingsMenuMock({ activeItem, onSelect }: { activeItem: string; onSelect: (name: string) => void }) {
+export function SettingsMenuMock({
+  activeItem,
+  seen,
+  onSelect,
+}: {
+  activeItem: string;
+  /** The member has opened the tab, so its New badge is gone. */
+  seen: boolean;
+  onSelect: (name: string) => void;
+}) {
   const renderItem = (item: Item) => {
     const isActive = item.name === activeItem;
     const isBuilt = item.name === BUILT_ITEM;
@@ -40,7 +58,12 @@ export function SettingsMenuMock({ activeItem, onSelect }: { activeItem: string;
         style={isBuilt ? undefined : { cursor: 'default' }}
       >
         <img width="16" height="16" alt={item.name} src={isActive ? item.activeIcon : item.icon} />
-        <p className={itemCss.text}>{item.name}</p>
+        <p className={clsx(itemCss.text, { [s.railText]: item.isNew })}>{item.name}</p>
+        {item.isNew && !seen && (
+          <Badge variant="brand" className={s.railBadge}>
+            New
+          </Badge>
+        )}
         <img className={itemCss.arrow} width="12" height="12" alt="arrow right" src="/icons/arrow-right.svg" />
       </div>
     );

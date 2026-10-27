@@ -9,19 +9,22 @@ import { SANITIZE_PROFILES, type SanitizeProfileName } from './sanitizeProfiles'
  */
 export function sanitizeHtml(html: string | null | undefined, profile: SanitizeProfileName = 'richText'): string {
   if (!html) return '';
-  const { styleProperties, ...config } = SANITIZE_PROFILES[profile];
+  const { styleProperties, imageSrc, ...config } = SANITIZE_PROFILES[profile];
   allowedStyleProperties = styleProperties ?? null;
+  allowedImageSrc = imageSrc ?? null;
   try {
     return DOMPurify.sanitize(html, config);
   } finally {
     allowedStyleProperties = null;
+    allowedImageSrc = null;
   }
 }
 
-// DOMPurify hooks are global, so the active profile's style allowlist is
+// DOMPurify hooks are global, so the active profile's style and image rules are
 // handed to the hook through module state for the length of one synchronous
 // sanitize call.
 let allowedStyleProperties: readonly string[] | null = null;
+let allowedImageSrc: RegExp | null = null;
 
 // A colour keyword, hex, or rgb()/hsl() with plain numeric arguments. Anything
 // else (url(), var(), expression(), escapes, strings) is dropped.
@@ -55,7 +58,11 @@ export function filterStyle(style: string, properties: readonly string[]): strin
     .join('; ');
 }
 
-DOMPurify.addHook('uponSanitizeAttribute', (_node, data) => {
+DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
+  if (data.attrName === 'src' && node.tagName === 'IMG' && allowedImageSrc) {
+    if (!allowedImageSrc.test(data.attrValue.trim())) data.keepAttr = false;
+    return;
+  }
   if (data.attrName !== 'style' || !allowedStyleProperties) return;
   const filtered = filterStyle(data.attrValue, allowedStyleProperties);
   if (filtered) {

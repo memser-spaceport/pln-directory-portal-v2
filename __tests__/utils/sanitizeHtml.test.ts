@@ -25,7 +25,7 @@ describe('sanitizeHtml (richText)', () => {
       const root = dom(sanitizeHtml('<p onclick="steal()">About us</p><img src=x onerror="steal()">'));
       expect(root.querySelector('p')?.textContent).toBe('About us');
       expect(onAttributes(root)).toEqual([]);
-      expect(root.querySelector('img')).toBeNull();
+      expect(root.querySelector('img')?.hasAttribute('src')).toBe(false);
     });
 
     it.each(['iframe', 'object', 'embed', 'form', 'style', 'base', 'meta', 'link'])('removes <%s>', (tag) => {
@@ -95,8 +95,35 @@ describe('sanitizeHtml (richText)', () => {
       expect(a.className).toBe('ql-mention');
     });
 
-    it('does not keep images', () => {
-      expect(sanitizeHtml('<p>a<img src="https://cdn.example/x.png">b</p>')).toBe('<p>ab</p>');
+    it('keeps an uploaded image with its size and float', () => {
+      const src = 'https://pl-directory-images-dev.s3.us-west-1.amazonaws.com/0180e254dae0c7cc.png';
+      const img = dom(
+        sanitizeHtml(
+          `<p><img src="${src}" alt="shot" width="50%" height="120" class="ql-img-float-left" style="max-width: 100%"></p>`,
+        ),
+      ).querySelector('img')!;
+      expect(img.getAttribute('src')).toBe(src);
+      expect(img.getAttribute('alt')).toBe('shot');
+      expect(img.getAttribute('width')).toBe('50%');
+      expect(img.getAttribute('height')).toBe('120');
+      expect(img.className).toBe('ql-img-float-left');
+      expect(img.hasAttribute('style')).toBe(false);
+    });
+
+    it.each([
+      ['http://cdn.example/x.png'],
+      ['//cdn.example/x.png'],
+      ['/assets/x.png'],
+      ['data:image/svg+xml;base64,PHN2Zz48L3N2Zz4='],
+      ['javascript:alert(1)'],
+    ])('drops a non-https image source %s', (src) => {
+      const img = dom(sanitizeHtml(`<img src="${src}" onerror="steal()">`)).querySelector('img')!;
+      expect(img.hasAttribute('src')).toBe(false);
+      expect(img.hasAttribute('onerror')).toBe(false);
+    });
+
+    it('keeps the https-only image rule off other profiles', () => {
+      expect(sanitizeHtml('<img src="/assets/uploads/x.png">', 'forumPost')).toBe('<img src="/assets/uploads/x.png">');
     });
   });
 

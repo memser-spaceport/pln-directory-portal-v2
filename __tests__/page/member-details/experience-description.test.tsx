@@ -11,7 +11,7 @@ describe('ExperienceDescription', () => {
       />,
     );
     expect(screen.getByText('growth')).not.toHaveAttribute('href');
-    expect(container.querySelector('img')).toBeNull();
+    expect(container.querySelector('img')?.hasAttribute('src')).toBe(false);
   });
 
   it('clips a long description and shows the rest on "Show more"', () => {

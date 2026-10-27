@@ -4,7 +4,7 @@
 
 - [x] 1.1 Keep `isomorphic-dompurify` 2.22.0 and add `dompurify` `^3.4.17` to `dependencies` with `npm install` (not a hand edit). Verify that `npm ls dompurify` shows exactly one version, 3.4.17 or later, and that `package-lock.json` has no second `node_modules/**/dompurify` entry.
 - [x] 1.2 Run `npm test`. Fix only the exact-string expectations that changed because of dompurify 3.4.x serialization (for example `__tests__/utils/sanitizeForumPostHtml.test.ts`). Verify that the suite passes and no assertion was loosened beyond serialization.
-- [ ] 1.3 Run `npm run build` under Node 22.23.4. Verify that it succeeds and that the Vercel preview build on the PR passes.
+- [x] 1.3 Run `npm run build` under Node 22.23.4. Verify that it succeeds and that the Vercel preview build on the PR passes.
 
 ## 2. One sanitizer module
 
@@ -31,6 +31,8 @@
 
 - [x] 4.9 Run the tag and inline-style inventory on dev and prod (read-only) for every field `richText` renders. Verify that every tag and style property in real data is either kept or knowingly dropped. Prod finding: methodology SVG diagrams, and `text-align` / `white-space` on about 130 event descriptions.
 - [x] 4.10 Add the `methodology` profile, and `text-align` / `white-space` keyword rules to `richText`. Verify with `__tests__/utils/sanitizeHtml.test.ts` (diagram kept; script, handler and `javascript:` inside SVG removed; event alignment kept) and by sanitizing the prod methodology document with no tag or attribute lost.
+
+- [x] 4.11 Keep `<img>` in `richText` with an `https:`-only source (every editor has an image button; E2E on the preview showed Gantry images removed). Verify with `__tests__/utils/sanitizeHtml.test.ts`: the uploaded image keeps size and float, and non-https, `data:`, protocol-relative and `javascript:` sources are dropped.
 
 ## 5. Lint guard
 

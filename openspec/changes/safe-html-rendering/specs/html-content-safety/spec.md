@@ -38,7 +38,7 @@ Every page that shows member-written or AI-generated HTML SHALL remove script el
 
 ### Requirement: Allowed formatting still shows
 
-Member and AI HTML SHALL keep paragraphs, line breaks, links, bold, italic, underline, strikethrough, ordered and unordered lists, headings, blockquotes, code, horizontal rules and tables. Inline text color, background color, text alignment and white-space handling SHALL be kept when their values are plain colors or keywords. Other inline styles SHALL be removed.
+Member and AI HTML SHALL keep paragraphs, line breaks, links, bold, italic, underline, strikethrough, ordered and unordered lists, headings, blockquotes, code, horizontal rules, tables and images with an `https:` source. Inline text color, background color, text alignment and white-space handling SHALL be kept when their values are plain colors or keywords. Other inline styles SHALL be removed.
 
 #### Scenario: Formatted bio
 
@@ -52,6 +52,18 @@ Member and AI HTML SHALL keep paragraphs, line breaks, links, bold, italic, unde
 - **WHEN** a visitor opens the member profile
 - **THEN** "red" shows in red
 - **AND** the span has no `position` and no `background-image` style
+
+#### Scenario: Uploaded image
+
+- **GIVEN** a Gantry item description with `<img src="https://…/x.png" width="50%">` uploaded from the editor
+- **WHEN** a member opens the item
+- **THEN** the image shows at 50% width
+
+#### Scenario: Image with an unsafe source
+
+- **GIVEN** a bio with `<img src="javascript:alert(1)" onerror="steal()">` or a `data:` / `http:` / protocol-relative source
+- **WHEN** a visitor opens the member profile
+- **THEN** the image has no `src` and no `onerror`, and nothing runs
 
 #### Scenario: Event description alignment
 

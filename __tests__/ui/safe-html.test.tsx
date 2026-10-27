@@ -13,7 +13,7 @@ describe('SafeHtml', () => {
     expect(root.className).toBe('bio');
     expect(root.querySelector('p')?.textContent).toBe('Hello');
     expect(root.querySelector('script')).toBeNull();
-    expect(root.querySelector('img')).toBeNull();
+    expect(root.querySelector('img')?.hasAttribute('src')).toBe(false);
     expect(root.innerHTML).not.toMatch(/\son\w+=/);
   });
 

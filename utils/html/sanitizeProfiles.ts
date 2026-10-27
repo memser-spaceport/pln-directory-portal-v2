@@ -5,11 +5,12 @@ import type { Config } from 'dompurify';
  * `sanitizeHtml(html, profile)` is the only caller; the app ships no CSP, so
  * these are the page's only defense layer.
  *
- * `styleProperties` is not a DOMPurify option: it names the inline CSS
- * properties `sanitizeHtml` keeps on a `style` attribute. A profile without it
- * keeps no `style` at all.
+ * `styleProperties` and `imageSrc` are not DOMPurify options. `styleProperties`
+ * names the inline CSS properties `sanitizeHtml` keeps on a `style` attribute;
+ * a profile without it keeps no `style` at all. `imageSrc` is the pattern an
+ * `<img src>` must match on top of `ALLOWED_URI_REGEXP`.
  */
-export type SanitizeProfile = Config & { styleProperties?: readonly string[] };
+export type SanitizeProfile = Config & { styleProperties?: readonly string[]; imageSrc?: RegExp };
 
 /**
  * Default for profile and listing content written in the directory's rich-text
@@ -24,8 +25,9 @@ export type SanitizeProfile = Config & { styleProperties?: readonly string[] };
  *   plus text alignment and white-space handling that pasted event
  *   descriptions carry, each with keyword or color values only (see
  *   `styleProperties` and `sanitizeHtml`'s value rules).
- * - No `img`: these editors are text-only, and a remote image is an
- *   uncontrolled third-party request.
+ * - Images stay: every one of these editors has an image button (uploads land
+ *   in the directory's S3 bucket). `src` must be `https:`; size comes from
+ *   `width` / `height`, and a wrapped image keeps its float class.
  */
 export const RICH_TEXT_SANITIZE_CONFIG: SanitizeProfile = {
   ALLOWED_TAGS: [
@@ -61,6 +63,7 @@ export const RICH_TEXT_SANITIZE_CONFIG: SanitizeProfile = {
     'tr',
     'th',
     'td',
+    'img',
   ],
   ALLOWED_ATTR: [
     'href',
@@ -68,6 +71,10 @@ export const RICH_TEXT_SANITIZE_CONFIG: SanitizeProfile = {
     'rel',
     'class',
     'style',
+    'src',
+    'alt',
+    'width',
+    'height',
     'data-mention',
     'data-uid',
     'data-name',
@@ -79,9 +86,10 @@ export const RICH_TEXT_SANITIZE_CONFIG: SanitizeProfile = {
   // `//evil.example` and `javascript:` do not.
   ALLOWED_URI_REGEXP: /^(?:https?:|mailto:|\/(?!\/))/i,
   // DOMPurify runs ALLOWED_URI_REGEXP against every attribute it does not know
-  // to be URI-safe, and `colspan="2"` is not a URL.
-  ADD_URI_SAFE_ATTR: ['colspan', 'rowspan'],
+  // to be URI-safe, and neither `colspan="2"` nor `width="50%"` is a URL.
+  ADD_URI_SAFE_ATTR: ['colspan', 'rowspan', 'width', 'height'],
   styleProperties: ['color', 'background-color', 'text-align', 'white-space'],
+  imageSrc: /^https:/i,
 };
 
 /**

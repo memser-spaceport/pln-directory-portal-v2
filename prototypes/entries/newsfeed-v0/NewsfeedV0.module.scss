@@ -886,6 +886,54 @@
   overflow: hidden;
 }
 
+/* Topic chips under the summary: the story's 8px gap above, 12px to the footer
+   below so the chip row and the meta line don't read as one block. */
+.topicTags {
+  margin-bottom: 4px;
+}
+
+/* Clickable hashtags (`TopicTags` with onSelect): brand text links, the shape a
+   `#` takes everywhere it can be followed. The 4px padding is cancelled by the
+   negative margin, so the tap target grows without moving the line. */
+.topicLinks {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 12px;
+  row-gap: 2px;
+}
+
+.topicLink {
+  padding: 4px 0;
+  margin: -4px 0;
+  border: none;
+  background: none;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+/* The tag the feed is filtered by: the scope chip's brand-soft fill, so the
+   chip and every matching tag read as the same selected thing. */
+.topicLinkActive {
+  padding: 2px 6px;
+  margin: -2px 0;
+  border-radius: 4px;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  font-weight: 600;
+}
+
 /* ---------- V0 card: event label inside the meta line ---------- */
 
 /* The card's single accent treatment — everything else is plain text in two grays. */

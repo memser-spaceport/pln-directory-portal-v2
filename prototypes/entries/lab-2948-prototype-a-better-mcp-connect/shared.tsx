@@ -50,6 +50,6 @@ export function AgentMark({ name }: { name: string }) {
 export const KIND_LABEL: Record<ActionKind, string | null> = {
   read: null,
   change: 'Change',
-  sent: 'Sent after your confirm',
-  rejected: 'Rejected by you',
+  sent: 'Seen by others',
+  blocked: 'Blocked by permissions',
 };

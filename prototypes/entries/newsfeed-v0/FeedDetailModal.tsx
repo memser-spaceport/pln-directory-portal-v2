@@ -21,6 +21,7 @@ import { LikeButton, CommentCount, ViewCount } from './FeedActions';
 import { CommentsThread } from './CommentsThread';
 import { ShareMenu } from './ShareMenu';
 import { VideoPlayer } from './NewsVideo';
+import { TopicTags } from './TopicTags';
 import s from './FeedDetailModal.module.scss';
 
 /**
@@ -77,6 +78,8 @@ export interface FeedDetail {
   bodyHtml?: string;
   /** Team-posted news changed after publishing — shown beside the time. */
   editedAt?: string;
+  /** Topic hashtags — the card shows three, the reader shows them all. */
+  tags?: string[];
 }
 
 /** Whether the modal renders per-claim citations (superscript markers). */
@@ -109,6 +112,10 @@ interface Props {
    * the story they're reading. Absent for everyone else.
    */
   headerAction?: ReactNode;
+  /** Present = the hashtags are links that filter the feed (the parent closes the modal). */
+  onSelectTopic?: (tag: string) => void;
+  /** The feed's current topic filter, shown selected on the tags. */
+  activeTopic?: string;
 }
 
 /**
@@ -163,6 +170,8 @@ export function FeedDetailBody({
   onToggleCommentLike,
   footerAction,
   headerAction,
+  onSelectTopic,
+  activeTopic,
   onBack,
   className,
 }: BodyProps) {
@@ -299,6 +308,10 @@ export function FeedDetailBody({
             </p>
           )
         )}
+
+        {/* What the story is about, before where it came from. No label: the
+            hashtags say what they are. */}
+        {detail.tags && <TopicTags tags={detail.tags} max={Infinity} onSelect={onSelectTopic} active={activeTopic} />}
 
         {sources.length > 0 && (
           <div className={s.sources}>

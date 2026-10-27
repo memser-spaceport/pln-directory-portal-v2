@@ -10,18 +10,23 @@ import { CopyButton } from '@/components/ui/CopyButton';
 import { CloseIcon } from '@/components/icons';
 // Production's MCP card frame, rows and labels, reused so the section keeps its look.
 import mcp from '@/components/page/connected-accounts/McpSection.module.scss';
+// The DS Badge's classes, for the "+N more" chip: Badge renders a <span> and can't take a click.
+import badgeCss from '@/components/common/Badge/Badge.module.scss';
 
 import { ActivityDrawer } from './ActivityDrawer';
 import { ClientLogo } from './ClientLogo';
 import {
-  type AccessLevel,
   type Agent,
   type ClientKey,
-  type PendingAction,
+  type Levels,
+  SCOPES,
+  type Viewer,
+  agentName,
   getSetupSteps,
   mockServerUrl,
 } from './mocks';
-import { AgentMark, BackendTag, KIND_LABEL, formatAgo, formatDate } from './shared';
+import { PermissionsDrawer } from './Permissions';
+import { AgentMark, BackendTag, formatAgo, formatDate } from './shared';
 import s from './McpSectionMock.module.scss';
 
 const CLIENTS: { name: string; value: ClientKey }[] = [
@@ -42,87 +47,35 @@ const CLIENT_TABS = CLIENTS.map(({ name, value }) => ({
   ),
 }));
 
-/** GitHub's app-permission wording: the level in bold, then what it reaches, in one line. */
-const ACCESS_HELP: Record<AccessLevel, { lead: string; rest: string }> = {
-  read: { lead: 'Read', rest: ' access to LabOS as you. It changes nothing.' },
-  write: { lead: 'Read and write', rest: ' access. Anything other people will see waits for your confirm.' },
-};
-
-const RECENT_COUNT = 3;
-
 interface Props {
   agents: Agent[];
-  pending: PendingAction[];
   fullScreenDrawer: boolean;
-  onAccessChange: (uid: string, access: AccessLevel) => void;
+  viewer: Viewer;
+  onLevelsChange: (uid: string, next: Levels) => void;
   onRevoke: (uid: string) => void;
-  onConfirm: (id: string) => void;
-  onReject: (id: string) => void;
 }
 
-export function McpSectionMock({
-  agents,
-  pending,
-  fullScreenDrawer,
-  onAccessChange,
-  onRevoke,
-  onConfirm,
-  onReject,
-}: Props) {
+/**
+ * MCP connections. Each connection has its own access (2026-10-26 review):
+ * it starts Read only on the consent screen, and its card has a Permissions link
+ * (the scope editor in a drawer with one Save) next to View activity and Revoke.
+ */
+export function McpSectionMock({ agents, fullScreenDrawer, viewer, onLevelsChange, onRevoke }: Props) {
   const [connectOpen, setConnectOpen] = useState(false);
+  const [editingUid, setEditingUid] = useState<string | null>(null);
   // `undefined` = drawer closed; `null` = open on all agents; a uid = open on that agent.
   const [activityFilter, setActivityFilter] = useState<string | null | undefined>(undefined);
 
   const connected = agents.length > 0;
-  const agentName = (uid: string) => agents.find((agent) => agent.uid === uid)?.clientName ?? 'Agent';
 
   return (
     <section className={mcp.root}>
-      <div className={mcp.header}>MCP</div>
+      <div className={mcp.header}>Connections</div>
       <div className={mcp.content}>
         <p className={mcp.desc}>
-          Connect Claude Code, Codex, Claude.ai or any MCP client to LabOS. The agent acts as you.
+          Connect Claude Code, Codex, Claude.ai or any MCP client to LabOS. Each connection acts as you, within its own
+          access. New connections start read only.
         </p>
-
-        {/* The only part that asks something of the member, so it leads (lesson 20: one object per pending state). */}
-        {pending.length > 0 && (
-          <div className={s.pending}>
-            <div className={s.blockHead}>
-              <span className={s.blockTitle}>Needs your confirm ({pending.length})</span>
-              <BackendTag>Needs LAB-2903</BackendTag>
-            </div>
-            <ul className={s.pendingList}>
-              {pending.map((item) => (
-                <li key={item.id} className={s.pendingItem}>
-                  <div className={s.pendingBody}>
-                    <div className={s.pendingTop}>
-                      <Badge>{item.kind}</Badge>
-                      <span className={s.meta}>
-                        {agentName(item.agentUid)} · {formatAgo(item.at)}
-                      </span>
-                    </div>
-                    <div className={s.pendingText}>{item.text}</div>
-                    <blockquote className={s.preview}>{item.preview}</blockquote>
-                  </div>
-                  <div className={s.pendingActions}>
-                    <Button
-                      size="s"
-                      variant="neutral"
-                      style="border"
-                      className={s.btn}
-                      onClick={() => onReject(item.id)}
-                    >
-                      Reject
-                    </Button>
-                    <Button size="s" variant="primary" className={s.btn} onClick={() => onConfirm(item.id)}>
-                      Confirm
-                    </Button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
 
         {connected && (
           <ul className={mcp.list}>
@@ -130,7 +83,7 @@ export function McpSectionMock({
               <AgentCard
                 key={agent.uid}
                 agent={agent}
-                onAccessChange={onAccessChange}
+                onEditAccess={() => setEditingUid(agent.uid)}
                 onRevoke={onRevoke}
                 onViewAll={() => setActivityFilter(agent.uid)}
               />
@@ -140,7 +93,7 @@ export function McpSectionMock({
 
         {connected && !connectOpen && (
           <Button size="s" variant="secondary" style="border" className={s.btn} onClick={() => setConnectOpen(true)}>
-            Connect another agent
+            Add another connection
           </Button>
         )}
 
@@ -154,103 +107,101 @@ export function McpSectionMock({
         onFilterChange={setActivityFilter}
         onClose={() => setActivityFilter(undefined)}
       />
+
+      <PermissionsDrawer
+        key={editingUid ?? 'closed'}
+        agent={agents.find((agent) => agent.uid === editingUid) ?? null}
+        viewer={viewer}
+        fullScreen={fullScreenDrawer}
+        onSave={(uid, next) => {
+          onLevelsChange(uid, next);
+          setEditingUid(null);
+        }}
+        onClose={() => setEditingUid(null)}
+      />
     </section>
   );
 }
 
 function AgentCard({
   agent,
-  onAccessChange,
+  onEditAccess,
   onRevoke,
   onViewAll,
 }: {
   agent: Agent;
-  onAccessChange: (uid: string, access: AccessLevel) => void;
+  onEditAccess: () => void;
   onRevoke: (uid: string) => void;
   onViewAll: () => void;
 }) {
-  const recent = agent.actions.slice(0, RECENT_COUNT);
-  const help = ACCESS_HELP[agent.access];
-
   return (
     <li className={s.agent}>
       <div className={s.agentTop}>
         <AgentMark name={agent.clientName} />
         <div className={s.agentId}>
-          <div className={mcp.clientName}>{agent.clientName}</div>
+          <div className={s.labelRow}>
+            <span className={mcp.clientName}>{agent.clientName}</span>
+            {agent.account && <BackendTag>Needs the account email from the client</BackendTag>}
+          </div>
           <div className={s.meta}>
+            {agent.account && <span className={s.agentAccount}>{agent.account} · </span>}
             Connected {formatDate(agent.connectedAt)} · Last used{' '}
             {agent.lastUsedAt ? formatAgo(agent.lastUsedAt) : 'never'}
           </div>
         </div>
-        <RevokeButton name={agent.clientName} onRevoke={() => onRevoke(agent.uid)} />
-      </div>
-
-      {/* Mintlify's settings row: what it is on the left, the control on the right. */}
-      <div className={s.settingRow}>
-        <div className={s.settingText}>
-          <div className={s.labelRow}>
-            <span className={s.label}>Access</span>
-            <BackendTag>Needs backend: change access after consent</BackendTag>
-          </div>
-          <p className={s.help}>
-            <strong>{help.lead}</strong>
-            {help.rest}
-          </p>
-        </div>
-        <div className={s.segmented} role="radiogroup" aria-label={`Access for ${agent.clientName}`}>
-          {(['read', 'write'] as AccessLevel[]).map((level) => (
-            <button
-              key={level}
-              type="button"
-              role="radio"
-              aria-checked={agent.access === level}
-              className={clsx(s.segment, { [s.segmentActive]: agent.access === level })}
-              onClick={() => onAccessChange(agent.uid, level)}
-            >
-              {level === 'read' ? 'Read-only' : 'Make changes'}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className={s.activity}>
-        <div className={s.blockHead}>
-          <div className={s.labelRow}>
-            <span className={s.label}>Recent actions as you</span>
-            <BackendTag>Needs LAB-2901</BackendTag>
-          </div>
+        <div className={s.agentActions}>
           {agent.actions.length > 0 && (
             <Button size="s" style="link" className={s.linkBtn} onClick={onViewAll}>
-              View all activity
+              View activity
             </Button>
           )}
+          <RevokeButton name={agentName(agent)} onRevoke={() => onRevoke(agent.uid)} />
         </div>
-        {recent.length === 0 ? (
-          <p className={s.help}>None yet.</p>
-        ) : (
-          <ul className={s.actions}>
-            {recent.map((action) => (
-              <li key={action.id} className={s.action}>
-                <span className={s.actionText}>
-                  {action.text}
-                  {KIND_LABEL[action.kind] && (
-                    <span className={clsx(s.kind, { [s.kindRejected]: action.kind === 'rejected' })}>
-                      {KIND_LABEL[action.kind]}
-                    </span>
-                  )}
-                </span>
-                <span className={s.meta}>{formatAgo(action.at)}</span>
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
+      <ScopeChips levels={agent.levels} onMore={onEditAccess} />
     </li>
   );
 }
 
-/** Quiet at rest (grey text), red only on hover and inside the confirm. PandaDoc-style inline popover. */
+const SCOPE_CHIP_COUNT = 4;
+
+/**
+ * What a connection can do, as PostHog lists an app's scopes: one chip per
+ * feature it can reach (`forum:write`, `search:read`), the highest level only,
+ * in priority order. The first four show; "+N more" opens the full list in the
+ * Permissions drawer, the card's only way in (so with nothing hidden, the same
+ * chip reads "Edit").
+ */
+function ScopeChips({ levels, onMore }: { levels: Levels; onMore: () => void }) {
+  const chips = SCOPES.filter((scope) => levels[scope.key] !== 'none').map(
+    (scope) => `${scope.key.replace(/-/g, '_')}:${levels[scope.key]}`,
+  );
+  const shown = chips.slice(0, SCOPE_CHIP_COUNT);
+  const hidden = chips.length - shown.length;
+
+  return (
+    <ul className={s.scopeChips} aria-label="Permissions">
+      {chips.length === 0 && <li className={s.scopeNone}>No access</li>}
+      {shown.map((chip) => (
+        <li key={chip}>
+          <Badge className={s.scopeChip}>{chip}</Badge>
+        </li>
+      ))}
+      <li>
+        <button
+          type="button"
+          className={clsx(badgeCss.root, badgeCss.default, s.scopeChip, s.scopeMore)}
+          aria-label={hidden > 0 ? `+${hidden} more permissions` : 'Edit permissions'}
+          onClick={onMore}
+        >
+          {hidden > 0 ? `+${hidden} more` : 'Edit'}
+        </button>
+      </li>
+    </ul>
+  );
+}
+
+/** A grey link (DS secondary link) at rest; red only on the confirm inside its PandaDoc-style popover. */
 function RevokeButton({ name, onRevoke }: { name: string; onRevoke: () => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -271,15 +222,17 @@ function RevokeButton({ name, onRevoke }: { name: string; onRevoke: () => void }
 
   return (
     <div className={s.revokeWrap} ref={ref}>
-      <button
-        type="button"
-        className={s.revoke}
+      <Button
+        size="s"
+        variant="secondary"
+        style="link"
+        className={s.linkBtn}
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => setOpen((v) => !v)}
       >
         Revoke
-      </button>
+      </Button>
       {open && (
         <div className={s.popover} role="dialog" aria-label={`Revoke ${name}`}>
           <div className={s.popoverTitle}>Revoke {name}?</div>
@@ -304,7 +257,7 @@ function ConnectBlock({ connected, onClose }: { connected: boolean; onClose: () 
   return (
     <div className={s.connect}>
       <div className={s.blockHead}>
-        <span className={s.blockTitle}>{connected ? 'Connect another agent' : 'Connect an agent'}</span>
+        <span className={s.blockTitle}>{connected ? 'Add another connection' : 'Add a connection'}</span>
         {connected && (
           <button type="button" className={s.iconBtn} aria-label="Close" onClick={onClose}>
             <CloseIcon />

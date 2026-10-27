@@ -467,7 +467,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'lab-2948-prototype-a-better-mcp-connect',
     title: 'MCP connect and agent control in Settings',
     description:
-      'The MCP card in Settings, Email & Accounts, with mock data: actions waiting for your confirm on top, one card per agent with its access (read-only or make changes), its last actions and View all activity, the connect steps per client, what agents can do in LabOS, and revoke. Dashed tags mark the parts that need new backend work. LAB-2948.',
+      'Its own Settings tab, MCP connections, with mock data: a launch banner, one card per connection with Permissions (edit, then one Save), View activity and Revoke, the connect steps per client, and the LabOS consent screen. Every connection starts read only, with a checkbox acknowledging it can see other members’ contact details; write is turned on per feature later from that connection’s Permissions, behind its own checkbox consent that names what it can do as you. Some features are switched off by admins, and job applications are off for L0/L1 members and job aspirants. Also shows the in-product hints in search, forum and comments. Dashed tags mark the parts that need new backend work. LAB-2948, revised after the 2026-10-26 syncs.',
     category: 'AI Apps',
     load: () => import('./entries/lab-2948-prototype-a-better-mcp-connect/PrototypeABetterMcpConnectPrototype'),
   },

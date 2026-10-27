@@ -81,3 +81,14 @@ export function getNewsTagChips(
   const shownTopics = topicLimit === undefined ? topics : topics.slice(0, topicLimit);
   return withExtras ? [...shownTopics, ...extras] : shownTopics;
 }
+
+/** A tag as the chips show it and the feed filter compares it: trimmed, lower-case. */
+export function normalizeNewsTag(tag: string): string {
+  return tag.trim().toLowerCase();
+}
+
+/** True when the item carries `tag` exactly (after normalizing) — the Home feed's tag filter (LAB-3010). */
+export function newsItemHasTag(item: { tags?: readonly string[] | null }, tag: string): boolean {
+  const wanted = normalizeNewsTag(tag);
+  return (item.tags ?? []).some((t) => typeof t === 'string' && normalizeNewsTag(t) === wanted);
+}

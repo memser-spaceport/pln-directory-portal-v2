@@ -9,7 +9,7 @@ interface ForYouHintProps {
 }
 
 /**
- * For You's one-line explanation. "Tune For You" (LAB-2941) opens News
+ * For You's one-line explanation. "Update" ("Tune For You" until LAB-3010) opens News
  * preferences, which holds the categories, the profile signals and the teams
  * followed. While that page is flagged off, the hint keeps its earlier link to
  * the member's profile.
@@ -34,7 +34,7 @@ export function ForYouHint({ memberUid }: ForYouHintProps) {
           className={s.link}
           onClick={() => onTeamNewsForYouTuneClicked(memberUid)}
         >
-          Tune For You
+          Update
         </Link>
       ) : (
         <>

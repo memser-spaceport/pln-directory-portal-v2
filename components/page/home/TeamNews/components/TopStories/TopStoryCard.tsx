@@ -57,6 +57,10 @@ interface TopStoryCardProps {
   /** Fired once this card scrolls into the viewport (view-impression recording). */
   onVisible: (uid: string) => void;
   analyticsSource?: TeamNewsAnalyticsSource;
+  /** Makes the `#tag` chips links that filter the Home feed by that tag (LAB-3010). */
+  onTagSelect?: (tag: string) => void;
+  /** The Home feed's current tag filter, shown as the selected chip. */
+  activeTag?: string;
 }
 
 /**
@@ -81,6 +85,8 @@ export function TopStoryCard({
   onOpen,
   onVisible,
   analyticsSource = 'home',
+  onTagSelect,
+  activeTag,
 }: TopStoryCardProps) {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
@@ -153,7 +159,7 @@ export function TopStoryCard({
         {story.summary && <p className={s.leadSummary}>{story.summary}</p>}
       </button>
 
-      <NewsTagChips tags={story.tags} variant="card" />
+      <NewsTagChips tags={story.tags} variant="card" onSelect={onTagSelect} active={activeTag} />
 
       <div className={newsCardStyles.metaLine}>
         <div className={newsCardStyles.meta}>

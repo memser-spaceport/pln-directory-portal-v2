@@ -39,7 +39,7 @@ The Teams you follow section SHALL list the teams the member follows, each with 
 The page SHALL be reachable from three places:
 
 - the digest email's News preferences link (`from=digest`);
-- a "Tune For You" link in Home's For You hint (`from=feed`);
+- an "Update" link in Home's For You hint (`from=feed`);
 - the settings menu (`from=settings`).
 
 Arriving with `from=digest` or `from=feed` SHALL outline one section until the member's first change: Teams you follow when they have topics but follow no teams, otherwise Topics. Email Preferences SHALL link to the page under its Network news setting.
@@ -47,7 +47,7 @@ Arriving with `from=digest` or `from=feed` SHALL outline one section until the m
 #### Scenario: From the For You hint
 
 - **GIVEN** a signed-in member who follows at least one team, on Home's For You view
-- **WHEN** they click "Tune For You"
+- **WHEN** they click "Update"
 - **THEN** News preferences opens with Topics outlined
 
 #### Scenario: From Email Preferences
@@ -153,7 +153,7 @@ With News preferences on, Home's For You view SHALL show a story when its team i
 - **THEN** For You matches their own, followed and related teams as before
 
 ### Requirement: News tag chips
-With `NEXT_PUBLIC_SHOW_NEWS_PREFERENCES` on, news items SHALL show their tags as `#slug` chips that are not clickable. A tag is a topic when it equals the slug of a top-two-level focus area. Home feed rows and the Top stories card SHALL show up to 3 topics, in tag order. The detail modal, wherever it opens, SHALL show every topic, then the other tags. Legacy verb tags (`launch`, `fund`, `$`, ...) SHALL never show. With the flag off, nothing SHALL change.
+With `NEXT_PUBLIC_SHOW_NEWS_PREFERENCES` on, news items SHALL show their tags as `#slug` chips. On Home (the feed rows, the Top stories card and the detail modal opened there) they SHALL be brand links that filter the feed (see "Filter the Home feed by tag"); everywhere else they SHALL be grey labels that are not clickable. A tag is a topic when it equals the slug of a top-two-level focus area. Home feed rows and the Top stories card SHALL show up to 3 topics, in tag order. The detail modal, wherever it opens, SHALL show every topic, then the other tags. Legacy verb tags (`launch`, `fund`, `$`, ...) SHALL never show. With the flag off, nothing SHALL change.
 
 #### Scenario: Card shows topics only
 - **GIVEN** the flag on and an item tagged `ai`, `launch` and `longevity`
@@ -169,3 +169,26 @@ With `NEXT_PUBLIC_SHOW_NEWS_PREFERENCES` on, news items SHALL show their tags as
 - **GIVEN** an item with no tags
 - **WHEN** its card renders
 - **THEN** no chip row renders
+
+### Requirement: Filter the Home feed by tag
+With `NEXT_PUBLIC_SHOW_NEWS_PREFERENCES` on, clicking a `#tag` on Home SHALL filter the feed to the stories carrying exactly that tag, switch to the All tab and All categories, and close the detail modal if the click came from it. A "Filter: #tag ×" chip SHALL show on the filter row with the number of matching updates. While a tag filter is on, the tab and category counts SHALL count only the filtered stories, and forum posts, hiring roll-ups, deals and the Top stories band SHALL be hidden. The × or a second click on the active tag SHALL clear the filter. The filter is page state, not a URL parameter.
+
+#### Scenario: Filter by a tag
+- **GIVEN** the flag on and stories tagged `ai` among others
+- **WHEN** a member clicks `#ai` on a feed card
+- **THEN** only the stories tagged `ai` show, on the All tab and All categories, with a "Filter: #ai ×" chip and its count
+
+#### Scenario: Clear the filter
+- **GIVEN** the feed filtered by `#ai`
+- **WHEN** the member clicks the chip's × or `#ai` again
+- **THEN** the full feed returns
+
+#### Scenario: Tag in the detail modal
+- **GIVEN** a story's detail modal open on Home
+- **WHEN** the member clicks one of its tags
+- **THEN** the modal closes and the feed is filtered by that tag
+
+#### Scenario: No match
+- **GIVEN** the feed filtered by `#ai` and a search with no match
+- **WHEN** the feed renders
+- **THEN** it says "No updates match “q” in #ai."

@@ -51,6 +51,10 @@ interface NewsDetailBodyProps {
   /** Lifted: while the share popover is open the SHELL detaches its own
    *  Escape/backdrop closers, so the first Escape closes the popover, not the modal. */
   onShareOpenChange?: (open: boolean) => void;
+  /** Home only: makes the `#tag` chips links that filter the feed by that tag
+   *  (LAB-3010). Other hosts leave it out, so their chips stay grey labels. */
+  onTagSelect?: (tag: string) => void;
+  activeTag?: string;
 }
 
 // contentHtml comes from the AI enrichment pipeline — the least trusted markup
@@ -94,6 +98,8 @@ export function NewsDetailBody({
   source = 'news-modal',
   loginHref,
   onShareOpenChange,
+  onTagSelect,
+  activeTag,
 }: NewsDetailBodyProps) {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
@@ -201,7 +207,7 @@ export function NewsDetailBody({
           <span className={newsCardStyles.time}>{formatTimeAgo(item.eventDate)}</span>
         </div>
 
-        <NewsTagChips tags={item.tags} variant="detail" />
+        <NewsTagChips tags={item.tags} variant="detail" onSelect={onTagSelect} active={activeTag} />
 
         <h3 id={TITLE_ID} className={s.title}>
           {item.title}

@@ -79,16 +79,17 @@ describe('feed.service', () => {
   });
 
   describe('forum posts (NodeBB, no longer proxied by the directory backend)', () => {
-    it('reads NodeBB /api/recent directly, with the forum token', async () => {
+    it('reads forum posts through the server route, without the forum token', async () => {
       customFetchMock.mockResolvedValue({ ok: true, json: async () => ({ topics: [] }) });
 
       await getFeedForumPosts();
 
       expect(customFetchMock).toHaveBeenCalledWith(
-        'https://forum.example.com/api/recent',
-        expect.objectContaining({ headers: expect.objectContaining({ Authorization: 'Bearer forum-token' }) }),
+        '/api/forum/nodebb/api/recent',
+        expect.objectContaining({ cache: 'no-store', credentials: 'include' }),
         false,
       );
+      expect(JSON.stringify(customFetchMock.mock.calls[0])).not.toContain('forum-token');
     });
 
     it('asks the browser not to answer from its own cache — the counts here go stale', async () => {
@@ -99,7 +100,7 @@ describe('feed.service', () => {
       // Without this, a reload can be served the copy from before the member's
       // own comment, and only the SECOND reload shows the real count.
       expect(customFetchMock).toHaveBeenCalledWith(
-        'https://forum.example.com/api/recent',
+        '/api/forum/nodebb/api/recent',
         expect.objectContaining({ cache: 'no-store' }),
         false,
       );
@@ -215,7 +216,7 @@ describe('feed.service', () => {
       const status = await toggleFeedForumPostLike({ mainPid: 263, likeCount: 5 }, true);
 
       expect(customFetchMock).toHaveBeenCalledWith(
-        'https://forum.example.com/api/v3/posts/263/vote',
+        '/api/forum/nodebb/api/v3/posts/263/vote',
         expect.objectContaining({ method: 'PUT', body: JSON.stringify({ delta: 1 }) }),
         false,
       );
@@ -228,7 +229,7 @@ describe('feed.service', () => {
       const status = await toggleFeedForumPostLike({ mainPid: 263, likeCount: 5 }, false);
 
       expect(customFetchMock).toHaveBeenCalledWith(
-        'https://forum.example.com/api/v3/posts/263/vote',
+        '/api/forum/nodebb/api/v3/posts/263/vote',
         expect.not.objectContaining({ body: expect.anything() }),
         false,
       );
@@ -482,7 +483,7 @@ describe('feed.service', () => {
 
       await getFeedComments('fp_96');
 
-      expect(customFetchMock).toHaveBeenCalledWith('https://forum.example.com/api/topic/96', expect.anything(), false);
+      expect(customFetchMock).toHaveBeenCalledWith('/api/forum/nodebb/api/topic/96', expect.anything(), false);
       expect(fetchMock).not.toHaveBeenCalled();
     });
 
@@ -681,7 +682,7 @@ describe('feed.service', () => {
       // One request, not a fetch-the-topic-then-post pair.
       expect(customFetchMock).toHaveBeenCalledTimes(1);
       expect(customFetchMock).toHaveBeenCalledWith(
-        'https://forum.example.com/api/v3/topics/96',
+        '/api/forum/nodebb/api/v3/topics/96',
         expect.objectContaining({
           method: 'POST',
           // Quill already emits <p>; the service adds no wrapper of its own.
@@ -706,12 +707,7 @@ describe('feed.service', () => {
 
       await createFeedComment({ itemUid: 'fp_96', text: 'Great update!' });
 
-      expect(customFetchMock).toHaveBeenNthCalledWith(
-        1,
-        'https://forum.example.com/api/topic/96',
-        expect.anything(),
-        false,
-      );
+      expect(customFetchMock).toHaveBeenNthCalledWith(1, '/api/forum/nodebb/api/topic/96', expect.anything(), false);
       expect(JSON.parse(customFetchMock.mock.calls[1][1].body).toPid).toBe(263);
     });
 

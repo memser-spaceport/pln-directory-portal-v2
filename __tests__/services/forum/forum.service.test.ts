@@ -29,10 +29,18 @@ describe('postForumReply', () => {
     await postForumReply({ tid: 96, toPid: 263, content: '<p>Hi</p>' });
 
     expect(customFetchMock).toHaveBeenCalledWith(
-      'https://forum.example.com/api/v3/topics/96',
-      expect.objectContaining({ method: 'POST', body: JSON.stringify({ content: '<p>Hi</p>', toPid: 263 }) }),
+      '/api/forum/nodebb/api/v3/topics/96',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ content: '<p>Hi</p>', toPid: 263 }),
+        credentials: 'include',
+      }),
       false,
     );
+    const headers = customFetchMock.mock.calls[0][1].headers;
+    expect(headers.Authorization).toBeUndefined();
+    expect(headers.authorization).toBeUndefined();
+    expect(JSON.stringify(customFetchMock.mock.calls[0])).not.toContain('forum-token');
   });
 
   it('throws with NodeBB’s own message when it supplies one', async () => {

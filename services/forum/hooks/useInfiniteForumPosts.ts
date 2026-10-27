@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { ForumQueryKeys } from '@/services/forum/constants';
-import { customFetch } from '@/utils/fetch-wrapper';
+import { forumFetch } from '@/services/forum/forum.service';
 import { Topic } from '@/services/forum/hooks/useForumPosts';
 
 type QueryParams = {
@@ -9,19 +9,8 @@ type QueryParams = {
 };
 
 async function infiniteFetcher(queryParams: QueryParams, page: number) {
-  const token = process.env.CUSTOM_FORUM_AUTH_TOKEN;
   if (queryParams.cid === '0') {
-    const response = await customFetch(
-      `${process.env.FORUM_API_URL}/api/recent?categoryTopicSort=${queryParams.categoryTopicSort}&page=${page}`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        credentials: 'include',
-      },
-      !token,
-    );
+    const response = await forumFetch(`/api/recent?categoryTopicSort=${queryParams.categoryTopicSort}&page=${page}`);
 
     if (!response?.ok) {
       return [];
@@ -30,16 +19,8 @@ async function infiniteFetcher(queryParams: QueryParams, page: number) {
     return await response.json();
   }
 
-  const response = await customFetch(
-    `${process.env.FORUM_API_URL}/api/v3/categories/${queryParams.cid}/topics?categoryTopicSort=${queryParams.categoryTopicSort}&after=${page}`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      credentials: 'include',
-    },
-    !token,
+  const response = await forumFetch(
+    `/api/v3/categories/${queryParams.cid}/topics?categoryTopicSort=${queryParams.categoryTopicSort}&after=${page}`,
   );
 
   if (!response?.ok) {

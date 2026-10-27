@@ -16,10 +16,12 @@ import { PrototypeNavBar } from '../nav-shared/PrototypeNavBar';
 import { LaunchBanner } from './LaunchBanner';
 import { McpHintsPreview } from './McpHints';
 import { McpSectionMock } from './McpSectionMock';
+import { AccessRequestView } from './AccessRequest';
 import { ConsentScreen } from './Permissions';
 import { SettingsBackButtonMock } from './SettingsBackButtonMock';
 import { BUILT_ITEM, SettingsMenuMock } from './SettingsMenuMock';
 import {
+  type AccessRequest,
   type Agent,
   type AgentAction,
   type Levels,
@@ -37,13 +39,14 @@ const DESKTOP_QUERY = '(min-width: 1024px)';
 /** The phone line (styles/media mobile-only), where the activity drawer takes the whole screen. */
 const PHONE_QUERY = '(max-width: 639px)';
 
-type Scenario = 'empty' | 'consent' | 'two' | 'connected' | 'hints';
+type Scenario = 'empty' | 'consent' | 'two' | 'connected' | 'request' | 'hints';
 
 const SCENARIOS: [Scenario, string][] = [
   ['empty', 'No connections'],
   ['consent', 'Consent screen'],
   ['two', 'Two Claude accounts'],
   ['connected', '3 connections'],
+  ['request', 'Access request'],
   ['hints', 'Discovery hints'],
 ];
 
@@ -139,6 +142,17 @@ export default function PrototypeABetterMcpConnectPrototype() {
     toast.success(`${agentName({ clientName: consentClient, account })} is connected, read only.`);
   };
 
+  /** The request page's Allow: that one feature goes to write, then back to Settings to see it. */
+  const onAllowRequest = (request: AccessRequest) => {
+    setAgents((current) =>
+      current.map((a) =>
+        a.uid === request.agentUid ? { ...a, levels: { ...a.levels, [request.scope]: 'write' } } : a,
+      ),
+    );
+    setScenario('connected');
+    toast.success(`${nameOf(request.agentUid)} can now ${request.ask}.`);
+  };
+
   const onRevoke = (uid: string) => {
     const name = nameOf(uid);
     setAgents((current) => current.filter((a) => a.uid !== uid));
@@ -180,6 +194,21 @@ export default function PrototypeABetterMcpConnectPrototype() {
         <PrototypeNavBar hasUnreadNews={false} isLoggedIn />
         <div className={s.hintsBand}>{reviewBand}</div>
         <McpHintsPreview onSetUp={() => switchScenario('empty')} />
+      </BackendTagsContext.Provider>
+    );
+  }
+
+  // The request page is a LabOS page the agent's link opens, so no settings shell either.
+  if (scenario === 'request') {
+    return (
+      <BackendTagsContext.Provider value={showTags}>
+        <div className={s.consentBand}>{reviewBand}</div>
+        <AccessRequestView
+          agents={agents}
+          viewer={viewer}
+          onAllow={onAllowRequest}
+          onDecline={() => setScenario('connected')}
+        />
       </BackendTagsContext.Provider>
     );
   }

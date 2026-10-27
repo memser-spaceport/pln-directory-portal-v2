@@ -169,6 +169,8 @@ export type AgentAction = {
   at: string;
   text: string;
   kind: ActionKind;
+  /** Blocked calls: the feature that needed write. */
+  scope?: ScopeKey;
 };
 
 export type Agent = {
@@ -178,6 +180,8 @@ export type Agent = {
   account?: string;
   /** What this connection may do. Starts Read only on connect; changed per connection in Settings. */
   levels: Levels;
+  /** The client's sign-in to LabOS expired; it can't call anything until the member reconnects from the client. */
+  expired?: boolean;
   connectedAt: string;
   lastUsedAt: string | null;
   actions: AgentAction[];
@@ -191,6 +195,20 @@ export const mockServerUrl = 'https://directory-api.example.com/mcp';
 /** How a connection is named everywhere: the client, plus its account email when there is one. */
 export function agentName(agent: Pick<Agent, 'clientName' | 'account'>): string {
   return agent.account ? `${agent.clientName} · ${agent.account}` : agent.clientName;
+}
+
+export type AgentStatus = 'active' | 'idle' | 'unused' | 'expired';
+
+/** Same mock clock as shared.tsx. */
+const STATUS_NOW = new Date('2026-10-21T20:00:00Z').getTime();
+const IDLE_AFTER_DAYS = 14;
+
+/** Derived from what LabOS already knows: the sign-in, and when the client last called. */
+export function agentStatus(agent: Pick<Agent, 'expired' | 'lastUsedAt'>): AgentStatus {
+  if (agent.expired) return 'expired';
+  if (!agent.lastUsedAt) return 'unused';
+  const days = (STATUS_NOW - new Date(agent.lastUsedAt).getTime()) / 86_400_000;
+  return days > IDLE_AFTER_DAYS ? 'idle' : 'active';
 }
 
 /** The same client twice: Claude.ai signed in with two different email accounts. */
@@ -216,6 +234,7 @@ export const mockClaudeAccounts: Agent[] = [
     uid: 'agent-claude-ai-personal',
     clientName: 'Claude.ai',
     account: 'alex@northwind.io',
+    expired: true,
     levels: templateLevels('read', 'member'),
     connectedAt: '2026-10-19T20:15:00Z',
     lastUsedAt: '2026-10-20T21:40:00Z',
@@ -235,6 +254,7 @@ export const mockAgents: Agent[] = [
         id: 'c0',
         at: '2026-10-21T19:50:00Z',
         kind: 'blocked',
+        scope: 'jobs',
         text: 'Tried to apply to Senior Rust Engineer at Arcadia Compute',
       },
       {
@@ -272,7 +292,13 @@ export const mockAgents: Agent[] = [
     actions: [
       { id: 'x1', at: '2026-10-19T13:22:00Z', kind: 'read', text: 'Opened your member profile' },
       { id: 'x2', at: '2026-10-19T13:21:00Z', kind: 'read', text: 'Searched projects for "IPFS gateway"' },
-      { id: 'x3', at: '2026-10-15T10:02:00Z', kind: 'blocked', text: 'Tried to book office hours with Lena Ortiz' },
+      {
+        id: 'x3',
+        at: '2026-10-15T10:02:00Z',
+        kind: 'blocked',
+        scope: 'office-hours',
+        text: 'Tried to book office hours with Lena Ortiz',
+      },
       { id: 'x4', at: '2026-10-15T10:00:00Z', kind: 'read', text: 'Opened the project Lighthouse Indexer' },
     ],
   },
@@ -323,3 +349,44 @@ export function getSetupSteps(client: ClientKey, serverUrl: string): SetupStep[]
       ];
   }
 }
+
+/**
+ * A write the agent tried without access. LabOS refuses it and hands the agent
+ * a link to a one-feature request page; the member approves there, never in
+ * the agent. A locked feature gets no link: there is nothing to approve.
+ */
+export type AccessRequest = {
+  id: string;
+  agentUid: string;
+  scope: ScopeKey;
+  /** What the agent tried, in the member's words. */
+  tried: string;
+  /** The ask, read after "Let Codex …". */
+  ask: string;
+};
+
+export const mockRequests: AccessRequest[] = [
+  {
+    id: 'req-forum',
+    agentUid: 'agent-codex',
+    scope: 'forum',
+    tried: 'Post “Who is hiring Rust engineers for zk work?” in the Forum',
+    ask: 'post in the Forum',
+  },
+  {
+    id: 'req-news',
+    agentUid: 'agent-claude-ai',
+    scope: 'news',
+    tried: 'Post team news for Northwind Storage',
+    ask: 'post news for your teams',
+  },
+  {
+    id: 'req-office-hours',
+    agentUid: 'agent-codex',
+    scope: 'office-hours',
+    tried: 'Book office hours with Lena Ortiz',
+    ask: 'book office hours',
+  },
+];
+
+export const requestUrl = (id: string) => `labos.plnetwork.io/mcp/allow/${id}`;

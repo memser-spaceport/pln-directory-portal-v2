@@ -181,7 +181,7 @@ function ScopeRow({
 }
 
 /** A consent line the member has to tick before the primary button works (2026-10-26: a checkbox, not a passive warning). */
-function Acknowledge({
+export function Acknowledge({
   checked,
   onChange,
   children,
@@ -249,18 +249,21 @@ function WriteConsent({
  */
 export function PermissionsDrawer({
   agent,
+  preset,
   viewer,
   fullScreen,
   onSave,
   onClose,
 }: {
   agent: Agent | null;
+  /** Opens with these rows already changed (the card's "Allow" on a blocked action). */
+  preset?: Partial<Levels>;
   viewer: Viewer;
   fullScreen: boolean;
   onSave: (uid: string, next: Levels) => void;
   onClose: () => void;
 }) {
-  const [draft, setDraft] = useState<Levels | null>(agent?.levels ?? null);
+  const [draft, setDraft] = useState<Levels | null>(agent ? { ...agent.levels, ...preset } : null);
   const [asking, setAsking] = useState(false);
 
   if (!agent || !draft) {
@@ -336,7 +339,14 @@ export function ConsentScreen({
     <div className={s.consentPage}>
       <div className={clsx(tabCss.card, s.consentCard)}>
         <div className={s.consentHead}>
-          <img src="/icons/app-logo.svg" width={123} height={28} alt="LabOS" className={s.consentLogo} />
+          {/* Production's one-line wordmark (the digest email logo), not the stacked app logo. */}
+          <img
+            src="/images/email/digest-logo-protocol-labs.png"
+            width={130}
+            height={32}
+            alt="Protocol Labs"
+            className={s.consentLogo}
+          />
           <div className={s.consentTitleRow}>
             <span className={s.agentMark} aria-hidden>
               <ClientLogo client={clientKeyFromName(clientName)} size={18} />

@@ -1024,3 +1024,128 @@
 .searchHost :global([data-testid='followup-questions']) {
   margin-top: 16px;
 }
+
+/* ---- Card: permissions row ---- */
+
+.scopeRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 0 12px 12px 56px;
+
+  @include media.mobile-only {
+    flex-direction: column;
+    padding-left: 12px;
+  }
+
+  .scopeChips {
+    flex: 1;
+    padding: 0;
+  }
+}
+
+/* ---- Access request: the agent's message, then the LabOS page ---- */
+
+.requestStack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 640px;
+}
+
+.agentReply {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+.agentReplyHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.agentReplyText {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.agentReplyLink {
+  color: #93c5fd;
+  text-decoration: underline;
+}
+
+.requestNone {
+  margin: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.agentReplyMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  background: #fff;
+}
+
+/* Status beside the client name. */
+.statusBadge {
+  padding: 0 6px;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+/* Revoke in the ⋯ menu: red, like team news's Remove. */
+.menuDanger {
+  color: var(--foreground-error-primary, #d21a0e);
+}
+
+/* Phones: the name row keeps its width. ⋯ stays top right; Edit permissions becomes a full-width button under the chips. */
+@include media.mobile-only {
+  .agentTop {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    row-gap: 4px;
+  }
+
+  .agentActions {
+    display: contents;
+  }
+
+  .agentActions .revokeWrap {
+    order: 1;
+    align-self: flex-start;
+  }
+
+  .editLink {
+    display: none;
+  }
+}
+
+.editMobile {
+  display: none;
+
+  @include media.mobile-only {
+    display: block;
+    padding: 0 12px 12px;
+
+    > button {
+      width: 100%;
+    }
+  }
+}

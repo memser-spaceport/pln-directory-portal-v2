@@ -10,6 +10,9 @@ import { CopyButton } from '@/components/ui/CopyButton';
 import { CloseIcon } from '@/components/icons';
 // Production's MCP card frame, rows and labels, reused so the section keeps its look.
 import mcp from '@/components/page/connected-accounts/McpSection.module.scss';
+// Production's ⋯ menu: base-ui Menu on the team-news share menu's trigger, popup and item styles.
+import { Menu } from '@base-ui-components/react/menu';
+import menuCss from '@/components/page/home/TeamNews/components/NewsShareMenu/NewsShareMenu.module.scss';
 // The DS Badge's classes, for the "+N more" chip: Badge renders a <span> and can't take a click.
 import badgeCss from '@/components/common/Badge/Badge.module.scss';
 
@@ -21,7 +24,9 @@ import {
   type Levels,
   SCOPES,
   type Viewer,
+  type AgentStatus,
   agentName,
+  agentStatus,
   getSetupSteps,
   mockServerUrl,
 } from './mocks';
@@ -62,7 +67,7 @@ interface Props {
  */
 export function McpSectionMock({ agents, fullScreenDrawer, viewer, onLevelsChange, onRevoke }: Props) {
   const [connectOpen, setConnectOpen] = useState(false);
-  const [editingUid, setEditingUid] = useState<string | null>(null);
+  const [editing, setEditing] = useState<{ uid: string; preset?: Partial<Levels> } | null>(null);
   // `undefined` = drawer closed; `null` = open on all agents; a uid = open on that agent.
   const [activityFilter, setActivityFilter] = useState<string | null | undefined>(undefined);
 
@@ -83,7 +88,7 @@ export function McpSectionMock({ agents, fullScreenDrawer, viewer, onLevelsChang
               <AgentCard
                 key={agent.uid}
                 agent={agent}
-                onEditAccess={() => setEditingUid(agent.uid)}
+                onEditAccess={() => setEditing({ uid: agent.uid })}
                 onRevoke={onRevoke}
                 onViewAll={() => setActivityFilter(agent.uid)}
               />
@@ -109,15 +114,16 @@ export function McpSectionMock({ agents, fullScreenDrawer, viewer, onLevelsChang
       />
 
       <PermissionsDrawer
-        key={editingUid ?? 'closed'}
-        agent={agents.find((agent) => agent.uid === editingUid) ?? null}
+        key={editing ? `${editing.uid}-${JSON.stringify(editing.preset ?? {})}` : 'closed'}
+        agent={agents.find((agent) => agent.uid === editing?.uid) ?? null}
+        preset={editing?.preset}
         viewer={viewer}
         fullScreen={fullScreenDrawer}
         onSave={(uid, next) => {
           onLevelsChange(uid, next);
-          setEditingUid(null);
+          setEditing(null);
         }}
-        onClose={() => setEditingUid(null)}
+        onClose={() => setEditing(null)}
       />
     </section>
   );
@@ -134,6 +140,8 @@ function AgentCard({
   onRevoke: (uid: string) => void;
   onViewAll: () => void;
 }) {
+  const status = agentStatus(agent);
+
   return (
     <li className={s.agent}>
       <div className={s.agentTop}>
@@ -141,24 +149,38 @@ function AgentCard({
         <div className={s.agentId}>
           <div className={s.labelRow}>
             <span className={mcp.clientName}>{agent.clientName}</span>
+            <Badge variant={STATUS[status].variant} className={s.statusBadge}>
+              {STATUS[status].label}
+            </Badge>
             {agent.account && <BackendTag>Needs the account email from the client</BackendTag>}
           </div>
           <div className={s.meta}>
             {agent.account && <span className={s.agentAccount}>{agent.account} · </span>}
             Connected {formatDate(agent.connectedAt)} · Last used{' '}
             {agent.lastUsedAt ? formatAgo(agent.lastUsedAt) : 'never'}
+            {status === 'expired' && ' · Reconnect from the client to use it again'}
           </div>
         </div>
         <div className={s.agentActions}>
-          {agent.actions.length > 0 && (
-            <Button size="s" style="link" className={s.linkBtn} onClick={onViewAll}>
-              View activity
-            </Button>
-          )}
-          <RevokeButton name={agentName(agent)} onRevoke={() => onRevoke(agent.uid)} />
+          <Button size="s" style="link" className={clsx(s.linkBtn, s.editLink)} onClick={onEditAccess}>
+            Edit permissions
+          </Button>
+          <AgentMenu
+            name={agentName(agent)}
+            onViewAll={agent.actions.length > 0 ? onViewAll : undefined}
+            onRevoke={() => onRevoke(agent.uid)}
+          />
         </div>
       </div>
-      <ScopeChips levels={agent.levels} onMore={onEditAccess} />
+      <div className={s.scopeRow}>
+        <ScopeChips levels={agent.levels} onMore={onEditAccess} />
+      </div>
+      {/* Phones: the same action as a full-width secondary button under the chips (the link is hidden there). */}
+      <div className={s.editMobile}>
+        <Button size="m" variant="secondary" style="border" className={s.btn} onClick={onEditAccess}>
+          Edit permissions
+        </Button>
+      </div>
     </li>
   );
 }
@@ -201,8 +223,29 @@ function ScopeChips({ levels, onMore }: { levels: Levels; onMore: () => void }) 
   );
 }
 
-/** A grey link (DS secondary link) at rest; red only on the confirm inside its PandaDoc-style popover. */
-function RevokeButton({ name, onRevoke }: { name: string; onRevoke: () => void }) {
+const STATUS: Record<AgentStatus, { label: string; variant: 'success' | 'default' | 'warning' }> = {
+  active: { label: 'Active', variant: 'success' },
+  idle: { label: 'Idle', variant: 'default' },
+  unused: { label: 'Not used yet', variant: 'default' },
+  expired: { label: 'Sign-in expired', variant: 'warning' },
+};
+
+/** Three dots: the card's less frequent actions. */
+function MoreGlyph() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
+      <circle cx="3.5" cy="8" r="1.4" />
+      <circle cx="8" cy="8" r="1.4" />
+      <circle cx="12.5" cy="8" r="1.4" />
+    </svg>
+  );
+}
+
+/**
+ * ⋯ menu with View activity and Revoke (red). Revoke still asks first: the
+ * PandaDoc-style confirm opens under the dots.
+ */
+function AgentMenu({ name, onViewAll, onRevoke }: { name: string; onViewAll?: () => void; onRevoke: () => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -222,17 +265,25 @@ function RevokeButton({ name, onRevoke }: { name: string; onRevoke: () => void }
 
   return (
     <div className={s.revokeWrap} ref={ref}>
-      <Button
-        size="s"
-        variant="secondary"
-        style="link"
-        className={s.linkBtn}
-        aria-expanded={open}
-        aria-haspopup="dialog"
-        onClick={() => setOpen((v) => !v)}
-      >
-        Revoke
-      </Button>
+      <Menu.Root modal={false}>
+        <Menu.Trigger className={menuCss.iconTrigger} aria-label={`More actions for ${name}`}>
+          <MoreGlyph />
+        </Menu.Trigger>
+        <Menu.Portal>
+          <Menu.Positioner className={menuCss.positioner} align="end" sideOffset={6}>
+            <Menu.Popup className={menuCss.popup}>
+              {onViewAll && (
+                <Menu.Item className={menuCss.item} onClick={onViewAll}>
+                  View activity
+                </Menu.Item>
+              )}
+              <Menu.Item className={clsx(menuCss.item, s.menuDanger)} onClick={() => setOpen(true)}>
+                Revoke
+              </Menu.Item>
+            </Menu.Popup>
+          </Menu.Positioner>
+        </Menu.Portal>
+      </Menu.Root>
       {open && (
         <div className={s.popover} role="dialog" aria-label={`Revoke ${name}`}>
           <div className={s.popoverTitle}>Revoke {name}?</div>

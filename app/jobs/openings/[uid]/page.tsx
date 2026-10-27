@@ -98,6 +98,7 @@ export default async function JobOpeningPage({ params }: PageProps) {
       {jsonLd && (
         <script
           type="application/ld+json"
+          // eslint-disable-next-line react/no-danger -- JSON-LD from our own data, serialized with `<` escaped
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
         />
       )}

@@ -1,12 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import MemberExperienceDescription from '@/components/page/member-details/member-experience-item';
-import DOMPurify from 'isomorphic-dompurify';
 import clip from 'text-clipper';
 import '@testing-library/jest-dom';
-
-jest.mock('isomorphic-dompurify', () => ({
-  sanitize: jest.fn(), // Mocking sanitize function
-}));
 
 jest.mock('text-clipper', () => jest.fn());
 
@@ -25,7 +20,6 @@ describe('MemberExperienceDescription Component', () => {
 
   it('renders the full description if it is short', () => {
     const shortDesc = '<p>This is a short description.</p>';
-    (DOMPurify.sanitize as jest.Mock).mockReturnValue(shortDesc); // Correct usage of mockReturnValue
     render(<MemberExperienceDescription desc={shortDesc} />);
 
     expect(screen.getByText('This is a short description.')).toBeInTheDocument();
@@ -85,5 +79,16 @@ describe('MemberExperienceDescription Component', () => {
     // Ensure "Show More" button is not rendered
     const showMoreButton = screen.queryByText(/Show More/i);
     expect(showMoreButton).not.toBeInTheDocument();
+  });
+});
+
+describe('MemberExperienceDescription sanitizing', () => {
+  it('renders a description with a script and an event handler as safe text', () => {
+    const { container } = render(
+      <MemberExperienceDescription desc={'<p onclick="steal()">Built things</p><script>alert(1)</script>'} />,
+    );
+    expect(screen.getByText('Built things')).toBeInTheDocument();
+    expect(container.querySelector('script')).toBeNull();
+    expect(container.innerHTML).not.toMatch(/\sonclick=/);
   });
 });

@@ -15,6 +15,7 @@ import Image from 'next/image';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { IUserInfo } from '@/types/shared.types';
 import { useIrlGoingAccess } from '@/services/access-control/hooks/useIrlGoingAccess';
+import { safeHtmlProps } from '@/utils/html';
 
 interface EventDetailsProps {
   eventDetails: {
@@ -421,7 +422,7 @@ const IrlPastEvents = ({
           {selectedEvent && (
             <div className="root__irl__mobileView__body">
               <div className="root__irl__mobileView__body__title">
-                <div dangerouslySetInnerHTML={{ __html: isExpanded ? selectedEvent?.description : clippedDesc }}></div>
+                <div {...safeHtmlProps(isExpanded ? selectedEvent?.description : clippedDesc)}></div>
                 {selectedEvent?.description?.length > limit && (
                   <span>
                     <span onClick={toggleDescription} style={{ color: '#156FF7', cursor: 'pointer' }}>

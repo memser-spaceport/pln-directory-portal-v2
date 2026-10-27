@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import DOMPurify from 'isomorphic-dompurify';
 import clip from 'text-clipper';
+import { safeHtmlProps, sanitizeHtml } from '@/utils/html';
 
 interface IMemberExperienceDescription {
   desc: string;
@@ -21,7 +21,7 @@ function MemberExperienceDescription(props: IMemberExperienceDescription) {
   };
   // Function to truncate HTML content without breaking tags
   const truncateHTML = (html: string, maxLength: number): string => {
-    const sanitizedHTML = DOMPurify.sanitize(html); // Sanitize the HTML for security
+    const sanitizedHTML = sanitizeHtml(html);
     const clippedHtml = clip(sanitizedHTML, maxLength, { html: true, maxLines: 5 });
     return clippedHtml;
   };
@@ -32,7 +32,7 @@ function MemberExperienceDescription(props: IMemberExperienceDescription) {
         <div className="med">
           {!isShowMoreActive && (
             <div className="med__btn">
-              <div className="med__text" dangerouslySetInnerHTML={{ __html: truncateHTML(shortDesc, 250) }}></div>
+              <div className="med__text" {...safeHtmlProps(truncateHTML(shortDesc, 250))}></div>
               <span onClick={onShowMore} className="med__btn__txt">
                 Show More
               </span>
@@ -40,7 +40,7 @@ function MemberExperienceDescription(props: IMemberExperienceDescription) {
           )}
           {isShowMoreActive && (
             <div className="med__btn">
-              <div className="med__text" dangerouslySetInnerHTML={{ __html: fullDesc }}></div>
+              <div className="med__text" {...safeHtmlProps(fullDesc)}></div>
               <span onClick={onShowLess} className="med__btn__txt">
                 Show Less
               </span>
@@ -49,7 +49,7 @@ function MemberExperienceDescription(props: IMemberExperienceDescription) {
         </div>
       )}
 
-      {!isBigDesc && <div dangerouslySetInnerHTML={{ __html: fullDesc }} className="med__text"></div>}
+      {!isBigDesc && <div {...safeHtmlProps(fullDesc)} className="med__text"></div>}
 
       <style jsx>{`
         .med__btn {

@@ -2,10 +2,16 @@
 
 import clsx from 'clsx';
 import { useMemo } from 'react';
-import parse from 'html-react-parser';
 
 import { convertMarkdownImagesToHtml } from '@/utils/decode';
-import { classifyAnchor, isBlankHtml, linkifyHtml, sanitizeCommentHtml, type AnchorTarget } from '@/utils/html';
+import {
+  classifyAnchor,
+  isBlankHtml,
+  linkifyHtml,
+  parseSafeHtml,
+  sanitizeCommentHtml,
+  type AnchorTarget,
+} from '@/utils/html';
 
 import s from './FeedCommentsThread.module.scss';
 
@@ -61,7 +67,7 @@ interface FeedCommentContentProps {
 }
 
 export function FeedCommentContent({ html, className, onAnchorClick }: FeedCommentContentProps) {
-  const nodes = useMemo(() => parse(sanitizeCommentHtml(linkifyHtml(convertMarkdownImagesToHtml(html ?? '')))), [html]);
+  const nodes = useMemo(() => parseSafeHtml(linkifyHtml(convertMarkdownImagesToHtml(html ?? '')), 'comment'), [html]);
 
   // One delegated handler on this element, not one per anchor: the content is
   // parsed HTML, so per-anchor handlers would mean rewriting nodes during the

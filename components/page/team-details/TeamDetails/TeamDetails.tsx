@@ -46,6 +46,7 @@ import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import clsx from 'clsx';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useTeamFollowToggle } from '@/services/follow/hooks/useTeamFollowToggle';
+import { SafeHtml } from '@/components/ui/SafeHtml';
 
 interface Props {
   team: ITeam;
@@ -293,7 +294,7 @@ export const TeamDetails = (props: Props) => {
           <div className={s.aboutTitle}>About</div>
           <DetailsSectionGreyContentContainer className={s.aboutBox}>
             <ExpandableDescription>
-              <div className={s.aboutContent} dangerouslySetInnerHTML={{ __html: about }} />
+              <SafeHtml className={s.aboutContent} html={about} />
             </ExpandableDescription>
           </DetailsSectionGreyContentContainer>
         </div>

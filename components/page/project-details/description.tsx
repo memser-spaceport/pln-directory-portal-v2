@@ -9,6 +9,7 @@ import { toast } from '@/components/core/ToastContainer';
 import { useProjectAnalytics } from '@/analytics/project.analytics';
 import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 import { useUnsavedEditRegistration } from '@/components/common/profile/UnsavedEdits';
+import { safeHtmlProps } from '@/utils/html';
 
 interface IDescription {
   description: string;
@@ -144,7 +145,7 @@ const Description = (props: IDescription) => {
           {!showEditor && (
             <div className="desc__content">
               {/* {description} */}
-              <div dangerouslySetInnerHTML={{ __html: desc }} />
+              <div {...safeHtmlProps(desc)} />
               {description?.length > desc?.length && (
                 <span>
                   <button className="desc__content__show-more" onClick={onShowMoreClickHandler}>

@@ -5,6 +5,7 @@ import type { SpvViewState } from '@/services/spv-spotlight/resolveSpvViewState'
 import { sanitizeSpvHtml } from '@/utils/html/sanitizeSpvHtml';
 import { SpvAppliedSteps } from '../SpvAppliedSteps/SpvAppliedSteps';
 import s from './SpvHero.module.scss';
+import { SafeHtml } from '@/components/ui/SafeHtml';
 
 type Props = {
   /** Null while the viewer's state loads: the hero shows only the spotlight's own copy. */
@@ -66,7 +67,7 @@ export const SpvHero = ({
       <div className={s.titleContainer}>
         <div className={s.headline}>
           <h1 className={s.title}>{title}</h1>
-          {descriptionHtml && <div className={s.body} dangerouslySetInnerHTML={{ __html: descriptionHtml }} />}
+          {descriptionHtml && <SafeHtml className={s.body} profile="spv" html={descriptionHtml} />}
         </div>
       </div>
 

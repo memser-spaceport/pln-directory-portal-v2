@@ -89,3 +89,22 @@ The connection list SHALL show a loading state while it fetches, and an error st
 
 - **WHEN** `GET /v1/mcp/authorizations` fails
 - **THEN** the page shows an error with a Retry button and no cards
+
+### Requirement: Consent starts read only
+
+The LabOS consent page for an MCP client SHALL offer no choice of write access: every new connection starts read only. It SHALL show "Connect {client} to LabOS", a "Read only (default)" section saying what the client can view, and a notice that this includes other members' contact details (email, Telegram, LinkedIn) with the checkbox "I understand {client} can see other members' contact details." Connect SHALL stay disabled until that checkbox is ticked and while the approval is in flight. Approving SHALL send `acknowledgedContactDetails: true` and no `allowChanges`. Cancel SHALL deny as before.
+
+#### Scenario: Connect waits for the acknowledgement
+
+- **WHEN** a member opens the consent page for a registered client
+- **THEN** Connect is disabled until the member ticks the contact-details checkbox
+
+#### Scenario: Approval is read only
+
+- **WHEN** the member ticks the checkbox and clicks Connect
+- **THEN** the approve request carries `acknowledgedContactDetails: true` and no `allowChanges`, and the client is redirected with its code
+
+#### Scenario: Cancel denies
+
+- **WHEN** the member clicks Cancel
+- **THEN** the client is sent back with `error=access_denied`, as before

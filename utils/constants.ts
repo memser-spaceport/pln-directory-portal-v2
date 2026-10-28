@@ -2853,6 +2853,7 @@ export const MCP_ANALYTICS_EVENTS = {
   SCOPE_LEVELS_SAVED: 'mcp-scope-levels-saved',
   SCOPE_LEVELS_SAVE_FAILED: 'mcp-scope-levels-save-failed',
   ACCESS_REQUEST_OPENED: 'mcp-access-request-opened',
+  CONTACT_ACK_CHECKED: 'mcp-contact-ack-checked',
 };
 
 export const EDITOR_ANALYTICS = {

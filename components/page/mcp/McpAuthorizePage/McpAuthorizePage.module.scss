@@ -1,3 +1,5 @@
+@use 'styles/media';
+
 .page {
   display: flex;
   align-items: center;
@@ -42,40 +44,164 @@
   }
 }
 
-.scopes {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin: 0;
-  padding: 12px 16px;
-  list-style: none;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  text-align: left;
-}
-
-.scope,
-.scopeLabel {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-  line-height: 20px;
-  color: #0f172a;
-}
-
-.scopeLabel {
-  cursor: pointer;
-}
-
-.actions {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 4px;
-}
-
 .error {
   font-weight: 600;
   color: #b91c1c;
+}
+
+/* ---- Consent screen, ported from the LAB-2948 prototype (McpSectionMock.module.scss) for LAB-3016 ---- */
+
+.consentPage {
+  display: flex;
+  justify-content: center;
+  padding: 40px 16px 64px;
+  min-height: calc(100dvh - 48px);
+  background: var(--background-neutral-subtle, #f1f5f9);
+
+  @include media.mobile-only {
+    padding: 0;
+    background: var(--background-base-white, #fff);
+  }
+}
+
+.consentCard {
+  width: 100%;
+  max-width: 640px;
+  align-self: flex-start;
+
+  @include media.mobile-only {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+.consentHead {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+
+  @include media.mobile-only {
+    padding: 20px 16px 16px;
+  }
+}
+
+.consentLogo {
+  display: block;
+}
+
+.consentTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.consentTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 28px;
+  letter-spacing: -0.3px;
+}
+
+.consentBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  padding: 16px 24px;
+
+  @include media.mobile-only {
+    padding: 16px;
+  }
+}
+
+.consentFoot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  width: 100%;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+
+  @include media.mobile-only {
+    padding: 12px 16px;
+
+    > * {
+      flex: 1;
+    }
+  }
+}
+
+.consentSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.consentNotice {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--background-warning-subtle, #fffbeb);
+  border: 1px solid var(--border-warning-subtle, #fde68a);
+}
+
+.ackRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+
+  > :first-child {
+    margin-top: 0;
+  }
+}
+
+.agentMark {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  /* White + hairline: a brand mark needs a plain ground; a grey tile muddies Claude's orange. */
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-neutral-primary, #fff);
+}
+
+.label {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.help {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+
+  strong {
+    font-weight: 600;
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }

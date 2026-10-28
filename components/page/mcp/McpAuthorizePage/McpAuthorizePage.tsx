@@ -2,13 +2,18 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { clsx } from 'clsx';
 
 import { useMcpAnalytics, type McpConnectErrorKind, type McpConnectView } from '@/analytics/mcp.analytics';
 import { Button } from '@/components/common/Button/Button';
 import { Checkbox } from '@/components/common/Checkbox';
+// The settings card frame, as the LAB-2948 prototype's consent screen uses it.
+import tabCss from '@/components/page/connected-accounts/ConnectedAccounts.module.scss';
+import { ClientLogo, clientKeyFromName } from '@/components/page/settings/mcp/ClientLogo';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { approveMcpOAuth, fetchMcpOAuthClient } from '@/services/mcp/mcp.service';
 import { useMcpAccess } from '@/services/rbac/hooks/useMcpAccess';
+import { SHOW_MCP_CONNECTIONS_PAGE } from '@/utils/mcp';
 
 import s from './McpAuthorizePage.module.scss';
 
@@ -61,7 +66,8 @@ export function McpAuthorizePage() {
   const { currentUser, isHydrated } = useCurrentUserStore();
   const { canConnect, isLoading: accessLoading } = useMcpAccess();
   const [isApproving, setIsApproving] = useState(false);
-  const [allowChanges, setAllowChanges] = useState(false);
+  // Every connection starts read only (LAB-2995); the member only acknowledges what read already exposes.
+  const [acknowledged, setAcknowledged] = useState(false);
   const [viewOverride, setViewOverride] = useState<View | null>(null);
   const [clientCheck, setClientCheck] = useState<ClientCheck>({ state: 'loading' });
   const trackedViewRef = useRef<string | null>(null);
@@ -185,7 +191,7 @@ export function McpAuthorizePage() {
       codeChallengeMethod: 'S256',
       state,
       resource,
-      allowChanges,
+      acknowledgedContactDetails: true,
     });
     setIsApproving(false);
     if ('redirectUrl' in result) {
@@ -199,14 +205,93 @@ export function McpAuthorizePage() {
     }
     analytics.onConnectError({ clientId, errorKind: 'approve_failed' });
     setViewOverride('error');
-  }, [clientId, redirectUri, codeChallenge, state, resource, allowChanges, analytics]);
+  }, [clientId, redirectUri, codeChallenge, state, resource, analytics]);
 
   const clientName = clientCheck.state === 'ready' ? clientCheck.clientName : '';
   const redirectHost = clientCheck.state === 'ready' ? clientCheck.redirectHost : null;
+  const onAcknowledge = useCallback(
+    (checked: boolean) => {
+      setAcknowledged(checked);
+      if (checked) analytics.onContactAckChecked({ clientId });
+    },
+    [analytics, clientId],
+  );
+
   const errorCopy =
     clientCheck.state === 'not_found' || clientCheck.state === 'invalid_redirect'
       ? 'This connect link is not valid. Ask your agent to try again.'
       : 'Something went wrong completing this connection. Please try again.';
+
+  if (view === 'pending') {
+    // The LAB-2948 prototype's consent screen (Permissions.tsx ConsentScreen), on production parts.
+    return (
+      <div className={s.consentPage}>
+        <div className={clsx(tabCss.card, s.consentCard)}>
+          <div className={s.consentHead}>
+            <img
+              src="/images/email/digest-logo-protocol-labs.png"
+              width={130}
+              height={32}
+              alt="Protocol Labs"
+              className={s.consentLogo}
+            />
+            <div className={s.consentTitleRow}>
+              <span className={s.agentMark} aria-hidden>
+                <ClientLogo client={clientKeyFromName(clientName)} size={18} />
+              </span>
+              <h1 className={s.consentTitle}>Connect {clientName} to LabOS</h1>
+            </div>
+          </div>
+          <div className={s.consentBody}>
+            <div className={s.consentSection}>
+              <span className={s.label}>Read only (default)</span>
+              <p className={s.help}>
+                {clientName} can view what you can view in LabOS: members, teams, projects, the forum, news and events.
+                You can give it more access or less at any time in Settings
+                {SHOW_MCP_CONNECTIONS_PAGE ? ' → MCP connections' : ''}.
+              </p>
+              {redirectHost ? (
+                <p className={s.help}>
+                  This page returns to <strong>{redirectHost}</strong>.
+                </p>
+              ) : null}
+            </div>
+            <div className={s.consentNotice}>
+              <p className={s.help}>
+                That includes other members’ contact details, such as email, Telegram and LinkedIn. Keep what it reads
+                inside the network.
+              </p>
+              <label className={s.ackRow}>
+                <Checkbox checked={acknowledged} onChange={onAcknowledge} disabled={isApproving} />
+                <span>I understand {clientName} can see other members’ contact details.</span>
+              </label>
+            </div>
+          </div>
+          <div className={s.consentFoot}>
+            <Button
+              size="m"
+              variant="neutral"
+              style="border"
+              className={s.btn}
+              onClick={denyRedirect}
+              disabled={isApproving}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="m"
+              variant="primary"
+              className={s.btn}
+              disabled={!acknowledged || isApproving}
+              onClick={onApprove}
+            >
+              {isApproving ? 'Connecting…' : 'Connect'}
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={s.page}>
@@ -233,40 +318,6 @@ export function McpAuthorizePage() {
             <Button size="m" onClick={onSignIn}>
               Sign in to continue
             </Button>
-          </>
-        )}
-
-        {view === 'pending' && (
-          <>
-            <p className={s.body}>
-              Allow <strong>{clientName}</strong> to access LabOS as you.
-              {redirectHost ? (
-                <>
-                  {' '}
-                  This page returns to <strong>{redirectHost}</strong>.
-                </>
-              ) : null}
-            </p>
-            <ul className={s.scopes}>
-              <li className={s.scope}>
-                <Checkbox checked disabled />
-                <span>Read the directory, events and forum</span>
-              </li>
-              <li className={s.scope}>
-                <label className={s.scopeLabel}>
-                  <Checkbox checked={allowChanges} onChange={setAllowChanges} disabled={isApproving} />
-                  <span>Make changes for me (feedback status, introductions)</span>
-                </label>
-              </li>
-            </ul>
-            <div className={s.actions}>
-              <Button size="m" style="border" variant="neutral" onClick={denyRedirect} disabled={isApproving}>
-                Deny
-              </Button>
-              <Button size="m" onClick={onApprove} disabled={isApproving}>
-                {isApproving ? 'Allowing…' : 'Allow'}
-              </Button>
-            </div>
           </>
         )}
 

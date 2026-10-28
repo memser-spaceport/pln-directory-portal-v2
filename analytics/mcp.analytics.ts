@@ -74,6 +74,7 @@ export function useMcpAnalytics() {
       capture(MCP_ANALYTICS_EVENTS.SCOPE_LEVELS_SAVE_FAILED, params),
     onAccessRequestOpened: (params: { status: McpAccessRequestOpenedStatus; scope?: string }) =>
       capture(MCP_ANALYTICS_EVENTS.ACCESS_REQUEST_OPENED, params),
+    onContactAckChecked: (params: { clientId: string }) => capture(MCP_ANALYTICS_EVENTS.CONTACT_ACK_CHECKED, params),
     onWarmPathFeedbackOpened: (params: McpWarmPathEditParams) =>
       capture(MCP_ANALYTICS_EVENTS.WARM_PATH_FEEDBACK_OPENED, params),
     onWarmPathFeedbackSubmitted: (params: McpWarmPathEditParams) =>

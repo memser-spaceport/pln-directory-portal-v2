@@ -504,12 +504,6 @@
 
 /* ---- Production additions (LAB-2997) ---- */
 
-.guide {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
 .loadError {
   display: flex;
   align-items: center;
@@ -521,4 +515,118 @@
   color: var(--foreground-error-primary, #dc2626);
   font-size: 14px;
   line-height: 20px;
+}
+
+/* ---- Connect block, ported from the LAB-2948 prototype (LAB-2997) ---- */
+
+/* Logo + client name inside a Connect tab. */
+.tabLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+/* ---- Connect block ---- */
+
+.connect {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.urlRow,
+.codeRow {
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+}
+
+.urlText {
+  min-width: 0;
+}
+
+.tabs {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.step {
+  display: flex;
+  gap: 12px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.stepNumber {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.stepBody {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+
+  > .codeRow {
+    align-self: stretch;
+  }
+}
+
+.stepLink {
+  align-self: flex-start;
+}
+
+/* Connect block: the Claude app group, then For developers (LAB-2993 order). */
+.connectGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+
+  & + & {
+    padding-top: 12px;
+    border-top: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+  }
+}
+
+.groupTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
 }

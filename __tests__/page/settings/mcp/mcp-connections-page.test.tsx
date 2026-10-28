@@ -14,6 +14,30 @@ jest.mock('@/utils/common.utils', () => ({
   triggerLoader: jest.fn(),
 }));
 
+const mockDismissNew = jest.fn();
+let mockIsNew = false;
+jest.mock('@/hooks/useOneTimeCallout', () => ({
+  useOneTimeCallout: () => ({ open: mockIsNew, dismiss: mockDismissNew }),
+}));
+
+jest.mock('@/components/common/Tabs/Tabs', () => ({
+  Tabs: ({
+    tabs,
+    onValueChange,
+  }: {
+    tabs: Array<{ value: string; label: React.ReactNode }>;
+    onValueChange: (v: string) => void;
+  }) => (
+    <div role="tablist">
+      {tabs.map((t) => (
+        <button key={t.value} role="tab" onClick={() => onValueChange(t.value)}>
+          {t.label}
+        </button>
+      ))}
+    </div>
+  ),
+}));
+
 const mockToastError = jest.fn();
 jest.mock('@/components/core/ToastContainer', () => ({ toast: { error: (msg: string) => mockToastError(msg) } }));
 
@@ -110,17 +134,31 @@ beforeEach(() => {
   mockSearch = new URLSearchParams();
   mockCanConnect = true;
   mockAccessChecked = true;
+  mockIsNew = false;
   mockRequest = { data: undefined, isLoading: false, isError: false };
   mockSaveState = { isPending: false, isError: false };
   withConnections([]);
 });
 
 describe('McpConnectionsPage', () => {
-  it('shows how to connect and no permissions when nothing is connected', () => {
+  it('shows the prototype connect block and no permissions when nothing is connected', () => {
     render(<McpConnectionsPage />);
+    expect(screen.getByRole('heading', { name: 'MCP connections' })).toBeInTheDocument();
     expect(screen.getByText('Add a connection')).toBeInTheDocument();
+    expect(screen.getByText('Claude app (web, desktop, mobile)')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Open Claude connectors' })).toBeInTheDocument();
+    expect(screen.getByText('For developers')).toBeInTheDocument();
     expect(screen.getByText('MCP server URL')).toBeInTheDocument();
+    expect(screen.getByText(/claude mcp add --transport http labos/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: /Codex/ }));
+    expect(screen.getByText(/codex mcp add labos/)).toBeInTheDocument();
     expect(screen.queryByText('Edit permissions')).not.toBeInTheDocument();
+  });
+
+  it('retires the menu New badge when the page opens', () => {
+    mockIsNew = true;
+    render(<McpConnectionsPage />);
+    expect(mockDismissNew).toHaveBeenCalled();
   });
 
   it('lists each connection with its status, dates and permission chips', () => {
@@ -134,9 +172,12 @@ describe('McpConnectionsPage', () => {
     // Codex is on the read template; Claude.ai has every scope at its maximum, which is the Read and write template.
     expect(screen.getByRole('button', { name: 'Read only (default). Edit permissions' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Read and write. Edit permissions' })).toBeInTheDocument();
-    // The guide collapses once something is connected.
+    // The guide collapses once something is connected, behind "Add another connection", and closes again.
     expect(screen.queryByText('MCP server URL')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Add a connection' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Add another connection' }));
+    expect(screen.getByText('MCP server URL')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(screen.queryByText('MCP server URL')).not.toBeInTheDocument();
   });
 
   it('edits one connection in the drawer and saves all levels in one call', () => {

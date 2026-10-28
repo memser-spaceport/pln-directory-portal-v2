@@ -7,6 +7,8 @@ import { useMcpAnalytics } from '@/analytics/mcp.analytics';
 import { Button } from '@/components/common/Button/Button';
 import { toast } from '@/components/core/ToastContainer';
 import mcp from '@/components/page/connected-accounts/McpSection.module.scss';
+// The Settings page title, as on Email & Accounts and in the prototype.
+import tabCss from '@/components/page/connected-accounts/ConnectedAccounts.module.scss';
 import { useMcpAccessRequest } from '@/services/mcp/hooks/useMcpAccessRequest';
 import { useMcpConnections } from '@/services/mcp/hooks/useMcpConnections';
 import { useRevokeMcpConnection } from '@/services/mcp/hooks/useRevokeMcpConnection';
@@ -14,6 +16,8 @@ import { useUpdateMcpScopes } from '@/services/mcp/hooks/useUpdateMcpScopes';
 import type { McpConnection, McpLevels } from '@/services/mcp/types';
 import { useMcpAccess } from '@/services/rbac/hooks/useMcpAccess';
 import { triggerLoader } from '@/utils/common.utils';
+import { useOneTimeCallout } from '@/hooks/useOneTimeCallout';
+import { MCP_CONNECTIONS_NEW_FLAG } from '@/utils/mcp';
 
 import { McpConnectGuide } from './McpConnectGuide';
 import { McpConnectionCard } from './McpConnectionCard';
@@ -52,6 +56,7 @@ export function McpConnectionsPage() {
   const [editing, setEditing] = useState<Editing | null>(null);
   const [requestNotice, setRequestNotice] = useState<RequestNotice | null>(null);
   const [guideOpen, setGuideOpen] = useState(false);
+  const { open: isNew, dismiss: dismissNew } = useOneTimeCallout(MCP_CONNECTIONS_NEW_FLAG);
   const [isPhone, setIsPhone] = useState(false);
   const handledRequestRef = useRef<string | null>(null);
   const trackedViewRef = useRef(false);
@@ -82,6 +87,11 @@ export function McpConnectionsPage() {
     trackedViewRef.current = true;
     analytics.onConnectionsPageViewed({ connectionCount: items.length, fromRequest: !!requestUid });
   }, [connections.isSuccess, items.length, requestUid, analytics]);
+
+  // Opening the page retires the menu's "New" badge (prototype: it stays until the member opens the tab once).
+  useEffect(() => {
+    if (isNew) dismissNew();
+  }, [isNew, dismissNew]);
 
   // `?request=<id>`: open that connection's drawer with the requested scope preset, once both have loaded.
   useEffect(() => {
@@ -183,84 +193,94 @@ export function McpConnectionsPage() {
   const connected = items.length > 0;
 
   return (
-    <section className={mcp.root}>
-      <div className={mcp.header}>Connections</div>
-      <div className={mcp.content}>
-        <div className={mcp.desc}>
-          <p className={s.useCasesLead}>Use LabOS from your AI sessions in Claude, Codex or any MCP client:</p>
-          <ul className={s.useCases}>
-            <li>Search members, teams, projects and events, and read the forum</li>
-            <li>Look up investors and your warm-intro paths</li>
-            <li>Go through feedback on your AI Apps</li>
-          </ul>
-          <p className={s.useCasesLead}>
-            Each connection acts as you, within its own access. New connections start read only.
-          </p>
+    <>
+      <h5 className={tabCss.title}>MCP connections</h5>
+      <section className={mcp.root}>
+        <div className={mcp.header}>Connections</div>
+        <div className={mcp.content}>
+          <div className={mcp.desc}>
+            <p className={s.useCasesLead}>Use LabOS from your AI sessions in Claude, Codex or any MCP client:</p>
+            <ul className={s.useCases}>
+              <li>Search members, teams, projects and events, and read the forum</li>
+              <li>Look up investors and your warm-intro paths</li>
+              <li>Go through feedback on your AI Apps</li>
+            </ul>
+            <p className={s.useCasesLead}>
+              Each connection acts as you, within its own access. New connections start read only.
+            </p>
+          </div>
+
+          {requestNotice && (
+            <p className={s.requestNone} role="status">
+              {REQUEST_NOTICE[requestNotice]}
+            </p>
+          )}
+
+          {/* Not "unavailable" until the access check has run: right after sign-in the client may not see the session yet. */}
+          {!accessChecked || (canConnect && connections.isLoading) ? (
+            <p className={mcp.status}>Loading…</p>
+          ) : !canConnect ? (
+            <p className={mcp.status}>MCP connections aren’t available for your account yet.</p>
+          ) : connections.isError ? (
+            <div className={s.loadError} role="alert">
+              <p className={mcp.status}>Couldn’t load your connections.</p>
+              <Button
+                size="s"
+                variant="secondary"
+                style="border"
+                className={s.btn}
+                onClick={() => connections.refetch()}
+              >
+                Retry
+              </Button>
+            </div>
+          ) : (
+            <>
+              {connected && (
+                <ul className={mcp.list}>
+                  {items.map((connection) => (
+                    <McpConnectionCard
+                      key={connection.uid}
+                      connection={connection}
+                      isRevoking={revoke.isPending && revoke.variables === connection.uid}
+                      onEdit={(source) => openDrawer(connection, source)}
+                      onRevoke={() => onRevoke(connection)}
+                    />
+                  ))}
+                </ul>
+              )}
+
+              {connected && !guideOpen && (
+                <Button
+                  size="s"
+                  variant="secondary"
+                  style="border"
+                  className={s.btn}
+                  onClick={() => setGuideOpen(true)}
+                >
+                  Add another connection
+                </Button>
+              )}
+
+              {(!connected || guideOpen) && (
+                <McpConnectGuide connected={connected} onClose={() => setGuideOpen(false)} />
+              )}
+            </>
+          )}
         </div>
 
-        {requestNotice && (
-          <p className={s.requestNone} role="status">
-            {REQUEST_NOTICE[requestNotice]}
-          </p>
-        )}
-
-        {/* Not "unavailable" until the access check has run: right after sign-in the client may not see the session yet. */}
-        {!accessChecked || (canConnect && connections.isLoading) ? (
-          <p className={mcp.status}>Loading…</p>
-        ) : !canConnect ? (
-          <p className={mcp.status}>MCP connections aren’t available for your account yet.</p>
-        ) : connections.isError ? (
-          <div className={s.loadError} role="alert">
-            <p className={mcp.status}>Couldn’t load your connections.</p>
-            <Button size="s" variant="secondary" style="border" className={s.btn} onClick={() => connections.refetch()}>
-              Retry
-            </Button>
-          </div>
-        ) : (
-          <>
-            {connected && (
-              <ul className={mcp.list}>
-                {items.map((connection) => (
-                  <McpConnectionCard
-                    key={connection.uid}
-                    connection={connection}
-                    isRevoking={revoke.isPending && revoke.variables === connection.uid}
-                    onEdit={(source) => openDrawer(connection, source)}
-                    onRevoke={() => onRevoke(connection)}
-                  />
-                ))}
-              </ul>
-            )}
-
-            {connected && !guideOpen && (
-              <Button size="s" variant="secondary" style="border" className={s.btn} onClick={() => setGuideOpen(true)}>
-                Add a connection
-              </Button>
-            )}
-
-            {(!connected || guideOpen) && (
-              <div className={s.guide}>
-                <div className={s.blockHead}>
-                  <span className={s.blockTitle}>{connected ? 'Add another connection' : 'Add a connection'}</span>
-                </div>
-                <McpConnectGuide />
-              </div>
-            )}
-          </>
-        )}
-      </div>
-
-      <McpPermissionsDrawer
-        key={editing ? `${editing.uid}-${editing.request?.uid ?? ''}` : 'closed'}
-        connection={editingConnection}
-        preset={editing?.preset}
-        request={editing?.request}
-        fullScreen={isPhone}
-        isSaving={updateScopes.isPending}
-        saveError={updateScopes.isError}
-        onSave={save}
-        onClose={closeDrawer}
-      />
-    </section>
+        <McpPermissionsDrawer
+          key={editing ? `${editing.uid}-${editing.request?.uid ?? ''}` : 'closed'}
+          connection={editingConnection}
+          preset={editing?.preset}
+          request={editing?.request}
+          fullScreen={isPhone}
+          isSaving={updateScopes.isPending}
+          saveError={updateScopes.isError}
+          onSave={save}
+          onClose={closeDrawer}
+        />
+      </section>
+    </>
   );
 }

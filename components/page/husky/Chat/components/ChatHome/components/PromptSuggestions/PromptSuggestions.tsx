@@ -1,29 +1,16 @@
-import { useState, useEffect } from 'react';
-
-import { getChatQuestions } from '@/services/discovery.service';
+import { useTeamNewsPrompts } from '@/services/team-news/hooks/useTeamNewsPrompts';
 
 import s from './PromptSuggestions.module.scss';
 
-const VISIBLE_PROMPT_COUNT = 4;
-
 interface Props {
-  onSelect: (prompt: any) => void;
+  onSelect: (question: string) => void;
 }
 
 export const PromptSuggestions = (props: Props) => {
   const { onSelect } = props;
 
-  const [prompts, setPrompts] = useState<any[]>([]);
-
-  useEffect(() => {
-    getChatQuestions()
-      .then((res) => {
-        setPrompts(Array.isArray(res?.data) ? res.data.slice(0, VISIBLE_PROMPT_COUNT) : []);
-      })
-      .catch(() => {
-        setPrompts([]);
-      });
-  }, []);
+  const { data } = useTeamNewsPrompts();
+  const prompts = Array.isArray(data) ? data : [];
 
   if (prompts.length === 0) {
     return null;
@@ -35,8 +22,13 @@ export const PromptSuggestions = (props: Props) => {
       <ul className={s.list}>
         {prompts.map((prompt, index) => (
           <li key={prompt.uid}>
-            <button type="button" className={s.item} onClick={() => onSelect(prompt)} data-testid={`prompt-${index}`}>
-              <img alt="" src={prompt.icon} className={s.icon} />
+            <button
+              type="button"
+              className={s.item}
+              onClick={() => onSelect(prompt.question)}
+              data-testid={`prompt-${index}`}
+            >
+              <img alt="" src="/icons/send-black.svg" className={s.icon} />
               <span>{prompt.question}</span>
             </button>
           </li>

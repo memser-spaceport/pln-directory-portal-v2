@@ -5,6 +5,7 @@ export enum TeamNewsQueryKeys {
   BY_TEAM = 'team-news-by-team',
   LATEST_AT = 'team-news-latest-at',
   NEWS_COUNTS = 'team-news-counts',
+  AI_SEARCH_PROMPTS = 'team-news-ai-search-prompts',
 }
 
 /**

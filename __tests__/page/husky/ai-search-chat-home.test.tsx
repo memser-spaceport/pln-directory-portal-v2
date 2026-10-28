@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Cookies from 'js-cookie';
 
@@ -10,7 +10,7 @@ const trackSignupFromHuskyChat = jest.fn();
 const trackHuskyHomeSearch = jest.fn();
 
 jest.mock('next/navigation', () => ({ useRouter: () => ({ push: jest.fn(), refresh }) }));
-jest.mock('@/services/discovery.service', () => ({ getChatQuestions: jest.fn() }));
+jest.mock('@/services/team-news/hooks/useTeamNewsPrompts', () => ({ useTeamNewsPrompts: jest.fn() }));
 jest.mock('@/components/core/login/utils', () => ({ useLoginRedirect: () => goToLogin }));
 jest.mock('@/components/core/ToastContainer', () => ({ toast: { info: (...args: any[]) => toastInfo(...args) } }));
 jest.mock('@/analytics/husky.analytics', () => ({
@@ -22,17 +22,12 @@ jest.mock('@/analytics/husky.analytics', () => ({
 }));
 
 import { ChatHome } from '@/components/page/husky/Chat/components/ChatHome';
-import { getChatQuestions } from '@/services/discovery.service';
+import { useTeamNewsPrompts } from '@/services/team-news/hooks/useTeamNewsPrompts';
 import { useCurrentUserStore } from '@/services/auth/store';
 
-const PROMPT = {
-  uid: 'q1',
-  question: 'Which teams work on storage?',
-  answer: 'Saturn Grid.',
-  icon: '/icons/q1.svg',
-  answerSourceLinks: [{ link: 'https://example.com/a' }, { link: 'https://example.com/b' }],
-  followupQuestions: ['Who leads Saturn Grid?'],
-};
+const PROMPT = { uid: 'news-1', question: 'What is the news from Saturn Grid: "Saturn Grid ships v2"?' };
+
+const mockPrompts = (data: unknown) => (useTeamNewsPrompts as jest.Mock).mockReturnValue({ data });
 
 const renderHome = () => {
   const onSubmit = jest.fn();
@@ -53,7 +48,7 @@ beforeEach(() => {
   Cookies.remove('sessionExpiresAt');
   Cookies.remove('dailyChats');
   useCurrentUserStore.setState({ currentUser: null } as any);
-  (getChatQuestions as jest.Mock).mockResolvedValue({ data: [] });
+  mockPrompts([]);
   setWidth(1440);
 });
 
@@ -183,42 +178,31 @@ describe('AI Search new-chat page: signed-out daily limit', () => {
 });
 
 describe('AI Search new-chat page: prompt suggestions', () => {
-  it('opens a picked prompt as a ready answer with a fresh id, its sources and follow-ups', async () => {
-    (getChatQuestions as jest.Mock).mockResolvedValue({ data: [PROMPT] });
-    const { setMessages, setType } = renderHome();
+  it('asks AI Search about the picked news story', async () => {
+    mockPrompts([PROMPT]);
+    const { onSubmit, setMessages, setType } = renderHome();
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Which teams work on storage?' }));
+    fireEvent.click(await screen.findByRole('button', { name: PROMPT.question }));
 
-    expect(setMessages).toHaveBeenCalledTimes(1);
-    const [[[message]]] = setMessages.mock.calls;
-    expect(message).toMatchObject({
-      uid: 'q1',
-      question: 'Which teams work on storage?',
-      answer: 'Saturn Grid.',
-      sources: ['https://example.com/a', 'https://example.com/b'],
-      followUpQuestions: ['Who leads Saturn Grid?'],
-    });
-    expect(message.id).toEqual(expect.any(String));
-    expect(message.id).not.toBe('q1');
-    expect(setType).toHaveBeenCalledWith('blog');
+    expect(onSubmit).toHaveBeenCalledWith(PROMPT.question);
+    expect(setMessages).not.toHaveBeenCalled();
+    expect(setType).not.toHaveBeenCalled();
   });
 
-  it('gives each pick its own id', async () => {
-    (getChatQuestions as jest.Mock).mockResolvedValue({ data: [PROMPT] });
-    const { setMessages } = renderHome();
-    const prompt = await screen.findByRole('button', { name: 'Which teams work on storage?' });
+  it('refuses the picked prompt at the signed-out daily limit and shows the notice', async () => {
+    Cookies.set('dailyChats', '10');
+    mockPrompts([PROMPT]);
+    const { onSubmit } = renderHome();
 
-    fireEvent.click(prompt);
-    fireEvent.click(prompt);
+    fireEvent.click(await screen.findByRole('button', { name: PROMPT.question }));
 
-    expect(setMessages.mock.calls[0][0][0].id).not.toBe(setMessages.mock.calls[1][0][0].id);
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(screen.getByTestId('chat-home-limit')).toBeInTheDocument();
   });
 
-  it('hides the suggestions when the response has no data list', async () => {
-    (getChatQuestions as jest.Mock).mockResolvedValue({ data: { items: [PROMPT] } });
+  it('hides the suggestions when the prompt data is not a list', async () => {
+    mockPrompts({ items: [PROMPT] });
     renderHome();
-
-    await waitFor(() => expect(getChatQuestions).toHaveBeenCalled());
     await act(async () => {});
 
     expect(screen.queryByText('Try asking')).not.toBeInTheDocument();

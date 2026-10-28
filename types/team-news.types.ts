@@ -86,6 +86,14 @@ export interface ITeamNewsPopularItem {
   upvoteCount: number;
 }
 
+/** A "Try asking" prompt on the AI Search new-chat page, built from one news story (LAB-3012). */
+export interface ITeamNewsPrompt {
+  /** The news item's uid. */
+  uid: string;
+  /** The text shown on the prompt and asked to AI Search when the member picks it. */
+  question: string;
+}
+
 export interface ITeamNewsPopularResponse {
   items: ITeamNewsPopularItem[];
 }

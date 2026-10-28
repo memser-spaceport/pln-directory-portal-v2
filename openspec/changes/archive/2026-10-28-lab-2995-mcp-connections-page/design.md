@@ -6,7 +6,7 @@ Production today: `components/page/connected-accounts/McpSection.tsx` (guide, li
 
 Backend contract (from `pln-directory-portal` `openspec/changes/lab-2995-mcp-scopes`):
 
-- `GET /v1/mcp/authorizations` → `{ items: [{ uid, clientName, connectedAt, lastUsedAt, status, scopes: [{ key, label, level, maxLevel, lock }] }] }`
+- `GET /v1/mcp/authorizations` → `{ items: [{ uid, clientName, connectedAt, lastUsedAt, status, scopes: [{ key, label, level, maxLevel, registryMax, lock }] }] }`. `registryMax` (added 2026-10-28) tells a row whether to show a locked "Read and write" option.
 - `PATCH /v1/mcp/authorizations/:uid/scopes` `{ levels, requestUid? }` → item (400/404/409)
 - `GET /v1/mcp/access-requests/:uid` → `{ uid, authorizationUid, scope, level, toolName, status, createdAt }`
 
@@ -23,6 +23,7 @@ Backend contract (from `pln-directory-portal` `openspec/changes/lab-2995-mcp-sco
   2. The ⋯ menu has Revoke only, with no View activity.
   3. No "Lowering drops waiting actions" toast, because there's no queue.
   4. Scope rows come from the server. Rows with no tools yet (Job board, Office hours, Your profile) don't show.
+  5. Copy trimmed to what the server exposes today: Search drops "and ask AI Search"; Investors write says "add notes and feedback to your paths, and edit investor records" (no refresh tool yet); the intro's use cases list search, investors and AI Apps feedback instead of posting news and RSVPs.
 - **Scope descriptions** ("With write: start threads and reply") are kept in a frontend map keyed by scope key, copied from `mocks.ts`. Label and levels come from the server, and an unknown key renders with its server label and no description.
 - **Data:** `services/mcp/constants.ts` gets `McpQueryKeys.AUTHORIZATIONS = 'mcp-authorizations'` (same string, so the old McpSection cache keeps working) and `ACCESS_REQUEST`. The hooks are `useMcpConnections`, `useUpdateMcpScopes` (on success, writes the returned item into the list cache), `useRevokeMcpConnection`, and `useMcpAccessRequest(id)` (enabled only when `?request=` is present and the member is logged in; per the customFetch reload-loop trap, gate in the hook). There's no optimistic update for Save: the drawer is a draft, so a pessimistic save keeps it simple and honest.
 - **Deep link:** read `request` with `useSearchParams`. Once both the request and the list have loaded, open the drawer for `authorizationUid`. On close, drop `request` from the URL with `router.replace` (mind the replaceState `__NA` trap: use the router, not `history`).

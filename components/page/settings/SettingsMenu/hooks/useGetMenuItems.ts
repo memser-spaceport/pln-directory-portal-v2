@@ -3,11 +3,14 @@ import { useMemo } from 'react';
 import { IUserInfo } from '@/types/shared.types';
 import { useMemberNotificationsSettings } from '@/services/members/hooks/useMemberNotificationsSettings';
 import { SHOW_NEWS_PREFERENCES } from '@/utils/news-categories';
+import { SHOW_MCP_CONNECTIONS_PAGE } from '@/utils/mcp';
+import { useMcpAccess } from '@/services/rbac/hooks/useMcpAccess';
 
 export function useGetMenuItems(userInfo: IUserInfo) {
   const { data } = useMemberNotificationsSettings(userInfo.uid);
 
   const { recommendationsEnabled } = data || {};
+  const { canConnect } = useMcpAccess();
 
   return useMemo(() => {
     const preferences = [
@@ -61,6 +64,17 @@ export function useGetMenuItems(userInfo: IUserInfo) {
           icon: '/icons/email.svg',
           activeIcon: '/icons/email-blue.svg',
         },
+        // Its own page (LAB-2995) for members who can connect agents, while flagged on.
+        ...(SHOW_MCP_CONNECTIONS_PAGE && canConnect
+          ? [
+              {
+                name: 'MCP connections',
+                url: '/settings/mcp',
+                icon: '/icons/link-gray.svg',
+                activeIcon: '/icons/link-blue.svg',
+              },
+            ]
+          : []),
       ],
       teamAdminSettings: [
         { name: 'manage teams', url: '/settings/teams', icon: '/icons/team.svg', activeIcon: '/icons/teams-blue.svg' },
@@ -74,5 +88,5 @@ export function useGetMenuItems(userInfo: IUserInfo) {
         },
       ],
     };
-  }, [recommendationsEnabled]);
+  }, [recommendationsEnabled, canConnect]);
 }

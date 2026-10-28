@@ -1,4 +1,5 @@
 import { customFetch } from '@/utils/fetch-wrapper';
+import type { McpAccessRequest, McpConnection, McpLevels } from './types';
 
 const MCP_API_URL = `${process.env.DIRECTORY_API_URL}/v1/mcp`;
 
@@ -25,6 +26,59 @@ export async function revokeMcpAuthorization(uid: string): Promise<boolean> {
     true,
   );
   return !!response?.ok;
+}
+
+/** Settings → MCP connections (LAB-2995). Throws on failure so the page can show its error state. */
+export async function fetchMcpConnections(): Promise<McpConnection[]> {
+  const response = await customFetch(`${MCP_API_URL}/authorizations`, { method: 'GET' }, true);
+  if (!response || !response.ok) {
+    throw new Error('Failed to load MCP connections');
+  }
+  const data = await response.json();
+  // An API without scope levels (before LAB-2996) returns neither field: treat it as no editable scopes.
+  return (data.items ?? []).map((item: Partial<McpConnection> & Pick<McpConnection, 'uid' | 'clientName'>) => ({
+    ...item,
+    connectedAt: item.connectedAt ?? new Date(0).toISOString(),
+    lastUsedAt: item.lastUsedAt ?? null,
+    status: item.status ?? 'active',
+    scopes: item.scopes ?? [],
+  }));
+}
+
+/** Saves all of a connection's scope levels in one call; returns the updated connection. */
+export async function updateMcpScopes(
+  uid: string,
+  body: { levels: McpLevels; requestUid?: string },
+): Promise<McpConnection> {
+  const response = await customFetch(
+    `${MCP_API_URL}/authorizations/${encodeURIComponent(uid)}/scopes`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    },
+    true,
+  );
+  if (!response || !response.ok) {
+    throw new Error(`Failed to save MCP permissions (${response?.status ?? 'network'})`);
+  }
+  return response.json();
+}
+
+/** A refused agent call the member can allow. `null` when it isn't the member's or doesn't exist. */
+export async function fetchMcpAccessRequest(uid: string): Promise<McpAccessRequest | null> {
+  const response = await customFetch(
+    `${MCP_API_URL}/access-requests/${encodeURIComponent(uid)}`,
+    { method: 'GET' },
+    true,
+  );
+  if (response?.status === 404) {
+    return null;
+  }
+  if (!response || !response.ok) {
+    throw new Error('Failed to load MCP access request');
+  }
+  return response.json();
 }
 
 export type McpOAuthClientInfo = {

@@ -2,7 +2,7 @@
  * MCP connections as the backend returns them (LAB-2995). Mirrors pln-directory-portal
  * `libs/contracts/src/schema/mcp-scopes.ts`.
  */
-export type McpScopeKey = 'search' | 'forum' | 'news' | 'directory' | 'events' | 'investors' | 'ai_apps';
+export type McpScopeKey = 'search' | 'forum' | 'news' | 'directory' | 'events' | 'investors' | 'ai_apps' | 'profile';
 
 export type McpLevel = 'none' | 'read' | 'write';
 

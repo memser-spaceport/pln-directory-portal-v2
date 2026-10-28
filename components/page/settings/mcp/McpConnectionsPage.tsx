@@ -201,8 +201,10 @@ export function McpConnectionsPage() {
           <div className={mcp.desc}>
             <p className={s.useCasesLead}>Use LabOS from your AI sessions in Claude, Codex or any MCP client:</p>
             <ul className={s.useCases}>
+              <li>Post updates about your team, like a product launch</li>
               <li>Search members, teams, projects and events, and read the forum</li>
               <li>Look up investors and your warm-intro paths</li>
+              <li>Hand off tasks, like updating your profile</li>
               <li>Go through feedback on your AI Apps</li>
             </ul>
             <p className={s.useCasesLead}>

@@ -61,6 +61,14 @@ describe('MCP permission helpers', () => {
     ]);
   });
 
+  it('offers write for profile when the server allows it', () => {
+    expect(scopeOptions(scope({ key: 'profile', maxLevel: 'write', registryMax: 'write' }))).toEqual([
+      { level: 'none', disabled: false },
+      { level: 'read', disabled: false },
+      { level: 'write', disabled: false },
+    ]);
+  });
+
   it('lists only changed scopes', () => {
     const saved = { search: 'read', investors: 'read' } as const;
     expect(levelChanges(saved, { search: 'read', investors: 'write' }, SCOPES)).toEqual([

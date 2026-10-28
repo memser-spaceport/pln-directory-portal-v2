@@ -4,6 +4,7 @@ import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState
 import { DemoDayState } from '@/app/actions/demo-day.actions';
 
 import s from './PageTitle.module.scss';
+import { SafeHtml } from '@/components/ui/SafeHtml';
 
 interface PageTitleProps {
   size?: 'small' | 'large';
@@ -35,10 +36,7 @@ export function PageTitle(props: PageTitleProps) {
       {description ? (
         /* A div, because the description is rich-text HTML in its own <p>s: a <p> around it can't survive the server
            HTML (the browser splits nested paragraphs) and fails hydration (LAB-2930). */
-        <div
-          className={`${s.description} ${size === 'small' && s.small}`}
-          dangerouslySetInnerHTML={{ __html: description }}
-        />
+        <SafeHtml className={`${s.description} ${size === 'small' && s.small}`} html={description} />
       ) : null}
       {subtitle ? <div className={s.subtitle}>{subtitle}</div> : null}
     </div>

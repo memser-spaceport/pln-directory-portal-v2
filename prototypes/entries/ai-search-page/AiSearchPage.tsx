@@ -64,6 +64,8 @@ interface AiSearchPageProps {
   term?: string;
   /** False while the host keeps the page mounted but hidden (⌘B stays off). */
   open?: boolean;
+  /** Passed to AnswerPanel: optional content right above the follow-up field (the MCP prototype's hint). */
+  aboveInput?: React.ReactNode;
 }
 
 /**
@@ -95,6 +97,7 @@ export function AiSearchPage({
   onBackToSearch,
   term,
   open = true,
+  aboveInput,
 }: AiSearchPageProps) {
   const [railOpen, setRailOpen] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -508,6 +511,7 @@ export function AiSearchPage({
                 onAsk={followUp}
                 draft={drafts[draftKey] ?? ''}
                 onDraftChange={setDraft}
+                aboveInput={aboveInput}
               />
             </div>
           </>

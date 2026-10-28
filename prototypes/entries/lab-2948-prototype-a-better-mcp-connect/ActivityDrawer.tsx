@@ -7,7 +7,7 @@ import { Tabs } from '@/components/common/Tabs/Tabs';
 import { CloseIcon } from '@/components/icons';
 
 import { ClientLogo, clientKeyFromName } from './ClientLogo';
-import type { Agent, AgentAction } from './mocks';
+import { type Agent, type AgentAction, agentName } from './mocks';
 import { BackendTag, KIND_LABEL, NOW } from './shared';
 import s from './McpSectionMock.module.scss';
 
@@ -30,8 +30,8 @@ function timeOf(value: string) {
 
 /**
  * The full "via agent" record (LAB-2901): every action an agent did as the member,
- * newest first, grouped by day, filterable by agent. Confirmed and rejected outward
- * actions stay in the record too (Juicebox keeps Completed and Skipped next to Pending).
+ * newest first, grouped by day, filterable by agent. Outward actions
+ * are marked, since other members saw them.
  */
 export function ActivityDrawer({
   agents,
@@ -50,7 +50,7 @@ export function ActivityDrawer({
   const withActions = agents.filter((agent) => agent.actions.length > 0);
   const rows: Row[] = withActions
     .filter((agent) => !filter || agent.uid === filter)
-    .flatMap((agent) => agent.actions.map((action) => ({ ...action, agentName: agent.clientName })))
+    .flatMap((agent) => agent.actions.map((action) => ({ ...action, agentName: agentName(agent) })))
     .sort((a, b) => b.at.localeCompare(a.at));
 
   const groups: { day: string; rows: Row[] }[] = [];
@@ -62,12 +62,12 @@ export function ActivityDrawer({
   });
 
   const tabs = [
-    { label: 'All agents', value: ALL },
+    { label: 'All connections', value: ALL },
     ...withActions.map((agent) => ({
       label: (
         <span className={s.tabLabel}>
           <ClientLogo client={clientKeyFromName(agent.clientName)} />
-          {agent.clientName}
+          {agentName(agent)}
         </span>
       ),
       value: agent.uid,
@@ -105,7 +105,11 @@ export function ActivityDrawer({
                       {!filter && `${row.agentName} · `}
                       {timeOf(row.at)}
                       {KIND_LABEL[row.kind] && (
-                        <span className={clsx(s.kind, { [s.kindRejected]: row.kind === 'rejected' })}>
+                        <span
+                          className={clsx(s.kind, {
+                            [s.kindRejected]: row.kind === 'blocked',
+                          })}
+                        >
                           {KIND_LABEL[row.kind]}
                         </span>
                       )}

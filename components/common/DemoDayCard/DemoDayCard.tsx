@@ -18,6 +18,7 @@ import { getStatusConfig } from './utils/getStatusConfig';
 import { BadgeDot, CalendarIcon, ArrowRightIcon } from './components/Icons';
 
 import s from './DemoDayCard.module.scss';
+import { SafeHtml } from '@/components/ui/SafeHtml';
 
 type DemoDayAccess = DemoDayListResponse['access'];
 
@@ -42,9 +43,7 @@ export const DemoDayCard: React.FC<DemoDayCardProps> = (props) => {
 
   const statusConfig = getStatusConfig(status);
   const isCompleted = status === 'COMPLETED';
-  const formattedDate = isCompleted
-    ? null
-    : approximateStartDate || format(new Date(date), 'd MMMM, yyyy');
+  const formattedDate = isCompleted ? null : approximateStartDate || format(new Date(date), 'd MMMM, yyyy');
   const showMore = status !== 'UPCOMING';
 
   const handleDescriptionClick = (e: React.MouseEvent<HTMLParagraphElement>) => {
@@ -96,11 +95,7 @@ export const DemoDayCard: React.FC<DemoDayCardProps> = (props) => {
         </div>
         <div className={s.textBlock}>
           <h3 className={s.title}>{title}</h3>
-          <p
-            className={s.description}
-            dangerouslySetInnerHTML={{ __html: description }}
-            onClick={handleDescriptionClick}
-          />
+          <SafeHtml as="p" className={s.description} onClick={handleDescriptionClick} html={description} />
         </div>
       </div>
       {showMore && (

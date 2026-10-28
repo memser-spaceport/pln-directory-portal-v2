@@ -11,6 +11,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
 import { isAdminUser } from '@/utils/user/isAdminUser';
+import { safeHtmlProps } from '@/utils/html';
 
 const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
   const contentLength = 1000;
@@ -149,7 +150,7 @@ const Bio = ({ member, userInfo }: { member: any; userInfo: any }) => {
         </div>
         {!showEditor && (
           <div>
-            <div className="bioCn__content" dangerouslySetInnerHTML={{ __html: clippedContent }} />
+            <div className="bioCn__content" {...safeHtmlProps(clippedContent)} />
             {content?.length > clippedContent?.length && (
               <button className="bioCn__content__show-more" onClick={onShowMoreClickHandler}>
                 show more{' '}

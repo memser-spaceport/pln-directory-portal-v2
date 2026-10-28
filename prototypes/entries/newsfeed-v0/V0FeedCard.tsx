@@ -25,6 +25,7 @@ import { LikeButton, CommentButton, ViewCount, SaveButton } from './FeedActions'
 import { ShareMenu } from './ShareMenu';
 import { CommentsThread } from './CommentsThread';
 import { VideoThumb } from './NewsVideo';
+import { TopicTags } from './TopicTags';
 
 // Same event-color mapping as the grid card.
 const KICKER_COLOR_CLASS: Record<TeamNewsEventType, string> = {
@@ -56,6 +57,10 @@ interface V0FeedCardProps {
    *  offers Save (the `saving` entry); absent = no bookmark, the feed as it was. */
   isSaved?: (uid: string) => boolean;
   onToggleSave?: (uid: string) => void;
+  /** Present = the story's hashtags are links that filter the feed to that topic. */
+  onSelectTopic?: (tag: string) => void;
+  /** The feed's current topic filter, shown selected on the tags. */
+  activeTopic?: string;
 }
 
 /**
@@ -79,6 +84,8 @@ export function V0FeedCard({
   onOpenStory,
   isSaved,
   onToggleSave,
+  onSelectTopic,
+  activeTopic,
 }: V0FeedCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [openThreads, setOpenThreads] = useState<Set<string>>(new Set());
@@ -147,6 +154,9 @@ export function V0FeedCard({
               <div className={local.storyText}>
                 <h3 className={clsx(s.headline, local.feedTitle)}>{story.title}</h3>
                 {story.summary && <p className={local.summary}>{story.summary}</p>}
+                {/* In the text column, so a video poster beside it can't push the
+                    tags away from the summary they describe. */}
+                <TopicTags tags={story.tags} className={local.topicTags} onSelect={onSelectTopic} active={activeTopic} />
               </div>
               {video && <VideoThumb video={video} title={story.title} onPlay={() => onOpenStory(story, true)} />}
             </div>

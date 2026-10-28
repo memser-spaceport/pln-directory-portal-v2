@@ -11,6 +11,7 @@ import { toast } from '@/components/core/ToastContainer';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { getAnalyticsTeamInfo } from '@/utils/common.utils';
 import { Tooltip } from '../../core/tooltip/tooltip';
+import { safeHtmlProps } from '@/utils/html';
 
 interface IAsksSection {
   asks: any[];
@@ -285,7 +286,7 @@ const AsksSection = (props: IAsksSection) => {
                     </div>
                   )}
                 </div>
-                <div className="asksec__allasks__ask__cont" dangerouslySetInnerHTML={{ __html: ask.description }} />
+                <div className="asksec__allasks__ask__cont" {...safeHtmlProps(ask.description)} />
                 <div className="asksec__allasks__ask__tags">
                   {ask?.tags?.map((tag: string, index: number) => (
                     <div key={`${tag}+${index}`} className="asksec__allasks__ask__tags__tag">

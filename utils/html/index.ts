@@ -1,5 +1,9 @@
 export { linkifyHtml } from './linkifyHtml';
 export { isBlankHtml } from './isBlankHtml';
+export { sanitizeHtml } from './sanitizeHtml';
+export { parseSafeHtml } from './parseSafeHtml';
+export { safeHtmlProps } from './safeHtmlProps';
+export { SANITIZE_PROFILES, type SanitizeProfileName } from './sanitizeProfiles';
 export { sanitizeCommentHtml, COMMENT_SANITIZE_CONFIG } from './sanitizeCommentHtml';
 export { sanitizeForumPostHtml, FORUM_POST_SANITIZE_CONFIG } from './sanitizeForumPostHtml';
 export { sanitizeAiAppFeedbackHtml, AI_APP_FEEDBACK_SANITIZE_CONFIG } from './sanitizeAiAppFeedbackHtml';

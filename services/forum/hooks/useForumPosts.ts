@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { ForumQueryKeys } from '@/services/forum/constants';
-import { customFetch } from '@/utils/fetch-wrapper';
+import { forumFetch } from '@/services/forum/forum.service';
 
 export type Topic = {
   category: Record<string, string>;
@@ -64,20 +64,8 @@ export type Topic = {
 };
 
 async function fetcher(cid: number | string, categoryTopicSort: string) {
-  const token = process.env.CUSTOM_FORUM_AUTH_TOKEN;
-
   if (cid === '0') {
-    const response = await customFetch(
-      `${process.env.FORUM_API_URL}/api/recent?categoryTopicSort=${categoryTopicSort}`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        credentials: 'include',
-      },
-      !token,
-    );
+    const response = await forumFetch(`/api/recent?categoryTopicSort=${categoryTopicSort}`);
 
     if (!response?.ok) {
       return [];
@@ -88,17 +76,7 @@ async function fetcher(cid: number | string, categoryTopicSort: string) {
     return data.topics as Topic[];
   }
 
-  const response = await customFetch(
-    `${process.env.FORUM_API_URL}/api/v3/categories/${cid}/topics?categoryTopicSort=${categoryTopicSort}`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      credentials: 'include',
-    },
-    !token,
-  );
+  const response = await forumFetch(`/api/v3/categories/${cid}/topics?categoryTopicSort=${categoryTopicSort}`);
 
   if (!response?.ok) {
     return [];

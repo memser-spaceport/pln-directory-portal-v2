@@ -90,7 +90,7 @@ const typeAndSend = (text: string) => {
 };
 
 const renderSignedIn = () => {
-  Cookies.set('refreshToken', JSON.stringify('refresh-jwt'));
+  Cookies.set('sessionExpiresAt', '2000000000');
   return render(<ChatContainer isLoggedIn />);
 };
 
@@ -100,7 +100,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   localStorage.clear();
   sessionStorage.clear();
-  Cookies.remove('refreshToken');
+  Cookies.remove('sessionExpiresAt');
   Cookies.remove('dailyChats');
 });
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { clsx } from 'clsx';
 
-// Production settings shell and the Email & Accounts tab frame, reused as they ship.
+// Production settings shell and the settings tab frame, reused as they ship.
 import shellCss from '@/app/settings/accounts/page.module.css';
 import rootCss from '@/app/settings/page.module.css';
 import tabCss from '@/components/page/connected-accounts/ConnectedAccounts.module.scss';
@@ -11,11 +11,27 @@ import tabCss from '@/components/page/connected-accounts/ConnectedAccounts.modul
 // Production's toast; `ToastContainer` is mounted in the root layout.
 import { toast } from '@/components/core/ToastContainer';
 
-import { AgentCapabilities } from './AgentCapabilities';
+import { PrototypeNavBar } from '../nav-shared/PrototypeNavBar';
+
+import { LaunchBanner } from './LaunchBanner';
+import { McpHintsPreview } from './McpHints';
 import { McpSectionMock } from './McpSectionMock';
+import { AgentRequestReply } from './AccessRequest';
+import { ConsentScreen } from './Permissions';
 import { SettingsBackButtonMock } from './SettingsBackButtonMock';
 import { BUILT_ITEM, SettingsMenuMock } from './SettingsMenuMock';
-import { type AccessLevel, type Agent, type AgentAction, mockAgents, mockEmail, mockPending } from './mocks';
+import {
+  type Agent,
+  type AgentAction,
+  type Levels,
+  type Viewer,
+  agentName,
+  getWriteLock,
+  mockAgents,
+  mockClaudeAccounts,
+  mockRequests,
+  templateLevels,
+} from './mocks';
 import { BackendTagsContext } from './shared';
 import s from './PrototypeABetterMcpConnectPrototype.module.scss';
 
@@ -24,24 +40,33 @@ const DESKTOP_QUERY = '(min-width: 1024px)';
 /** The phone line (styles/media mobile-only), where the activity drawer takes the whole screen. */
 const PHONE_QUERY = '(max-width: 639px)';
 
-type Scenario = 'empty' | 'connected' | 'pending';
+type Scenario = 'empty' | 'consent' | 'two' | 'connected' | 'request' | 'hints';
 
 const SCENARIOS: [Scenario, string][] = [
-  ['empty', 'No agents'],
-  ['connected', 'Connected'],
-  ['pending', 'Pending confirms'],
+  ['empty', 'No connections'],
+  ['consent', 'Consent screen'],
+  ['two', 'Two Claude accounts'],
+  ['connected', '3 connections'],
+  ['request', 'Access request'],
+  ['hints', 'Discovery hints'],
 ];
+
+/** The page is shown to an approved member (the L0/L1 / job aspirant switch was removed from the band, 2026-10-27). */
+const viewer: Viewer = 'member';
 
 /** Fixed "now" for new history rows, same as the mock clock in shared.tsx. */
 const NOW_ISO = '2026-10-21T20:00:00Z';
 
 /**
- * LAB-2948: a better MCP section in Settings → Email & Accounts.
+ * LAB-2948, revised after the 2026-10-26 MCP sync.
  *
- * The page is production's Email & Accounts tab with the MCP card changed
- * (McpSectionMock) and one card added under it (AgentCapabilities). Linked
- * accounts are left out: they do not change here. The review band switches
- * between the three states and shows or hides the backend-gap tags.
+ * MCP has its own Settings sub-tab, "MCP connections": connections with
+ * Revoke and configuration guidance per client. Each connection has its own
+ * access: it starts read only (the LabOS consent screen asks the member to
+ * acknowledge that this already shows other members' contacts), and write is
+ * turned on per feature from that connection's Access row, saved once, behind
+ * its own consent. The review band adds a view of the in-product hints that tell
+ * people MCP exists, and a switch for the backend tags (off by default).
  */
 export default function PrototypeABetterMcpConnectPrototype() {
   // base-ui Tabs and the framer-motion Drawer are client-only; gate so SSR === first client render.
@@ -68,59 +93,78 @@ export default function PrototypeABetterMcpConnectPrototype() {
   }, []);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const [scenario, setScenario] = useState<Scenario>('pending');
-  const [showTags, setShowTags] = useState(true);
+  const [scenario, setScenario] = useState<Scenario>('connected');
+  const [showTags, setShowTags] = useState(false);
   const [agents, setAgents] = useState<Agent[]>(mockAgents);
-  const [pending, setPending] = useState(mockPending);
 
   const switchScenario = (next: Scenario) => {
     setScenario(next);
-    setAgents(next === 'empty' ? [] : mockAgents);
-    setPending(next === 'pending' ? mockPending : []);
+    if (next === 'hints' || next === 'consent') return;
+    setAgents(next === 'empty' ? [] : next === 'two' ? mockClaudeAccounts : mockAgents);
   };
 
-  const nameOf = (uid: string) => agents.find((agent) => agent.uid === uid)?.clientName ?? 'The agent';
-
-  const addToHistory = (agentUid: string, action: AgentAction) =>
-    setAgents((current) => current.map((a) => (a.uid === agentUid ? { ...a, actions: [action, ...a.actions] } : a)));
-
-  const onAccessChange = (uid: string, access: AccessLevel) => {
-    const agent = agents.find((a) => a.uid === uid);
-    if (!agent || agent.access === access) return;
-    setAgents((current) => current.map((a) => (a.uid === uid ? { ...a, access } : a)));
-    if (access === 'read') {
-      // A read-only agent cannot send, so what it prepared is dropped, and the toast says how much.
-      const dropped = pending.filter((p) => p.agentUid === uid).length;
-      setPending((current) => current.filter((p) => p.agentUid !== uid));
-      toast.success(
-        `${agent.clientName} is read-only now.${dropped ? ` ${dropped} waiting ${dropped === 1 ? 'action was' : 'actions were'} dropped.` : ''}`,
-      );
-    } else {
-      toast.success(`${agent.clientName} can make changes now.`);
-    }
+  const nameOf = (uid: string) => {
+    const agent = agents.find((item) => item.uid === uid);
+    return agent ? agentName(agent) : 'The agent';
   };
+
+  const onLevelsChange = (uid: string, next: Levels) => {
+    setAgents((current) => current.map((a) => (a.uid === uid ? { ...a, levels: next } : a)));
+    toast.success(`${nameOf(uid)}: access saved.`);
+    // Saving from the request link lands on the plain Settings page.
+    if (scenario === 'request') setScenario('connected');
+  };
+
+  /**
+   * The consent screen connects another Claude.ai account when one is already
+   * connected (to show naming a duplicate), otherwise the first client the member
+   * does not have yet.
+   */
+  const consentClient = agents.some((agent) => agent.clientName === 'Claude.ai')
+    ? 'Claude.ai'
+    : ['Claude Code', 'Codex', 'Claude.ai', 'Cursor'].find(
+        (name) => !agents.some((agent) => agent.clientName === name),
+      )!;
+
+  const onApprove = () => {
+    // Every connection carries its account email; a second account of the same client has another one (mocked).
+    const account = agents.some((agent) => agent.clientName === consentClient)
+      ? 'alex.chen@protocol.ai'
+      : 'alex.chen@gmail.com';
+    setAgents((current) => [
+      ...current,
+      {
+        uid: `agent-${consentClient}-${current.length}`,
+        clientName: consentClient,
+        account,
+        levels: templateLevels('read', viewer),
+        connectedAt: NOW_ISO,
+        lastUsedAt: null,
+        actions: [],
+      },
+    ]);
+    setScenario('connected');
+    toast.success(`${agentName({ clientName: consentClient, account })} is connected, read only.`);
+  };
+
+  // The agent's request link opens Settings with that connection's drawer open and the feature set to write.
+  const [requestId, setRequestId] = useState(mockRequests[0].id);
+  // Bumped by the link in the agent's reply, so the drawer opens again after it was closed.
+  const [requestOpens, setRequestOpens] = useState(0);
+  const request = mockRequests.find((item) => item.id === requestId)!;
+  const requestEditing =
+    scenario === 'request' && !getWriteLock(request.scope, viewer)
+      ? {
+          uid: request.agentUid,
+          preset: { [request.scope]: 'write' } as Partial<Levels>,
+          request: { ask: request.ask, tried: request.tried },
+        }
+      : undefined;
 
   const onRevoke = (uid: string) => {
     const name = nameOf(uid);
     setAgents((current) => current.filter((a) => a.uid !== uid));
-    setPending((current) => current.filter((p) => p.agentUid !== uid));
     toast.success(`${name} is revoked. It cannot act as you now.`);
-  };
-
-  const onConfirm = (id: string) => {
-    const item = pending.find((p) => p.id === id);
-    if (!item) return;
-    setPending((current) => current.filter((p) => p.id !== id));
-    addToHistory(item.agentUid, { id: `done-${id}`, at: NOW_ISO, text: item.text, kind: 'sent' });
-    toast.success(`Sent. ${item.text}.`);
-  };
-
-  const onReject = (id: string) => {
-    const item = pending.find((p) => p.id === id);
-    if (!item) return;
-    setPending((current) => current.filter((p) => p.id !== id));
-    addToHistory(item.agentUid, { id: `rejected-${id}`, at: NOW_ISO, text: item.text, kind: 'rejected' });
-    toast.success(`Rejected. ${nameOf(item.agentUid)} did not send it.`);
   };
 
   if (!mounted) return <div className={shellCss.privacy} />;
@@ -150,6 +194,33 @@ export default function PrototypeABetterMcpConnectPrototype() {
     </div>
   );
 
+  // Discovery: each hint in its full host page, under the site-wide launch banner and the navbar.
+  if (scenario === 'hints') {
+    return (
+      <BackendTagsContext.Provider value={showTags}>
+        <LaunchBanner onSetUp={() => switchScenario('empty')} />
+        <PrototypeNavBar hasUnreadNews={false} isLoggedIn />
+        <div className={s.hintsBand}>{reviewBand}</div>
+        <McpHintsPreview onSetUp={() => switchScenario('empty')} />
+      </BackendTagsContext.Provider>
+    );
+  }
+
+  // The consent screen is its own LabOS page (the agent opens it in the browser), so no settings shell.
+  if (scenario === 'consent') {
+    return (
+      <BackendTagsContext.Provider value={showTags}>
+        <div className={s.consentBand}>{reviewBand}</div>
+        <ConsentScreen
+          key={`${consentClient}-${viewer}`}
+          clientName={consentClient}
+          onApprove={onApprove}
+          onCancel={() => setScenario(agents.length ? 'connected' : 'empty')}
+        />
+      </BackendTagsContext.Provider>
+    );
+  }
+
   // Mobile menu page: production's `/settings` root.
   if (!isDesktop && menuOpen) {
     return (
@@ -157,7 +228,7 @@ export default function PrototypeABetterMcpConnectPrototype() {
         <div className={rootCss.settings__title}>
           <h2 className={rootCss.settings__title__text}>Account Settings</h2>
         </div>
-        <SettingsMenuMock activeItem="" onSelect={() => setMenuOpen(false)} />
+        <SettingsMenuMock activeItem="" seen={scenario !== 'empty'} onSelect={() => setMenuOpen(false)} />
       </div>
     );
   }
@@ -166,35 +237,43 @@ export default function PrototypeABetterMcpConnectPrototype() {
     <BackendTagsContext.Provider value={showTags}>
       <div className={shellCss.privacy}>
         <div className={shellCss.privacy__backbtn}>
-          <SettingsBackButtonMock title="Connected Accounts" onBack={() => setMenuOpen(true)} />
+          <SettingsBackButtonMock title="MCP connections" onBack={() => setMenuOpen(true)} />
         </div>
         <div className={shellCss.privacy__main}>
           <aside className={shellCss.privacy__main__aside}>
-            <SettingsMenuMock activeItem={BUILT_ITEM} onSelect={() => undefined} />
+            {/* The New badge shows until the member has opened the tab: here, while nothing is connected. */}
+            <SettingsMenuMock
+              activeItem={BUILT_ITEM}
+              seen={scenario !== 'empty'}
+              onSelect={() => switchScenario('empty')}
+            />
           </aside>
           <div className={shellCss.privacy__main__content}>
             <div className={tabCss.root}>
               {reviewBand}
-              <h5 className={tabCss.title}>Email & Accounts</h5>
 
-              <div className={tabCss.card}>
-                <div className={tabCss.cardHeader}>Email</div>
-                <div className={tabCss.cardContent}>
-                  <span className={s.email}>{mockEmail}</span>
-                </div>
-              </div>
+              {/* Access request: what the agent said (review context), then the Settings page its link opens. */}
+              {scenario === 'request' && (
+                <AgentRequestReply
+                  agents={agents}
+                  viewer={viewer}
+                  requestId={requestId}
+                  onRequestChange={setRequestId}
+                  onOpenLink={() => setRequestOpens((n) => n + 1)}
+                />
+              )}
+
+              <h5 className={tabCss.title}>MCP connections</h5>
 
               <McpSectionMock
+                key={scenario === 'request' ? `${requestId}-${requestOpens}` : 'settings'}
+                initialEditing={requestEditing}
                 agents={agents}
-                pending={pending}
                 fullScreenDrawer={isPhone}
-                onAccessChange={onAccessChange}
+                viewer={viewer}
+                onLevelsChange={onLevelsChange}
                 onRevoke={onRevoke}
-                onConfirm={onConfirm}
-                onReject={onReject}
               />
-
-              <AgentCapabilities />
             </div>
           </div>
         </div>

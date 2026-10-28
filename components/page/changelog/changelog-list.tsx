@@ -45,6 +45,7 @@ const ChangelogList = () => {
                   </h2>
                   <div
                     className="change-log-short-content"
+                    // eslint-disable-next-line react/no-danger -- repo-authored ChangeLogList constant, not member input
                     dangerouslySetInnerHTML={{ __html: changeLog.shortContent }}
                   ></div>
                 </div>

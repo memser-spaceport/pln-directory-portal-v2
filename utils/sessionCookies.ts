@@ -15,15 +15,54 @@ export const shareAuthTokenWithApps = () =>
 export const hostOnlySessionCookies = (): readonly string[] =>
   shareAuthTokenWithApps() ? ['refreshToken', 'userInfo'] : ['refreshToken', 'userInfo', 'authToken'];
 
-/** Every cookie that makes up a LabOS session. */
-export const SESSION_COOKIES = ['refreshToken', 'authToken', 'userInfo'] as const;
+const LOOPBACK_HOSTS = ['localhost', '127.0.0.1', '[::1]', '::1'];
 
 /**
- * Host-only marker: which session cookies the middleware already rewrote host-only for this browser. `host` =
- * refreshToken/userInfo; `host-all` = authToken as well. A switch flip re-runs the move once.
+ * Flags on every LabOS session cookie, for the proxy and for browser writes alike: SameSite=Lax always; Secure except
+ * on plain-HTTP localhost/loopback (local dev). Decided by host, not protocol alone: TLS ends at the load balancer, so
+ * the server can see `http:` on a deployed host. `Lax`, not `Strict`: a member arriving from an email or Telegram link
+ * must bring the session with them.
+ */
+export function sessionCookieFlags(location: { protocol: string; hostname: string }) {
+  const insecureLocal = location.protocol === 'http:' && LOOPBACK_HOSTS.includes(location.hostname.toLowerCase());
+  return { sameSite: 'lax' as const, secure: !insecureLocal };
+}
+
+/**
+ * Script-readable session marker: the refresh token's `exp` (epoch seconds), never a credential. `refreshToken` is
+ * httpOnly, so browser code checks this cookie to know whether a session exists and when it ends. It is written and
+ * cleared together with `refreshToken`.
+ */
+export const SESSION_MARKER_COOKIE = 'sessionExpiresAt';
+
+/**
+ * The public host and protocol of a request. Behind the ingress Next sees its own listen address
+ * (`http://localhost:4200`) in `req.nextUrl`; the load balancer keeps the browser's Host header and adds
+ * X-Forwarded-Proto. Locally there are no forwarded headers and Host is `localhost:<port>`.
+ */
+export function publicRequestLocation(req: { headers: Headers; nextUrl: URL }) {
+  const first = (value: string | null) => value?.split(',')[0].trim() || null;
+  const host = first(req.headers.get('x-forwarded-host')) ?? first(req.headers.get('host')) ?? req.nextUrl.host;
+  const proto = first(req.headers.get('x-forwarded-proto'));
+  let hostname = req.nextUrl.hostname;
+  try {
+    hostname = new URL(`http://${host}`).hostname;
+  } catch {
+    // keep the URL's hostname
+  }
+  return { host, hostname, protocol: proto ? `${proto.replace(/:$/, '')}:` : req.nextUrl.protocol };
+}
+
+/** Every cookie that makes up a LabOS session. */
+export const SESSION_COOKIES = ['refreshToken', 'authToken', 'userInfo', SESSION_MARKER_COOKIE] as const;
+
+/**
+ * Migration marker: which session cookie layout the proxy already rewrote for this browser. `host` =
+ * refreshToken/userInfo host-only; `host-all` = authToken as well; the `:2` revision adds the Secure/SameSite flags,
+ * the httpOnly refreshToken and the session marker. A switch flip or a new revision re-runs the rewrite once.
  */
 export const SESSION_SCOPE_COOKIE = 'sessionScope';
-export const sessionScopeValue = () => (shareAuthTokenWithApps() ? 'host' : 'host-all');
+export const sessionScopeValue = () => (shareAuthTokenWithApps() ? 'host:2' : 'host-all:2');
 
 /**
  * The COOKIE_DOMAIN whose copies of a cookie are separate from LabOS's host-only ones, or null when there are none.

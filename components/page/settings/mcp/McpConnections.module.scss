@@ -2,6 +2,15 @@
 
 /* Ported from prototypes/entries/lab-2948-prototype-a-better-mcp-connect/McpSectionMock.module.scss (LAB-2997). */
 
+.blockHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+}
+
 .blockTitle {
   color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 14px;

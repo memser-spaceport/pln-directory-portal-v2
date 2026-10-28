@@ -7,7 +7,7 @@ import { useMcpAnalytics } from '@/analytics/mcp.analytics';
 import { Button } from '@/components/common/Button/Button';
 import { toast } from '@/components/core/ToastContainer';
 import mcp from '@/components/page/connected-accounts/McpSection.module.scss';
-// The Settings page title, as on Email & Accounts and in the prototype.
+// The Settings tab frame and title, as on Email & Accounts and in the prototype (heading above the card).
 import tabCss from '@/components/page/connected-accounts/ConnectedAccounts.module.scss';
 import { useMcpAccessRequest } from '@/services/mcp/hooks/useMcpAccessRequest';
 import { useMcpConnections } from '@/services/mcp/hooks/useMcpConnections';
@@ -193,7 +193,7 @@ export function McpConnectionsPage() {
   const connected = items.length > 0;
 
   return (
-    <>
+    <div className={tabCss.root}>
       <h5 className={tabCss.title}>MCP connections</h5>
       <section className={mcp.root}>
         <div className={mcp.header}>Connections</div>
@@ -281,6 +281,6 @@ export function McpConnectionsPage() {
           onClose={closeDrawer}
         />
       </section>
-    </>
+    </div>
   );
 }

@@ -143,7 +143,9 @@ beforeEach(() => {
 describe('McpConnectionsPage', () => {
   it('shows the prototype connect block and no permissions when nothing is connected', () => {
     render(<McpConnectionsPage />);
-    expect(screen.getByRole('heading', { name: 'MCP connections' })).toBeInTheDocument();
+    const heading = screen.getByRole('heading', { name: 'MCP connections' });
+    // Heading and card share one column wrapper (the settings content area is a flex row).
+    expect(heading.parentElement).toBe(screen.getByText('Connections').closest('section')?.parentElement);
     expect(screen.getByText('Add a connection')).toBeInTheDocument();
     expect(screen.getByText('Claude app (web, desktop, mobile)')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Open Claude connectors' })).toBeInTheDocument();

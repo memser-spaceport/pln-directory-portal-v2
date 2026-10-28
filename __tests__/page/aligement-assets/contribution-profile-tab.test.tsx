@@ -34,7 +34,9 @@ describe('ContributionProfileTab', () => {
   it('renders the chart axis labels and every period', () => {
     render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
 
-    expect(screen.getByText('Points and PLAA balance over time')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'PLAA balance' })).toBeInTheDocument();
+    // The points chart lives on the Snapshot history tab, not here.
+    expect(screen.queryByText('Points collected per snapshot')).not.toBeInTheDocument();
     // Each period appears twice: once as a chart x-axis label, once as a table row.
     expect(screen.getAllByText('May 2026')).toHaveLength(2);
     expect(screen.getAllByText('Jun 2026')).toHaveLength(2);
@@ -50,9 +52,9 @@ describe('ContributionProfileTab', () => {
     // Scoped to the footer row so chart axis-tick text (which can repeat these same
     // numbers) can't produce false matches.
     expect(within(totalRow).getByText('1,020 points')).toBeInTheDocument();
-    expect(within(totalRow).getByText('102')).toBeInTheDocument();
-    expect(within(totalRow).getByText('60')).toBeInTheDocument();
-    expect(within(totalRow).getByText('50')).toBeInTheDocument();
+    expect(within(totalRow).getByText('+102')).toBeInTheDocument();
+    expect(within(totalRow).getByText('+60')).toBeInTheDocument();
+    expect(within(totalRow).getByText('\u2212\u0035\u0030')).toBeInTheDocument();
     expect(within(totalRow).getByText('112')).toBeInTheDocument();
   });
 
@@ -80,7 +82,7 @@ describe('ContributionProfileTab', () => {
     );
 
     const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
-    expect(within(totalRow).getByText('231')).toBeInTheDocument();
+    expect(within(totalRow).getByText('\u2212\u0032\u0033\u0031')).toBeInTheDocument();
     // Every per-row Redeemed cell still shows a dash — there's no month-by-month source.
     const periodCells = Array.from(container.querySelectorAll('[class*="period"]'));
     const dataRows = periodCells.map((el) => el.closest('[class*="dataRow"]') as HTMLElement);
@@ -97,45 +99,107 @@ describe('ContributionProfileTab', () => {
     expect(within(totalRow).getByText('—')).toBeInTheDocument();
   });
 
-  it('renders each bar\'s points value and a numeric scale on both Y axes', () => {
-    const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
+  describe('the monthly flow chart', () => {
+    /** Bars in draw order: one group per snapshot, oldest first. */
+    function barGroups(container: HTMLElement): SVGRectElement[][] {
+      return Array.from(container.querySelectorAll('svg g')).
+        map((g) => Array.from(g.querySelectorAll('rect')) as SVGRectElement[]).
+        filter((rects) => rects.length > 0 && rects[0].getAttribute('fill') === '#1b4dff');
+    }
 
-    // Each period's points value renders twice: once as a bar label in the chart,
-    // once in its table row — assert the SVG bar label specifically.
-    const svgTexts = Array.from(container.querySelectorAll('svg text'));
-    const barLabelValues = svgTexts
-      .filter((el) => el.getAttribute('font-weight') === '600' && el.getAttribute('fill') === '#4f9eff')
-      .map((el) => el.textContent);
-    expect(barLabelValues).toEqual(['350', '220', '450']);
+    const yOf = (rect: SVGRectElement) => Number(rect.getAttribute('y'));
+    const hOf = (rect: SVGRectElement) => Number(rect.getAttribute('height'));
+    const zeroLineY = (container: HTMLElement) =>
+      Number((container.querySelector('svg line[stroke="#cbd5e1"]') as SVGLineElement).getAttribute('y1'));
 
-    // Left (points) and right (PLAA balance) axis tick text exist and are colored distinctly.
-    const leftAxisTexts = svgTexts.filter((el) => el.getAttribute('fill') === '#4f9eff' && el.getAttribute('text-anchor') === 'end');
-    const rightAxisTexts = svgTexts.filter((el) => el.getAttribute('fill') === '#156ff7' && el.getAttribute('text-anchor') === 'start');
-    expect(leftAxisTexts.length).toBeGreaterThan(0);
-    expect(rightAxisTexts.length).toBeGreaterThan(0);
-  });
+    it('stacks infra rewards on top of activities above the zero line', () => {
+      const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
+      const groups = barGroups(container);
+      expect(groups).toHaveLength(3);
 
-  it('shows a tooltip with the month, points collected, and PLAA balance when hovering a snapshot, hidden otherwise', () => {
-    const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
+      const zero = zeroLineY(container);
+      const [activity, infra] = groups[2]; // Jul 2026: 45 activities + 30 infra
+      expect(yOf(activity) + hOf(activity)).toBeCloseTo(zero, 5); // sits on the line
+      expect(yOf(infra) + hOf(infra)).toBeCloseTo(yOf(activity), 5); // stacked directly on it
+      // The two segments keep the 45:30 ratio of the figures they represent.
+      expect(hOf(activity) / hOf(infra)).toBeCloseTo(45 / 30, 5);
+    });
 
-    const hoverZones = Array.from(container.querySelectorAll('rect[fill="transparent"]'));
-    expect(hoverZones).toHaveLength(3);
-    expect(screen.queryByText(/PLAA balance:/)).not.toBeInTheDocument();
+    it('hangs redemptions below the zero line, in the room kept under it', () => {
+      const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
+      const zero = zeroLineY(container);
 
-    const tooltipTitle = () => container.querySelector('svg text[font-weight="700"][fill="#ffffff"]');
+      // Only Jul 2026 redeemed, so exactly one bar hangs below the line.
+      const below = Array.from(container.querySelectorAll('svg rect[fill="#f59e0b"]')) as SVGRectElement[];
+      expect(below).toHaveLength(1);
+      expect(yOf(below[0])).toBeCloseTo(zero, 5);
+      expect(hOf(below[0])).toBeGreaterThan(0);
+    });
 
-    fireEvent.mouseEnter(hoverZones[0]);
-    expect(tooltipTitle()?.textContent).toBe('May 2026');
-    expect(screen.getByText('Points collected: 350')).toBeInTheDocument();
-    expect(screen.getByText('PLAA balance: 35')).toBeInTheDocument();
+    /** Additions keep 3\u20134x the room redemptions get, whatever the figures are. */
+    function redeemedShareOfPlot(container: HTMLElement): number {
+      const plotHeight = 240 - 16;
+      return (240 - zeroLineY(container)) / plotHeight;
+    }
 
-    fireEvent.mouseLeave(hoverZones[0]);
-    expect(screen.queryByText(/PLAA balance:/)).not.toBeInTheDocument();
+    it('keeps additions 3\u20134x the room redemptions get for a 20k-up / 10k-down month', () => {
+      const whale: ContributionHistoryEntry[] = [
+        { period: 'May 2026', points: 9000, plaa: 12000, infra: 8000, redeemed: 10000, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 10000 },
+      ];
+      const { container } = render(<ContributionProfileTab entries={whale} currentBalance={10000} totalRedeemed={10000} />);
 
-    fireEvent.mouseEnter(hoverZones[2]);
-    expect(tooltipTitle()?.textContent).toBe('Jul 2026');
-    expect(screen.getByText('PLAA balance: 112')).toBeInTheDocument();
-    expect(screen.queryByText('PLAA balance: 35')).not.toBeInTheDocument();
+      const share = redeemedShareOfPlot(container);
+      // The band plus its 8px padding, against the whole plot.
+      expect(share).toBeGreaterThanOrEqual(0.2);
+      expect(share).toBeLessThanOrEqual(0.28);
+
+      // Both bands are still fully used: the tallest bar reaches the top padding...
+      const [, infra] = barGroups(container)[0];
+      expect(yOf(infra)).toBeLessThan(30);
+      // ...and the deepest redemption reaches the bottom of its band.
+      const redeemed = container.querySelector('svg rect[fill="#f59e0b"]') as SVGRectElement;
+      expect(yOf(redeemed) + hOf(redeemed)).toBeGreaterThan(230);
+    });
+
+    it('keeps a small redemption readable rather than squashing it to a sliver', () => {
+      const lopsided: ContributionHistoryEntry[] = [
+        { period: 'May 2026', points: 9000, plaa: 12000, infra: 8000, redeemed: 200, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 19800 },
+      ];
+      const { container } = render(<ContributionProfileTab entries={lopsided} currentBalance={19800} totalRedeemed={200} />);
+
+      // Proportionally it would be ~2px; it gets its own band instead.
+      expect(redeemedShareOfPlot(container)).toBeGreaterThanOrEqual(0.2);
+    });
+
+    it('gives no room below the line when nothing has ever been redeemed', () => {
+      const noRedemptions = entries.map((e) => ({ ...e, redeemed: 0 }));
+      const { container } = render(<ContributionProfileTab entries={noRedemptions} currentBalance={112} totalRedeemed={0} />);
+
+      expect(container.querySelectorAll('svg rect[fill="#f59e0b"]')).toHaveLength(0);
+      expect(zeroLineY(container)).toBe(240); // the plot floor
+    });
+
+    it('draws the balance as a line over the bars, with a dot per snapshot', () => {
+      const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
+
+      const line = container.querySelector('svg polyline[stroke="#7c3aed"]') as SVGPolylineElement;
+      expect(line).toBeInTheDocument();
+      const ys = (line.getAttribute('points') ?? '').split(' ').map((p) => Number(p.split(',')[1]));
+      expect(ys).toHaveLength(3);
+      // The balance rises across these three snapshots, so the line climbs.
+      expect(ys[0]).toBeGreaterThan(ys[1]);
+      expect(ys[1]).toBeGreaterThan(ys[2]);
+      // It never strays below zero into the redemptions.
+      expect(Math.max(...ys)).toBeLessThanOrEqual(zeroLineY(container));
+
+      expect(container.querySelectorAll('svg circle[stroke="#7c3aed"]')).toHaveLength(3);
+    });
+
+    it('charts no points: those belong to the Snapshot history tab', () => {
+      const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
+
+      expect(container.querySelectorAll('svg text[font-weight="600"]')).toHaveLength(0);
+    });
   });
 
   describe('the hover card accounts for the whole snapshot', () => {
@@ -144,29 +208,38 @@ describe('ContributionProfileTab', () => {
       return Array.from(container.querySelectorAll('svg text[fill="#dbeafe"]')).map((n) => n.textContent ?? '');
     }
 
-    it('lists balance, new PLAA, redeemed, and points for the hovered snapshot', () => {
+    it('lists the month\'s movements, signed as the table signs them', () => {
       const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
       const hoverZones = Array.from(container.querySelectorAll('rect[fill="transparent"]'));
+      expect(hoverZones).toHaveLength(3);
+      expect(screen.queryByText(/Activities:/)).not.toBeInTheDocument();
 
-      // Jul 2026: 45 from activities + 30 infra = 75 new, 50 redeemed, balance 112.
+      const tooltipTitle = () => container.querySelector('svg text[font-weight="700"][fill="#ffffff"]');
+
+      // Jul 2026: 45 from activities, 30 infra, 50 redeemed, 450 points.
       fireEvent.mouseEnter(hoverZones[2]);
+      expect(tooltipTitle()?.textContent).toBe('Jul 2026');
       expect(tooltipRows(container)).toEqual([
         'PLAA balance: 112',
-        'New PLAA: 75',
-        'PLAA redeemed: 50',
+        'Activities: +45',
+        'Infra rewards: +30',
+        'Redeemed: \u2212\u0035\u0030',
         'Points collected: 450',
       ]);
+
+      fireEvent.mouseLeave(hoverZones[2]);
+      expect(screen.queryByText(/Activities:/)).not.toBeInTheDocument();
     });
 
-    it('shows a snapshot with nothing redeemed as 0 rather than omitting the row', () => {
+    it('shows a month with no infra or redemption as 0 rather than omitting the rows', () => {
       const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
-      const hoverZones = Array.from(container.querySelectorAll('rect[fill="transparent"]'));
 
-      fireEvent.mouseEnter(hoverZones[0]);
+      fireEvent.mouseEnter(container.querySelectorAll('rect[fill="transparent"]')[0]);
       expect(tooltipRows(container)).toEqual([
         'PLAA balance: 35',
-        'New PLAA: 35',
-        'PLAA redeemed: 0',
+        'Activities: +35',
+        'Infra rewards: 0',
+        'Redeemed: 0',
         'Points collected: 350',
       ]);
     });
@@ -177,13 +250,13 @@ describe('ContributionProfileTab', () => {
         { period: 'Aug 2026', points: 120, plaa: 12, infra: 8, redeemed: null, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: true, cum: 112 },
       ];
       const { container } = render(<ContributionProfileTab entries={pending} currentBalance={112} totalRedeemed={50} />);
-      const hoverZones = Array.from(container.querySelectorAll('rect[fill="transparent"]'));
 
-      fireEvent.mouseEnter(hoverZones[3]);
+      fireEvent.mouseEnter(container.querySelectorAll('rect[fill="transparent"]')[3]);
       expect(tooltipRows(container)).toEqual([
         'PLAA balance: Pending',
-        'New PLAA: Pending',
-        'PLAA redeemed: —',
+        'Activities: Pending',
+        'Infra rewards: Pending',
+        'Redeemed: —',
         'Points collected: 120',
       ]);
     });
@@ -195,7 +268,12 @@ describe('ContributionProfileTab', () => {
       const { container } = render(<ContributionProfileTab entries={noPoints} currentBalance={800} totalRedeemed={200} />);
 
       fireEvent.mouseEnter(container.querySelectorAll('rect[fill="transparent"]')[0]);
-      expect(tooltipRows(container)).toEqual(['PLAA balance: 800', 'New PLAA: 1,000', 'PLAA redeemed: 200']);
+      expect(tooltipRows(container)).toEqual([
+        'PLAA balance: 800',
+        'Activities: +100',
+        'Infra rewards: +900',
+        'Redeemed: \u2212\u0032\u0030\u0030',
+      ]);
     });
   });
 
@@ -206,17 +284,14 @@ describe('ContributionProfileTab', () => {
       { period: 'Jul 2026', points: null, plaa: 50, infra: 0, redeemed: null, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 1050 },
     ];
 
-    it('hides the points bars and left axis, keeps the real PLAA balance line and right axis', () => {
+    it('keeps the PLAA bars, their axis, and the balance line, which do not depend on points', () => {
       const { container } = render(<ContributionProfileTab entries={realEntries} currentBalance={1050} totalRedeemed={null} />);
 
-      expect(screen.getByText('PLAA balance over time')).toBeInTheDocument();
       expect(screen.queryByText('Points collected')).not.toBeInTheDocument();
       expect(screen.queryByText('Points per snapshot')).not.toBeInTheDocument();
+      expect(container.querySelectorAll('svg polyline[stroke="#7c3aed"]')).toHaveLength(1);
 
       const svgTexts = Array.from(container.querySelectorAll('svg text'));
-      const barLabels = svgTexts.filter((el) => el.getAttribute('font-weight') === '600' && el.getAttribute('fill') === '#4f9eff');
-      expect(barLabels).toHaveLength(0);
-
       const rightAxisTexts = svgTexts.filter((el) => el.getAttribute('fill') === '#156ff7' && el.getAttribute('text-anchor') === 'start');
       expect(rightAxisTexts.length).toBeGreaterThan(0);
     });
@@ -227,8 +302,8 @@ describe('ContributionProfileTab', () => {
       expect(screen.queryByText(/points/)).not.toBeInTheDocument();
 
       const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
-      expect(within(totalRow).getByText('150')).toBeInTheDocument(); // plaa total: 100+0+50
-      expect(within(totalRow).getByText('900')).toBeInTheDocument(); // infra total
+      expect(within(totalRow).getByText('+150')).toBeInTheDocument(); // plaa total: 100+0+50
+      expect(within(totalRow).getByText('+900')).toBeInTheDocument(); // infra total
       expect(within(totalRow).getByText('1,050')).toBeInTheDocument(); // real currentBalance
     });
 
@@ -239,7 +314,7 @@ describe('ContributionProfileTab', () => {
       fireEvent.mouseEnter(hoverZones[0]);
 
       expect(screen.queryByText(/Points collected:/)).not.toBeInTheDocument();
-      expect(screen.getByText('PLAA balance: 1,000')).toBeInTheDocument();
+      expect(screen.getByText('Activities: +100')).toBeInTheDocument();
     });
   });
 
@@ -316,11 +391,11 @@ describe('ContributionProfileTab', () => {
       expect(within(pendingRow()).getByText('220 points so far')).toBeInTheDocument();
     });
 
-    it('shows Pending for the balance in the open snapshot\'s tooltip', () => {
+    it('shows Pending for the open snapshot\'s own PLAA in its tooltip', () => {
       const { container } = render(<ContributionProfileTab entries={withPending} currentBalance={35} totalRedeemed={null} />);
 
       fireEvent.mouseEnter(container.querySelectorAll('rect[fill="transparent"]')[1]);
-      expect(screen.getByText('PLAA balance: Pending')).toBeInTheDocument();
+      expect(screen.getByText('Activities: Pending')).toBeInTheDocument();
       expect(screen.getByText('Points collected: 220')).toBeInTheDocument();
     });
 
@@ -339,8 +414,9 @@ describe('ContributionProfileTab', () => {
       const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
       expect(within(totalRow).queryByText('Pending')).not.toBeInTheDocument();
       expect(within(totalRow).getByText('570 points')).toBeInTheDocument(); // points 350 + 220
-      expect(within(totalRow).getAllByText('35')).toHaveLength(2); // activity PLAA and balance, May only
-      expect(within(totalRow).getByText('0')).toBeInTheDocument(); // infra, May only
+      expect(within(totalRow).getByText('+35')).toBeInTheDocument(); // activity PLAA, May only
+      expect(within(totalRow).getByText('35')).toBeInTheDocument(); // balance
+      expect(within(totalRow).getByText('0')).toBeInTheDocument(); // infra, May only \u2014 zero carries no sign
     });
   });
 
@@ -352,7 +428,7 @@ describe('ContributionProfileTab', () => {
     render(<ContributionProfileTab entries={redeemed} currentBalance={35} totalRedeemed={640} />);
 
     const row = (screen.getAllByText('Jun 2026')[1].closest('[class*="dataRow"]')) as HTMLElement;
-    expect(within(row).getByText('640')).toBeInTheDocument();
+    expect(within(row).getByText('\u2212\u0036\u0034\u0030')).toBeInTheDocument();
   });
 
   it('renders an empty state without crashing when there are no entries', () => {
@@ -417,7 +493,7 @@ describe('ContributionProfileTab', () => {
       render(<ContributionProfileTab entries={priced} currentBalance={112} totalRedeemed={580} />);
 
       const redeemedCell = rowFor('Jul 2026').children[3];
-      expect(redeemedCell.children[0].textContent).toBe('400');
+      expect(redeemedCell.children[0].textContent).toBe('\u2212\u0034\u0030\u0030');
       expect(redeemedCell.children[1].textContent).toBe('$592 at $1.48');
     });
 
@@ -433,7 +509,7 @@ describe('ContributionProfileTab', () => {
       render(<ContributionProfileTab entries={unpriced} currentBalance={112} totalRedeemed={400} />);
 
       const redeemedCell = rowFor('Jul 2026').children[3];
-      expect(redeemedCell.textContent).toBe('400');
+      expect(redeemedCell.textContent).toBe('\u2212\u0034\u0030\u0030');
       expect(screen.queryByText(/\$/)).not.toBeInTheDocument();
     });
 
@@ -441,7 +517,7 @@ describe('ContributionProfileTab', () => {
       render(<ContributionProfileTab entries={priced} currentBalance={112} totalRedeemed={580} />);
 
       const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
-      expect(within(totalRow).getByText('580')).toBeInTheDocument();
+      expect(within(totalRow).getByText('\u2212\u0035\u0038\u0030')).toBeInTheDocument();
       // 848 over 580 PLAA = 1.462...
       expect(within(totalRow).getByText('$848 \u00b7 avg $1.46')).toBeInTheDocument();
     });
@@ -451,7 +527,7 @@ describe('ContributionProfileTab', () => {
       render(<ContributionProfileTab entries={unpriced} currentBalance={112} totalRedeemed={580} />);
 
       const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
-      expect(within(totalRow).getByText('580')).toBeInTheDocument();
+      expect(within(totalRow).getByText('\u2212\u0035\u0038\u0030')).toBeInTheDocument();
       expect(within(totalRow).queryByText(/\$/)).not.toBeInTheDocument();
     });
 
@@ -479,9 +555,9 @@ describe('ContributionProfileTab', () => {
       const top = document.querySelectorAll('[class*="dataRow"]')[0];
       expect(Array.from(top.children).map((c) => c.textContent)).toEqual([
         'Jul 2026',
-        '45450 points', // 45 PLAA on one line, 450 points on the next
-        '30',
-        '50',
+        '+45450 points', // 45 PLAA on one line, 450 points on the next
+        '+30',
+        '\u2212\u0035\u0030',
         '112',
       ]);
     });
@@ -519,7 +595,7 @@ describe('ContributionProfileTab', () => {
 
       const row = screen.getAllByText('Jul 2026')[1].closest('[class*="dataRow"]') as HTMLElement;
       const activities = row.children[1];
-      expect(activities.children[0].textContent).toBe('45'); // the PLAA
+      expect(activities.children[0].textContent).toBe('+45'); // the PLAA
       expect(activities.children[1].textContent).toBe('450 points'); // what produced it, underneath
 
       // One cell per column on every row, so the grid stays aligned.

@@ -6,6 +6,7 @@ import Image from 'next/image';
 
 import { useProfileData } from '@/services/plaa/hooks/useProfileData';
 import ProfileHero from './profile-hero';
+import PointsChart from './points-chart';
 import SnapshotHistoryTab from './snapshot-history-tab';
 import ContributionProfileTab from './contribution-profile-tab';
 
@@ -14,13 +15,13 @@ import styles from './profile.module.css';
 type ProfileTabKey = 'snapshots' | 'contribution';
 
 const PROFILE_TABS: Array<{ key: ProfileTabKey; label: string }> = [
+  { key: 'contribution', label: 'Balance History' },
   { key: 'snapshots', label: 'Snapshot history' },
-  { key: 'contribution', label: 'Contribution profile' },
 ];
 
 const Profile = () => {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<ProfileTabKey>('snapshots');
+  const [activeTab, setActiveTab] = useState<ProfileTabKey>('contribution');
   const data = useProfileData();
 
   if (!data.identity.isOnboarded) {
@@ -70,7 +71,13 @@ const Profile = () => {
         ))}
       </div>
 
-      {activeTab === 'snapshots' && <SnapshotHistoryTab entries={data.snapshotHistory} />}
+      {activeTab === 'snapshots' && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24 }}>
+          {/* The points per snapshot; the rows below break each one down into the activities behind it. */}
+          <PointsChart entries={data.contributionHistory} />
+          <SnapshotHistoryTab entries={data.snapshotHistory} />
+        </div>
+      )}
       {activeTab === 'contribution' && (
         <ContributionProfileTab
           entries={data.contributionHistory}

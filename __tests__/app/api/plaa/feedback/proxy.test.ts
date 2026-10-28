@@ -20,6 +20,7 @@ const AUTH = { authorization: 'Bearer member-token' };
 
 beforeEach(() => {
   process.env.PLAA_API_URL = UPSTREAM;
+  process.env.NEXT_PUBLIC_PLAA_FEEDBACK_BOARD = 'true';
   delete process.env.PLAA_FEEDBACK_API_URL;
   global.fetch = jest.fn();
 });
@@ -38,6 +39,18 @@ function upstreamReplies(body: unknown, init: { status?: number; headers?: Recor
 function fetchCall() {
   return (global.fetch as jest.Mock).mock.calls[0];
 }
+
+describe('the feature flag', () => {
+  it.each([undefined, '', 'false'])('404s with the board flag %p, before calling upstream', async (flag) => {
+    if (flag === undefined) delete process.env.NEXT_PUBLIC_PLAA_FEEDBACK_BOARD;
+    else process.env.NEXT_PUBLIC_PLAA_FEEDBACK_BOARD = flag;
+
+    const response = await GET(makeRequest(`http://portal/api/plaa/feedback/items`, { headers: AUTH }), context(['items']));
+
+    expect(response.status).toBe(404);
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+});
 
 describe('auth and configuration', () => {
   it('401s without an Authorization header, before calling upstream', async () => {

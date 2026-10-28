@@ -64,22 +64,25 @@ describe('Profile', () => {
     expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'));
   });
 
-  it('renders the hero and defaults to the Snapshot history tab when onboarded', () => {
+  it('renders the hero and defaults to the Balance History tab when onboarded', () => {
     mockUseProfileData.mockReturnValue(ONBOARDED_DATA);
     render(<Profile />);
 
     expect(screen.getByTestId('profile-hero')).toBeInTheDocument();
-    expect(screen.getByTestId('snapshot-history-tab')).toBeInTheDocument();
-    expect(screen.queryByTestId('contribution-profile-tab')).not.toBeInTheDocument();
+    expect(screen.getByTestId('contribution-profile-tab')).toBeInTheDocument();
+    expect(screen.queryByTestId('snapshot-history-tab')).not.toBeInTheDocument();
+
+    // Balance History leads the tab strip, Snapshot history follows.
+    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Balance History', 'Snapshot history']);
   });
 
-  it('switches to the Contribution profile tab on click', () => {
+  it('switches to the Snapshot history tab on click', () => {
     mockUseProfileData.mockReturnValue(ONBOARDED_DATA);
     render(<Profile />);
 
-    fireEvent.click(screen.getByRole('tab', { name: 'Contribution profile' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Snapshot history' }));
 
-    expect(screen.getByTestId('contribution-profile-tab')).toBeInTheDocument();
-    expect(screen.queryByTestId('snapshot-history-tab')).not.toBeInTheDocument();
+    expect(screen.getByTestId('snapshot-history-tab')).toBeInTheDocument();
+    expect(screen.queryByTestId('contribution-profile-tab')).not.toBeInTheDocument();
   });
 });

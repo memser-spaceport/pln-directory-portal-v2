@@ -121,8 +121,8 @@ export async function approveMcpOAuth(body: {
   codeChallengeMethod: 'S256';
   state?: string;
   resource?: string;
-  /** The member ticked "Make changes for me". False = read-only grant. */
-  allowChanges: boolean;
+  /** The member acknowledged that read access shows other members' contact details (LAB-3016). Consent is read only. */
+  acknowledgedContactDetails: true;
 }): Promise<{ redirectUrl: string } | { error: 'forbidden' | 'failed' }> {
   const response = await customFetch(
     `${MCP_API_URL}/oauth/approve`,

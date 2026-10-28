@@ -148,7 +148,13 @@ describe('McpConnectionsPage', () => {
     expect(heading.parentElement).toBe(screen.getByText('Connections').closest('section')?.parentElement);
     expect(screen.getByText('Add a connection')).toBeInTheDocument();
     expect(screen.getByText('Claude app (web, desktop, mobile)')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Open Claude connectors' })).toBeInTheDocument();
+    expect(
+      screen.getByText('In Claude, open Customize → Connectors, then Add → Add custom connector.'),
+    ).toBeInTheDocument();
+    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+    fireEvent.click(screen.getByRole('button', { name: 'Open Claude connectors' }));
+    expect(openSpy).toHaveBeenCalledWith('https://claude.ai/customize/connectors', '_blank', 'noopener');
+    openSpy.mockRestore();
     expect(screen.getByText('For developers')).toBeInTheDocument();
     expect(screen.getByText('MCP server URL')).toBeInTheDocument();
     expect(screen.getByText(/claude mcp add --transport http labos/)).toBeInTheDocument();

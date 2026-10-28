@@ -7,6 +7,7 @@ export enum TeamNewsQueryKeys {
   NEWS_COUNTS = 'team-news-counts',
   TOPIC_SLUGS = 'team-news-topic-slugs',
   TAGS = 'team-news-tags',
+  AI_SEARCH_PROMPTS = 'team-news-ai-search-prompts',
 }
 
 /**

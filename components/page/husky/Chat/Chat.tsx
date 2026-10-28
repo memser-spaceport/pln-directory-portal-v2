@@ -49,7 +49,7 @@ interface Props {
 }
 
 export const Chat = (props: Props) => {
-  const { id, isLoggedIn, initialMessages, setInitialMessages, from, setType, isOwnThread, threadOwner, title } = props;
+  const { id, isLoggedIn, initialMessages, from, isOwnThread, threadOwner, title } = props;
 
   const [limitReached, setLimitReached] = useState<'warn' | 'info' | 'finalRequest'>();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -478,11 +478,7 @@ export const Chat = (props: Props) => {
       <>
         <ChatTitleBar />
         <div className={s.home}>
-          <ChatHome
-            onSubmit={onHuskyInput}
-            setMessages={setInitialMessages ?? (() => {})}
-            setType={setType ?? (() => {})}
-          />
+          <ChatHome onSubmit={onHuskyInput} />
         </div>
       </>
     );

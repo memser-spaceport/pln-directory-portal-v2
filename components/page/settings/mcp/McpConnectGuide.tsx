@@ -38,8 +38,9 @@ function getSetupSteps(client: ClientKey, serverUrl: string): SetupStep[] {
     case 'claude-ai':
       return [
         {
-          text: 'In Claude, open Settings → Connectors → Add custom connector.',
-          link: { label: 'Open Claude connectors', href: 'https://claude.ai/settings/connectors' },
+          // Claude moved connectors from Settings to Customize (checked 2026-10-28); /settings/connectors now only says so.
+          text: 'In Claude, open Customize → Connectors, then Add → Add custom connector.',
+          link: { label: 'Open Claude connectors', href: 'https://claude.ai/customize/connectors' },
         },
         { text: 'Name it "LabOS" and paste the LabOS MCP server URL. Select Add, then Connect.', code: serverUrl },
         { text: CONSENT_STEP },

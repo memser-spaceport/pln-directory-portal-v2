@@ -29,6 +29,11 @@ jest.mock('@/services/rbac/hooks/useMcpAccess', () => ({
   useMcpAccess: () => ({ canConnect: mockCanConnect, isLoading: false, isError: false }),
 }));
 
+let mockMcpNew = false;
+jest.mock('@/hooks/useOneTimeCallout', () => ({
+  useOneTimeCallout: () => ({ open: mockMcpNew, dismiss: jest.fn() }),
+}));
+
 const userInfo = { uid: 'm1', name: 'Mira Chen' } as IUserInfo;
 
 const names = (items: Array<{ name: string }>) => items.map((item) => item.name);
@@ -37,6 +42,7 @@ beforeEach(() => {
   mockShowNewsPreferences = true;
   mockShowMcpPage = false;
   mockCanConnect = false;
+  mockMcpNew = false;
   mockSettings.mockReturnValue({ data: { recommendationsEnabled: false } });
 });
 
@@ -152,6 +158,14 @@ describe('useGetMenuItems', () => {
         expect.objectContaining({ name: 'email & accounts', url: '/settings/accounts' }),
         expect.objectContaining({ name: 'MCP connections', url: '/settings/mcp' }),
       ]);
+    });
+
+    it('marks it New until the member has opened the page', () => {
+      mockShowMcpPage = true;
+      mockCanConnect = true;
+      mockMcpNew = true;
+      const { result } = renderHook(() => useGetMenuItems(userInfo));
+      expect(result.current.account[1]).toEqual(expect.objectContaining({ name: 'MCP connections', isNew: true }));
     });
 
     it.each([

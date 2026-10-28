@@ -3,7 +3,8 @@ import { useMemo } from 'react';
 import { IUserInfo } from '@/types/shared.types';
 import { useMemberNotificationsSettings } from '@/services/members/hooks/useMemberNotificationsSettings';
 import { SHOW_NEWS_PREFERENCES } from '@/utils/news-categories';
-import { SHOW_MCP_CONNECTIONS_PAGE } from '@/utils/mcp';
+import { MCP_CONNECTIONS_NEW_FLAG, SHOW_MCP_CONNECTIONS_PAGE } from '@/utils/mcp';
+import { useOneTimeCallout } from '@/hooks/useOneTimeCallout';
 import { useMcpAccess } from '@/services/rbac/hooks/useMcpAccess';
 
 export function useGetMenuItems(userInfo: IUserInfo) {
@@ -11,6 +12,8 @@ export function useGetMenuItems(userInfo: IUserInfo) {
 
   const { recommendationsEnabled } = data || {};
   const { canConnect } = useMcpAccess();
+  // Open until the member visits /settings/mcp, which dismisses it.
+  const { open: mcpIsNew } = useOneTimeCallout(MCP_CONNECTIONS_NEW_FLAG);
 
   return useMemo(() => {
     const preferences = [
@@ -72,6 +75,7 @@ export function useGetMenuItems(userInfo: IUserInfo) {
                 url: '/settings/mcp',
                 icon: '/icons/link-gray.svg',
                 activeIcon: '/icons/link-blue.svg',
+                isNew: mcpIsNew,
               },
             ]
           : []),
@@ -88,5 +92,5 @@ export function useGetMenuItems(userInfo: IUserInfo) {
         },
       ],
     };
-  }, [recommendationsEnabled, canConnect]);
+  }, [recommendationsEnabled, canConnect, mcpIsNew]);
 }

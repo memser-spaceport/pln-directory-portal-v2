@@ -8,7 +8,7 @@ Settings → MCP connections is where a member sees each AI agent connected to L
 
 ### Requirement: MCP connections has its own Settings page
 
-When `NEXT_PUBLIC_SHOW_MCP_CONNECTIONS_PAGE` is `true`, Settings SHALL have an "MCP connections" item in the Account group that opens `/settings/mcp`, shown only to members with `mcp.connect`. Email & Accounts SHALL then no longer show the MCP section. With the flag off, `/settings/mcp` SHALL return not found and Email & Accounts SHALL keep its MCP section. A signed-out visitor SHALL be sent to login and returned to `/settings/mcp` with its query string intact.
+When `NEXT_PUBLIC_SHOW_MCP_CONNECTIONS_PAGE` is `true`, Settings SHALL have an "MCP connections" item in the Account group that opens `/settings/mcp`, shown only to members with `mcp.connect`. The item SHALL carry a "New" badge until the member first opens the page. Email & Accounts SHALL then no longer show the MCP section. With the flag off, `/settings/mcp` SHALL return not found and Email & Accounts SHALL keep its MCP section. A signed-out visitor SHALL be sent to login and returned to `/settings/mcp` with its query string intact.
 
 #### Scenario: Flag on
 
@@ -27,7 +27,7 @@ When `NEXT_PUBLIC_SHOW_MCP_CONNECTIONS_PAGE` is `true`, Settings SHALL have an "
 
 ### Requirement: The page shows how to connect until something is connected
 
-With no active connections, the page SHALL show the connect guide (the same connect steps as the MCP section in Email & Accounts, each command with a copy button) and no permissions. Once at least one connection exists, the guide SHALL be collapsed behind "Add a connection".
+With no active connections, the page SHALL show the connect block from the LAB-2948 prototype and no permissions: Claude app steps first (with "Open Claude connectors" and the server URL to copy), then "For developers" with the server URL and setup steps per client (Claude Code, Codex, Others), each command with a copy button. Once at least one connection exists, the block SHALL be collapsed behind "Add another connection" and SHALL have a close button when opened.
 
 #### Scenario: No connections
 

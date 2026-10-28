@@ -3,6 +3,7 @@ import type {
   ITeamNewsByTeamResponse,
   ITeamNewsGroupedResponse,
   ITeamNewsItem,
+  ITeamNewsListResponse,
   ITeamNewsPopularResponse,
   ITeamNewsUpvoteStatus,
 } from '@/types/team-news.types';
@@ -96,6 +97,26 @@ export async function getTeamNewsPopular(
       return null;
     }
     return (await response.json()) as ITeamNewsPopularResponse;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The newest news items in the feed window, one page of at most `limit`,
+ * anonymous. Returns null on failure, like the other optional fetchers.
+ */
+export async function getTeamNewsNewest(
+  limit: number,
+  windowDays: number = TEAM_NEWS_DEFAULT_WINDOW_DAYS,
+): Promise<ITeamNewsItem[] | null> {
+  const url = `${process.env.DIRECTORY_API_URL}/v1/team-news?windowDays=${windowDays}&limit=${limit}`;
+
+  try {
+    const response = await fetch(url, { cache: 'no-store' });
+    if (!response.ok) return null;
+    const { items } = (await response.json()) as ITeamNewsListResponse;
+    return Array.isArray(items) ? items : null;
   } catch {
     return null;
   }

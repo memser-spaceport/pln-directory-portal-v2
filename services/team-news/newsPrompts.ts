@@ -1,7 +1,13 @@
-import type { ITeamNewsGroupedResponse, ITeamNewsItem, ITeamNewsPrompt } from '@/types/team-news.types';
+import type { ITeamNewsItem, ITeamNewsPrompt } from '@/types/team-news.types';
 
 /** How many "Try asking" prompts the AI Search new-chat page shows. */
 export const NEWS_PROMPT_COUNT = 4;
+
+/**
+ * How many of the newest stories the prompts are picked from. The Top Stories
+ * picks are usually among them; a pick older than this page is not offered.
+ */
+export const NEWS_PROMPT_CANDIDATE_LIMIT = 20;
 
 function isEditorialRank(rank: number | null | undefined): rank is number {
   return typeof rank === 'number' && rank >= 1;
@@ -17,22 +23,17 @@ export function buildNewsPromptQuestion(item: Pick<ITeamNewsItem, 'teamName' | '
 }
 
 /**
- * The "Try asking" prompts for the AI Search new-chat page (LAB-3012): the news
- * feed's Top Stories picks first, in editorial order, then the newest stories.
- * Each story appears once. No news, or a failed request, gives no prompts, and
- * the page then hides the block.
+ * The "Try asking" prompts for the AI Search new-chat page (LAB-3012), from the
+ * newest stories: the Top Stories picks among them first, in editorial order,
+ * then the rest by recency. Each story appears once. No news, or a failed
+ * request, gives no prompts, and the page then hides the block.
  */
 export function selectNewsPrompts(
-  response: ITeamNewsGroupedResponse | null | undefined,
+  items: ITeamNewsItem[] | null | undefined,
   count: number = NEWS_PROMPT_COUNT,
 ): ITeamNewsPrompt[] {
-  const all = [
-    ...(response?.groups ?? []).flatMap((group) => group.items ?? []),
-    ...(response?.allTabExtraItems ?? []),
-  ];
-
   const byUid = new Map<string, ITeamNewsItem>();
-  for (const item of all) {
+  for (const item of items ?? []) {
     if (item?.uid && item.title?.trim() && item.teamName && !byUid.has(item.uid)) {
       byUid.set(item.uid, item);
     }

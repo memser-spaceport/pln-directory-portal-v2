@@ -14,9 +14,11 @@ LAB-2995 gives every MCP connection its own `none`/`read`/`write` level per feat
 ## Capabilities
 
 ### New Capabilities
+
 - `mcp-settings`: the MCP connections page in Settings (connections, status, permissions drawer, access-request deep link, revoke). If LAB-2993 lands its `mcp-settings` spec first, this change's requirements are added to it, and its Email & Accounts placement requirement gets replaced at archive.
 
 ### Modified Capabilities
+
 <!-- none on develop today -->
 
 ## Impact

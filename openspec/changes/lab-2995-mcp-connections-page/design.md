@@ -5,6 +5,7 @@ The prototype `prototypes/entries/lab-2948-prototype-a-better-mcp-connect/` (Pol
 Production today: `components/page/connected-accounts/McpSection.tsx` (guide, list, revoke; LAB-2993's #3366 reorders the guide), and `services/mcp/mcp.service.ts` with an inline `['mcp-authorizations']` key. Settings pages follow the news-preferences recipe: a server `page.tsx` with a login redirect, then the `SettingsBackButton` + `SettingsMenu` aside + content, the `settings-navigate` listener and `triggerLoader(false)`.
 
 Backend contract (from `pln-directory-portal` `openspec/changes/lab-2995-mcp-scopes`):
+
 - `GET /v1/mcp/authorizations` → `{ items: [{ uid, clientName, connectedAt, lastUsedAt, status, scopes: [{ key, label, level, maxLevel, lock }] }] }`
 - `PATCH /v1/mcp/authorizations/:uid/scopes` `{ levels, requestUid? }` → item (400/404/409)
 - `GET /v1/mcp/access-requests/:uid` → `{ uid, authorizationUid, scope, level, toolName, status, createdAt }`

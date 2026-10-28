@@ -131,6 +131,12 @@ describe('NewsPreferences tags (LAB-3000)', () => {
     expect(mockAnalytics.onNewsPreferencesSaveFailed).toHaveBeenCalledWith({ section: 'tags' });
   });
 
+  it('does not claim it picked tags when the seed is empty (LAB-3018)', () => {
+    renderPage({ initialTags: [], initialTagsSeeded: true });
+    expect(screen.queryByText(/We picked these/)).not.toBeInTheDocument();
+    expect(screen.getByText(/You’re not subscribed to any topics/)).toBeInTheDocument();
+  });
+
   it('explains seeded tags, and saves them together with the first change', () => {
     renderPage({ initialTags: ['desci'], initialTagsSeeded: true });
     expect(screen.getByText(/We picked these from your teams’ focus areas/)).toBeInTheDocument();
@@ -168,10 +174,17 @@ describe('NewsPreferences tags (LAB-3000)', () => {
     expect(screen.getByText(/Teams you follow/)).toBeInTheDocument();
   });
 
-  it("shows a followed team's focus area under its name when the backend sends one", () => {
-    mockFollowed = [{ uid: 'acme', name: 'Acme', logoUrl: null, focusArea: 'Digital Human Rights' } as never];
+  it("shows all of a followed team's focus areas under its name (LAB-3018)", () => {
+    mockFollowed = [
+      {
+        uid: 'acme',
+        name: 'Acme',
+        logoUrl: null,
+        focusAreas: ['Digital Human Rights', 'Economies & Governance'],
+      } as never,
+    ];
     renderPage();
-    expect(screen.getByText('Digital Human Rights')).toBeInTheDocument();
+    expect(screen.getByText('Digital Human Rights, Economies & Governance')).toBeInTheDocument();
   });
 
   it('unfollows in place and can follow again', async () => {

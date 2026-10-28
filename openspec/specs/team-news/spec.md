@@ -22,7 +22,7 @@ Signed-in members SHALL have a News preferences page in Settings, listed right a
 - **THEN** they are asked to log in, and land on News preferences after logging in
 
 ### Requirement: Teams you follow
-The Teams you follow section SHALL list the teams the member follows, each with a Follow/Following control and, when the backend sends it, the team's focus area under its name. Unfollowing SHALL keep the team in the list until the page is left, so it can be followed again in place. With no followed teams, the section SHALL show an empty state that links to Teams.
+The Teams you follow section SHALL list the teams the member follows, each with a Follow/Following control and, when the backend sends them, all of the team's top-level focus areas under its name, on one line. Unfollowing SHALL keep the team in the list until the page is left, so it can be followed again in place. With no followed teams, the section SHALL show an empty state that links to Teams.
 
 #### Scenario: Unfollow and undo
 - **GIVEN** a member following Acme
@@ -93,6 +93,12 @@ The Topics section SHALL offer the news tags (focus-area slugs) that tagged at l
 - **GIVEN** a member who has never saved tags, on a team whose focus areas include DeSci
 - **WHEN** they open News preferences
 - **THEN** DeSci is already chosen, and a note says their tags were picked from their teams' focus areas
+
+#### Scenario: Never chosen, nothing to pick
+
+- **GIVEN** a member who has never saved tags, whose teams have no focus areas used by news
+- **WHEN** they open News preferences
+- **THEN** no tag is chosen, and there is no note saying tags were picked
 
 #### Scenario: First change saves the starting tags
 

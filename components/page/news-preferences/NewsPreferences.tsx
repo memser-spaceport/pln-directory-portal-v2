@@ -217,7 +217,7 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
             </p>
           )}
           <div className={toggleCss.desc}>
-            {seeded && 'We picked these from your teams’ focus areas. '}
+            {seeded && tags.length > 0 && 'We picked these from your teams’ focus areas. '}
             {tags.length > 0
               ? 'News tagged with them shows up in For You and your digest. Click one to unsubscribe.'
               : 'You’re not subscribed to any topics. Pick some to get news tagged with them in For You and your digest.'}
@@ -257,7 +257,11 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
                       <Link href={`/teams/${t.uid}`} className={s.teamName}>
                         {t.name}
                       </Link>
-                      {t.focusArea && <span className={s.teamMeta}>{t.focusArea}</span>}
+                      {t.focusAreas && t.focusAreas.length > 0 && (
+                        <span className={s.teamMeta} title={t.focusAreas.join(', ')}>
+                          {t.focusAreas.join(', ')}
+                        </span>
+                      )}
                     </div>
                     <FollowButton
                       following={following}

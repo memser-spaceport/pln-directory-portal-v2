@@ -197,9 +197,12 @@
 }
 
 .teamMeta {
+  overflow: hidden;
   color: var(--foreground-neutral-tertiary, #8897ae);
   font-size: 12px;
   line-height: 16px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .emptyLine {

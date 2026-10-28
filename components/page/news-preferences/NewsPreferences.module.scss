@@ -52,12 +52,84 @@
   line-height: 20px;
 }
 
-// Email Preferences › Digest: the one line pointing here.
+// Tag search (LAB-3023): the shared SearchInput's look, filtering as you type.
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 320px;
+  margin-top: 4px;
+
+  @include media.mobile-only {
+    max-width: none;
+  }
+}
+
+.searchInput {
+  width: 100%;
+  height: 38px;
+  padding: 0 36px 0 10px;
+  border: 1px solid var(--action-border-neutral-light_normal, rgba(14, 15, 17, 0.16));
+  border-radius: 8px;
+  background: var(--background-base-white, #fff);
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  outline: none;
+  appearance: none;
+
+  &::placeholder {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+
+  // The field's own clear button would sit on top of the icon.
+  &::-webkit-search-cancel-button {
+    display: none;
+  }
+
+  &:hover,
+  &:focus {
+    border-color: #5e718d;
+    box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
+  }
+}
+
+.searchIcon {
+  position: absolute;
+  right: 12px;
+  width: 16px;
+  height: 16px;
+  color: #64748b;
+  pointer-events: none;
+}
+
+.themes {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.theme {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.themeTitle {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
 .chips {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 4px;
 }
 
 // Control-chip lineage: neutral at rest, brand on hover, brand fill when on.

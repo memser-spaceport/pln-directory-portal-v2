@@ -6,8 +6,8 @@
  * prototypes/entries/digest-topics.
  *
  *   Topics ................. news tags (focus-area slugs used by news,
- *                            `GET /v1/team-news/tags`) as one flat list of
- *                            `#slug` chips, the member's own first. A member who
+ *                            `GET /v1/team-news/tags`) as `#slug` chips in
+ *                            themes, with a search (LAB-3023). A member who
  *                            never saved starts with their teams' focus areas
  *   Teams you follow ....... FollowButton; an unfollowed row stays until the page
  *                            is left, so it can be undone in place
@@ -33,7 +33,9 @@ import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
 import { followedTeamUidsQueryKey } from '@/services/follow/hooks/useFollowedTeamUids';
 import { toast } from '@/components/core/ToastContainer';
 import { triggerLoader } from '@/utils/common.utils';
+import { SearchIcon } from '@/components/icons';
 
+import { groupNewsTags } from './newsTagThemes';
 import s from './NewsPreferences.module.scss';
 
 type Gap = 'teams' | 'tags';
@@ -64,9 +66,10 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
   const [localTags, setLocalTags] = useState<string[] | null>(null);
   const tags: string[] = localTags ?? preferences?.newsTags ?? initialTags;
   const seeded = localTags === null && (preferences ? preferences.newsTagsSeeded : initialTagsSeeded);
-  // The member's own tags lead, in the order they had when the page opened, so
-  // a chip never jumps when it is toggled.
+  // The tags the member had when the page opened stay listed even when the tag
+  // list lacks them (no recent news), so removing one can be undone in place.
   const [pinned] = useState<string[]>(() => initialTags);
+  const [query, setQuery] = useState('');
   const [unfollowed, setUnfollowed] = useState<Set<string>>(() => new Set());
   const [pendingTeam, setPendingTeam] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
@@ -111,12 +114,13 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
   const lit = (g: Gap) => arriving && gap === g;
   const arrivalWhere = from === 'digest' ? 'your digest' : 'For You';
 
-  // One flat list, as in the prototype: the member's own topics first, then the
-  // rest in the tag list's order (each focus area followed by its children).
-  const order = useMemo(() => {
-    const rest = (tagGroups ?? []).flatMap((group) => [group.slug, ...group.children.map((child) => child.slug)]);
-    return [...pinned, ...rest.filter((slug) => !pinned.includes(slug))];
+  // Every tag the page knows, in Polina's themes (LAB-3023); a chip keeps its
+  // place when toggled.
+  const allTags = useMemo(() => {
+    const listed = (tagGroups ?? []).flatMap((group) => [group.slug, ...group.children.map((child) => child.slug)]);
+    return [...new Set([...pinned, ...listed])];
   }, [tagGroups, pinned]);
+  const themes = useMemo(() => groupNewsTags(allTags, query), [allTags, query]);
 
   const saveTags = (next: string[]) => {
     const previous = tags;
@@ -204,8 +208,9 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
 
       {/* Topics */}
       <div ref={refs.tags} className={clsx(toggleCss.root, s.card, lit('tags') && s.cardHighlight)}>
+        {/* A question, not "Topics": with nothing picked it says the chips are there to choose from. */}
         <div className={clsx(toggleCss.header, s.cardHeader)}>
-          Topics{tags.length > 0 && ` · ${tags.length}`}
+          What do you want news about?
           {saved === 'tags' && <SavedNote />}
         </div>
         <div className={toggleCss.content}>
@@ -218,14 +223,41 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
           )}
           <div className={toggleCss.desc}>
             {seeded && tags.length > 0 && 'We picked these from your teams’ focus areas. '}
-            {tags.length > 0
-              ? 'News tagged with them shows up in For You and your digest. Click one to unsubscribe.'
-              : 'You’re not subscribed to any topics. Pick some to get news tagged with them in For You and your digest.'}
+            Pick a few tags. They shape For You and your digest.
           </div>
-          {order.length > 0 && (
-            <div className={s.chips} role="group" aria-label="Topics">
-              {order.map(renderTagChip)}
-            </div>
+          {allTags.length > 0 && (
+            <>
+              <label className={s.search}>
+                <input
+                  type="search"
+                  value={query}
+                  placeholder="Search tags"
+                  aria-label="Search tags"
+                  className={s.searchInput}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onBlur={() => {
+                    if (query.trim()) {
+                      analytics.onNewsPreferencesTagSearched({
+                        query: query.trim(),
+                        matches: themes.reduce((n, theme) => n + theme.slugs.length, 0),
+                      });
+                    }
+                  }}
+                />
+                <SearchIcon className={s.searchIcon} aria-hidden="true" />
+              </label>
+              <div className={s.themes} role="group" aria-label="Topics">
+                {themes.map((theme) => (
+                  <div key={theme.title} className={s.theme} role="group" aria-label={theme.title}>
+                    <span className={s.themeTitle} aria-hidden="true">
+                      {theme.title}
+                    </span>
+                    <div className={s.chips}>{theme.slugs.map(renderTagChip)}</div>
+                  </div>
+                ))}
+                {themes.length === 0 && <p className={s.emptyLine}>No tags match “{query.trim()}”.</p>}
+              </div>
+            </>
           )}
           {tagListFailed && (
             <p className={s.emptyLine}>We couldn’t load the list of topics. Your topics are still saved.</p>

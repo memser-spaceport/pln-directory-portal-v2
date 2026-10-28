@@ -1,4 +1,4 @@
-const mockRedirect = jest.fn(() => {
+const mockRedirect = jest.fn((_url: string) => {
   throw new Error('NEXT_REDIRECT');
 });
 const mockNotFound = jest.fn(() => {

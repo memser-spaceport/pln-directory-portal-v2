@@ -22,6 +22,9 @@ interface NewsDetailModalProps {
   /** Passed through to NewsDetailBody — see its props for both. */
   source?: TeamNewsAnalyticsSource;
   loginHref?: string;
+  /** Passed through to NewsDetailBody: the `#tag` chips filter the Home feed (LAB-3010). */
+  onTagSelect?: (tag: string) => void;
+  activeTag?: string;
 }
 
 /** Restores focus for the row that opened the modal. Scoped to role="button" —
@@ -55,6 +58,8 @@ export function NewsDetailModal({
   onFollowToggle,
   source,
   loginHref,
+  onTagSelect,
+  activeTag,
 }: NewsDetailModalProps) {
   // While the share popover is open, the Modal's own Escape/backdrop closers
   // are detached (its capture-phase document listener would otherwise swallow
@@ -92,6 +97,8 @@ export function NewsDetailModal({
         source={source}
         loginHref={loginHref}
         onShareOpenChange={setShareOpen}
+        onTagSelect={onTagSelect}
+        activeTag={activeTag}
       />
     </Modal>
   );

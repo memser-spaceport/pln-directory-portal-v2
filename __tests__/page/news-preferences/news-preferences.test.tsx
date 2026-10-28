@@ -11,6 +11,7 @@ const mockAnalytics = {
   onNewsPreferencesTagToggled: jest.fn(),
   onNewsPreferencesSaveFailed: jest.fn(),
   onNewsPreferencesFollowToggled: jest.fn(),
+  onNewsPreferencesTagSearched: jest.fn(),
 };
 let mockPreferences: { newsTags: string[]; newsTagsSeeded: boolean } | undefined;
 let mockTagList: { data?: INewsTagGroup[]; isError: boolean };
@@ -77,22 +78,81 @@ describe('NewsPreferences tags (LAB-3000)', () => {
     expect(mockAnalytics.onNewsPreferencesOpened).toHaveBeenCalledWith('digest');
   });
 
-  it('has a Topics section and no Categories or Suggested section', () => {
+  it('asks what news the member wants, and has no Categories or Suggested section (LAB-3023)', () => {
     renderPage();
-    expect(screen.getByText(/^Topics/)).toBeInTheDocument();
+    expect(screen.getByText('What do you want news about?')).toBeInTheDocument();
+    expect(screen.getByText('Pick a few tags. They shape For You and your digest.')).toBeInTheDocument();
     expect(screen.queryByText('Categories')).not.toBeInTheDocument();
     expect(screen.queryByText('Suggested from your profile')).not.toBeInTheDocument();
   });
 
-  it("shows one flat list of #topics, the member's own first, then the rest in the list's order", () => {
+  it('groups the #topics by theme, alphabetical within each (LAB-3023)', () => {
     renderPage();
 
-    expect(chipNames()).toEqual(['#desci', '#ai-robotics', '#ai', '#economies-governance', '#defi']);
+    const theme = (name: string) =>
+      within(screen.getByRole('group', { name }))
+        .getAllByRole('button')
+        .map((b) => b.textContent);
+    expect(theme('AI & frontier tech')).toEqual(['#ai', '#ai-robotics', '#desci']);
+    expect(theme('Economies & governance')).toEqual(['#defi', '#economies-governance']);
+    expect(chipNames()).toEqual(['#ai', '#ai-robotics', '#desci', '#defi', '#economies-governance']);
     expect(chip('#desci')).toHaveAttribute('aria-pressed', 'true');
     expect(chip('#ai')).toHaveAttribute('aria-pressed', 'false');
     expect(chip('#desci')).toHaveAttribute('title', 'Unsubscribe from #desci');
     expect(chip('#ai')).toHaveAttribute('title', 'Subscribe to #ai');
+    // The API's parents are not the themes.
     expect(screen.queryByText('AI & Robotics')).not.toBeInTheDocument();
+  });
+
+  it('puts a tag no theme knows under Other, last', () => {
+    renderPage({ initialTags: ['desci', 'zk-gaming'] });
+    expect(screen.getByRole('group', { name: 'Other' })).toHaveTextContent('#zk-gaming');
+    expect(chipNames().at(-1)).toBe('#zk-gaming');
+  });
+
+  describe('search (LAB-3023)', () => {
+    const search = () => screen.getByRole('searchbox', { name: 'Search tags' });
+
+    it('narrows the chips as you type, hiding themes with no match', () => {
+      renderPage();
+      fireEvent.change(search(), { target: { value: 'de' } });
+
+      expect(chipNames()).toEqual(['#desci', '#defi']);
+      expect(screen.getByRole('group', { name: 'AI & frontier tech' })).toBeInTheDocument();
+      fireEvent.change(search(), { target: { value: 'robot' } });
+      expect(chipNames()).toEqual(['#ai-robotics']);
+      expect(screen.queryByRole('group', { name: 'Economies & governance' })).not.toBeInTheDocument();
+    });
+
+    it('finds a tag typed with # or spaces, and a whole theme by its name', () => {
+      renderPage();
+      fireEvent.change(search(), { target: { value: '#Economies Gov' } });
+      expect(chipNames()).toEqual(['#economies-governance']);
+      fireEvent.change(search(), { target: { value: 'Economies' } });
+      expect(chipNames()).toEqual(['#defi', '#economies-governance']);
+      fireEvent.change(search(), { target: { value: 'frontier' } });
+      expect(chipNames()).toEqual(['#ai', '#ai-robotics', '#desci']);
+    });
+
+    it('says when nothing matches, and toggling still works on a filtered chip', () => {
+      renderPage();
+      fireEvent.change(search(), { target: { value: 'zzz' } });
+      expect(screen.getByText('No tags match “zzz”.')).toBeInTheDocument();
+
+      fireEvent.change(search(), { target: { value: 'ai' } });
+      fireEvent.click(chip('#ai'));
+      expect(mockSetNewsTags).toHaveBeenCalledWith(['desci', 'ai'], expect.any(Object));
+    });
+
+    it('records a search when the member leaves the field with text in it', () => {
+      renderPage();
+      fireEvent.blur(search());
+      expect(mockAnalytics.onNewsPreferencesTagSearched).not.toHaveBeenCalled();
+
+      fireEvent.change(search(), { target: { value: ' de ' } });
+      fireEvent.blur(search());
+      expect(mockAnalytics.onNewsPreferencesTagSearched).toHaveBeenCalledWith({ query: 'de', matches: 2 });
+    });
   });
 
   it('links to Email Preferences for the digest frequency', () => {
@@ -131,6 +191,12 @@ describe('NewsPreferences tags (LAB-3000)', () => {
     expect(mockAnalytics.onNewsPreferencesSaveFailed).toHaveBeenCalledWith({ section: 'tags' });
   });
 
+  it('does not claim it picked tags when the seed is empty (LAB-3018)', () => {
+    renderPage({ initialTags: [], initialTagsSeeded: true });
+    expect(screen.queryByText(/We picked these/)).not.toBeInTheDocument();
+    expect(screen.getByText('Pick a few tags. They shape For You and your digest.')).toBeInTheDocument();
+  });
+
   it('explains seeded tags, and saves them together with the first change', () => {
     renderPage({ initialTags: ['desci'], initialTagsSeeded: true });
     expect(screen.getByText(/We picked these from your teams’ focus areas/)).toBeInTheDocument();
@@ -145,17 +211,13 @@ describe('NewsPreferences tags (LAB-3000)', () => {
     mockPreferences = { newsTags: ['desci', 'defi'], newsTagsSeeded: false };
     renderPage();
     expect(chip('#defi')).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByText(/^Topics · 2/)).toBeInTheDocument();
   });
 
-  it('shows the empty state once every tag is removed', () => {
-    renderPage();
+  it('keeps inviting a pick once every tag is removed', () => {
+    renderPage({ initialTagsSeeded: true });
     fireEvent.click(chip('#desci'));
-    expect(
-      screen.getByText(
-        /You’re not subscribed to any topics. Pick some to get news tagged with them in For You and your digest./,
-      ),
-    ).toBeInTheDocument();
+    expect(screen.queryByText(/We picked these/)).not.toBeInTheDocument();
+    expect(screen.getByText('Pick a few tags. They shape For You and your digest.')).toBeInTheDocument();
   });
 
   it('keeps the chosen tags and says so when the tag list cannot load', () => {
@@ -168,10 +230,17 @@ describe('NewsPreferences tags (LAB-3000)', () => {
     expect(screen.getByText(/Teams you follow/)).toBeInTheDocument();
   });
 
-  it("shows a followed team's focus area under its name when the backend sends one", () => {
-    mockFollowed = [{ uid: 'acme', name: 'Acme', logoUrl: null, focusArea: 'Digital Human Rights' } as never];
+  it("shows all of a followed team's focus areas under its name (LAB-3018)", () => {
+    mockFollowed = [
+      {
+        uid: 'acme',
+        name: 'Acme',
+        logoUrl: null,
+        focusAreas: ['Digital Human Rights', 'Economies & Governance'],
+      } as never,
+    ];
     renderPage();
-    expect(screen.getByText('Digital Human Rights')).toBeInTheDocument();
+    expect(screen.getByText('Digital Human Rights, Economies & Governance')).toBeInTheDocument();
   });
 
   it('unfollows in place and can follow again', async () => {

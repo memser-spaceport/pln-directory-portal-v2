@@ -319,6 +319,7 @@ export const SETTINGS_ANALYTICS_EVENTS = {
   SETTINGS_NEWS_PREFERENCES_TAG_TOGGLED: 'settings-news-preferences-tag-toggled',
   SETTINGS_NEWS_PREFERENCES_SAVE_FAILED: 'settings-news-preferences-save-failed',
   SETTINGS_NEWS_PREFERENCES_FOLLOW_TOGGLED: 'settings-news-preferences-follow-toggled',
+  SETTINGS_NEWS_PREFERENCES_TAG_SEARCHED: 'settings-news-preferences-tag-searched',
 };
 
 export const JOIN_NETWORK_ANALYTICS_EVENTS = {

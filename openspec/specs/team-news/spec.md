@@ -22,7 +22,7 @@ Signed-in members SHALL have a News preferences page in Settings, listed right a
 - **THEN** they are asked to log in, and land on News preferences after logging in
 
 ### Requirement: Teams you follow
-The Teams you follow section SHALL list the teams the member follows, each with a Follow/Following control and, when the backend sends it, the team's focus area under its name. Unfollowing SHALL keep the team in the list until the page is left, so it can be followed again in place. With no followed teams, the section SHALL show an empty state that links to Teams.
+The Teams you follow section SHALL list the teams the member follows, each with a Follow/Following control and, when the backend sends them, all of the team's top-level focus areas under its name, on one line. Unfollowing SHALL keep the team in the list until the page is left, so it can be followed again in place. With no followed teams, the section SHALL show an empty state that links to Teams.
 
 #### Scenario: Unfollow and undo
 - **GIVEN** a member following Acme
@@ -80,7 +80,25 @@ The For You hint SHALL record `team-news-for-you-tune-clicked`.
 
 ### Requirement: News tags
 
-The Topics section SHALL offer the news tags (focus-area slugs) that tagged at least one news story in the last 90 days, plus any tag the member already has, as one flat list of `#slug` chips: the member's chosen tags first in the order they had when the page opened, then the rest. Subscribing or unsubscribing SHALL save at once and show "Saved". The member SHALL be able to unsubscribe from every topic.
+The Topics section SHALL be headed "What do you want news about?" and SHALL offer the news tags (focus-area slugs) that tagged at least one news story in the last 90 days, plus any tag the member already has, as `#slug` chips grouped by theme: AI & frontier tech, Web3 infrastructure, Digital rights, Economies & governance, The network, and Other for any tag no theme lists. Themes are an editorial grouping in the frontend, not the focus-area hierarchy; chips are alphabetical within a theme and keep their place when toggled. A search field SHALL narrow the chips as the member types, matching part of a tag or a theme's name, and hide themes with no match. Subscribing or unsubscribing SHALL save at once and show "Saved". The member SHALL be able to unsubscribe from every topic.
+
+#### Scenario: Search tags
+
+- **GIVEN** a member on News preferences
+- **WHEN** they type "decentralized" in Search tags
+- **THEN** only #decentralized-compute and #decentralized-storage show, under Web3 infrastructure, and choosing one saves it as usual
+
+#### Scenario: Search matches nothing
+
+- **GIVEN** a member on News preferences
+- **WHEN** they type text no tag or theme contains
+- **THEN** no chips show and a line says no tags match
+
+#### Scenario: A tag no theme lists
+
+- **GIVEN** news starts using a focus area that no theme lists
+- **WHEN** a member opens News preferences
+- **THEN** its tag shows under Other, after the themes
 
 #### Scenario: Add a tag
 
@@ -94,6 +112,12 @@ The Topics section SHALL offer the news tags (focus-area slugs) that tagged at l
 - **WHEN** they open News preferences
 - **THEN** DeSci is already chosen, and a note says their tags were picked from their teams' focus areas
 
+#### Scenario: Never chosen, nothing to pick
+
+- **GIVEN** a member who has never saved tags, whose teams have no focus areas used by news
+- **WHEN** they open News preferences
+- **THEN** no tag is chosen, and there is no note saying tags were picked
+
 #### Scenario: First change saves the starting tags
 
 - **GIVEN** a member who has never saved tags, with DeSci chosen from their team
@@ -104,7 +128,7 @@ The Topics section SHALL offer the news tags (focus-area slugs) that tagged at l
 
 - **GIVEN** a member with one tag chosen
 - **WHEN** they remove it
-- **THEN** the removal is saved, and the section says they're not subscribed to any topics and invites them to pick some
+- **THEN** the removal is saved, and the section still invites them to pick a few tags
 
 #### Scenario: Save fails
 

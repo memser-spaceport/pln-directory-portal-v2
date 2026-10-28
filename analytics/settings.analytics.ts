@@ -261,11 +261,17 @@ export const useSettingsAnalytics = () => {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_FOLLOW_TOGGLED, params);
   }
 
+  /** When the member leaves the tag search with text in it (LAB-3023). */
+  function onNewsPreferencesTagSearched(params: { query: string; matches: number }) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_TAG_SEARCHED, params);
+  }
+
   return {
     onNewsPreferencesOpened,
     onNewsPreferencesTagToggled,
     onNewsPreferencesSaveFailed,
     onNewsPreferencesFollowToggled,
+    onNewsPreferencesTagSearched,
     recordSettingsSideMenuClick,
     recordManageTeamsTeamChange,
     recordManageTeamSave,

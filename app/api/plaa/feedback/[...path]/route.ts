@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { plaaUpstreamUrl } from '../../_upstream';
+import { isFeedbackBoardEnabled } from '@/components/page/aligement-assets/feedback/feedback.utils';
 
 /**
  * Thin proxy for every `/api/v1/feedback/*` endpoint.
@@ -22,6 +23,13 @@ const PASSTHROUGH_RESPONSE_HEADERS = ['retry-after'];
 export const dynamic = 'force-dynamic';
 
 async function proxy(request: NextRequest, path: string[]): Promise<NextResponse> {
+  // Behind the same flag as the pages (AC-T8.1): with the board off, this proxy
+  // is as absent as the routes that call it, rather than a live write path into
+  // the upstream that no UI admits to.
+  if (!isFeedbackBoardEnabled()) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
+
   const authHeader = request.headers.get('authorization');
   if (!authHeader) {
     return NextResponse.json({ error: 'Authorization header is required' }, { status: 401 });

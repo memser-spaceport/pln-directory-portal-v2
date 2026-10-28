@@ -144,6 +144,20 @@ describe('NewsPreferences tags (LAB-3000)', () => {
       expect(mockSetNewsTags).toHaveBeenCalledWith(['desci', 'ai'], expect.any(Object));
     });
 
+    it('offers a clear button only while there is text, which empties the field and keeps focus in it', () => {
+      renderPage();
+      expect(screen.queryByRole('button', { name: 'Clear search' })).not.toBeInTheDocument();
+
+      fireEvent.change(search(), { target: { value: 'robot' } });
+      expect(chipNames()).toEqual(['#ai-robotics']);
+      fireEvent.click(screen.getByRole('button', { name: 'Clear search' }));
+
+      expect(search()).toHaveValue('');
+      expect(search()).toHaveFocus();
+      expect(chipNames()).toEqual(['#ai', '#ai-robotics', '#desci', '#defi', '#economies-governance']);
+      expect(screen.queryByRole('button', { name: 'Clear search' })).not.toBeInTheDocument();
+    });
+
     it('records a search when the member leaves the field with text in it', () => {
       renderPage();
       fireEvent.blur(search());

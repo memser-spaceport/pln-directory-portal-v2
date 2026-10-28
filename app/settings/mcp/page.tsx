@@ -16,8 +16,8 @@ async function McpSettingsPage({ searchParams }: { searchParams: Promise<Record<
   const params = new URLSearchParams(resolvedSearchParams).toString();
 
   if (!isLoggedIn) {
-    // Keeps `request` so the member lands on the same access request after signing in.
-    redirect(`/${params ? `?${params}` : '?'}&returnTo=settings-mcp#login`);
+    // Straight to /home: `/` 308s to /home and drops the query, which would lose `returnTo` and the agent's `request`.
+    redirect(`/home?${params ? `${params}&` : ''}returnTo=settings-mcp#login`);
   }
 
   const roles = userInfo.roles ?? [];

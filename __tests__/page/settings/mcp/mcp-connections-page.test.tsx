@@ -38,8 +38,9 @@ jest.mock('next/navigation', () => ({
 }));
 
 let mockCanConnect = true;
+let mockAccessChecked = true;
 jest.mock('@/services/rbac/hooks/useMcpAccess', () => ({
-  useMcpAccess: () => ({ canConnect: mockCanConnect, isLoading: false, isError: false }),
+  useMcpAccess: () => ({ canConnect: mockCanConnect, isLoading: false, isError: false, isFetched: mockAccessChecked }),
 }));
 
 let mockConnections: { data?: McpConnection[]; isLoading: boolean; isSuccess: boolean; isError: boolean } = {
@@ -108,6 +109,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockSearch = new URLSearchParams();
   mockCanConnect = true;
+  mockAccessChecked = true;
   mockRequest = { data: undefined, isLoading: false, isError: false };
   mockSaveState = { isPending: false, isError: false };
   withConnections([]);
@@ -254,6 +256,14 @@ describe('McpConnectionsPage', () => {
     render(<McpConnectionsPage />);
     expect(screen.getByText('MCP connections aren’t available for your account yet.')).toBeInTheDocument();
     expect(screen.queryByText('MCP server URL')).not.toBeInTheDocument();
+  });
+
+  it('keeps loading, not "unavailable", until the access check has run', () => {
+    mockCanConnect = false;
+    mockAccessChecked = false;
+    render(<McpConnectionsPage />);
+    expect(screen.getByText('Loading…')).toBeInTheDocument();
+    expect(screen.queryByText(/aren’t available/)).not.toBeInTheDocument();
   });
 
   it('revokes after the inline confirm and shows a toast when it fails', () => {

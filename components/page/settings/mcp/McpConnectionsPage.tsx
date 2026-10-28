@@ -43,7 +43,7 @@ export function McpConnectionsPage() {
   const requestUid = searchParams.get('request');
   const analytics = useMcpAnalytics();
 
-  const { canConnect, isLoading: accessLoading } = useMcpAccess();
+  const { canConnect, isFetched: accessChecked } = useMcpAccess();
   const connections = useMcpConnections(canConnect);
   const accessRequest = useMcpAccessRequest(requestUid, canConnect);
   const updateScopes = useUpdateMcpScopes();
@@ -204,7 +204,8 @@ export function McpConnectionsPage() {
           </p>
         )}
 
-        {accessLoading || (canConnect && connections.isLoading) ? (
+        {/* Not "unavailable" until the access check has run: right after sign-in the client may not see the session yet. */}
+        {!accessChecked || (canConnect && connections.isLoading) ? (
           <p className={mcp.status}>Loading…</p>
         ) : !canConnect ? (
           <p className={mcp.status}>MCP connections aren’t available for your account yet.</p>

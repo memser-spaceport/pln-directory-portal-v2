@@ -224,6 +224,32 @@ describe('McpConnectionsPage', () => {
     );
   });
 
+  it('lists the intro use cases, including posting team news and updating the profile', () => {
+    render(<McpConnectionsPage />);
+    expect(screen.getByText('Post updates about your team, like a product launch')).toBeInTheDocument();
+    expect(screen.getByText('Hand off tasks, like updating your profile')).toBeInTheDocument();
+  });
+
+  it('shows write copy for News feed and a Your profile row when the server allows write', () => {
+    withConnections([
+      {
+        ...CODEX,
+        scopes: [
+          { key: 'news', label: 'News feed', level: 'read', maxLevel: 'write', registryMax: 'write', lock: null },
+          { key: 'profile', label: 'Your profile', level: 'read', maxLevel: 'write', registryMax: 'write', lock: null },
+        ],
+      },
+    ]);
+    render(<McpConnectionsPage />);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Edit permissions' })[0]);
+    const drawer = screen.getByTestId('drawer');
+    expect(within(drawer).getByText('With write: post news for your teams.')).toBeInTheDocument();
+    expect(within(drawer).getByText('Read your profile.', { exact: false })).toBeInTheDocument();
+    expect(within(drawer).getByText('With write: edit your profile.')).toBeInTheDocument();
+    const profile = within(drawer).getByRole('radiogroup', { name: 'Access to Your profile' });
+    expect(within(profile).getByRole('radio', { name: 'Read and write' })).toBeEnabled();
+  });
+
   it('keeps the drawer and the draft when the save fails', () => {
     withConnections([CODEX]);
     mockSaveState = { isPending: false, isError: true };

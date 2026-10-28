@@ -246,8 +246,8 @@ export function McpAuthorizePage() {
             <div className={s.consentSection}>
               <span className={s.label}>Read only (default)</span>
               <p className={s.help}>
-                {clientName} can view what you can view in LabOS: members, teams, projects, the forum, news and events.
-                You can give it more access or less at any time in Settings
+                {clientName} can view what you can view in LabOS: members, teams, projects, the forum, news, events and
+                your profile. You can give it more access or less at any time in Settings
                 {SHOW_MCP_CONNECTIONS_PAGE ? ' → MCP connections' : ''}.
               </p>
               {redirectHost ? (

@@ -155,7 +155,7 @@ describe('McpAuthorizePage analytics', () => {
     expect(screen.getByText('Read only (default)')).toBeInTheDocument();
     expect(
       screen.getByText(
-        /Claude Code can view what you can view in LabOS: members, teams, projects, the forum, news and events\./,
+        /Claude Code can view what you can view in LabOS: members, teams, projects, the forum, news, events and your profile\./,
       ),
     ).toBeInTheDocument();
     expect(

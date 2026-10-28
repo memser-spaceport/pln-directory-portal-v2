@@ -1,4 +1,10 @@
-## ADDED Requirements
+# mcp-settings Specification
+
+## Purpose
+
+Settings → MCP connections is where a member sees each AI agent connected to LabOS over MCP, changes what each connection may do per feature, answers an agent's access request, and revokes a connection.
+
+## Requirements
 
 ### Requirement: MCP connections has its own Settings page
 
@@ -21,7 +27,7 @@ When `NEXT_PUBLIC_SHOW_MCP_CONNECTIONS_PAGE` is `true`, Settings SHALL have an "
 
 ### Requirement: The page shows how to connect until something is connected
 
-With no active connections, the page SHALL show the connect guide (Claude app steps first, then the developer commands, each with a copy button) and no permissions. Once at least one connection exists, the guide SHALL be collapsed behind "Add a connection".
+With no active connections, the page SHALL show the connect guide (the same connect steps as the MCP section in Email & Accounts, each command with a copy button) and no permissions. Once at least one connection exists, the guide SHALL be collapsed behind "Add a connection".
 
 #### Scenario: No connections
 

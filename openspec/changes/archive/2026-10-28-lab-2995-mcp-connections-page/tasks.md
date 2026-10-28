@@ -13,7 +13,7 @@
 
 ## 3. Components (port from the LAB-2948 prototype)
 
-- [ ] 3.1 Extract `McpConnectGuide` from `McpSection` (after LAB-2993 merges) and use it in both places
+- [ ] 3.1 Extract `McpConnectGuide` from `McpSection` (after LAB-2993 merges) and use it in both places — follow-up after #3366, no spec change
 - [x] 3.2 `McpConnectionsPage`: loading, error with Retry, no-permission note, guide (expanded with no connections, collapsed with any)
 - [x] 3.3 `McpConnectionCard`: status badge, dates, chips with "+N more", Edit permissions, ⋯ Revoke with inline confirm
 - [x] 3.4 `McpPermissionsDrawer` + `ScopeEditor`: templates, rows with locks, one Save, error kept in the drawer, Cancel
@@ -28,4 +28,4 @@
 
 - [x] 5.1 Jest: menu item gating, guide vs cards, card status and chips, drawer lock, Read and write template, save success/failure, revoke failure, request open/expired
 - [ ] 5.2 Verify against the BE contract on the `lab-2995` feature env (flag on)
-- [ ] 5.3 Archive this change in the PR; reconcile with LAB-2993's `mcp-settings` spec if it has landed
+- [x] 5.3 Archive this change in the PR; reconcile with LAB-2993's `mcp-settings` spec if it has landed

@@ -6,11 +6,12 @@ import { renderHook, waitFor } from '@testing-library/react';
 jest.unmock('@tanstack/react-query');
 
 import { useTeamNewsPrompts } from '@/services/team-news/hooks/useTeamNewsPrompts';
-import { getTeamNewsGroupedByFocusArea } from '@/services/team-news/team-news.service';
+import { NEWS_PROMPT_CANDIDATE_LIMIT } from '@/services/team-news/newsPrompts';
+import { getTeamNewsNewest } from '@/services/team-news/team-news.service';
 
-jest.mock('@/services/team-news/team-news.service', () => ({ getTeamNewsGroupedByFocusArea: jest.fn() }));
+jest.mock('@/services/team-news/team-news.service', () => ({ getTeamNewsNewest: jest.fn() }));
 
-const getGroupedMock = getTeamNewsGroupedByFocusArea as jest.MockedFunction<typeof getTeamNewsGroupedByFocusArea>;
+const getNewestMock = getTeamNewsNewest as jest.MockedFunction<typeof getTeamNewsNewest>;
 
 describe('useTeamNewsPrompts', () => {
   let client: QueryClient;
@@ -25,28 +26,21 @@ describe('useTeamNewsPrompts', () => {
   }
 
   it('turns the news feed into prompts', async () => {
-    getGroupedMock.mockResolvedValue({
-      windowDays: 14,
-      generatedAt: '2026-10-28T00:00:00.000Z',
-      groups: [
-        {
-          focusArea: {} as any,
-          total: 1,
-          items: [{ uid: 'n1', teamName: 'Saturn Grid', title: 'Saturn Grid ships v2', editorialRank: 1 } as any],
-        },
-      ],
-    });
+    getNewestMock.mockResolvedValue([
+      { uid: 'n1', teamName: 'Saturn Grid', title: 'Saturn Grid ships v2', editorialRank: 1 } as any,
+    ]);
 
     const { result } = renderHook(() => useTeamNewsPrompts(), { wrapper });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(getNewestMock).toHaveBeenCalledWith(NEWS_PROMPT_CANDIDATE_LIMIT);
     expect(result.current.data).toEqual([
       { uid: 'n1', question: 'What is the news from Saturn Grid: "Saturn Grid ships v2"?' },
     ]);
   });
 
   it('gives no prompts when the news request fails', async () => {
-    getGroupedMock.mockResolvedValue(null);
+    getNewestMock.mockResolvedValue(null);
 
     const { result } = renderHook(() => useTeamNewsPrompts(), { wrapper });
 

@@ -5,7 +5,7 @@ The AI Search new-chat page, where a member starts a chat, and the prompts it su
 ## ADDED Requirements
 
 ### Requirement: Try asking prompts come from the top news stories
-The AI Search new-chat page SHALL show a "Try asking" block with up to 4 prompts built from the news feed. The Top Stories picks SHALL come first, in editorial order, then the newest stories. Each story SHALL appear once, as a question that names its team and its title. The prompts SHALL follow the news feed when the top news changes.
+The AI Search new-chat page SHALL show a "Try asking" block with up to 4 prompts built from the 20 newest stories in the news feed. The Top Stories picks among them SHALL come first, in editorial order, then the newest stories; a Top Stories pick older than those 20 is not offered. Each story SHALL appear once, as a question that names its team and its title. The prompts SHALL follow the news feed when the top news changes.
 
 #### Scenario: Top stories become prompts
 - **GIVEN** the news feed has Top Stories picks and other stories

@@ -33,7 +33,7 @@ import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
 import { followedTeamUidsQueryKey } from '@/services/follow/hooks/useFollowedTeamUids';
 import { toast } from '@/components/core/ToastContainer';
 import { triggerLoader } from '@/utils/common.utils';
-import { SearchIcon } from '@/components/icons';
+import { CloseIcon, SearchIcon } from '@/components/icons';
 
 import { groupNewsTags } from './newsTagThemes';
 import s from './NewsPreferences.module.scss';
@@ -70,6 +70,7 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
   // list lacks them (no recent news), so removing one can be undone in place.
   const [pinned] = useState<string[]>(() => initialTags);
   const [query, setQuery] = useState('');
+  const searchRef = useRef<HTMLInputElement>(null);
   const [unfollowed, setUnfollowed] = useState<Set<string>>(() => new Set());
   const [pendingTeam, setPendingTeam] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
@@ -227,8 +228,9 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
           </div>
           {allTags.length > 0 && (
             <>
-              <label className={s.search}>
+              <div className={s.search}>
                 <input
+                  ref={searchRef}
                   type="search"
                   value={query}
                   placeholder="Search tags"
@@ -244,8 +246,23 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
                     }
                   }}
                 />
-                <SearchIcon className={s.searchIcon} aria-hidden="true" />
-              </label>
+                {/* As in the app's other search fields: the icon gives way to a clear button once there is text. */}
+                {query ? (
+                  <button
+                    type="button"
+                    className={s.searchClear}
+                    aria-label="Clear search"
+                    onClick={() => {
+                      setQuery('');
+                      searchRef.current?.focus();
+                    }}
+                  >
+                    <CloseIcon />
+                  </button>
+                ) : (
+                  <SearchIcon className={s.searchIcon} aria-hidden="true" />
+                )}
+              </div>
               <div className={s.themes} role="group" aria-label="Topics">
                 {themes.map((theme) => (
                   <div key={theme.title} className={s.theme} role="group" aria-label={theme.title}>
@@ -255,7 +272,7 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
                     <div className={s.chips}>{theme.slugs.map(renderTagChip)}</div>
                   </div>
                 ))}
-                {themes.length === 0 && <p className={s.emptyLine}>No tags match “{query.trim()}”.</p>}
+                {themes.length === 0 && <p className={clsx(s.emptyLine, s.noMatch)}>No tags match “{query.trim()}”.</p>}
               </div>
             </>
           )}

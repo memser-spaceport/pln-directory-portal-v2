@@ -97,6 +97,37 @@
   }
 }
 
+.searchClear {
+  position: absolute;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: #64748b;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--background-neutral-subtle, rgba(27, 56, 96, 0.06));
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-primary, #1b4dff);
+    outline-offset: 0;
+  }
+}
+
+// A long query has no spaces to break at (Roma, LAB-3023).
+.noMatch {
+  overflow-wrap: anywhere;
+}
+
 .searchIcon {
   position: absolute;
   right: 12px;

@@ -2854,6 +2854,11 @@ export const MCP_ANALYTICS_EVENTS = {
   SCOPE_LEVELS_SAVE_FAILED: 'mcp-scope-levels-save-failed',
   ACCESS_REQUEST_OPENED: 'mcp-access-request-opened',
   CONTACT_ACK_CHECKED: 'mcp-contact-ack-checked',
+  // Discovery hints: launch bar + contextual hints (LAB-3033)
+  HINT_SHOWN: 'mcp-hint-shown',
+  HINT_DISMISSED: 'mcp-hint-dismissed',
+  HINT_CONNECT_CLICKED: 'mcp-hint-connect-clicked',
+  HINT_PROMPT_COPIED: 'mcp-hint-prompt-copied',
 };
 
 export const EDITOR_ANALYTICS = {

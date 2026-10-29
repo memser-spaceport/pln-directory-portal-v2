@@ -113,3 +113,17 @@ The LabOS consent page for an MCP client SHALL offer no choice of write access: 
 
 - **WHEN** the member clicks Cancel
 - **THEN** the client is sent back with `error=access_denied`, as before
+
+### Requirement: A launch bar announces MCP to members who can connect
+
+While the MCP connections page is on, a member with `mcp.connect` (directory admins and PL infra) and no MCP connection SHALL see a bar at the top of every page, in `SiteHeader` above the navbar: a "New" pill (hidden on phones), "Search teams and members, post news or reply in the forum right from your AI session. LabOS now works with AI agents.", a "Set up now" button that opens `/settings/mcp`, and a close button. The bar SHALL NOT show to members without `mcp.connect`, before the connections have loaded, once any connection exists, once the member has opened MCP connections, or once the member has closed it. Closing SHALL be remembered per member across devices. The bar SHALL emit PostHog `mcp-hint-shown` (once per mount), `mcp-hint-dismissed` and `mcp-hint-connect-clicked` with `context: 'launch_bar'`.
+
+#### Scenario: Member without MCP access
+
+- **WHEN** a member without `mcp.connect` opens any page
+- **THEN** no launch bar shows and the member's MCP connections are not requested
+
+#### Scenario: Set up now
+
+- **WHEN** an eligible member clicks "Set up now"
+- **THEN** `/settings/mcp` opens, and the bar does not come back after that page has been opened

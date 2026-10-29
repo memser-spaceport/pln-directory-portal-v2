@@ -47,7 +47,7 @@ export function ClientLogo({ client, size = 16 }: { client: ClientKey; size?: nu
 export function clientKeyFromName(name: string): ClientKey {
   const n = name.toLowerCase();
   if (n === 'claude code') return 'claude-code';
-  if (n === 'claude.ai') return 'claude-ai';
+  if (n === 'claude.ai' || n === 'claude') return 'claude-ai';
   if (n === 'codex') return 'codex';
   return 'other';
 }

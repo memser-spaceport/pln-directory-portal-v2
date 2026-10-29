@@ -109,6 +109,7 @@ describe('AI Search: MCP hint (LAB-3033)', () => {
     const hint = screen.getByTestId('mcp-hint');
     expect(answer.compareDocumentPosition(hint) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(hint.compareDocumentPosition(field()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(hint.closest('form')).toBe(field().closest('form'));
+    // In the scrolling list, not the fixed composer, so it never covers the end of the answer.
+    expect(hint.closest('form')).toBeNull();
   });
 });

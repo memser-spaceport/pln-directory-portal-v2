@@ -517,6 +517,8 @@ export const Chat = (props: Props) => {
               showRating={isLoggedIn}
               canRate={isOwnThread || from !== 'detail'}
             />
+            {/* In the scrolling list, under the answer: inside the fixed composer it would cover the answer's end. */}
+            <McpHint context="search" query={messages[messages.length - 1]?.question ?? ''} />
           </div>
 
           <div data-state={state} className={s.formWrapper}>
@@ -529,7 +531,6 @@ export const Chat = (props: Props) => {
                   from="husky-chat"
                 />
               )}
-              <McpHint context="search" query={messages[messages.length - 1]?.question ?? ''} />
               <ChatComposer
                 ref={textareaRef}
                 placeholder="Go ahead, ask anything!"

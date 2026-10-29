@@ -127,3 +127,22 @@ While the MCP connections page is on, a member with `mcp.connect` (directory adm
 
 - **WHEN** an eligible member clicks "Set up now"
 - **THEN** `/settings/mcp` opens, and the bar does not come back after that page has been opened
+
+### Requirement: Contextual MCP hints suggest the agent where the member just did its work
+
+To the same audience as the launch bar (the MCP connections page on, `mcp.connect`, connections loaded), LabOS SHALL show a hint card right after the member did something an agent could do for them: on AI Search above the follow-up field from the second question sent in the browser session, quoting the latest question; on Forum → Create Post (not the edit form, not the reply box) between the Title field and the post editor once the title is not empty; and on AI Apps → Feedback, Received tab, under the tabs row when 3 or more received feedback items have status NEW (counted before filters). With no connection the card SHALL show the Claude and Codex marks, a title and line naming what connecting gives ("Ask this from Claude or Codex next time", "Let your agent draft this post", "Triage these <N> new comments from your agent"), and a "Connect an agent" link that opens `/settings/mcp`. With a connection it SHALL show only that client's mark, "Ask <client> instead", and the same request as a prompt with a copy button. A ✕ SHALL dismiss the hint for its context only, remembered per member across devices (`mcp_hint_search`, `mcp_hint_forum`, `mcp_hint_comments`). Each hint SHALL emit PostHog `mcp-hint-shown` (once per mount, with `connected`), `mcp-hint-dismissed`, `mcp-hint-connect-clicked` and `mcp-hint-prompt-copied` (with `clientName`), with `context` `search`, `forum` or `comments`.
+
+#### Scenario: Second search with no agent
+
+- **WHEN** an eligible member with no MCP connection sends a second AI Search question, "Open roles at Prime Intellect", in the same browser session
+- **THEN** above the follow-up field a hint reads "Connect LabOS to your agent and search “Open roles at Prime Intellect” where you already work." with "Connect an agent"
+
+#### Scenario: Agent connected on a new post
+
+- **WHEN** a member with Claude Code connected types a title on Forum → Create Post
+- **THEN** between the title and the editor a hint reads "Ask Claude Code instead" with the prompt `Draft a LabOS forum post titled “<title>”` and a copy button
+
+#### Scenario: Dismissed in one place only
+
+- **WHEN** a member dismisses the AI Search hint
+- **THEN** it does not come back on AI Search, and the Forum and Feedback hints still show when their triggers hold

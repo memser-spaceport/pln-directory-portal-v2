@@ -19,6 +19,8 @@ import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { useUnifiedSearchAnalytics, type AiQuerySubmitType } from '@/analytics/unified-search.analytics';
 
 import HuskyLimitStrip from '@/components/core/husky/husky-limit-strip';
+import { McpHint } from '@/components/core/mcp-hints/McpHint';
+import { countAiSearch } from '@/components/core/mcp-hints/aiSearchSessionCount';
 
 import { OPEN_VISIT_CHAT_EVENT, PENDING_FOLLOW_UP_KEY_PREFIX } from '../constants/visitChats';
 
@@ -254,6 +256,7 @@ export const Chat = (props: Props) => {
         setOpenThreadId(threadId);
         const chatUid = generateUUID();
         setQuestion(question);
+        countAiSearch();
         addMessage(question, chatUid);
 
         const submitParams = {
@@ -526,6 +529,7 @@ export const Chat = (props: Props) => {
                   from="husky-chat"
                 />
               )}
+              <McpHint context="search" query={messages[messages.length - 1]?.question ?? ''} />
               <ChatComposer
                 ref={textareaRef}
                 placeholder="Go ahead, ask anything!"

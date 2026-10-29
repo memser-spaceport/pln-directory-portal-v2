@@ -3,3 +3,6 @@ export const SHOW_MCP_CONNECTIONS_PAGE: boolean = process.env.NEXT_PUBLIC_SHOW_M
 
 /** One-time flag: the "New" badge on Settings → MCP connections stays until the member opens the page. */
 export const MCP_CONNECTIONS_NEW_FLAG = 'mcp_connections_new';
+
+/** One-time flag: the site-wide MCP launch bar stays until the member closes it (LAB-3033). */
+export const MCP_LAUNCH_BAR_FLAG = 'mcp_launch_bar';

@@ -12,6 +12,9 @@ export type McpConnectErrorKind = 'approve_failed' | 'redirect_invalid' | 'clien
 export type McpDrawerSource = 'card' | 'more' | 'request';
 export type McpAccessRequestOpenedStatus = 'open' | 'resolved' | 'expired' | 'unavailable';
 
+/** Where a discovery hint sits (LAB-3033). */
+export type McpHintContext = 'launch_bar' | 'search' | 'forum' | 'comments';
+
 export type McpWarmPathParams = {
   warmPathUid: string;
   investorProfileUid: string;
@@ -75,6 +78,13 @@ export function useMcpAnalytics() {
     onAccessRequestOpened: (params: { status: McpAccessRequestOpenedStatus; scope?: string }) =>
       capture(MCP_ANALYTICS_EVENTS.ACCESS_REQUEST_OPENED, params),
     onContactAckChecked: (params: { clientId: string }) => capture(MCP_ANALYTICS_EVENTS.CONTACT_ACK_CHECKED, params),
+    onHintShown: (params: { context: McpHintContext; connected: boolean }) =>
+      capture(MCP_ANALYTICS_EVENTS.HINT_SHOWN, params),
+    onHintDismissed: (params: { context: McpHintContext }) => capture(MCP_ANALYTICS_EVENTS.HINT_DISMISSED, params),
+    onHintConnectClicked: (params: { context: McpHintContext }) =>
+      capture(MCP_ANALYTICS_EVENTS.HINT_CONNECT_CLICKED, params),
+    onHintPromptCopied: (params: { context: McpHintContext; clientName: string }) =>
+      capture(MCP_ANALYTICS_EVENTS.HINT_PROMPT_COPIED, params),
     onWarmPathFeedbackOpened: (params: McpWarmPathEditParams) =>
       capture(MCP_ANALYTICS_EVENTS.WARM_PATH_FEEDBACK_OPENED, params),
     onWarmPathFeedbackSubmitted: (params: McpWarmPathEditParams) =>

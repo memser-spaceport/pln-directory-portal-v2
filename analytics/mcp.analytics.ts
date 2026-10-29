@@ -5,7 +5,7 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { MCP_ANALYTICS_EVENTS } from '@/utils/constants';
 
 export type McpConnectView = 'invalid' | 'signedOut' | 'pending' | 'denied' | 'error' | 'closeTab';
-export type McpSnippetType = 'server' | 'claude' | 'codex';
+export type McpSnippetType = 'server' | 'claude' | 'codex' | 'claude-app';
 export type McpConnectDenyReason = 'user_denied' | 'missing_permission';
 export type McpConnectErrorKind = 'approve_failed' | 'redirect_invalid' | 'client_unknown';
 

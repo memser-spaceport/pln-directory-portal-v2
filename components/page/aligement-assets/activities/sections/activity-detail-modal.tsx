@@ -597,6 +597,7 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
           font-size: 14px;
           line-height: 22px;
           color: #475569;
+          white-space: pre-line;
         }
 
         .activity-modal__submission-note-title {

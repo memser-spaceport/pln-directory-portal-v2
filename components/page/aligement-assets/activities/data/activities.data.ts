@@ -347,6 +347,32 @@ export const activitiesData: ActivitiesData = {
 
     // ─── Recurring ────────────────────────────────────────────────────────────
     {
+      id: 'share-project-update',
+      category: 'Projects',
+      activity: 'Share a Project Update with the Network',
+      networkValue: `Share your project's impact on the PL Network and opportunities for collaboration in a LabOS Forum post`,
+      points: '500',
+      frequency: 'Recurring',
+      verificationType: 'Manual Review',
+      cta: 'confirm',
+      popupContent: {
+        title: 'Share a Project Update with the Network',
+        overview: `Post an update about your project in the LabOS Forum. Share how it's contributing to the PL Network, opportunities for others to get involved, and any areas where collaboration or support would be valuable (no fundraising requests).`,
+        networkBenefits: 'Shows members what their peers are building and where they can help, so updates lead to intros, hires and collaboration.',
+        rules: [
+          `Write an original LabOS Forum post of at least 100 words. Replies don't count.`,
+          'Say how your project helps the network, and include at least one specific opportunity to connect or non-capital ask, such as hiring, partners, intros, feedback or expertise. Asking for candidate referrals counts if you link to the job posting.',
+          `Keep it specific and actionable. Reposted press releases and pure promotion don't qualify.`,
+          `Don't include fundraising, investment or token-sale asks.`,
+          `Share only information that's already public. Nothing confidential or non-public belongs in the post.`,
+          'One award per person per snapshot month. The PLAA Working Group reviews each post before points are awarded.'
+        ],
+        links: [
+          { text: 'LabOS Forum', url: '/forum?cid=0' }
+        ]
+      }
+    },
+    {
       id: 'host-x-space',
       category: 'Brand',
       activity: 'Host or Co-Host an X Space',

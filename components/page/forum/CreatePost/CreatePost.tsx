@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import s from './CreatePost.module.scss';
-import { FormProvider, useForm } from 'react-hook-form';
+import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import { FormSelect } from '@/components/form/FormSelect';
 import { useForumCategories } from '@/services/forum/hooks/useForumCategories';
 import { FormField } from '@/components/form/FormField';
@@ -28,6 +28,7 @@ import { clsx } from 'clsx';
 import { PostFormEditorLabel } from './components/PostFormEditorLabel';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { useCurrentUserStore } from '@/services/auth/store';
+import { McpHint } from '@/components/core/mcp-hints/McpHint';
 
 export type CreatePostForm = {
   user: Record<string, string> | null;
@@ -109,6 +110,7 @@ export const CreatePost = (props: Props) => {
     setValue,
     formState: { isSubmitting, isDirty, isValid, dirtyFields },
   } = methods;
+  const title = useWatch({ control: methods.control, name: 'title' });
 
   // Resolve prefill topic (e.g. "General") to its option once forum categories load.
   // Runs only once per page entry; user edits afterward win.
@@ -294,6 +296,7 @@ export const CreatePost = (props: Props) => {
                 disabled={isEdit}
               />
               <FormField name="title" placeholder="Enter the title" label="Title" max={255} />
+              {!isEdit && <McpHint context="forum" title={title ?? ''} />}
               <FormEditor
                 name="content"
                 placeholder="Write your post here. Use @ to mention someone."

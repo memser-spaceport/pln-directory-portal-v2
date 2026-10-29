@@ -6,3 +6,8 @@ export const MCP_CONNECTIONS_NEW_FLAG = 'mcp_connections_new';
 
 /** One-time flag: the site-wide MCP launch bar stays until the member closes it (LAB-3033). */
 export const MCP_LAUNCH_BAR_FLAG = 'mcp_launch_bar';
+
+/** One-time flags: each contextual MCP hint stays until the member dismisses it, per context (LAB-3033). */
+export const MCP_HINT_SEARCH_FLAG = 'mcp_hint_search';
+export const MCP_HINT_FORUM_FLAG = 'mcp_hint_forum';
+export const MCP_HINT_COMMENTS_FLAG = 'mcp_hint_comments';

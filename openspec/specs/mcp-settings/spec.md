@@ -50,12 +50,17 @@ Each active connection SHALL render as one card: client name, a status badge fro
 
 ### Requirement: The permissions drawer edits one connection with one Save
 
-"Edit permissions" or "+N more" SHALL open a drawer for that connection: the template row (Read only, Read and write, Custom), then one row per scope from the server, in the server's order, with No access / Read / Read and write. Options above the scope's `maxLevel` SHALL be visible and disabled. A scope with `lock: 'admin'` SHALL say "Turned off by LabOS admins". "Read and write" SHALL set every row to its `maxLevel`. Changes SHALL be a draft until Save. Save SHALL be disabled until something changes, SHALL send all levels in one request, and SHALL close the drawer and update the card on success. On failure the drawer SHALL stay open with the draft and show an error. Cancel SHALL discard the draft.
+"Edit permissions" or "+N more" SHALL open a drawer for that connection: the template row (Read only, Read and write, Custom), then one row per scope from the server, in the server's order, with No access / Read / Read and write. Options above the scope's `maxLevel` SHALL be visible and disabled. A scope with `lock: 'admin'` SHALL say "Turned off by LabOS admins". "Read and write" SHALL set every row to its `maxLevel`. Changes SHALL be a draft until Save. Save SHALL be disabled until something changes, SHALL send all levels in one request, and SHALL close the drawer and update the card on success. On failure the drawer SHALL stay open with the draft and show an error. Cancel SHALL discard the draft. A row whose scope offers write SHALL add its write text ("With write: …"); Search has no write level and SHALL offer only No access / Read.
 
 #### Scenario: Admin-locked write
 
 - **WHEN** a scope has `maxLevel: 'read'` and `lock: 'admin'`
 - **THEN** its "Read and write" option is disabled and the row says "Turned off by LabOS admins"
+
+#### Scenario: Write text for directory and events
+
+- **WHEN** the server allows write on Events and on Members, teams and projects
+- **THEN** their rows say "With write: RSVP for you." and "With write: edit the teams you lead and your teams' projects."
 
 #### Scenario: Save changes only this connection
 

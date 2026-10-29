@@ -37,6 +37,7 @@ describe('ForYouHint', () => {
 
     const link = screen.getByRole('link', { name: 'Update' });
     expect(link).toHaveAttribute('href', '/settings/news-preferences?from=feed');
+    expect(link.closest('p')).toHaveTextContent(/teams you follow\. Update to make it more relevant\.$/);
     fireEvent.click(link);
 
     expect(onTeamNewsForYouTuneClicked).toHaveBeenCalledWith('user-1');

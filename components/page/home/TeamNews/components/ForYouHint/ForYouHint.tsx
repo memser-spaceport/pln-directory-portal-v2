@@ -9,8 +9,8 @@ interface ForYouHintProps {
 }
 
 /**
- * For You's one-line explanation. "Update" ("Tune For You" until LAB-3010) opens News
- * preferences, which holds the categories, the profile signals and the teams
+ * For You's one-line explanation. "Update to make it more relevant." ("Tune For You" until LAB-3010): the
+ * "Update" link opens News preferences, which holds the categories, the profile signals and the teams
  * followed. While that page is flagged off, the hint keeps its earlier link to
  * the member's profile.
  */
@@ -29,13 +29,16 @@ export function ForYouHint({ memberUid }: ForYouHintProps) {
     <p className={s.root}>
       For you: Curated based on your profile, primary team attributes, and the teams you follow.{' '}
       {SHOW_NEWS_PREFERENCES ? (
-        <Link
-          href="/settings/news-preferences?from=feed"
-          className={s.link}
-          onClick={() => onTeamNewsForYouTuneClicked(memberUid)}
-        >
-          Update
-        </Link>
+        <>
+          <Link
+            href="/settings/news-preferences?from=feed"
+            className={s.link}
+            onClick={() => onTeamNewsForYouTuneClicked(memberUid)}
+          >
+            Update
+          </Link>{' '}
+          to make it more relevant.
+        </>
       ) : (
         <>
           <Link

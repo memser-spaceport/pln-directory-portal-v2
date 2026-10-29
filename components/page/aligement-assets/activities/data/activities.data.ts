@@ -457,8 +457,7 @@ export const activitiesData: ActivitiesData = {
         ],
         links: [
           { text: '/pl-infra/ai-apps', url: '/pl-infra/ai-apps' },
-          { text: 'LabOS Forum', url: '/forum?cid=0' },
-          { text: 'Update an AI App', url: '/alignment-asset/activities#update-ai-app' }
+          { text: 'LabOS Forum', url: '/forum?cid=0' }
         ]
       }
     },

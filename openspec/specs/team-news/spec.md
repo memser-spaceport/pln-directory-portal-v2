@@ -39,7 +39,7 @@ The Teams you follow section SHALL list the teams the member follows, each with 
 The page SHALL be reachable from three places:
 
 - the digest email's News preferences link (`from=digest`);
-- an "Update" link in Home's For You hint (`from=feed`);
+- an "Update" link in Home's For You hint, which reads "Update to make it more relevant." (`from=feed`);
 - the settings menu (`from=settings`).
 
 Arriving with `from=digest` or `from=feed` SHALL outline one section until the member's first change: Teams you follow when they have topics but follow no teams, otherwise Topics. Email Preferences SHALL link to the page under its Network news setting.

@@ -230,6 +230,37 @@ describe('McpConnectionsPage', () => {
     expect(screen.getByText('Hand off tasks, like updating your profile')).toBeInTheDocument();
   });
 
+  it('shows write copy for Events and Members, teams and projects, and none for read-only Search', () => {
+    withConnections([
+      {
+        ...CODEX,
+        scopes: [
+          { key: 'search', label: 'Search', level: 'read', maxLevel: 'read', registryMax: 'read', lock: null },
+          { key: 'events', label: 'Events', level: 'read', maxLevel: 'write', registryMax: 'write', lock: null },
+          {
+            key: 'directory',
+            label: 'Members, teams and projects',
+            level: 'read',
+            maxLevel: 'write',
+            registryMax: 'write',
+            lock: null,
+          },
+        ],
+      },
+    ]);
+    render(<McpConnectionsPage />);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Edit permissions' })[0]);
+    const drawer = screen.getByTestId('drawer');
+    expect(within(drawer).getByText('With write: RSVP for you.')).toBeInTheDocument();
+    expect(
+      within(drawer).getByText("With write: edit the teams you lead and your teams' projects."),
+    ).toBeInTheDocument();
+    const directory = within(drawer).getByRole('radiogroup', { name: 'Access to Members, teams and projects' });
+    expect(within(directory).getByRole('radio', { name: 'Read and write' })).toBeEnabled();
+    const search = within(drawer).getByRole('radiogroup', { name: 'Access to Search' });
+    expect(within(search).queryByRole('radio', { name: 'Read and write' })).not.toBeInTheDocument();
+  });
+
   it('shows write copy for News feed and a Your profile row when the server allows write', () => {
     withConnections([
       {

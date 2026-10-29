@@ -9,7 +9,10 @@ export const SCOPE_COPY: Partial<Record<McpScopeKey, { read: string; write?: str
   search: { read: 'Search members, teams, projects and events.' },
   forum: { read: 'Read threads and replies.', write: 'start threads and reply.' },
   news: { read: 'Read Home updates and your For You feed.', write: 'post news for your teams.' },
-  directory: { read: 'Open profiles, team pages and projects.' },
+  directory: {
+    read: 'Open profiles, team pages and projects.',
+    write: "edit the teams you lead and your teams' projects.",
+  },
   events: { read: 'Browse events and who is going.', write: 'RSVP for you.' },
   investors: {
     read: 'Look up investors and your warm-intro paths.',

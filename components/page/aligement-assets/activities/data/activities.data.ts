@@ -436,49 +436,56 @@ export const activitiesData: ActivitiesData = {
       }
     },
     {
-      id: 'share-ai-resource',
+      id: 'build-ai-app-for-the-network',
       category: 'Network Tooling',
-      activity: 'Share an AI Resource or Tool You Built',
-      networkValue: `Share a cool AI resource or tool you built on the LabOS forum that's useful to other PL Network members`,
-      points: '250',
+      activity: 'Build an AI App for the Network',
+      networkValue: `Build an AI app that's useful to the PL network`,
+      points: '1000',
       frequency: 'Recurring',
-      verificationType: 'Submission',
+      verificationType: 'Manual Review',
       cta: 'confirm',
       popupContent: {
-        title: 'Share an AI Resource or Tool You Built',
-        overview: 'Share a reusable AI resource that helps other network members learn from, adapt, or adopt a useful AI-enabled workflow. Eligible resources may include AI tools, automations, prompt libraries, .md guides, playbooks, templates, scripts, or examples of how AI is being used to improve team operations, product work, research, community building, or other network-relevant work. Strong posts should explain the problem the resource solves, highlight relevant use cases, and invite feedback, questions, improvements, adaptations, or examples from other members who may want to apply it in their own work.',
-        networkBenefits: 'Helps teams discover reusable AI workflows, tools, templates, and examples from peers.',
+        title: 'Build an AI App for the Network',
+        overview: 'Build a functional AI application that gives practical value to people across the PL network, then share it through LabOS AI Apps (Infra-only) or the LabOS Forum.',
+        networkBenefits: 'Adds useful AI tooling across the network, encourages adoption of LabOS infrastructure, and helps members find tools built by their peers.',
         rules: [
-          'You must make a forum post of at least 100 words about the tool or resource on the LabOS forum',
-          'The resource must be hosted on a public Github repository',
-          'The GitHub resource must include clear documentation or usage instructions'
+          'The app must work and be useful to the broader PL network, not just your own workflow.',
+          'Submit through one path:\n**PL Infra members:** deploy through LabOS via /pl-infra/ai-apps.\n**Anyone:** share it in a LabOS Forum post with an impact statement: who benefits, what problem it solves, and why it matters beyond your own work.',
+          `The app must be free for a typical network member's monthly use. You can charge heavy users to cover your own token costs.`,
+          'The PLAA Working Group reviews forum submissions for network impact before points are awarded.',
+          `GitHub is optional here, but you'll need it to collect points for later feature updates through Update an AI App.`
+        ],
+        links: [
+          { text: '/pl-infra/ai-apps', url: '/pl-infra/ai-apps' },
+          { text: 'LabOS Forum', url: '/forum?cid=0' },
+          { text: 'Update an AI App', url: '/alignment-asset/activities#update-ai-app' }
         ]
       }
     },
     {
-      id: 'build-ai-app',
+      id: 'update-ai-app',
       category: 'Network Tooling',
-      activity: 'Build an AI App',
-      networkValue: 'Deploy an app on LabOS',
-      points: '1000',
+      activity: 'Update an AI App',
+      networkValue: 'Ship a significant new feature to an AI app you built',
+      points: '500',
       frequency: 'Recurring',
-      isSunset: true,
-      audience: 'pl-infra-members',
       verificationType: 'Manual Review',
       cta: 'confirm',
       popupContent: {
-        title: 'Build an AI App',
-        overview: 'Create and deploy a functional AI application using LabOS infrastructure that provides practical value to PL Infra users.',
-        networkBenefits: 'Expands useful network tooling while driving adoption and feedback for LabOS infrastructure.',
+        title: 'Update an AI App',
+        overview: 'Ship a significant new feature to an AI app you built that introduces new capabilities for end users.',
+        networkBenefits: 'Keeps useful network AI tools improving after launch, so apps get better for the people who rely on them.',
         rules: [
-          'Available to PL Infra members only. Other participants may submit qualifying tools through the Share an AI Resource or Tool You Built activity.',
-          'Create and deploy a functional AI application through LabOS via /pl-infra/ai-apps.',
-          'The application must be useful to the average PL Infra user.',
-          'Include basic documentation and identify any collaborators.',
-          'Applications are reviewed by the PLAA Working Group before points are awarded.'
+          `Connect GitHub to your LabOS profile and install the read-only PLAA Repo Monitor on your app's repository.`,
+          `The update must add a significant, user-facing feature that lets people do something new or meaningfully expands what they can already do. Bug fixes, typos, docs, content additions, refactors, and minor tweaks don't count.`,
+          `The update must be merged into the "main" branch on GitHub. Open pull requests and changes that only appear in a deployed app don't count.`,
+          'One award per app per snapshot month, based on the month the update is merged.',
+          'The PLAA Working Group reviews each update before points are awarded.',
+          `You don't need to have completed Build an AI App for the Network first.`
         ],
         links: [
-          { text: '/pl-infra/ai-apps', url: '/pl-infra/ai-apps' }
+          { text: 'PLAA Repo Monitor', url: 'https://github.com/apps/plaa-repo-monitor' },
+          { text: 'Build an AI App for the Network', url: '/alignment-asset/activities#build-ai-app-for-the-network' }
         ]
       }
     },

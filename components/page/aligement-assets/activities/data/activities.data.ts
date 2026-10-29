@@ -481,7 +481,7 @@ export const activitiesData: ActivitiesData = {
           `The update must be merged into the "main" branch on GitHub. Open pull requests and changes that only appear in a deployed app don't count.`,
           'One award per app per snapshot month, based on the month the update is merged.',
           'The PLAA Working Group reviews each update before points are awarded.',
-          `You don't need to have completed Build an AI App for the Network first.`
+          'If you are launching a new app, complete Build an AI App for the Network first.'
         ],
         links: [
           { text: 'PLAA Repo Monitor', url: 'https://github.com/apps/plaa-repo-monitor' },

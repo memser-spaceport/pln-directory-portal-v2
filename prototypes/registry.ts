@@ -552,6 +552,22 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/explore-pl-network/ExplorePlNetworkSectionsPrototype'),
   },
   {
+    key: 'lab-2953-design-homepage-refactor-open',
+    title: 'Home refactor: signed-out and signed-in views',
+    description:
+      "Round 2 of the Home refactor, from Polina's updates of 2026-10-28. A switch shows two views of one Home. Signed out: the open AI Search field with orientation prompts, what the network works on (key facts and the four focus areas from the explore page), the logo islands, and open roles. Signed in: a greeting, personalized prompts marked as rough, then forum posts, deals and selected news, with open roles in the rail; upcoming events show only when the review switch turns them on. The field gives a short answer under it with Continue in AI Search. A LabOS agent launcher (concept) can search, book office hours with a confirm, and draft a post. Mock data only. LAB-2953.",
+    category: 'Newsfeed',
+    load: () => import('./entries/lab-2953-design-homepage-refactor-open/DesignHomepageRefactorOpenPrototype'),
+  },
+  {
+    key: 'lab-2953-home-v2',
+    title: 'Home v2: onboarding story and member priorities',
+    description:
+      "Version 2 of the Home refactor, from Polina's home-v2 brief of 2026-10-29. A review switch (?state=) shows four states. Signed out: the explore page's intro with Sign up and Sign in, focus areas that link into the directory, the logo islands, open roles, the logo wall and a short news preview. Signed in: Quick Actions with AI Apps and Job Board first, forum threads, the latest deals (only with deals access), five picked news stories and open roles; upcoming events wait behind a flag. Email not found: the sign-in error modal with Sign up instead of a dead end. Mock data only. LAB-2953.",
+    category: 'Newsfeed',
+    load: () => import('./entries/lab-2953-home-v2/HomeV2Prototype'),
+  },
+  {
     key: 'lab-3054-design-the-connect-step-tabs-o',
     title: 'MCP connect steps as tabs',
     description:

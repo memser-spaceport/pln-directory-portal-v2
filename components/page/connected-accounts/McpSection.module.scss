@@ -45,12 +45,54 @@
   letter-spacing: -0.2px;
 }
 
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.blockTitle {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 22px;
+}
+
+.steps {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 22px;
+
+  li > .row {
+    margin-top: 4px;
+  }
+}
+
+.note {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 22px;
+}
+
 .row {
   display: flex;
   width: 100%;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
+}
+
+.rowText {
+  flex: 1;
+  min-width: 0;
 }
 
 .label {
@@ -62,6 +104,8 @@
 
 .code {
   display: block;
+  flex: 1;
+  min-width: 0;
   font-size: 13px;
   line-height: 20px;
   color: var(--foreground-neutral-primary, #0a0c11);

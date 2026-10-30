@@ -27,12 +27,17 @@ When `NEXT_PUBLIC_SHOW_MCP_CONNECTIONS_PAGE` is `true`, Settings SHALL have an "
 
 ### Requirement: The page shows how to connect until something is connected
 
-With no active connections, the page SHALL show the connect block from the LAB-2948 prototype and no permissions: Claude app steps first (with "Open Claude connectors" and the server URL to copy), then "For developers" with the server URL and setup steps per client (Claude Code, Codex, Others), each command with a copy button. Once at least one connection exists, the block SHALL be collapsed behind "Add another connection" and SHALL have a close button when opened.
+With no active connections, the page SHALL show the connect block (design LAB-3054) and no permissions: one tab bar with a tab per client in this order, Claude app (selected first), Claude Code, Codex, Others, and only the selected client's steps. The Claude app tab SHALL have "Open Claude connectors", the server URL to copy and the workspace-admin note; Claude Code and Codex SHALL show their terminal commands; Others SHALL show the server URL to copy and generic steps. Every copy button SHALL send `mcp-setup-snippet-copied` with its tab's snippet type (`claude-app`, `claude`, `codex`, `server`). There is no "For developers" group. On narrow screens the tab bar SHALL scroll sideways inside its own box. Once at least one connection exists, the block SHALL be collapsed behind "Add another connection" and SHALL have a close button when opened.
 
 #### Scenario: No connections
 
 - **WHEN** the member has no active connections
 - **THEN** the guide is expanded and no card or permission control shows
+
+#### Scenario: Switching to a terminal client
+
+- **WHEN** the member selects the Codex tab
+- **THEN** the Codex commands show with a copy button, and the Claude app steps hide
 
 ### Requirement: Each connection is a card with status and permissions
 

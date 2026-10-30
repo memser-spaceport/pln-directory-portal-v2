@@ -83,7 +83,7 @@ export function useMcpAnalytics() {
     onHintDismissed: (params: { context: McpHintContext }) => capture(MCP_ANALYTICS_EVENTS.HINT_DISMISSED, params),
     onHintConnectClicked: (params: { context: McpHintContext }) =>
       capture(MCP_ANALYTICS_EVENTS.HINT_CONNECT_CLICKED, params),
-    onHintPromptCopied: (params: { context: McpHintContext; clientName: string }) =>
+    onHintPromptCopied: (params: { context: McpHintContext; clientName?: string }) =>
       capture(MCP_ANALYTICS_EVENTS.HINT_PROMPT_COPIED, params),
     onWarmPathFeedbackOpened: (params: McpWarmPathEditParams) =>
       capture(MCP_ANALYTICS_EVENTS.WARM_PATH_FEEDBACK_OPENED, params),

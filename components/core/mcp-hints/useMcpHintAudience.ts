@@ -9,7 +9,12 @@ export type McpHintAudience = {
   eligible: boolean;
   /** The connections have loaded, so `connectedClient` can be trusted. */
   ready: boolean;
-  /** The client of the member's first connection (e.g. "Claude Code"), or null with no agent yet. */
+  /** The member has at least one connection. */
+  connected: boolean;
+  /**
+   * The display name of the first connection's client (e.g. "Claude Code"), or null when there is none or the client
+   * sent no name (LAB-3049: then the hints say "your agent"). Never use it to tell whether the member is connected.
+   */
   connectedClient: string | null;
 };
 
@@ -22,9 +27,11 @@ export function useMcpHintAudience(): McpHintAudience {
   const eligible = SHOW_MCP_CONNECTIONS_PAGE && canConnect;
   const { data, isSuccess } = useMcpConnections(eligible);
 
+  const first = data?.[0];
   return {
     eligible,
     ready: eligible && isSuccess && data !== undefined,
-    connectedClient: data?.[0]?.clientName ?? null,
+    connected: !!first,
+    connectedClient: first?.clientName?.trim() || null,
   };
 }

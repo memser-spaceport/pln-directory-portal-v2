@@ -93,7 +93,9 @@ export function McpHint(props: McpHintProps) {
   const { context } = props;
   const router = useRouter();
   const analytics = useMcpAnalytics();
-  const { ready, connectedClient } = useMcpHintAudience();
+  const { ready, connected, connectedClient } = useMcpHintAudience();
+  // LAB-3049: a client that sent no name is "your agent", with the brand-free plug mark.
+  const agentName = connectedClient ?? 'your agent';
   const flag = useOneTimeCallout(FLAG[context]);
   const copy = hintCopy(props);
 
@@ -103,8 +105,8 @@ export function McpHint(props: McpHintProps) {
   useEffect(() => {
     if (!visible || reported.current) return;
     reported.current = true;
-    analytics.onHintShown({ context, connected: !!connectedClient });
-  }, [visible, analytics, context, connectedClient]);
+    analytics.onHintShown({ context, connected });
+  }, [visible, analytics, context, connected]);
 
   if (!visible) return null;
 
@@ -112,8 +114,8 @@ export function McpHint(props: McpHintProps) {
     <div className={copy.hostClass}>
       <div className={s.hint} role="note">
         <span className={s.hintMarks} aria-hidden>
-          {connectedClient ? (
-            <ClientLogo client={clientKeyFromName(connectedClient)} />
+          {connected ? (
+            <ClientLogo client={connectedClient ? clientKeyFromName(connectedClient) : 'other'} />
           ) : (
             <>
               <ClientLogo client="claude-code" />
@@ -121,14 +123,14 @@ export function McpHint(props: McpHintProps) {
             </>
           )}
         </span>
-        {connectedClient ? (
+        {connected ? (
           <div className={s.hintBody}>
-            <span className={s.label}>Ask {connectedClient} instead</span>
+            <span className={s.label}>Ask {agentName} instead</span>
             <div className={s.hintPrompt}>
               <span className={s.hintPromptText}>{copy.prompt}</span>
               <CopyButton
                 text={copy.prompt}
-                onCopy={() => analytics.onHintPromptCopied({ context, clientName: connectedClient })}
+                onCopy={() => analytics.onHintPromptCopied({ context, clientName: connectedClient ?? undefined })}
               />
             </div>
           </div>

@@ -7,7 +7,7 @@ Describes what a signed-in member sees in the Home feed's For You view, and the 
 
 ### Requirement: News preferences page
 
-Signed-in members SHALL have a News preferences page in Settings, listed right after the email preferences item. It holds two sections, Topics and Teams you follow, under an intro that links to Email Preferences for the digest frequency. Signed-out visitors SHALL be sent to log in and returned to the page afterwards.
+Signed-in members SHALL have a News preferences page in Settings, listed right after the email preferences item. It holds two sections, Topics and Teams you follow, under an intro that links to Email Preferences for the digest frequency. The words "For You" in the intro SHALL link, in the same tab, to `/home?feed=for-you`, which opens Home on the For You view (All when the member has no For You stories). Signed-out visitors SHALL be sent to log in and returned to the page afterwards.
 
 #### Scenario: Open from the settings menu
 
@@ -20,6 +20,12 @@ Signed-in members SHALL have a News preferences page in Settings, listed right a
 - **GIVEN** a visitor who is not signed in
 - **WHEN** they open the News preferences page
 - **THEN** they are asked to log in, and land on News preferences after logging in
+
+#### Scenario: Open For You from the intro
+
+- **GIVEN** a signed-in member on News preferences, from any arrival (`settings`, `feed` or `digest`)
+- **WHEN** they click "For You" in the intro
+- **THEN** Home opens in the same tab with For You selected, or All when they have no For You stories
 
 ### Requirement: Teams you follow
 The Teams you follow section SHALL list the teams the member follows, each with a Follow/Following control and, when the backend sends them, all of the team's top-level focus areas under its name, on one line. Unfollowing SHALL keep the team in the list until the page is left, so it can be followed again in place. With no followed teams, the section SHALL show an empty state that links to Teams.
@@ -63,7 +69,8 @@ The page SHALL record:
 - `settings-news-preferences-opened`, with `from`;
 - `settings-news-preferences-tag-toggled`, with the tag, its new state, and `from`;
 - `settings-news-preferences-save-failed`, with the section (`tags` or `teams`);
-- `settings-news-preferences-follow-toggled`.
+- `settings-news-preferences-follow-toggled`;
+- `settings-news-preferences-for-you-link-clicked`, with `from`, when the intro's "For You" link is clicked.
 
 The For You hint SHALL record `team-news-for-you-tune-clicked`.
 

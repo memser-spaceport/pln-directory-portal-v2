@@ -7,10 +7,12 @@ export const ALL_TAB = 'All';
 export const ALL_CAT = 'all';
 export const FOR_YOU_CAT = 'forYou';
 
-/** Home's `?feed=for-you` (LAB-3036): News preferences links here to open the For You feed. */
-export const HOME_FEED_FOR_YOU = 'for-you';
-export type HomeFeedParam = typeof HOME_FEED_FOR_YOU;
-export const HOME_FOR_YOU_HREF = `/home?feed=${HOME_FEED_FOR_YOU}`;
+/**
+ * Where News preferences sends "For You" (LAB-3036). Home already opens on For
+ * You whenever the member has For You stories (else All), so `feed=for-you`
+ * selects nothing itself: it names the landing in the URL and pageviews.
+ */
+export const HOME_FOR_YOU_HREF = '/home?feed=for-you';
 
 /**
  * Everything in the feed that is a conversation rather than a story: member

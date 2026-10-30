@@ -40,8 +40,6 @@ import {
   DISCUSSIONS_CAT,
   FOR_YOU_CAT,
   FOR_YOU_CATEGORY,
-  HOME_FEED_FOR_YOU,
-  type HomeFeedParam,
   SHOW_HIRING_NEWS,
   MAX_FOR_YOU_JOB_ENTRIES,
   DISCUSSIONS_CATEGORY,
@@ -128,8 +126,6 @@ interface TeamNewsProps {
    *  which must stay the 14-day corpus. Null when there is no deep link, or
    *  when the story is already in `groups`. */
   deepLinkedItem?: ITeamNewsItem | null;
-  /** `?feed=for-you` (LAB-3036): open on For You. Without For You stories, All as usual. */
-  initialFeed?: HomeFeedParam;
 }
 
 export const TeamNews = ({
@@ -141,7 +137,6 @@ export const TeamNews = ({
   pageSize = 6,
   initialDigestSettings = null,
   deepLinkedItem = null,
-  initialFeed,
 }: TeamNewsProps) => {
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
   const [initialForYouTeamUids] = useState<ReadonlySet<string>>(() => new Set(forYouTeamUids));
@@ -150,11 +145,7 @@ export const TeamNews = ({
   );
   const [activeCategory, setActiveCategory] = useState<TeamNewsCategoryId>(() => {
     const items = sortAllTabItemsByEventDate(dedupeByUid([...groups.flatMap((g) => g.items), ...allTabExtraItems]));
-    const hasForYou = selectForYouItems(items, initialForYouTeamUids, initialForYouTags).length > 0;
-    // `?feed=for-you` (LAB-3036) selects For You; with no `feed`, For You is the
-    // default. Either way it needs its pill: no For You stories → All.
-    const wantsForYou = !initialFeed || initialFeed === HOME_FEED_FOR_YOU;
-    return wantsForYou && hasForYou ? FOR_YOU_CAT : ALL_CAT;
+    return selectForYouItems(items, initialForYouTeamUids, initialForYouTags).length > 0 ? FOR_YOU_CAT : ALL_CAT;
   });
   const [expanded, setExpanded] = useState(false);
   const [query, setQuery] = useState('');

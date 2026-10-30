@@ -362,6 +362,16 @@ describe('opening the form attaches the app', () => {
     expect(mockAnalytics.onFeedbackScreenShareFallback).toHaveBeenCalledWith({ reason: 'auto-failed' });
   });
 
+  it('after a failed automatic capture, the screenshot shortcut opens the screen share', async () => {
+    renderDialog(() => Promise.reject(new Error('capture-missing')));
+    await flush();
+
+    fireEvent.keyDown(document, { key: 's', ctrlKey: true, shiftKey: true });
+    await waitFor(() => expect(requestTabCapture).toHaveBeenCalledTimes(1));
+
+    expect(mockAnalytics.onFeedbackScreenShareFallback).toHaveBeenCalledWith({ reason: 'auto-failed' });
+  });
+
   it('a browser that cannot screen-share shows its usual message after a failed automatic capture', async () => {
     (requestTabCapture as jest.Mock).mockRejectedValue(
       new CaptureError('unsupported', 'Screenshots aren’t available in this browser.'),
@@ -671,7 +681,7 @@ describe('adding screenshots', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Whole page' }));
     await flush();
 
-    expect(screen.getByText('Automatic screenshot failed. Take a screenshot manually.')).toBeInTheDocument();
+    expect(screen.getByText('Screenshot failed. Take a screenshot manually.')).toBeInTheDocument();
     expect(toast.error).not.toHaveBeenCalled();
     expect(requestTabCapture).not.toHaveBeenCalled();
 

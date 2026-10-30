@@ -516,8 +516,11 @@ export function GiveAiAppFeedbackDialog({
   /* The picture still on its way counts: it's a slot the member can see. */
   const shotCount = screenshots.length + (auto?.status === 'capturing' ? 1 : 0);
   const atShotLimit = shotCount >= MAX_SCREENSHOTS;
-  const failedNote =
-    manualNote ?? (auto?.status === 'failed' && screenshots.length === 0 ? { tooSlow: auto.tooSlow } : null);
+  const failedNote = manualNote
+    ? { ...manualNote, requested: true }
+    : auto?.status === 'failed' && screenshots.length === 0
+      ? { tooSlow: auto.tooSlow, requested: false }
+      : null;
 
   /* Fresh refs for the capture effect, which must not re-run (and re-capture) when they change identity. */
   const captureRef = useRef(capture);
@@ -940,7 +943,7 @@ export function GiveAiAppFeedbackDialog({
       /* The browser opens a screen share only straight from a click: while this one is fresh, use it. */
       if (canPromptCaptureNow()) {
         analytics.onFeedbackScreenShareFallback({ reason: 'at-once' });
-        void onTakeScreenshot();
+        void onTakeScreenshotRef.current();
       } else {
         setManualNote({ tooSlow: tookTooLong(error) });
       }
@@ -950,7 +953,7 @@ export function GiveAiAppFeedbackDialog({
     }
   };
 
-  const fallbackReason = bridgeFailed ? 'capture-failed' : 'auto-failed';
+  const fallbackReason = autoFailed && !bridgeFailed ? 'auto-failed' : 'capture-failed';
 
   const onWholePage = async () => {
     if (!useBridge) {
@@ -1273,6 +1276,12 @@ export function GiveAiAppFeedbackDialog({
         analytics.onFeedbackShortcutUsed({ action: 'screenshot' });
         if (canPickLive) {
           if (!atShotLimit) setIsPickingPart(true);
+        } else if (canCapture) {
+          /* The bridge failed this open: the shortcut screen-shares, like the buttons. */
+          if (!atShotLimit) {
+            analytics.onFeedbackScreenShareFallback({ reason: fallbackReason });
+            void onTakeScreenshotRef.current();
+          }
         } else if (captureClosedBy) {
           fileInputRef.current?.click();
         } else {
@@ -1307,6 +1316,8 @@ export function GiveAiAppFeedbackDialog({
     onRemoveShot,
     analytics,
     canPickLive,
+    canCapture,
+    fallbackReason,
     atShotLimit,
     showAppPicker,
   ]);
@@ -1550,7 +1561,9 @@ export function GiveAiAppFeedbackDialog({
                         <p className={s.shotNote}>
                           {failedNote.tooSlow
                             ? `The ${captureNoun} took too long to capture. Take a screenshot manually.`
-                            : 'Automatic screenshot failed. Take a screenshot manually.'}
+                            : failedNote.requested
+                              ? 'Screenshot failed. Take a screenshot manually.'
+                              : 'Automatic screenshot failed. Take a screenshot manually.'}
                         </p>
                       )}
                       {screenshots.map((shot, index) => (

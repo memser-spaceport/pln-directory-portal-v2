@@ -55,7 +55,7 @@ The feedback screenshot of a LabOS page SHALL show the page when the page has a 
 - **AND** the video keeps playing
 
 ### Requirement: A failed screenshot says why when the cause is known
-When an instant screenshot in the feedback form fails because the page or app took too long, the form SHALL say that it took too long. When the cause is anything else, the form SHALL say that the automatic screenshot failed. Either note SHALL ask the member to take a screenshot manually, next to the screenshot buttons.
+When an instant screenshot in the feedback form fails because the page or app took too long, the form SHALL say that it took too long. When the cause is anything else, the form SHALL say that the screenshot failed ("Automatic screenshot failed" for the automatic one). Either note SHALL ask the member to take a screenshot manually, next to the screenshot buttons.
 
 #### Scenario: The automatic screenshot fails
 - **GIVEN** the member opens the feedback form

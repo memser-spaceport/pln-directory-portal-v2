@@ -19,7 +19,12 @@ export const SCOPE_COPY: Partial<Record<McpScopeKey, { read: string; write?: str
     write: 'add notes and feedback to your paths, and edit investor records.',
   },
   ai_apps: { read: 'Read feedback on your apps.', write: 'change the status of that feedback.' },
-  profile: { read: 'Read your profile.', write: 'edit your profile.' },
+  profile: {
+    read: 'Read your profile, job alert and email preferences.',
+    write:
+      'edit your profile and experience, join or leave teams and projects, follow teams, save jobs and Demo Day ' +
+      'teams, and change your job alert and email preferences.',
+  },
 };
 
 export const LEVEL_LABEL: Record<McpLevel, string> = { none: 'No access', read: 'Read', write: 'Read and write' };

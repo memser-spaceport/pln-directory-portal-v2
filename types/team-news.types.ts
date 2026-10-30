@@ -86,6 +86,14 @@ export interface ITeamNewsPopularItem {
   upvoteCount: number;
 }
 
+/** A "Try asking" prompt on the AI Search new-chat page, built from one news story (LAB-3012). */
+export interface ITeamNewsPrompt {
+  /** The news item's uid. */
+  uid: string;
+  /** The text shown on the prompt and asked to AI Search when the member picks it. */
+  question: string;
+}
+
 export interface ITeamNewsPopularResponse {
   items: ITeamNewsPopularItem[];
 }
@@ -130,6 +138,10 @@ export interface ITeamNewsGroupedResponse {
   allTabExtraItems?: ITeamNewsItem[];
   /** Memberships ∪ follows ∪ Teams-to-follow matches; empty for anonymous. */
   forYouTeamUids?: string[];
+  /** The viewer's news tags, parents expanded to children (LAB-2999); empty for anonymous. */
+  forYouTags?: string[];
+  /** Memberships ∪ follows, without the related teams (LAB-2999); empty for anonymous. */
+  forYouOwnTeamUids?: string[];
 }
 
 export interface TeamCluster {
@@ -166,3 +178,21 @@ export interface ITeamNewsFiltersResponse {
  * returns no row for a team with nothing recent. Both render as no chip.
  */
 export type ITeamNewsCountsResponse = Record<string, number>;
+
+/** One row of `GET /v1/focus-areas` (no `type`): every focus area, flat, with its parent. */
+export interface INewsFocusArea {
+  uid: string;
+  title: string;
+  parentUid: string | null;
+}
+
+/** A news tag a member can choose: a focus area, by slug (LAB-2998). */
+export interface INewsTag {
+  slug: string;
+  title: string;
+}
+
+/** A top-level focus area with the second-level ones news used under it (`GET /v1/team-news/tags`). */
+export interface INewsTagGroup extends INewsTag {
+  children: INewsTag[];
+}

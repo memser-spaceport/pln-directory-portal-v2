@@ -2,14 +2,12 @@
 
 import Image from 'next/image';
 import Cookies from 'js-cookie';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 
-import { IUserInfo } from '@/types/shared.types';
 import { ITag, ITeam } from '@/types/teams.types';
 import type { ITeamFollowersResponse } from '@/types/follow.types';
 
-import { isTierUser } from '@/utils/user/isTierUser';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { deleteTeam } from '@/app/actions/teams.actions';
 import { getTeamPriority, getPriorityLabel } from '@/utils/team.utils';
@@ -91,14 +89,13 @@ export const TeamDetails = (props: Props) => {
   } = useTeamFollowToggle(team, team.isFollowed ?? false);
 
   const showFollowers = isCurrentUserTeamMember || isAdmin;
-  const showFollowButton = !showFollowers;
 
   const followContent = (
     <>
-      {showFollowButton && (
+      {!isCurrentUserTeamMember && (
         <>
           <TeamFollowButton isFollowing={isFollowing} isPending={isFollowPending} onToggle={onFollowToggle} />
-          {!isFollowing && <p className={s.followCaption}>Get updates &amp; announcements</p>}
+          {!isFollowing && !isAdmin && <p className={s.followCaption}>Get updates &amp; announcements</p>}
         </>
       )}
       {showFollowers && <TeamFollowBlock team={team} initialFollowers={initialFollowers} />}

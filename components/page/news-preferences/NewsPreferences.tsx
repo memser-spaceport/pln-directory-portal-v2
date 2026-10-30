@@ -1,18 +1,19 @@
 'use client';
 
 /**
- * Settings → News preferences (LAB-2939/2941): what shapes For You on Home and
- * the news in the email digest. Ported from prototypes/entries/digest-topics.
+ * Settings → News preferences (LAB-2939/2941; tags since LAB-3000): what shapes
+ * For You on Home and the news in the email digest. Ported from
+ * prototypes/entries/digest-topics.
  *
- *   Categories ............. the 6 backend news types; narrow For You and the
- *                            digest's picks, never the All tab on Home
- *   Suggested from profile . the member's teams and the attributes For You and
- *                            the digest match on (read-only; skills aren't used)
+ *   Topics ................. news tags (focus-area slugs used by news,
+ *                            `GET /v1/team-news/tags`) as `#slug` chips in
+ *                            themes, with a search (LAB-3023). A member who
+ *                            never saved starts with their teams' focus areas
  *   Teams you follow ....... FollowButton; an unfollowed row stays until the page
  *                            is left, so it can be undone in place
  *
  * Arriving from the digest or the feed (`from`) outlines the biggest gap until
- * the first change: no followed teams → Teams you follow, else Categories.
+ * the first change: topics but no followed teams → Teams you follow, else Topics.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -23,52 +24,60 @@ import { useQueryClient } from '@tanstack/react-query';
 import formCss from '@/components/page/email-preferences/components/EmailPreferencesForm/EmailPreferencesForm.module.scss';
 import toggleCss from '@/components/page/email-preferences/components/Newsletter/Newsletter.module.scss';
 import { FollowButton } from '@/components/ui/FollowButton';
-import { getEventTypeConfig } from '@/components/page/home/TeamNews/utils/getEventTypeConfig';
 import { useSettingsAnalytics, type NewsPreferencesArrival } from '@/analytics/settings.analytics';
 import { useGetMemberPreferences } from '@/services/members/hooks/useGetMemberPreferences';
-import { useSetNewsCategories } from '@/services/members/hooks/useSetNewsCategories';
+import { useSetNewsTags } from '@/services/members/hooks/useSetNewsTags';
+import { useNewsTags } from '@/services/team-news/hooks/useNewsTags';
 import { useFollowedTeams } from '@/services/follow/hooks/useFollowedTeams';
 import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
 import { followedTeamUidsQueryKey } from '@/services/follow/hooks/useFollowedTeamUids';
 import { toast } from '@/components/core/ToastContainer';
-import type { TeamNewsEventType } from '@/types/team-news.types';
-import { NEWS_PREFERENCE_CATEGORIES } from '@/utils/news-categories';
 import { triggerLoader } from '@/utils/common.utils';
+import { CloseIcon, SearchIcon } from '@/components/icons';
+import { HOME_FOR_YOU_HREF } from '@/components/page/home/TeamNews/constants';
 
-import type { NewsTeamSignal } from './buildTeamSignals';
+import { groupNewsTags } from './newsTagThemes';
 import s from './NewsPreferences.module.scss';
 
-type Gap = 'teams' | 'categories';
-type Saved = null | 'categories' | 'teams';
+type Gap = 'teams' | 'tags';
+type Saved = null | 'tags' | 'teams';
 
 interface Props {
   uid: string;
   from: NewsPreferencesArrival;
-  /** Server-read categories, until the client query has its own. */
-  initialCategories: TeamNewsEventType[];
-  signals: NewsTeamSignal[];
+  /** Server-read tags, until the client query has its own. */
+  initialTags: string[];
+  /** True when `initialTags` were seeded from the member's teams (never saved). */
+  initialTagsSeeded: boolean;
 }
 
-export function NewsPreferences({ uid, from, initialCategories, signals }: Props) {
+export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const analytics = useSettingsAnalytics();
   const { data: preferences } = useGetMemberPreferences(uid);
-  const setNewsCategories = useSetNewsCategories(uid);
+  const { data: tagGroups, isError: tagListFailed } = useNewsTags();
+  const setNewsTags = useSetNewsTags(uid);
   const { data: followedTeams, isPending: followsPending } = useFollowedTeams(uid);
   const { mutateAsync: toggleFollowRequest } = useFollowTeam();
 
   // The page's own copy of the choice: a click shows at once even before the
   // preferences query has loaded (nothing in the cache to patch yet), and a
   // failed save puts back exactly what was on screen.
-  const [localCategories, setLocalCategories] = useState<TeamNewsEventType[] | null>(null);
-  const categories: TeamNewsEventType[] = localCategories ?? preferences?.newsCategories ?? initialCategories;
+  const [localTags, setLocalTags] = useState<string[] | null>(null);
+  const tags: string[] = localTags ?? preferences?.newsTags ?? initialTags;
+  const seeded = localTags === null && (preferences ? preferences.newsTagsSeeded : initialTagsSeeded);
+  // The tags the member had when the page opened stay listed even when the tag
+  // list lacks them (no recent news), so removing one can be undone in place.
+  const [pinned] = useState<string[]>(() => initialTags);
+  const [query, setQuery] = useState('');
+  const searchRef = useRef<HTMLInputElement>(null);
   const [unfollowed, setUnfollowed] = useState<Set<string>>(() => new Set());
   const [pendingTeam, setPendingTeam] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
   const [saved, setSaved] = useState<Saved>(null);
 
-  const refs = { categories: useRef<HTMLDivElement>(null), teams: useRef<HTMLDivElement>(null) };
+  const refs = { tags: useRef<HTMLDivElement>(null), teams: useRef<HTMLDivElement>(null) };
 
   useEffect(() => {
     triggerLoader(false);
@@ -94,7 +103,7 @@ export function NewsPreferences({ uid, from, initialCategories, signals }: Props
   }, [saved]);
 
   const follows = useMemo(() => followedTeams ?? [], [followedTeams]);
-  const gap: Gap = follows.length === 0 ? 'teams' : 'categories';
+  const gap: Gap = tags.length > 0 && follows.length === 0 ? 'teams' : 'tags';
   const arriving = from !== 'settings' && !touched && !followsPending;
 
   useEffect(() => {
@@ -105,28 +114,33 @@ export function NewsPreferences({ uid, from, initialCategories, signals }: Props
   }, [followsPending]);
 
   const lit = (g: Gap) => arriving && gap === g;
-  const allOn = categories.length === NEWS_PREFERENCE_CATEGORIES.length;
   const arrivalWhere = from === 'digest' ? 'your digest' : 'For You';
 
-  const saveCategories = (next: TeamNewsEventType[]) => {
-    const previous = categories;
+  // Every tag the page knows, in Polina's themes (LAB-3023); a chip keeps its
+  // place when toggled.
+  const allTags = useMemo(() => {
+    const listed = (tagGroups ?? []).flatMap((group) => [group.slug, ...group.children.map((child) => child.slug)]);
+    return [...new Set([...pinned, ...listed])];
+  }, [tagGroups, pinned]);
+  const themes = useMemo(() => groupNewsTags(allTags, query), [allTags, query]);
+
+  const saveTags = (next: string[]) => {
+    const previous = tags;
     setTouched(true);
-    setLocalCategories(next);
-    setNewsCategories(next, {
-      onSuccess: () => setSaved('categories'),
+    setLocalTags(next);
+    setNewsTags(next, {
+      onSuccess: () => setSaved('tags'),
       onError: () => {
-        setLocalCategories(previous);
-        analytics.onNewsPreferencesSaveFailed({ section: 'categories' });
+        setLocalTags(previous);
+        analytics.onNewsPreferencesSaveFailed({ section: 'tags' });
       },
     });
   };
 
-  const toggleCategory = (category: TeamNewsEventType) => {
-    const on = categories.includes(category);
-    if (on && categories.length === 1) return; // at least one stays on; the chip is disabled anyway
-    const next = NEWS_PREFERENCE_CATEGORIES.filter((c) => (c === category ? !on : categories.includes(c)));
-    analytics.onNewsPreferencesCategoryToggled({ category, on: !on, from });
-    saveCategories(next);
+  const toggleTag = (slug: string) => {
+    const on = tags.includes(slug);
+    analytics.onNewsPreferencesTagToggled({ tag: slug, on: !on, from });
+    saveTags(on ? tags.filter((t) => t !== slug) : [...tags, slug]);
   };
 
   const toggleFollow = async (teamUid: string) => {
@@ -161,97 +175,118 @@ export function NewsPreferences({ uid, from, initialCategories, signals }: Props
     </span>
   );
 
+  // A render function, not a component: a component defined here would remount
+  // every chip on each render and drop keyboard focus after a toggle.
+  const renderTagChip = (slug: string) => {
+    const on = tags.includes(slug);
+    return (
+      <button
+        key={slug}
+        type="button"
+        className={clsx(s.chip, on && s.chipOn)}
+        aria-pressed={on}
+        title={on ? `Unsubscribe from #${slug}` : `Subscribe to #${slug}`}
+        onClick={() => toggleTag(slug)}
+      >
+        {on ? <CheckIcon /> : <PlusIcon />}#{slug}
+      </button>
+    );
+  };
+
   const followingCount = follows.filter((t) => !unfollowed.has(t.uid)).length;
 
   return (
     <div className={formCss.root}>
       <div className={s.pageHead}>
         <h5 className={formCss.title}>News Preferences</h5>
-        <p className={s.pageIntro}>These shape For You on Home and the news in your email digest.</p>
+        <p className={s.pageIntro}>
+          These shape{' '}
+          <Link
+            href={HOME_FOR_YOU_HREF}
+            className={s.inlineLink}
+            onClick={() => analytics.onNewsPreferencesForYouLinkClicked(from)}
+          >
+            For You
+          </Link>{' '}
+          on Home and the news in your email digest. To change how often the digest arrives, go to{' '}
+          <Link href="/settings/email" className={s.inlineLink}>
+            Email Preferences
+          </Link>
+          .
+        </p>
       </div>
 
-      {/* Categories */}
-      <div ref={refs.categories} className={clsx(toggleCss.root, s.card, lit('categories') && s.cardHighlight)}>
+      {/* Topics */}
+      <div ref={refs.tags} className={clsx(toggleCss.root, s.card, lit('tags') && s.cardHighlight)}>
+        {/* A question, not "Topics": with nothing picked it says the chips are there to choose from. */}
         <div className={clsx(toggleCss.header, s.cardHeader)}>
-          Categories
-          {saved === 'categories' && <SavedNote />}
+          What do you want news about?
+          {saved === 'tags' && <SavedNote />}
         </div>
         <div className={toggleCss.content}>
-          {lit('categories') && <p className={s.arrivalNote}>Choose the kinds of news you want in {arrivalWhere}.</p>}
-          <div className={s.rowHead}>
-            <div className={toggleCss.desc}>
-              {allOn
-                ? 'You get every kind of news. Browsing All on Home always shows everything.'
-                : `You get ${categories.length} of ${NEWS_PREFERENCE_CATEGORIES.length} kinds of news. Browsing All on Home always shows everything.`}
-            </div>
-            {!allOn && (
-              <button
-                type="button"
-                className={s.inlineLink}
-                onClick={() => saveCategories([...NEWS_PREFERENCE_CATEGORIES])}
-              >
-                Select all
-              </button>
-            )}
-          </div>
-          <div className={s.chips} role="group" aria-label="News categories">
-            {NEWS_PREFERENCE_CATEGORIES.map((c) => {
-              const on = categories.includes(c);
-              const last = on && categories.length === 1;
-              const { label } = getEventTypeConfig(c);
-              return (
-                <button
-                  key={c}
-                  type="button"
-                  className={clsx(s.chip, on && s.chipOn)}
-                  aria-pressed={on}
-                  disabled={last}
-                  title={last ? 'Keep at least one category' : undefined}
-                  onClick={() => toggleCategory(c)}
-                >
-                  {on ? <CheckIcon /> : <PlusIcon />}
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* Suggested from your profile */}
-      <div className={clsx(toggleCss.root, s.card)}>
-        <div className={toggleCss.header}>Suggested from your profile</div>
-        <div className={toggleCss.content}>
-          <div className={toggleCss.desc}>
-            We also suggest news from teams that share these with your team. They&apos;re set on the team&apos;s
-            profile.
-          </div>
-          {signals.length > 0 ? (
-            <dl className={s.signals}>
-              {signals.map((team) => {
-                const values = [...team.focusAreas, ...team.industryTags, ...team.communities];
-                return (
-                  <div key={team.teamUid} className={s.signal}>
-                    <dt className={s.signalLabel}>
-                      <Link href={`/teams/${team.teamUid}`} className={s.inlineLink}>
-                        {team.teamName}
-                      </Link>
-                    </dt>
-                    <dd className={s.signalValue}>
-                      {values.length > 0 ? (
-                        <span>{values.join(', ')}</span>
-                      ) : (
-                        <span className={s.signalEmpty}>No focus areas or tags yet</span>
-                      )}
-                    </dd>
-                  </div>
-                );
-              })}
-            </dl>
-          ) : (
-            <p className={s.emptyLine}>
-              You&apos;re not on a team, so suggestions come only from the teams you follow.
+          {lit('tags') && (
+            <p className={s.arrivalNote}>
+              {tags.length === 0
+                ? `Subscribe to a few topics to get news that fits your work in ${arrivalWhere}.`
+                : `Unsubscribe from topics you don’t want in ${arrivalWhere}.`}
             </p>
+          )}
+          <div className={toggleCss.desc}>
+            {seeded && tags.length > 0 && 'We picked these from your teams’ focus areas. '}
+            Pick a few tags. They shape For You and your digest.
+          </div>
+          {allTags.length > 0 && (
+            <>
+              <div className={s.search}>
+                <input
+                  ref={searchRef}
+                  type="search"
+                  value={query}
+                  placeholder="Search tags"
+                  aria-label="Search tags"
+                  className={s.searchInput}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onBlur={() => {
+                    if (query.trim()) {
+                      analytics.onNewsPreferencesTagSearched({
+                        query: query.trim(),
+                        matches: themes.reduce((n, theme) => n + theme.slugs.length, 0),
+                      });
+                    }
+                  }}
+                />
+                {/* As in the app's other search fields: the icon gives way to a clear button once there is text. */}
+                {query ? (
+                  <button
+                    type="button"
+                    className={s.searchClear}
+                    aria-label="Clear search"
+                    onClick={() => {
+                      setQuery('');
+                      searchRef.current?.focus();
+                    }}
+                  >
+                    <CloseIcon />
+                  </button>
+                ) : (
+                  <SearchIcon className={s.searchIcon} aria-hidden="true" />
+                )}
+              </div>
+              <div className={s.themes} role="group" aria-label="Topics">
+                {themes.map((theme) => (
+                  <div key={theme.title} className={s.theme} role="group" aria-label={theme.title}>
+                    <span className={s.themeTitle} aria-hidden="true">
+                      {theme.title}
+                    </span>
+                    <div className={s.chips}>{theme.slugs.map(renderTagChip)}</div>
+                  </div>
+                ))}
+                {themes.length === 0 && <p className={clsx(s.emptyLine, s.noMatch)}>No tags match “{query.trim()}”.</p>}
+              </div>
+            </>
+          )}
+          {tagListFailed && (
+            <p className={s.emptyLine}>We couldn’t load the list of topics. Your topics are still saved.</p>
           )}
         </div>
       </div>
@@ -280,6 +315,11 @@ export function NewsPreferences({ uid, from, initialCategories, signals }: Props
                       <Link href={`/teams/${t.uid}`} className={s.teamName}>
                         {t.name}
                       </Link>
+                      {t.focusAreas && t.focusAreas.length > 0 && (
+                        <span className={s.teamMeta} title={t.focusAreas.join(', ')}>
+                          {t.focusAreas.join(', ')}
+                        </span>
+                      )}
                     </div>
                     <FollowButton
                       following={following}

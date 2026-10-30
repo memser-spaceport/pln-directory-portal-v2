@@ -22,6 +22,7 @@ import { CommentButton } from '../NewsCard/components/CommentButton/CommentButto
 import { NewsShareMenu } from '../NewsShareMenu';
 import { SourceList } from '../SourceList/SourceList';
 import { ViewCount } from '../ViewCount/ViewCount';
+import { NewsTagChips } from '../NewsTagChips';
 import { FeedCommentsThread, feedThreadDomId } from '../FeedCommentsThread/FeedCommentsThread';
 import { hasNewsSource } from '../../utils/getNewsSources';
 
@@ -49,6 +50,10 @@ interface NewsGroupCardProps {
   autoExpandStoryUid?: string;
   /** Fired once a story row scrolls into the viewport (view-impression recording). */
   onStoryVisible: (uid: string) => void;
+  /** Makes the `#tag` chips links that filter the Home feed by that tag (LAB-3010). */
+  onTagSelect?: (tag: string) => void;
+  /** The Home feed's current tag filter, shown as the selected chip. */
+  activeTag?: string;
 }
 
 export function NewsGroupCard({
@@ -60,6 +65,8 @@ export function NewsGroupCard({
   onUpvoteToggle,
   autoExpandStoryUid,
   onStoryVisible,
+  onTagSelect,
+  activeTag,
 }: NewsGroupCardProps) {
   const [expanded, toggleExpanded] = useToggle(false);
   const router = useRouter();
@@ -185,6 +192,8 @@ export function NewsGroupCard({
           onThreadSignIn={() => handleThreadSignIn(story.uid)}
           onThreadBusyChange={(busy) => setThreadBusy(story.uid, busy)}
           onVisible={onStoryVisible}
+          onTagSelect={onTagSelect}
+          activeTag={activeTag}
         />
       ))}
 
@@ -209,6 +218,8 @@ interface StoryRowProps {
   onThreadSignIn: () => void;
   onThreadBusyChange: (busy: boolean) => void;
   onVisible: (uid: string) => void;
+  onTagSelect?: (tag: string) => void;
+  activeTag?: string;
 }
 
 // Extracted so useCardVisibilityTracking has a legal, stable hook call site —
@@ -230,6 +241,8 @@ function StoryRow({
   onThreadSignIn,
   onThreadBusyChange,
   onVisible,
+  onTagSelect,
+  activeTag,
 }: StoryRowProps) {
   const { label, dotClassName } = getEventTypeConfig(story.eventType);
 
@@ -269,6 +282,7 @@ function StoryRow({
     >
       <h3 className={newsCardStyles.headline}>{story.title}</h3>
       {story.summary && <p className={s.summary}>{story.summary}</p>}
+      <NewsTagChips tags={story.tags} variant="card" onSelect={onTagSelect} active={activeTag} />
       <div className={newsCardStyles.metaLine}>
         <div className={newsCardStyles.meta}>
           <span className={newsCardStyles.eventType}>

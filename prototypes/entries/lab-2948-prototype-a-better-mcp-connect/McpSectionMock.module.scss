@@ -755,48 +755,6 @@
   }
 }
 
-/* ---- Turning on write: its own step in the drawer ---- */
-
-.writeConsent {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-}
-
-.writeConsentTitle {
-  margin: 0;
-  color: var(--foreground-neutral-primary, #0a0c11);
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 24px;
-}
-
-.writeList {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin: 0;
-  padding: 12px 16px 12px 32px;
-  border-radius: 8px;
-  background: var(--background-neutral-subtle, #f1f5f9);
-  color: var(--foreground-neutral-secondary, #455468);
-  font-size: 14px;
-  line-height: 20px;
-
-  strong {
-    font-weight: 600;
-    color: var(--foreground-neutral-primary, #0a0c11);
-  }
-}
-
-.writeConsentActions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  padding-top: 4px;
-}
-
 .drawerTitleText {
   display: flex;
   flex-direction: column;
@@ -1052,6 +1010,7 @@
   gap: 16px;
   width: 100%;
   max-width: 640px;
+  margin-bottom: 24px;
 }
 
 .agentReply {
@@ -1082,8 +1041,26 @@
 }
 
 .agentReplyLink {
+  padding: 0;
+  border: 0;
+  background: none;
   color: #93c5fd;
+  font: inherit;
+  text-align: left;
   text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Top of the Permissions drawer when the agent's link opened it. */
+.requestNote {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--border-brand-subtle, #b6d6ff);
+  border-radius: 8px;
+  background: var(--background-brand-subtle, #f0f7ff);
 }
 
 .requestNone {
@@ -1147,5 +1124,42 @@
     > button {
       width: 100%;
     }
+  }
+}
+
+/* Connect block: the Claude app group, then For developers (LAB-2993 order). */
+.connectGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+
+  & + & {
+    padding-top: 12px;
+    border-top: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+  }
+}
+
+.groupTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+/* Section intro: why connect, as a short list (Anuj, 2026-10-27). */
+.useCasesLead {
+  margin: 0;
+}
+
+.useCases {
+  margin: 4px 0 8px;
+  padding-left: 20px;
+
+  li + li {
+    margin-top: 2px;
   }
 }

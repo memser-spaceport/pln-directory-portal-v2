@@ -40,6 +40,10 @@ interface TopStoriesBlockProps {
   /** Fired once a card (lead or row) scrolls into the viewport (view-impression recording). */
   onStoryVisible: (uid: string) => void;
   analyticsSource?: TeamNewsAnalyticsSource;
+  /** Makes the `#tag` chips links that filter the Home feed by that tag (LAB-3010). */
+  onTagSelect?: (tag: string) => void;
+  /** The Home feed's current tag filter, shown as the selected chip. */
+  activeTag?: string;
 }
 
 /**
@@ -63,6 +67,8 @@ export function TopStoriesBlock({
   onStoryOpen,
   onStoryVisible,
   analyticsSource = 'home',
+  onTagSelect,
+  activeTag,
 }: TopStoriesBlockProps) {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
@@ -104,6 +110,8 @@ export function TopStoriesBlock({
         onOpen={(item) => onStoryOpen(item, 'lead', 0)}
         onVisible={onStoryVisible}
         analyticsSource={analyticsSource}
+        onTagSelect={onTagSelect}
+        activeTag={activeTag}
       />
 
       {also.length > 0 && (
@@ -160,7 +168,11 @@ function AlsoRow({
   // Memoized so this row's IntersectionObserver isn't torn down/rebuilt on
   // every unrelated re-render of the block.
   const handleVisible = useCallback(() => onVisible(item.uid), [onVisible, item.uid]);
-  const rowRef = useCardVisibilityTracking<HTMLLIElement>({ onVisible: handleVisible, threshold: 0.5, trackOnce: true });
+  const rowRef = useCardVisibilityTracking<HTMLLIElement>({
+    onVisible: handleVisible,
+    threshold: 0.5,
+    trackOnce: true,
+  });
 
   return (
     <li ref={rowRef} className={s.alsoRow}>

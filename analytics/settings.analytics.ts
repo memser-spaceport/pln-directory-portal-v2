@@ -245,11 +245,11 @@ export const useSettingsAnalytics = () => {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_OPENED, { from });
   }
 
-  function onNewsPreferencesCategoryToggled(params: { category: string; on: boolean; from: NewsPreferencesArrival }) {
-    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_CATEGORY_TOGGLED, params);
+  function onNewsPreferencesTagToggled(params: { tag: string; on: boolean; from: NewsPreferencesArrival }) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_TAG_TOGGLED, params);
   }
 
-  function onNewsPreferencesSaveFailed(params: { section: 'categories' | 'teams'; teamUid?: string }) {
+  function onNewsPreferencesSaveFailed(params: { section: 'tags' | 'teams'; teamUid?: string }) {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_SAVE_FAILED, params);
   }
 
@@ -261,11 +261,23 @@ export const useSettingsAnalytics = () => {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_FOLLOW_TOGGLED, params);
   }
 
+  /** When the member leaves the tag search with text in it (LAB-3023). */
+  function onNewsPreferencesTagSearched(params: { query: string; matches: number }) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_TAG_SEARCHED, params);
+  }
+
+  /** "For You" in the page intro, which opens the For You feed on Home (LAB-3036). */
+  function onNewsPreferencesForYouLinkClicked(from: NewsPreferencesArrival) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_FOR_YOU_LINK_CLICKED, { from });
+  }
+
   return {
     onNewsPreferencesOpened,
-    onNewsPreferencesCategoryToggled,
+    onNewsPreferencesTagToggled,
     onNewsPreferencesSaveFailed,
     onNewsPreferencesFollowToggled,
+    onNewsPreferencesTagSearched,
+    onNewsPreferencesForYouLinkClicked,
     recordSettingsSideMenuClick,
     recordManageTeamsTeamChange,
     recordManageTeamSave,

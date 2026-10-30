@@ -7,13 +7,13 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } fr
 
 import type { IFeedForumPost, IFeedForumPostLikeStatus } from '@/types/feed.types';
 import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
-import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem, TeamNewsEventType } from '@/types/team-news.types';
-import { narrowsNewsCategories } from '@/utils/news-categories';
+import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
 
 import {
   useTeamNewsAnalytics,
   type TeamNewsCardClickVia,
   type TeamNewsAnalyticsSource,
+  type TeamNewsTagFilterVia,
 } from '@/analytics/team-news.analytics';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useIsBelowDesktop } from '@/hooks/useIsBelowDesktop';
@@ -26,10 +26,12 @@ import { useSuggestedTeamsToFollow } from '@/services/follow/hooks/useSuggestedT
 import { useFeedForumPostLikeToggle } from '@/services/feed/hooks/useFeedForumPostLikeToggle';
 import { useFollowAnalytics, type FollowAnalyticsSource } from '@/analytics/follow.analytics';
 import { FEED_FOR_YOU_FORUM_POST_WINDOW_DAYS } from '@/services/feed/constants';
+import { newsItemHasTag } from '@/utils/news-tag-chips';
 
 import { Button } from '@/components/common/Button';
 import { SearchInput } from '@/components/common/filters/SearchInput';
 import { SortDropdown } from '@/components/common/filters/SortDropdown';
+import sortCss from '@/components/common/filters/SortDropdown/SortDropdown.module.scss';
 
 import {
   ALL_TAB,
@@ -100,12 +102,20 @@ import { FollowTeamsScroller } from './components/FeedScrollers/FollowTeamsScrol
 
 import s from './TeamNews.module.scss';
 
+// Stable empty list for the views a tag filter clears of forum posts (they carry
+// no tags), so the memos below don't hand a fresh array to the merge each render.
+const NO_FORUM_POSTS: IFeedForumPost[] = [];
+
 interface TeamNewsProps {
   groups: ITeamNewsGroup[];
   /** Teams with no focus-area group; shown on "All" only. */
   allTabExtraItems?: ITeamNewsItem[];
-  /** Memberships ∪ follows ∪ matcher teams; empty for guests. Frozen at mount. */
+  /** Memberships ∪ follows ∪ matcher teams; empty for guests. Frozen at mount.
+   *  With `forYouTags`, memberships ∪ follows only (`resolveForYouMatch`). */
   forYouTeamUids?: string[];
+  /** The member's news tags (LAB-3001); For You also keeps stories sharing one.
+   *  Undefined = match on `forYouTeamUids` only. Frozen at mount. */
+  forYouTags?: string[];
   /** Server-ranked "Popular this week" (GET /v1/team-news/popular), fetched SSR
    * alongside `groups`. Empty → the rail's Popular module hides itself. */
   popularItems?: ITeamNewsPopularItem[];
@@ -116,33 +126,34 @@ interface TeamNewsProps {
    *  which must stay the 14-day corpus. Null when there is no deep link, or
    *  when the story is already in `groups`. */
   deepLinkedItem?: ITeamNewsItem | null;
-  /** The member's News preferences categories (LAB-2941), loaded server-side
-   *  so the first paint is already narrowed. Omitted = every category. Narrows
-   *  For You news only; All, forum posts and jobs are untouched. Frozen at mount. */
-  newsCategories?: TeamNewsEventType[];
 }
 
 export const TeamNews = ({
   groups,
   allTabExtraItems = [],
   forYouTeamUids = [],
+  forYouTags,
   popularItems = [],
   pageSize = 6,
   initialDigestSettings = null,
   deepLinkedItem = null,
-  newsCategories,
 }: TeamNewsProps) => {
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
   const [initialForYouTeamUids] = useState<ReadonlySet<string>>(() => new Set(forYouTeamUids));
-  const [forYouCategories] = useState<ReadonlySet<string> | undefined>(() =>
-    newsCategories && narrowsNewsCategories(newsCategories) ? new Set(newsCategories) : undefined,
+  const [initialForYouTags] = useState<ReadonlySet<string> | undefined>(() =>
+    forYouTags ? new Set(forYouTags) : undefined,
   );
   const [activeCategory, setActiveCategory] = useState<TeamNewsCategoryId>(() => {
     const items = sortAllTabItemsByEventDate(dedupeByUid([...groups.flatMap((g) => g.items), ...allTabExtraItems]));
-    return selectForYouItems(items, initialForYouTeamUids, forYouCategories).length > 0 ? FOR_YOU_CAT : ALL_CAT;
+    return selectForYouItems(items, initialForYouTeamUids, initialForYouTags).length > 0 ? FOR_YOU_CAT : ALL_CAT;
   });
   const [expanded, setExpanded] = useState(false);
   const [query, setQuery] = useState('');
+  // The Home feed's tag filter (LAB-3010), set by clicking a `#tag` on a story.
+  // '' = no filter. Exact tag match, not the search box: "ai" in search also
+  // finds "maintain", and a click on `#ai` has to return only what's tagged ai.
+  const [topicFilter, setTopicFilter] = useState('');
+  const filterBarRef = useRef<HTMLDivElement>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const desktopFieldRef = useRef<HTMLDivElement>(null);
   const analytics = useTeamNewsAnalytics();
@@ -253,20 +264,37 @@ export const TeamNews = ({
   const { hiring: feedHiring } = useFeedHiring();
   const { deals: feedDeals } = useFeedDeals();
 
+  // The tag filter narrows the stories every tab, pill and count below is built
+  // from, so the tab and pill counts describe the cards under them. `allItems`
+  // itself stays whole: the deep link, Popular and the For You pill read it.
+  const feedItems = useMemo(
+    () => (topicFilter ? allItems.filter((i) => newsItemHasTag(i, topicFilter)) : allItems),
+    [allItems, topicFilter],
+  );
+  const feedGroups = useMemo(() => {
+    if (!topicFilter) return groups;
+    return groups
+      .map((g) => {
+        const items = g.items.filter((i) => newsItemHasTag(i, topicFilter));
+        return { ...g, items, total: items.length };
+      })
+      .filter((g) => g.items.length > 0);
+  }, [groups, topicFilter]);
+
   const itemsForActiveTab = useMemo(() => {
-    if (activeTab === ALL_TAB) return allItems;
-    const group = groups.find((g) => g.focusArea.title === activeTab);
+    if (activeTab === ALL_TAB) return feedItems;
+    const group = feedGroups.find((g) => g.focusArea.title === activeTab);
     return applyViewOverlay(applyUpvoteOverlay(group?.items ?? [], upvoteOverlay), viewedUids);
-  }, [activeTab, allItems, groups, upvoteOverlay, viewedUids]);
+  }, [activeTab, feedItems, feedGroups, upvoteOverlay, viewedUids]);
 
   const forYouItemsForActiveTab = useMemo(
-    () => selectForYouItems(itemsForActiveTab, initialForYouTeamUids, forYouCategories),
-    [itemsForActiveTab, initialForYouTeamUids, forYouCategories],
+    () => selectForYouItems(itemsForActiveTab, initialForYouTeamUids, initialForYouTags),
+    [itemsForActiveTab, initialForYouTeamUids, initialForYouTags],
   );
 
   const hasForYouNews = useMemo(
-    () => selectForYouItems(allItems, initialForYouTeamUids, forYouCategories).length > 0,
-    [allItems, initialForYouTeamUids, forYouCategories],
+    () => selectForYouItems(allItems, initialForYouTeamUids, initialForYouTags).length > 0,
+    [allItems, initialForYouTeamUids, initialForYouTags],
   );
 
   // Jobs matched to this member — the whole match (two-week window,
@@ -289,17 +317,19 @@ export const TeamNews = ({
    * inventing one — they simply don't appear there.
    */
   const forYouJobEntries = useMemo(
-    () => (activeTab === ALL_TAB ? forYouJobs?.slice(0, MAX_FOR_YOU_JOB_ENTRIES) : undefined),
-    [activeTab, forYouJobs],
+    () => (activeTab === ALL_TAB && !topicFilter ? forYouJobs?.slice(0, MAX_FOR_YOU_JOB_ENTRIES) : undefined),
+    [activeTab, forYouJobs, topicFilter],
   );
 
   // Forum posts joining the current tab (All / Discussions use this 14-day
   // activity list; For You is a further createdAt L7D cut below). Memoized so
   // its array identity can't re-run the merge on unrelated renders (e.g. upvote
   // overlay writes).
+  // A tag filter leaves forum posts out of every view: they carry no tags.
   const tabForumPosts = useMemo(
-    () => filterFeedForumPosts(forumPosts, { tab: activeTab, category: ALL_CAT, query: '' }),
-    [forumPosts, activeTab],
+    () =>
+      topicFilter ? NO_FORUM_POSTS : filterFeedForumPosts(forumPosts, { tab: activeTab, category: ALL_CAT, query: '' }),
+    [forumPosts, activeTab, topicFilter],
   );
 
   // Frozen once per session, same reason useFeedSocial freezes the 14-day
@@ -308,8 +338,11 @@ export const TeamNews = ({
   const [forYouForumCutoffIso] = useState(() => feedWindowCutoffIso(FEED_FOR_YOU_FORUM_POST_WINDOW_DAYS, Date.now()));
 
   const forYouForumPosts = useMemo(
-    () => selectForYouForumPosts(forumPosts, forYouForumCutoffIso, { tab: activeTab, query: '' }),
-    [forumPosts, forYouForumCutoffIso, activeTab],
+    () =>
+      topicFilter
+        ? NO_FORUM_POSTS
+        : selectForYouForumPosts(forumPosts, forYouForumCutoffIso, { tab: activeTab, query: '' }),
+    [forumPosts, forYouForumCutoffIso, activeTab, topicFilter],
   );
 
   // One definition of "how many does this pill have", used both to render the
@@ -407,12 +440,16 @@ export const TeamNews = ({
   // signals, and this flag used to drive both; splitting them is what lets the
   // band sit on For You without dragging hiring and deals into that slice.
   const isRestingCategory = activeCategory === ALL_CAT || activeCategory === FOR_YOU_CAT;
-  const isNarrowedView = activeTab !== ALL_TAB || activeCategory !== ALL_CAT || Boolean(query.trim());
+  // A tag filter is a narrowed view too: no hiring roll-ups or deals (they carry no tags).
+  const isNarrowedView =
+    activeTab !== ALL_TAB || activeCategory !== ALL_CAT || Boolean(query.trim()) || Boolean(topicFilter);
   // For You is a narrowed view by the flag above, but it is the one narrowed view
   // that carries signals of its own — personalized ones. Searching inside it
   // narrows again, and drops them like every other search does.
-  const isForYouStream = activeCategory === FOR_YOU_CAT && !query.trim();
-  const showTopStoriesBand = activeTab === ALL_TAB && isRestingCategory && !query.trim();
+  const isForYouStream = activeCategory === FOR_YOU_CAT && !query.trim() && !topicFilter;
+  // Hidden under a tag filter: the band's picks are network-wide and would sit
+  // above a feed they don't belong to.
+  const showTopStoriesBand = activeTab === ALL_TAB && isRestingCategory && !query.trim() && !topicFilter;
 
   // Ranked from editorialRank (LLM Top Stories picks), rendered from the live
   // overlay. Independent of upvote counts so the band stays distinct from
@@ -441,13 +478,12 @@ export const TeamNews = ({
 
   // Forum posts under the CURRENT filters (category + search). For You uses
   // the posted-this-week cut; every other pill uses the 14-day activity list.
-  const visibleForumPosts = useMemo(
-    () =>
-      activeCategory === FOR_YOU_CAT
-        ? selectForYouForumPosts(forumPosts, forYouForumCutoffIso, { tab: activeTab, query })
-        : filterFeedForumPosts(forumPosts, { tab: activeTab, category: activeCategory, query }),
-    [forumPosts, activeTab, activeCategory, query, forYouForumCutoffIso],
-  );
+  const visibleForumPosts = useMemo(() => {
+    if (topicFilter) return NO_FORUM_POSTS;
+    return activeCategory === FOR_YOU_CAT
+      ? selectForYouForumPosts(forumPosts, forYouForumCutoffIso, { tab: activeTab, query })
+      : filterFeedForumPosts(forumPosts, { tab: activeTab, category: activeCategory, query });
+  }, [forumPosts, activeTab, activeCategory, query, forYouForumCutoffIso, topicFilter]);
 
   // The unified feed: forum posts interleaved into the sorted clusters. The
   // merge DELEGATES to sortedClusters' order (news-vs-news order stays
@@ -677,6 +713,42 @@ export const TeamNews = ({
     openNews(item.uid);
   };
 
+  // A `#tag` click (LAB-3010). It opens the tag whole — back to the All tab and
+  // All categories — because `#storage` asks "what's tagged storage", not "what's
+  // tagged storage within the pill I happened to be on". Clicking the active tag
+  // again clears it. From the modal, the modal closes first: the filtered feed
+  // is what the reader asked to see.
+  const handleTagSelect = (tag: string, via: TeamNewsTagFilterVia) => {
+    if (via === 'modal') closeNews();
+    setExpanded(false);
+    if (tag === topicFilter) {
+      analytics.onTeamNewsTagFilterCleared({ tag, via });
+      setTopicFilter('');
+      return;
+    }
+    analytics.onTeamNewsTagFilterApplied({
+      tag,
+      via,
+      itemCount: allItems.filter((i) => newsItemHasTag(i, tag)).length,
+    });
+    setTopicFilter(tag);
+    setActiveTab(ALL_TAB);
+    setActiveCategory(ALL_CAT);
+  };
+
+  const handleTagFilterClear = () => {
+    analytics.onTeamNewsTagFilterCleared({ tag: topicFilter, via: 'chip' });
+    setTopicFilter('');
+    setExpanded(false);
+  };
+
+  // A tag is clicked deep in the feed (or in the modal over it); the result is
+  // the top of a re-cut feed, so bring the chip that says what happened into view.
+  useEffect(() => {
+    if (!topicFilter) return;
+    filterBarRef.current?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
+  }, [topicFilter]);
+
   // Forum-post counterpart of handleStoryOpen (card-clicked analytics fire in
   // ForumPostCard, which knows its own position).
   const handleForumPostOpen = (post: IFeedForumPost) => {
@@ -698,6 +770,7 @@ export const TeamNews = ({
   const activeCategoryRef = useRef(activeCategory);
   const analyticsRef = useRef(analytics);
   const forYouForumCutoffIsoRef = useRef(forYouForumCutoffIso);
+  const topicFilterRef = useRef(topicFilter);
   useEffect(() => {
     filteredItemsRef.current = filteredItems;
     forumPostsRef.current = forumPosts;
@@ -705,6 +778,7 @@ export const TeamNews = ({
     activeCategoryRef.current = activeCategory;
     analyticsRef.current = analytics;
     forYouForumCutoffIsoRef.current = forYouForumCutoffIso;
+    topicFilterRef.current = topicFilter;
   });
 
   // useCallback with empty deps is required here, not just tidy: SearchInput's
@@ -724,8 +798,10 @@ export const TeamNews = ({
     // Same definition of "matches" as the rendered entries: news narrowed by
     // the query + forum posts under the current tab/category filters.
     const category = activeCategoryRef.current;
-    const forumMatches =
-      category === FOR_YOU_CAT
+    // A tag filter shows no forum posts, so none of them count as results.
+    const forumMatches = topicFilterRef.current
+      ? NO_FORUM_POSTS
+      : category === FOR_YOU_CAT
         ? selectForYouForumPosts(forumPostsRef.current, forYouForumCutoffIsoRef.current, {
             tab: activeTabRef.current,
             query: trimmed,
@@ -921,7 +997,8 @@ export const TeamNews = ({
         ? !forYouItemsForActiveTab.some((i) => i.uid === fullItem.uid)
         : !matchesTeamNewsCategory(fullItem, activeCategory));
     const searchMismatch = query.trim() !== '' && !matchesTeamNewsQuery(fullItem, query.trim().toLowerCase());
-    const filtersChanging = tabMismatch || categoryMismatch || searchMismatch;
+    const topicMismatch = Boolean(topicFilter) && !newsItemHasTag(fullItem, topicFilter);
+    const filtersChanging = tabMismatch || categoryMismatch || searchMismatch || topicMismatch;
 
     // If filters are already about to reflow substantially, don't also re-derive
     // clusterByTeam for the *new* filters just to check pageSize precisely —
@@ -941,6 +1018,7 @@ export const TeamNews = ({
       if (tabMismatch) setActiveTab(ALL_TAB);
       if (categoryMismatch) setActiveCategory(ALL_CAT);
       if (searchMismatch) setQuery('');
+      if (topicMismatch) setTopicFilter('');
       if (shouldExpandOuter) setExpanded(true);
       setScrollTarget({ teamUid: fullItem.teamUid, storyUid: fullItem.uid });
     });
@@ -996,9 +1074,9 @@ export const TeamNews = ({
         <SearchInput value={query} onChange={handleSearch} placeholder="Search by news, teams…" />
       </div>
 
-      <TeamNewsTabs groups={groups} allItems={allItems} activeTab={activeTab} onTabChange={handleTab} />
+      <TeamNewsTabs groups={feedGroups} allItems={feedItems} activeTab={activeTab} onTabChange={handleTab} />
 
-      <div className={s.filterBar}>
+      <div className={s.filterBar} ref={filterBarRef}>
         <div className={s.catRow}>
           {categoriesWithCounts.map((c) => {
             const isActive = activeCategory === c.id;
@@ -1018,6 +1096,29 @@ export const TeamNews = ({
           })}
         </div>
         <div className={s.filterActions}>
+          {/* The tag filter (LAB-3010), labeled like "Sort by:" on this row so it
+              reads as the feed's filter rather than one more hashtag. */}
+          {topicFilter && (
+            <span className={s.topicScope}>
+              <span className={sortCss.sortByLabel}>Filter:</span>
+              <span className={s.topicChip}>
+                <span className={s.topicChipLabel}>#{topicFilter}</span>
+                <button
+                  type="button"
+                  className={s.topicChipClear}
+                  aria-label={`Show all updates instead of just #${topicFilter}`}
+                  onClick={handleTagFilterClear}
+                >
+                  <svg viewBox="0 0 12 12" fill="none" aria-hidden>
+                    <path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </span>
+              <span className={s.topicCount}>
+                {searchedItems.length} {searchedItems.length === 1 ? 'update' : 'updates'}
+              </span>
+            </span>
+          )}
           {/* Mobile only — `.catRow`'s pill row holds the category filter at
               every wider breakpoint (see TeamNews.module.scss `.catRow` /
               `.typeMobile`). Same SortDropdown "Sort by:" already uses, so the
@@ -1051,6 +1152,8 @@ export const TeamNews = ({
                 onUpvoteToggle={handleUpvoteToggle}
                 onStoryOpen={handleTopStoryOpen}
                 onStoryVisible={recordVisible}
+                onTagSelect={(tag) => handleTagSelect(tag, 'top-story')}
+                activeTag={topicFilter || undefined}
               />
             </div>
           )}
@@ -1081,7 +1184,13 @@ export const TeamNews = ({
           {entries.length === 0 ? (
             !topStories?.lead && (
               <div className={s.empty}>
-                {query.trim() ? `No network news matches "${query.trim()}".` : 'No network news in this filter.'}
+                {topicFilter
+                  ? query.trim()
+                    ? `No updates match “${query.trim()}” in #${topicFilter}.`
+                    : `No #${topicFilter} updates in this filter.`
+                  : query.trim()
+                    ? `No network news matches "${query.trim()}".`
+                    : 'No network news in this filter.'}
               </div>
             )
           ) : (
@@ -1098,7 +1207,7 @@ export const TeamNews = ({
                   // NOTE: any future CSS transition on .storyRow/.expander will not
                   // animate across a filter change, since this replaces the DOM node
                   // rather than updating it in place.
-                  const key = `${activeTab}::${String(activeCategory)}::${feedEntryKey(entry)}`;
+                  const key = `${activeTab}::${String(activeCategory)}::${topicFilter}::${feedEntryKey(entry)}`;
                   switch (entry.kind) {
                     case 'news':
                       return (
@@ -1113,6 +1222,8 @@ export const TeamNews = ({
                             scrollTarget?.teamUid === entry.cluster.teamUid ? scrollTarget.storyUid : undefined
                           }
                           onStoryVisible={recordVisible}
+                          onTagSelect={(tag) => handleTagSelect(tag, 'card')}
+                          activeTag={topicFilter || undefined}
                         />
                       );
                     case 'forum':
@@ -1196,6 +1307,8 @@ export const TeamNews = ({
           // param is written with raw history.replaceState, so the round-trip
           // has to name the story explicitly to survive a sign-in.
           loginHref={`/home?news=${encodeURIComponent(activeNewsItem.uid)}#login`}
+          onTagSelect={(tag) => handleTagSelect(tag, 'modal')}
+          activeTag={topicFilter || undefined}
         />
       )}
       {activeForumPost && (

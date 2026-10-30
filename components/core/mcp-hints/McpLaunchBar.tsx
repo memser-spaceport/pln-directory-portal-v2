@@ -7,7 +7,7 @@ import { useMcpAnalytics } from '@/analytics/mcp.analytics';
 import { HighlightsBar } from '@/components/core/navbar/components/HighlightsBar';
 import { CloseIcon } from '@/components/icons';
 import { useOneTimeCallout } from '@/hooks/useOneTimeCallout';
-import { MCP_CONNECTIONS_NEW_FLAG, MCP_LAUNCH_BAR_FLAG } from '@/utils/mcp';
+import { MCP_LAUNCH_BAR_FLAG } from '@/utils/mcp';
 
 import { useMcpHintAudience } from './useMcpHintAudience';
 
@@ -15,17 +15,16 @@ import s from './McpLaunchBar.module.scss';
 
 /**
  * The MCP launch announcement in SiteHeader (LAB-3033), ported from the LAB-2948 prototype's `LaunchBanner`.
- * Shown to members who can connect an agent and have none yet, until they open MCP connections (which clears
- * that page's "New" flag) or close the bar. The contextual hints carry discovery after that.
+ * Shown to members who can connect an agent and have none yet, until they close it with ✕ (LAB-3049: opening MCP
+ * connections no longer hides it). The contextual hints carry discovery after that.
  */
 export function McpLaunchBar() {
   const router = useRouter();
   const analytics = useMcpAnalytics();
-  const { ready, connectedClient } = useMcpHintAudience();
+  const { ready, connected } = useMcpHintAudience();
   const closed = useOneTimeCallout(MCP_LAUNCH_BAR_FLAG);
-  const pageNotOpened = useOneTimeCallout(MCP_CONNECTIONS_NEW_FLAG);
 
-  const visible = ready && !connectedClient && closed.open && pageNotOpened.open;
+  const visible = ready && !connected && closed.open;
 
   const reported = useRef(false);
   useEffect(() => {
@@ -42,8 +41,8 @@ export function McpLaunchBar() {
         <div className={s.launchMain}>
           <span className={s.launchNew}>New</span>
           <span className={s.launchText}>
-            Search teams and members, post news or reply in the forum right from your AI session. LabOS now works with
-            AI agents.
+            Search teams and members, post news or team updates right from your AI session. LabOS now works with AI
+            agents.
           </span>
           <button
             type="button"

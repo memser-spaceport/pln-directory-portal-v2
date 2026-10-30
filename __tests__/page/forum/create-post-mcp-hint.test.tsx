@@ -5,6 +5,13 @@ jest.mock('@/components/core/mcp-hints/McpHint', () => ({
   McpHint: (props: Record<string, unknown>) => <div data-testid="mcp-hint" data-props={JSON.stringify(props)} />,
 }));
 
+let mockShowForumHint = true;
+jest.mock('@/utils/mcp', () => ({
+  ...jest.requireActual('@/utils/mcp'),
+  get SHOW_MCP_FORUM_HINT() {
+    return mockShowForumHint;
+  },
+}));
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: jest.fn() }),
   useParams: () => ({}),
@@ -44,7 +51,20 @@ import { CreatePost } from '@/components/page/forum/CreatePost/CreatePost';
 
 const hintProps = () => JSON.parse(screen.getByTestId('mcp-hint').getAttribute('data-props')!);
 
+beforeEach(() => {
+  mockShowForumHint = true;
+});
+
 describe('CreatePost: MCP hint (LAB-3033)', () => {
+  it('shows no MCP hint while Forum MCP is off, even after a title is typed (LAB-3049)', () => {
+    mockShowForumHint = false;
+    render(<CreatePost />);
+    fireEvent.change(screen.getByPlaceholderText('Enter the title'), {
+      target: { value: 'Who is hiring Rust engineers?' },
+    });
+    expect(screen.queryByTestId('mcp-hint')).not.toBeInTheDocument();
+  });
+
   it('passes the typed title to the forum hint', () => {
     render(<CreatePost />);
     expect(hintProps()).toEqual({ context: 'forum', title: '' });

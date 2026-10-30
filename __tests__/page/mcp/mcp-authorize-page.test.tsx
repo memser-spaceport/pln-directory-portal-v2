@@ -9,7 +9,22 @@ const mockAnalytics = {
   onConnectApproved: jest.fn(),
   onConnectDenied: jest.fn(),
   onConnectError: jest.fn(),
+  onContactAckChecked: jest.fn(),
 };
+
+let mockShowMcpPage = false;
+jest.mock('@/utils/mcp', () => ({
+  get SHOW_MCP_CONNECTIONS_PAGE() {
+    return mockShowMcpPage;
+  },
+}));
+
+const ACK = /I understand .* can see other members’ contact details\./;
+
+/** Ticks the contact-details acknowledgement, which unlocks Connect. */
+async function acknowledge() {
+  fireEvent.click(await screen.findByRole('checkbox', { name: ACK }));
+}
 
 const mockPush = jest.fn();
 const mockApprove = jest.fn();
@@ -63,6 +78,7 @@ describe('McpAuthorizePage analytics', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockShowMcpPage = false;
     setParams(VALID_PARAMS);
     mockUseCurrentUserStore.mockReturnValue({
       currentUser: { uid: 'u1', name: 'Ada' },
@@ -119,11 +135,12 @@ describe('McpAuthorizePage analytics', () => {
     });
   });
 
-  it('fires approved before redirecting on Allow', async () => {
+  it('fires approved before redirecting on Connect', async () => {
     mockApprove.mockResolvedValue({ redirectUrl: 'http://127.0.0.1:9/cb?code=1' });
     render(<McpAuthorizePage />);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Allow' }));
+    await acknowledge();
+    fireEvent.click(screen.getByRole('button', { name: 'Connect' }));
 
     await waitFor(() => {
       expect(mockAnalytics.onConnectApproved).toHaveBeenCalledWith({ clientId: 'mcp_client_abc' });
@@ -131,35 +148,63 @@ describe('McpAuthorizePage analytics', () => {
     expect(locationAssign).toHaveBeenCalledWith('http://127.0.0.1:9/cb?code=1');
   });
 
-  it('asks for read-only access by default and sends allowChanges false', async () => {
-    mockApprove.mockResolvedValue({ redirectUrl: 'http://127.0.0.1:9/cb?code=1' });
+  it('shows the read-only consent screen with no make-changes option', async () => {
     render(<McpAuthorizePage />);
 
-    expect(await screen.findByText('Read the directory, events and forum')).toBeInTheDocument();
-    const changes = screen.getByRole('checkbox', { name: 'Make changes for me (feedback status, introductions)' });
-    expect(changes).not.toBeChecked();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Allow' }));
-
-    await waitFor(() => expect(mockApprove).toHaveBeenCalledTimes(1));
-    expect(mockApprove).toHaveBeenCalledWith(
-      expect.objectContaining({ clientId: 'mcp_client_abc', allowChanges: false }),
-    );
+    expect(await screen.findByRole('heading', { name: 'Connect Claude Code to LabOS' })).toBeInTheDocument();
+    expect(screen.getByText('Read only (default)')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Claude Code can view what you can view in LabOS: members, teams, projects, the forum, news, events and your profile\./,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/That includes other members’ contact details, such as email, Telegram and LinkedIn\./),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Make changes for me/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/open roles/)).not.toBeInTheDocument();
+    expect(screen.getAllByRole('checkbox')).toHaveLength(1);
   });
 
-  it('sends allowChanges true when the member ticks Make changes for me', async () => {
+  it('points to Settings → MCP connections only when that page is on', async () => {
+    mockShowMcpPage = true;
+    const { unmount } = render(<McpAuthorizePage />);
+    expect(await screen.findByText(/at any time in Settings → MCP connections\./)).toBeInTheDocument();
+    unmount();
+
+    mockShowMcpPage = false;
+    render(<McpAuthorizePage />);
+    expect(await screen.findByText(/at any time in Settings\./)).toBeInTheDocument();
+    expect(screen.queryByText(/MCP connections/)).not.toBeInTheDocument();
+  });
+
+  it('keeps Connect disabled until the member acknowledges contact details', async () => {
+    render(<McpAuthorizePage />);
+
+    const connect = await screen.findByRole('button', { name: 'Connect' });
+    expect(connect).toBeDisabled();
+    fireEvent.click(connect);
+    expect(mockApprove).not.toHaveBeenCalled();
+
+    await acknowledge();
+    expect(connect).toBeEnabled();
+    expect(mockAnalytics.onContactAckChecked).toHaveBeenCalledWith({ clientId: 'mcp_client_abc' });
+
+    fireEvent.click(screen.getByRole('checkbox', { name: ACK }));
+    expect(connect).toBeDisabled();
+  });
+
+  it('sends the acknowledgement and no allowChanges', async () => {
     mockApprove.mockResolvedValue({ redirectUrl: 'http://127.0.0.1:9/cb?code=1' });
     render(<McpAuthorizePage />);
 
-    const changes = await screen.findByRole('checkbox', {
-      name: 'Make changes for me (feedback status, introductions)',
-    });
-    fireEvent.click(changes);
-    expect(changes).toBeChecked();
-    fireEvent.click(screen.getByRole('button', { name: 'Allow' }));
+    await acknowledge();
+    fireEvent.click(screen.getByRole('button', { name: 'Connect' }));
 
     await waitFor(() => expect(mockApprove).toHaveBeenCalledTimes(1));
-    expect(mockApprove).toHaveBeenCalledWith(expect.objectContaining({ allowChanges: true }));
+    const body = mockApprove.mock.calls[0][0];
+    expect(body).toEqual(expect.objectContaining({ clientId: 'mcp_client_abc', acknowledgedContactDetails: true }));
+    expect(body).not.toHaveProperty('allowChanges');
   });
 
   it('shows the registered name and host and ignores client_name in the URL', async () => {
@@ -172,7 +217,7 @@ describe('McpAuthorizePage analytics', () => {
     });
     render(<McpAuthorizePage />);
 
-    expect(await screen.findByText('Evil Tool')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Connect Evil Tool to LabOS' })).toBeInTheDocument();
     expect(screen.getByText('127.0.0.1')).toBeInTheDocument();
     expect(screen.queryByText('Claude Official')).not.toBeInTheDocument();
   });
@@ -183,8 +228,8 @@ describe('McpAuthorizePage analytics', () => {
     render(<McpAuthorizePage />);
 
     expect(await screen.findByText('This connect link is not valid. Ask your agent to try again.')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Allow' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Deny' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Connect' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument();
     expect(screen.queryByText('Claude Official')).not.toBeInTheDocument();
     expect(mockAnalytics.onConnectError).toHaveBeenCalledWith({
       clientId: 'mcp_client_abc',
@@ -202,8 +247,8 @@ describe('McpAuthorizePage analytics', () => {
     render(<McpAuthorizePage />);
 
     expect(await screen.findByText('This connect link is not valid. Ask your agent to try again.')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Allow' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Deny' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Connect' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument();
     expect(mockAnalytics.onConnectError).toHaveBeenCalledWith({
       clientId: 'mcp_client_abc',
       errorKind: 'redirect_invalid',
@@ -222,16 +267,16 @@ describe('McpAuthorizePage analytics', () => {
     render(<McpAuthorizePage />);
 
     expect(await screen.findByText('This connect link is not valid. Ask your agent to try again.')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Allow' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Deny' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Connect' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument();
     expect(locationAssign).not.toHaveBeenCalled();
   });
 
-  it('fires denied with user_denied on Deny and returns to the registered http redirect', async () => {
+  it('fires denied with user_denied on Cancel and returns to the registered http redirect', async () => {
     setParams({ ...VALID_PARAMS, state: 'xyz' });
     render(<McpAuthorizePage />);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Deny' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Cancel' }));
 
     expect(mockAnalytics.onConnectDenied).toHaveBeenCalledWith({
       clientId: 'mcp_client_abc',
@@ -250,20 +295,21 @@ describe('McpAuthorizePage analytics', () => {
     });
     render(<McpAuthorizePage />);
 
-    expect(await screen.findByText('Cursor')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Deny' }));
+    expect(await screen.findByRole('heading', { name: 'Connect Cursor to LabOS' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
 
     expect(await screen.findByText('You can close this tab.')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Allow' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Deny' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Connect' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument();
     expect(locationAssign).not.toHaveBeenCalled();
   });
 
-  it('fires approve_failed on Allow error', async () => {
+  it('fires approve_failed on Connect error', async () => {
     mockApprove.mockResolvedValue({ error: 'failed' });
     render(<McpAuthorizePage />);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Allow' }));
+    await acknowledge();
+    fireEvent.click(screen.getByRole('button', { name: 'Connect' }));
 
     await waitFor(() => {
       expect(mockAnalytics.onConnectError).toHaveBeenCalledWith({

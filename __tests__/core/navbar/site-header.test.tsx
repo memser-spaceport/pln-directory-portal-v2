@@ -21,6 +21,10 @@ jest.mock('@/components/core/navbar/components/CompleteYourProfile', () => ({
   CompleteYourProfile: () => <div data-testid="complete-your-profile" />,
 }));
 
+jest.mock('@/components/core/mcp-hints/McpLaunchBar', () => ({
+  McpLaunchBar: () => <div data-testid="mcp-launch-bar" />,
+}));
+
 const props = { userInfo: {} as never, isLoggedIn: false, authToken: '' };
 
 let observedTag: string | null = null;
@@ -46,6 +50,8 @@ describe('SiteHeader', () => {
     // The carousel decides for itself whether to show (PLAA routes, PLAA members only).
     expect(screen.getByTestId('plaa-top-banner-carousel')).toBeInTheDocument();
     expect(screen.getByTestId('complete-your-profile')).toBeInTheDocument();
+    // Decides for itself too (mcp.connect, no agent yet); it sits in the measured header like the other bars.
+    expect(screen.getByTestId('mcp-launch-bar').closest('header')).not.toBeNull();
   });
 
   /* The bars sit *inside* this element, so its height is the chrome height

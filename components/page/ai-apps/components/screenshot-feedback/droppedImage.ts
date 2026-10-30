@@ -7,23 +7,21 @@ import type { ScreenshotAttachment } from './types';
  * A preview in the screenshot strip names itself under `SHOT_DRAG_TYPE` when a
  * drag starts from it. A browser that drags the picture natively still gives
  * its data URL (in `text/uri-list` or `text/html`), and that is matched to the
- * screenshot by its picture. Anything else that is a picture comes in as a new
- * one: an image file, or a data URL from elsewhere on the page.
+ * screenshot by its picture. An image file comes in as a new screenshot, read
+ * by `attachImageFile` like the Attach image button. Any other picture (one
+ * already in the note, or from another page) is left to the editor.
  */
 
 /** The drag type a screenshot preview sets; its value is the screenshot's id. */
 export const SHOT_DRAG_TYPE = 'application/x-labos-feedback-shot';
 
-export type DroppedImage =
-  | { kind: 'shot'; shot: ScreenshotAttachment }
-  | { kind: 'file'; file: File }
-  | { kind: 'src'; src: string };
+export type DroppedImage = { kind: 'shot'; shot: ScreenshotAttachment } | { kind: 'file'; file: File };
 
 const DATA_IMAGE = /^data:image\/[a-z0-9.+-]+[;,]/i;
 
 function readType(data: DataTransfer, type: string): string {
   try {
-    return data.getData(type) ?? '';
+    return data.getData(type);
   } catch {
     return '';
   }
@@ -64,5 +62,5 @@ export function readDroppedImage(
   const src = droppedDataUrl(data);
   if (!src) return null;
   const shot = shots.find((item) => item.imageDataUrl === src);
-  return shot ? { kind: 'shot', shot } : { kind: 'src', src };
+  return shot ? { kind: 'shot', shot } : null;
 }

@@ -21,6 +21,7 @@ import type { AppCapture } from '@/components/page/ai-apps/components/element-pi
 
 const mockUseAiApps = jest.fn();
 const mockMutate = jest.fn();
+let mockSubmitPending = false;
 const mockAnalytics = new Proxy({} as Record<string, jest.Mock>, {
   get: (target, key: string) => (target[key] ??= jest.fn()),
 });
@@ -58,7 +59,7 @@ jest.mock('@/services/ai-apps/hooks/useAiApps', () => ({
 }));
 
 jest.mock('@/services/ai-app-feedback/hooks/useSubmitAiAppFeedback', () => ({
-  useSubmitAiAppFeedback: () => ({ mutate: mockMutate, isPending: false }),
+  useSubmitAiAppFeedback: () => ({ mutate: mockMutate, isPending: mockSubmitPending }),
 }));
 
 jest.mock('@/components/ContactSupport/hooks/useContactSupport', () => ({
@@ -199,6 +200,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  mockSubmitPending = false;
   jest.clearAllMocks();
 });
 
@@ -226,6 +228,8 @@ const preview = (n: number) => screen.getByRole('button', { name: `Open screensh
 function dragShotToBox(n: number) {
   const data = transfer();
   fireEvent.dragStart(preview(n), { dataTransfer: data });
+  /* The box must accept the strip's own drag type, or a browser never fires the drop. */
+  expect(fireEvent.dragOver(box(), { dataTransfer: data })).toBe(false);
   return fireEvent.drop(box(), { dataTransfer: data });
 }
 
@@ -324,6 +328,19 @@ describe('dropping a screenshot into the description box', () => {
     expect(attachImageFile).toHaveBeenCalledWith(file);
     await waitFor(() => expect(screen.getByRole('img', { name: 'Screenshot 2' })).toHaveAttribute('src', CUT));
     expect(box()).toHaveValue('');
+  });
+
+  it('opens nothing while the feedback is sending', async () => {
+    mockSubmitPending = true;
+    renderDialog(() => Promise.resolve(shot(SHOT_A)));
+    await flush();
+
+    expect(dragShotToBox(1)).toBe(false);
+    expect(screen.queryByRole('button', { name: 'Save marks' })).not.toBeInTheDocument();
+    const file = new File(['x'], 'shot.png', { type: 'image/png' });
+    expect(fireEvent.drop(box(), { dataTransfer: transfer({}, [file]) })).toBe(false);
+    await flush();
+    expect(screen.queryByRole('button', { name: 'Save marks' })).not.toBeInTheDocument();
   });
 
   it('leaves a text drop to the editor', async () => {

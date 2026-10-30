@@ -38,12 +38,9 @@ describe('readDroppedImage', () => {
     expect(readDroppedImage(transfer({}, [file]), shots)).toEqual({ kind: 'file', file });
   });
 
-  it('takes a data-URL picture that is not in the list as a new picture', () => {
+  it('leaves a data-URL picture that is not in the list to the editor (one moved inside the note)', () => {
     const other = 'data:image/png;base64,T1RIRVI=';
-    expect(readDroppedImage(transfer({ 'text/html': `<img src="${other}">` }), shots)).toEqual({
-      kind: 'src',
-      src: other,
-    });
+    expect(readDroppedImage(transfer({ 'text/html': `<img src="${other}">` }), shots)).toBeNull();
   });
 
   it('leaves text, links and files that are not pictures to the editor', () => {

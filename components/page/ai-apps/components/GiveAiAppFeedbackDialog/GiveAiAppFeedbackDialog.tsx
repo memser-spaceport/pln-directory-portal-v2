@@ -1845,7 +1845,7 @@ export function GiveAiAppFeedbackDialog({
           isOpen={isOpen}
           wide={isWideShown}
           hidden={isBusy || collapsed}
-          reserveSpace={Boolean(appUid)}
+          reserveSpace={Boolean(appUid) && showingAlt}
           label={title}
         >
           {panel}

@@ -1044,3 +1044,76 @@ describe('drafts', () => {
     setItem.mockRestore();
   });
 });
+
+/* LAB-3046: the drawer on an app's page opens on top of it, so every picture shows the page as the member saw it. */
+describe('the drawer and the page under it', () => {
+  const inset = () => document.documentElement.style.getPropertyValue('--ai-app-comments-inset');
+
+  afterEach(() => {
+    document.documentElement.style.removeProperty('--ai-app-comments-inset');
+  });
+
+  function renderDrawer(capture: () => Promise<AppCapture>, isOpen = true) {
+    const props = {
+      variant: 'drawer' as const,
+      onClose: jest.fn(),
+      appUid: 'app-1',
+      appName: 'My App',
+      capture,
+      frameRef,
+    };
+    const view = render(<GiveAiAppFeedbackDialog {...props} isOpen={isOpen} />);
+    return { ...view, update: (open: boolean) => view.rerender(<GiveAiAppFeedbackDialog {...props} isOpen={open} />) };
+  }
+
+  it('does not resize the app between the open and the automatic screenshot', async () => {
+    const insetAtCapture: string[] = [];
+    const capture = jest.fn(() => {
+      insetAtCapture.push(inset());
+      return Promise.resolve(shot(SHOT_A));
+    });
+    const { update } = renderDrawer(capture, false);
+    expect(inset()).toBe('');
+
+    update(true);
+    await flush();
+    expect(capture).toHaveBeenCalledTimes(1);
+    expect(insetAtCapture).toEqual(['']);
+    expect(inset()).toBe('');
+    expect(screen.getByRole('img', { name: 'Screenshot 1' })).toHaveAttribute('src', SHOT_A);
+  });
+
+  it('keeps the page as it was through Whole page, Pick a part, Wider and close', async () => {
+    const insetAtCapture: string[] = [];
+    const capture = jest.fn(() => {
+      insetAtCapture.push(inset());
+      return Promise.resolve(shot(SHOT_A));
+    });
+    const { update } = renderDrawer(capture);
+    await flush();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Whole page' }));
+    await flush();
+    expect(inset()).toBe('');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Pick a part' }));
+    await flush();
+    expect(screen.getByTestId('feedback-drawer').className).toMatch(/overlayHidden/);
+    expect(inset()).toBe('');
+    fireEvent.click(within(screen.getByTestId('live-region-overlay')).getByRole('button', { name: 'Cancel' }));
+    await flush();
+    expect(screen.getByTestId('feedback-drawer').className).not.toMatch(/overlayHidden/);
+    expect(inset()).toBe('');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Wider' }));
+    expect(inset()).toBe('');
+    fireEvent.click(screen.getByRole('button', { name: 'Narrower' }));
+    expect(inset()).toBe('');
+
+    expect(insetAtCapture.length).toBeGreaterThanOrEqual(2);
+    expect(insetAtCapture.every((value) => value === '')).toBe(true);
+
+    update(false);
+    expect(inset()).toBe('');
+  });
+});

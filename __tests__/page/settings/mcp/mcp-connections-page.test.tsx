@@ -275,8 +275,12 @@ describe('McpConnectionsPage', () => {
     fireEvent.click(screen.getAllByRole('button', { name: 'Edit permissions' })[0]);
     const drawer = screen.getByTestId('drawer');
     expect(within(drawer).getByText('With write: post news for your teams.')).toBeInTheDocument();
-    expect(within(drawer).getByText('Read your profile, job alert and email preferences.', { exact: false })).toBeInTheDocument();
-    expect(within(drawer).getByText(/^With write: edit your profile and experience, join or leave teams and projects,/)).toBeInTheDocument();
+    expect(
+      within(drawer).getByText('Read your profile, job alert and email preferences.', { exact: false }),
+    ).toBeInTheDocument();
+    expect(
+      within(drawer).getByText(/^With write: edit your profile and experience, join or leave teams and projects,/),
+    ).toBeInTheDocument();
     const profile = within(drawer).getByRole('radiogroup', { name: 'Access to Your profile' });
     expect(within(profile).getByRole('radio', { name: 'Read and write' })).toBeEnabled();
   });

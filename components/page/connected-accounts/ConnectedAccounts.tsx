@@ -8,6 +8,7 @@ import { triggerLoader } from '@/utils/common.utils';
 import LinkAuthAccounts from '@/components/page/member-info/link-auth-accounts';
 import { McpSection } from '@/components/page/connected-accounts/McpSection';
 import { useMcpAccess } from '@/services/rbac/hooks/useMcpAccess';
+import { SHOW_MCP_CONNECTIONS_PAGE } from '@/utils/mcp';
 import { IUserInfo } from '@/types/shared.types';
 // Lives with the prototype it was designed in, which renders the same component.
 import { EmailIdentityRow } from '@/prototypes/entries/settings-contact-details/EmailIdentityRow';
@@ -52,7 +53,8 @@ export const ConnectedAccounts = ({ userInfo }: { userInfo: IUserInfo }) => {
       )}
 
       <LinkAuthAccounts />
-      {canConnect && <McpSection />}
+      {/* With the MCP connections page on (LAB-2995), MCP lives at /settings/mcp only. */}
+      {canConnect && !SHOW_MCP_CONNECTIONS_PAGE && <McpSection />}
     </div>
   );
 };

@@ -10,6 +10,7 @@ export {
   type PersistentCaptureReason,
 } from './captureTabFrame';
 export { attachImageFile, AttachImageError } from './attachImageFile';
+export { readDroppedImage, SHOT_DRAG_TYPE, type DroppedImage } from './droppedImage';
 export { RegionSelectOverlay } from './RegionSelectOverlay';
 export { LiveRegionOverlay, dragToFrameRect, frameRectToCapturePixels, type FrameRect } from './LiveRegionOverlay';
 export { AnnotatorModal } from './AnnotatorModal';

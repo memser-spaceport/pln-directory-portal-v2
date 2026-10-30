@@ -60,7 +60,9 @@ import {
   hasAnyAnnotation,
   isCaptureSupported,
   isPersistentReason,
+  readDroppedImage,
   requestTabCapture,
+  SHOT_DRAG_TYPE,
   stopCaptureStream,
   type AnnotationState,
   type FrameRect,
@@ -1029,6 +1031,36 @@ export function GiveAiAppFeedbackDialog({
     setCropSrc(shot.imageDataUrl);
   };
 
+  /* A screenshot dragged from the strip into the Rich note opens the annotator,
+     as its Annotate button does, instead of sitting in the text as a plain
+     picture. Capture phase, so the editor never sees the drop and embeds
+     nothing; a drop that is not a picture (text, a link) stays the editor's. */
+  const onNoteDrop = async (event: React.DragEvent<HTMLDivElement>) => {
+    const dropped = readDroppedImage(event.dataTransfer, screenshots);
+    if (!dropped) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (cropSrc) return;
+
+    if (dropped.kind === 'shot') {
+      onEditShot(dropped.shot);
+      return;
+    }
+    if (atShotLimit) {
+      toast.error(`Up to ${MAX_SCREENSHOTS} screenshots.`);
+      return;
+    }
+    if (dropped.kind === 'src') {
+      setCropSrc(dropped.src);
+      return;
+    }
+    try {
+      setCropSrc(await attachImageFile(dropped.file));
+    } catch (error) {
+      toast.error(error instanceof AttachImageError ? error.message : 'Could not read that image.');
+    }
+  };
+
   const onAnnotatorDiscard = () => {
     analytics.onFeedbackScreenshotAnnotatorDiscarded({ isEditing: Boolean(editingShotId) });
     setCropSrc(null);
@@ -1548,6 +1580,11 @@ export function GiveAiAppFeedbackDialog({
                               className={s.shotImage}
                               aria-label={`Open screenshot ${index + 1}`}
                               onClick={() => onEditShot(shot)}
+                              draggable
+                              onDragStart={(event) => {
+                                event.dataTransfer.setData(SHOT_DRAG_TYPE, shot.id);
+                                event.dataTransfer.effectAllowed = 'copy';
+                              }}
                             >
                               {/* Marks show on the preview too, so nothing drawn is out of sight (prototype). */}
                               {hasAnyAnnotation(shot.annotations) ? (
@@ -1690,15 +1727,17 @@ export function GiveAiAppFeedbackDialog({
                       </div>
                     </div>
                     {noteView === 'rich' ? (
-                      <FormEditor
-                        name="rich"
-                        placeholder={FEEDBACK_PLACEHOLDER}
-                        simplified
-                        toolbarConfig={FEEDBACK_TOOLBAR}
-                        markdownShortcuts
-                        minHeight={isWide ? 360 : 120}
-                        className={s.editor}
-                      />
+                      <div onDropCapture={(event) => void onNoteDrop(event)}>
+                        <FormEditor
+                          name="rich"
+                          placeholder={FEEDBACK_PLACEHOLDER}
+                          simplified
+                          toolbarConfig={FEEDBACK_TOOLBAR}
+                          markdownShortcuts
+                          minHeight={isWide ? 360 : 120}
+                          className={s.editor}
+                        />
+                      </div>
                     ) : (
                       <textarea
                         {...register('markdown')}

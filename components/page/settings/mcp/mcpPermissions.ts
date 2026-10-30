@@ -8,22 +8,22 @@ import type { McpConnection, McpConnectionScope, McpLevel, McpLevels, McpScopeKe
 export const SCOPE_COPY: Partial<Record<McpScopeKey, { read: string; write?: string }>> = {
   search: { read: 'Search members, teams, projects and events.' },
   forum: { read: 'Read threads and replies.', write: 'start threads and reply.' },
-  news: { read: 'Read Home updates and your For You feed.', write: 'post news for your teams.' },
+  news: { read: 'Read Home updates and your For You feed.', write: 'post news for your teams and upvote stories.' },
   directory: {
     read: 'Open profiles, team pages and projects.',
-    write: "edit the teams you lead and your teams' projects.",
+    write: 'edit the teams you lead, their fund profile, roster and asks, and create or delete projects.',
   },
-  events: { read: 'Browse events and who is going.', write: 'RSVP for you.' },
+  events: { read: 'Browse events and who is going.', write: 'RSVP for you, update that RSVP, and submit an event.' },
   investors: {
     read: 'Look up investors and your warm-intro paths.',
-    write: 'add notes and feedback to your paths, and edit investor records.',
+    write: 'add notes and feedback, edit investor records, lists and pathfinder corrections.',
   },
-  ai_apps: { read: 'Read feedback on your apps.', write: 'change the status of that feedback.' },
+  ai_apps: { read: 'Read feedback on your apps.', write: 'rename, redeploy, delete, and change access and feedback.' },
   profile: {
     read: 'Read your profile, job alert and email preferences.',
     write:
-      'edit your profile and experience, join or leave teams and projects, follow teams, save jobs and Demo Day ' +
-      'teams, and change your job alert and email preferences.',
+      'edit your profile, investor profile and privacy, join or leave teams and projects, follow teams, apply to jobs, ' +
+      'save jobs and Demo Day teams, and change your alerts and email preferences.',
   },
 };
 

@@ -277,9 +277,13 @@ describe('McpConnectionsPage', () => {
     render(<McpConnectionsPage />);
     fireEvent.click(screen.getAllByRole('button', { name: 'Edit permissions' })[0]);
     const drawer = screen.getByTestId('drawer');
-    expect(within(drawer).getByText('With write: RSVP for you.')).toBeInTheDocument();
     expect(
-      within(drawer).getByText("With write: edit the teams you lead and your teams' projects."),
+      within(drawer).getByText('With write: RSVP for you, update that RSVP, and submit an event.'),
+    ).toBeInTheDocument();
+    expect(
+      within(drawer).getByText(
+        'With write: edit the teams you lead, their fund profile, roster and asks, and create or delete projects.',
+      ),
     ).toBeInTheDocument();
     const directory = within(drawer).getByRole('radiogroup', { name: 'Access to Members, teams and projects' });
     expect(within(directory).getByRole('radio', { name: 'Read and write' })).toBeEnabled();
@@ -300,12 +304,14 @@ describe('McpConnectionsPage', () => {
     render(<McpConnectionsPage />);
     fireEvent.click(screen.getAllByRole('button', { name: 'Edit permissions' })[0]);
     const drawer = screen.getByTestId('drawer');
-    expect(within(drawer).getByText('With write: post news for your teams.')).toBeInTheDocument();
+    expect(within(drawer).getByText('With write: post news for your teams and upvote stories.')).toBeInTheDocument();
     expect(
       within(drawer).getByText('Read your profile, job alert and email preferences.', { exact: false }),
     ).toBeInTheDocument();
     expect(
-      within(drawer).getByText(/^With write: edit your profile and experience, join or leave teams and projects,/),
+      within(drawer).getByText(
+        /^With write: edit your profile, investor profile and privacy, join or leave teams and projects,/,
+      ),
     ).toBeInTheDocument();
     const profile = within(drawer).getByRole('radiogroup', { name: 'Access to Your profile' });
     expect(within(profile).getByRole('radio', { name: 'Read and write' })).toBeEnabled();

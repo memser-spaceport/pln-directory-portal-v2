@@ -60,7 +60,9 @@ import {
   hasAnyAnnotation,
   isCaptureSupported,
   isPersistentReason,
+  readDroppedImage,
   requestTabCapture,
+  SHOT_DRAG_TYPE,
   stopCaptureStream,
   type AnnotationState,
   type FrameRect,
@@ -467,6 +469,8 @@ export function GiveAiAppFeedbackDialog({
   const [screenshots, setScreenshots] = useState<ScreenshotAttachment[]>([]);
   const [freezeSrc, setFreezeSrc] = useState<string | null>(null);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
+  /** Bumped by each image file dropped on the note and by a close, so only the newest read opens the annotator. */
+  const droppedReadRef = useRef(0);
   /**
    * Which capture the annotator is open on, when it is an edit.
    *
@@ -590,6 +594,7 @@ export function GiveAiAppFeedbackDialog({
       setIsCapturing(false);
       setFreezeSrc(null);
       setCropSrc(null);
+      droppedReadRef.current += 1;
       setIsPickingPart(false);
       setScreenshots([]);
       setEditingShotId(null);
@@ -984,6 +989,16 @@ export function GiveAiAppFeedbackDialog({
     setIsPickingPart(false);
   }, []);
 
+  /** The file as a data URL for the capture pipeline, or null after a toast that says why it cannot be used. */
+  const readImageFile = async (file: File): Promise<string | null> => {
+    try {
+      return await attachImageFile(file);
+    } catch (error) {
+      toast.error(error instanceof AttachImageError ? error.message : 'Could not read that image.');
+      return null;
+    }
+  };
+
   /**
    * The fallback for anyone the capture path cannot serve.
    *
@@ -999,11 +1014,8 @@ export function GiveAiAppFeedbackDialog({
     if (!file) return;
 
     analytics.onFeedbackImageAttached({ trigger: captureClosedBy ?? 'unsupported' });
-    try {
-      setFreezeSrc(await attachImageFile(file));
-    } catch (error) {
-      toast.error(error instanceof AttachImageError ? error.message : 'Could not read that image.');
-    }
+    const dataUrl = await readImageFile(file);
+    if (dataUrl) setFreezeSrc(dataUrl);
   };
 
   const onCropSelected = (croppedDataUrl: string) => {
@@ -1027,6 +1039,39 @@ export function GiveAiAppFeedbackDialog({
     analytics.onFeedbackScreenshotEditOpened();
     setEditingShotId(shot.id);
     setCropSrc(shot.imageDataUrl);
+  };
+
+  /* A screenshot dragged from the strip into the Rich note opens the annotator,
+     as its Annotate button does, instead of sitting in the text as a plain
+     picture. Capture phase, so the editor never sees the drop and embeds
+     nothing; a drop that is not a screenshot or an image file (text, a link, a
+     picture already in the note) stays the editor's. */
+  const onNoteDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    /* The strip's drag carries only its own type, which the editor would refuse. */
+    if (!Array.from(event.dataTransfer.types).includes(SHOT_DRAG_TYPE)) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+  };
+
+  const onNoteDrop = async (event: React.DragEvent<HTMLDivElement>) => {
+    const dropped = readDroppedImage(event.dataTransfer, screenshots);
+    if (!dropped) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (cropSrc || isPending) return;
+
+    if (dropped.kind === 'shot') {
+      onEditShot(dropped.shot);
+      return;
+    }
+    if (atShotLimit) {
+      toast.error(`Up to ${MAX_SCREENSHOTS} screenshots.`);
+      return;
+    }
+    /* A close, or another drop, while the file is read makes this read stale. */
+    const read = ++droppedReadRef.current;
+    const dataUrl = await readImageFile(dropped.file);
+    if (dataUrl && read === droppedReadRef.current) setCropSrc((current) => current ?? dataUrl);
   };
 
   const onAnnotatorDiscard = () => {
@@ -1548,6 +1593,11 @@ export function GiveAiAppFeedbackDialog({
                               className={s.shotImage}
                               aria-label={`Open screenshot ${index + 1}`}
                               onClick={() => onEditShot(shot)}
+                              draggable
+                              onDragStart={(event) => {
+                                event.dataTransfer.setData(SHOT_DRAG_TYPE, shot.id);
+                                event.dataTransfer.effectAllowed = 'copy';
+                              }}
                             >
                               {/* Marks show on the preview too, so nothing drawn is out of sight (prototype). */}
                               {hasAnyAnnotation(shot.annotations) ? (
@@ -1690,15 +1740,17 @@ export function GiveAiAppFeedbackDialog({
                       </div>
                     </div>
                     {noteView === 'rich' ? (
-                      <FormEditor
-                        name="rich"
-                        placeholder={FEEDBACK_PLACEHOLDER}
-                        simplified
-                        toolbarConfig={FEEDBACK_TOOLBAR}
-                        markdownShortcuts
-                        minHeight={isWide ? 360 : 120}
-                        className={s.editor}
-                      />
+                      <div onDragOverCapture={onNoteDragOver} onDropCapture={(event) => void onNoteDrop(event)}>
+                        <FormEditor
+                          name="rich"
+                          placeholder={FEEDBACK_PLACEHOLDER}
+                          simplified
+                          toolbarConfig={FEEDBACK_TOOLBAR}
+                          markdownShortcuts
+                          minHeight={isWide ? 360 : 120}
+                          className={s.editor}
+                        />
+                      </div>
                     ) : (
                       <textarea
                         {...register('markdown')}

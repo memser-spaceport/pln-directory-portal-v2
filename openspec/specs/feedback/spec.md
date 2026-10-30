@@ -19,6 +19,20 @@ When a member sends LabOS feedback with a screenshot that has drawings, text, sh
 - **WHEN** the member sends the feedback
 - **THEN** the request carries the raw screenshot only, and only one image is uploaded
 
+### Requirement: A screenshot dropped into the description box opens the annotate tools
+When a member drags a screenshot from the feedback form's screenshot list (the automatic one or a Pick a part one) into the description box in the Rich view, the form SHALL open the annotate window for that screenshot, with the same tools as its Annotate button, and SHALL NOT put a plain picture in the description. An image file dropped there SHALL open the annotate window as a new screenshot.
+
+#### Scenario: A member drops a screenshot into the description box
+- **GIVEN** a member has a screenshot in the feedback form
+- **WHEN** the member drags it into the description box
+- **THEN** the annotate window opens for that screenshot
+- **AND** after the member saves drawings, the screenshot preview shows them and the feedback sends them by the rule for drawn-on screenshots
+
+#### Scenario: A member discards the annotate window after a drop
+- **GIVEN** a member dropped a screenshot into the description box and the annotate window is open
+- **WHEN** the member discards the annotate window
+- **THEN** the description has no new picture and the screenshot list does not change
+
 ### Requirement: Feedback still sends when the picture with drawings fails
 If the picture with the drawings cannot be made or uploaded, the feedback SHALL still send with the raw screenshot and its drawing data, and the size limit SHALL apply to the request as sent.
 

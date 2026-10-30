@@ -12,6 +12,7 @@ const mockAnalytics = {
   onNewsPreferencesSaveFailed: jest.fn(),
   onNewsPreferencesFollowToggled: jest.fn(),
   onNewsPreferencesTagSearched: jest.fn(),
+  onNewsPreferencesForYouLinkClicked: jest.fn(),
 };
 let mockPreferences: { newsTags: string[]; newsTagsSeeded: boolean } | undefined;
 let mockTagList: { data?: INewsTagGroup[]; isError: boolean };
@@ -172,6 +173,28 @@ describe('NewsPreferences tags (LAB-3000)', () => {
   it('links to Email Preferences for the digest frequency', () => {
     renderPage();
     expect(screen.getByRole('link', { name: 'Email Preferences' })).toHaveAttribute('href', '/settings/email');
+  });
+
+  describe('"For You" in the intro (LAB-3036)', () => {
+    it('links "For You" to the For You feed on Home, in the same tab, and keeps the sentence text', () => {
+      renderPage();
+      const link = screen.getByRole('link', { name: 'For You' });
+      expect(link).toHaveAttribute('href', '/home?feed=for-you');
+      expect(link).not.toHaveAttribute('target');
+      expect(link).toHaveClass(screen.getByRole('link', { name: 'Email Preferences' }).className);
+      expect(link.closest('p')).toHaveTextContent(
+        'These shape For You on Home and the news in your email digest. To change how often the digest arrives, go to Email Preferences.',
+      );
+    });
+
+    it.each(['settings', 'feed', 'digest'] as const)('records a click with how the member arrived (%s)', (from) => {
+      renderPage({ from });
+      const link = screen.getByRole('link', { name: 'For You' });
+      expect(link).toHaveAttribute('href', '/home?feed=for-you');
+      fireEvent.click(link);
+      expect(mockAnalytics.onNewsPreferencesForYouLinkClicked).toHaveBeenCalledTimes(1);
+      expect(mockAnalytics.onNewsPreferencesForYouLinkClicked).toHaveBeenCalledWith(from);
+    });
   });
 
   it('adds a tag: saves the whole list, records it, and shows "Saved"', () => {

@@ -7,6 +7,11 @@ export const ALL_TAB = 'All';
 export const ALL_CAT = 'all';
 export const FOR_YOU_CAT = 'forYou';
 
+/** Home's `?feed=for-you` (LAB-3036): News preferences links here to open the For You feed. */
+export const HOME_FEED_FOR_YOU = 'for-you';
+export type HomeFeedParam = typeof HOME_FEED_FOR_YOU;
+export const HOME_FOR_YOU_HREF = `/home?feed=${HOME_FEED_FOR_YOU}`;
+
 /**
  * Everything in the feed that is a conversation rather than a story: member
  * forum posts (the cards badged "Discussion"), plus news items that have a

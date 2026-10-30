@@ -22,6 +22,7 @@ import { DigestEmailHomeLinkCapture } from '@/components/page/home/DigestEmailHo
 import { QuickActions } from '@/components/page/home/QuickActions';
 import { TeamNews, AutoMarkNewsNotification, MarkHomeVisited } from '@/components/page/home/TeamNews';
 import { resolveForYouMatch, type ForYouMatch } from '@/components/page/home/TeamNews/utils/resolveForYouMatch';
+import { parseHomeFeedParam } from '@/components/page/home/TeamNews/utils/parseHomeFeedParam';
 import {
   getTeamNewsGroupedByFocusArea,
   getTeamNewsItemByUid,
@@ -39,11 +40,11 @@ import {
 } from '@/components/page/home/QuickActions/utils/resolveQuickActionsState';
 
 type HomeProps = {
-  searchParams: Promise<{ news?: string }>;
+  searchParams: Promise<{ news?: string; feed?: string | string[] }>;
 };
 
 export default async function Home(props: HomeProps) {
-  const { news } = await props.searchParams;
+  const { news, feed } = await props.searchParams;
   const {
     isLoggedIn,
     isError,
@@ -84,6 +85,7 @@ export default async function Home(props: HomeProps) {
               popularItems={popularItems}
               initialDigestSettings={initialDigestSettings}
               deepLinkedItem={deepLinkedNewsItem}
+              initialFeed={parseHomeFeedParam(feed)}
             />
           </div>
           <div className={styles.home__cn__focusarea}>

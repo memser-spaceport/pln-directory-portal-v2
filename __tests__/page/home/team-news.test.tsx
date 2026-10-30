@@ -2295,6 +2295,36 @@ describe('TeamNews', () => {
       expect(within(catRow()).getByRole('button', { name: /All categories/ })).toHaveClass(/catActive/);
     });
 
+    describe('opened from News preferences with ?feed=for-you (LAB-3036)', () => {
+      it('selects For You when the member has For You stories', () => {
+        renderTeamNews(
+          <TeamNews groups={forYouGroups} forYouTeamUids={['team-mem', 'team-rec']} initialFeed="for-you" />,
+        );
+
+        expect(within(catRow()).getByRole('button', { name: /For You/ })).toHaveClass(/catActive/);
+        expect(screen.getByText('Headline mem-1')).toBeInTheDocument();
+        expect(screen.queryByText('Headline other-1')).not.toBeInTheDocument();
+      });
+
+      it('falls back to All categories, with no error, when the member has no For You stories', () => {
+        renderTeamNews(<TeamNews groups={groups} forYouTeamUids={['team-does-not-exist']} initialFeed="for-you" />);
+
+        expect(within(catRow()).queryByRole('button', { name: /For You/ })).not.toBeInTheDocument();
+        expect(within(catRow()).getByRole('button', { name: /All categories/ })).toHaveClass(/catActive/);
+      });
+
+      it('still lets the member leave For You', () => {
+        renderTeamNews(
+          <TeamNews groups={forYouGroups} forYouTeamUids={['team-mem', 'team-rec']} initialFeed="for-you" />,
+        );
+
+        fireEvent.click(within(catRow()).getByRole('button', { name: /All categories/ }));
+
+        expect(within(catRow()).getByRole('button', { name: /All categories/ })).toHaveClass(/catActive/);
+        expect(screen.getByText('Headline other-1')).toBeInTheDocument();
+      });
+    });
+
     it('keeps For You selected when switching focus-area tabs', () => {
       renderTeamNews(<TeamNews groups={forYouGroups} forYouTeamUids={['team-mem', 'team-rec']} />);
 

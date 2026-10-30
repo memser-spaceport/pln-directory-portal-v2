@@ -61,6 +61,7 @@ import {
   isCaptureSupported,
   isPersistentReason,
   requestTabCapture,
+  canPromptCaptureNow,
   stopCaptureStream,
   type AnnotationState,
   type FrameRect,
@@ -501,7 +502,11 @@ export function GiveAiAppFeedbackDialog({
   const [isPickingPart, setIsPickingPart] = useState(false);
   /** The bridge failed a capture this open: further captures use the screen share (after a click). */
   const [bridgeFailed, setBridgeFailed] = useState(false);
-  const useBridge = canCapture && !bridgeFailed;
+  /** A capture the member asked for failed and the browser needs a new click: the note says so. */
+  const [manualNote, setManualNote] = useState<{ tooSlow: boolean } | null>(null);
+  const autoFailed = auto?.status === 'failed';
+  /* A failed automatic screenshot sends the next Whole page / Pick a part to the screen share too. */
+  const useBridge = canCapture && !bridgeFailed && !autoFailed;
   const canPickLive = useBridge && (pickViewport || Boolean(frameRef));
   const captureNoun = appUid ? 'app' : 'page';
   const isBusy = isCapturing || Boolean(freezeSrc) || Boolean(cropSrc) || isPickingPart;
@@ -511,6 +516,8 @@ export function GiveAiAppFeedbackDialog({
   /* The picture still on its way counts: it's a slot the member can see. */
   const shotCount = screenshots.length + (auto?.status === 'capturing' ? 1 : 0);
   const atShotLimit = shotCount >= MAX_SCREENSHOTS;
+  const failedNote =
+    manualNote ?? (auto?.status === 'failed' && screenshots.length === 0 ? { tooSlow: auto.tooSlow } : null);
 
   /* Fresh refs for the capture effect, which must not re-run (and re-capture) when they change identity. */
   const captureRef = useRef(capture);
@@ -583,6 +590,7 @@ export function GiveAiAppFeedbackDialog({
       const hasDraft = Boolean(readFeedbackDraft(feedbackDraftKey(place)));
       setAuto(autoAtOpen(hasDraft, openCount + 1));
       setBridgeFailed(false);
+      setManualNote(null);
     } else {
       /* What was in the panel stays as a draft; the next open loads it from there. */
       setAuto(null);
@@ -837,6 +845,7 @@ export function GiveAiAppFeedbackDialog({
     const hasDraft = Boolean(readFeedbackDraft(feedbackDraftKey(here)));
     setAuto(autoAtOpen(hasDraft, openCount + 1));
     setBridgeFailed(false);
+    setManualNote(null);
     setOpenCount(openCount + 1);
     setShowSent(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -864,6 +873,7 @@ export function GiveAiAppFeedbackDialog({
 
   const onTakeScreenshot = async () => {
     dropWaitingAuto();
+    setManualNote(null);
     analytics.onFeedbackScreenshotClicked();
     /* Hidden before the share prompt, not after it: the stream's first frame is
        painted when the member accepts, and the grab below reads that frame. Hiding
@@ -926,22 +936,25 @@ export function GiveAiAppFeedbackDialog({
         ms: Math.round(performance.now() - startedAt),
         error: error instanceof Error ? error.message.slice(0, 60) : 'failed',
       });
-      /* No automatic screen share: the browser only allows one straight from a click. */
       setBridgeFailed(true);
-      toast.error(
-        tookTooLong(error)
-          ? `The ${captureNoun} took too long to capture. Try again — it will use screen sharing.`
-          : `Couldn’t capture the ${captureNoun}. Try again — it will use screen sharing.`,
-      );
+      /* The browser opens a screen share only straight from a click: while this one is fresh, use it. */
+      if (canPromptCaptureNow()) {
+        analytics.onFeedbackScreenShareFallback({ reason: 'at-once' });
+        void onTakeScreenshot();
+      } else {
+        setManualNote({ tooSlow: tookTooLong(error) });
+      }
       return null;
     } finally {
       setIsRequestedCapture(false);
     }
   };
 
+  const fallbackReason = bridgeFailed ? 'capture-failed' : 'auto-failed';
+
   const onWholePage = async () => {
     if (!useBridge) {
-      analytics.onFeedbackScreenShareFallback({ reason: 'capture-failed' });
+      analytics.onFeedbackScreenShareFallback({ reason: fallbackReason });
       void onTakeScreenshot();
       return;
     }
@@ -955,7 +968,7 @@ export function GiveAiAppFeedbackDialog({
 
   const onPickPart = () => {
     if (!canPickLive) {
-      analytics.onFeedbackScreenShareFallback({ reason: 'capture-failed' });
+      analytics.onFeedbackScreenShareFallback({ reason: fallbackReason });
       void onTakeScreenshot();
       return;
     }
@@ -1533,11 +1546,11 @@ export function GiveAiAppFeedbackDialog({
                           author can update it to turn them on.
                         </p>
                       )}
-                      {auto?.status === 'failed' && screenshots.length === 0 && (
+                      {failedNote && (
                         <p className={s.shotNote}>
-                          {auto.tooSlow
-                            ? `The ${captureNoun} took too long to capture — add a screenshot below.`
-                            : `Couldn’t capture the ${captureNoun} automatically — add a screenshot below.`}
+                          {failedNote.tooSlow
+                            ? `The ${captureNoun} took too long to capture. Take a screenshot manually.`
+                            : 'Automatic screenshot failed. Take a screenshot manually.'}
                         </p>
                       )}
                       {screenshots.map((shot, index) => (

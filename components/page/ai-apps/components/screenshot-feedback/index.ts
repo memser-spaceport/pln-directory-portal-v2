@@ -4,6 +4,7 @@ export {
   stopCaptureStream,
   cropImageToDataUrl,
   isCaptureSupported,
+  canPromptCaptureNow,
   isPersistentReason,
   CaptureError,
   type CaptureFailureReason,

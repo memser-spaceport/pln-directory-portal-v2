@@ -24,6 +24,21 @@
   flex: 1;
 }
 
+/* With a New badge the name stops growing, so the badge sits right after it (LAB-2948 prototype .railText/.railBadge). */
+.textTight {
+  flex: 0 1 auto;
+  white-space: nowrap;
+}
+
+.newBadge {
+  margin-right: auto;
+  flex-shrink: 0;
+  padding: 0 6px;
+  font-size: 11px;
+  line-height: 16px;
+  text-transform: none;
+}
+
 .arrow {
   display: inline-block;
 

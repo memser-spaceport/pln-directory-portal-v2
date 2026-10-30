@@ -1,0 +1,1165 @@
+@use 'styles/media';
+
+/* New UI on the PL scale (14/20, 12/16). The card frame, rows, labels and code
+   come from production's McpSection.module.scss; token+fallback pairs are copied
+   from production stylesheets. */
+
+/* ---- Shared bits ---- */
+
+.blockHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+}
+
+.blockTitle {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.label {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.help {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+
+  strong {
+    font-weight: 600;
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.meta {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* Prototype-only marker for missing backend work: dashed outline, muted text,
+   no fill, so it reads as an annotation and never competes with real UI. */
+.backendTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px dashed var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.linkBtn {
+  padding: 0;
+}
+
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.textLink {
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* ---- Agent card: production's `.item` frame (border, radius, width), stacked into rows ---- */
+
+.agent {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+}
+
+.agentTop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+}
+
+.agentMark {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  /* White + hairline: a brand mark needs a plain ground; a grey tile muddies Claude's orange. */
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-neutral-primary, #fff);
+}
+
+/* Logo + client name inside a Connect tab. */
+.tabLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.agentId {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Mintlify's settings row: label + description left, control right. */
+.settingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px;
+  border-top: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+}
+
+.settingText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.segmented {
+  flex-shrink: 0;
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  border-radius: 8px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+
+  @include media.mobile-only {
+    order: -1;
+    width: 100%;
+  }
+}
+
+.segment {
+  flex: 1;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.segmentActive {
+  background: var(--background-base-white, #fff);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+}
+
+.activity {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-top: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+}
+
+.actions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.action {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  > .meta {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+}
+
+.actionText {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* The kind of act, after the text: a muted word, not a chip (reads are the resting state). */
+.kind {
+  margin-left: 8px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+
+  &::before {
+    content: '· ';
+  }
+}
+
+.kindRejected {
+  color: var(--foreground-warning-primary, #b45309);
+}
+
+/* ---- Revoke: quiet text at rest, PandaDoc-style inline confirm ---- */
+
+.revokeWrap {
+  position: relative;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.popover {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 5;
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #fff);
+  box-shadow: 0 4px 16px 0 var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
+}
+
+.popoverTitle {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.popoverActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* ---- Connect block ---- */
+
+.connect {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.urlRow,
+.codeRow {
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+}
+
+.urlText {
+  min-width: 0;
+}
+
+.tabs {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.step {
+  display: flex;
+  gap: 12px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.stepNumber {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.stepBody {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+
+  > .codeRow {
+    align-self: stretch;
+  }
+}
+
+.stepLink {
+  align-self: flex-start;
+}
+
+/* ---- Activity drawer ---- */
+
+.drawerHead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 24px 12px;
+  border-bottom: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+  background: var(--background-base-white, #fff);
+
+  @include media.mobile-only {
+    padding: 16px 16px 12px;
+  }
+}
+
+.drawerTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.drawerTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 28px;
+}
+
+.drawerClose {
+  margin-left: auto;
+}
+
+.drawerBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 24px 32px;
+
+  @include media.mobile-only {
+    padding: 12px 16px 24px;
+  }
+}
+
+.dayGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dayTitle {
+  margin: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.drawerRowMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* ---- Permissions (PostHog-style scopes) ---- */
+
+/* The rows carry their own hairlines, so the card body drops its gap. */
+.permContent {
+  gap: 0;
+  padding-top: 4px;
+}
+
+.scopeList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+
+  > .settingRow {
+    padding: 12px 0;
+  }
+}
+
+.settingRowFirst {
+  padding: 0 0 12px;
+  border-top: 0;
+  width: 100%;
+}
+
+/* Text first, control under it on phones: here the label says what the control governs. */
+.settingRowKeep .segmented {
+  @include media.mobile-only {
+    order: 0;
+  }
+}
+
+.segment:disabled {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: not-allowed;
+
+  &:hover {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+}
+
+.scopeHelp {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.scopeWrite {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.lockLine {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.permFoot {
+  margin: 0;
+  padding-top: 12px;
+  width: 100%;
+  border-top: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* ---- Discovery hint (search, forum, comments) ---- */
+
+.hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #fff);
+}
+
+.hintMarks {
+  flex-shrink: 0;
+  display: inline-flex;
+  gap: 4px;
+  padding-top: 2px;
+}
+
+.hintBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.hintClose {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  &:hover {
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+/* A stand-in for the host surface: a grey frame so the hint is seen in a place, not alone. */
+
+/* What the member just did (the query, the thread title), so the hint reads against it. */
+
+/* The connected hint: the same request as a prompt, with production's copy button. */
+.hintPrompt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+}
+
+.hintPromptText {
+  flex: 1;
+  min-width: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+/* The rail item capitalises its text; the badge keeps its own case. */
+/* MCP connections stays on one line, with the New badge right after it. */
+.railText {
+  flex: 0 1 auto;
+  white-space: nowrap;
+}
+
+.railBadge {
+  margin-right: auto;
+
+  flex-shrink: 0;
+  padding: 0 6px;
+  font-size: 11px;
+  line-height: 16px;
+  text-transform: none;
+}
+
+/* One control width down the list, so two-option rows line up with three-option ones. */
+.scopeList .segmented,
+.settingRowFirst .segmented {
+  min-width: 290px;
+
+  @include media.mobile-only {
+    min-width: 0;
+  }
+}
+
+/* ---- Scope editor (drawer and consent screen) ---- */
+
+.scopeEditor {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* Access row on the agent card: summary left, Edit right. */
+.accessRow {
+  align-items: center;
+}
+
+/* ---- Consent screen: the LabOS page an agent sends the member to ---- */
+
+.consentPage {
+  display: flex;
+  justify-content: center;
+  padding: 40px 16px 64px;
+  min-height: calc(100dvh - 48px);
+  background: var(--background-neutral-subtle, #f1f5f9);
+
+  @include media.mobile-only {
+    padding: 0;
+    background: var(--background-base-white, #fff);
+  }
+}
+
+.consentCard {
+  width: 100%;
+  max-width: 640px;
+  align-self: flex-start;
+
+  @include media.mobile-only {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+.consentHead {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+
+  @include media.mobile-only {
+    padding: 20px 16px 16px;
+  }
+}
+
+.consentLogo {
+  display: block;
+}
+
+.consentTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.consentTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 28px;
+  letter-spacing: -0.3px;
+}
+
+.consentBody {
+  width: 100%;
+  padding: 16px 24px;
+
+  @include media.mobile-only {
+    padding: 16px;
+  }
+}
+
+.consentFoot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  width: 100%;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+
+  @include media.mobile-only {
+    padding: 12px 16px;
+
+    > * {
+      flex: 1;
+    }
+  }
+}
+
+.accessRow > button {
+  flex-shrink: 0;
+
+  @include media.mobile-only {
+    align-self: flex-start;
+  }
+}
+
+.consentBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.consentSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* What Read already exposes, with the checkbox that clears Connect. */
+.consentNotice {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--background-warning-subtle, #fffbeb);
+  border: 1px solid var(--border-warning-subtle, #fde68a);
+}
+
+.ackRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+
+  > :first-child {
+    margin-top: 0;
+  }
+}
+
+.drawerTitleText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* ---- Launch banner, inside production's HighlightsBar ---- */
+
+.launch {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 0 32px;
+  color: #fff;
+}
+
+.launchMain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 12px;
+}
+
+.launchNew {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.launchText {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-align: center;
+
+  @include media.mobile-only {
+    font-size: 13px;
+  }
+}
+
+.launchCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  color: #156ff7;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+  cursor: pointer;
+
+  svg {
+    transition: transform 0.15s ease;
+  }
+
+  &:hover svg {
+    transform: translateX(2px);
+  }
+}
+
+.launchClose {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  display: inline-flex;
+  padding: 4px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transform: translateY(-50%);
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.12);
+  }
+}
+
+/* Card actions: View activity, then Revoke, on the name row. */
+.agentActions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 16px;
+
+  .revokeWrap {
+    align-self: center;
+  }
+}
+
+/* The account email in the card meta, so two accounts of one client read apart. */
+.agentAccount {
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* The Access row inside a connection card, under the name row. */
+.cardAccess {
+  padding: 12px;
+  border-top: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+}
+
+/* Drawer footer: one Save for the whole edit. */
+.drawerFoot {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: auto;
+  padding: 12px 24px;
+  border-top: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+  background: var(--background-base-white, #fff);
+
+  @include media.mobile-only {
+    padding: 12px 16px;
+
+    > * {
+      flex: 1;
+    }
+  }
+}
+
+/* Permissions as PostHog's scope chips, under the name row and lined up with the name. */
+.scopeChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0 12px 12px 56px;
+  list-style: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 13px;
+
+  @include media.mobile-only {
+    padding-left: 12px;
+  }
+}
+
+.scopeChip {
+  font-size: 13px;
+  line-height: 18px;
+}
+
+/* A control chip, so its hover is brand (DS rule: grey hover means "not a control"). */
+.scopeMore {
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--border-brand-subtle, #aebfff);
+    background: var(--transparent-brand-8, #1b4dff14);
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #1b4dff;
+    outline-offset: 2px;
+  }
+}
+
+.scopeNone {
+  align-self: center;
+}
+
+/* Discovery: the host switches over the full page, and the hint inside each host. */
+.hintSwitches {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  max-width: 1200px;
+  margin: 8px auto 16px;
+  padding: 0 16px;
+}
+
+.hostHint {
+  align-self: stretch;
+  width: 100%;
+  margin: 4px 0 16px;
+}
+
+/* The feedback page spaces its sections 16px apart; pull the table up to 8px so the hint reads as part of it. */
+.hostHintWide {
+  margin: 0 0 -8px;
+}
+
+.hostHintAboveInput {
+  margin-bottom: 8px;
+}
+
+/* Production's FollowupQuestions, restyled in this prototype only: grey title, 4px to the list (was 36px row + 12px). */
+.searchHost :global([data-testid='followup-questions-title']) {
+  height: auto;
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.searchHost :global([data-testid='followup-questions-title'] img) {
+  filter: grayscale(1) brightness(0.8);
+}
+
+.searchHost :global([data-testid='followup-questions-list']) {
+  margin-top: 4px;
+}
+
+/* Separate the follow-ups from the directory results above them. */
+.searchHost :global([data-testid='followup-questions']) {
+  margin-top: 16px;
+}
+
+/* ---- Card: permissions row ---- */
+
+.scopeRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 0 12px 12px 56px;
+
+  @include media.mobile-only {
+    flex-direction: column;
+    padding-left: 12px;
+  }
+
+  .scopeChips {
+    flex: 1;
+    padding: 0;
+  }
+}
+
+/* ---- Access request: the agent's message, then the LabOS page ---- */
+
+.requestStack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 640px;
+  margin-bottom: 24px;
+}
+
+.agentReply {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+.agentReplyHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.agentReplyText {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.agentReplyLink {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #93c5fd;
+  font: inherit;
+  text-align: left;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Top of the Permissions drawer when the agent's link opened it. */
+.requestNote {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--border-brand-subtle, #b6d6ff);
+  border-radius: 8px;
+  background: var(--background-brand-subtle, #f0f7ff);
+}
+
+.requestNone {
+  margin: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.agentReplyMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  background: #fff;
+}
+
+/* Status beside the client name. */
+.statusBadge {
+  padding: 0 6px;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+/* Revoke in the ⋯ menu: red, like team news's Remove. */
+.menuDanger {
+  color: var(--foreground-error-primary, #d21a0e);
+}
+
+/* Phones: the name row keeps its width. ⋯ stays top right; Edit permissions becomes a full-width button under the chips. */
+@include media.mobile-only {
+  .agentTop {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    row-gap: 4px;
+  }
+
+  .agentActions {
+    display: contents;
+  }
+
+  .agentActions .revokeWrap {
+    order: 1;
+    align-self: flex-start;
+  }
+
+  .editLink {
+    display: none;
+  }
+}
+
+.editMobile {
+  display: none;
+
+  @include media.mobile-only {
+    display: block;
+    padding: 0 12px 12px;
+
+    > button {
+      width: 100%;
+    }
+  }
+}
+
+/* Connect block: one tab bar per client, Claude app first (LAB-3054). */
+.connectGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+
+  & + & {
+    padding-top: 12px;
+    border-top: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+  }
+}
+
+.groupTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+/* Section intro: why connect, as a short list (Anuj, 2026-10-27). */
+.useCasesLead {
+  margin: 0;
+}
+
+.useCases {
+  margin: 4px 0 8px;
+  padding-left: 20px;
+
+  li + li {
+    margin-top: 2px;
+  }
+}

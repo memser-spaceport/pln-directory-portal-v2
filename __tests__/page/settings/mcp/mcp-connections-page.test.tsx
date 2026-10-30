@@ -1,0 +1,423 @@
+import '@testing-library/jest-dom';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+
+import { McpConnectionsPage } from '@/components/page/settings/mcp';
+import type { McpAccessRequest, McpConnection } from '@/services/mcp/types';
+
+jest.mock('@/components/common/Drawer', () => ({
+  Drawer: ({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) =>
+    isOpen ? <div data-testid="drawer">{children}</div> : null,
+}));
+
+jest.mock('@/utils/common.utils', () => ({
+  ...jest.requireActual('@/utils/common.utils'),
+  triggerLoader: jest.fn(),
+}));
+
+const mockDismissNew = jest.fn();
+let mockIsNew = false;
+jest.mock('@/hooks/useOneTimeCallout', () => ({
+  useOneTimeCallout: () => ({ open: mockIsNew, dismiss: mockDismissNew }),
+}));
+
+jest.mock('@/components/common/Tabs/Tabs', () => ({
+  Tabs: ({
+    tabs,
+    onValueChange,
+  }: {
+    tabs: Array<{ value: string; label: React.ReactNode }>;
+    onValueChange: (v: string) => void;
+  }) => (
+    <div role="tablist">
+      {tabs.map((t) => (
+        <button key={t.value} role="tab" onClick={() => onValueChange(t.value)}>
+          {t.label}
+        </button>
+      ))}
+    </div>
+  ),
+}));
+
+const mockToastError = jest.fn();
+jest.mock('@/components/core/ToastContainer', () => ({ toast: { error: (msg: string) => mockToastError(msg) } }));
+
+const mockAnalytics = {
+  onSetupSnippetCopied: jest.fn(),
+  onConnectionsPageViewed: jest.fn(),
+  onPermissionsDrawerOpened: jest.fn(),
+  onScopeLevelsSaved: jest.fn(),
+  onScopeLevelsSaveFailed: jest.fn(),
+  onAccessRequestOpened: jest.fn(),
+  onAuthorizationRevoked: jest.fn(),
+  onAuthorizationRevokeFailed: jest.fn(),
+};
+jest.mock('@/analytics/mcp.analytics', () => ({ useMcpAnalytics: () => mockAnalytics }));
+
+let mockSearch = new URLSearchParams();
+const mockReplace = jest.fn();
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: jest.fn(), replace: mockReplace, refresh: jest.fn() }),
+  usePathname: () => '/settings/mcp',
+  useSearchParams: () => mockSearch,
+}));
+
+let mockCanConnect = true;
+let mockAccessChecked = true;
+jest.mock('@/services/rbac/hooks/useMcpAccess', () => ({
+  useMcpAccess: () => ({ canConnect: mockCanConnect, isLoading: false, isError: false, isFetched: mockAccessChecked }),
+}));
+
+let mockConnections: { data?: McpConnection[]; isLoading: boolean; isSuccess: boolean; isError: boolean } = {
+  data: [],
+  isLoading: false,
+  isSuccess: true,
+  isError: false,
+};
+const mockRefetch = jest.fn();
+jest.mock('@/services/mcp/hooks/useMcpConnections', () => ({
+  useMcpConnections: () => ({ ...mockConnections, refetch: mockRefetch }),
+}));
+
+let mockRequest: { data?: McpAccessRequest | null; isLoading: boolean; isError: boolean } = {
+  data: undefined,
+  isLoading: false,
+  isError: false,
+};
+jest.mock('@/services/mcp/hooks/useMcpAccessRequest', () => ({ useMcpAccessRequest: () => mockRequest }));
+
+const mockSaveMutate = jest.fn();
+let mockSaveState = { isPending: false, isError: false };
+jest.mock('@/services/mcp/hooks/useUpdateMcpScopes', () => ({
+  useUpdateMcpScopes: () => ({ mutate: mockSaveMutate, reset: jest.fn(), ...mockSaveState }),
+}));
+
+const mockRevokeMutate = jest.fn();
+jest.mock('@/services/mcp/hooks/useRevokeMcpConnection', () => ({
+  useRevokeMcpConnection: () => ({ mutate: mockRevokeMutate, isPending: false, variables: undefined }),
+}));
+
+const CODEX: McpConnection = {
+  uid: 'auth-codex',
+  clientName: 'Codex',
+  connectedAt: '2026-10-20T10:00:00Z',
+  lastUsedAt: '2026-10-27T10:00:00Z',
+  status: 'active',
+  scopes: [
+    { key: 'search', label: 'Search', level: 'read', maxLevel: 'read', registryMax: 'read', lock: null },
+    { key: 'forum', label: 'Forum', level: 'read', maxLevel: 'read', registryMax: 'read', lock: null },
+    {
+      key: 'investors',
+      label: 'Investors and warm intros',
+      level: 'read',
+      maxLevel: 'write',
+      registryMax: 'write',
+      lock: null,
+    },
+    { key: 'ai_apps', label: 'AI Apps', level: 'read', maxLevel: 'read', registryMax: 'write', lock: 'admin' },
+  ],
+};
+const CLAUDE: McpConnection = {
+  ...CODEX,
+  uid: 'auth-claude',
+  clientName: 'Claude.ai',
+  lastUsedAt: null,
+  status: 'signin_expired',
+  scopes: CODEX.scopes.map((s) => (s.key === 'investors' ? { ...s, level: 'write' } : s)),
+};
+
+function withConnections(data: McpConnection[]) {
+  mockConnections = { data, isLoading: false, isSuccess: true, isError: false };
+}
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockSearch = new URLSearchParams();
+  mockCanConnect = true;
+  mockAccessChecked = true;
+  mockIsNew = false;
+  mockRequest = { data: undefined, isLoading: false, isError: false };
+  mockSaveState = { isPending: false, isError: false };
+  withConnections([]);
+});
+
+describe('McpConnectionsPage', () => {
+  it('shows the prototype connect block and no permissions when nothing is connected', () => {
+    render(<McpConnectionsPage />);
+    const heading = screen.getByRole('heading', { name: 'MCP connections' });
+    // Heading and card share one column wrapper (the settings content area is a flex row).
+    expect(heading.parentElement).toBe(screen.getByText('Connections').closest('section')?.parentElement);
+    expect(screen.getByText('Add a connection')).toBeInTheDocument();
+    // LAB-3048: one tab bar, the Claude app first and selected.
+    expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
+      'Claude app',
+      'Claude Code',
+      'Codex',
+      'Others',
+    ]);
+    expect(screen.queryByText('Claude app (web, desktop, mobile)')).not.toBeInTheDocument();
+    expect(screen.queryByText('For developers')).not.toBeInTheDocument();
+    expect(screen.getByText(/ask your Claude workspace admin/)).toBeInTheDocument();
+    expect(
+      screen.getByText('In Claude, open Customize → Connectors, then Add → Add custom connector.'),
+    ).toBeInTheDocument();
+    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+    fireEvent.click(screen.getByRole('button', { name: 'Open Claude connectors' }));
+    expect(openSpy).toHaveBeenCalledWith('https://claude.ai/customize/connectors', '_blank', 'noopener');
+    openSpy.mockRestore();
+    fireEvent.click(screen.getByRole('tab', { name: /Claude Code/ }));
+    expect(screen.getByText(/claude mcp add --transport http labos/)).toBeInTheDocument();
+    expect(screen.queryByText(/ask your Claude workspace admin/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: /Codex/ }));
+    expect(screen.getByText(/codex mcp add labos/)).toBeInTheDocument();
+    expect(screen.queryByText(/claude mcp add/)).not.toBeInTheDocument();
+    expect(screen.queryByText('Edit permissions')).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ['Claude app', /\/mcp$/, 'claude-app'],
+    ['Claude Code', /^claude mcp add/, 'claude'],
+    ['Codex', /^codex mcp add/, 'codex'],
+    ['Others', /\/mcp$/, 'server'],
+  ])('copies the %s snippet and records its type', async (tab, code, snippetType) => {
+    const writeText = jest.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+    render(<McpConnectionsPage />);
+    fireEvent.click(screen.getByRole('tab', { name: new RegExp(`^${tab}$`) }));
+    const snippet = screen.getByText(code);
+    fireEvent.click(within(snippet.parentElement as HTMLElement).getByRole('button'));
+    await waitFor(() => expect(mockAnalytics.onSetupSnippetCopied).toHaveBeenCalledWith({ snippetType }));
+    expect(writeText).toHaveBeenCalledWith(snippet.textContent);
+  });
+
+  it('retires the menu New badge when the page opens', () => {
+    mockIsNew = true;
+    render(<McpConnectionsPage />);
+    expect(mockDismissNew).toHaveBeenCalled();
+  });
+
+  it('lists each connection with its status, dates and permission chips', () => {
+    withConnections([CODEX, CLAUDE]);
+    render(<McpConnectionsPage />);
+
+    expect(screen.getByText('Active')).toBeInTheDocument();
+    expect(screen.getByText('Sign-in expired')).toBeInTheDocument();
+    expect(screen.getByText(/Reconnect from the client to use it again/)).toBeInTheDocument();
+    expect(screen.getByText(/Last used Oct 27, 2026/)).toBeInTheDocument();
+    // Codex is on the read template; Claude.ai has every scope at its maximum, which is the Read and write template.
+    expect(screen.getByRole('button', { name: 'Read only (default). Edit permissions' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Read and write. Edit permissions' })).toBeInTheDocument();
+    // The guide collapses once something is connected, behind "Add another connection", and closes again.
+    expect(screen.queryByRole('tab', { name: /Claude app/ })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Add another connection' }));
+    expect(screen.getAllByRole('tab')).toHaveLength(4);
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(screen.queryByRole('tab', { name: /Claude app/ })).not.toBeInTheDocument();
+  });
+
+  it('edits one connection in the drawer and saves all levels in one call', () => {
+    withConnections([CODEX, CLAUDE]);
+    render(<McpConnectionsPage />);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Edit permissions' })[0]);
+
+    const drawer = screen.getByTestId('drawer');
+    const save = within(drawer).getByRole('button', { name: 'Save' });
+    expect(save).toBeDisabled();
+
+    // Admin-capped write is visible, disabled and explained.
+    const aiApps = within(drawer).getByRole('radiogroup', { name: 'Access to AI Apps' });
+    expect(within(aiApps).getByRole('radio', { name: 'Read and write' })).toBeDisabled();
+    expect(within(drawer).getByText('Turned off by LabOS admins.')).toBeInTheDocument();
+    // A scope without write tools offers no write option.
+    const search = within(drawer).getByRole('radiogroup', { name: 'Access to Search' });
+    expect(within(search).queryByRole('radio', { name: 'Read and write' })).not.toBeInTheDocument();
+
+    const investors = within(drawer).getByRole('radiogroup', { name: 'Access to Investors and warm intros' });
+    fireEvent.click(within(investors).getByRole('radio', { name: 'Read and write' }));
+    expect(save).toBeEnabled();
+    fireEvent.click(save);
+
+    expect(mockSaveMutate).toHaveBeenCalledWith(
+      {
+        uid: 'auth-codex',
+        levels: { search: 'read', forum: 'read', investors: 'write', ai_apps: 'read' },
+        requestUid: undefined,
+      },
+      expect.any(Object),
+    );
+    mockSaveMutate.mock.calls[0][1].onSuccess();
+    expect(mockAnalytics.onScopeLevelsSaved).toHaveBeenCalledWith(
+      expect.objectContaining({ changes: [{ scope: 'investors', from: 'read', to: 'write' }], viaRequest: false }),
+    );
+  });
+
+  it('lists the intro use cases, including posting team news and updating the profile', () => {
+    render(<McpConnectionsPage />);
+    expect(screen.getByText('Post updates about your team, like a product launch')).toBeInTheDocument();
+    expect(screen.getByText('Hand off tasks, like updating your profile')).toBeInTheDocument();
+  });
+
+  it('shows write copy for Events and Members, teams and projects, and none for read-only Search', () => {
+    withConnections([
+      {
+        ...CODEX,
+        scopes: [
+          { key: 'search', label: 'Search', level: 'read', maxLevel: 'read', registryMax: 'read', lock: null },
+          { key: 'events', label: 'Events', level: 'read', maxLevel: 'write', registryMax: 'write', lock: null },
+          {
+            key: 'directory',
+            label: 'Members, teams and projects',
+            level: 'read',
+            maxLevel: 'write',
+            registryMax: 'write',
+            lock: null,
+          },
+        ],
+      },
+    ]);
+    render(<McpConnectionsPage />);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Edit permissions' })[0]);
+    const drawer = screen.getByTestId('drawer');
+    expect(
+      within(drawer).getByText('With write: RSVP for you, update that RSVP, and submit an event.'),
+    ).toBeInTheDocument();
+    expect(
+      within(drawer).getByText(
+        'With write: edit the teams you lead, their fund profile, roster and asks, and create or delete projects.',
+      ),
+    ).toBeInTheDocument();
+    const directory = within(drawer).getByRole('radiogroup', { name: 'Access to Members, teams and projects' });
+    expect(within(directory).getByRole('radio', { name: 'Read and write' })).toBeEnabled();
+    const search = within(drawer).getByRole('radiogroup', { name: 'Access to Search' });
+    expect(within(search).queryByRole('radio', { name: 'Read and write' })).not.toBeInTheDocument();
+  });
+
+  it('shows write copy for News feed and a Your profile row when the server allows write', () => {
+    withConnections([
+      {
+        ...CODEX,
+        scopes: [
+          { key: 'news', label: 'News feed', level: 'read', maxLevel: 'write', registryMax: 'write', lock: null },
+          { key: 'profile', label: 'Your profile', level: 'read', maxLevel: 'write', registryMax: 'write', lock: null },
+        ],
+      },
+    ]);
+    render(<McpConnectionsPage />);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Edit permissions' })[0]);
+    const drawer = screen.getByTestId('drawer');
+    expect(within(drawer).getByText('With write: post news for your teams and upvote stories.')).toBeInTheDocument();
+    expect(
+      within(drawer).getByText('Read your profile, job alert and email preferences.', { exact: false }),
+    ).toBeInTheDocument();
+    expect(
+      within(drawer).getByText(
+        /^With write: edit your profile, investor profile and privacy, join or leave teams and projects,/,
+      ),
+    ).toBeInTheDocument();
+    const profile = within(drawer).getByRole('radiogroup', { name: 'Access to Your profile' });
+    expect(within(profile).getByRole('radio', { name: 'Read and write' })).toBeEnabled();
+  });
+
+  it('keeps the drawer and the draft when the save fails', () => {
+    withConnections([CODEX]);
+    mockSaveState = { isPending: false, isError: true };
+    render(<McpConnectionsPage />);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Edit permissions' })[0]);
+    expect(screen.getByTestId('drawer')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('Couldn’t save these permissions');
+  });
+
+  it('opens the drawer preset from an open access request and sends its id on save', () => {
+    withConnections([CODEX]);
+    mockSearch = new URLSearchParams('request=req-1');
+    mockRequest = {
+      data: {
+        uid: 'req-1',
+        authorizationUid: 'auth-codex',
+        scope: 'investors',
+        level: 'write',
+        toolName: 'submit_warm_path_note',
+        status: 'open',
+        createdAt: '2026-10-28T08:00:00Z',
+      },
+      isLoading: false,
+      isError: false,
+    };
+    render(<McpConnectionsPage />);
+
+    const drawer = screen.getByTestId('drawer');
+    expect(
+      within(drawer).getByText('Codex asked for read and write access to Investors and warm intros'),
+    ).toBeInTheDocument();
+    const investors = within(drawer).getByRole('radiogroup', { name: 'Access to Investors and warm intros' });
+    expect(within(investors).getByRole('radio', { name: 'Read and write' })).toHaveAttribute('aria-checked', 'true');
+
+    fireEvent.click(within(drawer).getByRole('button', { name: 'Save' }));
+    expect(mockSaveMutate).toHaveBeenCalledWith(
+      expect.objectContaining({ uid: 'auth-codex', requestUid: 'req-1' }),
+      expect.any(Object),
+    );
+    expect(mockAnalytics.onAccessRequestOpened).toHaveBeenCalledWith({ status: 'open', scope: 'investors' });
+  });
+
+  it.each([
+    ['expired', { status: 'expired' as const }, 'This access request has expired'],
+    ['resolved', { status: 'resolved' as const }, 'already allowed'],
+    ['for a revoked connection', { authorizationUid: 'gone' }, 'isn’t available'],
+    ['for an admin-capped scope', { scope: 'ai_apps' as const }, 'turned off'],
+  ])('shows a note and no drawer for a request %s', (_label, overrides, text) => {
+    withConnections([CODEX]);
+    mockSearch = new URLSearchParams('request=req-1');
+    mockRequest = {
+      data: {
+        uid: 'req-1',
+        authorizationUid: 'auth-codex',
+        scope: 'investors',
+        level: 'write',
+        toolName: 'x',
+        status: 'open',
+        createdAt: '2026-10-20T08:00:00Z',
+        ...overrides,
+      },
+      isLoading: false,
+      isError: false,
+    };
+    render(<McpConnectionsPage />);
+    expect(screen.getByRole('status')).toHaveTextContent(text);
+    expect(screen.queryByTestId('drawer')).not.toBeInTheDocument();
+  });
+
+  it('shows an error with Retry when the list fails', () => {
+    mockConnections = { data: undefined, isLoading: false, isSuccess: false, isError: true };
+    render(<McpConnectionsPage />);
+    fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    expect(mockRefetch).toHaveBeenCalled();
+  });
+
+  it('shows a note instead of connections without mcp.connect', () => {
+    mockCanConnect = false;
+    render(<McpConnectionsPage />);
+    expect(screen.getByText('MCP connections aren’t available for your account yet.')).toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: /Claude app/ })).not.toBeInTheDocument();
+  });
+
+  it('keeps loading, not "unavailable", until the access check has run', () => {
+    mockCanConnect = false;
+    mockAccessChecked = false;
+    render(<McpConnectionsPage />);
+    expect(screen.getByText('Loading…')).toBeInTheDocument();
+    expect(screen.queryByText(/aren’t available/)).not.toBeInTheDocument();
+  });
+
+  it('revokes after the inline confirm and shows a toast when it fails', () => {
+    withConnections([CODEX]);
+    render(<McpConnectionsPage />);
+    fireEvent.click(screen.getByRole('button', { name: 'More actions for Codex' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Revoke' }));
+    const confirm = screen.getByRole('dialog', { name: 'Revoke Codex' });
+    fireEvent.click(within(confirm).getByRole('button', { name: 'Revoke' }));
+
+    expect(mockRevokeMutate).toHaveBeenCalledWith('auth-codex', expect.any(Object));
+    mockRevokeMutate.mock.calls[0][1].onError();
+    expect(mockToastError).toHaveBeenCalledWith('Couldn’t revoke Codex. Please try again.');
+  });
+});

@@ -32,11 +32,12 @@ describe('ForYouHint', () => {
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
-  it('links "Tune For You" to News preferences and reports the click (LAB-2941)', () => {
+  it('links "Update" (was "Tune For You") to News preferences and reports the click (LAB-2941)', () => {
     render(<ForYouHint memberUid="user-1" />);
 
-    const link = screen.getByRole('link', { name: 'Tune For You' });
+    const link = screen.getByRole('link', { name: 'Update' });
     expect(link).toHaveAttribute('href', '/settings/news-preferences?from=feed');
+    expect(link.closest('p')).toHaveTextContent(/teams you follow\. Update to make it more relevant\.$/);
     fireEvent.click(link);
 
     expect(onTeamNewsForYouTuneClicked).toHaveBeenCalledWith('user-1');
@@ -46,7 +47,7 @@ describe('ForYouHint', () => {
     mockShowNewsPreferences = false;
     render(<ForYouHint memberUid="user-1" />);
 
-    expect(screen.queryByRole('link', { name: 'Tune For You' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Update' })).not.toBeInTheDocument();
     const link = screen.getByRole('link', { name: 'Update your profile' });
     expect(link).toHaveAttribute('href', '/members/user-1?backTo=%2Fhome');
     expect(screen.getByText(/to make it more relevant/)).toBeInTheDocument();

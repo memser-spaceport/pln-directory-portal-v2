@@ -17,12 +17,32 @@ jest.mock('@/utils/news-categories', () => ({
   },
 }));
 
+let mockShowMcpPage = false;
+jest.mock('@/utils/mcp', () => ({
+  get SHOW_MCP_CONNECTIONS_PAGE() {
+    return mockShowMcpPage;
+  },
+}));
+
+let mockCanConnect = false;
+jest.mock('@/services/rbac/hooks/useMcpAccess', () => ({
+  useMcpAccess: () => ({ canConnect: mockCanConnect, isLoading: false, isError: false }),
+}));
+
+let mockMcpNew = false;
+jest.mock('@/hooks/useOneTimeCallout', () => ({
+  useOneTimeCallout: () => ({ open: mockMcpNew, dismiss: jest.fn() }),
+}));
+
 const userInfo = { uid: 'm1', name: 'Mira Chen' } as IUserInfo;
 
 const names = (items: Array<{ name: string }>) => items.map((item) => item.name);
 
 beforeEach(() => {
   mockShowNewsPreferences = true;
+  mockShowMcpPage = false;
+  mockCanConnect = false;
+  mockMcpNew = false;
   mockSettings.mockReturnValue({ data: { recommendationsEnabled: false } });
 });
 
@@ -127,5 +147,35 @@ describe('useGetMenuItems', () => {
 
     expect(result.current).not.toBe(before);
     expect(names(result.current.preferences)).toContain('recommendations');
+  });
+
+  describe('MCP connections (LAB-2995)', () => {
+    it('adds "MCP connections" after email & accounts when the page is on and the member can connect', () => {
+      mockShowMcpPage = true;
+      mockCanConnect = true;
+      const { result } = renderHook(() => useGetMenuItems(userInfo));
+      expect(result.current.account).toEqual([
+        expect.objectContaining({ name: 'email & accounts', url: '/settings/accounts' }),
+        expect.objectContaining({ name: 'MCP connections', url: '/settings/mcp' }),
+      ]);
+    });
+
+    it('marks it New until the member has opened the page', () => {
+      mockShowMcpPage = true;
+      mockCanConnect = true;
+      mockMcpNew = true;
+      const { result } = renderHook(() => useGetMenuItems(userInfo));
+      expect(result.current.account[1]).toEqual(expect.objectContaining({ name: 'MCP connections', isNew: true }));
+    });
+
+    it.each([
+      ['the page is off', false, true],
+      ['the member lacks mcp.connect', true, false],
+    ])('leaves it out when %s', (_label, page, canConnect) => {
+      mockShowMcpPage = page;
+      mockCanConnect = canConnect;
+      const { result } = renderHook(() => useGetMenuItems(userInfo));
+      expect(names(result.current.account)).toEqual(['email & accounts']);
+    });
   });
 });

@@ -8,6 +8,13 @@ export const ALL_CAT = 'all';
 export const FOR_YOU_CAT = 'forYou';
 
 /**
+ * Where News preferences sends "For You" (LAB-3036). Home already opens on For
+ * You whenever the member has For You stories (else All), so `feed=for-you`
+ * selects nothing itself: it names the landing in the URL and pageviews.
+ */
+export const HOME_FOR_YOU_HREF = '/home?feed=for-you';
+
+/**
  * Everything in the feed that is a conversation rather than a story: member
  * forum posts (the cards badged "Discussion"), plus news items that have a
  * linked forum thread.

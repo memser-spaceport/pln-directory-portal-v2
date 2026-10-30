@@ -3,11 +3,13 @@ import React, { createRef } from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { ChatHome } from '@/components/page/husky/Chat/components/ChatHome';
 import { ChatComposer } from '@/components/page/husky/Chat/components/ChatComposer';
-import { getChatQuestions } from '@/services/discovery.service';
+import { useTeamNewsPrompts } from '@/services/team-news/hooks/useTeamNewsPrompts';
 
-jest.mock('@/services/discovery.service', () => ({
-  getChatQuestions: jest.fn(),
+jest.mock('@/services/team-news/hooks/useTeamNewsPrompts', () => ({
+  useTeamNewsPrompts: jest.fn(),
 }));
+
+const mockPrompts = (data: unknown) => (useTeamNewsPrompts as jest.Mock).mockReturnValue({ data });
 
 const mockTrackExplorationPromptSelection = jest.fn();
 const mockTrackHuskyHomeSearch = jest.fn();
@@ -28,14 +30,7 @@ jest.mock('@/utils/husky.utlils', () => ({
   getChatCount: () => 0,
 }));
 
-const PROMPTS = [1, 2, 3, 4, 5].map((n) => ({
-  uid: `q${n}`,
-  question: `Question ${n}?`,
-  answer: `Answer ${n}`,
-  icon: `/icons/q${n}.svg`,
-  answerSourceLinks: [{ link: `https://example.com/${n}` }],
-  followupQuestions: [],
-}));
+const PROMPTS = [1, 2, 3, 4].map((n) => ({ uid: `n${n}`, question: `Question ${n}?` }));
 
 const renderHome = () => {
   const onSubmit = jest.fn();
@@ -50,8 +45,8 @@ describe('AI Search new-chat page (ChatHome)', () => {
     jest.clearAllMocks();
   });
 
-  it('shows four suggestions under the field before the field is focused', async () => {
-    (getChatQuestions as jest.Mock).mockResolvedValue({ data: PROMPTS });
+  it('shows the news suggestions under the field before the field is focused', async () => {
+    mockPrompts(PROMPTS);
     renderHome();
     (document.activeElement as HTMLElement | null)?.blur();
 
@@ -60,24 +55,22 @@ describe('AI Search new-chat page (ChatHome)', () => {
     ['Question 1?', 'Question 2?', 'Question 3?', 'Question 4?'].forEach((q) =>
       expect(screen.getByText(q)).toBeInTheDocument(),
     );
-    expect(screen.queryByText('Question 5?')).not.toBeInTheDocument();
   });
 
-  it('starts a chat with the clicked suggestion', async () => {
-    (getChatQuestions as jest.Mock).mockResolvedValue({ data: PROMPTS });
-    const { setMessages, setType } = renderHome();
+  it('asks AI Search the clicked suggestion', async () => {
+    mockPrompts(PROMPTS);
+    const { onSubmit, setMessages, setType } = renderHome();
 
     fireEvent.click(await screen.findByTestId('prompt-1'));
 
     expect(mockTrackExplorationPromptSelection).toHaveBeenCalledWith('Question 2?', 'husky-page');
-    expect(setMessages).toHaveBeenCalledWith([
-      expect.objectContaining({ question: 'Question 2?', sources: ['https://example.com/2'] }),
-    ]);
-    expect(setType).toHaveBeenCalledWith('blog');
+    expect(onSubmit).toHaveBeenCalledWith('Question 2?');
+    expect(setMessages).not.toHaveBeenCalled();
+    expect(setType).not.toHaveBeenCalled();
   });
 
   it('shows the one-line scope sentence under the headline', async () => {
-    (getChatQuestions as jest.Mock).mockResolvedValue({ data: PROMPTS });
+    mockPrompts(PROMPTS);
     renderHome();
     expect(screen.getByText('Explore Protocol Labs with AI')).toBeInTheDocument();
     expect(screen.getByTestId('chat-home-scope')).toHaveTextContent(
@@ -87,17 +80,16 @@ describe('AI Search new-chat page (ChatHome)', () => {
   });
 
   it('has no "Shift + Enter" hint in the field', async () => {
-    (getChatQuestions as jest.Mock).mockResolvedValue({ data: PROMPTS });
+    mockPrompts(PROMPTS);
     renderHome();
     await screen.findByTestId('chat-home-prompts');
     expect(screen.queryByText(/to add new line/i)).not.toBeInTheDocument();
     expect(screen.getByTestId('chat-composer')).toBeInTheDocument();
   });
 
-  it('hides the suggestions area when the list is empty, and keeps headline, scope and field', async () => {
-    (getChatQuestions as jest.Mock).mockResolvedValue({ data: [] });
+  it('hides the suggestions area when there is no news, and keeps headline, scope and field', async () => {
+    mockPrompts([]);
     renderHome();
-    await waitFor(() => expect(getChatQuestions).toHaveBeenCalled());
     await act(async () => {});
     expect(screen.queryByTestId('chat-home-prompts')).not.toBeInTheDocument();
     expect(screen.getByText('Explore Protocol Labs with AI')).toBeInTheDocument();
@@ -105,25 +97,16 @@ describe('AI Search new-chat page (ChatHome)', () => {
     expect(screen.getByPlaceholderText('Go ahead, ask anything!')).toBeInTheDocument();
   });
 
-  it('hides the suggestions area when loading fails', async () => {
-    (getChatQuestions as jest.Mock).mockRejectedValue(new Error('network'));
+  it('hides the suggestions area while the news loads or when loading fails', async () => {
+    mockPrompts(undefined);
     renderHome();
-    await waitFor(() => expect(getChatQuestions).toHaveBeenCalled());
     await act(async () => {});
     expect(screen.queryByTestId('chat-home-prompts')).not.toBeInTheDocument();
     expect(screen.getByPlaceholderText('Go ahead, ask anything!')).toBeInTheDocument();
   });
 
-  it('hides the suggestions area when the API returns an error object', async () => {
-    (getChatQuestions as jest.Mock).mockResolvedValue({ error: { status: 500 } });
-    renderHome();
-    await waitFor(() => expect(getChatQuestions).toHaveBeenCalled());
-    await act(async () => {});
-    expect(screen.queryByTestId('chat-home-prompts')).not.toBeInTheDocument();
-  });
-
   it('asks the typed question with the send button', async () => {
-    (getChatQuestions as jest.Mock).mockResolvedValue({ data: PROMPTS });
+    mockPrompts(PROMPTS);
     const { onSubmit } = renderHome();
     await screen.findByTestId('chat-home-prompts');
     const field = screen.getByPlaceholderText('Go ahead, ask anything!') as HTMLTextAreaElement;

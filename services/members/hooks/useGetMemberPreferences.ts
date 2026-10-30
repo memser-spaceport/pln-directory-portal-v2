@@ -1,8 +1,7 @@
 import { MembersQueryKeys } from '@/services/members/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { useQuery } from '@tanstack/react-query';
-import type { TeamNewsEventType } from '@/types/team-news.types';
-import { readNewsCategories } from '@/utils/news-categories';
+import { readNewsTags } from '@/utils/news-tags';
 
 export interface MemberPreferencesResponse {
   preferenceSettings: {
@@ -33,8 +32,10 @@ export interface MemberPreferencesResponse {
     showFeedbackButton?: boolean;
   };
   isPreferenceAvailable: boolean;
-  /** News preferences (LAB-2939): every category unless the member narrowed them. */
-  newsCategories: TeamNewsEventType[];
+  /** News preferences (LAB-3000): the member's tags, focus-area slugs. */
+  newsTags: string[];
+  /** True while the member never saved tags: `newsTags` are then their teams' focus areas. */
+  newsTagsSeeded: boolean;
 }
 
 async function fetcher(uid: string | undefined): Promise<MemberPreferencesResponse | null> {
@@ -57,6 +58,8 @@ async function fetcher(uid: string | undefined): Promise<MemberPreferencesRespon
   }
 
   const rawPreferences = await response.json();
+  // Named fields, not a spread: a spread here breaks the object-literal union callers narrow with `isError`.
+  const { newsTags, newsTagsSeeded } = readNewsTags(rawPreferences);
 
   const preferenceSettings = {
     email: rawPreferences?.email ?? false,
@@ -93,7 +96,8 @@ async function fetcher(uid: string | undefined): Promise<MemberPreferencesRespon
     isPreferenceAvailable: rawPreferences.isnull,
     // Top level rather than in memberPreferences: forms that echo that object
     // back in a PATCH must not carry it along.
-    newsCategories: readNewsCategories(rawPreferences),
+    newsTags,
+    newsTagsSeeded,
   };
 }
 

@@ -567,6 +567,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     category: 'Newsfeed',
     load: () => import('./entries/lab-2953-home-v2/HomeV2Prototype'),
   },
+  {
+    key: 'lab-3054-design-the-connect-step-tabs-o',
+    title: 'MCP connect steps as tabs',
+    description:
+      'The MCP connections page in Settings with the connect steps as one tab bar: Claude app (selected first), Claude Code, Codex and Others, each with only its own steps and copy buttons. The "For developers" group is gone. Opens on No connections; on phones the tab bar scrolls sideways. A copy of the LAB-2948 prototype with only the connect block changed. LAB-3054.',
+    category: 'AI Apps',
+    load: () => import('./entries/lab-3054-design-the-connect-step-tabs-o/DesignTheConnectStepTabsOPrototype'),
+  },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).
   // {

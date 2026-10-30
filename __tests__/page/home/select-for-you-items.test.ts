@@ -47,25 +47,37 @@ describe('selectForYouItems', () => {
   });
 });
 
-describe('selectForYouItems with News preferences categories (LAB-2941)', () => {
-  const funding = makeItem('fund', 'team-a', { eventType: 'FUNDING', eventDate: '2026-05-03T12:00:00.000Z' });
-  const launch = makeItem('launch', 'team-a', { eventType: 'LAUNCH', eventDate: '2026-05-02T12:00:00.000Z' });
-  const otherTeam = makeItem('other', 'team-b', { eventType: 'FUNDING' });
-  const teams = new Set(['team-a', 'team-b']);
+describe('selectForYouItems with news tags (LAB-3001)', () => {
+  const own = makeItem('own', 'team-own');
+  const tagged = makeItem('tagged', 'team-x', { tags: ['ai'] });
+  const related = makeItem('related', 'team-related', { tags: ['launch'] });
 
-  it('keeps every category when none is given', () => {
-    expect(selectForYouItems([funding, launch, otherTeam], teams).map((i) => i.uid)).toEqual(['fund', 'other']);
+  it("keeps own and followed teams' stories plus any team's story sharing a tag", () => {
+    expect(selectForYouItems([own, tagged, related], new Set(['team-own']), new Set(['ai'])).map((i) => i.uid)).toEqual(
+      ['own', 'tagged'],
+    );
   });
 
-  it('drops news outside the categories', () => {
-    expect(selectForYouItems([funding, launch, otherTeam], teams, new Set(['LAUNCH'])).map((i) => i.uid)).toEqual([
-      'launch',
-    ]);
+  it('matches tags case- and space-insensitively, as the backend does', () => {
+    const messy = makeItem('messy', 'team-y', { tags: [' AI '] });
+    expect(selectForYouItems([messy], new Set(), new Set(['ai'])).map((i) => i.uid)).toEqual(['messy']);
   });
 
-  it("picks a team's latest story among the kept categories, not its latest overall", () => {
-    expect(
-      selectForYouItems([funding, launch], new Set(['team-a']), new Set(['LAUNCH', 'OTHER'])).map((i) => i.uid),
-    ).toEqual(['launch']);
+  it('matches by tag alone when the member has no teams', () => {
+    expect(selectForYouItems([own, tagged], new Set(), new Set(['ai'])).map((i) => i.uid)).toEqual(['tagged']);
+  });
+
+  it('keeps one story per team, the newest, across team and tag matches', () => {
+    const newer = makeItem('newer', 'team-x', { tags: ['ai'], eventDate: '2026-05-03T12:00:00.000Z' });
+    const older = makeItem('older', 'team-x', { tags: ['ai'], eventDate: '2026-05-02T12:00:00.000Z' });
+    expect(selectForYouItems([older, newer], new Set(), new Set(['ai'])).map((i) => i.uid)).toEqual(['newer']);
+  });
+
+  it('with an empty tag set keeps only own and followed teams', () => {
+    expect(selectForYouItems([own, tagged], new Set(['team-own']), new Set()).map((i) => i.uid)).toEqual(['own']);
+  });
+
+  it('returns nothing with no teams and no tags', () => {
+    expect(selectForYouItems([own, tagged], new Set(), new Set())).toEqual([]);
   });
 });

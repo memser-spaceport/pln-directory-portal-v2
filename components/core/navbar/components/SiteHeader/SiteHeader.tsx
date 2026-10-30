@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import { usePathname } from 'next/navigation';
 
 import Navbar from '@/components/core/navbar/nav-bar';
+import { McpLaunchBar } from '@/components/core/mcp-hints/McpLaunchBar';
 import { CompleteYourProfile } from '@/components/core/navbar/components/CompleteYourProfile';
 import { PlaaTopBannerCarousel } from '@/components/core/navbar/components/PlaaTopBannerCarousel';
 import { IUserInfo } from '@/types/shared.types';
@@ -33,6 +34,8 @@ export function SiteHeader({ userInfo, isLoggedIn, authToken }: Props) {
        rather than assumed. See `useHeaderHeightVar`. */
     <header className="layout__header" ref={headerRef}>
       {/* <DemoDayBanner /> */}
+      {/* The Demo Day banner's slot (LAB-3033): only for members who can connect an agent and have none yet. */}
+      <McpLaunchBar />
       <PlaaTopBannerCarousel />
       {/*<SubscribeToRecoomendations userInfo={userInfo} />*/}
       <CompleteYourProfile />

@@ -10,7 +10,7 @@ import { CloseIcon } from '@/components/icons';
 import { ClientLogo, clientKeyFromName } from '@/components/page/settings/mcp/ClientLogo';
 import { CopyButton } from '@/components/ui/CopyButton';
 import { useOneTimeCallout } from '@/hooks/useOneTimeCallout';
-import { MCP_HINT_COMMENTS_FLAG, MCP_HINT_FORUM_FLAG, MCP_HINT_SEARCH_FLAG } from '@/utils/mcp';
+import { MCP_HINT_APPS_FLAG, MCP_HINT_COMMENTS_FLAG, MCP_HINT_FORUM_FLAG, MCP_HINT_SEARCH_FLAG } from '@/utils/mcp';
 
 import { getAiSearchCount } from './aiSearchSessionCount';
 import { useMcpHintAudience } from './useMcpHintAudience';
@@ -21,7 +21,8 @@ import s from './McpHint.module.scss';
 export type McpHintProps =
   | { context: 'search'; query: string }
   | { context: 'forum'; title: string }
-  | { context: 'comments'; newCount: number };
+  | { context: 'comments'; newCount: number }
+  | { context: 'apps' };
 
 type HintCopy = {
   /** The host's trigger: the member just did something an agent could do for them. */
@@ -39,6 +40,7 @@ const FLAG: Record<McpHintProps['context'], string> = {
   search: MCP_HINT_SEARCH_FLAG,
   forum: MCP_HINT_FORUM_FLAG,
   comments: MCP_HINT_COMMENTS_FLAG,
+  apps: MCP_HINT_APPS_FLAG,
 };
 
 /** Copy ported verbatim from the LAB-2948 prototype's `CONTEXTS` (McpHints.tsx). */
@@ -68,6 +70,15 @@ function hintCopy(props: McpHintProps): HintCopy {
         text: 'It reads new feedback on your apps and marks it done as you fix it.',
         prompt: 'Go through the new LabOS feedback on my apps and mark what I fix as done',
         hostClass: s.hostHintWide,
+      };
+    case 'apps':
+      // LAB-3062: no member action to wait for; the AI Apps page itself is the moment. Shown until dismissed.
+      return {
+        triggered: true,
+        title: 'Manage your apps from your agent',
+        text: 'Your agent can redeploy, rename and edit the description of your apps.',
+        prompt: 'Redeploy my latest LabOS AI App',
+        hostClass: s.hostHintApps,
       };
   }
 }

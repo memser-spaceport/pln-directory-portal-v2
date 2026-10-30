@@ -58,7 +58,12 @@ jest.mock('@/components/page/settings/mcp/ClientLogo', () => ({
   ClientLogo: ({ client }: { client: string }) => <i data-testid="client-mark" data-client={client} />,
 }));
 
-const FLAGS = { search: 'mcp_hint_search', forum: 'mcp_hint_forum', comments: 'mcp_hint_comments' } as const;
+const FLAGS = {
+  search: 'mcp_hint_search',
+  forum: 'mcp_hint_forum',
+  comments: 'mcp_hint_comments',
+  apps: 'mcp_hint_apps',
+} as const;
 
 const QUERY = 'Open roles at Prime Intellect';
 const TITLE = 'Who is hiring Rust engineers for zk work?';
@@ -283,5 +288,43 @@ describe('aiSearchSessionCount', () => {
     expect(getAiSearchCount()).toBe(0);
     expect(() => countAiSearch()).not.toThrow();
     spy.mockRestore();
+  });
+});
+
+describe('McpHint (LAB-3062): AI Apps page card', () => {
+  it('shows without any trigger and offers Connect an agent with no agent', () => {
+    render(<McpHint context="apps" />);
+    expect(screen.getByText('Manage your apps from your agent')).toBeInTheDocument();
+    expect(
+      screen.getByText('Your agent can redeploy, rename and edit the description of your apps.'),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Connect an agent' }));
+    expect(mockPush).toHaveBeenCalledWith('/settings/mcp');
+    expect(mockAnalytics.onHintShown).toHaveBeenCalledWith({ context: 'apps', connected: false });
+    expect(mockAnalytics.onHintConnectClicked).toHaveBeenCalledWith({ context: 'apps' });
+  });
+
+  it('gives a connected member the redeploy prompt to copy', async () => {
+    connect('Codex');
+    render(<McpHint context="apps" />);
+    expect(screen.getByText('Ask Codex instead')).toBeInTheDocument();
+    await act(async () => {
+      fireEvent.click(screen.getByTitle('Copy'));
+    });
+    expect(writeText).toHaveBeenCalledWith('Redeploy my latest LabOS AI App');
+    expect(mockAnalytics.onHintPromptCopied).toHaveBeenCalledWith({ context: 'apps', clientName: 'Codex' });
+  });
+
+  it('stays gone once dismissed, on its own flag', () => {
+    render(<McpHint context="apps" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }));
+    expect(mockDismiss['mcp_hint_apps']).toHaveBeenCalledTimes(1);
+    expect(mockAnalytics.onHintDismissed).toHaveBeenCalledWith({ context: 'apps' });
+  });
+
+  it('is not shown outside the hint audience', () => {
+    mockCanConnect = false;
+    const { container } = render(<McpHint context="apps" />);
+    expect(container).toBeEmptyDOMElement();
   });
 });

@@ -13,7 +13,7 @@ export type McpDrawerSource = 'card' | 'more' | 'request';
 export type McpAccessRequestOpenedStatus = 'open' | 'resolved' | 'expired' | 'unavailable';
 
 /** Where a discovery hint sits (LAB-3033). */
-export type McpHintContext = 'launch_bar' | 'search' | 'forum' | 'comments';
+export type McpHintContext = 'launch_bar' | 'search' | 'forum' | 'comments' | 'apps';
 
 export type McpWarmPathParams = {
   warmPathUid: string;

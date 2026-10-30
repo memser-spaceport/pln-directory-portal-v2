@@ -12,6 +12,7 @@ import { useFilteredAiApps } from '@/services/ai-apps/hooks/useFilteredAiApps';
 
 import { SortDropdown } from '@/components/common/filters/SortDropdown';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
+import { McpHint } from '@/components/core/mcp-hints/McpHint';
 
 import { AiAppsGrid } from './components/AiAppsGrid';
 import { AiAppsFilter } from './components/AiAppsFilter';
@@ -101,6 +102,8 @@ export function AiAppsPage() {
           <ViewFeedbackEntryPoint />
         </div>
       </div>
+
+      <McpHint context="apps" />
 
       <AiAppsMobileFilters />
 

@@ -23,7 +23,7 @@ function tabbableIn(root: HTMLElement): HTMLElement[] {
 
 /** The narrow drawer: the popover's width, now full height on the right. */
 export const FEEDBACK_DRAWER_NARROW = 480;
-/** Read by the detail page (≥960px), which gives up the drawer's width beside it. */
+/** Read by the detail page (≥960px), which gives up the drawer's width beside the Comments tab. */
 export const FEEDBACK_DRAWER_INSET_VAR = '--ai-app-comments-inset';
 
 interface Props {
@@ -33,9 +33,9 @@ interface Props {
   /** A capture is on screen (Pick a part, region, annotator): step out of the way, keep the layout. */
   hidden: boolean;
   /**
-   * Narrow: the page gives up the drawer's width. On an app's page, where you
-   * comment on and pick parts of the app beside it. Not on the grid, where
-   * there is nothing to make room for: there it overlays.
+   * Narrow: the page gives up the drawer's width. Only on an app's Comments
+   * tab, where you place comments on the app beside it. The Feedback tab and
+   * the grid overlay, so the page keeps its layout and scroll (LAB-3046).
    */
   reserveSpace: boolean;
   /** Names the dialog for assistive tech. */
@@ -50,12 +50,14 @@ interface Props {
  * - Wide is the popover's Wider mode unchanged: `.overlayWide` (scrim, full
  *   height, two-column form) and `.modalContainerWide`.
  * - Narrow (480px) is non-modal, because what you do beside it acts on the
- *   page: Pick a part drags over the app and comment mode clicks on it. Instead
- *   of covering the app, the page gives up the drawer's width (the inset var,
+ *   page: Pick a part drags over the app and comment mode clicks on it. On the
+ *   Feedback tab it opens on top of the page, so the member keeps their place
+ *   and the screenshot shows the view from before the open (LAB-3046). On the
+ *   Comments tab the page gives up the drawer's width instead (the inset var,
  *   read by the detail page at 960px and wider). Below 960 it overlays; on a
  *   phone it is the whole screen.
  *
- * While a capture is on screen the drawer is hidden but keeps its inset, so the
+ * While a capture is on screen the drawer is hidden but keeps any inset, so the
  * app does not jump under the crosshair. The panel appears in place: a slide
  * would cover the page the member is about to capture. Closed, it draws nothing.
  */
@@ -83,7 +85,7 @@ export function FeedbackDrawerFrame({ isOpen, wide, hidden, reserveSpace, label,
       if (items.length === 0) return;
       const active = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       const index = active ? items.findIndex((item) => item === active || item.contains(active)) : -1;
-      const leavingBackward = event.shiftKey && (index <= 0);
+      const leavingBackward = event.shiftKey && index <= 0;
       const leavingForward = !event.shiftKey && (index === -1 || index === items.length - 1);
       if (!leavingBackward && !leavingForward) return;
       event.preventDefault();

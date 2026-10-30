@@ -16,11 +16,12 @@ import s from './McpConnections.module.scss';
 
 type SetupStep = { text: string; code?: string; link?: { label: string; href: string } };
 
-type DevClient = Exclude<ClientKey, 'claude-ai'>;
-
 const CONSENT_STEP = 'Sign in to LabOS and approve. It starts with read-only access.';
 
-/** Per-client setup steps, verbatim from the LAB-2948 prototype (`mocks.ts` getSetupSteps). */
+/**
+ * Per-client setup steps, from the LAB-2948 prototype (`mocks.ts` getSetupSteps) with LAB-3054's Others step: the
+ * server URL sits in the step that says to paste it.
+ */
 function getSetupSteps(client: ClientKey, serverUrl: string): SetupStep[] {
   switch (client) {
     case 'claude-code':
@@ -47,7 +48,10 @@ function getSetupSteps(client: ClientKey, serverUrl: string): SetupStep[] {
       ];
     default:
       return [
-        { text: 'Add a remote MCP server in your client (Cursor, ChatGPT and others) and paste the server URL.' },
+        {
+          text: 'Add a remote MCP server in your client (Cursor, ChatGPT and others) and paste the LabOS MCP server URL.',
+          code: serverUrl,
+        },
         { text: 'Sign in from your client. Your browser opens LabOS.' },
         { text: CONSENT_STEP },
       ];
@@ -62,7 +66,9 @@ const SNIPPET_TYPE: Record<ClientKey, McpSnippetType> = {
   other: 'server',
 };
 
-const CLIENTS: { name: string; value: DevClient }[] = [
+// LAB-3054: one tab bar for every client, the Claude app first (no terminal needed).
+const CLIENTS: { name: string; value: ClientKey }[] = [
+  { name: 'Claude app', value: 'claude-ai' },
   { name: 'Claude Code', value: 'claude-code' },
   { name: 'Codex', value: 'codex' },
   { name: 'Others', value: 'other' },
@@ -80,13 +86,14 @@ const CLIENT_TABS = CLIENTS.map(({ name, value }) => ({
 }));
 
 /**
- * How to connect, ported from the LAB-2948 prototype's ConnectBlock (LAB-2993's order): the Claude app first, with no
- * terminal, then the commands for developers per client.
+ * How to connect (LAB-3048, design LAB-3054): one tab per client, the Claude app first. Members did not see that the
+ * terminal clients are a different path, so the "For developers" group is gone and each tab holds only its own steps.
+ * The server URL sits inside the Claude app and Others steps; the Claude Code and Codex commands already contain it.
  */
 export function McpConnectGuide({ connected, onClose }: { connected: boolean; onClose?: () => void }) {
   const analytics = useMcpAnalytics();
   const serverUrl = `${process.env.DIRECTORY_API_URL}/mcp`;
-  const [client, setClient] = useState<DevClient>('claude-code');
+  const [client, setClient] = useState<ClientKey>('claude-ai');
 
   return (
     <div className={s.connect}>
@@ -100,34 +107,10 @@ export function McpConnectGuide({ connected, onClose }: { connected: boolean; on
       </div>
 
       <div className={s.connectGroup}>
-        <span className={s.groupTitle}>
-          <ClientLogo client="claude-ai" />
-          Claude app (web, desktop, mobile)
-        </span>
-        <SetupSteps
-          steps={getSetupSteps('claude-ai', serverUrl)}
-          stepKey="claude-app"
-          onCopy={() => analytics.onSetupSnippetCopied({ snippetType: SNIPPET_TYPE['claude-ai'] })}
-        />
-        <p className={s.help}>
-          After this, LabOS works in Claude on web, desktop and mobile. If you don’t see Add custom connector, ask your
-          Claude workspace admin to add LabOS.
-        </p>
-      </div>
-
-      <div className={s.connectGroup}>
-        <span className={s.groupTitle}>For developers</span>
-        <div className={clsx(mcp.row, s.urlRow)}>
-          <div className={s.urlText}>
-            <div className={mcp.label}>MCP server URL</div>
-            <code className={mcp.code}>{serverUrl}</code>
-          </div>
-          <CopyButton text={serverUrl} onCopy={() => analytics.onSetupSnippetCopied({ snippetType: 'server' })} />
-        </div>
         <Tabs
           tabs={CLIENT_TABS}
           value={client}
-          onValueChange={(v) => setClient(v as DevClient)}
+          onValueChange={(v) => setClient(v as ClientKey)}
           variant="pill"
           classes={{ root: s.tabs }}
         />
@@ -136,6 +119,12 @@ export function McpConnectGuide({ connected, onClose }: { connected: boolean; on
           stepKey={client}
           onCopy={() => analytics.onSetupSnippetCopied({ snippetType: SNIPPET_TYPE[client] })}
         />
+        {client === 'claude-ai' && (
+          <p className={s.help}>
+            After this, LabOS works in Claude on web, desktop and mobile. If you don’t see Add custom connector, ask
+            your Claude workspace admin to add LabOS.
+          </p>
+        )}
       </div>
     </div>
   );

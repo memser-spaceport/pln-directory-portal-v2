@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 
 import { McpConnectionsPage } from '@/components/page/settings/mcp';
 import type { McpAccessRequest, McpConnection } from '@/services/mcp/types';
@@ -147,7 +147,16 @@ describe('McpConnectionsPage', () => {
     // Heading and card share one column wrapper (the settings content area is a flex row).
     expect(heading.parentElement).toBe(screen.getByText('Connections').closest('section')?.parentElement);
     expect(screen.getByText('Add a connection')).toBeInTheDocument();
-    expect(screen.getByText('Claude app (web, desktop, mobile)')).toBeInTheDocument();
+    // LAB-3048: one tab bar, the Claude app first and selected.
+    expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
+      'Claude app',
+      'Claude Code',
+      'Codex',
+      'Others',
+    ]);
+    expect(screen.queryByText('Claude app (web, desktop, mobile)')).not.toBeInTheDocument();
+    expect(screen.queryByText('For developers')).not.toBeInTheDocument();
+    expect(screen.getByText(/ask your Claude workspace admin/)).toBeInTheDocument();
     expect(
       screen.getByText('In Claude, open Customize → Connectors, then Add → Add custom connector.'),
     ).toBeInTheDocument();
@@ -155,12 +164,29 @@ describe('McpConnectionsPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Open Claude connectors' }));
     expect(openSpy).toHaveBeenCalledWith('https://claude.ai/customize/connectors', '_blank', 'noopener');
     openSpy.mockRestore();
-    expect(screen.getByText('For developers')).toBeInTheDocument();
-    expect(screen.getByText('MCP server URL')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: /Claude Code/ }));
     expect(screen.getByText(/claude mcp add --transport http labos/)).toBeInTheDocument();
+    expect(screen.queryByText(/ask your Claude workspace admin/)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('tab', { name: /Codex/ }));
     expect(screen.getByText(/codex mcp add labos/)).toBeInTheDocument();
+    expect(screen.queryByText(/claude mcp add/)).not.toBeInTheDocument();
     expect(screen.queryByText('Edit permissions')).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ['Claude app', /\/mcp$/, 'claude-app'],
+    ['Claude Code', /^claude mcp add/, 'claude'],
+    ['Codex', /^codex mcp add/, 'codex'],
+    ['Others', /\/mcp$/, 'server'],
+  ])('copies the %s snippet and records its type', async (tab, code, snippetType) => {
+    const writeText = jest.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+    render(<McpConnectionsPage />);
+    fireEvent.click(screen.getByRole('tab', { name: new RegExp(`^${tab}$`) }));
+    const snippet = screen.getByText(code);
+    fireEvent.click(within(snippet.parentElement as HTMLElement).getByRole('button'));
+    await waitFor(() => expect(mockAnalytics.onSetupSnippetCopied).toHaveBeenCalledWith({ snippetType }));
+    expect(writeText).toHaveBeenCalledWith(snippet.textContent);
   });
 
   it('retires the menu New badge when the page opens', () => {
@@ -181,11 +207,11 @@ describe('McpConnectionsPage', () => {
     expect(screen.getByRole('button', { name: 'Read only (default). Edit permissions' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Read and write. Edit permissions' })).toBeInTheDocument();
     // The guide collapses once something is connected, behind "Add another connection", and closes again.
-    expect(screen.queryByText('MCP server URL')).not.toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: /Claude app/ })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Add another connection' }));
-    expect(screen.getByText('MCP server URL')).toBeInTheDocument();
+    expect(screen.getAllByRole('tab')).toHaveLength(4);
     fireEvent.click(screen.getByRole('button', { name: 'Close' }));
-    expect(screen.queryByText('MCP server URL')).not.toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: /Claude app/ })).not.toBeInTheDocument();
   });
 
   it('edits one connection in the drawer and saves all levels in one call', () => {
@@ -365,7 +391,7 @@ describe('McpConnectionsPage', () => {
     mockCanConnect = false;
     render(<McpConnectionsPage />);
     expect(screen.getByText('MCP connections aren’t available for your account yet.')).toBeInTheDocument();
-    expect(screen.queryByText('MCP server URL')).not.toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: /Claude app/ })).not.toBeInTheDocument();
   });
 
   it('keeps loading, not "unavailable", until the access check has run', () => {

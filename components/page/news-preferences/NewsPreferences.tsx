@@ -34,6 +34,7 @@ import { followedTeamUidsQueryKey } from '@/services/follow/hooks/useFollowedTea
 import { toast } from '@/components/core/ToastContainer';
 import { triggerLoader } from '@/utils/common.utils';
 import { CloseIcon, SearchIcon } from '@/components/icons';
+import { HOME_FOR_YOU_HREF } from '@/components/page/home/TeamNews/constants';
 
 import { groupNewsTags } from './newsTagThemes';
 import s from './NewsPreferences.module.scss';
@@ -199,7 +200,15 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
       <div className={s.pageHead}>
         <h5 className={formCss.title}>News Preferences</h5>
         <p className={s.pageIntro}>
-          These shape For You on Home and the news in your email digest. To change how often the digest arrives, go to{' '}
+          These shape{' '}
+          <Link
+            href={HOME_FOR_YOU_HREF}
+            className={s.inlineLink}
+            onClick={() => analytics.onNewsPreferencesForYouLinkClicked(from)}
+          >
+            For You
+          </Link>{' '}
+          on Home and the news in your email digest. To change how often the digest arrives, go to{' '}
           <Link href="/settings/email" className={s.inlineLink}>
             Email Preferences
           </Link>

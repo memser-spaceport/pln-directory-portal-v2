@@ -219,6 +219,30 @@ describe('McpHint (LAB-3033): agent connected', () => {
     expect(mockAnalytics.onHintPromptCopied).toHaveBeenCalledWith({ context, clientName: 'Claude Code' });
   });
 
+  it.each([
+    ['sent no name', ''],
+    ['sent only spaces', '   '],
+  ])('says "your agent" with the plug mark when the client %s (LAB-3049)', async (_label, clientName) => {
+    connect(clientName);
+    render(<McpHint context="search" query={QUERY} />);
+    expect(screen.getByText('Ask your agent instead')).toBeInTheDocument();
+    expect(screen.queryByText(/Ask Claude/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Connect an agent' })).not.toBeInTheDocument();
+    expect(marks()).toEqual(['other']);
+    expect(mockAnalytics.onHintShown).toHaveBeenCalledWith({ context: 'search', connected: true });
+    await act(async () => {
+      fireEvent.click(screen.getByTitle('Copy'));
+    });
+    expect(mockAnalytics.onHintPromptCopied).toHaveBeenCalledWith({ context: 'search', clientName: undefined });
+  });
+
+  it('names a client it has no mark for, with the plug mark (LAB-3049)', () => {
+    connect('Cursor');
+    render(<McpHint context="search" query={QUERY} />);
+    expect(screen.getByText('Ask Cursor instead')).toBeInTheDocument();
+    expect(marks()).toEqual(['other']);
+  });
+
   it('shows only the connected client’s mark', () => {
     connect('Codex');
     render(<McpHint context="forum" title={TITLE} />);

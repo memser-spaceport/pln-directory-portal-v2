@@ -11,3 +11,9 @@ export const MCP_LAUNCH_BAR_FLAG = 'mcp_launch_bar';
 export const MCP_HINT_SEARCH_FLAG = 'mcp_hint_search';
 export const MCP_HINT_FORUM_FLAG = 'mcp_hint_forum';
 export const MCP_HINT_COMMENTS_FLAG = 'mcp_hint_comments';
+
+/**
+ * The Forum → Create Post hint promises that an agent drafts the post, which needs Forum write tools (LAB-3031, NodeBB
+ * auth). Off until they ship (LAB-3049); the `forum` context and its flag stay.
+ */
+export const SHOW_MCP_FORUM_HINT = false;

@@ -52,8 +52,9 @@ jest.mock('@/analytics/mcp.analytics', () => ({
 }));
 
 const LAUNCH_FLAG = 'mcp_launch_bar';
+// LAB-3049: no forum promise until Forum MCP ships.
 const TEXT =
-  'Search teams and members, post news or reply in the forum right from your AI session. LabOS now works with AI agents.';
+  'Search teams and members, post news or team updates right from your AI session. LabOS now works with AI agents.';
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -82,14 +83,24 @@ describe('McpLaunchBar (LAB-3033)', () => {
       'once an agent is connected',
       () => (mockConnections = [{ uid: 'a1', clientName: 'Claude Code', status: 'active' }]),
     ],
+    [
+      'once an agent is connected, even one that sent no name',
+      () => (mockConnections = [{ uid: 'a1', clientName: '', status: 'active' }]),
+    ],
     ['before the connections have loaded', () => (mockConnections = undefined)],
-    ['after the member opened MCP connections', () => (mockFlags[MCP_CONNECTIONS_NEW_FLAG] = false)],
     ['after the member closed it', () => (mockFlags[LAUNCH_FLAG] = false)],
   ])('stays hidden %s', (_label, setup) => {
     setup();
     const { container } = render(<McpLaunchBar />);
     expect(container).toBeEmptyDOMElement();
     expect(mockAnalytics.onHintShown).not.toHaveBeenCalled();
+  });
+
+  it('keeps showing after the member opened MCP connections, until ✕ (LAB-3049)', () => {
+    mockFlags[MCP_CONNECTIONS_NEW_FLAG] = false;
+    render(<McpLaunchBar />);
+    expect(screen.getByText(TEXT)).toBeInTheDocument();
+    expect(screen.queryByText(/forum/i)).not.toBeInTheDocument();
   });
 
   it('does not ask for connections when the member cannot connect', () => {
@@ -109,7 +120,8 @@ describe('McpLaunchBar (LAB-3033)', () => {
     render(<McpLaunchBar />);
     fireEvent.click(screen.getByRole('button', { name: 'Close' }));
     expect(mockDismiss[LAUNCH_FLAG]).toHaveBeenCalledTimes(1);
-    expect(mockDismiss[MCP_CONNECTIONS_NEW_FLAG]).not.toHaveBeenCalled();
+    // The bar no longer reads the page's New flag, so it never touches it.
+    expect(mockDismiss[MCP_CONNECTIONS_NEW_FLAG]).toBeUndefined();
     expect(mockAnalytics.onHintDismissed).toHaveBeenCalledWith({ context: 'launch_bar' });
   });
 });

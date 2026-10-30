@@ -126,7 +126,7 @@ The LabOS consent page for an MCP client SHALL offer no choice of write access: 
 
 ### Requirement: A launch bar announces MCP to members who can connect
 
-While the MCP connections page is on, a member with `mcp.connect` (directory admins and PL infra) and no MCP connection SHALL see a bar at the top of every page, in `SiteHeader` above the navbar: a "New" pill (hidden on phones), "Search teams and members, post news or reply in the forum right from your AI session. LabOS now works with AI agents.", a "Set up now" button that opens `/settings/mcp`, and a close button. The bar SHALL NOT show to members without `mcp.connect`, before the connections have loaded, once any connection exists, once the member has opened MCP connections, or once the member has closed it. Closing SHALL be remembered per member across devices. The bar SHALL emit PostHog `mcp-hint-shown` (once per mount), `mcp-hint-dismissed` and `mcp-hint-connect-clicked` with `context: 'launch_bar'`.
+While the MCP connections page is on, a member with `mcp.connect` (directory admins and PL infra) and no MCP connection SHALL see a bar at the top of every page, in `SiteHeader` above the navbar: a "New" pill (hidden on phones), "Search teams and members, post news or team updates right from your AI session. LabOS now works with AI agents.", a "Set up now" button that opens `/settings/mcp`, and a close button. The bar SHALL NOT show to members without `mcp.connect`, before the connections have loaded, or once any connection exists (named or not); otherwise it SHALL stay on every page, including after the member opens MCP connections, until the member closes it with ✕. Closing SHALL be remembered per member across devices. The bar SHALL emit PostHog `mcp-hint-shown` (once per mount), `mcp-hint-dismissed` and `mcp-hint-connect-clicked` with `context: 'launch_bar'`.
 
 #### Scenario: Member without MCP access
 
@@ -140,17 +140,22 @@ While the MCP connections page is on, a member with `mcp.connect` (directory adm
 
 ### Requirement: Contextual MCP hints suggest the agent where the member just did its work
 
-To the same audience as the launch bar (the MCP connections page on, `mcp.connect`, connections loaded), LabOS SHALL show a hint card right after the member did something an agent could do for them: on AI Search under the latest answer, in the message list above the follow-up field (not inside the pinned composer, which would cover the answer), from the second question sent in the browser session, quoting the latest question; on Forum → Create Post (not the edit form, not the reply box) between the Title field and the post editor once the title is not empty; and on AI Apps → Feedback, Received tab, under the tabs row when 3 or more received feedback items have status NEW (counted before filters). With no connection the card SHALL show the Claude and Codex marks, a title and line naming what connecting gives ("Ask this from Claude or Codex next time", "Let your agent draft this post", "Triage these <N> new comments from your agent"), and a "Connect an agent" link that opens `/settings/mcp`. With a connection it SHALL show only that client's mark, "Ask <client> instead", and the same request as a prompt with a copy button. A ✕ SHALL dismiss the hint for its context only, remembered per member across devices (`mcp_hint_search`, `mcp_hint_forum`, `mcp_hint_comments`). Each hint SHALL emit PostHog `mcp-hint-shown` (once per mount, with `connected`), `mcp-hint-dismissed`, `mcp-hint-connect-clicked` and `mcp-hint-prompt-copied` (with `clientName`), with `context` `search`, `forum` or `comments`.
+To the same audience as the launch bar (the MCP connections page on, `mcp.connect`, connections loaded), LabOS SHALL show a hint card right after the member did something an agent could do for them: on AI Search under the latest answer, in the message list above the follow-up field (not inside the pinned composer, which would cover the answer), from the second question sent in the browser session, quoting the latest question; on Forum → Create Post (not the edit form, not the reply box) between the Title field and the post editor once the title is not empty, but only once Forum write tools ship (LAB-3031): until then `SHOW_MCP_FORUM_HINT` is off and no MCP hint shows on Create Post; and on AI Apps → Feedback, Received tab, under the tabs row when 3 or more received feedback items have status NEW (counted before filters). With no connection the card SHALL show the Claude and Codex marks, a title and line naming what connecting gives ("Ask this from Claude or Codex next time", "Let your agent draft this post", "Triage these <N> new comments from your agent"), and a "Connect an agent" link that opens `/settings/mcp`. With a connection it SHALL show only that client's mark, "Ask <client> instead", and the same request as a prompt with a copy button. A client LabOS has no mark for SHALL show the brand-free plug mark with its name; a client that sent no name SHALL show the plug mark and "Ask your agent instead". The hints SHALL never name Claude for a client that is not Claude. A ✕ SHALL dismiss the hint for its context only, remembered per member across devices (`mcp_hint_search`, `mcp_hint_forum`, `mcp_hint_comments`). Each hint SHALL emit PostHog `mcp-hint-shown` (once per mount, with `connected`), `mcp-hint-dismissed`, `mcp-hint-connect-clicked` and `mcp-hint-prompt-copied` (with `clientName`), with `context` `search`, `forum` or `comments`.
 
 #### Scenario: Second search with no agent
 
 - **WHEN** an eligible member with no MCP connection sends a second AI Search question, "Open roles at Prime Intellect", in the same browser session
 - **THEN** under the answer, above the follow-up field, a hint reads "Connect LabOS to your agent and search “Open roles at Prime Intellect” where you already work." with "Connect an agent"
 
-#### Scenario: Agent connected on a new post
+#### Scenario: No forum hint before Forum MCP
 
-- **WHEN** a member with Claude Code connected types a title on Forum → Create Post
-- **THEN** between the title and the editor a hint reads "Ask Claude Code instead" with the prompt `Draft a LabOS forum post titled “<title>”` and a copy button
+- **WHEN** a member types a title on Forum → Create Post while Forum write tools have not shipped
+- **THEN** no MCP hint shows
+
+#### Scenario: Connected client with no name
+
+- **WHEN** a member whose connection sent no client name sends a second AI Search question
+- **THEN** the hint reads "Ask your agent instead" with the plug mark and the prompt to copy
 
 #### Scenario: Dismissed in one place only
 

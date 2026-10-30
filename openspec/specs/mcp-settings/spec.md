@@ -62,6 +62,11 @@ Each active connection SHALL render as one card: client name, a status badge fro
 - **WHEN** the server allows write on Events and on Members, teams and projects
 - **THEN** their rows say "With write: RSVP for you." and "With write: edit the teams you lead and your teams' projects."
 
+#### Scenario: Write text for Your profile
+
+- **WHEN** the server allows write on Your profile
+- **THEN** its row says "Read your profile, job alert and email preferences." and "With write: edit your profile and experience, join or leave teams and projects, follow teams, save jobs and Demo Day teams, and change your job alert and email preferences."
+
 #### Scenario: Save changes only this connection
 
 - **WHEN** the member sets Forum to Read and write on connection A and saves

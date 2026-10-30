@@ -122,6 +122,18 @@ export function isCaptureSupported(): boolean {
   return Boolean(window.isSecureContext && navigator.mediaDevices?.getDisplayMedia);
 }
 
+/**
+ * Whether a screen-share prompt may open now, with no new click: the member's
+ * last click is still fresh (transient activation) and the tab has the focus.
+ * A browser that cannot tell counts as no, so the caller asks for a click.
+ */
+export function canPromptCaptureNow(): boolean {
+  if (!isCaptureSupported()) return false;
+  const activation = (navigator as Navigator & { userActivation?: { isActive: boolean } }).userActivation;
+  if (!activation?.isActive) return false;
+  return typeof document === 'undefined' || !document.hasFocus || document.hasFocus();
+}
+
 function getCaptureController(): unknown {
   const Ctor = (
     window as unknown as { CaptureController?: new () => { setFocusBehavior?: (behavior: string) => void } }

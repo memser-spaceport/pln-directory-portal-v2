@@ -9,6 +9,7 @@ import {
 import { MAX_SCREENSHOTS } from '@/components/page/ai-apps/components/GiveAiAppFeedbackDialog/GiveAiAppFeedbackDialog';
 import { toast } from '@/components/core/ToastContainer';
 import {
+  CaptureError,
   cropImageToDataUrl,
   dragToFrameRect,
   frameRectToCapturePixels,
@@ -216,7 +217,16 @@ beforeEach(() => {
 
 afterEach(() => {
   jest.clearAllMocks();
+  delete (navigator as Navigator & { userActivation?: unknown }).userActivation;
+  delete (document as Partial<Document>).hasFocus;
 });
+
+/** The member's click is still fresh, so the browser lets a screen-share prompt open with no new click. */
+function withFreshClick(isActive = true) {
+  Object.defineProperty(navigator, 'userActivation', { configurable: true, value: { isActive } });
+  /* jsdom never has the focus; a real tab the member just clicked in does. */
+  Object.defineProperty(document, 'hasFocus', { configurable: true, value: () => true });
+}
 
 describe('opening the form attaches the app', () => {
   it('shows a placeholder while capturing, then the picture with its caption', async () => {
@@ -290,7 +300,7 @@ describe('opening the form attaches the app', () => {
     renderDialog(() => Promise.reject(new Error('capture-missing')));
     await flush();
 
-    expect(screen.getByText('Couldn’t capture the app automatically — add a screenshot below.')).toBeInTheDocument();
+    expect(screen.getByText('Automatic screenshot failed. Take a screenshot manually.')).toBeInTheDocument();
     expect(requestTabCapture).not.toHaveBeenCalled();
     expect(mockAnalytics.onFeedbackAppCapture).toHaveBeenCalledWith(
       expect.objectContaining({ source: 'auto', outcome: 'failed', error: 'capture-missing' }),
@@ -304,8 +314,8 @@ describe('opening the form attaches the app', () => {
     renderDialog(() => Promise.reject(new Error(reason)));
     await flush();
 
-    expect(screen.getByText('The app took too long to capture — add a screenshot below.')).toBeInTheDocument();
-    expect(screen.queryByText(/Couldn’t capture the app automatically/)).not.toBeInTheDocument();
+    expect(screen.getByText('The app took too long to capture. Take a screenshot manually.')).toBeInTheDocument();
+    expect(screen.queryByText(/Automatic screenshot failed/)).not.toBeInTheDocument();
     expect(screen.queryByRole('img', { name: /^Screenshot \d$/ })).not.toBeInTheDocument();
     expect(requestTabCapture).not.toHaveBeenCalled();
     expect(mockAnalytics.onFeedbackAppCapture).toHaveBeenCalledWith(
@@ -325,7 +335,64 @@ describe('opening the form attaches the app', () => {
     );
     await flush();
 
-    expect(screen.getByText('The page took too long to capture — add a screenshot below.')).toBeInTheDocument();
+    expect(screen.getByText('The page took too long to capture. Take a screenshot manually.')).toBeInTheDocument();
+  });
+
+  it('after a failed automatic capture, one click on Whole page opens the screen share', async () => {
+    const capture = jest.fn().mockRejectedValue(new Error('capture-missing'));
+    renderDialog(capture);
+    await flush();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Whole page' }));
+    await waitFor(() => expect(requestTabCapture).toHaveBeenCalledTimes(1));
+
+    expect(capture).toHaveBeenCalledTimes(1);
+    expect(mockAnalytics.onFeedbackScreenShareFallback).toHaveBeenCalledWith({ reason: 'auto-failed' });
+  });
+
+  it('after a failed automatic capture, one click on Pick a part opens the screen share', async () => {
+    const capture = jest.fn().mockRejectedValue(new Error('capture-missing'));
+    renderDialog(capture);
+    await flush();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Pick a part' }));
+    await waitFor(() => expect(requestTabCapture).toHaveBeenCalledTimes(1));
+
+    expect(screen.queryByTestId('live-region-overlay')).not.toBeInTheDocument();
+    expect(mockAnalytics.onFeedbackScreenShareFallback).toHaveBeenCalledWith({ reason: 'auto-failed' });
+  });
+
+  it('after a failed automatic capture, the screenshot shortcut opens the screen share', async () => {
+    renderDialog(() => Promise.reject(new Error('capture-missing')));
+    await flush();
+
+    fireEvent.keyDown(document, { key: 's', ctrlKey: true, shiftKey: true });
+    await waitFor(() => expect(requestTabCapture).toHaveBeenCalledTimes(1));
+
+    expect(mockAnalytics.onFeedbackScreenShareFallback).toHaveBeenCalledWith({ reason: 'auto-failed' });
+  });
+
+  it('a browser that cannot screen-share shows its usual message after a failed automatic capture', async () => {
+    (requestTabCapture as jest.Mock).mockRejectedValue(
+      new CaptureError('unsupported', 'Screenshots aren’t available in this browser.'),
+    );
+    renderDialog(() => Promise.reject(new Error('capture-missing')));
+    await flush();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Whole page' }));
+    await flush();
+
+    expect(toast.error).toHaveBeenCalledWith('Screenshots aren’t available in this browser.');
+  });
+
+  it('a working automatic capture shows no note and opens no screen share', async () => {
+    withFreshClick();
+    renderDialog(() => Promise.resolve(shot(SHOT_A)));
+    await flush();
+
+    expect(screen.getByRole('img', { name: 'Screenshot 1' })).toBeInTheDocument();
+    expect(screen.queryByText(/Take a screenshot manually/)).not.toBeInTheDocument();
+    expect(requestTabCapture).not.toHaveBeenCalled();
   });
 
   it('attaches nothing on an app without the bridge, and keeps the screen-share button', () => {
@@ -573,7 +640,40 @@ describe('adding screenshots', () => {
     expect(scrollApp).toHaveBeenCalledWith(1, 2, 0, 120);
   });
 
-  it('a failed capture is reported, and only the NEXT click falls back to screen sharing', async () => {
+  it('a failed capture with a fresh click opens the screen share at once', async () => {
+    withFreshClick();
+    const capture = jest.fn().mockResolvedValueOnce(shot(SHOT_A)).mockRejectedValueOnce(new Error('capture-missing'));
+    renderDialog(capture);
+    await flush();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Whole page' }));
+    await waitFor(() => expect(requestTabCapture).toHaveBeenCalledTimes(1));
+
+    expect(toast.error).not.toHaveBeenCalled();
+    expect(screen.queryByText(/Take a screenshot manually/)).not.toBeInTheDocument();
+    expect(mockAnalytics.onFeedbackScreenShareFallback).toHaveBeenCalledWith({ reason: 'at-once' });
+  });
+
+  it('cancelling the screen share that opened at once keeps the form and the words, with no error', async () => {
+    withFreshClick();
+    (requestTabCapture as jest.Mock).mockRejectedValue(new CaptureError('cancelled', ''));
+    const onClose = jest.fn();
+    const capture = jest.fn().mockResolvedValueOnce(shot(SHOT_A)).mockRejectedValueOnce(new Error('capture-missing'));
+    renderDialog(capture, true, onClose);
+    await flush();
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Broken button' } });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Whole page' }));
+    await waitFor(() => expect(requestTabCapture).toHaveBeenCalledTimes(1));
+    await flush();
+
+    expect(toast.error).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue('Broken button');
+  });
+
+  it('a failed capture without a fresh click says so inline, and the next click screen-shares', async () => {
+    withFreshClick(false);
     const capture = jest.fn().mockResolvedValueOnce(shot(SHOT_A)).mockRejectedValueOnce(new Error('capture-missing'));
     renderDialog(capture);
     await flush();
@@ -581,12 +681,15 @@ describe('adding screenshots', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Whole page' }));
     await flush();
 
-    expect(toast.error).toHaveBeenCalledWith('Couldn’t capture the app. Try again — it will use screen sharing.');
+    expect(screen.getByText('Screenshot failed. Take a screenshot manually.')).toBeInTheDocument();
+    expect(toast.error).not.toHaveBeenCalled();
     expect(requestTabCapture).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole('button', { name: 'Whole page' }));
     await waitFor(() => expect(requestTabCapture).toHaveBeenCalledTimes(1));
     expect(capture).toHaveBeenCalledTimes(2);
+    expect(mockAnalytics.onFeedbackScreenShareFallback).toHaveBeenCalledWith({ reason: 'capture-failed' });
+    expect(screen.queryByText(/Take a screenshot manually/)).not.toBeInTheDocument();
   });
 
   it('Whole page says the app took too long when the capture ran out of time', async () => {
@@ -597,9 +700,8 @@ describe('adding screenshots', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Whole page' }));
     await flush();
 
-    expect(toast.error).toHaveBeenCalledWith(
-      'The app took too long to capture. Try again — it will use screen sharing.',
-    );
+    expect(screen.getByText('The app took too long to capture. Take a screenshot manually.')).toBeInTheDocument();
+    expect(toast.error).not.toHaveBeenCalled();
   });
 
   it('Pick a part says the app took too long when the app never answered', async () => {
@@ -611,9 +713,22 @@ describe('adding screenshots', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Drag done' }));
     await flush();
 
-    expect(toast.error).toHaveBeenCalledWith(
-      'The app took too long to capture. Try again — it will use screen sharing.',
-    );
+    expect(screen.getByText('The app took too long to capture. Take a screenshot manually.')).toBeInTheDocument();
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it('Pick a part with a fresh click opens the screen share at once when the capture fails', async () => {
+    withFreshClick();
+    const capture = jest.fn().mockResolvedValueOnce(shot(SHOT_A)).mockRejectedValueOnce(new Error('timeout'));
+    renderDialog(capture);
+    await flush();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Pick a part' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Drag done' }));
+    await waitFor(() => expect(requestTabCapture).toHaveBeenCalledTimes(1));
+
+    expect(toast.error).not.toHaveBeenCalled();
+    expect(mockAnalytics.onFeedbackScreenShareFallback).toHaveBeenCalledWith({ reason: 'at-once' });
   });
 
   it(`stops at ${MAX_SCREENSHOTS} screenshots`, async () => {

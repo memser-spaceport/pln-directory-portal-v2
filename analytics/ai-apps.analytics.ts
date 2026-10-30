@@ -125,7 +125,11 @@ export function useAiAppsAnalytics() {
     onFeedbackAutoShotRemoved: (params: { appUid?: string; whileCapturing: boolean }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_AUTO_SHOT_REMOVED, params),
     onFeedbackPickPartCancelled: () => capture(AI_APPS_ANALYTICS.FEEDBACK_PICK_PART_CANCELLED),
-    onFeedbackScreenShareFallback: (params: { reason: 'chosen' | 'capture-failed' }) =>
+    /**
+     * `capture-failed`: a click after a failed Whole page / Pick a part; `auto-failed`: a click after a
+     * failed automatic screenshot; `at-once`: the prompt opened straight from the failed capture's click.
+     */
+    onFeedbackScreenShareFallback: (params: { reason: 'chosen' | 'capture-failed' | 'auto-failed' | 'at-once' }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_SCREEN_SHARE_FALLBACK, params),
     onFeedbackPinDetached: (params: { appUid: string }) => capture(AI_APPS_ANALYTICS.FEEDBACK_PIN_DETACHED, params),
     onFeedbackPinCropFailed: (params: { appUid: string; error: string }) =>

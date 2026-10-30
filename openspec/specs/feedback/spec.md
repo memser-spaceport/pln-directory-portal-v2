@@ -55,19 +55,49 @@ The feedback screenshot of a LabOS page SHALL show the page when the page has a 
 - **AND** the video keeps playing
 
 ### Requirement: A failed screenshot says why when the cause is known
-When an instant screenshot in the feedback form fails because the page or app took too long, the form SHALL say that it took too long. When the cause is anything else, the form SHALL show the general message. A failed automatic screenshot SHALL ask the member to add a screenshot; a failed Whole page or Pick a part SHALL say that trying again uses screen sharing.
+When an instant screenshot in the feedback form fails because the page or app took too long, the form SHALL say that it took too long. When the cause is anything else, the form SHALL say that the screenshot failed ("Automatic screenshot failed" for the automatic one). Either note SHALL ask the member to take a screenshot manually, next to the screenshot buttons.
 
 #### Scenario: The automatic screenshot fails
 - **GIVEN** the member opens the feedback form
 - **WHEN** the automatic screenshot fails for a cause the form does not name
-- **THEN** the form says it could not capture the page and asks the member to add a screenshot
+- **THEN** the form says "Automatic screenshot failed. Take a screenshot manually." next to the screenshot buttons
 
 #### Scenario: The capture takes too long
 - **GIVEN** the member opens the feedback form on a page that takes too long to draw
 - **WHEN** the automatic screenshot runs out of time
-- **THEN** the form says that the page took too long and asks the member to add a screenshot
+- **THEN** the form says that the page took too long and asks the member to take a screenshot manually
 
-#### Scenario: Whole page or Pick a part fails
+#### Scenario: Whole page or Pick a part fails and the browser needs a new click
 - **GIVEN** the member chooses Whole page or Pick a part
-- **WHEN** the capture takes too long
-- **THEN** the form says that the page took too long and that trying again uses screen sharing
+- **WHEN** the capture takes too long and the browser no longer allows a screen share prompt from that click
+- **THEN** the form says that the page took too long and asks the member to take a screenshot manually, with no error toast
+
+### Requirement: A failed screenshot falls back to the browser's screen capture
+After a failed automatic screenshot, Whole page or Pick a part, the next click on Whole page or Pick a part SHALL open the browser's screen capture prompt. When Whole page or Pick a part fails while the browser still allows a prompt from the member's click, the prompt SHALL open at once, with no new click. The screen-share fallback event SHALL say whether the prompt opened at once or after a click.
+
+#### Scenario: One click after a failed automatic screenshot
+- **GIVEN** the automatic screenshot failed
+- **WHEN** the member clicks Whole page or Pick a part
+- **THEN** the browser's screen capture prompt opens
+- **AND** `ai_apps_feedback_screen_share_fallback` is recorded with reason `auto-failed`
+
+#### Scenario: The prompt opens at once
+- **GIVEN** the member clicks Whole page and the browser still allows a prompt from that click
+- **WHEN** the capture fails
+- **THEN** the browser's screen capture prompt opens with no new click and no error toast
+- **AND** `ai_apps_feedback_screen_share_fallback` is recorded with reason `at-once`
+
+#### Scenario: The member cancels the prompt
+- **GIVEN** the browser's screen capture prompt opened after a failed capture
+- **WHEN** the member cancels it
+- **THEN** the form stays open with the typed text and shows no error
+
+#### Scenario: The browser cannot screen-share
+- **GIVEN** the browser has no screen capture and the automatic screenshot failed
+- **WHEN** the member clicks Whole page
+- **THEN** the form shows the current message that screenshots are not available in this browser
+
+#### Scenario: The automatic screenshot works
+- **GIVEN** the automatic screenshot succeeds
+- **WHEN** the form opens
+- **THEN** no screen capture prompt opens and no failure note shows

@@ -559,6 +559,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     category: 'Newsfeed',
     load: () => import('./entries/lab-2953-design-homepage-refactor-open/DesignHomepageRefactorOpenPrototype'),
   },
+  {
+    key: 'lab-2953-home-v2',
+    title: 'Home v2: onboarding story and member priorities',
+    description:
+      "Version 2 of the Home refactor, from Polina's home-v2 brief of 2026-10-29. A review switch (?state=) shows four states. Signed out: the explore page's intro with Sign up and Sign in, focus areas that link into the directory, the logo islands, open roles, the logo wall and a short news preview. Signed in: Quick Actions with AI Apps and Job Board first, forum threads, the latest deals (only with deals access), five picked news stories and open roles; upcoming events wait behind a flag. Email not found: the sign-in error modal with Sign up instead of a dead end. Mock data only. LAB-2953.",
+    category: 'Newsfeed',
+    load: () => import('./entries/lab-2953-home-v2/HomeV2Prototype'),
+  },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).
   // {

@@ -2,6 +2,7 @@ import '@testing-library/jest-dom';
 import { render, screen, within } from '@testing-library/react';
 
 import { NewsGroupCard } from '@/components/page/home/TeamNews/components/NewsGroupCard/NewsGroupCard';
+import { TopStoriesBlock } from '@/components/page/home/TeamNews/components/TopStories/TopStoriesBlock';
 import { TopStoryCard } from '@/components/page/home/TeamNews/components/TopStories/TopStoryCard';
 import { NewsDetailModal } from '@/components/page/home/TeamNews/components/NewsDetailModal/NewsDetailModal';
 import { NewsDetailBody } from '@/components/page/home/TeamNews/components/NewsDetailModal/NewsDetailBody';
@@ -36,6 +37,10 @@ jest.mock('@/components/page/home/TeamNews/components/SourceList/SourceList', ()
 
 jest.mock('@/services/auth/store', () => ({
   useCurrentUserStore: () => ({ currentUser: null, isHydrated: false }),
+}));
+
+jest.mock('@/analytics/team-news.analytics', () => ({
+  useTeamNewsAnalytics: () => ({ onTopStoriesBlockViewed: jest.fn() }),
 }));
 
 jest.mock('next/navigation', () => ({
@@ -88,6 +93,37 @@ function renderTopStory(item: ITeamNewsItem) {
   );
 }
 
+function renderTopStories(also: ITeamNewsItem[]) {
+  return render(
+    <TopStoriesBlock
+      lead={{ ...makeItem(['ai']), uid: 'lead', title: 'Lead story' }}
+      also={also}
+      windowLabel="Last 14 days"
+      followedTeamUids={new Set()}
+      onFollowToggle={jest.fn()}
+      onUpvoteToggle={jest.fn()}
+      onStoryOpen={jest.fn()}
+      onStoryVisible={jest.fn()}
+    />,
+  );
+}
+
+function chipsIn(container: HTMLElement) {
+  const list = within(container).queryByRole('list', { name: 'Tags' });
+  return list
+    ? within(list)
+        .getAllByRole('listitem')
+        .map((li) => li.textContent)
+    : [];
+}
+
+function runnerRow(title: string) {
+  const button = screen.getByRole('button', { name: title });
+  const row = button.closest('li');
+  if (!row) throw new Error(`No Top stories row for ${title}`);
+  return row;
+}
+
 function chipTexts() {
   const list = screen.queryByRole('list', { name: 'Tags' });
   return list
@@ -138,6 +174,36 @@ describe('news tag chips (LAB-3003)', () => {
       renderCard(makeItem(MIXED));
       expect(screen.queryByRole('list', { name: 'Tags' })).not.toBeInTheDocument();
       expect(screen.queryByText('#ai')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Top stories runners-up', () => {
+    it('shows topic chips on each non-lead item', () => {
+      renderTopStories([
+        { ...makeItem(MIXED), uid: 'also-1', title: 'StarkWare story' },
+        { ...makeItem(['digital-human-rights', 'fund']), uid: 'also-2', title: 'Apple story' },
+      ]);
+
+      expect(chipsIn(runnerRow('StarkWare story'))).toEqual(['#ai']);
+      expect(chipsIn(runnerRow('Apple story'))).toEqual(['#digital-human-rights']);
+      expect(screen.queryByText('#launch')).not.toBeInTheDocument();
+      expect(screen.queryByText('#longevity')).not.toBeInTheDocument();
+      expect(screen.queryByText('#fund')).not.toBeInTheDocument();
+    });
+
+    it('shows the first 3 topics when there are more', () => {
+      renderTopStories([{ ...makeItem(MANY_TOPICS), uid: 'also-1', title: 'Runner story' }]);
+      expect(chipsIn(runnerRow('Runner story'))).toEqual(['#ai', '#digital-human-rights', '#decentralized-storage']);
+    });
+
+    it('renders no chip row for an item with no topic tags', () => {
+      renderTopStories([
+        { ...makeItem([]), uid: 'also-1', title: 'No tags' },
+        { ...makeItem(['launch', 'fund']), uid: 'also-2', title: 'Verbs only' },
+      ]);
+
+      expect(within(runnerRow('No tags')).queryByRole('list', { name: 'Tags' })).not.toBeInTheDocument();
+      expect(within(runnerRow('Verbs only')).queryByRole('list', { name: 'Tags' })).not.toBeInTheDocument();
     });
   });
 

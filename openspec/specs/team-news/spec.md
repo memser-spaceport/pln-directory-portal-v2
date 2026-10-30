@@ -184,11 +184,11 @@ With News preferences on, Home's For You view SHALL show a story when its team i
 - **THEN** For You matches their own, followed and related teams as before
 
 ### Requirement: News tag chips
-With `NEXT_PUBLIC_SHOW_NEWS_PREFERENCES` on, news items SHALL show their tags as `#slug` chips. On Home (the feed rows, the Top stories card and the detail modal opened there) they SHALL be brand links that filter the feed (see "Filter the Home feed by tag"); everywhere else they SHALL be grey labels that are not clickable. A tag is a topic when it equals the slug of a top-two-level focus area. Home feed rows and the Top stories card SHALL show up to 3 topics, in tag order. The detail modal, wherever it opens, SHALL show every topic, then the other tags. Legacy verb tags (`launch`, `fund`, `$`, ...) SHALL never show. With the flag off, nothing SHALL change.
+With `NEXT_PUBLIC_SHOW_NEWS_PREFERENCES` on, news items SHALL show their tags as `#slug` chips. On Home (the feed rows, every Top stories item and the detail modal opened there) they SHALL be brand links that filter the feed (see "Filter the Home feed by tag"); everywhere else they SHALL be grey labels that are not clickable. A tag is a topic when it equals the slug of a top-two-level focus area. Home feed rows and every Top stories item (the lead and each runner-up) SHALL show up to 3 topics, in tag order. The detail modal, wherever it opens, SHALL show every topic, then the other tags. Legacy verb tags (`launch`, `fund`, `$`, ...) SHALL never show. With the flag off, nothing SHALL change.
 
 #### Scenario: Card shows topics only
 - **GIVEN** the flag on and an item tagged `ai`, `launch` and `longevity`
-- **WHEN** its Home feed row or Top stories card renders
+- **WHEN** its Home feed row or Top stories item renders
 - **THEN** it shows one chip, `#ai`
 
 #### Scenario: Detail modal shows topics, then extras
@@ -198,7 +198,7 @@ With `NEXT_PUBLIC_SHOW_NEWS_PREFERENCES` on, news items SHALL show their tags as
 
 #### Scenario: No tags
 - **GIVEN** an item with no tags
-- **WHEN** its card renders
+- **WHEN** its Home card or Top stories item renders
 - **THEN** no chip row renders
 
 ### Requirement: Filter the Home feed by tag

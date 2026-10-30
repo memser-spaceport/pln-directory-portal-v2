@@ -18,6 +18,7 @@ import { CommentButton } from '../NewsCard/components/CommentButton/CommentButto
 import { NewsShareMenu } from '../NewsShareMenu';
 import { SourceList } from '../SourceList/SourceList';
 import { ViewCount } from '../ViewCount/ViewCount';
+import { NewsTagChips } from '../NewsTagChips';
 import { TopStoryCard } from './TopStoryCard';
 
 import newsCardStyles from '../NewsCard/NewsCard.module.scss';
@@ -52,7 +53,7 @@ interface TopStoriesBlockProps {
  * Asymmetric on purpose — three equal heroes would push the stream under the
  * fold. The lead keeps the eyebrow and the full summary; the runners-up are
  * rows carrying the same anatomy as a feed card (head row, headline, clamped
- * summary, meta) minus the card's own border, because the band supplies it.
+ * summary, topic chips, meta) minus the card's own border, because the band supplies it.
  *
  * One band, not three cards: separate cards would read as feed items that
  * happen to sit high, rather than as part of one pick.
@@ -128,6 +129,8 @@ export function TopStoriesBlock({
               onUpvoteClick={handleUpvoteClick(item)}
               onOpen={() => onStoryOpen(item, 'row', index + 1)}
               onVisible={onStoryVisible}
+              onTagSelect={onTagSelect}
+              activeTag={activeTag}
             />
           ))}
         </ul>
@@ -146,6 +149,8 @@ interface AlsoRowProps {
   onUpvoteClick: () => void;
   onOpen: () => void;
   onVisible: (uid: string) => void;
+  onTagSelect?: (tag: string) => void;
+  activeTag?: string;
 }
 
 // Extracted so useCardVisibilityTracking has a legal, stable hook call site —
@@ -162,6 +167,8 @@ function AlsoRow({
   onUpvoteClick,
   onOpen,
   onVisible,
+  onTagSelect,
+  activeTag,
 }: AlsoRowProps) {
   const { label: eventTypeLabel, dotClassName } = getEventTypeConfig(item.eventType);
 
@@ -203,6 +210,8 @@ function AlsoRow({
       </button>
 
       {item.summary && <p className={s.alsoSummary}>{item.summary}</p>}
+
+      <NewsTagChips tags={item.tags} variant="card" onSelect={onTagSelect} active={activeTag} />
 
       <div className={newsCardStyles.metaLine}>
         <div className={newsCardStyles.meta}>

@@ -394,68 +394,88 @@ describe('NewsPreferences tags (LAB-3000)', () => {
     expect(screen.getByRole('link', { name: 'See teams to follow' })).toHaveAttribute('href', '/teams');
   });
 
-  describe('suggested teams for a member who follows none (LAB-3037)', () => {
-    const suggestedList = () => screen.queryByRole('list', { name: 'Suggested for you' });
+  describe('Teams to follow for a member who follows none (LAB-3037, design LAB-3038 v2)', () => {
+    const suggested = () => screen.queryByRole('region', { name: 'Teams to follow' });
+    const followButton = (name: RegExp) => within(suggested()!).getByRole('button', { name });
 
     beforeEach(() => {
       mockFollowed = [];
       mockSuggested = [
-        { uid: 'filecoin', name: 'Filecoin', logo: null, reason: 'Storage · 1.2k followers' },
+        { uid: 'filecoin', name: 'Filecoin', logo: null, reason: 'Decentralized storage · 1.2k followers' },
         { uid: 'ipfs', name: 'IPFS', logo: null, reason: 'Networking' },
       ];
     });
 
-    it('lists suggestions with a Follow button and a link to all teams', () => {
+    it('lists 4 suggestions under "Teams to follow", with what they share and a link to all teams', () => {
       renderPage();
-      expect(screen.getByText(/You don.t follow any teams yet. Here are a few to start with./)).toBeInTheDocument();
-      const list = suggestedList()!;
+      expect(mockUseSuggested).toHaveBeenCalledWith(expect.objectContaining({ enabled: true, limit: 4 }));
+      expect(screen.getByText(/^You don.t follow any teams yet\.$/)).toBeInTheDocument();
+      expect(within(suggested()!).getByText('From the focus areas of your team')).toBeInTheDocument();
       expect(
-        within(list)
+        within(suggested()!)
           .getAllByRole('listitem')
           .map((li) => li.textContent),
       ).toEqual([expect.stringContaining('Filecoin'), expect.stringContaining('IPFS')]);
       // The follower count is stripped from the backend's reason, as on Home.
-      expect(within(list).getByText('Storage')).toBeInTheDocument();
+      expect(within(suggested()!).getByText('Decentralized storage')).toBeInTheDocument();
       expect(screen.getByRole('link', { name: 'See all teams' })).toHaveAttribute('href', '/teams');
       expect(screen.queryByRole('link', { name: 'See teams to follow' })).not.toBeInTheDocument();
+      expect(screen.getByText('Teams you follow')).toBeInTheDocument(); // no count yet
     });
 
-    it('moves a followed suggestion into Teams you follow, and keeps suggesting the rest', async () => {
+    it('keeps a followed team in place, counts it in the title, and can unfollow it there', async () => {
       mockToggleFollow.mockResolvedValue({ following: true });
       renderPage();
 
       await act(async () => {
-        fireEvent.click(within(suggestedList()!).getByRole('button', { name: /Filecoin/ }));
+        fireEvent.click(followButton(/Filecoin/));
       });
       expect(mockToggleFollow).toHaveBeenLastCalledWith({ teamUid: 'filecoin', action: 'follow' });
-      expect(mockAnalytics.onNewsPreferencesFollowToggled).toHaveBeenCalledWith({
+      expect(mockAnalytics.onNewsPreferencesFollowToggled).toHaveBeenLastCalledWith({
         teamUid: 'filecoin',
         following: true,
         from: 'settings',
         suggested: true,
       });
       expect(screen.getByText(/Teams you follow · 1/)).toBeInTheDocument();
-      expect(within(suggestedList()!).queryByText('Filecoin')).not.toBeInTheDocument();
-      expect(within(suggestedList()!).getByText('IPFS')).toBeInTheDocument();
+      expect(
+        within(suggested()!)
+          .getAllByRole('listitem')
+          .map((li) => li.textContent),
+      ).toEqual([expect.stringContaining('Filecoin'), expect.stringContaining('IPFS')]);
+      expect(followButton(/Filecoin/)).toHaveTextContent('Following');
       expect(screen.queryByText(/You don.t follow any teams yet/)).not.toBeInTheDocument();
 
-      // The moved row is a normal followed row: it can be unfollowed in place.
       mockToggleFollow.mockResolvedValue({ following: false });
       await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: /Filecoin/ }));
+        fireEvent.click(followButton(/Filecoin/));
       });
       expect(mockToggleFollow).toHaveBeenLastCalledWith({ teamUid: 'filecoin', action: 'unfollow' });
-      expect(screen.getByText(/Teams you follow · 0/)).toBeInTheDocument();
+      expect(within(suggested()!).getByText('Filecoin')).toBeInTheDocument();
+      expect(screen.getByText(/^You don.t follow any teams yet\.$/)).toBeInTheDocument();
     });
 
-    it('leaves a suggestion in place when the follow fails, and says so', async () => {
+    it('keeps a followed team listed when a refetch of the suggestions drops it', async () => {
+      mockToggleFollow.mockResolvedValue({ following: true });
+      const { rerender } = renderPage();
+      await act(async () => {
+        fireEvent.click(followButton(/Filecoin/));
+      });
+      // The backend leaves followed teams out of new suggestions.
+      mockSuggested = [{ uid: 'ipfs', name: 'IPFS', logo: null, reason: 'Networking' }];
+      rerender(<NewsPreferences uid="m1" from="settings" initialTags={['desci']} initialTagsSeeded={false} />);
+      expect(followButton(/Filecoin/)).toHaveTextContent('Following');
+    });
+
+    it('puts a failed follow back and says so', async () => {
       mockToggleFollow.mockResolvedValue(null);
       renderPage();
 
       await act(async () => {
-        fireEvent.click(within(suggestedList()!).getByRole('button', { name: /Filecoin/ }));
+        fireEvent.click(followButton(/Filecoin/));
       });
-      expect(within(suggestedList()!).getByText('Filecoin')).toBeInTheDocument();
+      expect(followButton(/Filecoin/)).not.toHaveTextContent('Following');
+      expect(screen.getByText('Teams you follow')).toBeInTheDocument();
       expect(mockToastError).toHaveBeenCalled();
       expect(mockAnalytics.onNewsPreferencesSaveFailed).toHaveBeenCalledWith({ section: 'teams', teamUid: 'filecoin' });
     });
@@ -463,14 +483,14 @@ describe('NewsPreferences tags (LAB-3000)', () => {
     it('falls back to the link to Teams when there are no suggestions', () => {
       mockSuggested = [];
       renderPage();
-      expect(suggestedList()).not.toBeInTheDocument();
+      expect(suggested()).not.toBeInTheDocument();
       expect(screen.getByRole('link', { name: 'See teams to follow' })).toHaveAttribute('href', '/teams');
     });
 
     it('does not suggest or fetch suggestions for a member who follows teams', () => {
       mockFollowed = [{ uid: 'acme', name: 'Acme', logoUrl: null }];
       renderPage();
-      expect(suggestedList()).not.toBeInTheDocument();
+      expect(suggested()).not.toBeInTheDocument();
       expect(mockUseSuggested).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }));
       expect(mockUseSuggested).not.toHaveBeenCalledWith(expect.objectContaining({ enabled: true }));
     });

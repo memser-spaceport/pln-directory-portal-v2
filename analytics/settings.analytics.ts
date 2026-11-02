@@ -266,6 +266,11 @@ export const useSettingsAnalytics = () => {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_TAG_SEARCHED, params);
   }
 
+  /** "Show N more" on a long theme (LAB-3039); not sent for "Show less". */
+  function onNewsPreferencesThemeExpanded(params: { theme: string; from: NewsPreferencesArrival }) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_GROUP_EXPANDED, params);
+  }
+
   /** "For You" in the page intro, which opens the For You feed on Home (LAB-3036). */
   function onNewsPreferencesForYouLinkClicked(from: NewsPreferencesArrival) {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_FOR_YOU_LINK_CLICKED, { from });
@@ -277,6 +282,7 @@ export const useSettingsAnalytics = () => {
     onNewsPreferencesSaveFailed,
     onNewsPreferencesFollowToggled,
     onNewsPreferencesTagSearched,
+    onNewsPreferencesThemeExpanded,
     onNewsPreferencesForYouLinkClicked,
     recordSettingsSideMenuClick,
     recordManageTeamsTeamChange,

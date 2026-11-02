@@ -70,7 +70,8 @@ The page SHALL record:
 - `settings-news-preferences-tag-toggled`, with the tag, its new state, and `from`;
 - `settings-news-preferences-save-failed`, with the section (`tags` or `teams`);
 - `settings-news-preferences-follow-toggled`;
-- `settings-news-preferences-for-you-link-clicked`, with `from`, when the intro's "For You" link is clicked.
+- `settings-news-preferences-for-you-link-clicked`, with `from`, when the intro's "For You" link is clicked;
+- `settings-news-preferences-group-expanded`, with the theme and `from`, when a long theme's "Show N more" is clicked.
 
 The For You hint SHALL record `team-news-for-you-tune-clicked`.
 
@@ -87,7 +88,7 @@ The For You hint SHALL record `team-news-for-you-tune-clicked`.
 
 ### Requirement: News tags
 
-The Topics section SHALL be headed "What do you want news about?" and SHALL offer the news tags (focus-area slugs) that tagged at least one news story in the last 90 days, plus any tag the member already has, as `#slug` chips grouped by theme: AI & frontier tech, Web3 infrastructure, Digital rights, Economies & governance, The network, and Other for any tag no theme lists. Themes are an editorial grouping in the frontend, not the focus-area hierarchy; chips are alphabetical within a theme and keep their place when toggled. A search field SHALL narrow the chips as the member types, matching part of a tag or a theme's name, and hide themes with no match. Subscribing or unsubscribing SHALL save at once and show "Saved". The member SHALL be able to unsubscribe from every topic.
+The Topics section SHALL be headed "What do you want news about?" and SHALL offer the news tags (focus-area slugs) that tagged at least one news story in the last 90 days, plus any tag the member already has, as `#slug` chips grouped by theme: AI & frontier tech, Web3 infrastructure, Digital rights, Economies & governance, The network, and Other for any tag no theme lists. Themes are an editorial grouping in the frontend, not the focus-area hierarchy; chips are alphabetical within a theme and keep their place when toggled. A search field SHALL narrow the chips as the member types, matching part of a tag or a theme's name, and hide themes with no match. A theme with more than 9 tags SHALL show its first 8, plus every tag the member has or toggled in this visit, and end its chip row with "Show N more"; open, the theme shows every tag and the link reads "Show less". A theme that would hide only one tag shows it instead, and while the search has text every match shows with no link. Subscribing or unsubscribing SHALL save at once and show "Saved". The member SHALL be able to unsubscribe from every topic.
 
 #### Scenario: Search tags
 
@@ -100,6 +101,24 @@ The Topics section SHALL be headed "What do you want news about?" and SHALL offe
 - **GIVEN** a member on News preferences
 - **WHEN** they type text no tag or theme contains
 - **THEN** no chips show and a line says no tags match
+
+#### Scenario: Long theme
+
+- **GIVEN** a theme with 15 tags, none of them the member's
+- **WHEN** the member opens News preferences
+- **THEN** the theme shows its first 8 tags and "Show 7 more"; clicking it shows all 15 and "Show less", and `settings-news-preferences-group-expanded` is recorded
+
+#### Scenario: A pick past the limit
+
+- **GIVEN** a theme with 15 tags and a member who has its 12th tag
+- **WHEN** they open News preferences
+- **THEN** the theme shows its first 8 tags, the 12th tag, and "Show 6 more"
+
+#### Scenario: Search ignores the limit
+
+- **GIVEN** a theme with 15 tags, collapsed
+- **WHEN** the member types part of its 12th tag in Search tags
+- **THEN** the 12th tag shows, with no "Show more"
 
 #### Scenario: A tag no theme lists
 

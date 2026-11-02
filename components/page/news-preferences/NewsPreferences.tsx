@@ -8,7 +8,9 @@
  *   Topics ................. news tags (focus-area slugs used by news,
  *                            `GET /v1/team-news/tags`) as `#slug` chips in
  *                            themes, with a search (LAB-3023). A member who
- *                            never saved starts with their teams' focus areas
+ *                            never saved starts with their teams' focus areas.
+ *                            A long theme shows its first tags and "Show N more"
+ *                            (LAB-3039, design LAB-3038)
  *   Teams you follow ....... FollowButton; an unfollowed row stays until the page
  *                            is left, so it can be undone in place. A member who
  *                            follows none gets suggestions (LAB-3037,
@@ -47,6 +49,9 @@ import { groupNewsTags } from './newsTagThemes';
 import s from './NewsPreferences.module.scss';
 
 type Gap = 'teams' | 'tags';
+
+/** Tags a theme shows before "Show N more" (LAB-3038: per theme, not for the whole list). */
+export const TAGS_PER_THEME = 8;
 type Saved = null | 'tags' | 'teams';
 
 interface Props {
@@ -78,6 +83,10 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
   // list lacks them (no recent news), so removing one can be undone in place.
   const [pinned] = useState<string[]>(() => initialTags);
   const [query, setQuery] = useState('');
+  // Tags toggled in this visit: like the picks, they show past the limit, so a
+  // chip keeps its place after it's turned off.
+  const [toggled, setToggled] = useState<Set<string>>(() => new Set());
+  const [openThemes, setOpenThemes] = useState<Set<string>>(() => new Set());
   const searchRef = useRef<HTMLInputElement>(null);
   const [unfollowed, setUnfollowed] = useState<Set<string>>(() => new Set());
   const [pendingTeam, setPendingTeam] = useState<string | null>(null);
@@ -144,6 +153,34 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
     return [...new Set([...pinned, ...listed])];
   }, [tagGroups, pinned]);
   const themes = useMemo(() => groupNewsTags(allTags, query), [allTags, query]);
+  const searching = query.trim().length > 0;
+
+  // What each theme shows, and how many tags the limit hides. A search shows
+  // every match; a picked or toggled tag always shows.
+  const view = useMemo(
+    () =>
+      themes.map((theme) => {
+        if (searching || openThemes.has(theme.title) || theme.slugs.length <= TAGS_PER_THEME) {
+          return { ...theme, visible: theme.slugs, hidden: 0 };
+        }
+        const visible = theme.slugs.filter((slug, i) => i < TAGS_PER_THEME || tags.includes(slug) || toggled.has(slug));
+        // "Show 1 more" takes the room of the tag it hides: show that tag instead.
+        if (theme.slugs.length - visible.length < 2) return { ...theme, visible: theme.slugs, hidden: 0 };
+        return { ...theme, visible, hidden: theme.slugs.length - visible.length };
+      }),
+    [themes, searching, openThemes, tags, toggled],
+  );
+
+  const toggleTheme = (title: string) => {
+    const open = !openThemes.has(title);
+    if (open) analytics.onNewsPreferencesThemeExpanded({ theme: title, from });
+    setOpenThemes((current) => {
+      const next = new Set(current);
+      if (open) next.add(title);
+      else next.delete(title);
+      return next;
+    });
+  };
 
   const saveTags = (next: string[]) => {
     const previous = tags;
@@ -161,6 +198,7 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
   const toggleTag = (slug: string) => {
     const on = tags.includes(slug);
     analytics.onNewsPreferencesTagToggled({ tag: slug, on: !on, from });
+    setToggled((current) => new Set(current).add(slug));
     saveTags(on ? tags.filter((t) => t !== slug) : [...tags, slug]);
   };
 
@@ -311,14 +349,33 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
                 )}
               </div>
               <div className={s.themes} role="group" aria-label="Topics">
-                {themes.map((theme) => (
-                  <div key={theme.title} className={s.theme} role="group" aria-label={theme.title}>
-                    <span className={s.themeTitle} aria-hidden="true">
-                      {theme.title}
-                    </span>
-                    <div className={s.chips}>{theme.slugs.map(renderTagChip)}</div>
-                  </div>
-                ))}
+                {view.map((theme) => {
+                  const open = openThemes.has(theme.title);
+                  const long = !searching && theme.slugs.length > TAGS_PER_THEME + 1;
+                  return (
+                    <div key={theme.title} className={s.theme} role="group" aria-label={theme.title}>
+                      <span className={s.themeTitle} aria-hidden="true">
+                        {theme.title}
+                      </span>
+                      <div className={s.chips}>
+                        {theme.visible.map(renderTagChip)}
+                        {long && (open || theme.hidden > 0) && (
+                          <button
+                            type="button"
+                            className={s.moreLink}
+                            aria-expanded={open}
+                            aria-label={
+                              open ? `Show fewer ${theme.title} tags` : `Show ${theme.hidden} more ${theme.title} tags`
+                            }
+                            onClick={() => toggleTheme(theme.title)}
+                          >
+                            {open ? 'Show less' : `Show ${theme.hidden} more`}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
                 {themes.length === 0 && <p className={clsx(s.emptyLine, s.noMatch)}>No tags match “{query.trim()}”.</p>}
               </div>
             </>

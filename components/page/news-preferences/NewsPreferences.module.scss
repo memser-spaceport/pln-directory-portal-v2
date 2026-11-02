@@ -243,6 +243,44 @@
   }
 }
 
+// "Show N more" / "Show less" (LAB-3039, design LAB-3038): a text button in the
+// link colour, sized like a chip so it sits at the end of the chip row.
+.moreLink {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 4px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+
+  // A bigger tap area on phones, with no change to the row's look.
+  @include media.mobile-only {
+    &::after {
+      content: '';
+      position: absolute;
+      inset: -8px -4px;
+    }
+  }
+}
+
 // ---------- Teams you follow ----------
 
 .teams {

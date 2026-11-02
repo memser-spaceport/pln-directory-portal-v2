@@ -13,6 +13,7 @@ const mockAnalytics = {
   onNewsPreferencesFollowToggled: jest.fn(),
   onNewsPreferencesTagSearched: jest.fn(),
   onNewsPreferencesForYouLinkClicked: jest.fn(),
+  onNewsPreferencesThemeExpanded: jest.fn(),
 };
 let mockPreferences: { newsTags: string[]; newsTagsSeeded: boolean } | undefined;
 let mockTagList: { data?: INewsTagGroup[]; isError: boolean };
@@ -118,6 +119,72 @@ describe('NewsPreferences tags (LAB-3000)', () => {
     renderPage({ initialTags: ['desci', 'zk-gaming'] });
     expect(screen.getByRole('group', { name: 'Other' })).toHaveTextContent('#zk-gaming');
     expect(chipNames().at(-1)).toBe('#zk-gaming');
+  });
+
+  describe('a long theme (LAB-3039)', () => {
+    // Tags no theme lists all go to Other: x01…x15 make one long theme.
+    const slugs = (n: number) => Array.from({ length: n }, (_, i) => `x${String(i + 1).padStart(2, '0')}`);
+    const withOther = (n: number): INewsTagGroup[] => [
+      ...TAG_LIST,
+      { slug: 'misc', title: 'Misc', children: slugs(n).map((slug) => ({ slug, title: slug })) },
+    ];
+    // 'misc' itself is one of Other's tags, sorted first.
+    const other = () => screen.getByRole('group', { name: 'Other' });
+    const otherChips = () =>
+      within(other())
+        .getAllByRole('button')
+        .filter((b) => b.hasAttribute('aria-pressed'))
+        .map((b) => b.textContent);
+    const more = () => within(other()).queryByRole('button', { name: /more Other tags|fewer Other tags/ });
+
+    it('shows the first 8 tags and "Show N more", and opens and closes the theme', () => {
+      mockTagList = { data: withOther(15), isError: false };
+      renderPage();
+
+      expect(otherChips()).toEqual(['misc', ...slugs(7)].map((s) => `#${s}`));
+      expect(more()).toHaveTextContent('Show 8 more');
+      expect(more()).toHaveAttribute('aria-expanded', 'false');
+
+      fireEvent.click(more()!);
+      expect(otherChips()).toHaveLength(16);
+      expect(more()).toHaveTextContent('Show less');
+      expect(more()).toHaveAttribute('aria-expanded', 'true');
+      expect(mockAnalytics.onNewsPreferencesThemeExpanded).toHaveBeenCalledWith({ theme: 'Other', from: 'settings' });
+
+      fireEvent.click(more()!);
+      expect(otherChips()).toHaveLength(8);
+      expect(mockAnalytics.onNewsPreferencesThemeExpanded).toHaveBeenCalledTimes(1);
+    });
+
+    it('leaves a short theme whole, and shows a lone extra tag instead of "Show 1 more"', () => {
+      mockTagList = { data: withOther(8), isError: false }; // 9 tags with misc
+      renderPage();
+      expect(otherChips()).toHaveLength(9);
+      expect(more()).not.toBeInTheDocument();
+    });
+
+    it("always shows the member's tags, also past the limit", () => {
+      mockTagList = { data: withOther(15), isError: false };
+      renderPage({ initialTags: ['x12'] });
+      expect(otherChips()).toEqual(['misc', ...slugs(7), 'x12'].map((s) => `#${s}`));
+      expect(more()).toHaveTextContent('Show 7 more');
+    });
+
+    it('keeps a tag removed past the limit in place, so it can be added back', () => {
+      mockTagList = { data: withOther(15), isError: false };
+      renderPage({ initialTags: ['x12'] });
+      fireEvent.click(within(other()).getByRole('button', { name: '#x12' }));
+      expect(within(other()).getByRole('button', { name: '#x12' })).toHaveAttribute('aria-pressed', 'false');
+    });
+
+    it('shows every match while searching, with no "Show more"', () => {
+      mockTagList = { data: withOther(15), isError: false };
+      renderPage();
+      fireEvent.change(screen.getByRole('searchbox', { name: 'Search tags' }), { target: { value: 'x' } });
+      // 15 matches, more than the limit: all show.
+      expect(otherChips()).toEqual(slugs(15).map((s) => `#${s}`));
+      expect(more()).not.toBeInTheDocument();
+    });
   });
 
   describe('search (LAB-3023)', () => {

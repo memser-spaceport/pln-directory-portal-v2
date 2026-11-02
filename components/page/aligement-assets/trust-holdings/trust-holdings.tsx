@@ -31,10 +31,9 @@ export interface TrustBuyback {
   section: BuybackSimulationSectionData;
 }
 
-type ViewMode = 'quarterly-graph' | 'monthly-graph' | 'table';
+type ViewMode = 'monthly-graph' | 'table';
 
 const VIEW_OPTIONS: { id: ViewMode; label: string }[] = [
-  { id: 'quarterly-graph', label: 'Quarterly Graph' },
   { id: 'monthly-graph', label: 'Monthly Graph' },
   { id: 'table', label: 'Table View' },
 ];
@@ -274,9 +273,8 @@ const MONTH_NAMES = [
 
 // Normalizes a label to a key that survives formatting drift between the
 // two APIs feeding it — exact-string matching would silently drop a marker
-// the day either side reformats "Q3 '26" as "Q3 2026".
+// the day either side reformats "Jul '26" as "July 2026".
 //
-//   Q3 '26 · Q3 2026 · Q3-26     → Q3-2026
 //   Jul 26 · Jul '26 · July 2026 → M7-2026
 function periodKey(label: string): string | null {
   const text = label.trim();
@@ -286,25 +284,11 @@ function periodKey(label: string): string | null {
   const digits = year[1] ?? year[2];
   const fullYear = digits.length === 4 ? Number(digits) : 2000 + Number(digits);
 
-  const quarter = text.match(/\bQ\s*([1-4])\b/i);
-  if (quarter) return `Q${quarter[1]}-${fullYear}`;
-
   const name = text.match(/^([A-Za-z]{3,})/);
   if (!name) return null;
   const stem = name[1].slice(0, 3).toLowerCase();
   const monthIndex = MONTH_NAMES.findIndex((month) => month.slice(0, 3).toLowerCase() === stem);
   return monthIndex < 0 ? null : `M${monthIndex + 1}-${fullYear}`;
-}
-
-/**
- * The keys an auction can be matched under: its own month, for the monthly
- * graph, and the calendar quarter containing it, for the quarterly one.
- */
-function auctionPeriodKeys(monthYear: string): string[] {
-  const key = periodKey(monthYear);
-  if (!key?.startsWith('M')) return key ? [key] : [];
-  const [month, year] = key.slice(1).split('-');
-  return [key, `Q${Math.floor((Number(month) - 1) / 3) + 1}-${year}`];
 }
 
 // value positions the chip; text fills it.
@@ -313,7 +297,7 @@ interface BuybackMarker {
   text: string;
 }
 
-// Newest auction wins when two share a quarter. A price that never settled
+// Newest auction wins when two share a month. A price that never settled
 // reads 'TBD' and plots nothing.
 function buybackMarkersByPeriod(buybacks: TrustBuyback[]): Record<string, BuybackMarker> {
   const markers: Record<string, BuybackMarker> = {};
@@ -321,17 +305,14 @@ function buybackMarkersByPeriod(buybacks: TrustBuyback[]): Record<string, Buybac
     const text = entry.section.summary.items.find((item) => item.label === 'Clearing Price')?.value;
     const value = text ? Number(text.replace(/[^0-9.]/g, '')) : NaN;
     if (!text || !Number.isFinite(value)) return;
-    auctionPeriodKeys(entry.monthYear).forEach((key) => {
-      if (!(key in markers)) markers[key] = { value, text };
-    });
+    const key = periodKey(entry.monthYear);
+    if (key && !(key in markers)) markers[key] = { value, text };
   });
   return markers;
 }
 
-// Final category (current quarter) highlighted in blue. showAsterisk marks
-// it preliminary — quarterly view only, a quarter can be open while its
-// latest month is closed.
-const renderAxisTick = (lastLabel: string, showAsterisk?: boolean) => (props: any) => {
+// Final category (the latest month) highlighted in blue.
+const renderAxisTick = (lastLabel: string) => (props: any) => {
   const { x, y, payload } = props;
   const isLast = payload.value === lastLabel;
   return (
@@ -344,7 +325,7 @@ const renderAxisTick = (lastLabel: string, showAsterisk?: boolean) => (props: an
       fill={isLast ? '#0090ff' : AXIS_TEXT_STYLE.fill}
       fontWeight={isLast ? 600 : AXIS_TEXT_STYLE.fontWeight}
     >
-      {payload.value}{isLast && showAsterisk ? '*' : ''}
+      {payload.value}
     </text>
   );
 };
@@ -352,13 +333,11 @@ const renderAxisTick = (lastLabel: string, showAsterisk?: boolean) => (props: an
 function NavChart({
   data,
   markers,
-  showPreliminaryNote,
   showIssuance = false,
   hidden,
 }: {
   data: NavPoint[];
   markers: Record<string, BuybackMarker>;
-  showPreliminaryNote?: boolean;
   showIssuance?: boolean;
   hidden: HiddenSeries;
 }) {
@@ -373,8 +352,8 @@ function NavChart({
       buybackLabel: marker?.text ?? '',
     };
   });
-  // Quarterly is at most a handful of bars (wide, per design); denser
-  // series get proportionally narrower bars.
+  // A handful of bars are drawn wide (per design); denser series get
+  // proportionally narrower bars.
   const dense = chartData.length > 8;
   const barSize = dense ? 40 : 92;
   const hasBuybacks = chartData.some((d) => d.buyback != null) && !hidden.buyback;
@@ -392,7 +371,7 @@ function NavChart({
             dataKey="label"
             axisLine={{ stroke: '#cbd5e1' }}
             tickLine={false}
-            tick={renderAxisTick(chartData[chartData.length - 1]?.label, showPreliminaryNote)}
+            tick={renderAxisTick(chartData[chartData.length - 1]?.label)}
             interval={0}
           />
           <YAxis yAxisId="nav" hide domain={[0, (max: number) => max * 1.15]} />
@@ -468,12 +447,6 @@ function NavChart({
         </ComposedChart>
       </ResponsiveContainer>
       </div>
-      {showPreliminaryNote && (
-        <p className="th-chart__note">
-          *{chartData[chartData.length - 1]?.label} figures are preliminary and reflect data available prior to the
-          close of the quarter. Final results may change as additional data is recorded.
-        </p>
-      )}
     </div>
   );
 }
@@ -656,7 +629,7 @@ function capstoneMetrics(data: TrustHoldingsData, buybacks: TrustBuyback[]): Buy
 }
 
 export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHoldingsData; buybacks?: TrustBuyback[] }) {
-  const [view, setView] = useState<ViewMode>('quarterly-graph');
+  const [view, setView] = useState<ViewMode>('monthly-graph');
   const [hidden, setHidden] = useState<HiddenSeries>({ nav: false, buyback: false, issuance: false });
   const { onNavMenuClicked } = useAlignmentAssetsAnalytics();
   useScrollDepthTracking('trust-holdings');
@@ -746,9 +719,6 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
             </ul>
           </div>
 
-          {view === 'quarterly-graph' && (
-            <NavChart data={data.quarterly} markers={buybackMarkers} showPreliminaryNote hidden={hidden} />
-          )}
           {view === 'monthly-graph' && (
             <NavChart data={monthlyWindow} markers={buybackMarkers} showIssuance hidden={hidden} />
           )}
@@ -1078,15 +1048,6 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           color: #64748b;
           font-size: 14px;
           text-align: center;
-        }
-
-        .th-chart__note {
-          margin: 0;
-          padding: 0 16px 16px;
-          background-color: #f8fafc;
-          font-size: 13px;
-          line-height: 18px;
-          color: #64748b;
         }
 
         /* Table */

@@ -72,6 +72,17 @@ const buybacks = [
 // Selected by testid, not legend copy: relabelling a series must not fail these.
 const legendBox = (series: 'nav' | 'buyback' | 'issuance') => screen.getByTestId(`th-key-${series}`);
 
+test('offers only the monthly graph and the table, opening on the monthly graph', () => {
+  render(<TrustHoldings data={data} buybacks={buybacks} />);
+
+  const views = screen.getAllByRole('button', { name: /Graph|Table View/ }).map((b) => b.textContent);
+  expect(views).toEqual(['Monthly Graph', 'Table View']);
+  expect(screen.queryByRole('button', { name: /Quarterly/ })).not.toBeInTheDocument();
+
+  // The monthly view is live on first render: its issuance axis is already drawn.
+  expect(screen.getByTestId('axis-issuance')).toBeInTheDocument();
+});
+
 test('every series checkbox starts checked and its line is plotted', () => {
   render(<TrustHoldings data={data} buybacks={buybacks} />);
 
@@ -99,7 +110,6 @@ test('unchecking a series removes only that line from the chart', () => {
 test('PLAA issuance toggle drops its line and its right-hand axis in the monthly view', () => {
   render(<TrustHoldings data={data} buybacks={buybacks} />);
 
-  fireEvent.click(screen.getByRole('button', { name: 'Monthly Graph' }));
   expect(screen.getByTestId('line-totalPlaa')).toBeInTheDocument();
   expect(screen.getByTestId('axis-issuance')).toBeInTheDocument();
 

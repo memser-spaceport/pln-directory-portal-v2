@@ -167,6 +167,28 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  /* Anchors the title link's stretched hit area below. */
+  position: relative;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+
+  &:hover {
+    box-shadow: var(--ov-ring-hairline), var(--ov-shadow-sm, var(--ov-shadow-xs));
+    transform: translateY(-1px);
+  }
+
+  /* The hit area is the title link, so focus has to show on the card it covers. */
+  &:focus-within {
+    outline: 2px solid var(--ov-accent, var(--ov-blue-500));
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &:hover {
+      transform: none;
+    }
+  }
 }
 
 .howCardHeader {
@@ -196,6 +218,25 @@
   line-height: 24px;
 }
 
+/* Stretched link: the whole card scrolls to the section this step explains. */
+.howCardTitleLink {
+  @extend .howCardTitle;
+  color: inherit;
+  text-decoration: none;
+  outline: none;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+
+  &:hover {
+    color: var(--ov-accent, var(--ov-blue-500));
+  }
+}
+
 .howCardDesc {
   font-size: 14px;
   line-height: 20px;
@@ -221,6 +262,9 @@
   font-weight: 600;
   color: var(--ov-blue-500);
   text-decoration: none;
+  /* Sits above the stretched title link so "See activities" stays clickable. */
+  position: relative;
+  z-index: 1;
 
   &:hover {
     text-decoration: underline;

@@ -13,9 +13,10 @@
  *                            (LAB-3039, design LAB-3038)
  *   Teams you follow ....... FollowButton; an unfollowed row stays until the page
  *                            is left, so it can be undone in place. A member who
- *                            follows none gets suggestions (LAB-3037,
- *                            `GET /v1/team-news/follow-suggestions`); a followed
- *                            suggestion moves up into the list
+ *                            follows none gets "Teams to follow" instead
+ *                            (LAB-3037, design LAB-3038 v2): 4 teams from
+ *                            `GET /v1/team-news/follow-suggestions`; a followed
+ *                            one stays in place and counts in the title
  *
  * Arriving from the digest or the feed (`from`) outlines the biggest gap until
  * the first change: topics but no followed teams → Teams you follow, else Topics.
@@ -37,8 +38,7 @@ import { useFollowedTeams } from '@/services/follow/hooks/useFollowedTeams';
 import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
 import { followedTeamUidsQueryKey } from '@/services/follow/hooks/useFollowedTeamUids';
 import { useSuggestedTeamsToFollow } from '@/services/follow/hooks/useSuggestedTeamsToFollow';
-import { getSuggestedTeamSubtitle } from '@/components/page/home/TeamNews/components/NewsRail/components/TeamsToFollowCard';
-import type { IFollowedTeam } from '@/types/follow.types';
+import { stripFollowerCountFromReason } from '@/components/page/home/TeamNews/components/NewsRail/components/TeamsToFollowCard';
 import type { ISuggestedTeam } from '@/types/team-news.types';
 import { toast } from '@/components/core/ToastContainer';
 import { triggerLoader } from '@/utils/common.utils';
@@ -90,11 +90,10 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
   const searchRef = useRef<HTMLInputElement>(null);
   const [unfollowed, setUnfollowed] = useState<Set<string>>(() => new Set());
   const [pendingTeam, setPendingTeam] = useState<string | null>(null);
-  // Suggestions followed on this page, newest first: they join the list above
-  // the follows the query knows.
-  const [followedHere, setFollowedHere] = useState<
-    Array<Pick<IFollowedTeam, 'uid' | 'name' | 'logoUrl' | 'focusAreas'>>
-  >([]);
+  // Suggestions the member followed on this page (kept after an unfollow, so the
+  // row stays in place), and which of them they follow now.
+  const [followedHere, setFollowedHere] = useState<ISuggestedTeam[]>([]);
+  const [followingHere, setFollowingHere] = useState<Set<string>>(() => new Set());
   const [touched, setTouched] = useState(false);
   const [saved, setSaved] = useState<Saved>(null);
 
@@ -124,15 +123,14 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
   }, [saved]);
 
   const follows = useMemo(() => followedTeams ?? [], [followedTeams]);
-  const rows = useMemo(() => {
-    const known = new Set(follows.map((t) => t.uid));
-    return [...followedHere.filter((t) => !known.has(t.uid)), ...follows];
-  }, [follows, followedHere]);
   // Suggest while the member follows nothing they didn't follow here, so the
-  // list stays put after the first follow and they can pick a few in a row.
+  // list stays put after a follow and they can pick a few in a row.
   const suggesting = !followsPending && follows.every((t) => followedHere.some((h) => h.uid === t.uid));
-  const { suggestions: suggested } = useSuggestedTeamsToFollow({ currentUserUid: uid, enabled: suggesting });
-  const suggestions = suggesting ? suggested.filter((t) => !rows.some((r) => r.uid === t.uid)) : [];
+  const { suggestions: suggested } = useSuggestedTeamsToFollow({ currentUserUid: uid, enabled: suggesting, limit: 4 });
+  // The backend drops followed teams from a refetch: keep the ones followed here.
+  const suggestions = suggesting
+    ? [...suggested, ...followedHere.filter((h) => !suggested.some((t) => t.uid === h.uid))]
+    : [];
   const gap: Gap = tags.length > 0 && follows.length === 0 ? 'teams' : 'tags';
   const arriving = from !== 'settings' && !touched && !followsPending;
 
@@ -228,19 +226,30 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
     setSaved('teams');
   };
 
-  const followSuggestion = async (team: ISuggestedTeam) => {
+  const toggleSuggestion = async (team: ISuggestedTeam) => {
     if (pendingTeam) return;
+    const following = followingHere.has(team.uid);
+    const flip = (set: Set<string>) => {
+      const nextSet = new Set(set);
+      if (nextSet.has(team.uid)) nextSet.delete(team.uid);
+      else nextSet.add(team.uid);
+      return nextSet;
+    };
     setTouched(true);
     setPendingTeam(team.uid);
-    analytics.onNewsPreferencesFollowToggled({ teamUid: team.uid, following: true, from, suggested: true });
-    const result = await toggleFollowRequest({ teamUid: team.uid, action: 'follow' }).catch(() => null);
+    setFollowingHere(flip); // optimistic
+    setFollowedHere((list) => (list.some((t) => t.uid === team.uid) ? list : [...list, team]));
+    analytics.onNewsPreferencesFollowToggled({ teamUid: team.uid, following: !following, from, suggested: true });
+    const result = await toggleFollowRequest({ teamUid: team.uid, action: following ? 'unfollow' : 'follow' }).catch(
+      () => null,
+    );
     setPendingTeam(null);
     if (!result) {
-      toast.error('Could not follow this team. Please try again.');
+      setFollowingHere(flip); // revert
+      toast.error('Could not update this team. Please try again.');
       analytics.onNewsPreferencesSaveFailed({ section: 'teams', teamUid: team.uid });
       return;
     }
-    setFollowedHere((list) => [{ uid: team.uid, name: team.name, logoUrl: team.logo }, ...list]);
     queryClient.invalidateQueries({ queryKey: followedTeamUidsQueryKey(uid) });
     setSaved('teams');
   };
@@ -269,7 +278,8 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
     );
   };
 
-  const followingCount = rows.filter((t) => !unfollowed.has(t.uid)).length;
+  const followingCount = suggesting ? followingHere.size : follows.filter((t) => !unfollowed.has(t.uid)).length;
+  const showCount = suggesting ? followingHere.size > 0 : follows.length > 0;
 
   return (
     <div className={formCss.root}>
@@ -389,15 +399,15 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
       {/* Teams you follow */}
       <div ref={refs.teams} className={clsx(toggleCss.root, s.card, lit('teams') && s.cardHighlight)}>
         <div className={clsx(toggleCss.header, s.cardHeader)}>
-          Teams you follow{rows.length > 0 && ` · ${followingCount}`}
+          Teams you follow{showCount && ` · ${followingCount}`}
           {saved === 'teams' && <SavedNote />}
         </div>
         <div className={toggleCss.content}>
           {lit('teams') && <p className={s.arrivalNote}>Follow teams to see their news in {arrivalWhere}.</p>}
           <div className={toggleCss.desc}>News from these teams shows up in For You and your digest.</div>
-          {followsPending ? null : rows.length > 0 ? (
+          {followsPending ? null : !suggesting ? (
             <ul className={s.teams}>
-              {rows.map((t) => {
+              {follows.map((t) => {
                 const following = !unfollowed.has(t.uid);
                 return (
                   <li key={t.uid} className={s.team}>
@@ -427,24 +437,28 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
                 );
               })}
             </ul>
-          ) : suggestions.length > 0 ? (
-            <p className={s.emptyLine}>You don&apos;t follow any teams yet. Here are a few to start with.</p>
-          ) : (
+          ) : suggestions.length === 0 ? (
             <p className={s.emptyLine}>
               You don&apos;t follow any teams yet.{' '}
               <Link href="/teams" className={s.inlineLink}>
                 See teams to follow
               </Link>
             </p>
+          ) : (
+            followingHere.size === 0 && <p className={s.emptyLine}>You don&apos;t follow any teams yet.</p>
           )}
           {suggestions.length > 0 && (
-            <div className={s.suggestions}>
-              <span className={s.themeTitle} id="news-preferences-suggested">
-                Suggested for you
-              </span>
-              <ul className={s.teams} aria-labelledby="news-preferences-suggested">
+            <section className={s.suggest} aria-labelledby="news-preferences-teams-to-follow">
+              <div className={s.suggestHead}>
+                <h6 id="news-preferences-teams-to-follow" className={s.suggestTitle}>
+                  Teams to follow
+                </h6>
+                <span className={s.suggestNote}>From the focus areas of your team</span>
+              </div>
+              <ul className={s.teams}>
                 {suggestions.map((t) => {
-                  const subtitle = getSuggestedTeamSubtitle(t);
+                  // The backend's reason starts with what the team shares with the member's (e.g. a focus area).
+                  const subtitle = stripFollowerCountFromReason(t.reason || '');
                   return (
                     <li key={t.uid} className={s.team}>
                       {t.logo ? (
@@ -463,20 +477,20 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
                         )}
                       </div>
                       <FollowButton
-                        following={false}
+                        following={followingHere.has(t.uid)}
                         name={t.name}
                         size="compact"
                         disabled={pendingTeam === t.uid}
-                        onClick={() => followSuggestion(t)}
+                        onClick={() => toggleSuggestion(t)}
                       />
                     </li>
                   );
                 })}
               </ul>
-              <Link href="/teams" className={clsx(s.inlineLink, s.allTeamsLink)}>
+              <Link href="/teams" className={clsx(s.inlineLink, s.suggestMore)}>
                 See all teams
               </Link>
-            </div>
+            </section>
           )}
         </div>
       </div>

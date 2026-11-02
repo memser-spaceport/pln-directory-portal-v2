@@ -28,7 +28,7 @@ Signed-in members SHALL have a News preferences page in Settings, listed right a
 - **THEN** Home opens in the same tab with For You selected, or All when they have no For You stories
 
 ### Requirement: Teams you follow
-The Teams you follow section SHALL list the teams the member follows, each with a Follow/Following control and, when the backend sends them, all of the team's top-level focus areas under its name, on one line. Unfollowing SHALL keep the team in the list until the page is left, so it can be followed again in place. With no followed teams, the section SHALL show an empty state. When the backend has follow suggestions for the member (`GET /v1/team-news/follow-suggestions`), the empty state SHALL list them under "Suggested for you", each with its reason and a Follow button, followed by a link to all Teams; otherwise it SHALL link to Teams. A followed suggestion SHALL move into the followed list (and can be unfollowed there in place), and the remaining suggestions SHALL stay for the visit. A member who already follows teams SHALL see no suggestions.
+The Teams you follow section SHALL list the teams the member follows, each with a Follow/Following control and, when the backend sends them, all of the team's top-level focus areas under its name, on one line. Unfollowing SHALL keep the team in the list until the page is left, so it can be followed again in place. With no followed teams, the section SHALL show an empty state. When the backend has follow suggestions for the member (`GET /v1/team-news/follow-suggestions`, 4 of them), the section SHALL say they don't follow any teams yet and list the suggestions under "Teams to follow" ("From the focus areas of your team"), each with what it shares with the member's team and a Follow button, followed by a link to all Teams; otherwise it SHALL link to Teams. A followed suggestion SHALL stay in its place showing Following, count in the section title, and can be unfollowed there; the empty line goes while any is followed. A member who already follows teams SHALL see no suggestions.
 
 #### Scenario: Unfollow and undo
 - **GIVEN** a member following Acme
@@ -43,7 +43,7 @@ The Teams you follow section SHALL list the teams the member follows, each with 
 #### Scenario: Suggested teams
 - **GIVEN** a member who follows no teams, with follow suggestions Filecoin and IPFS
 - **WHEN** they open News preferences and follow Filecoin from the suggestions
-- **THEN** Filecoin moves into the followed list, IPFS stays suggested, and `settings-news-preferences-follow-toggled` is recorded with `suggested: true`
+- **THEN** Filecoin stays in place showing Following, the title reads "Teams you follow · 1", and `settings-news-preferences-follow-toggled` is recorded with `suggested: true`
 
 #### Scenario: No suggestions for a member who follows teams
 - **GIVEN** a member who follows Acme

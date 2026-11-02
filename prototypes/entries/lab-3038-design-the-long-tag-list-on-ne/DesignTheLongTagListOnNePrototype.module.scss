@@ -1,0 +1,120 @@
+// LAB-3038. Prototype chrome copied from ../digest-topics; the page itself uses
+// production's NewsPreferences.module.scss. Only .moreLink is new.
+@use 'styles/media';
+
+.page {
+  min-height: 100vh;
+}
+
+// ---------- Prototype chrome (same as for-you-levers) ----------
+
+.switcher {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 12px 24px;
+  border-bottom: 1px dashed var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  @include media.mobile-only {
+    padding: 12px 16px;
+  }
+}
+
+.switchGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.switchLabel {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.segmented {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  overflow-x: auto;
+}
+
+.segment {
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--foreground-neutral-secondary, #455468);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.segmentActive {
+  background: var(--background-base-white, #fff);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  box-shadow: 0 1px 2px var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
+}
+
+// ---------- News preferences page ----------
+
+// ---------- NEW: "Show more" / "Show less" ----------
+
+// A text button in the page's link colour (production .inlineLink), sized like a
+// chip (24px, 12/16 500) so it sits at the end of the chip row as one more item.
+.moreLink {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 4px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+
+  // A bigger tap area on phones, with no change to the row's look.
+  @include media.mobile-only {
+    &::after {
+      content: '';
+      position: absolute;
+      inset: -8px -4px;
+    }
+  }
+}
+
+// Option B: one button under all themes, on the content edge.
+.moreLinkList {
+  align-self: flex-start;
+  padding: 0;
+  font-size: 14px;
+  line-height: 20px;
+}

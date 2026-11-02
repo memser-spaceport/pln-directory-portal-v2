@@ -53,6 +53,20 @@ Every page under `/sign-up` SHALL be marked `noindex, follow`, whatever its quer
 - **WHEN** a crawler requests `/sign-up?returnTo=/members/M`
 - **THEN** the page carries `<meta name="robots" content="noindex, follow">`
 
+### Requirement: Preview deployments are not indexed
+
+Every response of a Vercel preview deployment (`VERCEL_ENV=preview`) SHALL carry `X-Robots-Tag: noindex, nofollow`, whatever host serves it. A build whose `VERCEL_ENV` is anything else, or unset, SHALL send no `X-Robots-Tag` of its own. robots.txt SHALL NOT block the crawl on a preview, so crawlers can see the header.
+
+#### Scenario: Preview on a custom domain
+
+- **WHEN** a crawler requests `/home` on `pr-<n>.preview.dev.os.pl.xyz`
+- **THEN** the response carries `X-Robots-Tag: noindex, nofollow`
+
+#### Scenario: Production
+
+- **WHEN** a crawler requests `/home` on `os.pl.xyz`
+- **THEN** the response carries no `X-Robots-Tag`
+
 ### Requirement: Main pages name the searches they should be found for
 
 The home page, members, teams, projects, the events calendar, the job board and the Demo Day landing page SHALL each have a title and a description of their own, and no two of them SHALL share either. Each SHALL name "Protocol Labs". The home page SHALL also name "innovation network", and Demo Day SHALL name "venture investors" and "VC". The job board keeps the title "Protocol Labs Jobs | LabOS".

@@ -53,13 +53,18 @@ Every page under `/sign-up` SHALL be marked `noindex, follow`, whatever its quer
 - **WHEN** a crawler requests `/sign-up?returnTo=/members/M`
 - **THEN** the page carries `<meta name="robots" content="noindex, follow">`
 
-### Requirement: Preview deployments are not indexed
+### Requirement: Non-production deployments are not indexed
 
-Every response of a Vercel preview deployment (`VERCEL_ENV=preview`) SHALL carry `X-Robots-Tag: noindex, nofollow`, whatever host serves it. A build whose `VERCEL_ENV` is anything else, or unset, SHALL send no `X-Robots-Tag` of its own. robots.txt SHALL NOT block the crawl on a preview, so crawlers can see the header.
+Every response SHALL carry `X-Robots-Tag: noindex, nofollow`, whatever host serves it, when the build is a Vercel preview (`VERCEL_ENV=preview`) or was built with `SEO_NOINDEX=true` (the k8s feature envs). Any other build SHALL send no `X-Robots-Tag` of its own. That includes production, local development, a build with neither variable set, and any other `SEO_NOINDEX` value. robots.txt SHALL NOT block the crawl, so crawlers can see the header.
 
 #### Scenario: Preview on a custom domain
 
 - **WHEN** a crawler requests `/home` on `pr-<n>.preview.dev.os.pl.xyz`
+- **THEN** the response carries `X-Robots-Tag: noindex, nofollow`
+
+#### Scenario: Feature env
+
+- **WHEN** a crawler requests `/home` on `directory-portal-lab-<n>.os.pl.xyz`, deployed with `SEO_NOINDEX=true`
 - **THEN** the response carries `X-Robots-Tag: noindex, nofollow`
 
 #### Scenario: Production

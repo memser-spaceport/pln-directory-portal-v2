@@ -5,6 +5,7 @@ import aiSearchRedirects from './utils/ai-search-redirects.js';
 import legacyJobBoardRedirects from './utils/legacy-job-board-redirects.js';
 import eventsRedirects from './utils/events-redirects.js';
 import imageRemotePatterns from './utils/image-remote-patterns.js';
+import previewNoindex from './utils/preview-noindex-headers.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -76,6 +77,7 @@ const nextConfig = {
         source: '/ai-apps/bridge/:file*',
         headers: [{ key: 'Cache-Control', value: 'public, max-age=300, stale-while-revalidate=3600' }],
       },
+      ...previewNoindex.previewNoindexHeaders(),
     ];
   },
   async redirects() {

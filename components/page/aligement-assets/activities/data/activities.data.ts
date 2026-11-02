@@ -266,7 +266,7 @@ export const activitiesData: ActivitiesData = {
       audience: 'pl-infra-members',
       popupContent: {
         title: 'Provide Product Testing + Feedback',
-        overview: `Test an approved product, tool, workflow, or process on a real work task and provide meaningful, actionable feedback on the experience.\n\nCurrent eligible requests for product testing:\n\n**Factorio Weekly Updates** — Submit your weekly update, then provide feedback using the LabOS feedback feature in the bottom-right corner of the screen. Collect an additional 100 points for sharing meaningful feedback on the broader UX and the features you would find most useful in your daily workflow. Feedback will be eligible for points through Saturday, October 31, 2026.\n\n[**Max**](https://os.pl.xyz/pl-infra/ai-apps/cmunhqj0l00hgsd4fl7e86h4g) — Get set up on Max, explore your initial Radar results, and complete the [Max First Impressions Survey](https://claude.ai/artifact/U11kcPTw19MN3ruXrgdHjB?sk=HkBoSTEdQyiG9wCWD_487g) to share feedback on ease of use and the relevance of the outputs. Collect 100 points for completing the test and survey. Feedback is eligible through Saturday, October 31, 2026.`,
+        overview: `Test an approved product, tool, workflow, or process on a real work task and provide meaningful, actionable feedback on the experience.\n\nCurrent eligible requests for product testing:\n\n[**Max**](https://os.pl.xyz/pl-infra/ai-apps/cmunhqj0l00hgsd4fl7e86h4g) — Get set up on Max, explore your initial Radar results, and complete the [Max First Impressions Survey](https://docs.google.com/forms/d/e/1FAIpQLScfjyPU7fS9fVDsJkJ5JjbkcRRX1bHSGJjc5OQ2Y4to4ptY-A/viewform) to share feedback on ease of use and the relevance of the outputs. Collect 100 points for completing the test and survey. Feedback is eligible through Monday, November 30, 2026.`,
         networkBenefits: 'Helps teams improve shared products and workflows through real-world use, identifying friction, missing capabilities, and opportunities to improve the user experience.',
         rules: [
           'Participate in an eligible product-testing request and complete the defined task',
@@ -274,9 +274,6 @@ export const activitiesData: ActivitiesData = {
           'Feedback may identify friction, bugs, missing capabilities, suggested UX/UI improvements, or something that worked well and should be retained',
           'Feedback must be meaningful and specific enough for the product owner to act on',
           'Attendance, account creation, routine use, demos, logins, praise alone, or general reactions do not qualify'
-        ],
-        links: [
-          { text: 'Factorio Weekly Updates', url: '/pl-infra/ai-apps/cmst544z7008siz4g1d59fubr/weekly' }
         ]
       }
     },

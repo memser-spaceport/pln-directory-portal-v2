@@ -257,6 +257,8 @@ export const useSettingsAnalytics = () => {
     teamUid: string;
     following: boolean;
     from: NewsPreferencesArrival;
+    /** True when the team was one of the suggestions shown to a member who follows none (LAB-3037). */
+    suggested?: boolean;
   }) {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_FOLLOW_TOGGLED, params);
   }

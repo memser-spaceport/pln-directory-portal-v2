@@ -17,6 +17,8 @@ const mockAnalytics = {
 let mockPreferences: { newsTags: string[]; newsTagsSeeded: boolean } | undefined;
 let mockTagList: { data?: INewsTagGroup[]; isError: boolean };
 let mockFollowed: Array<{ uid: string; name: string; logoUrl: string | null }> = [];
+let mockSuggested: Array<{ uid: string; name: string; logo: string | null; reason: string }> = [];
+const mockUseSuggested = jest.fn();
 const mockToastError = jest.fn();
 
 jest.mock('@/services/members/hooks/useGetMemberPreferences', () => ({
@@ -30,6 +32,12 @@ jest.mock('@/services/team-news/hooks/useNewsTags', () => ({
 }));
 jest.mock('@/services/follow/hooks/useFollowedTeams', () => ({
   useFollowedTeams: () => ({ data: mockFollowed, isPending: false }),
+}));
+jest.mock('@/services/follow/hooks/useSuggestedTeamsToFollow', () => ({
+  useSuggestedTeamsToFollow: (opts: { enabled?: boolean }) => {
+    mockUseSuggested(opts);
+    return { suggestions: opts.enabled ? mockSuggested : [], isLoading: false };
+  },
 }));
 jest.mock('@/services/follow/hooks/useFollowTeam', () => ({
   useFollowTeam: () => ({ mutateAsync: mockToggleFollow }),
@@ -72,6 +80,7 @@ describe('NewsPreferences tags (LAB-3000)', () => {
     mockPreferences = undefined;
     mockTagList = { data: TAG_LIST, isError: false };
     mockFollowed = [{ uid: 'acme', name: 'Acme', logoUrl: null }];
+    mockSuggested = [];
   });
 
   it('records the visit with how the member arrived', () => {
@@ -316,6 +325,88 @@ describe('NewsPreferences tags (LAB-3000)', () => {
     renderPage();
     expect(screen.getByText(/You don.t follow any teams yet/)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'See teams to follow' })).toHaveAttribute('href', '/teams');
+  });
+
+  describe('suggested teams for a member who follows none (LAB-3037)', () => {
+    const suggestedList = () => screen.queryByRole('list', { name: 'Suggested for you' });
+
+    beforeEach(() => {
+      mockFollowed = [];
+      mockSuggested = [
+        { uid: 'filecoin', name: 'Filecoin', logo: null, reason: 'Storage · 1.2k followers' },
+        { uid: 'ipfs', name: 'IPFS', logo: null, reason: 'Networking' },
+      ];
+    });
+
+    it('lists suggestions with a Follow button and a link to all teams', () => {
+      renderPage();
+      expect(screen.getByText(/You don.t follow any teams yet. Here are a few to start with./)).toBeInTheDocument();
+      const list = suggestedList()!;
+      expect(
+        within(list)
+          .getAllByRole('listitem')
+          .map((li) => li.textContent),
+      ).toEqual([expect.stringContaining('Filecoin'), expect.stringContaining('IPFS')]);
+      // The follower count is stripped from the backend's reason, as on Home.
+      expect(within(list).getByText('Storage')).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'See all teams' })).toHaveAttribute('href', '/teams');
+      expect(screen.queryByRole('link', { name: 'See teams to follow' })).not.toBeInTheDocument();
+    });
+
+    it('moves a followed suggestion into Teams you follow, and keeps suggesting the rest', async () => {
+      mockToggleFollow.mockResolvedValue({ following: true });
+      renderPage();
+
+      await act(async () => {
+        fireEvent.click(within(suggestedList()!).getByRole('button', { name: /Filecoin/ }));
+      });
+      expect(mockToggleFollow).toHaveBeenLastCalledWith({ teamUid: 'filecoin', action: 'follow' });
+      expect(mockAnalytics.onNewsPreferencesFollowToggled).toHaveBeenCalledWith({
+        teamUid: 'filecoin',
+        following: true,
+        from: 'settings',
+        suggested: true,
+      });
+      expect(screen.getByText(/Teams you follow · 1/)).toBeInTheDocument();
+      expect(within(suggestedList()!).queryByText('Filecoin')).not.toBeInTheDocument();
+      expect(within(suggestedList()!).getByText('IPFS')).toBeInTheDocument();
+      expect(screen.queryByText(/You don.t follow any teams yet/)).not.toBeInTheDocument();
+
+      // The moved row is a normal followed row: it can be unfollowed in place.
+      mockToggleFollow.mockResolvedValue({ following: false });
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: /Filecoin/ }));
+      });
+      expect(mockToggleFollow).toHaveBeenLastCalledWith({ teamUid: 'filecoin', action: 'unfollow' });
+      expect(screen.getByText(/Teams you follow · 0/)).toBeInTheDocument();
+    });
+
+    it('leaves a suggestion in place when the follow fails, and says so', async () => {
+      mockToggleFollow.mockResolvedValue(null);
+      renderPage();
+
+      await act(async () => {
+        fireEvent.click(within(suggestedList()!).getByRole('button', { name: /Filecoin/ }));
+      });
+      expect(within(suggestedList()!).getByText('Filecoin')).toBeInTheDocument();
+      expect(mockToastError).toHaveBeenCalled();
+      expect(mockAnalytics.onNewsPreferencesSaveFailed).toHaveBeenCalledWith({ section: 'teams', teamUid: 'filecoin' });
+    });
+
+    it('falls back to the link to Teams when there are no suggestions', () => {
+      mockSuggested = [];
+      renderPage();
+      expect(suggestedList()).not.toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'See teams to follow' })).toHaveAttribute('href', '/teams');
+    });
+
+    it('does not suggest or fetch suggestions for a member who follows teams', () => {
+      mockFollowed = [{ uid: 'acme', name: 'Acme', logoUrl: null }];
+      renderPage();
+      expect(suggestedList()).not.toBeInTheDocument();
+      expect(mockUseSuggested).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }));
+      expect(mockUseSuggested).not.toHaveBeenCalledWith(expect.objectContaining({ enabled: true }));
+    });
   });
 
   describe('arrival from the digest or the feed', () => {

@@ -10,7 +10,10 @@
  *                            themes, with a search (LAB-3023). A member who
  *                            never saved starts with their teams' focus areas
  *   Teams you follow ....... FollowButton; an unfollowed row stays until the page
- *                            is left, so it can be undone in place
+ *                            is left, so it can be undone in place. A member who
+ *                            follows none gets suggestions (LAB-3037,
+ *                            `GET /v1/team-news/follow-suggestions`); a followed
+ *                            suggestion moves up into the list
  *
  * Arriving from the digest or the feed (`from`) outlines the biggest gap until
  * the first change: topics but no followed teams → Teams you follow, else Topics.
@@ -31,6 +34,10 @@ import { useNewsTags } from '@/services/team-news/hooks/useNewsTags';
 import { useFollowedTeams } from '@/services/follow/hooks/useFollowedTeams';
 import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
 import { followedTeamUidsQueryKey } from '@/services/follow/hooks/useFollowedTeamUids';
+import { useSuggestedTeamsToFollow } from '@/services/follow/hooks/useSuggestedTeamsToFollow';
+import { getSuggestedTeamSubtitle } from '@/components/page/home/TeamNews/components/NewsRail/components/TeamsToFollowCard';
+import type { IFollowedTeam } from '@/types/follow.types';
+import type { ISuggestedTeam } from '@/types/team-news.types';
 import { toast } from '@/components/core/ToastContainer';
 import { triggerLoader } from '@/utils/common.utils';
 import { CloseIcon, SearchIcon } from '@/components/icons';
@@ -74,6 +81,11 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
   const searchRef = useRef<HTMLInputElement>(null);
   const [unfollowed, setUnfollowed] = useState<Set<string>>(() => new Set());
   const [pendingTeam, setPendingTeam] = useState<string | null>(null);
+  // Suggestions followed on this page, newest first: they join the list above
+  // the follows the query knows.
+  const [followedHere, setFollowedHere] = useState<
+    Array<Pick<IFollowedTeam, 'uid' | 'name' | 'logoUrl' | 'focusAreas'>>
+  >([]);
   const [touched, setTouched] = useState(false);
   const [saved, setSaved] = useState<Saved>(null);
 
@@ -103,6 +115,15 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
   }, [saved]);
 
   const follows = useMemo(() => followedTeams ?? [], [followedTeams]);
+  const rows = useMemo(() => {
+    const known = new Set(follows.map((t) => t.uid));
+    return [...followedHere.filter((t) => !known.has(t.uid)), ...follows];
+  }, [follows, followedHere]);
+  // Suggest while the member follows nothing they didn't follow here, so the
+  // list stays put after the first follow and they can pick a few in a row.
+  const suggesting = !followsPending && follows.every((t) => followedHere.some((h) => h.uid === t.uid));
+  const { suggestions: suggested } = useSuggestedTeamsToFollow({ currentUserUid: uid, enabled: suggesting });
+  const suggestions = suggesting ? suggested.filter((t) => !rows.some((r) => r.uid === t.uid)) : [];
   const gap: Gap = tags.length > 0 && follows.length === 0 ? 'teams' : 'tags';
   const arriving = from !== 'settings' && !touched && !followsPending;
 
@@ -169,6 +190,23 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
     setSaved('teams');
   };
 
+  const followSuggestion = async (team: ISuggestedTeam) => {
+    if (pendingTeam) return;
+    setTouched(true);
+    setPendingTeam(team.uid);
+    analytics.onNewsPreferencesFollowToggled({ teamUid: team.uid, following: true, from, suggested: true });
+    const result = await toggleFollowRequest({ teamUid: team.uid, action: 'follow' }).catch(() => null);
+    setPendingTeam(null);
+    if (!result) {
+      toast.error('Could not follow this team. Please try again.');
+      analytics.onNewsPreferencesSaveFailed({ section: 'teams', teamUid: team.uid });
+      return;
+    }
+    setFollowedHere((list) => [{ uid: team.uid, name: team.name, logoUrl: team.logo }, ...list]);
+    queryClient.invalidateQueries({ queryKey: followedTeamUidsQueryKey(uid) });
+    setSaved('teams');
+  };
+
   const SavedNote = () => (
     <span className={s.saved} role="status">
       <CheckIcon /> Saved
@@ -193,7 +231,7 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
     );
   };
 
-  const followingCount = follows.filter((t) => !unfollowed.has(t.uid)).length;
+  const followingCount = rows.filter((t) => !unfollowed.has(t.uid)).length;
 
   return (
     <div className={formCss.root}>
@@ -294,15 +332,15 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
       {/* Teams you follow */}
       <div ref={refs.teams} className={clsx(toggleCss.root, s.card, lit('teams') && s.cardHighlight)}>
         <div className={clsx(toggleCss.header, s.cardHeader)}>
-          Teams you follow{follows.length > 0 && ` · ${followingCount}`}
+          Teams you follow{rows.length > 0 && ` · ${followingCount}`}
           {saved === 'teams' && <SavedNote />}
         </div>
         <div className={toggleCss.content}>
           {lit('teams') && <p className={s.arrivalNote}>Follow teams to see their news in {arrivalWhere}.</p>}
           <div className={toggleCss.desc}>News from these teams shows up in For You and your digest.</div>
-          {followsPending ? null : follows.length > 0 ? (
+          {followsPending ? null : rows.length > 0 ? (
             <ul className={s.teams}>
-              {follows.map((t) => {
+              {rows.map((t) => {
                 const following = !unfollowed.has(t.uid);
                 return (
                   <li key={t.uid} className={s.team}>
@@ -332,6 +370,8 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
                 );
               })}
             </ul>
+          ) : suggestions.length > 0 ? (
+            <p className={s.emptyLine}>You don&apos;t follow any teams yet. Here are a few to start with.</p>
           ) : (
             <p className={s.emptyLine}>
               You don&apos;t follow any teams yet.{' '}
@@ -339,6 +379,47 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
                 See teams to follow
               </Link>
             </p>
+          )}
+          {suggestions.length > 0 && (
+            <div className={s.suggestions}>
+              <span className={s.themeTitle} id="news-preferences-suggested">
+                Suggested for you
+              </span>
+              <ul className={s.teams} aria-labelledby="news-preferences-suggested">
+                {suggestions.map((t) => {
+                  const subtitle = getSuggestedTeamSubtitle(t);
+                  return (
+                    <li key={t.uid} className={s.team}>
+                      {t.logo ? (
+                        <img src={t.logo} alt="" width={32} height={32} className={s.teamLogo} />
+                      ) : (
+                        <span className={s.teamLogo} aria-hidden="true" />
+                      )}
+                      <div className={s.teamText}>
+                        <Link href={`/teams/${t.uid}`} className={s.teamName}>
+                          {t.name}
+                        </Link>
+                        {subtitle && (
+                          <span className={s.teamMeta} title={subtitle}>
+                            {subtitle}
+                          </span>
+                        )}
+                      </div>
+                      <FollowButton
+                        following={false}
+                        name={t.name}
+                        size="compact"
+                        disabled={pendingTeam === t.uid}
+                        onClick={() => followSuggestion(t)}
+                      />
+                    </li>
+                  );
+                })}
+              </ul>
+              <Link href="/teams" className={clsx(s.inlineLink, s.allTeamsLink)}>
+                See all teams
+              </Link>
+            </div>
           )}
         </div>
       </div>

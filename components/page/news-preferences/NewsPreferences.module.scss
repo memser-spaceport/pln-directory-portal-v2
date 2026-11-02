@@ -314,6 +314,23 @@
   text-overflow: ellipsis;
 }
 
+// Suggestions for a member who follows no teams (LAB-3037): a labelled list
+// under the empty line, rows like the followed ones.
+.suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.allTeamsLink {
+  align-self: flex-start;
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
 .emptyLine {
   margin: 0;
   color: var(--foreground-neutral-tertiary, #8897ae);

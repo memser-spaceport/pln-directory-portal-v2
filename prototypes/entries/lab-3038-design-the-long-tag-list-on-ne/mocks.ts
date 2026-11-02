@@ -84,22 +84,26 @@ export const WHOLE_LIST_LIMIT = 20;
 
 export type Persona = 'picks' | 'seeded' | 'empty';
 
-export const PERSONAS: Record<Persona, { label: string; tags: string[]; seeded: boolean }> = {
+export const PERSONAS: Record<Persona, { label: string; tags: string[]; seeded: boolean; followsTeams: boolean }> = {
   // Two picks sit after the limit of their theme (quantum-computing, zero-knowledge).
   picks: {
     label: 'Has picks',
     tags: ['ai', 'decentralized-storage', 'public-goods-funding', 'quantum-computing', 'zero-knowledge'],
     seeded: false,
+    followsTeams: true,
   },
+  // A new member follows no teams yet: the Teams card shows "Teams to follow" (version 2).
   seeded: {
     label: 'New member',
     tags: ['cryptographic-proofs', 'decentralized-storage'],
     seeded: true,
+    followsTeams: false,
   },
   empty: {
     label: 'No picks',
     tags: [],
     seeded: false,
+    followsTeams: true,
   },
 };
 
@@ -113,4 +117,14 @@ export const FOLLOWED_TEAMS: MockTeam[] = [
   { uid: 't1', name: 'Northwind Labs', focusAreas: ['Decentralized storage', 'Data availability'] },
   { uid: 't2', name: 'Bluefin Research', focusAreas: ['AI agents', 'AI safety'] },
   { uid: 't3', name: 'Commons Fund', focusAreas: ['Public goods funding'] },
+];
+
+// Version 2: teams to follow for a new member. They share the focus areas of the
+// member's own team, the same source as the seeded tags (cryptographic-proofs,
+// decentralized-storage). Invented names.
+export const SUGGESTED_TEAMS: MockTeam[] = [
+  { uid: 's1', name: 'Northwind Labs', focusAreas: ['Decentralized storage', 'Data availability'] },
+  { uid: 's2', name: 'Prism Proofs', focusAreas: ['Cryptographic proofs'] },
+  { uid: 's3', name: 'Harbor Data', focusAreas: ['Decentralized storage'] },
+  { uid: 's4', name: 'Lattice Works', focusAreas: ['Cryptographic proofs', 'Zero knowledge'] },
 ];

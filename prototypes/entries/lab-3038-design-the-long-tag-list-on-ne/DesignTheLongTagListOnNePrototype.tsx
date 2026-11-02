@@ -32,6 +32,11 @@
  *   NEW: .moreLink, the "Show more" text button (brand, chip height, at the end
  *   of the chip row) in ./DesignTheLongTagListOnNePrototype.module.scss.
  * Simplified: no data hooks, no tracking, no save request (a mock "Saved").
+ *
+ * Version 2 (Polina, 2026-11-02): the "New member" state follows no teams. The
+ * Teams card shows production's empty line, then "Teams to follow": 4 teams from
+ * the focus areas of the member's team, each with a Follow button, and "See all
+ * teams". A follow keeps the team in its place and adds to the card count.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -49,8 +54,10 @@ import {
   FOLLOWED_TEAMS,
   PER_THEME_LIMIT,
   PERSONAS,
+  SUGGESTED_TEAMS,
   TAG_THEMES,
   WHOLE_LIST_LIMIT,
+  type MockTeam,
   type Persona,
   type TagTheme,
 } from './mocks';
@@ -102,6 +109,9 @@ export default function DesignTheLongTagListOnNePrototype() {
   const searchRef = useRef<HTMLInputElement>(null);
   const [saved, setSaved] = useState(false);
   const [unfollowed, setUnfollowed] = useState<Set<string>>(() => new Set());
+  // Version 2: a new member follows no teams and sees "Teams to follow".
+  const [followsTeams, setFollowsTeams] = useState(PERSONAS.picks.followsTeams);
+  const [newFollows, setNewFollows] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     if (!saved) return;
@@ -118,6 +128,9 @@ export default function DesignTheLongTagListOnNePrototype() {
     setOpenThemes(new Set());
     setListOpen(false);
     setQuery('');
+    setFollowsTeams(PERSONAS[p].followsTeams);
+    setUnfollowed(new Set());
+    setNewFollows(new Set());
   };
 
   const toggleTag = (slug: string) => {
@@ -179,7 +192,25 @@ export default function DesignTheLongTagListOnNePrototype() {
     );
   };
 
-  const followingCount = FOLLOWED_TEAMS.filter((t) => !unfollowed.has(t.uid)).length;
+  const followingCount = followsTeams ? FOLLOWED_TEAMS.filter((t) => !unfollowed.has(t.uid)).length : newFollows.size;
+
+  const flip = (set: Set<string>, uid: string) => {
+    const next = new Set(set);
+    if (next.has(uid)) next.delete(uid);
+    else next.add(uid);
+    return next;
+  };
+
+  const renderTeam = (t: MockTeam, following: boolean, onToggle: () => void) => (
+    <li key={t.uid} className={prodCss.team}>
+      <span className={prodCss.teamLogo} aria-hidden="true" />
+      <div className={prodCss.teamText}>
+        <span className={prodCss.teamName}>{t.name}</span>
+        <span className={prodCss.teamMeta}>{t.focusAreas.join(', ')}</span>
+      </div>
+      <FollowButton following={following} name={t.name} size="compact" onClick={onToggle} />
+    </li>
+  );
 
   return (
     <div className={s.page}>
@@ -322,38 +353,41 @@ export default function DesignTheLongTagListOnNePrototype() {
                 </div>
               </div>
 
-              {/* Teams you follow: unchanged from production, mock teams. */}
+              {/* Teams you follow: production's card with mock teams. Version 2: the
+                  "New member" state follows no teams, so the card adds "Teams to follow". */}
               <div className={clsx(toggleCss.root, prodCss.card)}>
-                <div className={clsx(toggleCss.header, prodCss.cardHeader)}>Teams you follow · {followingCount}</div>
+                <div className={clsx(toggleCss.header, prodCss.cardHeader)}>
+                  Teams you follow{(followsTeams || followingCount > 0) && ` · ${followingCount}`}
+                </div>
                 <div className={toggleCss.content}>
                   <div className={toggleCss.desc}>News from these teams shows up in For You and your digest.</div>
-                  <ul className={prodCss.teams}>
-                    {FOLLOWED_TEAMS.map((t) => {
-                      const following = !unfollowed.has(t.uid);
-                      return (
-                        <li key={t.uid} className={prodCss.team}>
-                          <span className={prodCss.teamLogo} aria-hidden="true" />
-                          <div className={prodCss.teamText}>
-                            <span className={prodCss.teamName}>{t.name}</span>
-                            <span className={prodCss.teamMeta}>{t.focusAreas.join(', ')}</span>
-                          </div>
-                          <FollowButton
-                            following={following}
-                            name={t.name}
-                            size="compact"
-                            onClick={() =>
-                              setUnfollowed((current) => {
-                                const next = new Set(current);
-                                if (next.has(t.uid)) next.delete(t.uid);
-                                else next.add(t.uid);
-                                return next;
-                              })
-                            }
-                          />
-                        </li>
-                      );
-                    })}
-                  </ul>
+                  {followsTeams ? (
+                    <ul className={prodCss.teams}>
+                      {FOLLOWED_TEAMS.map((t) =>
+                        renderTeam(t, !unfollowed.has(t.uid), () => setUnfollowed((u) => flip(u, t.uid))),
+                      )}
+                    </ul>
+                  ) : (
+                    <>
+                      {newFollows.size === 0 && (
+                        <p className={prodCss.emptyLine}>You don&apos;t follow any teams yet.</p>
+                      )}
+                      <section className={s.suggest} aria-labelledby="lab3038-teams-to-follow">
+                        <div className={s.suggestHead}>
+                          <h6 id="lab3038-teams-to-follow" className={s.suggestTitle}>
+                            Teams to follow
+                          </h6>
+                          <span className={s.suggestNote}>From the focus areas of your team</span>
+                        </div>
+                        <ul className={prodCss.teams}>
+                          {SUGGESTED_TEAMS.map((t) =>
+                            renderTeam(t, newFollows.has(t.uid), () => setNewFollows((f) => flip(f, t.uid))),
+                          )}
+                        </ul>
+                        <span className={clsx(prodCss.inlineLink, s.suggestMore)}>See all teams</span>
+                      </section>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

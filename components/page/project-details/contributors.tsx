@@ -33,12 +33,17 @@ const Contributors = (props: IContributors) => {
     document.dispatchEvent(new CustomEvent(EVENTS.PROJECT_DETAIL_ALL_CONTRIBUTORS_OPEN_AND_CLOSE, { detail: true }));
   };
 
-  const onContributorClick = (contributor: any) => {
+  const trackContributorClick = (contributor: any) => {
     analytics.onProjectDetailContributorClicked(
       getAnalyticsUserInfo(user),
       getAnalyticsProjectInfo(project),
       getAnalyticsMemberInfo(contributor),
     );
+  };
+
+  // For the "see all" modal, which still opens the profile itself.
+  const onContributorClick = (contributor: any) => {
+    trackContributorClick(contributor);
     window.open('/members/' + contributor?.uid, '_blank');
   };
 
@@ -56,11 +61,15 @@ const Contributors = (props: IContributors) => {
                 const defaultImage = getDefaultAvatar(contributor?.name);
 
                 return (
-                  <button
+                  // A link, so crawlers reach the contributors from the project (LAB-3093).
+                  <a
                     key={`contributor-${index}`}
                     className="contributors__body__list__contributor"
                     title={contributor?.name}
-                    onClick={() => onContributorClick(contributor)}
+                    href={contributor?.uid ? `/members/${contributor.uid}` : undefined}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => trackContributorClick(contributor)}
                   >
                     <Image
                       alt="profile"
@@ -72,7 +81,7 @@ const Contributors = (props: IContributors) => {
                       className="contributors__body__list__contributor__img"
                       src={contributor.logo || defaultImage}
                     />
-                  </button>
+                  </a>
                 );
               })}
             {contributorsLength > 20 && (
@@ -141,6 +150,8 @@ const Contributors = (props: IContributors) => {
 
         .contributors__body__list__contributor {
           cursor: pointer;
+          display: inline-block;
+          line-height: 0;
         }
 
         .contributors__body__list__remaining {

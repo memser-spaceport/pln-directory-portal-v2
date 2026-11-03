@@ -132,6 +132,25 @@ Each page SHALL have exactly one `<h1>` element in its server-rendered HTML. A p
 - **WHEN** a crawler requests `/home`
 - **THEN** the HTML has an `application/ld+json` script with the `Organization` and the `WebSite`
 
+### Requirement: Links reach every profile
+
+`/members`, `/teams` and `/projects` SHALL each link, in their server HTML, to a browse index at `/<listing>/browse`. The index SHALL list every profile the sitemap lists for that listing, A to Z, 200 per page, as plain links, with links to every page of the index. Each page SHALL have a self-canonical; page 1 SHALL have no `?page=`. A `?page=` that is not a whole number from 1 up, or is past the last page, SHALL answer 404.
+
+#### Scenario: Crawler follows links only
+
+- **WHEN** a crawler starts at `/teams`, `/members` or `/projects` and follows only `<a href>` links
+- **THEN** it reaches every team, member and project profile in the sitemap
+
+#### Scenario: Page past the end
+
+- **WHEN** a client requests `/teams/browse?page=99` and there are fewer pages
+- **THEN** the response status is 404
+
+#### Scenario: Teams and contributors on a project page
+
+- **WHEN** a crawler reads a project profile
+- **THEN** its maintaining team, contributing teams and contributors are `<a href>` links to their profiles
+
 ### Requirement: Share cards match the search result
 
 On those pages, `og:title`, `og:description`, `twitter:title` and `twitter:description` SHALL equal the page's title and description.

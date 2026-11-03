@@ -139,20 +139,65 @@ describe('useTeamNewsScrollDepth', () => {
     expect(steps(onStep)).toEqual([50, 70, 90]);
   });
 
-  it('does not fire a step again after "Show Less" or a tab change', () => {
+  it('does not fire higher steps when "Show Less" cuts the feed back', () => {
     const onStep = jest.fn();
     const { rerender } = render(<Feed count={12} onStep={onStep} />);
     scrollTo(450); // 7 of 12 = 58% -> 50
 
-    rerender(<Feed count={6} onStep={onStep} />); // "Show Less": 6 of 6 seen
-    // 6 of 6 is a new depth, so 70 and 90 fire, but 50 does not fire again.
-    expect(steps(onStep)).toEqual([50, 70, 90]);
+    rerender(<Feed count={6} onStep={onStep} />); // "Show Less": the 6 cards left are all seen
+    scrollTo(0);
+    scrollTo(450);
+    // Depth stays against the 12 cards this list had: 6 of 12 = 50%, already fired.
+    expect(steps(onStep)).toEqual([50]);
+  });
 
-    // A tab change remounts every card (new keys); nothing fires twice.
+  it('does not fire a step again after a tab change', () => {
+    const onStep = jest.fn();
+    const { rerender } = render(<Feed count={6} onStep={onStep} />);
+    scrollTo(150); // 4 of 6 = 67% -> 50
+
+    // A tab change remounts every card (new keys); the new list has its own count.
     scrollTo(0);
     rerender(<Feed count={6} keyPrefix="focus-area" onStep={onStep} />);
-    scrollTo(1000);
+    scrollTo(0);
+    scrollTo(1000); // all 6 new cards scrolled past
     expect(steps(onStep)).toEqual([50, 70, 90]);
+  });
+
+  it('does not count cards that were above the viewport when they mounted', () => {
+    const onStep = jest.fn();
+    const { rerender } = render(<Feed count={10} onStep={onStep} />);
+    scrollTo(250); // 5 of 10 -> 50
+
+    // The page is now scrolled further down, then a tab change remounts every
+    // card. Cards 0-5 of the new list sit above the viewport and were never seen.
+    scrollY = 650;
+    rerender(<Feed count={10} keyPrefix="focus-area" onStep={onStep} />);
+    scrollTo(660); // only cards 6, 7 and 8 have their bottom edge in view: 30%
+    expect(steps(onStep)).toEqual([50]);
+  });
+
+  it('counts nothing on mount, before the first scroll', () => {
+    const onStep = jest.fn();
+    render(<Feed count={2} onStep={onStep} />); // both cards fit in the viewport
+    expect(onStep).not.toHaveBeenCalled();
+    scrollTo(0);
+    expect(steps(onStep)).toEqual([50, 70, 90]);
+  });
+
+  it('ignores scrolls inside other elements', () => {
+    const onStep = jest.fn();
+    render(
+      <>
+        <div data-testid="rail" />
+        <Feed count={10} onStep={onStep} />
+      </>,
+    );
+    scrollY = 1000;
+    act(() => {
+      fireEvent.scroll(document.querySelector('[data-testid="rail"]') as Element);
+    });
+    expect(onStep).not.toHaveBeenCalled();
   });
 
   it('never counts cards that have no layout', () => {

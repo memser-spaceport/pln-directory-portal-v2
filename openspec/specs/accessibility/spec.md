@@ -23,12 +23,12 @@ Every meaningful image SHALL have an `alt` that says what it shows (a member pho
 
 ### Requirement: Tap targets are at least 24px
 
-Every interactive target on `/home`, `/members` and `/jobs` SHALL be at least 24×24px or spaced so a 24px circle around it touches no other target (WCAG 2.5.8). A target may grow its hit area with transparent padding offset by a negative margin, so that it looks and lays out as before.
+Every interactive target on `/home`, `/members`, `/jobs` and the team news rail SHALL be at least 24×24px or spaced so a 24px circle around it touches no other target (WCAG 2.5.8). A target may grow its hit area with transparent padding offset by a negative margin, so that it looks and lays out as before.
 
 #### Scenario: News card actions
 
 - **WHEN** an axe target-size check runs on `/home`
-- **THEN** the source pill, like and comment buttons pass, and look as they did
+- **THEN** the source pill, like, comment and "Show more" buttons pass, and look as they did
 
 #### Scenario: Audit of the main pages
 

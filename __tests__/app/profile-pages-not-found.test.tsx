@@ -122,12 +122,26 @@ describe('a team hidden from the public (LAB-3087)', () => {
     expect(mockNotFound).not.toHaveBeenCalled();
   });
 
-  it('keeps the error page for any other 403', async () => {
+  /* Logged in, the API refuses a hidden team to anyone but its leads and admins with a different 403. That rendered
+     "Oh snap" on the feature env; the page asks with the viewer's token, so any 403 there means "not for you". */
+  it('answers not found to a logged-in viewer the API refuses, whatever the 403 says', async () => {
+    mockCookies.mockReturnValue({ userInfo: { uid: 'm1' }, isLoggedIn: true, authToken: 'token' });
+    mockGetTeam.mockResolvedValue({
+      error: {
+        status: 403,
+        statusText: 'Forbidden',
+        message: 'Requestor does not have permission to update this team',
+      },
+    });
+
+    await expect((TeamLayout as AsyncComponent)(layoutProps)).resolves.toBe('profile');
+    await expect((TeamPage as AsyncComponent)(props)).rejects.toThrow('NEXT_NOT_FOUND');
+  });
+
+  it('keeps the layout to the logged-out "Team is inactive" answer: its lookup sends no token', async () => {
     mockGetTeam.mockResolvedValue({ error: { status: 403, statusText: 'Forbidden', message: 'Forbidden resource' } });
 
     await expect((TeamLayout as AsyncComponent)(layoutProps)).resolves.toBe('profile');
-    expect(((await (TeamPage as AsyncComponent)(props)) as { type: unknown }).type).toBe(ErrorPage);
-    expect(mockNotFound).not.toHaveBeenCalled();
   });
 });
 

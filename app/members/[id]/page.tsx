@@ -2,6 +2,8 @@ import { preload } from 'react-dom';
 import { getMember } from '@/services/members.service';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import MemberDetailsPage, { type ServerMemberResult } from '@/components/page/member-details/MemberDetailsPage';
+import { JsonLdScript } from '@/components/core/json-ld/JsonLdScript';
+import { buildMemberJsonLd } from '@/services/seo/entity-jsonld';
 
 /** The image behind the signed-out contact-details panel; `ContactDetails.module.scss` paints it. */
 const MEMBER_CONTACT_OVERLAY_IMAGE = '/images/members/contact-details-overlay.png';
@@ -42,5 +44,11 @@ export default async function MemberPage({ params }: PageProps) {
   const serverMember: ServerMemberResult | undefined =
     'error' in result || !result.data?.formattedData ? undefined : result;
 
-  return <MemberDetailsPage memberId={id} serverMember={serverMember} />;
+  // Structured data from the same public member the page renders (LAB-3090); none when it could not be loaded.
+  return (
+    <>
+      {serverMember && <JsonLdScript data={buildMemberJsonLd(serverMember.data.formattedData)} />}
+      <MemberDetailsPage memberId={id} serverMember={serverMember} />
+    </>
+  );
 }

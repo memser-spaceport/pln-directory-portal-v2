@@ -154,6 +154,30 @@ Each page SHALL have exactly one `<h1>` element in its server-rendered HTML. A p
 - **WHEN** a crawler requests `/home`
 - **THEN** the HTML has an `application/ld+json` script with the `Organization` and the `WebSite`
 
+### Requirement: Profiles carry entity structured data
+
+Member, team and project profiles SHALL carry JSON-LD built only from what a signed-out visitor sees on the page, with a `BreadcrumbList` from the section to the profile:
+
+- a member profile: a `ProfilePage` whose `mainEntity` is a `Person` (name, image, job title, the team they work for, bio, skills). Social links and location are hidden from signed-out visitors, so they are not in the markup;
+- a team profile: an `Organization` (name, logo, description, and as `sameAs` the contact links the page shows);
+- a project profile: a `CreativeWork` (name, logo, tagline, its maintaining team as `creator`, and its links as `sameAs`).
+
+#### Scenario: Signed-out member profile
+
+- **WHEN** a crawler requests a member profile
+- **THEN** the HTML has a `ProfilePage` about the member's `Person` and a `BreadcrumbList` Members → member
+- **AND** the markup has none of the member's social links or location
+
+#### Scenario: Team contact link that is only a guess
+
+- **WHEN** a team's LinkedIn value is not a handle or address, so the page links to a LinkedIn search
+- **THEN** the team's `sameAs` leaves that link out
+
+#### Scenario: Profile text that contains a script tag
+
+- **WHEN** a profile's name or text contains `</script>`
+- **THEN** the JSON-LD escapes it and the script element is not ended early
+
 ### Requirement: Links reach every profile
 
 `/members`, `/teams` and `/projects` SHALL each link, in their server HTML, to a browse index at `/<listing>/browse`. The index SHALL list every profile the sitemap lists for that listing, A to Z, 200 per page, as plain links, with links to every page of the index. Each page SHALL have a self-canonical; page 1 SHALL have no `?page=`. A `?page=` that is not a whole number from 1 up, or is past the last page, SHALL answer 404.

@@ -86,3 +86,24 @@ The Next.js image endpoint SHALL fetch and optimise remote images only from an e
 - **GIVEN** an image URL on a host that is not on the list
 - **WHEN** a client requests it through the Next.js image endpoint
 - **THEN** the endpoint refuses the request and does not fetch the URL
+
+### Requirement: Server reads of the directory API identify the frontend
+
+Every read (`GET`, `HEAD`) the frontend server makes to the origin of `DIRECTORY_API_URL` SHALL carry the header `x-frontend-render-token` with the value of `FRONTEND_RENDER_THROTTLE_TOKEN`, so the API's rate limit lets the reads that render pages through (LAB-3086). The header SHALL NOT be sent on writes, to any other origin, or from the browser. With no token configured, no header SHALL be sent.
+
+#### Scenario: Crawler burst on profiles
+
+- **GIVEN** `FRONTEND_RENDER_THROTTLE_TOKEN` is set on the frontend and the API
+- **WHEN** a crawler requests many team profiles at once
+- **THEN** every API read made to render them carries the token
+- **AND** the API answers none of them 429
+
+#### Scenario: Request to another host
+
+- **WHEN** the frontend server fetches a URL outside the API's origin
+- **THEN** the request does not carry the token
+
+#### Scenario: Browser bundle
+
+- **WHEN** a page is loaded in the browser
+- **THEN** neither the HTML nor the JavaScript contains the token

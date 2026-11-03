@@ -357,8 +357,9 @@
   appearance: none;
   border: none;
   background: none;
-  margin: 0;
-  padding: 0;
+  // A 24px-tall hit area (WCAG 2.5.8, LAB-3095); the negative margin keeps the row where it was.
+  margin: -4px 0;
+  padding: 4px 0;
   cursor: pointer;
   // Inherit only the family — NOT the `font` shorthand, which would reset
   // font-size and override the forum-matching 12px below.

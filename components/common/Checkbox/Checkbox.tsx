@@ -15,10 +15,15 @@ interface Props {
     root?: string;
     indicator?: string;
   };
+  /** The checkbox's accessible name, when no `<label>` wraps it (LAB-3095). */
+  'aria-label'?: string;
+  /** Id of the element that names the checkbox, such as its visible label (LAB-3095). */
+  'aria-labelledby'?: string;
 }
 
 export function Checkbox(props: Props) {
   const { checked, disabled, classes, onChange, indeterminate } = props;
+  const { 'aria-label': ariaLabel, 'aria-labelledby': ariaLabelledBy } = props;
 
   return (
     <BaseCheckbox.Root
@@ -26,6 +31,8 @@ export function Checkbox(props: Props) {
       disabled={disabled}
       onCheckedChange={onChange}
       indeterminate={indeterminate}
+      aria-label={ariaLabel}
+      aria-labelledby={ariaLabelledBy}
       className={clsx(s.root, classes?.root, {
         [s.checked]: checked,
         [s.indeterminate]: indeterminate,

@@ -101,7 +101,7 @@ The home page, members, teams, projects, the events calendar, the job board and 
 
 ### Requirement: Every page has one h1
 
-Each page SHALL have exactly one `<h1>` element in its server-rendered HTML. A page that renders a separate copy of its title for narrow screens SHALL make that copy a heading by role (`role="heading" aria-level="1"`) or hide it from assistive technology, not a second `<h1>`. A job posting's own `h1` and `h2` SHALL render as `h3`, under the role page's `h1` (the role title) and `h2` ("About the role").
+Each page SHALL have exactly one `<h1>` element in its server-rendered HTML. A page that renders a separate copy of its title for narrow screens SHALL make that copy a heading by role (`role="heading" aria-level="1"`) or hide it from assistive technology, not a second `<h1>`. A job posting's own `h1` and `h2` SHALL render as `h3`, under the role page's `h1` (the role title) and `h2` ("About the role"), and so SHALL the `h1` and `h2` in a team's, member's or project's own description.
 
 #### Scenario: Listing and profile pages
 

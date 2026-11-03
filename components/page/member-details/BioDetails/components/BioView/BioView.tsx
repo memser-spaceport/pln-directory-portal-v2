@@ -31,7 +31,7 @@ export const BioView = ({ member, isLoggedIn, userInfo, isEditable, showIncomple
 
       <div className={clsx(s.content)}>
         {hasBio && member.bio ? (
-          <SafeHtml className={s.bioContent} html={member.bio} />
+          <SafeHtml className={s.bioContent} html={member.bio} demoteHeadings />
         ) : (
           <div className={s.officeHoursSection}>
             <div className={s.col}>

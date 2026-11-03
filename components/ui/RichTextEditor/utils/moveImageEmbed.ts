@@ -1,6 +1,16 @@
 import { IMAGE_FLOATS } from '@/utils/richText/imageFloats';
 import { imageFloatClass } from '@/utils/richText/imageFloatClass';
 
+import { IMAGE_ANNOTATIONS_ATTR } from '../ImageBlot';
+
+/** Insert an image at `index` and keep its drawing data on the new embed. */
+export function insertAnnotatedImage(editor: any, index: number, src: string, annotations: string | null): void {
+  editor.insertEmbed(index, 'image', src, 'user');
+  if (annotations) {
+    editor.formatText(index, 1, 'annotations', annotations, 'user');
+  }
+}
+
 /**
  * Move an image to another index in the document, and report where it landed.
  *
@@ -24,12 +34,16 @@ export function moveImageEmbed(editor: any, image: HTMLImageElement, fromIndex: 
 
   const src = image.getAttribute('src') ?? '';
   const width = image.getAttribute('width');
+  const annotations = image.getAttribute(IMAGE_ANNOTATIONS_ATTR);
   const float = IMAGE_FLOATS.find((value) => image.classList.contains(imageFloatClass(value)));
 
   editor.deleteText(fromIndex, 1, 'user');
   editor.insertEmbed(insertAt, 'image', src, 'user');
   if (width) {
     editor.formatText(insertAt, 1, 'width', width, 'user');
+  }
+  if (annotations) {
+    editor.formatText(insertAt, 1, 'annotations', annotations, 'user');
   }
   if (float) {
     editor.formatText(insertAt, 1, 'float', float, 'user');

@@ -8,7 +8,7 @@ import Header from '@/components/page/project-details/header';
 import Hyperlinks from '@/components/page/project-details/hyper-links';
 import KPIs from '@/components/page/project-details/kpis';
 import TeamsInvolved from '@/components/page/project-details/teams-involved';
-import { getProject, getProjectOsoDetails } from '@/services/projects.service';
+import { getProject } from '@/services/projects.service';
 import { getAllTeams } from '@/services/teams.service';
 import { hasProjectDeleteAccess, hasProjectEditAccess } from '@/utils/common.utils';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
@@ -20,7 +20,6 @@ import SelectedFocusAreas from '@/components/core/selected-focus-area';
 import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { Metadata, ResolvingMetadata } from 'next';
 import { notFound } from 'next/navigation';
-import ProjectStats from '@/components/page/project-details/stats';
 import { JsonLdScript } from '@/components/core/json-ld/JsonLdScript';
 import { buildProjectJsonLd } from '@/services/seo/entity-jsonld';
 import { BackButton } from '@/components/ui/BackButton';
@@ -29,10 +28,8 @@ import React from 'react';
 export default async function ProjectDetails(props: any) {
   const params = await props.params;
   const projectId = params?.id;
-  const { isError, isNotFound, userInfo, hasEditAccess, hasDeleteAccess, project, focusAreas, authToken, osoInfo } =
+  const { isError, isNotFound, userInfo, hasEditAccess, hasDeleteAccess, project, focusAreas, authToken } =
     await getPageData(projectId);
-  const showProjectStats =
-    osoInfo?.forkCount > 0 || osoInfo?.starCount > 0 || osoInfo?.repositoryCount > 0 || osoInfo?.contributorCount > 0;
 
   // A real 404 only when the API says the project does not exist (LAB-2922); any other failure keeps the error page.
   if (isNotFound) {
@@ -95,12 +92,6 @@ export default async function ProjectDetails(props: any) {
                 </div>
               )}
 
-              {showProjectStats && (
-                <div className={styles.project__container__details__stats}>
-                  <ProjectStats stats={osoInfo} />
-                </div>
-              )}
-
               <div className={styles.project__container__details__additionalDetails}>
                 <AdditionalDetails
                   project={project}
@@ -141,7 +132,6 @@ const getPageData = async (projectId: string) => {
   let isError = false;
   const { authToken, isLoggedIn, userInfo } = await getCookiesFromHeaders();
   let project = null;
-  let osoInfo = null;
   let hasEditAccess = false;
   let hasDeleteAccess = false;
   let loggedInMemberTeams = [];
@@ -194,12 +184,6 @@ const getPageData = async (projectId: string) => {
 
     project = projectResponse?.data?.formattedData;
     focusAreas = focusAreaResponse?.data?.filter((data: IFocusArea) => !data.parentUid);
-    if (project.osoProjectName) {
-      const osoResponse = await getProjectOsoDetails(project.osoProjectName);
-      if (!osoResponse?.error) {
-        osoInfo = osoResponse?.data ?? {};
-      }
-    }
 
     hasEditAccess = hasProjectEditAccess(userInfo, project, isLoggedIn, loggedInMemberTeams);
     hasDeleteAccess = hasProjectDeleteAccess(userInfo, project, isLoggedIn);
@@ -213,7 +197,6 @@ const getPageData = async (projectId: string) => {
       project,
       focusAreas,
       authToken,
-      osoInfo,
     };
   } catch (error) {
     return {
@@ -225,7 +208,6 @@ const getPageData = async (projectId: string) => {
       project,
       focusAreas,
       authToken,
-      osoInfo,
     };
   }
 };

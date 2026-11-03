@@ -55,3 +55,9 @@ export function htmlToPlainSnippet(html: string | null | undefined, max = 160): 
   if (text.length <= max) return text;
   return `${text.slice(0, max - 1).trimEnd()}…`;
 }
+
+/**
+ * `robots` for a profile that could not be loaded and shows the error page, which answers 200 (LAB-3087). A crawler
+ * that met a backend failure must not index "Something went wrong" as the profile; links are still followed.
+ */
+export const PROFILE_ERROR_ROBOTS: Metadata['robots'] = { index: false, follow: true };

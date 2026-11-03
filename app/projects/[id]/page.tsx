@@ -12,7 +12,7 @@ import { getProject, getProjectOsoDetails } from '@/services/projects.service';
 import { getAllTeams } from '@/services/teams.service';
 import { hasProjectDeleteAccess, hasProjectEditAccess } from '@/utils/common.utils';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
-import { absoluteUrl, htmlToPlainSnippet } from '@/utils/seo';
+import { absoluteUrl, htmlToPlainSnippet, PROFILE_ERROR_ROBOTS } from '@/utils/seo';
 import styles from './page.module.css';
 import { getFocusAreas } from '@/services/common.service';
 import { IFocusArea } from '@/types/shared.types';
@@ -238,6 +238,7 @@ export async function generateMetadata(props: IGenerateMetadata, parent: Resolvi
   if (projectResponse?.error) {
     return {
       title: 'Protocol Labs Directory',
+      robots: PROFILE_ERROR_ROBOTS,
       description:
         'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
       openGraph: {

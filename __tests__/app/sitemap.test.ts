@@ -61,4 +61,39 @@ describe('sitemap', () => {
     expect(urls).toEqual(expect.arrayContaining(['https://os.pl.xyz/events/all', 'https://os.pl.xyz/demoday']));
     expect(urls).not.toContain('https://os.pl.xyz/events');
   });
+
+  /* LAB-3087: the teams come from the crawl index, which leaves out the teams the API refuses to a logged-out
+     visitor. The full list only stands in while the API has no crawl index. */
+  it('lists teams from the crawl index, not the full list', async () => {
+    (global.fetch as jest.Mock).mockImplementation((url: string) => {
+      if (url.includes('/v1/teams/crawl-index')) {
+        return jsonOk({ teams: [{ uid: 'public-team', updatedAt: '2026-03-01T00:00:00.000Z' }] });
+      }
+      if (url.includes('/v1/teams')) {
+        return jsonOk({ teams: [{ uid: 'public-team' }, { uid: 'inactive-team' }] });
+      }
+      return jsonOk({});
+    });
+
+    const urls = (await sitemap()).map((entry) => entry.url);
+
+    expect(urls).toContain('https://os.pl.xyz/teams/public-team');
+    expect(urls).not.toContain('https://os.pl.xyz/teams/inactive-team');
+  });
+
+  it('falls back to the full team list when the API has no crawl index', async () => {
+    (global.fetch as jest.Mock).mockImplementation((url: string) => {
+      if (url.includes('/v1/teams/crawl-index')) {
+        return Promise.resolve({ ok: false, json: async () => ({}) });
+      }
+      if (url.includes('/v1/teams')) {
+        return jsonOk({ teams: [{ uid: 'team-1' }] });
+      }
+      return jsonOk({});
+    });
+
+    const urls = (await sitemap()).map((entry) => entry.url);
+
+    expect(urls).toContain('https://os.pl.xyz/teams/team-1');
+  });
 });

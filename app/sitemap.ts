@@ -80,6 +80,25 @@ async function fetchJobCrawlIndex(): Promise<SitemapEntity[]> {
   return parseEntities(jobs);
 }
 
+/**
+ * Teams a logged-out visitor can open (LAB-3087). The full list included the `L0` teams, which the API refuses to a
+ * logged-out visitor: 931 sitemap URLs that each rendered an error page. Until the API serves the crawl index, the
+ * full list stands in, so the sitemap never loses its teams.
+ */
+async function fetchTeamCrawlIndex(): Promise<SitemapEntity[]> {
+  const apiBase = process.env.DIRECTORY_API_URL;
+  if (!apiBase) {
+    return [];
+  }
+
+  const data = await fetchJson(`${apiBase}/v1/teams/crawl-index`);
+  const teams = (data as { teams?: unknown } | null)?.teams;
+  if (Array.isArray(teams)) {
+    return parseEntities(teams);
+  }
+  return fetchEntities('/v1/teams', 'teams');
+}
+
 function entityEntries(
   entities: SitemapEntity[],
   pathPrefix: string,
@@ -107,7 +126,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const [teams, members, projects, jobs] = await Promise.all([
-    fetchEntities('/v1/teams', 'teams'),
+    fetchTeamCrawlIndex(),
     fetchEntities('/v1/members', 'members'),
     fetchEntities('/v1/projects', 'projects'),
     fetchJobCrawlIndex(),

@@ -20,6 +20,19 @@ Which addresses of the site search engines are told to index, and how every othe
 - **THEN** it lists `/events/all` and `/demoday`
 - **AND** it does not list `/events`
 
+#### Scenario: Teams hidden from signed-out visitors
+
+- **GIVEN** the directory API serves `GET /v1/teams/crawl-index`
+- **WHEN** the sitemap is generated
+- **THEN** it lists the teams of the crawl index
+- **AND** it does not list a team at access level `L0`, whose profile answers 404 to a crawler
+
+#### Scenario: API without a team crawl index
+
+- **GIVEN** `GET /v1/teams/crawl-index` fails
+- **WHEN** the sitemap is generated
+- **THEN** it lists the teams of the full team list, as before
+
 ### Requirement: One address for the events calendar
 
 `/events` SHALL redirect permanently (308) to `/events/all`, and `/events/all` SHALL declare itself as its canonical address. Other pages under `/events/` SHALL NOT redirect.

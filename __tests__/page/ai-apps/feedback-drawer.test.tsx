@@ -376,13 +376,15 @@ describe('GiveAiAppFeedbackDialog, drawer variant', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('narrow on an app’s page, the page gives up the drawer’s width; wide, it goes over a scrim instead', () => {
+  /* LAB-3046: the Feedback tab opens on top of the page, so the member keeps their place and the screenshot shows it. */
+  it('narrow or wide, the Feedback tab opens on top of an app’s page and leaves its width alone', () => {
     const root = document.documentElement;
     const { rerender } = render(
       <GiveAiAppFeedbackDialog variant="drawer" isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />,
     );
-    expect(root.style.getPropertyValue('--ai-app-comments-inset')).toBe('480px');
+    expect(root.style.getPropertyValue('--ai-app-comments-inset')).toBe('');
     expect(screen.getByTestId('feedback-drawer')).toHaveAttribute('data-wide', 'false');
+    expect(screen.getByTestId('feedback-drawer').className).not.toMatch(/overlayWide/);
 
     fireEvent.click(screen.getByRole('button', { name: 'Wider' }));
     expect(screen.getByTestId('feedback-drawer')).toHaveAttribute('data-wide', 'true');
@@ -390,13 +392,37 @@ describe('GiveAiAppFeedbackDialog, drawer variant', () => {
     expect(root.style.getPropertyValue('--ai-app-comments-inset')).toBe('');
 
     fireEvent.click(screen.getByRole('button', { name: 'Narrower' }));
-    expect(root.style.getPropertyValue('--ai-app-comments-inset')).toBe('480px');
+    expect(screen.getByTestId('feedback-drawer')).toHaveAttribute('data-wide', 'false');
+    expect(root.style.getPropertyValue('--ai-app-comments-inset')).toBe('');
 
     rerender(
       <GiveAiAppFeedbackDialog variant="drawer" isOpen={false} onClose={jest.fn()} appUid="app-1" appName="My App" />,
     );
     expect(root.style.getPropertyValue('--ai-app-comments-inset')).toBe('');
     expect(screen.queryByTestId('feedback-drawer')).not.toBeInTheDocument();
+  });
+
+  /* LAB-2767, kept by LAB-3046: comments are placed on the app beside the list, so only this tab makes room. */
+  it('the Comments tab still makes the page give up the drawer’s width, and the Feedback tab gives it back', () => {
+    const root = document.documentElement;
+    const props = {
+      variant: 'drawer' as const,
+      onClose: jest.fn(),
+      appUid: 'app-1',
+      appName: 'My App',
+      switchSlot: switcher,
+    };
+    const { rerender } = render(<GiveAiAppFeedbackDialog {...props} isOpen altBody={<p>Comments list</p>} />);
+    expect(root.style.getPropertyValue('--ai-app-comments-inset')).toBe('480px');
+
+    rerender(<GiveAiAppFeedbackDialog {...props} isOpen />);
+    expect(root.style.getPropertyValue('--ai-app-comments-inset')).toBe('');
+
+    rerender(<GiveAiAppFeedbackDialog {...props} isOpen altBody={<p>Comments list</p>} />);
+    expect(root.style.getPropertyValue('--ai-app-comments-inset')).toBe('480px');
+
+    rerender(<GiveAiAppFeedbackDialog {...props} isOpen={false} altBody={<p>Comments list</p>} />);
+    expect(root.style.getPropertyValue('--ai-app-comments-inset')).toBe('');
   });
 
   it('the Comments tab is always the narrow drawer', () => {

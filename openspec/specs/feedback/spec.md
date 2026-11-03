@@ -71,3 +71,22 @@ When an instant screenshot in the feedback form fails because the page or app to
 - **GIVEN** the member chooses Whole page or Pick a part
 - **WHEN** the capture takes too long
 - **THEN** the form says that the page took too long and that trying again uses screen sharing
+
+### Requirement: The feedback drawer does not change the page layout
+On an AI app page at 960px and wider, the feedback drawer's Feedback tab SHALL open on top of the page, Narrow (480px) or Wider (min(1120px, 80vw) over a scrim). The app frame SHALL keep its width and scroll position when the drawer opens, changes width, steps aside for Whole page or Pick a part, and closes, so the automatic screenshot shows the view from before the open. Only the Comments tab SHALL make the page give up the drawer's width.
+
+#### Scenario: Narrow drawer on the Feedback tab
+- **GIVEN** a member on an AI app page on desktop who scrolled to a part of the app
+- **WHEN** the member opens the feedback drawer in Narrow mode
+- **THEN** the drawer covers the right edge of the page and the app frame keeps its width and scroll position
+- **AND** the automatic screenshot shows the view from before the drawer opened
+
+#### Scenario: Wider and Narrower
+- **GIVEN** the feedback drawer is open on the Feedback tab of an AI app page
+- **WHEN** the member chooses Wider or Narrower
+- **THEN** the page layout and scroll position do not change
+
+#### Scenario: The Comments tab
+- **GIVEN** the feedback drawer is open on an AI app page on desktop
+- **WHEN** the member chooses the Comments tab
+- **THEN** the page gives up the drawer's width, so the member can place comments on the app beside the drawer

@@ -61,6 +61,7 @@ const MemberGridView = (props: IMemberGridView) => {
                       height={20}
                       width={20}
                       src="/icons/badge/team-lead.svg"
+                      alt="Team lead"
                     />
                   }
                   content={'Team Lead'}

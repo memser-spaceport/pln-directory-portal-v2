@@ -29,7 +29,7 @@
 - [x] 5.1 Locally, signed out, load `/home`, `/jobs`, a member profile, `/teams` and a team profile. Verify: no request to `auth.privy.io` and no Privy chunk in DevTools Network.
 - [x] 5.2 Run `npm run lint` and `npm run test`. Verify: no new failures against `lab-3083`.
 - [x] 5.3 Run `openspec validate lab-3092-faster-mobile-load --json`. Verify: the result reports valid.
-- [ ] 5.4 Deploy to the `lab-3083` feature env and repeat 1.1. Verify:
+- [x] 5.4 Deploy to the `lab-3083` feature env and repeat 1.1. Verify:
   - signed-out `/home`, `/jobs` and a member page make no `auth.privy.io` request;
   - the before/after table is in the PR;
   - any budget miss is listed with its remaining long tasks by script.

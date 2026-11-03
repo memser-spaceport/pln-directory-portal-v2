@@ -24,8 +24,10 @@ jest.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
+const mockCookies = jest.fn();
+const LOGGED_OUT = { userInfo: {}, isLoggedIn: false, authToken: '' };
 jest.mock('@/utils/next-helpers', () => ({
-  getCookiesFromHeaders: async () => ({ userInfo: {}, isLoggedIn: false, authToken: '' }),
+  getCookiesFromHeaders: async () => mockCookies(),
 }));
 
 const mockGetTeam = jest.fn();
@@ -60,6 +62,8 @@ const parent = Promise.resolve({ openGraph: { images: [] } }) as never;
 type AsyncComponent = (p: unknown) => Promise<unknown>;
 
 beforeEach(() => {
+  mockCookies.mockReset();
+  mockCookies.mockReturnValue(LOGGED_OUT);
   mockNotFound.mockClear();
   mockGetTeam.mockReset();
   mockGetProject.mockReset();
@@ -81,7 +85,11 @@ describe.each([
 
     await expect(Layout(layoutProps)).resolves.toBe('profile');
     expect(((await Page(props)) as { type: unknown }).type).toBe(ErrorPage);
-    await expect(metadata(props, parent)).resolves.toMatchObject({ title: 'Protocol Labs Directory' });
+    // The error page answers 200, so it must not be indexed as the profile (LAB-3087).
+    await expect(metadata(props, parent)).resolves.toMatchObject({
+      title: 'Protocol Labs Directory',
+      robots: { index: false, follow: true },
+    });
     expect(mockNotFound).not.toHaveBeenCalled();
   });
 
@@ -90,6 +98,49 @@ describe.each([
 
     expect(((await Page(props)) as { type: unknown }).type).toBe(ErrorPage);
     expect(mockNotFound).not.toHaveBeenCalled();
+  });
+});
+
+/* LAB-3087: the API refuses an `L0` team (soft-deleted, or no member has ever logged in) to a logged-out visitor with
+   `403 "Team is inactive"`. That rendered the error page at 200 for 931 sitemap URLs: a "soft 404". */
+describe('a team hidden from the public (LAB-3087)', () => {
+  const inactive = { error: { status: 403, statusText: 'Forbidden', message: 'Team is inactive' } };
+
+  it('answers not found to a logged-out visitor, from the layout and the page', async () => {
+    mockGetTeam.mockResolvedValue(inactive);
+
+    await expect((TeamLayout as AsyncComponent)(layoutProps)).rejects.toThrow('NEXT_NOT_FOUND');
+    await expect((TeamPage as AsyncComponent)(props)).rejects.toThrow('NEXT_NOT_FOUND');
+  });
+
+  it('lets a logged-in viewer through the layout, whose lookup sends no token', async () => {
+    mockCookies.mockReturnValue({ userInfo: { uid: 'm1' }, isLoggedIn: true, authToken: 'token' });
+    mockGetTeam.mockResolvedValue(inactive);
+
+    await expect((TeamLayout as AsyncComponent)(layoutProps)).resolves.toBe('profile');
+    expect(mockNotFound).not.toHaveBeenCalled();
+  });
+
+  /* Logged in, the API refuses a hidden team to anyone but its leads and admins with a different 403. That rendered
+     "Oh snap" on the feature env; the page asks with the viewer's token, so any 403 there means "not for you". */
+  it('answers not found to a logged-in viewer the API refuses, whatever the 403 says', async () => {
+    mockCookies.mockReturnValue({ userInfo: { uid: 'm1' }, isLoggedIn: true, authToken: 'token' });
+    mockGetTeam.mockResolvedValue({
+      error: {
+        status: 403,
+        statusText: 'Forbidden',
+        message: 'Requestor does not have permission to update this team',
+      },
+    });
+
+    await expect((TeamLayout as AsyncComponent)(layoutProps)).resolves.toBe('profile');
+    await expect((TeamPage as AsyncComponent)(props)).rejects.toThrow('NEXT_NOT_FOUND');
+  });
+
+  it('keeps the layout to the logged-out "Team is inactive" answer: its lookup sends no token', async () => {
+    mockGetTeam.mockResolvedValue({ error: { status: 403, statusText: 'Forbidden', message: 'Forbidden resource' } });
+
+    await expect((TeamLayout as AsyncComponent)(layoutProps)).resolves.toBe('profile');
   });
 });
 

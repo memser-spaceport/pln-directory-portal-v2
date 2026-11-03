@@ -56,6 +56,9 @@ export function FocusAreaHeader(props: Props) {
             <img
               src={prevBtnDisabled ? '/icons/left-arrow-circle-disabled.svg' : '/icons/left-arrow-circle.svg'}
               alt="left arrow"
+              width={32}
+              height={32}
+              loading="lazy"
             />
           </button>
           <button
@@ -65,6 +68,9 @@ export function FocusAreaHeader(props: Props) {
             <img
               src={nextBtnDisabled ? '/icons/right-arrow-circle-disabled.svg' : '/icons/right-arrow-circle.svg'}
               alt="right arrow"
+              width={32}
+              height={32}
+              loading="lazy"
             />
           </button>
         </div>

@@ -7,6 +7,7 @@ import EmptyResult from '@/components/core/empty-result';
 import ProjectlistWrapper from '@/components/page/projects/projectlist-wrapper';
 import { INITIAL_ITEMS_PER_PAGE } from '@/utils/constants';
 import { getAllProjects } from '@/app/actions/projects.actions';
+import { BrowseAllLink } from '@/components/page/browse/BrowseIndexPage';
 
 export default async function Page(props: any) {
   const searchParams = await props.searchParams;
@@ -30,6 +31,8 @@ export default async function Page(props: any) {
           isLoggedIn={isLoggedIn}
         />
         {totalProjects === 0 && <EmptyResult isLoggedIn={isLoggedIn} />}
+        {/* The list shows 50 projects to a crawler; the index links every one (LAB-3093). */}
+        <BrowseAllLink kind="projects" />
       </div>
     </div>
   );

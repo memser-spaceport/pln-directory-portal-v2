@@ -86,3 +86,56 @@ The Next.js image endpoint SHALL fetch and optimise remote images only from an e
 - **GIVEN** an image URL on a host that is not on the list
 - **WHEN** a client requests it through the Next.js image endpoint
 - **THEN** the endpoint refuses the request and does not fetch the URL
+
+### Requirement: Server reads of the directory API identify the frontend
+
+Every read (`GET`, `HEAD`) the frontend server makes to the origin of `DIRECTORY_API_URL` SHALL carry the header `x-frontend-render-token` with the value of `FRONTEND_RENDER_THROTTLE_TOKEN`, so the API's rate limit lets the reads that render pages through (LAB-3086). The header SHALL NOT be sent on writes, to any other origin, or from the browser. With no token configured, no header SHALL be sent.
+
+#### Scenario: Crawler burst on profiles
+
+- **GIVEN** `FRONTEND_RENDER_THROTTLE_TOKEN` is set on the frontend and the API
+- **WHEN** a crawler requests many team profiles at once
+- **THEN** every API read made to render them carries the token
+- **AND** the API answers none of them 429
+
+#### Scenario: Request to another host
+
+- **WHEN** the frontend server fetches a URL outside the API's origin
+- **THEN** the request does not carry the token
+
+#### Scenario: Browser bundle
+
+- **WHEN** a page is loaded in the browser
+- **THEN** neither the HTML nor the JavaScript contains the token
+
+### Requirement: Every response carries the security headers
+
+Every response SHALL carry `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: SAMEORIGIN`, `Content-Security-Policy: frame-ancestors 'self'` and `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()`, and no `X-Powered-By`. The pages SHALL have one viewport tag, `width=device-width, initial-scale=1`, with no zoom limit (LAB-3094).
+
+#### Scenario: Home page response
+
+- **WHEN** a client requests `/home`
+- **THEN** the response has the five headers and no `X-Powered-By`
+- **AND** the HTML has one viewport tag, without `maximum-scale` or `user-scalable`
+
+#### Scenario: Another site frames a page
+
+- **WHEN** a page on another origin puts a directory page in an iframe
+- **THEN** the browser refuses to show it
+
+### Requirement: Images load in step with what the visitor sees
+
+On `/home`, images below the fold SHALL load lazily and every image SHALL declare its width and height. The image that is the largest element of a member profile SHALL be discoverable from the HTML, not only from a stylesheet.
+
+#### Scenario: Home below the fold
+
+- **GIVEN** a signed-out visitor on `/home`
+- **WHEN** the page loads
+- **THEN** no image below the fold is requested before the visitor scrolls toward it
+- **AND** nothing on the page shifts as images arrive
+
+#### Scenario: Member profile hero
+
+- **GIVEN** a signed-out visitor opening a member profile
+- **WHEN** the browser reads the page's HTML
+- **THEN** the request for the largest element's image starts without waiting for a stylesheet

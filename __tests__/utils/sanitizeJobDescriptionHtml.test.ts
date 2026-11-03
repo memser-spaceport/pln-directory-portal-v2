@@ -71,4 +71,18 @@ describe('sanitizeJobDescriptionHtml', () => {
     expect(sanitizeJobDescriptionHtml('')).toBe('');
     expect(sanitizeJobDescriptionHtml(null as unknown as string)).toBe('');
   });
+
+  /* LAB-3089: the role page has its own h1 (the role title) and h2 ("About the role"). A posting that wrote its
+     sections as h1 gave the page four h1s. */
+  it("demotes a posting's h1 and h2 to h3, keeping the rest", () => {
+    expect(
+      sanitizeJobDescriptionHtml('<h1>The Role</h1><h2 id="x">Required</h2><h3>Preferred</h3><h4>Perks</h4>'),
+    ).toBe('<h3>The Role</h3><h3>Required</h3><h3>Preferred</h3><h4>Perks</h4>');
+  });
+
+  it('leaves heading-like text alone', () => {
+    expect(sanitizeJobDescriptionHtml('<p>Use &lt;h1&gt; tags and <code>&lt;h2&gt;</code></p><hr>')).toBe(
+      '<p>Use &lt;h1&gt; tags and <code>&lt;h2&gt;</code></p><hr>',
+    );
+  });
 });

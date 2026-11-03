@@ -50,13 +50,14 @@ export function FocusAreaCard(props: Props) {
                       key={item?.team?.uid}
                       width={24}
                       height={24}
+                      loading="lazy"
                       src={item?.team?.logo?.url || '/icons/team-default-profile.svg'}
                       alt="team"
                       className={s.avatar}
                     />
                   ))}
               </div>
-              <img src="/icons/arrow-blue-right.svg" alt="project" />
+              <img src="/icons/arrow-blue-right.svg" alt="" width={12} height={24} loading="lazy" />
             </div>
           </div>
         )}
@@ -76,13 +77,14 @@ export function FocusAreaCard(props: Props) {
                       key={item?.project?.uid}
                       width={24}
                       height={24}
+                      loading="lazy"
                       src={item?.project?.logo?.url || '/icons/project-default.svg'}
                       alt="project"
                       className={s.avatar}
                     />
                   ))}
               </div>
-              <img src="/icons/arrow-blue-right.svg" alt="project" />
+              <img src="/icons/arrow-blue-right.svg" alt="" width={12} height={24} loading="lazy" />
             </div>
           </div>
         )}

@@ -20,6 +20,34 @@ Which addresses of the site search engines are told to index, and how every othe
 - **THEN** it lists `/events/all` and `/demoday`
 - **AND** it does not list `/events`
 
+#### Scenario: Teams hidden from signed-out visitors
+
+- **GIVEN** the directory API serves `GET /v1/teams/crawl-index`
+- **WHEN** the sitemap is generated
+- **THEN** it lists the teams of the crawl index
+- **AND** it does not list a team at access level `L0`, whose profile answers 404 to a crawler
+
+#### Scenario: API without a team crawl index
+
+- **GIVEN** `GET /v1/teams/crawl-index` fails
+- **WHEN** the sitemap is generated
+- **THEN** it lists the teams of the full team list, as before
+
+### Requirement: The sitemap is an index of per-section sitemaps
+
+`/sitemap.xml` SHALL be a sitemap index (`<sitemapindex>`) listing one sitemap per section, at absolute addresses: static pages, teams, members, projects and jobs (`/sitemaps/sitemap/<section>.xml`). Each section sitemap SHALL list only its own kind of page. robots.txt SHALL keep naming `/sitemap.xml`. The sitemap index, the section sitemaps and robots.txt SHALL NOT be answered with session cookie headers.
+
+#### Scenario: Crawler reads the sitemap
+
+- **WHEN** a crawler requests `/sitemap.xml`
+- **THEN** it receives a sitemap index with five `<sitemap>` entries
+- **AND** each entry's sitemap lists only static pages, teams, members, projects or jobs
+
+#### Scenario: No session headers on crawler files
+
+- **WHEN** a client requests `/sitemap.xml`, a section sitemap or `/robots.txt`
+- **THEN** the response has no `Set-Cookie` header
+
 ### Requirement: One address for the events calendar
 
 `/events` SHALL redirect permanently (308) to `/events/all`, and `/events/all` SHALL declare itself as its canonical address. Other pages under `/events/` SHALL NOT redirect.
@@ -85,6 +113,99 @@ The home page, members, teams, projects, the events calendar, the job board and 
 
 - **WHEN** a crawler requests `/demoday`
 - **THEN** its title and description both contain "venture investors" and "VC"
+
+### Requirement: Every page has one h1
+
+Each page SHALL have exactly one `<h1>` element in its server-rendered HTML. A page that renders a separate copy of its title for narrow screens SHALL make that copy a heading by role (`role="heading" aria-level="1"`) or hide it from assistive technology, not a second `<h1>`. A job posting's own `h1` and `h2` SHALL render as `h3`, under the role page's `h1` (the role title) and `h2` ("About the role"), and so SHALL the `h1` and `h2` in a team's, member's or project's own description.
+
+#### Scenario: Listing and profile pages
+
+- **WHEN** a crawler requests `/members`, `/teams`, `/projects`, `/jobs`, a team profile or a project profile
+- **THEN** the HTML has one `<h1>`
+
+#### Scenario: Job posting with h1 sections
+
+- **GIVEN** a role whose description has `<h1>The Role</h1>`
+- **WHEN** a crawler requests the role page
+- **THEN** the HTML has one `<h1>`, the role title, and "The Role" is an `<h3>`
+
+### Requirement: The home page says what the network is
+
+`/home` SHALL have the `<h1>` "Protocol Labs Directory", visually hidden so the top of the page keeps its design, and read by assistive technology. For a signed-out visitor, the page SHALL show a definition of the Protocol Labs network and the directory, of 40 to 60 words, as visible text in an "About" section at the foot of the page. The definition SHALL NOT be hidden from view, because text shown only to crawlers is hidden text.
+
+#### Scenario: Crawler on the home page
+
+- **WHEN** a crawler requests `/home` without cookies
+- **THEN** the HTML has one `<h1>`, "Protocol Labs Directory"
+- **AND** the definition is in a visible "About Protocol Labs Directory" section after the focus areas
+
+#### Scenario: Visitor on the home page
+
+- **WHEN** a signed-out visitor opens `/home`
+- **THEN** the top of the page starts with the welcome card, as before LAB-3089
+- **AND** the definition appears at the foot of the page
+
+### Requirement: The home page names Protocol Labs as structured data
+
+`/home` SHALL carry JSON-LD with an `Organization` (Protocol Labs, with `sameAs` links to protocol.ai, Wikidata Q63930216, X, LinkedIn and YouTube) and a `WebSite` (Protocol Labs Directory, at the home page's canonical address) published by it.
+
+#### Scenario: Home page markup
+
+- **WHEN** a crawler requests `/home`
+- **THEN** the HTML has an `application/ld+json` script with the `Organization` and the `WebSite`
+
+### Requirement: Profiles carry entity structured data
+
+Member, team and project profiles SHALL carry JSON-LD built only from what a signed-out visitor sees on the page, with a `BreadcrumbList` from the section to the profile:
+
+- a member profile: a `ProfilePage` whose `mainEntity` is a `Person` (name, image, job title, the team they work for, bio, skills). Social links and location are hidden from signed-out visitors, so they are not in the markup;
+- a team profile: an `Organization` (name, logo, description, and as `sameAs` the contact links the page shows);
+- a project profile: a `CreativeWork` (name, logo, tagline, its maintaining team as `creator`, and its links as `sameAs`).
+
+#### Scenario: Signed-out member profile
+
+- **WHEN** a crawler requests a member profile
+- **THEN** the HTML has a `ProfilePage` about the member's `Person` and a `BreadcrumbList` Members → member
+- **AND** the markup has none of the member's social links or location
+
+#### Scenario: Team contact link that is only a guess
+
+- **WHEN** a team's LinkedIn value is not a handle or address, so the page links to a LinkedIn search
+- **THEN** the team's `sameAs` leaves that link out
+
+#### Scenario: Profile text that contains a script tag
+
+- **WHEN** a profile's name or text contains `</script>`
+- **THEN** the JSON-LD escapes it and the script element is not ended early
+
+### Requirement: Links reach every profile
+
+`/members`, `/teams` and `/projects` SHALL each link, in their server HTML, to a browse index at `/<listing>/browse`. The index SHALL list every profile the sitemap lists for that listing, A to Z, 200 per page, as plain links, with links to every page of the index. Each page SHALL have a self-canonical; page 1 SHALL have no `?page=`. A `?page=` that is not a whole number from 1 up, or is past the last page, SHALL answer 404.
+
+#### Scenario: Crawler follows links only
+
+- **WHEN** a crawler starts at `/teams`, `/members` or `/projects` and follows only `<a href>` links
+- **THEN** it reaches every team, member and project profile in the sitemap
+
+#### Scenario: Page past the end
+
+- **WHEN** a client requests `/teams/browse?page=99` and there are fewer pages
+- **THEN** the response status is 404
+
+#### Scenario: Teams and contributors on a project page
+
+- **WHEN** a crawler reads a project profile
+- **THEN** its maintaining team, contributing teams and contributors are `<a href>` links to their profiles
+
+### Requirement: Sitemap entries carry only what Google reads
+
+`/sitemap.xml` entries SHALL carry `loc` and, where known, `lastmod`, and no `changefreq` or `priority`. A profile's `lastmod` SHALL be its `updatedAt`. A job opening's `lastmod` SHALL be the `lastModified` the API's job crawl index gives (the posting's own date); a job without one SHALL have no `lastmod`, never the nightly sync time. robots.txt SHALL have no `Host:` line.
+
+#### Scenario: Job synced last night, posted in October
+
+- **GIVEN** a job whose crawl-index entry has `updatedAt` from last night's sync and `lastModified` 2026-10-01
+- **WHEN** the sitemap is generated
+- **THEN** the job's `lastmod` is 2026-10-01 and the entry has no `changefreq` or `priority`
 
 ### Requirement: Share cards match the search result
 

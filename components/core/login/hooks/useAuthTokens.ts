@@ -1,7 +1,7 @@
 import Cookies from 'js-cookie';
 import { hasSession } from '@/utils/third-party.helper';
 import { endSession, establishSession } from '@/services/session.service';
-import { User } from '@privy-io/react-auth';
+import type { User } from '@privy-io/react-auth';
 import { decodeToken } from '@/utils/auth.utils';
 import { usePostHog } from 'posthog-js/react';
 import { useCallback } from 'react';

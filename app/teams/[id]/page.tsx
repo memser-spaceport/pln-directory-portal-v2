@@ -13,7 +13,7 @@ import { IFormatedTeamProject, ITeam, ITeamDetailParams } from '@/types/teams.ty
 import { hasProjectEditAccess, sortMemberByRole } from '@/utils/common.utils';
 import { AIRTABLE_REGEX, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
-import { absoluteUrl, htmlToPlainSnippet } from '@/utils/seo';
+import { absoluteUrl, htmlToPlainSnippet, PROFILE_ERROR_ROBOTS } from '@/utils/seo';
 import { Metadata, ResolvingMetadata } from 'next';
 import { RedirectType, notFound, redirect } from 'next/navigation';
 import styles from './page.module.css';
@@ -40,6 +40,8 @@ import { selectTeamOpenRoles } from '@/components/page/team-details/TeamOpenRole
 import { getJobsList } from '@/app/actions/jobs.actions';
 import type { IJobTeamGroup } from '@/types/jobs.types';
 import layoutStyles from './TeamProfileLayout.module.scss';
+import { JsonLdScript } from '@/components/core/json-ld/JsonLdScript';
+import { buildTeamJsonLd } from '@/services/seo/entity-jsonld';
 
 async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: Promise<{ backTo?: string }> }) {
   const searchParams = await props.searchParams;
@@ -67,7 +69,8 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
     redirect(`/teams/${redirectTeamUid}`, RedirectType.replace);
   }
 
-  // A real 404 only when the API says the team does not exist (LAB-2922); any other failure keeps the error page.
+  // A real 404 only when the API says the team does not exist (LAB-2922) or is hidden from this visitor (LAB-3087);
+  // any other failure keeps the error page.
   if (isNotFound) {
     notFound();
   }
@@ -108,6 +111,7 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
        it. The interception is a document-level listener, so what it covers does
        not depend on where this sits. */
     <UnsavedEditsPageGuard>
+      <JsonLdScript data={buildTeamJsonLd({ ...team, id: team.id || teamId, name: team.name ?? '' })} />
       <BackButton to={backTo} />
       <div className={styles?.teamDetail__container}>
         {/* Details */}
@@ -266,7 +270,10 @@ async function getPageData(teamId: string) {
         // profile, and a jobs-API blip must not take the team page down with it.
         getJobsList(`teamUid=${encodeURIComponent(teamId)}&limit=1`),
       ]);
-    if (teamResponse?.error?.status === 404) {
+    // The API answers a team with 403 only when it is hidden (`L0`) from this viewer: "Team is inactive" when logged
+    // out, "Requestor does not have permission…" when logged in but neither the team's lead nor an admin. Either way
+    // the team does not exist for them, so it is the not-found page rather than "Oh snap" (LAB-3087).
+    if (teamResponse?.error?.status === 404 || teamResponse?.error?.status === 403) {
       isNotFound = true;
       return { isNotFound, team, userInfo };
     }
@@ -371,6 +378,7 @@ export async function generateMetadata(props: IGenerateMetadata, parent: Resolvi
   if (teamResonse?.error) {
     return {
       title: 'Protocol Labs Directory',
+      robots: PROFILE_ERROR_ROBOTS,
       description:
         'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
       openGraph: {

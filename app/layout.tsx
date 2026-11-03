@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.scss';
 import '../styles/index.scss';
@@ -62,14 +62,20 @@ export const metadata: Metadata = {
     images: [SOCIAL_IMAGE_URL],
   },
 };
+/**
+ * Next renders the one viewport tag from this (LAB-3094). The hand-written tag it replaces was a second one, and its
+ * `maximum-scale=1, user-scalable=no` stopped people from zooming in.
+ */
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+};
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { userInfo, isLoggedIn, authToken } = await getCookiesFromHeaders();
 
   return (
     <html>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-      </head>
       <body className={`${inter.className} layout root`} id="body">
         <Suspense>
           <PostHogPageview />

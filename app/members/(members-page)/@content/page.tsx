@@ -9,6 +9,7 @@ import { getMemberListForQuery } from '@/app/actions/members.actions';
 import qs from 'qs';
 import { OFFICE_HOURS_FILTER_PARAM_KEY, TOPICS_FILTER_PARAM_KEY } from '@/app/constants/filters';
 import MembersToolbar from '@/components/page/members/members-toolbar';
+import { BrowseAllLink } from '@/components/page/browse/BrowseIndexPage';
 
 async function Page(props: { searchParams: Promise<Record<string, string>> }) {
   const searchParams = await props.searchParams;
@@ -35,6 +36,8 @@ async function Page(props: { searchParams: Promise<Record<string, string>> }) {
           searchParams={searchParams}
         />
       </div>
+      {/* The list shows 50 members to a crawler; the index links every one (LAB-3093). */}
+      <BrowseAllLink kind="members" />
     </div>
   );
 }

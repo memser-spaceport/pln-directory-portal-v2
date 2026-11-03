@@ -12,7 +12,7 @@ import { getProject } from '@/services/projects.service';
 import { getAllTeams } from '@/services/teams.service';
 import { hasProjectDeleteAccess, hasProjectEditAccess } from '@/utils/common.utils';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
-import { absoluteUrl, htmlToPlainSnippet } from '@/utils/seo';
+import { absoluteUrl, htmlToPlainSnippet, PROFILE_ERROR_ROBOTS } from '@/utils/seo';
 import styles from './page.module.css';
 import { getFocusAreas } from '@/services/common.service';
 import { IFocusArea } from '@/types/shared.types';
@@ -20,6 +20,8 @@ import SelectedFocusAreas from '@/components/core/selected-focus-area';
 import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { Metadata, ResolvingMetadata } from 'next';
 import { notFound } from 'next/navigation';
+import { JsonLdScript } from '@/components/core/json-ld/JsonLdScript';
+import { buildProjectJsonLd } from '@/services/seo/entity-jsonld';
 import { BackButton } from '@/components/ui/BackButton';
 import React from 'react';
 
@@ -46,6 +48,7 @@ export default async function ProjectDetails(props: any) {
        calls. Everything else on this page edits at `/projects/update/[id]`, which
        is a page of its own and out of scope here. */
     <UnsavedEditsPageGuard>
+      <JsonLdScript data={buildProjectJsonLd(project)} />
       <div className={styles.project}>
         <div className={styles.project__container}>
           <div>
@@ -220,6 +223,7 @@ export async function generateMetadata(props: IGenerateMetadata, parent: Resolvi
   if (projectResponse?.error) {
     return {
       title: 'Protocol Labs Directory',
+      robots: PROFILE_ERROR_ROBOTS,
       description:
         'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
       openGraph: {

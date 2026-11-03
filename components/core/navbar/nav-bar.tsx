@@ -120,7 +120,12 @@ function Navbar(props: Readonly<INavbar>) {
   return (
     <NavigationMenu.Root className={s.Root}>
       <NavigationMenu.List className={s.List}>
-        <NavLink href="/home" onClick={onNavbarApplogoClicked} className={s.logoWrapper}>
+        <NavLink
+          href="/home"
+          onClick={onNavbarApplogoClicked}
+          className={s.logoWrapper}
+          aria-label="Protocol Labs Directory home"
+        >
           <AppLogo />
         </NavLink>
 

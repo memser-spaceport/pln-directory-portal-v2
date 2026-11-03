@@ -116,12 +116,19 @@ Each page SHALL have exactly one `<h1>` element in its server-rendered HTML. A p
 
 ### Requirement: The home page says what the network is
 
-`/home` SHALL have the `<h1>` "Protocol Labs Directory". For a signed-out visitor it SHALL be followed by a definition of the Protocol Labs network and the directory of 40 to 60 words; for a signed-in member the heading MAY be visible to screen readers only.
+`/home` SHALL have the `<h1>` "Protocol Labs Directory", visually hidden so the top of the page keeps its design, and read by assistive technology. For a signed-out visitor, the page SHALL show a definition of the Protocol Labs network and the directory, of 40 to 60 words, as visible text in an "About" section at the foot of the page. The definition SHALL NOT be hidden from view, because text shown only to crawlers is hidden text.
 
 #### Scenario: Crawler on the home page
 
 - **WHEN** a crawler requests `/home` without cookies
-- **THEN** the HTML has one `<h1>` and the definition
+- **THEN** the HTML has one `<h1>`, "Protocol Labs Directory"
+- **AND** the definition is in a visible "About Protocol Labs Directory" section after the focus areas
+
+#### Scenario: Visitor on the home page
+
+- **WHEN** a signed-out visitor opens `/home`
+- **THEN** the top of the page starts with the welcome card, as before LAB-3089
+- **AND** the definition appears at the foot of the page
 
 ### Requirement: The home page names Protocol Labs as structured data
 

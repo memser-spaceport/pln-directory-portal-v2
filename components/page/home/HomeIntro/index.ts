@@ -1,1 +1,1 @@
-export { HomeIntro, HOME_HEADING, HOME_DEFINITION } from './HomeIntro';
+export { HomeIntro, HomeAbout, HOME_HEADING, HOME_DEFINITION } from './HomeIntro';

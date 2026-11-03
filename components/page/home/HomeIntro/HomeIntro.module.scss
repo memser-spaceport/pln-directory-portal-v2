@@ -1,10 +1,11 @@
 @import 'styles/media.scss';
 
-.intro {
+.about {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 0 4px;
+  padding: 24px 4px 8px;
+  border-top: 1px solid rgba(27, 56, 96, 0.08);
 }
 
 .heading {

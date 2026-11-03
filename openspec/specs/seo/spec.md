@@ -151,6 +151,16 @@ Each page SHALL have exactly one `<h1>` element in its server-rendered HTML. A p
 - **WHEN** a crawler reads a project profile
 - **THEN** its maintaining team, contributing teams and contributors are `<a href>` links to their profiles
 
+### Requirement: Sitemap entries carry only what Google reads
+
+`/sitemap.xml` entries SHALL carry `loc` and, where known, `lastmod`, and no `changefreq` or `priority`. A profile's `lastmod` SHALL be its `updatedAt`. A job opening's `lastmod` SHALL be the `lastModified` the API's job crawl index gives (the posting's own date); a job without one SHALL have no `lastmod`, never the nightly sync time. robots.txt SHALL have no `Host:` line.
+
+#### Scenario: Job synced last night, posted in October
+
+- **GIVEN** a job whose crawl-index entry has `updatedAt` from last night's sync and `lastModified` 2026-10-01
+- **WHEN** the sitemap is generated
+- **THEN** the job's `lastmod` is 2026-10-01 and the entry has no `changefreq` or `priority`
+
 ### Requirement: Share cards match the search result
 
 On those pages, `og:title`, `og:description`, `twitter:title` and `twitter:description` SHALL equal the page's title and description.

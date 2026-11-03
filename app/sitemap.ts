@@ -21,14 +21,15 @@ function toLastModified(value: unknown): Date | undefined {
   return Number.isNaN(date.getTime()) ? undefined : date;
 }
 
-function parseEntities(items: unknown[]): SitemapEntity[] {
+/** `dateKey` names the field that dates the page: `updatedAt` for profiles, `lastModified` for jobs. */
+function parseEntities(items: unknown[], dateKey = 'updatedAt'): SitemapEntity[] {
   const entities: SitemapEntity[] = [];
   for (const item of items) {
     if (!item || typeof item !== 'object' || typeof (item as { uid?: unknown }).uid !== 'string') {
       continue;
     }
     const uid = (item as { uid: string }).uid;
-    const lastModified = toLastModified((item as { updatedAt?: unknown }).updatedAt);
+    const lastModified = toLastModified((item as Record<string, unknown>)[dateKey]);
     entities.push(lastModified ? { uid, lastModified } : { uid });
   }
   return entities;
@@ -77,7 +78,9 @@ async function fetchJobCrawlIndex(): Promise<SitemapEntity[]> {
   if (!Array.isArray(jobs)) {
     return [];
   }
-  return parseEntities(jobs);
+  // The posting's own date (LAB-3094). Its `updatedAt` is the nightly sync, so a job without `lastModified` gets no
+  // lastmod rather than that.
+  return parseEntities(jobs, 'lastModified');
 }
 
 /**
@@ -99,16 +102,10 @@ async function fetchTeamCrawlIndex(): Promise<SitemapEntity[]> {
   return fetchEntities('/v1/teams', 'teams');
 }
 
-function entityEntries(
-  entities: SitemapEntity[],
-  pathPrefix: string,
-  baseUrl: string,
-  priority: number,
-): MetadataRoute.Sitemap {
+// No changefreq or priority anywhere (LAB-3094): Google ignores both. lastmod is the one field it reads.
+function entityEntries(entities: SitemapEntity[], pathPrefix: string, baseUrl: string): MetadataRoute.Sitemap {
   return entities.map((entity) => ({
     url: `${baseUrl}${pathPrefix}/${entity.uid}`,
-    changeFrequency: 'weekly',
-    priority,
     ...(entity.lastModified ? { lastModified: entity.lastModified } : {}),
   }));
 }
@@ -119,11 +116,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return [];
   }
 
-  const staticEntries: MetadataRoute.Sitemap = STATIC_PATHS.map((path) => ({
-    url: `${baseUrl}${path}`,
-    changeFrequency: 'daily',
-    priority: path === PAGE_ROUTES.HOME ? 1 : path === PAGE_ROUTES.JOBS ? 0.9 : 0.8,
-  }));
+  const staticEntries: MetadataRoute.Sitemap = STATIC_PATHS.map((path) => ({ url: `${baseUrl}${path}` }));
 
   const [teams, members, projects, jobs] = await Promise.all([
     fetchTeamCrawlIndex(),
@@ -134,16 +127,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const jobEntries: MetadataRoute.Sitemap = jobs.map((job) => ({
     url: `${baseUrl}${jobOpeningPath(job.uid)}`,
-    changeFrequency: 'daily',
-    priority: 0.7,
     ...(job.lastModified ? { lastModified: job.lastModified } : {}),
   }));
 
   return [
     ...staticEntries,
     ...jobEntries,
-    ...entityEntries(teams, PAGE_ROUTES.TEAMS, baseUrl, 0.6),
-    ...entityEntries(members, PAGE_ROUTES.MEMBERS, baseUrl, 0.5),
-    ...entityEntries(projects, PAGE_ROUTES.PROJECTS, baseUrl, 0.5),
+    ...entityEntries(teams, PAGE_ROUTES.TEAMS, baseUrl),
+    ...entityEntries(members, PAGE_ROUTES.MEMBERS, baseUrl),
+    ...entityEntries(projects, PAGE_ROUTES.PROJECTS, baseUrl),
   ];
 }

@@ -7,13 +7,13 @@ import { TeamDetails } from '@/components/page/team-details/TeamDetails';
 import { TeamMembers } from '@/components/page/team-details/TeamMembers';
 import { getMembers } from '@/services/members.service';
 import { getAllTeams, getTeam, getTeamUIDByAirtableId } from '@/services/teams.service';
-import { getTeamProfileLookup } from '@/services/teams/teamProfileLookup';
+import { getTeamProfileLookup, isTeamInactiveError } from '@/services/teams/teamProfileLookup';
 import { IMember } from '@/types/members.types';
 import { IFormatedTeamProject, ITeam, ITeamDetailParams } from '@/types/teams.types';
 import { hasProjectEditAccess, sortMemberByRole } from '@/utils/common.utils';
 import { AIRTABLE_REGEX, PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
-import { absoluteUrl, htmlToPlainSnippet } from '@/utils/seo';
+import { absoluteUrl, htmlToPlainSnippet, PROFILE_ERROR_ROBOTS } from '@/utils/seo';
 import { Metadata, ResolvingMetadata } from 'next';
 import { RedirectType, notFound, redirect } from 'next/navigation';
 import styles from './page.module.css';
@@ -67,7 +67,8 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
     redirect(`/teams/${redirectTeamUid}`, RedirectType.replace);
   }
 
-  // A real 404 only when the API says the team does not exist (LAB-2922); any other failure keeps the error page.
+  // A real 404 only when the API says the team does not exist (LAB-2922) or is hidden from this visitor (LAB-3087);
+  // any other failure keeps the error page.
   if (isNotFound) {
     notFound();
   }
@@ -266,7 +267,8 @@ async function getPageData(teamId: string) {
         // profile, and a jobs-API blip must not take the team page down with it.
         getJobsList(`teamUid=${encodeURIComponent(teamId)}&limit=1`),
       ]);
-    if (teamResponse?.error?.status === 404) {
+    // This request carries the viewer's token, so "Team is inactive" means this viewer may not see the team.
+    if (teamResponse?.error?.status === 404 || isTeamInactiveError(teamResponse?.error)) {
       isNotFound = true;
       return { isNotFound, team, userInfo };
     }
@@ -371,6 +373,7 @@ export async function generateMetadata(props: IGenerateMetadata, parent: Resolvi
   if (teamResonse?.error) {
     return {
       title: 'Protocol Labs Directory',
+      robots: PROFILE_ERROR_ROBOTS,
       description:
         'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
       openGraph: {

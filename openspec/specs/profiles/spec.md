@@ -74,9 +74,21 @@ A member, team or project profile SHALL answer HTTP 404 with the not-found page 
 - **WHEN** a client without cookies requests their profile
 - **THEN** the response status is 404
 
+#### Scenario: Team hidden from signed-out visitors
+
+- **GIVEN** a team at access level `L0`, which the directory API refuses to a signed-out visitor with `403 "Team is inactive"`
+- **WHEN** a client without cookies requests `/teams/<uid>`
+- **THEN** the response status is 404 and the page is the site's not-found page
+
+#### Scenario: Signed-in viewer opens a team hidden from the public
+
+- **GIVEN** a signed-in member of an `L0` team
+- **WHEN** they open the team's profile
+- **THEN** the page does not answer 404 and shows the team, as the API allows them
+
 ### Requirement: A failed lookup is not "not found"
 
-A profile page SHALL NOT answer 404 when the directory API fails for any reason other than "not found" (a 5xx, a 429, a timeout or a network error). It SHALL show the existing error page, so a crawler retries later. A signed-in viewer SHALL get today's behaviour, because only the browser knows what they may see.
+A profile page SHALL NOT answer 404 when the directory API fails for any reason other than "not found" or a team hidden from a signed-out visitor (a 5xx, a 429, another 403, a timeout or a network error). It SHALL show the existing error page, so a crawler retries later. A signed-in viewer SHALL get today's behaviour, because only the browser knows what they may see.
 
 #### Scenario: API outage
 
@@ -90,6 +102,22 @@ A profile page SHALL NOT answer 404 when the directory API fails for any reason 
 - **GIVEN** a signed-in member who is still pending approval
 - **WHEN** they open their own profile
 - **THEN** the page does not answer 404 and shows their profile once it loads, as today
+
+### Requirement: A profile that failed to load is not indexed
+
+A member, team or project profile whose directory API lookup failed SHALL be marked `noindex, follow`, so an error answered with status 200 is never indexed as the profile. A loaded profile SHALL NOT be marked `noindex`.
+
+#### Scenario: API outage
+
+- **GIVEN** the directory API answers 503 or 429 for a member, team or project id
+- **WHEN** a crawler requests that profile
+- **THEN** the page is marked `noindex, follow`
+
+#### Scenario: Loaded profile
+
+- **GIVEN** the directory API returns the profile
+- **WHEN** a crawler requests it
+- **THEN** the page is not marked `noindex`
 
 ### Requirement: A profile describes itself in its own words
 

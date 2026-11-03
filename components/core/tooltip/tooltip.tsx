@@ -7,6 +7,11 @@ import useClickedOutside from '@/hooks/useClickedOutside';
 
 interface ITooptip {
   trigger: ReactNode;
+  /**
+   * What the copy shown below 1024px renders instead of `trigger`. The tooltip renders its trigger twice, one copy per
+   * width, so an `<h1>` passed as `trigger` puts two in the page; pass the mobile copy as a heading by role (LAB-3089).
+   */
+  mobileTrigger?: ReactNode;
   triggerClassName?: string;
   content: ReactNode;
   asChild?: boolean;
@@ -20,6 +25,7 @@ interface ITooptip {
 export function Tooltip(props: ITooptip) {
   const {
     trigger,
+    mobileTrigger = trigger,
     triggerClassName = '',
     content,
     asChild = false,
@@ -58,7 +64,7 @@ export function Tooltip(props: ITooptip) {
               className={triggerClassName}
               asChild={asChild}
             >
-              {trigger}
+              {mobileTrigger}
             </TooltipPrimitive.Trigger>
             {content && (
               <TooltipPrimitive.Content
@@ -69,7 +75,9 @@ export function Tooltip(props: ITooptip) {
                 avoidCollisions
               >
                 {content}
-                {isHighlight && <TooltipPrimitive.Arrow className={styles['tp__arrow--highlight']} width={14} height={7} />}
+                {isHighlight && (
+                  <TooltipPrimitive.Arrow className={styles['tp__arrow--highlight']} width={14} height={7} />
+                )}
               </TooltipPrimitive.Content>
             )}
           </TooltipPrimitive.Root>
@@ -91,7 +99,9 @@ export function Tooltip(props: ITooptip) {
                 avoidCollisions
               >
                 {content}
-                {isHighlight && <TooltipPrimitive.Arrow className={styles['tp__arrow--highlight']} width={14} height={7} />}
+                {isHighlight && (
+                  <TooltipPrimitive.Arrow className={styles['tp__arrow--highlight']} width={14} height={7} />
+                )}
               </TooltipPrimitive.Content>
             )}
           </TooltipPrimitive.Root>

@@ -243,10 +243,11 @@ describe('normalizeJobDescriptionHtml', () => {
         '<ul><li>Design and scale ecosystem growth loops</li></ul>' +
         '<ul><li>Build durable distribution systems</li></ul>';
 
+      // The posting's h1 and h2 come out as h3: the role page has its own (LAB-3089).
       expect(render(posting)).toBe(
-        '<h1>About Protocol Labs</h1>' +
+        '<h3>About Protocol Labs</h3>' +
           '<p><a href="https://protocol.ai/" target="_blank" rel="noopener noreferrer">Protocol Labs</a> is an innovation network.</p>' +
-          '<h2>Key Responsibilities</h2>' +
+          '<h3>Key Responsibilities</h3>' +
           '<p><strong>Ecosystem Growth &amp; Network Effects</strong></p>' +
           '<ul><li>Design and scale ecosystem growth loops</li><li>Build durable distribution systems</li></ul>',
       );

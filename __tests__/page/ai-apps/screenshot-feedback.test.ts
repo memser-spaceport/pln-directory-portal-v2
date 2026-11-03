@@ -6,6 +6,7 @@ import {
 import {
   annotatedScreenshotHtml,
   appendScreenshots,
+  flattenAnnotatedNoteImages,
 } from '@/components/page/ai-apps/components/screenshot-feedback/screenshotHtml';
 
 const PIXEL_PNG =
@@ -180,5 +181,45 @@ describe('appendScreenshots with flatten', () => {
     expect(mockFlattenAnnotations).not.toHaveBeenCalled();
     expect(mockSaveRegistrationImage).toHaveBeenCalledTimes(1);
     expect(html).not.toContain('data-flat-src');
+  });
+});
+
+describe('flattenAnnotatedNoteImages', () => {
+  const FLAT_PNG = 'data:image/png;base64,RkxBVA==';
+  const encoded = serializeAnnotations(SAMPLE);
+
+  beforeEach(() => {
+    mockSaveRegistrationImage.mockResolvedValue({ image: { url: 'https://cdn.test/flat.png' } });
+    mockFlattenAnnotations.mockResolvedValue(FLAT_PNG);
+  });
+
+  afterEach(() => {
+    mockSaveRegistrationImage.mockReset();
+    jest.clearAllMocks();
+  });
+
+  it('adds a hosted data-flat-src and keeps the drawing data', async () => {
+    const html = `<p>See</p><img src="${PIXEL_PNG}" alt="pic" data-annotations="${encoded}">`;
+    const next = await flattenAnnotatedNoteImages(html);
+
+    expect(mockFlattenAnnotations).toHaveBeenCalledWith(PIXEL_PNG, SAMPLE);
+    expect(next).toContain(`data-annotations="${encoded}"`);
+    expect(next).toContain('data-flat-src="https://cdn.test/flat.png"');
+    expect(next).toContain('<p>See</p>');
+  });
+
+  it('leaves the image unchanged when it has no drawings', async () => {
+    const html = '<img src="https://cdn.test/plain.png" alt="pic">';
+    expect(await flattenAnnotatedNoteImages(html)).toBe(html);
+    expect(mockFlattenAnnotations).not.toHaveBeenCalled();
+  });
+
+  it('keeps the image and its drawing data when flattening fails', async () => {
+    mockFlattenAnnotations.mockRejectedValue(new Error('no canvas'));
+    const html = `<img src="${PIXEL_PNG}" data-annotations="${encoded}">`;
+    const next = await flattenAnnotatedNoteImages(html);
+
+    expect(next).toBe(html);
+    expect(next).not.toContain('data-flat-src');
   });
 });

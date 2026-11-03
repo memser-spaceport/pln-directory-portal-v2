@@ -71,3 +71,42 @@ When an instant screenshot in the feedback form fails because the page or app to
 - **GIVEN** the member chooses Whole page or Pick a part
 - **WHEN** the capture takes too long
 - **THEN** the form says that the page took too long and that trying again uses screen sharing
+
+### Requirement: An image in the feedback note can be annotated
+A member SHALL be able to annotate an image that sits in the feedback note, with the same annotate tools as a screenshot in the screenshot list. The note SHALL show an Annotate control and a remove control on the image, including an image the member pastes in, and SHALL show that image's drawings on the image. Removing an image SHALL take it out of the note. Saving SHALL keep the image in the note and SHALL store the drawing data on that image. Discarding SHALL leave the image and any drawing data it already had unchanged. A screenshot copied from the screenshot list into the note SHALL keep the drawing data it already had, and SHALL stay in the list. The sent request SHALL follow the same rule as a screenshot in the list: the raw picture, its drawing data, and a hosted picture with the drawings when that picture can be made.
+
+#### Scenario: A member annotates an image in the note
+- **GIVEN** a member has an image in the feedback note
+- **WHEN** the member annotates that image and saves
+- **THEN** the image stays in the note
+- **AND** the note carries that image's drawing data
+
+#### Scenario: A member discards the annotator
+- **GIVEN** a member opens the annotate tools on an image in the note
+- **WHEN** the member discards them
+- **THEN** the note is unchanged
+
+#### Scenario: A screenshot is copied into the note
+- **GIVEN** a screenshot in the list has drawings on it
+- **WHEN** the member drops that screenshot into the note
+- **THEN** the note image carries those drawings
+- **AND** the screenshot stays in the list
+
+### Requirement: The feedback drawer does not change the page layout
+On an AI app page, the Feedback drawer SHALL open on top of the page. The page width, layout, and scroll position SHALL stay as they were when the drawer opens, when it switches between narrow and wide, and when it closes. The Comments tab SHALL still make the page give up the narrow drawer's width, so a member can place a comment on the app beside the drawer.
+
+#### Scenario: Feedback on an AI app page
+- **GIVEN** a member is on an AI app page on a desktop window
+- **WHEN** the member opens the feedback drawer
+- **THEN** the app keeps its width
+- **AND** the drawer covers the right edge of the page
+
+#### Scenario: Wider and narrower
+- **GIVEN** the feedback drawer is open on an AI app page
+- **WHEN** the member switches between the narrow drawer and the wide drawer
+- **THEN** the app keeps its width
+
+#### Scenario: The Comments tab
+- **GIVEN** a member is on an AI app page
+- **WHEN** the member opens the Comments tab
+- **THEN** the page gives up the narrow drawer's width

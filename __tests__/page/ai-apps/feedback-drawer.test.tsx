@@ -376,12 +376,12 @@ describe('GiveAiAppFeedbackDialog, drawer variant', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('narrow on an app’s page, the page gives up the drawer’s width; wide, it goes over a scrim instead', () => {
+  it('narrow on an app’s page, the feedback drawer covers the page; wide, it goes over a scrim', () => {
     const root = document.documentElement;
     const { rerender } = render(
       <GiveAiAppFeedbackDialog variant="drawer" isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />,
     );
-    expect(root.style.getPropertyValue('--ai-app-comments-inset')).toBe('480px');
+    expect(root.style.getPropertyValue('--ai-app-comments-inset')).toBe('');
     expect(screen.getByTestId('feedback-drawer')).toHaveAttribute('data-wide', 'false');
 
     fireEvent.click(screen.getByRole('button', { name: 'Wider' }));
@@ -390,7 +390,7 @@ describe('GiveAiAppFeedbackDialog, drawer variant', () => {
     expect(root.style.getPropertyValue('--ai-app-comments-inset')).toBe('');
 
     fireEvent.click(screen.getByRole('button', { name: 'Narrower' }));
-    expect(root.style.getPropertyValue('--ai-app-comments-inset')).toBe('480px');
+    expect(root.style.getPropertyValue('--ai-app-comments-inset')).toBe('');
 
     rerender(
       <GiveAiAppFeedbackDialog variant="drawer" isOpen={false} onClose={jest.fn()} appUid="app-1" appName="My App" />,
@@ -413,6 +413,7 @@ describe('GiveAiAppFeedbackDialog, drawer variant', () => {
     );
     expect(screen.queryByRole('button', { name: 'Wider' })).not.toBeInTheDocument();
     expect(screen.getByTestId('feedback-drawer')).toHaveAttribute('data-wide', 'false');
+    expect(document.documentElement.style.getPropertyValue('--ai-app-comments-inset')).toBe('480px');
   });
 
   it('moves focus into the drawer when it opens', () => {

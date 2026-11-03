@@ -122,7 +122,7 @@ export const About = (props: Props) => {
 
       {!showEditor && (
         <ExpandableDescription onShowMore={onShowMoreClickHandler} onShowLess={onShowLessClickHandler}>
-          <SafeHtml className={s.content} html={aboutContent} />
+          <SafeHtml className={s.content} html={aboutContent} demoteHeadings />
         </ExpandableDescription>
       )}
     </div>

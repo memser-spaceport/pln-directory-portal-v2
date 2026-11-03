@@ -300,7 +300,7 @@ export const TeamDetails = (props: Props) => {
           <div className={s.aboutTitle}>About</div>
           <DetailsSectionGreyContentContainer className={s.aboutBox}>
             <ExpandableDescription>
-              <SafeHtml className={s.aboutContent} html={about} />
+              <SafeHtml className={s.aboutContent} html={about} demoteHeadings />
             </ExpandableDescription>
           </DetailsSectionGreyContentContainer>
         </div>

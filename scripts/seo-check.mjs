@@ -32,7 +32,8 @@ async function get(path) {
     headers: { 'user-agent': 'seo-check (LAB-2876)' },
   });
   const html = response.status === 200 ? await response.text() : '';
-  return { status: response.status, location: response.headers.get('location') ?? '', html };
+  const cookies = response.headers.getSetCookie().length;
+  return { status: response.status, location: response.headers.get('location') ?? '', html, cookies };
 }
 
 /** The text a crawler reads without running scripts. */
@@ -122,11 +123,28 @@ async function checkNoindex(path) {
   record(`${path} is noindex`, status === 200 && isNoindex(html), String(status));
 }
 
+const locs = (xml) => [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname);
+
+/** The pages the sitemap lists: /sitemap.xml is an index of per-section sitemaps (seo spec), followed here. */
 async function sitemapUrls() {
-  const { status, html } = await get('/sitemap.xml');
-  if (status !== 200) return [];
+  const index = await get('/sitemap.xml');
   // The sitemap is XML, but `get` only reads bodies of 200 responses, which this is.
-  return [...html.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname);
+  const sections = index.html.includes('<sitemapindex') ? locs(index.html) : [];
+  record(
+    'sitemap.xml is an index of section sitemaps',
+    index.status === 200 && sections.length > 0,
+    `${index.status}, ${sections.length} sections`,
+  );
+  record('sitemap.xml sets no cookies', index.cookies === 0, `${index.cookies} Set-Cookie`);
+  const urls = [];
+  for (const path of sections) {
+    const { status, html, cookies } = await get(path);
+    const entries = html.includes('<urlset') ? locs(html) : [];
+    record(`${path} lists URLs`, status === 200 && entries.length > 0, `${status}, ${entries.length} URLs`);
+    record(`${path} sets no cookies`, cookies === 0, `${cookies} Set-Cookie`);
+    urls.push(...entries);
+  }
+  return urls;
 }
 
 async function checkSitemapSample(paths) {

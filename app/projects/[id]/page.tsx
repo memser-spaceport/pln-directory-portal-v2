@@ -21,6 +21,8 @@ import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { Metadata, ResolvingMetadata } from 'next';
 import { notFound } from 'next/navigation';
 import ProjectStats from '@/components/page/project-details/stats';
+import { JsonLdScript } from '@/components/core/json-ld/JsonLdScript';
+import { buildProjectJsonLd } from '@/services/seo/entity-jsonld';
 import { BackButton } from '@/components/ui/BackButton';
 import React from 'react';
 
@@ -49,6 +51,7 @@ export default async function ProjectDetails(props: any) {
        calls. Everything else on this page edits at `/projects/update/[id]`, which
        is a page of its own and out of scope here. */
     <UnsavedEditsPageGuard>
+      <JsonLdScript data={buildProjectJsonLd(project)} />
       <div className={styles.project}>
         <div className={styles.project__container}>
           <div>

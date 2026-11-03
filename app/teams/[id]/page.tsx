@@ -40,6 +40,8 @@ import { selectTeamOpenRoles } from '@/components/page/team-details/TeamOpenRole
 import { getJobsList } from '@/app/actions/jobs.actions';
 import type { IJobTeamGroup } from '@/types/jobs.types';
 import layoutStyles from './TeamProfileLayout.module.scss';
+import { JsonLdScript } from '@/components/core/json-ld/JsonLdScript';
+import { buildTeamJsonLd } from '@/services/seo/entity-jsonld';
 
 async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: Promise<{ backTo?: string }> }) {
   const searchParams = await props.searchParams;
@@ -109,6 +111,7 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
        it. The interception is a document-level listener, so what it covers does
        not depend on where this sits. */
     <UnsavedEditsPageGuard>
+      <JsonLdScript data={buildTeamJsonLd({ ...team, id: team.id || teamId, name: team.name ?? '' })} />
       <BackButton to={backTo} />
       <div className={styles?.teamDetail__container}>
         {/* Details */}

@@ -18,7 +18,7 @@ import { getTeamList } from '@/app/actions/teams.actions';
 import { formatFeaturedData } from '@/utils/home.utils';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { Welcome } from '@/components/page/home/Welcome';
-import { HomeIntro } from '@/components/page/home/HomeIntro';
+import { HomeIntro, HomeAbout } from '@/components/page/home/HomeIntro';
 import { buildHomeJsonLd } from '@/utils/home-json-ld';
 import { serializeJsonLd } from '@/utils/json-ld';
 import { DigestEmailHomeLinkCapture } from '@/components/page/home/DigestEmailHomeLinkCapture';
@@ -76,7 +76,7 @@ export default async function Home(props: HomeProps) {
       />
       <div className={styles.home}>
         <div className={styles.home__cn}>
-          <HomeIntro showDefinition={!isLoggedIn} />
+          <HomeIntro />
           {!isLoggedIn && (
             <div className={styles.home__cn__welcome}>
               <Welcome teamCount={teamsCount} />
@@ -98,6 +98,7 @@ export default async function Home(props: HomeProps) {
           <div className={styles.home__cn__focusarea}>
             <FocusAreaSection focusAreas={focusAreas} userInfo={userInfo} />
           </div>
+          {!isLoggedIn && <HomeAbout />}
           <ScrollToTop pageName="Home" userInfo={userInfo} />
         </div>
       </div>

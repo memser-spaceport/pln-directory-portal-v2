@@ -8,23 +8,26 @@ export const HOME_DEFINITION =
   'maps the network: the teams, members and projects working on AI and robotics, neurotech, digital human rights, ' +
   'and economies and governance. Use it to see who builds what, follow team updates, find events and browse open roles.';
 
-interface Props {
-  /** Signed-out visitors see the definition; signed-in members, who know the network, get the heading for screen readers only. */
-  showDefinition: boolean;
+/**
+ * The page's one `<h1>` (LAB-3089), for screen readers and search engines: the top of `/home` keeps its design, so it
+ * is not drawn. A visually hidden heading is ordinary accessible markup, not hidden text; the definition, which is
+ * content, stays visible in `HomeAbout` at the foot of the page.
+ */
+export function HomeIntro() {
+  return <h1 className={s.srOnly}>{HOME_HEADING}</h1>;
 }
 
 /**
- * The page's one `<h1>` and, for a signed-out visitor, a definition of the network (LAB-3089). Quiet on purpose: a
- * small label and a muted paragraph above the welcome card, so the feed stays the first thing anyone reads.
+ * What the network is, for a signed-out visitor, as a quiet "About" line at the foot of `/home` (LAB-3089). Visible on
+ * purpose: text shown only to crawlers is what Google's spam policies call hidden text.
  */
-export function HomeIntro({ showDefinition }: Props) {
-  if (!showDefinition) {
-    return <h1 className={s.srOnly}>{HOME_HEADING}</h1>;
-  }
+export function HomeAbout() {
   return (
-    <header className={s.intro}>
-      <h1 className={s.heading}>{HOME_HEADING}</h1>
+    <section className={s.about} aria-labelledby="home-about-title">
+      <h2 id="home-about-title" className={s.heading}>
+        About {HOME_HEADING}
+      </h2>
       <p className={s.definition}>{HOME_DEFINITION}</p>
-    </header>
+    </section>
   );
 }

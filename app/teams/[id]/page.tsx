@@ -7,7 +7,7 @@ import { TeamDetails } from '@/components/page/team-details/TeamDetails';
 import { TeamMembers } from '@/components/page/team-details/TeamMembers';
 import { getMembers } from '@/services/members.service';
 import { getAllTeams, getTeam, getTeamUIDByAirtableId } from '@/services/teams.service';
-import { getTeamProfileLookup, isTeamInactiveError } from '@/services/teams/teamProfileLookup';
+import { getTeamProfileLookup } from '@/services/teams/teamProfileLookup';
 import { IMember } from '@/types/members.types';
 import { IFormatedTeamProject, ITeam, ITeamDetailParams } from '@/types/teams.types';
 import { hasProjectEditAccess, sortMemberByRole } from '@/utils/common.utils';
@@ -267,8 +267,10 @@ async function getPageData(teamId: string) {
         // profile, and a jobs-API blip must not take the team page down with it.
         getJobsList(`teamUid=${encodeURIComponent(teamId)}&limit=1`),
       ]);
-    // This request carries the viewer's token, so "Team is inactive" means this viewer may not see the team.
-    if (teamResponse?.error?.status === 404 || isTeamInactiveError(teamResponse?.error)) {
+    // The API answers a team with 403 only when it is hidden (`L0`) from this viewer: "Team is inactive" when logged
+    // out, "Requestor does not have permission…" when logged in but neither the team's lead nor an admin. Either way
+    // the team does not exist for them, so it is the not-found page rather than "Oh snap" (LAB-3087).
+    if (teamResponse?.error?.status === 404 || teamResponse?.error?.status === 403) {
       isNotFound = true;
       return { isNotFound, team, userInfo };
     }

@@ -80,11 +80,17 @@ A member, team or project profile SHALL answer HTTP 404 with the not-found page 
 - **WHEN** a client without cookies requests `/teams/<uid>`
 - **THEN** the response status is 404 and the page is the site's not-found page
 
-#### Scenario: Signed-in viewer opens a team hidden from the public
+#### Scenario: Signed-in lead or admin opens a team hidden from the public
 
-- **GIVEN** a signed-in member of an `L0` team
+- **GIVEN** a signed-in lead of an `L0` team, or a directory admin
 - **WHEN** they open the team's profile
-- **THEN** the page does not answer 404 and shows the team, as the API allows them
+- **THEN** the page shows the team, as the API allows them
+
+#### Scenario: Any other signed-in viewer opens a team hidden from the public
+
+- **GIVEN** a signed-in viewer who is neither a lead of the `L0` team nor an admin
+- **WHEN** they open the team's profile
+- **THEN** the page shows the site's not-found page, not the error page
 
 ### Requirement: A failed lookup is not "not found"
 

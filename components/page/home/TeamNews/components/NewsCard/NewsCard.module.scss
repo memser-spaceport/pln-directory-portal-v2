@@ -307,7 +307,9 @@
 // an underlined label (4px offset); the ellipsis already signals "more", so the
 // label goes brand blue only on hover/focus.
 .showMore {
-  padding: 0;
+  // A 24px-tall hit area (WCAG 2.5.8, LAB-3095); the negative margin keeps the line box as it was.
+  padding: 2px 0;
+  margin: -2px 0;
   border: none;
   background: none;
   cursor: pointer;

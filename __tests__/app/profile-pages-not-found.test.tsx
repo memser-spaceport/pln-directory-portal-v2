@@ -38,7 +38,6 @@ jest.mock('@/services/teams.service', () => ({
 const mockGetProject = jest.fn();
 jest.mock('@/services/projects.service', () => ({
   getProject: (...args: unknown[]) => mockGetProject(...args),
-  getProjectOsoDetails: jest.fn().mockResolvedValue({ data: {} }),
 }));
 jest.mock('@/services/members.service', () => ({
   getMembers: jest.fn().mockResolvedValue({ data: { formattedData: [] } }),

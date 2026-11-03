@@ -19,7 +19,16 @@ beforeAll(() => {
     const index = Number(this.dataset.index ?? -1);
     if (index < 0) return { top: 0, bottom: 0, height: 0, left: 0, right: 0, width: 0, x: 0, y: 0 } as DOMRect;
     const top = index * CARD_HEIGHT - scrollY;
-    return { top, bottom: top + CARD_HEIGHT, height: CARD_HEIGHT, left: 0, right: 0, width: 0, x: 0, y: top } as DOMRect;
+    return {
+      top,
+      bottom: top + CARD_HEIGHT,
+      height: CARD_HEIGHT,
+      left: 0,
+      right: 0,
+      width: 0,
+      x: 0,
+      y: top,
+    } as DOMRect;
   });
   jest.spyOn(window, 'requestAnimationFrame').mockImplementation((cb: FrameRequestCallback) => {
     cb(0);

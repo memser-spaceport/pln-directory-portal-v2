@@ -82,17 +82,21 @@ export const SourceList = ({ item, position = 0, analyticsSource = 'home', compa
       onClick={(e) => e.stopPropagation()}
       onKeyDown={handleKeyDown}
     >
+      {/* The button is a transparent 24px hit area (WCAG 2.5.8, LAB-3095); the pill drawn inside it keeps its 22px
+          look. */}
       <button ref={pillRef} type="button" className={s.pill} aria-expanded={open} onClick={handleToggle}>
-        {sources.length} sources
-        <svg className={s.caret} viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <path
-            d="M4 6L8 10L12 6"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <span className={s.pillFace}>
+          {sources.length} sources
+          <svg className={s.caret} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path
+              d="M4 6L8 10L12 6"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
       </button>
 
       {/* Always in the DOM (CSS-hidden) so the hover preview needs no JS; the

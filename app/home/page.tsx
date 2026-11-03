@@ -18,6 +18,9 @@ import { getTeamList } from '@/app/actions/teams.actions';
 import { formatFeaturedData } from '@/utils/home.utils';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { Welcome } from '@/components/page/home/Welcome';
+import { HomeIntro, HomeAbout } from '@/components/page/home/HomeIntro';
+import { buildHomeJsonLd } from '@/utils/home-json-ld';
+import { serializeJsonLd } from '@/utils/json-ld';
 import { DigestEmailHomeLinkCapture } from '@/components/page/home/DigestEmailHomeLinkCapture';
 import { QuickActions } from '@/components/page/home/QuickActions';
 import { TeamNews, AutoMarkNewsNotification, MarkHomeVisited } from '@/components/page/home/TeamNews';
@@ -66,8 +69,14 @@ export default async function Home(props: HomeProps) {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger -- JSON-LD from serializeJsonLd, which escapes it for a script tag
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(buildHomeJsonLd()) }}
+      />
       <div className={styles.home}>
         <div className={styles.home__cn}>
+          <HomeIntro />
           {!isLoggedIn && (
             <div className={styles.home__cn__welcome}>
               <Welcome teamCount={teamsCount} />
@@ -89,6 +98,7 @@ export default async function Home(props: HomeProps) {
           <div className={styles.home__cn__focusarea}>
             <FocusAreaSection focusAreas={focusAreas} userInfo={userInfo} />
           </div>
+          {!isLoggedIn && <HomeAbout />}
           <ScrollToTop pageName="Home" userInfo={userInfo} />
         </div>
       </div>

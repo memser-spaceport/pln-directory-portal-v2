@@ -50,7 +50,11 @@ it('does not answer not found for an outage', async () => {
   mockGetMember.mockResolvedValue({ error: { status: 503, statusText: 'Service Unavailable' } });
 
   await expect(MemberLayout(props)).resolves.toBe('profile');
-  await expect(generateMetadata(props)).resolves.toMatchObject({ title: 'Member | Protocol Labs Directory' });
+  // What renders is not the profile, so it must not be indexed as one (LAB-3087).
+  await expect(generateMetadata(props)).resolves.toMatchObject({
+    title: 'Member | Protocol Labs Directory',
+    robots: { index: false, follow: true },
+  });
   expect(mockNotFound).not.toHaveBeenCalled();
 });
 
@@ -60,4 +64,13 @@ it('confirms a cached 404 uncached before answering not found', async () => {
 
   await expect(MemberLayout(props)).resolves.toBe('profile');
   expect(mockNotFound).not.toHaveBeenCalled();
+});
+
+it('leaves a loaded profile indexable (LAB-3087)', async () => {
+  mockGetMember.mockResolvedValue(MEMBER);
+
+  const metadata = await generateMetadata(props);
+
+  expect(metadata.title).toBe('Ada | Protocol Labs Directory');
+  expect(metadata.robots).toBeUndefined();
 });

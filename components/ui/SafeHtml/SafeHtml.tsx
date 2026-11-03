@@ -10,6 +10,8 @@ type Props = Omit<HTMLAttributes<HTMLElement>, 'children' | 'dangerouslySetInner
   profile?: SanitizeProfileName;
   /** Wrapper element. */
   as?: 'div' | 'p' | 'span' | 'section' | 'article';
+  /** Render the content's own `h1`/`h2` as `h3`, for a description inside a page that has its own `h1`. */
+  demoteHeadings?: boolean;
   ref?: Ref<HTMLElement>;
 };
 
@@ -19,7 +21,7 @@ type Props = Omit<HTMLAttributes<HTMLElement>, 'children' | 'dangerouslySetInner
  * first response. In a styled-jsx component, spread `safeHtmlProps` on the
  * native element instead (styled-jsx does not scope a component's className).
  */
-export function SafeHtml({ html, profile = 'richText', as = 'div', ...rest }: Props) {
-  const htmlProps = useMemo(() => safeHtmlProps(html, profile), [html, profile]);
+export function SafeHtml({ html, profile = 'richText', as = 'div', demoteHeadings = false, ...rest }: Props) {
+  const htmlProps = useMemo(() => safeHtmlProps(html, profile, { demoteHeadings }), [html, profile, demoteHeadings]);
   return createElement(as, { ...rest, ...htmlProps });
 }

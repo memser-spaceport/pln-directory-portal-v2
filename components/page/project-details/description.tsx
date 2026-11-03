@@ -145,7 +145,7 @@ const Description = (props: IDescription) => {
           {!showEditor && (
             <div className="desc__content">
               {/* {description} */}
-              <div {...safeHtmlProps(desc)} />
+              <div {...safeHtmlProps(desc, 'richText', { demoteHeadings: true })} />
               {description?.length > desc?.length && (
                 <span>
                   <button className="desc__content__show-more" onClick={onShowMoreClickHandler}>

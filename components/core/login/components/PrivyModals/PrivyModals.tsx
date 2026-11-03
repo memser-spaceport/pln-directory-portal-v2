@@ -424,6 +424,12 @@ export function PrivyModals() {
     };
   }, [analytics, deleteUser, initDirectoryLogin, login, logout, ready, toggleLinkAccountModalOpen, user]);
 
+  // Requests that reached the auth bus before Privy had loaded (LAB-3092) are delivered now. Declared after the
+  // listener effect above, so its handlers are registered first; it waits for `ready`, so Privy can act on them.
+  useEffect(() => {
+    if (ready) authEvents.flushPending();
+  }, [ready]);
+
   // ============================================
   // Account Linking Effect
   // ============================================

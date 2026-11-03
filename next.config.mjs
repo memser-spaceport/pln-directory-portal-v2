@@ -5,11 +5,16 @@ import aiSearchRedirects from './utils/ai-search-redirects.js';
 import legacyJobBoardRedirects from './utils/legacy-job-board-redirects.js';
 import eventsRedirects from './utils/events-redirects.js';
 import imageRemotePatterns from './utils/image-remote-patterns.js';
+import nonProductionNoindex from './utils/non-production-noindex-headers.js';
+import securityHeaders from './utils/security-headers.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // No `X-Powered-By: Next.js` (LAB-3094).
+  poweredByHeader: false,
+
   // The Docker image (see Dockerfile) sets NEXT_OUTPUT_STANDALONE=1 so that
   // `next build` emits `.next/standalone`: the server plus only the traced
   // node_modules it needs. Vercel and local builds keep the default output.
@@ -76,6 +81,8 @@ const nextConfig = {
         source: '/ai-apps/bridge/:file*',
         headers: [{ key: 'Cache-Control', value: 'public, max-age=300, stale-while-revalidate=3600' }],
       },
+      ...nonProductionNoindex.nonProductionNoindexHeaders(),
+      ...securityHeaders.securityHeaders(),
     ];
   },
   async redirects() {

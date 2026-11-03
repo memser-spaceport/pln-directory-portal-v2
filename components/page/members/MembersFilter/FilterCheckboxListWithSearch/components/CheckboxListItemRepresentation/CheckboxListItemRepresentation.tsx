@@ -22,6 +22,7 @@ export function CheckboxListItemRepresentation(props: Props) {
           classes={{
             root: s.checkbox,
           }}
+          aria-label={label}
         />
         {label}
       </div>

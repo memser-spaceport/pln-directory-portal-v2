@@ -118,6 +118,16 @@ export const updateTeam = async (payload: any, authToken: string, teamUid: strin
   };
 };
 
+/** The `message` of a JSON error body, if the body is JSON and has one. */
+async function readErrorMessage(response: Response): Promise<string | undefined> {
+  try {
+    const body = await response.json();
+    return typeof body?.message === 'string' ? body.message : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export const getTeam = async (
   id: string,
   options: string | string[][] | Record<string, string> | URLSearchParams | undefined,
@@ -131,9 +141,17 @@ export const getTeam = async (
   const response = await fetch(`${teamsAPI}/${id}?${new URLSearchParams(options)}`, requestOPtions);
 
   // The status lets the profile page answer a real 404 for an unknown team (LAB-2922). Checked before parsing: an
-  // error body need not be JSON.
+  // error body need not be JSON. The API's message is kept when there is one: a logged-out `403 "Team is inactive"`
+  // is a team the visitor may not see, which the profile answers as not found (LAB-3087).
   if (!response?.ok) {
-    return { error: { status: response?.status, statusText: response?.statusText } };
+    const message = await readErrorMessage(response);
+    return {
+      error: {
+        status: response?.status,
+        statusText: response?.statusText,
+        ...(message ? { message } : {}),
+      },
+    };
   }
 
   const result = await response.json();

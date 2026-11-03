@@ -21,19 +21,21 @@ const TeamsInvolved = (props: ITeamsInvolved) => {
 
   const analytics = useProjectAnalytics();
 
+  // The team cards are links, so crawlers reach the teams from the project (LAB-3093); a click only records itself and
+  // the link opens the team in a new tab, as the button's window.open did.
   const onContributingTeamClick = (cteam: any) => {
     analytics.onProjectDetailContributingTeamClicked(
       getAnalyticsUserInfo(user),
       project?.id,
       getAnalyticsTeamInfo(cteam),
     );
-    window.open('/teams/' + cteam.uid);
   };
 
   const onMaintainerTeamClick = (team: any) => {
     analytics.onProjectDetailMaintainerTeamClicked(getAnalyticsUserInfo(user), project?.id, getAnalyticsTeamInfo(team));
-    window.open('/teams/' + team?.uid);
   };
+
+  const teamHref = (team: any) => (team?.uid ? `/teams/${team.uid}` : undefined);
 
   const onCloseTeamsModal = () => {
     document.dispatchEvent(new CustomEvent(EVENTS.PROJECT_DETAIL_ALL_TEAMS_OPAN_AND_CLOSE, { detail: false }));
@@ -51,7 +53,13 @@ const TeamsInvolved = (props: ITeamsInvolved) => {
           <h6 className="teams__hdr__title">Teams</h6>
           <span className="teams__hdr__count">{contributingTeams?.length + 1}</span>
         </button>
-        <button className="teams__mTeam" onClick={() => onMaintainerTeamClick(maintainingTeam)}>
+        <a
+          className="teams__mTeam"
+          href={teamHref(maintainingTeam)}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => onMaintainerTeamClick(maintainingTeam)}
+        >
           <div className="teams__mTeam__info">
             <img
               height={40}
@@ -80,12 +88,18 @@ const TeamsInvolved = (props: ITeamsInvolved) => {
               side="top"
             />
           </div>
-        </button>
+        </a>
         {contributingTeams.length > 0 &&
           contributingTeams.map((cteam: any, index: number) => (
             <Fragment key={`cteam-${index}`}>
               {index < 3 && (
-                <button className="cteam" onClick={() => onContributingTeamClick(cteam)}>
+                <a
+                  className="cteam"
+                  href={teamHref(cteam)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => onContributingTeamClick(cteam)}
+                >
                   <div className="cteam__info">
                     <img
                       height={40}
@@ -96,7 +110,7 @@ const TeamsInvolved = (props: ITeamsInvolved) => {
                     />
                     <div className="cteam__info__name">{cteam?.name}</div>
                   </div>
-                </button>
+                </a>
               )}
             </Fragment>
           ))}
@@ -172,6 +186,16 @@ const TeamsInvolved = (props: ITeamsInvolved) => {
           font-weight: 500;
           line-height: 14px;
           letter-spacing: 0em;
+        }
+
+        .teams__mTeam,
+        .cteam {
+          color: inherit;
+          text-decoration: none;
+        }
+
+        .cteam {
+          display: inline-block;
         }
 
         .teams__mTeam {

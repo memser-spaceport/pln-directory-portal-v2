@@ -10,16 +10,36 @@ export const getTeamProfileLookup = cache((id: string) =>
   getTeam(id, { with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member' }),
 );
 
+/** What the API answers a logged-out request for an `L0` team (soft-deleted, or no member has ever logged in). */
+export const TEAM_INACTIVE_MESSAGE = 'Team is inactive';
+
+type TeamLookupError = { status?: number; message?: string } | undefined;
+
 /**
- * Whether a team profile request should answer "not found" (LAB-2922): the API says this id is unknown. Any other
- * failure is not "not found". Old Airtable ids are never "not found" here: the page redirects them to the team's uid.
+ * Whether the API refused a team because it is hidden from the public (LAB-3087). Such a team is not in the sitemap,
+ * and to a visitor who may not see it, it does not exist: rendering the error page for it at 200 was a "soft 404".
  */
-export async function isTeamNotFound(id: string): Promise<boolean> {
+export function isTeamInactiveError(error: TeamLookupError): boolean {
+  return error?.status === 403 && error?.message === TEAM_INACTIVE_MESSAGE;
+}
+
+/**
+ * Whether a team profile request should answer "not found": the API says this id is unknown (LAB-2922), or the team
+ * is hidden from the public and the visitor is logged out (LAB-3087).
+ *
+ * The lookup sends no token, so it gets the inactive answer for a logged-in viewer too. Such a viewer may still be
+ * allowed in (a member of the team, an admin): the page asks again with their token, so they are never sent away here.
+ * Any other failure is not "not found". Old Airtable ids are never "not found" here: the layout redirects them.
+ */
+export async function isTeamNotFound(id: string, isLoggedIn: boolean): Promise<boolean> {
   if (AIRTABLE_REGEX.test(id)) {
     return false;
   }
   const result = await getTeamProfileLookup(id);
-  return !!result?.error && result.error.status === 404;
+  if (!result?.error) {
+    return false;
+  }
+  return result.error.status === 404 || (!isLoggedIn && isTeamInactiveError(result.error));
 }
 
 /** What looking up an old Airtable record id found. */

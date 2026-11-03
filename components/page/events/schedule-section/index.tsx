@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { useEventsAnalytics } from '@/analytics/events.analytics';
 import ShadowButton from '@/components/ui/ShadowButton';
 import styles from './schedule-section.module.scss';
+import { getSubmitEventUrl } from '@/utils/irl-submit-url';
 
 const EMBED_URL_PARAM = 'embedPath';
 const DEFAULT_EMBED_PATH = '/embed/map/';
@@ -39,7 +40,7 @@ export default function ScheduleSection(props: any) {
         <h1 className={styles.schedule__hdrTitle}>Event Calendar</h1>
         <div className={styles.schedule__hdr__btn}>
           <a
-            href={`${process.env.IRL_SUBMIT_FORM_URL}/add`}
+            href={getSubmitEventUrl()}
             target="_blank"
             onClick={() => onSubmitEventButtonClicked()}
           >

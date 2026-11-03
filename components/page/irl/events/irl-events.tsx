@@ -25,6 +25,7 @@ import { Dropdown } from '../../../form/Dropdown';
 import DeleteEventModal from './delete-event-modal';
 import { deleteEventLocation } from '@/services/irl.service';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { getSubmitEventUrl } from '@/utils/irl-submit-url';
 
 interface IIrlEvents {
   searchParams: any;
@@ -124,7 +125,7 @@ const IrlEvents = (props: IIrlEvents) => {
   const onSubmitEventClick = () => {
     analytics.trackSubmitEventClick({
       location: irlLocation,
-      link: `${process.env.IRL_SUBMIT_FORM_URL}/add`,
+      link: getSubmitEventUrl(),
     });
   };
 
@@ -426,7 +427,7 @@ const IrlEvents = (props: IIrlEvents) => {
               <div className="root__manage__events">
                 {/* TODO: Remove this once the new submit form is deployed */}
                 {/* <Link href={`${process.env.IRL_SUBMIT_FORM_URL}?location=${updatedIrlLocation}`} legacyBehavior target="_blank"> */}
-                <Link href={`${process.env.IRL_SUBMIT_FORM_URL}/add`} legacyBehavior target="_blank">
+                <Link href={getSubmitEventUrl()} legacyBehavior target="_blank">
                   <a target="_blank" className="root__submit" onClick={onSubmitEventClick}>
                     <img src="/icons/doc.svg" height={16} width={16} className="root__submit__img" alt="calendar" />
                     Submit an event

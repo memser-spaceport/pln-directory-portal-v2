@@ -33,6 +33,21 @@ Which addresses of the site search engines are told to index, and how every othe
 - **WHEN** the sitemap is generated
 - **THEN** it lists the teams of the full team list, as before
 
+### Requirement: The sitemap is an index of per-section sitemaps
+
+`/sitemap.xml` SHALL be a sitemap index (`<sitemapindex>`) listing one sitemap per section, at absolute addresses: static pages, teams, members, projects and jobs (`/sitemaps/sitemap/<section>.xml`). Each section sitemap SHALL list only its own kind of page. robots.txt SHALL keep naming `/sitemap.xml`. The sitemap index, the section sitemaps and robots.txt SHALL NOT be answered with session cookie headers.
+
+#### Scenario: Crawler reads the sitemap
+
+- **WHEN** a crawler requests `/sitemap.xml`
+- **THEN** it receives a sitemap index with five `<sitemap>` entries
+- **AND** each entry's sitemap lists only static pages, teams, members, projects or jobs
+
+#### Scenario: No session headers on crawler files
+
+- **WHEN** a client requests `/sitemap.xml`, a section sitemap or `/robots.txt`
+- **THEN** the response has no `Set-Cookie` header
+
 ### Requirement: One address for the events calendar
 
 `/events` SHALL redirect permanently (308) to `/events/all`, and `/events/all` SHALL declare itself as its canonical address. Other pages under `/events/` SHALL NOT redirect.

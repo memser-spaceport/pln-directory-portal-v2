@@ -1,3 +1,8 @@
+/**
+ * The sitemap's sections (LAB-3106). `/sitemap.xml` is an index of one sitemap per section, served by
+ * `app/sitemaps/sitemap.ts`. Google never processed the single 5,666-URL file ("Couldn't fetch", 0 discovered pages,
+ * although its live test fetched it), and per-section files also give Search Console an indexing count per kind of page.
+ */
 import type { MetadataRoute } from 'next';
 import { DEMO_DAY_PATH, EVENTS_LIST_PATH, PAGE_ROUTES } from '@/utils/constants';
 import { jobOpeningPath } from '@/services/jobs/job-detail-link';
@@ -110,31 +115,49 @@ function entityEntries(entities: SitemapEntity[], pathPrefix: string, baseUrl: s
   }));
 }
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+export const SITEMAP_SECTIONS = ['pages', 'teams', 'members', 'projects', 'jobs'] as const;
+
+export type SitemapSection = (typeof SITEMAP_SECTIONS)[number];
+
+export function isSitemapSection(value: string): value is SitemapSection {
+  return (SITEMAP_SECTIONS as readonly string[]).includes(value);
+}
+
+/** The entries of one section, each fetched on its own so a slow list never holds up the others. */
+export async function sitemapSection(section: SitemapSection): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getApplicationBaseUrl();
   if (!baseUrl) {
     return [];
   }
 
-  const staticEntries: MetadataRoute.Sitemap = STATIC_PATHS.map((path) => ({ url: `${baseUrl}${path}` }));
+  switch (section) {
+    case 'pages':
+      return STATIC_PATHS.map((path) => ({ url: `${baseUrl}${path}` }));
+    case 'teams':
+      return entityEntries(await fetchTeamCrawlIndex(), PAGE_ROUTES.TEAMS, baseUrl);
+    case 'members':
+      return entityEntries(await fetchEntities('/v1/members', 'members'), PAGE_ROUTES.MEMBERS, baseUrl);
+    case 'projects':
+      return entityEntries(await fetchEntities('/v1/projects', 'projects'), PAGE_ROUTES.PROJECTS, baseUrl);
+    case 'jobs':
+      return (await fetchJobCrawlIndex()).map((job) => ({
+        url: `${baseUrl}${jobOpeningPath(job.uid)}`,
+        ...(job.lastModified ? { lastModified: job.lastModified } : {}),
+      }));
+  }
+}
 
-  const [teams, members, projects, jobs] = await Promise.all([
-    fetchTeamCrawlIndex(),
-    fetchEntities('/v1/members', 'members'),
-    fetchEntities('/v1/projects', 'projects'),
-    fetchJobCrawlIndex(),
-  ]);
+/** Where a section's sitemap is served: `generateSitemaps` in `app/sitemaps/sitemap.ts` puts it at `/sitemaps/sitemap/<id>.xml`. */
+export function sitemapSectionPath(section: SitemapSection): string {
+  return `/sitemaps/sitemap/${section}.xml`;
+}
 
-  const jobEntries: MetadataRoute.Sitemap = jobs.map((job) => ({
-    url: `${baseUrl}${jobOpeningPath(job.uid)}`,
-    ...(job.lastModified ? { lastModified: job.lastModified } : {}),
-  }));
-
-  return [
-    ...staticEntries,
-    ...jobEntries,
-    ...entityEntries(teams, PAGE_ROUTES.TEAMS, baseUrl),
-    ...entityEntries(members, PAGE_ROUTES.MEMBERS, baseUrl),
-    ...entityEntries(projects, PAGE_ROUTES.PROJECTS, baseUrl),
-  ];
+/** The `<sitemapindex>` that `/sitemap.xml` answers with, one `<sitemap>` per section. */
+export function sitemapIndexXml(baseUrl: string): string {
+  // Without a base URL the locations would be relative, which a sitemap index may not contain: list nothing.
+  const sections = baseUrl ? SITEMAP_SECTIONS : [];
+  const entries = sections
+    .map((section) => `<sitemap><loc>${baseUrl}${sitemapSectionPath(section)}</loc></sitemap>`)
+    .join('\n');
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries}\n</sitemapindex>\n`;
 }

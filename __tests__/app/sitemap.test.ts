@@ -2,7 +2,10 @@
  * @jest-environment node
  */
 
-import sitemap from '@/app/sitemap';
+import { SITEMAP_SECTIONS, sitemapSection } from '@/services/seo/sitemapSections';
+
+/** Every section's entries together: what the single sitemap used to list. */
+const sitemap = async () => (await Promise.all(SITEMAP_SECTIONS.map((section) => sitemapSection(section)))).flat();
 
 function jsonOk(body: unknown) {
   return Promise.resolve({ ok: true, json: async () => body });

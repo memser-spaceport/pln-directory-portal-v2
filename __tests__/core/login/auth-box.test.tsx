@@ -89,6 +89,15 @@ describe('AuthBox', () => {
       expect(screen.getByTestId('privy-provider')).toBeInTheDocument();
     });
 
+    /* Google and GitHub sign-in leave the site and come back with privy_oauth_* in the address; Privy completes the
+       sign-in from them only if it loads. Without this the visitor came back signed out (found on the lab-3083 env). */
+    it('loads Privy when Google or GitHub sign-in returns to the site', () => {
+      setUrl('/home?privy_oauth_state=s&privy_oauth_provider=google&privy_oauth_code=c');
+      render(<AuthBox isLoggedIn={false} />);
+      expect(screen.getByTestId('privy-provider')).toBeInTheDocument();
+      expect(privyDemand.isRequested()).toBe(true);
+    });
+
     it('loads Privy when a sign-out reaches the bus with nothing to carry it out', () => {
       setUrl('/members');
       render(<AuthBox isLoggedIn={false} />);

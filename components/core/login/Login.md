@@ -48,6 +48,7 @@ The Privy layer (`PrivyLayer`: `PrivyProvider`, `PrivyModals`, `AuthInfo`) is a 
 
 - the server says the viewer is signed in;
 - the hash is `#login`;
+- the address carries Privy's OAuth return parameters (`privy_oauth_code`, `privy_oauth_state`, `privy_oauth_provider`). Google and GitHub sign-in leave the site and come back with these, and Privy completes the sign-in from them;
 - or a Privy request (`auth:init-login`, `auth:link-account`, `auth:update-email`, `auth:logout`) reaches `authEvents` with no handler registered.
 
 Such a request waits in the bus's queue (`privyDemand` records that Privy is needed). Once `PrivyModals` has registered its handlers and Privy is `ready`, `authEvents.flushPending()` re-emits each queued request, in order.

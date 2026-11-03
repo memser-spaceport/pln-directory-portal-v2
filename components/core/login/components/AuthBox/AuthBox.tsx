@@ -24,11 +24,21 @@ const isEagerPrivy = () => process.env.NEXT_PUBLIC_EAGER_PRIVY === 'true';
 const getServerDemand = () => false;
 
 /**
+ * Google and GitHub sign-in leave the site and come back with these in the address. Privy completes the sign-in from
+ * them when it loads, so a page that carries them needs Privy even though the visitor is not signed in yet and the
+ * `#login` gate is gone.
+ */
+const PRIVY_OAUTH_RETURN = /[?&]privy_oauth_(code|state|provider)=/;
+
+const isPrivyOAuthReturn = () => typeof window !== 'undefined' && PRIVY_OAUTH_RETURN.test(window.location.search);
+
+/**
  * AuthBox - the always-present part of authentication.
  *
  * It needs no Privy: the `#login` hash gates, the one-time login link and the auth error modals. The Privy layer is
- * loaded when the viewer is signed in (as before), when a sign-in starts (`#login`), or when a sign-in, account link or
- * sign-out reaches the auth event bus with nothing loaded to carry it out. Once loaded it stays, so a dismissed or
+ * loaded when the viewer is signed in (as before), when a sign-in starts (`#login`), when Google or GitHub sign-in
+ * returns to the site (`privy_oauth_*` in the address), or when a sign-in, account link or sign-out reaches the auth
+ * event bus with nothing loaded to carry it out. Once loaded it stays, so a dismissed or
  * failed sign-in never unloads it mid-flow.
  */
 export function AuthBox({ isLoggedIn }: { isLoggedIn: boolean }) {
@@ -36,12 +46,13 @@ export function AuthBox({ isLoggedIn }: { isLoggedIn: boolean }) {
   const router = useRouter();
   const isLoginPopup = hash === '#login' && !isLoggedIn;
   const demanded = useSyncExternalStore(privyDemand.subscribe, privyDemand.isRequested, getServerDemand);
-  const loadPrivy = isEagerPrivy() || isLoggedIn || isLoginPopup || demanded;
+  const oauthReturn = isPrivyOAuthReturn();
+  const loadPrivy = isEagerPrivy() || isLoggedIn || isLoginPopup || oauthReturn || demanded;
 
-  // A sign-in that has started keeps Privy loaded after the hash is cleared.
+  // A sign-in that has started keeps Privy loaded after the hash, or Privy's OAuth parameters, are cleared.
   useEffect(() => {
-    if (isLoginPopup) privyDemand.request();
-  }, [isLoginPopup]);
+    if (isLoginPopup || oauthReturn) privyDemand.request();
+  }, [isLoginPopup, oauthReturn]);
 
   // Prevent authenticated users from accessing login modal
   useEffect(() => {

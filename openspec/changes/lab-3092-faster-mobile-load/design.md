@@ -58,6 +58,7 @@ The shell renders the layer as soon as any of these holds:
 
 - the server says the viewer is signed in (today's behaviour for members);
 - the hash is `#login`;
+- the address carries Privy's OAuth return parameters (`privy_oauth_*`), because Google and GitHub sign-in leave the site and Privy completes the sign-in from them when it loads (_added after env testing: the first build dropped these sign-ins_);
 - an auth event that needs Privy has been emitted (decision 3).
 
 Once rendered, it stays mounted for the life of the page. It must not unmount when a failed or dismissed sign-in clears `#login`. Privy's callbacks for that attempt, and the next attempt, need the provider to stay up, and remounting would re-initialise the SDK.

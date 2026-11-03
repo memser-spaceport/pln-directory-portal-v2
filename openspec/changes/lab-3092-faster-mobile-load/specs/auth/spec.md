@@ -33,6 +33,12 @@ A signed-out visitor SHALL NOT download the sign-in system's code or contact its
 
 Every flow that used the sign-in system before this change SHALL behave the same when it is loaded on demand: sign-in with each method, login links, sign-out (including across tabs and after a failed refresh), account linking, email change and the sign-in error dialogs. A request that reaches the sign-in system before it has loaded SHALL be carried out once it has loaded, not dropped.
 
+#### Scenario: Google or GitHub sign-in returns to the site
+
+- **GIVEN** a visitor with no session who chose Google or GitHub in the sign-in dialog
+- **WHEN** the provider sends them back to LabOS with Privy's OAuth parameters in the address
+- **THEN** the sign-in completes and they are signed in, as before this change
+
 #### Scenario: Login link
 
 - **GIVEN** a visitor with no session who opens a one-time login link

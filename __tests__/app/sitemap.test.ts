@@ -27,7 +27,9 @@ describe('sitemap', () => {
   it('emits lastmod for jobs and other entities that have updatedAt', async () => {
     (global.fetch as jest.Mock).mockImplementation((url: string) => {
       if (url.includes('/v1/job-openings/crawl-index')) {
-        return jsonOk({ jobs: [{ uid: 'job-1', updatedAt: '2026-01-02T00:00:00.000Z' }] });
+        return jsonOk({
+          jobs: [{ uid: 'job-1', updatedAt: '2026-11-03T03:00:00.000Z', lastModified: '2026-01-02T00:00:00.000Z' }],
+        });
       }
       if (url.includes('/v1/teams')) {
         return jsonOk({ teams: [{ uid: 'team-1', updatedAt: '2026-03-01T00:00:00.000Z' }] });
@@ -95,5 +97,29 @@ describe('sitemap', () => {
     const urls = (await sitemap()).map((entry) => entry.url);
 
     expect(urls).toContain('https://os.pl.xyz/teams/team-1');
+  });
+
+  /* LAB-3094: Google ignores changefreq and priority; lastmod is the one field it reads, and a job's must be the
+     posting's own date, not the nightly sync that rewrites updatedAt. */
+  it('has no changefreq or priority, and dates a job by lastModified, never by updatedAt', async () => {
+    (global.fetch as jest.Mock).mockImplementation((url: string) => {
+      if (url.includes('/v1/job-openings/crawl-index')) {
+        return jsonOk({ jobs: [{ uid: 'job-sync-only', updatedAt: '2026-11-03T03:00:00.000Z' }] });
+      }
+      if (url.includes('/v1/teams')) {
+        return jsonOk({ teams: [{ uid: 'team-1', updatedAt: '2026-03-01T00:00:00.000Z' }] });
+      }
+      return jsonOk({});
+    });
+
+    const entries = await sitemap();
+
+    for (const entry of entries) {
+      expect(entry).not.toHaveProperty('changeFrequency');
+      expect(entry).not.toHaveProperty('priority');
+    }
+    const job = entries.find((entry) => entry.url.endsWith('/jobs/openings/job-sync-only'));
+    expect(job).toBeDefined();
+    expect(job?.lastModified).toBeUndefined();
   });
 });

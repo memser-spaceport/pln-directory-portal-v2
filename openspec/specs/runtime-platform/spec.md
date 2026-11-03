@@ -107,3 +107,18 @@ Every read (`GET`, `HEAD`) the frontend server makes to the origin of `DIRECTORY
 
 - **WHEN** a page is loaded in the browser
 - **THEN** neither the HTML nor the JavaScript contains the token
+
+### Requirement: Every response carries the security headers
+
+Every response SHALL carry `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: SAMEORIGIN`, `Content-Security-Policy: frame-ancestors 'self'` and `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()`, and no `X-Powered-By`. The pages SHALL have one viewport tag, `width=device-width, initial-scale=1`, with no zoom limit (LAB-3094).
+
+#### Scenario: Home page response
+
+- **WHEN** a client requests `/home`
+- **THEN** the response has the five headers and no `X-Powered-By`
+- **AND** the HTML has one viewport tag, without `maximum-scale` or `user-scalable`
+
+#### Scenario: Another site frames a page
+
+- **WHEN** a page on another origin puts a directory page in an iframe
+- **THEN** the browser refuses to show it

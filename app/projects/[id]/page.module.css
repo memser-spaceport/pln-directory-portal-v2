@@ -44,7 +44,6 @@
 .project__container__details__additionalDetails,
 .project__container__info__contributors,
 .project__container__info__teams,
-.project__container__details__stats,
 .project__container__info__contacts {
   padding: 16px;
   background-color: #ffffff;
@@ -85,7 +84,6 @@
   .project__container__details__additionalDetails,
   .project__container__info__contributors,
   .project__container__info__teams,
-  .project__container__details__stats,
   .project__container__info__contacts {
     padding: 16px;
     box-shadow:

@@ -52,16 +52,20 @@ describe('Contributors', () => {
     expect(targetImage).toBeInTheDocument();
   });
 
-  it('should call analytics and open a new window when a contributor is clicked', () => {
+  // LAB-3093: a link to the profile in a new tab (crawlers follow it), which records the click itself.
+  it('links each contributor to their profile in a new tab and records the click', () => {
     const openMock = jest.fn();
     (useProjectAnalytics as jest.Mock).mockReturnValue(mockAnalytics);
     window.open = openMock;
     render(<Contributors contributors={contributors} user={user} project={project} />);
     const contributorElement = screen.getByTitle('Contributor 1');
-    fireEvent.click(contributorElement);
 
+    expect(contributorElement.tagName).toBe('A');
+    expect(contributorElement).toHaveAttribute('href', '/members/1');
+    expect(contributorElement).toHaveAttribute('target', '_blank');
+    fireEvent.click(contributorElement);
     expect(mockAnalytics.onProjectDetailContributorClicked).toHaveBeenCalled();
-    expect(openMock).toHaveBeenCalledWith('/members/1', '_blank');
+    expect(openMock).not.toHaveBeenCalled();
   });
 
   // it('should call onCloseContributorsModal when the modal is closed', () => {

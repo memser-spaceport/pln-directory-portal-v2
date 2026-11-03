@@ -110,94 +110,10 @@
   box-shadow: 0px 1px 2px 0px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
 }
 
-.title {
-  color: var(--foreground-neutral-primary, #0a0c11);
-  font-size: 16px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 24px; /* 150% */
-  letter-spacing: -0.3px;
-}
-
-.desc {
-  overflow: hidden;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-  text-overflow: ellipsis;
-  font-size: 14px;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 22px; /* 157.143% */
-  letter-spacing: -0.2px;
-}
-
 .footer {
   display: flex;
   align-items: center;
   gap: 12px;
-}
-
-.Avatar {
-  position: relative;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  vertical-align: middle;
-  border-radius: 100%;
-  user-select: none;
-  font-weight: 500;
-  color: var(--color-gray-900);
-  background-color: var(--Neutral-Slate-600);
-  font-size: 1rem;
-  line-height: 1;
-  overflow: hidden;
-  height: 24px;
-  width: 24px;
-}
-
-.Image {
-  object-fit: cover;
-  height: 100%;
-  width: 100%;
-}
-
-.Fallback {
-  @include mixins.ellipse-text;
-  align-items: center;
-  display: flex;
-  justify-content: flex-start;
-  max-width: 24px;
-  height: 100%;
-  width: 100%;
-  font-size: 14px;
-}
-
-.name {
-  color: var(--foreground-neutral-primary, #0a0c11);
-  font-size: 12px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 18px; /* 150% */
-  letter-spacing: -0.2px;
-}
-
-.position {
-  color: var(--foreground-neutral-secondary, #455468);
-  font-size: 12px;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 18px; /* 150% */
-  letter-spacing: -0.2px;
-
-  display: none;
-}
-
-.time {
-  color: var(--foreground-neutral-tertiary, #8897ae);
-  font-size: 12px;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 18px; /* 150% */
-  letter-spacing: -0.2px;
 }
 
 .lock {
@@ -279,4 +195,46 @@
   text-decoration-thickness: auto;
   text-underline-offset: auto;
   text-underline-position: from-font;
+}
+
+/* Skeleton lines for the placeholder list (LAB-3091), sized to the text they stand in for. */
+.bar {
+  display: block;
+  border-radius: 4px;
+}
+
+.barTitle {
+  width: 72%;
+  height: 16px;
+  margin: 4px 0;
+  background: rgba(10, 12, 17, 0.28);
+}
+
+.barDesc {
+  width: 100%;
+  height: 12px;
+  margin: 5px 0;
+  background: rgba(136, 151, 174, 0.32);
+}
+
+.barDescShort {
+  width: 58%;
+}
+
+.barMeta {
+  width: 88px;
+  height: 10px;
+  background: rgba(69, 84, 104, 0.24);
+}
+
+.barMetaShort {
+  width: 56px;
+}
+
+.avatarDot {
+  width: 24px;
+  height: 24px;
+  border-radius: 100%;
+  background: var(--Neutral-Slate-600, #94a3b8);
+  opacity: 0.4;
 }

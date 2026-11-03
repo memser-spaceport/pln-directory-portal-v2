@@ -2,7 +2,6 @@
 
 import React from 'react';
 import s from './LoggedOutView.module.scss';
-import { Avatar } from '@base-ui-components/react/avatar';
 import { useRouter } from 'next/navigation';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { toast } from '@/components/core/ToastContainer';
@@ -10,19 +9,17 @@ import { TOAST_MESSAGES } from '@/utils/constants';
 import { useContactSupportStore } from '@/services/contact-support/store';
 import { useLoginRedirect } from '@/components/core/login/utils';
 
+/* What sits under the blurred sign-in panel: the shape of a topic list, with no text in it (LAB-3091). It used to be
+   five copies of a made-up post ("by John Smith · Developer @Aave"), which crawlers read as the forum's content. */
 const items = new Array(5).fill(0).map((_, i) => (
   <li className={s.listItem} key={i}>
-    <div className={s.title}>How we reduced retrieval latency in a decentralized data pipeline by 45%</div>
-    <div className={s.desc}>
-      We recently ran a benchmark sprint to optimize our retrieval layer on a distributed archive... Read more
-    </div>
+    <span className={`${s.bar} ${s.barTitle}`} />
+    <span className={`${s.bar} ${s.barDesc}`} />
+    <span className={`${s.bar} ${s.barDesc} ${s.barDescShort}`} />
     <div className={s.footer}>
-      <Avatar.Root className={s.Avatar}>
-        <Avatar.Fallback className={s.Fallback}>JS</Avatar.Fallback>
-      </Avatar.Root>
-      <div className={s.name}>by John Smith</div>
-      <div className={s.position}>· Developer @Aave</div>
-      <div className={s.time}>3 days ago</div>
+      <span className={s.avatarDot} />
+      <span className={`${s.bar} ${s.barMeta}`} />
+      <span className={`${s.bar} ${s.barMeta} ${s.barMetaShort}`} />
     </div>
   </li>
 ));
@@ -102,7 +99,9 @@ export const LoggedOutView = ({ reason }: { reason?: ForumLoggedOutReason }) => 
           </div>
         </div>
         <div className={s.content}>
-          <ul className={s.list}>{items}</ul>
+          <ul className={s.list} aria-hidden="true">
+            {items}
+          </ul>
         </div>
       </div>
       <div className={s.modal}>

@@ -28,7 +28,7 @@ Signed-in members SHALL have a News preferences page in Settings, listed right a
 - **THEN** Home opens in the same tab with For You selected, or All when they have no For You stories
 
 ### Requirement: Teams you follow
-The Teams you follow section SHALL list the teams the member follows, each with a Follow/Following control and, when the backend sends them, all of the team's top-level focus areas under its name, on one line. Unfollowing SHALL keep the team in the list until the page is left, so it can be followed again in place. With no followed teams, the section SHALL show an empty state that links to Teams.
+The Teams you follow section SHALL list the teams the member follows, each with a Follow/Following control and, when the backend sends them, all of the team's top-level focus areas under its name, on one line. Unfollowing SHALL keep the team in the list until the page is left, so it can be followed again in place. With no followed teams, the section SHALL show an empty state. When the backend has follow suggestions for the member (`GET /v1/team-news/follow-suggestions`, 4 of them), the section SHALL say they don't follow any teams yet and list the suggestions under "Teams to follow" ("From the focus areas of your team"), each with what it shares with the member's team and a Follow button, followed by a link to all Teams; otherwise it SHALL link to Teams. A followed suggestion SHALL stay in its place showing Following, count in the section title, and can be unfollowed there; the empty line goes while any is followed. A member who already follows teams SHALL see no suggestions.
 
 #### Scenario: Unfollow and undo
 - **GIVEN** a member following Acme
@@ -36,9 +36,19 @@ The Teams you follow section SHALL list the teams the member follows, each with 
 - **THEN** Acme stays in the list throughout and ends up followed
 
 #### Scenario: Empty
-- **GIVEN** a member who follows no teams
+- **GIVEN** a member who follows no teams and has no follow suggestions
 - **WHEN** they open News preferences
 - **THEN** the section says they don't follow any teams yet and links to Teams
+
+#### Scenario: Suggested teams
+- **GIVEN** a member who follows no teams, with follow suggestions Filecoin and IPFS
+- **WHEN** they open News preferences and follow Filecoin from the suggestions
+- **THEN** Filecoin stays in place showing Following, the title reads "Teams you follow · 1", and `settings-news-preferences-follow-toggled` is recorded with `suggested: true`
+
+#### Scenario: No suggestions for a member who follows teams
+- **GIVEN** a member who follows Acme
+- **WHEN** they open News preferences
+- **THEN** the section lists Acme and shows no suggestions
 
 ### Requirement: Ways in
 
@@ -70,7 +80,8 @@ The page SHALL record:
 - `settings-news-preferences-tag-toggled`, with the tag, its new state, and `from`;
 - `settings-news-preferences-save-failed`, with the section (`tags` or `teams`);
 - `settings-news-preferences-follow-toggled`;
-- `settings-news-preferences-for-you-link-clicked`, with `from`, when the intro's "For You" link is clicked.
+- `settings-news-preferences-for-you-link-clicked`, with `from`, when the intro's "For You" link is clicked;
+- `settings-news-preferences-group-expanded`, with the theme and `from`, when a long theme's "Show N more" is clicked.
 
 The For You hint SHALL record `team-news-for-you-tune-clicked`.
 
@@ -87,7 +98,7 @@ The For You hint SHALL record `team-news-for-you-tune-clicked`.
 
 ### Requirement: News tags
 
-The Topics section SHALL be headed "What do you want news about?" and SHALL offer the news tags (focus-area slugs) that tagged at least one news story in the last 90 days, plus any tag the member already has, as `#slug` chips grouped by theme: AI & frontier tech, Web3 infrastructure, Digital rights, Economies & governance, The network, and Other for any tag no theme lists. Themes are an editorial grouping in the frontend, not the focus-area hierarchy; chips are alphabetical within a theme and keep their place when toggled. A search field SHALL narrow the chips as the member types, matching part of a tag or a theme's name, and hide themes with no match. Subscribing or unsubscribing SHALL save at once and show "Saved". The member SHALL be able to unsubscribe from every topic.
+The Topics section SHALL be headed "What do you want news about?" and SHALL offer the news tags (focus-area slugs) that tagged at least one news story in the last 90 days, plus any tag the member already has, as `#slug` chips grouped by theme: AI & frontier tech, Web3 infrastructure, Digital rights, Economies & governance, The network, and Other for any tag no theme lists. Themes are an editorial grouping in the frontend, not the focus-area hierarchy; chips are alphabetical within a theme and keep their place when toggled. A search field SHALL narrow the chips as the member types, matching part of a tag or a theme's name, and hide themes with no match. A theme with more than 9 tags SHALL show its first 8, plus every tag the member has or toggled in this visit, and end its chip row with "Show N more"; open, the theme shows every tag and the link reads "Show less". A theme that would hide only one tag shows it instead, and while the search has text every match shows with no link. Subscribing or unsubscribing SHALL save at once and show "Saved". The member SHALL be able to unsubscribe from every topic.
 
 #### Scenario: Search tags
 
@@ -100,6 +111,24 @@ The Topics section SHALL be headed "What do you want news about?" and SHALL offe
 - **GIVEN** a member on News preferences
 - **WHEN** they type text no tag or theme contains
 - **THEN** no chips show and a line says no tags match
+
+#### Scenario: Long theme
+
+- **GIVEN** a theme with 15 tags, none of them the member's
+- **WHEN** the member opens News preferences
+- **THEN** the theme shows its first 8 tags and "Show 7 more"; clicking it shows all 15 and "Show less", and `settings-news-preferences-group-expanded` is recorded
+
+#### Scenario: A pick past the limit
+
+- **GIVEN** a theme with 15 tags and a member who has its 12th tag
+- **WHEN** they open News preferences
+- **THEN** the theme shows its first 8 tags, the 12th tag, and "Show 6 more"
+
+#### Scenario: Search ignores the limit
+
+- **GIVEN** a theme with 15 tags, collapsed
+- **WHEN** the member types part of its 12th tag in Search tags
+- **THEN** the 12th tag shows, with no "Show more"
 
 #### Scenario: A tag no theme lists
 

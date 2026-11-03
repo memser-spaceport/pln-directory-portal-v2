@@ -15,7 +15,7 @@ jest.mock('@privy-io/react-auth', () => ({
 }));
 
 import { render, screen, fireEvent } from '@testing-library/react';
-import { AuthInfo } from '@/components/core/login';
+import { AuthInfo } from '@/components/core/login/components/AuthInfo';
 import { useRouter } from 'next/navigation';
 import { usePrivyWrapper } from '@/components/core/login/hooks';
 import { createStateUid } from '@/services/auth.service';

@@ -1,6 +1,10 @@
+import { preload } from 'react-dom';
 import { getMember } from '@/services/members.service';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import MemberDetailsPage, { type ServerMemberResult } from '@/components/page/member-details/MemberDetailsPage';
+
+/** The image behind the signed-out contact-details panel; `ContactDetails.module.scss` paints it. */
+const MEMBER_CONTACT_OVERLAY_IMAGE = '/images/members/contact-details-overlay.png';
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -21,6 +25,11 @@ export default async function MemberPage({ params }: PageProps) {
   if (isLoggedIn) {
     return <MemberDetailsPage memberId={id} />;
   }
+
+  /* The contact-details panel's blurred overlay is the page's largest element for a signed-out visitor, and it is a CSS
+     background: the browser only learns its URL once the stylesheet is in, which cost it 1.2 s on mobile (LAB-3092).
+     Named in the HTML instead, so it loads with the first response. */
+  preload(MEMBER_CONTACT_OVERLAY_IMAGE, { as: 'image', fetchPriority: 'high' });
 
   const result = await getMember(
     id,

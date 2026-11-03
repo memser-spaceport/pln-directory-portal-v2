@@ -3,6 +3,11 @@ import { Field } from '@base-ui-components/react/field';
 import { useFormContext } from 'react-hook-form';
 import React, { ReactNode, PropsWithChildren, useRef } from 'react';
 import dynamic from 'next/dynamic';
+import type {
+  ExternalImageDrop,
+  NoteImageEdit,
+  NoteImageRemoval,
+} from '@/components/ui/RichTextEditor/RichTextEditorClient';
 import s from './FormEditor.module.scss';
 
 const RichTextEditor = dynamic(() => import('@/components/ui/RichTextEditor/RichTextEditor'), { ssr: false });
@@ -37,6 +42,9 @@ interface Props extends PropsWithChildren {
   simplified?: boolean;
   toolbarConfig?: (string | Record<string, unknown>)[][];
   markdownShortcuts?: boolean;
+  onAnnotateImage?: (edit: NoteImageEdit) => void;
+  onRemoveImage?: (removal: NoteImageRemoval) => void;
+  externalImageDrop?: ExternalImageDrop;
 }
 
 export const FormEditor = (props: Props) => {
@@ -60,6 +68,9 @@ export const FormEditor = (props: Props) => {
     simplified,
     toolbarConfig,
     markdownShortcuts,
+    onAnnotateImage,
+    onRemoveImage,
+    externalImageDrop,
   } = props;
 
   const {
@@ -111,6 +122,9 @@ export const FormEditor = (props: Props) => {
         onMentionSelected={onMentionSelected}
         minHeight={minHeight}
         markdownShortcuts={markdownShortcuts}
+        onAnnotateImage={onAnnotateImage}
+        onRemoveImage={onRemoveImage}
+        externalImageDrop={externalImageDrop}
       />
       {errors[name] ? (
         <Field.Error className={s.errorMsg} match={!!errors[name]}>

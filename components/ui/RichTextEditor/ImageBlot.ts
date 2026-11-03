@@ -3,6 +3,9 @@ import { Quill } from 'react-quill-new';
 import { IMAGE_FLOATS } from '@/utils/richText/imageFloats';
 import { imageFloatClass } from '@/utils/richText/imageFloatClass';
 
+/** Same attribute the feedback screenshot list writes. Kept here so the editor blot does not import the page module. */
+export const IMAGE_ANNOTATIONS_ATTR = 'data-annotations';
+
 const Image = Quill.import('formats/image') as any;
 
 /**
@@ -19,14 +22,31 @@ const Image = Quill.import('formats/image') as any;
  * embed's formats off the DOM when HTML is loaded into an editor, and writes
  * them back through `format()` when the document is rendered.
  */
-class ImageBlot extends Image {
+export class ImageBlot extends Image {
   static formats(domNode: HTMLElement) {
-    const formats = super.formats(domNode);
+    const parentFormats = Object.getPrototypeOf(ImageBlot).formats as
+      | ((node: HTMLElement) => Record<string, unknown>)
+      | undefined;
+    const formats = typeof parentFormats === 'function' ? parentFormats(domNode) : {};
     const float = IMAGE_FLOATS.find((value) => domNode.classList.contains(imageFloatClass(value)));
-    return float ? { ...formats, float } : formats;
+    const annotations = domNode.getAttribute(IMAGE_ANNOTATIONS_ATTR);
+    return {
+      ...formats,
+      ...(float ? { float } : {}),
+      ...(annotations ? { annotations } : {}),
+    };
   }
 
   format(name: string, value: unknown) {
+    if (name === 'annotations') {
+      if (typeof value === 'string' && value) {
+        this.domNode.setAttribute(IMAGE_ANNOTATIONS_ATTR, value);
+      } else {
+        this.domNode.removeAttribute(IMAGE_ANNOTATIONS_ATTR);
+      }
+      return;
+    }
+
     if (name !== 'float') {
       super.format(name, value);
       return;

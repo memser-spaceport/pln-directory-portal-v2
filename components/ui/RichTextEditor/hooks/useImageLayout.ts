@@ -464,5 +464,5 @@ export function useImageLayout(options: Options) {
   // otherwise leave its window listeners behind.
   useEffect(() => () => endDragRef.current?.(), []);
 
-  return { overlay, onHandlePointerDown, onFloatChange, onMove };
+  return { overlay, image, onHandlePointerDown, onFloatChange, onMove };
 }

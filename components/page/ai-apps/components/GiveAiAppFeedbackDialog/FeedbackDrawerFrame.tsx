@@ -33,9 +33,10 @@ interface Props {
   /** A capture is on screen (Pick a part, region, annotator): step out of the way, keep the layout. */
   hidden: boolean;
   /**
-   * Narrow: the page gives up the drawer's width. On an app's page, where you
-   * comment on and pick parts of the app beside it. Not on the grid, where
-   * there is nothing to make room for: there it overlays.
+   * Narrow: the page gives up the drawer's width. The Comments tab sets this,
+   * so a comment can be placed on the app beside the drawer. The Feedback tab
+   * does not: the drawer covers the page. On the grid there is nothing to make
+   * room for, so it overlays there too.
    */
   reserveSpace: boolean;
   /** Names the dialog for assistive tech. */
@@ -49,11 +50,12 @@ interface Props {
  *
  * - Wide is the popover's Wider mode unchanged: `.overlayWide` (scrim, full
  *   height, two-column form) and `.modalContainerWide`.
- * - Narrow (480px) is non-modal, because what you do beside it acts on the
- *   page: Pick a part drags over the app and comment mode clicks on it. Instead
- *   of covering the app, the page gives up the drawer's width (the inset var,
- *   read by the detail page at 960px and wider). Below 960 it overlays; on a
- *   phone it is the whole screen.
+ * - Narrow (480px) is non-modal. On the Comments tab the page gives up the
+ *   drawer's width (the inset var, read by the detail page at 960px and wider)
+ *   so a comment can be placed on the app beside it. On the Feedback tab the
+ *   drawer covers the right edge and the page keeps its width, the same as on
+ *   the other Directory pages. Below 960 it overlays; on a phone it is the
+ *   whole screen.
  *
  * While a capture is on screen the drawer is hidden but keeps its inset, so the
  * app does not jump under the crosshair. The panel appears in place: a slide

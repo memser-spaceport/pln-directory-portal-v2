@@ -72,12 +72,35 @@ function inline(node: Node): string {
     case 'a':
       return `[${inner()}](${node.getAttribute('href') ?? ''})`;
     case 'img':
-      return `![${node.getAttribute('alt') ?? ''}](${node.getAttribute('src') ?? ''})`;
+      return imageMarkdown(node);
     case 'br':
       return '\n';
     default:
       return inner();
   }
+}
+
+function escapeAttr(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+/** An annotated image stays an `<img>` so its drawing data survives the markdown note. */
+function imageMarkdown(node: Element): string {
+  const src = node.getAttribute('src') ?? '';
+  const alt = node.getAttribute('alt') ?? '';
+  const annotations = node.getAttribute('data-annotations');
+  if (!annotations) return `![${alt}](${src})`;
+
+  const width = node.getAttribute('width');
+  const className = node.getAttribute('class');
+  const attrs = [
+    `src="${escapeAttr(src)}"`,
+    alt ? `alt="${escapeAttr(alt)}"` : '',
+    className ? `class="${escapeAttr(className)}"` : '',
+    width ? `width="${escapeAttr(width)}"` : '',
+    `data-annotations="${escapeAttr(annotations)}"`,
+  ].filter(Boolean);
+  return `<img ${attrs.join(' ')}>`;
 }
 
 function text(node: Node): string {

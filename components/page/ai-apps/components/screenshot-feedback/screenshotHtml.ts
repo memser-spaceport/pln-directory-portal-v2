@@ -5,6 +5,7 @@ import {
   ANNOTATION_ATTR,
   FLAT_SRC_ATTR,
   hasAnyAnnotation,
+  parseAnnotations,
   serializeAnnotations,
   type AnnotationState,
   type ScreenshotAttachment,
@@ -41,6 +42,51 @@ async function hostFlattened(shot: ScreenshotAttachment): Promise<string | undef
   } catch {
     return undefined;
   }
+}
+
+function attr(tag: string, name: string): string | null {
+  const match = tag.match(new RegExp(`(?:^|\\s)${name}=("([^"]*)"|'([^']*)')`, 'i'));
+  return match ? (match[2] ?? match[3] ?? '') : null;
+}
+
+/**
+ * Images that already sit in the note, with drawings on them.
+ *
+ * The screenshot list is flattened by `appendScreenshots`. A picture the member
+ * annotated inside the note is only an `<img data-annotations>` until send, and
+ * a plain-image reader (support Telegram) needs `data-flat-src` on that tag too.
+ * A flatten or upload failure leaves the tag as it was: the raw picture and the
+ * drawing data still go.
+ */
+export async function flattenAnnotatedNoteImages(html: string): Promise<string> {
+  const tags = [...html.matchAll(/<img\b[^>]*>/gi)];
+  if (tags.length === 0) return html;
+
+  const nextTags = await Promise.all(
+    tags.map(async (match) => {
+      const tag = match[0];
+      if (attr(tag, FLAT_SRC_ATTR)) return tag;
+      const annotations = parseAnnotations(attr(tag, ANNOTATION_ATTR));
+      const src = attr(tag, 'src');
+      if (!src || !hasAnyAnnotation(annotations) || !annotations) return tag;
+      try {
+        const flatUrl = await hostScreenshot(await flattenAnnotations(src, annotations));
+        return tag.replace(/\s*\/?>$/, ` ${FLAT_SRC_ATTR}="${escapeAttr(flatUrl)}">`);
+      } catch {
+        return tag;
+      }
+    }),
+  );
+
+  let cursor = 0;
+  let out = '';
+  tags.forEach((match, index) => {
+    const start = match.index ?? 0;
+    out += html.slice(cursor, start);
+    out += nextTags[index];
+    cursor = start + match[0].length;
+  });
+  return out + html.slice(cursor);
 }
 
 /** `flatten`: also host each drawn-on screenshot with its drawings in it, as `data-flat-src`. */

@@ -188,7 +188,16 @@ export const TeamDetails = (props: Props) => {
           />
           <div className={s.nameTagContainer}>
             <div className={s.nameAndActions}>
-              <Tooltip asChild trigger={<h1 className={s.teamName}>{teamName}</h1>} content={teamName} />
+              <Tooltip
+                asChild
+                trigger={<h1 className={s.teamName}>{teamName}</h1>}
+                mobileTrigger={
+                  <p className={s.teamName} role="heading" aria-level={1}>
+                    {teamName}
+                  </p>
+                }
+                content={teamName}
+              />
 
               {isInactive && (
                 <span className={s.statusBadge}>

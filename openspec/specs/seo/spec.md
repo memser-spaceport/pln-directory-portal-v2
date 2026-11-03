@@ -99,6 +99,39 @@ The home page, members, teams, projects, the events calendar, the job board and 
 - **WHEN** a crawler requests `/demoday`
 - **THEN** its title and description both contain "venture investors" and "VC"
 
+### Requirement: Every page has one h1
+
+Each page SHALL have exactly one `<h1>` element in its server-rendered HTML. A page that renders a separate copy of its title for narrow screens SHALL make that copy a heading by role (`role="heading" aria-level="1"`) or hide it from assistive technology, not a second `<h1>`. A job posting's own `h1` and `h2` SHALL render as `h3`, under the role page's `h1` (the role title) and `h2` ("About the role").
+
+#### Scenario: Listing and profile pages
+
+- **WHEN** a crawler requests `/members`, `/teams`, `/projects`, `/jobs`, a team profile or a project profile
+- **THEN** the HTML has one `<h1>`
+
+#### Scenario: Job posting with h1 sections
+
+- **GIVEN** a role whose description has `<h1>The Role</h1>`
+- **WHEN** a crawler requests the role page
+- **THEN** the HTML has one `<h1>`, the role title, and "The Role" is an `<h3>`
+
+### Requirement: The home page says what the network is
+
+`/home` SHALL have the `<h1>` "Protocol Labs Directory". For a signed-out visitor it SHALL be followed by a definition of the Protocol Labs network and the directory of 40 to 60 words; for a signed-in member the heading MAY be visible to screen readers only.
+
+#### Scenario: Crawler on the home page
+
+- **WHEN** a crawler requests `/home` without cookies
+- **THEN** the HTML has one `<h1>` and the definition
+
+### Requirement: The home page names Protocol Labs as structured data
+
+`/home` SHALL carry JSON-LD with an `Organization` (Protocol Labs, with `sameAs` links to protocol.ai, Wikidata Q63930216, X, LinkedIn and YouTube) and a `WebSite` (Protocol Labs Directory, at the home page's canonical address) published by it.
+
+#### Scenario: Home page markup
+
+- **WHEN** a crawler requests `/home`
+- **THEN** the HTML has an `application/ld+json` script with the `Organization` and the `WebSite`
+
 ### Requirement: Share cards match the search result
 
 On those pages, `og:title`, `og:description`, `twitter:title` and `twitter:description` SHALL equal the page's title and description.

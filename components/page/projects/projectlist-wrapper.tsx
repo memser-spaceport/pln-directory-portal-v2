@@ -50,7 +50,11 @@ const ProjectlistWrapper = (props: any) => {
     <>
       <div className="project-list">
         <div className="project-list__titlesec">
-          <h1 className="project-list__titlesec__title">Projects</h1>{' '}
+          {/* The mobile copy of the toolbar's h1, shown only below 1024px: a heading by role, so the page has one
+              h1 element (LAB-3089). */}
+          <p className="project-list__titlesec__title" role="heading" aria-level={1}>
+            Projects
+          </p>{' '}
           <div className="project-list__title__count">({totalProjects})</div>
         </div>
         <InfiniteScroll

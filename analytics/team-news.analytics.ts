@@ -176,6 +176,30 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
+  /** The Home feed reached a scroll-depth step: cards seen / cards loaded
+   *  (LAB-3005). Fires once per step per Home page view. */
+  const onTeamNewsScrollDepth = (
+    depth: 50 | 70 | 90,
+    extras: {
+      category: string;
+      tab: string;
+      sort: string;
+      cardsSeen: number;
+      cardsLoaded: number;
+    },
+  ) => {
+    const eventMap: Record<50 | 70 | 90, string> = {
+      50: TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_SCROLL_DEPTH_50,
+      70: TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_SCROLL_DEPTH_70,
+      90: TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_SCROLL_DEPTH_90,
+    };
+    captureEvent(eventMap[depth], {
+      scrollDepth: `${depth}%`,
+      ...extras,
+      source: 'home' satisfies TeamNewsAnalyticsSource,
+    });
+  };
+
   /**
    * The staying half of the footer pair — the archive, not the feed.
    *
@@ -778,6 +802,7 @@ export const useTeamNewsAnalytics = () => {
     onTeamNewsCategoryClicked,
     onTeamNewsSortChanged,
     onTeamNewsLoadMoreClicked,
+    onTeamNewsScrollDepth,
     onTeamNewsViewAllClicked,
     onTeamNewsAllNetworkUpdatesClicked,
     onTeamNewsCountChipClicked,

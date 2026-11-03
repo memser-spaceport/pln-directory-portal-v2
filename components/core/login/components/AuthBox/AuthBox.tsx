@@ -1,35 +1,47 @@
 'use client';
 
-import { PrivyProvider } from '@privy-io/react-auth';
-import { Suspense, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+import { Suspense, useEffect, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 
 import useHash from '@/hooks/useHash';
-import { authEvents } from '../../utils';
-import { PrivyModals } from '../PrivyModals';
+import { authEvents, privyDemand } from '../../utils';
 import { AuthInvalidUser } from '../modals/AuthInvalidUser';
-import { AuthInfo } from '../AuthInfo';
 import { LoginTokenRedeemer } from '../LoginTokenRedeemer';
 
-const PRIVY_CONFIG = {
-  appearance: {
-    theme: 'light' as const,
-    accentColor: '#676FFF' as `#${string}`,
-    landingHeader: 'PL Member Login',
-  },
-  loginMethods: ['email', 'google', 'github', 'wallet'] as ('email' | 'google' | 'github' | 'wallet')[],
-};
+/**
+ * The sign-in system (Privy) and everything that needs it, in its own chunk (LAB-3092). Its SDK is the largest script
+ * on every page; a signed-out visitor only needs it once they start to sign in.
+ */
+const PrivyLayer = dynamic(() => import('../PrivyLayer').then((m) => m.PrivyLayer), { ssr: false });
 
 /**
- * AuthBox - Main authentication wrapper component
+ * Build-time rollback: `NEXT_PUBLIC_EAGER_PRIVY=true` loads Privy for every visitor, as before LAB-3092. Next inlines
+ * the value at build time wherever it is read.
+ */
+const isEagerPrivy = () => process.env.NEXT_PUBLIC_EAGER_PRIVY === 'true';
+
+const getServerDemand = () => false;
+
+/**
+ * AuthBox - the always-present part of authentication.
  *
- * Provides Privy authentication context and renders auth-related modals.
- * Shows login modal when URL hash is #login and user is not authenticated.
+ * It needs no Privy: the `#login` hash gates, the one-time login link and the auth error modals. The Privy layer is
+ * loaded when the viewer is signed in (as before), when a sign-in starts (`#login`), or when a sign-in, account link or
+ * sign-out reaches the auth event bus with nothing loaded to carry it out. Once loaded it stays, so a dismissed or
+ * failed sign-in never unloads it mid-flow.
  */
 export function AuthBox({ isLoggedIn }: { isLoggedIn: boolean }) {
   const hash = useHash();
   const router = useRouter();
   const isLoginPopup = hash === '#login' && !isLoggedIn;
+  const demanded = useSyncExternalStore(privyDemand.subscribe, privyDemand.isRequested, getServerDemand);
+  const loadPrivy = isEagerPrivy() || isLoggedIn || isLoginPopup || demanded;
+
+  // A sign-in that has started keeps Privy loaded after the hash is cleared.
+  useEffect(() => {
+    if (isLoginPopup) privyDemand.request();
+  }, [isLoginPopup]);
 
   // Prevent authenticated users from accessing login modal
   useEffect(() => {
@@ -67,13 +79,12 @@ export function AuthBox({ isLoggedIn }: { isLoggedIn: boolean }) {
   }, [router]);
 
   return (
-    <PrivyProvider appId={process.env.PRIVY_AUTH_ID as string} config={PRIVY_CONFIG}>
+    <>
       <Suspense fallback={null}>
         <LoginTokenRedeemer isLoggedIn={isLoggedIn} />
       </Suspense>
-      <PrivyModals />
       <AuthInvalidUser />
-      {isLoginPopup && <AuthInfo />}
-    </PrivyProvider>
+      {loadPrivy && <PrivyLayer isLoginPopup={isLoginPopup} />}
+    </>
   );
 }

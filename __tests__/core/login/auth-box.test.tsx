@@ -2,7 +2,7 @@ import { render, screen, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 import { AuthBox } from '@/components/core/login/components/AuthBox';
-import { authEvents } from '@/components/core/login/utils';
+import { authEvents, privyDemand } from '@/components/core/login/utils';
 import type { AuthErrorCode } from '@/components/core/login/utils';
 
 const mockRouter = {
@@ -22,8 +22,17 @@ jest.mock('next/navigation', () => ({
 }));
 
 jest.mock('@privy-io/react-auth', () => ({
-  PrivyProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  PrivyProvider: ({ children }: { children: React.ReactNode }) => <div data-testid="privy-provider">{children}</div>,
 }));
+
+// AuthBox loads the Privy layer with next/dynamic (LAB-3092); resolved synchronously here so the tests can see it.
+jest.mock('next/dynamic', () => () => {
+  const DynamicPrivyLayer = (props: { isLoginPopup: boolean }) => {
+    const { PrivyLayer } = jest.requireActual('@/components/core/login/components/PrivyLayer');
+    return <PrivyLayer {...props} />;
+  };
+  return DynamicPrivyLayer;
+});
 
 // Children are stubbed out — this suite is about the #login gate in AuthBox itself.
 // AuthInfo stands in as a marker for "the blocking overlay is mounted"; the real one
@@ -47,7 +56,51 @@ const applyReplaceToUrl = () =>
 describe('AuthBox', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    privyDemand.reset();
+    authEvents.clear();
     setUrl('/members?tab=all#login');
+  });
+
+  /* LAB-3092: Privy's SDK is the largest script on every page. A signed-out visitor gets it only when a sign-in starts,
+     or when a sign-in, account link or sign-out reaches the auth bus with nothing loaded to carry it out. */
+  describe('loading the sign-in system', () => {
+    it('does not load Privy for a signed-out visitor who has not started to sign in', () => {
+      setUrl('/members');
+      render(<AuthBox isLoggedIn={false} />);
+      expect(screen.queryByTestId('privy-provider')).not.toBeInTheDocument();
+    });
+
+    it('loads Privy for a signed-in member, as before', () => {
+      setUrl('/members');
+      render(<AuthBox isLoggedIn />);
+      expect(screen.getByTestId('privy-provider')).toBeInTheDocument();
+    });
+
+    it('loads Privy when a sign-in starts, and keeps it after the #login gate is cleared', () => {
+      applyReplaceToUrl();
+      render(<AuthBox isLoggedIn={false} />);
+      expect(screen.getByTestId('privy-provider')).toBeInTheDocument();
+
+      act(() => {
+        authEvents.emit('auth:login-error', { error: 'exited_auth_flow' });
+      });
+
+      expect(window.location.hash).toBe('');
+      expect(screen.getByTestId('privy-provider')).toBeInTheDocument();
+    });
+
+    it('loads Privy when a sign-out reaches the bus with nothing to carry it out', () => {
+      setUrl('/members');
+      render(<AuthBox isLoggedIn={false} />);
+      expect(screen.queryByTestId('privy-provider')).not.toBeInTheDocument();
+
+      act(() => {
+        authEvents.emit('auth:logout');
+      });
+
+      expect(screen.getByTestId('privy-provider')).toBeInTheDocument();
+      expect(authEvents.pendingEvents().map(({ event }) => event)).toEqual(['auth:logout']);
+    });
   });
 
   it('renders the login overlay for a signed-out visitor on #login', () => {

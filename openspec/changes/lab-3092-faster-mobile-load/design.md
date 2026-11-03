@@ -121,6 +121,13 @@ If `NEXT_PUBLIC_EAGER_PRIVY=true` is set at build time, the shell mounts the Pri
 - **[Risk] Lighthouse numbers on the feature env differ from production** (Kubernetes, not Vercel).
   → Compare before and after on the same environment for the go/no-go. Re-measure on production after release, against the 2026-11-02 baseline.
 
+_Outcome (2026-11-03, `lab-3083` env, median of 3):_
+
+- TBT went 691 → 444 ms on `/home`, 762 → 606 ms on `/jobs` and 450 → 134 ms on the member page.
+- JS halved, and `auth.privy.io` dropped to 0 KB.
+- The budget is still missed. What remains is React DOM plus the Next runtime, and the env's TTFB.
+- The budget requirement moved out of this change into [LAB-3100](https://linear.app/protocollabs/issue/LAB-3100): re-measure on prod after release, then reduce hydration.
+
 ## Migration Plan
 
 1. Build and verify on `lab-3083`:

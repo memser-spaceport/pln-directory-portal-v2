@@ -50,4 +50,4 @@
 ## Workflow follow-up
 
 - Archive this change (`/opsx:archive`) in the same PR as the code, so `openspec/specs/auth` and `openspec/specs/runtime-platform` change only when the code merges.
-- If the TBT budget is still missed after 5.4, open a follow-up ticket for the remaining scripts (React hydration, PostHog), with the measured long tasks.
+- The budget was still missed after 5.4. The follow-up is [LAB-3100](https://linear.app/protocollabs/issue/LAB-3100), with the measured long tasks.

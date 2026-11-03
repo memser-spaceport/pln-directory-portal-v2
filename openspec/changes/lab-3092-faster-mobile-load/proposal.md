@@ -42,7 +42,7 @@ None.
 ### Modified Capabilities
 
 - `auth`: the sign-in system (Privy) is loaded only when a visitor starts to sign in, or is already signed in. Every existing sign-in, sign-out and session flow keeps working.
-- `runtime-platform`: a performance budget for signed-out mobile visitors on `/home`, `/jobs` and member pages, measured with Lighthouse.
+- `runtime-platform`: images on `/home` load lazily below the fold and declare their size, and a member profile's largest image is discoverable from the HTML. The mobile performance budget (Total Blocking Time and LCP targets) moved to the follow-up [LAB-3100](https://linear.app/protocollabs/issue/LAB-3100), because this change does not meet it on its own (see design.md, Risks).
 
 ## Impact
 

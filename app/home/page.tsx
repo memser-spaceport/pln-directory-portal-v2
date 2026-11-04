@@ -244,16 +244,25 @@ const getSignedInPageData = async (deepLinkedNewsUid?: string) => {
         .catch(() => null)
     : Promise.resolve(null);
 
-  const [newsResult, popularResult, digestResult, deepLinkedResult, rolesResult, eventsResult, portfolioResult] =
-    await Promise.allSettled([
-      getTeamNewsGroupedByFocusArea({}, authToken),
-      getTeamNewsPopular(undefined, authToken),
-      digestSettingsPromise,
-      deepLinkedNewsUid ? getTeamNewsItemByUid(deepLinkedNewsUid) : Promise.resolve(null),
-      getNewestRoles(),
-      getRailEvents(),
-      getPortfolioTeams(),
-    ]);
+  const [
+    newsResult,
+    popularResult,
+    digestResult,
+    deepLinkedResult,
+    rolesResult,
+    eventsResult,
+    portfolioResult,
+    projectCountsResult,
+  ] = await Promise.allSettled([
+    getTeamNewsGroupedByFocusArea({}, authToken),
+    getTeamNewsPopular(undefined, authToken),
+    digestSettingsPromise,
+    deepLinkedNewsUid ? getTeamNewsItemByUid(deepLinkedNewsUid) : Promise.resolve(null),
+    getNewestRoles(),
+    getRailEvents(),
+    getPortfolioTeams(),
+    getProjectFocusAreaCounts(),
+  ]);
 
   const newsResponse = settled(newsResult);
   const forYouMatch = resolveForYouMatch(newsResponse, SHOW_NEWS_PREFERENCES);
@@ -272,6 +281,7 @@ const getSignedInPageData = async (deepLinkedNewsUid?: string) => {
     roles: settled(rolesResult),
     events: settled(eventsResult),
     portfolio: mergePortfolio(PORTFOLIO_FALLBACK, settled(portfolioResult) ?? []),
+    projectFocusAreaCounts: settled(projectCountsResult),
   };
 };
 

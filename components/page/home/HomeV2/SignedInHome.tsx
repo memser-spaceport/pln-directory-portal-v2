@@ -34,6 +34,7 @@ export function SignedInHome({
   roles,
   events,
   portfolio,
+  projectFocusAreaCounts = null,
 }: {
   /** The production feed's data, as the previous Home's `TeamNews` takes it. */
   feed: HomeFeedProps;
@@ -43,6 +44,8 @@ export function SignedInHome({
   events: IHomeEvents | null;
   /** The merged portfolio, for the focus-area cards. */
   portfolio: PortfolioTeam[];
+  /** Projects per directory focus-area title; null when it failed, so every card keeps its Projects link. */
+  projectFocusAreaCounts?: Record<string, number> | null;
 }) {
   const analytics = useHomeAnalytics();
   const feed = useHomeFeed(feedProps, {
@@ -79,7 +82,7 @@ export function SignedInHome({
           <h2 id="home-focus-title" className={s.rowTitle}>
             Browse by focus area
           </h2>
-          <FocusAreaCards teams={portfolio} />
+          <FocusAreaCards teams={portfolio} projectCounts={projectFocusAreaCounts} />
         </section>
       </div>
     </div>

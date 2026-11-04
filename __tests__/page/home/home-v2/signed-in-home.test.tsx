@@ -196,14 +196,23 @@ const SUGGESTED: ISuggestedTeam[] = [
   { uid: 'st-1', name: 'Suggested One', logo: null, reason: 'Storage · 12 followers', shortDescription: null },
 ] as ISuggestedTeam[];
 
-function renderHome(items: ITeamNewsItem[], extra: { roles?: IHomeRoles | null; events?: IHomeEvents | null } = {}) {
+function renderHome(
+  items: ITeamNewsItem[],
+  extra: {
+    roles?: IHomeRoles | null;
+    events?: IHomeEvents | null;
+    portfolio?: React.ComponentProps<typeof SignedInHome>['portfolio'];
+    projectFocusAreaCounts?: Record<string, number> | null;
+  } = {},
+) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const ui: ReactElement = (
     <SignedInHome
       feed={{ groups: groupsOf(items), forYouTeamUids: [], popularItems: [] }}
       roles={extra.roles === undefined ? ROLES : extra.roles}
       events={extra.events === undefined ? EVENTS : extra.events}
-      portfolio={[]}
+      portfolio={extra.portfolio ?? []}
+      projectFocusAreaCounts={extra.projectFocusAreaCounts}
     />
   );
   return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
@@ -662,5 +671,24 @@ describe('The signed-in rail', () => {
 
     fireEvent.click(within(screen.getByRole('region', { name: 'Popular this week' })).getByRole('button'));
     expect(window.location.search).toBe('?news=pop');
+  });
+
+  it('shows the focus-area cards under the feed, with no Projects link for an area with no projects', () => {
+    renderHome([], {
+      projectFocusAreaCounts: {
+        'Digital Human Rights': 42,
+        'Economies & Governance': 8,
+        'AI & Robotics': 2,
+        Neurotech: 0,
+      },
+    });
+
+    const cards = within(screen.getByRole('list', { name: 'Browse the directory by focus area' })).getAllByRole(
+      'listitem',
+    );
+    expect(cards).toHaveLength(4);
+    const neuro = cards.find((c) => within(c).queryByRole('heading', { name: 'Neurotechnology' }))!;
+    expect(within(neuro).queryByRole('link', { name: 'Projects' })).not.toBeInTheDocument();
+    expect(within(neuro).getByRole('link', { name: 'Teams' })).toHaveAttribute('href', '/teams?focusAreas=Neurotech');
   });
 });

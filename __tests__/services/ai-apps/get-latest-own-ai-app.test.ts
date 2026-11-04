@@ -20,6 +20,10 @@ describe('getLatestOwnAiApp (LAB-3136)', () => {
     expect(getLatestOwnAiApp([app('b', 'other', '2026-11-04T10:00:00Z')], 'me')).toBeNull();
   });
 
+  it('lets a malformed date sort last instead of winning', () => {
+    expect(getLatestOwnAiApp([app('x', 'me', 'not a date'), ...apps], 'me')?.uid).toBe('c');
+  });
+
   it('returns null with no apps or no member', () => {
     expect(getLatestOwnAiApp([], 'me')).toBeNull();
     expect(getLatestOwnAiApp(apps, undefined)).toBeNull();

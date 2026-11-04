@@ -142,6 +142,8 @@ export function McpConnectionsPage() {
   // `?connection=<uid>[&scope=<key>]`: open that connection's drawer, with the scope set to write when the member may
   // set it. Nothing is saved until the member presses Save. An unknown connection opens nothing.
   useEffect(() => {
+    // The link was cleared (drawer closed): the same link opens the drawer again next time.
+    if (!connectionParam) handledConnectionRef.current = null;
     if (requestUid || !connectionParam || handledConnectionRef.current === connectionParam) return;
     if (!connections.isSuccess) return;
     handledConnectionRef.current = connectionParam;

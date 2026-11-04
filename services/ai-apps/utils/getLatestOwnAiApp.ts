@@ -6,10 +6,12 @@ import type { AiApp } from '../ai-apps.service';
  */
 export function getLatestOwnAiApp(apps: AiApp[], memberUid: string | null | undefined): AiApp | null {
   if (!memberUid) return null;
+  // A missing or malformed date sorts last instead of poisoning every comparison (NaN).
+  const time = (app: AiApp) => Date.parse(app.updatedAt) || 0;
   let latest: AiApp | null = null;
   for (const app of apps) {
     if (app.memberUid !== memberUid) continue;
-    if (!latest || Date.parse(app.updatedAt) > Date.parse(latest.updatedAt)) latest = app;
+    if (!latest || time(app) > time(latest)) latest = app;
   }
   return latest;
 }

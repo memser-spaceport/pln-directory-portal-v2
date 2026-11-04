@@ -11,7 +11,13 @@ import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS, PAGE_ROUTES } from '@/utils/constants';
 import { IUserInfo } from '@/types/shared.types';
-import { authEvents, AuthErrorCode, isDemoDayScopePage } from '../../../utils/authEvents';
+import {
+  authEvents,
+  InvalidEmailPayload,
+  isDemoDayScopePage,
+  readInvalidEmailPayload,
+} from '../../../utils/authEvents';
+import { useLoginRedirect } from '../../../utils/loginRedirect';
 import { ModalBase } from '@/components/common/ModalBase';
 import { Button } from '@/components/common/Button';
 import { useContactSupportStore } from '@/services/contact-support/store';
@@ -24,8 +30,10 @@ import { broadcastLogout } from '@/components/core/login/components/BroadcastCha
 
 interface ModalContent {
   title: string;
-  description: string;
+  description: ReactNode;
   reason: string;
+  /** ✕ in the corner instead of a Cancel button. */
+  closeButton?: boolean;
   submit?: {
     label: ReactNode;
     onClick: () => void;
@@ -61,15 +69,29 @@ const ERROR_CONTENT: Record<string, ModalContent> = {
     reason: 'rejected_access_level',
     onCancel: handleLogout,
   },
-  email_not_found: {
-    title: 'Email Not Found',
-    description:
-      "We couldn't find any user with this email in the system. Double-check your email or try a different one. If you believe this is an error, our support team can help.",
-    reason: 'email_not_found',
-  },
 };
 
 const DEFAULT_CONTENT: ModalContent = ERROR_CONTENT.unexpected_error;
+
+/**
+ * The "email not found" body (LAB-3127): names the address that was tried, then says what to do if you're new and
+ * what to do if you're already a member. Without the address, the first sentence leaves it out.
+ */
+function EmailNotFoundDescription({ email }: { email?: string }) {
+  return (
+    <>
+      {email ? (
+        <>
+          No member profile uses <strong className={s.email}>{email}</strong>.
+        </>
+      ) : (
+        'No member profile uses this email.'
+      )}{' '}
+      If you&apos;re new, sign up and we&apos;ll set up your profile. If you&apos;re a member, try the email on your
+      profile.
+    </>
+  );
+}
 
 /**
  * AuthInvalidUser - Handles auth error modal display
@@ -85,6 +107,7 @@ export function AuthInvalidUser() {
   const [open, toggleOpen] = useToggle(false);
   const { openModal } = useContactSupportStore((s) => s.actions);
   const analytics = useAuthAnalytics();
+  const goToLogin = useLoginRedirect();
 
   const { onAccessDeniedModalShown, onAccessDeniedUserNotWhitelistedModalShown } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
@@ -135,7 +158,8 @@ export function AuthInvalidUser() {
   };
 
   useEffect(() => {
-    function handleInvalidEmail(errorType: AuthErrorCode) {
+    function handleInvalidEmail(payload: InvalidEmailPayload) {
+      const { code: errorType, email } = readInvalidEmailPayload(payload);
       const isDemoDayDenied =
         errorType === 'no_demo_day_access' ||
         (isDemoDayScopePage(pathname) &&
@@ -183,7 +207,10 @@ export function AuthInvalidUser() {
           trackDemoDayAccess(userInfo);
         } else if (errorType === 'email_not_found') {
           setContent({
-            ...ERROR_CONTENT.email_not_found,
+            title: "This email isn't in the directory yet",
+            description: <EmailNotFoundDescription email={email} />,
+            reason: 'email_not_found',
+            closeButton: true,
             submit: {
               label: 'Sign up',
               onClick: () => {
@@ -192,7 +219,7 @@ export function AuthInvalidUser() {
                 handleModalClose();
                 const currentPath = window.location.pathname + window.location.search;
                 const returnTo = encodeURIComponent(currentPath);
-                router.replace(`${PAGE_ROUTES.SIGNUP}?returnTo=${returnTo}`);
+                router.push(`${PAGE_ROUTES.SIGNUP}?returnTo=${returnTo}`);
               },
             },
             footer: (
@@ -200,11 +227,13 @@ export function AuthInvalidUser() {
                 <Button
                   style="link"
                   onClick={() => {
+                    analytics.onInvalidUserTryAnotherEmailClicked({ reason: 'email_not_found' });
                     handleModalClose();
-                    openModal({ reason: 'email_not_found' });
+                    // The same door as Sign in: a fresh sign-in state, then the sign-in dialog opens again.
+                    goToLogin();
                   }}
                 >
-                  Contact Support
+                  Try another email
                 </Button>
               </div>
             ),
@@ -233,6 +262,7 @@ export function AuthInvalidUser() {
     openModal,
     trackDemoDayAccess,
     analytics,
+    goToLogin,
   ]);
 
   return (
@@ -241,15 +271,8 @@ export function AuthInvalidUser() {
       title={content.title}
       titleIcon={<WarningCircleIcon />}
       description={content.description}
-      cancel={
-        content.onCancel
-          ? {
-              onClick: content.onCancel,
-            }
-          : {
-              onClick: handleModalClose,
-            }
-      }
+      onClose={content.closeButton ? handleModalClose : undefined}
+      cancel={content.closeButton ? undefined : { onClick: content.onCancel ?? handleModalClose }}
       submit={
         content.submit
           ? content.submit

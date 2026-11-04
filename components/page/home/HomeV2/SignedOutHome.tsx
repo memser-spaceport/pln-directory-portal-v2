@@ -43,6 +43,7 @@ export function SignedOutHome({
   roles,
   events,
   portfolio,
+  projectFocusAreaCounts = null,
 }: {
   /** This week's three stories (pickThisWeek). */
   stories: ITeamNewsItem[];
@@ -54,6 +55,8 @@ export function SignedOutHome({
   events: IHomeEvents | null;
   /** The merged portfolio (Directory over the fallback file). */
   portfolio: PortfolioTeam[];
+  /** Projects per directory focus-area title; null when it failed, so every card keeps its Projects link. */
+  projectFocusAreaCounts?: Record<string, number> | null;
 }) {
   const [mapOpen, setMapOpen] = useState(false);
   const analytics = useHomeAnalytics();
@@ -141,7 +144,7 @@ export function SignedOutHome({
                 </button>
               )}
             </div>
-            <FocusAreaCards teams={portfolio} />
+            <FocusAreaCards teams={portfolio} projectCounts={projectFocusAreaCounts} />
           </section>
 
           <section className={clsx(explore.sectionTeams, s.storySection)} aria-labelledby="home-entities-title">

@@ -32,6 +32,9 @@ jest.mock('@/services/team-news/team-news.service', () => ({
 jest.mock('@/app/actions/jobs.actions', () => ({ getJobsList: jest.fn() }));
 jest.mock('@/services/events/events.service', () => ({ getUpcomingEvents: jest.fn() }));
 jest.mock('@/services/explore-pl-network/portfolio.service', () => ({ getPortfolioTeams: jest.fn() }));
+jest.mock('@/services/focus-areas/project-focus-area-counts.service', () => ({
+  getProjectFocusAreaCounts: jest.fn().mockResolvedValue(null),
+}));
 jest.mock('@/services/common.service', () => ({ getFocusAreas: jest.fn() }));
 jest.mock('@/services/featured.service', () => ({ getFeaturedData: jest.fn() }));
 jest.mock('@/services/discovery.service', () => ({ getDiscoverData: jest.fn() }));

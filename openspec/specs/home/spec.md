@@ -108,14 +108,20 @@ Under the map, the page SHALL show one card for each of the portfolio's four foc
 - a pile of those teams' logos;
 - the area's name and its one-line description;
 - "Teams →" to `/teams?focusAreas=<title>`;
-- "Projects →" to `/projects?focusAreas=<title>`.
+- "Projects →" to `/projects?focusAreas=<title>`, only when the directory has at least one project in that area. Without it, "Teams →" takes the whole foot of the card.
 
-`<title>` SHALL be the directory's own focus-area title (for example "Neurotech", not "Neurotechnology"), so that every link lands on a list that is not empty.
+`<title>` SHALL be the directory's own focus-area title (for example "Neurotech", not "Neurotechnology"), so that every link lands on a list that is not empty. When the project counts can't be loaded, every card SHALL keep its "Projects →" link.
 
 #### Scenario: Neurotech link
 
 - **WHEN** a visitor presses "Teams →" on the neurotechnology card
 - **THEN** `/teams?focusAreas=Neurotech` opens, filtered to at least one team
+
+#### Scenario: An area with no projects
+
+- **GIVEN** no project is in the Neurotech focus area
+- **WHEN** a visitor looks at the neurotechnology card
+- **THEN** it has "Teams →" and no "Projects →"
 
 ### Requirement: Home click analytics
 

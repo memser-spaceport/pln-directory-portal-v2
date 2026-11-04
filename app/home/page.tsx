@@ -52,6 +52,7 @@ import {
 import { getJobsList } from '@/app/actions/jobs.actions';
 import { getUpcomingEvents } from '@/services/events/events.service';
 import { getPortfolioTeams } from '@/services/explore-pl-network/portfolio.service';
+import { getProjectFocusAreaCounts } from '@/services/focus-areas/project-focus-area-counts.service';
 import { mergePortfolio } from '@/components/page/explore-pl-network/data/mergePortfolio';
 import { PORTFOLIO_FALLBACK } from '@/components/page/explore-pl-network/data/portfolio';
 import type { IHomeEvents, IHomeRoles } from '@/types/home.types';
@@ -199,13 +200,15 @@ async function getRailEvents(): Promise<IHomeEvents> {
  * and a failed portfolio call draws the map from the fallback file. Nothing here sends the page to `<Error/>`.
  */
 const getSignedOutPageData = async (deepLinkedNewsUid?: string) => {
-  const [newsResult, rolesResult, eventsResult, portfolioResult, deepLinkedResult] = await Promise.allSettled([
-    getTeamNewsGroupedByFocusArea({}),
-    getNewestRoles(),
-    getRailEvents(),
-    getPortfolioTeams(),
-    deepLinkedNewsUid ? getTeamNewsItemByUid(deepLinkedNewsUid) : Promise.resolve(null),
-  ]);
+  const [newsResult, rolesResult, eventsResult, portfolioResult, deepLinkedResult, projectCountsResult] =
+    await Promise.allSettled([
+      getTeamNewsGroupedByFocusArea({}),
+      getNewestRoles(),
+      getRailEvents(),
+      getPortfolioTeams(),
+      deepLinkedNewsUid ? getTeamNewsItemByUid(deepLinkedNewsUid) : Promise.resolve(null),
+      getProjectFocusAreaCounts(),
+    ]);
 
   const newsResponse = settled(newsResult);
   const newsItems = newsResponse
@@ -218,6 +221,7 @@ const getSignedOutPageData = async (deepLinkedNewsUid?: string) => {
     roles: settled(rolesResult),
     events: settled(eventsResult),
     portfolio: mergePortfolio(PORTFOLIO_FALLBACK, settled(portfolioResult) ?? []),
+    projectFocusAreaCounts: settled(projectCountsResult),
   };
 };
 

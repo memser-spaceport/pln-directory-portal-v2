@@ -29,7 +29,8 @@ export interface FocusAreaCard {
   /** The directory title the links filter by. */
   directoryTitle: string;
   teamsHref: string;
-  projectsHref: string;
+  /** Null when the directory has no project in this area, so the card offers no door to an empty list. */
+  projectsHref: string | null;
   /** The island's colour, which the logo pile sits on. */
   color: string;
   /** The merged portfolio's teams on this island. */
@@ -37,18 +38,26 @@ export interface FocusAreaCard {
   logos: { name: string; logo: string }[];
 }
 
-/** One card per focus area, in marketing's order: the name and line, the links, and the island's portfolio teams. */
-export function buildFocusAreaCards(teams: PortfolioTeam[]): FocusAreaCard[] {
+/**
+ * One card per focus area, in marketing's order: the name and line, the links, and the island's portfolio teams.
+ * `projectCounts` (projects per directory title) drops the Projects link for an area with none; without it (the
+ * counts failed to load) every card keeps its link.
+ */
+export function buildFocusAreaCards(
+  teams: PortfolioTeam[],
+  projectCounts?: Record<string, number> | null,
+): FocusAreaCard[] {
   return FOCUS_AREAS.map((area) => {
     const directoryTitle = FOCUS_AREA_DIRECTORY_TITLE[area.id];
     const inArea = teams.filter((t) => t.island === area.id);
+    const hasProjects = !projectCounts || (projectCounts[directoryTitle] ?? 0) > 0;
     return {
       id: area.id,
       name: area.name,
       line: area.line,
       directoryTitle,
       teamsHref: `/teams?focusAreas=${encodeURIComponent(directoryTitle)}`,
-      projectsHref: `/projects?focusAreas=${encodeURIComponent(directoryTitle)}`,
+      projectsHref: hasProjects ? `/projects?focusAreas=${encodeURIComponent(directoryTitle)}` : null,
       color: ISLAND_COLOR[area.id] ?? 'var(--foreground-brand-primary, #1b4dff)',
       count: inArea.length,
       logos: inArea.slice(0, FOCUS_LOGO_PILE).map((t) => ({ name: t.name, logo: t.logo })),

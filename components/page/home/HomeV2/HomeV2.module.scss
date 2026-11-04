@@ -701,6 +701,11 @@ $band-inset-phone: 24px;
   border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 }
 
+/* An area with no projects has only the Teams door, which then takes the whole foot. */
+.focusDoorsSingle {
+  grid-template-columns: 1fr;
+}
+
 .focusDoor {
   display: flex;
   align-items: center;

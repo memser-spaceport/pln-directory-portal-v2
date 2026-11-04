@@ -5,6 +5,7 @@ import { getAnalyticsMemberInfo, getAnalyticsUserInfo, getProfileFromURL } from 
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { recordMemberSignal } from '@/services/member-signals/member-signals.service';
 
 import s from './ContactDetails.module.scss';
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -77,6 +78,12 @@ export const ContactDetails = ({ member, isLoggedIn, onEdit, variant = 'default'
       type,
       url,
     );
+    recordMemberSignal({ action: 'contact-click', entityType: 'member', entityId: member.id });
+  };
+
+  // No copy button exists; a copy of anything in the contact block counts as a contact copy.
+  const onContactCopy = () => {
+    recordMemberSignal({ action: 'contact-copy', entityType: 'member', entityId: member.id });
   };
 
   return (
@@ -84,6 +91,7 @@ export const ContactDetails = ({ member, isLoggedIn, onEdit, variant = 'default'
       className={clsx(s.root, {
         [s.missingData]: showIncomplete && isLoggedIn && isOwner,
       })}
+      onCopy={onContactCopy}
     >
       {showIncomplete && (
         <DataIncomplete className={s.incompleteStrip}>

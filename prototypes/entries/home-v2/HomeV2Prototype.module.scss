@@ -1271,6 +1271,18 @@ $band-inset-phone: 24px;
   }
 }
 
+// Title block on the left, production's search field on the right (NewsSearch hides itself on phones).
+.newsPageHeadRow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+
+  > :last-child {
+    max-width: 360px;
+  }
+}
+
 .newsPageHead {
   display: flex;
   flex-direction: column;
@@ -1300,7 +1312,7 @@ $band-inset-phone: 24px;
   line-height: 20px;
 }
 
-// 3 columns on desktop, 2 on tablet, 1 on phones; cards in a row share a height.
+// 2 columns from tablet up, 1 on phones; cards in a row share a height.
 .newsGrid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -1311,10 +1323,6 @@ $band-inset-phone: 24px;
 
   @include media.tablet-portrait {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  @include media.desktop {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   > li {
@@ -1328,7 +1336,22 @@ $band-inset-phone: 24px;
   min-width: 0;
 }
 
-// In a third of the row the headline gets two lines and the summary three,
+// The card's media under its text: the image or video poster at the card's full inner
+// width, pushed to the card's floor with the meta line, so a row's images line up
+// whatever the text above them holds. (VideoThumb is a fixed 168px column in the feed,
+// so its width is reset here; the doubled class outranks NewsVideo's single-class rules.)
+.newsGridMedia.newsGridMedia {
+  display: flex;
+  margin-top: auto;
+
+  > * {
+    flex: 1 1 auto;
+    width: 100%;
+    margin: 0;
+  }
+}
+
+// In half the row the headline gets two lines and the summary three,
 // so cards in one row keep a common rhythm.
 .newsGridHeadline.newsGridHeadline {
   display: -webkit-box;
@@ -1347,6 +1370,11 @@ $band-inset-phone: 24px;
   flex-wrap: wrap;
   gap: 8px;
   margin-top: auto;
+}
+
+// With media above it, the media takes the free space; the meta line follows it at the card's gap.
+.newsGridMedia + .newsGridMeta.newsGridMeta {
+  margin-top: 0;
 }
 
 /* The All pill carries no count, so at production's 6px padding it is the narrowest chip in the row,

@@ -114,6 +114,38 @@ export const PROD_TAGS_BY_UID: Record<string, string[]> = {
   n2: ['announce', 'join', 'cryptographic-proofs'], // League of Entropy grows to 24 operators
 };
 
+const unsplash = (id: string) => `https://images.unsplash.com/photo-${id}?w=960&q=70&auto=format&fit=crop`;
+
+/**
+ * Images for every news story the prototype shows (Unsplash stock, chosen per
+ * story): the week's six on Home, all 23 on See all news. Production news has
+ * no image field yet. n1, n5 and n7 have none: their video holds the slot.
+ */
+export const IMAGE_BY_UID: Record<string, string> = {
+  /* The week's stories (Home's feed). */
+  x1: unsplash('1558494949-ef010cbdcc31'), // server racks: Prime Intellect's compute raise
+  x2: unsplash('1677442136019-21780ecad995'), // "AI" letterforms: inference marketplace
+  n10: unsplash('1451187580459-43490279c0fa'), // night-side earth lights: peer routing
+  x3: unsplash('1518770660439-4636190af475'), // circuit board: on-device sharding
+  n2: unsplash('1639762681485-074b7f938ba0'), // linked blocks: randomness network
+  /* The rest of See all news. */
+  'news-posted-1': unsplash('1522071820081-009f0129c71c'), // team at a table: network residency
+  'news-posted-2': unsplash('1540575467063-178a50c2df87'), // conference audience: IPFS Camp
+  r1: unsplash('1581091226825-a6a2a5aee158'), // engineer in a robotics lab: robot foundation models
+  r2: unsplash('1544197150-b99a580bb7a8'), // patch-panel cables: robot telemetry
+  r3: unsplash('1485827404703-89b55fcc595e'), // service robot: grasp dataset
+  'bac-news-1': unsplash('1526374965328-7f61d4dc18c5'), // green code rain: compute over data
+  'bac-news-2': unsplash('1532187863486-abf9dbad1b69'), // pipette over sample tubes: genomics
+  n11: unsplash('1552664730-d307ca884978'), // team meeting: headcount doubles
+  n3: unsplash('1559526324-4b87b5e36e44'), // laptop dashboard: seed extension
+  n4: unsplash('1531297484001-80022131f5a1'), // laptop on a desk: 10,000 builders
+  n12: unsplash('1620712943543-bcc4688e7485'), // AI render: open-source AI tooling grants
+  n13: unsplash('1461749280684-dccba630e2f6'), // code on screen: developer portal
+  n6: unsplash('1597852074816-d933c7d2b988'), // open hard drive: 2,000 PiB of storage
+  n8: unsplash('1561557944-6e7860d1a7eb'), // light installation: peer discovery
+  n9: unsplash('1550751827-4bd374c3f58b'), // lit circuit panel: identity working group
+};
+
 /**
  * The Join card's facepile: three network founders, with the photo each one
  * published on their own directory profile (live members API, read

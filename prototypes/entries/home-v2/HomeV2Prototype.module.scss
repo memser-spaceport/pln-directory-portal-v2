@@ -1,0 +1,1356 @@
+@use 'styles/media';
+
+.mountShell {
+  min-height: 100vh;
+}
+
+/* ---------- Signed out: the Explore sheet on directory chrome ---------- */
+
+// Explore's grey page ground (ExplorePlNetworkView .page), without its min-height
+// fight with the directory navbar.
+// The 2026-10-30 mock's neutral ground (no blue cast): the DS's soft neutral
+// surface, the token production's ForYouHint fills with.
+.storyPage {
+  background: var(--background-neutral-soft-surface, #f9fafb);
+}
+
+/* Portfolio and everything under it: a full-bleed white band. The Explore root
+   keeps its width and gutters; the grey ground, the sheet's radius and its
+   shadow come off, so nothing reads as a card floating on blue-grey. */
+.whiteBand.whiteBand {
+  max-width: none;
+  background: var(--background-neutral-default, #fff);
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.whiteSheet.whiteSheet {
+  max-width: 1344px;
+  margin: 0 auto;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Bands on the page ground share Explore's content measure (2026-11-03): its
+   sections are 1184px wide (ExplorePlNetworkView .sectionTeams), so the hero,
+   the figures and this week line up with the portfolio, entities and logo wall
+   below instead of stopping 150px short of them on wide screens. The gutters
+   step up with the window, and from 1440 the bands breathe like Explore's
+   desktop-hd sheet. */
+// The white band's edges: Explore's .root gutter (16; 8 on phones) plus its
+// .content padding (80; 32 on tablet portrait; 16 on phones), inside the
+// 1344px sheet. Bands use the same inset at every width so the left edges of
+// every section line up all the way down the page.
+$band-sheet: 1344px + 2 * 16px;
+$band-inset: 96px;
+$band-inset-tablet: 48px;
+$band-inset-phone: 24px;
+
+.storyBand {
+  width: 100%;
+  max-width: $band-sheet;
+  margin: 0 auto;
+  padding: 48px $band-inset;
+
+  @include media.tablet-portrait-only {
+    padding: 40px $band-inset-tablet;
+  }
+
+  @include media.mobile-only {
+    padding: 32px $band-inset-phone;
+  }
+
+  @include media.desktop-hd {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+}
+
+/* 1. Intro + Join card. The copy is now shorter than the card (no overline, no
+   lede), so the two are centred on each other; bottom-aligned, the copy sank and
+   left an empty band above the headline. */
+.introGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+
+  @include media.tablet-landscape {
+    grid-template-columns: minmax(0, 1fr) 344px;
+    gap: 64px;
+    align-items: center;
+  }
+}
+
+// EditorialIntro's header, left-aligned (production centres it on Explore).
+.introHeader.introHeader {
+  align-items: flex-start;
+  max-width: none;
+  text-align: left;
+  gap: 16px;
+}
+
+// 2026-11-02 standup: 48/56 read too large against the rest of the page; 32/40
+// then read slightly small for a hero H1 (user, 2026-11-03), so desktop sits
+// between at 40/48. Phones keep 32/40. The H1 is the mission sentence, so it
+// wraps to two lines: balanced, not ragged.
+.introTitle.introTitle {
+  font-size: 32px;
+  line-height: 40px;
+  letter-spacing: -0.8px;
+  text-wrap: balance;
+
+  @include media.tablet-landscape {
+    font-size: 40px;
+    line-height: 48px;
+    letter-spacing: -1.1px;
+  }
+}
+
+// The only line under the H1 now the lede is gone, so it carries the hero at
+// 16/24 (14/22 on phones). The measure is held to about the headline's width, so
+// the paragraph doesn't run past it, and `pretty` keeps a lone last word ("more.")
+// off a line of its own.
+.introBody.introBody {
+  max-width: 600px;
+  text-align: left;
+  gap: 8px;
+
+  p {
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: -0.2px;
+    text-wrap: pretty;
+
+    @include media.mobile-only {
+      font-size: 14px;
+      line-height: 22px;
+    }
+  }
+}
+
+.joinCard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  background: var(--background-neutral-default, #fff);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 16px;
+}
+
+.joinHead {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.joinTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.joinText {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.joinBtn.joinBtn {
+  width: 100%;
+  justify-content: center;
+}
+
+// "or" on a hairline, the auth forms' divider.
+.joinOr {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: -4px 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+}
+
+.joinProof {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+// The team profile's facepile at 28px for three founders' photos: same 2px
+// white ring and a proportionally deeper overlap (-7 at 20 → -9 at 28).
+.joinFace.joinFace {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  border-width: 2px;
+  background: var(--background-neutral-default, #fff);
+
+  & + & {
+    margin-left: -9px;
+  }
+}
+
+/* The figures band: full-bleed white with hairlines above and below. */
+.factsBand {
+  background: var(--background-neutral-default, #fff);
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: 100%;
+  max-width: $band-sheet;
+  margin: 0 auto;
+  padding: 28px $band-inset;
+
+  @include media.tablet-portrait-only {
+    padding: 28px $band-inset-tablet;
+  }
+
+  @include media.mobile-only {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 20px;
+    padding: 24px $band-inset-phone;
+  }
+
+  @include media.desktop-hd {
+    padding-top: 36px;
+    padding-bottom: 36px;
+  }
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 24px;
+  border-left: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  &:first-child {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  @include media.mobile-only {
+    padding: 0 16px;
+
+    &:nth-child(odd) {
+      padding-left: 0;
+      border-left: 0;
+    }
+  }
+}
+
+// EditorialIntro's .edFactValue numbers, at the band's size.
+.factValue {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 40px;
+  letter-spacing: -0.8px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 2. News beside PL Entities */
+.newsEntities {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+
+  @include media.tablet-landscape {
+    grid-template-columns: minmax(0, 1fr) 344px;
+    gap: 40px;
+  }
+}
+
+.newsPreview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.sideHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.sideTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.sideLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.newsPreviewList {
+  padding: 4px 20px;
+  background: var(--background-neutral-default, #fff);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 16px;
+
+  @include media.mobile-only {
+    padding: 4px 16px;
+  }
+}
+
+// cardFlat's first row drops its top padding for a bare list; inside a box
+// every row keeps it.
+.newsPreviewRow.newsPreviewRow {
+  padding: 20px 0;
+}
+
+// The time leaves the meta line for the head row, so it takes the meta line's
+// type with it (NewsCard .meta: 12/16 tertiary) rather than the head's 16px.
+.newsPreviewTime.newsPreviewTime {
+  margin-left: auto;
+  white-space: nowrap;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+// The DS Badge is 14/20; uppercase at that size out-shouts the headline.
+// Uppercase reads a step larger than mixed case, so 10/14 at 600 lands at the
+// visual size of production's own event label (NewsCard .eventLabel, 12px),
+// in a tighter pill.
+.newsPreviewBadge.newsPreviewBadge {
+  padding: 2px 6px;
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* The entities as a row under the portfolio: Explore's five across, 2 on tablets, 1 on phones. */
+.entityGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include media.tablet-portrait-only {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include media.mobile-only {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+}
+
+.entityItem {
+  display: flex;
+}
+
+.entityCard {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 20px;
+  background: var(--background-neutral-default, #fff);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 16px;
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+}
+
+.entityName {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.entityLine {
+  flex: 1;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.entityDomain {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 4px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.entityCard:hover .entityDomain {
+  text-decoration: underline;
+}
+
+.storySection.storySection {
+  padding-top: 0;
+}
+
+/* The logo wall closes the content, above the footer. */
+.storyEnd.storyEnd {
+  padding-bottom: 64px;
+}
+
+/* Footer (2026-11-03): full-bleed on the page ground under the white band, on
+   the bands' measure so its left edge lines up with every section above. */
+.footer {
+  background: var(--background-neutral-soft-surface, #f9fafb);
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.footerInner {
+  width: 100%;
+  max-width: $band-sheet;
+  margin: 0 auto;
+  padding: 48px $band-inset 32px;
+
+  @include media.tablet-portrait-only {
+    padding: 40px $band-inset-tablet 28px;
+  }
+
+  @include media.mobile-only {
+    padding: 32px $band-inset-phone 24px;
+  }
+}
+
+.footerTop {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 32px;
+
+  @include media.tablet-landscape {
+    grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+    gap: 64px;
+  }
+}
+
+.footerBrand {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.footerLogo {
+  display: inline-flex;
+  width: fit-content;
+}
+
+.footerMission {
+  margin: 0;
+  max-width: 280px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.footerCols {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+
+  @include media.mobile-only {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 28px;
+  }
+}
+
+.footerColTitle {
+  margin: 0 0 12px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.footerLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.footerLink {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+    text-decoration: underline;
+  }
+}
+
+.footerBottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 24px;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.footerSupport {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration: underline;
+  }
+}
+
+.storyColumn {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 720px;
+}
+
+/* Phone-only clamp on the islands map: it fades out on the map's own black. */
+.mapClamp {
+  position: relative;
+  width: 100%;
+
+  @include media.mobile-only {
+    max-height: 640px;
+    overflow: hidden;
+    border-radius: 16px;
+  }
+}
+
+.mapClampOpen.mapClampOpen {
+  max-height: none;
+}
+
+.mapMore {
+  display: none;
+
+  @include media.mobile-only {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    position: absolute;
+    inset: auto 0 0;
+    height: 160px;
+    padding: 0 0 24px;
+    border: 0;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0), #000 70%);
+    color: var(--Neutral-White, #fff);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+    cursor: pointer;
+  }
+}
+
+/* Focus areas as category cards (2026-11-03; Coda's banded category cards,
+   Headspace's tiles with a door at the foot). Four across, 2 on tablets, 1 on
+   phones; every card the same height so the door rows line up. */
+.focusAreas {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include media.tablet-portrait-only {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include media.mobile-only {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+}
+
+// No colour band on top (2026-11-03): the island colour stays on the logo pile only.
+.focusCard {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--background-neutral-default, #fff);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 16px;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+  }
+}
+
+.focusBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 24px 20px 20px;
+}
+
+.focusMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+// The team pile at 24px with square-ish corners (logos, not faces). The portfolio
+// logos are the map's white glyphs, so each sits on its island's colour, as on
+// the map's hexes; on white they disappear.
+.focusLogo.focusLogo {
+  width: 24px;
+  height: 24px;
+  padding: 3px;
+  border-radius: 6px;
+  border-width: 2px;
+  object-fit: contain;
+  background: var(--focus-color);
+
+  & + & {
+    margin-left: -6px;
+  }
+}
+
+.focusCount {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.focusName {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+}
+
+.focusLine {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+  text-wrap: pretty;
+}
+
+// The two doors split the card's foot, divided by hairlines.
+.focusDoors {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.focusDoor {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 20px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: none;
+  transition: background 0.15s ease;
+
+  & + & {
+    border-left: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+
+  svg {
+    transition: transform 0.15s ease;
+  }
+
+  &:hover {
+    background: var(--background-brand-subtle, #eef2ff);
+
+    svg {
+      transform: translateX(2px);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: -2px;
+  }
+}
+
+/* A section heading at the directory's rail-title size, for rows under the feed. */
+.rowTitle {
+  margin: 0 0 16px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+}
+
+.railNote {
+  margin: 4px 0 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.inlineLink {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* ---------- Signed in ---------- */
+
+/* Fluid instead of a fixed 1040px: the feed takes the window's width up to the Explore sheet's 1344px. */
+.memberPage.memberPage {
+  @media (min-width: 1024px) {
+    width: 100%;
+    max-width: 1344px;
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* WeekFeed: title, tabs, then the feed's full cards on the page ground. */
+.weekFeed {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+// The header's right end: the jump link (cue 'jump') and production's search, on one line.
+.weekHeadActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Multi-tag scope row under the pills: chips, count, Follow / Clear all, then "Narrow by" suggestions. */
+.tagScope {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin: -4px 0 8px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.tagSuggest {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+
+  @include media.mobile-only {
+    margin-left: 0;
+  }
+}
+
+.tagSuggestLabel {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+// Quiet add-chips: dashed outline so they read as offers, not as applied filters.
+.tagAdd {
+  padding: 2px 8px;
+  background: transparent;
+  border: 1px dashed var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  border-radius: 9999px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+
+  &:hover {
+    background: var(--background-brand-subtle, #eef2ff);
+    border-color: rgba(27, 77, 255, 0.4);
+    border-style: solid;
+  }
+}
+
+.weekEmpty {
+  margin: 8px 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+// Production's description line (NewsBase `.sub`) pulls up 8px against its
+// section's 16px gap; this column's gap is 12px, so 4px more keeps production's
+// 8px between the title and the line.
+.weekSub.weekSub {
+  margin-top: -4px;
+}
+
+// The DS underline tabs with a hairline for the indicator to sit on, as in
+// home-refactor-b's module, but flush with the column instead of bleeding out
+// of a card's padding.
+.weekTabs.weekTabs {
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+// Production's filter bar sits 4px under its tabs; the column's 12px gap
+// already spaces it, and 8px below keeps it with the tabs, not the first card.
+.weekFilterBar.weekFilterBar {
+  margin: 0 0 8px;
+}
+
+/* For You caption: production ForYouHint's 14/20 secondary type and brand
+   link, without its grey box. It names the pill just chosen, so it hangs 8px
+   under the filter bar (pulling back the bar's margin) and keeps the stream's
+   20px below it. One line on desktop; on a phone the link wraps to the
+   content edge rather than hugging the right. */
+.forYouCaption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+  margin: -12px 0 8px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+
+  @include media.mobile-only {
+    justify-content: flex-start;
+  }
+}
+
+.forYouText {
+  min-width: 0;
+}
+
+.forYouLabel {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-weight: 600;
+}
+
+.forYouDot {
+  margin: 0 6px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.forYouLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+
+  svg {
+    transition: transform 0.15s ease;
+  }
+
+  &:hover {
+    text-decoration: underline;
+
+    svg {
+      transform: translateX(2px);
+    }
+  }
+}
+
+// Production's `.topStories` sits 16px over the stream; with the column's 12px
+// gap, 8px more lands it at the feed list's own 20px card rhythm.
+.topStoriesBand {
+  margin-bottom: 8px;
+}
+
+/* The cut: the card after the cap, clipped and faded into the page ground,
+   with "See all" sitting on the fade. Inert, so it can't be half-clicked. */
+.cutCard {
+  position: relative;
+  max-height: 140px;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(241, 245, 249, 0) 0%,
+      var(--background-neutral-subtle, #f1f5f9) 92%
+    );
+    pointer-events: none;
+  }
+}
+
+/* WeekFeed's cut that follows the rail: the list clips at the rail's end (an
+   inline max-height) and its last CUT_PEEK px fade into the page ground. Cards
+   keep their natural height under the clip, so they can be measured. */
+.cutList {
+  position: relative;
+}
+
+.cutListFaded {
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0;
+    height: 140px;
+    background: linear-gradient(
+      to bottom,
+      rgba(241, 245, 249, 0) 0%,
+      var(--background-neutral-subtle, #f1f5f9) 92%
+    );
+    pointer-events: none;
+  }
+}
+
+.cutSeeAll.cutSeeAll {
+  position: relative;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// Pulled up onto the fade so the link reads as the cut's own edge; only when
+// there is a fade (a filtered list shorter than the cap ends on a whole card).
+.cutSeeAllOnFade.cutSeeAllOnFade {
+  margin-top: -36px;
+}
+
+.jumpLink.jumpLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.reposSection {
+  scroll-margin-top: 24px;
+}
+
+// Review band only: four states don't fit one row at 375px.
+.reviewSwitch.reviewSwitch {
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+
+// Production's `repeat(4, 1fr)` lets min-content widen the columns past the page
+// column, and leaves an empty fourth column when a member has three cards (no
+// deals). One equal column per card keeps the band flush with the week module
+// and rail under it in both states.
+.qaGrid.qaGrid {
+  @include media.tablet-landscape {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+  }
+}
+
+/* DealsRail: the vendor mark in the rail's 24px logo box (hr.jobLogo), on white
+   with production DealCard's avatar border, its glyph scaled to fit. */
+/* Deals panel (2026-11-03): kicker + title, white rows on the tint, a value pill per offer. */
+.dealsHead {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.dealsKicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.2px;
+}
+
+.dealsTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.dealList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dealRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: var(--background-neutral-default, #fff);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+.dealMark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  overflow: hidden;
+  background: var(--background-neutral-default, #fff);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 10px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 600;
+
+  svg,
+  img {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+  }
+}
+
+.dealText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dealNameRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dealName {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+// The offer's value as the scannable bit (Revolut's "Discount · 25%", SoundCloud's pill).
+.dealValue {
+  padding: 1px 6px;
+  background: var(--background-success-subtle, #ecfdf3);
+  border-radius: 6px;
+  color: var(--foreground-success-primary, #067647);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.dealLine {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.dealsAll {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 14px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: none;
+
+  svg {
+    transition: transform 0.15s ease;
+  }
+
+  &:hover svg {
+    transform: translateX(2px);
+  }
+}
+
+.newsRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+
+  @include media.tablet-landscape {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    align-items: start;
+  }
+}
+
+.rail {
+  min-width: 0;
+}
+
+/* The signed-in rail as ONE sidebar card (2026-10-30, Digg's Daily /
+   Discover Communities / Featured Posts column): the modules keep their own
+   titles, rows and See all, and lose their card chrome so they read as
+   sections of one surface. Not sticky: a sidebar taller than the window
+   can't stick without hiding its own end. */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 20px;
+  background: var(--background-neutral-default, #fff);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 16px;
+
+  // Tripled to outrank each module's own card classes (`.card`, the doubled
+  // `.railCard.railCard`, NewsRail's `.railCard`) and their hover shadow.
+  &.sidebar.sidebar > *,
+  &.sidebar.sidebar > *:hover {
+    margin: 0;
+    padding: 20px 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  &.sidebar.sidebar > * + * {
+    border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+}
+
+/* DealsRail on a filled panel that bleeds to the sidebar's edges (its 20px side
+   padding), so the perk reads apart from the network lists around it. The fill
+   replaces the hairlines on both sides. Outranks the sidebar's tripled reset. */
+// 2026-11-03: on the sidebar's white like every other module (the user asked for
+// white over the blue tint); the hairlines above and below stay. The "Portfolio
+// perks" kicker and the bordered rows are what set it apart now.
+
+.modalEmail {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-weight: 600;
+  word-break: break-all;
+}
+
+/* ---------- ?view=news: "See all news" ---------- */
+
+.newsPage {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.newsBack {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.newsPageHead {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+// The directory's page headline size (NetworkUpdatesBase's 32/40), one rank above the Home section titles.
+.newsPageTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 40px;
+  letter-spacing: -0.8px;
+
+  @include media.mobile-only {
+    font-size: 24px;
+    line-height: 32px;
+    letter-spacing: -0.6px;
+  }
+}
+
+.newsPageSub {
+  margin: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+// 3 columns on desktop, 2 on tablet, 1 on phones; cards in a row share a height.
+.newsGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+
+  @include media.tablet-portrait {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include media.desktop {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  > li {
+    display: flex;
+    min-width: 0;
+  }
+}
+
+.newsGridCard.newsGridCard {
+  width: 100%;
+  min-width: 0;
+}
+
+// In a third of the row the headline gets two lines and the summary three,
+// so cards in one row keep a common rhythm.
+.newsGridHeadline.newsGridHeadline {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.newsGridSummary.newsGridSummary {
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
+// The meta line sits on the card's floor whatever the text above it holds.
+.newsGridMeta.newsGridMeta {
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+}
+
+/* The All pill carries no count, so at production's 6px padding it is the narrowest chip in the row,
+   tighter than a word deserves; 12px gives it the weight of the counted pills beside it. */
+.catAll.catAll {
+  padding: 2px 12px;
+}

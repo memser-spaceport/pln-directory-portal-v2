@@ -16,6 +16,8 @@ type ComposerProps = React.ComponentProps<'textarea'> & {
   isLimitReached?: boolean;
   /** `home` is the new-chat page's field: two lines tall at rest. */
   size?: 'home' | 'thread';
+  /** Inside the field, above the text: what the question is asked about (the scope chip). */
+  leading?: React.ReactNode;
 };
 
 /**
@@ -47,6 +49,7 @@ const Composer = React.forwardRef<HTMLTextAreaElement, ComposerProps>(function C
     onChange,
     size = 'thread',
     defaultValue,
+    leading,
     ...props
   },
   ref,
@@ -69,7 +72,8 @@ const Composer = React.forwardRef<HTMLTextAreaElement, ComposerProps>(function C
   const canSend = hasText && !isAnswerLoading && !streaming;
 
   return (
-    <div className={clsx(s.root, size === 'home' && s.home, className)}>
+    <div className={clsx(s.root, size === 'home' && s.home, !!leading && s.withLeading, className)}>
+      {leading && <div className={s.leading}>{leading}</div>}
       <textarea
         {...props}
         ref={ref}

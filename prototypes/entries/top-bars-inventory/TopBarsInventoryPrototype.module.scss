@@ -1,0 +1,40 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  padding: 32px 16px 80px;
+  max-width: 1440px;
+  margin: 0 auto;
+  background: var(--color-background-subtle, #f8fafc);
+}
+
+.example {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-strong, #0f172a);
+}
+
+.note {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: var(--color-text-subtle, #475569);
+}
+
+.frame {
+  border: 1px solid var(--color-border-default, #e2e8f0);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+
+  /* PrototypeNavBar is a sticky <header>; inside a gallery card it should just sit in flow. */
+  :global(header) {
+    position: static !important;
+  }
+}

@@ -115,7 +115,7 @@ interface Props {
   /** Present = the hashtags are links that filter the feed (the parent closes the modal). */
   onSelectTopic?: (tag: string) => void;
   /** The feed's current topic filter, shown selected on the tags. */
-  activeTopic?: string;
+  activeTopic?: string | string[];
 }
 
 /**

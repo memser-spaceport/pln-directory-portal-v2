@@ -101,6 +101,23 @@ const CARD_ACCENTS: { key: CardAccent; label: string }[] = [
  */
 export type AskAiPlacement = 'header' | 'strip';
 
+/**
+ * Where Ask AI lands. `view`: the AI Search view over the profile (the first
+ * take, kept on member-profile and member-follow). `tab`: the AI Search page
+ * in a new tab with the person attached as context — how AI Search works
+ * since it became a page of its own (`ai-search-page`, /ai-search on
+ * develop). The profile stays open behind it.
+ */
+export type AskAiOpens = 'view' | 'tab';
+
+/** The AI Search page prototype, with this profile attached (`?about=member`). */
+export function memberAiSearchUrl(question?: string, hasOfficeHours = true): string {
+  const params = new URLSearchParams({ about: 'member' });
+  if (question) params.set('q', question);
+  if (!hasOfficeHours) params.set('oh', '0');
+  return `/prototypes/ai-search-page?${params.toString()}`;
+}
+
 export default function MemberProfilePrototype() {
   return <MemberProfilePage askAi="header" />;
 }
@@ -120,7 +137,15 @@ export default function MemberProfilePrototype() {
  * its intro note are gone. The review band's Office hours switch shows both
  * states.
  */
-export function MemberProfilePage({ askAi, follow = false }: { askAi: AskAiPlacement; follow?: boolean }) {
+export function MemberProfilePage({
+  askAi,
+  follow = false,
+  aiOpens = 'view',
+}: {
+  askAi: AskAiPlacement;
+  follow?: boolean;
+  aiOpens?: AskAiOpens;
+}) {
   // Reusing interactive production components — gate on a mounted flag so SSR ===
   // first client render and we avoid hydration drift.
   const [mounted, setMounted] = useState(false);
@@ -158,6 +183,10 @@ export function MemberProfilePage({ askAi, follow = false }: { askAi: AskAiPlace
      header link and "Ask your own question" open it idle (request null). */
   const [aiRequest, setAiRequest] = useState<AiSearchRequest | null>(null);
   const openAi = (question?: string) => {
+    if (aiOpens === 'tab') {
+      window.open(memberAiSearchUrl(question, hasOfficeHours), '_blank');
+      return;
+    }
     setAiRequest(question ? { question, origin: null, nonce: Date.now() } : null);
     setAiOpen(true);
   };

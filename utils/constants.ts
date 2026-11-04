@@ -715,6 +715,14 @@ export const HOME_ANALYTICS_EVENTS = {
   DISCOVER_HUSKY_AI_CLICKED: 'discover-husky-ai-clicked',
   FEATURED_FILTER_CLICKED: 'home_featured_filter_click',
   WELCOME_SIGNIN_CLICKED: 'home-welcome-signin-clicked',
+
+  // The new Home (LAB-3070 / LAB-3072).
+  AUTH_DOOR_CLICKED: 'home-auth-door-clicked',
+  NEWS_PICK_CLICKED: 'home-news-pick-clicked',
+  ROLE_CLICKED: 'home-role-clicked',
+  EVENT_CLICKED: 'home-event-clicked',
+  FOCUS_AREA_CLICKED: 'home-focus-area-clicked',
+  SEE_ALL_CLICKED: 'home-see-all-clicked',
 };
 
 export const TEAM_NEWS_ANALYTICS_EVENTS = {

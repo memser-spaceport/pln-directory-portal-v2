@@ -40,6 +40,21 @@ import {
   codesFromCookiePolicies,
   codesFromCookiePermissions,
 } from '@/components/page/home/QuickActions/utils/resolveQuickActionsState';
+import { SHOW_HOME_V2 } from '@/utils/home-v2';
+import { SignedOutHome } from '@/components/page/home/HomeV2';
+import { pickThisWeek } from '@/components/page/home/HomeV2/utils/pickThisWeek';
+import { flattenNewestRoles, HOME_ROLES_MAX } from '@/components/page/home/HomeV2/utils/flattenNewestRoles';
+import {
+  HOME_EVENTS_DAYS,
+  HOME_EVENTS_LIMIT,
+  selectUpcomingEvents,
+} from '@/components/page/home/HomeV2/utils/upcomingEvents';
+import { getJobsList } from '@/app/actions/jobs.actions';
+import { getUpcomingEvents } from '@/services/events/events.service';
+import { getPortfolioTeams } from '@/services/explore-pl-network/portfolio.service';
+import { mergePortfolio } from '@/components/page/explore-pl-network/data/mergePortfolio';
+import { PORTFOLIO_FALLBACK } from '@/components/page/explore-pl-network/data/portfolio';
+import type { IHomeEvents, IHomeRoles } from '@/types/home.types';
 
 type HomeProps = {
   searchParams: Promise<{ news?: string }>;
@@ -47,6 +62,15 @@ type HomeProps = {
 
 export default async function Home(props: HomeProps) {
   const { news } = await props.searchParams;
+
+  // The new Home (LAB-3070): signed out, the story page (LAB-3072). Signed in stays the previous Home until LAB-3125.
+  if (SHOW_HOME_V2) {
+    const { isLoggedIn } = await getCookiesFromHeaders();
+    if (!isLoggedIn) {
+      return renderSignedOutHome(news);
+    }
+  }
+
   const {
     isLoggedIn,
     isError,
@@ -109,6 +133,69 @@ export default async function Home(props: HomeProps) {
     </>
   );
 }
+
+/** The signed-out story page: the mission is its only `<h1>`, so neither HomeIntro nor HomeAbout renders here. */
+async function renderSignedOutHome(news?: string) {
+  const data = await getSignedOutPageData(news);
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger -- JSON-LD from serializeJsonLd, which escapes it for a script tag
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(buildHomeJsonLd()) }}
+      />
+      <DigestEmailHomeLinkCapture />
+      <SignedOutHome {...data} />
+      <HuskyDialog isLoggedIn={false} />
+      <HuskyDiscover isLoggedIn={false} />
+      <MarkHomeVisited />
+    </>
+  );
+}
+
+const settled = <T,>(result: PromiseSettledResult<T>): T | null =>
+  result.status === 'fulfilled' ? result.value : null;
+
+async function getNewestRoles(): Promise<IHomeRoles | null> {
+  // The board's public list, called as `/api/jobs/list` calls it; no token, since the viewer is signed out.
+  const result = await getJobsList('sort=newest');
+  if ('isError' in result) return null;
+  return { roles: flattenNewestRoles(result.data.groups ?? [], HOME_ROLES_MAX), total: result.data.totalRoles ?? 0 };
+}
+
+async function getRailEvents(): Promise<IHomeEvents> {
+  const { events, total } = await getUpcomingEvents({ days: HOME_EVENTS_DAYS, limit: HOME_EVENTS_LIMIT });
+  return { events: selectUpcomingEvents(events, Date.now()), total };
+}
+
+/**
+ * The signed-out story page's data, and only what it shows (no featured, discover or focus-area calls), in parallel.
+ * Each source fails on its own: no news leaves This week empty, a failed roles or events call leaves that section out,
+ * and a failed portfolio call draws the map from the fallback file. Nothing here sends the page to `<Error/>`.
+ */
+const getSignedOutPageData = async (deepLinkedNewsUid?: string) => {
+  const [newsResult, rolesResult, eventsResult, portfolioResult, deepLinkedResult] = await Promise.allSettled([
+    getTeamNewsGroupedByFocusArea({}),
+    getNewestRoles(),
+    getRailEvents(),
+    getPortfolioTeams(),
+    deepLinkedNewsUid ? getTeamNewsItemByUid(deepLinkedNewsUid) : Promise.resolve(null),
+  ]);
+
+  const newsResponse = settled(newsResult);
+  const newsItems = newsResponse
+    ? [...(newsResponse.groups ?? []).flatMap((group) => group.items), ...(newsResponse.allTabExtraItems ?? [])]
+    : [];
+
+  return {
+    stories: pickThisWeek(newsItems),
+    deepLinkedItem: settled(deepLinkedResult),
+    roles: settled(rolesResult),
+    events: settled(eventsResult),
+    portfolio: mergePortfolio(PORTFOLIO_FALLBACK, settled(portfolioResult) ?? []),
+  };
+};
 
 const getPageData = async (deepLinkedNewsUid?: string) => {
   const { isLoggedIn, userInfo, authToken } = await getCookiesFromHeaders();

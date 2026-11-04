@@ -273,6 +273,20 @@ describe('Network Updates: the stream', () => {
     expect(screen.getByRole('link', { name: 'See all news' })).toHaveAttribute('href', '/home?view=news');
   });
 
+  it("shows a story's image as its card thumbnail and as the story dialog's header (LAB-3134)", () => {
+    const IMAGE = 'https://cdn.example.com/a.jpg';
+    renderHome([story('a', 'LAUNCH', { imageUrl: IMAGE }), story('b', 'FUNDING')]);
+
+    const rowA = within(stream()).getByRole('button', { name: 'Headline a' });
+    expect(rowA.querySelector('.thumb img')).toHaveAttribute('src', IMAGE);
+    // A text-only story stays text-only.
+    expect(within(stream()).getByRole('button', { name: 'Headline b' }).querySelector('img')).not.toBeInTheDocument();
+
+    fireEvent.click(rowA.querySelector('img') as HTMLImageElement);
+
+    expect(screen.getByRole('dialog').querySelector('.hero img')).toHaveAttribute('src', IMAGE);
+  });
+
   it('fetches and injects no hiring, deals or For You job entries', () => {
     mockUseFeedHiring.mockReturnValue({ hiring: [{ team: { uid: 'h' } } as unknown as IJobTeamGroup] });
     mockUseFeedDeals.mockReturnValue({ deals: [deal('d1', '2026-11-01')] });

@@ -173,6 +173,7 @@ export function SignedOutHome({
           // Signed out, the modal's Like and Follow send the reader to sign in before either is called.
           onUpvoteToggle={() => signUp('news')}
           source="home"
+          showImage
         />
       )}
     </div>

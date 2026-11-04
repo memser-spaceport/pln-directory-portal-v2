@@ -1384,6 +1384,19 @@ describe('TeamNews', () => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
 
+    it('keeps the old Home text-only: no image on the card or in the modal, even with an imageUrl (LAB-3134)', () => {
+      const withImage = groups.map((g) => ({
+        ...g,
+        items: g.items.map((i) => ({ ...i, imageUrl: `https://cdn.example.com/${i.uid}.jpg` })),
+      }));
+      renderTeamNews(<TeamNews groups={withImage} />);
+      expect(document.querySelector('img[src^="https://cdn.example.com/"]')).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Headline ai-1' }));
+
+      expect(getDialog().querySelector('img[src^="https://cdn.example.com/"]')).not.toBeInTheDocument();
+    });
+
     it('closes on Escape and strips only the news param', () => {
       renderTeamNews(<TeamNews groups={groups} />);
       fireEvent.click(screen.getByRole('button', { name: 'Headline ai-1' }));

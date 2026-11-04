@@ -22,6 +22,7 @@ import { SourceList } from '../SourceList/SourceList';
 import { ViewCount } from '../ViewCount/ViewCount';
 import { NewsTagChips } from '../NewsTagChips';
 import { FeedCommentsThread, feedThreadDomId } from '../FeedCommentsThread/FeedCommentsThread';
+import { NewsImage } from '../NewsImage';
 
 import s from './NewsCard.module.scss';
 import f from './NewsCardFull.module.scss';
@@ -61,7 +62,8 @@ export interface NewsCardFullProps {
  * NewsCard's `full` variant (LAB-3125): the new Home's stream card, the prototype's V0FeedCard
  * (newsfeed-v0) on production's parts. One story per card, in full: the team row with Follow, the headline, the
  * summary, the `#tag` links, then the event kicker, sources and time beside Share, Views, Like and Comments, with the
- * comments opening inline. A top story carries the "Top story" badge above the team row.
+ * comments opening inline. A top story carries the "Top story" badge above the team row. A story with an image shows
+ * it as a 168 × 95 thumbnail beside the text (LAB-3134).
  */
 export function NewsCardFull({
   item,
@@ -191,6 +193,9 @@ export function NewsCardFull({
               className={f.topicTags}
             />
           </div>
+          {/* Beside the text from 640px, full width under it on phones. Not a control: a click opens the story with
+              the row. */}
+          {item.imageUrl && <NewsImage src={item.imageUrl} variant="thumb" />}
         </div>
         <div className={f.footer}>
           <span className={f.source}>

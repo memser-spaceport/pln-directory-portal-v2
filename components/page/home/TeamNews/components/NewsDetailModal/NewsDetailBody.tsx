@@ -22,6 +22,7 @@ import { NewsShareMenu } from '../NewsShareMenu';
 import { ViewCount } from '../ViewCount/ViewCount';
 import { FeedCommentsThread } from '../FeedCommentsThread/FeedCommentsThread';
 import { NewsTagChips } from '../NewsTagChips';
+import { NewsImage } from '../NewsImage';
 
 import newsCardStyles from '../NewsCard/NewsCard.module.scss';
 import s from './NewsDetailModal.module.scss';
@@ -57,6 +58,9 @@ interface NewsDetailBodyProps {
   onTagSelect?: (tag: string) => void;
   /** The feed's tag scope: one tag, or the new Home's stacked list (LAB-3125). */
   activeTag?: string | readonly string[];
+  /** New Home only (LAB-3134): the story's `imageUrl` as the header image under the headline. Opt-in, so the old
+   *  Home and the team and member profiles, which share this body, stay text-only. */
+  showImage?: boolean;
 }
 
 /**
@@ -81,6 +85,7 @@ export function NewsDetailBody({
   onShareOpenChange,
   onTagSelect,
   activeTag,
+  showImage = false,
 }: NewsDetailBodyProps) {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
@@ -190,6 +195,9 @@ export function NewsDetailBody({
         <h3 id={TITLE_ID} className={s.title}>
           {item.title}
         </h3>
+
+        {/* Where a video would play: under the headline, above the body. */}
+        {showImage && item.imageUrl && <NewsImage src={item.imageUrl} variant="hero" />}
 
         {sanitizedContentHtml ? (
           <SafeHtml className={s.content} profile="teamNews" html={sanitizedContentHtml} />

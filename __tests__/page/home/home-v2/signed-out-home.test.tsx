@@ -56,7 +56,9 @@ jest.mock('@/services/contact-support/store', () => ({
 
 // The story modal is the production one; its own suite covers it.
 jest.mock('@/components/page/home/TeamNews/components/NewsDetailModal', () => ({
-  NewsDetailModal: ({ item }: { item: ITeamNewsItem }) => <div role="dialog" aria-label={item.title} />,
+  NewsDetailModal: ({ item, showImage }: { item: ITeamNewsItem; showImage?: boolean }) => (
+    <div role="dialog" aria-label={item.title} data-show-image={String(Boolean(showImage))} />
+  ),
 }));
 
 const MISSION = 'Protocol Labs drives breakthroughs in computing to push humanity forward.';
@@ -212,6 +214,17 @@ describe('SignedOutHome', () => {
       expect(mockHome.onNewsPickClicked).toHaveBeenCalledWith({ news_uid: 's2', position: 2 });
       expect(screen.getByRole('dialog', { name: 'Headline s2' })).toBeInTheDocument();
       expect(window.location.search).toBe('?news=s2');
+    });
+
+    it('keeps the rows text-only, and opens the story with its header image (LAB-3134)', async () => {
+      renderHome({ stories: stories.map((st) => ({ ...st, imageUrl: `https://cdn.example.com/${st.uid}.jpg` })) });
+
+      const list = screen.getByRole('region', { name: 'This week in the network' });
+      expect(list.querySelector('img[src^="https://cdn.example.com/"]')).not.toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole('heading', { name: 'Headline s2' }));
+
+      expect(screen.getByRole('dialog', { name: 'Headline s2' })).toHaveAttribute('data-show-image', 'true');
     });
 
     it('asks a signed-out visitor to sign up from Follow and Like, without opening the story', async () => {

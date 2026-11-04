@@ -323,6 +323,7 @@ export function NetworkUpdates({
           loginHref={`/home?news=${encodeURIComponent(activeNewsItem.uid)}#login`}
           onTagSelect={(tag) => handleScopeTagToggle(tag, 'modal')}
           activeTag={topicScope}
+          showImage
         />
       )}
       {activeForumPost && (

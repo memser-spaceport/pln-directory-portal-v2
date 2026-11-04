@@ -125,9 +125,64 @@ describe('NewsCard, full variant', () => {
     expect(onOpenDetail).toHaveBeenCalledTimes(1);
   });
 
+  describe('story image (LAB-3134)', () => {
+    const IMAGE = 'https://cdn.example.com/mainnet.jpg';
+    const storyRow = () => screen.getByRole('button', { name: 'Mainnet is live' });
+
+    it('puts the thumbnail beside the text column, inside the clickable row and before the meta line', () => {
+      render(<NewsCard variant="full" item={story({ imageUrl: IMAGE })} onOpenDetail={jest.fn()} />);
+
+      const img = storyRow().querySelector('img') as HTMLImageElement;
+      expect(img).toHaveAttribute('src', IMAGE);
+      expect(img).toHaveAttribute('alt', '');
+      const thumb = img.parentElement as HTMLElement;
+      expect(thumb).toHaveClass('thumb');
+      // The text column's sibling in the story's main row (the CSS puts it right of the text from 640px, and full
+      // width under it on phones).
+      expect(thumb.parentElement).toHaveClass('storyMain');
+      expect(thumb.previousElementSibling).toHaveClass('storyText');
+      // Before the meta line.
+      const footer = storyRow().querySelector('.footer') as HTMLElement;
+      expect(thumb.compareDocumentPosition(footer) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
+    it('opens the story once when the image is clicked: it is part of the row, not its own control', () => {
+      const onOpenDetail = jest.fn();
+      render(<NewsCard variant="full" item={story({ imageUrl: IMAGE })} onOpenDetail={onOpenDetail} />);
+
+      fireEvent.click(storyRow().querySelector('img') as HTMLImageElement);
+
+      expect(onOpenDetail).toHaveBeenCalledTimes(1);
+      expect(onOpenDetail).toHaveBeenCalledWith(expect.objectContaining({ uid: 'n1' }), 'row');
+      expect(within(storyRow()).queryByRole('img')).not.toBeInTheDocument(); // alt="" = presentational
+    });
+
+    it('renders a text-only story without an image, its markup otherwise the same', () => {
+      const { container: withImage } = render(
+        <NewsCard variant="full" item={story({ imageUrl: IMAGE })} onOpenDetail={jest.fn()} />,
+      );
+      const { container: textOnly } = render(<NewsCard variant="full" item={story()} onOpenDetail={jest.fn()} />);
+      const { container: nullImage } = render(
+        <NewsCard variant="full" item={story({ imageUrl: null })} onOpenDetail={jest.fn()} />,
+      );
+
+      // The only <img> a full card draws without a logo URL is the story image.
+      expect(textOnly.querySelector('img')).not.toBeInTheDocument();
+      expect(nullImage.querySelector('img')).not.toBeInTheDocument();
+      expect(textOnly.querySelector('.thumb')).not.toBeInTheDocument();
+
+      withImage.querySelector('.thumb')?.remove();
+      // Each render mints its own useId for the Share trigger.
+      const markup = (el: HTMLElement) => el.innerHTML.replace(/id="[^"]*"/g, 'id=""');
+      expect(markup(withImage)).toBe(markup(textOnly));
+    });
+  });
+
   it('leaves the other variants as they were', () => {
-    render(<NewsCard item={story()} isTopStory />);
+    render(<NewsCard item={story({ imageUrl: 'https://cdn.example.com/mainnet.jpg' })} isTopStory />);
     expect(screen.queryByText('Top story')).not.toBeInTheDocument();
     expect(screen.queryByRole('list', { name: 'Tags' })).not.toBeInTheDocument();
+    // The old Home's cards stay text-only (LAB-3134): only the `full` variant draws the image.
+    expect(document.querySelector('img')).not.toBeInTheDocument();
   });
 });

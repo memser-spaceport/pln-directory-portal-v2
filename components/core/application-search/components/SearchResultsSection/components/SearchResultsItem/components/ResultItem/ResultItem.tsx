@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { SearchResultsItemProps } from '@/components/core/application-search/components/SearchResultsSection/components/SearchResultsItem';
 import { FoundItem } from '@/services/search/types';
 import { useUnifiedSearchAnalytics } from '@/analytics/unified-search.analytics';
+import { recordMemberSignal, searchIndexToEntityType } from '@/services/member-signals/member-signals.service';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { OhBadge } from '@/components/core/OhBadge/OhBadge';
 
@@ -33,6 +34,8 @@ export function ResultItem(props: Props) {
 
   const onClick = useCallback(() => {
     analytics.onSearchResultClick(item);
+    const entityType = searchIndexToEntityType(item.index);
+    if (entityType) recordMemberSignal({ action: 'search-result-click', entityType, entityId: item.uid });
 
     if (item.index !== 'events') {
       onSelect?.();

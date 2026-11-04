@@ -20,6 +20,7 @@ import { DetailsSectionHeader, DetailsSectionGreyContentContainer } from '@/comp
 import { KEY_TO_HANDLER } from './constants';
 
 import s from './TeamContactInfoView.module.scss';
+import { recordMemberSignal } from '@/services/member-signals/member-signals.service';
 
 interface Props {
   team: ITeam | undefined;
@@ -35,6 +36,7 @@ export function TeamContactInfoView(props: Props) {
 
   const callback = (type: string, url: string) => {
     analytics.onTeamDetailContactClicked(getAnalyticsTeamInfo(team), getAnalyticsUserInfo(userInfo), type, url);
+    if (team?.id) recordMemberSignal({ action: 'team-contact-click', entityType: 'team', entityId: team.id });
   };
 
   const isTlOrAdmin = isTeamLeaderOrAdmin(userInfo, team?.id);

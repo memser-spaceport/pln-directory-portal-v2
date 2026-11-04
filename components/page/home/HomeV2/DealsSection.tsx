@@ -64,7 +64,9 @@ export function DealsSection({ deals, total }: { deals: IDeal[]; total: number }
                 </span>
                 <span className={s.dealText}>
                   <span className={s.dealNameRow}>
-                    <span className={s.dealName}>{deal.vendorName}</span>
+                    <span className={s.dealName} title={deal.vendorName}>
+                      {deal.vendorName}
+                    </span>
                     {value && <span className={s.dealValue}>{value}</span>}
                   </span>
                   <span className={s.dealLine}>{deal.shortDescription}</span>

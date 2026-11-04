@@ -9,7 +9,7 @@ export function PrototypesIndex() {
   // client-side search/browse component.
   const groups: PrototypeListGroup[] = getPrototypesByCategory().map((group) => ({
     category: group.category,
-    items: group.items.map(({ key, title, description, category }) => ({ key, title, description, category })),
+    items: group.items.map(({ load, ...item }) => item),
   }));
 
   return (

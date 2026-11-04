@@ -1,6 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
+import type { ReactNode } from 'react';
 
 import { getTeamLogoFallback } from '@/components/page/home/TeamNews/utils/getTeamLogoFallback';
 
@@ -25,7 +26,7 @@ const JOB_BOARD = '/prototypes/job-board';
  * the team's logo + name added because the rows here span teams. The card is
  * the feed rail's (`v0.railCard`), so on desktop it reads as a rail module.
  */
-export function JobsRail({ jobs, total }: { jobs: HomeJob[]; total: number }) {
+export function JobsRail({ jobs, total, note }: { jobs: HomeJob[]; total: number; note?: ReactNode }) {
   return (
     <section className={clsx(s.card, v0.railCard, local.jobsCard)} aria-labelledby="home-jobs-title">
       <div className={local.railHead}>
@@ -61,6 +62,9 @@ export function JobsRail({ jobs, total }: { jobs: HomeJob[]; total: number }) {
           </li>
         ))}
       </ul>
+
+      {/* home-v2 passes its signed-out auth line here; home-refactor passes nothing. */}
+      {note}
 
       <a href={JOB_BOARD} className={clsx(jobsCss.expander, v0.viewAllExpander)}>
         See all {total} jobs

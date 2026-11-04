@@ -60,7 +60,10 @@ interface V0FeedCardProps {
   /** Present = the story's hashtags are links that filter the feed to that topic. */
   onSelectTopic?: (tag: string) => void;
   /** The feed's current topic filter, shown selected on the tags. */
-  activeTopic?: string;
+  activeTopic?: string | string[];
+  /** An editorial pick shown in the stream, not pinned above it: the card carries a
+   *  filled brand "🔥 Top story" badge above the team row and is otherwise an ordinary card. home-v2 / home-v2-b. */
+  topStory?: boolean;
 }
 
 /**
@@ -86,6 +89,7 @@ export function V0FeedCard({
   onToggleSave,
   onSelectTopic,
   activeTopic,
+  topStory = false,
 }: V0FeedCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [openThreads, setOpenThreads] = useState<Set<string>>(new Set());
@@ -107,6 +111,11 @@ export function V0FeedCard({
 
   return (
     <div className={clsx(s.card, local.feedCard, isProtocolLabs && local.plCard)}>
+      {topStory && (
+        <span className={local.topStoryBadge}>
+          <span aria-hidden>🔥</span> Top story
+        </span>
+      )}
       <div className={s.head}>
         {cluster.teamLogoUrl ? (
           <img className={s.logo} src={cluster.teamLogoUrl} alt="" loading="lazy" />
@@ -156,7 +165,12 @@ export function V0FeedCard({
                 {story.summary && <p className={local.summary}>{story.summary}</p>}
                 {/* In the text column, so a video poster beside it can't push the
                     tags away from the summary they describe. */}
-                <TopicTags tags={story.tags} className={local.topicTags} onSelect={onSelectTopic} active={activeTopic} />
+                <TopicTags
+                  tags={story.tags}
+                  className={local.topicTags}
+                  onSelect={onSelectTopic}
+                  active={activeTopic}
+                />
               </div>
               {video && <VideoThumb video={video} title={story.title} onPlay={() => onOpenStory(story, true)} />}
             </div>

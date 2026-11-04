@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 
 import { Modal } from '@/components/common/Modal';
 import { CloseIcon, InfoCircleIcon } from '@/components/icons';
@@ -18,15 +18,19 @@ interface Props {
   /** Controlled open state, for doors elsewhere on the page (an AI answer's "Open followers"). */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  /** The viewer's own Follow, for a seat that sees the stack but isn't on the team (Admin). */
+  action?: ReactNode;
 }
 
 /**
  * Team-view followers block: the follower avatar stack + count, opening the
  * full-list modal (the list stays team-only). Public visitors get the Follow
  * pill in the header card's corner instead — rendered by the prototype page,
- * not this block.
+ * not this block. A directory admin sees the stack AND may follow (they are
+ * not necessarily on the team), so their pill rides beside the count via
+ * `action`.
  */
-export function TeamFollowBlock({ count, followers, inline, open: openProp, onOpenChange }: Props) {
+export function TeamFollowBlock({ count, followers, inline, open: openProp, onOpenChange, action }: Props) {
   const [openState, setOpenState] = useState(false);
   const open = openProp ?? openState;
   const setOpen = onOpenChange ?? setOpenState;
@@ -61,7 +65,16 @@ export function TeamFollowBlock({ count, followers, inline, open: openProp, onOp
 
   return (
     <div className={inline ? local.followInline : local.followHeader}>
-      {inline ? <div className={local.inlineFollowers}>{followersRow}</div> : followersRow}
+      {inline ? (
+        <div className={local.inlineFollowers}>{followersRow}</div>
+      ) : action ? (
+        <div className={local.followersWithAction}>
+          {followersRow}
+          {action}
+        </div>
+      ) : (
+        followersRow
+      )}
 
       <Modal isOpen={open} onClose={() => setOpen(false)} className={local.subModal}>
         <div className={local.subModalHead}>

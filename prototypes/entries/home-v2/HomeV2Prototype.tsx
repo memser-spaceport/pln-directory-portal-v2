@@ -73,6 +73,7 @@ import { EmailNotFoundModal } from './EmailNotFoundModal';
 import {
   EVENTS_STATES,
   HOME_STATES,
+  IMAGE_BY_UID,
   LATEST_DEALS,
   PORTFOLIO_TEAMS,
   PROD_TAGS_BY_UID,
@@ -111,6 +112,15 @@ const CUE_OPTIONS: Option<'fade' | 'jump'>[] = [
     value: 'jump',
     label: '+ Jump link',
     note: 'The same cut, plus "Open source picks ↓" in the feed header naming what is below.',
+  },
+];
+
+const IMAGE_OPTIONS: Option<'side' | 'below'>[] = [
+  { value: 'side', label: 'Beside headline', note: 'Default. A 16:9 image in the video poster’s column, right of the text.' },
+  {
+    value: 'below',
+    label: 'Below description',
+    note: 'The image at the card’s full width under the summary and hashtags, above the meta line.',
   },
 ];
 
@@ -170,6 +180,7 @@ export default function HomeV2Prototype() {
   const reposState: ReposState = searchParams.get('repos') === 'none' ? 'none' : 'picks';
   const hasRepos = reposState === 'picks';
   const cue: 'fade' | 'jump' = searchParams.get('cue') === 'jump' ? 'jump' : 'fade';
+  const imagePlacement: 'side' | 'below' = searchParams.get('image') === 'below' ? 'below' : 'side';
 
   const setParam = (key: string, value: string, fallback: string) => {
     const next = new URLSearchParams(searchParams.toString());
@@ -264,7 +275,8 @@ export default function HomeV2Prototype() {
 
   const [detail, setDetail] = useState<FeedDetail | null>(null);
   const [forumDetail, setForumDetail] = useState<ForumPost | null>(null);
-  const openStory = (story: ITeamNewsItem) =>
+  /* `playVideo`: the story's video poster was the click target, so the modal opens playing. */
+  const openStory = (story: ITeamNewsItem, playVideo?: boolean) =>
     setDetail({
       id: story.uid,
       kind: 'news',
@@ -280,6 +292,8 @@ export default function HomeV2Prototype() {
       sources: SOURCES_BY_UID[story.uid],
       citedBody: MODAL_CITED_BODY_BY_UID[story.uid],
       video: VIDEO_BY_UID[story.uid],
+      autoplayVideo: playVideo,
+      image: IMAGE_BY_UID[story.uid],
       isProtocolLabs: story.teamUid === PL_TEAM_UID,
       readUrl: story.sourceUrl ?? undefined,
     });
@@ -319,6 +333,14 @@ export default function HomeV2Prototype() {
           )}
           {signedIn && hasRepos && (
             <Switch label="Below feed" options={CUE_OPTIONS} value={cue} onChange={(v) => setParam('cue', v, 'fade')} />
+          )}
+          {signedIn && view === 'home' && (
+            <Switch
+              label="Image"
+              options={IMAGE_OPTIONS}
+              value={imagePlacement}
+              onChange={(v) => setParam('image', v, 'side')}
+            />
           )}
         </div>
       </div>
@@ -362,6 +384,8 @@ export default function HomeV2Prototype() {
                     onSelectTopic={topic.onSelectTopic}
                     activeTopic={topic.activeTopic}
                     topStory={isTop}
+                    imageFor={(uid) => IMAGE_BY_UID[uid]}
+                    imagePlacement={imagePlacement}
                     cluster={{
                       teamUid: story.teamUid,
                       teamName: story.teamName,

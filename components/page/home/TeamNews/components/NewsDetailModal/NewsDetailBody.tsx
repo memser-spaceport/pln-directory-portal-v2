@@ -55,7 +55,8 @@ interface NewsDetailBodyProps {
   /** Home only: makes the `#tag` chips links that filter the feed by that tag
    *  (LAB-3010). Other hosts leave it out, so their chips stay grey labels. */
   onTagSelect?: (tag: string) => void;
-  activeTag?: string;
+  /** The feed's tag scope: one tag, or the new Home's stacked list (LAB-3125). */
+  activeTag?: string | readonly string[];
 }
 
 /**

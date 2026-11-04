@@ -17,3 +17,4 @@ export const HOME_NEWS_VIEW_HREF = '/home?view=news';
 /** The rail's See all targets. */
 export const JOBS_HREF = '/jobs';
 export const EVENTS_HREF = '/events/irl';
+export const DEALS_HREF = '/deals';

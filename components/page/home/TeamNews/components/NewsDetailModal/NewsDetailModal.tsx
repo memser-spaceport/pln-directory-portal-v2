@@ -24,7 +24,8 @@ interface NewsDetailModalProps {
   loginHref?: string;
   /** Passed through to NewsDetailBody: the `#tag` chips filter the Home feed (LAB-3010). */
   onTagSelect?: (tag: string) => void;
-  activeTag?: string;
+  /** The feed's tag scope: one tag, or the new Home's stacked list (LAB-3125). */
+  activeTag?: string | readonly string[];
 }
 
 /** Restores focus for the row that opened the modal. Scoped to role="button" —

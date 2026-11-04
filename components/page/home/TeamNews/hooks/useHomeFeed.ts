@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } fr
 
 import type { IFeedForumPost, IFeedForumPostLikeStatus } from '@/types/feed.types';
 import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
-import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
+import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem, TeamCluster } from '@/types/team-news.types';
 
 import {
   useTeamNewsAnalytics,
@@ -21,8 +21,9 @@ import { useTeamNewsUpvoteToggle } from '@/services/team-news/hooks/useTeamNewsU
 import { useSuggestedTeamsToFollow } from '@/services/follow/hooks/useSuggestedTeamsToFollow';
 import { useFeedForumPostLikeToggle } from '@/services/feed/hooks/useFeedForumPostLikeToggle';
 import { useFollowAnalytics, type FollowAnalyticsSource } from '@/analytics/follow.analytics';
+import type { HomeFeedTagScopeAction } from '@/analytics/home.analytics';
 import { FEED_FOR_YOU_FORUM_POST_WINDOW_DAYS } from '@/services/feed/constants';
-import { newsItemHasTag } from '@/utils/news-tag-chips';
+import { newsItemHasAllTags, newsItemHasTag } from '@/utils/news-tag-chips';
 import { setStoredForumPostLike } from '@/utils/forumPostLikeStorage';
 
 import {
@@ -36,6 +37,7 @@ import {
   MAX_FOR_YOU_JOB_ENTRIES,
   DISCUSSIONS_CATEGORY,
   SHOW_POPULAR_THIS_WEEK,
+  STREAM_CATEGORIES,
   type TeamNewsCategoryId,
 } from '../constants';
 import { EVENT_TYPE_LABEL } from '../utils/getEventTypeConfig';
@@ -48,9 +50,9 @@ import { applyUpvoteOverlay } from '../utils/applyUpvoteOverlay';
 import { resolveForumPostLike } from '../utils/resolveForumPostLike';
 import { isOwnForumPost } from '../utils/isOwnForumPost';
 import { matchesTeamNewsQuery } from '../utils/matchesTeamNewsQuery';
-import { matchesTeamNewsCategory } from '../utils/matchesTeamNewsCategory';
+import { matchesStreamNewsCategory, matchesTeamNewsCategory } from '../utils/matchesTeamNewsCategory';
 import { sortAllTabItemsByEventDate } from '../utils/sortAllTabItemsByEventDate';
-import { selectTopStories, TOP_STORIES_MIN_CORPUS } from '../utils/selectTopStories';
+import { isEditorialRank, selectTopStories, TOP_STORIES_MIN_CORPUS } from '../utils/selectTopStories';
 import { selectForYouItems } from '../utils/selectForYouItems';
 import { feedEntryKey, mergeFeedEntries } from '../utils/mergeFeedEntries';
 import { feedWindowCutoffIso } from '../utils/feedForumPostWindow';
@@ -76,6 +78,8 @@ import { useForumPostDeepLink } from './useForumPostDeepLink';
 // Stable empty list for the views a tag filter clears of forum posts (they carry
 // no tags), so the memos below don't hand a fresh array to the merge each render.
 const NO_FORUM_POSTS: IFeedForumPost[] = [];
+// The empty tag scope, one identity for every "no tags" state.
+const NO_TAGS: string[] = [];
 
 export interface HomeFeedProps {
   groups: ITeamNewsGroup[];
@@ -99,36 +103,70 @@ export interface HomeFeedProps {
   deepLinkedItem?: ITeamNewsItem | null;
 }
 
+/** How a tag scope change came about, for `home-feed-tag-scope-changed` (LAB-3125). */
+export type { HomeFeedTagScopeAction };
+
+export interface HomeFeedOptions {
+  /**
+   * `grouped` (default): the previous Home — focus-area tabs, team clusters, the Top stories band, hiring / deals /
+   * For You job entries, a first page of `pageSize`, one tag at most.
+   *
+   * `stream` (the new Home's Network Updates, LAB-3125): one card per story, news and forum posts only, every entry
+   * (the layout cuts the list), no band (Top is a pill), Discussions is forum posts only, a pill whose count drops to 0
+   * falls back to All, and tags stack.
+   */
+  layout?: 'grouped' | 'stream';
+  /** Stream only: the scope after a tag change, and how it changed. */
+  onTagScopeChange?: (tags: string[], action: HomeFeedTagScopeAction) => void;
+}
+
+/** A story as its own card: the stream doesn't group a team's stories. */
+const storyCluster = (item: ITeamNewsItem): TeamCluster => ({
+  teamUid: item.teamUid,
+  teamName: item.teamName,
+  teamLogoUrl: item.teamLogoUrl,
+  items: [item],
+});
+
 /**
  * The Home feed's data and state: tabs, categories, sort, search, the tag filter, forum posts, the upvote / like /
  * follow overlays, the deep-linked story and post, For You, the hiring / deals / For You job entries, Top stories and
  * the feed analytics. Moved out of `TeamNews` unchanged (LAB-3125), so the previous layout and the new Home's
  * `NetworkUpdates` render the same state.
  */
-export function useHomeFeed({
-  groups,
-  allTabExtraItems = [],
-  forYouTeamUids = [],
-  forYouTags,
-  popularItems = [],
-  pageSize = 6,
-  deepLinkedItem = null,
-}: HomeFeedProps) {
+export function useHomeFeed(
+  {
+    groups,
+    allTabExtraItems = [],
+    forYouTeamUids = [],
+    forYouTags,
+    popularItems = [],
+    pageSize = 6,
+    deepLinkedItem = null,
+  }: HomeFeedProps,
+  { layout = 'grouped', onTagScopeChange }: HomeFeedOptions = {},
+) {
+  const isStream = layout === 'stream';
+  // Stable module functions, so the memos below see one identity per layout.
+  const matchesCategory = isStream ? matchesStreamNewsCategory : matchesTeamNewsCategory;
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
   const [initialForYouTeamUids] = useState<ReadonlySet<string>>(() => new Set(forYouTeamUids));
   const [initialForYouTags] = useState<ReadonlySet<string> | undefined>(() =>
     forYouTags ? new Set(forYouTags) : undefined,
   );
-  const [activeCategory, setActiveCategory] = useState<TeamNewsCategoryId>(() => {
+  const [selectedCategory, setActiveCategory] = useState<TeamNewsCategoryId>(() => {
     const items = sortAllTabItemsByEventDate(dedupeByUid([...groups.flatMap((g) => g.items), ...allTabExtraItems]));
     return selectForYouItems(items, initialForYouTeamUids, initialForYouTags).length > 0 ? FOR_YOU_CAT : ALL_CAT;
   });
   const [expanded, setExpanded] = useState(false);
   const [query, setQuery] = useState('');
-  // The Home feed's tag filter (LAB-3010), set by clicking a `#tag` on a story.
-  // '' = no filter. Exact tag match, not the search box: "ai" in search also
+  // The Home feed's tag scope (LAB-3010), set by clicking a `#tag` on a story.
+  // [] = no filter. Exact tag match, not the search box: "ai" in search also
   // finds "maintain", and a click on `#ai` has to return only what's tagged ai.
-  const [topicFilter, setTopicFilter] = useState('');
+  // A list since LAB-3125: the new Home stacks tags (a story must carry every
+  // one); the previous layout holds one at most.
+  const [topicScope, setTopicScope] = useState<string[]>(NO_TAGS);
+  const hasTopicScope = topicScope.length > 0;
   const filterBarRef = useRef<HTMLDivElement>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const desktopFieldRef = useRef<HTMLDivElement>(null);
@@ -237,25 +275,26 @@ export function useHomeFeed({
   // Both are client-side and non-blocking: the feed renders without them and
   // the cards pop in, the same arrival forum posts already have. `undefined`
   // (not loaded / no deals access / request failed) leaves the feed untouched.
-  const { hiring: feedHiring } = useFeedHiring();
-  const { deals: feedDeals } = useFeedDeals();
+  // The stream injects neither (roles and deals are in its rail), so it doesn't fetch them.
+  const { hiring: feedHiring } = useFeedHiring(!isStream);
+  const { deals: feedDeals } = useFeedDeals(!isStream);
 
   // The tag filter narrows the stories every tab, pill and count below is built
   // from, so the tab and pill counts describe the cards under them. `allItems`
   // itself stays whole: the deep link, Popular and the For You pill read it.
   const feedItems = useMemo(
-    () => (topicFilter ? allItems.filter((i) => newsItemHasTag(i, topicFilter)) : allItems),
-    [allItems, topicFilter],
+    () => (hasTopicScope ? allItems.filter((i) => newsItemHasAllTags(i, topicScope)) : allItems),
+    [allItems, hasTopicScope, topicScope],
   );
   const feedGroups = useMemo(() => {
-    if (!topicFilter) return groups;
+    if (!hasTopicScope) return groups;
     return groups
       .map((g) => {
-        const items = g.items.filter((i) => newsItemHasTag(i, topicFilter));
+        const items = g.items.filter((i) => newsItemHasAllTags(i, topicScope));
         return { ...g, items, total: items.length };
       })
       .filter((g) => g.items.length > 0);
-  }, [groups, topicFilter]);
+  }, [groups, hasTopicScope, topicScope]);
 
   const itemsForActiveTab = useMemo(() => {
     if (activeTab === ALL_TAB) return feedItems;
@@ -278,7 +317,7 @@ export function useHomeFeed({
   // `useFeedForYouJobs`. Fetched whenever the For You pill exists for a signed-in
   // member rather than on the click: the pill's own count includes these, so
   // deferring the request would show a number that then jumped.
-  const { forYouJobs } = useFeedForYouJobs(Boolean(currentUser?.uid) && hasForYouNews, currentUser?.uid);
+  const { forYouJobs } = useFeedForYouJobs(!isStream && Boolean(currentUser?.uid) && hasForYouNews, currentUser?.uid);
 
   /**
    * The roll-ups For You actually shows, pre-sliced to `MAX_FOR_YOU_JOB_ENTRIES`.
@@ -293,8 +332,9 @@ export function useHomeFeed({
    * inventing one — they simply don't appear there.
    */
   const forYouJobEntries = useMemo(
-    () => (activeTab === ALL_TAB && !topicFilter ? forYouJobs?.slice(0, MAX_FOR_YOU_JOB_ENTRIES) : undefined),
-    [activeTab, forYouJobs, topicFilter],
+    () =>
+      !isStream && activeTab === ALL_TAB && !hasTopicScope ? forYouJobs?.slice(0, MAX_FOR_YOU_JOB_ENTRIES) : undefined,
+    [isStream, activeTab, forYouJobs, hasTopicScope],
   );
 
   // Forum posts joining the current tab (All / Discussions use this 14-day
@@ -304,8 +344,10 @@ export function useHomeFeed({
   // A tag filter leaves forum posts out of every view: they carry no tags.
   const tabForumPosts = useMemo(
     () =>
-      topicFilter ? NO_FORUM_POSTS : filterFeedForumPosts(forumPosts, { tab: activeTab, category: ALL_CAT, query: '' }),
-    [forumPosts, activeTab, topicFilter],
+      hasTopicScope
+        ? NO_FORUM_POSTS
+        : filterFeedForumPosts(forumPosts, { tab: activeTab, category: ALL_CAT, query: '' }),
+    [forumPosts, activeTab, hasTopicScope],
   );
 
   // Frozen once per session, same reason useFeedSocial freezes the 14-day
@@ -315,10 +357,10 @@ export function useHomeFeed({
 
   const forYouForumPosts = useMemo(
     () =>
-      topicFilter
+      hasTopicScope
         ? NO_FORUM_POSTS
         : selectForYouForumPosts(forumPosts, forYouForumCutoffIso, { tab: activeTab, query: '' }),
-    [forumPosts, forYouForumCutoffIso, activeTab, topicFilter],
+    [forumPosts, forYouForumCutoffIso, activeTab, hasTopicScope],
   );
 
   // One definition of "how many does this pill have", used both to render the
@@ -329,15 +371,30 @@ export function useHomeFeed({
       if (id === FOR_YOU_CAT)
         return forYouItemsForActiveTab.length + forYouForumPosts.length + (forYouJobEntries?.length ?? 0);
       const newsCount =
-        id === ALL_CAT
-          ? itemsForActiveTab.length
-          : itemsForActiveTab.filter((i) => matchesTeamNewsCategory(i, id)).length;
+        id === ALL_CAT ? itemsForActiveTab.length : itemsForActiveTab.filter((i) => matchesCategory(i, id)).length;
       // Forum posts show under All, Discussions, and For You. For You has its
       // own L7D list; All / Discussions share tabForumPosts.
       return newsCount + (categoryIncludesForumPosts(id) ? tabForumPosts.length : 0);
     },
-    [itemsForActiveTab, tabForumPosts, forYouItemsForActiveTab, forYouForumPosts, forYouJobEntries],
+    [itemsForActiveTab, tabForumPosts, forYouItemsForActiveTab, forYouForumPosts, forYouJobEntries, matchesCategory],
   );
+
+  // The stream's fixed pill row (LAB-3125) with its counts. A pill whose count is 0 is left out, not greyed — All
+  // always stays. Without forum access there are no posts, so no Discussions.
+  const streamCategories = useMemo(
+    () =>
+      STREAM_CATEGORIES.map((c) => ({ ...c, count: countForCategory(c.id) })).filter(
+        (c) => c.id === ALL_CAT || c.count > 0,
+      ),
+    [countForCategory],
+  );
+
+  // The category the feed is cut by. On the stream, a pill that drops out (a tag scope emptied it) shows All, so the
+  // feed never sits under a pill that isn't there.
+  const activeCategory: TeamNewsCategoryId =
+    isStream && selectedCategory !== ALL_CAT && !streamCategories.some((c) => c.id === selectedCategory)
+      ? ALL_CAT
+      : selectedCategory;
 
   const categoriesWithCounts = useMemo(() => {
     const base = CATEGORIES.reduce<Array<{ id: TeamNewsCategoryId; label: string; count: number }>>((acc, c) => {
@@ -396,8 +453,8 @@ export function useHomeFeed({
   const filteredItems = useMemo(() => {
     if (activeCategory === FOR_YOU_CAT) return forYouItemsForActiveTab;
     if (activeCategory === ALL_CAT) return itemsForActiveTab;
-    return itemsForActiveTab.filter((i) => matchesTeamNewsCategory(i, activeCategory));
-  }, [activeCategory, itemsForActiveTab, forYouItemsForActiveTab]);
+    return itemsForActiveTab.filter((i) => matchesCategory(i, activeCategory));
+  }, [activeCategory, itemsForActiveTab, forYouItemsForActiveTab, matchesCategory]);
 
   // Narrows filteredItems by team name, story title, summary, or tags —
   // combines with (doesn't replace) the active tab/category filter.
@@ -417,15 +474,15 @@ export function useHomeFeed({
   // band sit on For You without dragging hiring and deals into that slice.
   const isRestingCategory = activeCategory === ALL_CAT || activeCategory === FOR_YOU_CAT;
   // A tag filter is a narrowed view too: no hiring roll-ups or deals (they carry no tags).
-  const isNarrowedView =
-    activeTab !== ALL_TAB || activeCategory !== ALL_CAT || Boolean(query.trim()) || Boolean(topicFilter);
+  const isNarrowedView = activeTab !== ALL_TAB || activeCategory !== ALL_CAT || Boolean(query.trim()) || hasTopicScope;
   // For You is a narrowed view by the flag above, but it is the one narrowed view
   // that carries signals of its own — personalized ones. Searching inside it
   // narrows again, and drops them like every other search does.
-  const isForYouStream = activeCategory === FOR_YOU_CAT && !query.trim() && !topicFilter;
+  const isForYouStream = activeCategory === FOR_YOU_CAT && !query.trim() && !hasTopicScope;
   // Hidden under a tag filter: the band's picks are network-wide and would sit
   // above a feed they don't belong to.
-  const showTopStoriesBand = activeTab === ALL_TAB && isRestingCategory && !query.trim() && !topicFilter;
+  // The stream has no band: its top stories stay where they stand, labelled, and the Top pill lists them.
+  const showTopStoriesBand = !isStream && activeTab === ALL_TAB && isRestingCategory && !query.trim() && !hasTopicScope;
 
   // Ranked from editorialRank (LLM Top Stories picks), rendered from the live
   // overlay. Independent of upvote counts so the band stays distinct from
@@ -445,7 +502,10 @@ export function useHomeFeed({
     [searchedItems, topStories, hasTopStories],
   );
 
-  const clusters = useMemo(() => clusterByTeam(streamItems), [streamItems]);
+  const clusters = useMemo(
+    () => (isStream ? streamItems.map(storyCluster) : clusterByTeam(streamItems)),
+    [isStream, streamItems],
+  );
 
   const sortedClusters = useMemo(
     () => sortTeamNewsClusters(clusters, sort, initialFollowedTeamUids, initialUpvoteCounts),
@@ -455,11 +515,11 @@ export function useHomeFeed({
   // Forum posts under the CURRENT filters (category + search). For You uses
   // the posted-this-week cut; every other pill uses the 14-day activity list.
   const visibleForumPosts = useMemo(() => {
-    if (topicFilter) return NO_FORUM_POSTS;
+    if (hasTopicScope) return NO_FORUM_POSTS;
     return activeCategory === FOR_YOU_CAT
       ? selectForYouForumPosts(forumPosts, forYouForumCutoffIso, { tab: activeTab, query })
       : filterFeedForumPosts(forumPosts, { tab: activeTab, category: activeCategory, query });
-  }, [forumPosts, activeTab, activeCategory, query, forYouForumCutoffIso, topicFilter]);
+  }, [forumPosts, activeTab, activeCategory, query, forYouForumCutoffIso, hasTopicScope]);
 
   // The unified feed: forum posts interleaved into the sorted clusters. The
   // merge DELEGATES to sortedClusters' order (news-vs-news order stays
@@ -493,6 +553,8 @@ export function useHomeFeed({
   // analytics `position` of every card after it. `undefined` is the same "leave
   // the feed alone" signal a failed request already sends.
   const entries = useMemo(() => {
+    // The stream is news and forum posts only: roles and deals are in its rail.
+    if (isStream) return rankedEntries;
     // For You gets the PERSONALIZED roll-ups and no deals: a perk is network-wide,
     // so it belongs to the resting view rather than to a slice built about one
     // member. `SHOW_HIRING_NEWS` is not consulted — it gates the unpersonalized
@@ -512,17 +574,30 @@ export function useHomeFeed({
           hiring: SHOW_HIRING_NEWS ? feedHiring : undefined,
           deals: feedDeals,
         });
-  }, [rankedEntries, isForYouStream, forYouJobEntries, isNarrowedView, feedHiring, feedDeals]);
+  }, [isStream, rankedEntries, isForYouStream, forYouJobEntries, isNarrowedView, feedHiring, feedDeals]);
 
-  const visibleEntries = expanded ? entries : entries.slice(0, pageSize);
+  // The stream renders every entry: its layout cuts the list where the rail ends.
+  const visibleEntries = isStream || expanded ? entries : entries.slice(0, pageSize);
+
+  // A news card's index in the rendered entries: the team's cluster on the grouped feed, the story's own card on the
+  // stream (where a team has one card per story).
+  const newsEntryIndex = (item: ITeamNewsItem) =>
+    isStream
+      ? visibleEntries.findIndex((e) => e.kind === 'news' && e.cluster.items[0]?.uid === item.uid)
+      : visibleEntries.findIndex((e) => e.kind === 'news' && e.cluster.teamUid === item.teamUid);
   const newCount = allItems.length + (forumPosts?.length ?? 0);
 
   // Band is editorialRank; rail is upvotes — they should already diverge, but
   // still drop any accidental overlap so the same story isn't shown twice.
-  const railPopularItems = useMemo(
-    () => (topStories && hasTopStories ? popularItems.filter((p) => !topStories.uids.has(p.uid)) : popularItems),
-    [popularItems, topStories, hasTopStories],
-  );
+  // The stream keeps the same rule without a band (prototype): its top stories are labelled in the stream, so Popular
+  // leaves them out.
+  const railPopularItems = useMemo(() => {
+    if (isStream) {
+      const topUids = new Set(allItems.filter((i) => isEditorialRank(i.editorialRank)).map((i) => i.uid));
+      return topUids.size > 0 ? popularItems.filter((p) => !topUids.has(p.uid)) : popularItems;
+    }
+    return topStories && hasTopStories ? popularItems.filter((p) => !topStories.uids.has(p.uid)) : popularItems;
+  }, [isStream, allItems, popularItems, topStories, hasTopStories]);
 
   // ?news=<uid> ↔ detail-modal sync (declared after the allItems memo — the
   // validator closes over it). All URL writes are history.replaceState; see
@@ -671,7 +746,7 @@ export function useHomeFeed({
   // outcome 'modal', derived in the analytics module) + modal state + URL.
   // Positions are entry-list indices now that forum posts interleave.
   const handleStoryOpen = (item: ITeamNewsItem, via: TeamNewsCardClickVia = 'row') => {
-    const position = visibleEntries.findIndex((e) => e.kind === 'news' && e.cluster.teamUid === item.teamUid);
+    const position = newsEntryIndex(item);
     analytics.onTeamNewsCardClicked(item, position >= 0 ? position : 0, 'home', via);
     // One modal, one URL param at a time — closing the other side first keeps
     // ?news= and ?post= mutually exclusive (both writes are synchronous).
@@ -697,9 +772,9 @@ export function useHomeFeed({
   const handleTagSelect = (tag: string, via: TeamNewsTagFilterVia) => {
     if (via === 'modal') closeNews();
     setExpanded(false);
-    if (tag === topicFilter) {
+    if (topicScope.length === 1 && tag === topicScope[0]) {
       analytics.onTeamNewsTagFilterCleared({ tag, via });
-      setTopicFilter('');
+      setTopicScope(NO_TAGS);
       return;
     }
     analytics.onTeamNewsTagFilterApplied({
@@ -707,23 +782,78 @@ export function useHomeFeed({
       via,
       itemCount: allItems.filter((i) => newsItemHasTag(i, tag)).length,
     });
-    setTopicFilter(tag);
+    setTopicScope([tag]);
     setActiveTab(ALL_TAB);
     setActiveCategory(ALL_CAT);
   };
 
+  // The stream's tags stack (LAB-3125): a click adds the tag to the scope, a click on a selected one removes it, and a
+  // story must carry every tag in it. The pill stays where it is: a tag added from a card on screen keeps that card.
+  const changeTopicScope = (next: string[], action: HomeFeedTagScopeAction) => {
+    setTopicScope(next.length > 0 ? next : NO_TAGS);
+    setExpanded(false);
+    onTagScopeChange?.(next, action);
+  };
+
+  const handleScopeTagToggle = (tag: string, via: TeamNewsTagFilterVia) => {
+    if (via === 'modal') closeNews();
+    if (topicScope.includes(tag)) {
+      analytics.onTeamNewsTagFilterCleared({ tag, via });
+      changeTopicScope(
+        topicScope.filter((t) => t !== tag),
+        'remove',
+      );
+      return;
+    }
+    const next = [...topicScope, tag];
+    analytics.onTeamNewsTagFilterApplied({
+      tag,
+      via,
+      itemCount: allItems.filter((i) => newsItemHasAllTags(i, next)).length,
+    });
+    changeTopicScope(next, 'add');
+  };
+
+  /** A chip's ×. */
+  const handleScopeTagRemove = (tag: string) => {
+    analytics.onTeamNewsTagFilterCleared({ tag, via: 'chip' });
+    changeTopicScope(
+      topicScope.filter((t) => t !== tag),
+      'remove',
+    );
+  };
+
+  /** "Clear all". */
+  const handleScopeClear = () => {
+    topicScope.forEach((tag) => analytics.onTeamNewsTagFilterCleared({ tag, via: 'chip' }));
+    changeTopicScope([], 'clear');
+  };
+
+  /** A "Narrow by" suggestion. */
+  const handleScopeNarrow = (tag: string) => {
+    if (topicScope.includes(tag)) return;
+    const next = [...topicScope, tag];
+    analytics.onTeamNewsTagFilterApplied({
+      tag,
+      via: 'card',
+      itemCount: allItems.filter((i) => newsItemHasAllTags(i, next)).length,
+    });
+    changeTopicScope(next, 'narrow');
+  };
+
   const handleTagFilterClear = () => {
-    analytics.onTeamNewsTagFilterCleared({ tag: topicFilter, via: 'chip' });
-    setTopicFilter('');
+    analytics.onTeamNewsTagFilterCleared({ tag: topicScope[0] ?? '', via: 'chip' });
+    setTopicScope(NO_TAGS);
     setExpanded(false);
   };
 
   // A tag is clicked deep in the feed (or in the modal over it); the result is
   // the top of a re-cut feed, so bring the chip that says what happened into view.
+  const topicScopeKey = topicScope.join('\n');
   useEffect(() => {
-    if (!topicFilter) return;
+    if (!topicScopeKey) return;
     filterBarRef.current?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
-  }, [topicFilter]);
+  }, [topicScopeKey]);
 
   // Forum-post counterpart of handleStoryOpen (card-clicked analytics fire in
   // ForumPostCard, which knows its own position).
@@ -746,7 +876,7 @@ export function useHomeFeed({
   const activeCategoryRef = useRef(activeCategory);
   const analyticsRef = useRef(analytics);
   const forYouForumCutoffIsoRef = useRef(forYouForumCutoffIso);
-  const topicFilterRef = useRef(topicFilter);
+  const hasTopicScopeRef = useRef(hasTopicScope);
   useEffect(() => {
     filteredItemsRef.current = filteredItems;
     forumPostsRef.current = forumPosts;
@@ -754,7 +884,7 @@ export function useHomeFeed({
     activeCategoryRef.current = activeCategory;
     analyticsRef.current = analytics;
     forYouForumCutoffIsoRef.current = forYouForumCutoffIso;
-    topicFilterRef.current = topicFilter;
+    hasTopicScopeRef.current = hasTopicScope;
   });
 
   // useCallback with empty deps is required here, not just tidy: SearchInput's
@@ -775,7 +905,7 @@ export function useHomeFeed({
     // the query + forum posts under the current tab/category filters.
     const category = activeCategoryRef.current;
     // A tag filter shows no forum posts, so none of them count as results.
-    const forumMatches = topicFilterRef.current
+    const forumMatches = hasTopicScopeRef.current
       ? NO_FORUM_POSTS
       : category === FOR_YOU_CAT
         ? selectForYouForumPosts(forumPostsRef.current, forYouForumCutoffIsoRef.current, {
@@ -881,7 +1011,7 @@ export function useHomeFeed({
 
     // -1, not 0: a deep-linked modal item isn't in visibleEntries at all, and
     // reporting it as position 0 makes it indistinguishable from the top card.
-    const position = visibleEntries.findIndex((e) => e.kind === 'news' && e.cluster.teamUid === item.teamUid);
+    const position = newsEntryIndex(item);
 
     upvoteMutate(
       { uid: item.uid, isUpvoted: nextUpvoted },
@@ -963,6 +1093,14 @@ export function useHomeFeed({
       return;
     }
 
+    // The stream is cut where the rail ends, so it can't promise the story is on screen to scroll to: a row opens the
+    // story itself (prototype).
+    if (isStream) {
+      if (activePostUid) closePost();
+      openNews(fullItem.uid);
+      return;
+    }
+
     // Reuse the already-memoized itemsForActiveTab rather than recomputing the
     // same ALL_TAB-vs-group lookup inline — accurate here, before any of this
     // handler's own setState calls have applied.
@@ -971,9 +1109,9 @@ export function useHomeFeed({
       activeCategory !== ALL_CAT &&
       (activeCategory === FOR_YOU_CAT
         ? !forYouItemsForActiveTab.some((i) => i.uid === fullItem.uid)
-        : !matchesTeamNewsCategory(fullItem, activeCategory));
+        : !matchesCategory(fullItem, activeCategory));
     const searchMismatch = query.trim() !== '' && !matchesTeamNewsQuery(fullItem, query.trim().toLowerCase());
-    const topicMismatch = Boolean(topicFilter) && !newsItemHasTag(fullItem, topicFilter);
+    const topicMismatch = hasTopicScope && !newsItemHasAllTags(fullItem, topicScope);
     const filtersChanging = tabMismatch || categoryMismatch || searchMismatch || topicMismatch;
 
     // If filters are already about to reflow substantially, don't also re-derive
@@ -994,7 +1132,7 @@ export function useHomeFeed({
       if (tabMismatch) setActiveTab(ALL_TAB);
       if (categoryMismatch) setActiveCategory(ALL_CAT);
       if (searchMismatch) setQuery('');
-      if (topicMismatch) setTopicFilter('');
+      if (topicMismatch) setTopicScope(NO_TAGS);
       if (shouldExpandOuter) setExpanded(true);
       setScrollTarget({ teamUid: fullItem.teamUid, storyUid: fullItem.uid });
     });
@@ -1035,12 +1173,17 @@ export function useHomeFeed({
     handleTab,
     categoriesWithCounts,
     categoryOptions,
+    streamCategories,
     activeCategory,
     handleCategory,
     countForCategory,
-    topicFilter,
+    topicScope,
     handleTagSelect,
     handleTagFilterClear,
+    handleScopeTagToggle,
+    handleScopeTagRemove,
+    handleScopeClear,
+    handleScopeNarrow,
     searchedItems,
     sort,
     handleSort,
@@ -1058,6 +1201,7 @@ export function useHomeFeed({
     visibleSuggestions,
     isLoadingSuggestedTeams,
     railPopularItems,
+    hasForumAccess: hasAccess,
     handlePopularItemClick,
     entries,
     visibleEntries,

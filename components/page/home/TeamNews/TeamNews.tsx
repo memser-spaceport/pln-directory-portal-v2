@@ -63,7 +63,7 @@ export const TeamNews = (props: HomeFeedProps) => {
     categoryOptions,
     activeCategory,
     handleCategory,
-    topicFilter,
+    topicScope,
     handleTagSelect,
     handleTagFilterClear,
     searchedItems,
@@ -99,6 +99,8 @@ export const TeamNews = (props: HomeFeedProps) => {
     activeForumPost,
     closePost,
   } = useHomeFeed(props);
+  // This layout filters by one tag at most (LAB-3010); stacking is the new Home's.
+  const topicFilter = topicScope[0] ?? '';
 
   // A forum-access member with zero news in the window still gets their posts
   // (they render alone once the posts query lands — accepted pop-in).

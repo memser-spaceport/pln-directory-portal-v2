@@ -723,6 +723,9 @@ export const HOME_ANALYTICS_EVENTS = {
   EVENT_CLICKED: 'home-event-clicked',
   FOCUS_AREA_CLICKED: 'home-focus-area-clicked',
   SEE_ALL_CLICKED: 'home-see-all-clicked',
+  // The signed-in Home (LAB-3125).
+  DEAL_CLICKED: 'home-deal-clicked',
+  FEED_TAG_SCOPE_CHANGED: 'home-feed-tag-scope-changed',
 };
 
 export const TEAM_NEWS_ANALYTICS_EVENTS = {

@@ -4,7 +4,11 @@ import '@testing-library/jest-dom';
 
 import Home from '@/app/home/page';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
-import { getTeamNewsGroupedByFocusArea, getTeamNewsPopular } from '@/services/team-news/team-news.service';
+import {
+  getTeamNewsGroupedByFocusArea,
+  getTeamNewsItemByUid,
+  getTeamNewsPopular,
+} from '@/services/team-news/team-news.service';
 import { getJobsList } from '@/app/actions/jobs.actions';
 import { getUpcomingEvents } from '@/services/events/events.service';
 import { getPortfolioTeams } from '@/services/explore-pl-network/portfolio.service';
@@ -68,6 +72,15 @@ jest.mock('@/analytics/auth.analytics', () => ({ useAuthAnalytics: () => new Pro
 jest.mock('@/components/core/login/components/PrivyLayer/prefetch', () => ({ prefetchPrivyLayer: jest.fn() }));
 jest.mock('@/services/feed/hooks/useFeedCommentCounts', () => ({ useFeedCommentCounts: () => ({ data: {} }) }));
 jest.mock('@/components/page/home/TeamNews/components/NewsDetailModal', () => ({ NewsDetailModal: () => null }));
+// The signed-in page is a client tree with its own tests (signed-in-home.test.tsx); here it is a marker that keeps
+// what the page hands it.
+const mockSignedInHome = jest.fn();
+jest.mock('@/components/page/home/HomeV2/SignedInHome', () => ({
+  SignedInHome: (props: unknown) => {
+    mockSignedInHome(props);
+    return <div>Signed-in home</div>;
+  },
+}));
 
 const MISSION = 'Protocol Labs drives breakthroughs in computing to push humanity forward.';
 
@@ -95,7 +108,17 @@ const soon = (days: number) => new Date(Date.now() + days * 24 * 60 * 60 * 1000)
 const signedOut = () =>
   (getCookiesFromHeaders as jest.Mock).mockResolvedValue({ isLoggedIn: false, userInfo: null, authToken: '' });
 
-const renderHome = async () => render(await Home({ searchParams: Promise.resolve({}) }));
+const signedIn = () =>
+  (getCookiesFromHeaders as jest.Mock).mockResolvedValue({
+    isLoggedIn: true,
+    userInfo: { uid: 'u1', name: 'Member' },
+    authToken: 'token',
+  });
+
+const fetchedUrls = () => (global.fetch as jest.Mock).mock.calls.map(([url]) => String(url));
+
+const renderHome = async (searchParams: { news?: string } = {}) =>
+  render(await Home({ searchParams: Promise.resolve(searchParams) }));
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -176,6 +199,20 @@ describe('/home with the new Home flag off', () => {
     expect(getFeaturedData).toHaveBeenCalled();
     expect(getJobsList).not.toHaveBeenCalled();
   });
+
+  it('renders the previous Home for a signed-in member, Quick Actions and its access call included', async () => {
+    signedIn();
+
+    await renderHome();
+
+    expect(screen.getByText('Quick actions')).toBeInTheDocument();
+    expect(screen.getByText('Team news feed')).toBeInTheDocument();
+    expect(screen.getByText('Focus area section')).toBeInTheDocument();
+    expect(screen.queryByText('Signed-in home')).not.toBeInTheDocument();
+    expect(fetchedUrls().some((url) => url.includes('/me/access'))).toBe(true);
+    expect(getJobsList).not.toHaveBeenCalled();
+    expect(mockSignedInHome).not.toHaveBeenCalled();
+  });
 });
 
 describe('/home with the new Home flag on', () => {
@@ -183,18 +220,68 @@ describe('/home with the new Home flag on', () => {
     mockShowHomeV2 = true;
   });
 
-  it('keeps the previous Home for a signed-in member', async () => {
-    (getCookiesFromHeaders as jest.Mock).mockResolvedValue({
-      isLoggedIn: true,
-      userInfo: { uid: 'u1', name: 'Member' },
-      authToken: 'token',
-    });
+  it('gives a signed-in member the member page, with no Quick Actions and none of the previous sections', async () => {
+    signedIn();
 
     await renderHome();
 
-    expect(screen.getByText('Quick actions')).toBeInTheDocument();
-    expect(screen.getByText('Team news feed')).toBeInTheDocument();
+    expect(screen.getByText('Signed-in home')).toBeInTheDocument();
+    expect(screen.queryByText('Quick actions')).not.toBeInTheDocument();
+    expect(screen.queryByText('Team news feed')).not.toBeInTheDocument();
+    expect(screen.queryByText('Focus area section')).not.toBeInTheDocument();
     expect(screen.queryByText(MISSION)).not.toBeInTheDocument();
+    // HomeIntro's hidden heading stays the page's one h1.
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+  });
+
+  it("fetches the feed's server data and the rail's, but no /me/access, featured or discover data", async () => {
+    signedIn();
+    (getTeamNewsGroupedByFocusArea as jest.Mock).mockResolvedValue({
+      groups: [{ focusArea: { uid: 'fa', title: 'AI & Robotics' }, total: 1, items: [story('s1')] }],
+      allTabExtraItems: [story('extra')],
+      forYouTeamUids: ['team-s1'],
+    });
+    (getTeamNewsPopular as jest.Mock).mockResolvedValue({
+      items: [{ uid: 'p1', title: 'Popular', teamUid: 't', teamName: 'T', sourceUrl: 'https://x', upvoteCount: 2 }],
+    });
+    (getTeamNewsItemByUid as jest.Mock).mockResolvedValue(story('linked'));
+
+    await renderHome({ news: 'linked' });
+
+    expect(getTeamNewsGroupedByFocusArea).toHaveBeenCalledWith({}, 'token');
+    expect(getTeamNewsPopular).toHaveBeenCalledWith(undefined, 'token');
+    expect(getTeamNewsItemByUid).toHaveBeenCalledWith('linked');
+    expect(getJobsList).toHaveBeenCalledWith('sort=newest');
+    expect(getUpcomingEvents).toHaveBeenCalledWith({ days: 30, limit: 3 });
+    expect(getPortfolioTeams).toHaveBeenCalled();
+    expect(fetchedUrls().some((url) => url.includes('/me/access'))).toBe(false);
+    expect(fetchedUrls().some((url) => url.includes('/v1/notification/settings/u1/forum'))).toBe(true);
+    expect(getFeaturedData).not.toHaveBeenCalled();
+    expect(getDiscoverData).not.toHaveBeenCalled();
+    expect(getFocusAreas).not.toHaveBeenCalled();
+
+    const props = mockSignedInHome.mock.calls[0][0];
+    expect(props.feed.groups[0].items.map((i: ITeamNewsItem) => i.uid)).toEqual(['s1']);
+    expect(props.feed.allTabExtraItems.map((i: ITeamNewsItem) => i.uid)).toEqual(['extra']);
+    expect(props.feed.forYouTeamUids).toEqual(['team-s1']);
+    expect(props.feed.popularItems.map((i: { uid: string }) => i.uid)).toEqual(['p1']);
+    expect(props.feed.deepLinkedItem.uid).toBe('linked');
+    expect(props.roles.total).toBe(171);
+    expect(props.events.events.map((e: { uid: string }) => e.uid)).toEqual(['e3']);
+    expect(props.portfolio).toHaveLength(PORTFOLIO_FALLBACK.length);
+    // The page's user info stays on the server.
+    expect(props).not.toHaveProperty('userInfo');
+  });
+
+  it('still renders the member page when the news call fails', async () => {
+    signedIn();
+    (getTeamNewsGroupedByFocusArea as jest.Mock).mockRejectedValue(new Error('down'));
+
+    await renderHome();
+
+    expect(screen.getByText('Signed-in home')).toBeInTheDocument();
+    expect(screen.queryByText('Error page')).not.toBeInTheDocument();
+    expect(mockSignedInHome.mock.calls[0][0].feed.groups).toEqual([]);
   });
 
   it('gives a signed-out visitor the story, with the mission as the only h1 and no About foot', async () => {

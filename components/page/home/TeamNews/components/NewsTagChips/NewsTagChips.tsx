@@ -6,6 +6,9 @@ import { useNewsTopicSlugs } from '@/services/team-news/hooks/useNewsTopicSlugs'
 import { SHOW_NEWS_PREFERENCES } from '@/utils/news-categories';
 import { getNewsTagChips, NEWS_CARD_TOPIC_LIMIT } from '@/utils/news-tag-chips';
 
+/** No topic list to sort by: every tag but the verbs is a chip (the new Home with News preferences off). */
+const NO_TOPIC_SLUGS: ReadonlySet<string> = new Set();
+
 import s from './NewsTagChips.module.scss';
 
 interface NewsTagChipsProps {
@@ -14,8 +17,15 @@ interface NewsTagChipsProps {
   variant: 'card' | 'detail';
   /** Makes the chips brand-blue `#tag` links that filter the Home feed (LAB-3010). Without it they stay grey labels. */
   onSelect?: (tag: string) => void;
-  /** The feed's current tag filter: that chip reads as selected, and clicking it clears the filter. */
-  active?: string;
+  /** The feed's current tag filter: that chip reads as selected, and clicking it clears the filter. A list on the new
+   *  Home, where tags stack (LAB-3125): each listed tag reads as selected, and the others add to the scope. */
+  active?: string | readonly string[];
+  /**
+   * The new Home (LAB-3125) shows a story's tags whatever the News preferences flag says. With the flag off there is
+   * no topic list, so every tag but the legacy verbs is a chip, up to the card's limit.
+   */
+  ungated?: boolean;
+  className?: string;
 }
 
 /**
@@ -26,30 +36,33 @@ interface NewsTagChipsProps {
  * Renders nothing until the focus areas load, and nothing when no tag qualifies,
  * so the layout stays as it was.
  */
-export function NewsTagChips({ tags, variant, onSelect, active }: NewsTagChipsProps) {
+export function NewsTagChips({ tags, variant, onSelect, active, ungated = false, className }: NewsTagChipsProps) {
   const topicSlugs = useNewsTopicSlugs();
-  if (!SHOW_NEWS_PREFERENCES || !topicSlugs) return null;
+  const chips = selectChips(tags, variant, topicSlugs, ungated);
+  if (!chips || chips.length === 0) return null;
 
-  const chips = getNewsTagChips(
-    tags,
-    topicSlugs,
-    variant === 'card' ? { topicLimit: NEWS_CARD_TOPIC_LIMIT } : { withExtras: true },
-  );
-  if (chips.length === 0) return null;
+  const isActive = (tag: string) => (typeof active === 'string' ? tag === active : (active?.includes(tag) ?? false));
+  const isStacking = Array.isArray(active) && active.length > 0;
 
   // With onSelect: brand text links, as `TopicTags` in the newsfeed prototype. A
   // blue `#` that did nothing would promise a click it can't keep, so without
   // it they stay grey labels.
   if (onSelect) {
     return (
-      <ul className={clsx(s.list, s.links)} aria-label="Tags">
+      <ul className={clsx(s.list, s.links, className)} aria-label="Tags">
         {chips.map((tag) => (
           <li key={tag} className={s.item}>
             <button
               type="button"
-              className={clsx(s.link, tag === active && s.linkActive)}
-              aria-pressed={tag === active}
-              aria-label={tag === active ? `Stop filtering by #${tag}` : `Show only #${tag} updates`}
+              className={clsx(s.link, isActive(tag) && s.linkActive)}
+              aria-pressed={isActive(tag)}
+              aria-label={
+                isActive(tag)
+                  ? `Stop filtering by #${tag}`
+                  : isStacking
+                    ? `Also filter by #${tag}`
+                    : `Show only #${tag} updates`
+              }
               onClick={(e) => {
                 // The row and the lead card open the story on click; the tag is its own target.
                 e.stopPropagation();
@@ -65,7 +78,7 @@ export function NewsTagChips({ tags, variant, onSelect, active }: NewsTagChipsPr
   }
 
   return (
-    <ul className={s.list} aria-label="Tags">
+    <ul className={clsx(s.list, className)} aria-label="Tags">
       {chips.map((tag) => (
         <li key={tag} className={s.item}>
           <span className={s.chip}>#{tag}</span>
@@ -73,4 +86,19 @@ export function NewsTagChips({ tags, variant, onSelect, active }: NewsTagChipsPr
       ))}
     </ul>
   );
+}
+
+/** The chips to draw, or null while there is nothing to draw them from. */
+function selectChips(
+  tags: readonly string[] | null | undefined,
+  variant: NewsTagChipsProps['variant'],
+  topicSlugs: ReadonlySet<string> | null,
+  ungated: boolean,
+): string[] | null {
+  const options = variant === 'card' ? { topicLimit: NEWS_CARD_TOPIC_LIMIT } : { withExtras: true };
+  if (SHOW_NEWS_PREFERENCES) return topicSlugs ? getNewsTagChips(tags, topicSlugs, options) : null;
+  if (!ungated) return null;
+  // No topics to tell apart: every tag is an "extra", so the card's limit applies to the extras.
+  const chips = getNewsTagChips(tags, NO_TOPIC_SLUGS, { withExtras: true });
+  return variant === 'card' ? chips.slice(0, NEWS_CARD_TOPIC_LIMIT) : chips;
 }

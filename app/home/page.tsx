@@ -41,7 +41,7 @@ import {
   codesFromCookiePermissions,
 } from '@/components/page/home/QuickActions/utils/resolveQuickActionsState';
 import { SHOW_HOME_V2 } from '@/utils/home-v2';
-import { SignedOutHome } from '@/components/page/home/HomeV2';
+import { SignedInHome, SignedOutHome } from '@/components/page/home/HomeV2';
 import { pickThisWeek } from '@/components/page/home/HomeV2/utils/pickThisWeek';
 import { flattenNewestRoles, HOME_ROLES_MAX } from '@/components/page/home/HomeV2/utils/flattenNewestRoles';
 import {
@@ -64,12 +64,10 @@ type HomeProps = {
 export default async function Home(props: HomeProps) {
   const { news } = await props.searchParams;
 
-  // The new Home (LAB-3070): signed out, the story page (LAB-3072). Signed in stays the previous Home until LAB-3125.
+  // The new Home (LAB-3070): signed out, the story page (LAB-3072); signed in, the member page (LAB-3125).
   if (SHOW_HOME_V2) {
     const { isLoggedIn } = await getCookiesFromHeaders();
-    if (!isLoggedIn) {
-      return renderSignedOutHome(news);
-    }
+    return isLoggedIn ? renderSignedInHome(news) : renderSignedOutHome(news);
   }
 
   const {
@@ -155,11 +153,37 @@ async function renderSignedOutHome(news?: string) {
   );
 }
 
+/**
+ * The signed-in member page: Network Updates beside the rail, then the focus areas. No Quick Actions. The `<h1>` is
+ * HomeIntro's visually hidden one, as on the previous Home: this page draws no title of its own.
+ */
+async function renderSignedInHome(news?: string) {
+  const { userInfo, ...data } = await getSignedInPageData(news);
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger -- JSON-LD from serializeJsonLd, which escapes it for a script tag
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(buildHomeJsonLd()) }}
+      />
+      <HomeIntro />
+      <DigestEmailHomeLinkCapture />
+      <SignedInHome {...data} />
+      <ScrollToTop pageName="Home" userInfo={userInfo} />
+      <HuskyDialog isLoggedIn />
+      <HuskyDiscover isLoggedIn />
+      <AutoMarkNewsNotification />
+      <MarkHomeVisited />
+    </>
+  );
+}
+
 const settled = <T,>(result: PromiseSettledResult<T>): T | null =>
   result.status === 'fulfilled' ? result.value : null;
 
 async function getNewestRoles(): Promise<IHomeRoles | null> {
-  // The board's public list, called as `/api/jobs/list` calls it; no token, since the viewer is signed out.
+  // The board's public list, called as `/api/jobs/list` calls it; no token, as it is the same list for everyone.
   const result = await getJobsList('sort=newest');
   if ('isError' in result) return null;
   return { roles: flattenNewestRoles(result.data.groups ?? [], HOME_ROLES_MAX), total: result.data.totalRoles ?? 0 };
@@ -194,6 +218,66 @@ const getSignedOutPageData = async (deepLinkedNewsUid?: string) => {
   return {
     stories: pickThisWeek(newsItems),
     deepLinkedItem: settled(deepLinkedResult),
+    roles: settled(rolesResult),
+    events: settled(eventsResult),
+    portfolio: mergePortfolio(PORTFOLIO_FALLBACK, settled(portfolioResult) ?? []),
+    projectFocusAreaCounts: settled(projectCountsResult),
+  };
+};
+
+/**
+ * The signed-in member page's data, in parallel: the feed's own server fetches as on the previous Home (the grouped
+ * news, For You's match, Popular this week, the deep-linked story, the digest settings), plus the rail's roles and
+ * events and the portfolio for the focus areas, as signed out. No Quick Actions, so no `/me/access` call, and no
+ * featured, discover or focus-area calls. Each source fails on its own: no news leaves the stream empty, a failed
+ * roles or events call leaves that section out, and a failed portfolio call uses the fallback file.
+ */
+const getSignedInPageData = async (deepLinkedNewsUid?: string) => {
+  const { userInfo, authToken } = await getCookiesFromHeaders();
+
+  // Seeded server-side, as on the previous Home, so the digest settings are right on first paint.
+  const digestSettingsPromise: Promise<ForumDigestSettings | null> = userInfo?.uid
+    ? fetch(`${process.env.DIRECTORY_API_URL}/v1/notification/settings/${userInfo.uid}/forum`, {
+        headers: { contentType: 'application/json', Authorization: `Bearer ${authToken}` },
+      })
+        .then((res) => (res.ok ? res.json() : null))
+        .catch(() => null)
+    : Promise.resolve(null);
+
+  const [
+    newsResult,
+    popularResult,
+    digestResult,
+    deepLinkedResult,
+    rolesResult,
+    eventsResult,
+    portfolioResult,
+    projectCountsResult,
+  ] = await Promise.allSettled([
+    getTeamNewsGroupedByFocusArea({}, authToken),
+    getTeamNewsPopular(undefined, authToken),
+    digestSettingsPromise,
+    deepLinkedNewsUid ? getTeamNewsItemByUid(deepLinkedNewsUid) : Promise.resolve(null),
+    getNewestRoles(),
+    getRailEvents(),
+    getPortfolioTeams(),
+    getProjectFocusAreaCounts(),
+  ]);
+
+  const newsResponse = settled(newsResult);
+  const forYouMatch = resolveForYouMatch(newsResponse, SHOW_NEWS_PREFERENCES);
+
+  return {
+    userInfo,
+    feed: {
+      groups: newsResponse?.groups ?? [],
+      allTabExtraItems: newsResponse?.allTabExtraItems ?? [],
+      forYouTeamUids: forYouMatch.teamUids,
+      forYouTags: forYouMatch.tags,
+      popularItems: settled(popularResult)?.items ?? [],
+      initialDigestSettings: settled(digestResult),
+      deepLinkedItem: settled(deepLinkedResult),
+    },
     roles: settled(rolesResult),
     events: settled(eventsResult),
     portfolio: mergePortfolio(PORTFOLIO_FALLBACK, settled(portfolioResult) ?? []),

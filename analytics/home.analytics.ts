@@ -7,7 +7,9 @@ import { usePostHog } from 'posthog-js/react';
 /** Which door on the new Home: the hero's Join card, the roles note, or a sign-up ask on a story. */
 export type HomeAuthDoor = 'sign_up' | 'sign_in';
 export type HomeAuthDoorSection = 'hero' | 'news' | 'roles';
-export type HomeSeeAllSection = 'news' | 'roles' | 'events' | 'map';
+export type HomeSeeAllSection = 'news' | 'roles' | 'events' | 'map' | 'deals';
+/** How the signed-in Home's tag scope changed: a tag clicked on, its × or clicked off, Clear all, or a Narrow by pick. */
+export type HomeFeedTagScopeAction = 'add' | 'remove' | 'clear' | 'narrow';
 export type HomeFocusAreaTarget = 'teams' | 'projects';
 
 export const useHomeAnalytics = () => {
@@ -181,6 +183,16 @@ export const useHomeAnalytics = () => {
     captureEvent(HOME_ANALYTICS_EVENTS.SEE_ALL_CLICKED, params);
   }
 
+  /** A deal opened from the signed-in rail; `position` is 1-based. */
+  function onDealClicked(params: { deal_uid: string; position: number }) {
+    captureEvent(HOME_ANALYTICS_EVENTS.DEAL_CLICKED, params);
+  }
+
+  /** The signed-in feed's tag scope changed; `tags` is the scope after the change. */
+  function onFeedTagScopeChanged(params: { tags: string[]; action: HomeFeedTagScopeAction }) {
+    captureEvent(HOME_ANALYTICS_EVENTS.FEED_TAG_SCOPE_CHANGED, params);
+  }
+
   return {
     featuredSubmitRequestClicked,
     onMemberCardClicked,
@@ -204,5 +216,7 @@ export const useHomeAnalytics = () => {
     onEventClicked,
     onFocusAreaClicked,
     onSeeAllClicked,
+    onDealClicked,
+    onFeedTagScopeChanged,
   };
 };

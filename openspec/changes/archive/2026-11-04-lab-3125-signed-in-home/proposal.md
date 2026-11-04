@@ -21,7 +21,7 @@ With `NEXT_PUBLIC_SHOW_HOME_V2` on (from [LAB-3072](https://linear.app/protocoll
   - There are no All / focus-area / Forum tabs and no Top stories band.
   - The pills are For You · All · Top · Discussions · Funding · Launch · Announcement, with counts. Empty pills hide, and pressing the active pill resets it. Phones get a "Type:" dropdown.
   - Sort by stays as in production.
-  - Top stories are labelled in the stream with a Top pill.
+  - Top stories are labelled "Top story" in the stream, where they stand.
 - **Hashtags.**
   - News cards show their tags as `#tag` links.
   - Clicking tags stacks them: a story must carry every selected tag.

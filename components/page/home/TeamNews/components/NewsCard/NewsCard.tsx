@@ -20,6 +20,7 @@ import { NewsShareMenu } from '../NewsShareMenu';
 import { SourceList } from '../SourceList/SourceList';
 import { TruncatedSummary } from './TruncatedSummary';
 import { ViewCount } from '../ViewCount/ViewCount';
+import { NewsCardFull } from './NewsCardFull';
 
 import s from './NewsCard.module.scss';
 
@@ -29,7 +30,8 @@ interface NewsCardProps {
   onClick?: (item: ITeamNewsItem) => void;
   hideTeamLink?: boolean;
   hideTeam?: boolean;
-  variant?: 'default' | 'flat' | 'outline';
+  /** `full`: the new Home's stream card (LAB-3125, NewsCardFull): the story in full, `#tag` links, inline comments. */
+  variant?: 'default' | 'flat' | 'outline' | 'full';
   compact?: boolean;
   className?: string;
   analyticsSource?: TeamNewsAnalyticsSource;
@@ -70,9 +72,19 @@ interface NewsCardProps {
    * instance, so a story listed twice on one surface is still one view.
    */
   onVisible?: (uid: string) => void;
+  /** `full` only: the tags are links that change the feed's tag scope. */
+  onTagSelect?: (tag: string) => void;
+  /** `full` only: the feed's tag scope, shown selected on the tags. */
+  activeTags?: readonly string[];
+  /** `full` only: an editorial top story (rank 1–3), badged "Top story". */
+  isTopStory?: boolean;
 }
 
-export const NewsCard = ({
+/** The news card. The `full` variant is its own component, so its comment-thread state stays out of the others. */
+export const NewsCard = (props: NewsCardProps) =>
+  props.variant === 'full' ? <NewsCardFull {...props} /> : <NewsCardBase {...props} />;
+
+const NewsCardBase = ({
   item,
   position = 0,
   onClick,

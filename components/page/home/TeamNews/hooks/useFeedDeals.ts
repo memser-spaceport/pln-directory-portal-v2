@@ -33,8 +33,10 @@ export function isWithinWindow(createdAt: string, windowDays: number, now: numbe
  * Client-side and non-blocking, like useFeedHiring — `undefined` means "not
  * loaded / no access / failed", which injectFeedSignals leaves the feed alone for.
  */
-export function useFeedDeals(): { deals: IDeal[] | undefined } {
-  const { hasAccess } = useDealsAccess();
+export function useFeedDeals(enabled = true): { deals: IDeal[] | undefined } {
+  const { hasAccess: dealsAccess } = useDealsAccess();
+  // `enabled`: the new Home's stream (LAB-3125) injects no deal cards; its rail lists deals itself.
+  const hasAccess = dealsAccess && enabled;
 
   const { data } = useQuery({
     queryKey: [DealsQueryKeys.DEALS_LIST, 'home-feed', TEAM_NEWS_DEFAULT_WINDOW_DAYS],

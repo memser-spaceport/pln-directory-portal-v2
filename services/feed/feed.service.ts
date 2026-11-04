@@ -1,4 +1,5 @@
 import { customFetch } from '@/utils/fetch-wrapper';
+import { decode } from 'he';
 import { getHeader } from '@/utils/common.utils';
 import { stripHtml, stripHtmlPreservingBreaks } from '@/utils/forum';
 import { buildCommentTree } from '@/utils/comments';
@@ -123,7 +124,7 @@ function toFeedForumPost(topic: Topic): IFeedForumPost {
     // NodeBB categories don't map onto the feed's focus-area tabs, and there is
     // no focusAreas field to map from — posts show in every tab.
     focusAreas: [],
-    category: topic.category?.name ?? '',
+    category: decode(topic.category?.name ?? ''),
     createdAt: new Date(createdMs).toISOString(),
     lastActivityAt: new Date(lastActivityMs).toISOString(),
     forumTopicUrl: `/forum/topics/${topic.cid}/${topic.tid}`,

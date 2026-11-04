@@ -30,7 +30,7 @@ Above the stream, the filter row SHALL offer For You · All · Top · Discussion
 
 Milestone, Partnership and Other stories SHALL stay under All and keep their label on the card.
 
-The editorial top stories SHALL be labelled "Top" on their card where they stand in the stream. They are not pinned.
+The editorial top stories SHALL be labelled "Top story" on their card where they stand in the stream. They are not pinned.
 
 #### Scenario: Member without forum access
 
@@ -42,7 +42,7 @@ The editorial top stories SHALL be labelled "Top" on their card where they stand
 
 - **GIVEN** three stories with editorial rank 1 to 3
 - **WHEN** the member presses Top
-- **THEN** only those three show, each labelled Top
+- **THEN** only those three show, each labelled "Top story"
 - **AND** pressing Top again returns to All
 
 #### Scenario: Empty pill
@@ -70,7 +70,7 @@ The rail SHALL be one card, with sections divided by hairlines, in this order:
 3. **Teams to follow:** the member's suggestions, with Follow.
 4. **Deals:**
    - Only for members with deals access. Without access the section is absent, with no locked teaser.
-   - It sits on a tinted panel under the "Portfolio perks" label.
+   - It sits under the "Portfolio perks" label, as bordered white rows between the rail's hairlines (the prototype dropped the blue tint on 2026-11-03).
    - It lists the three newest deals, each with the vendor mark, the name, the line, and a green value pill when the deal has an offer value.
    - It ends with "See all N deals →".
 5. **Popular this week:** the week's most-liked stories. A row opens the story.

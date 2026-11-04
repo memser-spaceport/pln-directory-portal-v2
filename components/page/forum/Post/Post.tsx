@@ -96,7 +96,7 @@ export const Post = () => {
 
     return {
       pid: data.mainPid,
-      category: data.category.name,
+      category: decode(data.category.name),
       tid: data.tid,
       title: data.title,
       desc: data.posts[0]?.content,

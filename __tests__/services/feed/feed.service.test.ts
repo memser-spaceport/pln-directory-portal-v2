@@ -127,6 +127,28 @@ describe('feed.service', () => {
       ]);
     });
 
+    it('decodes the category name NodeBB sends HTML-escaped (LAB-3141)', async () => {
+      customFetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => ({ topics: [{ ...TOPIC, category: { name: 'Comments &amp; Feedback' } }] }),
+      });
+
+      const { items } = await getFeedForumPosts();
+
+      expect(items[0].category).toBe('Comments & Feedback');
+    });
+
+    it('keeps an empty category name when the topic carries no category', async () => {
+      customFetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => ({ topics: [{ ...TOPIC, category: undefined }] }),
+      });
+
+      const { items } = await getFeedForumPosts();
+
+      expect(items[0].category).toBe('');
+    });
+
     it('carries the topic’s viewcount through, so the feed card can show what the forum shows', async () => {
       customFetchMock.mockResolvedValue({ ok: true, json: async () => ({ topics: [TOPIC] }) });
 

@@ -58,3 +58,14 @@ Every page under `/forum` SHALL be marked `noindex, follow`, because its content
 - **GIVEN** a signed-in member
 - **WHEN** they open `/forum`
 - **THEN** they are sent to `/forum?cid=0` and see the feed
+
+### Requirement: Category names read as typed
+
+NodeBB sends category names and descriptions HTML-escaped. The directory SHALL decode them once before showing them: in the forum category tabs, the Create Post category picker, the post page badge, the edit page, and forum posts in the home feed. It SHALL NOT render the escapes as text.
+
+#### Scenario: Category with an ampersand
+
+- **GIVEN** a forum category named "Comments & Feedback", which NodeBB sends as `Comments &amp; Feedback`
+- **WHEN** a member opens the forum
+- **THEN** the tab reads "Comments & Feedback"
+- **AND** a post in that category shows the same name on its badge and in the home feed

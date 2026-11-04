@@ -9,11 +9,14 @@ export type McpSnippetType = 'server' | 'claude' | 'codex' | 'claude-app';
 export type McpConnectDenyReason = 'user_denied' | 'missing_permission';
 export type McpConnectErrorKind = 'approve_failed' | 'redirect_invalid' | 'client_unknown';
 
-export type McpDrawerSource = 'card' | 'more' | 'request';
+export type McpDrawerSource = 'card' | 'more' | 'request' | 'hint';
 export type McpAccessRequestOpenedStatus = 'open' | 'resolved' | 'expired' | 'unavailable';
 
 /** Where a discovery hint sits (LAB-3033). */
 export type McpHintContext = 'launch_bar' | 'search' | 'forum' | 'comments' | 'apps';
+
+/** Which AI Apps page hint the member saw (LAB-3136); sent only with context `apps`. */
+export type McpAppsHintState = 'no_agent' | 'read_only' | 'connected' | 'no_apps';
 
 export type McpWarmPathParams = {
   warmPathUid: string;
@@ -78,13 +81,17 @@ export function useMcpAnalytics() {
     onAccessRequestOpened: (params: { status: McpAccessRequestOpenedStatus; scope?: string }) =>
       capture(MCP_ANALYTICS_EVENTS.ACCESS_REQUEST_OPENED, params),
     onContactAckChecked: (params: { clientId: string }) => capture(MCP_ANALYTICS_EVENTS.CONTACT_ACK_CHECKED, params),
-    onHintShown: (params: { context: McpHintContext; connected: boolean }) =>
+    onHintShown: (params: { context: McpHintContext; connected: boolean; state?: McpAppsHintState }) =>
       capture(MCP_ANALYTICS_EVENTS.HINT_SHOWN, params),
     onHintDismissed: (params: { context: McpHintContext }) => capture(MCP_ANALYTICS_EVENTS.HINT_DISMISSED, params),
     onHintConnectClicked: (params: { context: McpHintContext }) =>
       capture(MCP_ANALYTICS_EVENTS.HINT_CONNECT_CLICKED, params),
     onHintPromptCopied: (params: { context: McpHintContext; clientName?: string }) =>
       capture(MCP_ANALYTICS_EVENTS.HINT_PROMPT_COPIED, params),
+    onHintStarterKitClicked: (params: { context: McpHintContext; state: McpAppsHintState }) =>
+      capture(MCP_ANALYTICS_EVENTS.HINT_STARTER_KIT_CLICKED, params),
+    onHintAllowChangesClicked: (params: { context: McpHintContext; authorizationUid: string; clientName?: string }) =>
+      capture(MCP_ANALYTICS_EVENTS.HINT_ALLOW_CHANGES_CLICKED, params),
     onWarmPathFeedbackOpened: (params: McpWarmPathEditParams) =>
       capture(MCP_ANALYTICS_EVENTS.WARM_PATH_FEEDBACK_OPENED, params),
     onWarmPathFeedbackSubmitted: (params: McpWarmPathEditParams) =>

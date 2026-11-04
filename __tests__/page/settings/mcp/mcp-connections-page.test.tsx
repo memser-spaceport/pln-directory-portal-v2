@@ -359,6 +359,46 @@ describe('McpConnectionsPage', () => {
     expect(mockAnalytics.onAccessRequestOpened).toHaveBeenCalledWith({ status: 'open', scope: 'investors' });
   });
 
+  it('opens a connection from the AI Apps hint link with AI Apps set to write, saved only on Save (LAB-3136)', () => {
+    const writable = {
+      ...CODEX,
+      scopes: CODEX.scopes.map((sc) => (sc.key === 'ai_apps' ? { ...sc, maxLevel: 'write' as const, lock: null } : sc)),
+    };
+    withConnections([CLAUDE, writable]);
+    mockSearch = new URLSearchParams('connection=auth-codex&scope=ai_apps');
+    render(<McpConnectionsPage />);
+
+    const drawer = screen.getByTestId('drawer');
+    expect(within(drawer).getByRole('heading', { name: 'Codex' })).toBeInTheDocument();
+    const aiApps = within(drawer).getByRole('radiogroup', { name: 'Access to AI Apps' });
+    expect(within(aiApps).getByRole('radio', { name: 'Read and write' })).toHaveAttribute('aria-checked', 'true');
+    expect(mockSaveMutate).not.toHaveBeenCalled();
+    expect(mockAnalytics.onPermissionsDrawerOpened).toHaveBeenCalledWith({
+      authorizationUid: 'auth-codex',
+      clientName: 'Codex',
+      source: 'hint',
+    });
+
+    fireEvent.click(within(drawer).getByRole('button', { name: 'Save' }));
+    expect(mockSaveMutate).toHaveBeenCalledWith(
+      expect.objectContaining({ uid: 'auth-codex', levels: expect.objectContaining({ ai_apps: 'write' }) }),
+      expect.any(Object),
+    );
+  });
+
+  it('opens the connection without a preset when admins cap AI Apps, and nothing for an unknown one (LAB-3136)', () => {
+    withConnections([CODEX]);
+    mockSearch = new URLSearchParams('connection=auth-codex&scope=ai_apps');
+    const { unmount } = render(<McpConnectionsPage />);
+    const aiApps = within(screen.getByTestId('drawer')).getByRole('radiogroup', { name: 'Access to AI Apps' });
+    expect(within(aiApps).getByRole('radio', { name: 'Read' })).toHaveAttribute('aria-checked', 'true');
+    unmount();
+
+    mockSearch = new URLSearchParams('connection=gone&scope=ai_apps');
+    render(<McpConnectionsPage />);
+    expect(screen.queryByTestId('drawer')).not.toBeInTheDocument();
+  });
+
   it.each([
     ['expired', { status: 'expired' as const }, 'This access request has expired'],
     ['resolved', { status: 'resolved' as const }, 'already allowed'],

@@ -23,6 +23,13 @@
   padding: 0;
 }
 
+/* One or more links under the text (LAB-3136: the AI Apps page can show two). */
+.hintLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
 .iconBtn {
   display: inline-flex;
   align-items: center;

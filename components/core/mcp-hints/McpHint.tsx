@@ -4,16 +4,17 @@ import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { clsx } from 'clsx';
 
-import { useMcpAnalytics } from '@/analytics/mcp.analytics';
+import { type McpAppsHintState, useMcpAnalytics } from '@/analytics/mcp.analytics';
 import { Button } from '@/components/common/Button/Button';
 import { CloseIcon } from '@/components/icons';
 import { ClientLogo, clientKeyFromName } from '@/components/page/settings/mcp/ClientLogo';
 import { CopyButton } from '@/components/ui/CopyButton';
 import { useOneTimeCallout } from '@/hooks/useOneTimeCallout';
+import type { McpLevel } from '@/services/mcp/types';
 import { MCP_HINT_APPS_FLAG, MCP_HINT_COMMENTS_FLAG, MCP_HINT_FORUM_FLAG, MCP_HINT_SEARCH_FLAG } from '@/utils/mcp';
 
 import { getAiSearchCount } from './aiSearchSessionCount';
-import { useMcpHintAudience } from './useMcpHintAudience';
+import { type McpHintAudience, useMcpHintAudience } from './useMcpHintAudience';
 
 import s from './McpHint.module.scss';
 
@@ -22,7 +23,19 @@ export type McpHintProps =
   | { context: 'search'; query: string }
   | { context: 'forum'; title: string }
   | { context: 'comments'; newCount: number }
-  | { context: 'apps' };
+  | {
+      context: 'apps';
+      /**
+       * The member's own most recently updated app (LAB-3136): null when they created none, undefined while the apps
+       * list is still loading (the hint waits, so it never shows the wrong state).
+       */
+      latestAppName: string | null | undefined;
+      /** Opens the Starter Kit flow of the Create AI App card (`CreateAiAppModal`). */
+      onGetStarterKit: () => void;
+    };
+
+/** Where a hint's link goes: Settings → MCP connections, that connection's permissions, or the Starter Kit. */
+type HintLinkTo = 'connect' | 'permissions' | 'starter-kit';
 
 type HintCopy = {
   /** The host's trigger: the member just did something an agent could do for them. */
@@ -30,8 +43,15 @@ type HintCopy = {
   /** Not connected: what connecting would give them. */
   title: string;
   text: string;
-  /** Connected: the same request as a prompt for their agent. */
-  prompt: string;
+  /** Connected: the same request as a prompt for their agent. None means the hint shows `links` instead. */
+  prompt?: string;
+  /** Connected with a prompt: replaces "Ask <agent> instead" and says where the prompt goes. */
+  connectedTitle?: string;
+  connectedText?: string;
+  /** The links when there is no prompt to copy. Defaults to "Connect an agent". */
+  links?: { label: string; to: HintLinkTo }[];
+  /** AI Apps page only: which of its states this is, for `mcp-hint-shown`. */
+  appsState?: McpAppsHintState;
   /** The spacing the hint takes in its host. */
   hostClass: string;
 };
@@ -43,8 +63,64 @@ const FLAG: Record<McpHintProps['context'], string> = {
   apps: MCP_HINT_APPS_FLAG,
 };
 
+const CONNECT_LINK = { label: 'Connect an agent', to: 'connect' } as const;
+const STARTER_KIT_LINK = { label: 'Get the Starter Kit', to: 'starter-kit' } as const;
+
+/**
+ * AI Apps page copy (LAB-3136), ported verbatim from the LAB-2948 prototype's `appsContext()` (rewritten 2026-11-03).
+ * No app of their own: nothing for the agent to manage, and its tools cannot create one, so the Starter Kit. A connection
+ * whose `ai_apps` access is below write (every first connect is Read only) would refuse a redeploy, so it asks to allow
+ * changes instead of a prompt that fails.
+ */
+function appsHintCopy(
+  agent: string,
+  connected: boolean,
+  aiAppsLevel: McpLevel | null,
+  latestAppName: string | null,
+): Omit<HintCopy, 'triggered' | 'hostClass'> {
+  if (!latestAppName) {
+    return connected
+      ? {
+          appsState: 'no_apps',
+          title: `Build your first app with ${agent}`,
+          text: `${agent} is connected to LabOS. Get the Starter Kit, open it in ${agent} and ask it to build and deploy your app. Once it’s live, ${agent} can redeploy it for you.`,
+          links: [STARTER_KIT_LINK],
+        }
+      : {
+          appsState: 'no_apps',
+          title: 'Build your first app with Claude or Codex',
+          text: 'Get the Starter Kit, open it in your agent and ask it to build and deploy the app. Connect your agent to LabOS too, and it can redeploy the app later.',
+          links: [STARTER_KIT_LINK, CONNECT_LINK],
+        };
+  }
+  if (!connected) {
+    return {
+      appsState: 'no_agent',
+      title: 'Redeploy your apps from Claude or Codex',
+      text: `Connect LabOS to your agent, then ask it to redeploy “${latestAppName}” from the chat you already work in.`,
+      links: [CONNECT_LINK],
+    };
+  }
+  if (aiAppsLevel !== 'write') {
+    return {
+      appsState: 'read_only',
+      title: `Let ${agent} redeploy your apps`,
+      text: `${agent} is connected with read-only access, so it can see your apps but not change them. Allow changes to AI Apps to redeploy and rename them from your chat.`,
+      links: [{ label: 'Allow changes', to: 'permissions' }],
+    };
+  }
+  return {
+    appsState: 'connected',
+    title: '',
+    text: '',
+    connectedTitle: `Redeploy your apps from ${agent}`,
+    connectedText: `${agent} is connected to LabOS. Paste this into a ${agent} chat and it redeploys the app for you. It can rename apps and edit their descriptions the same way.`,
+    prompt: `Redeploy my LabOS AI App “${latestAppName}”`,
+  };
+}
+
 /** Copy ported verbatim from the LAB-2948 prototype's `CONTEXTS` (McpHints.tsx). */
-function hintCopy(props: McpHintProps): HintCopy {
+function hintCopy(props: McpHintProps, audience: McpHintAudience, agentName: string): HintCopy {
   switch (props.context) {
     case 'search':
       return {
@@ -72,12 +148,11 @@ function hintCopy(props: McpHintProps): HintCopy {
         hostClass: s.hostHintWide,
       };
     case 'apps':
-      // LAB-3062: no member action to wait for; the AI Apps page itself is the moment. Shown until dismissed.
+      // LAB-3062: no member action to wait for; the AI Apps page itself is the moment. Shown until dismissed, once the
+      // member's apps have loaded (LAB-3136: the copy depends on them).
       return {
-        triggered: true,
-        title: 'Manage your apps from your agent',
-        text: 'Your agent can redeploy, rename and edit the description of your apps.',
-        prompt: 'Redeploy my latest LabOS AI App',
+        triggered: props.latestAppName !== undefined,
+        ...appsHintCopy(agentName, audience.connected, audience.aiAppsLevel, props.latestAppName ?? null),
         hostClass: s.hostHintApps,
       };
   }
@@ -93,11 +168,13 @@ export function McpHint(props: McpHintProps) {
   const { context } = props;
   const router = useRouter();
   const analytics = useMcpAnalytics();
-  const { ready, connected, connectedClient } = useMcpHintAudience();
+  const audience = useMcpHintAudience();
+  const { ready, connected, connectedClient, connectionUid } = audience;
   // LAB-3049: a client that sent no name is "your agent", with the brand-free plug mark.
   const agentName = connectedClient ?? 'your agent';
   const flag = useOneTimeCallout(FLAG[context]);
-  const copy = hintCopy(props);
+  const copy = hintCopy(props, audience, agentName);
+  const { appsState } = copy;
 
   const visible = ready && flag.open && copy.triggered;
 
@@ -105,10 +182,29 @@ export function McpHint(props: McpHintProps) {
   useEffect(() => {
     if (!visible || reported.current) return;
     reported.current = true;
-    analytics.onHintShown({ context, connected });
-  }, [visible, analytics, context, connected]);
+    analytics.onHintShown(appsState ? { context, connected, state: appsState } : { context, connected });
+  }, [visible, analytics, context, connected, appsState]);
 
   if (!visible) return null;
+
+  const showPrompt = connected && !!copy.prompt;
+  const links = copy.links ?? [CONNECT_LINK];
+  const onLink = (to: HintLinkTo) => {
+    if (to === 'starter-kit' && props.context === 'apps') {
+      analytics.onHintStarterKitClicked({ context, state: appsState ?? 'no_apps' });
+      props.onGetStarterKit();
+    } else if (to === 'permissions' && connectionUid) {
+      analytics.onHintAllowChangesClicked({
+        context,
+        authorizationUid: connectionUid,
+        clientName: connectedClient ?? undefined,
+      });
+      router.push(`/settings/mcp?connection=${encodeURIComponent(connectionUid)}&scope=ai_apps`);
+    } else {
+      analytics.onHintConnectClicked({ context });
+      router.push('/settings/mcp');
+    }
+  };
 
   return (
     <div className={copy.hostClass}>
@@ -123,9 +219,10 @@ export function McpHint(props: McpHintProps) {
             </>
           )}
         </span>
-        {connected ? (
+        {showPrompt && copy.prompt ? (
           <div className={s.hintBody}>
-            <span className={s.label}>Ask {agentName} instead</span>
+            <span className={s.label}>{copy.connectedTitle ?? `Ask ${agentName} instead`}</span>
+            {copy.connectedText && <span className={s.help}>{copy.connectedText}</span>}
             <div className={s.hintPrompt}>
               <span className={s.hintPromptText}>{copy.prompt}</span>
               <CopyButton
@@ -138,17 +235,13 @@ export function McpHint(props: McpHintProps) {
           <div className={s.hintBody}>
             <span className={s.label}>{copy.title}</span>
             <span className={s.help}>{copy.text}</span>
-            <Button
-              size="s"
-              style="link"
-              className={s.linkBtn}
-              onClick={() => {
-                analytics.onHintConnectClicked({ context });
-                router.push('/settings/mcp');
-              }}
-            >
-              Connect an agent
-            </Button>
+            <span className={s.hintLinks}>
+              {links.map((link) => (
+                <Button key={link.to} size="s" style="link" className={s.linkBtn} onClick={() => onLink(link.to)}>
+                  {link.label}
+                </Button>
+              ))}
+            </span>
           </div>
         )}
         <button

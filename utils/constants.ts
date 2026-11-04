@@ -2865,6 +2865,9 @@ export const MCP_ANALYTICS_EVENTS = {
   HINT_DISMISSED: 'mcp-hint-dismissed',
   HINT_CONNECT_CLICKED: 'mcp-hint-connect-clicked',
   HINT_PROMPT_COPIED: 'mcp-hint-prompt-copied',
+  // AI Apps page hint links (LAB-3136)
+  HINT_STARTER_KIT_CLICKED: 'mcp-hint-starter-kit-clicked',
+  HINT_ALLOW_CHANGES_CLICKED: 'mcp-hint-allow-changes-clicked',
 };
 
 export const EDITOR_ANALYTICS = {

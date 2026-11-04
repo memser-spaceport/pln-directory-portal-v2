@@ -159,7 +159,7 @@ describe('SignedOutHome', () => {
       await userEvent.click(screen.getByRole('button', { name: 'Sign up for free' }));
 
       expect(mockHome.onAuthDoorClicked).toHaveBeenCalledWith({ door: 'sign_up', section: 'hero' });
-      expect(mockRouter.replace).toHaveBeenCalledWith(`/sign-up?returnTo=${encodeURIComponent('/')}`);
+      expect(mockRouter.push).toHaveBeenCalledWith(`/sign-up?returnTo=${encodeURIComponent('/')}`);
     });
 
     it('starts the navbar’s sign-in from Sign in', async () => {
@@ -222,7 +222,7 @@ describe('SignedOutHome', () => {
 
       expect(mockHome.onAuthDoorClicked).toHaveBeenCalledTimes(2);
       expect(mockHome.onAuthDoorClicked).toHaveBeenCalledWith({ door: 'sign_up', section: 'news' });
-      expect(mockRouter.replace).toHaveBeenCalledTimes(2);
+      expect(mockRouter.push).toHaveBeenCalledTimes(2);
       expect(mockHome.onNewsPickClicked).not.toHaveBeenCalled();
     });
 
@@ -287,7 +287,7 @@ describe('SignedOutHome', () => {
       expect(rolesEl).toHaveTextContent('Sign up to apply with your directory profile.');
       await userEvent.click(within(rolesEl).getByRole('button', { name: 'Sign up' }));
       expect(mockHome.onAuthDoorClicked).toHaveBeenCalledWith({ door: 'sign_up', section: 'roles' });
-      expect(mockRouter.replace).toHaveBeenCalled();
+      expect(mockRouter.push).toHaveBeenCalled();
     });
 
     it('records role, event and See all clicks', async () => {

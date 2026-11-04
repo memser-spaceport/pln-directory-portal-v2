@@ -24,7 +24,8 @@ export function useHomeAuthDoors() {
     homeAnalytics.onAuthDoorClicked({ door: 'sign_up', section });
     authAnalytics.onSignUpBtnClicked();
     const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
-    router.replace(`/sign-up?returnTo=${returnTo}`);
+    // push, not replace (the navbar uses replace): Back from sign-up should return to this page.
+    router.push(`/sign-up?returnTo=${returnTo}`);
   };
 
   const signIn = (section: HomeAuthDoorSection) => {

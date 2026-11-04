@@ -59,7 +59,7 @@ const { chromium } = require('playwright');
       const titles = await page.locator('.th-issuance-line circle title').allTextContents();
       assert.equal(titles.length, expected.length);
       titles.forEach((title, i) => assert.ok(title.endsWith(`${expected[i]} PLAA in circulation`), title));
-      const key = page.locator('.th-key__item').filter({ hasText: /^PLAA issuance$/ });
+      const key = page.locator('.th-key__item').filter({ hasText: /^PLAA Outstanding$/ });
       assert.equal(await key.count(), 1);
       assert.equal(
         await key.locator('.th-key__marker--line').evaluate((el) => getComputedStyle(el).backgroundColor),

@@ -76,7 +76,7 @@ const KEY_ITEMS: {
   { label: 'NAV / PLAA', color: SERIES_COLORS.nav, line: true, dashed: false, toggle: 'nav' },
   { label: 'Buyback clearing price', color: BUYBACK_COLOR, line: true, dashed: true, toggle: 'buyback' },
   {
-    label: 'PLAA issuance',
+    label: 'PLAA Outstanding',
     color: SERIES_COLORS.issuance,
     line: true,
     dashed: false,
@@ -403,7 +403,7 @@ function NavChart({
               yAxisId="issuance"
               type="linear"
               dataKey="totalPlaa"
-              name="PLAA issuance"
+              name="PLAA Outstanding"
               stroke={SERIES_COLORS.issuance}
               strokeWidth={NAV_LINE_WIDTH}
               dot={renderIssuanceDot}

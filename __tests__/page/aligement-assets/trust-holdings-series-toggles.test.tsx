@@ -107,7 +107,7 @@ test('unchecking a series removes only that line from the chart', () => {
   expect(screen.getByTestId('line-navPerPlaa')).toBeInTheDocument();
 });
 
-test('PLAA issuance toggle drops its line and its right-hand axis in the monthly view', () => {
+test('PLAA Outstanding toggle drops its line and its right-hand axis in the monthly view', () => {
   render(<TrustHoldings data={data} buybacks={buybacks} />);
 
   expect(screen.getByTestId('line-totalPlaa')).toBeInTheDocument();

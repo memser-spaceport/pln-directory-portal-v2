@@ -33,6 +33,8 @@ import { Divider } from '@/components/common/profile/Divider';
 import { isTeamLeaderOrAdmin } from '../utils/isTeamLeaderOrAdmin';
 import { isTeamInactive } from './utils/isTeamInactive';
 
+import { RequestIntroEntry } from '@/components/page/intro-request/RequestIntroEntry';
+
 import { PlusIconCircle } from './icons';
 import { EditTeamDetailsForm } from './components/EditTeamDetailsForm';
 import { TeamProfileMeta } from './components/TeamProfileMeta';
@@ -256,6 +258,9 @@ export const TeamDetails = (props: Props) => {
 
           {/* Right column: admin actions or follow, with followers info stacked below */}
           <div className={s.headerActionSlot}>
+            {!isCurrentUserTeamMember && (
+              <RequestIntroEntry type="TEAM" targetId={team?.id ?? ''} targetName={teamName} />
+            )}
             {hasTeamEditAccess ? (
               <>
                 <div className={s.actions}>

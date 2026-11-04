@@ -20,6 +20,8 @@ import CustomTooltip from '@/components/ui/Tooltip/Tooltip';
 import { TagsList } from '@/components/common/profile/TagsList';
 import { EditButton } from '@/components/common/profile/EditButton';
 
+import { RequestIntroEntry } from '@/components/page/intro-request/RequestIntroEntry';
+
 import { shouldShowInvestorTag } from './utils/shouldShowInvestorTag';
 
 import s from './MemberDetailHeader.module.scss';
@@ -175,7 +177,10 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
             </div>
           </div>
 
-          <div>
+          <div className={s.headerActions}>
+            {isLoggedIn && !isOwner && !variant && (
+              <RequestIntroEntry type="MEMBER" targetId={member.id} targetName={name} />
+            )}
             {isLoggedIn && (isAdmin || isOwner) && (
               <EditButton onClick={onEditProfileClick} incomplete={showIncomplete} />
             )}

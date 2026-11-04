@@ -9,7 +9,7 @@ import { getSubmitEventUrl } from '@/utils/irl-submit-url';
 import { FEEDBACK_BRIDGE_ATTR } from '@/components/page/ai-apps/components/screenshot-feedback/captureBridgedFrames';
 
 const EMBED_URL_PARAM = 'embedPath';
-const DEFAULT_EMBED_PATH = '/embed/map/';
+const DEFAULT_EMBED_PATH = '/embed/program/';
 
 export default function ScheduleSection(props: any) {
   const { onSubmitEventButtonClicked, onGoToEventsButtonClicked, onSubscribeForUpdatesButtonClicked } =

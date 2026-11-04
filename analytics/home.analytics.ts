@@ -4,6 +4,12 @@ import { HOME_ANALYTICS_EVENTS } from '@/utils/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { usePostHog } from 'posthog-js/react';
 
+/** Which door on the new Home: the hero's Join card, the roles note, or a sign-up ask on a story. */
+export type HomeAuthDoor = 'sign_up' | 'sign_in';
+export type HomeAuthDoorSection = 'hero' | 'news' | 'roles';
+export type HomeSeeAllSection = 'news' | 'roles' | 'events' | 'map';
+export type HomeFocusAreaTarget = 'teams' | 'projects';
+
 export const useHomeAnalytics = () => {
   const postHogProps = usePostHog();
 
@@ -151,6 +157,30 @@ export const useHomeAnalytics = () => {
     captureEvent(HOME_ANALYTICS_EVENTS.WELCOME_SIGNIN_CLICKED);
   }
 
+  function onAuthDoorClicked(params: { door: HomeAuthDoor; section: HomeAuthDoorSection }) {
+    captureEvent(HOME_ANALYTICS_EVENTS.AUTH_DOOR_CLICKED, params);
+  }
+
+  function onNewsPickClicked(params: { news_uid: string; position: number }) {
+    captureEvent(HOME_ANALYTICS_EVENTS.NEWS_PICK_CLICKED, params);
+  }
+
+  function onRoleClicked(params: { team_uid: string; position: number; signed_in: boolean }) {
+    captureEvent(HOME_ANALYTICS_EVENTS.ROLE_CLICKED, params);
+  }
+
+  function onEventClicked(params: { event_uid: string; position: number; signed_in: boolean }) {
+    captureEvent(HOME_ANALYTICS_EVENTS.EVENT_CLICKED, params);
+  }
+
+  function onFocusAreaClicked(params: { area: string; target: HomeFocusAreaTarget }) {
+    captureEvent(HOME_ANALYTICS_EVENTS.FOCUS_AREA_CLICKED, params);
+  }
+
+  function onSeeAllClicked(params: { section: HomeSeeAllSection }) {
+    captureEvent(HOME_ANALYTICS_EVENTS.SEE_ALL_CLICKED, params);
+  }
+
   return {
     featuredSubmitRequestClicked,
     onMemberCardClicked,
@@ -168,5 +198,11 @@ export const useHomeAnalytics = () => {
     onIrlLocationClicked,
     onFeaturedFilterClicked,
     onWelcomeSignInClicked,
+    onAuthDoorClicked,
+    onNewsPickClicked,
+    onRoleClicked,
+    onEventClicked,
+    onFocusAreaClicked,
+    onSeeAllClicked,
   };
 };

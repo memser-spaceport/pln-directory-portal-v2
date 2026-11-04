@@ -1,0 +1,1049 @@
+@use 'styles/media';
+
+// The new Home's signed-out page (LAB-3072), ported from prototypes/entries/home-v2/HomeV2Prototype.module.scss
+// (homepage-redesign-v0, 2026-11-03) with the sibling-prototype classes it uses below. Copied verbatim; only the
+// prototype-only and signed-in classes are left out.
+
+/* ---------- Signed out: the Explore sheet on directory chrome ---------- */
+
+// Explore's grey page ground (ExplorePlNetworkView .page), without its min-height
+// fight with the directory navbar.
+// The 2026-10-30 mock's neutral ground (no blue cast): the DS's soft neutral
+// surface, the token production's ForYouHint fills with.
+.storyPage {
+  background: var(--background-neutral-soft-surface, #f9fafb);
+}
+
+/* Portfolio and everything under it: a full-bleed white band. The Explore root
+   keeps its width and gutters; the grey ground, the sheet's radius and its
+   shadow come off, so nothing reads as a card floating on blue-grey. */
+.whiteBand.whiteBand {
+  max-width: none;
+  background: var(--background-neutral-default, #fff);
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.whiteSheet.whiteSheet {
+  max-width: 1344px;
+  margin: 0 auto;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Bands on the page ground share Explore's content measure (2026-11-03): its
+   sections are 1184px wide (ExplorePlNetworkView .sectionTeams), so the hero,
+   the figures and this week line up with the portfolio, entities and logo wall
+   below instead of stopping 150px short of them on wide screens. The gutters
+   step up with the window, and from 1440 the bands breathe like Explore's
+   desktop-hd sheet. */
+// The white band's edges: Explore's .root gutter (16; 8 on phones) plus its
+// .content padding (80; 32 on tablet portrait; 16 on phones), inside the
+// 1344px sheet. Bands use the same inset at every width so the left edges of
+// every section line up all the way down the page.
+$band-sheet: 1344px + 2 * 16px;
+$band-inset: 96px;
+$band-inset-tablet: 48px;
+$band-inset-phone: 24px;
+
+.storyBand {
+  width: 100%;
+  max-width: $band-sheet;
+  margin: 0 auto;
+  padding: 48px $band-inset;
+
+  @include media.tablet-portrait-only {
+    padding: 40px $band-inset-tablet;
+  }
+
+  @include media.mobile-only {
+    padding: 32px $band-inset-phone;
+  }
+
+  @include media.desktop-hd {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+}
+
+/* 1. Intro + Join card. The copy is now shorter than the card (no overline, no
+   lede), so the two are centred on each other; bottom-aligned, the copy sank and
+   left an empty band above the headline. */
+.introGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+
+  @include media.tablet-landscape {
+    grid-template-columns: minmax(0, 1fr) 344px;
+    gap: 64px;
+    align-items: center;
+  }
+}
+
+// EditorialIntro's header, left-aligned (production centres it on Explore).
+.introHeader.introHeader {
+  align-items: flex-start;
+  max-width: none;
+  text-align: left;
+  gap: 16px;
+}
+
+// 2026-11-02 standup: 48/56 read too large against the rest of the page; 32/40
+// then read slightly small for a hero H1 (user, 2026-11-03), so desktop sits
+// between at 40/48. Phones keep 32/40. The H1 is the mission sentence, so it
+// wraps to two lines: balanced, not ragged.
+.introTitle.introTitle {
+  font-size: 32px;
+  line-height: 40px;
+  letter-spacing: -0.8px;
+  text-wrap: balance;
+
+  @include media.tablet-landscape {
+    font-size: 40px;
+    line-height: 48px;
+    letter-spacing: -1.1px;
+  }
+}
+
+// The only line under the H1 now the lede is gone, so it carries the hero at
+// 16/24 (14/22 on phones). The measure is held to about the headline's width, so
+// the paragraph doesn't run past it, and `pretty` keeps a lone last word ("more.")
+// off a line of its own.
+.introBody.introBody {
+  max-width: 600px;
+  text-align: left;
+  gap: 8px;
+
+  p {
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: -0.2px;
+    text-wrap: pretty;
+
+    @include media.mobile-only {
+      font-size: 14px;
+      line-height: 22px;
+    }
+  }
+}
+
+.joinCard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  background: var(--background-neutral-default, #fff);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 16px;
+}
+
+.joinHead {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.joinTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.joinText {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.joinBtn.joinBtn {
+  width: 100%;
+  justify-content: center;
+}
+
+// "or" on a hairline, the auth forms' divider.
+.joinOr {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: -4px 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+}
+
+.joinProof {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+// The team profile's facepile at 28px for three founders' photos: same 2px
+// white ring and a proportionally deeper overlap (-7 at 20 → -9 at 28).
+.joinFace.joinFace {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  border-width: 2px;
+  background: var(--background-neutral-default, #fff);
+
+  & + & {
+    margin-left: -9px;
+  }
+}
+
+/* The figures band: full-bleed white with hairlines above and below. */
+.factsBand {
+  background: var(--background-neutral-default, #fff);
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: 100%;
+  max-width: $band-sheet;
+  margin: 0 auto;
+  padding: 28px $band-inset;
+
+  @include media.tablet-portrait-only {
+    padding: 28px $band-inset-tablet;
+  }
+
+  @include media.mobile-only {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 20px;
+    padding: 24px $band-inset-phone;
+  }
+
+  @include media.desktop-hd {
+    padding-top: 36px;
+    padding-bottom: 36px;
+  }
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 24px;
+  border-left: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  &:first-child {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  @include media.mobile-only {
+    padding: 0 16px;
+
+    &:nth-child(odd) {
+      padding-left: 0;
+      border-left: 0;
+    }
+  }
+}
+
+// EditorialIntro's .edFactValue numbers, at the band's size.
+.factValue {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 40px;
+  letter-spacing: -0.8px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 2. News beside PL Entities */
+.newsEntities {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+
+  @include media.tablet-landscape {
+    grid-template-columns: minmax(0, 1fr) 344px;
+    gap: 40px;
+  }
+}
+
+.newsPreview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.sideHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.sideTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.sideLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.newsPreviewList {
+  padding: 4px 20px;
+  background: var(--background-neutral-default, #fff);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 16px;
+
+  @include media.mobile-only {
+    padding: 4px 16px;
+  }
+}
+
+// cardFlat's first row drops its top padding for a bare list; inside a box
+// every row keeps it.
+.newsPreviewRow.newsPreviewRow {
+  padding: 20px 0;
+}
+
+// The time leaves the meta line for the head row, so it takes the meta line's
+// type with it (NewsCard .meta: 12/16 tertiary) rather than the head's 16px.
+.newsPreviewTime.newsPreviewTime {
+  margin-left: auto;
+  white-space: nowrap;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+// The DS Badge is 14/20; uppercase at that size out-shouts the headline.
+// Uppercase reads a step larger than mixed case, so 10/14 at 600 lands at the
+// visual size of production's own event label (NewsCard .eventLabel, 12px),
+// in a tighter pill.
+.newsPreviewBadge.newsPreviewBadge {
+  padding: 2px 6px;
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* The entities as a row under the portfolio: Explore's five across, 2 on tablets, 1 on phones. */
+.entityGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include media.tablet-portrait-only {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include media.mobile-only {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+}
+
+.entityItem {
+  display: flex;
+}
+
+.entityCard {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 20px;
+  background: var(--background-neutral-default, #fff);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 16px;
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+}
+
+.entityName {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.entityLine {
+  flex: 1;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.entityDomain {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 4px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.entityCard:hover .entityDomain {
+  text-decoration: underline;
+}
+
+.storySection.storySection {
+  padding-top: 0;
+}
+
+/* The logo wall closes the content, above the footer. */
+.storyEnd.storyEnd {
+  padding-bottom: 64px;
+}
+
+/* Footer (2026-11-03): full-bleed on the page ground under the white band, on
+   the bands' measure so its left edge lines up with every section above. */
+.footer {
+  background: var(--background-neutral-soft-surface, #f9fafb);
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.footerInner {
+  width: 100%;
+  max-width: $band-sheet;
+  margin: 0 auto;
+  padding: 48px $band-inset 32px;
+
+  @include media.tablet-portrait-only {
+    padding: 40px $band-inset-tablet 28px;
+  }
+
+  @include media.mobile-only {
+    padding: 32px $band-inset-phone 24px;
+  }
+}
+
+.footerTop {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 32px;
+
+  @include media.tablet-landscape {
+    grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+    gap: 64px;
+  }
+}
+
+.footerBrand {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.footerLogo {
+  display: inline-flex;
+  width: fit-content;
+}
+
+.footerMission {
+  margin: 0;
+  max-width: 280px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.footerCols {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+
+  @include media.mobile-only {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 28px;
+  }
+}
+
+.footerColTitle {
+  margin: 0 0 12px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.footerLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.footerLink {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+    text-decoration: underline;
+  }
+}
+
+.footerBottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 24px;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.footerSupport {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration: underline;
+  }
+}
+
+/* Phone-only clamp on the islands map: it fades out on the map's own black. */
+.mapClamp {
+  position: relative;
+  width: 100%;
+
+  @include media.mobile-only {
+    max-height: 640px;
+    overflow: hidden;
+    border-radius: 16px;
+  }
+}
+
+.mapClampOpen.mapClampOpen {
+  max-height: none;
+}
+
+.mapMore {
+  display: none;
+
+  @include media.mobile-only {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    position: absolute;
+    inset: auto 0 0;
+    height: 160px;
+    padding: 0 0 24px;
+    border: 0;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0), #000 70%);
+    color: var(--Neutral-White, #fff);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+    cursor: pointer;
+  }
+}
+
+/* Focus areas as category cards (2026-11-03; Coda's banded category cards,
+   Headspace's tiles with a door at the foot). Four across, 2 on tablets, 1 on
+   phones; every card the same height so the door rows line up. */
+.focusAreas {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include media.tablet-portrait-only {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include media.mobile-only {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+}
+
+// No colour band on top (2026-11-03): the island colour stays on the logo pile only.
+.focusCard {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--background-neutral-default, #fff);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 16px;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+  }
+}
+
+.focusBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 24px 20px 20px;
+}
+
+.focusMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+// The team pile at 24px with square-ish corners (logos, not faces). The portfolio
+// logos are the map's white glyphs, so each sits on its island's colour, as on
+// the map's hexes; on white they disappear.
+.focusLogo.focusLogo {
+  width: 24px;
+  height: 24px;
+  padding: 3px;
+  border-radius: 6px;
+  border-width: 2px;
+  object-fit: contain;
+  background: var(--focus-color);
+
+  & + & {
+    margin-left: -6px;
+  }
+}
+
+.focusCount {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.focusName {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+}
+
+.focusLine {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+  text-wrap: pretty;
+}
+
+// The two doors split the card's foot, divided by hairlines.
+.focusDoors {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.focusDoor {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 20px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: none;
+  transition: background 0.15s ease;
+
+  & + & {
+    border-left: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+
+  svg {
+    transition: transform 0.15s ease;
+  }
+
+  &:hover {
+    background: var(--background-brand-subtle, #eef2ff);
+
+    svg {
+      transform: translateX(2px);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: -2px;
+  }
+}
+
+.railNote {
+  margin: 4px 0 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.inlineLink {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.rail {
+  min-width: 0;
+}
+
+/* The signed-in rail as ONE sidebar card (2026-10-30, Digg's Daily /
+   Discover Communities / Featured Posts column): the modules keep their own
+   titles, rows and See all, and lose their card chrome so they read as
+   sections of one surface. Not sticky: a sidebar taller than the window
+   can't stick without hiding its own end. */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 20px;
+  background: var(--background-neutral-default, #fff);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 16px;
+
+  // Tripled to outrank each module's own card classes (`.card`, the doubled
+  // `.railCard.railCard`, NewsRail's `.railCard`) and their hover shadow.
+  &.sidebar.sidebar > *,
+  &.sidebar.sidebar > *:hover {
+    margin: 0;
+    padding: 20px 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  &.sidebar.sidebar > * + * {
+    border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+}
+
+/* ---------- From sibling prototypes ---------- */
+
+// team-profile/TeamProfile.module.scss: the follower facepile the Join card and the focus-area cards pile on.
+
+.subAvatars {
+  display: inline-flex;
+}
+
+.subAvatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid #fff;
+
+  & + & {
+    margin-left: -7px;
+  }
+}
+
+// follow-shared/FollowButton.module.scss: the glossy primary on Sign up for free.
+
+// "Schedule Meeting" treatment: inset light highlights + brand glow on the
+// primary blue Follow button.
+.glossy.glossy {
+  border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
+  box-shadow:
+    0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset,
+    0 4px 6px 0 var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset,
+    0 1px 5px 0 var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+}
+
+// newsfeed-v0/NewsfeedV0.module.scss: the rail card shell, its title and the See all expander.
+
+/* Full-width divider above the reused Job Board "View all N …" expander (which
+   is centered + auto-margin by default); double class beats the shared expander. */
+.viewAllExpander.viewAllExpander {
+  width: 100%;
+  margin: 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  text-align: center;
+}
+
+/* Rail modules reuse the news-card shell but aren't clickable as a whole. */
+.railCard.railCard {
+  cursor: default;
+  gap: 12px;
+
+  &:hover {
+    box-shadow:
+      0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+      0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+  }
+}
+
+.railTitle {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// newsfeed/Newsfeed.module.scss: the hiring card's role rows, which the rail's rows are.
+
+.roleList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+/* A row is a link now, so it gets a hover ground and negative side padding —
+   the target extends past the text without the list shifting. */
+.roleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 8px;
+  margin: 0 -8px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.1));
+  }
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  /* The arrow is ambient until the row is reached for, the same as the board's. */
+  &:hover .roleArrow,
+  &:focus-within .roleArrow {
+    opacity: 1;
+  }
+}
+
+.roleTitle.roleTitle {
+  min-width: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+}
+
+.roleLocation {
+  flex-shrink: 0;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  white-space: nowrap;
+}
+
+.roleArrow {
+  display: inline-flex;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// home-refactor/HomeRefactorPrototype.module.scss: JobsRail and EventsRail.
+
+/* ---------- Events rail ---------- */
+
+.dateTile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+}
+
+.dateMonth {
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.dateDay {
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.eventLink.eventLink {
+  text-decoration: none;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.railHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.jobRow.jobRow {
+  justify-content: flex-start;
+  gap: 12px;
+
+  &:hover > span:last-child {
+    opacity: 1;
+  }
+}
+
+.jobLogo.jobLogo {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  font-size: 10px;
+}
+
+.jobText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.jobTitle.jobTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// newsfeed-v0/FeedActions.module.scss: the Views / Likes / Comments meta items on a story row.
+
+// Copied 1:1 from the production forum LikesButton.module.scss
+// (components/page/forum/LikesButton/LikesButton.module.scss) so the feed's
+// Like / Comment affordances read identically to the forum. .subItem is the
+// shared meta-row item (icon + label); .button adds the hover; .liked is the
+// active brand-blue state.
+
+.subItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  // Darker than the forum's tertiary default so the Like / Share / Comment
+  // affordances read as actionable (secondary), not quiet meta text.
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
+}
+
+.button {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  // Inherit only the family — NOT the `font` shorthand, which would reset
+  // font-size to the parent's 16px and override .subItem's forum-matching 12px.
+  font-family: inherit;
+
+  &:hover {
+    filter: brightness(0.8);
+  }
+}
+
+.liked {
+  color: #156ff7;
+}

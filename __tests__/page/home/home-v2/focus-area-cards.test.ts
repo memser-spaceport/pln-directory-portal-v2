@@ -46,3 +46,26 @@ describe('the focus-area cards', () => {
     expect(buildFocusAreaCards([]).map((c) => c.count)).toEqual([0, 0, 0, 0]);
   });
 });
+
+describe('the Projects door (no door to an empty list)', () => {
+  const counts = { 'Digital Human Rights': 42, 'Economies & Governance': 8, 'AI & Robotics': 2, Neurotech: 0 };
+
+  it('drops it for an area with no projects and keeps it for the others', () => {
+    const cards = buildFocusAreaCards(teams, counts);
+
+    expect(cards.find((c) => c.id === 'neurotech')!.projectsHref).toBeNull();
+    expect(cards.find((c) => c.id === 'ai--robotics')!.projectsHref).toBe('/projects?focusAreas=AI%20%26%20Robotics');
+    expect(cards.every((c) => c.teamsHref.startsWith('/teams?focusAreas='))).toBe(true);
+  });
+
+  it('treats an area missing from the counts as empty', () => {
+    const cards = buildFocusAreaCards(teams, { 'Digital Human Rights': 1 });
+
+    expect(cards.filter((c) => c.projectsHref).map((c) => c.id)).toEqual(['digital-human-rights']);
+  });
+
+  it('keeps every Projects door when the counts could not be loaded', () => {
+    expect(buildFocusAreaCards(teams, null).every((c) => c.projectsHref)).toBe(true);
+    expect(buildFocusAreaCards(teams).every((c) => c.projectsHref)).toBe(true);
+  });
+});

@@ -17,9 +17,16 @@ import s from './HomeV2.module.scss';
  * card still matches its patch of the map above it. The count and logo pile are the area's portfolio teams, so the card
  * says what's behind the door before you press it. The doors filter by the directory's own focus-area title.
  */
-export function FocusAreaCards({ teams }: { teams: PortfolioTeam[] }) {
+export function FocusAreaCards({
+  teams,
+  projectCounts,
+}: {
+  teams: PortfolioTeam[];
+  /** Projects per directory title; an area with none gets no Projects door (the Teams door then spans the foot). */
+  projectCounts?: Record<string, number> | null;
+}) {
   const analytics = useHomeAnalytics();
-  const cards = buildFocusAreaCards(teams);
+  const cards = buildFocusAreaCards(teams, projectCounts);
 
   return (
     <ol className={s.focusAreas} aria-label="Browse the directory by focus area">
@@ -43,7 +50,7 @@ export function FocusAreaCards({ teams }: { teams: PortfolioTeam[] }) {
             <h3 className={s.focusName}>{a.name}</h3>
             <p className={s.focusLine}>{a.line}</p>
           </div>
-          <div className={s.focusDoors}>
+          <div className={clsx(s.focusDoors, !a.projectsHref && s.focusDoorsSingle)}>
             <Link
               href={a.teamsHref}
               className={s.focusDoor}
@@ -52,14 +59,16 @@ export function FocusAreaCards({ teams }: { teams: PortfolioTeam[] }) {
               Teams
               <ArrowRightIcon />
             </Link>
-            <Link
-              href={a.projectsHref}
-              className={s.focusDoor}
-              onClick={() => analytics.onFocusAreaClicked({ area: a.directoryTitle, target: 'projects' })}
-            >
-              Projects
-              <ArrowRightIcon />
-            </Link>
+            {a.projectsHref && (
+              <Link
+                href={a.projectsHref}
+                className={s.focusDoor}
+                onClick={() => analytics.onFocusAreaClicked({ area: a.directoryTitle, target: 'projects' })}
+              >
+                Projects
+                <ArrowRightIcon />
+              </Link>
+            )}
           </div>
         </li>
       ))}

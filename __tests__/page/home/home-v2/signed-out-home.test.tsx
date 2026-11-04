@@ -352,6 +352,25 @@ describe('SignedOutHome', () => {
       await userEvent.click(within(neuro).getByRole('link', { name: 'Projects' }));
       expect(mockHome.onFocusAreaClicked).toHaveBeenCalledWith({ area: 'Neurotech', target: 'projects' });
     });
+
+    it('offers no Projects link for an area with no projects, and keeps Teams', () => {
+      renderHome({
+        projectFocusAreaCounts: {
+          'Digital Human Rights': 42,
+          'Economies & Governance': 8,
+          'AI & Robotics': 2,
+          Neurotech: 0,
+        },
+      });
+
+      const cards = within(screen.getByRole('list', { name: 'Browse the directory by focus area' })).getAllByRole(
+        'listitem',
+      );
+      const neuro = cards.find((c) => within(c).queryByRole('heading', { name: 'Neurotechnology' }))!;
+      expect(within(neuro).queryByRole('link', { name: 'Projects' })).not.toBeInTheDocument();
+      expect(within(neuro).getByRole('link', { name: 'Teams' })).toHaveAttribute('href', '/teams?focusAreas=Neurotech');
+      expect(cards.filter((c) => within(c).queryByRole('link', { name: 'Projects' }))).toHaveLength(3);
+    });
   });
 
   it('shows the PL entities, each linking out', () => {

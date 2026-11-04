@@ -1,6 +1,7 @@
 import { createContext, destroyContext, domToJpeg, type Context } from 'modern-screenshot';
 
 import { ensureFontCache } from '@/ai-apps-bridge/font-cache';
+import { paintBridgedFrames, requestBridgedFrameShots } from './captureBridgedFrames';
 import { paintedStyleProperties } from '@/ai-apps-bridge/style-properties';
 import { withViewportShot } from '@/ai-apps-bridge/viewport-shot-cache';
 import { CAPTURE_TOO_SLOW } from '@/ai-apps-bridge/protocol';
@@ -9,6 +10,8 @@ import { CAPTURE_TOO_SLOW } from '@/ai-apps-bridge/protocol';
  * A picture of the LabOS page on screen, for feedback on the AI Apps list.
  * The app page does not use this: its picture comes from the app's bridge,
  * because that frame is cross-origin and a host redraw cannot see inside it.
+ * A page that embeds the events calendar does use this. The calendar iframe
+ * is marked for the same bridge, and its picture is painted into this one.
  *
  * Same redraw rules as the bridge viewport capture (`ai-apps-bridge/crop-entry.ts`):
  * JPEG, long edge capped, the page's scroll restored, fixed and sticky bars put
@@ -502,12 +505,14 @@ async function renderViewport(): Promise<PageCapture> {
 let running: Promise<PageCapture> | null = null;
 
 /** The visible window, as a JPEG. A capture already under way answers a second request too.
- *  A finished picture is reused while the viewport is the same one it was drawn from. */
+ *  A finished picture of the page is reused while the viewport is the same one it was drawn from.
+ *  A bridged iframe is asked again, so a scroll inside that frame is in the picture. */
 export function capturePageViewport(): Promise<PageCapture> {
+  const framed = requestBridgedFrameShots();
   running ??= withViewportShot(renderViewport).finally(() => {
     running = null;
   });
-  return running;
+  return Promise.all([running, framed]).then(([page, shots]) => paintBridgedFrames(page, shots));
 }
 
 /** A wheel over Pick a part on the list: the overlay covers the page, so the page scrolls from here. */

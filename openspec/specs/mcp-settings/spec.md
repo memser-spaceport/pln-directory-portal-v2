@@ -136,7 +136,8 @@ While the MCP connections page is on, a member with `mcp.connect` (directory adm
 #### Scenario: Set up now
 
 - **WHEN** an eligible member clicks "Set up now"
-- **THEN** `/settings/mcp` opens, and the bar does not come back after that page has been opened
+- **THEN** `/settings/mcp` opens
+- **AND** while the member still has no connection, the bar keeps showing on every page until the member closes it with ✕ (LAB-3049)
 
 ### Requirement: Contextual MCP hints suggest the agent where the member just did its work
 
@@ -156,6 +157,11 @@ To the same audience as the launch bar (the MCP connections page on, `mcp.connec
 
 - **WHEN** a member whose connection sent no client name sends a second AI Search question
 - **THEN** the hint reads "Ask your agent instead" with the plug mark and the prompt to copy
+
+#### Scenario: Connect an agent does not dismiss the hint
+
+- **WHEN** an eligible member with no MCP connection clicks "Connect an agent" on a hint and comes back without connecting
+- **THEN** the hint still shows while its trigger holds, until the member dismisses it with ✕
 
 #### Scenario: Dismissed in one place only
 

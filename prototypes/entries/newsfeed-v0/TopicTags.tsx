@@ -31,11 +31,13 @@ export function TopicTags({
   max?: number;
   className?: string;
   onSelect?: (tag: string) => void;
-  /** The feed's current topic filter: that tag reads as selected, and clicking it clears. */
-  active?: string;
+  /** The feed's current topic filter: that tag reads as selected, and clicking it clears. A list
+   *  when the feed filters by several tags at once (home-v2); each listed tag reads as selected. */
+  active?: string | string[];
 }) {
   if (tags.length === 0) return null;
   const shown = tags.slice(0, max);
+  const isActive = (tag: string) => (Array.isArray(active) ? active.includes(tag) : tag === active);
 
   if (onSelect) {
     return (
@@ -44,9 +46,15 @@ export function TopicTags({
           <button
             key={tag}
             type="button"
-            className={clsx(local.topicLink, tag === active && local.topicLinkActive)}
-            aria-pressed={tag === active}
-            aria-label={tag === active ? `Stop filtering by #${tag}` : `Show only #${tag} updates`}
+            className={clsx(local.topicLink, isActive(tag) && local.topicLinkActive)}
+            aria-pressed={isActive(tag)}
+            aria-label={
+              isActive(tag)
+                ? `Stop filtering by #${tag}`
+                : Array.isArray(active) && active.length
+                  ? `Also filter by #${tag}`
+                  : `Show only #${tag} updates`
+            }
             onClick={(e) => {
               // The card and the modal body both open/act on click; the tag is its own target.
               e.stopPropagation();

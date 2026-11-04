@@ -854,6 +854,51 @@
   white-space: nowrap;
 }
 
+/* ForumPostCard `authorStacked`: a byline — round avatar beside name over role. */
+.byline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.bylineAvatar {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.bylineText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.bylineName {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.bylineRole {
+  overflow: hidden;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Forum category in the meta line — the news card's event label, but neutral
    (a category isn't an event type, so it doesn't take an event colour). */
 .metaForum {
@@ -1512,3 +1557,21 @@
 }
 
 
+
+/* V0FeedCard `topStory`: a filled brand pill with a flame, sized to its text, above the team row. */
+.topStoryBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  width: fit-content;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--background-brand-primary, #1b4dff);
+  color: var(--Neutral-White, #fff);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: -0.1px;
+  white-space: nowrap;
+}

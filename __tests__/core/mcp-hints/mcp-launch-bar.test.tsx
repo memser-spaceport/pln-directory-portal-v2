@@ -114,6 +114,8 @@ describe('McpLaunchBar (LAB-3033)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Set up now' }));
     expect(mockPush).toHaveBeenCalledWith('/settings/mcp');
     expect(mockAnalytics.onHintConnectClicked).toHaveBeenCalledWith({ context: 'launch_bar' });
+    // LAB-3049: opening MCP connections does not close the bar; only ✕ does (LAB-3108 is by design).
+    expect(mockDismiss[LAUNCH_FLAG]).not.toHaveBeenCalled();
   });
 
   it('closes for good from ✕', () => {

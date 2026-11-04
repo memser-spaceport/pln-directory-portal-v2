@@ -959,8 +959,41 @@
   margin: 0 0 -8px;
 }
 
+/* A hint with two links (Starter Kit + Connect) puts them on one row. */
+.hintLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+/* AI Apps list: between the header and the grid. */
+.hostHintApps {
+  margin: 0 0 16px;
+}
+
 .hostHintAboveInput {
   margin-bottom: 8px;
+}
+
+/* The header search dialog, drawn in place: centred where production's overlay puts it, without the scrim. */
+.generalSearchHost {
+  display: flex;
+  justify-content: center;
+  max-width: 720px;
+  margin: 24px auto 48px;
+  padding: 0 12px;
+}
+
+/* A band under the results, ruled off like the AI row above them; it never scrolls. */
+.hostHintBand {
+  flex-shrink: 0;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+/* Production's footer has its own top rule; the band above already draws one. */
+.generalSearchFooter {
+  border-top: 0;
 }
 
 /* Production's FollowupQuestions, restyled in this prototype only: grey title, 4px to the list (was 36px row + 12px). */

@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Fragment, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Fragment, useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from 'react';
 
 import type { ITag, ITeam } from '@/types/teams.types';
 
@@ -14,7 +14,6 @@ import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { Divider } from '@/components/common/profile/Divider';
 import { ExpandableDescription } from '@/components/common/ExpandableDescription';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
-import { useIsMobile } from '@/hooks/useIsMobile';
 
 // Reuse the production TeamDetails styling 1:1.
 import s from '@/components/page/team-details/TeamDetails/TeamDetails.module.scss';
@@ -81,8 +80,6 @@ export function TeamDetailsView({
   demoDayParticipation,
   demoDayPlacement = 'name-emblem-series',
 }: Props) {
-  const isMobile = useIsMobile();
-  const tagsInline = useTagsFitInline();
   const teamName = team?.name ?? '';
   // Compact code for the name-emblem: strip a leading "PL" and the words
   // "Demo Day" wherever they sit, e.g. "PL Demo Day W26.2" → "DDW26.2".
@@ -111,6 +108,9 @@ export function TeamDetailsView({
   const logo = team?.logo ?? defaultAvatarImage ?? '/icons/team-default-profile.svg';
 
   const tags = useMemo(() => (team?.industryTags ?? []) as ITag[], [team?.industryTags]);
+  const hasBadges =
+    !!team?.fundingStage?.title || !!team?.isFund || (!!demoDayParticipation && demoDayPlacement === 'tags-chip');
+  const tagsFit = useTagsThatFit(Math.min(tags.length, 3));
 
   // Each fact is skipped when missing rather than rendered as "Unknown": a
   // founding year nobody filled in is not information, and three "Unknown"s
@@ -200,15 +200,10 @@ export function TeamDetailsView({
             )}
             {!hideBadges && (
               <div className={`${s.tagsContainer} ${local.tagsBlock}`}>
-                <div ref={tagsInline.ref} className={s.tags2}>
-                  {/* Deviation from production: dividers go only BETWEEN the
-                      classification badges, and the industry tags always start
-                      a line of their own. Production puts a divider after every
-                      badge, so whenever the tags wrapped (most widths, beside
-                      the header's action cluster) a divider was left hanging at
-                      the end of the first line. When everything fits on one
-                      line (measured, `useTagsFitInline`), the tags join the
-                      badges' line after their own leading divider. */}
+                <div ref={tagsFit.ref} className={`${s.tags2} ${local.tagsOneLine}`}>
+                  {/* Deviation from production: the row never wraps (production
+                      wraps, leaving a divider hanging at the end of the first
+                      line). Badges, a divider, then the industry tags that fit. */}
                   {[
                     team?.fundingStage?.title && (
                       <Fragment key="stage">
@@ -240,17 +235,18 @@ export function TeamDetailsView({
                         {badge}
                       </Fragment>
                     ))}
-                  {/* Mobile: show fewer industry tags so the whole block (Stage +
-                      Fund, then tags + the "+n" chip) stays at ~2 lines. TagsList's
-                      "+n" counts all hidden tags and renders last, so it stays in-row. */}
+                  {/* One line at every width: the industry tags join the badges'
+                      line after a divider, and as many as fit are shown — the
+                      rest fold into TagsList's "+n" chip (measured,
+                      `useTagsThatFit`), rather than wrapping to a second line. */}
                   {!!tags?.length && (
-                    <div
-                      className={`${local.tagsOwnLine} ${tagsInline.fits && !isMobile ? local.tagsInline : ''}`}
-                    >
-                      <span className={local.tagsLeadDivider}>
-                        <Divider />
-                      </span>
-                      <TagsList tags={tags} tagsToShow={isMobile ? 2 : 3} classes={{ tag: local.tagFullMobile }} />
+                    <div className={local.tagsInlineGroup}>
+                      {hasBadges && <Divider />}
+                      <TagsList
+                        tags={tags}
+                        tagsToShow={tagsFit.shown}
+                        classes={{ root: local.tagsNoWrap, tag: local.tagFullMobile }}
+                      />
                     </div>
                   )}
                 </div>
@@ -357,40 +353,36 @@ const CalendarGlyph = () => (
 );
 
 /**
- * Whether the badges (Stage, Fund, Demo Day) and the industry tags fit on one
- * line. Measures the chips' own widths — label lengths and the optional Demo
- * Day chip vary too much for a fixed breakpoint — and re-checks on resize.
+ * How many industry tags fit on the badges' line (up to `max`); the rest go to
+ * the "+n" chip. Starts at `max` and drops one at a time while the non-wrapping
+ * row overflows — hidden tags can't be measured, so it's a fit loop rather than
+ * a sum — and starts over from `max` whenever the row resizes.
  */
-function useTagsFitInline() {
+function useTagsThatFit(max: number) {
   // Callback ref (element in state) so the observer re-attaches when the row
   // mounts later, e.g. after the "no badges" review toggle.
   const [row, ref] = useState<HTMLDivElement | null>(null);
-  const [fits, setFits] = useState(false);
+  const [shown, setShown] = useState(max);
 
-  const measure = useCallback(() => {
-    const own = row?.querySelector<HTMLElement>(`.${local.tagsOwnLine}`);
-    const list = own?.lastElementChild as HTMLElement | null;
-    if (!row || !own || !list) return;
-    const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
-    const widthOf = (els: Element[]) =>
-      els
-        .filter((el) => getComputedStyle(el).display !== 'none')
-        .reduce((sum, el, i) => sum + el.getBoundingClientRect().width + (i > 0 ? gap : 0), 0);
-    const badges = widthOf([...row.children].filter((el) => el !== own));
-    const tags = widthOf([...list.children]);
-    // badges + gap + divider (1px) + gap + tags
-    setFits(badges + gap + 1 + gap + tags <= row.clientWidth);
-  }, [row]);
+  useEffect(() => setShown(max), [max]);
+
+  useLayoutEffect(() => {
+    if (row && shown > 0 && row.scrollWidth > row.clientWidth + 1) setShown((n) => n - 1);
+  });
 
   useEffect(() => {
     if (!row) return;
-    measure();
-    const ro = new ResizeObserver(measure);
+    let width = row.clientWidth;
+    const ro = new ResizeObserver(() => {
+      if (row.clientWidth === width) return;
+      width = row.clientWidth;
+      setShown(max);
+    });
     ro.observe(row);
     return () => ro.disconnect();
-  }, [row, measure]);
+  }, [row, max]);
 
-  return { ref, fits };
+  return { ref, shown };
 }
 
 /** Linked Demo Day badge used by the tags-chip / events placements. */

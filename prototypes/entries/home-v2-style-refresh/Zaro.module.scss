@@ -1,0 +1,1178 @@
+@use 'styles/media';
+
+// zaro.ai's palette, read off the live site (2026-10-30). Deliberately off the PL design system: the
+// entry exists to try the reference's look, so its values live here as one set of local tokens.
+.page,
+.navWrap {
+  --z-paper: #f9f9f7; // sections
+  --z-ground: #ecebe5; // body / alternate bands
+  --z-white: #ffffff;
+  --z-ink: #201613;
+  --z-ink-2: #524742; // second sentence of a headline, nav links
+  --z-ink-3: #736761; // ledes
+  --z-ink-4: #8f827a; // outline button border, plane strokes
+  --z-line: rgba(32, 22, 19, 0.12);
+  --z-dash: rgba(32, 22, 19, 0.24);
+  --z-lav: #dcd8fb;
+  --z-lav-strong: #b8b0f6;
+  --z-lav-ink: #5b4fd0;
+  --z-dark: #2a2622;
+  --z-dark-2: #46413b;
+  --z-on-dark: #fafaf8;
+  --z-on-dark-2: #a39a92;
+
+  font-family: var(--z-sans), 'Host Grotesk', ui-sans-serif, system-ui, sans-serif;
+  color: var(--z-ink);
+}
+
+.page {
+  background: var(--z-paper);
+  overflow-x: clip;
+}
+
+.arrow {
+  flex-shrink: 0;
+}
+
+/* ---------- Buttons: square, 48px in the page, 36px in the bar ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 24px;
+  border: 1px solid transparent;
+  border-radius: 0;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+
+  &:focus-visible {
+    outline: 2px solid var(--z-lav-strong);
+    outline-offset: 2px;
+  }
+}
+
+.btnSmall {
+  height: 36px;
+  padding: 0 12px;
+  font-size: 14px;
+  gap: 6px;
+}
+
+.btnDark {
+  background: var(--z-ink);
+  color: var(--z-on-dark);
+
+  &:hover {
+    background: #3a2c27;
+  }
+}
+
+// The signed-out page's presses in PL blue: the DS Button primary's fill and hover (Button.module.scss).
+.btnBrand {
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: #ffffff;
+
+  &:hover {
+    background: #0f3cd9;
+  }
+}
+
+.btnOutline {
+  background: transparent;
+  border-color: var(--z-ink-4);
+  color: var(--z-ink);
+
+  &:hover {
+    background: var(--z-ground);
+    border-color: var(--z-ink);
+  }
+}
+
+.btnLight {
+  background: var(--z-on-dark);
+  color: var(--z-ink);
+
+  &:hover {
+    background: var(--z-lav);
+  }
+}
+
+.btnGhost {
+  background: transparent;
+  border-color: var(--z-dark-2);
+  color: var(--z-on-dark);
+
+  &:hover {
+    border-color: var(--z-on-dark-2);
+  }
+}
+
+/* ---------- Top bar: a framed white strip inset from the page edge ---------- */
+
+.navWrap {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  padding: 20px 48px 0;
+  background: transparent;
+  pointer-events: none;
+
+  @include media.mobile-only {
+    padding: 12px 16px 0;
+  }
+}
+
+.nav {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  height: 56px;
+  padding: 0 16px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--z-line);
+
+  @include media.mobile-only {
+    gap: 12px;
+    padding: 0 8px 0 12px;
+  }
+}
+
+.navLogo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  color: var(--z-ink);
+  text-decoration: none;
+}
+
+.navWordmark {
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+
+  @include media.mobile-only {
+    font-size: 17px;
+  }
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+
+  a {
+    color: var(--z-ink-2);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+
+    &:hover {
+      color: var(--z-ink);
+    }
+  }
+
+  @media (max-width: 959px) {
+    display: none;
+  }
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.navSignIn {
+  padding: 8px 16px;
+  border: 0;
+  background: none;
+  color: var(--z-ink-2);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--z-ink);
+  }
+
+  @include media.mobile-only {
+    padding: 8px;
+  }
+}
+
+/* ---------- Type ---------- */
+
+.overline {
+  margin: 0;
+  font-family: var(--z-mono), 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--z-ink-3);
+}
+
+.monoNote {
+  font-family: var(--z-mono), ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--z-ink-3);
+}
+
+// A headline in two sentences: the claim in ink, the continuation a step greyer.
+.twoTone {
+  max-width: 880px;
+  margin: 0;
+  font-size: 48px;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.022em;
+  text-wrap: balance;
+
+  span:last-child {
+    color: var(--z-ink-2);
+  }
+
+  @include media.mobile-only {
+    font-size: 32px;
+  }
+}
+
+/* ---------- Hero ---------- */
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 48px;
+  max-width: 1440px;
+  margin: 0 auto;
+  // Tight vertically so the strip under it (origins + figures) reaches the first screen.
+  padding: 32px 64px 40px;
+
+  @media (max-width: 959px) {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 48px 24px 56px;
+  }
+
+  @include media.mobile-only {
+    padding: 40px 16px 48px;
+  }
+}
+
+.heroCopy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.heroTitle {
+  margin: 0;
+  font-size: 84px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.012em;
+
+  @media (max-width: 1199px) {
+    font-size: 64px;
+  }
+
+  @include media.mobile-only {
+    font-size: 44px;
+    line-height: 1.04;
+  }
+}
+
+.heroLede {
+  max-width: 460px;
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  color: var(--z-ink-3);
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  @include media.mobile-only {
+    width: 100%;
+
+    .btn {
+      flex: 1 1 auto;
+      padding: 0 16px;
+    }
+  }
+}
+
+.faces {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.facePile {
+  display: flex;
+
+  img {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--z-paper);
+    object-fit: cover;
+
+    & + img {
+      margin-left: -8px;
+    }
+  }
+}
+
+.stack {
+  position: relative;
+  justify-self: center;
+  width: 100%;
+  max-width: 440px;
+
+  @media (max-width: 959px) {
+    max-width: 360px;
+  }
+}
+
+.stackSvg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.stackLegend {
+  position: absolute;
+  top: 8px;
+  right: -8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--z-mono), ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--z-ink-3);
+  }
+
+  @media (max-width: 1199px) {
+    position: static;
+    flex-flow: row wrap;
+    justify-content: center;
+    gap: 6px 14px;
+    margin-top: 12px;
+  }
+}
+
+.legendSwatch {
+  width: 8px;
+  height: 8px;
+}
+
+/* ---------- Hero stack animation ----------
+   The frame draws once on arrival; the planes build in a loop, keyframes generated per plane in
+   ZaroSignedOut (NetworkStack), since each lands at its own moment of a shared cycle. */
+
+.stackFrame {
+  stroke-dasharray: 1;
+  animation: zDraw 1.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+// The walls come up as the contour finishes drawing.
+.stackWalls {
+  opacity: 0.7;
+  animation: zWallsIn 0.8s ease-out 0.9s both;
+}
+
+@keyframes zDraw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes zWallsIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.7;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stackFrame,
+  .stackWalls {
+    animation: none;
+  }
+}
+
+/* ---------- Strip under the hero: two hairline cells ---------- */
+
+.strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  border-top: 1px solid var(--z-line);
+  border-bottom: 1px solid var(--z-line);
+  background: var(--z-paper);
+
+  @media (max-width: 959px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.stripCell {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 64px 28px;
+
+  @media (max-width: 959px) {
+    padding: 24px;
+  }
+
+  @include media.mobile-only {
+    padding: 20px 16px;
+  }
+}
+
+.stripFacts {
+  border-left: 1px solid var(--z-line);
+
+  @media (max-width: 959px) {
+    border-left: 0;
+    border-top: 1px solid var(--z-line);
+  }
+}
+
+.boxRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.dashedBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60px;
+  border: 1px dashed var(--z-dash);
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--z-ink-2);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+
+  @include media.mobile-only {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 16px;
+  }
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 4px;
+  padding-right: 12px;
+
+  dt {
+    font-size: 13px;
+    line-height: 18px;
+    color: var(--z-ink-3);
+  }
+
+  // The figure leads and every figure sits on one line, however many lines its label takes.
+  dd {
+    order: -1;
+    margin: 0;
+    font-size: 32px;
+    font-weight: 500;
+    line-height: 40px;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* ---------- Sections ---------- */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 112px 64px 0;
+
+  @media (max-width: 959px) {
+    padding: 80px 24px 0;
+  }
+
+  @include media.mobile-only {
+    padding: 64px 16px 0;
+  }
+}
+
+.sectionLede {
+  max-width: 640px;
+  margin: 0 0 24px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--z-ink-3);
+}
+
+/* Focus-area cards: a coloured top with a notched corner, then the line and two doors. */
+
+/* No hairline over the shapes (user, 2026-11-02): the notched art carries its own edge, so the grid's
+   frame moved down to the card bodies (.cardBody), where the text needs one. */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  background: var(--z-paper);
+
+  @media (max-width: 1199px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include media.mobile-only {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  // Hover lifts the whole card out of its row, like a folder pulled up from a drawer.
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  &:hover,
+  &:focus-within {
+    transform: translateY(-8px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.cardArt {
+  position: relative;
+  height: 240px;
+  padding: 16px 20px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--z-area) 28%, var(--z-ground)), var(--z-ground));
+  clip-path: polygon(0 0, 68% 0, 80% 22px, 100% 22px, 100% 100%, 0 100%);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+
+  // The dot field on its own layer, fading out as it rises toward the title, so no dot sits behind the words.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, color-mix(in srgb, var(--z-area) 70%, transparent) 1.4px, transparent 1.6px)
+      0 0 / 14px 14px;
+    mask-image: linear-gradient(to top, #000 0%, #000 35%, transparent 82%);
+    pointer-events: none;
+  }
+
+  > * {
+    position: relative;
+  }
+
+  @include media.mobile-only {
+    height: 160px;
+  }
+}
+
+.cardNum,
+.cardNumPlain {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 18px;
+  padding: 0 3px;
+  font-family: var(--z-mono), ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--z-ink);
+}
+
+.cardNum {
+  margin-top: 2px;
+  border: 1px solid var(--z-ink);
+}
+
+.cardNumPlain {
+  justify-content: flex-start;
+  padding: 0;
+  color: var(--z-ink-3);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 22px;
+  letter-spacing: -0.01em;
+}
+
+.cardBody {
+  display: flex;
+  flex: 1;
+  // The frame the grid used to draw, on the text only: sides and bottom, shared edges collapsed by -1px.
+  border: 1px solid var(--z-line);
+  border-top: 0;
+  margin: 0 -1px -1px 0;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px;
+
+  p {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--z-ink-2);
+  }
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 6px;
+  border: 1px solid var(--z-ink-4);
+  font-size: 13px;
+  color: var(--z-ink-2);
+  text-decoration: none;
+
+  &:hover {
+    border-color: var(--z-ink);
+    color: var(--z-ink);
+    background: var(--z-white);
+  }
+}
+
+/* Two panels in one hairline frame: grey for news, lavender for roles. */
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--z-line);
+
+  @media (max-width: 959px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @include media.mobile-only {
+    padding: 8px;
+    gap: 8px;
+  }
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 24px;
+  background: var(--z-ground);
+
+  @include media.mobile-only {
+    padding: 20px 16px;
+  }
+}
+
+.panelLav {
+  background: var(--z-lav);
+}
+
+.tags {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 24px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 20px;
+  padding: 0 6px;
+  border: 1px solid var(--z-ink-4);
+  font-size: 12px;
+  color: var(--z-ink-2);
+
+  i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #6cc070;
+  }
+}
+
+.tagLive {
+  border-color: var(--z-ink-4);
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 30px;
+  letter-spacing: -0.015em;
+}
+
+.panelSub {
+  margin: 0 0 20px;
+  font-size: 15px;
+  color: var(--z-ink-3);
+}
+
+.rows {
+  width: 100%;
+  margin: 0 0 16px;
+  padding: 8px;
+  list-style: none;
+  background: var(--z-white);
+  border: 1px solid var(--z-line);
+
+  li + li {
+    border-top: 1px solid var(--z-line);
+  }
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 12px 8px;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover .rowTitle {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+.rowMain {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rowMeta {
+  font-family: var(--z-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--z-ink-3);
+}
+
+.rowTitle {
+  font-size: 16px;
+  line-height: 22px;
+  color: var(--z-ink);
+}
+
+.rowTime {
+  flex-shrink: 0;
+  font-family: var(--z-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--z-ink-3);
+
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.textLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--z-ink);
+  text-decoration: underline;
+  text-decoration-color: var(--z-ink-4);
+  text-underline-offset: 4px;
+
+  &:hover {
+    text-decoration-color: var(--z-ink);
+  }
+}
+
+.panelNote {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--z-ink-2);
+
+  .textLink {
+    margin-left: 4px;
+  }
+}
+
+.inlineLink {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 500;
+  color: var(--z-lav-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* The portfolio map inside a hairline frame. */
+
+.frame {
+  padding: 12px;
+  border: 1px solid var(--z-line);
+  background: var(--z-white);
+
+  @include media.mobile-only {
+    padding: 0;
+    border: 0;
+  }
+}
+
+/* Entities: a five-cell hairline grid. */
+
+.entities {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border-top: 1px solid var(--z-line);
+  border-left: 1px solid var(--z-line);
+
+  @media (max-width: 1199px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include media.mobile-only {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.entity {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 220px;
+  padding: 20px;
+  border-right: 1px solid var(--z-line);
+  border-bottom: 1px solid var(--z-line);
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background: var(--z-ground);
+  }
+
+  @include media.mobile-only {
+    min-height: 0;
+  }
+}
+
+.entityName {
+  margin-top: 16px;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+
+.entityLine {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--z-ink-3);
+}
+
+.entityDomain {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--z-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--z-ink-2);
+}
+
+.backers {
+  padding-bottom: 112px;
+
+  @media (max-width: 959px) {
+    padding-bottom: 80px;
+  }
+}
+
+/* ---------- Closing band: PL blue, dotted gutters behind hairline rules ---------- */
+
+.dark {
+  position: relative;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: #ffffff;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.24) 1.2px, transparent 1.5px) 0 0 / 10px 10px;
+    mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
+  }
+
+  &::before {
+    left: 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  &::after {
+    right: 0;
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  @include media.mobile-only {
+    &::before,
+    &::after {
+      width: 16px;
+    }
+  }
+}
+
+.darkInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 160px 32px;
+  text-align: center;
+
+  @include media.mobile-only {
+    padding: 96px 32px;
+  }
+}
+
+.darkTitle {
+  margin: 0;
+  font-size: 64px;
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+
+  // The continuation a step quieter, as on paper: white at reduced strength over the blue.
+  span:last-child {
+    color: rgba(255, 255, 255, 0.64);
+  }
+
+  @include media.mobile-only {
+    font-size: 40px;
+  }
+}
+
+.darkLede {
+  max-width: 520px;
+  margin: 0 0 8px;
+  font-size: 18px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+// On the blue band the primary inverts: a white press with blue ink, and Sign in as a white outline.
+.btnOnBlue {
+  background: #ffffff;
+  color: var(--foreground-brand-primary, #1b4dff);
+
+  &:hover {
+    background: var(--background-brand-soft-surface, #f2f5ff);
+  }
+
+  &:focus-visible {
+    outline-color: #ffffff;
+  }
+}
+
+.btnGhostOnBlue {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.55);
+  color: #ffffff;
+
+  &:hover {
+    border-color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  &:focus-visible {
+    outline-color: #ffffff;
+  }
+}
+
+/* ---------- Footer ---------- */
+
+.footer {
+  padding: 72px 64px 32px;
+  // A step darker than the band palette: the page ends on its deepest tone.
+  background: #141110;
+  border-top: 1px solid #2a2622;
+  color: var(--z-on-dark);
+
+  @media (max-width: 959px) {
+    padding: 56px 24px 24px;
+  }
+
+  @include media.mobile-only {
+    padding: 48px 16px 24px;
+  }
+}
+
+.footCols {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 32px;
+
+  div {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  a,
+  button {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: 15px;
+    color: var(--z-on-dark);
+    text-decoration: none;
+    cursor: pointer;
+    overflow-wrap: anywhere;
+
+    &:hover {
+      color: var(--z-lav-strong);
+    }
+  }
+
+  @include media.mobile-only {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.footHead {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.footMark {
+  margin: 72px 0 24px;
+  // Sized so the wordmark spans the footer's content width, as the reference's does.
+  font-size: clamp(40px, 15.4vw, 236px);
+  font-weight: 500;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  white-space: nowrap;
+  color: #2c2724;
+
+  @include media.mobile-only {
+    margin-top: 48px;
+  }
+}
+
+.footBottom {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px 24px;
+  font-family: var(--z-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6d655d;
+
+  a {
+    color: inherit;
+    text-decoration: none;
+
+    &:hover {
+      color: var(--z-on-dark-2);
+    }
+  }
+}
+
+.footLegal {
+  display: flex;
+  gap: 24px;
+}

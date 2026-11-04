@@ -6,8 +6,17 @@ import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
 import local from './Newsfeed.module.scss';
 
 interface ForYouBannerProps {
-  onUpdateProfile: () => void;
+  /** Has the member set up For You (topics, teams) in News preferences yet? */
+  configured: boolean;
+  /** Opens News preferences, where For You is set up and changed. */
+  onUpdate: () => void;
 }
+
+const Arrow = () => (
+  <svg className={local.forYouArrow} width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+    <path d="M2.5 7h9M8 3.5 11.5 7 8 10.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="square" />
+  </svg>
+);
 
 /**
  * What the feed is made of, in one sentence, where it is being used.
@@ -112,27 +121,32 @@ interface ForYouBannerProps {
  *   inside a sentence now, and an arrow mid-sentence reads as a second object.
  *   It opens profile settings, as before; dev opens the member page in a tab.
  */
-export function ForYouBanner({ onUpdateProfile }: ForYouBannerProps) {
+/*
+ * 2026-11-02 — "use copy from the first screenshot [dev's hint], but put it on
+ * the plain bg with the button on the right" (the for-you-levers `settings`
+ * variant, then "Update newsfeed prototype For you state to this"). So:
+ * - No slab: the line sits on the page itself (`pillNote` is off).
+ * - Explanation left, action right (space-between), the Home v2 style
+ *   refresh's "Tune For You →" placement. This reverses the `.noteRow`
+ *   "follow the sentence" rule above for this note: the action is no longer
+ *   the end of a sentence, so it gets its own place at the row's end.
+ * - Two states. Configured: dev's sentence + "Update For You →". Not set up
+ *   yet: "Not set up yet. Choose topics and teams in Settings to see news
+ *   picked for you." + "Set up For You →". Both open News preferences
+ *   (`digest-topics`), which is where For You is set up now — not the profile.
+ */
+export function ForYouBanner({ configured, onUpdate }: ForYouBannerProps) {
   return (
-    <div
-      className={clsx(
-        v0.tabsConstrain,
-        v0.tabsConstrainBanner,
-        local.railGutterConstrain,
-        local.pillNote,
-        local.noteRow,
-      )}
-    >
-      <span>
-        <span className={local.forYouLabel}>For you</span>
-        Curated based on your profile, primary team attributes, and the teams you follow.
-      </span>
-      <span className={local.forYouAction}>
-        <button type="button" className={local.forYouLink} onClick={onUpdateProfile}>
-          Update your profile
-        </button>{' '}
-        to make it more relevant.
-      </span>
+    <div className={clsx(v0.tabsConstrain, v0.tabsConstrainBanner, local.railGutterConstrain, local.forYouPlain)}>
+      <p className={local.forYouText}>
+        <span className={local.forYouLabel}>For you</span> ·{' '}
+        {configured
+          ? 'Curated based on your profile, primary team attributes, and the teams you follow.'
+          : 'Not set up yet. Choose topics and teams in Settings to see news picked for you.'}
+      </p>
+      <button type="button" className={local.forYouLink} onClick={onUpdate}>
+        {configured ? 'Update For You' : 'Set up For You'} <Arrow />
+      </button>
     </div>
   );
 }

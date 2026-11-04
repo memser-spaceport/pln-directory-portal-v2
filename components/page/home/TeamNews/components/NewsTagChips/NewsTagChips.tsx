@@ -38,7 +38,7 @@ interface NewsTagChipsProps {
  */
 export function NewsTagChips({ tags, variant, onSelect, active, ungated = false, className }: NewsTagChipsProps) {
   const topicSlugs = useNewsTopicSlugs();
-  const chips = selectChips(tags, variant, topicSlugs, ungated);
+  const chips = selectChips(tags, variant, topicSlugs, ungated, active);
   if (!chips || chips.length === 0) return null;
 
   const isActive = (tag: string) => (typeof active === 'string' ? tag === active : (active?.includes(tag) ?? false));
@@ -94,11 +94,35 @@ function selectChips(
   variant: NewsTagChipsProps['variant'],
   topicSlugs: ReadonlySet<string> | null,
   ungated: boolean,
+  active?: string | readonly string[],
 ): string[] | null {
-  const options = variant === 'card' ? { topicLimit: NEWS_CARD_TOPIC_LIMIT } : { withExtras: true };
-  if (SHOW_NEWS_PREFERENCES) return topicSlugs ? getNewsTagChips(tags, topicSlugs, options) : null;
+  if (SHOW_NEWS_PREFERENCES) {
+    if (!topicSlugs) return null;
+    if (variant !== 'card') return getNewsTagChips(tags, topicSlugs, { withExtras: true });
+    return pinActiveTags(
+      getNewsTagChips(tags, topicSlugs),
+      getNewsTagChips(tags, topicSlugs, { withExtras: true }),
+      active,
+    );
+  }
   if (!ungated) return null;
   // No topics to tell apart: every tag is an "extra", so the card's limit applies to the extras.
   const chips = getNewsTagChips(tags, NO_TOPIC_SLUGS, { withExtras: true });
-  return variant === 'card' ? chips.slice(0, NEWS_CARD_TOPIC_LIMIT) : chips;
+  return variant === 'card' ? pinActiveTags(chips, chips, active) : chips;
+}
+
+/**
+ * A card's chips, at most `NEWS_CARD_TOPIC_LIMIT`, with the feed's selected tags the story carries first (LAB-3125):
+ * a story that matched `#frontier-tech` as its 4th tag shows that tag, so the card says why it is in the filtered
+ * stream. `shown` is what the card draws with no filter; `all` is every tag it could draw.
+ */
+export function pinActiveTags(
+  shown: readonly string[],
+  all: readonly string[],
+  active?: string | readonly string[],
+): string[] {
+  const selected = typeof active === 'string' ? [active] : (active ?? []);
+  const pinned = selected.map((tag) => tag.trim().toLowerCase()).filter((tag) => all.includes(tag));
+  const rest = shown.filter((tag) => !pinned.includes(tag));
+  return [...pinned, ...rest].slice(0, Math.max(NEWS_CARD_TOPIC_LIMIT, pinned.length));
 }

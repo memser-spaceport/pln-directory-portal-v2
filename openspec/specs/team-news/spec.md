@@ -250,6 +250,7 @@ With `NEXT_PUBLIC_SHOW_HOME_V2` on, Home's news cards SHALL show their tags as `
   - A story SHALL show only if it carries every selected tag.
   - Forum posts, which carry no tags, SHALL be hidden while any tag is selected.
   - The pill counts SHALL count only the stories in scope.
+  - A card in scope SHALL show the selected tags it carries first, so a story matched by its 4th tag still shows that tag within the card's three.
 - **Scope row,** on its own row under the pills:
   - one chip with × per selected tag, and the number of matching updates;
   - "Follow" when one tag is selected (with News preferences on, it adds the tag to the member's News preferences tags);

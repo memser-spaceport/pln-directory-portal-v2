@@ -622,6 +622,8 @@ describe('The signed-in rail', () => {
     fireEvent.click(within(rows[1]).getByRole('link'));
     expect(mockHomeAnalytics.onDealClicked).toHaveBeenCalledWith({ deal_uid: 'd2', position: 2 });
     expect(within(rows[1]).getByRole('link')).toHaveAttribute('href', '/deals/d2');
+    // A long name is clamped to two lines in CSS; the full name stays readable on hover.
+    expect(within(rows[0]).getByText('Vendor d1')).toHaveAttribute('title', 'Vendor d1');
   });
 
   it('records the shared home-* events, as signed in', () => {

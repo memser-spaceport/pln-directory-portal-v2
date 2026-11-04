@@ -6,6 +6,7 @@ import { useEventsAnalytics } from '@/analytics/events.analytics';
 import ShadowButton from '@/components/ui/ShadowButton';
 import styles from './schedule-section.module.scss';
 import { getSubmitEventUrl } from '@/utils/irl-submit-url';
+import { FEEDBACK_BRIDGE_ATTR } from '@/components/page/ai-apps/components/screenshot-feedback/captureBridgedFrames';
 
 const EMBED_URL_PARAM = 'embedPath';
 const DEFAULT_EMBED_PATH = '/embed/map/';
@@ -80,6 +81,7 @@ export default function ScheduleSection(props: any) {
         src={`${process.env.PL_EVENTS_BASE_URL}${embedPath}`}
         className={styles.schedule__iframe}
         title="Event Calendar"
+        {...{ [FEEDBACK_BRIDGE_ATTR]: '' }}
       ></iframe>
     </div>
   );

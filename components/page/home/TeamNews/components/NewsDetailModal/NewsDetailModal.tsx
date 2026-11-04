@@ -26,6 +26,8 @@ interface NewsDetailModalProps {
   onTagSelect?: (tag: string) => void;
   /** The feed's tag scope: one tag, or the new Home's stacked list (LAB-3125). */
   activeTag?: string | readonly string[];
+  /** Passed through to NewsDetailBody: the new Home shows the story's image as the header (LAB-3134). */
+  showImage?: boolean;
 }
 
 /** Restores focus for the row that opened the modal. Scoped to role="button" —
@@ -61,6 +63,7 @@ export function NewsDetailModal({
   loginHref,
   onTagSelect,
   activeTag,
+  showImage,
 }: NewsDetailModalProps) {
   // While the share popover is open, the Modal's own Escape/backdrop closers
   // are detached (its capture-phase document listener would otherwise swallow
@@ -100,6 +103,7 @@ export function NewsDetailModal({
         onShareOpenChange={setShareOpen}
         onTagSelect={onTagSelect}
         activeTag={activeTag}
+        showImage={showImage}
       />
     </Modal>
   );

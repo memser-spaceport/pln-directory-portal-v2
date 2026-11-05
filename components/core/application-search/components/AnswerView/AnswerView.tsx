@@ -18,6 +18,8 @@ import {
   ThumbsDownIcon,
 } from '@/components/icons';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
+import { useUnifiedSearchAnalytics } from '@/analytics/unified-search.analytics';
+import { sourceCounts, sourceItems } from '@/components/utils/sourceItems';
 import { saveFeedback } from '@/services/husky.service';
 import { getUserCredentialsInfo } from '@/utils/fetch-wrapper';
 import type { HuskyTurn, StreamStatus } from '@/services/husky/hooks/useHuskyChat';
@@ -95,6 +97,8 @@ export const AnswerView = ({
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const analytics = useHuskyAnalytics();
+  const { onAiWebSourcesShown } = useUnifiedSearchAnalytics();
+  const webSourcesTracked = useRef(new Set<string>());
 
   const [feedback, setFeedback] = useState<Record<string, FeedbackState>>({});
   const [openReasons, setOpenReasons] = useState<string | null>(null);
@@ -106,6 +110,19 @@ export const AnswerView = ({
 
   useEffect(() => {
     if (isBusy) endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, [turns, isBusy]);
+
+  // One `unified-search-ai-web-sources-shown` per finished answer that has web sources (LAB-2621).
+  useEffect(() => {
+    turns.forEach((turn, index) => {
+      const streaming = isBusy && index === turns.length - 1;
+      if (streaming || webSourcesTracked.current.has(turn.chatId)) return;
+      const counts = sourceCounts(sourceItems(turn.sources, turn.sourceRefs));
+      if (counts.webSources === 0) return;
+      webSourcesTracked.current.add(turn.chatId);
+      onAiWebSourcesShown(counts, 'header-dialog');
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [turns, isBusy]);
 
   /* Once, on entry, and only for a restored thread. `'auto'` rather than
@@ -234,7 +251,7 @@ export const AnswerView = ({
                       imgUrl="/icons/globe-blue.svg"
                     />
                     <PopoverDp.Pane position="bottom">
-                      <HuskySourceCard sources={turn.sources} sourceRefs={turn.sourceRefs} />
+                      <HuskySourceCard sources={turn.sources} sourceRefs={turn.sourceRefs} entryPoint="header-dialog" />
                     </PopoverDp.Pane>
                   </PopoverDp.Wrapper>
                 </div>

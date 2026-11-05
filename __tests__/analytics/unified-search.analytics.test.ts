@@ -76,3 +76,40 @@ describe('useUnifiedSearchAnalytics.onEmailQuerySubmitted (LAB-2881)', () => {
     });
   });
 });
+
+describe('useUnifiedSearchAnalytics web sources (LAB-2621)', () => {
+  afterEach(() => {
+    capture.mockClear();
+  });
+
+  it('sends the web-sources-shown event with the source counts and the entry point', () => {
+    const { result } = renderHook(() => useUnifiedSearchAnalytics());
+
+    result.current.onAiWebSourcesShown({ webSources: 2, directorySources: 1 }, 'ai-search-page');
+
+    expect(UNIFIED_SEARCH_ANALYTICS_EVENTS.AI_WEB_SOURCES_SHOWN).toBe('unified-search-ai-web-sources-shown');
+    expect(capture).toHaveBeenCalledWith('unified-search-ai-web-sources-shown', {
+      webSources: 2,
+      directorySources: 1,
+      entryPoint: 'ai-search-page',
+      loggedInUserUid: 'u1',
+      loggedInUserEmail: 'ada@example.com',
+      loggedInUserName: 'Ada Lovelace',
+    });
+  });
+
+  it('sends the web-source-clicked event with the link and the entry point', () => {
+    const { result } = renderHook(() => useUnifiedSearchAnalytics());
+
+    result.current.onAiWebSourceClicked('https://news.example/seed', 'header-dialog');
+
+    expect(UNIFIED_SEARCH_ANALYTICS_EVENTS.AI_WEB_SOURCE_CLICKED).toBe('unified-search-ai-web-source-clicked');
+    expect(capture).toHaveBeenCalledWith('unified-search-ai-web-source-clicked', {
+      link: 'https://news.example/seed',
+      entryPoint: 'header-dialog',
+      loggedInUserUid: 'u1',
+      loggedInUserEmail: 'ada@example.com',
+      loggedInUserName: 'Ada Lovelace',
+    });
+  });
+});

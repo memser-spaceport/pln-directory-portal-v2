@@ -256,6 +256,7 @@ export const COMMON_ANALYTICS_EVENTS = {
   NAVBAR_HOME_CLICKED: 'navbar-home-clicked',
   NAVBAR_HOME_NEW_NEWS_DOT_SHOWN: 'navbar-home-new-news-dot-shown',
   CONTACT_SUPPORT_TOPIC_PILL_SELECTED: 'contact-support-topic-pill-selected',
+  CONTACT_SUPPORT_SUBMITTED: 'contact-support-submitted',
 };
 
 export const NOTIFICATION_ANALYTICS_EVENTS = {

@@ -9,6 +9,7 @@ import { Avatar } from '@base-ui-components/react/avatar';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { CommentInput } from '@/components/page/forum/CommentInput';
 import { useForumPost } from '@/services/forum/hooks/useForumPost';
+import { topicReplies } from '@/services/forum/topicReplies';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { PostComments } from '@/components/page/forum/PostComments';
@@ -83,8 +84,10 @@ export const Post = () => {
   const { hasAccess: v2ForumAccess, deniedReason, isLoading: v2Loading, canWrite } = useForumAccess();
 
   const { data } = useForumPost(topicId as string, isLoggedIn);
+  // Deleted replies left out, and out of the count: NodeBB still sends them to their author and to moderators
+  const { replies, replyCount } = useMemo(() => topicReplies(data), [data]);
   const [replyToPid, setReplyToPid] = React.useState<number | null>(null);
-  const replyToItem = data?.posts?.slice(1).find((item) => item.pid === replyToPid);
+  const replyToItem = replies.find((item) => item.pid === replyToPid);
 
   // Get the category to navigate back to from the 'from' query parameter
   // If not provided, fallback to the current post's category
@@ -110,7 +113,7 @@ export const Post = () => {
       meta: {
         views: data.viewcount,
         likes: data.posts[0]?.votes,
-        comments: data.postcount - 1,
+        comments: replyCount,
       },
       isEditable: data.posts[0]?.user?.memberUid === userInfo?.uid || isAdminUser(userInfo),
       isAvailableToConnect:
@@ -119,7 +122,7 @@ export const Post = () => {
           data.posts[0]?.user?.ohStatus === 'NOT_FOUND' ||
           data.posts[0]?.user?.ohStatus === null),
     };
-  }, [data, userInfo]);
+  }, [data, userInfo, replyCount]);
 
   // The topic fetch is the true source of the viewer's own vote state — record
   // it locally so the Team News forum card (whose /api/recent listing carries
@@ -358,7 +361,7 @@ export const Post = () => {
 
       <div className={s.root}>
         <PostComments
-          comments={data?.posts?.slice(1)}
+          comments={data ? replies : undefined}
           // The same number the stats row above renders, so the two "Comments"
           // counts on this screen can't disagree.
           total={post.meta.comments}

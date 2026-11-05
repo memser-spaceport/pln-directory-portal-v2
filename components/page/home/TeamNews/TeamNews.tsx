@@ -83,6 +83,7 @@ import { useFeedForYouJobs } from './hooks/useFeedForYouJobs';
 import { useStoryReveal } from './hooks/useStoryReveal';
 import { useNewsDeepLink } from './hooks/useNewsDeepLink';
 import { useForumPostDeepLink } from './hooks/useForumPostDeepLink';
+import { useTeamNewsScrollDepth } from './hooks/useTeamNewsScrollDepth';
 
 import { NewsBase } from './components/NewsBase';
 import { NewsRail } from './components/NewsRail';
@@ -156,6 +157,7 @@ export const TeamNews = ({
   const filterBarRef = useRef<HTMLDivElement>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const desktopFieldRef = useRef<HTMLDivElement>(null);
+  const feedListRef = useRef<HTMLDivElement>(null);
   const analytics = useTeamNewsAnalytics();
   const followAnalytics = useFollowAnalytics();
   const { mutate: followMutate } = useFollowTeam();
@@ -539,6 +541,20 @@ export const TeamNews = ({
   }, [rankedEntries, isForYouStream, forYouJobEntries, isNarrowedView, feedHiring, feedDeals]);
 
   const visibleEntries = expanded ? entries : entries.slice(0, pageSize);
+
+  // Feed scroll depth in cards seen (LAB-3005). Tab, category and sort are read
+  // when a step fires; a change of any of them is not a new page view.
+  useTeamNewsScrollDepth({
+    listRef: feedListRef,
+    cardsLoaded: visibleEntries.length,
+    onStep: (depth, counts) =>
+      analytics.onTeamNewsScrollDepth(depth, {
+        category: String(activeCategory),
+        tab: activeTab,
+        sort,
+        ...counts,
+      }),
+  });
   const newCount = allItems.length + (forumPosts?.length ?? 0);
 
   // Band is editorialRank; rail is upvotes — they should already diverge, but
@@ -1198,7 +1214,7 @@ export const TeamNews = ({
               {/* The stream, marked so it can be addressed apart from the
                   top-stories band above it — which renders its own copies of
                   the same stories. */}
-              <div className={s.feed} data-news-feed-list>
+              <div className={s.feed} data-news-feed-list ref={feedListRef}>
                 {visibleEntries.map((entry, index) => {
                   // Composite key intentionally forces a remount on every tab/category
                   // change so each card's local state (expanded stories, open comment

@@ -4,6 +4,7 @@ import { usePostHog } from 'posthog-js/react';
 import type { ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
 import type { IFeedForumPost } from '@/types/feed.types';
 import type { CommentFailure } from '@/services/feed/commentFailure';
+import type { TeamNewsScrollDepthStep } from '@/components/page/home/TeamNews/hooks/useTeamNewsScrollDepth';
 
 /** 'news' | 'forum' — typed off the FeedEntry union so analytics can't drift
  *  from the feed's own discriminator. */
@@ -173,6 +174,30 @@ export const useTeamNewsAnalytics = () => {
       total,
       source,
       ...extras,
+    });
+  };
+
+  /** The Home feed reached a scroll-depth step: cards seen / cards loaded
+   *  (LAB-3005). Fires once per step per Home page view. */
+  const onTeamNewsScrollDepth = (
+    depth: TeamNewsScrollDepthStep,
+    extras: {
+      category: string;
+      tab: string;
+      sort: string;
+      cardsSeen: number;
+      cardsLoaded: number;
+    },
+  ) => {
+    const eventMap: Record<TeamNewsScrollDepthStep, string> = {
+      50: TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_SCROLL_DEPTH_50,
+      70: TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_SCROLL_DEPTH_70,
+      90: TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_SCROLL_DEPTH_90,
+    };
+    captureEvent(eventMap[depth], {
+      scrollDepth: `${depth}%`,
+      ...extras,
+      source: 'home' satisfies TeamNewsAnalyticsSource,
     });
   };
 
@@ -778,6 +803,7 @@ export const useTeamNewsAnalytics = () => {
     onTeamNewsCategoryClicked,
     onTeamNewsSortChanged,
     onTeamNewsLoadMoreClicked,
+    onTeamNewsScrollDepth,
     onTeamNewsViewAllClicked,
     onTeamNewsAllNetworkUpdatesClicked,
     onTeamNewsCountChipClicked,

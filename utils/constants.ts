@@ -724,6 +724,11 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_CATEGORY_CLICKED: 'team-news-category-clicked',
   TEAM_NEWS_SORT_CHANGED: 'team-news-sort-changed',
   TEAM_NEWS_LOAD_MORE_CLICKED: 'team-news-load-more-clicked',
+  // Home feed scroll depth in cards seen / cards loaded (LAB-3005); same steps
+  // as the Alignment Assets scroll-depth events.
+  TEAM_NEWS_SCROLL_DEPTH_50: 'team-news-scroll-depth-50',
+  TEAM_NEWS_SCROLL_DEPTH_70: 'team-news-scroll-depth-70',
+  TEAM_NEWS_SCROLL_DEPTH_90: 'team-news-scroll-depth-90',
   TEAM_NEWS_VIEW_ALL_CLICKED: 'team-news-view-all-clicked',
   // The other exit from a team-scoped news list: "View all news" stays inside
   // the team, this one widens to the whole network feed. Two different intents

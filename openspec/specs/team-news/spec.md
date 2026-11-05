@@ -252,3 +252,25 @@ With `NEXT_PUBLIC_SHOW_NEWS_PREFERENCES` on, clicking a `#tag` on Home SHALL fil
 - **GIVEN** the feed filtered by `#ai` and a search with no match
 - **WHEN** the feed renders
 - **THEN** it says "No updates match “q” in #ai."
+
+### Requirement: Home feed scroll depth
+
+The Home feed SHALL record `team-news-scroll-depth-50`, `team-news-scroll-depth-70` and `team-news-scroll-depth-90` when the share of feed cards seen reaches that step, at most once per step per Home page view. A card is seen when its bottom edge has entered the viewport; depth is cards seen divided by cards loaded. Each event SHALL carry `scrollDepth`, `category`, `tab`, `sort`, `cardsSeen`, `cardsLoaded` and `source` = `home`.
+
+#### Scenario: Half of the cards seen
+
+- **GIVEN** a member on Home with 10 feed cards loaded
+- **WHEN** they scroll until the bottom edge of the fifth card enters the viewport
+- **THEN** `team-news-scroll-depth-50` is recorded with `cardsSeen` = 5 and `cardsLoaded` = 10
+
+#### Scenario: Feed grows after Show All
+
+- **GIVEN** a member who reached the 50% step with 6 cards loaded
+- **WHEN** they press "Show All" and scroll on
+- **THEN** depth uses the larger card count, and `team-news-scroll-depth-50` is not recorded again
+
+#### Scenario: No repeat in the same page view
+
+- **GIVEN** a member who reached a step
+- **WHEN** they scroll up and down again, press "Show Less", or change the tab or category
+- **THEN** that step is not recorded again

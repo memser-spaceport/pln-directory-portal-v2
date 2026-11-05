@@ -20,6 +20,8 @@ import { NewsShareMenu } from '../NewsShareMenu';
 import { SourceList } from '../SourceList/SourceList';
 import { TruncatedSummary } from './TruncatedSummary';
 import { ViewCount } from '../ViewCount/ViewCount';
+import { NewsTagChips } from '../NewsTagChips';
+import { NewsImage } from '../NewsImage';
 import { NewsCardFull } from './NewsCardFull';
 
 import s from './NewsCard.module.scss';
@@ -72,12 +74,30 @@ interface NewsCardProps {
    * instance, so a story listed twice on one surface is still one view.
    */
   onVisible?: (uid: string) => void;
-  /** `full` only: the tags are links that change the feed's tag scope. */
+  /**
+   * The tags are links that change the feed's tag scope. Always shown on `full`; on the other variants the tag row
+   * only renders when this is passed (the news page's grid, LAB-3126).
+   */
   onTagSelect?: (tag: string) => void;
-  /** `full` only: the feed's tag scope, shown selected on the tags. */
+  /** The feed's tag scope, shown selected on the tags. */
   activeTags?: readonly string[];
   /** `full` only: an editorial top story (rank 1–3), badged "Top story". */
   isTopStory?: boolean;
+  /**
+   * Boxed card only: the story's image (`imageUrl`) at the card's full width under the tags, above the meta line
+   * (LAB-3126). Off by default, so the card's other surfaces stay text only.
+   */
+  showImage?: boolean;
+  /**
+   * Boxed card only: the card fills its grid cell. The headline clamps to two lines and the summary to three, and the
+   * image and meta line sit on the card's floor, so a row's images line up (the news page's grid, LAB-3126).
+   */
+  stretch?: boolean;
+  /**
+   * A signed-out reader pressed Follow or Like. Without it they go to `#login`, as on the previous Home; the new
+   * Home passes its sign-up door instead.
+   */
+  onNeedsAccount?: () => void;
 }
 
 /** The news card. The `full` variant is its own component, so its comment-thread state stays out of the others. */
@@ -103,9 +123,22 @@ const NewsCardBase = ({
   fullSummary = false,
   onOpenDetail,
   onVisible,
+  onTagSelect,
+  activeTags,
+  showImage = false,
+  stretch = false,
+  onNeedsAccount,
 }: NewsCardProps) => {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
+
+  const askForAccount = () => {
+    if (onNeedsAccount) {
+      onNeedsAccount();
+      return;
+    }
+    router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
+  };
 
   // Memoized so the observer isn't torn down and rebuilt on every unrelated
   // re-render (an upvote overlay merge re-creates every item in the list).
@@ -120,7 +153,7 @@ const NewsCardBase = ({
   const handleFollowClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!currentUser) {
-      router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
+      askForAccount();
       return;
     }
     onFollowToggle?.(item.teamUid, item.teamName, isFollowing);
@@ -128,7 +161,7 @@ const NewsCardBase = ({
 
   const handleUpvoteToggle = () => {
     if (!currentUser) {
-      router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
+      askForAccount();
       return;
     }
     onUpvoteToggle?.(item);
@@ -170,6 +203,7 @@ const NewsCardBase = ({
         variant === 'flat' ? s.cardFlat : s.card,
         variant === 'outline' && s.cardOutline,
         compact && s.compact,
+        stretch && s.cardStretch,
         className,
       )}
       onClick={handleClick}
@@ -207,6 +241,15 @@ const NewsCardBase = ({
         ) : (
           <p className={clsx(s.summary, compact && !fullSummary && s.summaryCompact)}>{item.summary}</p>
         ))}
+      {onTagSelect && (
+        <NewsTagChips tags={item.tags} variant="card" onSelect={onTagSelect} active={activeTags} ungated />
+      )}
+      {/* Not a control: a click on the image opens the story with the card. */}
+      {showImage && item.imageUrl && (
+        <div className={s.cardMedia}>
+          <NewsImage src={item.imageUrl} variant="wide" />
+        </div>
+      )}
 
       <div className={s.metaLine}>
         <div className={clsx(s.meta, compact && s.metaCompact)}>

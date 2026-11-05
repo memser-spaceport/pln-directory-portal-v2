@@ -118,6 +118,11 @@ export interface HomeFeedOptions {
   layout?: 'grouped' | 'stream';
   /** Stream only: the scope after a tag change, and how it changed. */
   onTagScopeChange?: (tags: string[], action: HomeFeedTagScopeAction) => void;
+  /**
+   * Stream only: news, no forum posts (the new Home's news page, `?view=news`, LAB-3126). With no posts, Discussions
+   * counts 0 and drops out of the pill row like any empty pill. The page opens on All, as the prototype's grid does.
+   */
+  newsOnly?: boolean;
 }
 
 /** A story as its own card: the stream doesn't group a team's stories. */
@@ -144,9 +149,10 @@ export function useHomeFeed(
     pageSize = 6,
     deepLinkedItem = null,
   }: HomeFeedProps,
-  { layout = 'grouped', onTagScopeChange }: HomeFeedOptions = {},
+  { layout = 'grouped', onTagScopeChange, newsOnly = false }: HomeFeedOptions = {},
 ) {
   const isStream = layout === 'stream';
+  const isNewsOnly = isStream && newsOnly;
   // Stable module functions, so the memos below see one identity per layout.
   const matchesCategory = isStream ? matchesStreamNewsCategory : matchesTeamNewsCategory;
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
@@ -155,6 +161,7 @@ export function useHomeFeed(
     forYouTags ? new Set(forYouTags) : undefined,
   );
   const [selectedCategory, setActiveCategory] = useState<TeamNewsCategoryId>(() => {
+    if (isNewsOnly) return ALL_CAT;
     const items = sortAllTabItemsByEventDate(dedupeByUid([...groups.flatMap((g) => g.items), ...allTabExtraItems]));
     return selectForYouItems(items, initialForYouTeamUids, initialForYouTags).length > 0 ? FOR_YOU_CAT : ALL_CAT;
   });
@@ -242,7 +249,11 @@ export function useHomeFeed(
   // `unwindowedForumPosts` is the same access-gated list with only that trim
   // lifted, and has exactly two consumers — both on the ?post= deep-link path,
   // so a shared link to an older topic still opens.
-  const { forumPosts, unwindowedForumPosts, hasAccess, deepLinkSettled } = useFeedSocial({ newsUids });
+  const social = useFeedSocial({ newsUids });
+  const { hasAccess, deepLinkSettled } = social;
+  // The news page holds news only: no posts to list, count or open from `?post=`.
+  const forumPosts = isNewsOnly ? undefined : social.forumPosts;
+  const unwindowedForumPosts = isNewsOnly ? undefined : social.unwindowedForumPosts;
 
   // Optimistic like state for forum posts — the exact upvoteOverlay pattern:
   // a render-time overlay the buttons read, never written to the query cache,
@@ -363,20 +374,32 @@ export function useHomeFeed(
     [forumPosts, forYouForumCutoffIso, activeTab, hasTopicScope],
   );
 
+  // The news page's pill counts follow its search, as the prototype's grid does (LAB-3126). Every other layout counts
+  // the window, whatever the search.
+  const countQuery = isNewsOnly ? query.trim().toLowerCase() : '';
+  const countItems = useMemo(
+    () => (countQuery ? itemsForActiveTab.filter((i) => matchesTeamNewsQuery(i, countQuery)) : itemsForActiveTab),
+    [itemsForActiveTab, countQuery],
+  );
+  const countForYouItems = useMemo(
+    () =>
+      countQuery ? forYouItemsForActiveTab.filter((i) => matchesTeamNewsQuery(i, countQuery)) : forYouItemsForActiveTab,
+    [forYouItemsForActiveTab, countQuery],
+  );
+
   // One definition of "how many does this pill have", used both to render the
   // pills and to report the count on click — two copies of this drifted apart
   // once already.
   const countForCategory = useCallback(
     (id: TeamNewsCategoryId) => {
       if (id === FOR_YOU_CAT)
-        return forYouItemsForActiveTab.length + forYouForumPosts.length + (forYouJobEntries?.length ?? 0);
-      const newsCount =
-        id === ALL_CAT ? itemsForActiveTab.length : itemsForActiveTab.filter((i) => matchesCategory(i, id)).length;
+        return countForYouItems.length + forYouForumPosts.length + (forYouJobEntries?.length ?? 0);
+      const newsCount = id === ALL_CAT ? countItems.length : countItems.filter((i) => matchesCategory(i, id)).length;
       // Forum posts show under All, Discussions, and For You. For You has its
       // own L7D list; All / Discussions share tabForumPosts.
       return newsCount + (categoryIncludesForumPosts(id) ? tabForumPosts.length : 0);
     },
-    [itemsForActiveTab, tabForumPosts, forYouItemsForActiveTab, forYouForumPosts, forYouJobEntries, matchesCategory],
+    [countItems, tabForumPosts, countForYouItems, forYouForumPosts, forYouJobEntries, matchesCategory],
   );
 
   // The stream's fixed pill row (LAB-3125) with its counts. A pill whose count is 0 is left out, not greyed — All

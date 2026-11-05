@@ -1563,3 +1563,88 @@ $band-inset-phone: 24px;
     color: var(--foreground-neutral-primary, #0a0c11);
   }
 }
+
+// The news page (LAB-3126, `?view=news`), ported from the prototype's NewsGrid styles (homepage-redesign-v0, as
+// Polina changed them on 2026-11-04).
+.newsPage {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.newsBack {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+// Title block on the left, production's search field on the right (NewsSearch hides itself on phones).
+.newsPageHeadRow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+
+  > :last-child {
+    max-width: 360px;
+  }
+}
+
+.newsPageHead {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+// The directory's page headline size (NetworkUpdatesBase's 32/40), one rank above the Home section titles.
+.newsPageTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 40px;
+  letter-spacing: -0.8px;
+
+  @include media.mobile-only {
+    font-size: 24px;
+    line-height: 32px;
+    letter-spacing: -0.6px;
+  }
+}
+
+.newsPageSub {
+  margin: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+// 2 columns from tablet up, 1 on phones; cards in a row share a height.
+.newsGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+
+  @include media.tablet-portrait {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  > li {
+    display: flex;
+    min-width: 0;
+  }
+}

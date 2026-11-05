@@ -1,7 +1,11 @@
 import type { HuskySourceRef } from '@/services/husky/hooks/useHuskyChat';
 
-/** `directory`: a page in the directory. `web`: a public web page (a `web` or `external` ref with no directory page). */
-export type SourceKind = 'directory' | 'web';
+/**
+ * `directory`: a page in the directory. `web`: a public web page (a `web` or `external` ref with no directory page).
+ * `unlabeled`: a plain source URL of an older answer without source refs; it is not sorted, because an absolute
+ * URL can point to the directory too.
+ */
+export type SourceKind = 'directory' | 'web' | 'unlabeled';
 
 export interface SourceItem {
   key: string;
@@ -12,7 +16,8 @@ export interface SourceItem {
 
 export interface SourceGroup {
   kind: SourceKind;
-  label: 'Directory' | 'Web';
+  /** No label for the `unlabeled` group. */
+  label: 'Directory' | 'Web' | null;
   items: SourceItem[];
 }
 
@@ -66,12 +71,8 @@ function itemsFromInlineMarkers(item: SourceItem): SourceItem[] {
     const link = match[1].trim();
     const name = nameBefore(item.title, match.index ?? 0, previousEnd);
     previousEnd = (match.index ?? 0) + match[0].length;
-    return { key: `${item.key}-${index}`, href: link, title: name || link, kind: kindOfHref(link) };
+    return { key: `${item.key}-${index}`, href: link, title: name || link, kind: item.kind };
   });
-}
-
-function kindOfHref(href: string): SourceKind {
-  return href.startsWith('/') ? 'directory' : 'web';
 }
 
 function kindOfRef(ref: HuskySourceRef): SourceKind {
@@ -91,7 +92,7 @@ export function sourceItems(sources: string[] | undefined, sourceRefs: HuskySour
         key: String(index),
         href: source,
         title: source,
-        kind: kindOfHref(source),
+        kind: 'unlabeled' as const,
       }));
 
   return raw.flatMap(itemsFromInlineMarkers);
@@ -102,12 +103,15 @@ export function groupSourceItems(items: SourceItem[]): SourceGroup[] {
   const groups: SourceGroup[] = [
     { kind: 'directory', label: 'Directory', items: items.filter((item) => item.kind === 'directory') },
     { kind: 'web', label: 'Web', items: items.filter((item) => item.kind === 'web') },
+    { kind: 'unlabeled', label: null, items: items.filter((item) => item.kind === 'unlabeled') },
   ];
   return groups.filter((group) => group.items.length > 0);
 }
 
 /** The counts that `unified-search-ai-web-sources-shown` sends. */
 export function sourceCounts(items: SourceItem[]) {
-  const webSources = items.filter((item) => item.kind === 'web').length;
-  return { webSources, directorySources: items.length - webSources };
+  return {
+    webSources: items.filter((item) => item.kind === 'web').length,
+    directorySources: items.filter((item) => item.kind === 'directory').length,
+  };
 }

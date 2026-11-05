@@ -45,7 +45,7 @@ describe('AI Search page: web sources', () => {
   });
 
   it('shows no "Web" group for an answer from directory data only, and sends no web event', async () => {
-    render(<AnswerSources sourceRefs={[mixedRefs[0]]} />);
+    render(<AnswerSources sourceRefs={[mixedRefs[0]]} trackShown />);
 
     fireEvent.click(screen.getByRole('button', { name: '1 source' }));
     const popup = await screen.findByRole('dialog');
@@ -56,8 +56,8 @@ describe('AI Search page: web sources', () => {
   });
 
   it('records once that the answer shows web sources, and records a web source click', async () => {
-    const { rerender } = render(<AnswerSources sourceRefs={mixedRefs} />);
-    rerender(<AnswerSources sourceRefs={mixedRefs} />);
+    const { rerender } = render(<AnswerSources sourceRefs={mixedRefs} trackShown />);
+    rerender(<AnswerSources sourceRefs={mixedRefs} trackShown />);
 
     expect(onAiWebSourcesShown).toHaveBeenCalledTimes(1);
     expect(onAiWebSourcesShown).toHaveBeenCalledWith({ webSources: 2, directorySources: 1 }, 'ai-search-page');
@@ -70,6 +70,26 @@ describe('AI Search page: web sources', () => {
 
     fireEvent.click(within(popup).getByRole('link', { name: /Team$/ }));
     expect(onAiWebSourceClicked).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('AI Search page: restored answers', () => {
+  it('sends no web-sources-shown event for an answer that did not stream in this view', () => {
+    render(<AnswerSources sourceRefs={mixedRefs} />);
+
+    expect(onAiWebSourcesShown).not.toHaveBeenCalled();
+  });
+
+  it('shows plain source URLs of an older answer without group labels', async () => {
+    render(<AnswerSources sources={['/teams/saturn', 'https://directory.example/teams/x']} trackShown />);
+
+    fireEvent.click(screen.getByRole('button', { name: '2 sources' }));
+    const popup = await screen.findByRole('dialog');
+
+    expect(within(popup).queryByText('Directory')).not.toBeInTheDocument();
+    expect(within(popup).queryByText('Web')).not.toBeInTheDocument();
+    expect(within(popup).getAllByRole('link')).toHaveLength(2);
+    expect(onAiWebSourcesShown).not.toHaveBeenCalled();
   });
 });
 

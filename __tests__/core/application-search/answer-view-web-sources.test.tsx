@@ -71,8 +71,15 @@ describe('Header search dialog: web sources shown', () => {
     expect(onAiWebSourcesShown).toHaveBeenCalledWith({ webSources: 1, directorySources: 1 }, 'header-dialog');
   });
 
+  it('records nothing for the answers of a restored thread', () => {
+    render(<AnswerView {...baseProps} turns={[webTurn]} />);
+
+    expect(onAiWebSourcesShown).not.toHaveBeenCalled();
+  });
+
   it('records nothing for an answer from directory data only', () => {
-    render(<AnswerView {...baseProps} turns={[directoryTurn]} />);
+    const { rerender } = render(<AnswerView {...baseProps} turns={[directoryTurn]} status="submitting" isBusy />);
+    rerender(<AnswerView {...baseProps} turns={[directoryTurn]} />);
 
     expect(onAiWebSourcesShown).not.toHaveBeenCalled();
   });

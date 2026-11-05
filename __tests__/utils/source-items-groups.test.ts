@@ -38,9 +38,9 @@ describe('AI Search source groups', () => {
     expect(groupSourceItems([])).toEqual([]);
   });
 
-  it('sorts plain source URLs by where they point when the answer has no source refs', () => {
+  it('leaves plain source URLs of an answer without source refs in one group with no label', () => {
     const items = sourceItems(['/teams/saturn', 'https://news.example/acme'], undefined);
 
-    expect(items.map((item) => item.kind)).toEqual(['directory', 'web']);
+    expect(groupSourceItems(items).map((group) => [group.label, group.items.length])).toEqual([[null, 2]]);
   });
 });

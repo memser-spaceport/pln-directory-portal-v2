@@ -15,6 +15,8 @@ import s from './AnswerSources.module.scss';
 interface Props {
   sources?: string[];
   sourceRefs?: HuskySourceRef[];
+  /** True for an answer that streamed in this view: it then records that it shows web sources. */
+  trackShown?: boolean;
 }
 
 const DIRECTORY_KINDS: Record<string, string> = {
@@ -40,7 +42,7 @@ function originOf(href: string) {
 }
 
 export const AnswerSources = (props: Props) => {
-  const { sources, sourceRefs } = props;
+  const { sources, sourceRefs, trackShown = false } = props;
 
   const { trackHuskySourceLinkClicked } = useHuskyAnalytics();
   const { onAiWebSourcesShown, onAiWebSourceClicked } = useUnifiedSearchAnalytics();
@@ -51,11 +53,11 @@ export const AnswerSources = (props: Props) => {
 
   // The list mounts when the answer has finished streaming, so this runs once per answer.
   useEffect(() => {
-    if (shownTracked.current || counts.webSources === 0) return;
+    if (!trackShown || shownTracked.current || counts.webSources === 0) return;
     shownTracked.current = true;
     onAiWebSourcesShown(counts, 'ai-search-page');
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [counts.webSources, counts.directorySources]);
+  }, [trackShown, counts.webSources, counts.directorySources]);
 
   const onSourceClick = (item: SourceItem) => {
     trackHuskySourceLinkClicked(item.href);
@@ -84,10 +86,17 @@ export const AnswerSources = (props: Props) => {
             <Popover.Title className={s.title}>Sources</Popover.Title>
             <div className={s.list}>
               {groupSourceItems(items).map((group) => (
-                <div key={group.kind} role="group" aria-labelledby={`${groupId}-${group.kind}`} className={s.group}>
-                  <p id={`${groupId}-${group.kind}`} className={s.groupLabel}>
-                    {group.label}
-                  </p>
+                <div
+                  key={group.kind}
+                  role="group"
+                  aria-labelledby={group.label ? `${groupId}-${group.kind}` : undefined}
+                  className={s.group}
+                >
+                  {group.label && (
+                    <p id={`${groupId}-${group.kind}`} className={s.groupLabel}>
+                      {group.label}
+                    </p>
+                  )}
                   <ul className={s.groupList}>
                     {group.items.map((item) => (
                       <li key={item.key}>

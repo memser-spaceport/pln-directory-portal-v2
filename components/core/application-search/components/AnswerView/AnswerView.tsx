@@ -99,6 +99,7 @@ export const AnswerView = ({
   const analytics = useHuskyAnalytics();
   const { onAiWebSourcesShown } = useUnifiedSearchAnalytics();
   const webSourcesTracked = useRef(new Set<string>());
+  const streamedTurns = useRef(new Set<string>());
 
   const [feedback, setFeedback] = useState<Record<string, FeedbackState>>({});
   const [openReasons, setOpenReasons] = useState<string | null>(null);
@@ -112,11 +113,13 @@ export const AnswerView = ({
     if (isBusy) endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [turns, isBusy]);
 
-  // One `unified-search-ai-web-sources-shown` per finished answer that has web sources (LAB-2621).
+  // One `unified-search-ai-web-sources-shown` per answer that streamed in this view and has web
+  // sources (LAB-2621). Turns of a restored thread never streamed here, so they send nothing.
   useEffect(() => {
     turns.forEach((turn, index) => {
       const streaming = isBusy && index === turns.length - 1;
-      if (streaming || webSourcesTracked.current.has(turn.chatId)) return;
+      if (streaming) streamedTurns.current.add(turn.chatId);
+      if (streaming || !streamedTurns.current.has(turn.chatId) || webSourcesTracked.current.has(turn.chatId)) return;
       const counts = sourceCounts(sourceItems(turn.sources, turn.sourceRefs));
       if (counts.webSources === 0) return;
       webSourcesTracked.current.add(turn.chatId);

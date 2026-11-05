@@ -25,10 +25,12 @@ function HuskySourceCard({ sources, sourceRefs, entryPoint }: HuskySourceCardPro
       <div className="sources">
         <h3 className="sources__title">Sources</h3>
         {groupSourceItems(items).map((group) => (
-          <div key={group.kind} role="group" aria-label={group.label} className="sources__group">
-            <p className="sources__group__label" aria-hidden="true">
-              {group.label}
-            </p>
+          <div key={group.kind} role="group" aria-label={group.label ?? undefined} className="sources__group">
+            {group.label && (
+              <p className="sources__group__label" aria-hidden="true">
+                {group.label}
+              </p>
+            )}
             {group.items.map((item) => (
               <a
                 target="_blank"

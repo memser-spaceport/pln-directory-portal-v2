@@ -9,7 +9,7 @@ export const SCOPE_COPY: Partial<Record<McpScopeKey, { read: string; write?: str
   search: { read: 'Search members, teams, projects and events.' },
   forum: {
     read: 'Read threads and replies.',
-    write: 'start threads, reply, upvote posts, and edit or delete your own posts.',
+    write: 'start threads, reply with images, upvote posts, and edit or delete your own posts.',
   },
   news: { read: 'Read Home updates and your For You feed.', write: 'post news for your teams and upvote stories.' },
   directory: {

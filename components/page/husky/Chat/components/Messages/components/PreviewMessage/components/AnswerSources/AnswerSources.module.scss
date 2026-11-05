@@ -85,6 +85,29 @@
   @include mixins.hide-scrollbar;
 }
 
+// "Directory" and "Web": the same grey small text as the popup title.
+.groupLabel {
+  margin: 0;
+  padding: 8px 8px 4px;
+  color: #8897ae;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.group + .group {
+  margin-top: 4px;
+  border-top: 1px solid rgba(27, 56, 96, 0.08);
+}
+
+.groupList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
 .row {
   display: flex;
   align-items: center;

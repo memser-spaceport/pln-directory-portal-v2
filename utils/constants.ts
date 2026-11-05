@@ -656,6 +656,8 @@ export const UNIFIED_SEARCH_ANALYTICS_EVENTS = {
   AI_CONVERSATION_HISTORY_OPEN_CLICK: 'unified-search-ai-conversation-history-open-clicked',
   AI_QUERY_SUBMITTED: 'unified-search-ai-query-submitted',
   EMAIL_QUERY_SUBMITTED: 'unified-search-email-query-submitted',
+  AI_WEB_SOURCES_SHOWN: 'unified-search-ai-web-sources-shown',
+  AI_WEB_SOURCE_CLICKED: 'unified-search-ai-web-source-clicked',
 };
 
 export const FORUM_ANALYTICS_EVENTS = {

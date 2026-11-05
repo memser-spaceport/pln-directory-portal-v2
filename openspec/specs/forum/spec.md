@@ -80,3 +80,24 @@ NodeBB still sends a soft-deleted post to its author and to moderators. The dire
 - **WHEN** the member opens that thread
 - **THEN** the reply is not listed
 - **AND** the thread's comment count is one lower than before the delete
+
+### Requirement: Members delete their own comments
+
+A comment's menu SHALL offer Delete only on the member's own comments. Delete SHALL ask for confirmation, then soft-delete the comment through the forum proxy (`DELETE /api/v3/posts/:pid/state`, no impersonation), so forum moderators can restore it. The proxy SHALL NOT allow restore or purge. A thread's opening post has no Delete.
+
+#### Scenario: Delete your own comment
+
+- **GIVEN** a member viewing a thread with one of their own comments
+- **WHEN** they choose Delete in the comment's menu and confirm
+- **THEN** the comment is gone from the thread and from the home feed's comments for that post
+- **AND** the comment count is one lower
+
+#### Scenario: Someone else's comment
+
+- **WHEN** a member, a directory admin too, opens the menu on another member's comment
+- **THEN** there is no Delete; an admin still has Edit
+
+#### Scenario: The forum refuses
+
+- **WHEN** the forum refuses the delete
+- **THEN** the member sees the forum's message and the comment stays

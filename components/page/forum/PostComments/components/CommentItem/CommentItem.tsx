@@ -18,6 +18,9 @@ import { IUserInfo } from '@/types/shared.types';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
 import { OhBadge } from '@/components/core/OhBadge/OhBadge';
 import { processPostContent } from '@/components/page/forum/Post';
+import { ConfirmDialog } from '@/components/core/ConfirmDialog';
+import { toast } from '@/components/core/ToastContainer';
+import { useDeleteComment } from '@/services/forum/hooks/useDeleteComment';
 
 import { NestedComment } from '../../types';
 
@@ -44,6 +47,10 @@ export const CommentItem = (props: Props) => {
   const ref = useRef<HTMLDivElement>(null);
   const [replyToPid, setReplyToPid] = useState<number | null>(null);
   const [editPid, setEditPid] = useState<number | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const { mutateAsync: deleteComment, isPending: isDeleting } = useDeleteComment();
+  // Only the author deletes a comment here; an admin's Edit stays, but deleting others' posts is a moderator job
+  const isOwn = !!userInfo?.uid && userInfo.uid === item.user?.memberUid;
   const searchParams = useSearchParams();
   const isMobile = useMedia('(max-width: 960px)', false);
   const analytics = useForumAnalytics();
@@ -71,8 +78,30 @@ export const CommentItem = (props: Props) => {
     }
   }, [isMobile, item.pid, onReply, scrollIntoView, searchParams]);
 
+  const handleDeleteConfirm = async () => {
+    analytics.onCommentDeleteConfirmed({ tid: item.tid, pid: item.pid });
+    try {
+      await deleteComment({ tid: item.tid, pid: item.pid });
+      setConfirmDelete(false);
+      toast.success('Comment deleted');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete the comment';
+      analytics.onCommentDeleteFailed({ tid: item.tid, pid: item.pid, error: message });
+      toast.error(message);
+    }
+  };
+
   return (
     <>
+      <ConfirmDialog
+        isOpen={confirmDelete}
+        title="Delete comment?"
+        desc="It will be removed from the thread. Forum moderators can restore it."
+        confirmTitle={isDeleting ? 'Deleting...' : 'Delete'}
+        disabled={isDeleting}
+        onClose={() => setConfirmDelete(false)}
+        onConfirm={handleDeleteConfirm}
+      />
       <div className={clsx(s.itemRoot, { [s.reply]: isReply })} key={item.pid} ref={ref} data-pid={item.pid}>
         <div className={s.footer}>
           <Link href={`/members/${item.user.memberUid}`} onClick={(e) => e.stopPropagation()}>
@@ -108,6 +137,14 @@ export const CommentItem = (props: Props) => {
                   analytics.onPostEditClicked({ tid: item.tid, pid: item.pid });
                   setEditPid(item.pid);
                 }}
+                onDelete={
+                  isOwn
+                    ? () => {
+                        analytics.onCommentDeleteClicked({ tid: item.tid, pid: item.pid });
+                        setConfirmDelete(true);
+                      }
+                    : undefined
+                }
               />
             </div>
           )}

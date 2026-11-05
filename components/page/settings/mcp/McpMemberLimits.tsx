@@ -19,7 +19,8 @@ function tierLabel(tier: McpLimitTier): string {
 function usedText(row: McpLimitRow): string {
   const used = row.used === null ? 'Usage unavailable' : `${row.used} of ${row.limit}`;
   const window = row.window === 'day' ? 'per day' : 'per hour';
-  return `${used} ${window}`;
+  const unit = row.callType === 'contact_read' ? 'member contact details ' : '';
+  return `${used} ${unit}${window}`;
 }
 
 /** Settings → MCP connections: each limit, usage, reset time, override and a recent hit (LAB-3151). */

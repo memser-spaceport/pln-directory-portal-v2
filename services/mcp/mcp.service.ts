@@ -1,7 +1,15 @@
 import { customFetch } from '@/utils/fetch-wrapper';
-import type { McpAccessRequest, McpConnection, McpLevels } from './types';
+import type {
+  McpAccessRequest,
+  McpAdminLimits,
+  McpCallType,
+  McpConnection,
+  McpLevels,
+  McpMemberLimits,
+} from './types';
 
 const MCP_API_URL = `${process.env.DIRECTORY_API_URL}/v1/mcp`;
+const MCP_ADMIN_LIMITS_URL = `${process.env.DIRECTORY_API_URL}/v1/admin/mcp/limits`;
 
 export type McpAuthorization = {
   uid: string;
@@ -63,6 +71,55 @@ export async function updateMcpScopes(
     throw new Error(`Failed to save MCP permissions (${response?.status ?? 'network'})`);
   }
   return response.json();
+}
+
+/** This member's MCP limits and how much is used (LAB-3151). */
+export async function fetchMcpLimits(): Promise<McpMemberLimits> {
+  const response = await customFetch(`${MCP_API_URL}/limits`, { method: 'GET' }, true);
+  if (!response || !response.ok) {
+    throw new Error('Failed to load MCP limits');
+  }
+  return response.json();
+}
+
+/** Directory-admin view of usage, recent limits and overrides (LAB-3150). */
+export async function fetchMcpAdminLimits(query: string): Promise<McpAdminLimits> {
+  const q = query.trim();
+  const url = q ? `${MCP_ADMIN_LIMITS_URL}?q=${encodeURIComponent(q)}` : MCP_ADMIN_LIMITS_URL;
+  const response = await customFetch(url, { method: 'GET' }, true);
+  if (!response || !response.ok) {
+    throw new Error('Failed to load MCP limit admin');
+  }
+  return response.json();
+}
+
+export async function saveMcpLimitOverride(
+  memberUid: string,
+  body: { callType: McpCallType; limit: number; endsAt: string | null },
+): Promise<void> {
+  const response = await customFetch(
+    `${MCP_ADMIN_LIMITS_URL}/${encodeURIComponent(memberUid)}`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    },
+    true,
+  );
+  if (!response || !response.ok) {
+    throw new Error('Failed to save the limit override');
+  }
+}
+
+export async function deleteMcpLimitOverride(memberUid: string, callType: McpCallType): Promise<void> {
+  const response = await customFetch(
+    `${MCP_ADMIN_LIMITS_URL}/${encodeURIComponent(memberUid)}/${encodeURIComponent(callType)}`,
+    { method: 'DELETE' },
+    true,
+  );
+  if (!response || !response.ok) {
+    throw new Error('Failed to remove the limit override');
+  }
 }
 
 /** A refused agent call the member can allow. `null` when it isn't the member's or doesn't exist. */

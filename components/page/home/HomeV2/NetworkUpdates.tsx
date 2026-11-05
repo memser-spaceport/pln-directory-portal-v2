@@ -7,15 +7,13 @@ import { useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'reac
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
 import { SearchInput } from '@/components/common/filters/SearchInput';
-import { SortDropdown } from '@/components/common/filters/SortDropdown';
-import sortCss from '@/components/common/filters/SortDropdown/SortDropdown.module.scss';
 import { FollowButton } from '@/components/ui/FollowButton';
 import { useGetMemberPreferences } from '@/services/members/hooks/useGetMemberPreferences';
 import { useSetNewsTags } from '@/services/members/hooks/useSetNewsTags';
 import { useNewsTopicSlugs } from '@/services/team-news/hooks/useNewsTopicSlugs';
 import { PAGE_ROUTES } from '@/utils/constants';
 import { SHOW_NEWS_PREFERENCES } from '@/utils/news-categories';
-import { ALL_CAT, FOR_YOU_CAT, type TeamNewsCategoryId } from '@/components/page/home/TeamNews/constants';
+import { FOR_YOU_CAT } from '@/components/page/home/TeamNews/constants';
 import { AutoMarkNewsCommentNotification } from '@/components/page/home/TeamNews/AutoMarkNewsCommentNotification';
 import { ForumPostCard } from '@/components/page/home/TeamNews/components/ForumPostCard';
 import { ForumPostModal } from '@/components/page/home/TeamNews/components/ForumPostModal/ForumPostModal';
@@ -26,16 +24,17 @@ import type { HomeFeed } from '@/components/page/home/TeamNews/hooks/useHomeFeed
 import { isOwnForumPost } from '@/components/page/home/TeamNews/utils/isOwnForumPost';
 import { assertNever, feedEntryKey } from '@/components/page/home/TeamNews/utils/mergeFeedEntries';
 import { isEditorialRank } from '@/components/page/home/TeamNews/utils/selectTopStories';
-import { SORT_OPTIONS } from '@/components/page/home/TeamNews/utils/sortTeamNewsClusters';
-// Production Home's filter bar (pill row, mobile "Type:", "Sort by:") and its description line, as the prototype.
+// Production Home's mobile search row and its description line, as the prototype.
 import tn from '@/components/page/home/TeamNews/TeamNews.module.scss';
 import nb from '@/components/page/home/TeamNews/components/NewsBase/NewsBase.module.scss';
 // The Job Board "See all N …" expander: the same brand text every rail ends in.
 import jobsCss from '@/components/page/jobs/TeamGroupCard/TeamGroupCard.module.scss';
 
 import { HOME_NEWS_VIEW_HREF } from './constants';
+import { FeedFilterBar } from './FeedFilterBar';
 import { ArrowRightIcon } from './icons';
 import { chipVocabulary, selectNarrowByTags } from './utils/narrowByTags';
+import { TagScopeRow } from './TagScopeRow';
 import { computeStreamCut, STREAM_CUT_MIN_STACKED, STREAM_SIDE_BY_SIDE_QUERY, type StreamCut } from './utils/streamCut';
 import s from './HomeV2.module.scss';
 
@@ -108,8 +107,6 @@ export function NetworkUpdates({
   const homeAnalytics = useHomeAnalytics();
   const topicSlugs = useNewsTopicSlugs();
 
-  const pickCategory = (id: TeamNewsCategoryId) => handleCategory(activeCategory === id ? ALL_CAT : id);
-
   // "Narrow by": the commonest other tags on the stories in scope, in the cards' own tag vocabulary.
   const narrowBy = useMemo(
     () => selectNarrowByTags(feedItems, topicScope, (item) => chipVocabulary(item, topicSlugs, SHOW_NEWS_PREFERENCES)),
@@ -179,87 +176,32 @@ export function NetworkUpdates({
         <SearchInput value={query} onChange={handleSearch} placeholder="Search by news, teams…" />
       </div>
 
-      <div className={clsx(tn.filterBar, s.weekFilterBar)} ref={filterBarRef}>
-        <div className={tn.catRow}>
-          {streamCategories.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              className={clsx(tn.cat, c.id === ALL_CAT && s.catAll, { [tn.catActive]: activeCategory === c.id })}
-              aria-pressed={activeCategory === c.id}
-              // Pressing the active pill again clears it back to All.
-              onClick={() => pickCategory(c.id)}
-            >
-              {c.label}
-              {c.id !== ALL_CAT && <span>{c.count}</span>}
-            </button>
-          ))}
-        </div>
-        <div className={tn.filterActions}>
-          <span className={tn.typeMobile}>
-            <SortDropdown
-              sortByLabel="Type:"
-              options={streamCategories.map((c) => ({ value: c.id, label: c.label }))}
-              currentSort={activeCategory}
-              onSortChange={(value) => handleCategory(value as TeamNewsCategoryId)}
-            />
-          </span>
-          <SortDropdown sortByLabel="Sort by:" options={SORT_OPTIONS} currentSort={sort} onSortChange={handleSort} />
-        </div>
-      </div>
+      <FeedFilterBar
+        categories={streamCategories}
+        activeCategory={activeCategory}
+        onCategory={handleCategory}
+        sort={sort}
+        onSort={handleSort}
+        barRef={filterBarRef}
+        className={s.weekFilterBar}
+      />
 
-      {/* The tag scope, on a row of its own under the pills: a chip with × per tag (a story must carry all of them),
-          the count, Follow for a single tag (an intersection can't be followed) or Clear all from two, then the
-          commonest other tags still in scope. */}
+      {/* Follow for a single tag (an intersection can't be followed), Clear all from two. */}
       {topicScope.length > 0 && (
-        <div className={s.tagScope}>
-          <span className={sortCss.sortByLabel}>Filter:</span>
-          {topicScope.map((tag) => (
-            <span key={tag} className={clsx(s.savedView, s.savedFilterChip, s.scopeChip)}>
-              <span className={clsx(s.savedViewBody, s.scopeChipLabel)}>
-                <strong>#{tag}</strong>
-              </span>
-              <button
-                type="button"
-                className={s.savedViewDelete}
-                aria-label={`Stop filtering by #${tag}`}
-                onClick={() => handleScopeTagRemove(tag)}
-              >
-                <svg viewBox="0 0 12 12" fill="none" aria-hidden>
-                  <path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-              </button>
-            </span>
-          ))}
-          <span className={s.topicCount}>
-            {feedItems.length} {feedItems.length === 1 ? 'update' : 'updates'}
-          </span>
-          {topicScope.length === 1 ? (
+        <TagScopeRow
+          tags={topicScope}
+          count={feedItems.length}
+          noun={['update', 'updates']}
+          onRemove={handleScopeTagRemove}
+          onClear={handleScopeClear}
+          narrowBy={narrowBy}
+          onNarrow={handleScopeNarrow}
+          single={
             SHOW_NEWS_PREFERENCES && currentUser?.uid ? (
               <FollowTagButton tag={topicScope[0]} memberUid={currentUser.uid} initialTags={forYouTags} />
             ) : null
-          ) : (
-            <button type="button" className={s.inlineLink} onClick={handleScopeClear}>
-              Clear all
-            </button>
-          )}
-          {narrowBy.length > 0 && (
-            <span className={s.tagSuggest}>
-              <span className={s.tagSuggestLabel}>Narrow by</span>
-              {narrowBy.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  className={s.tagAdd}
-                  aria-label={`Also filter by #${tag}`}
-                  onClick={() => handleScopeNarrow(tag)}
-                >
-                  + #{tag}
-                </button>
-              ))}
-            </span>
-          )}
-        </div>
+          }
+        />
       )}
 
       {/* Production's ForYouHint, where production puts it (head of the stream, For You only), drawn as the

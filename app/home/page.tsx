@@ -41,7 +41,7 @@ import {
   codesFromCookiePermissions,
 } from '@/components/page/home/QuickActions/utils/resolveQuickActionsState';
 import { SHOW_HOME_V2 } from '@/utils/home-v2';
-import { SignedInHome, SignedOutHome } from '@/components/page/home/HomeV2';
+import { NewsPage, SignedInHome, SignedOutHome } from '@/components/page/home/HomeV2';
 import { pickThisWeek } from '@/components/page/home/HomeV2/utils/pickThisWeek';
 import { flattenNewestRoles, HOME_ROLES_MAX } from '@/components/page/home/HomeV2/utils/flattenNewestRoles';
 import {
@@ -58,15 +58,20 @@ import { PORTFOLIO_FALLBACK } from '@/components/page/explore-pl-network/data/po
 import type { IHomeEvents, IHomeRoles } from '@/types/home.types';
 
 type HomeProps = {
-  searchParams: Promise<{ news?: string }>;
+  searchParams: Promise<{ news?: string; view?: string }>;
 };
 
-export default async function Home(props: HomeProps) {
-  const { news } = await props.searchParams;
+/** `?view=news`: the new Home's news page (LAB-3126). Ignored while the flag is off. */
+const NEWS_VIEW = 'news';
 
-  // The new Home (LAB-3070): signed out, the story page (LAB-3072); signed in, the member page (LAB-3125).
+export default async function Home(props: HomeProps) {
+  const { news, view } = await props.searchParams;
+
+  // The new Home (LAB-3070): signed out, the story page (LAB-3072); signed in, the member page (LAB-3125); either way,
+  // `?view=news` is the news page (LAB-3126).
   if (SHOW_HOME_V2) {
     const { isLoggedIn } = await getCookiesFromHeaders();
+    if (view === NEWS_VIEW) return renderNewsPage(Boolean(isLoggedIn), news);
     return isLoggedIn ? renderSignedInHome(news) : renderSignedOutHome(news);
   }
 
@@ -179,6 +184,22 @@ async function renderSignedInHome(news?: string) {
   );
 }
 
+/**
+ * The news page, signed in or out: the network's news only, in a grid. Its `<h1>` is "Network news", so HomeIntro's
+ * hidden one is left out. No Home JSON-LD: this is a view of /home, not the home page itself.
+ */
+async function renderNewsPage(isLoggedIn: boolean, news?: string) {
+  const { feed, unavailable } = await getNewsPageData(news);
+
+  return (
+    <>
+      <NewsPage feed={feed} signedIn={isLoggedIn} unavailable={unavailable} />
+      {isLoggedIn && <AutoMarkNewsNotification />}
+      <MarkHomeVisited />
+    </>
+  );
+}
+
 const settled = <T,>(result: PromiseSettledResult<T>): T | null =>
   result.status === 'fulfilled' ? result.value : null;
 
@@ -282,6 +303,32 @@ const getSignedInPageData = async (deepLinkedNewsUid?: string) => {
     events: settled(eventsResult),
     portfolio: mergePortfolio(PORTFOLIO_FALLBACK, settled(portfolioResult) ?? []),
     projectFocusAreaCounts: settled(projectCountsResult),
+  };
+};
+
+/**
+ * The news page's data: the Home feed's 14-day grouped news (the same source the stream reads), For You's match for a
+ * member, and a deep-linked story. A failed news call gives an empty page that says news is unavailable, never
+ * `<Error/>`.
+ */
+const getNewsPageData = async (deepLinkedNewsUid?: string) => {
+  const { authToken } = await getCookiesFromHeaders();
+  const [newsResult, deepLinkedResult] = await Promise.allSettled([
+    getTeamNewsGroupedByFocusArea({}, authToken),
+    deepLinkedNewsUid ? getTeamNewsItemByUid(deepLinkedNewsUid) : Promise.resolve(null),
+  ]);
+  const newsResponse = settled(newsResult);
+  const forYouMatch = resolveForYouMatch(newsResponse, SHOW_NEWS_PREFERENCES);
+
+  return {
+    unavailable: newsResponse === null,
+    feed: {
+      groups: newsResponse?.groups ?? [],
+      allTabExtraItems: newsResponse?.allTabExtraItems ?? [],
+      forYouTeamUids: forYouMatch.teamUids,
+      forYouTags: forYouMatch.tags,
+      deepLinkedItem: settled(deepLinkedResult),
+    },
   };
 };
 
@@ -487,10 +534,13 @@ const HOME_METADATA: Metadata = listingPageMetadata({
  *  back to the site card, which is what every non-news visit to /home gets
  *  anyway. */
 export async function generateMetadata(props: HomeProps): Promise<Metadata> {
-  const { news } = await props.searchParams;
+  const { news, view } = await props.searchParams;
 
   if (!news) {
-    return HOME_METADATA;
+    // The news page names itself in the tab; its canonical stays /home, as it is a view of the same feed.
+    return SHOW_HOME_V2 && view === NEWS_VIEW
+      ? { ...HOME_METADATA, title: 'Network news | Protocol Labs Directory' }
+      : HOME_METADATA;
   }
 
   const item = await getTeamNewsItemByUid(news);

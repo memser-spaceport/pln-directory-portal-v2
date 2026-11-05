@@ -82,6 +82,15 @@ jest.mock('@/components/page/home/HomeV2/SignedInHome', () => ({
   },
 }));
 
+// The news page is a client tree with its own tests (news-page.test.tsx); here it is a marker that keeps its props.
+const mockNewsPage = jest.fn();
+jest.mock('@/components/page/home/HomeV2/NewsPage', () => ({
+  NewsPage: (props: unknown) => {
+    mockNewsPage(props);
+    return <div>News page</div>;
+  },
+}));
+
 const MISSION = 'Protocol Labs drives breakthroughs in computing to push humanity forward.';
 
 const story = (uid: string, overrides: Partial<ITeamNewsItem> = {}): ITeamNewsItem => ({
@@ -117,7 +126,7 @@ const signedIn = () =>
 
 const fetchedUrls = () => (global.fetch as jest.Mock).mock.calls.map(([url]) => String(url));
 
-const renderHome = async (searchParams: { news?: string } = {}) =>
+const renderHome = async (searchParams: { news?: string; view?: string } = {}) =>
   render(await Home({ searchParams: Promise.resolve(searchParams) }));
 
 beforeEach(() => {
@@ -212,6 +221,14 @@ describe('/home with the new Home flag off', () => {
     expect(fetchedUrls().some((url) => url.includes('/me/access'))).toBe(true);
     expect(getJobsList).not.toHaveBeenCalled();
     expect(mockSignedInHome).not.toHaveBeenCalled();
+  });
+
+  it('ignores ?view=news', async () => {
+    await renderHome({ view: 'news' });
+
+    expect(screen.getByText('Welcome card')).toBeInTheDocument();
+    expect(screen.getByText('Team news feed')).toBeInTheDocument();
+    expect(mockNewsPage).not.toHaveBeenCalled();
   });
 });
 
@@ -363,5 +380,55 @@ describe('/home with the new Home flag on', () => {
 
     expect(screen.getByRole('heading', { name: 'This week in the network' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { level: 3, name: /^Headline/ })).not.toBeInTheDocument();
+  });
+});
+
+describe('/home?view=news with the new Home flag on', () => {
+  beforeEach(() => {
+    mockShowHomeV2 = true;
+  });
+
+  it("gives a signed-in member the news page, on the feed's news and For You match, and nothing else", async () => {
+    signedIn();
+
+    await renderHome({ view: 'news' });
+
+    expect(screen.getByText('News page')).toBeInTheDocument();
+    expect(screen.queryByText('Signed-in home')).not.toBeInTheDocument();
+    const props = mockNewsPage.mock.calls[0][0];
+    expect(props.signedIn).toBe(true);
+    expect(props.unavailable).toBe(false);
+    expect(props.feed.groups[0].items).toHaveLength(4);
+    expect(getTeamNewsGroupedByFocusArea).toHaveBeenCalledWith({}, 'token');
+    // The page's news only: no rail, popular, roles or events calls.
+    expect(getTeamNewsPopular).not.toHaveBeenCalled();
+    expect(getJobsList).not.toHaveBeenCalled();
+    expect(getUpcomingEvents).not.toHaveBeenCalled();
+  });
+
+  it('gives a signed-out visitor the news page too, and not the story', async () => {
+    await renderHome({ view: 'news' });
+
+    expect(screen.getByText('News page')).toBeInTheDocument();
+    expect(screen.queryByText(MISSION)).not.toBeInTheDocument();
+    expect(mockNewsPage.mock.calls[0][0].signedIn).toBe(false);
+  });
+
+  it('marks the page unavailable when the news call fails', async () => {
+    (getTeamNewsGroupedByFocusArea as jest.Mock).mockResolvedValue(null);
+
+    await renderHome({ view: 'news' });
+
+    expect(mockNewsPage.mock.calls[0][0].unavailable).toBe(true);
+    expect(mockNewsPage.mock.calls[0][0].feed.groups).toEqual([]);
+  });
+
+  it('passes a deep-linked story through, so its dialog opens on the news page', async () => {
+    (getTeamNewsItemByUid as jest.Mock).mockResolvedValue(story('old'));
+
+    await renderHome({ view: 'news', news: 'old' });
+
+    expect(getTeamNewsItemByUid).toHaveBeenCalledWith('old');
+    expect(mockNewsPage.mock.calls[0][0].feed.deepLinkedItem.uid).toBe('old');
   });
 });

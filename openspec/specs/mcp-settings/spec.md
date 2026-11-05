@@ -206,6 +206,25 @@ The "For developers" block SHALL show the MCP server URL, the Claude Code comman
 - **THEN** `claude mcp add --transport http labos <server URL>` is copied
 - **AND** `mcp-setup-snippet-copied` is sent with `snippetType: 'claude'`
 
+### Requirement: The page shows the member's agent limits
+
+The page SHALL show each MCP call type with how much is used, the limit, when it resets, any custom limit and its end date, and whether the limit was hit recently. A directory admin SHALL also see other members' usage, who was limited recently, and the active overrides, and SHALL be able to add, edit and remove an override for one member and one call type.
+
+#### Scenario: Member opens MCP settings
+
+- **WHEN** a member with `mcp.connect` opens `/settings/mcp`
+- **THEN** the page lists each limit, the amount used and the reset time
+
+#### Scenario: A limit was hit
+
+- **WHEN** the member hit a limit in the last 7 days
+- **THEN** that row says the limit was hit recently
+
+#### Scenario: Directory admin
+
+- **WHEN** a directory admin opens `/settings/mcp`
+- **THEN** the page shows who was limited recently and the active overrides, and the admin can save or remove an override
+
 ### Requirement: Connected clients can be revoked
 
 The MCP section SHALL list each connected client with its connect date and last use, and a Revoke button that removes that authorization.

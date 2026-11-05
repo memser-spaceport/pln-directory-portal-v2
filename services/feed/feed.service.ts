@@ -7,6 +7,7 @@ import { topicReplies } from '@/services/forum/topicReplies';
 import { sanitizeCommentHtml } from '@/utils/html';
 import { forumFetch, postForumReply } from '@/services/forum/forum.service';
 import type { Topic } from '@/services/forum/hooks/useForumPosts';
+import { liveTopics } from '@/services/forum/liveTopics';
 import type { TopicResponse } from '@/services/forum/hooks/useForumPost';
 import {
   isForumPostUid,
@@ -155,7 +156,7 @@ export async function getFeedForumPosts(): Promise<IFeedForumPostsResponse> {
   if (!response?.ok) throw new Error('Failed to fetch feed forum posts');
 
   const data = await response.json();
-  const topics = Array.isArray(data?.topics) ? (data.topics as Topic[]) : [];
+  const topics = liveTopics<Topic>(data?.topics);
 
   return { items: topics.map(toFeedForumPost) };
 }

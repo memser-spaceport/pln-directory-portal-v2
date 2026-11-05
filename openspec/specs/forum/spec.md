@@ -81,6 +81,16 @@ NodeBB still sends a soft-deleted post to its author and to moderators. The dire
 - **THEN** the reply is not listed
 - **AND** the thread's comment count is one lower than before the delete
 
+### Requirement: Deleted threads stay hidden
+
+NodeBB keeps a soft-deleted thread in a category's thread list for everyone, with its title replaced by `[[topic:topic-is-deleted]]`, and in the recent list for its author and moderators. The directory SHALL leave deleted threads out of the forum's thread lists (All and each category tab) and out of the forum posts in the home feed.
+
+#### Scenario: Thread deleted by an agent
+
+- **GIVEN** a member's agent deleted the opening post of the member's thread that had no replies, with `delete_forum_post`, so NodeBB deleted the thread
+- **WHEN** anyone opens that thread's category tab on the forum page
+- **THEN** no card for the thread is listed, and no card reads "[[topic:topic-is-deleted]]"
+
 ### Requirement: Members delete their own comments
 
 A comment's menu SHALL offer Delete only on the member's own comments. Delete SHALL ask for confirmation, then soft-delete the comment through the forum proxy (`DELETE /api/v3/posts/:pid/state`, no impersonation), so forum moderators can restore it. The proxy SHALL NOT allow restore or purge. A thread's opening post has no Delete.

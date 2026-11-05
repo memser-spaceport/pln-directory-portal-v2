@@ -224,6 +224,15 @@ describe('feed.service', () => {
       await expect(getFeedForumPosts()).rejects.toThrow('Failed to fetch feed forum posts');
     });
 
+    it('leaves out a deleted topic NodeBB still sends to its author or a moderator (LAB-3145)', async () => {
+      const deleted = { ...TOPIC, tid: 97, title: '[[topic:topic-is-deleted]]', deleted: 1 };
+      customFetchMock.mockResolvedValue({ ok: true, json: async () => ({ topics: [deleted, TOPIC] }) });
+
+      const { items } = await getFeedForumPosts();
+
+      expect(items.map((item) => item.tid)).toEqual([96]);
+    });
+
     it('tolerates a response with no topics array', async () => {
       customFetchMock.mockResolvedValue({ ok: true, json: async () => ({}) });
 

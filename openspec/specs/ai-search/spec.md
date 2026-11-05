@@ -61,7 +61,7 @@ The sources list of an AI Search answer SHALL show directory sources under a "Di
 - **THEN** its page opens in a new tab
 
 ### Requirement: Web source use is measured
-When an answer that streamed in the open view finishes with one or more web sources, the app SHALL send the PostHog event `unified-search-ai-web-sources-shown` once for that answer, with the counts `webSources` and `directorySources` and the `entryPoint`. When a member selects a web source, the app SHALL send `unified-search-ai-web-source-clicked` with the `link` and the `entryPoint`.
+When an answer that streamed in the open view finishes with one or more web sources, the app SHALL send the PostHog event `unified-search-ai-web-sources-shown` once for that answer, with the counts `webSources` and `directorySources` and the `entryPoint`. When a member selects a web source, the app SHALL send `unified-search-ai-web-source-clicked` with the `link` (without its query string or fragment) and the `entryPoint`.
 
 #### Scenario: An answer with web sources finishes
 - **GIVEN** an answer that cites two web pages and one team
@@ -71,6 +71,11 @@ When an answer that streamed in the open view finishes with one or more web sour
 #### Scenario: A member selects a web source
 - **WHEN** the member selects a web source on the AI Search page
 - **THEN** `unified-search-ai-web-source-clicked` is sent with its link and the entry point `ai-search-page`
+
+#### Scenario: The web source click event sends no query string
+- **GIVEN** a web source `https://news.example/seed?utm_source=x#top`
+- **WHEN** the member selects it
+- **THEN** `unified-search-ai-web-source-clicked` is sent with `link` `https://news.example/seed`
 
 #### Scenario: A saved thread opens
 - **GIVEN** a saved thread whose answers have web sources

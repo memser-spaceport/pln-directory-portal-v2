@@ -112,4 +112,22 @@ describe('useUnifiedSearchAnalytics web sources (LAB-2621)', () => {
       loggedInUserName: 'Ada Lovelace',
     });
   });
+
+  it('sends a web source link without its query string or fragment', () => {
+    const { result } = renderHook(() => useUnifiedSearchAnalytics());
+
+    result.current.onAiWebSourceClicked('https://news.example/seed?utm_source=x&token=abc#top', 'ai-search-page');
+    result.current.onAiWebSourceClicked('not a url?x=1', 'ai-search-page');
+
+    expect(capture).toHaveBeenNthCalledWith(
+      1,
+      'unified-search-ai-web-source-clicked',
+      expect.objectContaining({ link: 'https://news.example/seed', entryPoint: 'ai-search-page' }),
+    );
+    expect(capture).toHaveBeenNthCalledWith(
+      2,
+      'unified-search-ai-web-source-clicked',
+      expect.objectContaining({ link: 'not a url' }),
+    );
+  });
 });

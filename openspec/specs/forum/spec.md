@@ -69,3 +69,14 @@ NodeBB sends category names and descriptions HTML-escaped. The directory SHALL d
 - **WHEN** a member opens the forum
 - **THEN** the tab reads "Comments & Feedback"
 - **AND** a post in that category shows the same name on its badge and in the home feed
+
+### Requirement: Deleted replies stay hidden
+
+NodeBB still sends a soft-deleted post to its author and to moderators. The directory SHALL leave deleted replies out of a thread on the post page and in a forum post's comments in the home feed, whoever deleted them (the member, an agent acting for them, or a moderator). Their comment counts SHALL leave out the deleted replies NodeBB sent, since NodeBB's post count still includes them.
+
+#### Scenario: Reply deleted by an agent
+
+- **GIVEN** a member's agent deleted one of the member's replies with `delete_forum_post`
+- **WHEN** the member opens that thread
+- **THEN** the reply is not listed
+- **AND** the thread's comment count is one lower than before the delete

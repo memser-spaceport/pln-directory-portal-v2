@@ -628,6 +628,28 @@ describe('feed.service', () => {
       expect(forumTopic?.totalReplyCount).toBe(50);
     });
 
+    it('leaves out a deleted reply, and its count, though NodeBB still sends it to its author (LAB-3145)', async () => {
+      customFetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          mainPid: 263,
+          cid: 5,
+          // postcount keeps the soft-deleted reply
+          postcount: 3,
+          posts: [
+            { pid: 263 },
+            { pid: 264, content: 'deleted by an agent', timestamp: 1, deleted: 1, selfPost: true, user: {} },
+            { pid: 265, content: 'kept', timestamp: 2, user: {} },
+          ],
+        }),
+      });
+
+      const { items, forumTopic } = await getFeedComments('fp_96');
+
+      expect(items.map((item) => item.uid)).toEqual(['fpc_265']);
+      expect(forumTopic?.totalReplyCount).toBe(1);
+    });
+
     it('carries the opening post’s full raw HTML for the modal body', async () => {
       customFetchMock.mockResolvedValue({
         ok: true,

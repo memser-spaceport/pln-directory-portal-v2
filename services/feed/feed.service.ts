@@ -3,6 +3,7 @@ import { decode } from 'he';
 import { getHeader } from '@/utils/common.utils';
 import { stripHtml, stripHtmlPreservingBreaks } from '@/utils/forum';
 import { buildCommentTree } from '@/utils/comments';
+import { topicReplies } from '@/services/forum/topicReplies';
 import { sanitizeCommentHtml } from '@/utils/html';
 import { forumFetch, postForumReply } from '@/services/forum/forum.service';
 import type { Topic } from '@/services/forum/hooks/useForumPosts';
@@ -371,10 +372,10 @@ async function getForumPostComments(itemUid: ForumPostUid): Promise<IFeedComment
   if (!response?.ok) throw new Error('Failed to fetch feed comments');
 
   const topic = (await response.json()) as TopicResponse;
-  const posts = Array.isArray(topic?.posts) ? topic.posts : [];
-  // posts[0] is the topic's own opening post rather than a reply to it — the
-  // same slice the /forum page takes (components/page/forum/Post/Post.tsx).
-  const [mainPost, ...replies] = posts;
+  // posts[0] is the topic's own opening post rather than a reply to it, and
+  // deleted replies are left out — the same split the /forum page takes
+  // (components/page/forum/Post/Post.tsx).
+  const { mainPost, replies, replyCount } = topicReplies<TopicPost>(topic);
 
   return {
     items: buildCommentTree<TopicPost, IFeedComment>({
@@ -389,7 +390,7 @@ async function getForumPostComments(itemUid: ForumPostUid): Promise<IFeedComment
       url: topic.cid ? `/forum/topics/${topic.cid}/${tidFromForumPostUid(itemUid)}` : null,
       // NodeBB serves one page of posts per request, so `replies` is often a
       // subset of this — the difference is what the link-out exists for.
-      totalReplyCount: Math.max(0, (Number(topic.postcount) || 0) - 1),
+      totalReplyCount: replyCount,
       // Read off the opening post, since that's what a forum card's Like votes
       // on. This is the only place the viewer's own vote state is available:
       // /api/recent, which builds the card, has no per-viewer state at all.

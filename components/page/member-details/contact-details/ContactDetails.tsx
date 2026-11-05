@@ -45,7 +45,7 @@ const SOCIAL_TO_HANDLE_MAP: Record<string, string> = {
 };
 
 const VISIBLE_HANDLES = ['email', 'linkedin', 'telegram', 'twitter', 'discord', 'github', 'bluesky'];
-const DRAWER_HANDLES = ['email', 'linkedin', 'telegram', 'twitter'];
+const DRAWER_HANDLES = ['email', 'linkedin', 'telegram', 'twitter', 'github'];
 
 export const ContactDetails = ({ member, isLoggedIn, onEdit, variant = 'default' }: Props) => {
   const router = useRouter();

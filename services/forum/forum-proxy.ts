@@ -13,6 +13,8 @@ const ALLOWED: { method: string; pattern: RegExp }[] = [
   { method: 'PUT', pattern: /^\/api\/v3\/posts\/\d+$/ },
   { method: 'PUT', pattern: /^\/api\/v3\/posts\/\d+\/vote$/ },
   { method: 'DELETE', pattern: /^\/api\/v3\/posts\/\d+\/vote$/ },
+  // Soft delete of a comment; NodeBB checks the member may delete it. Never a purge.
+  { method: 'DELETE', pattern: /^\/api\/v3\/posts\/\d+\/state$/ },
 ];
 
 export function forumProxyPath(segments: string[]): string | null {

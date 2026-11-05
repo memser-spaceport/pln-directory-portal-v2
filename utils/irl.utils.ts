@@ -411,13 +411,15 @@ export const getFilteredEventsForUser = (
 ) => {
   const uniqueEventsMap = new Map();
 
-  const publicEvents = currentEvents.filter((event: any) => event.type !== 'INVITE_ONLY');
+  const listedEvents = Array.isArray(currentEvents) ? currentEvents : [];
+  const userEvents = Array.isArray(loggedInUserEvents) ? loggedInUserEvents : [];
+  const publicEvents = listedEvents.filter((event: any) => event.type !== 'INVITE_ONLY');
 
   // Combine events based on the user's login and role status
   const eventsToConsider = isLoggedIn
     ? isAdminUser(userInfo)
-      ? currentEvents
-      : [...loggedInUserEvents, ...publicEvents]
+      ? listedEvents
+      : [...userEvents, ...publicEvents]
     : publicEvents;
 
   eventsToConsider.forEach((event: any) => {

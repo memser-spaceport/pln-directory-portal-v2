@@ -24,6 +24,7 @@ import { JsonLdScript } from '@/components/core/json-ld/JsonLdScript';
 import { buildProjectJsonLd } from '@/services/seo/entity-jsonld';
 import { BackButton } from '@/components/ui/BackButton';
 import React from 'react';
+import { MemberSignalViewTracker } from '@/components/core/MemberSignalViewTracker';
 
 export default async function ProjectDetails(props: any) {
   const params = await props.params;
@@ -49,6 +50,7 @@ export default async function ProjectDetails(props: any) {
        is a page of its own and out of scope here. */
     <UnsavedEditsPageGuard>
       <JsonLdScript data={buildProjectJsonLd(project)} />
+      <MemberSignalViewTracker entityType="project" entityId={projectId} />
       <div className={styles.project}>
         <div className={styles.project__container}>
           <div>

@@ -14,7 +14,8 @@ name: Preview alias
 on:
   deployment_status:
   pull_request:
-    types: [closed]
+    # opened/reopened: Vercel often finishes before the PR exists, so its deployment_status finds no PR.
+    types: [opened, reopened, closed]
 
 permissions:
   contents: read
@@ -31,30 +32,54 @@ env:
 jobs:
   alias:
     if: >-
-      github.event_name == 'deployment_status' &&
-      github.event.deployment_status.state == 'success' &&
-      github.event.deployment.environment == 'Preview'
+      (github.event_name == 'deployment_status' &&
+       github.event.deployment_status.state == 'success' &&
+       github.event.deployment.environment == 'Preview') ||
+      (github.event_name == 'pull_request' &&
+       github.event.action != 'closed' &&
+       github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     concurrency:
-      group: preview-alias-${{ github.event.deployment.sha }}
+      group: preview-alias-${{ github.event.deployment.sha || github.event.pull_request.head.sha }}
     steps:
       - name: Find open PRs whose head is this commit
         id: prs
         env:
           GH_TOKEN: ${{ github.token }}
-          SHA: ${{ github.event.deployment.sha }}
+          EVENT: ${{ github.event_name }}
+          SHA: ${{ github.event.deployment.sha || github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EVENT_DEPLOYMENT_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url }}
         run: |
-          # Only the PR head counts, so a slow build of an older commit never replaces a newer one.
-          numbers=$(gh api "repos/$GITHUB_REPOSITORY/pulls?state=open&per_page=100" --paginate \
-            --jq ".[] | select(.head.sha == \"$SHA\") | .number" | tr '\n' ' ' | xargs)
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          if [ "$EVENT" = "pull_request" ]; then
+            # A just-opened PR: reuse the Preview deployment Vercel already finished for its head, if any.
+            url=""
+            for id in $(gh api "repos/$GITHUB_REPOSITORY/deployments?sha=$SHA&environment=Preview&per_page=10" --jq '.[].id'); do
+              url=$(gh api "repos/$GITHUB_REPOSITORY/deployments/$id/statuses" \
+                --jq '[.[] | select(.state == "success")][0] | .environment_url // .target_url // empty')
+              [ -n "$url" ] && break
+            done
+            if [ -z "$url" ]; then
+              echo "No finished Preview deployment for $SHA yet; deployment_status will alias it"
+              exit 0
+            fi
+            numbers=$PR_NUMBER
+          else
+            url=$EVENT_DEPLOYMENT_URL
+            # Only the PR head counts, so a slow build of an older commit never replaces a newer one.
+            numbers=$(gh api "repos/$GITHUB_REPOSITORY/pulls?state=open&per_page=100" --paginate \
+              --jq ".[] | select(.head.sha == \"$SHA\") | .number" | tr '\n' ' ' | xargs)
+          fi
           echo "PR numbers: ${numbers:-none}"
           echo "numbers=$numbers" >> "$GITHUB_OUTPUT"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
 
       - name: Point pr-<number>.${{ env.PREVIEW_DOMAIN }} at this deployment
         if: steps.prs.outputs.numbers != ''
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          DEPLOYMENT_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url }}
+          DEPLOYMENT_URL: ${{ steps.prs.outputs.url }}
           NUMBERS: ${{ steps.prs.outputs.numbers }}
         run: |
           token=$(printf '%s' "$VERCEL_TOKEN" | tr -d '[:space:]')
@@ -82,7 +107,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           NUMBERS: ${{ steps.prs.outputs.numbers }}
-          SHA: ${{ github.event.deployment.sha }}
+          SHA: ${{ steps.prs.outputs.sha }}
         run: |
           marker='<!-- preview-alias -->'
           for n in $NUMBERS; do
@@ -100,7 +125,7 @@ jobs:
           done
 
   cleanup:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
     steps:
       - name: Remove pr-<number>.${{ env.PREVIEW_DOMAIN }}

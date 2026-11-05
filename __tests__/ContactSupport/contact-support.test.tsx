@@ -8,6 +8,15 @@ import { toast } from '@/components/core/ToastContainer';
 
 const mockMutate = jest.fn();
 const mockSaveRegistrationImage = jest.fn();
+const mockOnContactSupportSubmitted = jest.fn();
+const mockOnContactSupportTopicPillSelected = jest.fn();
+
+jest.mock('@/analytics/common.analytics', () => ({
+  useCommonAnalytics: () => ({
+    onContactSupportTopicPillSelected: mockOnContactSupportTopicPillSelected,
+    onContactSupportSubmitted: mockOnContactSupportSubmitted,
+  }),
+}));
 
 jest.mock('@/components/ContactSupport/hooks/useContactSupport', () => ({
   useContactSupport: () => ({ mutate: mockMutate, isPending: false }),
@@ -290,6 +299,43 @@ describe('ContactSupport', () => {
       // Wrapping backwards off the first pill lands on the last.
       fireEvent.keyDown(screen.getByRole('radio', { name: 'Contact support' }), { key: 'ArrowUp' });
       expect(screen.getByRole('radio', { name: 'Report a bug' })).toBeChecked();
+    });
+
+    it('records the topic and page when the submit succeeds, and not the message', async () => {
+      mockMutate.mockImplementation((_data, options) => {
+        options.onSuccess();
+      });
+      render(<ContactSupport userInfo={userInfo} />);
+
+      fireEvent.click(screen.getByRole('radio', { name: 'Report a bug' }));
+      fireEvent.change(screen.getByLabelText('support-message'), {
+        target: { value: '<p>The search box does nothing</p>' },
+      });
+
+      const submit = screen.getByRole('button', { name: 'Submit' });
+      await waitFor(() => expect(submit).toBeEnabled());
+      fireEvent.click(submit);
+
+      await waitFor(() =>
+        expect(mockOnContactSupportSubmitted).toHaveBeenCalledWith('Report a bug', '/mock-path'),
+      );
+      expect(JSON.stringify(mockOnContactSupportSubmitted.mock.calls)).not.toContain('search box');
+    });
+
+    it('records no submit event when the request fails', async () => {
+      mockMutate.mockImplementation(() => undefined);
+      render(<ContactSupport userInfo={userInfo} />);
+
+      fireEvent.change(screen.getByLabelText('support-message'), {
+        target: { value: '<p>The search box does nothing</p>' },
+      });
+
+      const submit = screen.getByRole('button', { name: 'Submit' });
+      await waitFor(() => expect(submit).toBeEnabled());
+      fireEvent.click(submit);
+
+      await waitFor(() => expect(mockMutate).toHaveBeenCalled());
+      expect(mockOnContactSupportSubmitted).not.toHaveBeenCalled();
     });
 
     it('submits the topic the pill selected', async () => {

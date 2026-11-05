@@ -1,13 +1,29 @@
 import type { HuskySourceRef } from '@/services/husky/hooks/useHuskyChat';
 
-interface SourceItem {
+/**
+ * `directory`: a page in the directory. `web`: a public web page (a `web` or `external` ref with no directory page).
+ * `unlabeled`: a plain source URL of an older answer without source refs; it is not sorted, because an absolute
+ * URL can point to the directory too.
+ */
+export type SourceKind = 'directory' | 'web' | 'unlabeled';
+
+export interface SourceItem {
   key: string;
   href: string;
   title: string;
+  kind: SourceKind;
 }
 
-const INLINE_MARKER =
-  /\[(?:Team|Member|Project|Event|Job|News|Forum|Investor|WarmIntro)Link\]\(([^)]+)\)/g;
+export interface SourceGroup {
+  kind: SourceKind;
+  /** No label for the `unlabeled` group. */
+  label: 'Directory' | 'Web' | null;
+  items: SourceItem[];
+}
+
+const WEB_REF_TYPES = new Set(['web', 'external']);
+
+const INLINE_MARKER = /\[(?:Team|Member|Project|Event|Job|News|Forum|Investor|WarmIntro)Link\]\(([^)]+)\)/g;
 
 function inlineMarkers(title: string) {
   return [...title.matchAll(new RegExp(INLINE_MARKER.source, 'g'))];
@@ -55,8 +71,12 @@ function itemsFromInlineMarkers(item: SourceItem): SourceItem[] {
     const link = match[1].trim();
     const name = nameBefore(item.title, match.index ?? 0, previousEnd);
     previousEnd = (match.index ?? 0) + match[0].length;
-    return { key: `${item.key}-${index}`, href: link, title: name || link };
+    return { key: `${item.key}-${index}`, href: link, title: name || link, kind: item.kind };
   });
+}
+
+function kindOfRef(ref: HuskySourceRef): SourceKind {
+  return !ref.directoryLink && WEB_REF_TYPES.has(ref.type) ? 'web' : 'directory';
 }
 
 export function sourceItems(sources: string[] | undefined, sourceRefs: HuskySourceRef[] | undefined): SourceItem[] {
@@ -66,9 +86,32 @@ export function sourceItems(sources: string[] | undefined, sourceRefs: HuskySour
         if (!href) {
           return [];
         }
-        return [{ key: String(ref.index), href, title: ref.title || href }];
+        return [{ key: String(ref.index), href, title: ref.title || href, kind: kindOfRef(ref) }];
       })
-    : (sources ?? []).map((source, index) => ({ key: String(index), href: source, title: source }));
+    : (sources ?? []).map((source, index) => ({
+        key: String(index),
+        href: source,
+        title: source,
+        kind: 'unlabeled' as const,
+      }));
 
   return raw.flatMap(itemsFromInlineMarkers);
+}
+
+/** Directory sources first, then web sources. A group with no sources is left out. */
+export function groupSourceItems(items: SourceItem[]): SourceGroup[] {
+  const groups: SourceGroup[] = [
+    { kind: 'directory', label: 'Directory', items: items.filter((item) => item.kind === 'directory') },
+    { kind: 'web', label: 'Web', items: items.filter((item) => item.kind === 'web') },
+    { kind: 'unlabeled', label: null, items: items.filter((item) => item.kind === 'unlabeled') },
+  ];
+  return groups.filter((group) => group.items.length > 0);
+}
+
+/** The counts that `unified-search-ai-web-sources-shown` sends. */
+export function sourceCounts(items: SourceItem[]) {
+  return {
+    webSources: items.filter((item) => item.kind === 'web').length,
+    directorySources: items.filter((item) => item.kind === 'directory').length,
+  };
 }

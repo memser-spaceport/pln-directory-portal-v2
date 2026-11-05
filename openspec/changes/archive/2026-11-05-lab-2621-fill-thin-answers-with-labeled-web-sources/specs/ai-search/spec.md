@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Answer sources show directory and web sources in labeled groups
-The sources list of an AI Search answer SHALL show directory sources under a "Directory" label and web sources under a "Web" label, on the AI Search page and in the header search dialog. A source is a web source when it has no directory page and its type is `web` or `external`. A list with one kind of source SHALL show only that group. Each source SHALL open its page in a new tab.
+The sources list of an AI Search answer SHALL show directory sources under a "Directory" label and web sources under a "Web" label, on the AI Search page and in the header search dialog. A source is a web source when it has no directory page and its type is `web` or `external`. A list with one kind of source SHALL show only that group. Each source SHALL open its page in a new tab. An older answer with plain source URLs and no source refs SHALL show its sources without group labels.
 
 #### Scenario: An answer with both kinds of source
 - **GIVEN** an answer with a team source and a web source
@@ -19,7 +19,7 @@ The sources list of an AI Search answer SHALL show directory sources under a "Di
 - **THEN** its page opens in a new tab
 
 ### Requirement: Web source use is measured
-When a finished answer has one or more web sources, the app SHALL send the PostHog event `unified-search-ai-web-sources-shown` once for that answer, with the counts `webSources` and `directorySources` and the `entryPoint`. When a member selects a web source, the app SHALL send `unified-search-ai-web-source-clicked` with the `link` and the `entryPoint`.
+When an answer that streamed in the open view finishes with one or more web sources, the app SHALL send the PostHog event `unified-search-ai-web-sources-shown` once for that answer, with the counts `webSources` and `directorySources` and the `entryPoint`. When a member selects a web source, the app SHALL send `unified-search-ai-web-source-clicked` with the `link` and the `entryPoint`.
 
 #### Scenario: An answer with web sources finishes
 - **GIVEN** an answer that cites two web pages and one team
@@ -29,3 +29,8 @@ When a finished answer has one or more web sources, the app SHALL send the PostH
 #### Scenario: A member selects a web source
 - **WHEN** the member selects a web source on the AI Search page
 - **THEN** `unified-search-ai-web-source-clicked` is sent with its link and the entry point `ai-search-page`
+
+#### Scenario: A saved thread opens
+- **GIVEN** a saved thread whose answers have web sources
+- **WHEN** a member opens it
+- **THEN** no `unified-search-ai-web-sources-shown` event is sent for those answers

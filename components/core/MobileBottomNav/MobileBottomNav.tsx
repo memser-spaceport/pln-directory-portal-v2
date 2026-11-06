@@ -10,7 +10,6 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 
 import {
-  EVENT_LINKS,
   DEMO_DAY_LINK,
   DIRECTORY_LINKS,
   DEMO_DAY_ANALYTICS_LINK,
@@ -27,6 +26,7 @@ import { useDemoDayAnalyticsAccess } from '@/services/rbac/hooks/useDemoDayAnaly
 import { useMoreNavItems } from '@/components/core/navbar/components/navItems/MoreNavItems/hooks/useMoreNavItems';
 import { useGetPlInfraNavItems } from '@/components/core/navbar/components/navItems/PLInfraNavItems/hook/useGetPlInfraNavItems';
 import { isBareRoute } from '@/utils/isBareRoute';
+import { useGetEventMenuItemLinks } from '@/components/core/navbar/hooks/useGetEventMenuItemLinks';
 
 import { NavigationMenu } from '@base-ui-components/react';
 
@@ -61,6 +61,7 @@ export function MobileBottomNav() {
 
   const analytics = useCommonAnalytics();
   const currentUser = useCurrentUserStore((state) => state.currentUser);
+  const eventLinks = useGetEventMenuItemLinks();
 
   // This bar reported nothing at all until now, so mobile navigation was
   // invisible in analytics. It reuses the desktop bar's event rather than
@@ -85,14 +86,14 @@ export function MobileBottomNav() {
 
   // Five slots, and PL Infra members need one of them for PL Infra — so Events
   // gives up the bar for them and moves into More. Everyone else keeps Events
-  // where it is. EVENT_LINKS spreads flat because More is a flat list.
+  // where it is. The Events links spread flat because More is a flat list.
   const hasPlInfra = plInfraItems.length > 0;
   const moreItems = useMemo(() => {
-    const items = hasPlInfra ? [FORUM_LINK, ...EVENT_LINKS, ...baseMoreItems] : [FORUM_LINK, ...baseMoreItems];
+    const items = hasPlInfra ? [FORUM_LINK, ...eventLinks, ...baseMoreItems] : [FORUM_LINK, ...baseMoreItems];
 
     // Stable sort, so the Events links keep their own relative order.
     return [...items].sort((a, b) => moreRank(a) - moreRank(b));
-  }, [hasPlInfra, baseMoreItems]);
+  }, [hasPlInfra, baseMoreItems, eventLinks]);
 
   if (isBareRoute(pathname)) return null;
 
@@ -127,7 +128,7 @@ export function MobileBottomNav() {
             <MobileNavItemWithMenu
               icon={<EventsIcon />}
               label="Events"
-              items={EVENT_LINKS}
+              items={eventLinks}
               onNavItemClickHandler={onNavItemClickHandler}
             />
           )}

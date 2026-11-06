@@ -55,17 +55,28 @@ const memberTeamUids = new Set(VIEWER.teams.map((t) => t.uid));
 const isFocusMatch = (teamUid: string) =>
   SUGGESTED_TEAM_UIDS.includes(teamUid) && VIEWER.teamFocusAreas.includes(TEAMS[teamUid].focusArea);
 
+/** Where "Update" goes: the News preferences prototype, as Home v2's hint does. */
+const NEWS_PREFERENCES_HREF = '/prototypes/digest-topics?from=feed';
+
 function readVariant(): Variant {
-  if (typeof window === 'undefined') return 'current';
+  if (typeof window === 'undefined') return 'settings';
   const v = new URLSearchParams(window.location.search).get('variant');
-  return VARIANTS.some((x) => x.id === v) ? (v as Variant) : 'current';
+  return VARIANTS.some((x) => x.id === v) ? (v as Variant) : 'settings';
 }
+
+const Arrow = () => (
+  <svg className={local.arrow} width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+    <path d="M2.5 7h9M8 3.5 11.5 7 8 10.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="square" />
+  </svg>
+);
 
 export default function ForYouLeversPrototype() {
   // Client-only: the variant comes from the URL and the feed from Date.now().
   const [mounted, setMounted] = useState(false);
-  const [variant, setVariant] = useState<Variant>('current');
+  const [variant, setVariant] = useState<Variant>('settings');
   const [feedSize, setFeedSize] = useState<FeedSize>('quiet');
+  /** `settings` variant only: has the member set up For You yet? */
+  const [forYouSet, setForYouSet] = useState(true);
 
   const [follows, setFollows] = useState<Set<string>>(() => new Set(INITIAL_FOLLOWS.quiet));
   /** Teams whose story joined For You this session, most recent first. */
@@ -78,6 +89,7 @@ export default function ForYouLeversPrototype() {
 
   useEffect(() => {
     setVariant(readVariant());
+    setForYouSet(new URLSearchParams(window.location.search).get('state') !== 'not-set');
     setMounted(true);
   }, []);
 
@@ -109,6 +121,13 @@ export default function ForYouLeversPrototype() {
         rank(a.teamUid) - rank(b.teamUid) || new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime(),
     );
   }, [forYouTeams, added]);
+
+  // Not set up yet: nothing is picked for you, so the page falls back to every
+  // story, newest first — production opens on All for the same member.
+  const networkStories = useMemo(
+    () => [...STORIES].sort((a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime()),
+    [],
+  );
 
   // Suggestions are a snapshot per session state, so a row you just followed
   // stays put and shows "Following" instead of vanishing under your cursor.
@@ -236,8 +255,37 @@ export default function ForYouLeversPrototype() {
 
   const followedList = Array.from(follows);
 
+  const notSetUp = variant === 'settings' && !forYouSet;
+
   const renderHint = () => {
     switch (variant) {
+      case 'settings':
+        // Production's words on the plain page, the action as a link on the right.
+        return (
+          <div className={local.plainHint}>
+            <p className={local.plainHintText}>
+              {forYouSet ? (
+                <>
+                  <span className={local.plainHintLabel}>For you</span> · Curated based on your profile, primary team
+                  attributes, and the teams you follow.
+                </>
+              ) : (
+                <>
+                  <span className={local.plainHintLabel}>For you</span> · Not set up yet. Choose topics and teams in
+                  Settings to see news picked for you.
+                </>
+              )}
+            </p>
+            <a
+              href={NEWS_PREFERENCES_HREF}
+              className={local.plainHintLink}
+              onClick={() => track('team_news_for_you_tune_clicked', { memberUid: VIEWER.uid, forYouSet })}
+            >
+              {forYouSet ? 'Update For You' : 'Set up For You'} <Arrow />
+            </a>
+          </div>
+        );
+
       case 'current':
         // Production's ForYouHint, verbatim words and styles; the link logs
         // instead of opening the profile.
@@ -384,6 +432,24 @@ export default function ForYouLeversPrototype() {
             ))}
           </div>
         </div>
+        {variant === 'settings' && (
+          <div className={local.switchGroup}>
+            <span className={local.switchLabel}>For You</span>
+            <div className={local.segmented}>
+              {[true, false].map((set) => (
+                <button
+                  key={String(set)}
+                  type="button"
+                  className={clsx(local.segment, forYouSet === set && local.segmentActive)}
+                  aria-pressed={forYouSet === set}
+                  onClick={() => setForYouSet(set)}
+                >
+                  {set ? 'Set up' : 'Not set up yet'}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <main className={local.layout}>
@@ -391,14 +457,16 @@ export default function ForYouLeversPrototype() {
           <header className={local.feedHeader}>
             <h1 className={local.feedTitle}>For You</h1>
             <span className={local.count}>
-              {stories.length} {stories.length === 1 ? 'story' : 'stories'} this week
+              {notSetUp
+                ? 'Latest from the network'
+                : `${stories.length} ${stories.length === 1 ? 'story' : 'stories'} this week`}
             </span>
           </header>
 
           {renderHint()}
 
           <div className={local.cards}>
-            {stories.map((st) => (
+            {(notSetUp ? networkStories : stories).map((st) => (
               <ForYouCard
                 key={st.uid}
                 story={st}

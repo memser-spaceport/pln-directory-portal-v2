@@ -12,10 +12,12 @@
  * own on/off, frequency, Save button and recommendationsEnabled flag).
  *
  * Sections:
- *   Topics ................. hashtag topics (invented; backend supplies the real
- *                            list), prefilled per member, unsubscribe/resubscribe
- *                            in place. Replaces the feed categories AND the team
- *                            focus areas as what shapes For You + digest.
+ *   Tags ................... the real 25 hashtags, in five themed rows (the
+ *                            grouping is invented), prefilled per member,
+ *                            subscribe/unsubscribe in place. Search flattens the
+ *                            rows into one list of matches. Replaces the feed
+ *                            categories AND the team focus areas as what shapes
+ *                            For You + digest.
  *   Teams you follow ....... production FollowButton; unfollow is undoable in place
  *
  * Doors in (prototype switch "Arrived"):
@@ -26,6 +28,13 @@
  * topics; no follows → teams; else topics) and outlines it until the
  * first change. Other switch: ?persona=complete|investor|empty.
  *
+ * Empty state (persona=empty: no team to prefill topics from, follows nobody):
+ * the Tags card's title becomes "What do you want news about?"; Teams
+ * swaps "You don't follow any teams yet" for the most-followed teams with a
+ * Follow button each, plus "Browse all teams". Suggestions are network-wide
+ * because there is nothing personal to suggest from, and stay in place once
+ * picked so nothing jumps.
+ *
  * Reuse map:
  *   app/settings/email/page.module.css ............ settings shell (aside + content)
  *   EmailPreferencesForm.module.scss .............. page root + title
@@ -33,12 +42,14 @@
  *   Newsletter.module.scss ........................ cards + bordered rows + Switch
  *   ./SettingsMenu ................................ copy of the settings menu + News preferences item
  *   components/ui/FollowButton .................... follow / following toggle
+ *   components/common/filters/SearchInput ......... topic search; filters the chips in
+ *                                                    place, keeping their frozen order
  *   NEW: topic chips are multi-select CONTROL chips (brand hover,
  *   aria-pressed, check mark = subscribed). Not the feed's .cat pill
  *   (single-select) and not Badge (label lineage, no interaction states).
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { clsx } from 'clsx';
 import { Switch } from '@base-ui-components/react/switch';
@@ -49,9 +60,10 @@ import formCss from '@/components/page/email-preferences/components/EmailPrefere
 import digestCss from '@/components/page/email-preferences/components/ForumDigest/ForumDigest.module.scss';
 import toggleCss from '@/components/page/email-preferences/components/Newsletter/Newsletter.module.scss';
 import { FollowButton } from '@/components/ui/FollowButton';
+import { SearchInput } from '@/components/common/filters/SearchInput';
 
 import { SettingsMenu, type SettingsPage } from './SettingsMenu';
-import { PERSONAS, TOPICS, type Persona } from './mocks';
+import { PERSONAS, SUGGESTED_TEAMS, TAG_GROUPS, TOPICS, type Persona } from './mocks';
 import s from './DigestTopicsPrototype.module.scss';
 
 const Select = dynamic(() => import('react-select'), {
@@ -172,6 +184,13 @@ const PlusIcon = () => (
 type Arrival = 'digest' | 'feed' | 'settings';
 type Gap = 'topics' | 'teams';
 
+/** The search text as the no-match line repeats it: trimmed, and cut to 30 characters with an ellipsis. */
+const ECHO_MAX = 30;
+const echoQuery = (q: string) => {
+  const t = q.trim();
+  return t.length > ECHO_MAX ? `${t.slice(0, ECHO_MAX)}…` : t;
+};
+
 const ARRIVALS: { v: Arrival; label: string }[] = [
   { v: 'digest', label: 'Digest email' },
   { v: 'feed', label: 'For You hint' },
@@ -204,7 +223,10 @@ export default function DigestTopicsPrototype() {
 
   // News preferences
   const [topics, setTopics] = useState<string[]>(PERSONAS.complete.topics);
+  const [topicQuery, setTopicQuery] = useState('');
   const [unfollowed, setUnfollowed] = useState<string[]>([]);
+  // Suggested teams followed from the empty state.
+  const [newFollows, setNewFollows] = useState<string[]>([]);
   const [touched, setTouched] = useState(false);
   const [saved, setSaved] = useState<null | 'topics' | 'teams'>(null);
 
@@ -224,11 +246,14 @@ export default function DigestTopicsPrototype() {
   const mock = PERSONAS[persona];
   // The biggest gap gets the arrival outline: no topics, then no follows.
   const gap: Gap = mock.topics.length > 0 && mock.follows.length === 0 ? 'teams' : 'topics';
-  // Subscribed topics first, frozen per member, so chips don't jump when toggled.
-  const topicOrder = useMemo(
-    () => [...mock.topics, ...TOPICS.filter((t) => !mock.topics.includes(t))],
-    [mock],
-  );
+  // Empty state: no team to prefill tags from and nothing followed. Tags asks a
+  // question; Teams suggests. Decided on arrival.
+  const suggestTopics = mock.topics.length === 0;
+  const suggestTeams = mock.follows.length === 0;
+  // A leading # is optional: "#ai" and "ai" both match. Searching flattens the
+  // groups into one list of matches.
+  const needle = topicQuery.trim().replace(/^#/, '').toLowerCase();
+  const visibleTopics = needle ? TOPICS.filter((t) => t.includes(needle)) : TOPICS;
   const arriving = arrival !== 'settings' && page === 'news preferences' && !touched;
 
   useEffect(() => {
@@ -253,7 +278,9 @@ export default function DigestTopicsPrototype() {
   const reset = (p: Persona = persona) => {
     setTouched(false);
     setUnfollowed([]);
+    setNewFollows([]);
     setTopics(PERSONAS[p].topics);
+    setTopicQuery('');
   };
 
   const switchPersona = (p: Persona) => {
@@ -284,6 +311,37 @@ export default function DigestTopicsPrototype() {
     setSaved('teams');
   };
 
+  const toggleSuggestedFollow = (uid: string) => {
+    const on = newFollows.includes(uid);
+    setNewFollows(on ? newFollows.filter((x) => x !== uid) : [...newFollows, uid]);
+    setTouched(true);
+    setSaved('teams');
+    console.log('[analytics]', on ? 'news_pref_suggested_team_unfollowed' : 'news_pref_suggested_team_followed', {
+      uid,
+      arrival,
+    });
+  };
+
+  const topicChips = (list: string[], label = 'Tags') => (
+    <div className={s.chips} role="group" aria-label={label}>
+      {list.map((topic) => {
+        const on = topics.includes(topic);
+        return (
+          <button
+            key={topic}
+            type="button"
+            className={clsx(s.chip, on && s.chipOn)}
+            aria-pressed={on}
+            title={on ? `Unsubscribe from #${topic}` : `Subscribe to #${topic}`}
+            onClick={() => toggleTopic(topic)}
+          >
+            {on ? <CheckIcon /> : <PlusIcon />}#{topic}
+          </button>
+        );
+      })}
+    </div>
+  );
+
   const SavedNote = () => (
     <span className={s.saved} role="status">
       <CheckIcon /> Saved
@@ -293,7 +351,9 @@ export default function DigestTopicsPrototype() {
   if (!mounted) return <div className={shellCss.privacy} />;
 
   const lit = (g: Gap) => arriving && gap === g;
-  const followingCount = mock.follows.filter((t) => !unfollowed.includes(t.uid)).length;
+  const followingCount = suggestTeams
+    ? newFollows.length
+    : mock.follows.filter((t) => !unfollowed.includes(t.uid)).length;
   const arrivalWhere = arrival === 'digest' ? 'your digest' : 'For You';
 
   const emailPage = (
@@ -401,55 +461,79 @@ export default function DigestTopicsPrototype() {
       {/* Topics */}
       <div ref={refs.topics} className={clsx(toggleCss.root, s.card, lit('topics') && s.cardHighlight)}>
         <div className={clsx(toggleCss.header, s.cardHeader)}>
-          Topics{topics.length > 0 && ` · ${topics.length}`}
+          {/* Empty state asks in the title slot, so the chips read as answers to
+              pick. No count after a question; the Saved note confirms a pick. */}
+          {suggestTopics ? 'What do you want news about?' : `Tags${topics.length > 0 ? ` · ${topics.length}` : ''}`}
           {saved === 'topics' && <SavedNote />}
         </div>
         <div className={toggleCss.content}>
-          {lit('topics') && (
-            <p className={s.arrivalNote}>
-              {topics.length === 0
-                ? `Subscribe to a few topics to get news that fits your work in ${arrivalWhere}.`
-                : `Unsubscribe from topics you don’t want in ${arrivalWhere}.`}
+          {suggestTopics ? (
+            // The question is the card title; this is its instruction. Stays for
+            // the visit (decided on arrival). The arrival note would only repeat
+            // it, so it isn't drawn here.
+            <div className={toggleCss.desc}>Pick a few tags. They shape For You and your digest.</div>
+          ) : (
+            <>
+              {lit('topics') && (
+                <p className={s.arrivalNote}>Unsubscribe from tags you don’t want in {arrivalWhere}.</p>
+              )}
+              <div className={toggleCss.desc}>
+                {mock.prefilledFrom && `We picked these from ${mock.prefilledFrom}. `}
+                {topics.length > 0
+                  ? 'News tagged with them shows up in For You and your digest. Click one to unsubscribe.'
+                  : 'You’re not subscribed to any tags. Pick some to get news tagged with them in For You and your digest.'}
+              </div>
+            </>
+          )}
+          <SearchInput
+            value={topicQuery}
+            onChange={setTopicQuery}
+            placeholder="Search tags"
+            className={s.topicSearch}
+          />
+          {visibleTopics.length === 0 && (
+            <p className={s.emptyLine}>
+              {/* Echo at most 30 characters: a pasted paragraph or a held key
+                  otherwise runs the line out of the card. */}
+              No tags match “{echoQuery(topicQuery)}”.{' '}
+              <button type="button" className={s.inlineLink} onClick={() => setTopicQuery('')}>
+                Show all tags
+              </button>
             </p>
           )}
-          <div className={toggleCss.desc}>
-            {mock.prefilledFrom && `We picked these from ${mock.prefilledFrom}. `}
-            {topics.length > 0
-              ? 'News tagged with them shows up in For You and your digest. Click one to unsubscribe.'
-              : 'You’re not subscribed to any topics. Pick some to get news tagged with them in For You and your digest.'}
-          </div>
-          <div className={s.chips} role="group" aria-label="Topics">
-            {topicOrder.map((topic) => {
-              const on = topics.includes(topic);
-              return (
-                <button
-                  key={topic}
-                  type="button"
-                  className={clsx(s.chip, on && s.chipOn)}
-                  aria-pressed={on}
-                  title={on ? `Unsubscribe from #${topic}` : `Subscribe to #${topic}`}
-                  onClick={() => toggleTopic(topic)}
-                >
-                  {on ? <CheckIcon /> : <PlusIcon />}#{topic}
-                </button>
-              );
-            })}
-          </div>
+          {needle ? (
+            topicChips(visibleTopics)
+          ) : (
+            // 25 tags in themed rows, so a reader skips whole groups instead of
+            // reading every chip. Fixed order: chips never move when picked.
+            <div className={s.tagGroups}>
+              {TAG_GROUPS.map((g) => (
+                <div key={g.label} className={s.tagGroup}>
+                  <p className={s.tagGroupLabel}>{g.label}</p>
+                  {topicChips(g.tags, g.label)}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Teams you follow */}
       <div ref={refs.teams} className={clsx(toggleCss.root, s.card, lit('teams') && s.cardHighlight)}>
         <div className={clsx(toggleCss.header, s.cardHeader)}>
-          Teams you follow{mock.follows.length > 0 && ` · ${followingCount}`}
+          Teams you follow{followingCount > 0 && ` · ${followingCount}`}
           {saved === 'teams' && <SavedNote />}
         </div>
         <div className={toggleCss.content}>
           {lit('teams') && (
             <p className={s.arrivalNote}>Follow teams to see their news in {arrivalWhere}.</p>
           )}
-          <div className={toggleCss.desc}>News from these teams shows up in For You and your digest.</div>
-          {mock.follows.length > 0 ? (
+          <div className={toggleCss.desc}>
+            {suggestTeams
+              ? 'You don’t follow any teams yet. News from teams you follow shows up in For You and your digest.'
+              : 'News from these teams shows up in For You and your digest.'}
+          </div>
+          {!suggestTeams ? (
             <ul className={s.teams}>
               {mock.follows.map((t) => {
                 const following = !unfollowed.includes(t.uid);
@@ -473,12 +557,33 @@ export default function DigestTopicsPrototype() {
               })}
             </ul>
           ) : (
-            <p className={s.emptyLine}>
-              You don’t follow any teams yet.{' '}
+            <>
+              <p className={s.groupLabel}>Most followed in the network</p>
+              <ul className={s.teams}>
+                {SUGGESTED_TEAMS.map((t) => (
+                  <li key={t.uid} className={s.team}>
+                    <img src={t.logo} alt="" width={32} height={32} className={s.teamLogo} />
+                    <div className={s.teamText}>
+                      <a href={`/teams/${t.uid}`} className={s.teamName} onClick={(e) => e.preventDefault()}>
+                        {t.name}
+                      </a>
+                      <span className={s.teamMeta}>
+                        {t.focusArea} · {t.followers} followers
+                      </span>
+                    </div>
+                    <FollowButton
+                      following={newFollows.includes(t.uid)}
+                      name={t.name}
+                      size="compact"
+                      onClick={() => toggleSuggestedFollow(t.uid)}
+                    />
+                  </li>
+                ))}
+              </ul>
               <a href="#" className={s.inlineLink} onClick={(e) => e.preventDefault()}>
-                See teams to follow
+                Browse all teams
               </a>
-            </p>
+            </>
           )}
         </div>
       </div>

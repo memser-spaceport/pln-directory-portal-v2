@@ -3,6 +3,7 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { toast } from '@/components/core/ToastContainer';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { SpvSpotlightView } from '@/components/page/spv-spotlight/SpvSpotlightView';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useContactSupportStore } from '@/services/contact-support/store';
@@ -219,6 +220,17 @@ describe('SpvSpotlightView — request flow (REQUEST_FLOW_ENABLED on)', () => {
     const link = screen.getByRole('link', { name: new RegExp(founder.name) });
     expect(link).toHaveAttribute('href', `/members/${founder.uid}`);
     expect(link).toHaveAttribute('target', '_blank');
+  });
+
+  it('uses the member-uid placeholder when a founder has no photo', () => {
+    const founder = { ...base.team.founders[0], imageUrl: null, name: 'Margot Hanley', role: 'CBO' };
+    renderView('OPEN', 'NONE', {
+      overrides: { team: { ...base.team, founders: [founder, base.team.founders[1]] } },
+    });
+    const withoutPhoto = screen.getByRole('link', { name: /Margot Hanley/ });
+    expect(withoutPhoto.querySelector('img')).toHaveAttribute('src', getDefaultAvatar(founder.uid));
+    const withPhoto = screen.getByRole('link', { name: new RegExp(base.team.founders[1].name) });
+    expect(withPhoto.querySelector('img')).toHaveAttribute('src', base.team.founders[1].imageUrl);
   });
 
   it('gives a scheme-less directory website an absolute https link', () => {

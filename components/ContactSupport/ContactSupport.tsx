@@ -173,6 +173,7 @@ export function ContactSupport(props: Props) {
       },
       {
         onSuccess: () => {
+          analytics.onContactSupportSubmitted(data.topic, pathname);
           reset();
           closeModal();
 

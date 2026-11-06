@@ -10,9 +10,10 @@ import type { ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
  * Nothing else is modelled, and no UI string names anything else.
  */
 
-export type Variant = 'current' | 'follow' | 'explain' | 'thin-feed';
+export type Variant = 'settings' | 'current' | 'follow' | 'explain' | 'thin-feed';
 
 export const VARIANTS: { id: Variant; label: string }[] = [
+  { id: 'settings', label: 'Update in settings' },
   { id: 'current', label: 'Current' },
   { id: 'follow', label: 'Follow' },
   { id: 'explain', label: 'Explain' },

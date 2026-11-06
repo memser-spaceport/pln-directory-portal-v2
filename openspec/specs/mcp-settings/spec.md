@@ -136,7 +136,8 @@ While the MCP connections page is on, a member with `mcp.connect` (directory adm
 #### Scenario: Set up now
 
 - **WHEN** an eligible member clicks "Set up now"
-- **THEN** `/settings/mcp` opens, and the bar does not come back after that page has been opened
+- **THEN** `/settings/mcp` opens
+- **AND** while the member still has no connection, the bar keeps showing on every page until the member closes it with ✕ (LAB-3049)
 
 ### Requirement: Contextual MCP hints suggest the agent where the member just did its work
 
@@ -157,6 +158,11 @@ To the same audience as the launch bar (the MCP connections page on, `mcp.connec
 
 - **WHEN** a member whose connection sent no client name sends a second AI Search question
 - **THEN** the hint reads "Ask your agent instead" with the plug mark and the prompt to copy
+
+#### Scenario: Connect an agent does not dismiss the hint
+
+- **WHEN** an eligible member with no MCP connection clicks "Connect an agent" on a hint and comes back without connecting
+- **THEN** the hint still shows while its trigger holds, until the member dismisses it with ✕
 
 #### Scenario: Dismissed in one place only
 
@@ -200,6 +206,25 @@ The "For developers" block SHALL show the MCP server URL, the Claude Code comman
 - **WHEN** the member copies the Claude Code command
 - **THEN** `claude mcp add --transport http labos <server URL>` is copied
 - **AND** `mcp-setup-snippet-copied` is sent with `snippetType: 'claude'`
+
+### Requirement: The page shows the member's agent limits
+
+The page SHALL show each MCP call type with how much is used, the limit, when it resets, any custom limit and its end date, and whether the limit was hit recently. A directory admin SHALL also see other members' usage, who was limited recently, and the active overrides, and SHALL be able to add, edit and remove an override for one member and one call type.
+
+#### Scenario: Member opens MCP settings
+
+- **WHEN** a member with `mcp.connect` opens `/settings/mcp`
+- **THEN** the page lists each limit, the amount used and the reset time
+
+#### Scenario: A limit was hit
+
+- **WHEN** the member hit a limit in the last 7 days
+- **THEN** that row says the limit was hit recently
+
+#### Scenario: Directory admin
+
+- **WHEN** a directory admin opens `/settings/mcp`
+- **THEN** the page shows who was limited recently and the active overrides, and the admin can save or remove an override
 
 ### Requirement: Connected clients can be revoked
 

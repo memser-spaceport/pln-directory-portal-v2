@@ -70,8 +70,14 @@ type MemberNewsModalState = { kind: 'none' } | { kind: 'archive' } | { kind: 'de
  * harmless, by making "archive open" and "story open" mutually exclusive.
  */
 export function TeamNewsDetails({ member, isLoggedIn, userInfo }: TeamNewsDetailsProps) {
-  const { onTeamNewsCardClicked, onTeamNewsViewAllClicked, onTeamNewsUpvoteToggled, onTeamNewsUpvoteFailed } =
-    useTeamNewsAnalytics();
+  const {
+    onTeamNewsCardClicked,
+    onTeamNewsViewAllClicked,
+    onTeamNewsUpvoteToggled,
+    onTeamNewsUpvoteFailed,
+    onTeamNewsCreateClicked,
+    onTeamNewsCreatePostSubmitted,
+  } = useTeamNewsAnalytics();
   const { mutate: upvoteMutate } = useTeamNewsUpvoteToggle();
   const isMobile = useIsMobile();
 
@@ -110,8 +116,9 @@ export function TeamNewsDetails({ member, isLoggedIn, userInfo }: TeamNewsDetail
   const handlePublish = useCallback(
     async (post: PostNewsSubmission) => {
       await createPost.mutateAsync({ title: post.title, body: post.body || undefined, url: post.url });
+      if (teamUid) onTeamNewsCreatePostSubmitted(teamUid, teamName, 'member-profile');
     },
-    [createPost],
+    [createPost, onTeamNewsCreatePostSubmitted, teamUid, teamName],
   );
 
   // Counts for the rows on screen. The shared entry is filled incrementally, so
@@ -199,7 +206,15 @@ export function TeamNewsDetails({ member, isLoggedIn, userInfo }: TeamNewsDetail
           </span>
           <span className={s.headerTitleText}>Updates from the team ({total})</span>
         </h2>
-        {canPost && userInfo?.uid && <PostNewsButton teamName={teamName} onPost={() => setComposeOpen(true)} />}
+        {canPost && userInfo?.uid && teamUid && (
+          <PostNewsButton
+            teamName={teamName}
+            onPost={() => {
+              onTeamNewsCreateClicked(teamUid, teamName, 'member-profile');
+              setComposeOpen(true);
+            }}
+          />
+        )}
       </div>
 
       <ul className={s.list}>

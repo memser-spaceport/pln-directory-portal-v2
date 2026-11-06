@@ -1,0 +1,499 @@
+@use 'styles/media';
+
+/* The agent (AgentPanel). Phones: a full-screen sheet. 960–1599: docked over the page's right edge.
+   1600+: a column of the app shell beside the page, which it pushes (narrower, pushing would leave the news
+   column too thin for its cards). */
+.panel {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  background: var(--background-neutral-default, #fff);
+
+  @include media.tablet-landscape {
+    inset: 0 0 0 auto;
+    width: 400px;
+    border-left: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+    box-shadow: -8px 0 24px var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
+  }
+
+  @media (min-width: 1600px) {
+    position: sticky;
+    top: 0;
+    flex-shrink: 0;
+    height: var(--agent-h, 100vh);
+    box-shadow: none;
+  }
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  height: 56px;
+  padding: 0 12px 0 16px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.headTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.headActions {
+  display: flex;
+  gap: 4px;
+}
+
+/* The house close: a 16px glyph in a 28px grey hover disc. */
+.iconBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+}
+
+.thread {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 0;
+  padding: 20px 16px;
+  overflow-y: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ---------- Empty: greeting + prompts ---------- */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  margin-top: auto;
+}
+
+.hello {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 26px;
+}
+
+.helloSub {
+  margin: 4px 0 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.prompts {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prompt,
+.followUp {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: none;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--border-brand-subtle, #aebfff);
+    background: var(--background-brand-soft-surface, #f2f5ff);
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+}
+
+/* ---------- Turns ---------- */
+
+.userTurn {
+  align-self: flex-end;
+  max-width: 85%;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  line-height: 20px;
+  white-space: pre-wrap;
+}
+
+.agentTurn {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.workingLine,
+.workedToggle {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.workedToggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+.caret {
+  width: 12px;
+  height: 12px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner,
+.stepSpinner {
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid var(--border-brand-subtle, #aebfff);
+  border-top-color: var(--foreground-brand-primary, #1b4dff);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 2.4s;
+  }
+}
+
+/* Steps hang off a hairline, the way the sidebar's sections do. */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 0 5px;
+  padding: 0 0 0 12px;
+  border-left: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.stepActive {
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.stepCheck {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+.text {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+/* Things the agent found: rows you can open (soft-brand hover, as the AI answer's sources). */
+.refs {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 4px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  list-style: none;
+}
+
+.ref {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--background-brand-soft-surface, #f2f5ff);
+  }
+
+  &:hover .refTitle {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-primary, #1b4dff);
+    outline-offset: -2px;
+  }
+}
+
+.refLogo {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 6px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  object-fit: contain;
+}
+
+.refText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.refTitle {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.refMeta {
+  overflow: hidden;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moreLink {
+  display: inline-block;
+  margin: 8px 0 0 4px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.draft,
+.proposal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+}
+
+.draftBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.draftTitle {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.draftText {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+  white-space: pre-wrap;
+}
+
+.proposalTitle {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.receipt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.undo {
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.followUps {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stopped {
+  margin: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* ---------- Composer ---------- */
+
+.foot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 12px 16px 16px;
+}
+
+/* The page the agent reads, as Linear's agent shows the issue it was opened on. */
+.context {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 6px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+/* AI Search's composer at the panel's type size (14/20; its own 16/24 is sized for a page). */
+.composer.composer textarea {
+  min-height: 48px;
+  padding: 14px 52px 14px 14px;
+  font-size: 14px !important;
+  line-height: 20px;
+}
+
+.composer.composer button {
+  right: 8px;
+  bottom: 8px;
+}
+
+/* ---------- The phone's door (no sidebar below 960) ---------- */
+
+.fab {
+  position: fixed;
+  right: 16px;
+  bottom: calc(80px + env(safe-area-inset-bottom));
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px 0 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 999px;
+  background: var(--background-neutral-default, #fff);
+  box-shadow: 0 4px 12px var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+
+  @include media.tablet-landscape {
+    display: none;
+  }
+}

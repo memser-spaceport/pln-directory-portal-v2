@@ -59,6 +59,25 @@
   padding-bottom: 56px;
 }
 
+/* Something the question is about (the scope chip) rides in the field, above
+   the text, the way a chat field carries an attachment. */
+.withLeading {
+  flex-direction: column;
+}
+
+.leading {
+  display: flex;
+  padding: 12px 16px 0;
+}
+
+.withLeading .input {
+  padding-top: 8px;
+}
+
+.withLeading.home .input {
+  min-height: 88px;
+}
+
 .send {
   position: absolute;
   right: 12px;

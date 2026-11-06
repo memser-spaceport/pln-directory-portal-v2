@@ -36,7 +36,11 @@ jest.mock('@/analytics/husky.analytics', () => ({
     new Proxy({ trackMobileHeaderNewConversationClicked }, { get: (target: any, key) => target[key] ?? jest.fn() }),
 }));
 jest.mock('@/analytics/unified-search.analytics', () => ({
-  useUnifiedSearchAnalytics: () => ({ onAiQuerySubmitted: jest.fn() }),
+  useUnifiedSearchAnalytics: () => ({
+    onAiQuerySubmitted: jest.fn(),
+    onAiWebSourcesShown: jest.fn(),
+    onAiWebSourceClicked: jest.fn(),
+  }),
 }));
 jest.mock('@/components/core/ToastContainer', () => ({ toast: { error: jest.fn(), info: jest.fn() } }));
 jest.mock('@/components/core/login/utils', () => ({ useLoginRedirect: () => jest.fn() }));

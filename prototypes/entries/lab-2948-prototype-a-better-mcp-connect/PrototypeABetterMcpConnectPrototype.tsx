@@ -201,7 +201,7 @@ export default function PrototypeABetterMcpConnectPrototype() {
         <LaunchBanner onSetUp={() => switchScenario('empty')} />
         <PrototypeNavBar hasUnreadNews={false} isLoggedIn />
         <div className={s.hintsBand}>{reviewBand}</div>
-        <McpHintsPreview onSetUp={() => switchScenario('empty')} />
+        <McpHintsPreview onSetUp={() => switchScenario('empty')} onAllow={() => switchScenario('connected')} />
       </BackendTagsContext.Provider>
     );
   }

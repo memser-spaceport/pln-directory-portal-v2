@@ -45,9 +45,7 @@ const member = {
   visibleHandles: ['email', 'linkedin', 'telegram'],
 } as unknown as IMember;
 
-/* `effectivePermissions` is always seeded: isAdminUser reads
-   `rbac?.effectivePermissions.some(...)` with no optional chain on `.some`, so
-   an rbac object without it throws rather than returning false. */
+/* Seed an empty permission list. A missing list is not an admin grant. */
 function seedUser(user: { uid: string; status: string } | null) {
   useCurrentUserStore.setState({
     currentUser: user

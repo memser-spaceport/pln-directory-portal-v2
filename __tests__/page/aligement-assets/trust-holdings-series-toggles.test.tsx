@@ -75,8 +75,8 @@ const legendBox = (series: 'nav' | 'buyback' | 'issuance') => screen.getByTestId
 test('offers only the monthly graph and the table, opening on the monthly graph', () => {
   render(<TrustHoldings data={data} buybacks={buybacks} />);
 
-  const views = screen.getAllByRole('button', { name: /Graph|Table View/ }).map((b) => b.textContent);
-  expect(views).toEqual(['Monthly Graph', 'Table View']);
+  const views = screen.getAllByRole('button', { name: /Chart View|Table View/ }).map((b) => b.textContent);
+  expect(views).toEqual(['Chart View', 'Table View']);
   expect(screen.queryByRole('button', { name: /Quarterly/ })).not.toBeInTheDocument();
 
   // The monthly view is live on first render: its issuance axis is already drawn.

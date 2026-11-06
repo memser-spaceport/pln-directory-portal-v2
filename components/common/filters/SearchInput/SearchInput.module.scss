@@ -1,4 +1,8 @@
-.root {
+// DebouncedInput.module.scss styles the same root element with one class (`.root`, and a 360px
+// min-width from the tablet-landscape width up). In the production build its CSS chunk can load after
+// this one, and with equal specificity the later rule wins (LAB-3182). The repeated class lets these
+// rules win in every load order.
+.root.root {
   width: 100%;
   min-width: 0;
   min-height: 38px;

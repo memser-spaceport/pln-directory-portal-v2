@@ -19,8 +19,10 @@ import { triggerLoader } from '@/utils/common.utils';
 import { useOneTimeCallout } from '@/hooks/useOneTimeCallout';
 import { MCP_CONNECTIONS_NEW_FLAG } from '@/utils/mcp';
 
+import { McpAdminLimits } from './McpAdminLimits';
 import { McpConnectGuide } from './McpConnectGuide';
 import { McpConnectionCard } from './McpConnectionCard';
+import { McpMemberLimits } from './McpMemberLimits';
 import { McpPermissionsDrawer, type McpDrawerRequest } from './McpPermissionsDrawer';
 import { levelAtLeast, levelChanges, levelsOf } from './mcpPermissions';
 import s from './McpConnections.module.scss';
@@ -40,7 +42,7 @@ const REQUEST_NOTICE: Record<RequestNotice, string> = {
 };
 
 /** Settings → MCP connections (LAB-2995 / LAB-2997), ported from the LAB-2948 prototype. */
-export function McpConnectionsPage() {
+export function McpConnectionsPage({ isDirectoryAdmin = false }: { isDirectoryAdmin?: boolean }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -311,6 +313,8 @@ export function McpConnectionsPage() {
           onClose={closeDrawer}
         />
       </section>
+      {canConnect && <McpMemberLimits />}
+      {canConnect && isDirectoryAdmin && <McpAdminLimits />}
     </div>
   );
 }

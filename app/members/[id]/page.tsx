@@ -1,6 +1,13 @@
+import { preload } from 'react-dom';
 import { getMember } from '@/services/members.service';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import MemberDetailsPage, { type ServerMemberResult } from '@/components/page/member-details/MemberDetailsPage';
+import { JsonLdScript } from '@/components/core/json-ld/JsonLdScript';
+import { buildMemberJsonLd } from '@/services/seo/entity-jsonld';
+import { MemberSignalViewTracker } from '@/components/core/MemberSignalViewTracker';
+
+/** The image behind the signed-out contact-details panel; `ContactDetails.module.scss` paints it. */
+const MEMBER_CONTACT_OVERLAY_IMAGE = '/images/members/contact-details-overlay.png';
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -19,8 +26,18 @@ export default async function MemberPage({ params }: PageProps) {
   const { isLoggedIn } = await getCookiesFromHeaders();
 
   if (isLoggedIn) {
-    return <MemberDetailsPage memberId={id} />;
+    return (
+      <>
+        <MemberSignalViewTracker entityType="member" entityId={id} />
+        <MemberDetailsPage memberId={id} />
+      </>
+    );
   }
+
+  /* The contact-details panel's blurred overlay is the page's largest element for a signed-out visitor, and it is a CSS
+     background: the browser only learns its URL once the stylesheet is in, which cost it 1.2 s on mobile (LAB-3092).
+     Named in the HTML instead, so it loads with the first response. */
+  preload(MEMBER_CONTACT_OVERLAY_IMAGE, { as: 'image', fetchPriority: 'high' });
 
   const result = await getMember(
     id,
@@ -33,5 +50,11 @@ export default async function MemberPage({ params }: PageProps) {
   const serverMember: ServerMemberResult | undefined =
     'error' in result || !result.data?.formattedData ? undefined : result;
 
-  return <MemberDetailsPage memberId={id} serverMember={serverMember} />;
+  // Structured data from the same public member the page renders (LAB-3090); none when it could not be loaded.
+  return (
+    <>
+      {serverMember && <JsonLdScript data={buildMemberJsonLd(serverMember.data.formattedData)} />}
+      <MemberDetailsPage memberId={id} serverMember={serverMember} />
+    </>
+  );
 }

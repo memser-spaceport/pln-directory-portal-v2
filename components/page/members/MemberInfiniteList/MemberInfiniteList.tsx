@@ -46,7 +46,10 @@ const MemberInfiniteList = (props: any) => {
   return (
     <div className={s.root}>
       <div className={s.header}>
-        <h1 className={s.title}>Members</h1>
+        {/* Not a heading: the toolbar's "Members" is the page's one h1 at every width (LAB-3089). */}
+        <p className={s.title} aria-hidden="true">
+          Members
+        </p>
         <div className={s.count}>({totalItems})</div>
       </div>
       <MembersMobileFilters userInfo={userInfo} isUserLoggedIn={isUserLoggedIn} searchParams={searchParams} />

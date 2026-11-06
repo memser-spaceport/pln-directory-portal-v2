@@ -3,6 +3,8 @@ import type { PrototypeEntry, PrototypeGroup } from './types';
 export const prototypeRegistry: PrototypeEntry[] = [
   {
     key: 'linkedin-verify-live',
+    status: 'dev',
+    version: 1,
     title: 'LinkedIn verification (live production component)',
     description:
       "Production's OneClickVerification block, imported and rendered with mocked props so its gated state can be seen.",
@@ -18,6 +20,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'gantry-priority-support',
+    status: 'progress',
+    version: 1,
     title: 'Gantry priority support',
     description: 'Compare current upvote UX with eight prioritization patterns on mocked Gantry need cards.',
     category: 'Gantry',
@@ -25,6 +29,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'gantry-impact-rating',
+    status: 'progress',
+    version: 1,
     title: 'Gantry — impact rating',
     description:
       "A free, unlimited crowd rating of an item's impact on Gantry objectives, shown as a second axis alongside Boost (demand). Two variants: overall score, and overall + optional per-objective.",
@@ -33,6 +39,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'gantry-saved-draft-item',
+    status: 'dev',
+    version: 1,
     title: 'Gantry saved draft item',
     description: 'Mocked autosave visibility flow for a single Gantry item draft shown in filters.',
     category: 'Gantry',
@@ -40,6 +48,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'founder-db',
+    status: 'progress',
+    version: 1,
     title: 'Founder DB — ranking improvements',
     description:
       'Alignment as its own tier-colored column (segmented meter + %), a "Strong fit · top 10" band, rank numbers, default Sort by Alignment, row checkboxes with bulk approve/export, and a drawer with a top fit-summary and sticky Approve footer.',
@@ -48,6 +58,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'warm-intros-filter-update',
+    status: 'dev',
+    version: 1,
     title: 'Warm intros update',
     description:
       'People-first warm-intros workspace: connector states (in-network / external / org-unknown), per-investor paths, and an investor drawer with sticky header.',
@@ -56,6 +68,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'teams',
+    status: 'progress',
+    version: 1,
     title: 'Teams — listing page',
     description:
       'Mocked recreation of the teams listing: filters rail, toolbar (search / sort / view toggle), and a responsive grid of real TeamGridView cards linking to the team profile. Teams that have wound down carry an "Inactive" state — muted card, grey badge, no news mark — and are out of the default set behind a "Show inactive teams" toggle in the filter rail.',
@@ -64,14 +78,18 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'team-profile',
+    status: 'progress',
+    version: 1,
     title: 'Team profile',
     description:
-      "Mocked recreation of the team detail page: details, fund details, contact, membership / communities, members, focus areas, and projects — composed from real detail-page components. Public view shows the header action cluster in the card's top-right corner — Ask AI · Follow pill (upvote-style, no count) · \"Request an intro\" (the glossy primary; the intro-shared modal's team variant: \"Request an intro to <team>\", Introduce yourself + Why, and the PL team picks the right person on the team; the sent state reads \"Intro requested\", shared by team uid; never shown to the team's own members); team view shows the follower avatar stack + count there, opening the full-list modal. The badges row also carries a \"Demo Day F25\" participation badge that deep-links to that demo day. Team view (members and admins) can post news: a small tertiary (text) \"+ Post news\" button in the rail header's corner, announced by a one-time brand-blue callout (the core Tooltip's highlight variant; shown on every page load in the prototype), or — when the team has none — an empty card with the invitation, which visitors never see (they get no rail at all). Compose is a modal in the standard shell: required headline, formatted body, required link (typed, no preview), with the link blocked at the field when it is already in this team's news. Posting lands the item at the top of the rail in the ordinary news-card treatment, attributed to the team. Inactive teams get no post control. The same view can hire from here: Open roles carries a \"+ Submit a job\" action in its header (the Edit slot) that leads to the job board's Submit a job form already opened on this team — one form, a second door, because a lead's home is their team's profile rather than a board of every team's roles. For that view the section also renders when the team has no roles (\"No open roles yet.\" under the door), the Asks / news-rail rule that an empty state holding an invitation goes to the people it is for; visitors still see no section at all. A Roles demo switch (Hiring / None yet) shows both. A reader's role row is now the board's row exactly: the whole row is the press and opens the job board's apply flow drawer on its reading step (Review job → Your profile → Application, Apply in the footer), with ● New, the posting age, Refer, Share, a bookmark on the shared saved store and a chevron where the button was. It used to carry a filled Apply that was a plain link to the team's careers page, which left the same role with two different applications depending on where it was found — and the in-app ones are the only ones the candidates count in this very section can show. The external ad survives as the drawer's Original posting link. An applied row reports it in the clock (“Applied today”) and drops New. In the owner's view each role row is that same public row — the ⋯ menu of listing actions has come off this surface, because the team's page is the page everyone reads and managing lives on the job board. What the team's own view adds is the candidates line under each row, plus a status pill once a listing is not live and no ● New on a posting of its own. The card is still theirs: pressing the row opens the drawer with the listing's Mark inactive / Bring back switch in its footer instead of Apply, and a toast says what the public board now does. Phone header: logo beside name and facts, chips full width under both, Follow + Ask AI as two DS buttons sharing the row, a hairline before About.",
+      "Mocked recreation of the team detail page: details, fund details, contact, membership / communities, members, focus areas, and projects — composed from real detail-page components. Public view shows the header action cluster in the card's top-right corner — Ask AI (opens the AI Search page in a new tab with the team attached as a chip in the field; its questions follow the seat) · Follow pill (upvote-style, no count) · \"Request an intro\" (the glossy primary; the intro-shared modal's team variant: \"Request an intro to <team>\", Introduce yourself + Why, and the PL team picks the right person on the team; the sent state reads \"Intro requested\", shared by team uid; never shown to the team's own members); team view shows the follower avatar stack + count there, opening the full-list modal. The badges row also carries a \"Demo Day F25\" participation badge that deep-links to that demo day. Team view (members and admins) can post news: a small tertiary (text) \"+ Post news\" button in the rail header's corner, announced by a one-time brand-blue callout (the core Tooltip's highlight variant; shown on every page load in the prototype), or — when the team has none — an empty card with the invitation, which visitors never see (they get no rail at all). Compose is a modal in the standard shell: required headline, formatted body, required link (typed, no preview), with the link blocked at the field when it is already in this team's news. Posting lands the item at the top of the rail in the ordinary news-card treatment, attributed to the team. Inactive teams get no post control. The same view can hire from here: Open roles carries a \"+ Submit a job\" action in its header (the Edit slot) that leads to the job board's Submit a job form already opened on this team — one form, a second door, because a lead's home is their team's profile rather than a board of every team's roles. For that view the section also renders when the team has no roles (\"No open roles yet.\" under the door), the Asks / news-rail rule that an empty state holding an invitation goes to the people it is for; visitors still see no section at all. A Roles demo switch (Hiring / None yet) shows both. A reader's role row is now the board's row exactly: the whole row is the press and opens the job board's apply flow drawer on its reading step (Review job → Your profile → Application, Apply in the footer), with ● New, the posting age, Refer, Share, a bookmark on the shared saved store and a chevron where the button was. It used to carry a filled Apply that was a plain link to the team's careers page, which left the same role with two different applications depending on where it was found — and the in-app ones are the only ones the candidates count in this very section can show. The external ad survives as the drawer's Original posting link. An applied row reports it in the clock (“Applied today”) and drops New. In the owner's view each role row is that same public row — the ⋯ menu of listing actions has come off this surface, because the team's page is the page everyone reads and managing lives on the job board. What the team's own view adds is the candidates line under each row, plus a status pill once a listing is not live and no ● New on a posting of its own. The card is still theirs: pressing the row opens the drawer with the listing's Mark inactive / Bring back switch in its footer instead of Apply, and a toast says what the public board now does. Phone header: logo beside name and facts, chips full width under both, Follow + Ask AI as two DS buttons sharing the row, a hairline before About.",
     category: 'Teams',
     load: () => import('./entries/team-profile/TeamProfilePrototype'),
   },
   {
     key: 'warm-intros-columns',
+    status: 'dev',
+    version: 1,
     title: 'Warm intros — connection columns',
     description:
       'Investor spine with Score + Direct + 1-hop connector columns (founders, co-investors, and org/person-unknown), a "direct only" quick filter, and per-connector filtering.',
@@ -80,6 +98,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'warm-path-states',
+    status: 'dev',
+    version: 1,
     title: 'Warm path — states reference',
     description:
       'Dev reference: every node state and warm-path card state in one place, rendered through the real components.',
@@ -88,6 +108,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'warm-intros-v2',
+    status: 'dev',
+    version: 2,
     title: 'Warm intros v2 — mocked clone',
     description:
       'Faithful mocked clone of the production Warm Intros v2 workspace: list picker + search + PL-member / sector filters + CSV export, the real results table (score %, connector → investor path chips — the proximity code is dropped), the glossary drawer, the investor drawer with best path, reasons and alternate connectors, and the MasterProfile modal.',
@@ -96,6 +118,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'warm-intros-role-colors',
+    status: 'ideation',
+    version: 3,
     title: 'Warm intros — role-coloured nodes',
     description:
       'The v2 workspace imported whole, with one variable changed: whether a path node says what kind of person it is in colour as well as in words. Opens on “Tags only” — the nodes stay exactly as they are and only the role tag beneath each one takes its hue; “Fill” tints the chip too, for comparison on the same rows. The uncoloured baseline is the Warm intros v2 entry above. Hues come from MasterProfileModal’s type pills, the tags on the profile a node opens — PL member indigo, founder orange, co-investor cyan, investor green — not from HopRoleBadge, which contradicts them on three of the four roles.',
@@ -104,6 +128,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'warm-intros-founders',
+    status: 'ideation',
+    version: 1,
     title: 'Warm intros for founders',
     description:
       "The investor graph read from a founder's seat, on their own team page. An owner-only Fundraising section (matched on the team's existing stage and industry tags, no intake form) shows two investors and opens a full shortlist page with a Your asks tab. Each row names ONE person who can make the intro and states the investor's PL history in plain words — no score, caliber, proximity code or email. Ask for intro opens a drafted, forwardable blurb that goes to the connector, never the investor; the Connector view is their one-request screen with two presses (I'll make the intro / Not this time). Asks run requested → intro made → met, the last being the founder's own tick. Ask for intro also stands on an investor profile (?investor=<uid>, from a row name or AI Search) as a founder-only block inside Investor Details; every door shares one sessionStorage list of asks.",
@@ -112,6 +138,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'members',
+    status: 'dev',
+    version: 1,
     title: 'Members — listing page',
     description:
       'Production members listing recreated with mocked data: filters rail, toolbar (search, sort, grid/list toggle), and the real member cards. Cards link through to the Affinity profile prototype.',
@@ -120,6 +148,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'member-profile',
+    status: 'progress',
+    version: 1,
     title: 'Member profile — relationship + activity',
     description:
       'Member profile page augmented with Affinity CRM context: relationship owner, last contact (date + one-line summary), and an interaction-frequency read (high-touch vs neglected) over the last 6 months, marked "PL team only" — the card is PL\'s notes about the member, not the member\'s own field. Adds a Follow button + follower count on the right of the header, with a manage-notifications modal. Also carries the member\'s Bluesky, as an "On Bluesky" rail card between Relationship and the team updates: two posts rendered as real posts — linkified body, media, unfurled link cards, quoted posts, reply/repost/like counts — narrowed for the 300px column, and falling into the main column below tablet-landscape where the rail is hidden. Four states: shared, owner view (adds who-can-see-this and where to change it), not connected (the owner is offered a "Connect Bluesky" prompt in the same card), and not shared (a visitor sees nothing — there is nothing to offer someone who cannot act on it). Every profile action lives in one place, the header\'s action cluster (where production keeps Edit), LinkedIn-style: an "Ask AI" text link (the team profile\'s door, opening the AI Search view scoped to this profile with one question per card), then ONE contact press — Schedule Meeting (production\'s glossy button) when the member has office hours, "Request an intro" as the glossy primary when not; never both (the review band\'s Office hours switch shows each). On a phone the cluster stacks under the facts. The Office Hours card keeps its facts and loses its button. The sibling entry member-ask-ai adds a strip of questions under the bio. A founder asks the PL team for an intro to this person through the Demo Day "Make an intro" form — Introduce yourself (optional) + Why (required) — and the button reads "Intro requested" once sent. Shared with the team profile and the ai-search-intros search (intro-shared/).',
@@ -128,6 +158,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'member-profile-edit',
+    status: 'dev',
+    version: 1,
     title: 'Member profile — editing a section',
     description:
       "A member's own profile page at /members/uid, with three changes to how a section is edited. Opening one section's editor mutes every other card — inert, so nothing on them can be pressed or focused, and faded to production's disabled tone — so one thing is happening on the page and a stray click cannot open a second. Cancel and Save move from above the fields to below them, at the end of the work where the hand already is; the title stays on top. And once the open card has scrolled wholly out of view, a floating “Keep editing” appears in the corner and takes you back to it with the first field focused. Four cards open an editor — the header card, Office Hours, Contact Details and Experience (add and per-row edit) — one short form, one medium, one long and one list; Teams, Project Contributions and Repositories are read-only and still mute like the rest. Filled with member-profile's Maya Okonkwo; no demo switch, the editing state is one press away on any Edit.",
@@ -136,6 +168,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'status-bar-states',
+    status: 'dev',
+    version: 1,
     title: 'Status bar — every state',
     description:
       "A states sheet for the open-card status bar shared by the profile pages and the job board's apply drawer, so every state can be seen without producing it. The floating bar as the profile pages draw it — an editor with the card above (arrow up) or below (arrow down), unsaved changes with its Save, a CV review with Save CV results, and the CV read's three beats (uploading, reading, taking longer than usual) with the importer's own progress row and Cancel. And the same object as the job board drawer's footer row beside Continue: at rest with the footer's hint, then the read, the review and an editor once their card has scrolled away. Phone layouts are viewport rules and are not on this sheet — narrow the window on the real hosts for those.",
@@ -144,6 +178,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'person-city-calendar',
+    status: 'ideation',
+    version: 1,
     title: 'Person city calendar',
     description:
       "Signal which city you'll be in over time, defaulting to your home city. Five real pages at production fidelity: your profile, where the existing Location field grows an Other locations list (city, dates, note) and each stay names who else is there then; the same field on a day-one profile; /members with one new Location facet (city, when, a by-week headcount) and an Overlapping with me toggle; a visitor's profile, whose header chip reads in the tense of the stay and says when you'll be there too; and the IRL gathering RSVP that offers to add its dates. State carries across tabs: RSVP on the gathering and Berlin appears everywhere else.",
@@ -152,6 +188,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'demoday-tag-placements',
+    status: 'ideation',
+    version: 1,
     title: 'Demo Day tag — placement options',
     description:
       'Placements + styles for the "participated in Demo Day" indicator on the team profile, switchable by tab: next to the name as a filled code badge, an outlined code badge, a calendar-icon emblem, or a series-tag-style pill; on its own separate row; as a chip in the tags row; or as a row inside the Events/Contributions block.',
@@ -160,6 +198,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'team-locations',
+    status: 'dev',
+    version: 1,
     title: 'Team locations — primary and remove',
     description:
       'LAB-2829 feedback on the multi-location field in the team profile\'s Edit Profile Details card, Current (the LAB-2830 feature env, transcribed) beside Proposed. Proposed keeps the same locations array with locations[0] first, but calls it the primary location rather than the HQ (the slot was filled from the old "where your team is based" field, and remote teams may have no HQ). One list: the first row wears a blue Primary badge (DS Badge, Blue · Light · md) in the slot where every other row has "Make primary" (swaps it to the top), and each row removes with the product\'s grey trash mark inside the field instead of a field-height bordered ✕. Removing the primary promotes the next row. No resting empty row beyond the first (Add location appends and focuses one), and saving stays the form\'s one Save — inside the member profile\'s section-editing pattern: Cancel/Save under the fields, the rest of the team page muted while the card is open, and the save status bar once the card is scrolled away ("Editing Profile Details" / "Unsaved changes in Profile Details" with Keep editing and Save changes).',
@@ -168,6 +208,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'onboarding',
+    status: 'progress',
+    version: 1,
     title: 'New member profile — first fill',
     description:
       'A brand-new member profile at /members/uid, transcribed from app/members/[id]/page.tsx in the order it renders and wearing its real stylesheets — the header card with the amber “+ Your Role” and “+ Your Location” pair and the “+ Add skills” / “+ Add bio” pills, the investor prompt banner over Investment Details with its three add pills, Office Hours and Contact Details behind their own prompts, then Experience, Project Contributions and Repositories. This is where a profile actually gets written: the onboarding modal collects five contact fields and then lands you here, on a page where every field a hiring team reads is still empty. The one addition sits at the very top, above the copy — “You can upload your CV”, open on its drop area, because a document fills the role and location on the header card and the skills row as well as the work history, and offering it inside the Experience section described it as smaller than it is. It is the same importer the apply drawer and the settings page mount, so three surfaces share one implementation — and the only one of the three where the review asks for a contact detail, since this account has a name from sign-up and no email yet; the answer lands on the Contact Details card. The section is permanent, not a first-run offer: the CV is kept and goes out with every application, so it is a thing the profile holds, and it renders like every other card on the page — the drop area while there is no file, the file with Replace and Remove once there is one. While it is drawn it is the document’s only door, so the Experience header’s “Update from CV” stands down and Replace takes its job — one entry point on screen, never two. A prototype-only “Preview” switch on the Back row jumps between the three states the page has — a new profile, a filled one with no CV, and the same profile with the document on it — and carries them in the URL (?state=no-cv, ?state=with-cv), so a link opens where the sender was.',
@@ -176,14 +218,18 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'member-ask-ai',
+    status: 'ideation',
+    version: 3,
     title: 'Member profile — Ask AI as questions under the bio',
     description:
-      'The member-profile page with one decision changed: besides the header cluster\'s "Ask AI" (every profile action lives in that cluster), an "Ask AI about Maya" strip under the bio shows three of the scope\'s own questions as chips (what she works on, what her office hours are for, where she has worked), each opening the AI Search view already answering; the header\'s Ask AI opens it idle with the profile chip in the field. Built to compare against member-profile after a Mobbin pass: every reference for asking about a person (Delphi\'s "Ask me about" block, Mindtrip\'s "Questions matching your profile", Fabric\'s "Ask AI about this note") puts the questions on the page rather than a door, because a link reading "Ask AI" says nothing about what can be asked.',
+      'The member-profile page with one decision changed: besides the header cluster\'s "Ask AI" (every profile action lives in that cluster), an "Ask AI about Maya" strip under the bio shows three of the scope\'s own questions as chips (what she works on, what her office hours are for, where she has worked). Since 2026-11-02 Ask AI follows AI Search as it now ships, a page of its own: every door opens the AI Search page (ai-search-page) in a new tab with Maya attached as context. A chip starts a chat about her already answering; the header\'s Ask AI opens New chat with the "About Maya Okonkwo" chip in the field, removable to ask the whole network. The profile stays open in its own tab. Built to compare against member-profile after a Mobbin pass: every reference for asking about a person (Delphi\'s "Ask me about" block, Mindtrip\'s "Questions matching your profile", Fabric\'s "Ask AI about this note") puts the questions on the page rather than a door, because a link reading "Ask AI" says nothing about what can be asked.',
     category: 'Members',
     load: () => import('./entries/member-ask-ai/MemberAskAiPrototype'),
   },
   {
     key: 'member-follow',
+    status: 'ideation',
+    version: 3,
     title: 'Member profile — Follow',
     description:
       'The member-ask-ai page with Follow for a person. The header cluster reads Ask AI · Follow · one contact press (Schedule Meeting with office hours, Request an intro as the primary without — never both); Follow is the team page\'s own FollowPill, turning into "Following ✓" with the same green receipt. Following a member ranks their forum posts and their teams\' news first in For You and the Monday digest. The Ask AI questions stay a strip under the bio, two chips on a phone. The intro\'s sent state is a line of text, "✓ Intro requested", so the cluster never shows two grey check-pills that mean different things. On a phone the cluster stacks: Ask AI badge, the contact press, Follow. A visitor sees no follower count: that is the member\'s own number.',
@@ -192,6 +238,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'job-board',
+    status: 'dev',
+    version: 1,
     title: 'Job Board',
     description:
       'Faithful mocked copy of the production /jobs page, carrying the apply flow. Logged out, one standing banner makes the offer — "Sign in to apply for N open roles with one click", counting whatever the rail is currently showing, with both Sign up and Sign in. Applying is ONE flow in ONE drawer with a step rail — Review job → Your profile → Application, and the last step\'s button is Apply. It replaced three surfaces (a description drawer, a profile drawer and a centred apply modal) that the board handed to each other through four pieces of state, one of which existed only to carry a half-written cover letter across the seams. Every role row opens that flow on its reading step, keeping the arrow beside it as the way out to the posting. **A visitor with no account walks a shorter flow, with no rail** (Figma “3-step Application Flow”, Job Aspirant rows): the posting opens with a “What your profile unlocks” card under the masthead and a footer offering both doors — *Apply on the team’s site* in the light button, *Create profile* in the primary, with a “What your profile unlocks?” popover link under it. Create profile is one form (email, name, LinkedIn, current role, the “I work at a PL network startup” tick and the job search status), and the press lands back on the same job as a **job aspirant**: an “I’m interested” strip under the masthead (press → an optional note for the team and Send interest → “The team will see it if you’re a match”, with Undo and the note quoted back) and one footer button to the team’s own site. Aspirants do not apply through the board; ticking the PL-startup box still makes a pending account that waits on the PL team. The logged-out banner is the Figma’s card too — “N PL network teams are hiring. Let them find you.” with a Sign up button and an “Already at a PL network team? Sign in” strip. The sign-up modal survives only for the role-less Sign up door in the header and banner, sharing one schema with the in-flow pane. **The profile step is skipped, not hidden**: a finished profile sends Apply straight to the letter and step 2 wears a check from the first frame, which is the evidence for "nothing to refill" and gives Edit profile somewhere on screen to go. On mobile the whole thing is a page rather than a sheet. The profile step is the member profile itself, card for card (header, Job search status, Experience, Project Contributions, Repositories) on production\'s own DetailsSection chrome. Two answers gate applying — your current role and a private "Job search status" (actively looking / open to the right role / not looking, marked PL Team only and shown nowhere on the profile); everything else is optional. Experience can be typed or brought: its empty state carries the door production drew a `.connectButton` slot for and never wired — "Upload your CV", which takes a PDF, DOC or DOCX (a LinkedIn "Save to PDF" export among them, since a handle can never be read into a work history). What comes back is shown as a review card — positions to tick or drop, a pencil on any one of them that opens its role, team, dates and location in place (one row at a time, and ticking it is never touched), a start date to supply when the document had none, skills as editable tags, and the role and location only when the profile is still missing them — never the name or email, which a signed-in board already has — before anything touches the profile. Once the section has entries the door goes and the offer survives as one line at the top of the Add Experience form. Save and the rail moves you on: the last step reads your profile back with an Edit escape, takes a required cover letter, and the row flips to "Applied" — with no fourth step confirming what the board behind it already shows. The rail is drawn from the design system\'s own horizontal Steps component, which had no consumer anywhere in the app until now. Nothing on the board is hidden from a logged-out visitor — the gate is on applying, not browsing. The earlier matching answer to the same question ("Matches you" badges, a "Best match for me" sort, the nudge strip, the preferences modal) is gone, as is the timed dwell prompt: with an Apply button on every row the ask is already made at the moment of intent. Refer is unchanged and still signed-in only: the referral modal searches live directory members and prefills the hiring team\'s leads as recipients, alongside the share popover for LinkedIn / X / copy link. **The owner side** (viewers `team-lead`, who leads Filecoin Foundation, and `directory-admin`): a "Submit a job" door in the toolbar wearing Submit a Deal\'s button, opening a Submit-a-Deal-chrome modal whose fields are the role row\'s own (title, category, seniority, work mode, location, description, an optional link to the team\'s posting; admins also pick the team) — the press files the listing as *in review* and a toast says where it went. There is no owner tab: the owner\'s own team card on All — tinted in the product\'s "yours" surface (soft brand background, subtle brand border) for a lead, not for an admin — shows its listings in every state (a status pill on the in-review and inactive rows; everything else reads exactly as it does to an candidate), and each of those rows shows no actions at rest: everything is in one ⋯ menu — headed by where the listing came from ("Submitted by you", "From <careers host>") — View job, Refer, a Share submenu (LinkedIn / X / copy link), then below a rule Mark inactive on a live one, Bring back on an inactive one (no confirm — the undo is the item it turns into), and a red Delete in every state behind production\'s confirm dialog. Opening an owned listing gives the drawer without the rail, the status pill in the masthead and the same switch in the footer. `?submit=<teamUid>` opens the form on arrival for that team — the link the team profile\'s Open roles door uses. A second lead view, "Team lead, has candidates" (`?viewer=team-lead-candidates`), is the same Filecoin Foundation lead once people have applied: the board\'s banner slot reads "3 new candidates for your roles at Filecoin Foundation" over the roles that drew them, with Review candidates. In that view and the admin\'s, an owner\'s row also carries the team profile\'s candidates line — faces, "N candidates", "● M new" — and the press opens the same team candidates page in the board\'s place, with "Back to job board": a second door to one page, for the people who manage the listing. Every row has a bookmark beside Share (saved roles collect in a Saved tab between All and Applied, with a "Saved. View saved roles" receipt; logged out, the press opens the sign-up door) — the `saving` entry\'s feature, on the same session store.',
@@ -200,6 +248,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'job-board-profile-step',
+    status: 'progress',
+    version: 2,
     title: 'Job board — simplified profile step',
     description:
       'A fork of Job Board that changes one thing: step 2 of the apply flow. The step asks two questions — your current role and a private job search status — and `isProfileComplete` tests those two and nothing else, but it opened as six cards, four of them optional, each with its own header, Add control and empty state. Someone mid-apply met a profile-management surface where the flow had promised "the next step is finishing it". Here the two required answers keep the top of the step (with the CV card above them when the profile is blank, since a document answers the required role as well as the optional history), and Experience, Project Contributions and Repositories fold into one line below them: "Experience, projects and repositories (Optional)", reporting its own contents at rest — "3 roles · 1 project · GitHub linked" — so the step\'s lede stays honest with the sections closed. Folded rather than cut: Experience is what the application read-back quotes on step 3, and all three can still be typed here rather than on another page, which is the detour the whole flow exists to remove. Collapsed at rest in both states, because an empty profile already has the shortest route through all three offered above it and the amber strips on the two required cards have to stay the loudest thing on the step. The fold forces itself open around an open editor, so nothing collapses over unsaved work, and the sections stay mounted when closed so a part-filled form survives the trip. Everything else — the board, the rail, the account step, the letter — is job-board unchanged. Refer is not: this folder\'s mocked modal also takes someone outside the network (the referee search\'s menu ends in *Refer someone outside the network*, which swaps the search for three required inputs — full name, email address, LinkedIn profile), a branch the live copy cannot send yet.',
@@ -208,6 +258,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'job-board-apply-steps',
+    status: 'ideation',
+    version: 3,
     title: 'Job board — apply in five steps',
     description:
       "The other answer to the same problem as `job-board-profile-step`, built to be looked at beside it. Where that one folds the optional profile sections behind a line on step 2, this one gives each of them a position on the rail: Review job → Your CV → Your details → Experience → Application. The CV step is the offer and nothing else, with a Skip beside Continue in the footer — a border button, not a text link, because skipping is the majority path and dressing the common answer as an exception would misdescribe who uses it. Your details holds the two answers applying actually requires (current role, job search status). Experience holds the three that gate nothing, so its Continue is live whatever is on the screen. What the fork is for is seeing the costs the three-step version does not pay: a member with a finished profile opens the drawer to a five-stop rail whose middle three are ticked on the first frame and never visited; the CV offer becomes a decision everyone makes rather than a card you ignore by not dropping a file; and the draft now has three step boundaries to commit across instead of one. A visitor with no account gets a different rail — just Review job and Your details, because the other three are not ahead of them, they are not for them: the flow ends on the account form and an unreviewed account cannot send from here. Their last press is labelled `Apply on their site` (production's own words for this outcome) and does what it says, opening the team's posting in a new tab with the board's tracking suffix, while the PL account is created behind it. The CV step never draws for them at all; the importer was already removed from the account pane for the same reason. Everything else — the board, the letter, the account form — is job-board unchanged (Refer carries the same outside-the-network branch as `job-board-profile-step`), and `JobProfilePane` is one component showing a third of itself per step rather than three panes that could drift.",
@@ -216,6 +268,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'saving',
+    status: 'progress',
+    version: 1,
     title: 'Saving — jobs and news',
     description:
       "Keep a role or an update for later, and find it again where it lives. One new control per surface: a bookmark beside Share on every job row (grey outline at rest, filled brand blue once kept) and a bookmark at the end of every feed card's Share · Views · Likes row, on stories and forum posts alike, spelled out as Save / Saved in the story modal's footer. One new tab per surface, in the slot the product already uses for a personal scope on a listing: **Saved** between All and Applied on the board, and **Saved** at the end of the feed's focus-area strip — no standalone “Your saved items” page, because the product has no personal hub for one to hang on and every job board and reader on Mobbin keeps the list on the surface it came from. Inside the Saved tab the rail, sort and category pills keep working, the board's rows read “Saved 3d ago” in place of the posting age (the Applied tab's own move), and a saved role can be opened and applied to from there through the real apply drawer. Saving fills the icon in place and shows one receipt — “Saved · View saved roles / updates”, a link into that tab — while unsaving is silent. One session-scoped store behind both surfaces, seeded with two roles and one story so the tabs have a before; a Surface switch under the navbar (or `?view=feed`) moves between the board and the feed, and the navbar's Home item lands on the feed. Open: no bookmark in the drawer's masthead yet, and the logged-out press (which should open the sign-in door) is not drawn.",
@@ -224,38 +278,38 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'newsfeed-discovery',
-    title: 'Newsfeed discoverability — labelled door + unread signal',
+    status: 'progress',
+    version: 1,
+    title: 'Newsfeed current',
     description:
       "The feed isn't hard to find — `/` redirects to `/home`, so every session starts on it. It's hard to get *back* to: the navbar has no Home or News item, and the logo is the only route there. Rather than a second /newsfeed route competing with the page that already owns network news, this adds a labelled News item to the real navbar, reorders home so the feed leads and Quick Actions demotes to a chip strip, and puts the unread signal on that item — a dot, never a count. Cards published since your last visit carry a New tag (a Badge, right-aligned into one scan column), which suppresses itself entirely once new items pass a third of the list, since a tag on everything labels nothing. Both signals read one primitive, `newsLastSeenAt`: no per-item read state, no viewport tracking, no mark-all-as-read. A Last visit switch flips between nothing new, a few new, and everything new; clicking News clears the dot and the tags together.",
     category: 'Newsfeed',
     load: () => import('./entries/newsfeed-discovery/NewsfeedDiscoveryPrototype'),
   },
   {
-    key: 'newsfeed-v0',
-    title: 'Newsfeed redesign — v0 quick wins',
-    description:
-      'A wide single-column feed mixing team news clusters and member forum posts (author on top, same card style), with a follow-suggestions / popular rail and fully-functional per-item likes (forum-style). A prototype switch flips between two versions: "With comments" (news and posts carry an inline comment thread) and "Without comments" (Like + Share only). Clicking a story opens an enlarged detail modal with the standardized modal chrome (sticky header + close, full summary, Share, source badges, and comments in the with-comments version).',
-    category: 'Newsfeed',
-    load: () => import('./entries/newsfeed-v0/NewsfeedV0Prototype'),
-  },
-  {
     key: 'newsfeed',
+    status: 'dev',
+    version: 2,
     title: 'Newsfeed — curated feed + weekly email',
     description:
-      'Quality for an investor audience, in two surfaces. The feed opens on "For You" — the default production itself uses — so the personalization is what a reader lands in rather than something they have to go find. (The network-wide Top Story block that used to lead the week is hidden for now behind `SHOW_TOP_STORIES`; its three picks are ordinary feed cards while it is off.) The "For You" pill production ships on /home leads the category row here too — the same teams-you-match slice, with a one-line note under it ("Your feed is based on your skills, your focus areas, and the teams you follow") and an Update profile link onto the settings page that owns the first of the three; a personalized view that never states its inputs leaves a reader unable to tell a thin week from a thin profile — and naming follows as an input is what makes the Follow buttons already on the page read as personalization controls. A **Preview as** switch under the navbar (or `?viewer=logged-out`) opens the page as the visitor with no account: production tells that person nothing about any of this (its For You hint only renders behind the pill, and the pill only exists once there is an auth token), so here the signed-out home banner carries the offer and the same sentence, with Sign in inside it. A Sourcing switch demonstrates the recall bug behind it: production builds the All tab as the union of the focus-area groups, so an untagged story — including this week\'s top story — reaches no tab at all; flipping to "One stream" demotes focus area to a filter beside Sort and the untagged long tail comes back. Job-board activity joins the feed as a per-team hiring signal rather than pasted listings, and follow suggestions carry the relational `reason` production already returns. The rail adds an Upcoming events card under Teams to follow: up to three gatherings (a start-date tile, name, city — no attendee count, the data does not exist) and a View all events link. Only events starting in the next 30 days qualify; with none, the whole section is gone (no empty state) — the **Events** switch (Upcoming / None in 30 days) shows both. It leaves out events you already attend and invite-only ones you have no invite to, and saves places for cities you follow before filling with the soonest, shown in date order (signed out: the next three open events) — dated events rather than location cards, because the old home Featured row\'s event cards drew 4–5% of monthly visitors to its city cards\' ~1%. The Email digest view is the same curation as the Monday send — client chrome, subject line, top story with its why-line, the week in one line each, who started hiring — because the editorial bet is cheaper and more measurable to test in an inbox than in a hero card. The (?) in the header is the proposed help & feedback menu (see the Help & feedback menu entry), announced on arrival by the same one-time brand-blue callout the team profile uses for Post news — this is the page a session starts on, so it is where the announcement is met; shown on every load in the prototype. Team-posted stories (the two the team profile seeds) reflect what the team did to them on its profile this session: an edit shows the new text with an "Edited" mark beside the time and the author\'s own body in the story, a removed one is gone — read once at mount from the same session-scoped mock; the feed itself offers no edit control.',
+      'Quality for an investor audience, in two surfaces. The feed opens on "For You" — the default production itself uses — so the personalization is what a reader lands in rather than something they have to go find. (The network-wide Top Story block that used to lead the week is hidden for now behind `SHOW_TOP_STORIES`; its three picks are ordinary feed cards while it is off.) The "For You" pill production ships on /home leads the category row here too — the same teams-you-match slice, with a one-line note under it on the plain page, link at the right end, in two states (review band For You switch, or ?foryou=not-set): set up, "For you · Curated based on your profile, primary team attributes, and the teams you follow." with Update For You →; not set up yet, there is no For You pill — the feed rests on All categories, and the note there reads "For you · Not set up yet. Choose topics and teams in Settings to see news picked for you." with Set up For You →. Both open News preferences; a personalized view that never states its inputs leaves a reader unable to tell a thin week from a thin profile — and naming follows as an input is what makes the Follow buttons already on the page read as personalization controls. A **Preview as** switch under the navbar (or `?viewer=logged-out`) opens the page as the visitor with no account: production tells that person nothing about any of this (its For You hint only renders behind the pill, and the pill only exists once there is an auth token), so here the signed-out home banner carries the offer and the same sentence, with Sign in inside it. A Sourcing switch demonstrates the recall bug behind it: production builds the All tab as the union of the focus-area groups, so an untagged story — including this week\'s top story — reaches no tab at all; flipping to "One stream" demotes focus area to a filter beside Sort and the untagged long tail comes back. Job-board activity joins the feed as a per-team hiring signal rather than pasted listings, and follow suggestions carry the relational `reason` production already returns. The rail adds an Upcoming events card under Teams to follow: up to three gatherings (a start-date tile, name, city — no attendee count, the data does not exist) and a View all events link. Only events starting in the next 30 days qualify; with none, the whole section is gone (no empty state) — the **Events** switch (Upcoming / None in 30 days) shows both. It leaves out events you already attend and invite-only ones you have no invite to, and saves places for cities you follow before filling with the soonest, shown in date order (signed out: the next three open events) — dated events rather than location cards, because the old home Featured row\'s event cards drew 4–5% of monthly visitors to its city cards\' ~1%. The Email digest view is the same curation as the Monday send — client chrome, subject line, top story with its why-line, the week in one line each, who started hiring — because the editorial bet is cheaper and more measurable to test in an inbox than in a hero card. The (?) in the header is the proposed help & feedback menu (see the Help & feedback menu entry), announced on arrival by the same one-time brand-blue callout the team profile uses for Post news — this is the page a session starts on, so it is where the announcement is met; shown on every load in the prototype. Team-posted stories (the two the team profile seeds) reflect what the team did to them on its profile this session: an edit shows the new text with an "Edited" mark beside the time and the author\'s own body in the story, a removed one is gone — read once at mount from the same session-scoped mock; the feed itself offers no edit control.',
     category: 'Newsfeed',
     load: () => import('./entries/newsfeed/NewsfeedPrototype'),
   },
   {
     key: 'for-you-levers',
+    status: 'dev',
+    version: 1,
     title: 'For You — explaining the levers',
     description:
-      'Four variants of the For You hint, switched with ?variant= (current / follow / explain / thin-feed), plus a Quiet / Busy week switch. Only the confirmed inputs are named: your teams, the teams you follow, and Teams-to-follow focus-area matches. Following or unfollowing changes the mocked For You list straight away, so each variant shows cause and effect. Analytics events are console.logged with a variant property. The README lists open questions for the backend team.',
+      'Variants of the For You hint, switched with ?variant=. The default, Update in settings, puts production\'s words on the plain page with an "Update For You →" link on the right; a For You switch (or &state=not-set) shows the message for a member who hasn\'t set it up yet, "Not set up yet. Choose topics and teams in Settings to see news picked for you." with "Set up For You →", over the latest network stories. The older four (current / follow / explain / thin-feed) follow, plus a Quiet / Busy week switch. Only the confirmed inputs are named: your teams, the teams you follow, and Teams-to-follow focus-area matches. Following or unfollowing changes the mocked For You list straight away, so each variant shows cause and effect. Analytics events are console.logged with a variant property. The README lists open questions for the backend team.',
     category: 'Newsfeed',
     load: () => import('./entries/for-you-levers/ForYouLeversPrototype'),
   },
   {
     key: 'notifications-hub',
+    status: 'dev',
+    version: 1,
     title: 'Notifications — bell panel',
     description:
       'The bell dropdown, reworked so it is something you can act on rather than only read. Header follows the Airtable notification panel: an All / Unread / Read segmented switch, in-panel search, and a visible Mark all as read above the list (with an undo window rather than a confirm). Read state is decoupled from navigation — a per-row read toggle on a real 28px target plus per-row dismiss — and status is split from action the way the reference splits it: a non-interactive dot leads each row so unread reads down the left edge. The panel behaves like a dialog — Escape, focus trap, focus restore, positioned against the bell instead of a fixed offset — and has real loading and error states instead of falling through to "No new updates". The eight categories get distinct hues and keep their glyph on mobile, and every accent carrying text clears 4.5:1.',
@@ -264,6 +318,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'notifications-inbox',
+    status: 'progress',
+    version: 2,
     title: 'Notifications — full Updates page',
     description:
       'The standalone counterpart to the bell panel: the full Updates page grouped by Today / Yesterday / Earlier and closed with a terminator instead of infinite scroll simply stopping. Carries the same All / Unread / Read switch, search, per-row read toggle and dismiss as the panel, plus Mark all as read with an undo window — production wires markAllAsRead through the provider and the service but no component ever calls it. Shares its state hook, filter, row component and stylesheet with the panel entry so the two surfaces cannot drift.',
@@ -272,6 +328,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'email-preferences',
+    status: 'dev',
+    version: 1,
     title: 'Email Preferences — digest split',
     description:
       'Recreation of the Settings › Email Preferences tab (settings menu + all sections) from the real components. The one change: the old "Forum Digest" is renamed "Digest" (it actually carries forum activity + network news) and gains per-content toggles, so a member can keep the digest but switch Network news off independently.',
@@ -280,6 +338,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'digest-topics',
+    status: 'progress',
+    version: 2,
     title: 'News preferences',
     description:
       'A new Settings page (after Email Preferences) for what shapes For You AND the digest: topic hashtags (prefilled, unsubscribe in place), Teams you follow. Email Preferences keeps delivery + one link here. Doors: digest email, For You hint, settings menu (?from=digest|feed|settings, ?persona).',
@@ -288,6 +348,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'settings-contact-details',
+    status: 'dev',
+    version: 1,
     title: 'Settings — Email & accounts',
     description:
       'The member settings surface, fully walkable, with one findable home for the email address. Today the only self-serve control is an unlabeled grey pencil inside a disabled field on the member\'s own profile page, so people write to support instead — while "Account settings" redirects to Connected Accounts (which omits email entirely) and "Email preferences" holds digest toggles. Two rail changes: "Email preferences" becomes "Notification preferences" under a bell, which frees the word "email"; and "Connected accounts" becomes "Email & accounts" under the envelope, absorbing the contact fields so there is exactly one plausible door rather than two adjacent ones. That tab holds three sections — the email address, the sign-in methods (Google / GitHub / Wallet), and the social links with their visibility switch. The email row is read-only with a labeled Change button rather than disabled with a hidden pencil, states that the address is also the login before any code is sent, names the cause and the way out when the address is refused. That row is now the shipped component (Settings › Connected accounts renders this exact file), so its Change button hands off to the real Privy code flow rather than a mocked one — the rest of the tab is still mocked. Notification preferences and Job Alert are reproduced as they ship, as is the shell: the mobile /settings menu page, the sticky back bar, and the 1024px rail breakpoint.',
@@ -296,6 +358,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'demoday-past-teams',
+    status: 'dev',
+    version: 1,
     title: 'Demo Day — past participating teams',
     description:
       'The completed (past) Demo Day page with the "Teams That Presented" grid un-hidden: hero, partner logos, the full list of past participating teams (real TeamCards linking to team pages), FAQ, and footer. Only shown for demo days that already happened.',
@@ -304,6 +368,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'ai-apps',
+    status: 'dev',
+    version: 1,
     title: 'AI Apps',
     description:
       'Mocked recreation of the PL Infra AI Apps page: the standard filters rail (search + Created by) beside the app grid, a sort menu, the "Create AI App" step-by-step modal, and a detail view embedding a deployed app preview. "Give feedback" sits at the top of the all-apps masthead; on the detail view the floating pill (dev\'s) is now a Figma-style comment tool: press it, the element under the cursor outlines, a click drops a pin and opens the composer with a screenshot of that element already attached, pins hold threads with replies and the author\'s New / Reviewed / Shipped status, and Esc leaves. In production the layer would ship inside the app via the starter kit (the app is a cross-origin iframe); here the mocked frame is same-origin so the capture is real. Cards carry an update note that names a collaborator when the last push wasn\'t the creator\'s ("Updated by Nina Chen 2h ago") and an activity row: views for everyone, plus an "activity" count (feedback items, called activity so a number can\'t read as a verdict) for people who can act on it. The creator can edit an app name/description and upload a 1-pager as HTML or Markdown (a PRD) that anyone can open; use the "View as" toggle to switch between the creator and visitor experience.',
@@ -312,6 +378,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'ai-apps-comments',
+    status: 'dev',
+    version: 1,
     title: 'AI Apps — comments on elements',
     description:
       'A copy of the AI Apps prototype with feedback as it works in production today: the floating "Give feedback" pill on the grid and the app page (it says its name, then settles to a glyph), opening the anchored popover with the app picker, the rich-text field, Take screenshot (drag a region, then draw on it), the screenshot strip and "Posting as". Authors also get "View feedback" in the masthead. A Production / Proposal switch on the app page shows the proposal. There the floating button reads "Feedback & comments" on arrival, and its popover is the feedback form with a full-width "Comment on the app" row at the top. That row turns on comment mode, Figma\'s comment tool, at once: the form shrinks to a small "Commenting" card in the same corner, with a one-line hint, a Back to feedback button and ✕, and the button lights up until you leave. You click anywhere on the app, write in a small box at that spot, optionally take a screenshot (native, with no browser share prompt: drag an area, then draw on it with the feedback annotator), and post. You can edit or delete your own comments and replies from their ⋯ menu. The comment becomes a thread with its pin, the annotated picture, replies and the author\'s New / Reviewed / Shipped status. A drawer on the right lists every thread. Comments are private: the app\'s author and admins see all of them, and anyone else sees their own, with the replies. Feedback is production\'s form, private to the author and LabOS admins, with the feedback POC\'s screenshots (after feedback-dev-kit). On opening, it takes a native screenshot of the page on its own, labelled "Automatic capture may not be exact." with a Misaligned? Tell us flag. Each picture is shown large with Annotate and ✕ in its corner. Two buttons each add another picture: Whole page (the full page, scrolled-away parts included) and Pick a part (drag over the live page). A thread whose element is gone after a redeploy stays in the list as "Not on the current version", with the element it pointed at. The all-apps grid\'s bubble gets the same feedback POC in Proposal (the review switch now shows there too), but no comment mode, since the grid has no app to pin comments to.',
@@ -320,6 +388,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'ai-apps-feedback-comments',
+    status: 'dev',
+    version: 2,
     title: 'AI Apps — production feedback + comments',
     description:
       'The AI Apps grid and app page with feedback copied from production as it is today (develop, 5 Oct): the floating "Give feedback" button (with its F shortcut hint), opening the current form. It has the app picker, Kind and Priority, a Rich / Markdown note, instant screenshots (one taken on open, then Whole page or Pick a part, each annotatable), drafts, the Wider / Narrower drawer toggle, Shortcuts, and the "Feedback sent" screen. Data is mocked and nothing is uploaded. On the app page, the comments production built and switched off are on, and they run this prototype\'s comment mode. The button reads "Feedback & comments" with a count. Review found production\'s Feedback | Comment tabs hard to find and hard to get back from, so the form instead opens with a full-width "Comment on the app" row. That row turns on comment mode and shrinks the form to a "Commenting" card with a Back to feedback button. You click anywhere on the app to pin a comment (with an optional annotated screenshot), the thread opens in place with replies, status and edit/delete, and the list sits in a drawer on the right. Shortcuts is an underlined link, and the screenshot annotator has no Comment tool, because notes on a picture never showed up under Comments. As in production, comments are public to everyone who can open the app, and feedback stays private. Production\'s two feedback buttons and pages (Your feedback, View feedback) become one Feedback button and one Feedback page with two tabs. Received holds what others gave on your apps, with a status you set and Export CSV, and the button\'s badge counts the items still New there. Given holds what you gave and what happened to it. Production\'s per-app tabs become an App menu beside Status, Kind and Priority. Feedback you send from the floating button shows up under Given as New. Visitors have no apps, so they see only the Given list.',
@@ -328,6 +398,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'ai-apps-feedback-polish',
+    status: 'progress',
+    version: 2,
     title: 'AI Apps — feedback popover polish',
     description:
       'A copy of "AI Apps — production feedback + comments" with a polish pass on the feedback popover (open an app, press the floating button). Kind is a row of pills (production\'s Contact support topic pills) instead of a select hiding three of its four values, with sentence-case labels instead of the raw "bug". Priority reads "P2 · Normal" instead of a truncated sentence, and the menu explains each level on a second line. Kind and Priority hide when the feedback goes to LabOS support, which drops them. The 0 / 5000 counter appears only near the limit. Pressing Send on an empty form now says "Write a note or add a screenshot to send" instead of doing nothing. "Posting as" is a quiet caption instead of a grey box, with its missing space restored. On phones, the Kind pills are finger-sized (32px), the floating button no longer sits over the open form, and the Wider toggle is gone.',
@@ -336,6 +408,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'ai-apps-feedback-drawer',
+    status: 'dev',
+    version: 3,
     title: 'AI Apps — feedback drawer',
     description:
       'The next pass on "AI Apps — feedback popover polish", after the 5 Oct design review. The floating feedback button now opens a drawer on the right instead of a popover, and hides while the drawer is open. On an app\'s page the drawer starts with a Feedback | Comments switch under its title. Feedback is the form. Comments turns on comment mode (click anywhere on the app to pin a comment) and lists the threads, so the separate comments drawer, the "Comment on the app" row and the Commenting card are gone. Inside an app there is no "Which app is it about?" picker: the drawer is titled "Feedback · <app name>". The picker stays on the AI Apps grid, where there is no app. The narrow drawer sits beside the page so you can still use the app; Wide is production\'s wider drawer over a scrim, and its toggle now says "Wide" / "Narrow" next to the arrows. On a phone the drawer is full screen, so its Comments tab leads with "Add a comment": the drawer steps aside, a bar at the bottom says "Tap the part of the app your comment is about", a tap outlines that part and the bar offers "Comment here", and the comment box and the threads open as bottom sheets; Done brings the list back, and a row in the list opens its thread over the app with the pin in view. The Feedback page (Received and Given tabs, from the masthead Feedback button) gets an App filter on Received listing the 4 apps you admin, each with its count. Everything else from the polish pass stays: Kind pills, short Priority, the counter, the empty-send message, the Rich / Markdown note and the phone fixes.',
@@ -344,6 +418,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'agent-session-chat',
+    status: 'dev',
+    version: 1,
     title: 'Agent session — chat & detail',
     description:
       'Mocked recreation of /pl-infra/agent-sessions/<id>: the sticky identity header with its status badge, the Overview / Chat tabs, the message thread (agent markdown vs. plain admin bubbles, amber reserved for the one question the run is actually stopped on, an outcome row that closes a finished run with the PR and feature-environment links it produced, and a failure block with the error code, namespace and Kubernetes job name plus a Retry) and the docked composer that says sending starts a new agent run. Overview carries the meta grid, the prompt, an inline confirmation for deleting the feature environment, and the derived progress steps. A state switcher moves the session between running, waiting for input, PR created with a live feature env, and failed; View as flips between the admin (tabs + chat) and the VIEW-only member, who gets no tab bar at all. Answering the agent while it waits resumes the run — reachable from Overview too, which has no composer — and Deploy / Delete walk the feature environment through its states.',
@@ -352,6 +428,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'ai-apps-feedback',
+    status: 'dev',
+    version: 1,
     title: 'AI Apps — feedback',
     description:
       'Feedback flows on the AI Apps page: give feedback via a floating button or a header button, and a full received-feedback view for app authors and admins, switchable by role.',
@@ -360,6 +438,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'ai-apps-secrets',
+    status: 'dev',
+    version: 1,
     title: 'AI Apps — stored secrets & re-deploy',
     description:
       'Secret-key states for the app setup card: first deploy (plain required field + Deploy), value already stored (locked masked field with Edit / Cancel, button becomes Re-deploy), and a failed deploy where a newly added key is still missing.',
@@ -368,6 +448,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'input-interactions',
+    status: 'progress',
+    version: 1,
     title: 'Input interactions — autosave & dismissal',
     description:
       'One contract for every place a member types: outside click never destroys text, autosave is continuous and visible, discard is always explicit, and drafts survive reload. Four demos (inline composer, page composer, modal, anchored popover) each flip between what ships today and the proposed behaviour, standing in for the Tier 1 and Tier 2 surfaces from the consistency audit.',
@@ -376,6 +458,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'auth-copy-audit',
+    status: 'progress',
+    version: 1,
     title: 'Auth copy audit — “Log in” → “Sign in”',
     description:
       'Every visible string that needs the log→sign change, with file, line, current text and replacement: wrong verb, wrong case, body copy and assistive text. Also lists the identifiers a sweep will match but must not rename — the #login route, auth events, PostHog names, CSS classes — and a suggested order.',
@@ -384,6 +468,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'help-feedback-menu',
+    status: 'dev',
+    version: 1,
     title: 'Help & feedback menu',
     description:
       "The header's (?) becomes a hover-and-click menu whose items are the Contact Support form's own five topics (Contact support · Ask a question · Give feedback · Share an idea · Report a bug), each opening the form already on that topic — the `?dialog=` deep links, with labels. Inside the form the topic dropdown becomes a row of pills so all five are visible at rest, and the title follows the topic. Demo switches: an optional “Ask AI” item (opens the search overlay) and a one-time first-visit callout on the (?). Why: in 90 days the form opened in 605 sessions and only 12 chose a non-default topic — the dropdown is never looked inside.",
@@ -392,6 +478,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'labos-feedback-button',
+    status: 'dev',
+    version: 1,
     title: 'Give feedback — on every LabOS page',
     description:
       'Home, with production\'s header search field (AI badge inside), and one "Give feedback" button that would sit on every LabOS page, opening the AI Apps feedback drawer (Anuj, 2026-10-15). The review band switches where the button lives: In the navbar (a labelled button before the (?), a glyph box below 1440px) or Floating (AI Apps\' own pill, bottom-right, which says its name and then settles to a glyph). Either way the drawer is the AI Apps one on page terms: titled Give feedback with "About this page · Home" under it, no app picker, a screenshot of the page taken on open with production\'s LabOS-page capture (what the AI Apps list uses), Whole page and Pick a part (a drag over the window), annotate, Kind and Priority, Rich / Markdown note, drafts, and the sent screen. F opens it from anywhere. The (?) is develop\'s: hover lists the five support topics, a click opens production\'s Contact support form (topic pills, prefilled email and name, mocked send). Signed out, neither door shows. Everything mocked; nothing is sent.',
@@ -400,6 +488,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'ai-search',
+    status: 'dev',
+    version: 1,
     title: 'Search in two sizes',
     description:
       'General search as a popover under the header field, AI Search as a full-screen view — one field, one AI door, instead of production\'s two-column overlay (keyword list left, AI chat with a wordless empty state right). The popover is a lookup: an "Ask AI Search a question" row, then recent searches; typing lists production\'s category chips and result rows over a mocked corpus, with "Chat with AI Search about <term>" pinned above them (also at zero results), and team and member rows carrying a visible "Ask AI" action that opens the view about that team. Pressing the row grows into the AI view with the term as the first question; Back to results reopens the popover with the term intact. The view: prompts phrased as directory finds, "Your AI Search History" (five threads, "Show all (N)" opens the record grouped Today / Yesterday / Last 7 days / Last 30 days / year in production\'s history chrome), a streamed answer with sources (before the first word, one status line steps through Understanding → Searching → Found N → Writing in place of production\'s skeleton; ?slow-answer shows the "taking longer than usual" line; the Loader switch above the page offers "No text": the answer card drawing its own outline over a realistic 10s wait, lines then one card per directory result, under a drifting grey glow; both loaders also loop live on the page under the lede, as "Answer loaders"), "Results from the directory" as compact cards and follow-ups, inline thumbs feedback with a "why" under the answer. Scoped: from a team profile\'s "Ask AI about <team>" (or a result row), the team is a removable "About <team>" chip in the field; prompts come from the profile\'s own sections, and each answer leads with a grey "Retrieved: …" line, the people or events it found, a two-sentence summary and a button to the section that owns them, with the lock pill where the records are team-only. ⌘K opens the popover. Everything mocked. Founder seat (switch on the page): investor answers carry an intro-rows block with Ask for intro, shared with the warm-intros-founders prototype; a member gets the investors only.',
@@ -408,6 +498,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'ai-search-intros',
+    status: 'ideation',
+    version: 2,
     title: 'Search — request an intro',
     description:
       'The search-in-two-sizes prototype with the founder-only warm-intro rows replaced by an intro on every member: a small "Request an intro" button (the exact size of production\'s "Available to connect" badge, but a solid brand press rather than a tinted status chip) before Ask AI on member rows in the popover, and in the arrow\'s slot on the member cards under an AI answer. It opens the Demo Day "Make an intro" form pointed at the PL team — the person named in the title, one required message, Cancel / Send request — and the request goes to the PL team, who makes the intro. Sent, it reads "Intro requested" at the same size. One shared store with the member profile\'s "Request an intro" button (intro-shared/), so a request made anywhere reads "Intro requested" everywhere for the rest of the tab.',
@@ -416,6 +508,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'ai-mode',
+    status: 'dev',
+    version: 2,
     title: 'AI Search mode — page and chat history',
     description:
       'LAB-2702. Two search surfaces instead of three: general search stays the popover under the header field, and AI Search becomes one mode with a page of its own at /ai-search (renamed from /husky), like Google Search → AI Mode. Entering it from the popover ("Chat with AI Search about <term>", a suggested question, a row\'s Ask AI, or the header\'s AI badge) opens the page, which is the ai-search-page view (/husky refactored: 300px rail with Search chats and the ⌘B footer, title bar with Share and ⋯ → Delete, the banner new-chat page) with Back to search leading its bar and a row\'s Ask AI arriving as a scope chip over the field. (Before the merge it was this entry\'s own page:) a left rail with the mode\'s name, New chat and History grouped Today / Yesterday / Last 7 days / Last 30 days / year (production\'s Husky sidebar, transcribed: delete on hover with a confirm, ⌘B collapses it to three glyphs), the thread in a centred reading column (the ai-search answer: sources, directory cards, follow-ups, thumbs, input), and a "Back to search" in the page bar that leaves the mode and reopens the popover with the term still in the field. A new chat is a front page: AI mark, name, one line of scope, the composer and "Try asking" (suggestions while typing). The popover signposts where chats live: at rest it lists the three latest under "Recent AI Search chats" with "All chats (N)", which lands on the page with History open. Phones: the rail is a drawer behind a labelled History button in the page bar, New chat beside it, no bottom tab bar under the chat input. Review band: "Modal + history" shows the alternative — the same surface in the takeover dialog with the rail collapsed and "Show all history" after five. Everything mocked.',
@@ -424,6 +518,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'ai-search-page',
+    status: 'dev',
+    version: 1,
     title: 'AI Search page — /husky refactored',
     description:
       'The existing /husky page kept and refactored, not replaced: AI Search stays a page of its own (Google\'s AI Mode is a place, not an overlay). Production\'s skeleton is unchanged — the 300px history rail that ⌘B collapses to 64px with the shortcut in its footer, the banner and centred headline over a 602px field, the thread with its input pinned to the bottom. What changes: the name (/ai-search, AI Search, New chat, History); the new-chat page says what answers come from and shows four suggestions under the field at rest instead of a dropdown that exists only while the field has focus; History gets quiet date labels, the open chat in primary ink and a Search chats field; an open chat gets a title bar on every width (production has one on phones only) with the title, Share (copies the chat\'s link) and ⋯ → Delete; the answer is the ai-search one in a 768px reading column (sources after the answer, inline thumbs); a shared link shows "Shared by <name>" and the normal input, a follow-up saving your own copy to History (production replaces the input with a black "Continue Conversation" bar); and signed out the rail stays, listing this visit\'s chats under "Sign in to keep your chats" with Sign up · Sign in (production hides the sidebar). Review band: Viewer, Opens on (New chat / A chat / Shared link) and a "What changed from /husky" table. Everything mocked.',
@@ -432,6 +528,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'ai-mode-results',
+    status: 'ideation',
+    version: 2,
     title: 'AI mode — answer components refresh',
     description:
       'A visual pass on what an answer is made of inside AI mode (from the 2026-10-05 review: the page flow is fine, the answer components look dated). The ai-search-page view, unchanged, with an "Answers: Current / Proposed" switch in the review band that redraws the same conversation. Proposed: the answer leaves its bordered card and runs on the page under the question as a right-aligned bubble; prose at 16/26 with one rhythm; directory records named in the prose become inline mentions with their picture; numbered citation pills (production\'s sourceRefs) open a hover card and match the numbered Sources list; "Results from the directory" is one panel of rows with "Available to connect" on members with office hours; the comparison table leads with the entities and turns into fact blocks on phones instead of scrolling sideways; actions move under what they act on (sources pill first, copy and thumbs, then regenerate and edit on the last turn); follow-ups are a hairline list with a reply glyph instead of grey slabs under an orange heading; the thinking line gains a four-step meter and an orbiting mark, and a caret blinks at the end of streaming text. PROPOSAL.md in the folder lists each component before → after and its production counterpart. Everything mocked.',
@@ -440,6 +538,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'home-ai-ask',
+    status: 'progress',
+    version: 1,
     title: 'Home — AI Search field',
     description:
       'The Home prototype (newsfeed) with AI Search\'s field leading the page; for members it replaces Quick Actions (signed out, the banner stays under it). The header carries ai-mode\'s search — the field fills the free width, results hang under it without the "Chat with AI Search about…" row, and its AI badge opens AI Search with what you typed — and Job Board as its own item between Events and Forum (out of More; Demo Day moves into the Events menu as its last row so the row fits with its icons).It opens on the Big field (the AI Search page\'s own composer, two lines at rest); the review band\'s Field switch offers the one-line Search box, which reads as a search box, not a chat composer:the AI Search mark and name inside one line, Enter to ask, an Ask button only once there is text, and "Try" plus three questions as a line of links (not pills, so they are not read as another row of feed filters). Enter shows Google\'s AI Overview pattern — one short answer under the field with the AI Search wait, the prose, the first four directory results and "Continue in AI Search", which opens the ai-search-page with that answer as a thread; there is no follow-up box on Home, so it never becomes a third chat. LAB-2704 (review band Viewer → Portfolio founder): the same field takes general requests for the PL team. The placeholder names both jobs; text that reads as a request ("Help me get intros to investors in climate tech") gets a "Send this to the PL team" draft instead of an AI answer — editable, sent with the founder\'s profile and team, confirmed in place with "The PL team has your request" and where the reply goes. Each card has a labelled door to the other (Search the network instead / Send to the PL team instead). Works signed out too (the page opens as a guest; no request door). Everything mocked.',
@@ -448,6 +548,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'home-refactor',
+    status: 'ideation',
+    version: 1,
     title: 'Home refactor — AI Search hero + editorial sections',
     description:
       'Exploration, not a committed design. Home opens on an open AI Search field (typeable, three Try prompts; Enter answers under the field or opens AI Search, switchable), then editorial sections in a deliberate order: This week in the network (lead story + rows), From the forum (author on top), Open roles in the network as the rail beside them, and a curated Selected GitHub repos grid from network teams. Built from home-ai-ask, newsfeed and newsfeed-v0 pieces; the repo card is new. Open questions in its README.',
@@ -456,6 +558,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'home-refactor-b',
+    status: 'ideation',
+    version: 1,
     title: 'Home refactor B — ask-first, one column',
     description:
       'Version B of Home refactor, same brief and same week of content, different structure. Exploration, not a committed design. One 760px column with no rail: a greeting with the date, an AI composer with scope chips inside it (Anything · People · Teams · Jobs · Repos change the placeholder and the prompts), "Start with a question" cards built from this week\'s jobs, news, forum and repos (a card fills and submits the field; the inline answer and Continue in AI Search are A\'s), then ONE "This week in the network" module, tabs All · News · Forum · Jobs · Repos · Events over compact rows that open A\'s modals, each tab ending in See all. A small Picked repos strip keeps the curated idea visible. The navbar search hides while the composer is on screen (switchable). Mocks are re-dated to the viewer\'s week. Mobbin references and the A/B comparison in its README.',
@@ -463,8 +567,50 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/home-refactor-b/HomeRefactorBPrototype'),
   },
   {
+    key: 'homepage-redesign-v0',
+    status: 'ideation',
+    version: 2,
+    title: 'homepage-redesign-v0',
+    description:
+      'The new Home: two pages behind one URL, switched with ?state=. Signed out (default): the mission as the headline beside a Join the network card (Sign up, Sign in), the figures as a white band, this week\'s three stories beside one sidebar of open roles and upcoming events, then on one white band the portfolio on the islands map, four focus-area cards (portfolio-team count and logos, name, line, Teams / Projects links), the PL entities as a row, the investor logo wall and a link footer. Signed in: one "Network Updates" stream of news and forum posts in full, with pills For You · All · Top · Discussions · Funding · Launch · Announcement, Top stories labelled in the stream, header search where a #tag query matches tags, and Sort by; the stream is cut where the rail ends, the next card fading under See all news. Hashtags on news and forum cards are blue #tag links; clicks stack into a scope row with a chip per tag, the count, and Follow or Clear all. The rail: open roles, upcoming events (?events=none drops them and roles take the room), Teams to follow, deals (only with deals.read; signed-in-no-deals drops them), Popular this week. Under it the Open source picks band (?repos=none drops it), then the focus-area cards. See all news (signed in) and See all updates (signed out) open ?view=news: news only, in a 2-column grid (1 on phones) of production NewsCard boxes, each with the story\'s image or video poster under its text, with the same pills and Sort, and production\'s news search held open beside the title. State email-not-found opens "This email isn\'t in the directory yet" with Sign up and Try another email. Signed in also has LabOS Agent V0: a floating Agent button (or Ctrl/⌘ J, or ?agent=open) opens home-v2-b\'s docked panel. As a portfolio founder (?viewer=founder, default) it turns "I need an intro to X, I\'m planning a fundraise" into an editable request to the PL Venture team, after asking when you\'re raising. For any member it updates your profile and your team\'s from a dropped URL, as a ticked old → new list you apply, and drafts forum posts you post. Nothing is sent or changed until you press. ?viewer=member has no venture requests. Rationale, the production files each section would touch, and open questions are in its README.',
+    category: 'Newsfeed',
+    load: () => import('./entries/home-v2/HomeV2Prototype'),
+  },
+  {
+    key: 'home-v2-b',
+    status: 'progress',
+    version: 2,
+    title: 'Home v2 B — Network Updates: forum carousel + news, repos',
+    description:
+      'An alternative signed-in Home to homepage-redesign-v0. "Network Updates" is the page header, over two sections: "From the forum" as a carousel (production Featured\'s embla engine over the feed\'s ForumPostCard) and "News updates" (the Top stories band, then the stream down to the end of the rail, fading under See all news, which opens ?view=news as 2–3 columns). Under both, home-v2\'s open-source picks band. The rail: Popular this week (production\x27s card + team logos), open roles, Teams to follow, deals. Signed in also has an Agent, like Linear\x27s: the sidebar row (or Ctrl/⌘ J, or a floating button on phones) opens a docked panel that reads the page, shows its steps, answers with stories, teams and roles you can open, drafts a forum post, and proposes following teams, which only happens when you confirm. Signed out (the default, ?state=signed-in for the member page) is home-v2\x27s signed-out story, built from home-v2\x27s own pieces.',
+    category: 'Newsfeed',
+    load: () => import('./entries/home-v2-b/HomeV2BPrototype'),
+  },
+  {
+    key: 'home-v2-style-refresh',
+    status: 'ideation',
+    version: 3,
+    title: 'Home v2 B — style refresh',
+    description:
+      'A copy of home-v2-b redrawn in a new visual language (reference: zaro.ai): warm paper ground, near-black brown ink, very large tight headlines with a greyed second sentence, square buttons, hairline grids and dashed boxes, uppercase mono labels, a lavender accent, and dark bands. Signed out: home-v2\'s story (who PL is, the figures, focus areas, this week beside open roles, the portfolio map, entities, backers, the Join ask) under a framed top bar. Signed in (?state=signed-in): B\'s member page — Network Updates over the forum (paged three at a time) and the news (pills, sort, a lavender Top stories panel, the stream), a hairline rail of Popular this week, open roles, Teams to follow and deals, then the open-source picks on a dark band — beside a restyled sidebar.',
+    category: 'Newsfeed',
+    load: () => import('./entries/home-v2-style-refresh/HomeV2ZaroPrototype'),
+  },
+  {
+    key: 'home-v2-style-refresh-2',
+    status: 'ideation',
+    version: 3,
+    title: 'Home v2 B — style refresh 2',
+    description:
+      'The same as home-v2-style-refresh, with the product\'s rounded controls in place of square ones: buttons at the DS Button corners (10px at 48px, 8px below), the top bar\'s Sign up as the navbar\'s pill, and filter pills, like/comment buttons and the filter chip as full pills. Cards, frames and tags stay square.',
+    category: 'Newsfeed',
+    load: () => import('./entries/home-v2-style-refresh-2/HomeV2ZaroPrototype'),
+  },
+  {
     // LOCAL VIEWING COPY of PR #3341 (branch polina/lab-2948-…). Edit in C:\PL Network\pln-lab-2948; don't commit on this branch.
     key: 'lab-2948-prototype-a-better-mcp-connect',
+    status: 'dev',
+    version: 1,
     title: 'MCP connect and agent control in Settings',
     description:
       'Its own Settings tab, MCP connections, with mock data: a launch banner, one card per connection with Permissions (edit, then one Save), View activity and Revoke, the connect steps per client, and the LabOS consent screen. Every connection starts read only, with a checkbox acknowledging it can see other members’ contact details; write is turned on per feature later from that connection’s Permissions, behind its own checkbox consent that names what it can do as you. Some features are switched off by admins, and job applications are off for L0/L1 members and job aspirants. Also shows the in-product hints in search, forum and comments. Dashed tags mark the parts that need new backend work. LAB-2948, revised after the 2026-10-26 syncs.',
@@ -472,7 +618,19 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/lab-2948-prototype-a-better-mcp-connect/PrototypeABetterMcpConnectPrototype'),
   },
   {
+    key: 'top-bars-inventory',
+    status: 'dev',
+    version: 1,
+    title: 'Top bars above the navbar — inventory',
+    description:
+      "Every bar production puts in SiteHeader above the navbar, each over the navbar: Complete your profile (live, both messages), the PLAA buyback/snapshot carousel (live on /alignment-asset), the Demo Day banner (built, commented out), the proposed MCP launch banner, and the stack a pending member would see with both.",
+    category: 'AI Apps',
+    load: () => import('./entries/top-bars-inventory/TopBarsInventoryPrototype'),
+  },
+  {
     key: 'guided-tour',
+    status: 'ideation',
+    version: 1,
     title: 'Guided tours — candidates, warm intros',
     description:
       'The standard guided tour for a new feature, in its first use: warm intros for founders in AI Search, met on Home. A tour is for a new flow that spans more than one place; one new control keeps the blue callout, and the two never share an arrival (the help-menu callout is off here). Three steps: the header search field ("Show me" asks the investor question for you), the intro rows in the answer once it has landed, and Ask for intro. The page is dimmed with a hole around the thing being shown; the white card carries "New in AI Search", a title, one or two sentences, "n of 3" and one button. One exit at every step (✕ or Esc); pressing the highlighted thing ends the tour because the person has taken over; a press on the dimmed page does nothing. Founders only — switch the seat to Member in the review band and no tour opens. Opens on every load in the prototype (once per member in production); Replay tour is in the review band. The rules are written at the top of tour-shared/GuidedTour.tsx. Second tour (picker in the review band, the default): candidates on the team page, for a team lead arriving on Home after someone applied. It starts on the bell, walks to the count line under the role, then to the candidates page’s Email / Mark as reviewed bar. One tour per arrival; this one goes before warm intros.',
@@ -481,6 +639,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'app-update-toast',
+    status: 'ideation',
+    version: 1,
     title: 'App updates — the refresh toast',
     description:
       "How a deploy reaches someone who already has the tab open. Today it doesn't: there is no service worker, no build-id check and no ChunkLoadError handling, so a deploy lands, the tab keeps running the old JS, and the first symptom is a lazy route falling into the \"Oh snap!\" error page. The proposal is one mechanism and one surface. The mechanism: a new build is armed and applied at the next full navigation, so the ordinary deploy is silent — nothing is drawn and nobody is told, because a version bump changes nothing the person can see. The surface: one toast, the house one (production's own container and card, bottom-centre, info blue, its own ✕), fired only for the exception — an update the deploy marks required. It is the small end of the house card rather than the default one — 14px type, 32px min-height, 10px radius, all of them the card's own sub-960 values — because a standing, passive notice should not arrive at the size of \"Something went wrong\". It does not auto-close and it cannot stack: autoClose false, closeOnClick false, one toastId, so a prompt that expires is not a prompt nobody can answer. The action is a filled primary Reload at the smallest size on the DS scale — primary because there is nothing else on the card for it to be secondary to, xxs so it doesn't claim a 40px card — and the status mark is an outlined ring, so the one filled thing is the one you press. Mid-flow protection needs no second string — type in the About card and press Reload to see the real UnsavedChangesPrompt ask first. The page opens with the toast already on screen and there is no state picker and no states sheet: one state, landing in the real container at the foot of a page long enough to scroll, because a static copy pinned mid-page would be a second, larger, unreal version of the subject competing with it. Multi-tab is stated rather than shown: detection broadcasts on a second BroadcastChannel (the shape logout already uses) so one tab's discovery saves the others from polling, but each tab decides for itself, because dirtiness is per-tab — deliberately unlike logout, which force-reloads every tab.",
@@ -489,6 +649,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'kudos-edit',
+    status: 'dev',
+    version: 1,
     title: 'Kudos — edit states',
     description:
       "PLAA-50 click-through with the real KudosCard component and a mocked signed-in giver: your own kudos on the current round (Edit action), your own kudos on a past round (locked, frozen), and someone else's kudos (neither). Save changes calls a mocked update so you can see a full successful edit without a reachable PLAA_API_URL.",
@@ -497,6 +659,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'plaa-top-banner-carousel',
+    status: 'dev',
+    version: 1,
     title: 'Top banner carousel (Buyback + Snapshot)',
     description:
       "Click-through for PlaaTopBannerCarousel, which replaced the old stacked PlaaBuybackBanner + PlaaSnapshotBar in SiteHeader: the two now rotate through one slot (8s auto-advance, pause on hover, dot navigation, no dismiss control) instead of doubling the header's height when both apply. Uses the real carousel and bar stylesheets plus the real countdown/date-formatting logic; the buyback preset switcher moves it through upcoming/live/ending-soon/ended to show the carousel dropping to a single dot-less slide when only the snapshot bar applies. Production gates this on PLAA RBAC access, the auction's real UTC window, and a live snapshot-status backend call, none reachable here, so the snapshot data is mocked with local state rather than the real network hook.",
@@ -505,6 +669,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'pl-spotlight-table',
+    status: 'ideation',
+    version: 1,
     title: 'PL Spotlight — back-office participants table',
     description:
       'Recreation of the PL Spotlight participants table from the Back Office Figma file (node 750:690): the ten-column grid — select, member (name + email + avatar), team link, investor-type badge (Angel / Fund / not provided), invite-accepted check or cross, follow-up count over its date, the clipped Template vars JSON, the purple Type pill, the wide blue Access pill, and the three action buttons. Column widths, row heights, badge ramps and the Send-vs-Resend state of every button are transcribed from the frame; the controls are real, so checkboxes select (with an indeterminate header), both dropdowns change, invites and follow-ups update the row they act on, and removing a participant is undoable. Type and Access take their option sets from production enums rather than invented ones, since the frame renders native selects and the canvas cannot draw their labels. The envelope button no longer fires on click: it opens a compose modal — the portal referral modal chrome, not the back-office confirm sheet — carrying the recipient card, an editable subject and body drafted from a template, a note saying which template vars filled in and which line was dropped for want of one, the list of what the send adds on its own, and the amber already-invited warning. The navbar’s Settings item is a working destination: it opens Settings → Email templates, the org-wide list of what the back office sends (the spotlight invite and the follow-up), each row carrying where it is sent from, whether it still says what shipped, which records keep their own version of it, and an Edit button onto the same template editor the Overview card uses. That makes the wording three-level and the levels visible: Settings holds the default, a spotlight overrides it for itself, one send drafts from whichever applies — saving a spotlight template identical to the default drops the override rather than freezing a copy, and the Settings row reports the override so editing a default cannot silently miss the record that stopped listening.',
@@ -513,6 +679,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'spv-spotlight',
+    status: 'progress',
+    version: 1,
     title: 'SPV Spotlight — investor page',
     description:
       'LAB-2669. The investor-facing /spv-spotlight/[slug] page. Per the 2026-09-28 sync, one SPV Spotlight is for one team and PL no longer hosts slides or video, so the page is a title and a description on the completed Demo Day hero, then a brief card for that team modelled on PL Spotlight’s single team card (Netholabs, real directory data): logo, name, one-liner, location and size, website / stage / tags, the two founders and a three-sentence summary, with the three images from netholabs.com in a swipeable carousel where the pitch slide and video used to be. Then the Demo Day footer. There is no navigation, only a wordmark. A preview bar switches Spotlight status (Draft / Open / Closed) and viewer: signed out, signed in without an application, pending, approved and rejected. Request access to data room (renamed at the 2026-09-29 sync, was Apply to invest) is the primary button until approval; requesting is signing up, since it creates the account. Since 2026-09-29 the data-room action lives in the team card, at the right of its identity header (where PL Spotlight’s header puts its own actions; under the identity at full width on phones), not in the hero, so there is one door: Request access with a Sign in text link under it, then View materials; pending, opening soon, rejected and closed hold that slot with a quiet line while the hero keeps the stepper and messages. The hero keeps only Set up / Edit investor profile, for approved viewers. The request form is email, name and Demo Day’s Role @ Organization row plus the accreditation tick. While a request waits for approval, the team card opens its full About. Explore PL Network is a tile under the team card (decided 2026-09-29): what the network is, a small PL cube, and the link to the separate explore-pl-network landing. Once approved and open, the primary becomes View materials, which opens the team’s one DocSend. Sign in is a text link for people who already applied. The apply modal is Demo Day’s, trimmed to email, name, organization and the accreditation tick; an email that already applied (try applied@example.com) turns it into a sign-in prompt, and a new application closes onto a three-step success sheet and then Demo Day’s applied stepper. Applicants edit their investor profile in Demo Day’s EditInvestorProfileDrawer. Rejected investors see a plain message and no request button.',
@@ -521,6 +689,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'spv-spotlight-gated',
+    status: 'dev',
+    version: 2,
     title: 'SPV Spotlight — token-gated',
     description:
       'LAB-2669, reshaped by the 2026-10-01 Prod/Eng standup. Investors arrive by a whitelisted token link that logs them in, so Request access is feature-flagged off (REQUEST_FLOW_ENABLED) and the primary is Request data room access, a plain link to the DocSend (an invited investor still requests access there). Without the token and a login the page is locked: signed out shows a Sign in message, logged in but not on the list shows “You don’t have access”, neither shows the team, title or FAQ, both show Contact us. The bigger Explore PL Network tile, with the network’s facts and focus areas, is shown to everyone. 2026-10-05 review: the profile ask is its own card under the description (Vova’s idea), “Get only the deals that fit you”, with Check size / Stages / Focus previews, labelled Set up investor profile (New investor) or Review and update (Has a profile). It opens Demo Day’s investor drawer: angel vs fund, add a fund, the yellow incomplete warning, and amber on unfilled fields; no wizard. Logged in but not invited shows only “You don’t have access” + Contact us, with no other-account door and no email. The investor drawer’s Investor Details keeps the “Email me deals that match” tick. A copy of spv-spotlight; the original is untouched.',
@@ -529,6 +699,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'explore-pl-network',
+    status: 'dev',
+    version: 1,
     title: 'Explore PL Network — editorial',
     description:
       'The separate landing that the SPV Spotlight’s Explore PL Network tile opens, for investors who don’t know Protocol Labs; this is the Editorial direction (the Visual one is explore-pl-network-visual). Chromeless apart from a plain top bar, on the completed Demo Day template. Official and restrained, like an institutional About page: centred type and hairlines, marketing’s General Info text as the statement, four sourced figures (founded 2014, 760+ organizations, the 284 portfolio teams, 4 focus areas), the focus areas in marketing’s words, and linked cards for Protocol Labs, PL R&D, PL Capital, PL Venture Studio and PL Neuro. Then the portfolio: one black box with a Map / List switch at its top. Map is marketing’s logo islands (logo-islands.vercel.app) drawn exactly as the site does, every tile position read from its rendered state per year and category, with its 284 logos, island colours, Aileron type, category row and 2014–2026 year strip; a click opens a card with the team’s directory one-liner, stage, since-year and website (259 of 284 matched) and a link to its profile. List is a dark list of the same teams, cropped with a fade and Show all. After it come the “raised from top VCs” logo wall, an FAQ and the footer. The islands data is marketing’s; the live page would read it from LabOS.',
@@ -537,6 +709,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'explore-pl-network-visual',
+    status: 'ideation',
+    version: 1,
     title: 'Explore PL Network — visual',
     description:
       'The Visual direction of the Explore PL Network landing (the Editorial one is explore-pl-network), for investors who don’t know Protocol Labs. It leads with motion: under a dark top bar, the PL cube as a full-width black hero, our own view in which the 281 active portfolio logos fill the Protocol Labs cube mark, narrow gaps between its six facets, shaded by face, categories as contiguous regions, drifting slowly with a shimmer (clipped and faded on phones). The hero is the portfolio, so the lede and a pulsing “Click any logo to meet the team” pill say it is clickable; a click opens the team card, and a category or year below the map dims the rest in place. Then marketing’s General Info as a readable block with the focus areas beside Protocol Labs’ PL Summit 2024 talk (a YouTube poster that loads the player on press), the PL entities as a light row of links, the “raised from top VCs” logo wall, an FAQ and the footer. No separate portfolio section.',
@@ -545,6 +719,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'explore-pl-network-sections',
+    status: 'dev',
+    version: 2,
     title: 'Explore PL Network — section nav',
     description:
       'The live os.pl.xyz/explore-pl-network page (the Editorial direction) with its sections as links in the top bar: Focus areas, Entities, Portfolio, Investors and FAQ between the PL Network wordmark and Contact us. A link scrolls smoothly to its section, landing below the sticky bar, and the section under the bar is marked as current while you scroll. The wordmark returns to the top. Under 960px the links drop to a second row that scrolls sideways. Shares the page with explore-pl-network; the other two entries are unchanged.',

@@ -27,6 +27,8 @@ interface ModalProps {
   /** Opt-in: set `inert` on the modal's body-level siblings while open, so Tab and
    *  screen readers can't reach the background page (WAI-ARIA APG containment). */
   inertBackground?: boolean;
+  /** Skip the scale-in. The news story dialog uses this. */
+  instant?: boolean;
 }
 
 export const Modal: React.FC<ModalProps> = (props) => {
@@ -42,6 +44,7 @@ export const Modal: React.FC<ModalProps> = (props) => {
     ariaLabelledBy,
     lockScroll = false,
     inertBackground = false,
+    instant = false,
   } = props;
   const [mounted, setMounted] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -161,10 +164,10 @@ export const Modal: React.FC<ModalProps> = (props) => {
           data-modal
           className={clsx(s.overlay, overlayClassname)}
           style={overlayStyle}
-          initial={{ opacity: 0 }}
+          initial={instant ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: instant ? 0 : 0.2 }}
           onClick={handleOverlayClick}
         >
           <motion.div
@@ -172,10 +175,10 @@ export const Modal: React.FC<ModalProps> = (props) => {
             role={ariaLabelledBy ? 'dialog' : undefined}
             aria-modal={ariaLabelledBy ? true : undefined}
             aria-labelledby={ariaLabelledBy}
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={instant ? false : { opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
+            exit={instant ? { opacity: 0 } : { opacity: 0, scale: 0.95 }}
+            transition={{ duration: instant ? 0 : 0.2 }}
             onClick={(e) => e.stopPropagation()}
           >
             {children}

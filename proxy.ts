@@ -15,8 +15,10 @@ export const config = {
      * - favicon.ico (favicon file)
      * - icons (icons file)
      * - images (image file)
+     * - sitemap.xml, sitemaps/ and robots.txt: crawler files with no session, which must not answer with session
+     *   cookie headers (LAB-3106)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|icons|images).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|icons|images|sitemap\\.xml|sitemaps/|robots\\.txt).*)',
     '/teams/:path',
     '/members/:path',
     '/projects/:path',

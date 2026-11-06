@@ -5,10 +5,14 @@ import clsx from 'clsx';
 import { NavigationMenu } from '@base-ui-components/react';
 
 import { NavItemWithMenu } from '@/components/core/navbar/components/NavItemWithMenu';
+import { SubItem } from '@/components/core/navbar/components/NavItemWithMenu/components/SubItem';
+import type { ISubItem } from '@/components/core/navbar/type';
 import { AiSearchIcon } from '@/prototypes/components/AiSearchIcon/AiSearchIcon';
 import {
   DIRECTORY_LINKS,
-  EVENT_LINKS,
+  ALL_EVENTS_LINK,
+  IRL_GATHERING_LINK,
+  EVENT_CONTRIBUTORS_LINK,
   DEMO_DAY_LINK,
   JOBS_LINK,
   DEALS_LINK,
@@ -23,6 +27,7 @@ import {
   DemoDayIcon,
   DirectoryIcon,
   MoreIcon,
+  ChevronDownIcon,
 } from '@/components/core/navbar/components/icons';
 
 // Reuse the production navbar styling 1:1 — every class below is production's.
@@ -31,6 +36,7 @@ import signup from '@/components/core/navbar/components/Signup/Signup.module.scs
 import login from '@/components/core/navbar/components/LoginBtn/LoginButton.module.scss';
 // The 12px/500 brand text button the search surfaces' "Clear" wears.
 import sub from '@/components/core/application-search/components/AiChatPanel/components/ChatSubheader/ChatSubheader.module.scss';
+import subItem from '@/components/core/navbar/components/NavItemWithMenu/components/SubItem/SubItem.module.scss';
 import local from './PrototypeNav.module.scss';
 import help from './HelpFeedbackMenu.module.scss';
 
@@ -41,6 +47,8 @@ import { HelpFeedbackMenu, type HelpFeedbackMenuProps } from './HelpFeedbackMenu
 import { PL_INFRA_LINKS } from './plInfraLinks';
 import { PrototypeAccountMenu } from './PrototypeAccountMenu';
 import { PageCommentMode } from '../feedback-shared/PageCommentMode';
+
+const EVENT_LINKS = [IRL_GATHERING_LINK, ALL_EVENTS_LINK, EVENT_CONTRIBUTORS_LINK];
 
 /**
  * Copy of the production `Navbar` (components/core/navbar/nav-bar.tsx) with the
@@ -175,6 +183,13 @@ interface PrototypeNavBarProps {
    */
   jobsInBar?: boolean;
   /**
+   * Events leaves the bar and becomes the first row of More, a two-level menu:
+   * hovering the row (or Enter / → on it) opens its links in a second column
+   * of the same popup (`home-v2`, 2026-11-03). Composes with `jobsInBar`, whose
+   * Demo Day row moves with it. Off by default.
+   */
+  eventsInMore?: boolean;
+  /**
    * A labelled "Give feedback" button in the bar, before the (?)
    * (`labos-feedback-button`, 2026-10-16). It opens the host's feedback drawer.
    * With it, the (?) menu's Give feedback item opens the support form, as on
@@ -208,6 +223,7 @@ export function PrototypeNavBar({
   searchField,
   bellDot = false,
   jobsInBar = false,
+  eventsInMore = false,
   feedbackButton,
 }: PrototypeNavBarProps) {
   const [internalOpen, setInternalOpen] = useState(false);
@@ -245,6 +261,8 @@ export function PrototypeNavBar({
     });
     return () => cancelAnimationFrame(raf);
   }, [searchOpen, hasSearchField]);
+  const eventLinks = jobsInBar ? [...EVENT_LINKS, DEMO_DAY_LINK] : EVENT_LINKS;
+  const moreLinks = jobsInBar ? [DEALS_LINK, FOUNDER_GUIDES_LINK] : [JOBS_LINK, DEALS_LINK, FOUNDER_GUIDES_LINK];
   const label = hasUnreadNews ? 'Home, new items since your last visit' : 'Home';
   const inner = (
     <>
@@ -328,12 +346,9 @@ export function PrototypeNavBar({
 
           {/* With Job Board in the bar, Demo Day moves into Events as its last
               row (production's own DEMO_DAY_LINK), so the row keeps its icons. */}
-          <NavItemWithMenu
-            icon={<EventsIcon />}
-            label="Events"
-            items={jobsInBar ? [...EVENT_LINKS, DEMO_DAY_LINK] : EVENT_LINKS}
-            onNavItemClickHandler={() => {}}
-          />
+          {!eventsInMore && (
+            <NavItemWithMenu icon={<EventsIcon />} label="Events" items={eventLinks} onNavItemClickHandler={() => {}} />
+          )}
 
           {/* Production's own link, icon and title, lifted out of More; the
               href is the prototypes' board, as HIRING_LINK's is. */}
@@ -359,12 +374,22 @@ export function PrototypeNavBar({
             </NavigationMenu.Item>
           )}
 
-          <NavItemWithMenu
-            icon={<MoreIcon />}
-            label="More"
-            items={jobsInBar ? [DEALS_LINK, FOUNDER_GUIDES_LINK] : [JOBS_LINK, DEALS_LINK, FOUNDER_GUIDES_LINK]}
-            onNavItemClickHandler={() => {}}
-          />
+          {eventsInMore ? (
+            /* NavItemWithMenu's own markup, with a two-level body. */
+            <NavigationMenu.Item className={s.menuItem}>
+              <NavigationMenu.Trigger className={s.Trigger}>
+                <MoreIcon /> More
+                <NavigationMenu.Icon className={s.Icon}>
+                  <ChevronDownIcon />
+                </NavigationMenu.Icon>
+              </NavigationMenu.Trigger>
+              <NavigationMenu.Content className={s.Content}>
+                <MoreWithEvents eventLinks={eventLinks} items={moreLinks} />
+              </NavigationMenu.Content>
+            </NavigationMenu.Item>
+          ) : (
+            <NavItemWithMenu icon={<MoreIcon />} label="More" items={moreLinks} onNavItemClickHandler={() => {}} />
+          )}
 
           {/* PL Infra, holding the proposed **Hiring** entry (plInfraLinks.tsx).
               Last in the row and `CPUIcons`, both production's: the desktop bar
@@ -386,7 +411,10 @@ export function PrototypeNavBar({
                 a dropdown, then promotes itself to an overlay on Enter. Here the
                 icon opens that overlay directly; see PrototypeSearchModal. */}
             {searchable && searchField ? (
-              <div className={clsx(local.navSearchSlot, feedbackButton && local.navSearchSlotNarrow)} data-search-anchor>
+              <div
+                className={clsx(local.navSearchSlot, feedbackButton && local.navSearchSlotNarrow)}
+                data-search-anchor
+              >
                 {/* Below tablet-landscape: the glyph box, opening the popover
                     with its own field. */}
                 <button
@@ -562,6 +590,9 @@ export function PrototypeNavBar({
           <NavigationMenu.Positioner
             className={s.Positioner}
             sideOffset={10}
+            /* Centred, More's Events column would drag the list it opened from
+               out from under the pointer; start-aligned, the popup grows right. */
+            align={eventsInMore ? 'start' : 'center'}
             collisionPadding={{ top: 5, bottom: 5, left: 20, right: 20 }}
           >
             <NavigationMenu.Popup className={s.Popup}>
@@ -580,5 +611,77 @@ export function PrototypeNavBar({
 
       <PageCommentMode active={commenting} onExit={() => setCommenting(false)} />
     </header>
+  );
+}
+
+/**
+ * More's body with Events as its first row and a second level behind it. The
+ * Events links open as a column beside the list, inside the same popup rather
+ * than a flyout of their own: the Viewport clips overflow, and Base UI re-sizes
+ * the popup whenever its children change, so the panel grows sideways with the
+ * animation production's menus already use between items.
+ *
+ * Hover is the desktop gesture (pointing at any other row closes it again);
+ * click, Enter and → open it from the keyboard and land on its first link, ←
+ * goes back. Mounted only while More is open, so it always opens collapsed.
+ */
+function MoreWithEvents({ eventLinks, items }: { eventLinks: ISubItem[]; items: ISubItem[] }) {
+  const [open, setOpen] = useState(false);
+  const rowRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLUListElement>(null);
+  const openAndFocus = () => {
+    setOpen(true);
+    requestAnimationFrame(() => panelRef.current?.querySelector<HTMLElement>('a')?.focus());
+  };
+
+  return (
+    <div className={local.cascade}>
+      <ul
+        className={s.GridLinkList}
+        onMouseOver={(e) => setOpen(Boolean((e.target as HTMLElement).closest('[data-events-row]')))}
+      >
+        <li data-events-row>
+          <button
+            ref={rowRef}
+            type="button"
+            className={clsx(subItem.linkCard, local.cascadeRow, open && local.cascadeRowOpen)}
+            aria-expanded={open}
+            onClick={openAndFocus}
+            onKeyDown={(e) => {
+              if (e.key !== 'ArrowRight') return;
+              e.preventDefault();
+              openAndFocus();
+            }}
+          >
+            <EventsIcon />
+            <div className={subItem.linkDetails}>
+              <h3 className={subItem.linkTitle}>Events</h3>
+              <p className={subItem.linkDescription}>Gatherings, the event calendar and Demo Days</p>
+            </div>
+            <ChevronDownIcon className={local.cascadeChevron} aria-hidden="true" />
+          </button>
+        </li>
+        {items.map((item) => (
+          <SubItem key={item.href} {...item} onNavItemClickHandler={() => {}} />
+        ))}
+      </ul>
+      {open && (
+        <ul
+          ref={panelRef}
+          className={clsx(s.GridLinkList, local.cascadePanel)}
+          aria-label="Events"
+          onKeyDown={(e) => {
+            if (e.key !== 'ArrowLeft') return;
+            e.preventDefault();
+            setOpen(false);
+            rowRef.current?.focus();
+          }}
+        >
+          {eventLinks.map((item) => (
+            <SubItem key={item.href} {...item} onNavItemClickHandler={() => {}} />
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

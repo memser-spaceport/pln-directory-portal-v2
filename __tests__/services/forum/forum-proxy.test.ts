@@ -39,10 +39,14 @@ describe('isForumProxyAllowed', () => {
     expect(isForumProxyAllowed('PUT', '/api/v3/posts/263')).toBe(true);
     expect(isForumProxyAllowed('PUT', '/api/v3/posts/263/vote')).toBe(true);
     expect(isForumProxyAllowed('DELETE', '/api/v3/posts/263/vote')).toBe(true);
+    expect(isForumProxyAllowed('DELETE', '/api/v3/posts/263/state')).toBe(true);
   });
 
   it('rejects other methods and paths', () => {
     expect(isForumProxyAllowed('DELETE', '/api/v3/posts/263')).toBe(false);
+    // Restore and purge stay out: only the soft delete is allowed
+    expect(isForumProxyAllowed('PUT', '/api/v3/posts/263/state')).toBe(false);
+    expect(isForumProxyAllowed('DELETE', '/api/v3/posts/263/state/x')).toBe(false);
     expect(isForumProxyAllowed('GET', '/api/v3/users/1/posts')).toBe(false);
     expect(isForumProxyAllowed('POST', '/api/recent')).toBe(false);
     expect(isForumProxyAllowed('GET', '/api/topic/abc')).toBe(false);

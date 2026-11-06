@@ -36,3 +36,14 @@ describe.each([
     await expect(lookup()).resolves.toEqual({ error: { status: 503, statusText: 'Service Unavailable' } });
   });
 });
+
+describe('getTeam', () => {
+  /* LAB-3087: the profile tells an `L0` team (hidden from logged-out visitors) from other refusals by the message. */
+  it("keeps the API's message, so a hidden team can be told apart", async () => {
+    respond(403, JSON.stringify({ statusCode: 403, message: 'Team is inactive' }));
+
+    await expect(getTeam('l0team', {})).resolves.toEqual({
+      error: { status: 403, statusText: 'Service Unavailable', message: 'Team is inactive' },
+    });
+  });
+});

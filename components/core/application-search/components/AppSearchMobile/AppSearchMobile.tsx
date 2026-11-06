@@ -99,6 +99,7 @@ export const AppSearchMobile = ({ isLoggedIn }: Props) => {
     <div className={s.root}>
       <button
         className={s.toggleButton}
+        aria-label="Search"
         onClick={() => {
           // Preserve existing filter parameters when adding searchState
           const currentParams = new URLSearchParams(searchParams.toString());

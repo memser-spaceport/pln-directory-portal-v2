@@ -10,6 +10,7 @@ import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hook
 import { useCurrentUserStore } from '@/services/auth/store';
 
 import { isDemoDayScopePage, useLoginRedirect } from '../../../login/utils';
+import { prefetchPrivyLayer } from '../../../login/components/PrivyLayer/prefetch';
 
 import s from './LoginButton.module.scss';
 
@@ -67,7 +68,14 @@ export const LoginBtn = (props: PropsWithChildren<Props>) => {
 
   return (
     <>
-      <button className={className || s.root} onClick={onLoginClickHandler}>
+      {/* Hover, focus or touch start loading the sign-in system, so the dialog doesn't wait on it (LAB-3092). */}
+      <button
+        className={className || s.root}
+        onClick={onLoginClickHandler}
+        onMouseEnter={prefetchPrivyLayer}
+        onFocus={prefetchPrivyLayer}
+        onTouchStart={prefetchPrivyLayer}
+      >
         {children || 'Sign in'}
       </button>
     </>

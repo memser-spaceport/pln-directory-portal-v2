@@ -183,6 +183,8 @@ describe('McpHint (LAB-3033): no agent yet', () => {
     expect(mockPush).toHaveBeenCalledWith('/settings/mcp');
     expect(mockAnalytics.onHintConnectClicked).toHaveBeenCalledWith({ context: 'search' });
     expect(mockAnalytics.onHintShown).toHaveBeenCalledWith({ context: 'search', connected: false });
+    // Connect is not a dismissal: only ✕ hides the hint (LAB-3109 is by design).
+    expect(mockDismiss['mcp_hint_search']).not.toHaveBeenCalled();
   });
 
   it('forum: the draft-this-post copy', () => {
@@ -325,6 +327,8 @@ describe('McpHint (LAB-3062, LAB-3136): AI Apps page card', () => {
     expect(mockPush).toHaveBeenCalledWith('/settings/mcp');
     expect(mockAnalytics.onHintShown).toHaveBeenCalledWith({ context: 'apps', connected: false, state: 'no_agent' });
     expect(mockAnalytics.onHintConnectClicked).toHaveBeenCalledWith({ context: 'apps' });
+    // Connect is not a dismissal: only ✕ hides the card (LAB-3110 is by design).
+    expect(mockDismiss['mcp_hint_apps']).not.toHaveBeenCalled();
   });
 
   it.each([['read' as const], ['none' as const], [null]])(

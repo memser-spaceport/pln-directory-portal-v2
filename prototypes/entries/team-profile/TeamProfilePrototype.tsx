@@ -17,9 +17,8 @@ import {
   DetailsSectionGreyContentContainer,
   NoDataBlock,
 } from '@/components/common/profile/DetailsSection';
-import { AiSearchView } from '../ai-search/AiSearchView';
 import { AiSearchIcon } from '@/prototypes/components/AiSearchIcon/AiSearchIcon';
-import { buildTeamAiScope, type TeamScopeInput } from './aiSearchScope';
+import { teamAiSearchUrl } from './aiSearchTab';
 import { TagsList } from '@/components/common/profile/TagsList';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
@@ -625,14 +624,19 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
    * because nobody goes to the AI Search page (2 unique visitors in 90 days
    * against 1,998 on /teams): it goes where people already are. Every seat has
    * it — founders asking about their own team, visitors about someone else's.
-   * It opens the AI Search view with the team as a chip in the field.
+   * Since 2026-11-02 it opens the AI Search page (`ai-search-page`, the page
+   * /ai-search ships as on develop) in a NEW TAB, with the team as a chip in
+   * the field; the profile stays open in its own tab. See `aiSearchTab.ts`.
    *
-   * The scope reads the page's own state, so its prompts follow what is drawn
-   * for this seat: no candidates prompt for a member, no followers prompt or
-   * "our" for a visitor, no roles prompt once the roles are gone, no news
-   * prompt on an empty rail.
+   * The scope follows this seat: no candidates prompt for a member, no
+   * followers prompt or "our" for a visitor, no roles prompt once the roles
+   * are gone. The URL carries the seat so the page builds the same scope.
    */
-  const [aiOpen, setAiOpen] = useState(false);
+  const openAiSearch = () =>
+    window.open(
+      teamAiSearchUrl({ view, canSeeCandidates: canSubmitJobs, hasRoles: !!teamRoles }),
+      '_blank',
+    );
   /**
    * "Request an intro to <team>" (LAB-2698, reversed back in at the
    * 2026-09-28 standup). The requester — a founder, an operator, a BD person —
@@ -646,27 +650,6 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
   const intro = useRequestIntro();
   const teamIntroUid = team.id ?? 'protocol-labs';
   const [followersOpen, setFollowersOpen] = useState(false);
-  const scrollToSection = (id: string) =>
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  const aiScope = buildTeamAiScope({
-    teamName: team.name ?? 'this team',
-    logo: teamLogo,
-    members: MOCK_MEMBERS as unknown as TeamScopeInput['members'],
-    roles: teamRoles?.roles ?? null,
-    candidatesFor: (uid) => MOCK_CANDIDATES[uid] ?? [],
-    canSeeCandidates: canSubmitJobs,
-    isTeamView,
-    followers: MOCK_FOLLOWERS,
-    contributions: MOCK_CONTRIBUTIONS,
-    news: displayNews,
-    commentsFor: threadFor,
-    onOpen: (target) => {
-      if (target.startsWith('candidates:')) setCandidatesRole(target.slice('candidates:'.length));
-      else if (target === 'followers') setFollowersOpen(true);
-      else if (target === 'news') openNewsFeed(null);
-      else scrollToSection(`team-${target}`);
-    },
-  });
   /* Ask AI sits in the header's action cluster, not beside the team name: a
      control abutting a 24px title reads as a tag on the name. No fill, no
      outline: it is a text action of the header's own lineage — the exact
@@ -685,7 +668,7 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
       underline={false}
       className={clsx(local.askAiBtn, seatClass)}
       aria-label={`Ask AI about ${team.name}`}
-      onClick={() => setAiOpen(true)}
+      onClick={openAiSearch}
     >
       <AiSearchIcon size={iconSize} />
       <span>Ask AI</span>
@@ -993,7 +976,23 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
                         <div className={local.adminActionsCorner}>
                           <TeamAdminActions
                             teamName={team.name ?? 'this team'}
-                            leading={askAiButton(local.askAiFromTablet)}
+                            leading={
+                              <>
+                                {askAiButton(local.askAiFromTablet)}
+                                {/* Admin seat (a directory admin, not necessarily on the
+                                    team): Follow joins the action row ahead of Edit, as on
+                                    Wellfound's company page seen by its admin. Phone: the
+                                    absolute corner has no room, so it sits by the followers. */}
+                                {view === 'admin' && (
+                                  <FollowPill
+                                    following={following}
+                                    onToggle={handleFollowToggle}
+                                    name={team.name ?? 'this team'}
+                                    className={local.fromTablet}
+                                  />
+                                )}
+                              </>
+                            }
                           />
                         </div>
                         {/* Phone: three actions in the absolute corner run over the
@@ -1006,6 +1005,16 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
                           followers={MOCK_FOLLOWERS}
                           open={followersOpen}
                           onOpenChange={setFollowersOpen}
+                          action={
+                            view === 'admin' ? (
+                              <FollowPill
+                                following={following}
+                                onToggle={handleFollowToggle}
+                                name={team.name ?? 'this team'}
+                                className={local.mobileOnly}
+                              />
+                            ) : undefined
+                          }
                         />
                       </div>
                     )
@@ -1323,12 +1332,6 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
             : undefined
         }
       />
-
-      {/* The AI Search view, opened by "Ask AI about <team>" with the team as
-          its scope — straight to the full screen, past the keyword popover,
-          which has nothing to say about a team you are already on. Every seat
-          has the door; the scope decides what each seat's prompts may read. */}
-      <AiSearchView open={aiOpen} onClose={() => setAiOpen(false)} scope={aiScope} />
 
       {/* Compose and edit. Mounted for anyone on the team's side of the page —
           the compose door is still gated by `canPost`, but a lead or an admin

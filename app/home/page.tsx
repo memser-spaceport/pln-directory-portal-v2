@@ -18,6 +18,9 @@ import { getTeamList } from '@/app/actions/teams.actions';
 import { formatFeaturedData } from '@/utils/home.utils';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { Welcome } from '@/components/page/home/Welcome';
+import { HomeIntro, HomeAbout } from '@/components/page/home/HomeIntro';
+import { buildHomeJsonLd } from '@/utils/home-json-ld';
+import { serializeJsonLd } from '@/utils/json-ld';
 import { DigestEmailHomeLinkCapture } from '@/components/page/home/DigestEmailHomeLinkCapture';
 import { QuickActions } from '@/components/page/home/QuickActions';
 import { TeamNews, AutoMarkNewsNotification, MarkHomeVisited } from '@/components/page/home/TeamNews';
@@ -37,13 +40,45 @@ import {
   codesFromCookiePolicies,
   codesFromCookiePermissions,
 } from '@/components/page/home/QuickActions/utils/resolveQuickActionsState';
+import { SHOW_HOME_V2 } from '@/utils/home-v2';
+import { NewsPage, SignedInHome, SignedOutHome } from '@/components/page/home/HomeV2';
+import { pickThisWeek, THIS_WEEK_RENDER_MAX } from '@/components/page/home/HomeV2/utils/pickThisWeek';
+import { flattenNewestRoles, HOME_ROLES_MAX } from '@/components/page/home/HomeV2/utils/flattenNewestRoles';
+import {
+  HOME_EVENTS_DAYS,
+  HOME_EVENTS_LIMIT,
+  selectUpcomingEvents,
+} from '@/components/page/home/HomeV2/utils/upcomingEvents';
+import { getJobsList } from '@/app/actions/jobs.actions';
+import { getUpcomingEvents } from '@/services/events/events.service';
+import { getPortfolioTeams } from '@/services/explore-pl-network/portfolio.service';
+import { getProjectFocusAreaCounts } from '@/services/focus-areas/project-focus-area-counts.service';
+import { getTeamFocusAreaCounts } from '@/services/focus-areas/team-focus-area-counts.service';
+import { FOCUS_AREA_DIRECTORY_TITLE } from '@/components/page/home/HomeV2/utils/focusAreaCards';
+import { mergePortfolio } from '@/components/page/explore-pl-network/data/mergePortfolio';
+import { PORTFOLIO_FALLBACK } from '@/components/page/explore-pl-network/data/portfolio';
+import type { IHomeEvents, IHomeRoles } from '@/types/home.types';
 
 type HomeProps = {
-  searchParams: Promise<{ news?: string }>;
+  searchParams: Promise<{ news?: string; view?: string }>;
 };
 
+/** `?view=news`: the new Home's news page (LAB-3126). Ignored while the flag is off. */
+const NEWS_VIEW = 'news';
+/** The focus-area cards' directory titles, whose team totals the cards show (LAB-3162). */
+const FOCUS_AREA_TITLES = Object.values(FOCUS_AREA_DIRECTORY_TITLE);
+
 export default async function Home(props: HomeProps) {
-  const { news } = await props.searchParams;
+  const { news, view } = await props.searchParams;
+
+  // The new Home (LAB-3070): signed out, the story page (LAB-3072); signed in, the member page (LAB-3125); either way,
+  // `?view=news` is the news page (LAB-3126).
+  if (SHOW_HOME_V2) {
+    const { isLoggedIn } = await getCookiesFromHeaders();
+    if (view === NEWS_VIEW) return renderNewsPage(Boolean(isLoggedIn), news);
+    return isLoggedIn ? renderSignedInHome(news) : renderSignedOutHome(news);
+  }
+
   const {
     isLoggedIn,
     isError,
@@ -66,8 +101,14 @@ export default async function Home(props: HomeProps) {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger -- JSON-LD from serializeJsonLd, which escapes it for a script tag
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(buildHomeJsonLd()) }}
+      />
       <div className={styles.home}>
         <div className={styles.home__cn}>
+          <HomeIntro />
           {!isLoggedIn && (
             <div className={styles.home__cn__welcome}>
               <Welcome teamCount={teamsCount} />
@@ -89,6 +130,7 @@ export default async function Home(props: HomeProps) {
           <div className={styles.home__cn__focusarea}>
             <FocusAreaSection focusAreas={focusAreas} userInfo={userInfo} />
           </div>
+          {!isLoggedIn && <HomeAbout />}
           <ScrollToTop pageName="Home" userInfo={userInfo} />
         </div>
       </div>
@@ -99,6 +141,214 @@ export default async function Home(props: HomeProps) {
     </>
   );
 }
+
+/** The signed-out story page: the mission is its only `<h1>`, so neither HomeIntro nor HomeAbout renders here. */
+async function renderSignedOutHome(news?: string) {
+  const data = await getSignedOutPageData(news);
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger -- JSON-LD from serializeJsonLd, which escapes it for a script tag
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(buildHomeJsonLd()) }}
+      />
+      <DigestEmailHomeLinkCapture />
+      <SignedOutHome {...data} />
+      <HuskyDialog isLoggedIn={false} />
+      <HuskyDiscover isLoggedIn={false} />
+      <MarkHomeVisited />
+    </>
+  );
+}
+
+/**
+ * The signed-in member page: Network Updates beside the rail, then the focus areas. No Quick Actions. The `<h1>` is
+ * HomeIntro's visually hidden one, as on the previous Home: this page draws no title of its own.
+ */
+async function renderSignedInHome(news?: string) {
+  const { userInfo, ...data } = await getSignedInPageData(news);
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger -- JSON-LD from serializeJsonLd, which escapes it for a script tag
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(buildHomeJsonLd()) }}
+      />
+      <HomeIntro />
+      <DigestEmailHomeLinkCapture />
+      <SignedInHome {...data} />
+      <ScrollToTop pageName="Home" userInfo={userInfo} />
+      <HuskyDialog isLoggedIn />
+      <HuskyDiscover isLoggedIn />
+      <AutoMarkNewsNotification />
+      <MarkHomeVisited />
+    </>
+  );
+}
+
+/**
+ * The news page, signed in or out: the network's news only, in a grid. Its `<h1>` is "Network news", so HomeIntro's
+ * hidden one is left out. No Home JSON-LD: this is a view of /home, not the home page itself.
+ */
+async function renderNewsPage(isLoggedIn: boolean, news?: string) {
+  const { feed, unavailable } = await getNewsPageData(news);
+
+  return (
+    <>
+      <NewsPage feed={feed} signedIn={isLoggedIn} unavailable={unavailable} />
+      {isLoggedIn && <AutoMarkNewsNotification />}
+      <MarkHomeVisited />
+    </>
+  );
+}
+
+const settled = <T,>(result: PromiseSettledResult<T>): T | null =>
+  result.status === 'fulfilled' ? result.value : null;
+
+async function getNewestRoles(): Promise<IHomeRoles | null> {
+  // The board's public list, called as `/api/jobs/list` calls it; no token, as it is the same list for everyone.
+  const result = await getJobsList('sort=newest');
+  if ('isError' in result) return null;
+  return { roles: flattenNewestRoles(result.data.groups ?? [], HOME_ROLES_MAX), total: result.data.totalRoles ?? 0 };
+}
+
+async function getRailEvents(): Promise<IHomeEvents> {
+  const { events, total } = await getUpcomingEvents({ days: HOME_EVENTS_DAYS, limit: HOME_EVENTS_LIMIT });
+  return { events: selectUpcomingEvents(events, Date.now()), total };
+}
+
+/**
+ * The signed-out story page's data, and only what it shows (no featured, discover or focus-area calls), in parallel.
+ * Each source fails on its own: no news leaves This week empty, a failed roles or events call leaves that section out,
+ * and a failed portfolio call draws the map from the fallback file. Nothing here sends the page to `<Error/>`.
+ */
+const getSignedOutPageData = async (deepLinkedNewsUid?: string) => {
+  const [
+    newsResult,
+    rolesResult,
+    eventsResult,
+    portfolioResult,
+    deepLinkedResult,
+    projectCountsResult,
+    teamCountsResult,
+  ] = await Promise.allSettled([
+    getTeamNewsGroupedByFocusArea({}),
+    getNewestRoles(),
+    getRailEvents(),
+    getPortfolioTeams(),
+    deepLinkedNewsUid ? getTeamNewsItemByUid(deepLinkedNewsUid) : Promise.resolve(null),
+    getProjectFocusAreaCounts(),
+    getTeamFocusAreaCounts(FOCUS_AREA_TITLES),
+  ]);
+
+  const newsResponse = settled(newsResult);
+  const newsItems = newsResponse
+    ? [...(newsResponse.groups ?? []).flatMap((group) => group.items), ...(newsResponse.allTabExtraItems ?? [])]
+    : [];
+
+  return {
+    stories: pickThisWeek(newsItems, THIS_WEEK_RENDER_MAX),
+    // As the news page counts its stories (unique uids across the groups and the All tab's extras).
+    newsCount: new Set(newsItems.map((item) => item.uid)).size,
+    deepLinkedItem: settled(deepLinkedResult),
+    roles: settled(rolesResult),
+    events: settled(eventsResult),
+    portfolio: mergePortfolio(PORTFOLIO_FALLBACK, settled(portfolioResult) ?? []),
+    projectFocusAreaCounts: settled(projectCountsResult),
+    teamFocusAreaCounts: settled(teamCountsResult),
+  };
+};
+
+/**
+ * The signed-in member page's data, in parallel: the feed's own server fetches as on the previous Home (the grouped
+ * news, For You's match, Popular this week, the deep-linked story, the digest settings), plus the rail's roles and
+ * events and the portfolio for the focus areas, as signed out. No Quick Actions, so no `/me/access` call, and no
+ * featured, discover or focus-area calls. Each source fails on its own: no news leaves the stream empty, a failed
+ * roles or events call leaves that section out, and a failed portfolio call uses the fallback file.
+ */
+const getSignedInPageData = async (deepLinkedNewsUid?: string) => {
+  const { userInfo, authToken } = await getCookiesFromHeaders();
+
+  // Seeded server-side, as on the previous Home, so the digest settings are right on first paint.
+  const digestSettingsPromise: Promise<ForumDigestSettings | null> = userInfo?.uid
+    ? fetch(`${process.env.DIRECTORY_API_URL}/v1/notification/settings/${userInfo.uid}/forum`, {
+        headers: { contentType: 'application/json', Authorization: `Bearer ${authToken}` },
+      })
+        .then((res) => (res.ok ? res.json() : null))
+        .catch(() => null)
+    : Promise.resolve(null);
+
+  const [
+    newsResult,
+    popularResult,
+    digestResult,
+    deepLinkedResult,
+    rolesResult,
+    eventsResult,
+    portfolioResult,
+    projectCountsResult,
+    teamCountsResult,
+  ] = await Promise.allSettled([
+    getTeamNewsGroupedByFocusArea({}, authToken),
+    getTeamNewsPopular(undefined, authToken),
+    digestSettingsPromise,
+    deepLinkedNewsUid ? getTeamNewsItemByUid(deepLinkedNewsUid) : Promise.resolve(null),
+    getNewestRoles(),
+    getRailEvents(),
+    getPortfolioTeams(),
+    getProjectFocusAreaCounts(),
+    getTeamFocusAreaCounts(FOCUS_AREA_TITLES),
+  ]);
+
+  const newsResponse = settled(newsResult);
+  const forYouMatch = resolveForYouMatch(newsResponse, SHOW_NEWS_PREFERENCES);
+
+  return {
+    userInfo,
+    feed: {
+      groups: newsResponse?.groups ?? [],
+      allTabExtraItems: newsResponse?.allTabExtraItems ?? [],
+      forYouTeamUids: forYouMatch.teamUids,
+      forYouTags: forYouMatch.tags,
+      popularItems: settled(popularResult)?.items ?? [],
+      initialDigestSettings: settled(digestResult),
+      deepLinkedItem: settled(deepLinkedResult),
+    },
+    roles: settled(rolesResult),
+    events: settled(eventsResult),
+    portfolio: mergePortfolio(PORTFOLIO_FALLBACK, settled(portfolioResult) ?? []),
+    projectFocusAreaCounts: settled(projectCountsResult),
+    teamFocusAreaCounts: settled(teamCountsResult),
+  };
+};
+
+/**
+ * The news page's data: the Home feed's 14-day grouped news (the same source the stream reads), For You's match for a
+ * member, and a deep-linked story. A failed news call gives an empty page that says news is unavailable, never
+ * `<Error/>`.
+ */
+const getNewsPageData = async (deepLinkedNewsUid?: string) => {
+  const { authToken } = await getCookiesFromHeaders();
+  const [newsResult, deepLinkedResult] = await Promise.allSettled([
+    getTeamNewsGroupedByFocusArea({}, authToken),
+    deepLinkedNewsUid ? getTeamNewsItemByUid(deepLinkedNewsUid) : Promise.resolve(null),
+  ]);
+  const newsResponse = settled(newsResult);
+  const forYouMatch = resolveForYouMatch(newsResponse, SHOW_NEWS_PREFERENCES);
+
+  return {
+    unavailable: newsResponse === null,
+    feed: {
+      groups: newsResponse?.groups ?? [],
+      allTabExtraItems: newsResponse?.allTabExtraItems ?? [],
+      forYouTeamUids: forYouMatch.teamUids,
+      forYouTags: forYouMatch.tags,
+      deepLinkedItem: settled(deepLinkedResult),
+    },
+  };
+};
 
 const getPageData = async (deepLinkedNewsUid?: string) => {
   const { isLoggedIn, userInfo, authToken } = await getCookiesFromHeaders();
@@ -302,10 +552,13 @@ const HOME_METADATA: Metadata = listingPageMetadata({
  *  back to the site card, which is what every non-news visit to /home gets
  *  anyway. */
 export async function generateMetadata(props: HomeProps): Promise<Metadata> {
-  const { news } = await props.searchParams;
+  const { news, view } = await props.searchParams;
 
   if (!news) {
-    return HOME_METADATA;
+    // The news page names itself in the tab; its canonical stays /home, as it is a view of the same feed.
+    return SHOW_HOME_V2 && view === NEWS_VIEW
+      ? { ...HOME_METADATA, title: 'Network news | Protocol Labs Directory' }
+      : HOME_METADATA;
   }
 
   const item = await getTeamNewsItemByUid(news);

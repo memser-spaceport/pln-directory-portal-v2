@@ -61,7 +61,13 @@ export function TeamNewsRail({
 
   const isMobile = useIsMobile();
   const { currentUser, isHydrated } = useCurrentUserStore();
-  const { onTeamNewsCardClicked, onTeamNewsViewAllClicked, onTeamNewsShowMoreClicked } = useTeamNewsAnalytics();
+  const {
+    onTeamNewsCardClicked,
+    onTeamNewsViewAllClicked,
+    onTeamNewsShowMoreClicked,
+    onTeamNewsCreateClicked,
+    onTeamNewsCreatePostSubmitted,
+  } = useTeamNewsAnalytics();
   const createPost = useCreateTeamNewsPost(teamUid);
 
   const searchParams = useSearchParams();
@@ -135,17 +141,21 @@ export function TeamNewsRail({
         body: post.body || undefined,
         url: post.url,
       });
+      onTeamNewsCreatePostSubmitted(teamUid, teamName, 'team-profile-rail');
       setItems((prev) => [item, ...prev]);
       setTotal((prev) => prev + 1);
       setPostedUid(item.uid);
     },
-    [createPost],
+    [createPost, onTeamNewsCreatePostSubmitted, teamUid, teamName],
   );
 
   const detailItem =
     modalState.kind === 'detail' ? (previewItems.find((item) => item.uid === modalState.uid) ?? null) : null;
 
-  const openCompose = () => setComposeOpen(true);
+  const openCompose = () => {
+    onTeamNewsCreateClicked(teamUid, teamName, 'team-profile-rail');
+    setComposeOpen(true);
+  };
   const posterUid = memberUid || currentUser?.uid;
 
   if (!hasNews && !canPostNow) {

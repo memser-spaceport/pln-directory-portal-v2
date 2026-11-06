@@ -40,6 +40,24 @@ components/core/login/
 └── index.ts              # Barrel exports
 ```
 
+## When Privy loads (LAB-3092)
+
+Privy's SDK is the largest script on the site, so it is not part of every page.
+`AuthBox` is always mounted. It holds the `#login` hash gates, `LoginTokenRedeemer` and `AuthInvalidUser`, none of which needs Privy.
+The Privy layer (`PrivyLayer`: `PrivyProvider`, `PrivyModals`, `AuthInfo`) is a separate chunk. It loads when:
+
+- the server says the viewer is signed in;
+- the hash is `#login`;
+- the address carries Privy's OAuth return parameters (`privy_oauth_code`, `privy_oauth_state`, `privy_oauth_provider`). Google and GitHub sign-in leave the site and come back with these, and Privy completes the sign-in from them;
+- or a Privy request (`auth:init-login`, `auth:link-account`, `auth:update-email`, `auth:logout`) reaches `authEvents` with no handler registered.
+
+Such a request waits in the bus's queue (`privyDemand` records that Privy is needed). Once `PrivyModals` has registered its handlers and Privy is `ready`, `authEvents.flushPending()` re-emits each queued request, in order.
+The layer stays mounted once loaded.
+`AuthInfo` starts its sequence only once Privy is `ready`.
+Hovering, focusing or touching Sign in imports the layer's chunk early (`PrivyLayer/prefetch.ts`).
+
+Rollback: building with `NEXT_PUBLIC_EAGER_PRIVY=true` loads the layer for every visitor, as before.
+
 ## Login Flow
 
 ### Step 1: User Initiates Login
@@ -584,13 +602,16 @@ export interface AuthEventMap {
   'auth:login-error': { error: string };
   'auth:link-success': { user: any; linkMethod: string; linkedAccount: any };
   'auth:link-error': { error: string };
-  'auth:invalid-email': AuthErrorCode;
+  'auth:invalid-email': InvalidEmailPayload;
   'auth:link-account': LinkMethod;
   'auth:logout': void;
   'auth:logout-success': void;
   'auth:update-email': { newEmail: string };
   'auth:new-accounts': string;
 }
+
+// The bare code, or the code with the email that was tried (LAB-3127). Read either shape with readInvalidEmailPayload.
+export type InvalidEmailPayload = AuthErrorCode | { code: AuthErrorCode; email?: string };
 
 // Usage - Emitting events
 authEvents.emit('auth:login-success', { user });
@@ -626,6 +647,7 @@ const isLoggedIn = authStatus.isLoggedIn();
 |------|-------------|--------------|
 | `unexpected_error` | Server error (500/401) | "Unexpected error occurred" |
 | `rejected_access_level` | Access denied (403) | "Access denied" with registration link |
+| `email_not_found` | No member for the email (404) | "This email isn't in the directory yet", naming the email; Sign up or Try another email |
 | `linked_to_another_user` | Email already linked | Opens LinkAccountModal |
 | `exited_link_flow` | User cancelled email linking | Cleans up and shows error |
 | `invalid_credentials` | Invalid auth credentials | Cleans up and shows error |
@@ -637,11 +659,25 @@ const isLoggedIn = authStatus.isLoggedIn();
 // PrivyModals emits error via typed event
 authEvents.emit('auth:invalid-email', 'unexpected_error');
 
+// email_not_found carries the email the visitor signed in with, read before Privy's logout() clears the user
+authEvents.emit('auth:invalid-email', { code: 'email_not_found', email: 'name@example.com' });
+
 // AuthInvalidUser listens
-authEvents.on('auth:invalid-email', (errorCode) => {
-  showErrorModal(errorCode);
+authEvents.on('auth:invalid-email', (payload) => {
+  const { code, email } = readInvalidEmailPayload(payload); // email is undefined when unknown or blank
+  showErrorModal(code, email);
 });
 ```
+
+### Email not found dialog
+
+`AuthInvalidUser` keeps its shell (`ModalBase`, warning icon, 400px) for `email_not_found` and changes the content:
+title "This email isn't in the directory yet"; body "No member profile uses **name@example.com**. If you're new,
+sign up and we'll set up your profile. If you're a member, try the email on your profile." (with no email: "No member
+profile uses this email. …"). Buttons: **Sign up** (`router.push('/sign-up?returnTo=<path+search>')`), **Try another
+email** (link; goes through the `#login` gate like Sign in, so `AuthInfo` creates a fresh state uid, clears
+`localStorage` and emits `auth:init-login`), and ✕. There is no Cancel or Contact Support here; on a demo day page the
+Access Denied dialog still replaces it.
 
 ## Cookies Reference
 
@@ -680,7 +716,7 @@ Browser callers use `services/session.service.ts` (`establishSession`, single-fl
 | `auth:login-error` | `{ error }` | usePrivyWrapper | PrivyModals |
 | `auth:link-success` | `{ user, linkMethod, linkedAccount }` | usePrivyWrapper | PrivyModals |
 | `auth:link-error` | `{ error }` | usePrivyWrapper | PrivyModals |
-| `auth:invalid-email` | `AuthErrorCode` | PrivyModals | AuthInvalidUser |
+| `auth:invalid-email` | `AuthErrorCode` or `{ code, email? }` | PrivyModals, UserInfoChecker | AuthInvalidUser, AuthBox |
 | `auth:link-account` | `LinkMethod` | Settings pages | PrivyModals |
 | `auth:logout` | `void` | Logout buttons | PrivyModals |
 | `auth:logout-success` | `void` | usePrivyWrapper | PrivyModals |

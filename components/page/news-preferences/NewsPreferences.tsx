@@ -8,9 +8,15 @@
  *   Topics ................. news tags (focus-area slugs used by news,
  *                            `GET /v1/team-news/tags`) as `#slug` chips in
  *                            themes, with a search (LAB-3023). A member who
- *                            never saved starts with their teams' focus areas
+ *                            never saved starts with their teams' focus areas.
+ *                            A long theme shows its first tags and "Show N more"
+ *                            (LAB-3039, design LAB-3038)
  *   Teams you follow ....... FollowButton; an unfollowed row stays until the page
- *                            is left, so it can be undone in place
+ *                            is left, so it can be undone in place. A member who
+ *                            follows none gets "Teams to follow" instead
+ *                            (LAB-3037, design LAB-3038 v2): 4 teams from
+ *                            `GET /v1/team-news/follow-suggestions`; a followed
+ *                            one stays in place and counts in the title
  *
  * Arriving from the digest or the feed (`from`) outlines the biggest gap until
  * the first change: topics but no followed teams → Teams you follow, else Topics.
@@ -31,6 +37,9 @@ import { useNewsTags } from '@/services/team-news/hooks/useNewsTags';
 import { useFollowedTeams } from '@/services/follow/hooks/useFollowedTeams';
 import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
 import { followedTeamUidsQueryKey } from '@/services/follow/hooks/useFollowedTeamUids';
+import { useSuggestedTeamsToFollow } from '@/services/follow/hooks/useSuggestedTeamsToFollow';
+import { stripFollowerCountFromReason } from '@/components/page/home/TeamNews/components/NewsRail/components/TeamsToFollowCard';
+import type { ISuggestedTeam } from '@/types/team-news.types';
 import { toast } from '@/components/core/ToastContainer';
 import { triggerLoader } from '@/utils/common.utils';
 import { CloseIcon, SearchIcon } from '@/components/icons';
@@ -40,6 +49,9 @@ import { groupNewsTags } from './newsTagThemes';
 import s from './NewsPreferences.module.scss';
 
 type Gap = 'teams' | 'tags';
+
+/** Tags a theme shows before "Show N more" (LAB-3038: per theme, not for the whole list). */
+export const TAGS_PER_THEME = 8;
 type Saved = null | 'tags' | 'teams';
 
 interface Props {
@@ -71,9 +83,17 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
   // list lacks them (no recent news), so removing one can be undone in place.
   const [pinned] = useState<string[]>(() => initialTags);
   const [query, setQuery] = useState('');
+  // Tags toggled in this visit: like the picks, they show past the limit, so a
+  // chip keeps its place after it's turned off.
+  const [toggled, setToggled] = useState<Set<string>>(() => new Set());
+  const [openThemes, setOpenThemes] = useState<Set<string>>(() => new Set());
   const searchRef = useRef<HTMLInputElement>(null);
   const [unfollowed, setUnfollowed] = useState<Set<string>>(() => new Set());
   const [pendingTeam, setPendingTeam] = useState<string | null>(null);
+  // Suggestions the member followed on this page (kept after an unfollow, so the
+  // row stays in place), and which of them they follow now.
+  const [followedHere, setFollowedHere] = useState<ISuggestedTeam[]>([]);
+  const [followingHere, setFollowingHere] = useState<Set<string>>(() => new Set());
   const [touched, setTouched] = useState(false);
   const [saved, setSaved] = useState<Saved>(null);
 
@@ -103,6 +123,14 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
   }, [saved]);
 
   const follows = useMemo(() => followedTeams ?? [], [followedTeams]);
+  // Suggest while the member follows nothing they didn't follow here, so the
+  // list stays put after a follow and they can pick a few in a row.
+  const suggesting = !followsPending && follows.every((t) => followedHere.some((h) => h.uid === t.uid));
+  const { suggestions: suggested } = useSuggestedTeamsToFollow({ currentUserUid: uid, enabled: suggesting, limit: 4 });
+  // The backend drops followed teams from a refetch: keep the ones followed here.
+  const suggestions = suggesting
+    ? [...suggested, ...followedHere.filter((h) => !suggested.some((t) => t.uid === h.uid))]
+    : [];
   const gap: Gap = tags.length > 0 && follows.length === 0 ? 'teams' : 'tags';
   const arriving = from !== 'settings' && !touched && !followsPending;
 
@@ -123,6 +151,34 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
     return [...new Set([...pinned, ...listed])];
   }, [tagGroups, pinned]);
   const themes = useMemo(() => groupNewsTags(allTags, query), [allTags, query]);
+  const searching = query.trim().length > 0;
+
+  // What each theme shows, and how many tags the limit hides. A search shows
+  // every match; a picked or toggled tag always shows.
+  const view = useMemo(
+    () =>
+      themes.map((theme) => {
+        if (searching || openThemes.has(theme.title) || theme.slugs.length <= TAGS_PER_THEME) {
+          return { ...theme, visible: theme.slugs, hidden: 0 };
+        }
+        const visible = theme.slugs.filter((slug, i) => i < TAGS_PER_THEME || tags.includes(slug) || toggled.has(slug));
+        // "Show 1 more" takes the room of the tag it hides: show that tag instead.
+        if (theme.slugs.length - visible.length < 2) return { ...theme, visible: theme.slugs, hidden: 0 };
+        return { ...theme, visible, hidden: theme.slugs.length - visible.length };
+      }),
+    [themes, searching, openThemes, tags, toggled],
+  );
+
+  const toggleTheme = (title: string) => {
+    const open = !openThemes.has(title);
+    if (open) analytics.onNewsPreferencesThemeExpanded({ theme: title, from });
+    setOpenThemes((current) => {
+      const next = new Set(current);
+      if (open) next.add(title);
+      else next.delete(title);
+      return next;
+    });
+  };
 
   const saveTags = (next: string[]) => {
     const previous = tags;
@@ -140,6 +196,7 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
   const toggleTag = (slug: string) => {
     const on = tags.includes(slug);
     analytics.onNewsPreferencesTagToggled({ tag: slug, on: !on, from });
+    setToggled((current) => new Set(current).add(slug));
     saveTags(on ? tags.filter((t) => t !== slug) : [...tags, slug]);
   };
 
@@ -169,6 +226,34 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
     setSaved('teams');
   };
 
+  const toggleSuggestion = async (team: ISuggestedTeam) => {
+    if (pendingTeam) return;
+    const following = followingHere.has(team.uid);
+    const flip = (set: Set<string>) => {
+      const nextSet = new Set(set);
+      if (nextSet.has(team.uid)) nextSet.delete(team.uid);
+      else nextSet.add(team.uid);
+      return nextSet;
+    };
+    setTouched(true);
+    setPendingTeam(team.uid);
+    setFollowingHere(flip); // optimistic
+    setFollowedHere((list) => (list.some((t) => t.uid === team.uid) ? list : [...list, team]));
+    analytics.onNewsPreferencesFollowToggled({ teamUid: team.uid, following: !following, from, suggested: true });
+    const result = await toggleFollowRequest({ teamUid: team.uid, action: following ? 'unfollow' : 'follow' }).catch(
+      () => null,
+    );
+    setPendingTeam(null);
+    if (!result) {
+      setFollowingHere(flip); // revert
+      toast.error('Could not update this team. Please try again.');
+      analytics.onNewsPreferencesSaveFailed({ section: 'teams', teamUid: team.uid });
+      return;
+    }
+    queryClient.invalidateQueries({ queryKey: followedTeamUidsQueryKey(uid) });
+    setSaved('teams');
+  };
+
   const SavedNote = () => (
     <span className={s.saved} role="status">
       <CheckIcon /> Saved
@@ -193,7 +278,8 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
     );
   };
 
-  const followingCount = follows.filter((t) => !unfollowed.has(t.uid)).length;
+  const followingCount = suggesting ? followingHere.size : follows.filter((t) => !unfollowed.has(t.uid)).length;
+  const showCount = suggesting ? followingHere.size > 0 : follows.length > 0;
 
   return (
     <div className={formCss.root}>
@@ -273,14 +359,33 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
                 )}
               </div>
               <div className={s.themes} role="group" aria-label="Topics">
-                {themes.map((theme) => (
-                  <div key={theme.title} className={s.theme} role="group" aria-label={theme.title}>
-                    <span className={s.themeTitle} aria-hidden="true">
-                      {theme.title}
-                    </span>
-                    <div className={s.chips}>{theme.slugs.map(renderTagChip)}</div>
-                  </div>
-                ))}
+                {view.map((theme) => {
+                  const open = openThemes.has(theme.title);
+                  const long = !searching && theme.slugs.length > TAGS_PER_THEME + 1;
+                  return (
+                    <div key={theme.title} className={s.theme} role="group" aria-label={theme.title}>
+                      <span className={s.themeTitle} aria-hidden="true">
+                        {theme.title}
+                      </span>
+                      <div className={s.chips}>
+                        {theme.visible.map(renderTagChip)}
+                        {long && (open || theme.hidden > 0) && (
+                          <button
+                            type="button"
+                            className={s.moreLink}
+                            aria-expanded={open}
+                            aria-label={
+                              open ? `Show fewer ${theme.title} tags` : `Show ${theme.hidden} more ${theme.title} tags`
+                            }
+                            onClick={() => toggleTheme(theme.title)}
+                          >
+                            {open ? 'Show less' : `Show ${theme.hidden} more`}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
                 {themes.length === 0 && <p className={clsx(s.emptyLine, s.noMatch)}>No tags match “{query.trim()}”.</p>}
               </div>
             </>
@@ -294,13 +399,13 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
       {/* Teams you follow */}
       <div ref={refs.teams} className={clsx(toggleCss.root, s.card, lit('teams') && s.cardHighlight)}>
         <div className={clsx(toggleCss.header, s.cardHeader)}>
-          Teams you follow{follows.length > 0 && ` · ${followingCount}`}
+          Teams you follow{showCount && ` · ${followingCount}`}
           {saved === 'teams' && <SavedNote />}
         </div>
         <div className={toggleCss.content}>
           {lit('teams') && <p className={s.arrivalNote}>Follow teams to see their news in {arrivalWhere}.</p>}
           <div className={toggleCss.desc}>News from these teams shows up in For You and your digest.</div>
-          {followsPending ? null : follows.length > 0 ? (
+          {followsPending ? null : !suggesting ? (
             <ul className={s.teams}>
               {follows.map((t) => {
                 const following = !unfollowed.has(t.uid);
@@ -332,13 +437,60 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
                 );
               })}
             </ul>
-          ) : (
+          ) : suggestions.length === 0 ? (
             <p className={s.emptyLine}>
               You don&apos;t follow any teams yet.{' '}
               <Link href="/teams" className={s.inlineLink}>
                 See teams to follow
               </Link>
             </p>
+          ) : (
+            followingHere.size === 0 && <p className={s.emptyLine}>You don&apos;t follow any teams yet.</p>
+          )}
+          {suggestions.length > 0 && (
+            <section className={s.suggest} aria-labelledby="news-preferences-teams-to-follow">
+              <div className={s.suggestHead}>
+                <h6 id="news-preferences-teams-to-follow" className={s.suggestTitle}>
+                  Teams to follow
+                </h6>
+                <span className={s.suggestNote}>From the focus areas of your team</span>
+              </div>
+              <ul className={s.teams}>
+                {suggestions.map((t) => {
+                  // The backend's reason starts with what the team shares with the member's (e.g. a focus area).
+                  const subtitle = stripFollowerCountFromReason(t.reason || '');
+                  return (
+                    <li key={t.uid} className={s.team}>
+                      {t.logo ? (
+                        <img src={t.logo} alt="" width={32} height={32} className={s.teamLogo} />
+                      ) : (
+                        <span className={s.teamLogo} aria-hidden="true" />
+                      )}
+                      <div className={s.teamText}>
+                        <Link href={`/teams/${t.uid}`} className={s.teamName}>
+                          {t.name}
+                        </Link>
+                        {subtitle && (
+                          <span className={s.teamMeta} title={subtitle}>
+                            {subtitle}
+                          </span>
+                        )}
+                      </div>
+                      <FollowButton
+                        following={followingHere.has(t.uid)}
+                        name={t.name}
+                        size="compact"
+                        disabled={pendingTeam === t.uid}
+                        onClick={() => toggleSuggestion(t)}
+                      />
+                    </li>
+                  );
+                })}
+              </ul>
+              <Link href="/teams" className={clsx(s.inlineLink, s.suggestMore)}>
+                See all teams
+              </Link>
+            </section>
           )}
         </div>
       </div>

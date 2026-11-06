@@ -92,7 +92,16 @@ const Header = (props: IHeader) => {
         <div className="header__details">
           <div className="header__details__specifics">
             <div className="header__details__specifics__hdr">
-              <Tooltip asChild content={name} trigger={<h1 className="header__details__specifics__name">{name}</h1>} />
+              <Tooltip
+                asChild
+                content={name}
+                trigger={<h1 className="header__details__specifics__name">{name}</h1>}
+                mobileTrigger={
+                  <p className="header__details__specifics__name" role="heading" aria-level={1}>
+                    {name}
+                  </p>
+                }
+              />
             </div>
             <p className="header__details__specifics__desc">{tagline}</p>
           </div>

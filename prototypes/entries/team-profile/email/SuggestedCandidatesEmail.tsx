@@ -15,7 +15,7 @@ import notes from '../../job-board/email/ApplicationEmailPreview.module.scss';
 
 import {
   suggestionMatch,
-  suggestionWhy,
+  suggestionWhyFact,
   type RoleCriterion,
   type RoleSuggested,
 } from '../mocks';
@@ -52,9 +52,9 @@ interface Props {
  * page — nobody did anything — so, unlike an application, nothing brings a
  * lead to the Suggested tab. This is that door. It is one of three: this, the
  * bell notification for the same event, and the owner's count line on the
- * role row ("3 applicants · 4 suggested"). All three land on the same place.
+ * role row ("3 applicants · 5 suggested"). All three land on the same place.
  *
- * **The subject is the count and the role.** "4 suggested candidates for
+ * **The subject is the count and the role.** "5 suggested candidates for
  * Senior Distributed Systems Engineer" — the lead triaging an inbox needs to
  * know it is about hiring, for which role, and roughly how much. Names are the
  * body's job: a subject that leads with one name reads as that person writing.
@@ -63,14 +63,19 @@ interface Props {
  * tail, the half the lead can guess (the application email makes the same
  * trade and says so).
  *
- * **At most three cards, and each card is the link.** Photo, name, the band
- * (the page's own word — Strong / Good match, never a number, lesson 26), the
- * current role, and one line of why. A card opens the Candidates page on that
- * person; there is no "Review candidates" button under them, because three
- * cards already are three buttons and a fourth that goes nearly the same
- * place splits the click. The rest are one link, "and N more matches", to the
- * same list with nobody picked. What each person is missing is the page's
- * job, where the whole checklist and its evidence sit beside the profile.
+ * **At most three cards, and each card is the link.** Photo + full name and
+ * the band (the page's own word — Strong / Good match, never a number,
+ * lesson 26); then title · company, location; then ONE why line — a fact
+ * from their profile (`suggestionWhyFact`: a strong network tie wins, else the
+ * evidence behind the role's most important met requirement), never the
+ * requirement's text and never a "strength" label; then "N of M
+ * requirements" and "View profile →". The checklist ("Why we suggested", the
+ * ticks, faded met items) was cut 2026-11-05: three near-identical lists made
+ * the cards indistinguishable. What each person is missing is the page's job.
+ *
+ * **One number.** The lede's total and the button's ("All 5 matches for this
+ * role") are the same `people.length`; the lede adds "Here are the strongest
+ * 3" only when there are more than three.
  *
  * **The page is behind sign-in.** There is no public candidate page (Polina,
  * LAB-2809), so a card a signed-out lead taps goes through sign-in first and
@@ -154,7 +159,8 @@ export function SuggestedCandidatesEmail({
               ) : (
                 <strong>{roleTitle}</strong>
               )}{' '}
-              role at {teamName}. They haven’t applied.
+              role at {teamName}.{rest > 0 && ` Here are the strongest ${top.length}.`}{' '}
+              {count === 1 ? 'They haven’t' : 'None have'} applied yet.
             </p>
             {/* Which role, in a sentence from the posting (review 2026-10-13): a
                 team with several similar titles can't tell them apart by name. */}
@@ -163,30 +169,46 @@ export function SuggestedCandidatesEmail({
             <ul className={s.cards}>
               {top.map((p) => {
                 const match = suggestionMatch(p, criteria);
+                const why = suggestionWhyFact(p, criteria);
                 return (
                   <li key={p.id}>
                     <a className={s.card} href={hrefFor(p.id)}>
-                      <img className={s.avatar} src={p.avatar} alt="" width={40} height={40} />
-                      <span className={s.personText}>
-                        <span className={s.nameLine}>
-                          <span className={s.name}>{p.name}</span>
-                          <MatchBadge band={match.band} />
+                      {/* Who, first: photo + full name, so three cards for one
+                          role read as three people (2026-11-05). */}
+                      <span className={s.head}>
+                        <img className={s.avatar} src={p.avatar} alt="" width={40} height={40} />
+                        <span className={s.personText}>
+                          <span className={s.nameLine}>
+                            <span className={s.name}>{p.name}</span>
+                            <MatchBadge band={match.band} />
+                          </span>
+                          <span className={s.role}>
+                            {[p.title, p.team].filter(Boolean).join(' · ')}
+                            {p.location && `, ${p.location}`}
+                          </span>
                         </span>
-                        <span className={s.role}>{p.role}</span>
-                        <span className={s.why}>{suggestionWhy(p, criteria)}</span>
                       </span>
-                      <ChevronIcon />
+                      {/* One why line: a fact from their profile, never the
+                          requirement's own words — see suggestionWhyFact. */}
+                      {why && <span className={s.why}>{why}</span>}
+                      <span className={s.count}>
+                        {match.met} of {match.total} requirements
+                      </span>
+                      {/* A span, not a link: the whole card is the link. */}
+                      <span className={s.viewProfile}>View profile →</span>
                     </a>
                   </li>
                 );
               })}
             </ul>
 
-            {/* The rest, as the one link to the whole list. */}
+            {/* The total — the lede's number — as the one button to the whole list. */}
             {rest > 0 && (
-              <a className={s.more} href={hrefFor()}>
-                and {rest} more {rest === 1 ? 'match' : 'matches'} on the Candidates page
-              </a>
+              <div className={s.ctaRow}>
+                <a className={digest.emailCta} href={hrefFor()}>
+                  All {count} matches for this role
+                </a>
+              </div>
             )}
           </section>
 
@@ -221,7 +243,7 @@ export function SuggestedCandidatesEmail({
           <p className={notes.notesTitle}>Where it lands</p>
           <p className={notes.note}>
             A card opens the Candidates page on this role, Suggested tab, on that person — after sign-in, because the
-            page is for signed-in leads only. “and N more” opens the same list with nobody picked. The bell carries the
+            page is for signed-in leads only. “All N matches for this role” opens the same list with nobody picked. The bell carries the
             same event (notifications-hub).
           </p>
           <p className={notes.note}>
@@ -244,10 +266,3 @@ function listNames(names: string[], rest: number): string {
   if (names.length <= 1) return names.join('');
   return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
 }
-
-/** The card's affordance: it goes somewhere. Inline, as an email would carry it. */
-const ChevronIcon = () => (
-  <svg className={s.chevron} width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-    <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);

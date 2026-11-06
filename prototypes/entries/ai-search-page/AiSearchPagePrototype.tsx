@@ -29,6 +29,11 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { PrototypeNavBar } from '../nav-shared/PrototypeNavBar';
 import { newThreadId, seedThreads, type ChatThread } from '../ai-mode/threads';
 import { makeTurn } from '../ai-search/AnswerPanel';
+import type { AiSearchScope } from '../ai-search/scope';
+import type { AiModeRequest } from '../ai-mode/AiModeSurface';
+import { buildMemberAiScope } from '../member-profile/aiSearchScope';
+import { MOCK_EXPERIENCE, MOCK_MEMBER } from '../member-profile/mocks';
+import { teamScopeFromParams } from '../team-profile/aiSearchTab';
 import demo from '../team-profile/TeamProfile.module.scss';
 
 import { AiSearchPage } from './AiSearchPage';
@@ -71,23 +76,44 @@ export default function AiSearchPagePrototype() {
     openOn(start === 'chat' && next === 'out' && visit.length === 0 ? 'new' : start, next === 'in' ? saved : visit);
   };
 
+  /* A profile's Ask AI (member-ask-ai, team-profile) opens this page in a new
+     tab with the person or team attached: the New chat's scope chip, or the
+     scope of the thread a question chip starts. `about=team` also carries the
+     seat the profile was viewed in (see team-profile/aiSearchTab). */
+  const [request, setRequest] = useState<AiModeRequest | null>(null);
+
   /* Arriving with a question — the Home field (home-ai-ask) hands it over as
      `?q=`. `answered=1` means Home already answered it inline ("Continue in AI
      Search"), so the thread opens on that answer instead of asking again;
-     `viewer=out` keeps a signed-out visitor signed out. */
+     `viewer=out` keeps a signed-out visitor signed out. `about=member` attaches
+     Maya's profile as context (`oh=0`: the profile had no office hours). */
   /* Once per load: React's dev double-run would otherwise file it twice. */
   const arrived = useRef(false);
   useEffect(() => {
+    if (arrived.current) return;
     const params = new URLSearchParams(window.location.search);
     const q = params.get('q')?.trim();
-    if (!q || arrived.current) return;
+    const about = params.get('about');
+    const scope =
+      about === 'member'
+        ? memberScope(params.get('oh') !== '0')
+        : about === 'team'
+          ? teamScopeFromParams(params)
+          : null;
+    if (!q) {
+      if (scope) {
+        arrived.current = true;
+        setRequest({ nonce: Date.now(), scope });
+      }
+      return;
+    }
     arrived.current = true;
     const out = params.get('viewer') === 'out';
-    const turn = makeTurn(q);
+    const turn = makeTurn(q, scope);
     const thread: ChatThread = {
       id: newThreadId(),
       createdAt: new Date(),
-      scope: null,
+      scope,
       title: titleFor(q),
       turns: [params.get('answered') === '1' ? { ...turn, shown: turn.answer, status: 'done' } : turn],
     };
@@ -216,7 +242,20 @@ export default function AiSearchPagePrototype() {
         onSharedChange={setShared}
         onSignIn={() => switchViewer('in')}
         onSignUp={() => switchViewer('in')}
+        request={request}
       />
     </>
   );
+}
+
+/**
+ * Maya's profile as an AI Search scope, from the same fixtures her profile
+ * draws. An answer's door goes back to the card it came from on her profile.
+ */
+function memberScope(hasOfficeHours: boolean): AiSearchScope {
+  return buildMemberAiScope({
+    member: { ...MOCK_MEMBER, officeHours: hasOfficeHours ? MOCK_MEMBER.officeHours : null },
+    experience: MOCK_EXPERIENCE,
+    onOpen: (target) => window.open(`/prototypes/member-ask-ai#member-${target}`, '_blank'),
+  });
 }

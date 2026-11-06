@@ -202,18 +202,30 @@ const getPageData = async (searchParams: any) => {
           : eventDetails?.events;
     const currentEventNames = currentEvents?.map((item: any) => item.name);
 
-    // Proceed with API calls only after currentEventNames is set
-    const [events, currentGuestResponse, topics, loggedInUserEvents, followersResponse, mySubscriptionsResponse] =
-      await Promise.all([
-        getGuestsByLocation(uid, parseSearchParams(searchParams, currentEvents), authToken, currentEventNames),
-        getGuestsByLocation(uid, { type: eventType }, authToken, currentEventNames, 1, 1),
-        getTopicsByLocation(uid, searchParams.type),
-        getGuestEvents(uid, authToken),
-        getFollowersByLocation(uid, authToken),
-        /* The viewer's own follow state. The followers list above is public and
-           approval-filtered, so it cannot answer this for every member. */
-        getMyLocationSubscriptions(authToken, uid),
+    // A stale access token makes the signed-in guest call fail. The public list still loads.
+    const loadGuests = (token: string) =>
+      Promise.all([
+        getGuestsByLocation(uid, parseSearchParams(searchParams, currentEvents), token, currentEventNames),
+        getGuestsByLocation(uid, { type: eventType }, token, currentEventNames, 1, 1),
       ]);
+
+    const [guestPair, topics, loggedInUserEvents, followersResponse, mySubscriptionsResponse] = await Promise.all([
+      loadGuests(authToken),
+      getTopicsByLocation(uid, searchParams.type),
+      getGuestEvents(uid, authToken),
+      getFollowersByLocation(uid, authToken),
+      /* The viewer's own follow state. The followers list above is public and
+         approval-filtered, so it cannot answer this for every member. */
+      getMyLocationSubscriptions(authToken, uid),
+    ]);
+    let [events, currentGuestResponse] = guestPair;
+    if (events?.isError && authToken) {
+      const [publicEvents, publicCurrentGuest] = await loadGuests('');
+      if (!publicEvents?.isError) {
+        events = publicEvents;
+        currentGuestResponse = publicCurrentGuest;
+      }
+    }
     if (events?.isError) {
       return { isError: true };
     }
@@ -224,9 +236,9 @@ const getPageData = async (searchParams: any) => {
     followers = followersResponse?.data ?? [];
     if (followers?.length > 0) {
       followers = followers?.sort((a: any, b: any) => {
-        if (!a.logo && b.logo) return 1;
-        if (a.logo && !b.logo) return -1;
-        return a.name.localeCompare(b.name);
+        if (!a?.logo && b?.logo) return 1;
+        if (a?.logo && !b?.logo) return -1;
+        return (a?.name ?? '').localeCompare(b?.name ?? '');
       });
     }
     let guestDetails = events as any;
@@ -246,7 +258,7 @@ const getPageData = async (searchParams: any) => {
 
     guestDetails.currentGuest =
       !events?.isError && (events as any)?.guests?.[0]?.memberUid === userInfo?.uid
-        ? (currentGuestResponse as any).guests[0]
+        ? ((currentGuestResponse as any)?.guests?.[0] ?? null)
         : null;
 
     guestDetails.isUserGoing = !!guestDetails.currentGuest;
@@ -255,12 +267,11 @@ const getPageData = async (searchParams: any) => {
     guestDetails.eventsForFilter = getFilteredEventsForUser(loggedInUserEvents, currentEvents, isLoggedIn, userInfo);
 
     // Fetch member preferences if the user is logged in
-    if (isLoggedIn) {
+    if (isLoggedIn && userInfo?.uid && authToken) {
       const memberPreferencesResponse = await getMemberPreferences(userInfo.uid, authToken);
-      if (memberPreferencesResponse.isError) {
-        return { isError: true };
+      if (!memberPreferencesResponse?.isError) {
+        showTelegram = memberPreferencesResponse.memberPreferences?.telegram ?? true;
       }
-      showTelegram = memberPreferencesResponse.memberPreferences?.telegram ?? true;
     }
 
     let topicsAndReasonResponse = await getTopicsAndReasonForUser(uid, userInfo.uid, authToken);

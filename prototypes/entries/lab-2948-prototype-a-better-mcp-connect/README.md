@@ -94,3 +94,17 @@ Kept from the first round: Revoke has an inline confirm, the Connect block colla
 - **Access request link:** the link in the agent's reply is clickable and reopens the drawer. Settings → MCP connections needs its own persistent URL (`/settings/mcp`) for agents to link to; noted in the Access request state.
 - **Launch banner:** copy leads with use cases ("Search teams and members, post news or reply in the forum right from your AI session. LabOS now works with AI agents.") and **Set up now**. Audience first: PL infra, admins and portfolio team members (backend tag).
 - **Why connect:** the section intro lists three use cases (post updates, search, hand off tasks) before the cards.
+
+## AI Apps list hint review (2026-11-03) → what changed
+
+Feedback: the shipped hint (LAB-3062, "Ask Claude Code instead" + "Redeploy my latest LabOS AI App") doesn't tell you what to do. It doesn't say the agent is already connected or where the prompt goes. It also doesn't cover a member without a connection or without apps. Discovery hints → **AI Apps: list** now has a Member switch (No agent / Connected / Read only) and an Apps switch (Has apps / No apps yet):
+
+| State | Title | Action |
+|---|---|---|
+| No agent, has apps | Redeploy your apps from Claude or Codex | Connect an agent |
+| Connected, has apps | Redeploy your apps from Claude Code ("…is connected to LabOS. Paste this into a Claude Code chat…") | Prompt naming the app: Redeploy my LabOS AI App "Warm Intro Matcher" + copy |
+| Connected read only, has apps | Let Claude Code redeploy your apps | Allow changes → MCP connections |
+| No apps, no agent | Build your first app with Claude or Codex | Get the Starter Kit · Connect an agent |
+| No apps, connected | Build your first app with Claude Code | Get the Starter Kit |
+
+Why no prompt with no apps: the `ai_apps` scope is rename / redeploy / delete / access, with no create, so the first app comes from the Starter Kit. The read-only row exists because every first connect is Read only, and the redeploy prompt would be refused.

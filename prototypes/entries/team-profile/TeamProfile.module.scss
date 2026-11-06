@@ -72,6 +72,23 @@
     position: absolute;
     top: 16px;
     right: 16px;
+
+    /* Phone: icon-only. With labels the pair is ~114px, which leaves the name
+       column ~110px at 345px, so names ran under "Edit". `font-size: 0` hides
+       only the label text node — the svgs carry their own size, and the words
+       stay the buttons' accessible names. */
+    button {
+      font-size: 0;
+      gap: 0;
+      padding: 6px;
+    }
+  }
+}
+
+/* The name keeps clear of the icon-only corner pair (2 × 26px + gap). */
+@include media.mobile-only {
+  .profileRow:has(.adminActionsCorner) .nameRowWrap {
+    padding-right: 64px;
   }
 }
 
@@ -88,10 +105,38 @@
      followers first (they are the page's own fact), Ask AI at the row's end. */
   @include media.mobile-only {
     display: flex;
-    flex-direction: row-reverse;
+    flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
+    row-gap: 12px;
     width: 100%;
+
+    /* Followers left, Ask AI right on the first line; the admin's Follow takes
+       the card's width on a line of its own ("Make follow full width"). The
+       follow block's wrappers dissolve so all three are items of this row. */
+    > .followHeader,
+    > .followHeader > .followersWithAction {
+      display: contents;
+    }
+
+    .subStackRow {
+      order: -2;
+    }
+
+    > .askAiMobileOnly {
+      order: -1;
+      margin-left: auto;
+    }
+
+    .followersWithAction > button {
+      flex-basis: 100%;
+      justify-content: center;
+    }
+
+    .subCount {
+      white-space: nowrap;
+    }
   }
 }
 
@@ -432,6 +477,14 @@
 }
 
 // Row that keeps the count button + team-only eye icon on one centered line.
+/* Admin seat, phone only: the follower stack, then the admin's own Follow pill
+   (from tablet up it sits in the action row with Edit and Delete instead). */
+.followersWithAction {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .subStackRow {
   display: flex;
   align-items: center;
@@ -1295,8 +1348,13 @@
      with its own divider gone. */
   @include media.mobile-only {
     margin-top: 0;
-    column-gap: 8px;
-    row-gap: 4px;
+
+    /* Doubled class: production's `.roleAndLocation` gaps (16px) can load
+       after this module and would win at equal specificity. */
+    &.factsRow {
+      column-gap: 8px;
+      row-gap: 4px;
+    }
 
     > .factDivider {
       display: inline-flex;
@@ -1350,17 +1408,15 @@
   max-width: none;
 }
 
-/* Phone: two whole chips, not three cut ones ("Investm…", "Infrastru…"). The
-   80px cap is production's for a row of three at 55px-logo widths; with two
-   shown under a full-width row the words fit, and they are the point. */
+/* Whole chips, never cut ones ("Investm…", "Infrastru…"). Production's 80px
+   cap fits three into a wrapping row; here the row is one line and the tags
+   that don't fit fold into "+n" (`useTagsThatFit`), so the words stay whole. */
 .tagFullMobile {
-  @include media.mobile-only {
-    max-width: none;
-  }
+  max-width: none;
 }
 
 @include media.mobile-only {
-  .logoTagsGrow {
+  .logoTagsGrow.logoTagsGrow {
     display: grid;
     grid-template-columns: 72px minmax(0, 1fr);
     column-gap: 12px;
@@ -1368,13 +1424,13 @@
     align-items: start;
   }
 
-  .nameTagCol {
+  .nameTagCol.nameTagCol {
     display: contents;
   }
 
   /* 72px, the mock's and the desktop's own 74 rounded; production's phone
      logo is 55. Spans the name and the facts. */
-  .logoCell {
+  .logoCell.logoCell {
     width: 72px !important;
     height: 72px !important;
     grid-row: 1 / span 2;
@@ -1657,32 +1713,26 @@
   margin-bottom: 24px;
 }
 
-/* The industry tags always start a line of their own under the classification
-   badges, so no badge divider is ever left at the end of a wrapped line
-   (see TeamDetailsView). */
-.tagsOwnLine {
-  flex-basis: 100%;
-  min-width: 0;
+/* Badges and industry tags share one line at every width. The row never
+   wraps; TeamDetailsView shows only the tags that fit and folds the rest into
+   the "+n" chip (`useTagsThatFit`), so nothing is pushed to a second line. */
+.tagsOneLine.tagsOneLine {
+  flex-wrap: nowrap;
+  overflow: hidden;
+
+  > * {
+    flex-shrink: 0;
+  }
+}
+
+.tagsInlineGroup {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-/* The divider that leads the tags only shows when they share the badges'
-   line — never at the start of a line of their own. */
-.tagsLeadDivider {
-  display: none;
-}
-
-/* Everything fits on one line (measured in TeamDetailsView): the tags join
-   the badges' line after a divider instead of wrapping under a mostly empty
-   first line. Otherwise they keep their own line. */
-.tagsOwnLine.tagsInline {
-  flex-basis: auto;
-
-  .tagsLeadDivider {
-    display: contents;
-  }
+.tagsNoWrap.tagsNoWrap {
+  flex-wrap: nowrap;
 }
 
 /* Review band "Actions → Under bio": Request an intro and Follow as a row

@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAsync } from 'react-use';
 
@@ -30,9 +31,14 @@ export function AuthInfo() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const analytics = useAuthAnalytics();
-  const { logout } = usePrivyWrapper();
+  const { logout, ready } = usePrivyWrapper();
+  const startedRef = useRef(false);
 
+  // Privy now loads when the sign-in starts (LAB-3092), so it may not be ready yet when this mounts: its logout and
+  // login are no-ops until it is. The progress bar covers the wait; the sequence runs once, as soon as it is ready.
   useAsync(async () => {
+    if (!ready || startedRef.current) return;
+    startedRef.current = true;
     try {
       analytics.onProceedToLogin();
       localStorage.clear();
@@ -62,7 +68,7 @@ export function AuthInfo() {
     } catch (err) {
       console.log('Login Failed', err);
     }
-  }, []);
+  }, [ready]);
 
   return <ProgressBar />;
 }

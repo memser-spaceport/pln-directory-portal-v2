@@ -1,3 +1,9 @@
 .root {
   width: 400px;
 }
+
+.email {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-weight: 600;
+  word-break: break-all;
+}

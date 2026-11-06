@@ -1,10 +1,13 @@
 import { customFetch } from '@/utils/fetch-wrapper';
+import { decode } from 'he';
 import { getHeader } from '@/utils/common.utils';
 import { stripHtml, stripHtmlPreservingBreaks } from '@/utils/forum';
 import { buildCommentTree } from '@/utils/comments';
+import { topicReplies } from '@/services/forum/topicReplies';
 import { sanitizeCommentHtml } from '@/utils/html';
 import { forumFetch, postForumReply } from '@/services/forum/forum.service';
 import type { Topic } from '@/services/forum/hooks/useForumPosts';
+import { liveTopics } from '@/services/forum/liveTopics';
 import type { TopicResponse } from '@/services/forum/hooks/useForumPost';
 import {
   isForumPostUid,
@@ -123,7 +126,7 @@ function toFeedForumPost(topic: Topic): IFeedForumPost {
     // NodeBB categories don't map onto the feed's focus-area tabs, and there is
     // no focusAreas field to map from — posts show in every tab.
     focusAreas: [],
-    category: topic.category?.name ?? '',
+    category: decode(topic.category?.name ?? ''),
     createdAt: new Date(createdMs).toISOString(),
     lastActivityAt: new Date(lastActivityMs).toISOString(),
     forumTopicUrl: `/forum/topics/${topic.cid}/${topic.tid}`,
@@ -153,7 +156,7 @@ export async function getFeedForumPosts(): Promise<IFeedForumPostsResponse> {
   if (!response?.ok) throw new Error('Failed to fetch feed forum posts');
 
   const data = await response.json();
-  const topics = Array.isArray(data?.topics) ? (data.topics as Topic[]) : [];
+  const topics = liveTopics<Topic>(data?.topics);
 
   return { items: topics.map(toFeedForumPost) };
 }
@@ -370,10 +373,10 @@ async function getForumPostComments(itemUid: ForumPostUid): Promise<IFeedComment
   if (!response?.ok) throw new Error('Failed to fetch feed comments');
 
   const topic = (await response.json()) as TopicResponse;
-  const posts = Array.isArray(topic?.posts) ? topic.posts : [];
-  // posts[0] is the topic's own opening post rather than a reply to it — the
-  // same slice the /forum page takes (components/page/forum/Post/Post.tsx).
-  const [mainPost, ...replies] = posts;
+  // posts[0] is the topic's own opening post rather than a reply to it, and
+  // deleted replies are left out — the same split the /forum page takes
+  // (components/page/forum/Post/Post.tsx).
+  const { mainPost, replies, replyCount } = topicReplies<TopicPost>(topic);
 
   return {
     items: buildCommentTree<TopicPost, IFeedComment>({
@@ -388,7 +391,7 @@ async function getForumPostComments(itemUid: ForumPostUid): Promise<IFeedComment
       url: topic.cid ? `/forum/topics/${topic.cid}/${tidFromForumPostUid(itemUid)}` : null,
       // NodeBB serves one page of posts per request, so `replies` is often a
       // subset of this — the difference is what the link-out exists for.
-      totalReplyCount: Math.max(0, (Number(topic.postcount) || 0) - 1),
+      totalReplyCount: replyCount,
       // Read off the opening post, since that's what a forum card's Like votes
       // on. This is the only place the viewer's own vote state is available:
       // /api/recent, which builds the card, has no per-viewer state at all.

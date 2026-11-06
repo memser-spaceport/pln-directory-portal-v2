@@ -15,7 +15,17 @@ jest.mock('@/services/members.service', () => ({ getMember: (...args: unknown[])
 
 jest.mock('@/components/page/member-details/MemberDetailsPage', () => ({ __esModule: true, default: () => null }));
 
+import type { ReactElement } from 'react';
 import MemberPage from '@/app/members/[id]/page';
+import MemberDetailsPage from '@/components/page/member-details/MemberDetailsPage';
+import { JsonLdScript } from '@/components/core/json-ld/JsonLdScript';
+
+/** The elements the page renders at its top level, inside its fragment if it has one. */
+const topLevel = (page: ReactElement<any>): ReactElement<any>[] =>
+  [page.props.children ?? page].flat().filter(Boolean) as ReactElement<any>[];
+const detailsProps = (page: ReactElement<any>) =>
+  topLevel(page).find((element) => element.type === MemberDetailsPage)?.props;
+const jsonLd = (page: ReactElement<any>) => topLevel(page).find((element) => element.type === JsonLdScript);
 
 const props = { params: Promise.resolve({ id: 'member-1' }) };
 const MEMBER = { data: { formattedData: { name: 'Ada' } } };
@@ -30,7 +40,9 @@ it('passes the public member to a signed-out visitor', async () => {
 
   const page = await MemberPage(props);
 
-  expect(page.props).toEqual({ memberId: 'member-1', serverMember: MEMBER });
+  expect(detailsProps(page)).toEqual({ memberId: 'member-1', serverMember: MEMBER });
+  // LAB-3090: the same public member as structured data.
+  expect(jsonLd(page)?.props.data['@graph'][1]).toMatchObject({ '@type': 'Person', name: 'Ada' });
 });
 
 it('passes no public member to a signed-in viewer', async () => {
@@ -39,5 +51,15 @@ it('passes no public member to a signed-in viewer', async () => {
   const page = await MemberPage(props);
 
   expect(mockGetMember).not.toHaveBeenCalled();
-  expect(page.props).toEqual({ memberId: 'member-1' });
+  expect(detailsProps(page)).toEqual({ memberId: 'member-1' });
+  expect(jsonLd(page)).toBeUndefined();
+});
+
+it('carries no structured data when the public member could not be loaded', async () => {
+  mockGetMember.mockResolvedValue({ error: { status: 500 } });
+
+  const page = await MemberPage(props);
+
+  expect(detailsProps(page)).toEqual({ memberId: 'member-1', serverMember: undefined });
+  expect(jsonLd(page)).toBeUndefined();
 });

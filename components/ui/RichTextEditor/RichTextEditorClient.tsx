@@ -22,12 +22,33 @@ import {
   useImageDragMove,
 } from './hooks';
 
-import { registerImageBlot } from './ImageBlot';
+import { IMAGE_ANNOTATIONS_ATTR, registerImageBlot } from './ImageBlot';
 import { registerMentionBlot } from './MentionBlot';
 import { MentionDropdown, MentionDropdownRef } from './MentionDropdown';
 import { ImageLayoutOverlay } from './ImageLayoutOverlay';
+import { NoteImageChrome } from './NoteImageChrome/NoteImageChrome';
+import { indexFromPoint } from './utils/indexFromPoint';
+import { insertAnnotatedImage } from './utils/moveImageEmbed';
 
 import s from './RichTextEditor.module.scss';
+
+export interface NoteImageEdit {
+  src: string;
+  /** Serialized annotation JSON already on the image, or null. */
+  annotations: string | null;
+  commit: (annotations: string | null) => void;
+}
+
+export interface NoteImageRemoval {
+  annotations: string | null;
+  remove: () => void;
+}
+
+export interface ExternalImageDrop {
+  dragType: string;
+  /** The dropped id, or null when this editor should ignore the drop. */
+  resolve: (id: string) => { src: string; annotations: string | null } | null;
+}
 
 interface Props {
   value: string;
@@ -52,6 +73,12 @@ interface Props {
   onSubmit?: () => void;
   /** `**bold**` turns bold as the closing `*` is typed. (`- ` and `1. ` lists are Quill's own.) */
   markdownShortcuts?: boolean;
+  /** Opens the feedback annotator for the selected image. Unset on every other editor. */
+  onAnnotateImage?: (edit: NoteImageEdit) => void;
+  /** Removes an image from the note. Unset on every other editor. */
+  onRemoveImage?: (removal: NoteImageRemoval) => void;
+  /** A drag from outside the editor (a feedback screenshot chip) inserts an image here. */
+  externalImageDrop?: ExternalImageDrop;
 }
 
 const QL_EDITOR_CLASS = 'ql-editor';
@@ -115,6 +142,9 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
     minHeight,
     onSubmit,
     markdownShortcuts,
+    onAnnotateImage,
+    onRemoveImage,
+    externalImageDrop,
   } = props;
 
   const quillRef = useRef<any>(null);
@@ -465,6 +495,84 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
 
   useImageDragMove({ quillRef });
 
+  const externalImageDropRef = useRef(externalImageDrop);
+  externalImageDropRef.current = externalImageDrop;
+
+  useEffect(() => {
+    if (!externalImageDrop) return;
+    const editor = quillRef.current?.getEditor();
+    const root = editor?.root as HTMLElement | undefined;
+    if (!editor || !root) return;
+
+    const carriesShot = (event: DragEvent) => {
+      const spec = externalImageDropRef.current;
+      const types = event.dataTransfer?.types;
+      return Boolean(spec && types && Array.from(types).includes(spec.dragType));
+    };
+
+    const onDragOver = (event: DragEvent) => {
+      if (!carriesShot(event) || !event.dataTransfer) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'copy';
+    };
+
+    const onDrop = (event: DragEvent) => {
+      const spec = externalImageDropRef.current;
+      if (!spec) return;
+      const id = event.dataTransfer?.getData(spec.dragType);
+      if (!id) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const image = spec.resolve(id);
+      if (!image?.src) return;
+
+      const at = indexFromPoint(editor, event.clientX, event.clientY);
+      const index = at ?? Math.max(0, editor.getLength() - 1);
+      insertAnnotatedImage(editor, index, image.src, image.annotations);
+    };
+
+    root.addEventListener('dragover', onDragOver);
+    root.addEventListener('drop', onDrop, true);
+    return () => {
+      root.removeEventListener('dragover', onDragOver);
+      root.removeEventListener('drop', onDrop, true);
+    };
+  }, [externalImageDrop, quillRef]);
+
+  const annotateImage = (image: HTMLImageElement) => {
+    const editor = quillRef.current?.getEditor();
+    if (!editor || !onAnnotateImage) return;
+    const blot = Quill.find(image);
+    if (!blot) return;
+    const index = editor.getIndex(blot);
+    const src = image.getAttribute('src') ?? '';
+    const annotations = image.getAttribute(IMAGE_ANNOTATIONS_ATTR);
+    onAnnotateImage({
+      src,
+      annotations,
+      commit: (next) => {
+        const live = Quill.find(image);
+        const at = live ? editor.getIndex(live) : index;
+        editor.formatText(at, 1, 'annotations', next || false, 'user');
+      },
+    });
+  };
+
+  const removeImage = (image: HTMLImageElement) => {
+    const editor = quillRef.current?.getEditor();
+    if (!editor || !onRemoveImage) return;
+    const blot = Quill.find(image);
+    if (!blot) return;
+    const index = editor.getIndex(blot);
+    onRemoveImage({
+      annotations: image.getAttribute(IMAGE_ANNOTATIONS_ATTR),
+      remove: () => {
+        const live = Quill.find(image);
+        editor.deleteText(live ? editor.getIndex(live) : index, 1, 'user');
+      },
+    });
+  };
+
   const handleChange = (content: string) => {
     const { editor } = quillRef.current || {};
 
@@ -523,6 +631,9 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
           onFloatChange={imageLayout.onFloatChange}
           onMove={imageLayout.onMove}
         />
+      )}
+      {onAnnotateImage && onRemoveImage && (
+        <NoteImageChrome containerRef={editorContainerRef} onAnnotate={annotateImage} onRemove={removeImage} />
       )}
       {errorMessage && <div className={s.error}>{errorMessage}</div>}
       {enableMentions && mentionState.isOpen && (

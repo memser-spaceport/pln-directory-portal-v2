@@ -3,6 +3,7 @@ import { notFound, permanentRedirect } from 'next/navigation';
 
 import { isTeamNotFound, lookUpAirtableTeam } from '@/services/teams/teamProfileLookup';
 import { AIRTABLE_REGEX, PAGE_ROUTES } from '@/utils/constants';
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
 
 type LayoutProps = {
   children: ReactNode;
@@ -10,7 +11,8 @@ type LayoutProps = {
 };
 
 /**
- * An unknown team answers a real 404 (LAB-2922). The check sits here, not only in the page: the page renders inside
+ * An unknown team answers a real 404 (LAB-2922), and so does a team hidden from the public when the visitor is logged
+ * out (LAB-3087). The check sits here, not only in the page: the page renders inside
  * `loading.tsx`'s boundary, after the 200 has been streamed, so a `notFound()` there can only add `noindex`.
  */
 export default async function TeamProfileLayout({ children, params }: LayoutProps) {
@@ -31,7 +33,8 @@ export default async function TeamProfileLayout({ children, params }: LayoutProp
     return children;
   }
 
-  if (await isTeamNotFound(id)) {
+  const { isLoggedIn } = await getCookiesFromHeaders();
+  if (await isTeamNotFound(id, !!isLoggedIn)) {
     notFound();
   }
   return children;

@@ -78,6 +78,31 @@ jest.mock('@/services/mcp/hooks/useMcpConnections', () => ({
   useMcpConnections: () => ({ ...mockConnections, refetch: mockRefetch }),
 }));
 
+jest.mock('@/services/mcp/hooks/useMcpLimits', () => ({
+  useMcpLimits: () => ({
+    data: {
+      tier: 'standard',
+      limits: [
+        {
+          callType: 'write',
+          label: 'write',
+          used: 4,
+          limit: 30,
+          resetsAt: '2026-11-05T12:00:00.000Z',
+          window: 'hour',
+          tier: 'standard',
+          override: null,
+          hitRecently: false,
+          lastHitAt: null,
+        },
+      ],
+    },
+    isLoading: false,
+    isError: false,
+    refetch: jest.fn(),
+  }),
+}));
+
 let mockRequest: { data?: McpAccessRequest | null; isLoading: boolean; isError: boolean } = {
   data: undefined,
   isLoading: false,

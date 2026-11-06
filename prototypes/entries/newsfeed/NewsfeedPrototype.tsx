@@ -97,7 +97,6 @@ import { isNarrowed, summarizeView, viewHashKey, type FeedView } from '../newsfe
 import { FollowToast } from '../follow-shared/FollowToast';
 import { FollowButton } from '../follow-shared/FollowButton';
 import sortCss from '@/components/common/filters/SortDropdown/SortDropdown.module.scss';
-import { PERSONAS } from '../digest-topics/mocks';
 // Replaces the inherited production header/bottom bar, both hidden by
 // nav-shared's stylesheet. This route IS Home, so it has to render the nav that
 // says so — inheriting production's chrome here showed a navbar with no route
@@ -278,17 +277,24 @@ const VIEWER_TEAMS = [
   { uid: 'prime-intellect', name: 'Prime Intellect' },
 ];
 
-const TEAMS_OPTIONS = [
-  { value: 'one', label: 'One team' },
-  { value: 'two', label: 'Two teams' },
+/**
+ * Review switch for the For You note (2026-11-02). "Not set up yet" is a member
+ * with nothing in News preferences: the note asks them to set it up, and the
+ * For You view shows the latest network stories meanwhile. `?foryou=not-set`.
+ */
+const FOR_YOU_SETUP_OPTIONS = [
+  { value: 'configured', label: 'Set up' },
+  { value: 'not-set', label: 'Not set up yet' },
 ] as const;
 
-type ViewerTeams = (typeof TEAMS_OPTIONS)[number]['value'];
+type ForYouSetup = (typeof FOR_YOU_SETUP_OPTIONS)[number]['value'];
 
-const TEAMS_NOTE: Record<ViewerTeams, string> = {
-  one: 'Post news opens straight on your team.',
-  two: 'Post news asks which team the post is from, starting on your primary team.',
+const FOR_YOU_SETUP_NOTE: Record<ForYouSetup, string> = {
+  configured: 'The note says what For You is based on, with Update For You.',
+  'not-set': 'No For You pill: the feed rests on All categories, where the note offers Set up For You.',
 };
+
+const NEWS_PREFERENCES_HREF = '/prototypes/digest-topics?from=feed';
 
 /**
  * Review switch for the rail's Upcoming events card (LAB-2689). Both states are
@@ -443,7 +449,7 @@ export interface NewsfeedHostProps {
   onSignedInChange?: (signedIn: boolean) => void;
   /** Leads the page, above Quick Actions / the signed-out banner (`home-ai-ask`'s field). */
   leadSlot?: ReactNode;
-  /** False hides the Your teams and Events switches; the page stays on their first states (one team, upcoming events). */
+  /** False hides the For You and Events switches; the page stays on their first states (set up, upcoming events). */
   hostSwitches?: boolean;
   /** Re-ranks the Network Updates heading when the host's lead slot carries the page headline. */
   newsTitleClassName?: string;
@@ -481,9 +487,11 @@ export default function NewsfeedPrototype({
    * one load is none (`callout={false}`). What is posted lands in this feed,
    * newest first, under the team it was posted as.
    */
-  const [viewerTeams, setViewerTeams] = useState<ViewerTeams>('one');
+  const [forYouSetup, setForYouSetup] = useState<ForYouSetup>('configured');
   const [eventsState, setEventsState] = useState<EventsState>('upcoming');
-  const postTeams = viewerTeams === 'two' ? VIEWER_TEAMS : VIEWER_TEAMS.slice(0, 1);
+  // One team (2026-11-02: the "Your teams" review switch was removed), so Post
+  // news opens straight on it. The team picker is still in PostNewsModal.
+  const postTeams = VIEWER_TEAMS.slice(0, 1);
   const [composeOpen, setComposeOpen] = useState(false);
   const [postTeamUid, setPostTeamUid] = useState(VIEWER_TEAMS[0].uid);
   const [postedItems, setPostedItems] = useState<NewsItemWithPost[]>([]);
@@ -578,12 +586,15 @@ export default function NewsfeedPrototype({
    */
   const [topicFilter, setTopicFilter] = useState('');
   /**
-   * The member's subscribed topics, seeded from the same mock News preferences
-   * starts from (`digest-topics`, the complete persona). Following from the
-   * topic chip is the door to that page's Topics list that sits where the
+   * The member's subscribed topics. Following from the topic chip is the door
+   * to News preferences' Tags list (`digest-topics`) that sits where the
    * interest shows up — a reader clicking `#storage` again and again.
+   * Pinned here in this feed's own tag vocabulary: `digest-topics` moved to the
+   * real 25-tag list, which these mocked stories don't carry.
    */
-  const [followedTopics, setFollowedTopics] = useState<Set<string>>(() => new Set(PERSONAS.complete.topics));
+  const [followedTopics, setFollowedTopics] = useState<Set<string>>(
+    () => new Set(['networking', 'storage', 'infrastructure', 'p2p', 'rust', 'zk']),
+  );
   const [topicToast, setTopicToast] = useState<string | null>(null);
   const topicChipRef = useRef<HTMLSpanElement>(null);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -668,7 +679,7 @@ export default function NewsfeedPrototype({
    */
   const handleSignIn = () => {
     setSignedIn(true);
-    setActiveCategory(HAS_FOR_YOU_NEWS ? FOR_YOU_CAT : ALL_CAT);
+    setActiveCategory(HAS_FOR_YOU_NEWS && forYouSetup === 'configured' ? FOR_YOU_CAT : ALL_CAT);
     setSort('following');
     setExpanded(false);
     const params = new URLSearchParams(window.location.search);
@@ -808,6 +819,10 @@ export default function NewsfeedPrototype({
       // necessarily empty. Both fall back to what a stranger can actually read.
       setActiveCategory(ALL_CAT);
       setSort('latest');
+    }
+    if (params.get('foryou') === 'not-set') {
+      setForYouSetup('not-set');
+      setActiveCategory(ALL_CAT);
     }
 
     const team = params.get('team');
@@ -1135,7 +1150,9 @@ export default function NewsfeedPrototype({
     // is false and `TeamNews` never renders the pill. A pill offering "you" to
     // someone the product has never met is a control with nothing behind it —
     // `SignedOutBanner` makes the offer instead, where it can name the doors.
-    if (!teamFilter && signedIn) {
+    // Not set up yet: no pill either. The feed rests on All categories and the
+    // note there offers the set-up instead (see `ForYouBanner`).
+    if (!teamFilter && signedIn && forYouSetup === 'configured') {
       out.push({ ...FOR_YOU_CATEGORY, count: forYouItems.length + forYouForumPosts.length });
     }
     for (const c of base) out.push(c);
@@ -1156,7 +1173,7 @@ export default function NewsfeedPrototype({
     // No Deals pill: cut with the rest of the row. Perk cards still reach the
     // spine through their weekly cap.
     return out;
-  }, [scopedItems, forYouItems, forYouForumPosts, showHiring, teamFilter, topicFilter, signedIn]);
+  }, [scopedItems, forYouItems, forYouForumPosts, showHiring, teamFilter, topicFilter, signedIn, forYouSetup]);
 
   /**
    * The same list the pills rendered, shaped for a dropdown.
@@ -1372,7 +1389,6 @@ export default function NewsfeedPrototype({
    * for this feed — it is the page that owns the question, not a feed setting,
    * and there is no "topics" control anywhere to send someone to instead.
    */
-  const openProfileSettings = () => router.push('/prototypes/profile-settings');
 
   const handleFieldBlur = (e: FocusEvent<HTMLDivElement>) => {
     if (e.currentTarget.contains(e.relatedTarget as Node)) return;
@@ -1507,22 +1523,27 @@ export default function NewsfeedPrototype({
         </div>
         {hostSwitches && signedIn && (
           <div className={v0.switchBar}>
-            <span className={v0.switchLabel}>Your teams</span>
-            <div className={v0.switch} role="tablist" aria-label="How many teams the viewer belongs to">
-              {TEAMS_OPTIONS.map((opt) => (
+            <span className={v0.switchLabel}>For You</span>
+            <div className={v0.switch} role="tablist" aria-label="Whether the viewer has set up For You">
+              {FOR_YOU_SETUP_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
                   role="tab"
-                  aria-selected={viewerTeams === opt.value}
-                  className={clsx(v0.switchBtn, viewerTeams === opt.value && v0.switchBtnActive)}
-                  onClick={() => setViewerTeams(opt.value)}
+                  aria-selected={forYouSetup === opt.value}
+                  className={clsx(v0.switchBtn, forYouSetup === opt.value && v0.switchBtnActive)}
+                  onClick={() => {
+                    setForYouSetup(opt.value);
+                    // Land where a member in that state would: For You once it
+                    // is set up, All categories while it isn't (no pill then).
+                    setActiveCategory(opt.value === 'configured' && HAS_FOR_YOU_NEWS ? FOR_YOU_CAT : ALL_CAT);
+                  }}
                 >
                   {opt.label}
                 </button>
               ))}
             </div>
-            <span className={clsx(v0.switchNote, local.reviewNote)}>{TEAMS_NOTE[viewerTeams]}</span>
+            <span className={clsx(v0.switchNote, local.reviewNote)}>{FOR_YOU_SETUP_NOTE[forYouSetup]}</span>
           </div>
         )}
         {hostSwitches && (
@@ -1790,7 +1811,15 @@ export default function NewsfeedPrototype({
 
               {/* What the view is made of, in one line — the same note the Deals
                 pill gets below, for the same reason. See `ForYouBanner`. */}
-              {activeCategory === FOR_YOU_CAT && <ForYouBanner onUpdateProfile={openProfileSettings} />}
+              {/* Not set up yet: no For You pill, so the set-up offer sits on
+                  All categories, the view such a member lands in. */}
+              {(activeCategory === FOR_YOU_CAT ||
+                (signedIn && forYouSetup === 'not-set' && activeCategory === ALL_CAT && !teamFilter)) && (
+                <ForYouBanner
+                  configured={forYouSetup === 'configured'}
+                  onUpdate={() => router.push(NEWS_PREFERENCES_HREF)}
+                />
+              )}
 
               {/* For You is narrowed, so the subscribe offer would otherwise fire
                 under the note above — two asides stacked between the pills and
@@ -1970,7 +1999,7 @@ export default function NewsfeedPrototype({
             You&apos;re now following <strong>#{topicToast}</strong> — it shapes <strong>For you</strong> and your weekly
             digest.{' '}
             <a href="/prototypes/digest-topics?from=feed" className={local.toastLink}>
-              Manage topics
+              Manage tags
             </a>
           </FollowToast>
         )}

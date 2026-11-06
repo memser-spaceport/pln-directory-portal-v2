@@ -344,16 +344,19 @@ describe('News page: signed out', () => {
     useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
   });
 
-  it('asks for an account on Follow and Like, and has no For You', () => {
+  it('asks for an account on Follow, opens Join the network on Like, and has no For You', () => {
     renderPage([story('a', 'LAUNCH')], { signedIn: false });
 
     expect(within(pillRow()).queryByRole('button', { name: /For You/ })).not.toBeInTheDocument();
 
     fireEvent.click(within(card('Headline a')).getByRole('button', { name: 'Follow Team a' }));
+    expect(mockSignUp).toHaveBeenCalledTimes(1);
+    expect(mockSignUp).toHaveBeenCalledWith('news');
+
     fireEvent.click(within(card('Headline a')).getByRole('button', { name: /^Like/ }));
 
-    expect(mockSignUp).toHaveBeenCalledTimes(2);
-    expect(mockSignUp).toHaveBeenCalledWith('news');
+    expect(screen.getByRole('dialog', { name: 'Join the network' })).toBeInTheDocument();
+    expect(mockSignUp).toHaveBeenCalledTimes(1);
     expect(mockFollowMutate).not.toHaveBeenCalled();
     expect(mockUpvoteMutate).not.toHaveBeenCalled();
   });

@@ -2,6 +2,7 @@
 
 import clsx from 'clsx';
 import Link from 'next/link';
+import { useRef, type RefObject } from 'react';
 
 import type { ITeamNewsItem } from '@/types/team-news.types';
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
@@ -16,6 +17,7 @@ import jobsCss from '@/components/page/jobs/TeamGroupCard/TeamGroupCard.module.s
 import { CommentCount } from './CommentCount';
 import { LikeButton } from './LikeButton';
 import { ViewCount } from './ViewCount';
+import { useColumnCut } from './utils/useColumnCut';
 import s from './HomeV2.module.scss';
 
 /**
@@ -24,14 +26,16 @@ import s from './HomeV2.module.scss';
  * the 2026-11-05 review: the header link alone was easy to miss; the row matches the roles list's "See all N jobs"). Rows are production `NewsCard`'s flat variant (classes imported), with the mock's
  * changes: the time at the head row's end, and the event type as a brand Badge beside the source.
  *
- * Signed out, every press that needs an account (Follow, Like) is the sign-up ask; the row itself opens the story,
- * which anyone can read.
+ * Signed out, Follow is the sign-up ask and Like opens the Join card. The row itself opens the story,
+ * which anyone can read. The rows are cut to the sidebar height, the same way Network Updates is.
  */
 export function ThisWeekList({
   stories,
   commentCounts,
   onOpen,
-  onNeedsAccount,
+  onFollowNeedsAccount,
+  onLikeNeedsAccount,
+  fillTo,
   allHref,
   allCount,
   onSeeAll,
@@ -41,13 +45,21 @@ export function ThisWeekList({
   commentCounts?: Record<string, number>;
   /** `position` is the row's place in the list, from 1. */
   onOpen: (story: ITeamNewsItem, position: number) => void;
-  onNeedsAccount: () => void;
+  onFollowNeedsAccount: () => void;
+  onLikeNeedsAccount: () => void;
+  /** The sidebar the list is cut to. */
+  fillTo: RefObject<HTMLElement | null>;
   /** "See all updates": the news-only page. */
   allHref: string;
   /** Stories on that page, for "See all N updates"; without it the row says "See all updates". */
   allCount?: number;
   onSeeAll?: () => void;
 }) {
+  const listRef = useRef<HTMLDivElement>(null);
+  const storyKey = stories.map((story) => story.uid).join(',');
+  const fit = useColumnCut(listRef, fillTo, storyKey);
+  const cut = stories.length > fit.full;
+
   return (
     <section className={s.newsPreview} aria-labelledby="home-news-title">
       <div className={s.sideHead}>
@@ -68,58 +80,79 @@ export function ThisWeekList({
         </Link>
       </div>
       <div className={s.newsPreviewList}>
-        {stories.map((item, index) => (
-          <div
-            key={item.uid}
-            role="button"
-            aria-haspopup="dialog"
-            tabIndex={0}
-            data-story-uid={item.uid}
-            className={clsx(nc.cardFlat, s.newsPreviewRow)}
-            onClick={() => onOpen(item, index + 1)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                onOpen(item, index + 1);
-              }
-            }}
-          >
-            <div className={nc.head}>
-              {item.teamLogoUrl ? (
-                <img className={nc.logo} src={item.teamLogoUrl} alt="" loading="lazy" />
-              ) : (
-                <div className={nc.logoFallback}>{getTeamLogoFallback(item.teamName)}</div>
-              )}
-              <span className={nc.teamName}>{item.teamName}</span>
-              <FollowButton
-                following={false}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onNeedsAccount();
+        <div
+          ref={listRef}
+          className={clsx(cut && s.cutList, cut && s.cutListFaded, cut && s.newsPreviewFade)}
+          style={cut ? { maxHeight: fit.clip } : undefined}
+        >
+          {stories.map((item, index) => {
+            const cutAway = cut && index >= fit.full;
+            return (
+              <div
+                key={item.uid}
+                role="button"
+                aria-haspopup="dialog"
+                tabIndex={cutAway ? -1 : 0}
+                aria-hidden={cutAway || undefined}
+                inert={cutAway || undefined}
+                data-story-uid={item.uid}
+                className={clsx(nc.cardFlat, s.newsPreviewRow)}
+                onClick={() => onOpen(item, index + 1)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onOpen(item, index + 1);
+                  }
                 }}
-                name={item.teamName}
-                size="compact"
-              />
-              <span className={clsx(nc.time, s.newsPreviewTime)}>{formatTimeAgo(item.eventDate)}</span>
-            </div>
-            <h3 className={nc.headline}>{item.title}</h3>
-            {item.summary && <p className={nc.summary}>{item.summary}</p>}
-            <div className={nc.metaLine}>
-              <div className={nc.meta}>
-                <Badge variant="brand" noBorder className={s.newsPreviewBadge}>
-                  {EVENT_TYPE_LABEL[item.eventType]}
-                </Badge>
-                {item.sourceDomain && <span className={nc.time}>{item.sourceDomain}</span>}
+              >
+                <div className={nc.head}>
+                  {item.teamLogoUrl ? (
+                    <img className={nc.logo} src={item.teamLogoUrl} alt="" loading="lazy" />
+                  ) : (
+                    <div className={nc.logoFallback}>{getTeamLogoFallback(item.teamName)}</div>
+                  )}
+                  <span className={nc.teamName}>{item.teamName}</span>
+                  <FollowButton
+                    following={false}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onFollowNeedsAccount();
+                    }}
+                    name={item.teamName}
+                    size="compact"
+                  />
+                  <span className={clsx(nc.time, s.newsPreviewTime)}>{formatTimeAgo(item.eventDate)}</span>
+                </div>
+                <h3 className={nc.headline}>{item.title}</h3>
+                {item.summary && <p className={nc.summary}>{item.summary}</p>}
+                <div className={nc.metaLine}>
+                  <div className={nc.meta}>
+                    <Badge variant="brand" noBorder className={s.newsPreviewBadge}>
+                      {EVENT_TYPE_LABEL[item.eventType]}
+                    </Badge>
+                    {item.sourceDomain && <span className={nc.time}>{item.sourceDomain}</span>}
+                  </div>
+                  <span className={nc.actions} onClick={(e) => e.stopPropagation()}>
+                    <ViewCount count={item.viewCount ?? 0} />
+                    <LikeButton count={item.upvoteCount ?? 0} liked={false} onToggle={onLikeNeedsAccount} />
+                    <CommentCount count={commentCounts?.[item.uid] ?? 0} onClick={() => onOpen(item, index + 1)} />
+                  </span>
+                </div>
               </div>
-              <span className={nc.actions} onClick={(e) => e.stopPropagation()}>
-                <ViewCount count={item.viewCount ?? 0} />
-                <LikeButton count={item.upvoteCount ?? 0} liked={false} onToggle={onNeedsAccount} />
-                <CommentCount count={commentCounts?.[item.uid] ?? 0} onClick={() => onOpen(item, index + 1)} />
-              </span>
-            </div>
-          </div>
-        ))}
-        <Link href={allHref} className={clsx(jobsCss.expander, s.viewAllExpander, s.newsPreviewAll)} onClick={onSeeAll}>
+            );
+          })}
+        </div>
+        <Link
+          href={allHref}
+          className={clsx(
+            jobsCss.expander,
+            s.viewAllExpander,
+            s.newsPreviewAll,
+            cut && s.cutSeeAll,
+            cut && s.cutSeeAllOnFade,
+          )}
+          onClick={onSeeAll}
+        >
           {allCount ? `See all ${allCount} ${allCount === 1 ? 'update' : 'updates'}` : 'See all updates'}
         </Link>
       </div>

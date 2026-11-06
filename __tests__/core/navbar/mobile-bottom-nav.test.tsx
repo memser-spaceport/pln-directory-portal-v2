@@ -72,23 +72,36 @@ function moreItems() {
 }
 
 const gantry: ISubItem = { icon: null, href: '/gantry', title: 'Gantry', description: '' };
-const jobs: ISubItem = { icon: null, href: '/jobs', title: 'Job Board', description: '' };
+const EVENTS = EVENT_LINKS.map((link) => link.title);
 
 describe('MobileBottomNav', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     capturedMenuHandlers.clear();
     mockUsePathname.mockReturnValue('/members');
-    mockMoreItems.mockReturnValue([jobs]);
+    // The shared More hook's shape since LAB-3172: Events took Job Board's place in it.
+    mockMoreItems.mockReturnValue([DEALS_LINK, ...EVENT_LINKS]);
     mockHasNewNews.mockReturnValue(false);
   });
 
-  it('gives slot 2 to Events for a member without PL Infra', () => {
+  // LAB-3172: Job Board and Events swapped places, so Job Board has the bar slot Events had.
+  it('gives slot 2 to Job Board for a member without PL Infra', () => {
     mockPlInfraItems.mockReturnValue([]);
 
     render(<MobileBottomNav />);
 
-    expect(labels()).toEqual(['Directory', 'Events', 'Home', 'Demo Day', 'More']);
+    expect(labels()).toEqual(['Directory', 'Job Board', 'Home', 'Demo Day', 'More']);
+    expect(screen.getByRole('link', { name: /Job Board/ })).toHaveAttribute('href', '/jobs');
+  });
+
+  it('marks Job Board as the current page anywhere under /jobs', () => {
+    mockPlInfraItems.mockReturnValue([]);
+    mockUsePathname.mockReturnValue('/jobs/openings/abc');
+
+    render(<MobileBottomNav />);
+
+    expect(screen.getByRole('link', { name: /Job Board/ }).className).toMatch(/itemActive/);
+    expect(screen.getByRole('link', { name: /Demo Day/ }).className).not.toMatch(/itemActive/);
   });
 
   it('gives slot 2 to PL Infra for a member who has it', () => {
@@ -99,48 +112,58 @@ describe('MobileBottomNav', () => {
     expect(labels()).toEqual(['Directory', 'PL Infra', 'Home', 'Demo Day', 'More']);
   });
 
-  it('moves Events into More rather than dropping it, when PL Infra takes the slot', () => {
+  it('moves Job Board into More rather than dropping it, when PL Infra takes the slot', () => {
     mockPlInfraItems.mockReturnValue([gantry]);
 
     render(<MobileBottomNav />);
 
     // Losing the bar slot must not lose the destination.
-    EVENT_LINKS.forEach((link) => expect(moreItems()).toContain(link.title));
+    expect(moreItems()).toContain('Job Board');
+    expect(screen.queryByRole('link', { name: /Job Board/ })).not.toBeInTheDocument();
   });
 
-  it('does not also put Events in More when it already has the slot', () => {
+  it('does not also put Job Board in More when it already has the slot', () => {
     mockPlInfraItems.mockReturnValue([]);
 
     render(<MobileBottomNav />);
 
-    EVENT_LINKS.forEach((link) => expect(moreItems()).not.toContain(link.title));
+    expect(moreItems()).not.toContain('Job Board');
+  });
+
+  it('lists the Events links in More for everyone, once each', () => {
+    for (const items of [[], [gantry]]) {
+      mockPlInfraItems.mockReturnValue(items);
+      const { unmount } = render(<MobileBottomNav />);
+
+      expect(moreItems().filter((title) => EVENTS.includes(title))).toEqual(EVENTS);
+      unmount();
+    }
   });
 
   // The menu it comes from is ordered for the desktop dropdown; More is a flat
   // list, so mobile re-orders it rather than inheriting that.
   describe('More ordering', () => {
-    it('leads with Job Board, then Deals, then Forum', () => {
+    // LAB-3172 swapped the two: Events leads where Job Board did, and Job Board takes Events' place after Forum.
+    it('leads with the Events links, in their own order, then Deals, then Forum', () => {
       mockPlInfraItems.mockReturnValue([]);
-      mockMoreItems.mockReturnValue([DEALS_LINK, jobs]);
 
       render(<MobileBottomNav />);
 
-      expect(moreItems()).toEqual(['Job Board', 'Deals', 'Forum']);
+      expect(moreItems()).toEqual([...EVENTS, 'Deals', 'Forum']);
     });
 
-    it('slots the Events links in after Forum, still in their own order', () => {
+    it('slots Job Board in after Forum when PL Infra holds the bar slot', () => {
       mockPlInfraItems.mockReturnValue([gantry]);
-      mockMoreItems.mockReturnValue([DEALS_LINK, jobs]);
 
       render(<MobileBottomNav />);
 
-      expect(moreItems()).toEqual(['Job Board', 'Deals', 'Forum', ...EVENT_LINKS.map((link) => link.title)]);
+      expect(moreItems()).toEqual([...EVENTS, 'Deals', 'Forum', 'Job Board']);
     });
 
     it('pins Founder Guides last', () => {
       mockPlInfraItems.mockReturnValue([gantry]);
       // The hook hands it over in the middle — mobile still puts it at the end.
-      mockMoreItems.mockReturnValue([DEALS_LINK, FOUNDER_GUIDES_LINK, jobs]);
+      mockMoreItems.mockReturnValue([DEALS_LINK, FOUNDER_GUIDES_LINK, ...EVENT_LINKS]);
 
       render(<MobileBottomNav />);
 
@@ -198,8 +221,11 @@ describe('MobileBottomNav', () => {
 
       render(<MobileBottomNav />);
       fireEvent.click(screen.getByRole('link', { name: /Demo Day/ }));
+      fireEvent.click(screen.getByRole('link', { name: /Job Board/ }));
 
       expect(mockOnNavItemClicked).toHaveBeenCalledWith('Demo Day', null);
+      // The same name the desktop bar sends, so one report covers both bars.
+      expect(mockOnNavItemClicked).toHaveBeenCalledWith('Job Board', null);
     });
 
     it('hands every menu a click handler, so sub-item navigations report too', () => {

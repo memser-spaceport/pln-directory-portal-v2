@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react';
 
 import { useGetPlInfraNavItems } from '@/components/core/navbar/components/navItems/PLInfraNavItems/hook/useGetPlInfraNavItems';
 import { useMoreNavItems } from '@/components/core/navbar/components/navItems/MoreNavItems/hooks/useMoreNavItems';
+import { EVENT_LINKS } from '@/components/core/navbar/constants/navLinks';
 import { PERMISSIONS } from '@/services/rbac/constants';
 
 /**
@@ -20,6 +21,9 @@ jest.mock('@/services/rbac/hooks/usePermissions', () => ({
 }));
 
 const titlesOf = (items: Array<{ title: string }>) => items.map((i) => i.title);
+
+/** The three Events links, flat: More is where Events lives since LAB-3172 gave its top-level place to Job Board. */
+const EVENTS = EVENT_LINKS.map((link) => link.title);
 
 const plInfra = (...permissions: string[]) => {
   mockPermissions.mockReturnValue(permissions);
@@ -144,12 +148,25 @@ describe('useGetPlInfraNavItems', () => {
 });
 
 describe('useMoreNavItems', () => {
-  it('shows Deals and Jobs to everyone', () => {
-    expect(titlesOf(more())).toEqual(['Deals', 'Job Board']);
+  it('shows Deals and the Events links to everyone', () => {
+    expect(titlesOf(more())).toEqual(['Deals', ...EVENTS]);
   });
 
-  it('slots Founder Guides between them for a permitted member', () => {
-    expect(titlesOf(more(PERMISSIONS.FOUNDER_GUIDE.PERM_VIEW))).toEqual(['Deals', 'Founder Guides', 'Job Board']);
+  // LAB-3172: Job Board is a top-level nav item now, and Events took its old place in More.
+  it('leaves Job Board out, since it has its own place in the bar', () => {
+    expect(titlesOf(more(PERMISSIONS.FOUNDER_GUIDE.PERM_VIEW, PERMISSIONS.PLAA.PERM_ACCESS))).not.toContain(
+      'Job Board',
+    );
+  });
+
+  it('keeps the Events links in their own order and on their own routes', () => {
+    const events = more().filter((item) => EVENTS.includes(item.title));
+
+    expect(events.map((item) => item.href)).toEqual(['/events/irl', '/events/all', '/events/contributors']);
+  });
+
+  it('slots Founder Guides between Deals and Events for a permitted member', () => {
+    expect(titlesOf(more(PERMISSIONS.FOUNDER_GUIDE.PERM_VIEW))).toEqual(['Deals', 'Founder Guides', ...EVENTS]);
   });
 
   it('accepts a scoped founder-guides permission, matching by prefix', () => {
@@ -157,7 +174,7 @@ describe('useMoreNavItems', () => {
   });
 
   it("does not let another area's permission open Founder Guides", () => {
-    expect(titlesOf(more(PERMISSIONS.AI_APPS.PERM_VIEW, PERMISSIONS.GANTRY.PERM_VIEW))).toEqual(['Deals', 'Job Board']);
+    expect(titlesOf(more(PERMISSIONS.AI_APPS.PERM_VIEW, PERMISSIONS.GANTRY.PERM_VIEW))).toEqual(['Deals', ...EVENTS]);
   });
 
   it('shows PLAA only to a member holding plaa.access', () => {
@@ -184,13 +201,13 @@ describe('useMoreNavItems', () => {
    *  gates the query on `currentUser`), so their permission list is empty —
    *  the same state this asserts. */
   it('shows a logged-out visitor no permission-gated item at all', () => {
-    expect(titlesOf(more())).toEqual(['Deals', 'Job Board']);
+    expect(titlesOf(more())).toEqual(['Deals', ...EVENTS]);
   });
 
   it('appends PLAA below the items that were already there, so the menu does not reshuffle', () => {
     const all = more(PERMISSIONS.FOUNDER_GUIDE.PERM_VIEW, PERMISSIONS.PLAA.PERM_ACCESS);
 
-    expect(titlesOf(all)).toEqual(['Deals', 'Founder Guides', 'Job Board', 'PLAA']);
+    expect(titlesOf(all)).toEqual(['Deals', 'Founder Guides', ...EVENTS, 'PLAA']);
   });
 
   it('keeps the same array while permissions are unchanged', () => {

@@ -67,7 +67,7 @@ import { PrototypeMobileNav } from '../nav-shared/PrototypeMobileNav';
 import { DealsRail } from './DealsRail';
 import { WeekFeed } from './WeekFeed';
 import { FocusAreas } from './StoryIntro';
-import { SignedOutHome } from './SignedOutHome';
+import { NetworkOverview, SignedOutHome } from './SignedOutHome';
 import { NewsGrid } from './NewsGrid';
 import { SignupWizard } from '@/components/page/sign-up/components/SignupWizard';
 import { TeamsToFollowRail } from './TeamsToFollowRail';
@@ -530,6 +530,11 @@ export default function HomeV2Prototype() {
               <FocusAreas teams={PORTFOLIO_TEAMS} />
             </section>
           </div>
+
+          {/* 6. Under the focus areas (2026-11-06): the signed-out page's network overview,
+              the portfolio map, PL entities and investor logos, shared so the two can't drift.
+              The focus-area cards are already above, so the band leaves them out. */}
+          <NetworkOverview focusAreas={false} className={s.memberOverview} />
         </div>
       ) : (
         /* The signed-out Home settled at the 2026-11-02 standup (shared with home-v2-b). */

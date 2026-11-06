@@ -56,22 +56,24 @@ export function eventRange(startIso: string, endIso: string): string | null {
 }
 
 /**
- * The calendar's anchor for an event: pln-events opens an event's details from `/embed/program#<slug>`. The Directory
- * doesn't store that slug (its `slugURL` is the pln-events id, and the calendar can't open an event by id), so this
- * rebuilds it from the name the way pln-events makes it: lower case, accents dropped, spaces and colons to `-`, every
- * other character that isn't a letter, digit or `-` dropped, runs of `-` collapsed. It matched all 225 events in the
- * dev calendar (2026-11-06).
+ * The calendar's anchor for an event: pln-events opens an event's details from `/embed/program#<slug>`, where the slug
+ * is `stringToSlug(event_name)` (pln-events `utils/helper.ts`, used by `service/events.service.ts`), computed on every
+ * page and never stored. The Directory has only the pln-events id (`slugURL`), which the calendar can't open by, so
+ * this is that function, ported as is.
  *
- * Not a guarantee: pln-events slugs aren't unique (four dev events are `test-event`, and recurring events repeat theirs),
- * and the calendar opens the first match. A miss shows the calendar with no event open.
+ * Not a guarantee: the slug isn't unique (four dev events are `test-event`, and recurring events repeat theirs), and
+ * the calendar opens the first match. A miss shows the calendar with no event open.
  */
 export function eventCalendarSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/[\s:]+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
+  let str = name.replace(/^\s+|\s+$/g, '').toLowerCase();
+  const from = 'àáäâèéëêìíïîòóöôùúüûñç·/_,:;';
+  const to = 'aaaaeeeeiiiioooouuuunc------';
+  for (let i = 0; i < from.length; i++) {
+    str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
+  }
+  return str
+    .replace(/[^a-z0-9 -]/g, '')
+    .replace(/\s+/g, '-')
     .replace(/-+/g, '-');
 }
 

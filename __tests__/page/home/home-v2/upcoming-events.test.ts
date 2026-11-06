@@ -55,6 +55,7 @@ describe('the event date labels', () => {
 });
 
 // Names and slugs from the dev calendar (pln-events), 2026-11-06; each slug opened its event at /embed/program#<slug>.
+// The last two cases follow pln-events' stringToSlug (utils/helper.ts), which this ports.
 describe('eventCalendarSlug', () => {
   it.each([
     ['Singapore Tech Event', 'singapore-tech-event'],
@@ -74,6 +75,9 @@ describe('eventCalendarSlug', () => {
       '-collective-intelligence-live-from-san-francisco-w-the-ai-collective',
     ],
     ['AdoptionCon | ETHDenver 🇺🇸', 'adoptioncon-ethdenver-'],
+    // pln-events' stringToSlug turns these into `-` rather than dropping them, and trims the name first.
+    ['Founders/Builders_Night, Day; Two · Three', 'founders-builders-night-day-two-three'],
+    ['  Padded Name  ', 'padded-name'],
   ])('%s → %s, as pln-events makes it', (name, slug) => {
     expect(eventCalendarSlug(name)).toBe(slug);
   });

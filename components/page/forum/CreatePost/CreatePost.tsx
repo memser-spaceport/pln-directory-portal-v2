@@ -29,7 +29,6 @@ import { PostFormEditorLabel } from './components/PostFormEditorLabel';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { McpHint } from '@/components/core/mcp-hints/McpHint';
-import { SHOW_MCP_FORUM_HINT } from '@/utils/mcp';
 
 export type CreatePostForm = {
   user: Record<string, string> | null;
@@ -294,7 +293,7 @@ export const CreatePost = (props: Props) => {
                 disabled={isEdit}
               />
               <FormField name="title" placeholder="Enter the title" label="Title" max={255} />
-              {!isEdit && SHOW_MCP_FORUM_HINT && <McpHint context="forum" title={title ?? ''} />}
+              {!isEdit && <McpHint context="forum" title={title ?? ''} />}
               <FormEditor
                 name="content"
                 placeholder="Write your post here. Use @ to mention someone."

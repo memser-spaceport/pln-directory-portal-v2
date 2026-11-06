@@ -127,6 +127,28 @@ describe('feed.service', () => {
       ]);
     });
 
+    it('decodes the category name NodeBB sends HTML-escaped (LAB-3141)', async () => {
+      customFetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => ({ topics: [{ ...TOPIC, category: { name: 'Comments &amp; Feedback' } }] }),
+      });
+
+      const { items } = await getFeedForumPosts();
+
+      expect(items[0].category).toBe('Comments & Feedback');
+    });
+
+    it('keeps an empty category name when the topic carries no category', async () => {
+      customFetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => ({ topics: [{ ...TOPIC, category: undefined }] }),
+      });
+
+      const { items } = await getFeedForumPosts();
+
+      expect(items[0].category).toBe('');
+    });
+
     it('carries the topic’s viewcount through, so the feed card can show what the forum shows', async () => {
       customFetchMock.mockResolvedValue({ ok: true, json: async () => ({ topics: [TOPIC] }) });
 
@@ -200,6 +222,15 @@ describe('feed.service', () => {
       customFetchMock.mockResolvedValue({ ok: false, status: 500 });
 
       await expect(getFeedForumPosts()).rejects.toThrow('Failed to fetch feed forum posts');
+    });
+
+    it('leaves out a deleted topic NodeBB still sends to its author or a moderator (LAB-3145)', async () => {
+      const deleted = { ...TOPIC, tid: 97, title: '[[topic:topic-is-deleted]]', deleted: 1 };
+      customFetchMock.mockResolvedValue({ ok: true, json: async () => ({ topics: [deleted, TOPIC] }) });
+
+      const { items } = await getFeedForumPosts();
+
+      expect(items.map((item) => item.tid)).toEqual([96]);
     });
 
     it('tolerates a response with no topics array', async () => {
@@ -604,6 +635,28 @@ describe('feed.service', () => {
 
       expect(items).toHaveLength(1);
       expect(forumTopic?.totalReplyCount).toBe(50);
+    });
+
+    it('leaves out a deleted reply, and its count, though NodeBB still sends it to its author (LAB-3145)', async () => {
+      customFetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          mainPid: 263,
+          cid: 5,
+          // postcount keeps the soft-deleted reply
+          postcount: 3,
+          posts: [
+            { pid: 263 },
+            { pid: 264, content: 'deleted by an agent', timestamp: 1, deleted: 1, selfPost: true, user: {} },
+            { pid: 265, content: 'kept', timestamp: 2, user: {} },
+          ],
+        }),
+      });
+
+      const { items, forumTopic } = await getFeedComments('fp_96');
+
+      expect(items.map((item) => item.uid)).toEqual(['fpc_265']);
+      expect(forumTopic?.totalReplyCount).toBe(1);
     });
 
     it('carries the opening post’s full raw HTML for the modal body', async () => {

@@ -1,5 +1,6 @@
 import React from 'react';
 import { redirect } from 'next/navigation';
+import { decode } from 'he';
 
 import { fetchForumTopic } from '@/services/forum/forum-nodebb.server';
 import { TopicResponse } from '@/services/forum/hooks/useForumPost';
@@ -64,7 +65,7 @@ const EditPostPage = async (props: PageProps) => {
             isAdmin && data.posts?.[0]?.user
               ? { label: data.posts[0].user.displayname, value: data.posts[0].user.memberUid }
               : null,
-          topic: { label: data.category.name, value: data.category.cid.toString() },
+          topic: { label: decode(data.category.name), value: data.category.cid.toString() },
           title: data.title,
           content: data.posts?.[0]?.content,
         }}

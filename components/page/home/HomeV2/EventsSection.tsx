@@ -42,7 +42,7 @@ export function EventsSection({ events, total, signedIn }: { events: IHomeEvent[
               </span>
               <span className={s.jobText}>
                 <Link
-                  href={eventCalendarHref(ev.name)}
+                  href={eventCalendarHref(ev)}
                   className={clsx(s.roleTitle, s.jobTitle, s.eventLink)}
                   onClick={() =>
                     analytics.onEventClicked({ event_uid: ev.uid, position: index + 1, signed_in: signedIn })

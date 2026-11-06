@@ -25,6 +25,7 @@ export async function getUpcomingEvents({ days, limit }: { days: number; limit: 
     startDate: e.startDate,
     endDate: e.endDate,
     location: e.location ?? '',
+    calendarId: e.externalId ?? null,
   }));
 
   const header = Number.parseInt(response.headers.get('X-Total-Count') ?? '', 10);

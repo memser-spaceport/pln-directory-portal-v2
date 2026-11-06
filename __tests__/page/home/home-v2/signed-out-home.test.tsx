@@ -295,6 +295,10 @@ describe('SignedOutHome', () => {
       expect(rolesEl.compareDocumentPosition(eventsEl) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
       expect(within(eventsEl).getAllByRole('listitem')).toHaveLength(2);
       expect(within(eventsEl).getByText('Nov 3–7 · Lisbon')).toBeInTheDocument();
+      expect(within(eventsEl).getByRole('link', { name: 'LabWeek Lisbon' })).toHaveAttribute(
+        'href',
+        '/events/all?embedPath=%2Fembed%2Fprogram%23labweek-lisbon',
+      );
       expect(within(eventsEl).getByRole('link', { name: 'See all 9 events' })).toHaveAttribute('href', '/events/all');
     });
 

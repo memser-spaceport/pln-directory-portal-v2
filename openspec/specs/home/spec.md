@@ -97,6 +97,8 @@ The sidebar SHALL list the newest open roles, with "See all N jobs" where N is t
 
 When no event starts in the next 30 days, the events section SHALL be absent and the roles section SHALL list five roles instead of three.
 
+Each event SHALL open All Events with that event's details open (`/events/all?embedPath=/embed/program#<slug>`). The slug is rebuilt from the event's name the way the events calendar makes it, because the Directory doesn't store it; where two calendar events share a slug, the calendar opens the first, and a name that matches none opens the calendar with no event open.
+
 #### Scenario: Events this month
 
 - **GIVEN** events starting in 3, 20 and 45 days

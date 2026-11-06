@@ -295,7 +295,7 @@ describe('SignedOutHome', () => {
       expect(rolesEl.compareDocumentPosition(eventsEl) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
       expect(within(eventsEl).getAllByRole('listitem')).toHaveLength(2);
       expect(within(eventsEl).getByText('Nov 3–7 · Lisbon')).toBeInTheDocument();
-      expect(within(eventsEl).getByRole('link', { name: 'See all 9 events' })).toHaveAttribute('href', '/events/irl');
+      expect(within(eventsEl).getByRole('link', { name: 'See all 9 events' })).toHaveAttribute('href', '/events/all');
     });
 
     it('drops the events and shows five roles when no event starts this month', () => {
@@ -475,7 +475,7 @@ describe('SignedOutHome', () => {
       ['Directory', 'Network', 'Protocol Labs'].forEach((title) =>
         expect(within(footer).getByRole('heading', { name: title })).toBeInTheDocument(),
       );
-      expect(within(footer).getByRole('link', { name: 'Events' })).toHaveAttribute('href', '/events/irl');
+      expect(within(footer).getByRole('link', { name: 'Events' })).toHaveAttribute('href', '/events/all');
       expect(within(footer).getByText(/^© \d{4} Protocol Labs\./)).toBeInTheDocument();
     });
 

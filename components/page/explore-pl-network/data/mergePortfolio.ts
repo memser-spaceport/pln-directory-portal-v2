@@ -32,6 +32,7 @@ export function mergePortfolio(fallback: PortfolioRow[], apiTeams: PortfolioApiT
       ...row,
       name: filled(api.name) ? api.name : row.name,
       logo: filled(api.mapLogoUrl) ? api.mapLogoUrl : row.logo,
+      ...(filled(api.logoUrl) && { directoryLogo: api.logoUrl }),
       oneLiner: filled(api.oneLiner) ? api.oneLiner : row.oneLiner,
       stage: filled(api.stage) ? api.stage : row.stage,
       website: filled(api.website) ? api.website : row.website,

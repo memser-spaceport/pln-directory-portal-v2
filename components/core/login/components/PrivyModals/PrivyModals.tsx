@@ -23,6 +23,11 @@ import './PrivyModals.scss';
 
 let loggingIn = false;
 
+/** The address the visitor signed in with: their email login, else the Google or GitHub account's email. */
+function getPrivyUserEmail(privyUser: User | null | undefined): string | undefined {
+  return privyUser?.email?.address || privyUser?.google?.email || privyUser?.github?.email || undefined;
+}
+
 /**
  * PrivyModals - Handles authentication events and modals
  *
@@ -177,96 +182,104 @@ export function PrivyModals() {
     [clearPrivyParams, pathname, params, router, searchParams, showLoginSuccess],
   );
 
-  const initDirectoryLogin = useCallback(async () => {
-    try {
-      if (loggingIn) {
-        return;
-      }
+  // `privyUser` is the user Privy just signed in, from the event; the hook's `user` may not have caught up with it yet.
+  const initDirectoryLogin = useCallback(
+    async (privyUser?: User) => {
+      try {
+        if (loggingIn) {
+          return;
+        }
 
-      loggingIn = true;
-      triggerLoader(true);
-      const privyToken = await getAccessToken();
-      const stateUid = localStorage.getItem('stateUid') || '';
+        loggingIn = true;
+        triggerLoader(true);
+        const privyToken = await getAccessToken();
+        const stateUid = localStorage.getItem('stateUid') || '';
 
-      // Use centralized token exchange with retry support
-      const response = await exchangeToken(privyToken as string, stateUid);
+        // Use centralized token exchange with retry support
+        const response = await exchangeToken(privyToken as string, stateUid);
 
-      loggingIn = false;
+        loggingIn = false;
 
-      // Handle known client errors with dedicated messages
-      if (response.status === 403) {
-        triggerLoader(false);
-        authEvents.emit('auth:invalid-email', 'rejected_access_level');
-        setLinkAccountKey('');
-        return;
-      }
+        // Handle known client errors with dedicated messages
+        if (response.status === 403) {
+          triggerLoader(false);
+          authEvents.emit('auth:invalid-email', 'rejected_access_level');
+          setLinkAccountKey('');
+          return;
+        }
 
-      if (response.status === 404) {
-        triggerLoader(false);
-        authEvents.emit('auth:invalid-email', 'email_not_found');
-        setLinkAccountKey('');
-        await logout();
-        return;
-      }
+        if (response.status === 404) {
+          triggerLoader(false);
+          // The email goes with the code so the dialog can name it; read now, before logout() clears the Privy user.
+          authEvents.emit('auth:invalid-email', {
+            code: 'email_not_found',
+            email: getPrivyUserEmail(privyUser ?? user),
+          });
+          setLinkAccountKey('');
+          await logout();
+          return;
+        }
 
-      // Generic fallback for every other unsuccessful token exchange.
-      // This prevents the login flow from getting stuck for unhandled
-      // statuses such as 400, 401, 409, 422 or 5xx responses.
-      if (!response.ok) {
+        // Generic fallback for every other unsuccessful token exchange.
+        // This prevents the login flow from getting stuck for unhandled
+        // statuses such as 400, 401, 409, 422 or 5xx responses.
+        if (!response.ok) {
+          triggerLoader(false);
+          authEvents.emit('auth:invalid-email', 'unexpected_error');
+          setLinkAccountKey('');
+          await logout();
+          return;
+        }
+
+        // Handle success
+        if (response.ok && response.data) {
+          const result = response.data;
+
+          if (result.isDeleteAccount && user) {
+            if (user?.linkedAccounts?.length > 1) {
+              await unlinkEmail(user?.email?.address as string);
+              await deleteUser('email-changed');
+            } else if (user?.email?.address && user?.linkedAccounts.length === 1) {
+              setLinkAccountKey('');
+              await deleteUser('email-changed');
+            }
+            return;
+          }
+
+          // Normal login success
+          const formattedResult = structuredClone(result);
+          delete formattedResult.userInfo.isFirstTimeLogin;
+
+          // Throws when the server refuses the session; the catch below shows the sign-in error.
+          await saveTokens(formattedResult, user as User);
+          await loginUser(result);
+          analytics.onDirectoryLoginSuccess({ isAutoLogin: false });
+        }
+
+        // Handle 403 with email
+        if (user?.email?.address && response.status === 403) {
+          await handleInvalidDirectoryEmail();
+        }
+      } catch (e) {
+        loggingIn = false;
         triggerLoader(false);
         authEvents.emit('auth:invalid-email', 'unexpected_error');
         setLinkAccountKey('');
         await logout();
-        return;
       }
-
-      // Handle success
-      if (response.ok && response.data) {
-        const result = response.data;
-
-        if (result.isDeleteAccount && user) {
-          if (user?.linkedAccounts?.length > 1) {
-            await unlinkEmail(user?.email?.address as string);
-            await deleteUser('email-changed');
-          } else if (user?.email?.address && user?.linkedAccounts.length === 1) {
-            setLinkAccountKey('');
-            await deleteUser('email-changed');
-          }
-          return;
-        }
-
-        // Normal login success
-        const formattedResult = structuredClone(result);
-        delete formattedResult.userInfo.isFirstTimeLogin;
-
-        // Throws when the server refuses the session; the catch below shows the sign-in error.
-        await saveTokens(formattedResult, user as User);
-        await loginUser(result);
-        analytics.onDirectoryLoginSuccess({ isAutoLogin: false });
-      }
-
-      // Handle 403 with email
-      if (user?.email?.address && response.status === 403) {
-        await handleInvalidDirectoryEmail();
-      }
-    } catch (e) {
-      loggingIn = false;
-      triggerLoader(false);
-      authEvents.emit('auth:invalid-email', 'unexpected_error');
-      setLinkAccountKey('');
-      await logout();
-    }
-  }, [
-    analytics,
-    deleteUser,
-    getAccessToken,
-    handleInvalidDirectoryEmail,
-    loginUser,
-    logout,
-    saveTokens,
-    unlinkEmail,
-    user,
-  ]);
+    },
+    [
+      analytics,
+      deleteUser,
+      getAccessToken,
+      handleInvalidDirectoryEmail,
+      loginUser,
+      logout,
+      saveTokens,
+      unlinkEmail,
+      user,
+    ],
+  );
 
   // ============================================
   // Event Handlers
@@ -287,7 +300,7 @@ export function PrivyModals() {
       const stateUid = localStorage.getItem('stateUid');
       if (stateUid) {
         analytics.onDirectoryLoginInit({ ...privyUser, stateUid });
-        await initDirectoryLogin();
+        await initDirectoryLogin(privyUser);
       }
     }
 
@@ -304,7 +317,7 @@ export function PrivyModals() {
         if (!isLoggedIn) {
           const stateUid = localStorage.getItem('stateUid');
           analytics.onDirectoryLoginInit({ ...privyUser, stateUid, linkedAccount });
-          await initDirectoryLogin();
+          await initDirectoryLogin(privyUser);
         } else {
           triggerLoader(true);
           authEvents.emit('auth:update-email', { newEmail: linkedAccount.address });

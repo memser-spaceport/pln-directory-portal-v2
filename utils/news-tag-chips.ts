@@ -92,3 +92,8 @@ export function newsItemHasTag(item: { tags?: readonly string[] | null }, tag: s
   const wanted = normalizeNewsTag(tag);
   return (item.tags ?? []).some((t) => typeof t === 'string' && normalizeNewsTag(t) === wanted);
 }
+
+/** True when the item carries every tag in `tags` (an empty list matches everything): the new Home's stacked tag scope (LAB-3125). */
+export function newsItemHasAllTags(item: { tags?: readonly string[] | null }, tags: readonly string[]): boolean {
+  return tags.every((tag) => newsItemHasTag(item, tag));
+}

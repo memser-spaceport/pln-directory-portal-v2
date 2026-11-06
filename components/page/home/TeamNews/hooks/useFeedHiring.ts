@@ -29,7 +29,7 @@ const FEED_HIRING_LIMIT = 10;
  * response was discarded. `enabled: false` yields `undefined` data — the same
  * shape the callers already handle.
  */
-export function useFeedHiring(): { hiring: IJobTeamGroup[] | undefined } {
+export function useFeedHiring(enabled = true): { hiring: IJobTeamGroup[] | undefined } {
   const { data } = useQuery({
     queryKey: [JobsQueryKey.List, 'home-feed', TEAM_NEWS_DEFAULT_WINDOW_DAYS],
     queryFn: () =>
@@ -39,7 +39,8 @@ export function useFeedHiring(): { hiring: IJobTeamGroup[] | undefined } {
           limit: String(FEED_HIRING_LIMIT),
         }),
       ),
-    enabled: SHOW_HIRING_NEWS,
+    // `enabled`: the new Home's stream (LAB-3125) injects no roll-ups.
+    enabled: SHOW_HIRING_NEWS && enabled,
     staleTime: 5 * 60 * 1000,
     select: (response) => response.groups,
   });

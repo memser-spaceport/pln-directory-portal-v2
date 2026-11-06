@@ -51,6 +51,8 @@ export interface ITeamNewsItem {
   viewCount?: number;
   /** True when posted from the team profile by a member or directory admin. */
   isTeamPosted?: boolean;
+  /** The story's image (e.g. the article's og:image), served as stored; null/absent = a text-only story (LAB-3134). */
+  imageUrl?: string | null;
 }
 
 /** Returned by POST/DELETE /v1/team-news/:uid/upvote and carried on every news item. */

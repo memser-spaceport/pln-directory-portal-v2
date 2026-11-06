@@ -438,6 +438,7 @@ export const AUTH_ANALYTICS = {
   AUTH_SIGN_UP_BTN_CLICKED: 'AUTH_SIGN_UP_BTN_CLICKED',
   AUTH_INVALID_USER_MODAL_SHOWN: 'AUTH_INVALID_USER_MODAL_SHOWN',
   AUTH_INVALID_USER_SIGNUP_CLICKED: 'AUTH_INVALID_USER_SIGNUP_CLICKED',
+  AUTH_INVALID_USER_TRY_ANOTHER_EMAIL_CLICKED: 'AUTH_INVALID_USER_TRY_ANOTHER_EMAIL_CLICKED',
   AUTH_LINK_ACCOUNT_SUBMIT_CLICKED: 'AUTH_LINK_ACCOUNT_SUBMIT_CLICKED',
   AUTH_LINK_ACCOUNT_CANCEL_CLICKED: 'AUTH_LINK_ACCOUNT_CANCEL_CLICKED',
 };
@@ -721,6 +722,17 @@ export const HOME_ANALYTICS_EVENTS = {
   DISCOVER_HUSKY_AI_CLICKED: 'discover-husky-ai-clicked',
   FEATURED_FILTER_CLICKED: 'home_featured_filter_click',
   WELCOME_SIGNIN_CLICKED: 'home-welcome-signin-clicked',
+
+  // The new Home (LAB-3070 / LAB-3072).
+  AUTH_DOOR_CLICKED: 'home-auth-door-clicked',
+  NEWS_PICK_CLICKED: 'home-news-pick-clicked',
+  ROLE_CLICKED: 'home-role-clicked',
+  EVENT_CLICKED: 'home-event-clicked',
+  FOCUS_AREA_CLICKED: 'home-focus-area-clicked',
+  SEE_ALL_CLICKED: 'home-see-all-clicked',
+  // The signed-in Home (LAB-3125).
+  DEAL_CLICKED: 'home-deal-clicked',
+  FEED_TAG_SCOPE_CHANGED: 'home-feed-tag-scope-changed',
 };
 
 export const TEAM_NEWS_ANALYTICS_EVENTS = {

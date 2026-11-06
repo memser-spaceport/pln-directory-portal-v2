@@ -52,6 +52,8 @@ describe('mergePortfolio', () => {
       ...matched,
       name: 'Agoric',
       logo: 'https://s3/agoric-white.webp',
+      // The team's own colour logo, kept beside the map tile for Home's focus-area cards (LAB-3174).
+      directoryLogo: 'https://s3/agoric-colour.png',
       startYear: 2015,
       endYear: 2024,
       oneLiner: 'DB one-liner',
@@ -60,6 +62,12 @@ describe('mergePortfolio', () => {
       source: 'db',
     });
     expect(warn).not.toHaveBeenCalled();
+  });
+
+  it('leaves directoryLogo off when the DB has no colour logo, and off fallback-only rows', () => {
+    const [team, other] = mergePortfolio(fallback, [apiTeam({ logoUrl: '  ' })]);
+    expect(team).not.toHaveProperty('directoryLogo');
+    expect(other).not.toHaveProperty('directoryLogo');
   });
 
   it('keeps the file value where the DB field is empty', () => {

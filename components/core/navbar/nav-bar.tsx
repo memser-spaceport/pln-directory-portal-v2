@@ -15,16 +15,15 @@ import { Signup } from './components/Signup';
 import { NavigationMenu } from '@base-ui-components/react';
 import { HelpMenu } from '@/components/core/navbar/components/HelpMenu';
 
-import { DIRECTORY_LINKS, DEMO_DAY_LINK, DEMO_DAY_ANALYTICS_LINK } from './constants/navLinks';
+import { DIRECTORY_LINKS, JOBS_LINK, DEMO_DAY_LINK, DEMO_DAY_ANALYTICS_LINK } from './constants/navLinks';
 
 import { useDemoDayAnalyticsAccess } from '@/services/rbac/hooks/useDemoDayAnalyticsAccess';
 
 import { NavLink } from './components/NavLink';
-import { useGetEventMenuItemLinks } from './hooks/useGetEventMenuItemLinks';
 import { NavItemWithMenu } from './components/NavItemWithMenu';
 import { MoreNavItems } from './components/navItems/MoreNavItems';
 import { PLInfraNavItems } from './components/navItems/PLInfraNavItems';
-import { AppLogo, ForumIcon, EventsIcon, DemoDayIcon, DirectoryIcon, MoreIcon, HomeIcon } from './components/icons';
+import { AppLogo, ForumIcon, JobsIcon, DemoDayIcon, DirectoryIcon, MoreIcon, HomeIcon } from './components/icons';
 import { useHasNewNews } from '@/services/team-news/hooks/useHasNewNews';
 
 import s from './NavBar.module.scss';
@@ -43,7 +42,6 @@ function Navbar(props: Readonly<INavbar>) {
   const authToken = props?.authToken;
   const [showNotifications, setShowNotifications] = useState(false);
   const hasNewNews = useHasNewNews();
-  const eventLinks = useGetEventMenuItemLinks();
 
   const closeNavigationMenu = () => {
     setTimeout(() => {
@@ -147,12 +145,16 @@ function Navbar(props: Readonly<INavbar>) {
           onNavItemClickHandler={onNavItemClickHandler}
         />
 
-        <NavItemWithMenu
-          icon={<EventsIcon />}
-          label="Events"
-          items={eventLinks}
-          onNavItemClickHandler={onNavItemClickHandler}
-        />
+        {/* LAB-3172: Job Board and Events swapped places. Job Board is a top-level link here; Events is in More. */}
+        <NavigationMenu.Item className={s.menuItem}>
+          <NavLink
+            className={s.Trigger}
+            href={JOBS_LINK.href}
+            onClick={() => onNavItemClickHandler(JOBS_LINK.href, JOBS_LINK.title)}
+          >
+            <JobsIcon /> {JOBS_LINK.title}
+          </NavLink>
+        </NavigationMenu.Item>
 
         <NavigationMenu.Item className={s.menuItem}>
           <NavLink className={s.Trigger} href="/forum?cid=0" onClick={() => onNavItemClickHandler('/forum', 'Forum')}>

@@ -26,21 +26,22 @@ import { useDemoDayAnalyticsAccess } from '@/services/rbac/hooks/useDemoDayAnaly
 import { useMoreNavItems } from '@/components/core/navbar/components/navItems/MoreNavItems/hooks/useMoreNavItems';
 import { useGetPlInfraNavItems } from '@/components/core/navbar/components/navItems/PLInfraNavItems/hook/useGetPlInfraNavItems';
 import { isBareRoute } from '@/utils/isBareRoute';
-import { useGetEventMenuItemLinks } from '@/components/core/navbar/hooks/useGetEventMenuItemLinks';
 
 import { NavigationMenu } from '@base-ui-components/react';
 
 import { useScrollDirection } from './useScrollDirection';
 
 import { MobileNavItemWithMenu } from './components/MobileMenuItem';
-import { DemoDayIcon, DirectoryIcon, EventsIcon } from './components/icons';
+import { DemoDayIcon, DirectoryIcon, JobsIcon } from './components/icons';
 
 import s from './MobileBottomNav.module.scss';
 
 /** More is one flat list on mobile — no sub-menus — so it sets its own order
  *  instead of inheriting the desktop menu's. Matched by href prefix so the
- *  three Events links rank together as one block. */
-const MORE_ORDER = [JOBS_LINK.href, DEALS_LINK.href, FORUM_LINK.href, '/events', PLAA_LINK.href];
+ *  three Events links rank together as one block. LAB-3172 swapped Job Board
+ *  and Events: Events leads, and Job Board (only here for PL Infra members)
+ *  takes Events' old place after Forum. */
+const MORE_ORDER = ['/events', DEALS_LINK.href, FORUM_LINK.href, JOBS_LINK.href, PLAA_LINK.href];
 
 function moreRank({ href }: ISubItem) {
   // Founder Guides sits last by request, below anything this list doesn't name.
@@ -61,7 +62,6 @@ export function MobileBottomNav() {
 
   const analytics = useCommonAnalytics();
   const currentUser = useCurrentUserStore((state) => state.currentUser);
-  const eventLinks = useGetEventMenuItemLinks();
 
   // This bar reported nothing at all until now, so mobile navigation was
   // invisible in analytics. It reuses the desktop bar's event rather than
@@ -84,16 +84,16 @@ export function MobileBottomNav() {
     analytics.onNavItemClicked('Home', getAnalyticsUserInfo(currentUser));
   }, [analytics, currentUser, hasNewNews, pathname]);
 
-  // Five slots, and PL Infra members need one of them for PL Infra — so Events
-  // gives up the bar for them and moves into More. Everyone else keeps Events
-  // where it is. The Events links spread flat because More is a flat list.
+  // Five slots, and PL Infra members need one of them for PL Infra — so Job
+  // Board gives up the bar for them and moves into More. Everyone else keeps
+  // Job Board where it is. The Events links come flat from the shared More hook.
   const hasPlInfra = plInfraItems.length > 0;
   const moreItems = useMemo(() => {
-    const items = hasPlInfra ? [FORUM_LINK, ...eventLinks, ...baseMoreItems] : [FORUM_LINK, ...baseMoreItems];
+    const items = hasPlInfra ? [FORUM_LINK, JOBS_LINK, ...baseMoreItems] : [FORUM_LINK, ...baseMoreItems];
 
     // Stable sort, so the Events links keep their own relative order.
     return [...items].sort((a, b) => moreRank(a) - moreRank(b));
-  }, [hasPlInfra, baseMoreItems, eventLinks]);
+  }, [hasPlInfra, baseMoreItems]);
 
   if (isBareRoute(pathname)) return null;
 
@@ -113,10 +113,11 @@ export function MobileBottomNav() {
             onNavItemClickHandler={onNavItemClickHandler}
           />
 
-          {/* Slot 2 belongs to PL Infra for the members who have it, Events for
-              everyone else. `plInfraItems` comes from async permissions, so this
-              renders Events first and swaps once they resolve — a swap, not a
-              gap, which is why the slot is never left empty. */}
+          {/* Slot 2 belongs to PL Infra for the members who have it, Job Board
+              for everyone else (LAB-3172: it was Events). `plInfraItems` comes
+              from async permissions, so this renders Job Board first and swaps
+              once they resolve — a swap, not a gap, which is why the slot is
+              never left empty. */}
           {hasPlInfra ? (
             <MobileNavItemWithMenu
               icon={<StarFourIcon />}
@@ -125,12 +126,18 @@ export function MobileBottomNav() {
               onNavItemClickHandler={onNavItemClickHandler}
             />
           ) : (
-            <MobileNavItemWithMenu
-              icon={<EventsIcon />}
-              label="Events"
-              items={eventLinks}
-              onNavItemClickHandler={onNavItemClickHandler}
-            />
+            <NavigationMenu.Item>
+              <Link
+                href={JOBS_LINK.href}
+                onClick={() => onNavItemClickHandler(JOBS_LINK.href, JOBS_LINK.title)}
+                className={clsx(s.item, {
+                  [s.itemActive]: pathname.startsWith(JOBS_LINK.href),
+                })}
+              >
+                <JobsIcon />
+                <span>{JOBS_LINK.title}</span>
+              </Link>
+            </NavigationMenu.Item>
           )}
 
           <NavigationMenu.Item>

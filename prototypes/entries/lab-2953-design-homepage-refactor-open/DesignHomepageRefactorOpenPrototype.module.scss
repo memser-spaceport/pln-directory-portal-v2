@@ -1,0 +1,462 @@
+// lab-2953 — page composition, the orientation band, deals rows, the prompt
+// note and the agent concept. Page grid, section heads, rail cards, field and
+// cards come from home-refactor, home-ai-ask, newsfeed and production.
+// Token + fallback pairs from prototypes/CLAUDE.md §4 and neighbouring sheets.
+
+@use 'styles/media';
+
+/* ---------- Grids ---------- */
+
+/* Signed in: forum, deals, news in the main column; open roles (and events,
+   when shown) in the rail beside them. Phones: one column, rail last. */
+.memberGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'forum'
+    'deals'
+    'news'
+    'rail';
+  gap: 40px;
+
+  @include media.tablet-landscape {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    grid-template-areas:
+      'forum rail'
+      'deals rail'
+      'news  rail';
+    grid-template-rows: auto auto 1fr;
+    column-gap: 32px;
+    row-gap: 56px;
+  }
+}
+
+/* Signed out: the orientation story, with open roles in the rail. */
+.visitorGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'main'
+    'rail';
+  gap: 40px;
+
+  @include media.tablet-landscape {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    grid-template-areas: 'main rail';
+    column-gap: 32px;
+  }
+}
+
+.areaForum {
+  grid-area: forum;
+}
+.areaDeals {
+  grid-area: deals;
+}
+.areaNews {
+  grid-area: news;
+}
+.areaMain {
+  grid-area: main;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  min-width: 0;
+
+  @include media.tablet-landscape {
+    gap: 56px;
+  }
+}
+.areaRail {
+  grid-area: rail;
+  min-width: 0;
+
+  @include media.tablet-landscape {
+    padding-top: 52px;
+  }
+}
+
+/* ---------- Prompt note (signed in) ---------- */
+
+.promptNote {
+  margin: 8px 0 0;
+  padding: 0 4px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* ---------- Orientation (signed out) ---------- */
+
+.orient,
+.islands {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: var(--background-base-white, #fff);
+}
+
+.factValue {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.factLabel {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.areas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include media.tablet-portrait {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.area {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr);
+  column-gap: 10px;
+  row-gap: 4px;
+  padding: 16px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: var(--background-base-white, #fff);
+}
+
+.areaDot {
+  width: 12px;
+  height: 12px;
+  margin-top: 4px;
+  border-radius: 50%;
+}
+
+.areaName {
+  font-size: 16px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.areaLine {
+  grid-column: 2;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* Phones only: the islands map grows to about 3,000px, so show its top. */
+.islandsCrop {
+  position: relative;
+
+  @include media.mobile-only {
+    max-height: 520px;
+    overflow: hidden;
+
+    &::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      height: 120px;
+      background: linear-gradient(transparent, var(--background-base-black, #000));
+      pointer-events: none;
+    }
+  }
+}
+
+.islandsMore {
+  display: none;
+
+  @include media.mobile-only {
+    display: inline;
+    align-self: center;
+  }
+}
+
+/* ---------- Deals ---------- */
+
+.dealList {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dealRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: var(--background-base-white, #fff);
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+/* DealCard's mobile avatar: 40px, radius 8, the muted border. */
+.dealAvatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  background: var(--background-neutral-subtle, #f9fafb);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.dealText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.dealName {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.dealDesc {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.dealMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.dealTag {
+  padding: 2px 8px;
+  border-radius: 24px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.dealTagHigh {
+  background: var(--background-brand-subtle, #eef2ff);
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+/* ---------- Agent concept ---------- */
+
+.agentLauncher {
+  position: fixed;
+  right: 16px;
+  bottom: 80px;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 24px;
+  background: var(--background-base-white, #fff);
+  box-shadow: 0 4px 16px var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  cursor: pointer;
+
+  @include media.tablet-landscape {
+    right: 24px;
+    bottom: 24px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+.agentPanel {
+  position: fixed;
+  right: 16px;
+  bottom: 80px;
+  left: 16px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 70vh;
+  overflow: auto;
+  padding: 16px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: var(--background-base-white, #fff);
+  box-shadow: 0 8px 32px var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
+
+  @include media.tablet-portrait {
+    left: auto;
+    width: 360px;
+  }
+
+  @include media.tablet-landscape {
+    right: 24px;
+    bottom: 24px;
+  }
+}
+
+.agentHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.agentTitle {
+  margin: 0;
+  font-size: 16px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.agentSub {
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.agentClose {
+  display: flex;
+  padding: 4px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+.agentActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.agentAction {
+  padding: 10px 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-base-white, #fff);
+  text-align: left;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+}
+
+.agentActionActive {
+  border-color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.agentReply {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  p {
+    margin: 0;
+  }
+}
+
+.agentButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.agentDone {
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+.seeAll {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

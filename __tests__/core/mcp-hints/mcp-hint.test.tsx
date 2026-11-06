@@ -48,6 +48,8 @@ const mockAnalytics = {
   onHintDismissed: jest.fn(),
   onHintConnectClicked: jest.fn(),
   onHintPromptCopied: jest.fn(),
+  onHintStarterKitClicked: jest.fn(),
+  onHintAllowChangesClicked: jest.fn(),
 };
 jest.mock('@/analytics/mcp.analytics', () => ({
   useMcpAnalytics: () => mockAnalytics,
@@ -293,34 +295,134 @@ describe('aiSearchSessionCount', () => {
   });
 });
 
-describe('McpHint (LAB-3062): AI Apps page card', () => {
-  it('shows without any trigger and offers Connect an agent with no agent', () => {
-    render(<McpHint context="apps" />);
-    expect(screen.getByText('Manage your apps from your agent')).toBeInTheDocument();
+describe('McpHint (LAB-3062, LAB-3136): AI Apps page card', () => {
+  const APP = 'Grant Radar';
+  const onGetStarterKit = jest.fn();
+  const renderApps = (latestAppName: string | null | undefined = APP) =>
+    render(<McpHint context="apps" latestAppName={latestAppName} onGetStarterKit={onGetStarterKit} />);
+  const connectAt = (aiApps: 'none' | 'read' | 'write' | null, clientName: string | null = 'Codex') => {
+    mockConnections = [
+      {
+        uid: 'c1',
+        clientName: clientName ?? '',
+        status: 'active',
+        scopes: aiApps
+          ? [{ key: 'ai_apps', label: 'AI Apps', level: aiApps, maxLevel: 'write', registryMax: 'write', lock: null }]
+          : [],
+      },
+    ] as typeof mockConnections;
+  };
+
+  it('no agent, has apps: names the latest app and offers Connect an agent', () => {
+    renderApps();
+    expect(screen.getByText('Redeploy your apps from Claude or Codex')).toBeInTheDocument();
     expect(
-      screen.getByText('Your agent can redeploy, rename and edit the description of your apps.'),
+      screen.getByText(
+        `Connect LabOS to your agent, then ask it to redeploy “${APP}” from the chat you already work in.`,
+      ),
     ).toBeInTheDocument();
+    expect(screen.queryByTitle('Copy')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Get the Starter Kit' })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Connect an agent' }));
     expect(mockPush).toHaveBeenCalledWith('/settings/mcp');
-    expect(mockAnalytics.onHintShown).toHaveBeenCalledWith({ context: 'apps', connected: false });
+    expect(mockAnalytics.onHintShown).toHaveBeenCalledWith({ context: 'apps', connected: false, state: 'no_agent' });
     expect(mockAnalytics.onHintConnectClicked).toHaveBeenCalledWith({ context: 'apps' });
     // Connect is not a dismissal: only ✕ hides the card (LAB-3110 is by design).
     expect(mockDismiss['mcp_hint_apps']).not.toHaveBeenCalled();
   });
 
-  it('gives a connected member the redeploy prompt to copy', async () => {
-    connect('Codex');
-    render(<McpHint context="apps" />);
-    expect(screen.getByText('Ask Codex instead')).toBeInTheDocument();
+  it.each([['read' as const], ['none' as const], [null]])(
+    'connected with AI Apps at %s: asks to allow changes and gives no prompt',
+    (level) => {
+      connectAt(level);
+      renderApps();
+      expect(screen.getByText('Let Codex redeploy your apps')).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          'Codex is connected with read-only access, so it can see your apps but not change them. Allow changes to AI Apps to redeploy and rename them from your chat.',
+        ),
+      ).toBeInTheDocument();
+      expect(screen.queryByTitle('Copy')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Connect an agent' })).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'Allow changes' }));
+      expect(mockPush).toHaveBeenCalledWith('/settings/mcp?connection=c1&scope=ai_apps');
+      expect(mockAnalytics.onHintShown).toHaveBeenCalledWith({ context: 'apps', connected: true, state: 'read_only' });
+      expect(mockAnalytics.onHintAllowChangesClicked).toHaveBeenCalledWith({
+        context: 'apps',
+        authorizationUid: 'c1',
+        clientName: 'Codex',
+      });
+    },
+  );
+
+  it('connected with write: says the agent is connected and where the prompt goes, then the prompt', async () => {
+    connectAt('write');
+    renderApps();
+    expect(screen.getByText('Redeploy your apps from Codex')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Codex is connected to LabOS. Paste this into a Codex chat and it redeploys the app for you. It can rename apps and edit their descriptions the same way.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Ask Codex instead')).not.toBeInTheDocument();
+    expect(screen.getByText(`Redeploy my LabOS AI App “${APP}”`)).toBeInTheDocument();
     await act(async () => {
       fireEvent.click(screen.getByTitle('Copy'));
     });
-    expect(writeText).toHaveBeenCalledWith('Redeploy my latest LabOS AI App');
+    expect(writeText).toHaveBeenCalledWith(`Redeploy my LabOS AI App “${APP}”`);
+    expect(mockAnalytics.onHintShown).toHaveBeenCalledWith({ context: 'apps', connected: true, state: 'connected' });
     expect(mockAnalytics.onHintPromptCopied).toHaveBeenCalledWith({ context: 'apps', clientName: 'Codex' });
   });
 
-  it('stays gone once dismissed, on its own flag', () => {
-    render(<McpHint context="apps" />);
+  it('a client that sent no name is "your agent"', () => {
+    connectAt('write', null);
+    renderApps();
+    expect(screen.getByText('Redeploy your apps from your agent')).toBeInTheDocument();
+  });
+
+  it('no apps, no agent: offers the Starter Kit and Connect an agent', () => {
+    renderApps(null);
+    expect(screen.getByText('Build your first app with Claude or Codex')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Get the Starter Kit, open it in your agent and ask it to build and deploy the app. Connect your agent to LabOS too, and it can redeploy the app later.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Connect an agent' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Get the Starter Kit' }));
+    expect(onGetStarterKit).toHaveBeenCalledTimes(1);
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(mockAnalytics.onHintShown).toHaveBeenCalledWith({ context: 'apps', connected: false, state: 'no_apps' });
+    expect(mockAnalytics.onHintStarterKitClicked).toHaveBeenCalledWith({ context: 'apps', state: 'no_apps' });
+  });
+
+  it.each([['read' as const], ['write' as const]])('no apps, connected at %s: offers only the Starter Kit', (level) => {
+    connectAt(level);
+    renderApps(null);
+    expect(screen.getByText('Build your first app with Codex')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Codex is connected to LabOS. Get the Starter Kit, open it in Codex and ask it to build and deploy your app. Once it’s live, Codex can redeploy it for you.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Connect an agent' })).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Copy')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Get the Starter Kit' }));
+    expect(onGetStarterKit).toHaveBeenCalledTimes(1);
+    expect(mockAnalytics.onHintShown).toHaveBeenCalledWith({ context: 'apps', connected: true, state: 'no_apps' });
+  });
+
+  it('waits until the member’s apps have loaded', () => {
+    // An explicit undefined: the default argument would stand in for it.
+    const { container } = render(
+      <McpHint context="apps" latestAppName={undefined} onGetStarterKit={onGetStarterKit} />,
+    );
+    expect(container).toBeEmptyDOMElement();
+    expect(mockAnalytics.onHintShown).not.toHaveBeenCalled();
+  });
+
+  it('stays gone once dismissed, on its own flag, whatever the state', () => {
+    renderApps(null);
     fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }));
     expect(mockDismiss['mcp_hint_apps']).toHaveBeenCalledTimes(1);
     expect(mockAnalytics.onHintDismissed).toHaveBeenCalledWith({ context: 'apps' });
@@ -328,7 +430,7 @@ describe('McpHint (LAB-3062): AI Apps page card', () => {
 
   it('is not shown outside the hint audience', () => {
     mockCanConnect = false;
-    const { container } = render(<McpHint context="apps" />);
+    const { container } = renderApps();
     expect(container).toBeEmptyDOMElement();
   });
 });

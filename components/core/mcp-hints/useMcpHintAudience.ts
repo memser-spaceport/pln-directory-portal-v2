@@ -2,6 +2,7 @@
 
 import { useMcpAccess } from '@/services/rbac/hooks/useMcpAccess';
 import { useMcpConnections } from '@/services/mcp/hooks/useMcpConnections';
+import type { McpLevel } from '@/services/mcp/types';
 import { SHOW_MCP_CONNECTIONS_PAGE } from '@/utils/mcp';
 
 export type McpHintAudience = {
@@ -16,6 +17,10 @@ export type McpHintAudience = {
    * sent no name (LAB-3049: then the hints say "your agent"). Never use it to tell whether the member is connected.
    */
   connectedClient: string | null;
+  /** The first connection's uid (LAB-3136: the AI Apps hint's "Allow changes" opens its permissions), or null. */
+  connectionUid: string | null;
+  /** The first connection's effective `ai_apps` level; `none` when it has no such scope, null when not connected. */
+  aiAppsLevel: McpLevel | null;
 };
 
 /**
@@ -33,5 +38,7 @@ export function useMcpHintAudience(): McpHintAudience {
     ready: eligible && isSuccess && data !== undefined,
     connected: !!first,
     connectedClient: first?.clientName?.trim() || null,
+    connectionUid: first?.uid ?? null,
+    aiAppsLevel: first ? (first.scopes?.find((scope) => scope.key === 'ai_apps')?.level ?? 'none') : null,
   };
 }

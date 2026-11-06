@@ -5,6 +5,7 @@ import { useMemo, useRef, useState } from 'react';
 
 import type { ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
+import { Button } from '@/components/common/Button';
 import { FollowButton } from '@/components/ui/FollowButton';
 import { SortDropdown } from '@/components/common/filters/SortDropdown';
 import { SearchInput } from '@/components/common/filters/SearchInput';
@@ -20,6 +21,7 @@ import { CommentCount, LikeButton, ViewCount } from '../newsfeed-v0/FeedActions'
 import { TopicTags } from '../newsfeed-v0/TopicTags';
 import { VIDEO_BY_UID, viewsFor } from '../newsfeed-v0/mocks';
 import { NewsImage, VideoThumb } from '../newsfeed-v0/NewsVideo';
+import fb from '../follow-shared/FollowButton.module.scss';
 import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
 import nf from '../newsfeed/Newsfeed.module.scss';
 import { FOR_YOU_UIDS, IMAGE_BY_UID } from './mocks';
@@ -71,6 +73,7 @@ export function NewsGrid({
   onLike,
   onFollow,
   homeHref,
+  onPersonalize,
 }: {
   stories: ITeamNewsItem[];
   likeCount: (uid: string) => number;
@@ -82,6 +85,8 @@ export function NewsGrid({
   onLike: (uid: string) => void;
   onFollow: (teamUid: string) => void;
   homeHref: string;
+  /** Signed out: no For You pill (nothing of the visitor to pick from); a sign-up ask to personalize sits under the filters instead. */
+  onPersonalize?: () => void;
 }) {
   const [cat, setCat] = useState(ALL);
   const [sort, setSort] = useState<TeamNewsSort>('latest');
@@ -115,7 +120,7 @@ export function NewsGrid({
 
   const pills = useMemo(
     () =>
-      ROW.map((p) => ({ ...p, count: scoped.filter((s) => matches(s, p.id)).length })).filter(
+      ROW.filter((p) => !(onPersonalize && p.id === FOR_YOU)).map((p) => ({ ...p, count: scoped.filter((s) => matches(s, p.id)).length })).filter(
         (p) => p.id === ALL || p.count > 0,
       ),
     // `matches` is pure over its arguments.
@@ -189,6 +194,20 @@ export function NewsGrid({
           />
         </div>
       </div>
+
+      {onPersonalize && (
+        /* 2026-11-06: signed out, the For You note becomes the offer (the note's layout:
+           sentence left, action right), with the glossy primary so the ask isn't link ink. */
+        <div className={local.personalize}>
+          <p className={local.personalizeText}>
+            <span className={local.personalizeLabel}>For you</span> · Sign up to see news picked for your
+            skills, your team, and the teams you follow.
+          </p>
+          <Button size="s" style="fill" variant="primary" className={fb.glossy} onClick={onPersonalize}>
+            Personalize my news
+          </Button>
+        </div>
+      )}
 
       {/* Multi-tag scope: the same row as Home's feed (WeekFeed), without Follow. */}
       {topics.length > 0 && (

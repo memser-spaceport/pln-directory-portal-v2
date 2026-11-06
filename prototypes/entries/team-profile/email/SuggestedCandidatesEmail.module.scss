@@ -47,11 +47,14 @@
   list-style: none;
 }
 
+// A column: the person (photo + name/title) on top, then why, the count and
+// "View profile →" under it, all left-aligned to the card edge.
 .card {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 16px;
   border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   border-radius: 8px;
   background: var(--background-base-white, #fff);
@@ -68,6 +71,10 @@
 
     .name {
       color: var(--foreground-brand-primary, #1b4dff);
+    }
+
+    .viewProfile {
+      text-decoration: underline;
     }
   }
 
@@ -111,39 +118,55 @@
 
 
 .role {
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// Photo beside the name + title lines.
+.head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+// The one line of why — a profile fact, in normal secondary ink (14/20 body),
+// not faded: it is the reason, not meta.
+.why {
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// "5 of 5 requirements" — the summary of the working the page shows in full.
+.count {
   font-size: 12px;
   line-height: 18px;
   letter-spacing: -0.2px;
   color: var(--foreground-neutral-secondary, #455468);
 }
 
-// The one line of why — primary ink, so it reads as the reason, not as meta.
-.why {
-  margin-top: 2px;
-  font-size: 12px;
-  line-height: 18px;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-primary, #0a0c11);
-}
-
-.chevron {
-  flex-shrink: 0;
-  align-self: center;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-}
-
-// "and 1 more match on the Candidates page" — the rest, as one link.
-.more {
-  display: inline-block;
-  margin: 12px 0 0;
+// Looks like a link; the card around it is the actual link.
+.viewProfile {
   font-size: 14px;
   line-height: 20px;
+  font-weight: 500;
   letter-spacing: -0.2px;
   color: var(--foreground-brand-primary, #1b4dff);
-  text-decoration: none;
+}
 
-  &:hover {
-    text-decoration: underline;
+// The total, as the one button, centred under the cards.
+.ctaRow {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+
+  a,
+  a:hover {
+    color: var(--Neutral-White, #fff);
+    text-decoration: none;
   }
 }
 

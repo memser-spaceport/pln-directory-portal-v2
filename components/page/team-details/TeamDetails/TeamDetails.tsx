@@ -96,11 +96,11 @@ export const TeamDetails = (props: Props) => {
     <>
       {!isCurrentUserTeamMember && (
         <div className={s.visitorActions}>
+          <RequestIntroEntry type="TEAM" targetId={team?.id ?? ''} targetName={teamName} className={s.introButton} />
           <div className={s.followCol}>
             <TeamFollowButton isFollowing={isFollowing} isPending={isFollowPending} onToggle={onFollowToggle} />
             {!isFollowing && !isAdmin && <p className={s.followCaption}>Get updates &amp; announcements</p>}
           </div>
-          <RequestIntroEntry type="TEAM" targetId={team?.id ?? ''} targetName={teamName} className={s.introButton} />
         </div>
       )}
       {showFollowers && <TeamFollowBlock team={team} initialFollowers={initialFollowers} />}

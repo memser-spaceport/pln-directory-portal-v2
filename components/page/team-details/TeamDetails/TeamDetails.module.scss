@@ -170,11 +170,15 @@
   }
 
   .followCol {
-    align-items: flex-start;
+    align-items: stretch;
+    width: 100%;
+
+    > button {
+      width: 100%;
+    }
   }
 
   .introButton {
-    order: -1;
     width: 100%;
     justify-content: center;
   }

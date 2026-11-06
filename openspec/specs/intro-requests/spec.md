@@ -36,19 +36,20 @@ A signed-in member sees a "Request intro" control on another member's page and o
 
 ### Requirement: Request intro sits beside Follow on a team page
 
-On a team page at 640px or wider, "Request intro" sits to the right of Follow. Below 640px, "Request intro" is a full-width primary button above Follow. On another member's page, "Request intro" stays in the profile header. Below 640px on a member page, it is a full-width primary button.
+On a team page at 640px or wider, "Request intro" sits to the left of Follow. Below 640px, "Request intro" is a full-width primary button above Follow, and Follow is full width too. On another member's page, "Request intro" stays in the profile header. Below 640px on a member page, it is a full-width primary button.
 
 #### Scenario: Team page from 640px
 
 - **GIVEN** an eligible member on a team page at least 640px wide
 - **WHEN** the page shows Follow and "Request intro"
-- **THEN** "Request intro" sits to the right of Follow
+- **THEN** "Request intro" sits to the left of Follow
 
 #### Scenario: Team page below 640px
 
 - **GIVEN** an eligible member on a team page below 640px wide
 - **WHEN** the page shows Follow and "Request intro"
 - **THEN** "Request intro" is a full-width primary button above Follow
+- **AND** Follow is full width
 
 #### Scenario: Member page below 640px
 

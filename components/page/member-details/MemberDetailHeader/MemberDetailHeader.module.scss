@@ -102,15 +102,30 @@
   grid-column: span 4 / span 4;
   margin-bottom: 16px;
 
-  // Keep the actions on the name's line: the name block shrinks instead (LAB-3187).
+  // From 640px the actions sit at the top right, on the name's line; the role and location row
+  // below keeps the full width (LAB-3187).
   @include media.tablet-portrait {
-    flex-wrap: nowrap;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 10px;
+    row-gap: 0;
   }
 }
 
 .headerInfo {
-  flex: 1 1 auto;
-  min-width: 0;
+  @include media.tablet-portrait {
+    display: contents;
+
+    > .specificsHdr {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    > .roleAndLocation {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+  }
 }
 
 .headerActions {
@@ -119,6 +134,11 @@
   align-items: flex-start;
   gap: 8px;
   margin-left: auto;
+
+  @include media.tablet-portrait {
+    grid-column: 2;
+    grid-row: 1;
+  }
 
   @include media.mobile-only {
     flex-basis: 100%;

@@ -5,12 +5,12 @@ import path from 'path';
  * LAB-3187: on a member page, "Request intro" moved to a second line below the
  * name, role and location row, so it looked offset.
  *
- * `.headerDetails` is a wrapping flex row with two children: the name block and
+ * `.headerDetails` was a wrapping flex row with two children: the name block and
  * `.headerActions`. When the name block was wider than the free space, the
- * actions wrapped to the next line. From tablet width up the row must not wrap,
- * and the name block must shrink, so the button stays at the top right of the
- * card, on the same line as the member's name. On mobile the actions still go
- * below the name at full width.
+ * actions wrapped to the next line. From 640px up `.headerDetails` is now a
+ * grid: the name and the actions share the first row (actions at the top
+ * right), and the role and location row spans the full width below. Below 640px
+ * the actions still go below the name at full width.
  *
  * jsdom applies no stylesheet, so the test compares the SCSS rules.
  */
@@ -21,9 +21,10 @@ const DIR = 'components/page/member-details/MemberDetailHeader';
 const scss = read(`${DIR}/MemberDetailHeader.module.scss`);
 const tsx = read(`${DIR}/MemberDetailHeader.tsx`);
 
-/** Body of a top-level rule (a selector at column 0), with nested blocks. */
+/** Body of the first rule for a selector (at the start of a line), with nested blocks. */
 function topLevelBlock(source: string, selector: string): string {
-  const start = source.search(new RegExp(`^\\${selector}\\s*\\{`, 'm'));
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const start = source.search(new RegExp(`^\\s*${escaped}\\s*\\{`, 'm'));
   if (start < 0) return '';
   let depth = 0;
   let body = '';
@@ -87,16 +88,29 @@ describe('Request intro position on a member page', () => {
     expect(tsx).toMatch(/<div className=\{s\.headerInfo\}>/);
   });
 
-  it('the name block can shrink, so it does not push the actions to a new line', () => {
-    const info = declarations(topLevelBlock(scss, '.headerInfo'));
-    expect(info['min-width']).toBe('0');
-    expect(info.flex).toBe('1 1 auto');
+  it('from 640px, the header details are a two-column grid', () => {
+    const details = topLevelBlock(scss, '.headerDetails');
+    const wide = declarations(includeBlock(details, 'tablet-portrait'));
+    expect(wide.display).toBe('grid');
+    expect(wide['grid-template-columns']).toBe('minmax(0, 1fr) auto');
   });
 
-  it('from tablet width up, the name block and the actions stay on one line', () => {
-    const details = topLevelBlock(scss, '.headerDetails');
-    expect(declarations(details)['flex-wrap']).toBe('wrap');
-    expect(declarations(includeBlock(details, 'tablet-portrait'))['flex-wrap']).toBe('nowrap');
+  it('from 640px, the name and the actions share the first row', () => {
+    const info = includeBlock(topLevelBlock(scss, '.headerInfo'), 'tablet-portrait');
+    expect(declarations(info).display).toBe('contents');
+    expect(declarations(topLevelBlock(info, '> .specificsHdr'))['grid-row']).toBe('1');
+    expect(declarations(topLevelBlock(info, '> .specificsHdr'))['grid-column']).toBe('1');
+
+    const actions = declarations(includeBlock(topLevelBlock(scss, '.headerActions'), 'tablet-portrait'));
+    expect(actions['grid-row']).toBe('1');
+    expect(actions['grid-column']).toBe('2');
+  });
+
+  it('from 640px, the role and location row spans the full width below', () => {
+    const info = includeBlock(topLevelBlock(scss, '.headerInfo'), 'tablet-portrait');
+    const row = declarations(topLevelBlock(info, '> .roleAndLocation'));
+    expect(row['grid-row']).toBe('2');
+    expect(row['grid-column']).toBe('1 / -1');
   });
 
   it('the actions stay at the top right', () => {

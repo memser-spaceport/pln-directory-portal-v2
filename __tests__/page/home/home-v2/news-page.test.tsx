@@ -60,6 +60,10 @@ jest.mock('@/analytics/team-news.analytics', () => ({
 jest.mock('@/analytics/home.analytics', () => ({
   useHomeAnalytics: () => new Proxy({}, { get: () => jest.fn() }),
 }));
+const mockGoToTop = jest.fn();
+jest.mock('@/analytics/common.analytics', () => ({
+  useCommonAnalytics: () => ({ goToTopBtnClicked: (...a: unknown[]) => mockGoToTop(...a) }),
+}));
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: jest.fn(), replace: jest.fn(), prefetch: jest.fn() }),
@@ -220,6 +224,23 @@ describe('News page: head and grid', () => {
 
     expect(screen.getByText(/isn’t available right now/)).toBeInTheDocument();
     expect(document.querySelector('.catRow')).not.toBeInTheDocument();
+  });
+});
+
+describe('News page: back to top (LAB-3164)', () => {
+  it('offers Back to top once the reader is a screen down, and reports it as the news page', () => {
+    Object.defineProperty(HTMLElement.prototype, 'scrollTo', { configurable: true, value: jest.fn() });
+    renderPage([story('a', 'FUNDING')]);
+    const backToTop = document.querySelector('button[aria-label="Back to top"]')!;
+    expect(backToTop).toHaveAttribute('aria-hidden', 'true');
+
+    document.body.scrollTop = window.innerHeight * 3;
+    fireEvent.scroll(document.body);
+    expect(backToTop).not.toHaveAttribute('aria-hidden');
+
+    fireEvent.click(backToTop);
+    expect(mockGoToTop).toHaveBeenCalledWith(null, 'Home news');
+    document.body.scrollTop = 0;
   });
 });
 

@@ -125,11 +125,16 @@ function BrowsePager({ kind, page, pages }: { kind: BrowseKind; page: number; pa
   );
 }
 
-/** The quiet link at the foot of a listing that leads crawlers (and anyone) to the full index. */
+/**
+ * A listing's link to its full A–Z index, for crawlers (LAB-3093). Members don't see it (LAB-3184): it is visually
+ * hidden and out of the Tab order, but stays a plain link in the server HTML.
+ */
 export function BrowseAllLink({ kind }: { kind: BrowseKind }) {
   return (
-    <p className={s.browseAll}>
-      <a href={browsePath(kind)}>Browse all {LABELS[kind].plural}, A–Z →</a>
+    <p className={s.browseAll} data-testid="browse-all-link">
+      <a href={browsePath(kind)} tabIndex={-1}>
+        Browse all {LABELS[kind].plural}, A–Z
+      </a>
     </p>
   );
 }

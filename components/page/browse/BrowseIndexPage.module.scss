@@ -116,19 +116,16 @@
 }
 
 .browseAll {
-  margin: 0;
-  padding: 16px 0 24px;
-  text-align: center;
-  font-size: 14px;
-  line-height: 20px;
-
-  a {
-    color: #455468;
-    text-decoration: none;
-
-    &:hover {
-      color: #1b4dff;
-      text-decoration: underline;
-    }
-  }
+  // In the server HTML for crawlers, not on screen (LAB-3184). Not display:none, so the link
+  // stays in the page and the accessibility tree; it takes no room in the listing's flex row.
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }

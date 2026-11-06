@@ -5,6 +5,7 @@ import { useCardVisibilityTracking } from '@/hooks/useCardVisibilityTracking';
 import clsx from 'clsx';
 import type { SpvTeamWebsiteSource } from '@/analytics/spv-spotlight.analytics';
 import type { SpvMedia, SpvTeam } from '@/services/spv-spotlight/types';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { sanitizeSpvHtml } from '@/utils/html/sanitizeSpvHtml';
 import { collapseSpvAbout } from '@/utils/html/collapseSpvAbout';
 import { ArrowRightIcon, ArrowUpRightIcon, ExternalIcon, LockIcon } from '../icons';
@@ -246,10 +247,10 @@ export function SpvTeamCard({
                       rel="noopener noreferrer"
                       onClick={() => onFounderClicked?.(f.uid)}
                     >
-                      <div
+                      <img
                         className={s.founderAvatar}
-                        style={f.imageUrl ? { backgroundImage: `url('${f.imageUrl}')` } : undefined}
-                        aria-hidden
+                        src={f.imageUrl || getDefaultAvatar(f.uid)}
+                        alt=""
                       />
                       <div className={s.founderText}>
                         <div className={s.founderName}>{f.name}</div>

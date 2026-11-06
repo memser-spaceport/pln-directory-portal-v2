@@ -23,7 +23,10 @@ export type PortfolioRow = {
   website?: string;
 };
 
-/** A row after the merge: `db` when the portfolio API returned its uid. */
-export type PortfolioTeam = PortfolioRow & { source: 'db' | 'fallback' };
+/**
+ * A row after the merge: `db` when the portfolio API returned its uid. `directoryLogo` is the team's own Directory logo
+ * in colour (the API's `logoUrl`), beside `logo`, marketing's white map tile; Home's focus-area cards pile it (LAB-3174).
+ */
+export type PortfolioTeam = PortfolioRow & { source: 'db' | 'fallback'; directoryLogo?: string };
 
 export const PORTFOLIO_FALLBACK = fallback as PortfolioRow[];

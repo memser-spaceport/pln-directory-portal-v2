@@ -6,6 +6,7 @@ import { useCallback, useMemo, useState } from 'react';
 import type { ITeamNewsItem } from '@/types/team-news.types';
 import type { IHomeEvents, IHomeRoles } from '@/types/home.types';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
+import { Button } from '@/components/common/Button';
 import { PortfolioPanel } from '@/components/page/explore-pl-network/PortfolioPanel/PortfolioPanel';
 import { ExploreLogoWall } from '@/components/page/explore-pl-network/ExploreLogoWall/ExploreLogoWall';
 import { aileron } from '@/components/page/explore-pl-network/aileron';
@@ -20,6 +21,7 @@ import { FactsBand } from './FactsBand';
 import { FocusAreaCards } from './FocusAreaCards';
 import { HomeFooter } from './HomeFooter';
 import { HomeHero } from './HomeHero';
+import { JoinCard } from './JoinCard';
 import { HomeRail } from './HomeRail';
 import { ThisWeekList } from './ThisWeekList';
 import { HOME_NEWS_VIEW_HREF, JOIN_FACES } from './constants';
@@ -38,6 +40,7 @@ import s from './HomeV2.module.scss';
  * 5. The logo wall, then the directory's own footer.
  */
 export function SignedOutHome({
+  newsCount,
   stories,
   deepLinkedItem = null,
   roles,
@@ -46,6 +49,8 @@ export function SignedOutHome({
   projectFocusAreaCounts = null,
   teamFocusAreaCounts = null,
 }: {
+  /** Every story in the 14-day window, as the news page counts them: "See all N updates". */
+  newsCount?: number;
   /** This week's three stories (pickThisWeek). */
   stories: ITeamNewsItem[];
   /** A shared `?news=<uid>` story outside the three, so its modal still opens. */
@@ -82,11 +87,17 @@ export function SignedOutHome({
     <div className={clsx(s.storyPage, aileron.variable)}>
       {/* 1. Who PL is, beside the Join card. */}
       <div className={s.storyBand}>
-        <HomeHero onSignUp={() => signUp('hero')} onSignIn={() => signIn('hero')} faces={JOIN_FACES} />
+        {/* Phones (LAB-3174): the figures sit inside the hero, before Sign up / Sign in. */}
+        <HomeHero
+          onSignUp={() => signUp('hero')}
+          onSignIn={() => signIn('hero')}
+          faces={JOIN_FACES}
+          facts={<FactsBand portfolioCount={portfolio.length} className={s.factsInline} />}
+        />
       </div>
 
-      {/* 2. The figures as their own white band. */}
-      <FactsBand portfolioCount={portfolio.length} />
+      {/* 2. The figures as their own white band (from 640px; phones show them in the hero). */}
+      <FactsBand portfolioCount={portfolio.length} className={s.factsBandWide} />
 
       {/* 3. This week's news beside roles + events: jobs are the reason a third of signed-out visitors click on. */}
       <div className={s.storyBand}>
@@ -100,6 +111,7 @@ export function SignedOutHome({
             }}
             onNeedsAccount={() => signUp('news')}
             allHref={HOME_NEWS_VIEW_HREF}
+            allCount={newsCount}
             onSeeAll={() => analytics.onSeeAllClicked({ section: 'news' })}
           />
           <HomeRail
@@ -107,12 +119,19 @@ export function SignedOutHome({
             events={events}
             signedIn={false}
             rolesNote={
-              <p className={s.railNote}>
-                <button type="button" className={s.inlineLink} onClick={() => signUp('roles')}>
-                  Sign up
-                </button>{' '}
-                to apply with your directory profile.
-              </p>
+              /* LAB-3174 (2026-11-05 review): as inline brand text, Sign up read like "See all N jobs" under it and
+                 was easy to miss. Now the hero's glossy primary at size s, full width; See all stays the quiet link. */
+              <div className={s.railSignUp}>
+                <Button
+                  size="s"
+                  style="fill"
+                  variant="primary"
+                  className={clsx(s.joinBtn, s.glossy)}
+                  onClick={() => signUp('roles')}
+                >
+                  Sign up to apply
+                </Button>
+              </div>
             }
           />
         </div>
@@ -159,9 +178,20 @@ export function SignedOutHome({
             <EntitiesRow />
           </section>
 
+          {/* LAB-3174 (2026-11-05 review): the hero asks before anyone has read the page, so the same Join card asks
+              again once the story is told, as a band across the content. One component, so the two can't drift. */}
+          <JoinCard
+            id="home-join-end-title"
+            onSignUp={() => signUp('join-end')}
+            onSignIn={() => signIn('join-end')}
+            faces={JOIN_FACES}
+            className={s.joinCardEnd}
+            wide
+          />
+
           {/* 5. Who has backed the network. */}
           <section className={clsx(explore.sectionPartners, s.storyEnd)}>
-            <ExploreLogoWall />
+            <ExploreLogoWall linked />
           </section>
         </div>
       </div>

@@ -6,7 +6,11 @@ import { usePostHog } from 'posthog-js/react';
 
 /** Which door on the new Home: the hero's Join card, the roles note, or a sign-up ask on a story. */
 export type HomeAuthDoor = 'sign_up' | 'sign_in';
-export type HomeAuthDoorSection = 'hero' | 'news' | 'roles';
+/**
+ * `join-end`: the second Join card, after the PL entities. `personalize`: "Personalize my news" on the signed-out
+ * news page (both LAB-3174).
+ */
+export type HomeAuthDoorSection = 'hero' | 'news' | 'roles' | 'join-end' | 'personalize';
 export type HomeSeeAllSection = 'news' | 'roles' | 'events' | 'map' | 'deals';
 /** How the signed-in Home's tag scope changed: a tag clicked on, its × or clicked off, Clear all, or a Narrow by pick. */
 export type HomeFeedTagScopeAction = 'add' | 'remove' | 'clear' | 'narrow';

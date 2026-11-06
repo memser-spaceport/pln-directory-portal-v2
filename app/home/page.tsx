@@ -250,6 +250,8 @@ const getSignedOutPageData = async (deepLinkedNewsUid?: string) => {
 
   return {
     stories: pickThisWeek(newsItems),
+    // As the news page counts its stories (unique uids across the groups and the All tab's extras).
+    newsCount: new Set(newsItems.map((item) => item.uid)).size,
     deepLinkedItem: settled(deepLinkedResult),
     roles: settled(rolesResult),
     events: settled(eventsResult),

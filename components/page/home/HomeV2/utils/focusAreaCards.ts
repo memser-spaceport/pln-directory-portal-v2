@@ -38,7 +38,10 @@ export interface FocusAreaCard {
    * loaded: the card then shows no number rather than one its link contradicts.
    */
   count: number | null;
-  /** The pile: the merged portfolio's teams on this island, so the card still matches its patch of the map. */
+  /**
+   * The pile: the first teams on this island with their own Directory logo, in colour on white (LAB-3174; it was the
+   * map's white tiles on the island colour). Island teams, so the card still matches its patch of the map.
+   */
   logos: { name: string; logo: string }[];
 }
 
@@ -66,7 +69,10 @@ export function buildFocusAreaCards(
       projectsHref: hasProjects ? `/projects?focusAreas=${encodeURIComponent(directoryTitle)}` : null,
       color: ISLAND_COLOR[area.id] ?? 'var(--foreground-brand-primary, #1b4dff)',
       count: teamCounts?.[directoryTitle] ?? null,
-      logos: inArea.slice(0, FOCUS_LOGO_PILE).map((t) => ({ name: t.name, logo: t.logo })),
+      logos: inArea
+        .filter((t) => t.directoryLogo)
+        .slice(0, FOCUS_LOGO_PILE)
+        .map((t) => ({ name: t.name, logo: t.directoryLogo! })),
     };
   });
 }

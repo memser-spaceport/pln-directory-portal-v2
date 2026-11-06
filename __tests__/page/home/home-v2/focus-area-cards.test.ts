@@ -33,11 +33,25 @@ describe('the focus-area cards', () => {
     expect(econ.teamsHref).toBe('/teams?focusAreas=Economies%20%26%20Governance');
   });
 
-  it('piles up to four of its own island’s logos', () => {
-    for (const card of buildFocusAreaCards(teams)) {
-      const onIsland = teams.filter((t) => t.island === card.id);
-      expect(card.logos).toEqual(onIsland.slice(0, FOCUS_LOGO_PILE).map((t) => ({ name: t.name, logo: t.logo })));
+  // LAB-3174: the teams' own colour logos (the Directory's), not the map's white tiles.
+  it('piles up to four of its island’s teams that have a Directory logo, in colour', () => {
+    const withLogos: PortfolioTeam[] = teams.map((t, i) =>
+      i % 3 === 0 ? { ...t, directoryLogo: `https://s3/${t.id}-colour.png` } : t,
+    );
+
+    for (const card of buildFocusAreaCards(withLogos)) {
+      const expected = withLogos
+        .filter((t) => t.island === card.id && t.directoryLogo)
+        .slice(0, FOCUS_LOGO_PILE)
+        .map((t) => ({ name: t.name, logo: t.directoryLogo }));
+      expect(card.logos).toEqual(expected);
+      expect(card.logos.length).toBeGreaterThan(0);
+      expect(card.logos.every((l) => l.logo.endsWith('-colour.png'))).toBe(true);
     }
+  });
+
+  it('shows no pile rather than the white map tiles when no team has a Directory logo', () => {
+    expect(buildFocusAreaCards(teams).every((c) => c.logos.length === 0)).toBe(true);
   });
 });
 

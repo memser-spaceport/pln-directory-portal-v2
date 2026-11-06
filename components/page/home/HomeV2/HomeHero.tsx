@@ -1,4 +1,5 @@
 import clsx from 'clsx';
+import type { ReactNode } from 'react';
 
 import { PL_CONTEXT } from '@/components/page/explore-pl-network/data/content';
 import ei from '@/components/page/explore-pl-network/EditorialIntro/EditorialIntro.module.scss';
@@ -18,10 +19,13 @@ export function HomeHero({
   onSignIn,
   onSignUp,
   faces,
+  facts,
 }: {
   onSignIn: () => void;
   onSignUp: () => void;
   faces: string[];
+  /** Phones only (LAB-3174): the figures between the copy and the Join card, so they show before Sign up / Sign in. */
+  facts?: ReactNode;
 }) {
   return (
     <section className={s.introGrid} aria-labelledby="home-intro-title">
@@ -33,6 +37,8 @@ export function HomeHero({
           <p>{INTRO_ABOUT}</p>
         </div>
       </header>
+
+      {facts && <div className={s.introFacts}>{facts}</div>}
 
       <JoinCard id="home-join-title" onSignIn={onSignIn} onSignUp={onSignUp} faces={faces} />
     </section>

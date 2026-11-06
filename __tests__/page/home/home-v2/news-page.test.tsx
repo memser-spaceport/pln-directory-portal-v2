@@ -51,8 +51,13 @@ jest.mock('@/services/team-news/hooks/useNewsTopicSlugs', () => ({
 // ---- Doors and analytics ----
 
 const mockSignUp = jest.fn();
+const mockSignUpHere = jest.fn();
 jest.mock('@/components/page/home/HomeV2/useHomeAuthDoors', () => ({
-  useHomeAuthDoors: () => ({ signUp: (...a: unknown[]) => mockSignUp(...a), signIn: jest.fn() }),
+  useHomeAuthDoors: () => ({
+    signUp: (...a: unknown[]) => mockSignUp(...a),
+    signUpHere: (...a: unknown[]) => mockSignUpHere(...a),
+    signIn: jest.fn(),
+  }),
 }));
 jest.mock('@/analytics/team-news.analytics', () => ({
   useTeamNewsAnalytics: () => new Proxy({}, { get: () => jest.fn() }),
@@ -224,6 +229,29 @@ describe('News page: head and grid', () => {
 
     expect(screen.getByText(/isn’t available right now/)).toBeInTheDocument();
     expect(document.querySelector('.catRow')).not.toBeInTheDocument();
+  });
+});
+
+// LAB-3174 (prototype 2026-11-06): signed out there is nothing of the visitor to pick from, so no For You pill; the
+// For You note becomes the offer, and "Personalize my news" opens the sign-up modal over the page.
+describe('News page: Personalize my news (LAB-3174)', () => {
+  it('offers it to a signed-out visitor, with no For You pill, and opens sign-up here', () => {
+    renderPage([story('a', 'FUNDING'), story('b', 'LAUNCH')], { signedIn: false, forYouTeamUids: ['team-a'] });
+
+    expect(
+      screen.getByText(/Sign up to see news picked for your skills, your team, and the teams you follow\./),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^For You/ })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Personalize my news' }));
+    expect(mockSignUpHere).toHaveBeenCalledWith('personalize');
+    expect(mockSignUp).not.toHaveBeenCalled();
+  });
+
+  it('does not offer it to a member', () => {
+    renderPage([story('a', 'FUNDING')], { signedIn: true });
+
+    expect(screen.queryByRole('button', { name: 'Personalize my news' })).not.toBeInTheDocument();
   });
 });
 

@@ -4,7 +4,7 @@ export const activitiesData: ActivitiesData = {
   hero: {
     title: 'Build the Network, Collect PLAA Points',
     description: `You’re already contributing to the growth of the Protocol Labs Network. Complete the activities below to have your contributions recognized as PLAA points—a way to track and celebrate your participation in the community. Click any activity to view details and discover new ways to get involved.`,
-    note: ''
+    note: '',
   },
   activities: [
     // ─── Repeatable ───────────────────────────────────────────────────────────
@@ -19,18 +19,18 @@ export const activitiesData: ActivitiesData = {
       cta: 'confirm',
       popupContent: {
         title: 'Thoughtful Responder',
-        overview: 'Write a thoughtful, substantive response to an existing LabOS Forum discussion that moves the conversation forward. Strong responses should generally be geared towards creating the opportunity for further and deeper responses.',
-        networkBenefits: 'Sharing knowledge and experience through thoughtful forum posts, office hours, and published resources is core to the knowledge sharing that builds a stronger PL Network.',
+        overview:
+          'Write a thoughtful, substantive response to an existing LabOS Forum discussion that moves the conversation forward. Strong responses should generally be geared towards creating the opportunity for further and deeper responses.',
+        networkBenefits:
+          'Sharing knowledge and experience through thoughtful forum posts, office hours, and published resources is core to the knowledge sharing that builds a stronger PL Network.',
         rules: [
           'Responses must do at least one of the following: add meaningful insight, ask a sharp follow-up question, share relevant personal or professional experience, or introduce useful evidence, context, or interpretation',
           'Responses must be posted by a human user, not an agent',
           'Only responses posted within 7 days of the original thread will count',
-          'Responses will be reviewed by the PLAA Working Group before points are awarded'
+          'Responses will be reviewed by the PLAA Working Group before points are awarded',
         ],
-        links: [
-          { text: 'LabOS Forum', url: '/forum?cid=0' }
-        ]
-      }
+        links: [{ text: 'LabOS Forum', url: '/forum?cid=0' }],
+      },
     },
     {
       id: 'quick-conversationalist',
@@ -43,16 +43,16 @@ export const activitiesData: ActivitiesData = {
       cta: 'confirm',
       popupContent: {
         title: 'Quick Conversationalist',
-        overview: 'You were quick to respond to a forum post. That keeps the conversation flowing and helps the LabOS forum feel more alive and dynamic.',
-        networkBenefits: 'Keeps forum discussions active while the topic is timely and increases the chance that questions turn into useful exchanges.',
+        overview:
+          'You were quick to respond to a forum post. That keeps the conversation flowing and helps the LabOS forum feel more alive and dynamic.',
+        networkBenefits:
+          'Keeps forum discussions active while the topic is timely and increases the chance that questions turn into useful exchanges.',
         rules: [
           'The qualifying response must be posted shortly after the original forum post while the discussion is still active',
-          'The response must be substantive enough to keep the conversation moving'
+          'The response must be substantive enough to keep the conversation moving',
         ],
-        links: [
-          { text: 'forum post', url: '/forum?cid=0' }
-        ]
-      }
+        links: [{ text: 'forum post', url: '/forum?cid=0' }],
+      },
     },
     {
       id: 'host-office-hours',
@@ -65,18 +65,18 @@ export const activitiesData: ActivitiesData = {
       cta: 'confirm',
       popupContent: {
         title: 'Host Office Hours',
-        overview: 'Host live sessions to share expertise, provide feedback, or collaborate with others in the network. These real-time connections not only share knowledge, but build stronger connections. Set yourself up to host office hours via your profile page.\n\nYou can host office hours through your PL Network profile. For meetings scheduled outside the Directory, add plaa-oh@plrs.xyz as an attendee to make the session eligible for automatic tracking.',
-        networkBenefits: 'Makes member expertise accessible and creates lightweight paths for feedback, collaboration, and mentoring across the network.',
+        overview:
+          'Host live sessions to share expertise, provide feedback, or collaborate with others in the network. These real-time connections not only share knowledge, but build stronger connections. Set yourself up to host office hours via your profile page.\n\nYou can host office hours through your PL Network profile. For meetings scheduled outside the Directory, add plaa-oh@plrs.xyz as an attendee to make the session eligible for automatic tracking.',
+        networkBenefits:
+          'Makes member expertise accessible and creates lightweight paths for feedback, collaboration, and mentoring across the network.',
         rules: [
           'Sessions must either be scheduled through the Directory or include plaa-oh@plrs.xyz as an attendee on the calendar invitation',
           'Each session must run for at least 15 minutes',
           'The tracking email must be added to the calendar invitation before the session occurs',
-          'Cancelled, declined, duplicated, or unverified sessions are not eligible'
+          'Cancelled, declined, duplicated, or unverified sessions are not eligible',
         ],
-        links: [
-          { text: 'plaa-oh@plrs.xyz', url: 'mailto:plaa-oh@plrs.xyz' }
-        ]
-      }
+        links: [{ text: 'plaa-oh@plrs.xyz', url: 'mailto:plaa-oh@plrs.xyz' }],
+      },
     },
     {
       id: 'book-office-hours',
@@ -89,19 +89,19 @@ export const activitiesData: ActivitiesData = {
       cta: 'confirm',
       popupContent: {
         title: 'Book Office Hours',
-        overview: 'Book an office hours session with another member of the PL Network to seek advice, get feedback, or explore opportunities for collaboration. Connect directly with network experts through their PL Network profiles.\n\nYou can book office hours through the PL Network Directory. For meetings scheduled outside the Directory, add plaa-oh@plrs.xyz as an attendee to make the session eligible for automatic tracking.',
-        networkBenefits: 'Encourages knowledge sharing, mentorship, and collaboration by connecting members with expertise across the network.',
+        overview:
+          'Book an office hours session with another member of the PL Network to seek advice, get feedback, or explore opportunities for collaboration. Connect directly with network experts through their PL Network profiles.\n\nYou can book office hours through the PL Network Directory. For meetings scheduled outside the Directory, add plaa-oh@plrs.xyz as an attendee to make the session eligible for automatic tracking.',
+        networkBenefits:
+          'Encourages knowledge sharing, mentorship, and collaboration by connecting members with expertise across the network.',
         rules: [
           'Sessions must either be scheduled through the Directory or include plaa-oh@plrs.xyz as an attendee on the calendar invitation',
           'Each session must run for at least 15 minutes',
           'The tracking email must be added to the calendar invitation before the session occurs',
           'Cancelled, declined, duplicated, or unverified sessions are not eligible',
-          'Points are awarded to the member booking and attending the session, not the host'
+          'Points are awarded to the member booking and attending the session, not the host',
         ],
-        links: [
-          { text: 'plaa-oh@plrs.xyz', url: 'mailto:plaa-oh@plrs.xyz' }
-        ]
-      }
+        links: [{ text: 'plaa-oh@plrs.xyz', url: 'mailto:plaa-oh@plrs.xyz' }],
+      },
     },
     {
       id: 'comment-on-network-news',
@@ -114,16 +114,18 @@ export const activitiesData: ActivitiesData = {
       cta: 'confirm',
       popupContent: {
         title: 'Comment on News from the Network',
-        overview: 'Comment on useful, timely, or relevant news on the LabOS homepage to share your perspective and contribute to the network conversation.',
-        networkBenefits: 'Introduces members to a LabOS feature while encouraging thoughtful discussion, knowledge sharing, and additional context around news that matters to the network.',
+        overview:
+          'Comment on useful, timely, or relevant news on the LabOS homepage to share your perspective and contribute to the network conversation.',
+        networkBenefits:
+          'Introduces members to a LabOS feature while encouraging thoughtful discussion, knowledge sharing, and additional context around news that matters to the network.',
         rules: [
           'Comment on an existing news post on the LabOS homepage',
           'The comment must add relevant context, perspective, insight, or a thoughtful response to the news post',
           'The comment must remain visible when completion is checked',
           'Each post may qualify only once per participant',
-          'Participants may earn points once per month for completing this activity'
-        ]
-      }
+          'Participants may earn points once per month for completing this activity',
+        ],
+      },
     },
     {
       id: 'submit-deal-debrief',
@@ -137,22 +139,23 @@ export const activitiesData: ActivitiesData = {
       audience: 'pl-infra-members',
       popupContent: {
         title: 'Submit a Deal Debrief',
-        overview: 'Share the lesson, not just the deal. Submit a substantive debrief through the PL Deal Debrief app, drawing on your own perspective on a VC, M&A, or other deal. Explain what worked, what was challenging, and what others could learn (without disclosing confidential, privileged, or identifying deal information).',
-        networkBenefits: 'Builds a repository of practical deal knowledge that can inform reports and advice for network companies and PL Infra, helping them improve deal processes and outcomes.',
+        overview:
+          'Share the lesson, not just the deal. Submit a substantive debrief through the PL Deal Debrief app, drawing on your own perspective on a VC, M&A, or other deal. Explain what worked, what was challenging, and what others could learn (without disclosing confidential, privileged, or identifying deal information).',
+        networkBenefits:
+          'Builds a repository of practical deal knowledge that can inform reports and advice for network companies and PL Infra, helping them improve deal processes and outcomes.',
         rules: [
           'Submit all deal information for this activity through the Deal Debrief app and complete all required fields, using generalized, non-confidential information.',
           'Provide substantive information: meaningful context, insights, and reusable lessons from your own perspective. Empty, generic, or copied answers do not qualify.',
           'The Legal Ops team will review all deal information before you collect the 250 points. Submission alone does not guarantee points.',
           'Multiple people may submit the same deal, provided each person supplies unique answers representing their own perspective on that deal.',
           `Do not submit confidential or privileged information about any deal. Follow the app's guidance: no names, exact figures, dates, non-public diligence reports, third-party term sheets, documents subject to NDAs, or confidential links in your deal narrative. Do not submit information you are not authorized to share; if you cannot answer safely, do not submit it.`,
-          'Providing confidential or privileged deal information will result in immediate point forfeiture and potential removal from the activity program.'
+          'Providing confidential or privileged deal information will result in immediate point forfeiture and potential removal from the activity program.',
         ],
         ctaLink: '/pl-infra/ai-apps/cmtdebct4000otb4fqp4vyim8',
-        links: [
-          { text: 'Deal Debrief app', url: '/pl-infra/ai-apps/cmtdebct4000otb4fqp4vyim8' }
-        ],
-        disclaimer: 'By submitting this activity, I warrant my submission is accurate, authorized, and breaches no confidentiality, securities, IP, or privacy obligation, and I release PL from all liability arising from it.'
-      }
+        links: [{ text: 'Deal Debrief app', url: '/pl-infra/ai-apps/cmtdebct4000otb4fqp4vyim8' }],
+        disclaimer:
+          'By submitting this activity, I warrant my submission is accurate, authorized, and breaches no confidentiality, securities, IP, or privacy obligation, and I release PL from all liability arising from it.',
+      },
     },
     {
       id: 'network-introduction',
@@ -165,12 +168,12 @@ export const activitiesData: ActivitiesData = {
       cta: 'submit',
       popupContent: {
         title: 'Make a Network Introduction',
-        overview: 'Facilitate meaningful introductions between individuals or teams that may lead to collaboration or partnership.',
-        networkBenefits: 'Creates new collaboration paths between members or teams that would otherwise stay disconnected.',
-        rules: [
-          'Must be a verified introduction between two parties with no prior contact'
-        ]
-      }
+        overview:
+          'Facilitate meaningful introductions between individuals or teams that may lead to collaboration or partnership.',
+        networkBenefits:
+          'Creates new collaboration paths between members or teams that would otherwise stay disconnected.',
+        rules: ['Must be a verified introduction between two parties with no prior contact'],
+      },
     },
     {
       id: 'high-value-connector',
@@ -183,13 +186,15 @@ export const activitiesData: ActivitiesData = {
       cta: 'submit',
       popupContent: {
         title: 'High Value Connector',
-        overview: 'You not only connected people, but that connection added outsized value to the PL Network. These kinds of high-leverage introductions are why the PL Network exist and why we created the Alignment Asset.',
-        networkBenefits: 'Incentivizes introductions that produce measurable outcomes such as advisors, partnerships, customers, or other network wins.',
+        overview:
+          'You not only connected people, but that connection added outsized value to the PL Network. These kinds of high-leverage introductions are why the PL Network exist and why we created the Alignment Asset.',
+        networkBenefits:
+          'Incentivizes introductions that produce measurable outcomes such as advisors, partnerships, customers, or other network wins.',
         rules: [
           'Your connection led to a demonstrated, positive impact to the PL Network, like a new advisor, partnership, customer or other meaningful success',
-          'Points are awarded based on the discretion of the PLAA WG'
-        ]
-      }
+          'Points are awarded based on the discretion of the PLAA WG',
+        ],
+      },
     },
     {
       id: 'respond-irl-gathering',
@@ -202,17 +207,17 @@ export const activitiesData: ActivitiesData = {
       cta: 'confirm',
       popupContent: {
         title: 'Attend an IRL Gathering',
-        overview: 'RSVP on the LabOS site to confirm your planned attendance at a PL Network-related event to help the organizers plan and strengthen the network.',
-        networkBenefits: 'Improves event participation data and supports better planning for in-person network gatherings.',
+        overview:
+          'RSVP on the LabOS site to confirm your planned attendance at a PL Network-related event to help the organizers plan and strengthen the network.',
+        networkBenefits:
+          'Improves event participation data and supports better planning for in-person network gatherings.',
         rules: [
           `Respond "I'm Going" on the relevant event page via IRL Gatherings before attending to qualify for points`,
           `Click I'm Going -> Select Event -> Role: Attendee, and ensure you are listed as an Attendee on the event page through your directory profile`,
-          'Must attend to receive points'
+          'Must attend to receive points',
         ],
-        links: [
-          { text: 'RSVP on the LabOS site', url: '/events/irl' }
-        ]
-      }
+        links: [{ text: 'RSVP on the LabOS site', url: '/events/irl' }],
+      },
     },
     {
       id: 'give-excellent-feedback',
@@ -225,13 +230,15 @@ export const activitiesData: ActivitiesData = {
       cta: 'confirm',
       popupContent: {
         title: 'Give Excellent Feedback',
-        overview: 'Your feedback — whether through a survey, the LabOS Feedback button, or another PLAA channel — went above and beyond. The insights you provided helped identify new issues or drive real improvements to the Alignment Asset program.',
-        networkBenefits: 'Rewards feedback that identifies meaningful issues or improvement opportunities, not just completed forms.',
+        overview:
+          'Your feedback — whether through a survey, the LabOS Feedback button, or another PLAA channel — went above and beyond. The insights you provided helped identify new issues or drive real improvements to the Alignment Asset program.',
+        networkBenefits:
+          'Rewards feedback that identifies meaningful issues or improvement opportunities, not just completed forms.',
         rules: [
           'Your feedback created meaningful impact, as determined by the PLAA working group',
-          'The PLAA working group sent you an email noting that your feedback made you eligible for these extra points'
-        ]
-      }
+          'The PLAA working group sent you an email noting that your feedback made you eligible for these extra points',
+        ],
+      },
     },
     {
       id: 'complete-a-survey',
@@ -244,21 +251,24 @@ export const activitiesData: ActivitiesData = {
       cta: 'confirm',
       popupContent: {
         title: 'Complete a Survey',
-        overview: 'Giving good feedback is one way we can help PL Network members improve their products, organization, research or mission. It might feel like a small thing, but data is valuable. This also includes surveys distributed directly by PLAA, which you can find in emails we send on an ad hoc basis.',
-        networkBenefits: 'Helps member organizations gather useful data from outside their own teams, and gives PLAA a reliable feedback signal for improving the program, products, and participant experience.',
+        overview:
+          'Giving good feedback is one way we can help PL Network members improve their products, organization, research or mission. It might feel like a small thing, but data is valuable. This also includes surveys distributed directly by PLAA, which you can find in emails we send on an ad hoc basis.',
+        networkBenefits:
+          'Helps member organizations gather useful data from outside their own teams, and gives PLAA a reliable feedback signal for improving the program, products, and participant experience.',
         rules: [
           'You completed a survey distributed by PLAA — either from a PL Network member or from the PLAA program itself',
           'If completing a PL Network member survey, you are not a member of the organization that submitted it for distribution',
           `Surveys must be completed before the end of the month in which they're sent`,
-          'Bot or Spam responses may result in the forfeiture of points'
-        ]
-      }
+          'Bot or Spam responses may result in the forfeiture of points',
+        ],
+      },
     },
     {
       id: 'provide-product-testing-feedback',
       category: 'Projects',
       activity: 'Provide Product Testing + Feedback',
-      networkValue: 'Test an approved product, tool, or workflow on a real task and share meaningful, actionable feedback',
+      networkValue:
+        'Test an approved product, tool, or workflow on a real task and share meaningful, actionable feedback',
       points: '100',
       frequency: 'Repeatable',
       verificationType: 'Manual Review',
@@ -267,15 +277,16 @@ export const activitiesData: ActivitiesData = {
       popupContent: {
         title: 'Provide Product Testing + Feedback',
         overview: `Test an approved product, tool, workflow, or process on a real work task and provide meaningful, actionable feedback on the experience.\n\nCurrent eligible requests for product testing:\n\n[**Max**](https://os.pl.xyz/pl-infra/ai-apps/cmunhqj0l00hgsd4fl7e86h4g) — Get set up on Max, explore your initial Radar results, and complete the [Max First Impressions Survey](https://docs.google.com/forms/d/e/1FAIpQLScfjyPU7fS9fVDsJkJ5JjbkcRRX1bHSGJjc5OQ2Y4to4ptY-A/viewform) to share feedback on ease of use and the relevance of the outputs. Collect 100 points for completing the test and survey. Feedback is eligible through Monday, November 30, 2026.`,
-        networkBenefits: 'Helps teams improve shared products and workflows through real-world use, identifying friction, missing capabilities, and opportunities to improve the user experience.',
+        networkBenefits:
+          'Helps teams improve shared products and workflows through real-world use, identifying friction, missing capabilities, and opportunities to improve the user experience.',
         rules: [
           'Participate in an eligible product-testing request and complete the defined task',
           'On the designated feedback form/feature, describe what you tried, what happened, and provide at least one actionable observation',
           'Feedback may identify friction, bugs, missing capabilities, suggested UX/UI improvements, or something that worked well and should be retained',
           'Feedback must be meaningful and specific enough for the product owner to act on',
-          'Attendance, account creation, routine use, demos, logins, praise alone, or general reactions do not qualify'
-        ]
-      }
+          'Attendance, account creation, routine use, demos, logins, praise alone, or general reactions do not qualify',
+        ],
+      },
     },
     {
       id: 'bring-new-members',
@@ -289,15 +300,14 @@ export const activitiesData: ActivitiesData = {
       popupContent: {
         title: 'Refer New Alignment Asset Participants',
         overview: `Refer eligible participants to join the Alignment Asset program. Reach out to plaa-wg@plrs.xyz with the person you wish to invite's name and email. The working group will review and share referral instructions with you and the person you referred. This is how we grow the Alignment Asset program and the PL Network at-large.`,
-        networkBenefits: 'Supports responsible growth of the Alignment Asset participant base through trusted referrals.',
+        networkBenefits:
+          'Supports responsible growth of the Alignment Asset participant base through trusted referrals.',
         rules: [
           'The person must complete any eligibility form (if not already eligible) The person you refer must complete all required onboarding tasks with Surus and the PLAA to qualify',
-          'The person must also complete at least one activity in the first 60 days after onboarding'
+          'The person must also complete at least one activity in the first 60 days after onboarding',
         ],
-        links: [
-          { text: 'plaa-wg@plrs.xyz', url: 'mailto:plaa-wg@plrs.xyz' }
-        ]
-      }
+        links: [{ text: 'plaa-wg@plrs.xyz', url: 'mailto:plaa-wg@plrs.xyz' }],
+      },
     },
     {
       id: 'rank-supportive-members',
@@ -311,12 +321,13 @@ export const activitiesData: ActivitiesData = {
       popupContent: {
         title: 'Top the Leaderboard',
         overview: `Finishing in the top five on the leaderboard isn't just a personal flex, it's a symbol of dedication to the PL Network and your efforts to make the network stronger.`,
-        networkBenefits: 'Creates an additional visible incentive for sustained contribution during each snapshot period.',
+        networkBenefits:
+          'Creates an additional visible incentive for sustained contribution during each snapshot period.',
         rules: [
           'At the close of each snapshot period, the top 5 users with the highest verified point totals receive the bonus',
-          'Points are awarded only after all activity for the snapshot has been reviewed, finalized, and closed'
-        ]
-      }
+          'Points are awarded only after all activity for the snapshot has been reviewed, finalized, and closed',
+        ],
+      },
     },
     {
       id: 'give-network-kudos',
@@ -329,17 +340,17 @@ export const activitiesData: ActivitiesData = {
       cta: 'confirm',
       popupContent: {
         title: 'Give a Network Kudos',
-        overview: 'Give Kudos to recognize another network member for a helpful, meaningful, or positive contribution. Giving Kudos does not allow you to collect points, but the recipient may receive between 10 and 100 points based on the level of recognition awarded.',
-        networkBenefits: 'Encourages peer recognition and helps surface valuable contributions that may not be captured through other activities.',
+        overview:
+          'Give Kudos to recognize another network member for a helpful, meaningful, or positive contribution. Giving Kudos does not allow you to collect points, but the recipient may receive between 10 and 100 points based on the level of recognition awarded.',
+        networkBenefits:
+          'Encourages peer recognition and helps surface valuable contributions that may not be captured through other activities.',
         rules: [
           'Kudos must be given through the official network Kudos feature.',
           'You cannot award Kudos to yourself.',
-          'Kudos may be reviewed or removed if they appear duplicated, coordinated, or otherwise misused.'
+          'Kudos may be reviewed or removed if they appear duplicated, coordinated, or otherwise misused.',
         ],
-        links: [
-          { text: 'Kudos feature', url: '/alignment-asset/kudos' }
-        ]
-      }
+        links: [{ text: 'Kudos feature', url: '/alignment-asset/kudos' }],
+      },
     },
 
     // ─── Recurring ────────────────────────────────────────────────────────────
@@ -355,19 +366,18 @@ export const activitiesData: ActivitiesData = {
       popupContent: {
         title: 'Share a Project Update with the Network',
         overview: `Post an update about your project in the LabOS Forum. Share how it's contributing to the PL Network, opportunities for others to get involved, and any areas where collaboration or support would be valuable (no fundraising requests).`,
-        networkBenefits: 'Shows members what their peers are building and where they can help, so updates lead to intros, hires and collaboration.',
+        networkBenefits:
+          'Shows members what their peers are building and where they can help, so updates lead to intros, hires and collaboration.',
         rules: [
           `Write an original LabOS Forum post of at least 100 words. Replies don't count.`,
           'Say how your project helps the network, and include at least one specific opportunity to connect or non-capital ask, such as hiring, partners, intros, feedback or expertise. Asking for candidate referrals counts if you link to the job posting.',
           `Keep it specific and actionable. Reposted press releases and pure promotion don't qualify.`,
           `Don't include fundraising, investment or token-sale asks.`,
           `Share only information that's already public. Nothing confidential or non-public belongs in the post.`,
-          'One award per person per snapshot month. The PLAA Working Group reviews each post before points are awarded.'
+          'One award per person per snapshot month. The PLAA Working Group reviews each post before points are awarded.',
         ],
-        links: [
-          { text: 'LabOS Forum', url: '/forum?cid=0' }
-        ]
-      }
+        links: [{ text: 'LabOS Forum', url: '/forum?cid=0' }],
+      },
     },
     {
       id: 'host-x-space',
@@ -380,37 +390,38 @@ export const activitiesData: ActivitiesData = {
       cta: 'submit',
       popupContent: {
         title: 'Host or Co-Host an X Space',
-        overview: 'Host or co-host an approved X Space that highlights innovation, collaboration, or thought leadership across the network.',
+        overview:
+          'Host or co-host an approved X Space that highlights innovation, collaboration, or thought leadership across the network.',
         networkBenefits: 'Brings more external visibility to PL Network projects, ideas, and contributors.',
         rules: [
           'Proposals must be submitted and approved before scheduling',
           'X Space must be hosted on the official PL X account to ensure metrics can be verified',
-          'At least 50 people must attend the X Space'
-        ]
-      }
+          'At least 50 people must attend the X Space',
+        ],
+      },
     },
     {
       id: 'refer-team-member',
       category: 'People/Talent',
       activity: 'Refer a Potential Team Member to a PL Network Org',
-      networkValue: 'Grow the network by referring someone you know for an open position at a PL Network company or org',
+      networkValue:
+        'Grow the network by referring someone you know for an open position at a PL Network company or org',
       points: '100',
       frequency: 'Recurring',
       verificationType: 'Submission',
       cta: 'submit',
       popupContent: {
         title: 'Refer a Potential Team Member to a PL Network Org',
-        overview: 'Refer exceptional talent to the Protocol Labs network by submitting candidates through the designated form. Check out the PL Network Job Board to see open roles: /jobs.',
+        overview:
+          'Refer exceptional talent to the Protocol Labs network by submitting candidates through the designated form. Check out the PL Network Job Board to see open roles: /jobs.',
         networkBenefits: 'Expands the candidate pipeline for open roles across network companies and organizations.',
         rules: [
           'The referral must be for an open role at a PL Network Member organization or company',
           'The org can only be your own organzation or company, if you are not a member of the executive or founding team',
-          'The referral must at least pass the screening interview stage'
+          'The referral must at least pass the screening interview stage',
         ],
-        links: [
-          { text: '/jobs', url: '/jobs' }
-        ]
-      }
+        links: [{ text: '/jobs', url: '/jobs' }],
+      },
     },
     {
       id: 'propose-incentivized-activity',
@@ -424,37 +435,63 @@ export const activitiesData: ActivitiesData = {
       popupContent: {
         title: 'Propose a New Activity for the PLAA',
         overview: 'Propose a new Alignment Asset activity that solves a clear network challenge or unmet need.',
-        networkBenefits: 'Sources activity ideas directly from participants and validates whether they create real engagement.',
+        networkBenefits:
+          'Sources activity ideas directly from participants and validates whether they create real engagement.',
         rules: [
           'The activity must be reviewed and approved by the PLAA working group',
-          'At least five participants (other than you) must complete the activity'
-        ]
-      }
+          'At least five participants (other than you) must complete the activity',
+        ],
+      },
     },
     {
       id: 'help-organize-event',
       category: 'Programs',
-      activity: 'Help Organize an Event',
-      networkValue: 'Host or co-host an event that delivers real value to the Protocol Labs community',
+      activity: 'Host an Event',
+      networkValue: 'Host or co-host an event that delivers real value to the PL community',
       points: '1000',
       frequency: 'Recurring',
       verificationType: 'Auto',
       cta: 'confirm',
       popupContent: {
-        title: 'Help Organize an Event',
-        overview: 'Host or co-host a curated activity or event catered to Protocol Labs participants to aid with an array of topics, ranging from company formation, dedicated development, cross-network collaboration, etc. Events should be intentionally designed, independently run without direct PL, Inc. or Polaris, Inc. sponsorship in the form of direct compensation for time or labor, and focused on delivering real value to the Protocol Labs community.',
-        networkBenefits: 'Encourages member-led events that deliver practical value without relying solely on central sponsorship.',
+        title: 'Host an Event',
+        overview: `Host or co-host a curated event for Protocol Labs participants on topics relating to one of PL's focus areas or general innovation and entrepreneurship like company formation, GTM, hiring, etc. Events must be designed with intent, run independently without PL directly paying for your time or labor, and focused on delivering real value to the broader PL community.`,
+        networkBenefits: 'Encourages member-led events that deliver practical value without relying only on central sponsorship.',
         rules: [
-          'The event must be created and published in Luma and included on a live, discoverable calendar or listing',
-          'You must add events@plrs.xyz as an Event Manager in Luma so registration and attendance data can be accessed',
-          'Host must submit it to the PL events directory by adding it to /events/irl via https://irl.plnetwork.io/events/',
-          'To qualify as a Host, your profile must be clearly listed under the Host section of the event',
-          'At least 10 people not associated with your organization or company must attend'
+          'Create and publish the event in Luma, and include it on a live calendar or listing people can find.',
+          'Add events@plrs.xyz as an Event Manager in Luma so registration and attendance data can be accessed.',
+          'Submit the event to the PL events directory at https://irl.plnetwork.io/events/.',
+          'Your profile must be clearly listed under the Host section of the event.',
+          'At least 10 people not associated with your organization or company must attend.',
+          'If the PL Infra Events AI App identifies you as a host, you automatically meet these requirements.'
         ],
         links: [
           { text: 'events@plrs.xyz', url: 'mailto:events@plrs.xyz' },
-          { text: '/events/irl', url: '/events/irl' },
-          { text: 'https://irl.plnetwork.io/events/', url: 'https://irl.plnetwork.io/events/' }
+          { text: 'https://irl.plnetwork.io/events/', url: 'https://irl.plnetwork.io/events/' },
+          { text: 'PL Infra Events AI App', url: '/pl-infra/ai-apps/cmsg2psgb031pnq4g7nls6q81' }
+        ]
+      }
+    },
+    {
+      id: 'speak-at-event',
+      category: 'Programs',
+      activity: 'Speak at an Event',
+      networkValue: 'Give a talk or join a panel at a live event where you represent a PL network project',
+      points: '500',
+      frequency: 'Recurring',
+      verificationType: 'Submission',
+      cta: 'submit',
+      popupContent: {
+        title: 'Speak at an Event',
+        overview: 'Give a talk or join a panel at a live event where you represent a PL network project or a PL entity. This can be a PL-sponsored event or an outside conference.',
+        networkBenefits: 'Makes the network more visible at events inside and outside PL, and recognizes members who represent their projects or the network at-large in public.',
+        rules: [
+          `Give a talk or join a panel at a live event where you represent a PL network project or a PL entity. The event doesn't need to be PL-sponsored.`,
+          'If the PL Infra Events AI App identifies you as a speaker or panelist, you automatically qualify. Otherwise, submit a link to the event page or published schedule that lists you as a speaker or panelist.',
+          'One award per person per snapshot month, however many talks you give.',
+          'The PLAA Working Group reviews each submitted link before points are awarded.'
+        ],
+        links: [
+          { text: 'PL Infra Events AI App', url: '/pl-infra/ai-apps/cmsg2psgb031pnq4g7nls6q81' }
         ]
       }
     },
@@ -469,21 +506,23 @@ export const activitiesData: ActivitiesData = {
       cta: 'confirm',
       popupContent: {
         title: 'Build an AI App for the Network',
-        overview: 'Build a functional AI application that gives practical value to people across the PL network, then share it through LabOS AI Apps (Infra-only) or the LabOS Forum.',
-        networkBenefits: 'Adds useful AI tooling across the network, encourages adoption of LabOS infrastructure, and helps members find tools built by their peers.',
+        overview:
+          'Build a functional AI application that gives practical value to people across the PL network, then share it through LabOS AI Apps (Infra-only) or the LabOS Forum.',
+        networkBenefits:
+          'Adds useful AI tooling across the network, encourages adoption of LabOS infrastructure, and helps members find tools built by their peers.',
         rules: [
           'The app must work and be useful to the broader PL network, not just your own workflow.',
           'Submit through one path:\n**PL Infra members:** deploy through LabOS via /pl-infra/ai-apps.\n**Anyone:** share it in a LabOS Forum post with an impact statement: who benefits, what problem it solves, and why it matters beyond your own work.',
           `The app must be free for a typical network member's monthly use. You can charge heavy users to cover your own token costs.`,
           'The PLAA Working Group reviews forum submissions for network impact before points are awarded.',
-          `GitHub is optional here, but you'll need it to collect points for later feature updates through Update an AI App.`
+          `GitHub is optional here, but you'll need it to collect points for later feature updates through Update an AI App.`,
         ],
         links: [
           { text: '/pl-infra/ai-apps', url: '/pl-infra/ai-apps' },
           { text: 'LabOS Forum', url: '/forum?cid=0' },
-          { text: 'Update an AI App', url: '/alignment-asset/activities#update-ai-app' }
-        ]
-      }
+          { text: 'Update an AI App', url: '/alignment-asset/activities#update-ai-app' },
+        ],
+      },
     },
     {
       id: 'update-ai-app',
@@ -496,21 +535,23 @@ export const activitiesData: ActivitiesData = {
       cta: 'confirm',
       popupContent: {
         title: 'Update an AI App',
-        overview: 'Ship a significant new feature to an AI app you built that introduces new capabilities for end users.',
-        networkBenefits: 'Keeps useful network AI tools improving after launch, so apps get better for the people who rely on them.',
+        overview:
+          'Ship a significant new feature to an AI app you built that introduces new capabilities for end users.',
+        networkBenefits:
+          'Keeps useful network AI tools improving after launch, so apps get better for the people who rely on them.',
         rules: [
           `Connect GitHub to your LabOS profile and install the read-only PLAA Repo Monitor on your app's repository.`,
           `The update must add a significant, user-facing feature that lets people do something new or meaningfully expands what they can already do. Bug fixes, typos, docs, content additions, refactors, and minor tweaks don't count.`,
           `The update must be merged into the "main" branch on GitHub. Open pull requests and changes that only appear in a deployed app don't count.`,
           'One award per app per snapshot month, based on the month the update is merged.',
           'The PLAA Working Group reviews each update before points are awarded.',
-          'If you are launching a new app, complete Build an AI App for the Network first.'
+          'If you are launching a new app, complete Build an AI App for the Network first.',
         ],
         links: [
           { text: 'PLAA Repo Monitor', url: 'https://github.com/apps/plaa-repo-monitor' },
-          { text: 'Build an AI App for the Network', url: '/alignment-asset/activities#build-ai-app-for-the-network' }
-        ]
-      }
+          { text: 'Build an AI App for the Network', url: '/alignment-asset/activities#build-ai-app-for-the-network' },
+        ],
+      },
     },
     {
       id: 'contribute-reusable-prompt-or-skill',
@@ -524,18 +565,18 @@ export const activitiesData: ActivitiesData = {
       audience: 'pl-infra-members',
       popupContent: {
         title: 'Contribute a Reusable Prompt or Skill',
-        overview: 'Contribute a reusable resource, prompt or AI skill to the PLaybook for PL Infra users. Receive 100 points for an approved resource or prompt and also 250 points for an approved skill, up to 350 points total.',
-        networkBenefits: 'Builds a library of useful, reusable AI resources while encouraging PL Infra members to share proven knowledge resources, workflows and tools with the broader network.',
+        overview:
+          'Contribute a reusable resource, prompt or AI skill to the PLaybook for PL Infra users. Receive 100 points for an approved resource or prompt and also 250 points for an approved skill, up to 350 points total.',
+        networkBenefits:
+          'Builds a library of useful, reusable AI resources while encouraging PL Infra members to share proven knowledge resources, workflows and tools with the broader network.',
         rules: [
           '100 points are awarded for an approved reusable resource or prompt; 250 points are awarded for an approved skill (up to 350 points total)',
           'Available to current PLAA participants with verified PL Infra membership',
           'Submit up to one prompt or AI-related resource and one AI skill',
-          'Contributions must be publication-verified, useful, reproducible, safe, and non-duplicative'
+          'Contributions must be publication-verified, useful, reproducible, safe, and non-duplicative',
         ],
-        links: [
-          { text: 'PLaybook', url: '/pl-infra/ai-apps/cmuqgrc1j043ov34fw48iu5ou' }
-        ]
-      }
+        links: [{ text: 'PLaybook', url: '/pl-infra/ai-apps/cmuqgrc1j043ov34fw48iu5ou' }],
+      },
     },
 
     // ─── One-Time ─────────────────────────────────────────────────────────────
@@ -564,24 +605,27 @@ export const activitiesData: ActivitiesData = {
       id: 'update-directory-profile',
       category: 'Network Tooling',
       activity: 'Update Your PL Directory Profile',
-      networkValue: 'Bring your PL Network profile up to date so members can find you, reach you, and see what you work on',
+      networkValue:
+        'Bring your PL Network profile up to date so members can find you, reach you, and see what you work on',
       points: '250',
       frequency: 'One-Time',
       verificationType: 'Auto',
       cta: 'confirm',
       popupContent: {
         title: 'Update Your PL Directory Profile',
-        overview: 'Update your PL Directory profile so other members can see what you work on and how to reach you. This activity has restarted with new requirements, so everyone can collect points for it, including members who completed the previous version.\n\nOpen your profile in the Directory and complete each section: Contact Details, Your CV, Project Contributions, and Office Hours.',
-        networkBenefits: 'Makes members easier to find and contact, shows the projects people have contributed to, and gives the network better context for introductions, hiring, and collaboration.',
+        overview:
+          'Update your PL Directory profile so other members can see what you work on and how to reach you. This activity has restarted with new requirements, so everyone can collect points for it, including members who completed the previous version.\n\nOpen your profile in the Directory and complete each section: Contact Details, Your CV, Project Contributions, and Office Hours.',
+        networkBenefits:
+          'Makes members easier to find and contact, shows the projects people have contributed to, and gives the network better context for introductions, hiring, and collaboration.',
         rules: [
           'Your profile must include your name, email, role, LinkedIn, and Telegram',
           'In Contact Details, turn on **Show contact details to PL network members** (contact details are never displayed publicly)',
           'Upload your CV in the **Your CV** section (PDF, up to 5MB)',
           'List at least one **Project Contribution** with the project name, your role, and a short summary of your impact',
           'Set up office hours and have a live office hours link',
-          'Optional but encouraged: add your **GitHub** handle in Contact Details. It is not required for this activity, but it helps verify other activities that use GitHub'
-        ]
-      }
+          'Optional but encouraged: add your **GitHub** handle in Contact Details. It is not required for this activity, but it helps verify other activities that use GitHub',
+        ],
+      },
     },
     {
       id: 'share-compensation-data',
@@ -594,13 +638,15 @@ export const activitiesData: ActivitiesData = {
       cta: 'submit',
       popupContent: {
         title: 'Share Compensation Data',
-        overview: 'Share your compensation data to support network-wide compensation transparency, benchmarking, and pay-equity insights. Submit your information securely using the designated form. All information will be anonymized.',
-        networkBenefits: 'Improves compensation benchmarking and pay-equity insight while keeping submitted information anonymized.',
+        overview:
+          'Share your compensation data to support network-wide compensation transparency, benchmarking, and pay-equity insights. Submit your information securely using the designated form. All information will be anonymized.',
+        networkBenefits:
+          'Improves compensation benchmarking and pay-equity insight while keeping submitted information anonymized.',
         rules: [
           'You must complete the submission form',
-          'You may only submit compensation data up to 2 times per year for points'
-        ]
-      }
+          'You may only submit compensation data up to 2 times per year for points',
+        ],
+      },
     },
     {
       id: 'subscribe-pl-newsletter',
@@ -613,18 +659,17 @@ export const activitiesData: ActivitiesData = {
       cta: 'confirm',
       popupContent: {
         title: 'Subscribe to PL Newsletter',
-        overview: 'Subscribe to the PL Newsletter to receive network news, opportunities, events, and other important updates directly in your inbox.',
+        overview:
+          'Subscribe to the PL Newsletter to receive network news, opportunities, events, and other important updates directly in your inbox.',
         networkBenefits: 'Keeps more members informed and connected to opportunities across the PL Network.',
         rules: [
           'Turn on the Subscribe to PL Newsletter toggle in Directory via /settings/email',
           'The toggle must remain enabled when the subscription is verified',
           'Points are awarded after Marketing confirms the subscription',
-          'This activity may only be completed once'
+          'This activity may only be completed once',
         ],
-        links: [
-          { text: '/settings/email', url: '/settings/email' }
-        ]
-      }
-    }
-  ]
+        links: [{ text: '/settings/email', url: '/settings/email' }],
+      },
+    },
+  ],
 };

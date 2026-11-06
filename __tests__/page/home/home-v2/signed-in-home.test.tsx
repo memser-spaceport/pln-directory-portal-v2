@@ -169,6 +169,7 @@ const EVENTS: IHomeEvents = {
       startDate: '2026-11-08T00:00:00.000Z',
       endDate: '2026-11-08T00:00:00.000Z',
       location: 'Berlin',
+      calendarId: null,
     },
   ],
   total: 4,

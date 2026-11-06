@@ -79,11 +79,14 @@ export function eventCalendarSlug(name: string): string {
 
 /**
  * The All Events calendar with this event's details open. All Events reads `?embedPath=` into its iframe, and writes it
- * there itself when someone opens an event, so this is the same link a member would share. Without a slug (a name of
- * only emoji, say) it is the plain calendar. A leading or trailing `-` stays: pln-events keeps them too.
+ * there itself when someone opens an event, so this is the same link a member would share.
+ *
+ * By the event's pln-events id when the API sends it: unique, so it opens this event (pln-events #950 opens an event by
+ * id as well as by slug). Otherwise by the slug rebuilt from the name, and without one (a name of only emoji, say) the
+ * plain calendar. A leading or trailing `-` in the slug stays: pln-events keeps them too.
  */
-export function eventCalendarHref(name: string): string {
-  const slug = eventCalendarSlug(name);
-  if (!/[a-z0-9]/.test(slug)) return EVENTS_HREF;
-  return `${EVENTS_HREF}?embedPath=${encodeURIComponent(`/embed/program#${slug}`)}`;
+export function eventCalendarHref({ name, calendarId }: Pick<IHomeEvent, 'name' | 'calendarId'>): string {
+  const key = calendarId || eventCalendarSlug(name);
+  if (!/[a-z0-9]/i.test(key)) return EVENTS_HREF;
+  return `${EVENTS_HREF}?embedPath=${encodeURIComponent(`/embed/program#${key}`)}`;
 }

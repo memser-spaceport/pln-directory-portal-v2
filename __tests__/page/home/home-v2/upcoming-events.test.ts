@@ -16,6 +16,7 @@ const ev = (uid: string, startDays: number): IHomeEvent => ({
   startDate: inDays(startDays),
   endDate: inDays(startDays),
   location: 'Lisbon',
+  calendarId: null,
 });
 
 describe('selectUpcomingEvents', () => {
@@ -85,19 +86,25 @@ describe('eventCalendarSlug', () => {
 
 describe('eventCalendarHref', () => {
   it('opens All Events with the event open, the link the calendar writes itself', () => {
-    expect(eventCalendarHref('Singapore Tech Event')).toBe(
+    expect(eventCalendarHref({ name: 'Singapore Tech Event', calendarId: null })).toBe(
       '/events/all?embedPath=%2Fembed%2Fprogram%23singapore-tech-event',
     );
   });
 
   it('keeps the edge dashes pln-events keeps', () => {
-    expect(eventCalendarHref('AdoptionCon | ETHDenver 🇺🇸')).toBe(
+    expect(eventCalendarHref({ name: 'AdoptionCon | ETHDenver 🇺🇸', calendarId: null })).toBe(
       '/events/all?embedPath=%2Fembed%2Fprogram%23adoptioncon-ethdenver-',
     );
   });
 
+  it('opens the event by its pln-events id when the API sends one, whatever the name', () => {
+    expect(eventCalendarHref({ name: 'Test Event', calendarId: 'G7PqVYP7jsVr' })).toBe(
+      '/events/all?embedPath=%2Fembed%2Fprogram%23G7PqVYP7jsVr',
+    );
+  });
+
   it('is the plain calendar when the name leaves no slug', () => {
-    expect(eventCalendarHref('🎉 🎉')).toBe('/events/all');
-    expect(eventCalendarHref('')).toBe('/events/all');
+    expect(eventCalendarHref({ name: '🎉 🎉', calendarId: null })).toBe('/events/all');
+    expect(eventCalendarHref({ name: '', calendarId: null })).toBe('/events/all');
   });
 });

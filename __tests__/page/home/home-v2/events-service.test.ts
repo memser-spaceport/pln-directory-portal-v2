@@ -46,9 +46,26 @@ describe('getUpcomingEvents', () => {
     global.fetch = respond([row], { total: '7' });
 
     await expect(getUpcomingEvents({ days: 30, limit: 3 })).resolves.toEqual({
-      events: [{ uid: 'e1', name: 'libp2p Day', startDate: row.startDate, endDate: row.endDate, location: 'Lisbon' }],
+      events: [
+        {
+          uid: 'e1',
+          name: 'libp2p Day',
+          startDate: row.startDate,
+          endDate: row.endDate,
+          location: 'Lisbon',
+          calendarId: null,
+        },
+      ],
       total: 7,
     });
+  });
+
+  it("keeps the event's pln-events id (externalId) for the calendar link", async () => {
+    global.fetch = respond([{ ...row, externalId: 'JdkJYigZLBTL' }]);
+
+    const { events } = await getUpcomingEvents({ days: 30, limit: 3 });
+
+    expect(events[0].calendarId).toBe('JdkJYigZLBTL');
   });
 
   it('falls back to the array length without the header', async () => {

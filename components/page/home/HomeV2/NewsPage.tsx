@@ -2,7 +2,8 @@
 
 import clsx from 'clsx';
 import Link from 'next/link';
-import { useMemo } from 'react';
+import dynamic from 'next/dynamic';
+import { useMemo, useState } from 'react';
 
 import { useCommonAnalytics } from '@/analytics/common.analytics';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
@@ -28,6 +29,12 @@ import { useHomeAuthDoors } from './useHomeAuthDoors';
 import { chipVocabulary, selectNarrowByTags } from './utils/narrowByTags';
 import s from './HomeV2.module.scss';
 
+// Loaded on the first press, so the news page doesn't carry the sign-up form.
+const SignupWizard = dynamic(
+  () => import('@/components/page/sign-up/components/SignupWizard').then((m) => m.SignupWizard),
+  { ssr: false },
+);
+
 /** Held open, so it needs no open/close of its own (NewsSearch's icon state is the stream's). */
 const noop = () => {};
 
@@ -50,6 +57,7 @@ const noop = () => {};
  * Signed out there is no For You pill (nothing of the visitor to pick from); the For You note becomes the offer instead
  * (LAB-3174): "Personalize my news" opens the sign-up modal over the page.
  */
+
 export function NewsPage({
   feed: feedProps,
   signedIn,
@@ -62,7 +70,9 @@ export function NewsPage({
 }) {
   const analytics = useHomeAnalytics();
   const { goToTopBtnClicked } = useCommonAnalytics();
-  const { signUp, signUpHere } = useHomeAuthDoors();
+  const { signUp, recordSignUpHere } = useHomeAuthDoors();
+  // "Personalize my news" opens the sign-up form right here: mounted on press, no URL change and no fade.
+  const [signUpOpen, setSignUpOpen] = useState(false);
   const topicSlugs = useNewsTopicSlugs();
   const feed = useHomeFeed(feedProps, {
     layout: 'stream',
@@ -174,7 +184,10 @@ export function NewsPage({
                 style="fill"
                 variant="primary"
                 className={s.glossy}
-                onClick={() => signUpHere('personalize')}
+                onClick={() => {
+                  recordSignUpHere('personalize');
+                  setSignUpOpen(true);
+                }}
               >
                 Personalize my news
               </Button>
@@ -239,6 +252,8 @@ export function NewsPage({
           )}
 
           <ScrollToTopButton showWhen="scrolled" onClick={() => goToTopBtnClicked(null, 'Home news')} />
+
+          {signUpOpen && <SignupWizard onClose={() => setSignUpOpen(false)} />}
 
           <AutoMarkNewsCommentNotification newsItemUid={activeNewsUid} />
           {activeNewsItem &&

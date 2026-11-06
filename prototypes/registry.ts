@@ -735,6 +735,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     category: 'AI Apps',
     load: () => import('./entries/lab-3054-design-the-connect-step-tabs-o/DesignTheConnectStepTabsOPrototype'),
   },
+  {
+    key: 'lab-3102-design-events-section-in-the-d',
+    title: 'Digest email: upcoming events section',
+    description:
+      'The weekly digest email with a new "Upcoming events for you" section after the news: at most 3 event cards (date tile, name, dates, place, link), one column for email. Switches show 3 events, 1 event, no match (the section does not show), and desktop or mobile width. LAB-3102.',
+    category: 'Newsfeed',
+    load: () => import('./entries/lab-3102-design-events-section-in-the-d/DesignEventsSectionInTheDPrototype'),
+  },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).
   // {

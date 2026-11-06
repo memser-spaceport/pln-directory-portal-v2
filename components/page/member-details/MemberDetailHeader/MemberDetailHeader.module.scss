@@ -101,6 +101,16 @@
   grid-row: span 2 / span 2;
   grid-column: span 4 / span 4;
   margin-bottom: 16px;
+
+  // Keep the actions on the name's line: the name block shrinks instead (LAB-3187).
+  @include media.tablet-portrait {
+    flex-wrap: nowrap;
+  }
+}
+
+.headerInfo {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .headerActions {

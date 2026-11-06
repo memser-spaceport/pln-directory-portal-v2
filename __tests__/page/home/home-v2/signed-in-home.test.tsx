@@ -678,6 +678,21 @@ describe('The signed-in rail', () => {
     expect(mockFollowMutate).toHaveBeenCalledWith({ teamUid: 'st-1', action: 'follow' }, expect.any(Object));
   });
 
+  // LAB-3185: following was one-way (the button disabled itself), so a team followed by mistake could only be
+  // unfollowed from its own page. Following → Follow now, as on the news cards.
+  it('unfollows a team just followed from the rail, with the same button', () => {
+    mockUseSuggestedTeamsToFollow.mockReturnValue({ suggestions: SUGGESTED, isLoading: false });
+    renderHome([story('a', 'LAUNCH')]);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Follow Suggested One' }));
+    const following = screen.getByRole('button', { name: 'Following Suggested One' });
+    expect(following).toBeEnabled();
+
+    fireEvent.click(following);
+    expect(mockFollowMutate).toHaveBeenLastCalledWith({ teamUid: 'st-1', action: 'unfollow' }, expect.any(Object));
+    expect(screen.getByRole('button', { name: 'Follow Suggested One' })).toBeInTheDocument();
+  });
+
   it('opens a Popular this week story in its dialog', () => {
     const queryClient = new QueryClient();
     const item = story('pop', 'LAUNCH');

@@ -14,8 +14,9 @@ import s from '@/components/page/home/TeamNews/components/NewsRail/NewsRail.modu
 /**
  * Teams to follow in the signed-in rail (LAB-3125): the prototype's `TeamsToFollowRail`, itself a copy of production
  * `TeamsToFollowCard` (same markup, classes and compact FollowButton) without the auth-store read (the page is signed
- * in), the loading skeleton or the exit animation. Following is one-way, as in production: the button disables once
- * followed, and the team's Follow on its news cards flips with it. Follows are reported as the news rail's.
+ * in), the loading skeleton or the exit animation. The button toggles, as Follow does on the news cards (LAB-3185: it
+ * was one-way, as in production, so a team followed by mistake could only be unfollowed from its own page); the team's
+ * Follow on its news cards flips with it. Follows and unfollows are reported as the news rail's.
  */
 export function TeamsToFollowSection({
   suggestions,
@@ -56,16 +57,13 @@ export function TeamsToFollowSection({
                   following={isFollowing}
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (!isFollowing) {
-                      onFollowToggle(team.uid, team.name, false, 'news-rail', {
-                        position,
-                        reason: stripFollowerCountFromReason(team.reason),
-                      });
-                    }
+                    onFollowToggle(team.uid, team.name, isFollowing, 'news-rail', {
+                      position,
+                      reason: stripFollowerCountFromReason(team.reason),
+                    });
                   }}
                   name={team.name}
                   size="compact"
-                  disabled={isFollowing}
                 />
               </span>
               {subtitle ? <span className={s.railReason}>{subtitle}</span> : null}

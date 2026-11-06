@@ -297,7 +297,7 @@ The rail SHALL be one card, with sections divided by hairlines, in this order:
 
 1. **Open roles:** as on the signed-out page, without the sign-up note.
 2. **Upcoming events:** as on the signed-out page, absent when there are none.
-3. **Teams to follow:** the member's suggestions, with Follow.
+3. **Teams to follow:** the member's suggestions, with Follow; once followed it reads Following, and pressing it again unfollows (LAB-3185).
 4. **Deals:**
    - Only for members with deals access. Without access the section is absent, with no locked teaser.
    - It sits under the "Portfolio perks" label, as bordered white rows between the rail's hairlines (the prototype dropped the blue tint on 2026-11-03).

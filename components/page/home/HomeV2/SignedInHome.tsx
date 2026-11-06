@@ -1,7 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-import { useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import type { IHomeEvents, IHomeRoles } from '@/types/home.types';
@@ -58,16 +58,30 @@ export function SignedInHome({
   });
   const deals = useHomeDeals();
   // The rail beside the stream: the stream's cut lands where it ends.
-  const railRef = useRef<HTMLElement>(null);
+  const railRef = useRef<HTMLElement | null>(null);
+  const [railMounted, setRailMounted] = useState(false);
+  const assignRail = useCallback((node: HTMLElement | null) => {
+    railRef.current = node;
+    setRailMounted(Boolean(node));
+  }, []);
+  // Deals and teams to follow arrive after the first paint. The cut measures again when they do.
+  const fillKey = [
+    railMounted ? 1 : 0,
+    roles?.roles.length ?? 0,
+    events?.events.length ?? 0,
+    feed.suggestedTeams.length,
+    deals?.deals.length ?? 0,
+    feed.railPopularItems.length,
+  ].join(':');
 
   return (
     <div className={home.home}>
       <div className={clsx(home.home__cn, s.memberPage)}>
         <div className={s.newsRow}>
-          <NetworkUpdates feed={feed} fillTo={railRef} forYouTags={feedProps.forYouTags} />
+          <NetworkUpdates feed={feed} fillTo={railRef} fillKey={fillKey} forYouTags={feedProps.forYouTags} />
 
           {/* One full sidebar: every rail module is a section of a single card, divided by hairlines. */}
-          <HomeRail railRef={railRef} roles={roles} events={events} signedIn>
+          <HomeRail railRef={assignRail} roles={roles} events={events} signedIn>
             <TeamsToFollowSection
               suggestions={feed.suggestedTeams}
               followedTeamUids={feed.followedTeamUids}

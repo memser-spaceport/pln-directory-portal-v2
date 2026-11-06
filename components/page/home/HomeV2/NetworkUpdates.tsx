@@ -59,11 +59,14 @@ export const STREAM_RENDER_MAX = 24;
 export function NetworkUpdates({
   feed,
   fillTo,
+  fillKey = '',
   forYouTags,
 }: {
   feed: HomeFeed;
   /** The rail beside the stream: the cut lands where it ends. */
   fillTo: RefObject<HTMLElement | null>;
+  /** Changes when the rail gains a section, so the cut is measured again after that render. */
+  fillKey?: string;
   /** The member's news tags as the page arrived with them (For You's), until their preferences load. */
   forYouTags?: string[];
 }) {
@@ -121,7 +124,7 @@ export function NetworkUpdates({
      rail ends. Measured again when the rail grows after this list (deals, teams, images). */
   const listRef = useRef<HTMLDivElement>(null);
   const visibleKey = renderedEntries.map(feedEntryKey).join(',');
-  const fit = useColumnCut(listRef, fillTo, visibleKey);
+  const fit = useColumnCut(listRef, fillTo, `${visibleKey}|${fillKey}`);
   const cut = renderedEntries.length > fit.full;
 
   return (

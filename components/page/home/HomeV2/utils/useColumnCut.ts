@@ -24,14 +24,18 @@ export function useColumnCut(
 
     const measure = () => {
       const column = columnRef.current;
-      const beside = Boolean(column) && (window.matchMedia?.(STREAM_SIDE_BY_SIDE_QUERY).matches ?? false);
+      if (!column) return;
+      const beside = window.matchMedia?.(STREAM_SIDE_BY_SIDE_QUERY).matches ?? false;
       let target: number | null = null;
       if (column && beside) {
         const columnBox = column.getBoundingClientRect();
         const listTop = list.getBoundingClientRect().top;
         const boxBottom = columnBox.bottom - listTop;
         const contentBottom = columnBox.top + column.scrollHeight - listTop;
-        target = Math.max(boxBottom, contentBottom);
+        const nextTarget = Math.max(boxBottom, contentBottom);
+        // A zero box is the column before it has laid out. Keep the previous cut.
+        if (nextTarget <= 0) return;
+        target = nextTarget;
       }
       const next = computeStreamCut(Array.from(list.children) as HTMLElement[], target);
       setFit((prev) => (prev.full === next.full && prev.clip === next.clip ? prev : next));
@@ -44,7 +48,12 @@ export function useColumnCut(
     const mo = typeof MutationObserver === 'undefined' ? null : new MutationObserver(measure);
     if (column && mo) mo.observe(column, { childList: true, subtree: true });
     window.addEventListener('resize', measure);
+    // contentKey changes when the sidebar's sections arrive. Measure in this commit, then again
+    // after the next frame so images that resolve in that frame are included.
+    measure();
+    const frame = requestAnimationFrame(measure);
     return () => {
+      cancelAnimationFrame(frame);
       ro.disconnect();
       mo?.disconnect();
       window.removeEventListener('resize', measure);

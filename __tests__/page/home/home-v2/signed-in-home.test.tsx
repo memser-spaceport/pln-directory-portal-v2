@@ -520,11 +520,13 @@ describe('Network Updates: the cut', () => {
   let resizeCallbacks: Array<() => void> = [];
   let mutationCallbacks: Array<() => void> = [];
   let wide = true;
+  let railBottom = 650;
   const originalMatchMedia = window.matchMedia;
 
   beforeEach(() => {
     resizeCallbacks = [];
     mutationCallbacks = [];
+    railBottom = 650;
     (global as unknown as { ResizeObserver: unknown }).ResizeObserver = class {
       constructor(cb: () => void) {
         resizeCallbacks.push(cb);
@@ -552,7 +554,7 @@ describe('Network Updates: the cut', () => {
       return Array.from(this.parentElement?.children ?? []).indexOf(this) * 220;
     });
     jest.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
-      const bottom = this.tagName === 'ASIDE' ? 650 : 0;
+      const bottom = this.tagName === 'ASIDE' ? railBottom : 0;
       return { top: 0, bottom } as DOMRect;
     });
   });
@@ -586,6 +588,30 @@ describe('Network Updates: the cut', () => {
 
     expect(cards().filter((c) => !c.hasAttribute('inert'))).toHaveLength(3);
     expect(stream()).toHaveStyle({ maxHeight: `${3 * 220 + 140}px` });
+  });
+
+  it('measures again when the sidebar gains a section after the first cut', () => {
+    wide = true;
+    const view = renderHome(many);
+    measure();
+    expect(cards().filter((c) => !c.hasAttribute('inert'))).toHaveLength(4);
+
+    railBottom = 1400;
+    mockDeals = { deals: [deal('d1', '2026-11-01', '12 mo free')], total: 10 };
+    const queryClient = new QueryClient();
+    view.rerender(
+      <QueryClientProvider client={queryClient}>
+        <SignedInHome
+          feed={{ groups: groupsOf(many), forYouTeamUids: [], popularItems: [] }}
+          roles={ROLES}
+          events={EVENTS}
+          portfolio={[]}
+        />
+      </QueryClientProvider>,
+    );
+
+    expect(cards().filter((c) => !c.hasAttribute('inert')).length).toBeGreaterThan(4);
+    expect(stream()).toHaveStyle({ maxHeight: '1400px' });
   });
 
   it('grows the cut when the sidebar content is taller than its box', () => {

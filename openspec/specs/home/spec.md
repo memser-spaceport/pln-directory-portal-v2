@@ -239,7 +239,7 @@ Under Most popular, forum posts SHALL rank by likes against the stories' upvotes
 
 ### Requirement: The stream ends where the rail ends
 
-On screens wide enough for the rail to sit beside the stream, the stream SHALL be cut level with the bottom of the rail, using the rail's content height when that is taller than its box. The stream SHALL show at least four whole cards when the rail is shorter than that. The cut SHALL be measured again when the rail grows after the news has rendered. The last visible card fades out, and under it "See all news" opens `/home?view=news`. The faded card SHALL NOT respond to clicks. On phones the stream SHALL show three cards, then 140px of a fourth, faded, then "See all news". Every filter, including For You, uses this cut.
+On screens wide enough for the rail to sit beside the stream, the stream SHALL be cut level with the bottom of the rail, using the rail's content height when that is taller than its box. The stream SHALL show at least four whole cards when the rail is shorter than that. The cut SHALL be measured again when the rail grows after the news has rendered, including when a section such as deals or teams to follow renders later. The last visible card fades out, and under it "See all news" opens `/home?view=news`. The faded card SHALL NOT respond to clicks. On phones the stream SHALL show three cards, then 140px of a fourth, faded, then "See all news". Every filter, including For You, uses this cut.
 
 #### Scenario: Desktop cut
 

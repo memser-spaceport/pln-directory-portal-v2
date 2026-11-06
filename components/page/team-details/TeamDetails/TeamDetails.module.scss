@@ -141,6 +141,13 @@
   gap: 4px;
 }
 
+// Same box as TeamFollowButton's `.followBtn`, so "Request intro" is not taller than Follow (LAB-3186).
+.introButton {
+  height: 32px;
+  padding: 0 10px;
+  flex-shrink: 0;
+}
+
 .followSlotDesktop {
   display: none;
 

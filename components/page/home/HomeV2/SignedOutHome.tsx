@@ -1,13 +1,12 @@
 'use client';
 
 import clsx from 'clsx';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import type { ITeamNewsItem } from '@/types/team-news.types';
 import type { IHomeEvents, IHomeRoles } from '@/types/home.types';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { Button } from '@/components/common/Button';
-import { PortfolioPanel } from '@/components/page/explore-pl-network/PortfolioPanel/PortfolioPanel';
 import { ExploreLogoWall } from '@/components/page/explore-pl-network/ExploreLogoWall/ExploreLogoWall';
 import { aileron } from '@/components/page/explore-pl-network/aileron';
 import type { PortfolioTeam } from '@/components/page/explore-pl-network/data/portfolio';
@@ -22,6 +21,7 @@ import { FocusAreaCards } from './FocusAreaCards';
 import { HomeFooter } from './HomeFooter';
 import { HomeHero } from './HomeHero';
 import { JoinCard } from './JoinCard';
+import { PortfolioMap } from './PortfolioMap';
 import { HomeRail } from './HomeRail';
 import { ThisWeekList } from './ThisWeekList';
 import { HOME_NEWS_VIEW_HREF, JOIN_FACES } from './constants';
@@ -66,7 +66,6 @@ export function SignedOutHome({
   /** Teams per directory focus-area title (the Teams links' totals); null when it failed, so the cards show no count. */
   teamFocusAreaCounts?: Record<string, number> | null;
 }) {
-  const [mapOpen, setMapOpen] = useState(false);
   const analytics = useHomeAnalytics();
   const { signUp, signIn } = useHomeAuthDoors();
 
@@ -151,21 +150,7 @@ export function SignedOutHome({
               </p>
             </div>
             {/* On phones the map is ~3,000px of hexes; Home clamps it so the story keeps moving. */}
-            <div className={clsx(s.mapClamp, mapOpen && s.mapClampOpen)}>
-              <PortfolioPanel teams={portfolio} />
-              {!mapOpen && (
-                <button
-                  type="button"
-                  className={s.mapMore}
-                  onClick={() => {
-                    setMapOpen(true);
-                    analytics.onSeeAllClicked({ section: 'map' });
-                  }}
-                >
-                  Show the whole map
-                </button>
-              )}
-            </div>
+            <PortfolioMap teams={portfolio} />
             <FocusAreaCards teams={portfolio} projectCounts={projectFocusAreaCounts} teamCounts={teamFocusAreaCounts} />
           </section>
 

@@ -177,6 +177,16 @@ It SHALL NOT show Quick Actions, the focus-area tabs, the Top stories band, the 
 - **WHEN** a signed-in member opens `/home` at 1440, 768 or 375 px wide
 - **THEN** the page shows Network Updates, the rail and the focus-area cards, with no Quick Actions and no horizontal scroll
 
+### Requirement: The signed-in network overview
+
+Under the focus-area cards, the signed-in Home SHALL show a full-width white band (LAB-3174): "Protocol Labs portfolio" with the portfolio map (Map and List, clamped on phones as signed out), then the PL entities, then the investor logo wall with its links.
+
+#### Scenario: Below the focus areas
+
+- **GIVEN** a signed-in member on `/home` with the flag on
+- **WHEN** they scroll past "Browse by focus area"
+- **THEN** they see the portfolio map, the PL entities and the investor logos, in that order
+
 ### Requirement: One stream of news and forum posts
 
 Network Updates SHALL be one stream of the last 14 days' news stories and, for members with forum access, forum posts, each shown in full. There SHALL be no All / News / Forum or focus-area tabs. A member without forum access SHALL see news only. Hiring roll-ups, deals and For You job entries SHALL NOT be in the stream; roles and deals are in the rail.

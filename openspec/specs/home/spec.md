@@ -198,6 +198,16 @@ The editorial top stories SHALL be labelled "Top story" on their card where they
 - **WHEN** the member opens `/home`
 - **THEN** there is no Launch pill
 
+### Requirement: Forum posts under Most popular
+
+Under Most popular, forum posts SHALL rank by likes against the stories' upvotes. The best-ranked post that has a like or a comment SHALL come second, after the first story. A post with no likes and no comments SHALL NOT be promoted; it keeps its ranked place, below every story with an upvote (LAB-3163).
+
+#### Scenario: A post nobody engaged with
+
+- **GIVEN** a forum post with 0 likes and 0 comments, and stories with upvotes
+- **WHEN** the member sorts by Most popular
+- **THEN** the post shows after those stories, not second
+
 ### Requirement: The stream ends where the rail ends
 
 On screens wide enough for the rail to sit beside the stream, the stream SHALL be cut level with the bottom of the rail. The last visible card fades out, and under it "See all news" opens `/home?view=news`. The faded card SHALL NOT respond to clicks. On phones the stream SHALL show three cards, then 140px of a fourth, faded, then "See all news".

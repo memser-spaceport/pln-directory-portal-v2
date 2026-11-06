@@ -34,7 +34,13 @@ function cluster(teamUid: string, items: ITeamNewsItem[]): TeamCluster {
   return { teamUid, teamName: `Team ${teamUid}`, teamLogoUrl: null, items };
 }
 
-function post(uid: string, likeCount: number, createdAt: string, focusAreas: string[] = ['Infra']): IFeedForumPost {
+function post(
+  uid: string,
+  likeCount: number,
+  createdAt: string,
+  focusAreas: string[] = ['Infra'],
+  commentCount = 0,
+): IFeedForumPost {
   return {
     uid: uid as ForumPostUid,
     tid: 1,
@@ -49,7 +55,7 @@ function post(uid: string, likeCount: number, createdAt: string, focusAreas: str
     // fixtures can't imply otherwise.
     lastActivityAt: createdAt,
     forumTopicUrl: null,
-    commentCount: 0,
+    commentCount,
     likeCount,
     viewCount: 0,
     viewerHasLiked: false,
@@ -114,6 +120,33 @@ describe('mergeFeedEntries', () => {
     });
     expect(entries[0].kind).toBe('news');
     expect(feedEntryKey(entries[1])).toBe('forum:fp_high');
+  });
+
+  // LAB-3163: "Welcome to your NodeBB!" (0 likes, 0 comments, 0 views) sat at #2 under Most popular, because the
+  // promotion took the best of the posts even when the best had nothing. A post with no activity keeps its ranked
+  // place: below every story with an upvote.
+  it('slot-2 rule: a post with no likes and no comments is not promoted', () => {
+    const sorted = sortTeamNewsClusters(CLUSTERS, 'popular', NO_FOLLOWS, UPVOTES);
+    const entries = mergeFeedEntries({
+      sortedClusters: sorted,
+      forumPosts: [post('fp_quiet', 0, '2026-07-25')],
+      sort: 'popular',
+      followedTeamUids: NO_FOLLOWS,
+      upvoteCounts: UPVOTES,
+    });
+    expect(entries.map(feedEntryKey)).toEqual(['news:t1', 'news:t2', 'news:t3', 'forum:fp_quiet']);
+  });
+
+  it('slot-2 rule: promotes the best-ranked post that has activity, a conversation counting as activity', () => {
+    const sorted = sortTeamNewsClusters(CLUSTERS, 'popular', NO_FOLLOWS, UPVOTES);
+    const entries = mergeFeedEntries({
+      sortedClusters: sorted,
+      forumPosts: [post('fp_quiet', 0, '2026-07-25'), post('fp_talked', 0, '2026-07-01', ['Infra'], 3)],
+      sort: 'popular',
+      followedTeamUids: NO_FOLLOWS,
+      upvoteCounts: UPVOTES,
+    });
+    expect(entries.map(feedEntryKey)).toEqual(['news:t1', 'forum:fp_talked', 'news:t2', 'news:t3', 'forum:fp_quiet']);
   });
 
   it('popular: posts interleave by likeCount against the upvote snapshot', () => {

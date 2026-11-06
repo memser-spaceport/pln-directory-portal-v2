@@ -74,9 +74,10 @@ const clusterLatestEventDate = (c: TeamCluster): string =>
  * deterministic after the single arrival — the feed never re-sorts mid-session.
  *
  * Slot-2 rule (prototype parity), under 'popular' ONLY: the first news entry
- * stays first and the best-ranked forum post is pulled to position 2, so the
- * news + discussion mix reads immediately. Skipped under 'latest' and
- * 'following', both of which promise an order it breaks — see the guard below.
+ * stays first and the best-ranked forum post with any activity (a like or a
+ * comment) is pulled to position 2, so the news + discussion mix reads
+ * immediately. Skipped under 'latest' and 'following', both of which promise an
+ * order it breaks — see the guard below — and when no post has activity.
  */
 export function mergeFeedEntries({
   sortedClusters,
@@ -142,8 +143,15 @@ export function mergeFeedEntries({
   // under every mode; only this post-hoc promotion was wrong.
   if (sort !== 'popular') return merged;
 
+  // Only a post someone engaged with (LAB-3163). The rule promises a relevant
+  // post at #2; "the best of the posts" is not that when the best has nothing —
+  // a fresh "Welcome to your NodeBB!" with 0 likes, 0 comments sat at #2 under
+  // Most popular. Without activity a post keeps its ranked place, which under
+  // 'popular' is below every story with an upvote.
   const firstNewsIdx = merged.findIndex((e) => e.kind === 'news');
-  const firstForumIdx = merged.findIndex((e) => e.kind === 'forum');
+  const firstForumIdx = merged.findIndex(
+    (e) => e.kind === 'forum' && (e.post.likeCount > 0 || e.post.commentCount > 0),
+  );
   if (firstNewsIdx === -1 || firstForumIdx === -1) return merged;
   const firstNews = merged[firstNewsIdx];
   const firstForum = merged[firstForumIdx];

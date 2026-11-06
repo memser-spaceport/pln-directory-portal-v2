@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SignedInHome } from '@/components/page/home/HomeV2/SignedInHome';
 import { STREAM_RENDER_MAX } from '@/components/page/home/HomeV2/NetworkUpdates';
 import { useCurrentUserStore } from '@/services/auth/store';
+import { PORTFOLIO_FALLBACK } from '@/components/page/explore-pl-network/data/portfolio';
 import type { IDeal } from '@/types/deals.types';
 import type { IFeedForumPost } from '@/types/feed.types';
 import type { IHomeEvents, IHomeRoles } from '@/types/home.types';
@@ -590,6 +591,31 @@ describe('Network Updates: the cut', () => {
   it(`mounts at most ${STREAM_RENDER_MAX} cards`, () => {
     renderHome(Array.from({ length: STREAM_RENDER_MAX + 5 }, (_, i) => story(`m${i}`, 'LAUNCH')));
     expect(cards()).toHaveLength(STREAM_RENDER_MAX);
+  });
+});
+
+// LAB-3174 item 6 (Polina, 2026-11-06): under the focus areas, a full-width white band with the portfolio map, the PL
+// entities and the investor logo wall, as on the signed-out page.
+describe('The network overview under the focus areas', () => {
+  it('shows the portfolio, the entities and the investor wall, in that order, after Browse by focus area', () => {
+    const portfolio = PORTFOLIO_FALLBACK.slice(0, 12).map((row) => ({ ...row, source: 'fallback' as const }));
+    renderHome([story('a', 'LAUNCH')], { portfolio });
+
+    const order = [
+      screen.getByRole('heading', { name: 'Browse by focus area' }),
+      screen.getByRole('heading', { name: 'Protocol Labs portfolio' }),
+      screen.getByRole('heading', { name: 'Protocol Labs entities' }),
+      screen.getByRole('heading', { name: /raised from top VCs/ }),
+    ];
+    for (let i = 1; i < order.length; i += 1) {
+      expect(order[i - 1].compareDocumentPosition(order[i]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    }
+    expect(screen.getByText('12 teams across four focus areas, with Protocol Labs at the centre.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Show the whole map' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'A16zcrypto (opens in a new tab)' })).toHaveAttribute(
+      'href',
+      'https://a16zcrypto.com',
+    );
   });
 });
 

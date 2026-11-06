@@ -23,6 +23,13 @@
   border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 }
 
+// The signed-in network overview (LAB-3174 item 6): the same white band, full
+// width under the feed's column, a little air after the focus-area cards.
+.overviewBand.overviewBand {
+  width: 100%;
+  margin-top: 32px;
+}
+
 .whiteSheet.whiteSheet {
   max-width: 1344px;
   margin: 0 auto;

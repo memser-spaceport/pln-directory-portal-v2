@@ -14,6 +14,7 @@ import home from '@/app/home/page.module.css';
 import { DealsSection } from './DealsSection';
 import { FocusAreaCards } from './FocusAreaCards';
 import { HomeRail } from './HomeRail';
+import { NetworkOverview } from './NetworkOverview';
 import { NetworkUpdates } from './NetworkUpdates';
 import { TeamsToFollowSection } from './TeamsToFollowSection';
 import { useHomeDeals } from './useHomeDeals';
@@ -88,6 +89,9 @@ export function SignedInHome({
           <FocusAreaCards teams={portfolio} projectCounts={projectFocusAreaCounts} teamCounts={teamFocusAreaCounts} />
         </section>
       </div>
+
+      {/* LAB-3174 item 6: the network overview under the focus areas, full width (outside the feed's column). */}
+      <NetworkOverview portfolio={portfolio} />
     </div>
   );
 }

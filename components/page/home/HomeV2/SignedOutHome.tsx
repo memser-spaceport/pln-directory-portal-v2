@@ -44,6 +44,7 @@ export function SignedOutHome({
   events,
   portfolio,
   projectFocusAreaCounts = null,
+  teamFocusAreaCounts = null,
 }: {
   /** This week's three stories (pickThisWeek). */
   stories: ITeamNewsItem[];
@@ -57,6 +58,8 @@ export function SignedOutHome({
   portfolio: PortfolioTeam[];
   /** Projects per directory focus-area title; null when it failed, so every card keeps its Projects link. */
   projectFocusAreaCounts?: Record<string, number> | null;
+  /** Teams per directory focus-area title (the Teams links' totals); null when it failed, so the cards show no count. */
+  teamFocusAreaCounts?: Record<string, number> | null;
 }) {
   const [mapOpen, setMapOpen] = useState(false);
   const analytics = useHomeAnalytics();
@@ -144,7 +147,7 @@ export function SignedOutHome({
                 </button>
               )}
             </div>
-            <FocusAreaCards teams={portfolio} projectCounts={projectFocusAreaCounts} />
+            <FocusAreaCards teams={portfolio} projectCounts={projectFocusAreaCounts} teamCounts={teamFocusAreaCounts} />
           </section>
 
           <section className={clsx(explore.sectionTeams, s.storySection)} aria-labelledby="home-entities-title">

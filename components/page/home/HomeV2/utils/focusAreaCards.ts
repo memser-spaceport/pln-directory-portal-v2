@@ -33,19 +33,25 @@ export interface FocusAreaCard {
   projectsHref: string | null;
   /** The island's colour, which the logo pile sits on. */
   color: string;
-  /** The merged portfolio's teams on this island. */
-  count: number;
+  /**
+   * The directory's teams in this area, the number `teamsHref` lists (LAB-3162). Null when the counts couldn't be
+   * loaded: the card then shows no number rather than one its link contradicts.
+   */
+  count: number | null;
+  /** The pile: the merged portfolio's teams on this island, so the card still matches its patch of the map. */
   logos: { name: string; logo: string }[];
 }
 
 /**
- * One card per focus area, in marketing's order: the name and line, the links, and the island's portfolio teams.
- * `projectCounts` (projects per directory title) drops the Projects link for an area with none; without it (the
- * counts failed to load) every card keeps its link.
+ * One card per focus area, in marketing's order: the name and line, the links, the area's team count and the island's
+ * portfolio logos. `projectCounts` (projects per directory title) drops the Projects link for an area with none;
+ * without it (the counts failed to load) every card keeps its link. `teamCounts` (teams per directory title, as the
+ * Teams link lists them) is the card's number; without it the card has none.
  */
 export function buildFocusAreaCards(
   teams: PortfolioTeam[],
   projectCounts?: Record<string, number> | null,
+  teamCounts?: Record<string, number> | null,
 ): FocusAreaCard[] {
   return FOCUS_AREAS.map((area) => {
     const directoryTitle = FOCUS_AREA_DIRECTORY_TITLE[area.id];
@@ -59,7 +65,7 @@ export function buildFocusAreaCards(
       teamsHref: `/teams?focusAreas=${encodeURIComponent(directoryTitle)}`,
       projectsHref: hasProjects ? `/projects?focusAreas=${encodeURIComponent(directoryTitle)}` : null,
       color: ISLAND_COLOR[area.id] ?? 'var(--foreground-brand-primary, #1b4dff)',
-      count: inArea.length,
+      count: teamCounts?.[directoryTitle] ?? null,
       logos: inArea.slice(0, FOCUS_LOGO_PILE).map((t) => ({ name: t.name, logo: t.logo })),
     };
   });

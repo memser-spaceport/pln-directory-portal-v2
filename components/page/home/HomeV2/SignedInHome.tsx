@@ -35,6 +35,7 @@ export function SignedInHome({
   events,
   portfolio,
   projectFocusAreaCounts = null,
+  teamFocusAreaCounts = null,
 }: {
   /** The production feed's data, as the previous Home's `TeamNews` takes it. */
   feed: HomeFeedProps;
@@ -46,6 +47,8 @@ export function SignedInHome({
   portfolio: PortfolioTeam[];
   /** Projects per directory focus-area title; null when it failed, so every card keeps its Projects link. */
   projectFocusAreaCounts?: Record<string, number> | null;
+  /** Teams per directory focus-area title (the Teams links' totals); null when it failed, so the cards show no count. */
+  teamFocusAreaCounts?: Record<string, number> | null;
 }) {
   const analytics = useHomeAnalytics();
   const feed = useHomeFeed(feedProps, {
@@ -82,7 +85,7 @@ export function SignedInHome({
           <h2 id="home-focus-title" className={s.rowTitle}>
             Browse by focus area
           </h2>
-          <FocusAreaCards teams={portfolio} projectCounts={projectFocusAreaCounts} />
+          <FocusAreaCards teams={portfolio} projectCounts={projectFocusAreaCounts} teamCounts={teamFocusAreaCounts} />
         </section>
       </div>
     </div>

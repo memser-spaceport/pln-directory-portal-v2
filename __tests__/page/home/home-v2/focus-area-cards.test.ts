@@ -33,17 +33,44 @@ describe('the focus-area cards', () => {
     expect(econ.teamsHref).toBe('/teams?focusAreas=Economies%20%26%20Governance');
   });
 
-  it('counts each card’s own island and piles up to four of its logos', () => {
+  it('piles up to four of its own island’s logos', () => {
     for (const card of buildFocusAreaCards(teams)) {
       const onIsland = teams.filter((t) => t.island === card.id);
-      expect(card.count).toBe(onIsland.length);
-      expect(card.count).toBeGreaterThan(0);
       expect(card.logos).toEqual(onIsland.slice(0, FOCUS_LOGO_PILE).map((t) => ({ name: t.name, logo: t.logo })));
     }
   });
+});
 
-  it('counts zero on an empty portfolio', () => {
-    expect(buildFocusAreaCards([]).map((c) => c.count)).toEqual([0, 0, 0, 0]);
+// LAB-3162: the card counted the island's portfolio teams (199 for Digital Human Rights) while its Teams link opened 360.
+describe('the team count (what the Teams door lists)', () => {
+  const teamCounts = {
+    'Digital Human Rights': 360,
+    'Economies & Governance': 104,
+    'AI & Robotics': 110,
+    Neurotech: 31,
+  };
+
+  it('shows the Teams list’s total for the directory title, not the island’s portfolio teams', () => {
+    const cards = buildFocusAreaCards(teams, null, teamCounts);
+
+    expect(cards.map((c) => [c.id, c.count])).toEqual([
+      ['digital-human-rights', 360],
+      ['economies--governance', 104],
+      ['ai--robotics', 110],
+      ['neurotech', 31],
+    ]);
+    const dhr = cards[0];
+    expect(dhr.count).not.toBe(teams.filter((t) => t.island === dhr.id).length);
+  });
+
+  it('shows no number when the counts could not be loaded, or lack the area', () => {
+    expect(buildFocusAreaCards(teams).map((c) => c.count)).toEqual([null, null, null, null]);
+    expect(buildFocusAreaCards(teams, null, null).map((c) => c.count)).toEqual([null, null, null, null]);
+    expect(buildFocusAreaCards(teams, null, { Neurotech: 31 }).map((c) => c.count)).toEqual([null, null, null, 31]);
+  });
+
+  it('keeps an honest zero', () => {
+    expect(buildFocusAreaCards([], null, { ...teamCounts, Neurotech: 0 })[3].count).toBe(0);
   });
 });
 

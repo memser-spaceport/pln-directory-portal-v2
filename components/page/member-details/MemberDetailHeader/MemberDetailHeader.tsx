@@ -85,7 +85,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
         </div>
 
         <div className={s.headerDetails}>
-          <div>
+          <div className={s.headerInfo}>
             <div className={s.specificsHdr}>
               <CustomTooltip trigger={<h1 className={s.specificsName}>{name}</h1>} content={name} />
             </div>

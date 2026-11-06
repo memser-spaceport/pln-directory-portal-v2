@@ -345,8 +345,15 @@ describe('SignedOutHome', () => {
       expect(container.querySelectorAll('[class*="mapClamp"]')).toHaveLength(1);
     });
 
-    it('links each focus-area card by the directory’s title and counts its island', async () => {
-      renderHome();
+    it('links each focus-area card by the directory’s title and shows what its Teams link lists', async () => {
+      renderHome({
+        teamFocusAreaCounts: {
+          'Digital Human Rights': 360,
+          'Economies & Governance': 104,
+          'AI & Robotics': 110,
+          Neurotech: 31,
+        },
+      });
 
       const cards = within(screen.getByRole('list', { name: 'Browse the directory by focus area' })).getAllByRole(
         'listitem',
@@ -354,8 +361,9 @@ describe('SignedOutHome', () => {
       expect(cards).toHaveLength(4);
 
       const neuro = cards.find((c) => within(c).queryByRole('heading', { name: 'Neurotechnology' }))!;
-      const onIsland = portfolio.filter((t) => t.island === 'neurotech').length;
-      expect(within(neuro).getByText(`${onIsland} portfolio teams`)).toBeInTheDocument();
+      // LAB-3162: the Teams list's own total, not the island's portfolio teams.
+      expect(within(neuro).getByText('31 teams')).toBeInTheDocument();
+      expect(within(neuro).queryByText(/portfolio teams/)).not.toBeInTheDocument();
       expect(within(neuro).getByRole('link', { name: 'Teams' })).toHaveAttribute('href', '/teams?focusAreas=Neurotech');
       expect(within(neuro).getByRole('link', { name: 'Projects' })).toHaveAttribute(
         'href',
@@ -364,6 +372,14 @@ describe('SignedOutHome', () => {
 
       await userEvent.click(within(neuro).getByRole('link', { name: 'Projects' }));
       expect(mockHome.onFocusAreaClicked).toHaveBeenCalledWith({ area: 'Neurotech', target: 'projects' });
+    });
+
+    it('shows no team number when the counts failed, rather than one the link contradicts', () => {
+      renderHome({ teamFocusAreaCounts: null });
+
+      const list = screen.getByRole('list', { name: 'Browse the directory by focus area' });
+      expect(within(list).queryByText(/\d+ teams?$/)).not.toBeInTheDocument();
+      expect(within(list).getAllByRole('link', { name: 'Teams' })).toHaveLength(4);
     });
 
     it('offers no Projects link for an area with no projects, and keeps Teams', () => {

@@ -53,6 +53,8 @@ import { getJobsList } from '@/app/actions/jobs.actions';
 import { getUpcomingEvents } from '@/services/events/events.service';
 import { getPortfolioTeams } from '@/services/explore-pl-network/portfolio.service';
 import { getProjectFocusAreaCounts } from '@/services/focus-areas/project-focus-area-counts.service';
+import { getTeamFocusAreaCounts } from '@/services/focus-areas/team-focus-area-counts.service';
+import { FOCUS_AREA_DIRECTORY_TITLE } from '@/components/page/home/HomeV2/utils/focusAreaCards';
 import { mergePortfolio } from '@/components/page/explore-pl-network/data/mergePortfolio';
 import { PORTFOLIO_FALLBACK } from '@/components/page/explore-pl-network/data/portfolio';
 import type { IHomeEvents, IHomeRoles } from '@/types/home.types';
@@ -63,6 +65,8 @@ type HomeProps = {
 
 /** `?view=news`: the new Home's news page (LAB-3126). Ignored while the flag is off. */
 const NEWS_VIEW = 'news';
+/** The focus-area cards' directory titles, whose team totals the cards show (LAB-3162). */
+const FOCUS_AREA_TITLES = Object.values(FOCUS_AREA_DIRECTORY_TITLE);
 
 export default async function Home(props: HomeProps) {
   const { news, view } = await props.searchParams;
@@ -221,15 +225,23 @@ async function getRailEvents(): Promise<IHomeEvents> {
  * and a failed portfolio call draws the map from the fallback file. Nothing here sends the page to `<Error/>`.
  */
 const getSignedOutPageData = async (deepLinkedNewsUid?: string) => {
-  const [newsResult, rolesResult, eventsResult, portfolioResult, deepLinkedResult, projectCountsResult] =
-    await Promise.allSettled([
-      getTeamNewsGroupedByFocusArea({}),
-      getNewestRoles(),
-      getRailEvents(),
-      getPortfolioTeams(),
-      deepLinkedNewsUid ? getTeamNewsItemByUid(deepLinkedNewsUid) : Promise.resolve(null),
-      getProjectFocusAreaCounts(),
-    ]);
+  const [
+    newsResult,
+    rolesResult,
+    eventsResult,
+    portfolioResult,
+    deepLinkedResult,
+    projectCountsResult,
+    teamCountsResult,
+  ] = await Promise.allSettled([
+    getTeamNewsGroupedByFocusArea({}),
+    getNewestRoles(),
+    getRailEvents(),
+    getPortfolioTeams(),
+    deepLinkedNewsUid ? getTeamNewsItemByUid(deepLinkedNewsUid) : Promise.resolve(null),
+    getProjectFocusAreaCounts(),
+    getTeamFocusAreaCounts(FOCUS_AREA_TITLES),
+  ]);
 
   const newsResponse = settled(newsResult);
   const newsItems = newsResponse
@@ -243,6 +255,7 @@ const getSignedOutPageData = async (deepLinkedNewsUid?: string) => {
     events: settled(eventsResult),
     portfolio: mergePortfolio(PORTFOLIO_FALLBACK, settled(portfolioResult) ?? []),
     projectFocusAreaCounts: settled(projectCountsResult),
+    teamFocusAreaCounts: settled(teamCountsResult),
   };
 };
 
@@ -274,6 +287,7 @@ const getSignedInPageData = async (deepLinkedNewsUid?: string) => {
     eventsResult,
     portfolioResult,
     projectCountsResult,
+    teamCountsResult,
   ] = await Promise.allSettled([
     getTeamNewsGroupedByFocusArea({}, authToken),
     getTeamNewsPopular(undefined, authToken),
@@ -283,6 +297,7 @@ const getSignedInPageData = async (deepLinkedNewsUid?: string) => {
     getRailEvents(),
     getPortfolioTeams(),
     getProjectFocusAreaCounts(),
+    getTeamFocusAreaCounts(FOCUS_AREA_TITLES),
   ]);
 
   const newsResponse = settled(newsResult);
@@ -303,6 +318,7 @@ const getSignedInPageData = async (deepLinkedNewsUid?: string) => {
     events: settled(eventsResult),
     portfolio: mergePortfolio(PORTFOLIO_FALLBACK, settled(portfolioResult) ?? []),
     projectFocusAreaCounts: settled(projectCountsResult),
+    teamFocusAreaCounts: settled(teamCountsResult),
   };
 };
 

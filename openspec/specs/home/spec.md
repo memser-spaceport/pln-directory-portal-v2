@@ -110,18 +110,24 @@ When no event starts in the next 30 days, the events section SHALL be absent and
 
 Under the map, the page SHALL show one card for each of the portfolio's four focus areas. Each card SHALL show:
 
-- the number of portfolio teams on that area's island, as "N portfolio teams";
-- a pile of those teams' logos;
+- the number of teams "Teams →" lists, as "N teams" (LAB-3162), read from the same search the Teams page counts;
+- a pile of the logos of the portfolio teams on that area's island;
 - the area's name and its one-line description;
 - "Teams →" to `/teams?focusAreas=<title>`;
 - "Projects →" to `/projects?focusAreas=<title>`, only when the directory has at least one project in that area. Without it, "Teams →" takes the whole foot of the card.
 
-`<title>` SHALL be the directory's own focus-area title (for example "Neurotech", not "Neurotechnology"), so that every link lands on a list that is not empty. When the project counts can't be loaded, every card SHALL keep its "Projects →" link.
+`<title>` SHALL be the directory's own focus-area title (for example "Neurotech", not "Neurotechnology"), so that every link lands on a list that is not empty. When the project counts can't be loaded, every card SHALL keep its "Projects →" link. When the team counts can't be loaded, the cards SHALL show no number.
 
 #### Scenario: Neurotech link
 
 - **WHEN** a visitor presses "Teams →" on the neurotechnology card
 - **THEN** `/teams?focusAreas=Neurotech` opens, filtered to at least one team
+
+#### Scenario: The count matches the list
+
+- **GIVEN** the Teams page lists 360 teams for `/teams?focusAreas=Digital Human Rights`
+- **WHEN** a visitor looks at the Digital Human Rights card
+- **THEN** it says "360 teams"
 
 #### Scenario: An area with no projects
 

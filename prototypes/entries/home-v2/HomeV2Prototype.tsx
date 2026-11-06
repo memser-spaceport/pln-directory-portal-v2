@@ -7,7 +7,7 @@
  *   explore-pl-network/EditorialIntro ...... its classes + data/content.ts, split into StoryIntro (header + Join card),
  *                                            FactsBand and EntitiesColumn per the 2026-10-30 mock
  *   explore-pl-network/PortfolioPanel ...... islands map + list (fed the static fallback JSON)
- *   explore-pl-network/ExploreLogoWall ..... VC logo wall
+ *   explore-pl-network/ExploreLogoWall ..... VC logo wall (LinkedLogoWall: + a link per logo)
  *   explore-pl-network/aileron ............. the map's font variable (the live page sets it on its root)
  *   ExplorePlNetworkView.module.scss ....... white sheet, section titles
  *   navbar Signup / LoginBtn SCSS .......... the two auth doors, Sign up quiet + Sign in filled
@@ -32,6 +32,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
 
 import home from '@/app/home/page.module.css';
+import { ScrollToTopButton } from '@/components/page/forum/ScrollToTopButton';
 
 import { ALL_CURATED_ITEMS, TOP_STORY } from '../newsfeed/mocks';
 import feed from '../newsfeed/Newsfeed.module.scss';
@@ -68,11 +69,18 @@ import { WeekFeed } from './WeekFeed';
 import { FocusAreas } from './StoryIntro';
 import { SignedOutHome } from './SignedOutHome';
 import { NewsGrid } from './NewsGrid';
+import { SignupWizard } from '@/components/page/sign-up/components/SignupWizard';
 import { TeamsToFollowRail } from './TeamsToFollowRail';
 import { EmailNotFoundModal } from './EmailNotFoundModal';
+import { AiSearchIcon } from '@/components/icons/AiSearchIcon';
+import { AgentPanel } from '../home-v2-b/AgentPanel';
+import agentCss from '../home-v2-b/AgentPanel.module.scss';
+import { AGENT_VIEWERS, agentIntro, agentPrompts, createAgentV0Script, type AgentViewer } from './AgentV0';
+import agentV0 from './AgentV0.module.scss';
 import {
   EVENTS_STATES,
   HOME_STATES,
+  IMAGE_BY_UID,
   LATEST_DEALS,
   PORTFOLIO_TEAMS,
   PROD_TAGS_BY_UID,
@@ -111,6 +119,29 @@ const CUE_OPTIONS: Option<'fade' | 'jump'>[] = [
     value: 'jump',
     label: '+ Jump link',
     note: 'The same cut, plus "Open source picks ↓" in the feed header naming what is below.',
+  },
+];
+
+const IMAGE_OPTIONS: Option<'side' | 'below'>[] = [
+  { value: 'side', label: 'Beside headline', note: 'Default. A 16:9 image in the video poster’s column, right of the text.' },
+  {
+    value: 'below',
+    label: 'Below description',
+    note: 'The image at the card’s full width under the summary and hashtags, above the meta line.',
+  },
+];
+
+/* LabOS Agent V0: who the member is decides what the agent offers. */
+const VIEWER_OPTIONS: Option<AgentViewer['key']>[] = [
+  {
+    value: 'founder',
+    label: 'Portfolio founder',
+    note: 'Default. Maya Chen, Lattice Compute. The agent sends requests to the PL Venture team, updates both profiles and drafts forum posts.',
+  },
+  {
+    value: 'member',
+    label: 'Member',
+    note: 'Sam Okafor, Driftwood Labs (not in the portfolio). Same agent with no PL Venture team requests: V0 has no use case for them yet.',
   },
 ];
 
@@ -170,6 +201,7 @@ export default function HomeV2Prototype() {
   const reposState: ReposState = searchParams.get('repos') === 'none' ? 'none' : 'picks';
   const hasRepos = reposState === 'picks';
   const cue: 'fade' | 'jump' = searchParams.get('cue') === 'jump' ? 'jump' : 'fade';
+  const imagePlacement: 'side' | 'below' = searchParams.get('image') === 'below' ? 'below' : 'side';
 
   const setParam = (key: string, value: string, fallback: string) => {
     const next = new URLSearchParams(searchParams.toString());
@@ -194,6 +226,27 @@ export default function HomeV2Prototype() {
   const hasDealsAccess = state === 'signed-in';
   /* home-refactor's header search: the field fills the free width, so the signed-out bar fits at 1200. */
   const navExtras = useHeaderSearch(signedIn);
+
+  /* LabOS Agent V0 (members only): the floating Agent button or Ctrl/⌘ J opens home-v2-b's docked panel,
+     running this entry's script. ?agent=open opens it on arrival, for links straight to the agent. */
+  const viewer = AGENT_VIEWERS[searchParams.get('viewer') === 'member' ? 'member' : 'founder'];
+  const agentReplyFn = useMemo(() => createAgentV0Script(viewer), [viewer]);
+  const [agentOpen, setAgentOpen] = useState(false);
+  useEffect(() => {
+    if (signedIn && searchParams.get('agent') === 'open') setAgentOpen(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signedIn]);
+  useEffect(() => {
+    if (!signedIn) return setAgentOpen(false);
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'j') {
+        e.preventDefault();
+        setAgentOpen((o) => !o);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [signedIn]);
 
   /* Likes and comments: the feed's own model, seeded from its mocks (as home-refactor). */
   const [liked, setLiked] = useState<Set<string>>(new Set());
@@ -264,7 +317,8 @@ export default function HomeV2Prototype() {
 
   const [detail, setDetail] = useState<FeedDetail | null>(null);
   const [forumDetail, setForumDetail] = useState<ForumPost | null>(null);
-  const openStory = (story: ITeamNewsItem) =>
+  /* `playVideo`: the story's video poster was the click target, so the modal opens playing. */
+  const openStory = (story: ITeamNewsItem, playVideo?: boolean) =>
     setDetail({
       id: story.uid,
       kind: 'news',
@@ -280,6 +334,8 @@ export default function HomeV2Prototype() {
       sources: SOURCES_BY_UID[story.uid],
       citedBody: MODAL_CITED_BODY_BY_UID[story.uid],
       video: VIDEO_BY_UID[story.uid],
+      autoplayVideo: playVideo,
+      image: IMAGE_BY_UID[story.uid],
       isProtocolLabs: story.teamUid === PL_TEAM_UID,
       readUrl: story.sourceUrl ?? undefined,
     });
@@ -288,6 +344,10 @@ export default function HomeV2Prototype() {
      email-not-found state is reached from the review band. */
   const signUp = () => setState('signed-in');
   const signIn = () => setState('signed-in');
+  /* Network news' "Personalize my news" (signed out) opens production's sign-up modal,
+     SignupWizard, the one production shows for ?dialog=signup. Its submit calls the
+     real API, so in the prototype it's for looking at, not completing. */
+  const [signUpOpen, setSignUpOpen] = useState(false);
 
   if (!mounted) return <div className={s.mountShell} />;
 
@@ -308,6 +368,14 @@ export default function HomeV2Prototype() {
       <div className={feed.reviewBand}>
         <div className={feed.reviewRow}>
           <Switch label="State" options={HOME_STATES} value={state} onChange={setState} />
+          {signedIn && (
+            <Switch
+              label="Viewer"
+              options={VIEWER_OPTIONS}
+              value={viewer.key}
+              onChange={(v) => setParam('viewer', v, 'founder')}
+            />
+          )}
           <Switch
             label="Events"
             options={EVENTS_STATES}
@@ -320,8 +388,18 @@ export default function HomeV2Prototype() {
           {signedIn && hasRepos && (
             <Switch label="Below feed" options={CUE_OPTIONS} value={cue} onChange={(v) => setParam('cue', v, 'fade')} />
           )}
+          {signedIn && view === 'home' && (
+            <Switch
+              label="Image"
+              options={IMAGE_OPTIONS}
+              value={imagePlacement}
+              onChange={(v) => setParam('image', v, 'side')}
+            />
+          )}
         </div>
       </div>
+
+      {signUpOpen && <SignupWizard onClose={() => setSignUpOpen(false)} />}
 
       {view === 'news' ? (
         /* "See all news": news only, 3 / 2 / 1 columns. Same page in both states;
@@ -338,7 +416,13 @@ export default function HomeV2Prototype() {
               onLike={(uid) => (signedIn ? toggleLike(uid) : signUp())}
               onFollow={(teamUid) => (signedIn ? toggleFollow(teamUid) : signUp())}
               homeHref={viewHref('home')}
+              onPersonalize={signedIn ? undefined : () => setSignUpOpen(true)}
             />
+          </div>
+          {/* Production's forum ScrollToTopButton, unchanged (shows while scrolling down).
+              Signed in, it stacks above the Agent pill instead of sitting under it. */}
+          <div className={clsx(signedIn && s.scrollTopAboveAgent)}>
+            <ScrollToTopButton />
           </div>
         </div>
       ) : signedIn ? (
@@ -362,6 +446,8 @@ export default function HomeV2Prototype() {
                     onSelectTopic={topic.onSelectTopic}
                     activeTopic={topic.activeTopic}
                     topStory={isTop}
+                    imageFor={(uid) => IMAGE_BY_UID[uid]}
+                    imagePlacement={imagePlacement}
                     cluster={{
                       teamUid: story.teamUid,
                       teamName: story.teamName,
@@ -450,6 +536,7 @@ export default function HomeV2Prototype() {
         <SignedOutHome
           storyFor={storyFor}
           allHref={viewHref('news')}
+          allCount={ALL_NEWS.length}
           likeCount={likeCount}
           commentCount={(uid) => commentsFor(uid).length}
           onOpenStory={openStory}
@@ -457,6 +544,37 @@ export default function HomeV2Prototype() {
           onSignIn={signIn}
           hasEvents={hasEvents}
         />
+      )}
+
+      {signedIn && (
+        <>
+          {/* Keyed by viewer: switching who is signed in starts a new conversation. */}
+          <AgentPanel
+            key={viewer.key}
+            open={agentOpen}
+            onClose={() => setAgentOpen(false)}
+            reply={agentReplyFn}
+            greeting={`Hi ${viewer.firstName}, what can I do for you?`}
+            intro={agentIntro(viewer)}
+            prompts={agentPrompts(viewer)}
+            placeholder={viewer.portfolio ? 'Ask for an intro or paste a link' : 'Tell it what to update or paste a link'}
+            className={agentV0.panelOnHome}
+          />
+          {!agentOpen && (
+            <button
+              type="button"
+              className={clsx(agentCss.fab, agentV0.fabOnHome)}
+              onClick={() => setAgentOpen(true)}
+              aria-keyshortcuts="Control+J Meta+J"
+            >
+              <AiSearchIcon size={18} />
+              Agent
+              <span className={agentV0.fabKey} aria-hidden>
+                Ctrl J
+              </span>
+            </button>
+          )}
+        </>
       )}
 
       <EmailNotFoundModal

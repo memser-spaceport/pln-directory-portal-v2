@@ -4,6 +4,7 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import MemberDetailsPage, { type ServerMemberResult } from '@/components/page/member-details/MemberDetailsPage';
 import { JsonLdScript } from '@/components/core/json-ld/JsonLdScript';
 import { buildMemberJsonLd } from '@/services/seo/entity-jsonld';
+import { MemberSignalViewTracker } from '@/components/core/MemberSignalViewTracker';
 
 /** The image behind the signed-out contact-details panel; `ContactDetails.module.scss` paints it. */
 const MEMBER_CONTACT_OVERLAY_IMAGE = '/images/members/contact-details-overlay.png';
@@ -25,7 +26,12 @@ export default async function MemberPage({ params }: PageProps) {
   const { isLoggedIn } = await getCookiesFromHeaders();
 
   if (isLoggedIn) {
-    return <MemberDetailsPage memberId={id} />;
+    return (
+      <>
+        <MemberSignalViewTracker entityType="member" entityId={id} />
+        <MemberDetailsPage memberId={id} />
+      </>
+    );
   }
 
   /* The contact-details panel's blurred overlay is the page's largest element for a signed-out visitor, and it is a CSS

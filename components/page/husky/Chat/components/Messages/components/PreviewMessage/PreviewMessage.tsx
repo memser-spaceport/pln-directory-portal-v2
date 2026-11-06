@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 
 import { Markdown } from '@/components/common/Markdown';
 import { FollowupQuestions } from '@/components/core/husky/FollowupQuestions';
@@ -46,6 +46,9 @@ export const PreviewMessage = memo(function PreviewMessage(props: Props) {
   } = props;
 
   const showThumbs = !isStreaming && !message.isError && showRating;
+  // Only an answer streamed in this view counts as shown; a restored thread does not (LAB-2621).
+  const [wasStreamed, setWasStreamed] = useState(false);
+  if (isStreaming && !wasStreamed) setWasStreamed(true);
   const { feedback, hasError, onUp, onDown, onSendReasons, onSkipReasons } = useAnswerFeedback({
     answerId: message.id,
     threadId,
@@ -105,7 +108,11 @@ export const PreviewMessage = memo(function PreviewMessage(props: Props) {
                 <AnswerThumbs feedback={feedback} hasError={hasError} disabled={!canRate} onUp={onUp} onDown={onDown} />
               )
             }
-            sourcesSlot={!isStreaming && <AnswerSources sources={message.sources} sourceRefs={message.sourceRefs} />}
+            sourcesSlot={
+              !isStreaming && (
+                <AnswerSources sources={message.sources} sourceRefs={message.sourceRefs} trackShown={wasStreamed} />
+              )
+            }
           />
 
           {showThumbs && feedback === 'down' && <AnswerFeedbackReasons onSend={onSendReasons} onSkip={onSkipReasons} />}

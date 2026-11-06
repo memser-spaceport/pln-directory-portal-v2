@@ -1,12 +1,15 @@
 'use client';
 
 import clsx from 'clsx';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import type { ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
+import { Button } from '@/components/common/Button';
 import { FollowButton } from '@/components/ui/FollowButton';
 import { SortDropdown } from '@/components/common/filters/SortDropdown';
+import { SearchInput } from '@/components/common/filters/SearchInput';
+import { NewsSearch } from '@/components/page/home/TeamNews/components/NewsSearch';
 import { getTeamLogoFallback } from '@/components/page/home/TeamNews/utils/getTeamLogoFallback';
 import { getEventTypeConfig } from '@/components/page/home/TeamNews/utils/getEventTypeConfig';
 import { SORT_OPTIONS, type TeamNewsSort } from '@/components/page/home/TeamNews/utils/sortTeamNewsClusters';
@@ -16,10 +19,12 @@ import tn from '@/components/page/home/TeamNews/TeamNews.module.scss';
 import sortCss from '@/components/common/filters/SortDropdown/SortDropdown.module.scss';
 import { CommentCount, LikeButton, ViewCount } from '../newsfeed-v0/FeedActions';
 import { TopicTags } from '../newsfeed-v0/TopicTags';
-import { viewsFor } from '../newsfeed-v0/mocks';
+import { VIDEO_BY_UID, viewsFor } from '../newsfeed-v0/mocks';
+import { NewsImage, VideoThumb } from '../newsfeed-v0/NewsVideo';
+import fb from '../follow-shared/FollowButton.module.scss';
 import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
 import nf from '../newsfeed/Newsfeed.module.scss';
-import { FOR_YOU_UIDS } from './mocks';
+import { FOR_YOU_UIDS, IMAGE_BY_UID } from './mocks';
 import local from './HomeV2Prototype.module.scss';
 
 const ALL = 'all';
@@ -33,19 +38,30 @@ const ROW: { id: string; label: string }[] = [
   { id: 'ANNOUNCEMENT', label: 'Announcement' },
 ];
 
+/* The week feed's query rule: production's matchesTeamNewsQuery fields, a leading "#" dropped. */
+const normalizeQuery = (q: string) => q.trim().toLowerCase().replace(/^#+/, '');
+
 /**
- * "See all news": a page of news only (no forum threads), in a 3-column grid
- * on desktop, 2 on tablet, 1 on phones. Each card is a transcription of
+ * "See all news": a page of news only (no forum threads), in a 2-column grid
+ * from tablet up, 1 on phones. Each card is a transcription of
  * production `NewsCard`'s default (boxed) variant, the card production's Home
  * grid draws (`.card`, `.head`, `.headline`, `.summary` clamped to three lines,
  * `.metaLine` with the event dot + label, source and time; classes imported),
  * simplified: no store, analytics, share menu or source popover. Hashtags are
  * the feed's (TopicTags links, production's tag vocabulary) and scope the grid
- * the same way the week feed does.
+ * the same way the week feed does. Under the hashtags, each card carries its
+ * media at full card width: the story's image (IMAGE_BY_UID), or its video
+ * poster, which opens the story already playing. Media and meta line sit on the
+ * card's floor, so a row's images line up whatever the text above holds.
  *
  * The filter bar is the week feed's: For You · All · Funding · Launch ·
  * Announcement with counts, empty chips hidden, the active chip resets on a
  * second press; Sort by on the right.
+ *
+ * Search is production's (NewsSearch beside the title, SearchInput as the
+ * full-width row on phones), held open: on the page for the whole archive,
+ * finding a story is a main task, not a tucked-away icon. It matches team,
+ * headline, summary and tags, and narrows on top of the pill and hashtags.
  */
 export function NewsGrid({
   stories,
@@ -57,28 +73,40 @@ export function NewsGrid({
   onLike,
   onFollow,
   homeHref,
+  onPersonalize,
 }: {
   stories: ITeamNewsItem[];
   likeCount: (uid: string) => number;
   isLiked: (uid: string) => boolean;
   commentCount: (uid: string) => number;
   followedTeams: Set<string>;
-  onOpen: (story: ITeamNewsItem) => void;
+  onOpen: (story: ITeamNewsItem, playVideo?: boolean) => void;
   /** Signed out, these are the sign-up ask. */
   onLike: (uid: string) => void;
   onFollow: (teamUid: string) => void;
   homeHref: string;
+  /** Signed out: no For You pill (nothing of the visitor to pick from); a sign-up ask to personalize sits under the filters instead. */
+  onPersonalize?: () => void;
 }) {
   const [cat, setCat] = useState(ALL);
   const [sort, setSort] = useState<TeamNewsSort>('latest');
   /* Selected hashtags, stacked as on Home's feed: a story must carry all of them. */
   const [topics, setTopics] = useState<string[]>([]);
+  const [query, setQuery] = useState('');
+  const searchRef = useRef<HTMLDivElement>(null);
   const toggleTopic = (tag: string) =>
     setTopics((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
 
   const matches = (s: ITeamNewsItem, c: string) =>
     c === ALL || (c === FOR_YOU ? FOR_YOU_UIDS.includes(s.uid) : s.eventType === (c as TeamNewsEventType));
-  const scoped = stories.filter((s) => topics.every((t) => s.tags.includes(t)));
+  const q = normalizeQuery(query);
+  const hasQuery = (s: ITeamNewsItem) =>
+    !q ||
+    s.title.toLowerCase().includes(q) ||
+    s.teamName.toLowerCase().includes(q) ||
+    (s.summary ?? '').toLowerCase().includes(q) ||
+    s.tags.some((t) => t.toLowerCase().includes(q));
+  const scoped = stories.filter((s) => topics.every((t) => s.tags.includes(t)) && hasQuery(s));
 
   /* "Narrow by": the commonest other tags in scope that would actually narrow it. */
   const freq = new Map<string, number>();
@@ -92,7 +120,7 @@ export function NewsGrid({
 
   const pills = useMemo(
     () =>
-      ROW.map((p) => ({ ...p, count: scoped.filter((s) => matches(s, p.id)).length })).filter(
+      ROW.filter((p) => !(onPersonalize && p.id === FOR_YOU)).map((p) => ({ ...p, count: scoped.filter((s) => matches(s, p.id)).length })).filter(
         (p) => p.id === ALL || p.count > 0,
       ),
     // `matches` is pure over its arguments.
@@ -120,11 +148,18 @@ export function NewsGrid({
         </svg>
         Home
       </a>
-      <div className={local.newsPageHead}>
-        <h1 id="home-news-page-title" className={local.newsPageTitle}>
-          Network news
-        </h1>
-        <p className={local.newsPageSub}>{stories.length} stories from network teams</p>
+      <div className={local.newsPageHeadRow}>
+        <div className={local.newsPageHead}>
+          <h1 id="home-news-page-title" className={local.newsPageTitle}>
+            Network news
+          </h1>
+          <p className={local.newsPageSub}>{stories.length} stories from network teams</p>
+        </div>
+        <NewsSearch open value={query} onOpen={() => {}} onChange={setQuery} onBlur={() => {}} fieldRef={searchRef} />
+      </div>
+      {/* Phones: production's permanent full-width field under the header. */}
+      <div className={tn.mobileSearchRow}>
+        <SearchInput value={query} onChange={setQuery} placeholder="Search by news, teams…" />
       </div>
 
       <div className={tn.filterBar}>
@@ -159,6 +194,20 @@ export function NewsGrid({
           />
         </div>
       </div>
+
+      {onPersonalize && (
+        /* 2026-11-06: signed out, the For You note becomes the offer (the note's layout:
+           sentence left, action right), with the glossy primary so the ask isn't link ink. */
+        <div className={local.personalize}>
+          <p className={local.personalizeText}>
+            <span className={local.personalizeLabel}>For you</span> · Sign up to see news picked for your
+            skills, your team, and the teams you follow.
+          </p>
+          <Button size="s" style="fill" variant="primary" className={fb.glossy} onClick={onPersonalize}>
+            Personalize my news
+          </Button>
+        </div>
+      )}
 
       {/* Multi-tag scope: the same row as Home's feed (WeekFeed), without Follow. */}
       {topics.length > 0 && (
@@ -212,6 +261,8 @@ export function NewsGrid({
         {visible.map((item) => {
           const { label, dotClassName } = getEventTypeConfig(item.eventType);
           const following = followedTeams.has(item.teamUid);
+          const video = VIDEO_BY_UID[item.uid];
+          const image = IMAGE_BY_UID[item.uid];
           return (
             <li key={item.uid}>
               <div
@@ -251,6 +302,15 @@ export function NewsGrid({
                   onSelect={toggleTopic}
                   active={topics.length ? topics : undefined}
                 />
+                {(video || image) && (
+                  <div className={local.newsGridMedia}>
+                    {video ? (
+                      <VideoThumb video={video} title={item.title} onPlay={() => onOpen(item, true)} />
+                    ) : (
+                      image && <NewsImage src={image} variant="wide" />
+                    )}
+                  </div>
+                )}
                 <div className={clsx(nc.metaLine, local.newsGridMeta)}>
                   <div className={nc.meta}>
                     <span className={nc.eventType}>
@@ -271,6 +331,15 @@ export function NewsGrid({
           );
         })}
       </ul>
+
+      {visible.length === 0 && q && (
+        <p className={local.weekEmpty}>
+          No stories match “{query.trim()}”.{' '}
+          <button type="button" className={local.inlineLink} onClick={() => setQuery('')}>
+            Clear search
+          </button>
+        </p>
+      )}
     </section>
   );
 }

@@ -64,26 +64,26 @@ export const JOBS_LINK: ISubItem = {
   description: 'Open roles across the Protocol Labs network',
 };
 
-export const EVENT_LINKS: ISubItem[] = [
-  {
-    href: '/events/irl',
-    icon: <UsersThreeIcon />,
-    title: 'IRL Gatherings',
-    description: 'Explore major events and attendees by location',
-  },
-  {
-    href: '/events/all',
-    icon: <CalendarBlankIcon />,
-    title: 'All Events',
-    description: 'Browse and register for all upcoming events',
-  },
-  {
-    href: '/events/contributors',
-    icon: <ContributorIcon />,
-    title: 'Event Contributors',
-    description: 'Hosts, speakers, and sponsors',
-  },
-] as const;
+export const IRL_GATHERING_LINK: ISubItem = {
+  href: '/events/irl',
+  icon: <UsersThreeIcon />,
+  title: 'IRL Gatherings',
+  description: 'Explore major events and attendees by location',
+};
+
+export const ALL_EVENTS_LINK: ISubItem = {
+  href: '/events/all',
+  icon: <CalendarBlankIcon />,
+  title: 'All Events',
+  description: 'Browse and register for all upcoming events',
+};
+
+export const EVENT_CONTRIBUTORS_LINK: ISubItem = {
+  href: '/events/contributors',
+  icon: <ContributorIcon />,
+  title: 'Event Contributors',
+  description: 'Hosts, speakers, and sponsors',
+};
 
 export const FORUM_LINK: ISubItem = {
   icon: <ForumIcon />,

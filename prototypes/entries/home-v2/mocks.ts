@@ -114,6 +114,38 @@ export const PROD_TAGS_BY_UID: Record<string, string[]> = {
   n2: ['announce', 'join', 'cryptographic-proofs'], // League of Entropy grows to 24 operators
 };
 
+const unsplash = (id: string) => `https://images.unsplash.com/photo-${id}?w=960&q=70&auto=format&fit=crop`;
+
+/**
+ * Images for every news story the prototype shows (Unsplash stock, chosen per
+ * story): the week's six on Home, all 23 on See all news. Production news has
+ * no image field yet. n1, n5 and n7 have none: their video holds the slot.
+ */
+export const IMAGE_BY_UID: Record<string, string> = {
+  /* The week's stories (Home's feed). */
+  x1: unsplash('1558494949-ef010cbdcc31'), // server racks: Prime Intellect's compute raise
+  x2: unsplash('1677442136019-21780ecad995'), // "AI" letterforms: inference marketplace
+  n10: unsplash('1451187580459-43490279c0fa'), // night-side earth lights: peer routing
+  x3: unsplash('1518770660439-4636190af475'), // circuit board: on-device sharding
+  n2: unsplash('1639762681485-074b7f938ba0'), // linked blocks: randomness network
+  /* The rest of See all news. */
+  'news-posted-1': unsplash('1522071820081-009f0129c71c'), // team at a table: network residency
+  'news-posted-2': unsplash('1540575467063-178a50c2df87'), // conference audience: IPFS Camp
+  r1: unsplash('1581091226825-a6a2a5aee158'), // engineer in a robotics lab: robot foundation models
+  r2: unsplash('1544197150-b99a580bb7a8'), // patch-panel cables: robot telemetry
+  r3: unsplash('1485827404703-89b55fcc595e'), // service robot: grasp dataset
+  'bac-news-1': unsplash('1526374965328-7f61d4dc18c5'), // green code rain: compute over data
+  'bac-news-2': unsplash('1532187863486-abf9dbad1b69'), // pipette over sample tubes: genomics
+  n11: unsplash('1552664730-d307ca884978'), // team meeting: headcount doubles
+  n3: unsplash('1559526324-4b87b5e36e44'), // laptop dashboard: seed extension
+  n4: unsplash('1531297484001-80022131f5a1'), // laptop on a desk: 10,000 builders
+  n12: unsplash('1620712943543-bcc4688e7485'), // AI render: open-source AI tooling grants
+  n13: unsplash('1461749280684-dccba630e2f6'), // code on screen: developer portal
+  n6: unsplash('1597852074816-d933c7d2b988'), // open hard drive: 2,000 PiB of storage
+  n8: unsplash('1561557944-6e7860d1a7eb'), // light installation: peer discovery
+  n9: unsplash('1550751827-4bd374c3f58b'), // lit circuit panel: identity working group
+};
+
 /**
  * The Join card's facepile: three network founders, with the photo each one
  * published on their own directory profile (live members API, read
@@ -190,3 +222,29 @@ export const LATEST_DEALS: IDeal[] = [
 ];
 
 export const TOTAL_DEALS = 38;
+
+/**
+ * 2026-11-06: the focus cards' logo piles in colour. The portfolio data's logos
+ * are marketing's white map tiles (built for the coloured hexes), so the
+ * directory's own team logos are listed here (production API, fetched
+ * 2026-11-06, the first teams per area that have one).
+ */
+const S3 = 'https://pl-directory-images-prod.s3.us-west-1.amazonaws.com/';
+export const COLOR_LOGO_BY_UID: Record<string, string> = {
+  cldvntvou00bju21ksihnvixq: `${S3}32983a5af6547216.webp`, // Agoric Systems
+  cmh24631p88e7ly4f06o9pu7g: `${S3}team-enrichment-cmh24631p88e7ly4f06o9pu7g-1780674501938.png`, // Animoca Brands
+  clr5hztot0009yq0232zvjq5w: `${S3}a3c74dd59c40be30.webp`, // Ansa Research
+  cldvntv0a00b9u21kbusi8zvx: `${S3}a484aa48433d20eb.webp`, // Anytype
+  cmghivqs20ykupk4gcx9d4pvz: `${S3}3241c6ed36c464ee.png`, // Allo.Capital
+  clthfrxky000vv902ufapmkh5: `${S3}842ef4b6e8aee507.webp`, // bio.xyz
+  clultpfri0019wf02nj3hnxb6: `${S3}7b3a22d93d8afd53.webp`, // Celo
+  cly50xtx300303l02gi5d9ngx: `${S3}9a0cefefc0843985.webp`, // Cerebrum DAO
+  cldvnx5vo01cnu21ka4368lfo: `${S3}c5ecb2aa75371bc7.webp`, // Anjuna
+  clrl8529d0006wq02qltw5bab: `${S3}a5e631808a4a16e7.webp`, // Atlas Computing Initiative
+  cloohy2iz0000v0022l0e8aqy: `${S3}49e864299de0b9ce.webp`, // Bagel
+  cm7k6v3yr001up302a7wh0416: `${S3}d433231e5859742b.jpeg`, // FrodoBots (BitRobot Network)
+  cly4ypxxz002e3l022n0nm4bx: `${S3}8f99c352f78883f6.webp`, // ARIA
+  clmus648a00024t029wm7g2vw: `${S3}88cce3e533393917.webp`, // Atomos (Fathom Radiant)
+  cmmhy8quh117qpi4floejf237: `${S3}68ad95144da73fe3.jpeg`, // Blackrock Neurotech
+  cldvnykpo01ufu21kuln37nh8: `${S3}f29278c6dfdd40c3.webp`, // Convergent Research FROs
+};

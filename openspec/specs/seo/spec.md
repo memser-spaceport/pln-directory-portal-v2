@@ -193,12 +193,17 @@ Member, team and project profiles SHALL carry JSON-LD built only from what a sig
 
 ### Requirement: Links reach every profile
 
-`/members`, `/teams` and `/projects` SHALL each link, in their server HTML, to a browse index at `/<listing>/browse`. The index SHALL list every profile the sitemap lists for that listing, A to Z, 200 per page, as plain links, with links to every page of the index. Each page SHALL have a self-canonical; page 1 SHALL have no `?page=`. A `?page=` that is not a whole number from 1 up, or is past the last page, SHALL answer 404.
+`/members`, `/teams` and `/projects` SHALL each link, in their server HTML, to a browse index at `/<listing>/browse`. The link is for crawlers: it SHALL NOT be visible on screen or reachable with Tab, and SHALL NOT be removed with `display: none` (LAB-3184). The index SHALL list every profile the sitemap lists for that listing, A to Z, 200 per page, as plain links, with links to every page of the index. Each page SHALL have a self-canonical; page 1 SHALL have no `?page=`. A `?page=` that is not a whole number from 1 up, or is past the last page, SHALL answer 404.
 
 #### Scenario: Crawler follows links only
 
 - **WHEN** a crawler starts at `/teams`, `/members` or `/projects` and follows only `<a href>` links
 - **THEN** it reaches every team, member and project profile in the sitemap
+
+#### Scenario: Member opens a listing
+
+- **WHEN** a member opens `/teams`, `/members` or `/projects`
+- **THEN** no "Browse all" link shows on the page, and the server HTML still has the `<a href>` to the browse index
 
 #### Scenario: Page past the end
 

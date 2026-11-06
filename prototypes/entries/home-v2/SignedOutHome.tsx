@@ -4,14 +4,15 @@ import clsx from 'clsx';
 import { useState } from 'react';
 
 import type { ITeamNewsItem } from '@/types/team-news.types';
+import { Button } from '@/components/common/Button';
 import { PortfolioPanel } from '@/components/page/explore-pl-network/PortfolioPanel/PortfolioPanel';
-import { ExploreLogoWall } from '@/components/page/explore-pl-network/ExploreLogoWall/ExploreLogoWall';
+import { LinkedLogoWall } from './LinkedLogoWall';
 import { aileron } from '@/components/page/explore-pl-network/aileron';
 import explore from '@/components/page/explore-pl-network/ExplorePlNetworkView.module.scss';
 
 import { JobsRail } from '../home-refactor/JobsRail';
 import { EventsRail } from '../home-refactor/EventsRail';
-import { EntitiesRow, FactsBand, FocusAreas, StoryIntro } from './StoryIntro';
+import { EntitiesRow, FactsBand, FocusAreas, JoinCard, StoryIntro } from './StoryIntro';
 import { NewsPreviewList } from './NewsPreviewList';
 import { HomeFooter } from './HomeFooter';
 import {
@@ -23,6 +24,7 @@ import {
   UPCOMING_EVENTS,
   rolesBesideEvents,
 } from './mocks';
+import fb from '../follow-shared/FollowButton.module.scss';
 import s from './HomeV2Prototype.module.scss';
 
 /** The Join card's facepile: three network founders' own directory photos (live members API, 2026-10-30). */
@@ -40,15 +42,16 @@ const JOIN_FACES = FOUNDER_FACES.map((f) => f.image);
  *    events in the next 30 days, events go and roles take the room.
  * 4. The portfolio map, the focus areas in Explore's simpler numbered look, then
  *    the PL entities as a row of the same width.
- * 5. The logo wall, and the page ends. No closing Join card (an FAQ may take
- *    that spot later) and no SPV footer: its investment disclaimer and Demo Day
- *    legal links belong to SPV pages, not the directory's Home.
+ * 5. The Join card again after the entities (2026-11-05 review), then the logo
+ *    wall, and the page ends. No SPV footer: its investment disclaimer and Demo
+ *    Day legal links belong to SPV pages, not the directory's Home.
  *
  * Deals are not here: they exist only for signed-in portfolio founders.
  */
 export function SignedOutHome({
   storyFor,
   allHref,
+  allCount,
   likeCount,
   commentCount,
   onOpenStory,
@@ -60,6 +63,8 @@ export function SignedOutHome({
   storyFor: (uid: string) => ITeamNewsItem;
   /** "See all updates": the ?view=news page. */
   allHref: string;
+  /** Stories on that page, for "See all N updates". */
+  allCount?: number;
   likeCount: (uid: string) => number;
   commentCount: (uid: string) => number;
   onOpenStory: (story: ITeamNewsItem) => void;
@@ -74,11 +79,17 @@ export function SignedOutHome({
     <div className={clsx(s.storyPage, aileron.variable)}>
       {/* 1. Who PL is, beside the Join card. */}
       <div className={s.storyBand}>
-        <StoryIntro onSignUp={onSignUp} onSignIn={onSignIn} faces={JOIN_FACES} />
+        {/* Phones (2026-11-06): the figures sit inside the hero, before Sign up / Sign in. */}
+        <StoryIntro
+          onSignUp={onSignUp}
+          onSignIn={onSignIn}
+          faces={JOIN_FACES}
+          facts={<FactsBand portfolioCount={PORTFOLIO_TEAMS.length} className={s.factsInline} />}
+        />
       </div>
 
-      {/* 2. The figures as their own white band. */}
-      <FactsBand portfolioCount={PORTFOLIO_TEAMS.length} />
+      {/* 2. The figures as their own white band (tablet and up; phones show them in the hero). */}
+      <FactsBand portfolioCount={PORTFOLIO_TEAMS.length} className={s.factsBandWide} />
 
       {/* 3. This week's news beside roles + events: jobs are the reason a third of signed-out visitors click on. */}
       <div className={s.storyBand}>
@@ -90,6 +101,7 @@ export function SignedOutHome({
             onOpen={onOpenStory}
             onNeedsAccount={onSignUp}
             allHref={allHref}
+            allCount={allCount}
           />
           <aside className={s.rail}>
             <div className={s.sidebar}>
@@ -97,12 +109,15 @@ export function SignedOutHome({
                 jobs={rolesBesideEvents(hasEvents)}
                 total={TOTAL_OPEN_ROLES}
                 note={
-                  <p className={s.railNote}>
-                    <button type="button" className={s.inlineLink} onClick={onSignUp}>
-                      Sign up
-                    </button>{' '}
-                    to apply with your directory profile.
-                  </p>
+                  /* 2026-11-05 review (Anuj): as brand inline text, Sign up looked like "See all N
+                     jobs" under it and was easy to miss. Now the hero's glossy primary, full width
+                     like the Join card's, with the ask on the label (a trailing sentence wraps
+                     under the button at rail width); See all stays the quiet text link. */
+                  <div className={s.railSignUp}>
+                    <Button size="s" style="fill" variant="primary" className={clsx(s.joinBtn, fb.glossy)} onClick={onSignUp}>
+                      Sign up to apply
+                    </Button>
+                  </div>
                 }
               />
               {hasEvents && <EventsRail events={UPCOMING_EVENTS} total={TOTAL_UPCOMING_EVENTS} />}
@@ -145,9 +160,20 @@ export function SignedOutHome({
             <EntitiesRow />
           </section>
 
+          {/* 2026-11-05 review: the hero asks before anyone has read the page, so the same
+              Join card asks again once the story is told (one component, so the two can't drift). */}
+          <JoinCard
+            id="home-join-end-title"
+            onSignIn={onSignIn}
+            onSignUp={onSignUp}
+            faces={JOIN_FACES}
+            className={s.joinCardEnd}
+            wide
+          />
+
           {/* 5. Who has backed the network. */}
           <section className={clsx(explore.sectionPartners, s.storyEnd)}>
-            <ExploreLogoWall />
+            <LinkedLogoWall />
           </section>
         </div>
       </div>

@@ -4,6 +4,27 @@
 **Route:** `/prototypes/homepage-redesign-v0` (was `/prototypes/home-v2` until 2026-11-03; the folder keeps its name)
 **Review switches:** `?state=signed-out` (default) `| signed-in | signed-in-no-deals | email-not-found`, `?events=upcoming` (default) `| none`, and signed in `?repos=picks` (default) `| none` and `?cue=fade|jump`. The same switches sit in the grey review band under the navbar.
 
+## 2026-11-05 LabOS Agent V0
+
+Signed in, a floating **Agent** button (or Ctrl/⌘ J) opens a panel docked on the right. `?agent=open` opens it on arrival, and `?viewer=founder` (default) `| member` picks who is signed in. The panel is home-v2-b's `AgentPanel`, imported rather than forked: steps, streaming, composer. `AgentV0.tsx` holds only this version's script and its three cards. Replies are scripted, and Send, Apply and Post only switch a card to its receipt.
+
+What V0 does, from the V0 notes:
+
+| Ask | What the agent does |
+|---|---|
+| **Request to the PL Venture team** (portfolio founders only). "I need intros to founders who raised a Series A this year, I'm planning a fundraise" | Asks the one thing the profile can't answer, *when are you raising?*, as numbered options. Then it returns an editable request: To PL Venture team, the text, what goes with it (your profile and your team's), where the reply goes. Sends only on **Send to PL Venture team**. |
+| **Update the team profile from a URL**. "Update our team profile from latticecompute.xyz", or a bare link | Reads the site and lists each field it would change as old (struck through) → new, all ticked. **Apply N changes** counts the ticked rows, and Undo is on the receipt. A link sent on its own gets "What should I do with it?" (team profile / forum post) rather than a guess. |
+| **Update my profile**. "I'm now CEO and based in Lisbon" | The same change card, for the member's own profile. |
+| **Draft and create a forum post** | An editable title and body, posted on **Post to forum**. |
+
+Not for investors: V0 has no use case for them. A member who isn't a portfolio founder gets no request prompt, and if they type one anyway, the agent says who requests are for and links to AI Search.
+
+Why these shapes (Mobbin): Delphi edits a card in place in the thread and saves it ("ready for you to refine before saving"). Whop and AirOps ask in the thread when the agent isn't sure, rather than guessing. Cofounder shows tasks marked "Requires approval". The agent asks before it changes or sends anything, as B's follow proposal already does.
+
+Navigation was left as it is (the V0 notes put agent UX first). Home has no sidebar, so the door is B's phone pill at every width. Collapsing the left nav inside AI apps is for those apps and isn't built here.
+
+Open: does a sent request show up anywhere after the receipt (a thread, an email)? Does the PL Venture team reply in LabOS or by email? Can a founder see their earlier requests?
+
 ## 2026-11-02 design standup: what changed
 
 V0 (this prototype) was picked as the version to build now: V1's signed-out page with V0's member page. V1 (`home-v2-b`) now re-exports this prototype's `SignedOutHome.tsx`, so the two signed-out pages can't drift. The style refresh is parked: the structure works, but the styling reads as generated. Top-level navigation stays as it is until there's a clear answer. The likely first move is Job Board out of More.
@@ -23,7 +44,7 @@ V0 (this prototype) was picked as the version to build now: V1's signed-out page
 - **Filters:** the trimmed row (For You · All · Top · Discussions · Funding · Launch · Announcement) is confirmed. Production's focus-area tabs are not brought back.
 - **Search:** production's header search (`NewsSearch`; the full-width field on phones). It matches team, title, summary and tags, and a leading `#` is dropped. **Dev note:** production's `matchesTeamNewsQuery` already checks tags on main and develop. A `#ai` query fails only because no tag contains "#", so the fix is that one normalisation.
 - **Under the feed:** the open-source picks when curated (`?repos=none` shows nothing in their place), then the same focus areas as signed out ("Browse by focus area"), which replace production's FocusAreaSection.
-- **Media on stories:** the video poster already shows where a story has one (the IPFS story). Images need the scraper that feeds the digest to keep each story's image. Open question for backend.
+- **Media on stories:** the video poster already shows where a story has one (the IPFS story). Since 2026-11-04 the signed-in feed's other five stories carry an image in the same 16:9 column beside the headline (full width on phones), and the story modal shows it as its header where a video would play. The images are Unsplash stock picked per story (`IMAGE_BY_UID` in `mocks.ts`). The review band's Image switch (`?image=below`) moves it to the card's full width under the summary and hashtags, above the meta line. The image isn't a control, and the row still opens the story. Production news has no image field: the scraper that feeds the digest would need to keep each story's image (og:image). Open question for backend.
 
 **2026-11-03 follow-ups**
 - **Hero:** the mission sentence is the H1 (40/48 on desktop, 32/40 on phones). The copy and the Join card are centred on each other.
@@ -71,11 +92,11 @@ Sections 1 and 2 follow the 2026-10-30 mock, on a neutral ground (`--background-
 
 1. **Who PL is** (`StoryIntro.tsx`). EditorialIntro's header (overline, title at 48/56 so it holds one line, mission lede, the two General Info paragraphs; production classes and `data/content.ts`), left-aligned beside a **Join the network** card: one line on what the directory is for, **Sign up for free** (DS primary with the product's glossy highlight, follow-shared `.glossy`), an "or" rule, **Sign in** (outlined), both 42px, then three founders' faces (Juan Benet, Molly Mackinlay, Vincent Weisser, each the photo on their own directory profile) and "750+ organizations in the network". The door order follows the mock, not the navbar pair (Sign up quiet first, Sign in filled): this reader is mostly new, so Sign up leads.
    - **Figures band:** EditorialIntro's four figures as a full-bleed white strip, hairline-divided ("Network organizations", the mock's shorter label for one that wraps).
-2. **This week in the network beside PL Entities.** Left: three stories in one white card (`NewsPreviewList.tsx`, production `NewsCard`'s flat rows with the mock's changes: time at the head row's end, the event type as a brand Badge beside the source) and **See all updates →**; Follow and Like are the sign-up ask, the row opens the story. Right: EditorialIntro's PL entities as stacked cards, each linking out.
+2. **This week in the network beside PL Entities.** Left: three stories in one white card (`NewsPreviewList.tsx`, production `NewsCard`'s flat rows with the mock's changes: time at the head row's end, the event type as a brand Badge beside the source) with **See all updates →** in the header corner and again as **See all 23 updates**, the card's last row (added 2026-11-05: Anuj found the corner link alone hard to see; the bottom row matches the rail's "See all N jobs / events" expanders, and both are kept); Follow and Like are the sign-up ask, the row opens the story. Right: EditorialIntro's PL entities as stacked cards, each linking out.
 3. **The portfolio.** Production `PortfolioPanel` (islands map and list), fed the static fallback JSON. Under it are four focus-area tiles. Each has a **Teams** and a **Projects** link to `/teams?focusAreas=<name>` / `/projects?focusAreas=<name>`, the URL shape the old Home `FocusAreaSection` used. On phones the map is clamped to 640px with a fade and "Show the whole map". Unclamped it is about 3,000px of hexes, which buries everything after it.
-4. **Open roles.** home-refactor's `JobsRail` (4 roles plus "See all 64 jobs"). Its new optional `note` slot carries "Sign up to apply with your directory profile." /jobs is the top next page for signed-out visitors.
+4. **Open roles.** home-refactor's `JobsRail` (4 roles plus "See all 64 jobs"). Its new optional `note` slot carries a full-width glossy **Sign up to apply** button (the Join card's primary at size s) (2026-11-05 review: as inline brand text it read the same as "See all N jobs" below it and was easy to miss). /jobs is the top next page for signed-out visitors.
 5. **Logo wall.** Production `ExploreLogoWall`.
-6. **Closing CTA.** The hero's Join the network card again (`JoinCard`, one component for both), centred above the footer for whoever read to the end.
+6. **Closing CTA.** The hero's Join the network card again (`JoinCard`, one component for both), in its `wide` layout (copy and facepile on the left, Sign up · or · Sign in in a row on the right, full content width from 960px; the stacked card below) right after the PL entities and before the logo wall (restored 2026-11-05: the hero asks before anyone has read the page, so the ask comes back once the story is told).
 7. **Footer.** The live Explore page's `SpvFooter` with its note, Privacy Policy and Terms & Conditions on (Explore turns them off; this is the directory's Home).
 
 ### Signed in, in order
@@ -124,8 +145,9 @@ In production, "Try another email" would reopen Privy. In the prototype it close
 
 Where "See all news" (signed in, under the cut feed) and "See all updates" (signed out) lead: a page of news only, no forum threads (`NewsGrid.tsx`). The other review params ride along, so it opens in whichever state you were in.
 - **Head:** "← Home", "Network news", "N stories from network teams".
+- **Search:** production's news search (`NewsSearch`) beside the title, held open rather than behind the icon, since finding a story is a main job of this page; on phones production's full-width row under the head. Same rule as the week feed: team, headline, summary and tags, a leading "#" dropped. It narrows on top of the pill and hashtags, the pill counts follow it, and no match shows "No stories match … Clear search".
 - **Filter bar:** the week feed's: For You · All · Funding · Launch · Announcement with counts (Discussions left off, since there are no threads here), empty chips hidden, the active chip resets on a second press; Sort by on the right; on phones the "Type:" dropdown.
-- **Grid:** 3 columns on desktop, 2 on tablet, 1 on phones. Each card transcribes production `NewsCard`'s default boxed variant, the card production's Home grid draws: team head with Follow, a two-line headline, a three-line summary, the feed's hashtag links (a click scopes the grid with "Filter: #tag ✕ · N stories"), then the event dot and label, time, views, likes and comments pinned to the card's floor.
+- **Grid:** 2 columns from tablet up, 1 on phones (3 on desktop until 2026-11-04). Each card transcribes production `NewsCard`'s default boxed variant, the card production's Home grid draws, with media added (2026-11-04): the story's 16:9 image at full card width under the hashtags, or for the three video stories their poster, which opens the story already playing. Media and meta line sit on the card's floor, so a row's images line up. (The media was on top at first; moved under the text on every width the same day.) The card reads team head with Follow, a two-line headline, a three-line summary, the feed's hashtag links (a click scopes the grid with "Filter: #tag ✕ · N stories"), then the event dot and label, time, views, likes and comments pinned to the card's floor.
 - **Data:** every news story in the newsfeed corpus (23), hiring roll-ups and deals excluded; this week's six re-dated and re-tagged as on Home.
 - Signed out, Follow and Like are the sign-up ask; the card opens the story either way.
 
@@ -183,3 +205,9 @@ Where "See all news" (signed in, under the cut feed) and "See all updates" (sign
    - `auth_invalid_user_try_another_clicked`
 5. **Focus-area mapping.** The links pass marketing's names (Digital Human Rights, Economies & Governance, AI & Robotics, Neurotechnology) as `focusAreas` titles. The directory's focus-area tree may name them differently, and if so a link lands on an empty filter.
 6. **AI Apps visibility.** AI Apps lives under `/pl-infra/ai-apps`. If members outside PL Infra can't open it, the lead shortcut has to follow the same access check.
+
+## 2026-11-06 changes
+
+- **Investor logo wall:** each logo links to the backer's site in a new tab (`LinkedLogoWall.tsx`, a copy of production `ExploreLogoWall` plus the links; NIV and Mesh stay unlinked). Hover fades the logo to 60%.
+- **Focus area cards:** the logo pile shows the teams' own colour logos (directory logos in `COLOR_LOGO_BY_UID`, mocks.ts) instead of the map's white tiles on the island colour.
+- **Network news, signed out:** no For You pill (nothing of the visitor to pick from). A "Make it yours" row under the filters with a glossy **Personalize my news** button opens production's sign-up modal (`SignupWizard`, the `?dialog=signup` one). Its submit calls the real API, so in the prototype it is for looking at.

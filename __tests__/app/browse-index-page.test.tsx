@@ -17,7 +17,9 @@ jest.mock('@/services/browse/browseIndex', () => ({
 
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { ReactElement } from 'react';
-import { BrowseIndexPage, browseMetadata } from '@/components/page/browse/BrowseIndexPage';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+import { BrowseAllLink, BrowseIndexPage, browseMetadata } from '@/components/page/browse/BrowseIndexPage';
 import { BROWSE_PAGE_SIZE } from '@/services/browse/browseIndex';
 
 const entries = Array.from({ length: BROWSE_PAGE_SIZE * 2 + 5 }, (_, i) => ({
@@ -70,5 +72,23 @@ describe('browse index page', () => {
     mockLoad.mockResolvedValue(null);
     await expect(browseMetadata('teams', {})).resolves.toMatchObject({ robots: { index: false, follow: true } });
     expect(mockNotFound).not.toHaveBeenCalled();
+  });
+});
+
+describe('browse-all link on a listing (LAB-3184)', () => {
+  it('is a plain link in the server HTML, out of the Tab order', () => {
+    const markup = renderToStaticMarkup(<BrowseAllLink kind="teams" />);
+    expect(markup).toContain('href="/teams/browse"');
+    expect(markup).toContain('tabindex="-1"');
+    expect(markup).toContain('class="browseAll"');
+  });
+
+  it('is visually hidden, not display:none, so crawlers still get the link', () => {
+    const scss = readFileSync(join(process.cwd(), 'components/page/browse/BrowseIndexPage.module.scss'), 'utf8');
+    const rule = scss.slice(scss.indexOf('.browseAll {'));
+    const body = rule.slice(0, rule.indexOf('\n}'));
+    expect(body).toMatch(/position: absolute/);
+    expect(body).toMatch(/clip-path: inset\(50%\)/);
+    expect(body).not.toMatch(/^\s*(display:\s*none|visibility:\s*hidden)\s*;/m);
   });
 });

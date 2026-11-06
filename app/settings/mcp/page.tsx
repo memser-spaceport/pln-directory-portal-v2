@@ -34,7 +34,7 @@ async function McpSettingsPage({ searchParams }: { searchParams: Promise<Record<
           <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} userInfo={userInfo} />
         </aside>
         <div className={styles.privacy__main__content}>
-          <McpConnectionsPage />
+          <McpConnectionsPage isDirectoryAdmin={isAdmin} />
         </div>
       </div>
     </div>

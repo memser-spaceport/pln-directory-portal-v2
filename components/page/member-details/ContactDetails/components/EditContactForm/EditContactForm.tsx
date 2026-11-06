@@ -157,12 +157,10 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
               <Image src={getContactLogoByProvider('telegram')} alt="Telegram" height={24} width={24} />
               <FormField name="telegram" label="Telegram" placeholder="eg., @username or https://t.me/username" />
             </div>
-            {variant !== 'drawer' && (
-              <div className={s.row}>
-                <Image src={getContactLogoByProvider('github')} alt="Github" height={24} width={24} />
-                <FormField name="github" label="Github" placeholder="eg., username or https://github.com/username" />
-              </div>
-            )}
+            <div className={s.row}>
+              <Image src={getContactLogoByProvider('github')} alt="Github" height={24} width={24} />
+              <FormField name="github" label="Github" placeholder="eg., username or https://github.com/username" />
+            </div>
             {variant !== 'drawer' && (
               <div className={s.row}>
                 <Image src={getContactLogoByProvider('discord')} alt="Discord" height={24} width={24} />

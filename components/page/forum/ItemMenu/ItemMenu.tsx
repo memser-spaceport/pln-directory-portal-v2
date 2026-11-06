@@ -5,18 +5,20 @@ import React, { useEffect } from 'react';
 import { Menu } from '@base-ui-components/react/menu';
 import { usePathname, useRouter } from 'next/navigation';
 
-import { MenuIcon, EditIcon } from '@/components/icons';
+import { MenuIcon, EditIcon, TrashIcon } from '@/components/icons';
 
 import s from './ItemMenu.module.scss';
 
 interface ItemMenuProps {
   onEdit?: () => void;
+  /** Shows a Delete item; the caller confirms before deleting. */
+  onDelete?: () => void;
   classes?: {
     trigger?: string;
   };
 }
 
-export const ItemMenu = ({ onEdit, classes }: ItemMenuProps) => {
+export const ItemMenu = ({ onEdit, onDelete, classes }: ItemMenuProps) => {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -46,6 +48,11 @@ export const ItemMenu = ({ onEdit, classes }: ItemMenuProps) => {
             >
               <EditIcon color="#64748B" /> Edit
             </Menu.Item>
+            {onDelete && (
+              <Menu.Item className={s.item} onClick={onDelete}>
+                <TrashIcon color="#64748B" /> Delete
+              </Menu.Item>
+            )}
           </Menu.Popup>
         </Menu.Positioner>
       </Menu.Portal>

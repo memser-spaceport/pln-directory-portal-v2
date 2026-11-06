@@ -24,7 +24,7 @@ import type { TeamCluster } from './V0NewsCard';
 import { LikeButton, CommentButton, ViewCount, SaveButton } from './FeedActions';
 import { ShareMenu } from './ShareMenu';
 import { CommentsThread } from './CommentsThread';
-import { VideoThumb } from './NewsVideo';
+import { NewsImage, VideoThumb } from './NewsVideo';
 import { TopicTags } from './TopicTags';
 
 // Same event-color mapping as the grid card.
@@ -64,6 +64,11 @@ interface V0FeedCardProps {
   /** An editorial pick shown in the stream, not pinned above it: the card carries a
    *  filled brand "🔥 Top story" badge above the team row and is otherwise an ordinary card. home-v2 / home-v2-b. */
   topStory?: boolean;
+  /** A story's image, in the video poster's column (a video wins the slot). Absent = text-only cards. home-v2. */
+  imageFor?: (uid: string) => string | undefined;
+  /** Where that image sits: 'side' = the poster's column (default); 'below' = full
+   *  width at the bottom of the description, under the tags. home-v2's ?image=. */
+  imagePlacement?: 'side' | 'below';
 }
 
 /**
@@ -90,6 +95,8 @@ export function V0FeedCard({
   onSelectTopic,
   activeTopic,
   topStory = false,
+  imageFor,
+  imagePlacement = 'side',
 }: V0FeedCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [openThreads, setOpenThreads] = useState<Set<string>>(new Set());
@@ -140,6 +147,7 @@ export function V0FeedCard({
         const threadOpen = openThreads.has(story.uid);
         const comments = commentsFor(story.uid);
         const video = VIDEO_BY_UID[story.uid];
+        const image = video ? undefined : imageFor?.(story.uid);
         return (
           <div
             key={story.uid}
@@ -171,8 +179,10 @@ export function V0FeedCard({
                   onSelect={onSelectTopic}
                   active={activeTopic}
                 />
+                {image && imagePlacement === 'below' && <NewsImage src={image} variant="wide" />}
               </div>
               {video && <VideoThumb video={video} title={story.title} onPlay={() => onOpenStory(story, true)} />}
+              {image && imagePlacement === 'side' && <NewsImage src={image} variant="card" />}
             </div>
             <div className={local.footer}>
               <span className={local.source}>

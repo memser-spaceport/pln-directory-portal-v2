@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { decode } from 'he';
 import { ForumQueryKeys } from '@/services/forum/constants';
 import { forumFetch } from '@/services/forum/forum.service';
 
@@ -206,10 +207,12 @@ async function fetcher() {
 
   const data = (await response.json()) as CategoriesResponse;
 
+  // NodeBB sends category names and descriptions HTML-escaped (`Comments &amp; Feedback`); React would print the
+  // escapes as they are.
   return data.categories.map((item) => ({
     cid: item.cid,
-    name: item.name,
-    description: item.description,
+    name: decode(item.name),
+    description: decode(item.description ?? ''),
   }));
 }
 

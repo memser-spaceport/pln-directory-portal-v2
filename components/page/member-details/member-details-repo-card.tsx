@@ -1,4 +1,5 @@
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { recordMemberSignal } from '@/services/member-signals/member-signals.service';
 import { IMember, IMemberRepository } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
@@ -27,6 +28,7 @@ const MemberDetailsRepoCard = (props: IMemberRepoCard) => {
       },
       getAnalyticsUserInfo(userInfo),
     );
+    if (member?.id) recordMemberSignal({ action: 'github-project-click', entityType: 'member', entityId: member.id });
   };
 
   return (

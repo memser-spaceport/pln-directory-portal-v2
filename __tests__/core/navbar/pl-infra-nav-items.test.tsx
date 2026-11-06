@@ -2,7 +2,8 @@ import { renderHook } from '@testing-library/react';
 
 import { useGetPlInfraNavItems } from '@/components/core/navbar/components/navItems/PLInfraNavItems/hook/useGetPlInfraNavItems';
 import { useMoreNavItems } from '@/components/core/navbar/components/navItems/MoreNavItems/hooks/useMoreNavItems';
-import { EVENT_LINKS } from '@/components/core/navbar/constants/navLinks';
+import { ALL_EVENTS_LINK, EVENT_CONTRIBUTORS_LINK } from '@/components/core/navbar/constants/navLinks';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { PERMISSIONS } from '@/services/rbac/constants';
 
 /**
@@ -22,8 +23,11 @@ jest.mock('@/services/rbac/hooks/usePermissions', () => ({
 
 const titlesOf = (items: Array<{ title: string }>) => items.map((i) => i.title);
 
-/** The three Events links, flat: More is where Events lives since LAB-3172 gave its top-level place to Job Board. */
-const EVENTS = EVENT_LINKS.map((link) => link.title);
+/**
+ * The Events links a member who isn't an admin gets, flat: More is where Events lives since LAB-3172 gave its top-level
+ * place to Job Board. IRL Gatherings is for admins only (useGetEventMenuItemLinks), so it isn't here by default.
+ */
+const EVENTS = [ALL_EVENTS_LINK, EVENT_CONTRIBUTORS_LINK].map((link) => link.title);
 
 const plInfra = (...permissions: string[]) => {
   mockPermissions.mockReturnValue(permissions);
@@ -162,7 +166,18 @@ describe('useMoreNavItems', () => {
   it('keeps the Events links in their own order and on their own routes', () => {
     const events = more().filter((item) => EVENTS.includes(item.title));
 
-    expect(events.map((item) => item.href)).toEqual(['/events/irl', '/events/all', '/events/contributors']);
+    expect(events.map((item) => item.href)).toEqual(['/events/all', '/events/contributors']);
+  });
+
+  it('puts IRL Gatherings first among the Events links for an admin, as the Events menu did', () => {
+    useCurrentUserStore.setState({
+      currentUser: { rbac: { effectivePermissions: [{ code: 'directory.admin.full' }] } } as never,
+    });
+    try {
+      expect(titlesOf(more())).toEqual(['Deals', 'IRL Gatherings', ...EVENTS]);
+    } finally {
+      useCurrentUserStore.setState({ currentUser: null });
+    }
   });
 
   it('slots Founder Guides between Deals and Events for a permitted member', () => {

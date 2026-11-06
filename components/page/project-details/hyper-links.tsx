@@ -1,6 +1,7 @@
 'use client';
 
 import { useProjectAnalytics } from '@/analytics/project.analytics';
+import { recordMemberSignal } from '@/services/member-signals/member-signals.service';
 import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 
@@ -27,6 +28,7 @@ const Hyperlinks = (props: IHyperlinks) => {
    */
   const onLinkClick = (link: string) => {
     analytics.onProjectDetailContactClicked(getAnalyticsUserInfo(user), project?.id, link);
+    if (project?.id) recordMemberSignal({ action: 'project-link-click', entityType: 'project', entityId: project.id });
   };
 
   return (

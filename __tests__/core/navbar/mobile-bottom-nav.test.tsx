@@ -2,7 +2,13 @@ import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 
 import { MobileBottomNav } from '@/components/core/MobileBottomNav';
-import { DEALS_LINK, EVENT_LINKS, FOUNDER_GUIDES_LINK } from '@/components/core/navbar/constants/navLinks';
+import {
+  DEALS_LINK,
+  ALL_EVENTS_LINK,
+  IRL_GATHERING_LINK,
+  FOUNDER_GUIDES_LINK,
+  EVENT_CONTRIBUTORS_LINK,
+} from '@/components/core/navbar/constants/navLinks';
 import type { ISubItem } from '@/components/core/navbar/type';
 
 const mockUsePathname = jest.fn<string, []>();
@@ -11,6 +17,8 @@ jest.mock('next/navigation', () => ({ usePathname: () => mockUsePathname() }));
 const mockPlInfraItems = jest.fn<ISubItem[], []>();
 const mockMoreItems = jest.fn<ISubItem[], []>();
 const mockHasNewNews = jest.fn<boolean, []>();
+/** The Events links as an admin gets them (IRL Gatherings is admins only); the bar takes them from the More hook. */
+const EVENT_LINKS = [IRL_GATHERING_LINK, ALL_EVENTS_LINK, EVENT_CONTRIBUTORS_LINK];
 
 jest.mock('@/components/core/navbar/components/navItems/PLInfraNavItems/hook/useGetPlInfraNavItems', () => ({
   useGetPlInfraNavItems: () => mockPlInfraItems(),

@@ -99,6 +99,13 @@ $band-inset-phone: 24px;
   letter-spacing: -0.8px;
   text-wrap: balance;
 
+  // 2026-11-06: phones get a smaller hero so the figures and the doors come up sooner.
+  @include media.mobile-only {
+    font-size: 24px;
+    line-height: 32px;
+    letter-spacing: -0.5px;
+  }
+
   @include media.tablet-landscape {
     font-size: 40px;
     line-height: 48px;
@@ -124,6 +131,81 @@ $band-inset-phone: 24px;
     @include media.mobile-only {
       font-size: 14px;
       line-height: 22px;
+    }
+  }
+}
+
+.sideLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// The mid-page Join card spans the content column (2026-11-05: "stretch
+// horizontally"); its layout is the `wide` variant below.
+.joinCardEnd.joinCardEnd {
+  width: 100%;
+  // 2026-11-05: more air between the focus areas, the entities and this band.
+  margin-top: 24px;
+  margin-bottom: 32px;
+}
+
+// The doors as one group, so the wide variant can move them as a unit.
+.joinActions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+// Wide: copy over facepile on the left, Sign up · or · Sign in in a row on the
+// right, both vertically centred. Below tablet-landscape it stays the card.
+// Doubled: `.joinCard` (display: flex) is declared after this and would win a tie.
+.joinCardWide.joinCardWide {
+  @include media.tablet-landscape {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'head actions'
+      'proof actions';
+    align-items: center;
+    column-gap: 48px;
+    row-gap: 12px;
+    padding: 28px 32px;
+
+    .joinHead {
+      grid-area: head;
+      align-self: end;
+    }
+
+    .joinProof {
+      grid-area: proof;
+      align-self: start;
+    }
+
+    .joinActions {
+      grid-area: actions;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+    }
+
+    // 2026-11-05: no "or" in the band (two buttons side by side already read as a
+    // choice), and the buttons hug their labels instead of a 168px minimum.
+    .joinOr {
+      display: none;
+    }
+
+    .joinBtn.joinBtn {
+      width: auto;
     }
   }
 }
@@ -204,6 +286,37 @@ $band-inset-phone: 24px;
 
   & + & {
     margin-left: -9px;
+  }
+}
+
+/* 2026-11-06, phones: the figures move into the hero, between the copy and the
+   Join card (hairline-ruled, no band or insets); the full-bleed band only from
+   640px up. */
+.introFacts {
+  display: none;
+
+  @include media.mobile-only {
+    display: block;
+  }
+}
+
+.factsBandWide {
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.factsInline.factsInline {
+  background: none;
+
+  .facts {
+    padding: 16px 0;
+  }
+
+  .factValue {
+    font-size: 24px;
+    line-height: 32px;
+    letter-spacing: -0.5px;
   }
 }
 
@@ -306,21 +419,6 @@ $band-inset-phone: 24px;
   line-height: 24px;
 }
 
-.sideLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--foreground-brand-primary, #1b4dff);
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
 .newsPreviewList {
   padding: 4px 20px;
   background: var(--background-neutral-default, #fff);
@@ -330,6 +428,15 @@ $band-inset-phone: 24px;
   @include media.mobile-only {
     padding: 4px 16px;
   }
+}
+
+// "See all N updates" closes the card: the expander's own 16px above, matched below.
+// The last story's divider is already its rule, so its own top border goes (tripled
+// to beat newsfeed-v0's doubled `.viewAllExpander`).
+.newsPreviewAll.newsPreviewAll.newsPreviewAll {
+  display: block;
+  padding-bottom: 16px;
+  border-top: 0;
 }
 
 // cardFlat's first row drops its top padding for a bare list; inside a box
@@ -432,7 +539,7 @@ $band-inset-phone: 24px;
 }
 
 .storySection.storySection {
-  padding-top: 0;
+  padding-top: 32px;
 }
 
 /* The logo wall closes the content, above the footer. */
@@ -666,11 +773,11 @@ $band-inset-phone: 24px;
 .focusLogo.focusLogo {
   width: 24px;
   height: 24px;
-  padding: 3px;
   border-radius: 6px;
   border-width: 2px;
-  object-fit: contain;
-  background: var(--focus-color);
+  object-fit: cover;
+  // 2026-11-06: the teams' own colour logos on white (was the map's white tile on the island colour).
+  background: var(--background-neutral-primary, #fff);
 
   & + & {
     margin-left: -6px;
@@ -752,11 +859,9 @@ $band-inset-phone: 24px;
   line-height: 28px;
 }
 
-.railNote {
-  margin: 4px 0 0;
-  color: var(--foreground-neutral-secondary, #455468);
-  font-size: 14px;
-  line-height: 20px;
+/* Open roles' sign-up ask: one full-width glossy "Sign up to apply" above See all. */
+.railSignUp {
+  margin: 8px 0 0;
 }
 
 .inlineLink {
@@ -1271,6 +1376,18 @@ $band-inset-phone: 24px;
   }
 }
 
+// Title block on the left, production's search field on the right (NewsSearch hides itself on phones).
+.newsPageHeadRow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+
+  > :last-child {
+    max-width: 360px;
+  }
+}
+
 .newsPageHead {
   display: flex;
   flex-direction: column;
@@ -1300,7 +1417,7 @@ $band-inset-phone: 24px;
   line-height: 20px;
 }
 
-// 3 columns on desktop, 2 on tablet, 1 on phones; cards in a row share a height.
+// 2 columns from tablet up, 1 on phones; cards in a row share a height.
 .newsGrid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -1311,10 +1428,6 @@ $band-inset-phone: 24px;
 
   @include media.tablet-portrait {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  @include media.desktop {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   > li {
@@ -1328,7 +1441,22 @@ $band-inset-phone: 24px;
   min-width: 0;
 }
 
-// In a third of the row the headline gets two lines and the summary three,
+// The card's media under its text: the image or video poster at the card's full inner
+// width, pushed to the card's floor with the meta line, so a row's images line up
+// whatever the text above them holds. (VideoThumb is a fixed 168px column in the feed,
+// so its width is reset here; the doubled class outranks NewsVideo's single-class rules.)
+.newsGridMedia.newsGridMedia {
+  display: flex;
+  margin-top: auto;
+
+  > * {
+    flex: 1 1 auto;
+    width: 100%;
+    margin: 0;
+  }
+}
+
+// In half the row the headline gets two lines and the summary three,
 // so cards in one row keep a common rhythm.
 .newsGridHeadline.newsGridHeadline {
   display: -webkit-box;
@@ -1349,8 +1477,93 @@ $band-inset-phone: 24px;
   margin-top: auto;
 }
 
+// With media above it, the media takes the free space; the meta line follows it at the card's gap.
+.newsGridMedia + .newsGridMeta.newsGridMeta {
+  margin-top: 0;
+}
+
 /* The All pill carries no count, so at production's 6px padding it is the narrowest chip in the row,
    tighter than a word deserves; 12px gives it the weight of the counted pills beside it. */
 .catAll.catAll {
   padding: 2px 12px;
+}
+
+/* "See all news" scroll-to-top (production's forum button): signed in, the Agent pill
+   owns the bottom-right corner (40px tall at 24px desktop / 80px phones), so the
+   round button stacks 12px above it. Doubled class beats the prod module's order. */
+.scrollTopAboveAgent.scrollTopAboveAgent > button {
+  bottom: calc(80px + env(safe-area-inset-bottom) + 52px);
+  z-index: 50;
+
+  @include media.tablet-landscape {
+    bottom: 76px;
+  }
+}
+
+// 2026-11-06: the logo wall's logos link to each backer's site. The link fills
+// the cell so production's 75% max-size on the image still measures the cell;
+// hover fades the logo a little (no ground behind it).
+.logoLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  transition: opacity 0.15s ease;
+
+  &:hover {
+    opacity: 0.6;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-primary, #1b4dff);
+    outline-offset: -2px;
+  }
+}
+
+// 2026-11-06: signed-out "Make it yours" ask on Network news, in the For You
+// note's layout (sentence left, action right; stacks on phones), as one quiet
+// bordered row so it reads as an offer about the page, not a news card.
+.personalize {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  margin: 0;
+  padding: 12px 12px 12px 16px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: var(--background-neutral-primary, #fff);
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.personalizeText {
+  margin: 0;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.personalizeLabel {
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// 2026-11-06: the For you row sits the cards' own 16px gap above the grid (the
+// page's flex gap), not 40px.
+.personalize + .newsGrid.newsGrid {
+  margin-top: 0;
+}
+
+// Signed-in Home (2026-11-06): the For you line on the plain page ground, no card;
+// "Update your profile" is a brand text link right after the sentence.
+.personalizePlain.personalizePlain {
+  margin: 0;
 }

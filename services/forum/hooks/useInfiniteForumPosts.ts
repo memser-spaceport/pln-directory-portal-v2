@@ -2,6 +2,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { ForumQueryKeys } from '@/services/forum/constants';
 import { forumFetch } from '@/services/forum/forum.service';
 import { Topic } from '@/services/forum/hooks/useForumPosts';
+import { liveTopics } from '@/services/forum/liveTopics';
 
 type QueryParams = {
   cid: string | number;
@@ -59,7 +60,8 @@ export function useInfiniteForumPosts(queryParams: QueryParams) {
     },
   });
 
-  const items: Topic[] = data?.pages?.flatMap((page) => page.topics) ?? [];
+  // Pages are counted on NodeBB's raw lists (getNextPageParam above); deleted topics only drop out of what renders.
+  const items: Topic[] = liveTopics<Topic>(data?.pages?.flatMap((page) => page.topics) ?? []);
 
   return {
     data: items,

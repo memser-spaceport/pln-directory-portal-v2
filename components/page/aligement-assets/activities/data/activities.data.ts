@@ -488,10 +488,12 @@ export const activitiesData: ActivitiesData = {
           `Give a talk or join a panel at a live event where you represent a PL network project or a PL entity. The event doesn't need to be PL-sponsored.`,
           'If the PL Infra Events AI App identifies you as a speaker or panelist, you automatically qualify. Otherwise, submit a link to the event page or published schedule that lists you as a speaker or panelist.',
           'One award per person per snapshot month, however many talks you give.',
+          `You can't collect points for speaking at an event you also host or co-host. Collect points for that event through Host an Event instead.`,
           'The PLAA Working Group reviews each submitted link before points are awarded.'
         ],
         links: [
-          { text: 'PL Infra Events AI App', url: '/pl-infra/ai-apps/cmsg2psgb031pnq4g7nls6q81' }
+          { text: 'PL Infra Events AI App', url: '/pl-infra/ai-apps/cmsg2psgb031pnq4g7nls6q81' },
+          { text: 'Host an Event', url: '/alignment-asset/activities#help-organize-event' }
         ]
       }
     },

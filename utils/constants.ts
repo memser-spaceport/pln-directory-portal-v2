@@ -811,6 +811,10 @@ export const FOLLOW_ANALYTICS_EVENTS = {
   TEAM_FOLLOW_FAILED: 'team-follow-failed',
 };
 
+export const INTRO_REQUEST_ANALYTICS_EVENTS = {
+  ASK_SUBMITTED: 'ask-submitted',
+};
+
 export const AFFINITY_ANALYTICS_EVENTS = {
   RELATIONSHIP_REFRESH_CLICKED: 'affinity-relationship-refresh-clicked',
   RELATIONSHIP_REFRESH_SUCCEEDED: 'affinity-relationship-refresh-succeeded',

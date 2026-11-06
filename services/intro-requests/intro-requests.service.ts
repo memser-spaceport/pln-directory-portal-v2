@@ -2,7 +2,7 @@ import { customFetch } from '@/utils/fetch-wrapper';
 
 import { PL_PORTFOLIO_AFFILIATION, type PortfolioTeam } from './intro-request-eligibility';
 
-export const INTRO_REQUEST_TEXT_MAX_LENGTH = 4000;
+export const INTRO_REQUEST_TEXT_MAX_LENGTH = 3500;
 export const INTRO_REQUEST_RECEIVED_MESSAGE = 'Your request is received. Someone from the team will reach out.';
 
 const SEND_FAILED = 'The request could not be sent. Try again.';

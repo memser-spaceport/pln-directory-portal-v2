@@ -95,10 +95,13 @@ export const TeamDetails = (props: Props) => {
   const followContent = (
     <>
       {!isCurrentUserTeamMember && (
-        <>
-          <TeamFollowButton isFollowing={isFollowing} isPending={isFollowPending} onToggle={onFollowToggle} />
-          {!isFollowing && !isAdmin && <p className={s.followCaption}>Get updates &amp; announcements</p>}
-        </>
+        <div className={s.visitorActions}>
+          <div className={s.followCol}>
+            <TeamFollowButton isFollowing={isFollowing} isPending={isFollowPending} onToggle={onFollowToggle} />
+            {!isFollowing && !isAdmin && <p className={s.followCaption}>Get updates &amp; announcements</p>}
+          </div>
+          <RequestIntroEntry type="TEAM" targetId={team?.id ?? ''} targetName={teamName} className={s.introButton} />
+        </div>
       )}
       {showFollowers && <TeamFollowBlock team={team} initialFollowers={initialFollowers} />}
     </>
@@ -258,9 +261,6 @@ export const TeamDetails = (props: Props) => {
 
           {/* Right column: admin actions or follow, with followers info stacked below */}
           <div className={s.headerActionSlot}>
-            {!isCurrentUserTeamMember && (
-              <RequestIntroEntry type="TEAM" targetId={team?.id ?? ''} targetName={teamName} />
-            )}
             {hasTeamEditAccess ? (
               <>
                 <div className={s.actions}>

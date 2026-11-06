@@ -179,7 +179,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
 
           <div className={s.headerActions}>
             {isLoggedIn && !isOwner && !variant && (
-              <RequestIntroEntry type="MEMBER" targetId={member.id} targetName={name} />
+              <RequestIntroEntry type="MEMBER" targetId={member.id} targetName={name} className={s.introButton} />
             )}
             {isLoggedIn && (isAdmin || isOwner) && (
               <EditButton onClick={onEditProfileClick} incomplete={showIncomplete} />

@@ -128,6 +128,19 @@
   color: var(--foreground-neutral-tertiary, #8897ae);
 }
 
+.visitorActions {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.followCol {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
 .followSlotDesktop {
   display: none;
 
@@ -148,6 +161,22 @@
 
   .followCaption {
     text-align: left;
+  }
+
+  .visitorActions {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .followCol {
+    align-items: flex-start;
+  }
+
+  .introButton {
+    order: -1;
+    width: 100%;
+    justify-content: center;
   }
 
   @include media.tablet-portrait {

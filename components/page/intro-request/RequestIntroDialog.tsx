@@ -16,6 +16,14 @@ import {
 
 import s from './RequestIntroDialog.module.scss';
 
+const INTRO_REQUEST_TEXT_MIN_LENGTH = 20;
+const INTRO_REQUEST_FIELD_LABEL = 'What do you need help with?';
+const INTRO_REQUEST_PLACEHOLDER =
+  'For example: We are raising a seed round and want advice from someone who has raised from crypto funds.';
+const INTRO_REQUEST_HELP =
+  'Be specific. Say what you are looking for (advice, a partnership, business development or fundraising) and why now. This helps us find the right person and make a good intro.';
+const INTRO_REQUEST_SHORT_TEXT = 'Add a bit more detail so we can find the right person.';
+
 interface Props {
   type: IntroRequestTargetType;
   targetId: string;
@@ -30,12 +38,21 @@ export function RequestIntroDialog({ type, targetId, targetName, onClose }: Prop
   const [sent, setSent] = useState(false);
   const { onAskSubmitted } = useIntroRequestAnalytics();
   const targetType: IntroRequestAnalyticsTargetType = type === 'MEMBER' ? 'member' : 'team';
-  const canSend = text.trim().length > 0 && !pending;
+  const trimmedLength = text.trim().length;
+  const showShortText = trimmedLength > 0 && trimmedLength < INTRO_REQUEST_TEXT_MIN_LENGTH;
+  const canSend = trimmedLength >= INTRO_REQUEST_TEXT_MIN_LENGTH && !pending;
+  const describedBy = [
+    'request-intro-help',
+    showShortText ? 'request-intro-short' : '',
+    error ? 'request-intro-error' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
     const message = text.trim();
-    if (!message || pending) return;
+    if (message.length < INTRO_REQUEST_TEXT_MIN_LENGTH || pending) return;
     setPending(true);
     setError(null);
     try {
@@ -76,7 +93,7 @@ export function RequestIntroDialog({ type, targetId, targetName, onClose }: Prop
             <p className={s.description}>{descriptionFor(type, targetName)}</p>
             <form className={s.form} onSubmit={onSubmit}>
               <label className={s.label} htmlFor="request-intro-text">
-                Why would you like an intro?
+                {INTRO_REQUEST_FIELD_LABEL}
               </label>
               <textarea
                 id="request-intro-text"
@@ -84,15 +101,24 @@ export function RequestIntroDialog({ type, targetId, targetName, onClose }: Prop
                 value={text}
                 rows={8}
                 maxLength={INTRO_REQUEST_TEXT_MAX_LENGTH}
+                placeholder={INTRO_REQUEST_PLACEHOLDER}
                 required
                 disabled={pending}
-                aria-invalid={error ? true : undefined}
-                aria-describedby={error ? 'request-intro-error' : undefined}
+                aria-invalid={error || showShortText ? true : undefined}
+                aria-describedby={describedBy}
                 onChange={(event) => setText(event.target.value)}
               />
+              <p id="request-intro-help" className={s.help}>
+                {INTRO_REQUEST_HELP}
+              </p>
               <p className={s.count}>
                 {text.length}/{INTRO_REQUEST_TEXT_MAX_LENGTH}
               </p>
+              {showShortText && (
+                <p id="request-intro-short" className={s.error} role="alert">
+                  {INTRO_REQUEST_SHORT_TEXT}
+                </p>
+              )}
               {error && (
                 <p id="request-intro-error" className={s.error} role="alert">
                   {error}

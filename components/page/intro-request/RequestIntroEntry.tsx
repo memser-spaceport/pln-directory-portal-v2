@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import clsx from 'clsx';
 
 import { Button } from '@/components/common/Button';
 import { useCanRequestIntro } from '@/services/intro-requests/hooks/useCanRequestIntro';
@@ -14,9 +15,10 @@ interface Props {
   type: IntroRequestTargetType;
   targetId: string;
   targetName: string;
+  className?: string;
 }
 
-export function RequestIntroEntry({ type, targetId, targetName }: Props) {
+export function RequestIntroEntry({ type, targetId, targetName, className }: Props) {
   const canRequest = useCanRequestIntro();
   const [open, setOpen] = useState(false);
 
@@ -24,17 +26,18 @@ export function RequestIntroEntry({ type, targetId, targetName }: Props) {
 
   return (
     <>
-      <Button style="fill" variant="primary" size="xs" className={s.button} onClick={() => setOpen(true)}>
+      <Button
+        style="fill"
+        variant="primary"
+        size="xs"
+        className={clsx(s.button, className)}
+        onClick={() => setOpen(true)}
+      >
         <EnvelopeIcon />
         Request intro
       </Button>
       {open && (
-        <RequestIntroDialog
-          type={type}
-          targetId={targetId}
-          targetName={targetName}
-          onClose={() => setOpen(false)}
-        />
+        <RequestIntroDialog type={type} targetId={targetId} targetName={targetName} onClose={() => setOpen(false)} />
       )}
     </>
   );

@@ -89,6 +89,17 @@
   &:disabled {
     opacity: 0.7;
   }
+
+  &::placeholder {
+    color: #8897ae;
+  }
+}
+
+.help {
+  margin: 0;
+  color: #455468;
+  font-size: 12px;
+  line-height: 16px;
 }
 
 .count {

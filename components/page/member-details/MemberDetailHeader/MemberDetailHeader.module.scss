@@ -109,6 +109,21 @@
   align-items: flex-start;
   gap: 8px;
   margin-left: auto;
+
+  @include media.mobile-only {
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+.introButton {
+  @include media.mobile-only {
+    flex: 1 0 100%;
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 .teams {
@@ -246,7 +261,7 @@
 }
 
 .addButton {
-  color: var(--action-foreground-warning-normal, #D97706);
+  color: var(--action-foreground-warning-normal, #d97706);
   font-size: 14px;
   font-style: normal;
   font-weight: 500;

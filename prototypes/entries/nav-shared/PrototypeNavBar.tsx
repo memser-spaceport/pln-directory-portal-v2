@@ -10,7 +10,9 @@ import type { ISubItem } from '@/components/core/navbar/type';
 import { AiSearchIcon } from '@/prototypes/components/AiSearchIcon/AiSearchIcon';
 import {
   DIRECTORY_LINKS,
-  EVENT_LINKS,
+  ALL_EVENTS_LINK,
+  IRL_GATHERING_LINK,
+  EVENT_CONTRIBUTORS_LINK,
   DEMO_DAY_LINK,
   JOBS_LINK,
   DEALS_LINK,
@@ -45,6 +47,8 @@ import { HelpFeedbackMenu, type HelpFeedbackMenuProps } from './HelpFeedbackMenu
 import { PL_INFRA_LINKS } from './plInfraLinks';
 import { PrototypeAccountMenu } from './PrototypeAccountMenu';
 import { PageCommentMode } from '../feedback-shared/PageCommentMode';
+
+const EVENT_LINKS = [IRL_GATHERING_LINK, ALL_EVENTS_LINK, EVENT_CONTRIBUTORS_LINK];
 
 /**
  * Copy of the production `Navbar` (components/core/navbar/nav-bar.tsx) with the
@@ -407,7 +411,10 @@ export function PrototypeNavBar({
                 a dropdown, then promotes itself to an overlay on Enter. Here the
                 icon opens that overlay directly; see PrototypeSearchModal. */}
             {searchable && searchField ? (
-              <div className={clsx(local.navSearchSlot, feedbackButton && local.navSearchSlotNarrow)} data-search-anchor>
+              <div
+                className={clsx(local.navSearchSlot, feedbackButton && local.navSearchSlotNarrow)}
+                data-search-anchor
+              >
                 {/* Below tablet-landscape: the glyph box, opening the popover
                     with its own field. */}
                 <button

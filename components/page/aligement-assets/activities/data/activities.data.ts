@@ -458,7 +458,7 @@ export const activitiesData: ActivitiesData = {
         networkBenefits: 'Encourages member-led events that deliver practical value without relying only on central sponsorship.',
         rules: [
           'Create and publish the event in Luma, and include it on a live calendar or listing people can find.',
-          'Private or invite-only event? Instead of a public listing, you can send the invite or a marketing email for the event to plaa-wg@plrs.xyz, as long as it clearly shows you as a host.',
+          'Private event? Skip the public listing and directory, but still create it in Luma and send the invite to plaa-wg@plrs.xyz showing you as host.',
           'Add events@plrs.xyz as an Event Manager in Luma so registration and attendance data can be accessed.',
           'Submit the event to the PL events directory at https://irl.plnetwork.io/events/.',
           'Your profile must be clearly listed under the Host section of the event.',

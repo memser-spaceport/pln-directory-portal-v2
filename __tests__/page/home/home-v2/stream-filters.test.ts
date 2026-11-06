@@ -121,9 +121,10 @@ describe('computeStreamCut', () => {
     expect(computeStreamCut(cards, 1000)).toEqual({ full: 4, clip: 1000 });
   });
 
-  it('beside the rail, shows at least 24px of the next card and at least one whole card', () => {
-    expect(computeStreamCut(cards, 650)).toEqual({ full: 3, clip: 684 });
-    expect(computeStreamCut(cards, 100)).toEqual({ full: 1, clip: 244 });
+  it('beside a short rail, keeps at least four cards and 24px of the next', () => {
+    // Four cards end at 860. The fifth starts at 880, so the clip is 904.
+    expect(computeStreamCut(cards, 650)).toEqual({ full: 4, clip: 904 });
+    expect(computeStreamCut(cards, 100)).toEqual({ full: 4, clip: 904 });
   });
 
   it('stacked, keeps three cards and 140px of the fourth', () => {

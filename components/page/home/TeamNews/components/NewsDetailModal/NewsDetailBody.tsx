@@ -61,6 +61,8 @@ interface NewsDetailBodyProps {
   /** New Home only (LAB-3134): the story's `imageUrl` as the header image under the headline. Opt-in, so the old
    *  Home and the team and member profiles, which share this body, stay text-only. */
   showImage?: boolean;
+  /** Signed-out Like on Home and News. Other hosts keep the `#login` gate. */
+  onGuestUpvote?: () => void;
 }
 
 /**
@@ -86,6 +88,7 @@ export function NewsDetailBody({
   onTagSelect,
   activeTag,
   showImage = false,
+  onGuestUpvote,
 }: NewsDetailBodyProps) {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
@@ -122,6 +125,10 @@ export function NewsDetailBody({
 
   const handleUpvoteClick = () => {
     if (!currentUser) {
+      if (onGuestUpvote) {
+        onGuestUpvote();
+        return;
+      }
       gateGuest();
       return;
     }

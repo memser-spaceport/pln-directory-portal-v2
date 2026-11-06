@@ -28,6 +28,8 @@ interface NewsDetailModalProps {
   activeTag?: string | readonly string[];
   /** Passed through to NewsDetailBody: the new Home shows the story's image as the header (LAB-3134). */
   showImage?: boolean;
+  /** Signed-out Like on Home and News. */
+  onGuestUpvote?: () => void;
 }
 
 /** Restores focus for the row that opened the modal. Scoped to role="button" —
@@ -64,6 +66,7 @@ export function NewsDetailModal({
   onTagSelect,
   activeTag,
   showImage,
+  onGuestUpvote,
 }: NewsDetailModalProps) {
   // While the share popover is open, the Modal's own Escape/backdrop closers
   // are detached (its capture-phase document listener would otherwise swallow
@@ -87,6 +90,7 @@ export function NewsDetailModal({
       ariaLabelledBy={TITLE_ID}
       lockScroll
       inertBackground
+      instant
       closeOnEscape={!shareOpen}
       closeOnBackdropClick={!shareOpen}
       overlayClassname={s.mobileOverlay}
@@ -104,6 +108,7 @@ export function NewsDetailModal({
         onTagSelect={onTagSelect}
         activeTag={activeTag}
         showImage={showImage}
+        onGuestUpvote={onGuestUpvote}
       />
     </Modal>
   );

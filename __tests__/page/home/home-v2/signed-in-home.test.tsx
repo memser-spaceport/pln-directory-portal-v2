@@ -518,14 +518,23 @@ describe('Network Updates: the cut', () => {
     story(`s${i}`, 'LAUNCH', { eventDate: `2026-11-0${9 - i}T12:00:00.000Z` }),
   );
   let resizeCallbacks: Array<() => void> = [];
+  let mutationCallbacks: Array<() => void> = [];
   let wide = true;
   const originalMatchMedia = window.matchMedia;
 
   beforeEach(() => {
     resizeCallbacks = [];
+    mutationCallbacks = [];
     (global as unknown as { ResizeObserver: unknown }).ResizeObserver = class {
       constructor(cb: () => void) {
         resizeCallbacks.push(cb);
+      }
+      observe() {}
+      disconnect() {}
+    };
+    (global as unknown as { MutationObserver: unknown }).MutationObserver = class {
+      constructor(cb: () => void) {
+        mutationCallbacks.push(cb);
       }
       observe() {}
       disconnect() {}
@@ -552,6 +561,7 @@ describe('Network Updates: the cut', () => {
     jest.restoreAllMocks();
     window.matchMedia = originalMatchMedia;
     delete (global as unknown as { ResizeObserver?: unknown }).ResizeObserver;
+    delete (global as unknown as { MutationObserver?: unknown }).MutationObserver;
   });
 
   const measure = () => act(() => resizeCallbacks.forEach((cb) => cb()));
@@ -562,12 +572,11 @@ describe('Network Updates: the cut', () => {
     renderHome(many);
     measure();
 
-    // Cards end at 200, 420, 640: three whole, the rest faded and inert. The list ends at the rail's 650px, or 24px
-    // into the fourth card (it starts at 660) when the rail ends sooner: 684.
-    expect(cards().filter((c) => !c.hasAttribute('inert'))).toHaveLength(3);
-    expect(cards()[3]).toHaveAttribute('inert');
-    expect(cards()[3]).toHaveAttribute('aria-hidden', 'true');
-    expect(stream()).toHaveStyle({ maxHeight: '684px' });
+    // The rail ends at 650px, which fits three cards. The floor is four. The fifth starts at 880, so the clip is 904.
+    expect(cards().filter((c) => !c.hasAttribute('inert'))).toHaveLength(4);
+    expect(cards()[4]).toHaveAttribute('inert');
+    expect(cards()[4]).toHaveAttribute('aria-hidden', 'true');
+    expect(stream()).toHaveStyle({ maxHeight: '904px' });
   });
 
   it('stacked on a phone, shows three cards and 140px of the fourth', () => {
@@ -577,6 +586,19 @@ describe('Network Updates: the cut', () => {
 
     expect(cards().filter((c) => !c.hasAttribute('inert'))).toHaveLength(3);
     expect(stream()).toHaveStyle({ maxHeight: `${3 * 220 + 140}px` });
+  });
+
+  it('grows the cut when the sidebar content is taller than its box', () => {
+    wide = true;
+    jest.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(function (this: HTMLElement) {
+      return this.tagName === 'ASIDE' ? 1200 : 0;
+    });
+    renderHome(many);
+    act(() => mutationCallbacks.forEach((cb) => cb()));
+
+    // Bottoms at 200, 420, 640, 860, 1080 fit under 1200. The box alone (650) would have kept three.
+    expect(cards().filter((c) => !c.hasAttribute('inert'))).toHaveLength(5);
+    expect(stream()).toHaveStyle({ maxHeight: '1200px' });
   });
 
   it('does not cut a stream that ends before the rail', () => {

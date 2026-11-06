@@ -1,10 +1,12 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { AI_APPS_SORT_OPTIONS, AI_APPS_SORT_PARAM } from '@/services/ai-apps/constants';
 
 import { getAiAppsSort } from '@/services/ai-apps/utils/getAiAppsSort';
+import { getLatestOwnAiApp } from '@/services/ai-apps/utils/getLatestOwnAiApp';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { useAiAppsFilterStore } from '@/services/ai-apps/store';
@@ -31,7 +33,15 @@ export function AiAppsPage() {
   const router = useRouter();
 
   const { params, setParam } = useAiAppsFilterStore();
-  const { visibleApps, isLoading, isError } = useFilteredAiApps();
+  const { apps, visibleApps, isLoading, isError } = useFilteredAiApps();
+  const { currentUser, isHydrated } = useCurrentUserStore();
+  // LAB-3136: the MCP hint names the member's own latest app, or offers the Starter Kit when they have none. It waits
+  // (undefined) until the list and the member have loaded, and stays out when the list failed: then whether they own an
+  // app is unknown.
+  const latestOwnAppName = useMemo(
+    () => (isLoading || isError || !isHydrated ? undefined : (getLatestOwnAiApp(apps, currentUser?.uid)?.name ?? null)),
+    [apps, currentUser?.uid, isLoading, isError, isHydrated],
+  );
 
   const openFromUrl = searchParams.get('dialog') === 'addAiApp';
   const isModalOpen = openFromUrl || manualOpen;
@@ -103,7 +113,7 @@ export function AiAppsPage() {
         </div>
       </div>
 
-      <McpHint context="apps" />
+      <McpHint context="apps" latestAppName={latestOwnAppName} onGetStarterKit={handleOpenCreateModal} />
 
       <AiAppsMobileFilters />
 

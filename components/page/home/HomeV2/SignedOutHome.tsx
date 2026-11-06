@@ -1,7 +1,8 @@
 'use client';
 
 import clsx from 'clsx';
-import { useCallback, useMemo } from 'react';
+import dynamic from 'next/dynamic';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import type { ITeamNewsItem } from '@/types/team-news.types';
 import type { IHomeEvents, IHomeRoles } from '@/types/home.types';
@@ -23,10 +24,17 @@ import { HomeHero } from './HomeHero';
 import { JoinCard } from './JoinCard';
 import { PortfolioMap } from './PortfolioMap';
 import { HomeRail } from './HomeRail';
+import { JoinNetworkModal } from './JoinNetworkModal';
 import { ThisWeekList } from './ThisWeekList';
 import { HOME_NEWS_VIEW_HREF, JOIN_FACES } from './constants';
+import { readPageScroll, writePageScroll } from './pageScroll';
 import { useHomeAuthDoors } from './useHomeAuthDoors';
 import s from './HomeV2.module.scss';
+
+const SignupWizard = dynamic(
+  () => import('@/components/page/sign-up/components/SignupWizard').then((m) => m.SignupWizard),
+  { ssr: false },
+);
 
 /**
  * The signed-out Home (LAB-3072), the prototype's `SignedOutHome` (home-v2, agreed at the 2026-11-02 design standup)
@@ -51,7 +59,7 @@ export function SignedOutHome({
 }: {
   /** Every story in the 14-day window, as the news page counts them: "See all N updates". */
   newsCount?: number;
-  /** This week's three stories (pickThisWeek). */
+  /** This week's stories, in pick order. The list cuts them to the sidebar. */
   stories: ITeamNewsItem[];
   /** A shared `?news=<uid>` story outside the three, so its modal still opens. */
   deepLinkedItem?: ITeamNewsItem | null;
@@ -67,7 +75,23 @@ export function SignedOutHome({
   teamFocusAreaCounts?: Record<string, number> | null;
 }) {
   const analytics = useHomeAnalytics();
-  const { signUp, signIn } = useHomeAuthDoors();
+  const { signUp, signIn, recordSignUpHere } = useHomeAuthDoors();
+  const railRef = useRef<HTMLElement>(null);
+  const [joinOpen, setJoinOpen] = useState(false);
+  const [signUpOpen, setSignUpOpen] = useState(false);
+  const signUpScroll = useRef(0);
+
+  const openJoin = () => setJoinOpen(true);
+  const openSignUp = () => {
+    signUpScroll.current = readPageScroll();
+    recordSignUpHere('news');
+    setJoinOpen(false);
+    setSignUpOpen(true);
+  };
+  const closeSignUp = () => {
+    setSignUpOpen(false);
+    writePageScroll(signUpScroll.current);
+  };
 
   // The story modal follows ?news=<uid>, as on the previous Home: a shared link opens it, and Sign in from inside it
   // comes back to it.
@@ -108,12 +132,15 @@ export function SignedOutHome({
               analytics.onNewsPickClicked({ news_uid: story.uid, position });
               openNews(story.uid);
             }}
-            onNeedsAccount={() => signUp('news')}
+            onFollowNeedsAccount={() => signUp('news')}
+            onLikeNeedsAccount={openJoin}
+            fillTo={railRef}
             allHref={HOME_NEWS_VIEW_HREF}
             allCount={newsCount}
             onSeeAll={() => analytics.onSeeAllClicked({ section: 'news' })}
           />
           <HomeRail
+            railRef={railRef}
             roles={roles}
             events={events}
             signedIn={false}
@@ -184,11 +211,23 @@ export function SignedOutHome({
       {/* 6. The directory's own footer (no SPV disclaimer, no Demo Day legal PDFs). */}
       <HomeFooter />
 
+      {joinOpen && (
+        <JoinNetworkModal
+          onClose={() => setJoinOpen(false)}
+          onSignUp={openSignUp}
+          onSignIn={() => {
+            setJoinOpen(false);
+            signIn('news');
+          }}
+        />
+      )}
+      {signUpOpen && <SignupWizard onClose={closeSignUp} />}
+
       {activeStory && (
         <NewsDetailModal
           item={activeStory}
           onClose={closeNews}
-          // Signed out, the modal's Like and Follow send the reader to sign in before either is called.
+          onGuestUpvote={openJoin}
           onUpvoteToggle={() => signUp('news')}
           source="home"
           showImage

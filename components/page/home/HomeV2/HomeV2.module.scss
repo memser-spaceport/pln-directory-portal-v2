@@ -142,6 +142,32 @@ $band-inset-phone: 24px;
   }
 }
 
+.joinModalShell.joinModalShell {
+  max-width: 420px;
+}
+
+.joinModal {
+  position: relative;
+}
+
+.joinModalClose {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 1;
+  display: flex;
+  padding: 4px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
 .joinCard {
   display: flex;
   flex-direction: column;
@@ -1351,6 +1377,11 @@ $band-inset-phone: 24px;
     background: linear-gradient(to bottom, rgba(241, 245, 249, 0) 0%, var(--background-neutral-subtle, #f1f5f9) 92%);
     pointer-events: none;
   }
+}
+
+// This week's rows sit on a white card, so the fade ends on that white, not the page ground.
+.newsPreviewFade.newsPreviewFade::after {
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, var(--background-neutral-default, #fff) 92%);
 }
 
 .cutSeeAll.cutSeeAll {

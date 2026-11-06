@@ -4,16 +4,23 @@ import { dedupeByUid } from '@/components/page/home/TeamNews/utils/dedupeByUid';
 import { isEditorialRank } from '@/components/page/home/TeamNews/utils/selectTopStories';
 import { sortAllTabItemsByEventDate } from '@/components/page/home/TeamNews/utils/sortAllTabItemsByEventDate';
 
-/** This week shows three stories. */
+/** The ordering helper's default when a caller does not pass a count. */
 export const THIS_WEEK_COUNT = 3;
+
+/**
+ * Stories mounted on the signed-out Home so the list can grow to the sidebar.
+ * The column cut hides the ones that do not fit. Same cap as the signed-in stream.
+ */
+export const THIS_WEEK_RENDER_MAX = 24;
 
 /** News only: no hiring roll-ups, no deals, no forum posts. */
 const isNewsStory = (item: ITeamNewsItem) =>
   item.eventType !== 'HIRING' && item.eventType !== 'DEALS' && !isForumPostUid(item.uid);
 
 /**
- * The signed-out Home's three stories: the editorial top stories (rank 1–3, the Top Stories band's picks) in rank
- * order, topped up with the newest stories not already chosen.
+ * The signed-out Home's stories: the editorial top stories (rank 1–3, the Top Stories band's picks) in rank
+ * order, topped up with the newest stories not already chosen. The page mounts `THIS_WEEK_RENDER_MAX` and
+ * cuts the list to the sidebar.
  *
  * Unlike `selectTopStories`, it doesn't need all three ranks or a minimum corpus: one or two ranked stories still
  * lead, and with none ranked the three newest show.

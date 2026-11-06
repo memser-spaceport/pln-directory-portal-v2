@@ -246,15 +246,19 @@ describe('SignedOutHome', () => {
       expect(screen.getByRole('dialog', { name: 'Headline s2' })).toHaveAttribute('data-show-image', 'true');
     });
 
-    it('asks a signed-out visitor to sign up from Follow and Like, without opening the story', async () => {
+    it('asks a signed-out visitor to sign up from Follow, and opens Join the network from Like', async () => {
       renderHome();
 
       await userEvent.click(screen.getByRole('button', { name: 'Follow Team s1' }));
+      expect(mockHome.onAuthDoorClicked).toHaveBeenCalledWith({ door: 'sign_up', section: 'news' });
+      expect(mockRouter.push).toHaveBeenCalledTimes(1);
+
       await userEvent.click(screen.getAllByRole('button', { name: 'Like (2 likes)' })[0]);
 
-      expect(mockHome.onAuthDoorClicked).toHaveBeenCalledTimes(2);
-      expect(mockHome.onAuthDoorClicked).toHaveBeenCalledWith({ door: 'sign_up', section: 'news' });
-      expect(mockRouter.push).toHaveBeenCalledTimes(2);
+      const join = screen.getByRole('dialog', { name: 'Join the network' });
+      expect(within(join).getByRole('button', { name: 'Sign up for free' })).toBeInTheDocument();
+      expect(within(join).getByRole('button', { name: 'Sign in' })).toBeInTheDocument();
+      expect(mockRouter.push).toHaveBeenCalledTimes(1);
       expect(mockHome.onNewsPickClicked).not.toHaveBeenCalled();
     });
 

@@ -42,7 +42,7 @@ import {
 } from '@/components/page/home/QuickActions/utils/resolveQuickActionsState';
 import { SHOW_HOME_V2 } from '@/utils/home-v2';
 import { NewsPage, SignedInHome, SignedOutHome } from '@/components/page/home/HomeV2';
-import { pickThisWeek } from '@/components/page/home/HomeV2/utils/pickThisWeek';
+import { pickThisWeek, THIS_WEEK_RENDER_MAX } from '@/components/page/home/HomeV2/utils/pickThisWeek';
 import { flattenNewestRoles, HOME_ROLES_MAX } from '@/components/page/home/HomeV2/utils/flattenNewestRoles';
 import {
   HOME_EVENTS_DAYS,
@@ -249,7 +249,7 @@ const getSignedOutPageData = async (deepLinkedNewsUid?: string) => {
     : [];
 
   return {
-    stories: pickThisWeek(newsItems),
+    stories: pickThisWeek(newsItems, THIS_WEEK_RENDER_MAX),
     // As the news page counts its stories (unique uids across the groups and the All tab's extras).
     newsCount: new Set(newsItems.map((item) => item.uid)).size,
     deepLinkedItem: settled(deepLinkedResult),

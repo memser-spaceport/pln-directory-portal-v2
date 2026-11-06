@@ -10,6 +10,16 @@ export type AiQuerySubmitType = 'user-input' | 'prompt' | 'followup' | 'regenera
 
 const AI_QUERY_MAX_LENGTH = 500;
 
+/** The page URL without its query string and fragment, which can hold tokens or tracking ids. */
+function withoutQuery(link: string) {
+  try {
+    const url = new URL(link);
+    return `${url.origin}${url.pathname}`;
+  } catch {
+    return link.split(/[?#]/)[0];
+  }
+}
+
 export const useUnifiedSearchAnalytics = () => {
   const postHogProps = usePostHog();
 
@@ -74,6 +84,19 @@ export const useUnifiedSearchAnalytics = () => {
     captureEvent(UNIFIED_SEARCH_ANALYTICS_EVENTS.EMAIL_QUERY_SUBMITTED, {});
   }
 
+  /** One event per finished AI answer that shows one or more web sources (LAB-2621). */
+  function onAiWebSourcesShown(
+    counts: { webSources: number; directorySources: number },
+    entryPoint: AiQueryEntryPoint,
+  ) {
+    captureEvent(UNIFIED_SEARCH_ANALYTICS_EVENTS.AI_WEB_SOURCES_SHOWN, { ...counts, entryPoint });
+  }
+
+  /** A member opened a web source of an AI answer (LAB-2621). `link` has no query string or fragment. */
+  function onAiWebSourceClicked(link: string, entryPoint: AiQueryEntryPoint) {
+    captureEvent(UNIFIED_SEARCH_ANALYTICS_EVENTS.AI_WEB_SOURCE_CLICKED, { link: withoutQuery(link), entryPoint });
+  }
+
   return {
     onAutocompleteSearch,
     onFullSearch,
@@ -85,5 +108,7 @@ export const useUnifiedSearchAnalytics = () => {
     onAiConversationHistoryOpenClick,
     onAiQuerySubmitted,
     onEmailQuerySubmitted,
+    onAiWebSourcesShown,
+    onAiWebSourceClicked,
   };
 };

@@ -94,11 +94,66 @@
 
 .headerDetails {
   display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
   gap: 10px;
   justify-content: space-between;
   grid-row: span 2 / span 2;
   grid-column: span 4 / span 4;
   margin-bottom: 16px;
+
+  // From 640px the actions sit at the top right, on the name's line; the role and location row
+  // below keeps the full width (LAB-3187).
+  @include media.tablet-portrait {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 10px;
+    row-gap: 0;
+  }
+}
+
+.headerInfo {
+  @include media.tablet-portrait {
+    display: contents;
+
+    > .specificsHdr {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    > .roleAndLocation {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+  }
+}
+
+.headerActions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: flex-start;
+  gap: 8px;
+  margin-left: auto;
+
+  @include media.tablet-portrait {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  @include media.mobile-only {
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+.introButton {
+  @include media.mobile-only {
+    flex: 1 0 100%;
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 .teams {
@@ -236,7 +291,7 @@
 }
 
 .addButton {
-  color: var(--action-foreground-warning-normal, #D97706);
+  color: var(--action-foreground-warning-normal, #d97706);
   font-size: 14px;
   font-style: normal;
   font-weight: 500;

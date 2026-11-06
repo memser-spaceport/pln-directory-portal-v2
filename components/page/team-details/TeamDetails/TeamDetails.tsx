@@ -33,6 +33,8 @@ import { Divider } from '@/components/common/profile/Divider';
 import { isTeamLeaderOrAdmin } from '../utils/isTeamLeaderOrAdmin';
 import { isTeamInactive } from './utils/isTeamInactive';
 
+import { RequestIntroEntry } from '@/components/page/intro-request/RequestIntroEntry';
+
 import { PlusIconCircle } from './icons';
 import { EditTeamDetailsForm } from './components/EditTeamDetailsForm';
 import { TeamProfileMeta } from './components/TeamProfileMeta';
@@ -93,10 +95,13 @@ export const TeamDetails = (props: Props) => {
   const followContent = (
     <>
       {!isCurrentUserTeamMember && (
-        <>
-          <TeamFollowButton isFollowing={isFollowing} isPending={isFollowPending} onToggle={onFollowToggle} />
-          {!isFollowing && !isAdmin && <p className={s.followCaption}>Get updates &amp; announcements</p>}
-        </>
+        <div className={s.visitorActions}>
+          <div className={s.followCol}>
+            <TeamFollowButton isFollowing={isFollowing} isPending={isFollowPending} onToggle={onFollowToggle} />
+            {!isFollowing && !isAdmin && <p className={s.followCaption}>Get updates &amp; announcements</p>}
+          </div>
+          <RequestIntroEntry type="TEAM" targetId={team?.id ?? ''} targetName={teamName} className={s.introButton} />
+        </div>
       )}
       {showFollowers && <TeamFollowBlock team={team} initialFollowers={initialFollowers} />}
     </>

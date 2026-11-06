@@ -42,6 +42,7 @@ import type { IJobTeamGroup } from '@/types/jobs.types';
 import layoutStyles from './TeamProfileLayout.module.scss';
 import { JsonLdScript } from '@/components/core/json-ld/JsonLdScript';
 import { buildTeamJsonLd } from '@/services/seo/entity-jsonld';
+import { MemberSignalViewTracker } from '@/components/core/MemberSignalViewTracker';
 
 async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: Promise<{ backTo?: string }> }) {
   const searchParams = await props.searchParams;
@@ -112,6 +113,7 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
        not depend on where this sits. */
     <UnsavedEditsPageGuard>
       <JsonLdScript data={buildTeamJsonLd({ ...team, id: team.id || teamId, name: team.name ?? '' })} />
+      <MemberSignalViewTracker entityType="team" entityId={team.id || teamId} />
       <BackButton to={backTo} />
       <div className={styles?.teamDetail__container}>
         {/* Details */}

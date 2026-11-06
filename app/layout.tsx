@@ -36,6 +36,7 @@ import {
   RatingContainer,
   GlobalFeedback,
 } from './ClientDynamics';
+import { ScrollTopOnNavigation } from '@/components/core/ScrollTopOnNavigation';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -79,6 +80,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className={`${inter.className} layout root`} id="body">
         <Suspense>
           <PostHogPageview />
+        </Suspense>
+        {/* LAB-3169: <body> is the scroller, so Next's scroll-to-top misses it. Suspense: it reads search params. */}
+        <Suspense>
+          <ScrollTopOnNavigation />
         </Suspense>
         <StyledJsxRegistry>
           <QueryProvider>

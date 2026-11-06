@@ -1,0 +1,79 @@
+@use 'styles/media';
+
+// A news story's image (LAB-3134), ported from the prototype's NewsVideo.module.scss (newsfeed-v0, PR #3465). Only
+// the still-image classes are here: video posters, the play badge and the runtime chip are out of scope.
+
+/* One 16:9 media frame shared by the feed card's thumbnail and the detail modal's
+   hero, so a thumbnail and the story it opens read as one object. */
+.frame {
+  position: relative;
+  display: block;
+  appearance: none;
+  padding: 0;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+/* Still loading (or failed): the fallback's brand gradient sits behind the image,
+   so the frame never shows an empty grey box or a broken image. */
+.pending {
+  background: linear-gradient(135deg, var(--transparent-brand-12, #1b4dff1f), var(--transparent-brand-4, #1b4dff0a));
+}
+
+/* Card: a secondary column beside the headline — narrow enough that the text
+   still leads. Below tablet the text column has no room next to it, so the
+   image takes the full width above the meta line. */
+.thumb {
+  flex: 0 0 168px;
+  width: 168px;
+
+  @include media.mobile-only {
+    flex: none;
+    width: 100%;
+  }
+}
+
+/* Modal: full-bleed within the body column, a step rounder than the card, capped
+   at 632 × 356. The modal body is a scrolling flex column — without
+   flex-shrink: 0 the frame gets compressed out of its 16:9 by the body's fixed height. */
+.hero {
+  width: 100%;
+  max-width: 632px;
+  flex-shrink: 0;
+  border-radius: 12px;
+}
+
+.img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The image failed to load: a quiet brand-tinted surface, never a broken image. */
+.fallback {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--transparent-brand-12, #1b4dff1f), var(--transparent-brand-4, #1b4dff0a));
+}
+
+/* A still image in the frame: not a control, so it takes its row's cursor. */
+.still {
+  cursor: inherit;
+}
+
+/* Card, image under the description: the text column's full width, the thumbnail's radius. */
+.wide {
+  width: 100%;
+  margin-top: 4px;
+}

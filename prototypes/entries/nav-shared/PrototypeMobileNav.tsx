@@ -5,7 +5,9 @@ import React from 'react';
 import { NavigationMenu } from '@base-ui-components/react';
 
 import {
-  EVENT_LINKS,
+  ALL_EVENTS_LINK,
+  IRL_GATHERING_LINK,
+  EVENT_CONTRIBUTORS_LINK,
   DIRECTORY_LINKS,
   DEMO_DAY_LINK,
   FORUM_LINK,
@@ -26,6 +28,8 @@ import { scrollToTop } from './home';
 /* One list for both bars — see plInfraLinks.tsx. It used to be a local const
    here, which is how the desktop copy came to have no PL Infra selector at all. */
 import { PL_INFRA_LINKS } from './plInfraLinks';
+
+const EVENT_LINKS = [IRL_GATHERING_LINK, ALL_EVENTS_LINK, EVENT_CONTRIBUTORS_LINK];
 
 /**
  * Copy of the production `MobileBottomNav` with the same proposal applied.

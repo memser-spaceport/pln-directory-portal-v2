@@ -1,34 +1,51 @@
 'use client';
 
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
-import { sourceItems } from '@/components/utils/sourceItems';
+import { useUnifiedSearchAnalytics, type AiQueryEntryPoint } from '@/analytics/unified-search.analytics';
+import { groupSourceItems, sourceItems, type SourceItem } from '@/components/utils/sourceItems';
 import type { HuskySourceRef } from '@/services/husky/hooks/useHuskyChat';
 
 interface HuskySourceCardProps {
   sources?: string[];
   sourceRefs?: HuskySourceRef[];
+  /** Set where the card shows an AI Search answer; a web source click is then recorded for it. */
+  entryPoint?: AiQueryEntryPoint;
 }
 
-function HuskySourceCard({ sources, sourceRefs }: HuskySourceCardProps) {
+function HuskySourceCard({ sources, sourceRefs, entryPoint }: HuskySourceCardProps) {
   const { trackHuskySourceLinkClicked } = useHuskyAnalytics();
+  const { onAiWebSourceClicked } = useUnifiedSearchAnalytics();
   const items = sourceItems(sources, sourceRefs);
+  const onSourceClick = (item: SourceItem) => {
+    trackHuskySourceLinkClicked(item.href);
+    if (entryPoint && item.kind === 'web') onAiWebSourceClicked(item.href, entryPoint);
+  };
   return (
     <>
       <div className="sources">
         <h3 className="sources__title">Sources</h3>
-        {items.map((item) => (
-          <a
-            target="_blank"
-            rel="noreferrer"
-            href={item.href}
-            onClick={() => trackHuskySourceLinkClicked(item.href)}
-            key={`husky-chat${item.key}`}
-            className="sources__item"
-          >
-            <div className="sources__item__head">
-              <p className="sources__item__head__title">{item.title}</p>
-            </div>
-          </a>
+        {groupSourceItems(items).map((group) => (
+          <div key={group.kind} role="group" aria-label={group.label ?? undefined} className="sources__group">
+            {group.label && (
+              <p className="sources__group__label" aria-hidden="true">
+                {group.label}
+              </p>
+            )}
+            {group.items.map((item) => (
+              <a
+                target="_blank"
+                rel="noreferrer"
+                href={item.href}
+                onClick={() => onSourceClick(item)}
+                key={`husky-chat${item.key}`}
+                className="sources__item"
+              >
+                <div className="sources__item__head">
+                  <p className="sources__item__head__title">{item.title}</p>
+                </div>
+              </a>
+            ))}
+          </div>
         ))}
       </div>
       <style jsx>
@@ -45,6 +62,18 @@ function HuskySourceCard({ sources, sourceRefs }: HuskySourceCardProps) {
           }
           .sources__title {
             padding-bottom: 8px;
+          }
+          .sources__group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+          }
+          .sources__group__label {
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
           }
           .sources__item {
             padding: 8px 10px;

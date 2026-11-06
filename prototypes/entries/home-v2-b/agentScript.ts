@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 import type { ISuggestedTeam, ITeamNewsItem } from '@/types/team-news.types';
 
 import type { HomeJob } from '../home-refactor/mocks';
@@ -14,7 +16,12 @@ export type AgentBlock =
   | { kind: 'draft'; title: string; body: string }
   /** A change the agent wants to make: nothing happens until the member presses it. */
   | { kind: 'proposal'; title: string; confirmLabel: string; teamUids: string[] }
-  | { kind: 'suggest'; prompts: string[] };
+  | { kind: 'suggest'; prompts: string[] }
+  /** A block another entry scripts (home-v2's request, change and draft cards); it owns its own state. */
+  | { kind: 'custom'; render: (ctx: AgentBlockContext) => ReactNode };
+
+/** What a custom block can do in the thread: answer for the member (a question's options) while nothing is running. */
+export type AgentBlockContext = { send: (text: string) => void; busy: boolean };
 
 export type AgentReply = { steps: string[]; blocks: AgentBlock[] };
 

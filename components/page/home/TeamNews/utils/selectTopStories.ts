@@ -38,7 +38,8 @@ export interface TopStoriesSelection {
 
 const EMPTY: TopStoriesSelection = { lead: null, also: [], uids: new Set() };
 
-function isEditorialRank(rank: number | null | undefined): rank is number {
+/** An editorial pick for the band: rank 1 (lead) to TOP_STORIES_TOTAL. Shared with Home's This week (pickThisWeek). */
+export function isEditorialRank(rank: number | null | undefined): rank is number {
   return typeof rank === 'number' && rank >= 1 && rank <= TOP_STORIES_TOTAL;
 }
 

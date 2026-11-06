@@ -87,17 +87,6 @@ const CUT_PEEK = 140;
 /** The rail sits beside the feed from tablet-landscape (newsRow's breakpoint); below that it stacks under it. */
 const SIDE_BY_SIDE = '(min-width: 960px)';
 
-const ArrowRight = () => (
-  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-    <path
-      d="M3 8h10M9 4l4 4-4 4"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
 
 const DownArrow = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -434,21 +423,16 @@ export function WeekFeed({
           teams you follow", the input the reader can change), and develop's
           "Tune For You" door to News preferences. No box: it labels a view the
           reader just chose, so it should read as the feed's own caption. */}
-      {activeCat === FOR_YOU_CAT && (
-        <p className={local.forYouCaption}>
-          <span className={local.forYouText}>
-            <strong className={local.forYouLabel}>For you</strong>
-            <span className={local.forYouDot} aria-hidden>
-              ·
-            </span>
-            Curated from your profile, your team, and the teams you follow.
-          </span>
-          <a href="/prototypes/digest-topics?from=feed" className={local.forYouLink}>
-            Tune For You
-            <ArrowRight />
-          </a>
-        </p>
-      )}
+      {/* 2026-11-06 (user): the personalization message is back on every view, on the
+          plain page ground (no card), with "Update your profile" as a blue text link right
+          after the sentence instead of the far-right "Tune For You" link. */}
+      <p className={clsx(local.personalizeText, local.personalizePlain)}>
+        <span className={local.personalizeLabel}>For you</span> · Curated from your profile, your team, and the teams
+        you follow.{' '}
+        <a href="/settings/profile" className={local.forYouLink}>
+          Update your profile
+        </a>
+      </p>
 
       {/* The cut: full cards down to the rail's end, the next fading into the page under "See all".
           A feed that visibly ends is what tells the reader Home goes on below it. */}

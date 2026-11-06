@@ -8,7 +8,9 @@ import {
   DEALS_LINK,
   DEMO_DAY_LINK,
   DIRECTORY_LINKS,
-  EVENT_LINKS,
+  ALL_EVENTS_LINK,
+  IRL_GATHERING_LINK,
+  EVENT_CONTRIBUTORS_LINK,
   FOUNDER_GUIDES_LINK,
   JOBS_LINK,
 } from '@/components/core/navbar/constants/navLinks';
@@ -27,6 +29,8 @@ import { BellIcon, HelpGlyph, HomeIcon, SearchGlyph } from '../nav-shared/icons'
 import { PL_INFRA_LINKS } from '../nav-shared/plInfraLinks';
 
 import s from './SidebarNav.module.scss';
+
+const EVENT_LINKS = [IRL_GATHERING_LINK, ALL_EVENTS_LINK, EVENT_CONTRIBUTORS_LINK];
 
 const AI_SEARCH_PAGE = '/prototypes/ai-mode-results';
 /** The header field's placeholder, cut to the sidebar's width. */

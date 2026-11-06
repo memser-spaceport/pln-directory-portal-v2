@@ -131,19 +131,32 @@ Each page SHALL have exactly one `<h1>` element in its server-rendered HTML. A p
 
 ### Requirement: The home page says what the network is
 
-`/home` SHALL have the `<h1>` "Protocol Labs Directory", visually hidden so the top of the page keeps its design, and read by assistive technology. For a signed-out visitor, the page SHALL show a definition of the Protocol Labs network and the directory, of 40 to 60 words, as visible text in an "About" section at the foot of the page. The definition SHALL NOT be hidden from view, because text shown only to crawlers is hidden text.
+With `NEXT_PUBLIC_SHOW_HOME_V2` off, `/home` SHALL have the `<h1>` "Protocol Labs Directory", visually hidden so the top of the page keeps its design, and read by assistive technology. For a signed-out visitor, the page SHALL show a definition of the Protocol Labs network and the directory, of 40 to 60 words, as visible text in an "About" section at the foot of the page.
+
+With the flag on, the signed-out `/home` SHALL have one visible `<h1>`, the mission "Protocol Labs drives breakthroughs in computing to push humanity forward.", The visible sentence under it SHALL say what the network is ("We are an innovation network that connects over 760 tech startups, …"), and the Join the network card beside it SHALL say what the directory is for. The page SHALL have no About foot.
+
+In both cases, the definition SHALL NOT be hidden from view, because text shown only to crawlers is hidden text.
 
 #### Scenario: Crawler on the home page
 
+- **GIVEN** the flag is off
 - **WHEN** a crawler requests `/home` without cookies
 - **THEN** the HTML has one `<h1>`, "Protocol Labs Directory"
 - **AND** the definition is in a visible "About Protocol Labs Directory" section after the focus areas
 
 #### Scenario: Visitor on the home page
 
+- **GIVEN** the flag is off
 - **WHEN** a signed-out visitor opens `/home`
 - **THEN** the top of the page starts with the welcome card, as before LAB-3089
 - **AND** the definition appears at the foot of the page
+
+#### Scenario: Crawler on the new home page
+
+- **GIVEN** the flag is on
+- **WHEN** a crawler requests `/home` without cookies
+- **THEN** the HTML has one `<h1>`, the mission sentence, with the definition right under it
+- **AND** the Organization and WebSite JSON-LD are still present
 
 ### Requirement: The home page names Protocol Labs as structured data
 
@@ -180,12 +193,17 @@ Member, team and project profiles SHALL carry JSON-LD built only from what a sig
 
 ### Requirement: Links reach every profile
 
-`/members`, `/teams` and `/projects` SHALL each link, in their server HTML, to a browse index at `/<listing>/browse`. The index SHALL list every profile the sitemap lists for that listing, A to Z, 200 per page, as plain links, with links to every page of the index. Each page SHALL have a self-canonical; page 1 SHALL have no `?page=`. A `?page=` that is not a whole number from 1 up, or is past the last page, SHALL answer 404.
+`/members`, `/teams` and `/projects` SHALL each link, in their server HTML, to a browse index at `/<listing>/browse`. The link is for crawlers: it SHALL NOT be visible on screen or reachable with Tab, and SHALL NOT be removed with `display: none` (LAB-3184). The index SHALL list every profile the sitemap lists for that listing, A to Z, 200 per page, as plain links, with links to every page of the index. Each page SHALL have a self-canonical; page 1 SHALL have no `?page=`. A `?page=` that is not a whole number from 1 up, or is past the last page, SHALL answer 404.
 
 #### Scenario: Crawler follows links only
 
 - **WHEN** a crawler starts at `/teams`, `/members` or `/projects` and follows only `<a href>` links
 - **THEN** it reaches every team, member and project profile in the sitemap
+
+#### Scenario: Member opens a listing
+
+- **WHEN** a member opens `/teams`, `/members` or `/projects`
+- **THEN** no "Browse all" link shows on the page, and the server HTML still has the `<a href>` to the browse index
 
 #### Scenario: Page past the end
 

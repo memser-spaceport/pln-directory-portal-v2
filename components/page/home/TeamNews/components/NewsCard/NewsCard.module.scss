@@ -76,6 +76,46 @@
   border: 1px solid rgba(27, 56, 96, 0.16);
 }
 
+// The news page's grid (LAB-3126, prototype NewsGrid): the card fills its cell, the summary clamps to three lines (the
+// headline already holds two), and the image and meta line sit on the card's floor, so a row's images line up
+// whatever the text above them holds.
+.cardStretch {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+
+  .summary {
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+  }
+
+  .metaLine {
+    gap: 8px;
+    margin-top: auto;
+  }
+}
+
+// The story's image at the card's full width (NewsImage `wide`), capped at 592 × 333.
+.cardMedia {
+  display: flex;
+  max-width: 592px;
+
+  > * {
+    flex: 1 1 auto;
+    width: 100%;
+    margin: 0;
+  }
+
+  .cardStretch & {
+    margin-top: auto;
+  }
+
+  // With the image above it, the image takes the free space; the meta line follows it at the card's gap.
+  .cardStretch & + .metaLine {
+    margin-top: 0;
+  }
+}
+
 .head {
   display: flex;
   align-items: center;

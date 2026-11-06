@@ -49,13 +49,28 @@ export function AgentPanel({
   data,
   onOpenStory,
   onFollowTeams,
+  reply,
+  greeting = 'Hi Polina, what can I do for you?',
+  intro = 'I read the Directory with you and can act on it. I ask before changing anything.',
+  prompts = AGENT_PROMPTS,
+  placeholder = 'Ask the agent or tell it what to do',
+  className,
 }: {
   open: boolean;
   onClose: () => void;
-  data: AgentData;
-  onOpenStory: (story: ITeamNewsItem) => void;
+  /** home-v2-b's page data, read by its own script; another entry passes `reply` instead. */
+  data?: AgentData;
+  onOpenStory?: (story: ITeamNewsItem) => void;
   /** Applies (or, with `undo`, reverts) a follow proposal. */
-  onFollowTeams: (teamUids: string[], undo?: boolean) => void;
+  onFollowTeams?: (teamUids: string[], undo?: boolean) => void;
+  /** Another entry's script (home-v2's V0 actions). Defaults to home-v2-b's, read from `data`. */
+  reply?: (text: string) => AgentReply;
+  greeting?: string;
+  intro?: string;
+  prompts?: string[];
+  placeholder?: string;
+  /** The host's placement override (home-v2 has no app shell to push). */
+  className?: string;
 }) {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [resolved, setResolved] = useState<Record<number, 'applied' | 'dismissed'>>({});
@@ -132,13 +147,16 @@ export function AgentPanel({
     if (!text || working) return;
     const userId = nextId.current++;
     const agentId = nextId.current++;
+    /* Outside the updater: a script may keep state (home-v2's open questions), and StrictMode runs
+       updaters twice, so a reply built inside one would answer the same message two ways. */
+    const agentTurnReply = reply ? reply(text) : agentReply(text, data!);
     setTurns((prev) => [
       ...prev,
       { id: userId, role: 'user', text },
       {
         id: agentId,
         role: 'agent',
-        reply: agentReply(text, data),
+        reply: agentTurnReply,
         step: 0,
         units: 0,
         done: false,
@@ -245,7 +263,7 @@ export function AgentPanel({
                   <ul key={key} className={s.refs}>
                     {b.items.map((n) => (
                       <li key={n.uid}>
-                        <button type="button" className={s.ref} onClick={() => onOpenStory(n)}>
+                        <button type="button" className={s.ref} onClick={() => onOpenStory?.(n)}>
                           {n.teamLogoUrl ? (
                             <img src={n.teamLogoUrl} alt="" className={s.refLogo} />
                           ) : (
@@ -254,7 +272,7 @@ export function AgentPanel({
                           <span className={s.refText}>
                             <span className={s.refTitle}>{n.title}</span>
                             <span className={s.refMeta}>
-                              {n.teamName} · {EVENT_TYPE_LABEL[n.eventType]} · {data.likeCount(n.uid)} likes
+                              {n.teamName} · {EVENT_TYPE_LABEL[n.eventType]} · {data?.likeCount(n.uid) ?? 0} likes
                             </span>
                           </span>
                         </button>
@@ -272,7 +290,7 @@ export function AgentPanel({
                           <span className={s.refText}>
                             <span className={s.refTitle}>{team.name}</span>
                             <span className={s.refMeta}>
-                              {data.followed.has(team.uid) ? 'Following' : team.reason}
+                              {data?.followed.has(team.uid) ? 'Following' : team.reason}
                             </span>
                           </span>
                         </a>
@@ -352,7 +370,7 @@ export function AgentPanel({
                         type="button"
                         className={s.undo}
                         onClick={() => {
-                          onFollowTeams(b.teamUids, true);
+                          onFollowTeams?.(b.teamUids, true);
                           setResolved((r) => {
                             const next = { ...r };
                             delete next[t.id];
@@ -373,7 +391,7 @@ export function AgentPanel({
                         style="fill"
                         variant="primary"
                         onClick={() => {
-                          onFollowTeams(b.teamUids);
+                          onFollowTeams?.(b.teamUids);
                           setResolved((r) => ({ ...r, [t.id]: 'applied' }));
                         }}
                       >
@@ -391,6 +409,8 @@ export function AgentPanel({
                   </div>
                 );
               }
+              case 'custom':
+                return <div key={key}>{b.render({ send, busy: !!working })}</div>;
               case 'suggest':
                 return (
                   <div key={key} className={s.followUps}>
@@ -411,7 +431,7 @@ export function AgentPanel({
   if (!open) return null;
 
   return (
-    <aside ref={panelRef} className={s.panel} aria-label="Agent">
+    <aside ref={panelRef} className={clsx(s.panel, className)} aria-label="Agent">
       <header className={s.head}>
         <span className={s.headTitle}>
           <AiSearchIcon size={18} />
@@ -441,10 +461,10 @@ export function AgentPanel({
       <div ref={threadRef} className={s.thread}>
         {turns.length === 0 ? (
           <div className={s.empty}>
-            <h2 className={s.hello}>Hi Polina, what can I do for you?</h2>
-            <p className={s.helloSub}>I read the Directory with you and can act on it. I ask before changing anything.</p>
+            <h2 className={s.hello}>{greeting}</h2>
+            <p className={s.helloSub}>{intro}</p>
             <ul className={s.prompts}>
-              {AGENT_PROMPTS.map((p) => (
+              {prompts.map((p) => (
                 <li key={p}>
                   <button type="button" className={s.prompt} onClick={() => send(p)}>
                     {p}
@@ -475,7 +495,7 @@ export function AgentPanel({
           ref={inputRef}
           className={s.composer}
           rows={1}
-          placeholder="Ask the agent or tell it what to do"
+          placeholder={placeholder}
           aria-label="Message the agent"
           onTextSubmit={() => send(inputRef.current?.value ?? '')}
           onStopStreaming={stop}

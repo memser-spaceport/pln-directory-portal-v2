@@ -41,3 +41,72 @@ export type McpAccessRequest = {
 };
 
 export type McpLevels = Partial<Record<McpScopeKey, McpLevel>>;
+
+/** Mirrors `libs/contracts/src/schema/mcp-limits.ts` in pln-directory-portal. */
+export type McpCallType = 'read' | 'contact_read' | 'write' | 'forum_post';
+
+export type McpLimitTier = 'standard' | 'pl_infra';
+
+export type McpLimitRow = {
+  callType: McpCallType;
+  label: string;
+  used: number | null;
+  limit: number;
+  resetsAt: string;
+  window: 'hour' | 'day';
+  tier: McpLimitTier;
+  override: { limit: number; endsAt: string | null } | null;
+  hitRecently: boolean;
+  lastHitAt: string | null;
+};
+
+export type McpMemberLimits = {
+  tier: McpLimitTier;
+  limits: McpLimitRow[];
+};
+
+export type McpAdminLimitCallType = {
+  callType: McpCallType;
+  label: string;
+  standardLimit: number;
+  infraLimit: number;
+  window: 'hour' | 'day';
+};
+
+export type McpAdminLimits = {
+  callTypes: McpAdminLimitCallType[];
+  recentHits: Array<{
+    memberUid: string;
+    memberName: string | null;
+    email: string | null;
+    callType: McpCallType;
+    hitAt: string;
+    resetsAt: string;
+  }>;
+  overrides: Array<{
+    memberUid: string;
+    memberName: string | null;
+    email: string | null;
+    callType: McpCallType;
+    limit: number;
+    endsAt: string | null;
+    updatedAt: string;
+    updatedByUid: string | null;
+  }>;
+  changes: Array<{
+    memberUid: string;
+    callType: string;
+    action: string;
+    limit: number | null;
+    endsAt: string | null;
+    actorUid: string | null;
+    createdAt: string;
+  }>;
+  members: Array<{
+    uid: string;
+    name: string | null;
+    email: string | null;
+    tier: McpLimitTier;
+    limits: McpLimitRow[];
+  }>;
+};

@@ -16,6 +16,24 @@ export type AuthErrorCode =
   | 'no_demo_day_access'
   | '';
 
+/**
+ * What `auth:invalid-email` carries: the error code alone, or the code with the email that was tried. The email lets
+ * the "email not found" dialog name the address (LAB-3127); every other emitter still sends the bare code.
+ */
+export type InvalidEmailPayload = AuthErrorCode | { code: AuthErrorCode; email?: string };
+
+/** Reads either shape of the `auth:invalid-email` payload. A missing or blank email comes back `undefined`. */
+export function readInvalidEmailPayload(payload: InvalidEmailPayload | undefined): {
+  code: AuthErrorCode;
+  email?: string;
+} {
+  if (payload && typeof payload === 'object') {
+    const email = payload.email?.trim();
+    return { code: payload.code, email: email || undefined };
+  }
+  return { code: payload ?? '' };
+}
+
 export type LinkMethod = 'github' | 'google' | 'siwe' | 'email' | 'updateEmail';
 
 export interface AuthEventMap {
@@ -24,7 +42,7 @@ export interface AuthEventMap {
   'auth:login-error': { error: string };
   'auth:link-success': { user: any; linkMethod: string; linkedAccount: any };
   'auth:link-error': { error: string };
-  'auth:invalid-email': AuthErrorCode;
+  'auth:invalid-email': InvalidEmailPayload;
   'auth:link-account': LinkMethod;
   'auth:logout': void;
   'auth:logout-success': void;

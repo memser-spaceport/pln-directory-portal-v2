@@ -12,6 +12,9 @@ import { EVENT_TYPE_LABEL } from '@/components/page/home/TeamNews/utils/getEvent
 import nc from '@/components/page/home/TeamNews/components/NewsCard/NewsCard.module.scss';
 import { CommentCount, LikeButton, ViewCount } from '../newsfeed-v0/FeedActions';
 import { viewsFor } from '../newsfeed-v0/mocks';
+// The rail's "See all N …" row (production Job Board expander + newsfeed-v0's hairline/centring).
+import jobsCss from '@/components/page/jobs/TeamGroupCard/TeamGroupCard.module.scss';
+import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
 import local from './HomeV2Prototype.module.scss';
 
 /**
@@ -34,6 +37,7 @@ export function NewsPreviewList({
   onOpen,
   onNeedsAccount,
   allHref,
+  allCount,
 }: {
   stories: ITeamNewsItem[];
   likeCount: (uid: string) => number;
@@ -42,6 +46,8 @@ export function NewsPreviewList({
   onNeedsAccount: () => void;
   /** "See all updates": home-v2's news-only page. */
   allHref?: string;
+  /** How many stories that page holds, for "See all N updates". */
+  allCount?: number;
 }) {
   return (
     <section className={local.newsPreview} aria-labelledby="home-news-title">
@@ -107,6 +113,15 @@ export function NewsPreviewList({
             </div>
           </div>
         ))}
+        {/* 2026-11-05 review (Anuj): the header link alone was easy to miss, so the list
+            also ends on it, as the same "See all N …" expander the roles and events beside
+            it end on. Both kept (user, same day): the header for scanners, this for readers. */}
+        <a
+          href={allHref ?? '/prototypes/newsfeed'}
+          className={clsx(jobsCss.expander, v0.viewAllExpander, local.newsPreviewAll)}
+        >
+          {allCount ? `See all ${allCount} updates` : 'See all updates'}
+        </a>
       </div>
     </section>
   );

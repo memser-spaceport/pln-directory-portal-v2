@@ -540,6 +540,27 @@ export const activitiesData: ActivitiesData = {
 
     // ─── One-Time ─────────────────────────────────────────────────────────────
     {
+      id: 'connect-labos-to-your-ai',
+      category: 'Network Tooling',
+      activity: 'Connect LabOS to Your AI',
+      networkValue: 'Connect LabOS to Claude, Codex or any MCP client',
+      points: '50',
+      frequency: 'One-Time',
+      verificationType: 'Auto',
+      cta: 'confirm',
+      popupContent: {
+        title: 'Connect LabOS to Your AI',
+        overview: 'Connect LabOS to Claude, Codex or any other MCP client so you can use LabOS from your AI sessions. Once connected, you can search members, teams, projects and events, get summaries of network news and forum posts, post team updates, and go through feedback on your AI Apps.',
+        networkBenefits: `Makes it easier for members to find and use the network's people, projects, and tools from where they already work.`,
+        rules: [
+          'Add LabOS as a connection in your MCP client using the steps on the MCP connections page.',
+          'Sign in to LabOS and approve the connection.',
+          'One award per person, collected once.'
+        ],
+        links: [{ text: 'MCP connections page', url: '/settings/mcp' }]
+      }
+    },
+    {
       id: 'update-directory-profile',
       category: 'Network Tooling',
       activity: 'Update Your PL Directory Profile',

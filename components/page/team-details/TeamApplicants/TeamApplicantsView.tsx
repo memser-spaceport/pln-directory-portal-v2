@@ -131,6 +131,14 @@ interface Props {
   /** Always true in practice — the gate requires it — but the profile sections
    *  below take it, and a literal here would be a second place to be wrong. */
   isLoggedIn: boolean;
+  /**
+   * Show the Suggested tab alone, and fetch no applicants or counts.
+   *
+   * True for Protocol Labs (LAB-3190): its applicants live in PL's own ATS, so
+   * Applied and Interested stay out, but its leads get the weekly
+   * suggested-candidates email and every link in it opens this page.
+   */
+  suggestedOnly?: boolean;
 }
 
 type RoleOption = Option & { newCount: number };
@@ -160,6 +168,7 @@ export function TeamApplicantsView({
   initialEdit = null,
   viewerUid,
   isLoggedIn,
+  suggestedOnly = false,
 }: Props) {
   /* The tablet-landscape hook, not `useIsMobile`. `useIsMobile` switches at
      768px and this layout goes two-column at 960 — between the two the pane
@@ -180,7 +189,10 @@ export function TeamApplicantsView({
    * chase with a flag.
    */
   const [pickedTab, setPickedTab] = useState<string | null>(() =>
-    initialSuggestedMemberUid || initialTab === SUGGESTED_TAB_PARAM || initialEdit === EDIT_CRITERIA_PARAM
+    suggestedOnly ||
+    initialSuggestedMemberUid ||
+    initialTab === SUGGESTED_TAB_PARAM ||
+    initialEdit === EDIT_CRITERIA_PARAM
       ? SUGGESTED_TAB
       : null,
   );
@@ -244,14 +256,14 @@ export function TeamApplicantsView({
   const counts = useApplicantCounts({
     teamUid: teamId,
     viewerUid,
-    enabled: SHOW_TEAM_APPLICANTS,
+    enabled: SHOW_TEAM_APPLICANTS && !suggestedOnly,
   });
 
   const lists = useRoleApplicants({
     teamUid: teamId,
     roleUid: role?.uid,
     viewerUid,
-    enabled: SHOW_TEAM_APPLICANTS,
+    enabled: SHOW_TEAM_APPLICANTS && !suggestedOnly,
   });
 
   const suggestions = useSuggestedCandidates({
@@ -341,7 +353,7 @@ export function TeamApplicantsView({
       : lists.data && suggestedList?.length
         ? SUGGESTED_TAB
         : APPLIED_TAB;
-  const tab = pickedTab ?? derivedTab;
+  const tab = suggestedOnly ? SUGGESTED_TAB : (pickedTab ?? derivedTab);
 
   const isSuggestedTab = tab === SUGGESTED_TAB;
 
@@ -692,8 +704,12 @@ export function TeamApplicantsView({
                 activeTab={tab}
                 onTabClick={switchTab}
                 tabs={[
-                  { name: APPLIED_TAB, count: lists.data?.applications.length },
-                  { name: INTERESTED_TAB, count: lists.data?.interests.length },
+                  ...(suggestedOnly
+                    ? []
+                    : [
+                        { name: APPLIED_TAB, count: lists.data?.applications.length },
+                        { name: INTERESTED_TAB, count: lists.data?.interests.length },
+                      ]),
                   { name: SUGGESTED_TAB, count: suggestedList?.length },
                 ]}
               />

@@ -7,11 +7,12 @@ import {
   applicantsEarlyRedirect,
   type CandidatesLinkFields,
 } from '@/components/page/team-details/TeamApplicants/applicantsEarlyRedirect';
-import { canReadApplicants } from '@/components/page/team-details/TeamApplicants/canReadApplicants';
+import { canReadSuggestedCandidates } from '@/components/page/team-details/TeamApplicants/canReadApplicants';
 import { knowsPermissions } from '@/components/page/team-details/utils/viewerPermissions';
 import { selectTeamOpenRoles } from '@/components/page/team-details/TeamOpenRoles/selectTeamOpenRoles';
 import { getJobsList } from '@/app/actions/jobs.actions';
 import { SHOW_TEAM_APPLICANTS } from '@/services/jobs/constants';
+import { isProtocolLabsTeam } from '@/services/jobs/protocol-labs-team';
 import { getTeam, getTeamUIDByAirtableId } from '@/services/teams.service';
 import { ITeamDetailParams } from '@/types/teams.types';
 import { AIRTABLE_REGEX, PAGE_ROUTES } from '@/utils/constants';
@@ -106,16 +107,26 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
    * URL seeing an empty screen instead of a redirect. When the cookie DOES carry
    * permissions, it is authoritative again and refuses as before.
    */
-  const viewerCanRead = canReadApplicants({
+  /* The Suggested tab's rule, the wider of the two, is the page's gate (LAB-3190).
+     Protocol Labs' leads get the weekly suggested-candidates email, whose links
+     all open this page, but PL applicants live in PL's own ATS — so for PL the
+     page shows the Suggested tab alone. */
+  const pageTeam = team ? { uid: teamId, name: team.name } : null;
+  const viewerCanRead = canReadSuggestedCandidates({
     flagOn: SHOW_TEAM_APPLICANTS,
     isLoggedIn,
     userInfo,
-    team: team ? { uid: teamId, name: team.name } : null,
+    team: pageTeam,
   });
 
   if (!viewerCanRead && knowsPermissions(userInfo)) {
     redirect(teamProfile, RedirectType.replace);
   }
+
+  /* The team, not `!canReadApplicants`: the two rules differ only on Protocol
+     Labs, and a cookie without permissions fails both for an admin the gate
+     above still lets in — which would hide Applied on an ordinary team. */
+  const suggestedOnly = isProtocolLabsTeam(pageTeam);
 
   return (
     <div className={styles.applicants}>
@@ -130,6 +141,7 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
         initialEdit={searchParams?.edit ?? null}
         viewerUid={userInfo?.uid}
         isLoggedIn={!!isLoggedIn}
+        suggestedOnly={suggestedOnly}
       />
     </div>
   );

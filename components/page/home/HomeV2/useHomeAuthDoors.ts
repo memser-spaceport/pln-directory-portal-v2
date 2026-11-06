@@ -14,8 +14,9 @@ import { TOAST_MESSAGES } from '@/utils/constants';
  * `returnTo`), Sign in runs the navbar Sign in's path (`#login`, which loads Privy). Each also records
  * `home-auth-door-clicked` with the section it was pressed in.
  *
- * `signUpHere` opens the same sign-up as a modal over the page instead (LAB-3174, "Personalize my news"): the navbar's
- * `Signup` opens `SignupWizard` on `?dialog=signup` and then takes the parameter off, so the reader stays where they are.
+ * `recordSignUpHere` is the analytics half of a sign-up the page opens itself, as a modal over the page (LAB-3174,
+ * "Personalize my news"): the caller mounts `SignupWizard`. Not through `?dialog=signup`: that cost two server
+ * navigations and the navbar host's half-second fade of backdrop and form together, which flashed the page through it.
  */
 export function useHomeAuthDoors() {
   const router = useRouter();
@@ -31,12 +32,9 @@ export function useHomeAuthDoors() {
     router.push(`/sign-up?returnTo=${returnTo}`);
   };
 
-  const signUpHere = (section: HomeAuthDoorSection) => {
+  const recordSignUpHere = (section: HomeAuthDoorSection) => {
     homeAnalytics.onAuthDoorClicked({ door: 'sign_up', section });
     authAnalytics.onSignUpBtnClicked();
-    const params = new URLSearchParams(window.location.search);
-    params.set('dialog', 'signup');
-    router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
   };
 
   const signIn = (section: HomeAuthDoorSection) => {
@@ -50,5 +48,5 @@ export function useHomeAuthDoors() {
     }
   };
 
-  return { signUp, signUpHere, signIn };
+  return { signUp, recordSignUpHere, signIn };
 }

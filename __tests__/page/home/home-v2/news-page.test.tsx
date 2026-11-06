@@ -51,11 +51,11 @@ jest.mock('@/services/team-news/hooks/useNewsTopicSlugs', () => ({
 // ---- Doors and analytics ----
 
 const mockSignUp = jest.fn();
-const mockSignUpHere = jest.fn();
+const mockRecordSignUpHere = jest.fn();
 jest.mock('@/components/page/home/HomeV2/useHomeAuthDoors', () => ({
   useHomeAuthDoors: () => ({
     signUp: (...a: unknown[]) => mockSignUp(...a),
-    signUpHere: (...a: unknown[]) => mockSignUpHere(...a),
+    recordSignUpHere: (...a: unknown[]) => mockRecordSignUpHere(...a),
     signIn: jest.fn(),
   }),
 }));
@@ -71,10 +71,21 @@ jest.mock('@/analytics/common.analytics', () => ({
 }));
 
 jest.mock('next/navigation', () => ({
-  useRouter: () => ({ push: jest.fn(), replace: jest.fn(), prefetch: jest.fn() }),
+  useRouter: () => ({ push: mockRouterPush, replace: jest.fn(), prefetch: jest.fn() }),
   usePathname: () => '/home',
   useSearchParams: () => new URLSearchParams(window.location.search),
 }));
+// The sign-up form itself, stubbed: what matters here is when the page mounts it.
+jest.mock('@/components/page/sign-up/components/SignupWizard', () => ({
+  SignupWizard: ({ onClose }: { onClose: () => void }) => (
+    <div role="dialog" aria-label="Join the PL Network">
+      <button type="button" onClick={onClose}>
+        Close sign-up
+      </button>
+    </div>
+  ),
+}));
+const mockRouterPush = jest.fn();
 jest.mock('@/utils/formatTimeAgo', () => ({ formatTimeAgo: () => '2d ago' }));
 
 // ---- Fixtures ----
@@ -235,7 +246,7 @@ describe('News page: head and grid', () => {
 // LAB-3174 (prototype 2026-11-06): signed out there is nothing of the visitor to pick from, so no For You pill; the
 // For You note becomes the offer, and "Personalize my news" opens the sign-up modal over the page.
 describe('News page: Personalize my news (LAB-3174)', () => {
-  it('offers it to a signed-out visitor, with no For You pill, and opens sign-up here', () => {
+  it('offers it to a signed-out visitor, with no For You pill, and opens sign-up here', async () => {
     renderPage([story('a', 'FUNDING'), story('b', 'LAUNCH')], { signedIn: false, forYouTeamUids: ['team-a'] });
 
     expect(
@@ -244,8 +255,14 @@ describe('News page: Personalize my news (LAB-3174)', () => {
     expect(screen.queryByRole('button', { name: /^For You/ })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Personalize my news' }));
-    expect(mockSignUpHere).toHaveBeenCalledWith('personalize');
+    expect(mockRecordSignUpHere).toHaveBeenCalledWith('personalize');
     expect(mockSignUp).not.toHaveBeenCalled();
+    // In place: the form mounts over the page, with no navigation (two server round trips and a fade glitched it).
+    const form = await screen.findByRole('dialog', { name: 'Join the PL Network' });
+    expect(mockRouterPush).not.toHaveBeenCalled();
+
+    fireEvent.click(within(form).getByRole('button', { name: 'Close sign-up' }));
+    expect(screen.queryByRole('dialog', { name: 'Join the PL Network' })).not.toBeInTheDocument();
   });
 
   it('does not offer it to a member', () => {

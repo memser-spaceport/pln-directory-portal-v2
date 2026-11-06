@@ -505,6 +505,46 @@ describe('the Suggested tab', () => {
 });
 
 /**
+ * LAB-3190: Protocol Labs' page. Its applicants live in PL's own ATS, so the
+ * page shows the Suggested tab alone — the one every weekly-email link opens.
+ */
+describe('the Suggested tab alone (suggestedOnly)', () => {
+  it('shows no Applied or Interested tab', () => {
+    renderView({ suggestedOnly: true });
+
+    const labels = screen
+      .getAllByText(/^(Applied|Interested|Suggested)/)
+      .map((el) => el.textContent?.match(/^[A-Za-z]+/)?.[0]);
+    expect(labels).toEqual(['Suggested']);
+  });
+
+  /* An applicant would otherwise open Applied, the derived default. */
+  it('opens on the suggestions even when someone applied', () => {
+    renderView({ suggestedOnly: true });
+
+    expect(rowFor('Ana Lopez')).toBeTruthy();
+    expect(rowFor('Devon Park')).toBeUndefined();
+  });
+
+  it('fetches no applicants, and still fetches the suggestions', () => {
+    renderView({ suggestedOnly: true });
+
+    expect(useRoleApplicants).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }));
+    expect(useSuggestedCandidates).toHaveBeenCalledWith({ roleUid: 'role-1', viewerUid: 'u1', enabled: true });
+  });
+
+  it('stays on the suggestions after another role is picked', async () => {
+    const other = { ...ROLE, uid: 'role-2', roleTitle: 'Product Designer' } as IJobRole;
+    renderView({ suggestedOnly: true, roles: [ROLE, other] });
+
+    await userEvent.click(within(screen.getByTestId('role-picker')).getByText('Product Designer'));
+
+    expect(rowFor('Ana Lopez')).toBeTruthy();
+    expect(screen.queryByText(/No one has applied to this role yet/)).not.toBeInTheDocument();
+  });
+});
+
+/**
  * LAB-2789: a suggestion from a member who said "I'm interested" (the flag
  * from LAB-2788) carries an Interested mark, and their note when they wrote one.
  * LAB-2853: both live in the pane only; the row is name, role and count.

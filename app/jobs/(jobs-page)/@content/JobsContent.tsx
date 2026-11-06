@@ -356,14 +356,16 @@ export default function JobsContent({ userInfo, isLoggedIn, serverPage }: JobsCo
           onUpdateProfile={flow.onUpdateProfile}
         />
       )}
+      {/* The mobile copy of the toolbar's h1, shown only below 1024px: a heading by role, so the page has one h1
+          element (LAB-3089). */}
       <div className={s.mobileHeader}>
-        <h1 className={s.title}>
+        <p className={s.title} role="heading" aria-level={1}>
           Job Board{' '}
           <span className={s.titleCount}>
             ({totalRoles} {totalRoles === 1 ? 'role' : 'roles'} across {totalGroups}{' '}
             {totalGroups === 1 ? 'team' : 'teams'})
           </span>
-        </h1>
+        </p>
       </div>
       <div className={s.mobileFilters}>
         <JobsMobileFilters isLoggedIn={isLoggedIn} />

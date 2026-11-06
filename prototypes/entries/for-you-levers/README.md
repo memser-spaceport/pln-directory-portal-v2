@@ -1,6 +1,6 @@
 # For You levers
 
-Route: `/prototypes/for-you-levers?variant=current|follow|explain|thin-feed`
+Route: `/prototypes/for-you-levers?variant=settings|current|follow|explain|thin-feed` (`settings` also takes `&state=not-set`)
 
 Four ways to tell a member what their For You feed is made of. All of them
 close the loop in the mock: follow or unfollow a team and For You changes
@@ -12,6 +12,7 @@ the variant switch. Changing either one resets the session.
 
 | Variant | What it shows |
 |---|---|
+| `settings` (default, 2026-11-02) | Production's words on the plain page, no grey slab: "**For you** · Curated based on your profile, primary team attributes, and the teams you follow." with **Update For You →** as a text link at the row's right end (the Home v2 style refresh layout). A **For You** switch shows the second state, for a member who hasn't set it up: "**For you** · Not set up yet. Choose topics and teams in Settings to see news picked for you." with **Set up For You →**, and the feed shows the latest network stories instead (production opens on All for that member). Both links open the News preferences prototype (`digest-topics?from=feed`). |
 | `current` | Production's `ForYouHint`, same words and styles. Baseline. |
 | `follow` | "Your feed shows news from your teams and the teams you follow." + **Follow more teams**. On desktop (≥1200px) the button scrolls to the Teams to follow rail and highlights it. Below that, the rail sits under every story, so the button opens the suggestions under the hint instead. |
 | `explain` | One reason line under the team name on each card: "Your team" / "You follow X" / "Matches your team's focus: Storage". The hint becomes one line with **Manage followed teams**, which opens your followed teams in place so you can unfollow them. |

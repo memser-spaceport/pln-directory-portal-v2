@@ -13,12 +13,37 @@
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  // The hit area: 1px above and below the 22px face makes 24px; the negative margin keeps the line where it was.
+  padding: 1px 0;
+  margin: -1px 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+
+  &:hover .pillFace {
+    border-color: rgba(27, 56, 96, 0.24);
+    background: rgba(14, 15, 17, 0.04);
+    color: #0a0c11;
+  }
+
+  &:focus-visible {
+    outline: none;
+
+    .pillFace {
+      outline: 2px solid #1b4dff;
+      outline-offset: 2px;
+    }
+  }
+}
+
+.pillFace {
+  display: inline-flex;
+  align-items: center;
   gap: 3px;
   padding: 2px 6px 2px 10px;
   border-radius: 9999px;
   border: 1px solid rgba(27, 56, 96, 0.12);
   background: #ffffff;
-  font-family: inherit;
   font-size: 12px;
   line-height: 16px;
   font-weight: 500;
@@ -29,24 +54,19 @@
     background 0.12s ease,
     border-color 0.12s ease,
     color 0.12s ease;
-
-  &:hover {
-    border-color: rgba(27, 56, 96, 0.24);
-    background: rgba(14, 15, 17, 0.04);
-    color: #0a0c11;
-  }
-
-  &:focus-visible {
-    outline: 2px solid #1b4dff;
-    outline-offset: 2px;
-  }
 }
 
 // Sized to the .metaCompact treatment (team-profile rail/modal).
-.compact .pill {
+.compact .pillFace {
   font-size: 11px;
   line-height: 15px;
   padding: 1px 5px 1px 8px;
+}
+
+// The compact face is 19px tall, so its hit area needs more room to reach 24px.
+.compact .pill {
+  padding: 2.5px 0;
+  margin: -2.5px 0;
 }
 
 .caret {

@@ -40,6 +40,24 @@ components/core/login/
 └── index.ts              # Barrel exports
 ```
 
+## When Privy loads (LAB-3092)
+
+Privy's SDK is the largest script on the site, so it is not part of every page.
+`AuthBox` is always mounted. It holds the `#login` hash gates, `LoginTokenRedeemer` and `AuthInvalidUser`, none of which needs Privy.
+The Privy layer (`PrivyLayer`: `PrivyProvider`, `PrivyModals`, `AuthInfo`) is a separate chunk. It loads when:
+
+- the server says the viewer is signed in;
+- the hash is `#login`;
+- the address carries Privy's OAuth return parameters (`privy_oauth_code`, `privy_oauth_state`, `privy_oauth_provider`). Google and GitHub sign-in leave the site and come back with these, and Privy completes the sign-in from them;
+- or a Privy request (`auth:init-login`, `auth:link-account`, `auth:update-email`, `auth:logout`) reaches `authEvents` with no handler registered.
+
+Such a request waits in the bus's queue (`privyDemand` records that Privy is needed). Once `PrivyModals` has registered its handlers and Privy is `ready`, `authEvents.flushPending()` re-emits each queued request, in order.
+The layer stays mounted once loaded.
+`AuthInfo` starts its sequence only once Privy is `ready`.
+Hovering, focusing or touching Sign in imports the layer's chunk early (`PrivyLayer/prefetch.ts`).
+
+Rollback: building with `NEXT_PUBLIC_EAGER_PRIVY=true` loads the layer for every visitor, as before.
+
 ## Login Flow
 
 ### Step 1: User Initiates Login
@@ -187,15 +205,15 @@ const initDirectoryLogin = async () => {
 
 ### Step 7: Save Tokens
 
-On successful token exchange, tokens are saved to cookies.
+On successful token exchange, the browser hands the tokens to LabOS's server (`POST /api/auth/session`), which sets
+the session cookies. `refreshToken` is httpOnly, so browser code never writes or reads it. The call throws when the
+server refuses the tokens, and PrivyModals shows its sign-in error.
 
-**File:** `hooks/auth/useAuthTokens.ts`
+**File:** `hooks/useAuthTokens.ts`
 
 ```typescript
-const saveTokens = (response: TokenResponse, user: User) => {
-  Cookies.set('authToken', JSON.stringify(response.accessToken), { ... });
-  Cookies.set('refreshToken', JSON.stringify(response.refreshToken), { ... });
-  Cookies.set('userInfo', JSON.stringify(response.userInfo), { ... });
+const saveTokens = async (response: TokenResponse, user: User) => {
+  if (!(await establishSession(response))) throw new Error('Session could not be started');
   Cookies.set('authLinkedAccounts', JSON.stringify(authLinkedAccounts), { ... });
 
   // Identify user in PostHog
@@ -266,7 +284,8 @@ User clicks "Sign in"
 User clicks "Logout"
         |
         v
-clearAllAuthCookies()
+await clearAllAuthCookies()   POST /api/auth/logout clears every session cookie,
+        |                     including the httpOnly refreshToken
         |
         v
 authEvents.emit('auth:logout')
@@ -386,7 +405,7 @@ authEvents.emit('auth:link-account', 'updateEmail')
          |
          v  Call updateUserDirectoryEmail() API
          |  Receive new tokens
-         |  Update cookies (authToken, refreshToken, userInfo)
+         |  POST /api/auth/session (server sets the session cookies)
          |  Show success toast
          |  Reload page
 ```
@@ -471,7 +490,7 @@ User navigates with expired cookies
         |
         v
 +------------------+
-|  CookieChecker   |  Detects authToken/refreshToken expired
+|  CookieChecker   |  Detects the sessionExpiresAt marker is gone
 +--------+---------+
          |
          v  Expired tokens detected
@@ -583,13 +602,16 @@ export interface AuthEventMap {
   'auth:login-error': { error: string };
   'auth:link-success': { user: any; linkMethod: string; linkedAccount: any };
   'auth:link-error': { error: string };
-  'auth:invalid-email': AuthErrorCode;
+  'auth:invalid-email': InvalidEmailPayload;
   'auth:link-account': LinkMethod;
   'auth:logout': void;
   'auth:logout-success': void;
   'auth:update-email': { newEmail: string };
   'auth:new-accounts': string;
 }
+
+// The bare code, or the code with the email that was tried (LAB-3127). Read either shape with readInvalidEmailPayload.
+export type InvalidEmailPayload = AuthErrorCode | { code: AuthErrorCode; email?: string };
 
 // Usage - Emitting events
 authEvents.emit('auth:login-success', { user });
@@ -609,7 +631,7 @@ unsubscribe();
 
 ```typescript
 export const authStatus = {
-  isLoggedIn: () => Boolean(Cookies.get('userInfo') || Cookies.get('authToken')),
+  isLoggedIn: () => Boolean(Cookies.get('userInfo') || Cookies.get('authToken') || hasSession()),
   getUserInfo: (): IUserInfo | null => { ... },
 };
 
@@ -625,6 +647,7 @@ const isLoggedIn = authStatus.isLoggedIn();
 |------|-------------|--------------|
 | `unexpected_error` | Server error (500/401) | "Unexpected error occurred" |
 | `rejected_access_level` | Access denied (403) | "Access denied" with registration link |
+| `email_not_found` | No member for the email (404) | "This email isn't in the directory yet", naming the email; Sign up or Try another email |
 | `linked_to_another_user` | Email already linked | Opens LinkAccountModal |
 | `exited_link_flow` | User cancelled email linking | Cleans up and shows error |
 | `invalid_credentials` | Invalid auth credentials | Cleans up and shows error |
@@ -636,20 +659,53 @@ const isLoggedIn = authStatus.isLoggedIn();
 // PrivyModals emits error via typed event
 authEvents.emit('auth:invalid-email', 'unexpected_error');
 
+// email_not_found carries the email the visitor signed in with, read before Privy's logout() clears the user
+authEvents.emit('auth:invalid-email', { code: 'email_not_found', email: 'name@example.com' });
+
 // AuthInvalidUser listens
-authEvents.on('auth:invalid-email', (errorCode) => {
-  showErrorModal(errorCode);
+authEvents.on('auth:invalid-email', (payload) => {
+  const { code, email } = readInvalidEmailPayload(payload); // email is undefined when unknown or blank
+  showErrorModal(code, email);
 });
 ```
 
+### Email not found dialog
+
+`AuthInvalidUser` keeps its shell (`ModalBase`, warning icon, 400px) for `email_not_found` and changes the content:
+title "This email isn't in the directory yet"; body "No member profile uses **name@example.com**. If you're new,
+sign up and we'll set up your profile. If you're a member, try the email on your profile." (with no email: "No member
+profile uses this email. …"). Buttons: **Sign up** (`router.push('/sign-up?returnTo=<path+search>')`), **Try another
+email** (link; goes through the `#login` gate like Sign in, so `AuthInfo` creates a fresh state uid, clears
+`localStorage` and emits `auth:init-login`), and ✕. There is no Cancel or Contact Support here; on a demo day page the
+Access Denied dialog still replaces it.
+
 ## Cookies Reference
 
-| Cookie | Content | Expiry |
-|--------|---------|--------|
-| `authToken` | JWT access token | Token expiry |
-| `refreshToken` | JWT refresh token | Token expiry |
-| `userInfo` | User profile data | Token expiry |
-| `authLinkedAccounts` | Linked OAuth providers | Token expiry |
+Only the server writes `refreshToken`: the proxy (`proxy.ts`) and the `app/api/auth/*` routes, through
+`utils/sessionResponse.ts`. Every session cookie has `SameSite=Lax` and `Secure`. `Secure` is left off only on plain
+`http://localhost` / loopback, so a LabOS opened over plain HTTP on any other host (a LAN IP, for example) loses
+its session cookies.
+
+| Cookie | Content | Expiry | Scripts can read | Domain |
+|--------|---------|--------|------------------|--------|
+| `authToken` | JWT access token | Access token expiry | yes | `COOKIE_DOMAIN` while shared with AI Apps, else host-only |
+| `refreshToken` | JWT refresh token | Refresh token expiry | **no (httpOnly)** | host-only |
+| `userInfo` | User profile data | Access token expiry | yes | host-only |
+| `sessionExpiresAt` | Refresh token `exp` (epoch seconds); no credential | Refresh token expiry | yes | host-only |
+| `sessionScope` | Cookie layout revision the proxy migrated to | Refresh token expiry | yes | host-only |
+| `authLinkedAccounts` | Linked OAuth providers | Refresh token expiry | yes | `COOKIE_DOMAIN` |
+
+Browser code checks for a session with `hasSession()` (reads `sessionExpiresAt`), not with `refreshToken`.
+
+### Session routes
+
+| Route | What it does |
+|-------|--------------|
+| `POST /api/auth/session` | Same-origin only. Validates the issued tokens and sets the session cookies (sign-in, invite login, email change). |
+| `POST /api/auth/refresh` | Renews from the httpOnly cookie; returns `{ accessToken, userInfo }` only. 401 plus cleared cookies when it fails. |
+| `POST /api/auth/logout` | Clears host-only and shared copies of every session cookie. |
+
+Browser callers use `services/session.service.ts` (`establishSession`, single-flight `refreshSession`, `endSession`).
 
 ## Typed Auth Events
 
@@ -660,7 +716,7 @@ authEvents.on('auth:invalid-email', (errorCode) => {
 | `auth:login-error` | `{ error }` | usePrivyWrapper | PrivyModals |
 | `auth:link-success` | `{ user, linkMethod, linkedAccount }` | usePrivyWrapper | PrivyModals |
 | `auth:link-error` | `{ error }` | usePrivyWrapper | PrivyModals |
-| `auth:invalid-email` | `AuthErrorCode` | PrivyModals | AuthInvalidUser |
+| `auth:invalid-email` | `AuthErrorCode` or `{ code, email? }` | PrivyModals, UserInfoChecker | AuthInvalidUser, AuthBox |
 | `auth:link-account` | `LinkMethod` | Settings pages | PrivyModals |
 | `auth:logout` | `void` | Logout buttons | PrivyModals |
 | `auth:logout-success` | `void` | usePrivyWrapper | PrivyModals |

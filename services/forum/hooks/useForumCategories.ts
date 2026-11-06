@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
+import { decode } from 'he';
 import { ForumQueryKeys } from '@/services/forum/constants';
-import { customFetch } from '@/utils/fetch-wrapper';
+import { forumFetch } from '@/services/forum/forum.service';
 
 type CategoriesResponse = {
   categories: [
@@ -198,18 +199,7 @@ type CategoriesResponse = {
 };
 
 async function fetcher() {
-  const token = process.env.CUSTOM_FORUM_AUTH_TOKEN;
-  const response = await customFetch(
-    `${process.env.FORUM_API_URL}/api/categories`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      credentials: 'include',
-    },
-    !token,
-  );
+  const response = await forumFetch('/api/categories');
 
   if (!response?.ok) {
     return [];
@@ -217,10 +207,12 @@ async function fetcher() {
 
   const data = (await response.json()) as CategoriesResponse;
 
+  // NodeBB sends category names and descriptions HTML-escaped (`Comments &amp; Feedback`); React would print the
+  // escapes as they are.
   return data.categories.map((item) => ({
     cid: item.cid,
-    name: item.name,
-    description: item.description,
+    name: decode(item.name),
+    description: decode(item.description ?? ''),
   }));
 }
 

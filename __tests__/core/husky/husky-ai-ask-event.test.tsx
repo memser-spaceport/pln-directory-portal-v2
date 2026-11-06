@@ -68,7 +68,7 @@ describe('Home page AI chat (HuskyAi): member-side ask event', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    cookies.refreshToken = JSON.stringify('refresh');
+    cookies.sessionExpiresAt = '2000000000';
     cookies.dailyChats = undefined;
   });
 
@@ -110,7 +110,7 @@ describe('Home page AI chat (HuskyAi): member-side ask event', () => {
   });
 
   it('sends no event when the signed-out daily limit refuses the question', async () => {
-    cookies.refreshToken = undefined;
+    cookies.sessionExpiresAt = undefined;
     cookies.dailyChats = '99';
 
     render(<HuskyAi isLoggedIn={false} initialChats={initialChats} />);

@@ -1,5 +1,6 @@
 import { publicDemoDayPageMetadata } from '@/app/demoday/[demoDayId]/publicDemoDayPageMetadata';
-import { redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
+import { isDemoDayMissing } from '@/app/demoday/[demoDayId]/isDemoDayMissing';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { getDemoDayState } from '@/app/actions/demo-day.actions';
 import { DemodayCompletedView } from '@/components/page/demo-day/DemodayCompletedView';
@@ -13,6 +14,10 @@ export default async function CompletedPage(props: { params: Promise<{ demoDayId
   const demoDayResult = await getDemoDayState(params.demoDayId, parsedUserInfo.uid, authToken);
 
   const demoDayState = demoDayResult?.data;
+
+  if (isDemoDayMissing(demoDayResult)) {
+    notFound();
+  }
 
   if (demoDayState?.status !== 'COMPLETED') {
     redirect(`/demoday/${params.demoDayId}`);

@@ -1,0 +1,267 @@
+@use 'styles/media';
+
+/* The signed-in sidebar (SidebarNav). Sticky beside the page, full viewport height; desktop only. */
+.sidebar {
+  display: none;
+
+  @include media.tablet-landscape {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex-shrink: 0;
+    width: 240px;
+    height: 100vh;
+    padding: 16px 12px;
+    overflow-y: auto;
+    border-right: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+    background: var(--background-neutral-default, #fff);
+  }
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  margin-left: 4px;
+
+  svg {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* The header field, as a sidebar row: same border, radius and glyph. */
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-neutral-default, #fff);
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  &:focus-within {
+    border-color: var(--border-brand-primary, #1b4dff);
+  }
+
+  svg {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: none;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+
+  &::placeholder {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 36px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--background-neutral-subtle, #f1f5f9);
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-primary, #1b4dff);
+    outline-offset: -2px;
+  }
+}
+
+/* A toggle that is on (the agent row while its panel is open): the hover grey, held. Not the brand
+   tint, which is the current page's mark. */
+.itemPressed.itemPressed {
+  background: var(--background-neutral-subtle, #f1f5f9);
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.itemActive.itemActive {
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+/* Production's nav glyphs come at 20–24px; the row draws them all at 20. */
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.caret {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* A section's links, indented to the label column with a hairline guide. */
+.subList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 2px 0 4px 17px;
+  padding: 0 0 0 12px;
+  border-left: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  list-style: none;
+}
+
+.subItem {
+  display: block;
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+  text-decoration: none;
+
+  &:hover {
+    background: var(--background-neutral-subtle, #f1f5f9);
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.divider {
+  height: 1px;
+  margin: 0 8px;
+  background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+/* Notifications, help and the account sit at the foot of the column. */
+.foot {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.account.account {
+  height: auto;
+  padding: 6px 8px;
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--background-brand-primary, #1b4dff);
+  color: var(--Neutral-White, #fff);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.accountText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.accountName {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.accountMeta {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+}
+
+/* ---------- The signed-in page around it ---------- */
+
+.appShell {
+  @include media.tablet-landscape {
+    display: flex;
+    align-items: flex-start;
+  }
+}
+
+.appMain {
+  flex: 1;
+  min-width: 0;
+}
+
+/* The header, below tablet-landscape only. */
+.narrowOnly {
+  @include media.tablet-landscape {
+    display: none;
+  }
+}
+
+/* Beside the sidebar the page column starts at the sidebar's edge and fills everything left (no cap, no
+   centring, so no dead gap beside the nav on wide windows; 2026-11-02 review). Tripled to beat memberPage's
+   doubled rule. align-self, not margin: prod's .home is a column flex with align-items: center, which
+   centres any narrower column whatever its margin says. */
+.sideCn.sideCn.sideCn {
+  @include media.tablet-landscape {
+    align-self: stretch;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 32px 40px 48px;
+  }
+}

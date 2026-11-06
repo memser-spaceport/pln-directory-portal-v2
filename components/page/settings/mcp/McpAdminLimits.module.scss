@@ -1,0 +1,94 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  margin-top: 16px;
+}
+
+.title {
+  margin: 8px 0 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.help {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.input {
+  min-width: 160px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+}
+
+.label {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.link {
+  margin-left: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--foreground-brand-primary, #1d4ed8);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.error {
+  margin: 0;
+  color: var(--foreground-danger-primary, #c2410c);
+  font-size: 14px;
+  line-height: 20px;
+}

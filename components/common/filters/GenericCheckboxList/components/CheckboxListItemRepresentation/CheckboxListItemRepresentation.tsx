@@ -1,5 +1,5 @@
 import { clsx } from 'clsx';
-import { ReactNode } from 'react';
+import { ReactNode, useId } from 'react';
 import isNumber from 'lodash/isNumber';
 
 import { Checkbox } from '@/components/common/Checkbox';
@@ -18,6 +18,8 @@ type Props = {
 
 export function CheckboxListItemRepresentation(props: Props) {
   const { label, count, ctrlEl, checked, disabled, indeterminate, onClick } = props;
+  // The visible label names the checkbox (LAB-3095); `display: contents` keeps the layout as it was.
+  const labelId = useId();
 
   return (
     <div className={clsx(s.root, { [s.disabled]: disabled })} onClick={onClick}>
@@ -29,9 +31,12 @@ export function CheckboxListItemRepresentation(props: Props) {
           classes={{
             root: s.checkbox,
           }}
+          aria-labelledby={labelId}
         />
         {ctrlEl}
-        {label}
+        <span id={labelId} style={{ display: 'contents' }}>
+          {label}
+        </span>
       </div>
       {isNumber(count) && <div className={s.badge}>{count}</div>}
     </div>

@@ -23,7 +23,10 @@ import { DemoDayPageSkeleton } from '@/components/page/demo-day/DemoDayPageSkele
 import s from './Landing.module.scss';
 
 export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDayState }) {
-  const { data, isLoading } = useGetDemoDayState(initialDemoDayState);
+  /* Placeholder, not initialData: DemoDayStats in the root layout creates this query first, which drops initialData,
+     and the page then rendered its skeleton until the browser fetched (LAB-2930). The server state is what crawlers
+     get. */
+  const { data, isLoading } = useGetDemoDayState(undefined, { placeholderData: initialDemoDayState });
   const { currentUser: userInfo } = useCurrentUserStore();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -142,7 +145,8 @@ export function Landing({ initialDemoDayState }: { initialDemoDayState?: DemoDay
     return <DemoDayPageSkeleton />;
   }
 
-  if (data.access !== 'none') {
+  // Now reachable on the server too, where the page renders from its server-fetched state.
+  if (data.access !== 'none' && typeof window !== 'undefined') {
     window.location.reload();
   }
 

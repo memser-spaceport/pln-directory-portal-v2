@@ -4,7 +4,7 @@
  * redirects, canonical addresses, noindex pages, and a sample of the sitemap. Fetches as a crawler does: no cookies,
  * no JavaScript.
  *
- *   npm run seo:check -- https://directory-portal-lab-2876.os.pl.xyz [--sample 20]
+ *   npm run seo:check -- https://directory-portal-lab-2876.os.pl.xyz [--sample 20] [--demoday plw26]
  *
  * Exits non-zero when any check fails. The specs it checks: openspec/specs/{profiles,teams,job-board,seo}.
  */
@@ -13,9 +13,12 @@ const args = process.argv.slice(2);
 const base = (args.find((a) => /^https?:\/\//.test(a)) ?? '').replace(/\/$/, '');
 const sampleIndex = args.indexOf('--sample');
 const sampleSize = sampleIndex >= 0 ? Number(args[sampleIndex + 1]) : 15;
+// A Demo Day that exists on the target. The sitemap lists only /demoday, so it can't be found there.
+const demoDayIndex = args.indexOf('--demoday');
+const demoDaySlug = demoDayIndex >= 0 ? args[demoDayIndex + 1] : 'plw26';
 
 if (!base) {
-  console.error('Usage: node scripts/seo-check.mjs <base-url> [--sample N]');
+  console.error('Usage: node scripts/seo-check.mjs <base-url> [--sample N] [--demoday <slug>]');
   process.exit(2);
 }
 
@@ -29,7 +32,8 @@ async function get(path) {
     headers: { 'user-agent': 'seo-check (LAB-2876)' },
   });
   const html = response.status === 200 ? await response.text() : '';
-  return { status: response.status, location: response.headers.get('location') ?? '', html };
+  const cookies = response.headers.getSetCookie().length;
+  return { status: response.status, location: response.headers.get('location') ?? '', html, cookies };
 }
 
 /** The text a crawler reads without running scripts. */
@@ -77,6 +81,26 @@ async function checkProfile(path) {
   );
 }
 
+/** A Demo Day's public page carries its content (LAB-2930). A finished one redirects to its completed view. */
+async function checkDemoDay(slug) {
+  let path = `/demoday/${slug}`;
+  let page = await get(path);
+  if ((page.status === 307 || page.status === 308) && locationPath(page.location) === `${path}/completed`) {
+    path = `${path}/completed`;
+    page = await get(path);
+  }
+  const { status, html } = page;
+  const heading = visibleText(html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)?.[1] ?? '').trim();
+  const skeleton = html.includes('skeletonContainer');
+  const teams = path.endsWith('/completed') ? linkCount(html, '/teams/') : null;
+  const ok = status === 200 && !!heading && !skeleton && !hasClientFallback(html) && (teams === null || teams > 0);
+  record(
+    `${path} shows "${heading}" in its server HTML`,
+    ok,
+    `${status}${teams === null ? '' : `, ${teams} team links`}${skeleton ? ', skeleton' : ''}`,
+  );
+}
+
 async function checkStatus(path, expected) {
   const { status } = await get(path);
   record(`${path} answers ${expected}`, status === expected, String(status));
@@ -99,11 +123,28 @@ async function checkNoindex(path) {
   record(`${path} is noindex`, status === 200 && isNoindex(html), String(status));
 }
 
+const locs = (xml) => [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname);
+
+/** The pages the sitemap lists: /sitemap.xml is an index of per-section sitemaps (seo spec), followed here. */
 async function sitemapUrls() {
-  const { status, html } = await get('/sitemap.xml');
-  if (status !== 200) return [];
+  const index = await get('/sitemap.xml');
   // The sitemap is XML, but `get` only reads bodies of 200 responses, which this is.
-  return [...html.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname);
+  const sections = index.html.includes('<sitemapindex') ? locs(index.html) : [];
+  record(
+    'sitemap.xml is an index of section sitemaps',
+    index.status === 200 && sections.length > 0,
+    `${index.status}, ${sections.length} sections`,
+  );
+  record('sitemap.xml sets no cookies', index.cookies === 0, `${index.cookies} Set-Cookie`);
+  const urls = [];
+  for (const path of sections) {
+    const { status, html, cookies } = await get(path);
+    const entries = html.includes('<urlset') ? locs(html) : [];
+    record(`${path} lists URLs`, status === 200 && entries.length > 0, `${status}, ${entries.length} URLs`);
+    record(`${path} sets no cookies`, cookies === 0, `${cookies} Set-Cookie`);
+    urls.push(...entries);
+  }
+  return urls;
 }
 
 async function checkSitemapSample(paths) {
@@ -145,6 +186,11 @@ for (const prefix of ['/members/', '/teams/', '/projects/']) {
 for (const kind of ['members', 'teams', 'projects']) await checkStatus(`/${kind}/${UNKNOWN_ID}`, 404);
 // An old Airtable record id that belongs to no team is a real 404 too, not a 200 error page.
 await checkStatus('/teams/recAbCdEfGhIjKlMn', 404);
+
+// Public Demo Day pages carry their content, and an unknown Demo Day is a real 404 (seo).
+await checkDemoDay(demoDaySlug);
+await checkStatus(`/demoday/${UNKNOWN_ID}`, 404);
+await checkStatus(`/demoday/${UNKNOWN_ID}/completed`, 404);
 
 // One address per page (seo, job-board).
 await checkRedirect('/', '/home');

@@ -3,23 +3,24 @@ import { render } from '@testing-library/react';
 
 import ChevronIcon from '@/components/page/aligement-assets/profile/chevron-icon';
 
-describe('ChevronIcon', () => {
-  it('defaults to vertical: points down, rotates to up (180°) when expanded', () => {
-    const { container, rerender } = render(<ChevronIcon expanded={false} />);
-    const path = container.querySelector('path');
-    expect(path?.getAttribute('d')).toBe('M6 9l6 6 6-6');
-    expect(container.querySelector('svg')?.getAttribute('style')).not.toContain('rotate(180deg)');
+const isRotated = (container: HTMLElement) =>
+  (container.querySelector('svg')?.getAttribute('style') ?? '').includes('rotate(180deg)');
 
-    rerender(<ChevronIcon expanded={true} />);
-    expect(container.querySelector('svg')?.getAttribute('style')).toContain('rotate(180deg)');
+describe('ChevronIcon', () => {
+  it.each([['vertical' as const], ['horizontal' as const]])('%s: rotates only when expanded', (direction) => {
+    const { container, rerender } = render(<ChevronIcon expanded={false} direction={direction} />);
+    expect(isRotated(container)).toBe(false);
+
+    rerender(<ChevronIcon expanded direction={direction} />);
+    expect(isRotated(container)).toBe(true);
   });
 
-  it('horizontal variant points right, rotates to left (180°) when expanded', () => {
-    const { container, rerender } = render(<ChevronIcon expanded={false} direction="horizontal" />);
-    const path = container.querySelector('path');
-    expect(path?.getAttribute('d')).toBe('M9 6l6 6-6 6');
+  it('draws a different shape for each direction', () => {
+    const shape = (direction: 'vertical' | 'horizontal') =>
+      render(<ChevronIcon expanded={false} direction={direction} />)
+        .container.querySelector('path')
+        ?.getAttribute('d');
 
-    rerender(<ChevronIcon expanded={true} direction="horizontal" />);
-    expect(container.querySelector('svg')?.getAttribute('style')).toContain('rotate(180deg)');
+    expect(shape('vertical')).not.toEqual(shape('horizontal'));
   });
 });

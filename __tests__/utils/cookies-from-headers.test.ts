@@ -63,4 +63,49 @@ describe('getCookiesFromHeaders', () => {
     expect(userInfo).toEqual({ uid: 'm-1' });
     expect(refreshToken).toBe('');
   });
+
+  it('reads a signed-out request as logged out, with no tokens', async () => {
+    headersSaying({});
+
+    const { authToken, userInfo, refreshToken, isLoggedIn } = await getCookiesFromHeaders();
+
+    expect(isLoggedIn).toBe(false);
+    expect(authToken).toBe('');
+    expect(refreshToken).toBe('');
+    expect(userInfo).toBe('');
+  });
+
+  it('reads the signed-in headers forwarded from the session cookies', async () => {
+    const user = { uid: 'm-1', name: 'Ada' };
+    headersSaying({
+      isLoggedIn: 'true',
+      authToken: JSON.stringify('access.jwt'),
+      refreshToken: JSON.stringify('refresh.jwt'),
+      userInfo: encodeURIComponent(JSON.stringify(user)),
+    });
+
+    const { authToken, userInfo, refreshToken, isLoggedIn } = await getCookiesFromHeaders();
+
+    expect(isLoggedIn).toBe(true);
+    expect(authToken).toBe('access.jwt');
+    expect(refreshToken).toBe('refresh.jwt');
+    expect(userInfo).toEqual(user);
+  });
+
+  it('reads the renew headers forwarded from the fresh session', async () => {
+    const user = { uid: 'm-1' };
+    headersSaying({
+      isLoggedIn: 'true',
+      authToken: JSON.stringify('access.new'),
+      refreshToken: JSON.stringify('refresh.new'),
+      userInfo: encodeURIComponent(JSON.stringify(user)),
+    });
+
+    const { authToken, userInfo, refreshToken, isLoggedIn } = await getCookiesFromHeaders();
+
+    expect(isLoggedIn).toBe(true);
+    expect(authToken).toBe('access.new');
+    expect(refreshToken).toBe('refresh.new');
+    expect(userInfo).toEqual(user);
+  });
 });

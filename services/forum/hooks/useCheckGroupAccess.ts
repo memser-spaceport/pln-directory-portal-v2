@@ -7,16 +7,14 @@ type GroupAccessResponse = {
 };
 
 async function fetcher(): Promise<GroupAccessResponse> {
-  const token = process.env.CUSTOM_FORUM_AUTH_TOKEN;
   const response = await customFetch(
     `${process.env.DIRECTORY_API_URL}/v1/forum/check-group-access`,
     {
       headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         'Content-Type': 'application/json',
       },
     },
-    !token,
+    true,
   );
 
   if (!response?.ok) {

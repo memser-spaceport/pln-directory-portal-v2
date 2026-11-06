@@ -2,6 +2,7 @@ import React from 'react';
 
 import s from './ProfileBio.module.scss';
 import clsx from 'clsx';
+import { SafeHtml } from '@/components/ui/SafeHtml';
 
 interface Props {
   bio: string | undefined;
@@ -20,7 +21,7 @@ export const ProfileBio = ({ bio, isEditable, hasMissingData, onEdit }: Props) =
         })}
       >
         {bio ? (
-          <div dangerouslySetInnerHTML={{ __html: bio }} />
+          <SafeHtml html={bio} />
         ) : (
           <div className={s.row}>
             <p>

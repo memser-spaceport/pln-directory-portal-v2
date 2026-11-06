@@ -53,10 +53,9 @@ test('suggestions use the same current records as the production Activities page
 });
 
 test('filters sunset and restricted entries before filling the three suggestion slots', () => {
-  const legacy = source.find((activity) => activity.id === 'build-ai-app')!;
   jest.replaceProperty(activitiesData, 'activities', [
     { ...source[0], id: 'sunset-high-score', points: '99999', isSunset: true },
-    { ...legacy, isSunset: false },
+    { ...source[0], id: 'restricted-high-score', points: '99998', isSunset: false, audience: 'pl-infra-members' },
     ...source.slice(0, 3),
   ]);
   const { container } = render(<PlaaHome {...props} />);

@@ -8,6 +8,13 @@ export const ALL_CAT = 'all';
 export const FOR_YOU_CAT = 'forYou';
 
 /**
+ * Where News preferences sends "For You" (LAB-3036). Home already opens on For
+ * You whenever the member has For You stories (else All), so `feed=for-you`
+ * selects nothing itself: it names the landing in the URL and pageviews.
+ */
+export const HOME_FOR_YOU_HREF = '/home?feed=for-you';
+
+/**
  * Everything in the feed that is a conversation rather than a story: member
  * forum posts (the cards badged "Discussion"), plus news items that have a
  * linked forum thread.
@@ -21,7 +28,15 @@ export const FOR_YOU_CAT = 'forYou';
  */
 export const DISCUSSIONS_CAT = 'discussions';
 
-export type TeamNewsCategoryId = typeof ALL_CAT | typeof FOR_YOU_CAT | typeof DISCUSSIONS_CAT | TeamNewsEventType;
+/** The editorial top stories (`editorialRank` 1–3): a pill on the new Home (LAB-3125), where they stay in the stream. */
+export const TOP_CAT = 'top';
+
+export type TeamNewsCategoryId =
+  | typeof ALL_CAT
+  | typeof FOR_YOU_CAT
+  | typeof DISCUSSIONS_CAT
+  | typeof TOP_CAT
+  | TeamNewsEventType;
 
 export const FOR_YOU_CATEGORY = {
   id: FOR_YOU_CAT,
@@ -68,3 +83,18 @@ export const SHOW_HIRING_NEWS = false;
  * needs to go higher.
  */
 export const MAX_FOR_YOU_JOB_ENTRIES = 2;
+
+/**
+ * The new Home's pill row (LAB-3125, prototype `WeekFeed`), fixed: For You · All · Top · Discussions · Funding ·
+ * Launch · Announcement. Milestone, Partnership and Other are left off (1, 4 and 3 people used them in 90 days; Other
+ * is the catch-all): their stories stay under All and keep their label on the card.
+ */
+export const STREAM_CATEGORIES: ReadonlyArray<{ id: TeamNewsCategoryId; label: string }> = [
+  { id: FOR_YOU_CAT, label: 'For You' },
+  { id: ALL_CAT, label: 'All' },
+  { id: TOP_CAT, label: 'Top' },
+  { id: DISCUSSIONS_CAT, label: 'Discussions' },
+  { id: 'FUNDING', label: EVENT_TYPE_LABEL.FUNDING },
+  { id: 'LAUNCH', label: EVENT_TYPE_LABEL.LAUNCH },
+  { id: 'ANNOUNCEMENT', label: EVENT_TYPE_LABEL.ANNOUNCEMENT },
+];

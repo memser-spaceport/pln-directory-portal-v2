@@ -142,18 +142,22 @@ describe('Team edit form: locations', () => {
 });
 
 describe('Team profile header: locations', () => {
+  /* Each location and its separator is its own element, so the item's text is read as a whole. */
+  const locationText = () => screen.getByText('Varna').parentElement?.textContent;
+
   it('shows every location when there are up to three', () => {
     render(<TeamProfileMeta team={{ ...team, locations: ['Varna', 'Sofia', 'Berlin'] }} />);
 
-    expect(screen.getByText('Varna · Sofia · Berlin')).toBeInTheDocument();
+    expect(locationText()).toBe('Varna·Sofia·Berlin');
     expect(screen.queryByText(/^\+\d/)).not.toBeInTheDocument();
   });
 
   it('shows the first three and the number of the rest', () => {
     render(<TeamProfileMeta team={{ ...team, locations: ['Varna', 'Sofia', 'Berlin', 'Lisbon', 'Austin'] }} />);
 
-    expect(screen.getByText('Varna · Sofia · Berlin')).toBeInTheDocument();
-    expect(screen.getByText('+2')).toBeInTheDocument();
+    expect(locationText()).toBe('Varna·Sofia·Berlin+2');
+    /* The "+N" joins the text line through the outermost wrapper, the one the tooltip draws. */
+    expect(screen.getByText('+2').closest('.overflowTrigger')?.parentElement).toHaveClass('location');
   });
 
   it('shows no location item for a team without locations', () => {

@@ -3,7 +3,11 @@ import { render, screen, fireEvent, waitFor, within } from '@testing-library/rea
 
 import { serializeAnnotations } from '@/components/page/ai-apps/components/screenshot-feedback/types';
 
-import { AiAppFeedbackPage } from '@/components/page/ai-apps/AiAppFeedbackPage';
+import { AiAppFeedbackPage, FeedbackPage } from '@/components/page/ai-apps/AiAppFeedbackPage';
+
+jest.mock('@/components/core/mcp-hints/McpHint', () => ({
+  McpHint: (props: Record<string, unknown>) => <div data-testid="mcp-hint" data-props={JSON.stringify(props)} />,
+}));
 
 const mockUseAiAppFeedbackList = jest.fn();
 const mockUseAiAppFeedbackReviewAccess = jest.fn();
@@ -682,5 +686,58 @@ describe('AiAppFeedbackPage', () => {
 
       expect(screen.getByText('View annotations')).toBeInTheDocument();
     });
+  });
+});
+
+/* LAB-3033: the comments hint sits under the tabs, above the table, and counts every NEW item received. */
+describe('AiAppFeedbackPage: MCP hint', () => {
+  const MORE_NEW = [
+    { ...FEEDBACK[0], uid: 'fb-4', text: 'Second new one' },
+    { ...FEEDBACK[0], uid: 'fb-5', appUid: 'app-2', appName: 'Beta', text: 'Third new one' },
+  ];
+  const hintProps = () => JSON.parse(screen.getByTestId('mcp-hint').getAttribute('data-props')!);
+
+  beforeEach(() => {
+    mockUseAiAppFeedbackReviewAccess.mockReturnValue({ isDirectoryAdmin: false, canReview: true });
+    mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+    mockUseMyAiAppFeedbackList.mockReturnValue({ feedback: [], isLoading: false, isError: false });
+    mockUseUpdateAiAppFeedbackStatus.mockReturnValue({ mutate: mockMutate, isPending: false, variables: undefined });
+  });
+
+  afterEach(() => jest.clearAllMocks());
+
+  it('passes the number of NEW items received, whatever the filters show', () => {
+    mockUseAiAppFeedbackList.mockReturnValue({
+      feedback: [...FEEDBACK, ...MORE_NEW],
+      isLoading: false,
+      isError: false,
+    });
+    render(<AiAppFeedbackPage />);
+    expect(hintProps()).toEqual({ context: 'comments', newCount: 3 });
+
+    selectStatusFilter('Shipped');
+    expect(hintProps()).toEqual({ context: 'comments', newCount: 3 });
+  });
+
+  it('sits under the tabs row and above the table', () => {
+    mockUseAiAppFeedbackList.mockReturnValue({ feedback: FEEDBACK, isLoading: false, isError: false });
+    render(<AiAppFeedbackPage />);
+    expect(hintProps()).toEqual({ context: 'comments', newCount: 1 });
+    const tab = screen.getByText('Received');
+    const hint = screen.getByTestId('mcp-hint');
+    const row = screen.getByText('Loved it');
+    expect(tab.compareDocumentPosition(hint) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(hint.compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('is not on the Given tab', () => {
+    mockUseAiAppFeedbackList.mockReturnValue({
+      feedback: [...FEEDBACK, ...MORE_NEW],
+      isLoading: false,
+      isError: false,
+    });
+    mockUseMyAiAppFeedbackList.mockReturnValue({ feedback: FEEDBACK, isLoading: false, isError: false });
+    render(<FeedbackPage view="mine" />);
+    expect(screen.queryByTestId('mcp-hint')).not.toBeInTheDocument();
   });
 });

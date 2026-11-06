@@ -21,6 +21,8 @@ export interface IFollowedTeam {
   logoUrl: string | null;
   followedAt: string;
   followerCount: number;
+  /** The team's top-level focus areas, shown under its name on News preferences; absent until the backend sends them. */
+  focusAreas?: string[];
 }
 
 export interface IFollowedTeamsResponse {

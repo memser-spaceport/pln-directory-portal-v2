@@ -6,9 +6,9 @@ Treat this repository as a **Next.js frontend monolith** using the App Router.
 
 ## Tech Stack
 
-- **Node.js:** **22** (`.nvmrc`). `package.json` `engines` requires `>=20.9.0` (the Next 16 minimum); the Docker image builds on `node:20-alpine`.
+- **Node.js:** **22.23.4** (`.nvmrc`, also the Docker `NODE_VERSION`). `package.json` `engines` is `22.x`, which Vercel uses to pick the runtime major; the Docker image builds on `node:22.23.4-alpine`. Bump `.nvmrc` and the Dockerfile together.
 - **Package manager:** npm (`package-lock.json`). `.npmrc` sets `legacy-peer-deps=true`.
-- **Next.js:** `16.2.3` (App Router)
+- **Next.js:** `16.4.3` (App Router)
 - **React / React DOM:** `19.2.5`
 - **TypeScript:** `^5` with `strict: true`
 - **Styling:** Sass (`sass`), CSS/SCSS modules, global SCSS in `app/globals.scss` and `styles/index.scss`
@@ -94,6 +94,7 @@ Treat this repository as a **Next.js frontend monolith** using the App Router.
 17. Always use `customFetch()` from `@/utils/fetch-wrapper` for authenticated API requests. Never use raw `fetch()` with `credentials: 'include'` directly — this bypasses automatic token refresh handling.
 18. Before creating a new component, check for existing components that can be extended or adapted. Extract generic behavior into reusable components in `components/core/` or `components/ui/`. Never duplicate components with minor variations.
 19. When adding navigation items, update both desktop (`navbar/`) and mobile (`MobileBottomNav/`) navigation. Include proper icons and selected states for mobile nav items.
+20. Render member- or AI-written HTML only through `SafeHtml` (`@/components/ui/SafeHtml`), `safeHtmlProps` (styled-jsx components) or `parseSafeHtml` (`@/utils/html`). For content with its own rules, add a profile to `utils/html/sanitizeProfiles.ts` instead of a local DOMPurify config. Lint fails on `dangerouslySetInnerHTML` and on direct `dompurify` / `isomorphic-dompurify` / `html-react-parser` imports outside `utils/html/`.
 
 ## Mandatory pre-PR authentication check
 

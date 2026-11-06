@@ -20,6 +20,34 @@ Which addresses of the site search engines are told to index, and how every othe
 - **THEN** it lists `/events/all` and `/demoday`
 - **AND** it does not list `/events`
 
+#### Scenario: Teams hidden from signed-out visitors
+
+- **GIVEN** the directory API serves `GET /v1/teams/crawl-index`
+- **WHEN** the sitemap is generated
+- **THEN** it lists the teams of the crawl index
+- **AND** it does not list a team at access level `L0`, whose profile answers 404 to a crawler
+
+#### Scenario: API without a team crawl index
+
+- **GIVEN** `GET /v1/teams/crawl-index` fails
+- **WHEN** the sitemap is generated
+- **THEN** it lists the teams of the full team list, as before
+
+### Requirement: The sitemap is an index of per-section sitemaps
+
+`/sitemap.xml` SHALL be a sitemap index (`<sitemapindex>`) listing one sitemap per section, at absolute addresses: static pages, teams, members, projects and jobs (`/sitemaps/sitemap/<section>.xml`). Each section sitemap SHALL list only its own kind of page. robots.txt SHALL keep naming `/sitemap.xml`. The sitemap index, the section sitemaps and robots.txt SHALL NOT be answered with session cookie headers.
+
+#### Scenario: Crawler reads the sitemap
+
+- **WHEN** a crawler requests `/sitemap.xml`
+- **THEN** it receives a sitemap index with five `<sitemap>` entries
+- **AND** each entry's sitemap lists only static pages, teams, members, projects or jobs
+
+#### Scenario: No session headers on crawler files
+
+- **WHEN** a client requests `/sitemap.xml`, a section sitemap or `/robots.txt`
+- **THEN** the response has no `Set-Cookie` header
+
 ### Requirement: One address for the events calendar
 
 `/events` SHALL redirect permanently (308) to `/events/all`, and `/events/all` SHALL declare itself as its canonical address. Other pages under `/events/` SHALL NOT redirect.
@@ -53,6 +81,25 @@ Every page under `/sign-up` SHALL be marked `noindex, follow`, whatever its quer
 - **WHEN** a crawler requests `/sign-up?returnTo=/members/M`
 - **THEN** the page carries `<meta name="robots" content="noindex, follow">`
 
+### Requirement: Non-production deployments are not indexed
+
+Every response SHALL carry `X-Robots-Tag: noindex, nofollow`, whatever host serves it, when the build is a Vercel preview (`VERCEL_ENV=preview`) or was built with `SEO_NOINDEX=true` (the k8s feature envs). Any other build SHALL send no `X-Robots-Tag` of its own. That includes production, local development, a build with neither variable set, and any other `SEO_NOINDEX` value. robots.txt SHALL NOT block the crawl, so crawlers can see the header.
+
+#### Scenario: Preview on a custom domain
+
+- **WHEN** a crawler requests `/home` on `pr-<n>.preview.dev.os.pl.xyz`
+- **THEN** the response carries `X-Robots-Tag: noindex, nofollow`
+
+#### Scenario: Feature env
+
+- **WHEN** a crawler requests `/home` on `directory-portal-lab-<n>.os.pl.xyz`, deployed with `SEO_NOINDEX=true`
+- **THEN** the response carries `X-Robots-Tag: noindex, nofollow`
+
+#### Scenario: Production
+
+- **WHEN** a crawler requests `/home` on `os.pl.xyz`
+- **THEN** the response carries no `X-Robots-Tag`
+
 ### Requirement: Main pages name the searches they should be found for
 
 The home page, members, teams, projects, the events calendar, the job board and the Demo Day landing page SHALL each have a title and a description of their own, and no two of them SHALL share either. Each SHALL name "Protocol Labs". The home page SHALL also name "innovation network", and Demo Day SHALL name "venture investors" and "VC". The job board keeps the title "Protocol Labs Jobs | LabOS".
@@ -66,6 +113,117 @@ The home page, members, teams, projects, the events calendar, the job board and 
 
 - **WHEN** a crawler requests `/demoday`
 - **THEN** its title and description both contain "venture investors" and "VC"
+
+### Requirement: Every page has one h1
+
+Each page SHALL have exactly one `<h1>` element in its server-rendered HTML. A page that renders a separate copy of its title for narrow screens SHALL make that copy a heading by role (`role="heading" aria-level="1"`) or hide it from assistive technology, not a second `<h1>`. A job posting's own `h1` and `h2` SHALL render as `h3`, under the role page's `h1` (the role title) and `h2` ("About the role"), and so SHALL the `h1` and `h2` in a team's, member's or project's own description.
+
+#### Scenario: Listing and profile pages
+
+- **WHEN** a crawler requests `/members`, `/teams`, `/projects`, `/jobs`, a team profile or a project profile
+- **THEN** the HTML has one `<h1>`
+
+#### Scenario: Job posting with h1 sections
+
+- **GIVEN** a role whose description has `<h1>The Role</h1>`
+- **WHEN** a crawler requests the role page
+- **THEN** the HTML has one `<h1>`, the role title, and "The Role" is an `<h3>`
+
+### Requirement: The home page says what the network is
+
+With `NEXT_PUBLIC_SHOW_HOME_V2` off, `/home` SHALL have the `<h1>` "Protocol Labs Directory", visually hidden so the top of the page keeps its design, and read by assistive technology. For a signed-out visitor, the page SHALL show a definition of the Protocol Labs network and the directory, of 40 to 60 words, as visible text in an "About" section at the foot of the page.
+
+With the flag on, the signed-out `/home` SHALL have one visible `<h1>`, the mission "Protocol Labs drives breakthroughs in computing to push humanity forward.", The visible sentence under it SHALL say what the network is ("We are an innovation network that connects over 760 tech startups, …"), and the Join the network card beside it SHALL say what the directory is for. The page SHALL have no About foot.
+
+In both cases, the definition SHALL NOT be hidden from view, because text shown only to crawlers is hidden text.
+
+#### Scenario: Crawler on the home page
+
+- **GIVEN** the flag is off
+- **WHEN** a crawler requests `/home` without cookies
+- **THEN** the HTML has one `<h1>`, "Protocol Labs Directory"
+- **AND** the definition is in a visible "About Protocol Labs Directory" section after the focus areas
+
+#### Scenario: Visitor on the home page
+
+- **GIVEN** the flag is off
+- **WHEN** a signed-out visitor opens `/home`
+- **THEN** the top of the page starts with the welcome card, as before LAB-3089
+- **AND** the definition appears at the foot of the page
+
+#### Scenario: Crawler on the new home page
+
+- **GIVEN** the flag is on
+- **WHEN** a crawler requests `/home` without cookies
+- **THEN** the HTML has one `<h1>`, the mission sentence, with the definition right under it
+- **AND** the Organization and WebSite JSON-LD are still present
+
+### Requirement: The home page names Protocol Labs as structured data
+
+`/home` SHALL carry JSON-LD with an `Organization` (Protocol Labs, with `sameAs` links to protocol.ai, Wikidata Q63930216, X, LinkedIn and YouTube) and a `WebSite` (Protocol Labs Directory, at the home page's canonical address) published by it.
+
+#### Scenario: Home page markup
+
+- **WHEN** a crawler requests `/home`
+- **THEN** the HTML has an `application/ld+json` script with the `Organization` and the `WebSite`
+
+### Requirement: Profiles carry entity structured data
+
+Member, team and project profiles SHALL carry JSON-LD built only from what a signed-out visitor sees on the page, with a `BreadcrumbList` from the section to the profile:
+
+- a member profile: a `ProfilePage` whose `mainEntity` is a `Person` (name, image, job title, the team they work for, bio, skills). Social links and location are hidden from signed-out visitors, so they are not in the markup;
+- a team profile: an `Organization` (name, logo, description, and as `sameAs` the contact links the page shows);
+- a project profile: a `CreativeWork` (name, logo, tagline, its maintaining team as `creator`, and its links as `sameAs`).
+
+#### Scenario: Signed-out member profile
+
+- **WHEN** a crawler requests a member profile
+- **THEN** the HTML has a `ProfilePage` about the member's `Person` and a `BreadcrumbList` Members → member
+- **AND** the markup has none of the member's social links or location
+
+#### Scenario: Team contact link that is only a guess
+
+- **WHEN** a team's LinkedIn value is not a handle or address, so the page links to a LinkedIn search
+- **THEN** the team's `sameAs` leaves that link out
+
+#### Scenario: Profile text that contains a script tag
+
+- **WHEN** a profile's name or text contains `</script>`
+- **THEN** the JSON-LD escapes it and the script element is not ended early
+
+### Requirement: Links reach every profile
+
+`/members`, `/teams` and `/projects` SHALL each link, in their server HTML, to a browse index at `/<listing>/browse`. The link is for crawlers: it SHALL NOT be visible on screen or reachable with Tab, and SHALL NOT be removed with `display: none` (LAB-3184). The index SHALL list every profile the sitemap lists for that listing, A to Z, 200 per page, as plain links, with links to every page of the index. Each page SHALL have a self-canonical; page 1 SHALL have no `?page=`. A `?page=` that is not a whole number from 1 up, or is past the last page, SHALL answer 404.
+
+#### Scenario: Crawler follows links only
+
+- **WHEN** a crawler starts at `/teams`, `/members` or `/projects` and follows only `<a href>` links
+- **THEN** it reaches every team, member and project profile in the sitemap
+
+#### Scenario: Member opens a listing
+
+- **WHEN** a member opens `/teams`, `/members` or `/projects`
+- **THEN** no "Browse all" link shows on the page, and the server HTML still has the `<a href>` to the browse index
+
+#### Scenario: Page past the end
+
+- **WHEN** a client requests `/teams/browse?page=99` and there are fewer pages
+- **THEN** the response status is 404
+
+#### Scenario: Teams and contributors on a project page
+
+- **WHEN** a crawler reads a project profile
+- **THEN** its maintaining team, contributing teams and contributors are `<a href>` links to their profiles
+
+### Requirement: Sitemap entries carry only what Google reads
+
+`/sitemap.xml` entries SHALL carry `loc` and, where known, `lastmod`, and no `changefreq` or `priority`. A profile's `lastmod` SHALL be its `updatedAt`. A job opening's `lastmod` SHALL be the `lastModified` the API's job crawl index gives (the posting's own date); a job without one SHALL have no `lastmod`, never the nightly sync time. robots.txt SHALL have no `Host:` line.
+
+#### Scenario: Job synced last night, posted in October
+
+- **GIVEN** a job whose crawl-index entry has `updatedAt` from last night's sync and `lastModified` 2026-10-01
+- **WHEN** the sitemap is generated
+- **THEN** the job's `lastmod` is 2026-10-01 and the entry has no `changefreq` or `priority`
 
 ### Requirement: Share cards match the search result
 
@@ -99,3 +257,40 @@ Every canonical address SHALL be the page's path on the site's base URL, with ex
 - **GIVEN** the base URL is configured as `https://os.pl.xyz/`
 - **WHEN** a crawler requests `/teams/T`
 - **THEN** its canonical address is `https://os.pl.xyz/teams/T`
+
+### Requirement: Public Demo Day pages are in the server HTML
+
+The first HTML response for a Demo Day's landing page (`/demoday/<id>`) and its completed view (`/demoday/<id>/completed`) SHALL contain the page's content, readable without running JavaScript: the Demo Day's name and description, and on the completed view each presenting team's name with a link to `/teams/<uid>`. It SHALL NOT be a loading skeleton. The server HTML SHALL hydrate without a mismatch.
+
+#### Scenario: Completed view, fetched without JavaScript
+
+- **GIVEN** a Demo Day whose status is completed
+- **WHEN** a client without cookies requests `/demoday/<id>/completed` and reads the HTML without running scripts
+- **THEN** the HTML contains the Demo Day's name as its `<h1>` and its description
+- **AND** the HTML lists the participating teams, each with an `<a href="/teams/<uid>">` link
+
+#### Scenario: Landing page of a Demo Day that is not finished, fetched without JavaScript
+
+- **GIVEN** a Demo Day that is open for registration or active
+- **WHEN** a client without cookies requests `/demoday/<id>`
+- **THEN** the HTML contains the Demo Day's name as its `<h1>`, its description and its date
+
+#### Scenario: Signed-in investor or founder
+
+- **WHEN** a signed-in investor or founder opens the same pages
+- **THEN** they are redirected and shown their views as before
+
+### Requirement: An unknown Demo Day is a 404
+
+A Demo Day page whose id the API reports as not found SHALL answer HTTP 404 with the not-found page, for the landing page and the completed view. Any other API failure SHALL keep the page as it was, so an outage never tells crawlers a live Demo Day is gone.
+
+#### Scenario: Unknown id
+
+- **WHEN** a crawler requests `/demoday/<unknown-id>` or `/demoday/<unknown-id>/completed`
+- **THEN** the response status is 404 and the page is marked `noindex`
+
+#### Scenario: API outage
+
+- **GIVEN** the Demo Day API answers with an error other than 404
+- **WHEN** a visitor requests `/demoday/<id>`
+- **THEN** the page does not answer 404

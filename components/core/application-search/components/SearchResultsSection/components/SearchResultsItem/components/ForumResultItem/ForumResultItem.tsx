@@ -1,7 +1,6 @@
 import clsx from 'clsx';
 import Link from 'next/link';
 import Image from 'next/image';
-import parse from 'html-react-parser';
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import React, { useCallback, MouseEvent } from 'react';
@@ -16,6 +15,7 @@ import { getFieldLabel } from '../../utils/getFieldLabel';
 
 import ls from './ForumResultItem.module.scss';
 import s from '@/components/core/application-search/components/SearchResultsSection/SearchResultsSection.module.scss';
+import { parseSafeHtml } from '@/utils/html';
 
 const COMMENTS_TO_SHOW = 2;
 
@@ -58,10 +58,10 @@ export function ForumResultItem(props: Props) {
               <Image src={defaultAvatar} alt={item.name} width={24} height={24} />
             </div>
             {matchedName ? (
-              <div className={s.name}>{parse(matchedName.content)}</div>
+              <div className={s.name}>{parseSafeHtml(matchedName.content, 'searchHighlight')}</div>
             ) : (
               <div className={s.name}>
-                {parse(item.name)}
+                {parseSafeHtml(item.name, 'searchHighlight')}
                 {/*<HighlightedText text={item.name} query={query} />*/}
               </div>
             )}
@@ -85,7 +85,7 @@ export function ForumResultItem(props: Props) {
                     <div className={s.arrow}>
                       <Image src="/icons/row-arrow.svg" alt={item.name} width={26} height={26} />
                     </div>
-                    <div className={s.text}>{parse(match.content)}</div>
+                    <div className={s.text}>{parseSafeHtml(match.content, 'searchHighlight')}</div>
                     <div className={s.matchType}>{getFieldLabel(match.field)}</div>
                   </li>
                 );
@@ -93,7 +93,7 @@ export function ForumResultItem(props: Props) {
             <li className={s.postDetails}>
               Posted by{' '}
               {rootPostAuthorMatches?.length ? (
-                <span className={s.text}>{parse(rootPostAuthorMatches[0].content)}</span>
+                <span className={s.text}>{parseSafeHtml(rootPostAuthorMatches[0].content, 'searchHighlight')}</span>
               ) : (
                 <span className={s.text}>{item.source.rootPost.author.name}</span>
               )}{' '}
@@ -129,7 +129,7 @@ export function ForumResultItem(props: Props) {
                       <Image src="/icons/row-arrow.svg" alt={item.name} width={26} height={26} />
                     </div>
                   </div>
-                  <div className={s.text}>{parse(match.content)}</div>
+                  <div className={s.text}>{parseSafeHtml(match.content, 'searchHighlight')}</div>
                 </div>
                 <div className={s.postDetails}>
                   Commented by {comm.author.name} &bull;{' '}

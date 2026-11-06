@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { Avatar } from '@base-ui-components/react/avatar';
 import { decode } from 'he';
-import parse from 'html-react-parser';
 
 import s from './Posts.module.scss';
 import Link from 'next/link';
@@ -16,6 +15,7 @@ import { useSearchParams } from 'next/navigation';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useInfiniteForumPosts } from '@/services/forum/hooks/useInfiniteForumPosts';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
+import { parseSafeHtml } from '@/utils/html';
 
 export const Posts = () => {
   const analytics = useForumAnalytics();
@@ -93,7 +93,7 @@ export const Posts = () => {
               }}
             >
               <div className={s.title}>{decode(post.title)}</div>
-              <div className={s.desc}>{parse(content)}</div>
+              <div className={s.desc}>{parseSafeHtml(content, 'forumPost')}</div>
               <div className={s.footer}>
                 <Link href={`/members/${post.memberUid}`} onClick={(e) => e.stopPropagation()}>
                   <Avatar.Root className={s.Avatar}>

@@ -2,14 +2,12 @@
 
 import Image from 'next/image';
 import Cookies from 'js-cookie';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 
-import { IUserInfo } from '@/types/shared.types';
 import { ITag, ITeam } from '@/types/teams.types';
 import type { ITeamFollowersResponse } from '@/types/follow.types';
 
-import { isTierUser } from '@/utils/user/isTierUser';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { deleteTeam } from '@/app/actions/teams.actions';
 import { getTeamPriority, getPriorityLabel } from '@/utils/team.utils';
@@ -35,6 +33,8 @@ import { Divider } from '@/components/common/profile/Divider';
 import { isTeamLeaderOrAdmin } from '../utils/isTeamLeaderOrAdmin';
 import { isTeamInactive } from './utils/isTeamInactive';
 
+import { RequestIntroEntry } from '@/components/page/intro-request/RequestIntroEntry';
+
 import { PlusIconCircle } from './icons';
 import { EditTeamDetailsForm } from './components/EditTeamDetailsForm';
 import { TeamProfileMeta } from './components/TeamProfileMeta';
@@ -46,6 +46,7 @@ import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import clsx from 'clsx';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useTeamFollowToggle } from '@/services/follow/hooks/useTeamFollowToggle';
+import { SafeHtml } from '@/components/ui/SafeHtml';
 
 interface Props {
   team: ITeam;
@@ -90,15 +91,17 @@ export const TeamDetails = (props: Props) => {
   } = useTeamFollowToggle(team, team.isFollowed ?? false);
 
   const showFollowers = isCurrentUserTeamMember || isAdmin;
-  const showFollowButton = !showFollowers;
 
   const followContent = (
     <>
-      {showFollowButton && (
-        <>
-          <TeamFollowButton isFollowing={isFollowing} isPending={isFollowPending} onToggle={onFollowToggle} />
-          {!isFollowing && <p className={s.followCaption}>Get updates &amp; announcements</p>}
-        </>
+      {!isCurrentUserTeamMember && (
+        <div className={s.visitorActions}>
+          <div className={s.followCol}>
+            <TeamFollowButton isFollowing={isFollowing} isPending={isFollowPending} onToggle={onFollowToggle} />
+            {!isFollowing && !isAdmin && <p className={s.followCaption}>Get updates &amp; announcements</p>}
+          </div>
+          <RequestIntroEntry type="TEAM" targetId={team?.id ?? ''} targetName={teamName} className={s.introButton} />
+        </div>
       )}
       {showFollowers && <TeamFollowBlock team={team} initialFollowers={initialFollowers} />}
     </>
@@ -190,7 +193,16 @@ export const TeamDetails = (props: Props) => {
           />
           <div className={s.nameTagContainer}>
             <div className={s.nameAndActions}>
-              <Tooltip asChild trigger={<h1 className={s.teamName}>{teamName}</h1>} content={teamName} />
+              <Tooltip
+                asChild
+                trigger={<h1 className={s.teamName}>{teamName}</h1>}
+                mobileTrigger={
+                  <p className={s.teamName} role="heading" aria-level={1}>
+                    {teamName}
+                  </p>
+                }
+                content={teamName}
+              />
 
               {isInactive && (
                 <span className={s.statusBadge}>
@@ -293,7 +305,7 @@ export const TeamDetails = (props: Props) => {
           <div className={s.aboutTitle}>About</div>
           <DetailsSectionGreyContentContainer className={s.aboutBox}>
             <ExpandableDescription>
-              <div className={s.aboutContent} dangerouslySetInnerHTML={{ __html: about }} />
+              <SafeHtml className={s.aboutContent} html={about} demoteHeadings />
             </ExpandableDescription>
           </DetailsSectionGreyContentContainer>
         </div>

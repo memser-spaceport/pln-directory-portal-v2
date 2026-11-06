@@ -10,6 +10,7 @@ import { AppLogo } from '@/components/core/navbar/components/icons';
 import am from '@/components/core/navbar/components/AccountMenu/AccountMenu.module.scss';
 import login from '@/components/core/navbar/components/LoginBtn/LoginButton.module.scss';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { SpvSectionNav, type SpvSection, type SpvSectionSource } from './SpvSectionNav/SpvSectionNav';
 import s from './SpvTopBar.module.scss';
 
 type Account = {
@@ -33,16 +34,32 @@ type Props = {
   onSignIn?: () => void;
   /** 'dark' over a black page (the Explore landing). */
   tone?: 'light' | 'dark';
+  /** The page's sections as links after the mark (the Explore landing). Left out, there are no nav items. */
+  sections?: readonly SpvSection[];
+  onSectionClick?: (id: string, source: SpvSectionSource) => void;
+  /** Makes the mark and name a back-to-top button. Left out, the logo isn't a link. */
+  onBrandClick?: () => void;
 };
 
 /**
  * The plain top bar of the chromeless investor pages: cube and name on the
  * left; on the right, Contact us and/or the viewer's account (avatar menu, or
- * Sign in). The logo isn't a link and there are no nav items.
+ * Sign in). By default the logo isn't a link and there are no nav items; the
+ * Explore landing adds its sections as links and a back-to-top mark.
  */
-export const SpvTopBar = ({ label, brandMark, supportEmail, account, onSignIn, tone = 'light' }: Props) => (
-  <header className={clsx(s.root, { [s.dark]: tone === 'dark' })}>
-    <div className={s.brand}>
+export const SpvTopBar = ({
+  label,
+  brandMark,
+  supportEmail,
+  account,
+  onSignIn,
+  tone = 'light',
+  sections,
+  onSectionClick,
+  onBrandClick,
+}: Props) => {
+  const brand = (
+    <>
       {brandMark ? (
         <>
           <span className={s.wordmark}>{brandMark}</span>
@@ -54,25 +71,43 @@ export const SpvTopBar = ({ label, brandMark, supportEmail, account, onSignIn, t
         </span>
       )}
       <span className={s.label}>{label}</span>
-    </div>
-    <div className={s.right}>
-      {supportEmail && (
-        <a className={s.link} href={`mailto:${supportEmail}`}>
-          Contact us
-        </a>
-      )}
-      {account ? (
-        <AccountMenu account={account} />
+    </>
+  );
+
+  return (
+    <header className={clsx(s.root, { [s.dark]: tone === 'dark', [s.withSections]: sections?.length })}>
+      {onBrandClick ? (
+        <button
+          type="button"
+          className={clsx(s.brand, s.brandButton)}
+          onClick={onBrandClick}
+          aria-label={`${label}: back to top`}
+        >
+          {brand}
+        </button>
       ) : (
-        onSignIn && (
-          <button type="button" className={clsx(login.root, s.signIn)} onClick={onSignIn}>
-            Sign in
-          </button>
-        )
+        <div className={s.brand}>{brand}</div>
       )}
-    </div>
-  </header>
-);
+      {!!sections?.length && <SpvSectionNav sections={sections} tone={tone} onSectionClick={onSectionClick} />}
+      <div className={s.right}>
+        {supportEmail && (
+          <a className={s.link} href={`mailto:${supportEmail}`}>
+            Contact us
+          </a>
+        )}
+        {account ? (
+          <AccountMenu account={account} />
+        ) : (
+          onSignIn && (
+            <button type="button" className={clsx(login.root, s.signIn)} onClick={onSignIn}>
+              Sign in
+            </button>
+          )
+        )}
+      </div>
+    </header>
+  );
+};
 
 const AccountMenu = ({ account }: { account: Account }) => {
   const fallback = useDefaultAvatar(account.name);

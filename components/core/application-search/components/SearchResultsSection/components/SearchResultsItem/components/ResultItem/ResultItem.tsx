@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import parse from 'html-react-parser';
 import React, { useCallback } from 'react';
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
@@ -8,12 +7,15 @@ import { useRouter } from 'next/navigation';
 import { SearchResultsItemProps } from '@/components/core/application-search/components/SearchResultsSection/components/SearchResultsItem';
 import { FoundItem } from '@/services/search/types';
 import { useUnifiedSearchAnalytics } from '@/analytics/unified-search.analytics';
+import { recordMemberSignal, searchIndexToEntityType } from '@/services/member-signals/member-signals.service';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { OhBadge } from '@/components/core/OhBadge/OhBadge';
 
 import { getFieldLabel } from '../../utils/getFieldLabel';
 
 import s from '@/components/core/application-search/components/SearchResultsSection/SearchResultsSection.module.scss';
+import { parseSafeHtml } from '@/utils/html';
+import { SafeHtml } from '@/components/ui/SafeHtml';
 
 interface Props extends SearchResultsItemProps {
   item: FoundItem;
@@ -32,6 +34,8 @@ export function ResultItem(props: Props) {
 
   const onClick = useCallback(() => {
     analytics.onSearchResultClick(item);
+    const entityType = searchIndexToEntityType(item.index);
+    if (entityType) recordMemberSignal({ action: 'search-result-click', entityType, entityId: item.uid });
 
     if (item.index !== 'events') {
       onSelect?.();
@@ -53,7 +57,7 @@ export function ResultItem(props: Props) {
             <Image src={defaultAvatar} alt={item.name} width={24} height={24} />
           </div>
           {matchedName ? (
-            <div className={s.name}>{parse(matchedName.content)}</div>
+            <div className={s.name}>{parseSafeHtml(matchedName.content, 'searchHighlight')}</div>
           ) : (
             <div className={s.name}>{item.name}</div>
           )}
@@ -72,7 +76,7 @@ export function ResultItem(props: Props) {
                   <div className={s.arrow}>
                     <Image src="/icons/row-arrow.svg" alt={item.name} width={26} height={26} />
                   </div>
-                  <p className={s.text} dangerouslySetInnerHTML={{ __html: match.content }} />
+                  <SafeHtml as="p" className={s.text} profile="searchHighlight" html={match.content} />
                   <div className={s.matchType}>{getFieldLabel(match.field)}</div>
                 </li>
               );

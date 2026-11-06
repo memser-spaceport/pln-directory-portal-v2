@@ -4,7 +4,9 @@ import clsx from 'clsx';
 import { useMemo } from 'react';
 import 'react-quill-new/dist/quill.snow.css';
 
+import { SafeHtml } from '@/components/ui/SafeHtml';
 import { linkifyHtml } from '@/utils/html';
+import type { SanitizeProfileName } from '@/utils/html/sanitizeProfiles';
 
 import s from './QuillContent.module.scss';
 
@@ -12,14 +14,14 @@ interface Props {
   html: string;
   className?: string;
   /**
-   * Final pass over the markup right before it is rendered. linkifyHtml emits markup of its own, so callers that
-   * render untrusted HTML pass their sanitizer here to make what reaches the DOM exactly sanitizer output.
+   * Allowlist for the final sanitize pass. linkifyHtml emits markup of its own, so sanitizing runs after it and what
+   * reaches the DOM is exactly sanitizer output.
    */
-  sanitize?: (html: string) => string;
+  profile?: SanitizeProfileName;
 }
 
 export function QuillContent(props: Props) {
-  const { html, className, sanitize } = props;
+  const { html, className, profile = 'richText' } = props;
 
   const linkifiedHtml = useMemo(() => {
     // Quill stores content with white-space:pre-wrap, which means it uses &nbsp;
@@ -27,11 +29,8 @@ export function QuillContent(props: Props) {
     // use white-space:normal, so those &nbsp; create unbreakable text runs that
     // cause text to overflow without wrapping. Replace them before rendering.
     const normalized = (html ?? '').replace(/&nbsp;/gi, ' ');
-    const linkified = linkifyHtml(normalized);
-    return sanitize ? sanitize(linkified) : linkified;
-  }, [html, sanitize]);
+    return linkifyHtml(normalized);
+  }, [html]);
 
-  return (
-    <div className={clsx('ql-editor', s.content, className)} dangerouslySetInnerHTML={{ __html: linkifiedHtml }} />
-  );
+  return <SafeHtml html={linkifiedHtml} profile={profile} className={clsx('ql-editor', s.content, className)} />;
 }

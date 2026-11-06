@@ -8,10 +8,12 @@ type Props = {
   /** Replaces the default disclaimer and its email (the Explore landing words its own; locked pages show none). */
   note?: React.ReactNode;
   onSupportEmailClicked?: () => void;
+  /** Explore PL Network hides the legal links. Spotlight pages keep them. */
+  showLegalLinks?: boolean;
 };
 
 /** The completed Demo Day's footer: the disclaimer, then the legal links. */
-export const SpvFooter = ({ supportEmail, note, onSupportEmailClicked }: Props) => (
+export const SpvFooter = ({ supportEmail, note, onSupportEmailClicked, showLegalLinks = true }: Props) => (
   <footer className={s.root}>
     <p className={s.note}>
       {note ?? (
@@ -33,15 +35,15 @@ export const SpvFooter = ({ supportEmail, note, onSupportEmailClicked }: Props) 
         </>
       )}
     </p>
-    <div className={s.links}>
-      <a className={s.link} href={PRIVACY_POLICY_URL} target="_blank" rel="noopener noreferrer">
-        Privacy Policy
-      </a>
-      <a className={s.link} href={TERMS_AND_CONDITIONS_URL} target="_blank" rel="noopener noreferrer">
-        Terms & Conditions
-      </a>
-    </div>
+    {showLegalLinks ? (
+      <div className={s.links}>
+        <a className={s.link} href={PRIVACY_POLICY_URL} target="_blank" rel="noopener noreferrer">
+          Privacy Policy
+        </a>
+        <a className={s.link} href={TERMS_AND_CONDITIONS_URL} target="_blank" rel="noopener noreferrer">
+          Terms & Conditions
+        </a>
+      </div>
+    ) : null}
   </footer>
 );
-
-export const spvFooterLinkClassName = s.mail;

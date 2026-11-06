@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { ForumQueryKeys } from '@/services/forum/constants';
-import { customFetch } from '@/utils/fetch-wrapper';
+import { forumFetch } from '@/services/forum/forum.service';
+import { liveTopics } from '@/services/forum/liveTopics';
 
 export type Topic = {
   category: Record<string, string>;
@@ -64,20 +65,8 @@ export type Topic = {
 };
 
 async function fetcher(cid: number | string, categoryTopicSort: string) {
-  const token = process.env.CUSTOM_FORUM_AUTH_TOKEN;
-
   if (cid === '0') {
-    const response = await customFetch(
-      `${process.env.FORUM_API_URL}/api/recent?categoryTopicSort=${categoryTopicSort}`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        credentials: 'include',
-      },
-      !token,
-    );
+    const response = await forumFetch(`/api/recent?categoryTopicSort=${categoryTopicSort}`);
 
     if (!response?.ok) {
       return [];
@@ -85,20 +74,10 @@ async function fetcher(cid: number | string, categoryTopicSort: string) {
 
     const data = await response.json();
 
-    return data.topics as Topic[];
+    return liveTopics<Topic>(data.topics);
   }
 
-  const response = await customFetch(
-    `${process.env.FORUM_API_URL}/api/v3/categories/${cid}/topics?categoryTopicSort=${categoryTopicSort}`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      credentials: 'include',
-    },
-    !token,
-  );
+  const response = await forumFetch(`/api/v3/categories/${cid}/topics?categoryTopicSort=${categoryTopicSort}`);
 
   if (!response?.ok) {
     return [];
@@ -106,7 +85,7 @@ async function fetcher(cid: number | string, categoryTopicSort: string) {
 
   const data = await response.json();
 
-  return data.response.topics as Topic[];
+  return liveTopics<Topic>(data.response.topics);
 }
 
 export function useForumPosts(cid = 1, categoryTopicSort = 'recently_replied') {

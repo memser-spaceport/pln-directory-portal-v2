@@ -50,12 +50,22 @@ export function LoginTokenRedeemer({ isLoggedIn }: { isLoggedIn: boolean }) {
         return;
       }
 
+      let sessionStarted = false;
       if (response.ok && response.data?.accessToken && response.data?.userInfo) {
         const formatted = structuredClone(response.data);
         if (formatted.userInfo && 'isFirstTimeLogin' in formatted.userInfo) {
           delete (formatted.userInfo as { isFirstTimeLogin?: boolean }).isFirstTimeLogin;
         }
-        saveSessionTokens(formatted);
+        sessionStarted = await saveSessionTokens(formatted).then(
+          () => true,
+          () => false,
+        );
+        if (cancelled) {
+          return;
+        }
+      }
+
+      if (sessionStarted) {
         analytics.onDirectoryLoginSuccess({ isAutoLogin: true });
         setIsRedeeming(false);
         // Let the signing-in modal unmount before showing success toast

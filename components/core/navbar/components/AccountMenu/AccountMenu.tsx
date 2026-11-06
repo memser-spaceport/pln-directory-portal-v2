@@ -35,8 +35,8 @@ export const AccountMenu = ({ userInfo }: Props) => {
   const router = useRouter();
   const { currentUser } = useCurrentUserStore();
 
-  const handleLogout = useCallback(() => {
-    clearAllAuthCookies();
+  const handleLogout = useCallback(async () => {
+    await clearAllAuthCookies();
     authEvents.emit('auth:logout');
     toast.success(TOAST_MESSAGES.LOGOUT_MSG);
     broadcastLogout();

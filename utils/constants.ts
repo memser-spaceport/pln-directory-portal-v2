@@ -256,6 +256,7 @@ export const COMMON_ANALYTICS_EVENTS = {
   NAVBAR_HOME_CLICKED: 'navbar-home-clicked',
   NAVBAR_HOME_NEW_NEWS_DOT_SHOWN: 'navbar-home-new-news-dot-shown',
   CONTACT_SUPPORT_TOPIC_PILL_SELECTED: 'contact-support-topic-pill-selected',
+  CONTACT_SUPPORT_SUBMITTED: 'contact-support-submitted',
 };
 
 export const NOTIFICATION_ANALYTICS_EVENTS = {
@@ -314,6 +315,14 @@ export const SETTINGS_ANALYTICS_EVENTS = {
   SETTINGS_SUBSCRIBE_TO_DEMO_DAY_UPDATES_CHANGE: 'settings-subscribe-to-demo-day-updates-change',
   SETTINGS_DEMO_DAY_UPDATES_NOTIFICATION_TOGGLE_CLICKED: 'settings-demo-day-updates-notification-toggle-clicked',
   SETTINGS_SUGGESTED_CANDIDATES_EMAIL_TOGGLE_CLICKED: 'settings-suggested-candidates-email-toggle-clicked',
+  // News preferences (LAB-2941)
+  SETTINGS_NEWS_PREFERENCES_OPENED: 'settings-news-preferences-opened',
+  SETTINGS_NEWS_PREFERENCES_TAG_TOGGLED: 'settings-news-preferences-tag-toggled',
+  SETTINGS_NEWS_PREFERENCES_SAVE_FAILED: 'settings-news-preferences-save-failed',
+  SETTINGS_NEWS_PREFERENCES_FOLLOW_TOGGLED: 'settings-news-preferences-follow-toggled',
+  SETTINGS_NEWS_PREFERENCES_TAG_SEARCHED: 'settings-news-preferences-tag-searched',
+  SETTINGS_NEWS_PREFERENCES_GROUP_EXPANDED: 'settings-news-preferences-group-expanded',
+  SETTINGS_NEWS_PREFERENCES_FOR_YOU_LINK_CLICKED: 'settings-news-preferences-for-you-link-clicked',
 };
 
 export const JOIN_NETWORK_ANALYTICS_EVENTS = {
@@ -429,6 +438,7 @@ export const AUTH_ANALYTICS = {
   AUTH_SIGN_UP_BTN_CLICKED: 'AUTH_SIGN_UP_BTN_CLICKED',
   AUTH_INVALID_USER_MODAL_SHOWN: 'AUTH_INVALID_USER_MODAL_SHOWN',
   AUTH_INVALID_USER_SIGNUP_CLICKED: 'AUTH_INVALID_USER_SIGNUP_CLICKED',
+  AUTH_INVALID_USER_TRY_ANOTHER_EMAIL_CLICKED: 'AUTH_INVALID_USER_TRY_ANOTHER_EMAIL_CLICKED',
   AUTH_LINK_ACCOUNT_SUBMIT_CLICKED: 'AUTH_LINK_ACCOUNT_SUBMIT_CLICKED',
   AUTH_LINK_ACCOUNT_CANCEL_CLICKED: 'AUTH_LINK_ACCOUNT_CANCEL_CLICKED',
 };
@@ -647,6 +657,8 @@ export const UNIFIED_SEARCH_ANALYTICS_EVENTS = {
   AI_CONVERSATION_HISTORY_OPEN_CLICK: 'unified-search-ai-conversation-history-open-clicked',
   AI_QUERY_SUBMITTED: 'unified-search-ai-query-submitted',
   EMAIL_QUERY_SUBMITTED: 'unified-search-email-query-submitted',
+  AI_WEB_SOURCES_SHOWN: 'unified-search-ai-web-sources-shown',
+  AI_WEB_SOURCE_CLICKED: 'unified-search-ai-web-source-clicked',
 };
 
 export const FORUM_ANALYTICS_EVENTS = {
@@ -665,6 +677,9 @@ export const FORUM_ANALYTICS_EVENTS = {
   POST_EDIT_CLICKED: 'forum-post-edit-clicked',
   EDIT_POST_SUBMIT: 'forum-edit-post-submit',
   EDIT_POST_CANCEL: 'forum-edit-post-cancel',
+  COMMENT_DELETE_CLICKED: 'forum-comment-delete-clicked',
+  COMMENT_DELETE_CONFIRMED: 'forum-comment-delete-confirmed',
+  COMMENT_DELETE_FAILED: 'forum-comment-delete-failed',
   DIGEST_EMAIL_POST_CLICKED: 'forum-digest-email-post-clicked',
   DIGEST_EMAIL_NEWS_CLICKED: 'forum-digest-email-news-clicked',
   DIGEST_EMAIL_SEE_ALL_NEWS_CLICKED: 'forum-digest-email-see-all-news-clicked',
@@ -707,6 +722,17 @@ export const HOME_ANALYTICS_EVENTS = {
   DISCOVER_HUSKY_AI_CLICKED: 'discover-husky-ai-clicked',
   FEATURED_FILTER_CLICKED: 'home_featured_filter_click',
   WELCOME_SIGNIN_CLICKED: 'home-welcome-signin-clicked',
+
+  // The new Home (LAB-3070 / LAB-3072).
+  AUTH_DOOR_CLICKED: 'home-auth-door-clicked',
+  NEWS_PICK_CLICKED: 'home-news-pick-clicked',
+  ROLE_CLICKED: 'home-role-clicked',
+  EVENT_CLICKED: 'home-event-clicked',
+  FOCUS_AREA_CLICKED: 'home-focus-area-clicked',
+  SEE_ALL_CLICKED: 'home-see-all-clicked',
+  // The signed-in Home (LAB-3125).
+  DEAL_CLICKED: 'home-deal-clicked',
+  FEED_TAG_SCOPE_CHANGED: 'home-feed-tag-scope-changed',
 };
 
 export const TEAM_NEWS_ANALYTICS_EVENTS = {
@@ -726,6 +752,11 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   // told apart from a chip nobody saw.
   TEAM_NEWS_COUNT_CHIP_SHOWN: 'team-news-count-chip-shown',
   TEAM_NEWS_FOR_YOU_UPDATE_PROFILE_CLICKED: 'team-news-for-you-update-profile-clicked',
+  TEAM_NEWS_FOR_YOU_TUNE_CLICKED: 'team-news-for-you-tune-clicked',
+  // A `#tag` on a Home story narrows the feed to that tag (LAB-3010); cleared by
+  // the filter chip's × or by clicking the active tag again.
+  TEAM_NEWS_TAG_FILTER_APPLIED: 'team-news-tag-filter-applied',
+  TEAM_NEWS_TAG_FILTER_CLEARED: 'team-news-tag-filter-cleared',
   TEAM_NEWS_SHOW_MORE_CLICKED: 'team-news-show-more-clicked',
   TEAM_NEWS_CARD_CLICKED: 'team-news-card-clicked',
   TEAM_NEWS_DETAIL_MODAL_OPENED: 'team-news-detail-modal-opened',
@@ -778,6 +809,10 @@ export const FOLLOW_ANALYTICS_EVENTS = {
   TEAM_FOLLOWED: 'team-news-team-followed',
   TEAM_UNFOLLOWED: 'team-news-team-unfollowed',
   TEAM_FOLLOW_FAILED: 'team-follow-failed',
+};
+
+export const INTRO_REQUEST_ANALYTICS_EVENTS = {
+  ASK_SUBMITTED: 'ask-submitted',
 };
 
 export const AFFINITY_ANALYTICS_EVENTS = {
@@ -2841,6 +2876,18 @@ export const MCP_ANALYTICS_EVENTS = {
   WARM_PATH_NOTE_OPENED: 'mcp-warm-path-note-opened',
   WARM_PATH_NOTE_SUBMITTED: 'mcp-warm-path-note-submitted',
   WARM_PATH_NOTE_CLEARED: 'mcp-warm-path-note-cleared',
+  // Settings → MCP connections (LAB-2995)
+  CONNECTIONS_PAGE_VIEWED: 'mcp-connections-page-viewed',
+  PERMISSIONS_DRAWER_OPENED: 'mcp-permissions-drawer-opened',
+  SCOPE_LEVELS_SAVED: 'mcp-scope-levels-saved',
+  SCOPE_LEVELS_SAVE_FAILED: 'mcp-scope-levels-save-failed',
+  ACCESS_REQUEST_OPENED: 'mcp-access-request-opened',
+  CONTACT_ACK_CHECKED: 'mcp-contact-ack-checked',
+  // Discovery hints: launch bar + contextual hints (LAB-3033)
+  HINT_SHOWN: 'mcp-hint-shown',
+  HINT_DISMISSED: 'mcp-hint-dismissed',
+  HINT_CONNECT_CLICKED: 'mcp-hint-connect-clicked',
+  HINT_PROMPT_COPIED: 'mcp-hint-prompt-copied',
 };
 
 export const EDITOR_ANALYTICS = {
@@ -2873,4 +2920,6 @@ export const EXPLORE_PL_NETWORK_ANALYTICS = {
   ON_LIST_SHOW_ALL_TOGGLED: 'explore-pl-network-list-show-all-toggled',
   ON_LOGO_WALL_SHOW_ALL_TOGGLED: 'explore-pl-network-logo-wall-show-all-toggled',
   ON_ENTITY_CLICKED: 'explore-pl-network-entity-clicked',
+  ON_SECTION_LINK_CLICKED: 'explore-pl-network-section-link-clicked',
+  ON_LOGO_CLICKED: 'explore-pl-network-logo-clicked',
 };

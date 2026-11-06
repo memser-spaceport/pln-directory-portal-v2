@@ -36,8 +36,7 @@ const Error = ({
           <div className="error-container__content__message">
             <h2 className="error-container__content__message__title">{title}</h2>
             <p className="error-container__content__message__desc">
-              The page you&apos;re looking for doesn&apos;t exists or has been removed. Please try searching on
-              the&nbsp;
+              The page you&apos;re looking for doesn&apos;t exist or has been removed. Please try searching on the&nbsp;
               <a href={PAGE_ROUTES.TEAMS} className="error-container__content__message__desc__link">
                 teams
               </a>

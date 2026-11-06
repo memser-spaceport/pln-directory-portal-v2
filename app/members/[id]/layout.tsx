@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { getMember } from '@/services/members.service';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
-import { absoluteUrl, htmlToPlainSnippet } from '@/utils/seo';
+import { absoluteUrl, htmlToPlainSnippet, PROFILE_ERROR_ROBOTS } from '@/utils/seo';
 
 type LayoutProps = {
   children: ReactNode;
@@ -40,8 +40,10 @@ async function isMemberNotFound(id: string, cached: Awaited<ReturnType<typeof ge
 export async function generateMetadata({ params }: LayoutProps): Promise<Metadata> {
   const { id } = await params;
   const pageUrl = absoluteUrl(`${PAGE_ROUTES.MEMBERS}/${id}`);
+  // Only when the member could not be loaded, so `noindex` (LAB-3087): what renders is not the profile.
   const fallback: Metadata = {
     title: 'Member | Protocol Labs Directory',
+    robots: PROFILE_ERROR_ROBOTS,
     alternates: { canonical: pageUrl },
     openGraph: { type: 'website', url: pageUrl, images: [SOCIAL_IMAGE_URL] },
     twitter: { card: 'summary_large_image', images: [SOCIAL_IMAGE_URL] },

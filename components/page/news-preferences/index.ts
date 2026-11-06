@@ -1,0 +1,1 @@
+export { NewsPreferences } from './NewsPreferences';

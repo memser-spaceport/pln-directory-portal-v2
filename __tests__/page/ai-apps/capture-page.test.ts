@@ -4,6 +4,8 @@
  * and sticky/fixed bars put back where they sit on screen.
  */
 
+import { envelope } from '@/ai-apps-bridge/protocol';
+import { FEEDBACK_BRIDGE_ATTR } from '@/components/page/ai-apps/components/screenshot-feedback/captureBridgedFrames';
 import {
   capturePageViewport,
   FEEDBACK_CAPTURE_IGNORE_ATTR,
@@ -218,6 +220,214 @@ describe('capturePageViewport', () => {
     await capturePageViewport();
     expect(connected).toEqual([false, true, false]);
     expect([off.isConnected, on.isConnected, lazy.isConnected]).toEqual([true, true, true]);
+  });
+
+  describe('videos', () => {
+    /* jsdom has no media pipeline or canvas: a video's state and the frame grab are stubbed. */
+    const videoIn = (html: string, state: { readyState: number; rect?: typeof ON_SCREEN }) => {
+      document.body.innerHTML = html;
+      const video = document.querySelector('video') as HTMLVideoElement;
+      const rect = state.rect ?? ON_SCREEN;
+      Object.defineProperty(video, 'readyState', { configurable: true, get: () => state.readyState });
+      Object.defineProperty(video, 'videoWidth', { configurable: true, get: () => 640 });
+      Object.defineProperty(video, 'videoHeight', { configurable: true, get: () => 360 });
+      box(video, rect);
+      video.getClientRects = () => [rectOf(rect)] as unknown as DOMRectList;
+      return video;
+    };
+    const stubFrame = (toDataURL: () => string) => {
+      jest
+        .spyOn(HTMLCanvasElement.prototype, 'getContext')
+        .mockReturnValue({ drawImage: jest.fn() } as unknown as CanvasRenderingContext2D);
+      jest.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockImplementation(toDataURL);
+    };
+    const cloneWith = (check: (clone: HTMLElement) => void) =>
+      mockDomToJpeg.mockImplementation(async (context: FakeContext) => {
+        const clone = document.documentElement.cloneNode(true) as HTMLElement;
+        clone.querySelectorAll('video').forEach((v) => v.remove());
+        context.onCloneNode(clone);
+        check(clone);
+        return 'data:image/jpeg;base64,AAAA';
+      });
+
+    it('never hands a video to the renderer', async () => {
+      const video = videoIn('<div><video></video></div>', { readyState: 4 });
+      stubFrame(() => 'data:image/jpeg;base64,FRAME');
+
+      await capturePageViewport();
+
+      expect(captureOptions().filter(video)).toBe(false);
+    });
+
+    it('puts the frame on screen where the video was, and leaves the playing video alone', async () => {
+      const video = videoIn('<div id="player"><video></video><div id="controls"></div></div>', { readyState: 4 });
+      stubFrame(() => 'data:image/jpeg;base64,FRAME');
+      let connectedDuringCapture = false;
+      mockCreateContext.mockImplementation(async (node: Node, options: object) => {
+        connectedDuringCapture = video.isConnected;
+        return { node, ...options, drawImageCount: 0 };
+      });
+      cloneWith((clone) => {
+        const still = clone.querySelector('#controls')!.previousElementSibling as HTMLImageElement;
+        expect(still.tagName).toBe('IMG');
+        expect(still.src).toBe('data:image/jpeg;base64,FRAME');
+      });
+
+      await capturePageViewport();
+
+      expect(connectedDuringCapture).toBe(true);
+      expect(byId('controls').hasAttribute('data-feedback-capture-still-before')).toBe(false);
+    });
+
+    it('leaves an empty box when the browser will not hand over the frame', async () => {
+      videoIn('<div id="player"><video></video></div>', { readyState: 4 });
+      stubFrame(() => {
+        throw new DOMException('The canvas has been tainted', 'SecurityError');
+      });
+      cloneWith((clone) => {
+        const still = clone.querySelector('#player')!.lastElementChild!;
+        expect(still.tagName).toBe('DIV');
+      });
+
+      await capturePageViewport();
+
+      expect(byId('player').hasAttribute('data-feedback-capture-still-end')).toBe(false);
+    });
+
+    it('stands an empty box in for a video still loading during the capture, then puts the video back', async () => {
+      const video = videoIn('<div id="player"><video></video></div>', { readyState: 0 });
+      let duringCapture: { connected: boolean; standIn: string | undefined } | undefined;
+      mockCreateContext.mockImplementation(async (node: Node, options: object) => {
+        duringCapture = { connected: video.isConnected, standIn: byId('player').firstElementChild?.tagName };
+        return { node, ...options, drawImageCount: 0 };
+      });
+
+      await capturePageViewport();
+
+      expect(duringCapture).toEqual({ connected: false, standIn: 'DIV' });
+      expect(byId('player').firstElementChild).toBe(video);
+    });
+  });
+
+  describe('images', () => {
+    const mockFetch = (outcomes: Array<'ok' | 'fail'>) => {
+      const fetchMock = jest.fn();
+      outcomes.forEach((outcome) =>
+        outcome === 'ok'
+          ? fetchMock.mockResolvedValueOnce({ ok: true, blob: async () => new Blob(['img'], { type: 'image/png' }) })
+          : fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch')),
+      );
+      Object.defineProperty(window, 'fetch', { configurable: true, writable: true, value: fetchMock });
+      return fetchMock;
+    };
+    const cacheModes = (fetchMock: jest.Mock) => fetchMock.mock.calls.map(([, init]) => init.cache);
+
+    it('takes an image from the cache when the cached copy can be read', async () => {
+      await capturePageViewport();
+      const fetchMock = mockFetch(['ok']);
+
+      expect(await captureOptions().fetchFn('https://cdn.example/a.png')).toMatch(/^data:image\/png/);
+      expect(cacheModes(fetchMock)).toEqual(['force-cache']);
+    });
+
+    it('fetches an image again past the cache when its cached copy fails CORS', async () => {
+      await capturePageViewport();
+      const fetchMock = mockFetch(['fail', 'ok']);
+
+      expect(await captureOptions().fetchFn('https://cdn.example/a.png')).toMatch(/^data:image\/png/);
+      expect(cacheModes(fetchMock)).toEqual(['force-cache', 'no-cache']);
+    });
+
+    it('hands an image that cannot be fetched back to the renderer', async () => {
+      await capturePageViewport();
+      mockFetch(['fail', 'fail']);
+
+      expect(await captureOptions().fetchFn('https://cdn.example/a.png')).toBe(false);
+    });
+  });
+
+  describe('bridged iframes', () => {
+    const FRAME_ORIGIN = 'https://events.example';
+    const FRAME_SHOT = 'data:image/jpeg;base64,QQ==';
+    let restoreImage: () => void;
+
+    beforeEach(() => {
+      const RealImage = window.Image;
+      class FakeImage {
+        onload: (() => void) | null = null;
+        naturalWidth = window.innerWidth;
+        naturalHeight = window.innerHeight;
+        set src(_src: string) {
+          this.onload?.();
+        }
+      }
+      window.Image = FakeImage as unknown as typeof Image;
+      restoreImage = () => {
+        window.Image = RealImage;
+      };
+    });
+
+    afterEach(() => {
+      restoreImage();
+    });
+
+    const mountFrame = (reply: (message: { type: string; payload?: { key?: string } }) => unknown) => {
+      const iframe = document.createElement('iframe');
+      iframe.setAttribute(FEEDBACK_BRIDGE_ATTR, '');
+      iframe.setAttribute('src', `${FRAME_ORIGIN}/embed/map/`);
+      document.body.appendChild(iframe);
+      const win = iframe.contentWindow as Window;
+      box(iframe, { top: 40, left: 8, width: 300, height: 200 });
+      jest.spyOn(win, 'postMessage').mockImplementation((data: unknown) => {
+        const message = data as { type: string; payload?: { key?: string } };
+        window.dispatchEvent(new MessageEvent('message', { origin: FRAME_ORIGIN, source: win, data: reply(message) }));
+      });
+      return { iframe, win };
+    };
+
+    it('paints a bridge capture where the iframe sits', async () => {
+      mountFrame((message) => {
+        if (message.type === 'hello') {
+          return envelope({ type: 'ready', payload: { capabilities: ['capture'], session: 's' } });
+        }
+        return envelope({
+          type: 'capture:result',
+          payload: { key: message.payload?.key, dataUrl: FRAME_SHOT, width: 300, height: 200 },
+        });
+      });
+      const drawImage = jest.fn();
+      jest
+        .spyOn(HTMLCanvasElement.prototype, 'getContext')
+        .mockReturnValue({ drawImage } as unknown as CanvasRenderingContext2D);
+      jest.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue('data:image/jpeg;base64,COMPOSITE');
+
+      const result = await capturePageViewport();
+
+      expect(result.dataUrl).toBe('data:image/jpeg;base64,COMPOSITE');
+      expect(drawImage).toHaveBeenLastCalledWith(expect.any(Object), 8, 40, 300, 200);
+    });
+
+    it('keeps the page picture when the bridge cannot capture', async () => {
+      const { win } = mountFrame(() => envelope({ type: 'ready', payload: { capabilities: ['pick'], session: 's' } }));
+
+      const result = await capturePageViewport();
+
+      expect(result.dataUrl).toBe('data:image/jpeg;base64,AAAA');
+      expect(win.postMessage).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not ask an iframe that is not marked for the bridge', async () => {
+      const iframe = document.createElement('iframe');
+      iframe.src = `${FRAME_ORIGIN}/embed/map/`;
+      document.body.appendChild(iframe);
+      const postMessage = jest.fn();
+      Object.defineProperty(iframe, 'contentWindow', { value: { postMessage } });
+
+      const result = await capturePageViewport();
+
+      expect(result.dataUrl).toBe('data:image/jpeg;base64,AAAA');
+      expect(postMessage).not.toHaveBeenCalled();
+    });
   });
 
   it('gives the renderer font files that were already prepared', async () => {

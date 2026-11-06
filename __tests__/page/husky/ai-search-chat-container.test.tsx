@@ -36,7 +36,11 @@ jest.mock('@/analytics/husky.analytics', () => ({
     new Proxy({ trackMobileHeaderNewConversationClicked }, { get: (target: any, key) => target[key] ?? jest.fn() }),
 }));
 jest.mock('@/analytics/unified-search.analytics', () => ({
-  useUnifiedSearchAnalytics: () => ({ onAiQuerySubmitted: jest.fn() }),
+  useUnifiedSearchAnalytics: () => ({
+    onAiQuerySubmitted: jest.fn(),
+    onAiWebSourcesShown: jest.fn(),
+    onAiWebSourceClicked: jest.fn(),
+  }),
 }));
 jest.mock('@/components/core/ToastContainer', () => ({ toast: { error: jest.fn(), info: jest.fn() } }));
 jest.mock('@/components/core/login/utils', () => ({ useLoginRedirect: () => jest.fn() }));
@@ -90,7 +94,7 @@ const typeAndSend = (text: string) => {
 };
 
 const renderSignedIn = () => {
-  Cookies.set('refreshToken', JSON.stringify('refresh-jwt'));
+  Cookies.set('sessionExpiresAt', '2000000000');
   return render(<ChatContainer isLoggedIn />);
 };
 
@@ -100,7 +104,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   localStorage.clear();
   sessionStorage.clear();
-  Cookies.remove('refreshToken');
+  Cookies.remove('sessionExpiresAt');
   Cookies.remove('dailyChats');
 });
 

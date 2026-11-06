@@ -19,6 +19,8 @@ import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { useUnifiedSearchAnalytics, type AiQuerySubmitType } from '@/analytics/unified-search.analytics';
 
 import HuskyLimitStrip from '@/components/core/husky/husky-limit-strip';
+import { McpHint } from '@/components/core/mcp-hints/McpHint';
+import { countAiSearch } from '@/components/core/mcp-hints/aiSearchSessionCount';
 
 import { OPEN_VISIT_CHAT_EVENT, PENDING_FOLLOW_UP_KEY_PREFIX } from '../constants/visitChats';
 
@@ -49,7 +51,7 @@ interface Props {
 }
 
 export const Chat = (props: Props) => {
-  const { id, isLoggedIn, initialMessages, setInitialMessages, from, setType, isOwnThread, threadOwner, title } = props;
+  const { id, isLoggedIn, initialMessages, from, isOwnThread, threadOwner, title } = props;
 
   const [limitReached, setLimitReached] = useState<'warn' | 'info' | 'finalRequest'>();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -254,6 +256,7 @@ export const Chat = (props: Props) => {
         setOpenThreadId(threadId);
         const chatUid = generateUUID();
         setQuestion(question);
+        countAiSearch();
         addMessage(question, chatUid);
 
         const submitParams = {
@@ -478,11 +481,7 @@ export const Chat = (props: Props) => {
       <>
         <ChatTitleBar />
         <div className={s.home}>
-          <ChatHome
-            onSubmit={onHuskyInput}
-            setMessages={setInitialMessages ?? (() => {})}
-            setType={setType ?? (() => {})}
-          />
+          <ChatHome onSubmit={onHuskyInput} />
         </div>
       </>
     );
@@ -514,6 +513,8 @@ export const Chat = (props: Props) => {
               showRating={isLoggedIn}
               canRate={isOwnThread || from !== 'detail'}
             />
+            {/* In the scrolling list, under the answer: inside the fixed composer it would cover the answer's end. */}
+            <McpHint context="search" query={messages[messages.length - 1]?.question ?? ''} />
           </div>
 
           <div data-state={state} className={s.formWrapper}>

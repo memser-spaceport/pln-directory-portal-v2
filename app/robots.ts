@@ -16,6 +16,6 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     sitemap: baseUrl ? `${baseUrl}/sitemap.xml` : undefined,
-    host: baseUrl || undefined,
+    // No `Host:` (LAB-3094): Google ignores it, and it is not in the robots.txt standard.
   };
 }

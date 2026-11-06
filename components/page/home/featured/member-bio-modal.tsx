@@ -6,6 +6,7 @@ import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.uti
 import { EVENTS, PAGE_ROUTES } from '@/utils/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useEffect, useRef, useState } from 'react';
+import { safeHtmlProps } from '@/utils/html';
 
 const MemberBioModal = () => {
   const [member, setMember] = useState<IMember>();
@@ -59,7 +60,7 @@ const MemberBioModal = () => {
             <h1 className="bio__hdr__ttl">{`${name}'s Intro`}</h1>
           </div>
           <div className="bio__body">
-            <div className="bio__body__content" dangerouslySetInnerHTML={{ __html: bio }} />
+            <div className="bio__body__content" {...safeHtmlProps(bio)} />
           </div>
           <div className="bio__ftr">
             <button onClick={onMemberClick} className="bio__ftr__viewProfileBtn">

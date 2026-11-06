@@ -92,3 +92,20 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+// The link to News preferences under Network news (LAB-2941).
+.crossLink {
+  margin: 8px 0 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.crossLinkAnchor {
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

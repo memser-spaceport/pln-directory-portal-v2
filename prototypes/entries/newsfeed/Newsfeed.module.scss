@@ -462,6 +462,28 @@
   background: var(--background-brand-soft-surface, #f2f5ff);
 }
 
+/* Topic chip + its Follow, kept together so the row can wrap between groups
+   but never between a chip and the action that belongs to it. */
+.topicScope {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Quieter than the "Filter:" label: a fact about the chip, not a control. */
+.topicCount {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  white-space: nowrap;
+}
+
+.toastLink {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
 .scopeChipLabel.scopeChipLabel {
   cursor: default;
   color: var(--foreground-neutral-secondary, #455468);
@@ -1616,19 +1638,62 @@
   }
 }
 
-/* Dev's `ForYouHint` link, on a button because it opens settings in place. */
+/* 2026-11-02: the note on the plain page, explanation left and the action at
+   the row's right end (see ForYouBanner). Stacks on a phone. */
+.forYouPlain.forYouPlain {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 24px;
+  margin-bottom: 16px;
+
+  @include mobile-only {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.forYouText {
+  margin: 0;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  /* "For you · …": the dot carries the spacing, not the label's margin. */
+  .forYouLabel {
+    margin-right: 0;
+  }
+}
+
+/* A text link with an arrow, on a button because it opens settings in place. */
 .forYouLink {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
   padding: 0;
   border: 0;
   background: none;
   font: inherit;
+  font-size: 14px;
   font-weight: 500;
-  color: var(--foreground-brand-primary, #1b4dff);
+  line-height: 20px;
+  white-space: nowrap;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-decoration: underline;
+  text-decoration-color: var(--border-neutral-strong, rgba(27, 56, 96, 0.32));
+  text-underline-offset: 4px;
   cursor: pointer;
 
   &:hover {
-    text-decoration: underline;
+    text-decoration-color: currentColor;
   }
+}
+
+.forYouArrow {
+  flex-shrink: 0;
 }
 
 /* Upcoming events rows: the thumbnail + text pairing of Teams to follow's

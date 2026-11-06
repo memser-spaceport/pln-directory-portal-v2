@@ -57,13 +57,22 @@ describe('activity popup disclaimer and CTA', () => {
     expect(windowOpen).not.toHaveBeenCalled();
   });
 
-  it('gives every link in the two new activities an in-site path or a mailto address', () => {
-    const urls = ['submit-deal-debrief', 'book-office-hours'].flatMap((id) => {
-      const popup = activitiesData.activities.find((item) => item.id === id)?.popupContent;
-      return [popup?.ctaLink, ...(popup?.links ?? []).map((link) => link.url)].filter(Boolean);
+  it('gives every activity link an in-site path, an https URL or a plrs.xyz mailto address', () => {
+    const urls = activitiesData.activities.flatMap(({ popupContent: popup }) => {
+      const text = [
+        popup.description,
+        popup.overview,
+        popup.networkBenefits,
+        popup.submissionNote,
+        ...(popup.rules ?? []),
+      ]
+        .filter(Boolean)
+        .join('\n');
+      const inline = Array.from(text.matchAll(/\]\(([^)]*)\)/g), (match) => match[1]);
+      return [popup.ctaLink, ...(popup.links ?? []).map((link) => link.url), ...inline].filter(Boolean);
     });
 
     expect(urls.length).toBeGreaterThan(0);
-    for (const url of urls) expect(url).toMatch(/^(\/[^/]|mailto:[^@\s]+@plrs\.xyz$)/);
+    for (const url of urls) expect(url).toMatch(/^(\/[^/]|https:\/\/\S+$|mailto:[^@\s]+@plrs\.xyz$)/);
   });
 });

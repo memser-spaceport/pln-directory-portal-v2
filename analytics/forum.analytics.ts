@@ -122,6 +122,18 @@ export const useForumAnalytics = () => {
     captureEvent(FORUM_ANALYTICS_EVENTS.EDIT_POST_CANCEL, {});
   }
 
+  function onCommentDeleteClicked(params: { tid?: string | number; pid?: string | number }) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.COMMENT_DELETE_CLICKED, params);
+  }
+
+  function onCommentDeleteConfirmed(params: { tid?: string | number; pid?: string | number }) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.COMMENT_DELETE_CONFIRMED, params);
+  }
+
+  function onCommentDeleteFailed(params: { tid?: string | number; pid?: string | number; error: string }) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.COMMENT_DELETE_FAILED, params);
+  }
+
   function onDigestEmailPostLinkClicked(params: Record<string, string | null>) {
     captureEvent(FORUM_ANALYTICS_EVENTS.DIGEST_EMAIL_POST_CLICKED, params);
   }
@@ -256,6 +268,9 @@ export const useForumAnalytics = () => {
 
   return {
     onForumTopicClicked,
+    onCommentDeleteClicked,
+    onCommentDeleteConfirmed,
+    onCommentDeleteFailed,
     onForumSortSelected,
     onCreatePostClicked,
     onCreatePostSubmit,

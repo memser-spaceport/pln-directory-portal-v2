@@ -32,6 +32,7 @@ import tc from '@/components/page/jobs/TeamGroupCard/TeamGroupCard.module.scss';
 // The row's own `New` badge and its clock line, for the same reason.
 import rr from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/ReferRoleRow.module.scss';
 import d from './JobDetailPane.module.scss';
+import { SafeHtml } from '@/components/ui/SafeHtml';
 
 /** A team object for the closed drawer, so `useGetFocusTags` is called
  *  unconditionally. Never rendered — the body is gated on `role && team`. */
@@ -221,7 +222,7 @@ export function JobDetailPane(props: JobDetailPaneProps) {
               /* Sanitized above, and the sanitizer is the allowlist — see
                    `sanitizeJobDescriptionHtml`. No parser here because nothing
                    transforms the nodes; the stylesheet does all the work. */
-              <div className={d.body} dangerouslySetInnerHTML={{ __html: body }} />
+              <SafeHtml className={d.body} profile="jobDescription" html={body} />
             ) : (
               /* The honest empty state — still what most roles show, because
                    the ingest only carries a body for the teams whose careers

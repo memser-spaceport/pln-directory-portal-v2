@@ -17,6 +17,7 @@ import { useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnal
 import { TEAM_PITCH_ANALYTICS } from '@/utils/constants';
 import s from './PitchSpotlightHero.module.scss';
 import { useLoginRedirect } from '@/components/core/login/utils';
+import { SafeHtml } from '@/components/ui/SafeHtml';
 
 export type PitchSpotlightHeroVariant =
   | 'notLoggedIn'
@@ -288,12 +289,11 @@ export const PitchSpotlightHero = ({
           {variant === 'closedPreview' && <p className={s.prepLabel}>[Closed]</p>}
           <h1 className={s.title}>{title}</h1>
           {description && (
-            <p
+            <SafeHtml
+              as="p"
               className={s.description}
-              dangerouslySetInnerHTML={{
-                // Quill stores spaces as &nbsp;, which prevents wrapping and overflows the card.
-                __html: description.replace(/&nbsp;|&#0*160;|&#x0*a0;|\u00A0/gi, ' '),
-              }}
+              // Quill stores spaces as &nbsp;, which prevents wrapping and overflows the card.
+              html={description.replace(/&nbsp;|&#0*160;|&#x0*a0;|\u00A0/gi, ' ')}
             />
           )}
           {renderTeamLine()}

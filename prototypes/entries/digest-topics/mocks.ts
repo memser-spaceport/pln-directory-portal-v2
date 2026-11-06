@@ -1,21 +1,57 @@
-import type { TeamNewsEventType } from '@/types/team-news.types';
-
-// The news categories from the Home feed's category row, in its order.
-// "Discussions" is left out on purpose: in the digest, forum discussions are
-// already the "Forum activity" toggle, so a Discussions chip would duplicate it.
-// HIRING exists in TeamNewsEventType but isn't in the feed's row, so it's not here.
-export const CATEGORIES: TeamNewsEventType[] = [
-  'FUNDING',
-  'LAUNCH',
-  'PARTNERSHIP',
-  'ANNOUNCEMENT',
-  'MILESTONE',
-  'DEALS',
-  'OTHER',
+// Tags (hashtags) a member can subscribe to: the real list (25), as shipped on
+// the news cards. They replace both the Home feed's categories and the team
+// focus areas as what shapes For You and the digest.
+//
+// The GROUPS are invented: a theme split so 25 chips can be scanned by row
+// instead of read one by one. Backend question: who owns the grouping?
+// Alphabetical inside each group.
+export const TAG_GROUPS: { label: string; tags: string[] }[] = [
+  {
+    label: 'AI & frontier tech',
+    tags: ['ai', 'ai-robotics', 'desci', 'frontier-tech', 'neurotech', 'whole-brain-emulation'],
+  },
+  {
+    label: 'Web3 infrastructure',
+    tags: [
+      'blockchain-protocols',
+      'blockchain-security',
+      'cryptographic-proofs',
+      'decentralized-compute',
+      'decentralized-storage',
+      'development-infrastructure',
+    ],
+  },
+  {
+    label: 'Digital rights',
+    tags: ['data-ownership', 'digital-human-rights', 'self-sovereign-identity', 'verifiable-content'],
+  },
+  {
+    label: 'Economies & governance',
+    tags: ['capital', 'climate-refi', 'defi', 'degov', 'economies-governance', 'public-goods-funding'],
+  },
+  {
+    label: 'The network',
+    tags: ['build-innovation-network', 'network-programs', 'service-providers'],
+  },
 ];
 
-// The profile signals For You and the digest suggest news from. Only the ones confirmed
-// by the user are named (skills, focus areas). Add more here once confirmed.
+export const TOPICS: string[] = TAG_GROUPS.flatMap((g) => g.tags);
+
+export interface SuggestedTeam {
+  uid: string;
+  name: string;
+  logo: string;
+  focusArea: string;
+  followers: number;
+}
+
+export const SUGGESTED_TEAMS: SuggestedTeam[] = [
+  { uid: 'filecoin', name: 'Filecoin Foundation', logo: '/icons/technology/filecoin.svg', focusArea: 'Storage', followers: 412 },
+  { uid: 'libp2p', name: 'libp2p', logo: '/icons/technology/libp2p.svg', focusArea: 'Networking', followers: 286 },
+  { uid: 'fvm', name: 'FVM', logo: '/icons/technology/fvm.svg', focusArea: 'Infrastructure', followers: 231 },
+  { uid: 'ipfs', name: 'IPFS', logo: '/icons/technology/ipfs.svg', focusArea: 'Storage', followers: 198 },
+];
+
 export type Persona = 'complete' | 'investor' | 'empty';
 
 export interface FollowedTeam {
@@ -27,36 +63,44 @@ export interface FollowedTeam {
 
 export interface PersonaMock {
   label: string;
-  skills: string[];
+  /** Topics subscribed to on arrival (backend would prefill these). */
+  topics: string[];
+  /** What the prefilled topics were picked from, for the card's description. */
+  prefilledFrom: string | null;
   follows: FollowedTeam[];
-  /** Focus areas and where they come from; null = nothing to read them from. */
-  focus: null | { from: 'team'; teamName: string; teamUid: string; areas: string[] } | { from: 'investor'; areas: string[] };
 }
 
 export const PERSONAS: Record<Persona, PersonaMock> = {
   complete: {
     label: 'Team member',
-    skills: ['Rust', 'Distributed systems', 'Protocol design'],
+    topics: [
+      'blockchain-protocols',
+      'cryptographic-proofs',
+      'decentralized-compute',
+      'decentralized-storage',
+      'development-infrastructure',
+      'network-programs',
+    ],
+    prefilledFrom: 'your skills and Protocol Labs’ focus areas',
     follows: [
       { uid: 'libp2p', name: 'libp2p', logo: '/icons/technology/libp2p.svg', focusArea: 'Networking' },
       { uid: 'drand', name: 'drand', logo: '/icons/technology/drand.svg', focusArea: 'Infrastructure' },
       { uid: 'ipfs', name: 'IPFS', logo: '/icons/technology/ipfs.svg', focusArea: 'Storage' },
     ],
-    focus: { from: 'team', teamName: 'Protocol Labs', teamUid: 'protocol-labs', areas: ['Infrastructure', 'Networking', 'Storage'] },
   },
   investor: {
     label: 'Investor',
-    skills: ['Fundraising', 'Go-to-market'],
+    topics: ['ai', 'capital', 'defi', 'economies-governance', 'public-goods-funding'],
+    prefilledFrom: 'your skills and investment focus',
     follows: [
       { uid: 'ritual-net', name: 'Ritual', logo: '/icons/technology/ipld.svg', focusArea: 'AI' },
       { uid: 'filecoin', name: 'Filecoin Foundation', logo: '/icons/technology/filecoin.svg', focusArea: 'Storage' },
     ],
-    focus: { from: 'investor', areas: ['AI', 'Staking', 'Governance', 'DePIN'] },
   },
   empty: {
     label: 'Empty profile',
-    skills: [],
+    topics: [],
+    prefilledFrom: null,
     follows: [],
-    focus: null,
   },
 };

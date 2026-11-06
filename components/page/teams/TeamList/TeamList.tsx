@@ -63,7 +63,10 @@ export function TeamList(props: TeamListProps) {
   return (
     <div className={s.root}>
       <div className={s.titleSec}>
-        <h1 className={s.title}>Teams</h1>
+        {/* Not a heading: the toolbar's "Teams" is the page's one h1 at every width (LAB-3089). */}
+        <p className={s.title} aria-hidden="true">
+          Teams
+        </p>
         <div className={s.count}>({totalTeams})</div>
         {isLoggedIn && (
           <div className={s.scopeTabs}>

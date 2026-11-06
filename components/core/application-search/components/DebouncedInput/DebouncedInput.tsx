@@ -142,6 +142,7 @@ export const DebouncedInput: FC<Props> = ({
         <button
           id="application-search-flush"
           className={clsx(s.flushButton, classes?.flushBtn)}
+          aria-label="Search"
           onClick={() => {
             debouncedChange.flush();
             onImplictFlush?.();

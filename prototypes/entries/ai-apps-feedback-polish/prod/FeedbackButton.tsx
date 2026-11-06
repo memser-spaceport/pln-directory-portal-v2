@@ -13,7 +13,7 @@ import {
 import type { AppCapture } from '@/components/page/ai-apps/components/element-pins/useElementPins';
 
 // Production stylesheets, verbatim: the button, and the popover's card for the comment card.
-import s from '@/components/page/ai-apps/components/FloatingFeedbackButton/FloatingFeedbackButton.module.scss';
+import s from '@/components/page/ai-apps/components/FeedbackFabButton/FeedbackFabButton.module.scss';
 import fd from '@/components/page/ai-apps/components/GiveAiAppFeedbackDialog/GiveAiAppFeedbackDialog.module.scss';
 
 import { CAPTURE_IGNORE_ATTR } from '../threads/nativeCapture';

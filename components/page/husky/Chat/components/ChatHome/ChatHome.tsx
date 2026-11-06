@@ -1,7 +1,5 @@
 import { useRef, useState, useEffect, KeyboardEvent } from 'react';
 
-import { generateUUID } from '@/utils/common.utils';
-
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 
 import { checkIsLimitReached } from './utils/checkIsLimitReached';
@@ -14,12 +12,10 @@ import s from './ChatHome.module.scss';
 
 interface Props {
   onSubmit: (query: string) => void;
-  setMessages: (messages: any[]) => void;
-  setType: (type: string) => void;
 }
 
 export const ChatHome = (props: Props) => {
-  const { onSubmit, setMessages, setType } = props;
+  const { onSubmit } = props;
 
   const [limitReached, setLimitReached] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -57,11 +53,15 @@ export const ChatHome = (props: Props) => {
     }
   };
 
-  const handlePromptSelect = (prompt: any) => {
-    analytics.trackExplorationPromptSelection(prompt.question, 'husky-page');
-    const links = prompt.answerSourceLinks?.map((item: any) => item?.link);
-    setMessages([{ ...prompt, id: generateUUID(), sources: links, followUpQuestions: prompt.followupQuestions }]);
-    setType('blog');
+  const handlePromptSelect = (question: string) => {
+    const isLimitReached = checkIsLimitReached();
+    setLimitReached(isLimitReached);
+    if (isLimitReached) {
+      return;
+    }
+
+    analytics.trackExplorationPromptSelection(question, 'husky-page');
+    onSubmit(question);
   };
 
   return (

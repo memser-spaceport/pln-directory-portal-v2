@@ -1,0 +1,74 @@
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+}
+
+// The filled grey tag of DealCard (.tag + .tagDefault) at the compact card's
+// 12px, as the newsfeed prototype's TopicTags renders it.
+.chip {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  padding: 2px 10px;
+  border-radius: 9999px;
+  background: rgba(14, 15, 17, 0.06);
+  color: #455468;
+
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+}
+
+// Clickable hashtags (LAB-3010): brand text links, as `.topicLink` in the
+// newsfeed prototype. The 4px padding is cancelled by the negative margin, so
+// the tap target grows without moving the line.
+.links {
+  column-gap: 12px;
+  row-gap: 2px;
+}
+
+.link {
+  padding: 4px 0;
+  margin: -4px 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+// The tag the feed is filtered by: the filter chip's brand-soft fill, so the
+// chip and every matching tag read as the same selected thing.
+.linkActive {
+  padding: 2px 6px;
+  margin: -2px 0;
+  border-radius: 4px;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  font-weight: 600;
+}

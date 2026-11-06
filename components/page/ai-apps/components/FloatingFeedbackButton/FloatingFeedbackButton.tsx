@@ -1,30 +1,20 @@
 'use client';
 
-import { type ReactNode, type RefObject, useCallback, useEffect, useRef, useState } from 'react';
-import { clsx } from 'clsx';
+import { type ReactNode, type RefObject, useCallback, useEffect, useState } from 'react';
 import { usePermissions } from '@/services/rbac/hooks/usePermissions';
 import { canViewAiApps } from '@/services/rbac/utils/aiApps/canViewAiApps';
 import { SHOW_AI_APPS_COMMENTS } from '@/services/ai-apps/constants';
-import type { FeedbackButtonSource } from '@/analytics/feedback.analytics';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
-import { CommentIcon } from '@/components/icons';
-import {
-  isAnyDialogOpen,
-  isOpenFeedbackKey,
-  isShortcutsKey,
-  useShortcutLabels,
-} from '@/components/page/ai-apps/shortcutKeys';
+import { useShortcutLabels } from '@/components/page/ai-apps/shortcutKeys';
 import { scheduleFontCache } from '@/ai-apps-bridge/font-cache';
-import { capturePageViewport, FEEDBACK_CAPTURE_IGNORE_ATTR, scrollPage } from '../screenshot-feedback/capturePage';
+import { capturePageViewport, scrollPage } from '../screenshot-feedback/capturePage';
 import { GiveAiAppFeedbackDialog, ShortcutHelp } from '../GiveAiAppFeedbackDialog';
 import { FeedbackTabs, type FeedbackTab } from '../FeedbackTabs/FeedbackTabs';
 import { PinOverlay, PinPanel, type ElementPinsController } from '../element-pins';
 import type { FeedbackContext } from '@/services/ai-app-feedback/ai-app-feedback.service';
-
-import s from './FloatingFeedbackButton.module.scss';
-
-/** How long the label stays before the pill settles to the glyph. */
-const INTRO_MS = 2200;
+import { useFeedbackShortcuts } from '../../hooks/useFeedbackShortcuts';
+import { FeedbackFabButton } from '../FeedbackFabButton';
+import { usePinSession } from './hooks/usePinSession';
 
 interface Props {
   /** When provided (app detail page), preselects this app in the feedback picker. */
@@ -68,42 +58,16 @@ interface Props {
     /** Phone: the drawer steps aside while a comment is placed on the app (the page draws its bar). */
     collapsed?: boolean;
   };
-  /**
-   * LabOS-wide mode (LAB-2879): the one button mounted in the root layout for
-   * every page. No AI Apps gate (the host shows it to signed-in members), the
-   * drawer always sends to "LabOS - AI Apps", and the open state belongs to the
-   * host, so the (?) menu can open the same drawer. On AI Apps pages the host
-   * sets `showButton: false`: their own button stays the only one, and this
-   * drawer is there only for the (?) menu.
-   */
-  global?: {
-    open: boolean;
-    showButton: boolean;
-    onOpen: (source?: FeedbackButtonSource) => void;
-    onClose: () => void;
-    onSent?: () => void;
-    onHideButton?: () => void;
-  };
 }
 
-/**
- * Floating "Give feedback" door for the AI Apps surfaces. It opens saying its
- * name, then settles into a 48px glyph in the bottom-right corner. After that,
- * a hover-capable pointer can expand the label again; on touch it stays the
- * glyph. The accessible name is always on the button.
- *
- * Why the label is temporary: on the detail page everything the control covers
- * belongs to the embedded app underneath, so the *resting* state has to be the
- * smallest mark that can still be found. The name is spent once on arrival,
- * then hover (and keyboard focus) can bring it back.
- */
+/** The AI Apps feedback door: the floating button, plus pins and comments on the app detail page. */
 export function FloatingFeedbackButton(props: Props) {
   // The introduction is a mount-time story, but the detail route is one client
   // component reading `use(params)`: React reconciles it at the same position
   // across an [id] change, so navigating app A -> app B re-renders instead of
   // remounting and the label would silently not replay. Keying here rather than
   // at the call sites keeps that from being something a caller can forget.
-  return <FeedbackFab key={props.appUid ?? (props.global ? 'global' : 'list')} {...props} />;
+  return <FeedbackFab key={props.appUid ?? 'list'} {...props} />;
 }
 
 function FeedbackFab({
@@ -114,87 +78,46 @@ function FeedbackFab({
   iframeRef,
   getContext,
   commentMode,
-  global,
 }: Props) {
   const commentsAvailable = Boolean(commentMode?.available);
   /* The list has no app frame. A picture of this page replaces the screen-share prompt. */
   const isListSurface = !appUid && !iframeRef;
   const inCommentMode = Boolean(commentMode?.available && commentMode.active);
-  const [localOpen, setLocalOpen] = useState(false);
-  /* Global mode: the host holds the open state (one drawer for every door). */
-  const isOpen = global ? global.open : localOpen;
-  const setIsOpen = useCallback(
-    (open: boolean) => {
-      if (!global) setLocalOpen(open);
-      else if (open) global.onOpen();
-      else global.onClose();
-    },
-    [global],
-  );
-  const [isPinMode, setIsPinMode] = useState(false);
-  const [activePinId, setActivePinId] = useState<string | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
   const canPin = SHOW_AI_APPS_COMMENTS && Boolean(appUid && elementPins?.status === 'ready');
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   /* The form hid itself for a capture: the button steps out of the picture with it. */
   const [isFormHidden, setIsFormHidden] = useState(false);
-  const introStartedAtRef = useRef<number | null>(null);
   const analytics = useAiAppsAnalytics();
   const shortcuts = useShortcutLabels();
   const { permsSet, isLoading } = usePermissions();
-  const isVisible = global ? true : !isLoading && canViewAiApps(permsSet) && feedbackEnabled;
-  /* Global mode on an AI Apps page: the drawer is here for the (?) menu, the page draws the button. */
-  const showButton = !global || global.showButton;
+  const isVisible = !isLoading && canViewAiApps(permsSet) && feedbackEnabled;
+  const { isPinMode, activePinId, setActivePinId, openPinMode, leavePinMode, resumePinMode } = usePinSession(
+    elementPins,
+    appUid,
+  );
 
   /* The list page draws its own picture. Fetch its fonts while idle, before Give feedback. */
   useEffect(() => {
-    if (!isListSurface || !isVisible || !showButton) return;
+    if (!isListSurface || !isVisible) {
+      return;
+    }
     return scheduleFontCache();
-  }, [isListSurface, isVisible, showButton]);
+  }, [isListSurface, isVisible]);
 
-  // Gated on `isVisible` rather than left bare: hooks run before the early
-  // return below, so an ungated timer would spend its 2.2s while this renders
-  // null and the label would never be seen.
-  useEffect(() => {
-    if (!isVisible) {
-      introStartedAtRef.current = null;
-      return;
-    }
+  const openFeedbackDialog = useCallback(() => {
+    analytics.onFeedbackDialogOpened(appUid ? { appUid, appName } : {});
+    setIsOpen(true);
+  }, [analytics, appUid, appName]);
 
-    introStartedAtRef.current = Date.now();
-  }, [isVisible]);
-
-  // Paused while the feedback drawer is open: the label is spent on arrival, not behind the drawer.
-  useEffect(() => {
-    if (!isVisible || isOpen || isCollapsed) {
-      return;
-    }
-
-    const elapsed = introStartedAtRef.current ? Date.now() - introStartedAtRef.current : 0;
-    const remaining = Math.max(0, INTRO_MS - elapsed);
-
-    const timer = setTimeout(() => setIsCollapsed(true), remaining);
-    return () => clearTimeout(timer);
-  }, [isVisible, isOpen, isCollapsed]);
-
-  /* The door: pin mode when the app's bridge answered, the dialog otherwise. */
-  const openPinMode = useCallback(() => {
-    if (!elementPins || !appUid) return;
-    analytics.onFeedbackPinsOpened({ appUid });
-    setIsPinMode(true);
-    if (elementPins.pins.length === 0) elementPins.startPicking();
-  }, [elementPins, appUid, analytics]);
-
-  /* Today's door, minus the comment mode: pin mode when the bridge answered, the drawer otherwise. */
+  /* The door: pin mode when the app's bridge answered and there is no comment mode, the drawer otherwise. */
   const startFeedback = useCallback(() => {
     if (canPin && !commentsAvailable) {
       openPinMode();
       return;
     }
-    /* Global mode: the host reports the LabOS-wide click, not the AI Apps dialog. */
-    if (!global) analytics.onFeedbackDialogOpened(appUid ? { appUid, appName } : {});
-    setIsOpen(true);
-  }, [canPin, commentsAvailable, openPinMode, analytics, appUid, appName, global, setIsOpen]);
+    openFeedbackDialog();
+  }, [canPin, commentsAvailable, openPinMode, openFeedbackDialog]);
 
   /* Comment mode's Esc with nothing left to dismiss: the page bumps the request, the whole drawer closes.
      Only a bump while comments are on counts: comments dropping out (bridge, frame, setup card) takes the
@@ -203,7 +126,9 @@ function FeedbackFab({
   const [seenCloseRequest, setSeenCloseRequest] = useState(closeRequest);
   if (closeRequest !== undefined && closeRequest !== seenCloseRequest) {
     setSeenCloseRequest(closeRequest);
-    if (seenCloseRequest !== undefined) setIsOpen(false);
+    if (seenCloseRequest !== undefined) {
+      setIsOpen(false);
+    }
   }
 
   /* Comment mode is the drawer's Comments tab, so it holds the drawer open too. */
@@ -213,64 +138,43 @@ function FeedbackFab({
     /* Closing the drawer (Cancel, ✕, Close after sending) ends the pin session and comment mode too. */
     elementPins?.clearPins();
     setIsOpen(false);
-    if (inCommentMode) commentMode?.onClose();
+    if (inCommentMode) {
+      commentMode?.onClose();
+    }
   };
 
   /* The switcher. The drawer stays open either way; only what fills it changes. */
   const selectTab = (tab: FeedbackTab) => {
     setIsOpen(true);
     if (tab === 'comment') {
-      if (inCommentMode) return;
-      if (appUid) analytics.onFeedbackCommentsTabClicked({ appUid });
+      if (inCommentMode) {
+        return;
+      }
+      if (appUid) {
+        analytics.onFeedbackCommentsTabClicked({ appUid });
+      }
       commentMode?.onOpen();
     } else if (inCommentMode) {
       commentMode?.onClose();
     }
   };
 
-  const leavePinMode = () => {
-    setIsPinMode(false);
-    setActivePinId(null);
-  };
+  const onOpenKey = useCallback(() => {
+    analytics.onFeedbackShortcutUsed({ action: 'open' });
+    startFeedback();
+  }, [analytics, startFeedback]);
 
-  /* A pin made in a frame that has since been remounted (redeploy) or lost its
-     bridge can't be shown or sent; drop pin mode with it. */
-  const bridgeStatus = elementPins?.status;
-  const [seenBridgeStatus, setSeenBridgeStatus] = useState(bridgeStatus);
-  if (seenBridgeStatus !== bridgeStatus) {
-    setSeenBridgeStatus(bridgeStatus);
-    if (bridgeStatus !== 'ready') {
-      setIsPinMode(false);
-      setActivePinId(null);
-    }
-  }
+  const onShortcutsKey = useCallback(() => {
+    analytics.onFeedbackShortcutsHelpOpened();
+    setShortcutsOpen(true);
+  }, [analytics]);
 
-  /* The open drawer owns its keys, `?` included. Global mode takes only the open keys, and only
-     where it draws the button (AI Apps pages answer them with their own): `?` belongs to the page. */
-  useEffect(() => {
-    if (!isVisible || !showButton || drawerOpen || isPinMode || shortcutsOpen) return;
-
-    const onKey = (event: KeyboardEvent) => {
-      if (!global && isShortcutsKey(event) && !isAnyDialogOpen()) {
-        event.preventDefault();
-        analytics.onFeedbackShortcutsHelpOpened();
-        setShortcutsOpen(true);
-        return;
-      }
-      if (!isOpenFeedbackKey(event)) return;
-      event.preventDefault();
-      if (global) {
-        global.onOpen('shortcut');
-        return;
-      }
-      analytics.onFeedbackShortcutUsed({ action: 'open' });
-      /* What the button does while the drawer is closed. */
-      startFeedback();
-    };
-
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [global, isVisible, showButton, drawerOpen, isPinMode, shortcutsOpen, startFeedback, analytics]);
+  /* The open drawer owns its keys, `?` included. */
+  useFeedbackShortcuts({
+    isEnabled: isVisible && !drawerOpen && !isPinMode && !shortcutsOpen,
+    onOpenKey,
+    onShortcutsKey,
+  });
 
   if (!isVisible) {
     return null;
@@ -280,36 +184,13 @@ function FeedbackFab({
 
   return (
     <>
-      {/* The button steps aside while its drawer is open, at every width; ✕ and Esc bring it back. */}
-      {showButton && (
-        <div
-          {...{ [FEEDBACK_CAPTURE_IGNORE_ATTR]: '' }}
-          className={clsx(s.wrap, global && s.wrapGlobal, isFormHidden && s.wrapHidden, drawerOpen && s.fabHidden)}
-          data-collapsed={isCollapsed || drawerOpen}
-          aria-hidden={drawerOpen || undefined}
-        >
-          <button
-            type="button"
-            className={s.button}
-            aria-label={name}
-            aria-keyshortcuts={shortcuts.openAria}
-            tabIndex={drawerOpen ? -1 : undefined}
-            onClick={startFeedback}
-          >
-            {/* CommentIcon hardcodes its own 16px box and ignores props. */}
-            <CommentIcon />
-            <span className={s.label} aria-hidden>
-              <span>{name}</span>
-              <kbd className={s.labelKbd}>{shortcuts.open}</kbd>
-            </span>
-            {commentsAvailable && (commentMode?.count ?? 0) > 0 && (
-              <span className={s.count} aria-label={`${commentMode?.count} comments`}>
-                {commentMode?.count}
-              </span>
-            )}
-          </button>
-        </div>
-      )}
+      <FeedbackFabButton
+        name={name}
+        isDrawerOpen={drawerOpen}
+        isHidden={isFormHidden}
+        onClick={startFeedback}
+        count={commentsAvailable ? commentMode?.count : undefined}
+      />
 
       {/* Out of the picture during a capture too: the screen share grabs whatever is on screen. */}
       {/* Not in comment mode: there the pins are comment mode's own, drawn by the page. */}
@@ -323,7 +204,9 @@ function FeedbackFab({
             pins={elementPins.pins}
             activePinId={activePinId}
             onPinClick={(pinId) => {
-              if (!isPinMode) openPinMode();
+              if (!isPinMode) {
+                openPinMode();
+              }
               setActivePinId(pinId);
             }}
           />
@@ -341,14 +224,12 @@ function FeedbackFab({
           onUseScreenshot={() => {
             elementPins.clearPins();
             leavePinMode();
-            analytics.onFeedbackDialogOpened(appUid ? { appUid, appName } : {});
-            setIsOpen(true);
+            openFeedbackDialog();
           }}
           onContinue={() => {
             elementPins.stopPicking();
             leavePinMode();
-            analytics.onFeedbackDialogOpened(appUid ? { appUid, appName } : {});
-            setIsOpen(true);
+            openFeedbackDialog();
           }}
         />
       )}
@@ -359,15 +240,12 @@ function FeedbackFab({
         onClose={closeDrawer}
         /* Pins belong to comment mode when it is there; the old pin flow feeds the dialog otherwise. */
         pins={commentsAvailable ? undefined : elementPins?.pins}
-        onSent={() => {
-          elementPins?.clearPins();
-          global?.onSent?.();
-        }}
+        onSent={() => elementPins?.clearPins()}
         onEditPins={
           elementPins && !commentsAvailable
             ? () => {
                 setIsOpen(false);
-                setIsPinMode(true);
+                resumePinMode();
               }
             : undefined
         }
@@ -396,8 +274,6 @@ function FeedbackFab({
         }
         altBody={inCommentMode ? commentMode?.body : undefined}
         collapsed={inCommentMode && Boolean(commentMode?.collapsed)}
-        labosOnly={Boolean(global)}
-        onHideButton={global?.onHideButton}
       />
 
       <ShortcutHelp isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} shortcuts={shortcuts} />

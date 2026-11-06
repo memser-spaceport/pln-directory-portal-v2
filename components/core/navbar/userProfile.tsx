@@ -38,9 +38,9 @@ export default function UserProfile(props: Readonly<IProfile>) {
     setIsDropdown((prev) => !prev);
   };
 
-  const onLogoutHandler = () => {
+  const onLogoutHandler = async () => {
     setIsDropdown(false);
-    clearAllAuthCookies();
+    await clearAllAuthCookies();
     authEvents.emit('auth:logout');
     toast.success(TOAST_MESSAGES.LOGOUT_MSG);
     broadcastLogout();

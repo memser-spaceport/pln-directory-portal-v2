@@ -26,7 +26,6 @@ import { toast } from '@/components/core/ToastContainer';
 import { useGetDemoDaysList } from '@/services/demo-day/hooks/useGetDemoDaysList';
 import { ApplyForDemoDayModal } from '@/components/page/demo-day/ApplyForDemoDayModal';
 import { AccountCreatedSuccessModal } from '@/components/page/demo-day/ApplyForDemoDayModal/AccountCreatedSuccessModal';
-import { DemoDayPageSkeleton } from '@/components/page/demo-day/DemoDayPageSkeleton';
 import { isDemoDayParticipantInvestor } from '@/utils/member.utils';
 import { ChartIcon } from '@/components/icons';
 import { useGetFundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
@@ -35,6 +34,7 @@ import { ChatIcon, EditIcon, ArrowRight } from './components/Icons';
 import { CompletedDemoDayTeamsList } from './components/CompletedDemoDayTeamsList';
 
 import s from './DemodayCompletedView.module.scss';
+import { SafeHtml } from '@/components/ui/SafeHtml';
 
 interface DemodayCompletedViewProps {
   initialDemoDayState?: DemoDayState;
@@ -81,8 +81,9 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = (props)
     },
   );
 
-  // Fetch demo days list
-  const { data: demoDays, isLoading } = useGetDemoDaysList();
+  /* Only picks the next Demo Day for the apply modal, so the page never waits for it: the page's content comes from the
+     server, and crawlers must get it rather than a loading skeleton (LAB-2930). */
+  const { data: demoDays } = useGetDemoDaysList();
 
   // Auto-open modal if dialog=applyToDemoday query param is present
   useEffect(() => {
@@ -122,11 +123,6 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = (props)
     onCompletedViewKeepProfileUpdatedClicked();
   };
 
-  // Show skeleton loader while loading
-  if (isLoading) {
-    return <DemoDayPageSkeleton />;
-  }
-
   return (
     <div className={s.root}>
       <div className={s.content}>
@@ -143,7 +139,8 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = (props)
             </div>
             <div className={s.headline}>
               <h1 className={s.title}>{initialDemoDayState?.title}</h1>
-              <p className={s.body} dangerouslySetInnerHTML={{ __html: initialDemoDayState?.description || '' }} />
+              {/* A div, not a <p>: the description is rich-text HTML with its own <p>s (see PageTitle). */}
+              <SafeHtml className={s.body} html={initialDemoDayState?.description || ''} />
             </div>
           </div>
 

@@ -4,11 +4,17 @@ import { withPostHogConfig } from '@posthog/nextjs-config';
 import aiSearchRedirects from './utils/ai-search-redirects.js';
 import legacyJobBoardRedirects from './utils/legacy-job-board-redirects.js';
 import eventsRedirects from './utils/events-redirects.js';
+import imageRemotePatterns from './utils/image-remote-patterns.js';
+import nonProductionNoindex from './utils/non-production-noindex-headers.js';
+import securityHeaders from './utils/security-headers.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // No `X-Powered-By: Next.js` (LAB-3094).
+  poweredByHeader: false,
+
   // The Docker image (see Dockerfile) sets NEXT_OUTPUT_STANDALONE=1 so that
   // `next build` emits `.next/standalone`: the server plus only the traced
   // node_modules it needs. Vercel and local builds keep the default output.
@@ -36,6 +42,13 @@ const nextConfig = {
   // because the vendored core is in the tree whether or not the canvas is served.
   typescript: {
     ignoreBuildErrors: !!process.env.CANVAS_BUILD_DIR || process.env.NEXT_PUBLIC_CANVAS_VIEW_ONLY === '1',
+  },
+
+  // Next 16.4 type-checks with the TypeScript CLI by default, which checks the whole project,
+  // `__tests__/` included. The in-process checker (the 16.2 behaviour) checks the app code and
+  // skips test files, as before; Jest compiles the tests.
+  experimental: {
+    useTypeScriptCli: false,
   },
 
   // DELETE WITH: the `design-canvas/` folder.
@@ -68,6 +81,8 @@ const nextConfig = {
         source: '/ai-apps/bridge/:file*',
         headers: [{ key: 'Cache-Control', value: 'public, max-age=300, stale-while-revalidate=3600' }],
       },
+      ...nonProductionNoindex.nonProductionNoindexHeaders(),
+      ...securityHeaders.securityHeaders(),
     ];
   },
   async redirects() {
@@ -138,17 +153,10 @@ const nextConfig = {
     PL_EVENTS_BASE_URL: process.env.PL_EVENTS_BASE_URL,
     PL_EVENTS_SUBMISSION_URL: process.env.PL_EVENTS_SUBMISSION_URL,
     SCHEDULE_BASE_URL: process.env.SCHEDULE_BASE_URL,
-    CUSTOM_FORUM_AUTH_TOKEN: process.env.CUSTOM_FORUM_AUTH_TOKEN,
-    SCHEDULE_BASE_URL: process.env.SCHEDULE_BASE_URL,
     PLAA_API_URL: process.env.PLAA_API_URL,
   },
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**',
-      },
-    ],
+    remotePatterns: imageRemotePatterns.IMAGE_REMOTE_PATTERNS,
   },
   productionBrowserSourceMaps: true,
 };

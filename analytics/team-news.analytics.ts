@@ -85,6 +85,9 @@ const MODAL_OPENING_SOURCES: readonly TeamNewsAnalyticsSource[] = [
  *  so the badge opens the story directly: that's `comments`. */
 export type TeamNewsCardClickVia = 'row' | 'view-all-comments' | 'comments';
 
+/** Where a `#tag` that filters the Home feed was clicked (LAB-3010). */
+export type TeamNewsTagFilterVia = 'card' | 'top-story' | 'modal';
+
 export type TeamNewsShareNetwork = 'linkedin' | 'x' | 'copy';
 
 export const useTeamNewsAnalytics = () => {
@@ -241,6 +244,21 @@ export const useTeamNewsAnalytics = () => {
 
   const onTeamNewsForYouUpdateProfileClicked = (memberUid: string) => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FOR_YOU_UPDATE_PROFILE_CLICKED, { memberUid });
+  };
+
+  /** The For You hint's "Update" link to News preferences (LAB-2941; "Tune For You" until LAB-3010). */
+  const onTeamNewsForYouTuneClicked = (memberUid: string) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FOR_YOU_TUNE_CLICKED, { memberUid });
+  };
+
+  /** A `#tag` click narrowed the Home feed to that tag (LAB-3010). `itemCount` is the stories it matched. */
+  const onTeamNewsTagFilterApplied = (params: { tag: string; via: TeamNewsTagFilterVia; itemCount: number }) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_TAG_FILTER_APPLIED, params);
+  };
+
+  /** The tag filter was removed: the chip's × (`chip`) or the active tag clicked again. */
+  const onTeamNewsTagFilterCleared = (params: { tag: string; via: TeamNewsTagFilterVia | 'chip' }) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_TAG_FILTER_CLEARED, params);
   };
 
   const onTeamNewsShowMoreClicked = (item: ITeamNewsItem, position: number) => {
@@ -765,6 +783,9 @@ export const useTeamNewsAnalytics = () => {
     onTeamNewsCountChipClicked,
     onTeamNewsCountChipShown,
     onTeamNewsForYouUpdateProfileClicked,
+    onTeamNewsForYouTuneClicked,
+    onTeamNewsTagFilterApplied,
+    onTeamNewsTagFilterCleared,
     onTeamNewsShowMoreClicked,
     onTeamNewsCardClicked,
     onTeamNewsDetailModalOpened,

@@ -12,6 +12,7 @@ import { SpvLogos } from '../spv-spotlight/SpvLogos';
 import spv from '../spv-spotlight/SpvSpotlight.module.scss';
 import { PortfolioPanel } from './PortfolioPanel';
 import { SpvNavBar } from '../spv-spotlight/SpvNavBar';
+import { SectionNavBar, type NavSection } from './SectionNavBar';
 import { PORTFOLIO, type PortfolioLogo } from './islands';
 import { TEAM_INFO } from './teamInfo';
 import { EXPLORE_COPY, exploreFaqItems, PL_ENTITIES } from './mocks';
@@ -50,18 +51,31 @@ const directoryUrl = (logo: PortfolioLogo) => {
   return uid ? `https://os.pl.xyz/teams/${uid}` : `https://os.pl.xyz/teams?searchBy=${encodeURIComponent(logo.name)}`;
 };
 
-export function ExplorePlNetworkPage({ direction }: { direction: Direction }) {
+// The header links of the section-nav entry, in page order (editorial only).
+const SECTIONS: NavSection[] = [
+  { id: 'focus-areas', label: 'Focus areas' },
+  { id: 'entities', label: 'Entities' },
+  { id: 'portfolio', label: 'Portfolio' },
+  { id: 'investors', label: 'Investors' },
+  { id: 'faq', label: 'FAQ' },
+];
+
+export function ExplorePlNetworkPage({ direction, sectionNav }: { direction: Direction; sectionNav?: boolean }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   if (!mounted) return <div className={spv.page} />;
 
   return (
     <div className={spv.page}>
-      <SpvNavBar
-        label="PL Network"
-        supportEmail={EXPLORE_COPY.supportEmail}
-        tone={direction === 'visual' ? 'dark' : 'light'}
-      />
+      {sectionNav ? (
+        <SectionNavBar label="PL Network" sections={SECTIONS} supportEmail={EXPLORE_COPY.supportEmail} />
+      ) : (
+        <SpvNavBar
+          label="PL Network"
+          supportEmail={EXPLORE_COPY.supportEmail}
+          tone={direction === 'visual' ? 'dark' : 'light'}
+        />
+      )}
 
       {direction === 'visual' && <VisualHero onOpenProfile={directoryUrl} />}
 
@@ -70,7 +84,7 @@ export function ExplorePlNetworkPage({ direction }: { direction: Direction }) {
           {direction === 'editorial' ? <EditorialIntro /> : <VisualContext />}
 
           {direction === 'editorial' && (
-            <section id="portfolio" className={t.sectionTeams}>
+            <section id="portfolio" className={clsx(t.sectionTeams, s.anchor)}>
               <div className={t.subtitle}>
                 <h2 className={t.label}>The portfolio</h2>
                 <p className={t.supportingText}>
@@ -82,13 +96,13 @@ export function ExplorePlNetworkPage({ direction }: { direction: Direction }) {
             </section>
           )}
 
-          <section className={d.sectionPartners}>
+          <section id="investors" className={clsx(d.sectionPartners, s.anchorFlush)}>
             <div className={d.logosButtonContainer}>
               <SpvLogos />
             </div>
           </section>
 
-          <section className={d.sectionFaq}>
+          <section id="faq" className={clsx(d.sectionFaq, s.anchor)}>
             <FAQ
               title="Questions investors ask"
               items={exploreFaqItems}

@@ -1,3 +1,5 @@
+import { privyDemand } from './privyDemand';
+
 /**
  * Typed event emitter for auth events
  * Replaces CustomEvents with a type-safe alternative
@@ -14,6 +16,24 @@ export type AuthErrorCode =
   | 'no_demo_day_access'
   | '';
 
+/**
+ * What `auth:invalid-email` carries: the error code alone, or the code with the email that was tried. The email lets
+ * the "email not found" dialog name the address (LAB-3127); every other emitter still sends the bare code.
+ */
+export type InvalidEmailPayload = AuthErrorCode | { code: AuthErrorCode; email?: string };
+
+/** Reads either shape of the `auth:invalid-email` payload. A missing or blank email comes back `undefined`. */
+export function readInvalidEmailPayload(payload: InvalidEmailPayload | undefined): {
+  code: AuthErrorCode;
+  email?: string;
+} {
+  if (payload && typeof payload === 'object') {
+    const email = payload.email?.trim();
+    return { code: payload.code, email: email || undefined };
+  }
+  return { code: payload ?? '' };
+}
+
 export type LinkMethod = 'github' | 'google' | 'siwe' | 'email' | 'updateEmail';
 
 export interface AuthEventMap {
@@ -22,7 +42,7 @@ export interface AuthEventMap {
   'auth:login-error': { error: string };
   'auth:link-success': { user: any; linkMethod: string; linkedAccount: any };
   'auth:link-error': { error: string };
-  'auth:invalid-email': AuthErrorCode;
+  'auth:invalid-email': InvalidEmailPayload;
   'auth:link-account': LinkMethod;
   'auth:logout': void;
   'auth:logout-success': void;
@@ -32,8 +52,22 @@ export interface AuthEventMap {
 
 type EventCallback<T> = (data: T) => void;
 
+/**
+ * Requests only the sign-in system (Privy) can carry out (LAB-3092). It loads on demand, so one of these can arrive
+ * before anything listens: it waits in a queue, asks for Privy, and is delivered once Privy is ready (`flushPending`).
+ */
+const PRIVY_EVENTS = new Set<keyof AuthEventMap>([
+  'auth:init-login',
+  'auth:link-account',
+  'auth:update-email',
+  'auth:logout',
+]);
+
+type PendingEvent = { event: keyof AuthEventMap; data: unknown };
+
 class AuthEventEmitter {
   private listeners: Map<string, Set<EventCallback<any>>> = new Map();
+  private pending: PendingEvent[] = [];
 
   /**
    * Subscribe to an auth event
@@ -55,6 +89,12 @@ class AuthEventEmitter {
    */
   emit<K extends keyof AuthEventMap>(event: K, data?: AuthEventMap[K]): void {
     const callbacks = this.listeners.get(event);
+    if (PRIVY_EVENTS.has(event) && !callbacks?.size) {
+      // Nothing loaded to carry it out yet: keep it, and ask for the sign-in system. Delivered by `flushPending`.
+      this.pending.push({ event, data });
+      privyDemand.request();
+      return;
+    }
     if (callbacks) {
       callbacks.forEach((callback) => callback(data));
     }
@@ -84,6 +124,21 @@ class AuthEventEmitter {
   }
 
   /**
+   * Deliver the requests that arrived before the sign-in system had loaded, in the order they came. Called once its
+   * handlers are registered and it is ready.
+   */
+  flushPending(): void {
+    const queued = this.pending;
+    this.pending = [];
+    queued.forEach(({ event, data }) => this.emit(event, data as AuthEventMap[typeof event]));
+  }
+
+  /** Tests only. */
+  pendingEvents(): ReadonlyArray<PendingEvent> {
+    return this.pending;
+  }
+
+  /**
    * Remove all listeners for an event
    */
   off<K extends keyof AuthEventMap>(event: K): void {
@@ -95,6 +150,7 @@ class AuthEventEmitter {
    */
   clear(): void {
     this.listeners.clear();
+    this.pending = [];
   }
 }
 

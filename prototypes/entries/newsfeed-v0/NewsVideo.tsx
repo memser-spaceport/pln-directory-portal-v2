@@ -119,6 +119,26 @@ export function VideoPlayer({
   );
 }
 
+/**
+ * A still image attached to a story, in the video's frame and slot: `card` is the
+ * narrow column beside the headline, `wide` the card's full width under its
+ * description, `hero` the modal's top. Not a control (the
+ * story row is the click target), so it's a plain picture; a URL that fails to
+ * load falls back to the same brand-tinted surface as a missing poster.
+ */
+export function NewsImage({ src, variant }: { src: string; variant: 'card' | 'wide' | 'hero' }) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <span className={clsx(s.frame, s.still, s[variant === 'card' ? 'thumb' : variant])}>
+      {failed ? (
+        <span className={s.fallback} aria-hidden />
+      ) : (
+        <img className={s.img} src={src} alt="" loading="lazy" onError={() => setFailed(true)} />
+      )}
+    </span>
+  );
+}
+
 // Neutral play triangle — the badge carries the shape, so it stays in the PL
 // palette rather than borrowing YouTube's red pill.
 const PlayIcon = () => (

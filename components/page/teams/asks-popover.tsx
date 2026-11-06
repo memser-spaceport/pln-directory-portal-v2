@@ -2,6 +2,7 @@ import React, { Fragment } from 'react';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 
 import { Tag } from '@/components/ui/Tag';
+import { safeHtmlProps } from '@/utils/html';
 
 interface TooltipProps {
   name: string;
@@ -24,7 +25,7 @@ const Tooltip: React.FC<TooltipProps> = ({ name, description, tags, onOpenChange
                 <div className="asks__tooltip__cnt__name">{name}</div>
                 <div
                   className="asks__tooltip__cnt__desc"
-                  dangerouslySetInnerHTML={{ __html: description }}
+                  {...safeHtmlProps(description)}
                   onClick={(e) => {
                     const link = (e.target as Element).closest('a');
                     if (link) {

@@ -20,7 +20,8 @@ import type { NewsSource, FeedComment, NewsVideo } from './mocks';
 import { LikeButton, CommentCount, ViewCount } from './FeedActions';
 import { CommentsThread } from './CommentsThread';
 import { ShareMenu } from './ShareMenu';
-import { VideoPlayer } from './NewsVideo';
+import { NewsImage, VideoPlayer } from './NewsVideo';
+import { TopicTags } from './TopicTags';
 import s from './FeedDetailModal.module.scss';
 
 /**
@@ -60,6 +61,8 @@ export interface FeedDetail {
   video?: NewsVideo;
   /** Open with the video already playing (the card's poster was the click target). */
   autoplayVideo?: boolean;
+  /** Story image (news only), in the video's hero slot when there is no video. */
+  image?: string;
   /** Protocol Labs update — carries the same brand accent as its feed card. */
   isProtocolLabs?: boolean;
   /**
@@ -77,6 +80,8 @@ export interface FeedDetail {
   bodyHtml?: string;
   /** Team-posted news changed after publishing — shown beside the time. */
   editedAt?: string;
+  /** Topic hashtags — the card shows three, the reader shows them all. */
+  tags?: string[];
 }
 
 /** Whether the modal renders per-claim citations (superscript markers). */
@@ -109,6 +114,10 @@ interface Props {
    * the story they're reading. Absent for everyone else.
    */
   headerAction?: ReactNode;
+  /** Present = the hashtags are links that filter the feed (the parent closes the modal). */
+  onSelectTopic?: (tag: string) => void;
+  /** The feed's current topic filter, shown selected on the tags. */
+  activeTopic?: string | string[];
 }
 
 /**
@@ -163,6 +172,8 @@ export function FeedDetailBody({
   onToggleCommentLike,
   footerAction,
   headerAction,
+  onSelectTopic,
+  activeTopic,
   onBack,
   className,
 }: BodyProps) {
@@ -264,6 +275,7 @@ export function FeedDetailBody({
         {detail.video && (
           <VideoPlayer key={detail.id} video={detail.video} title={detail.title} autoplay={detail.autoplayVideo} />
         )}
+        {!detail.video && detail.image && <NewsImage key={detail.id} src={detail.image} variant="hero" />}
 
         {cited ? (
           // Superscript style: `[n](url)` → a raised ¹ marker with a hover/tap
@@ -299,6 +311,10 @@ export function FeedDetailBody({
             </p>
           )
         )}
+
+        {/* What the story is about, before where it came from. No label: the
+            hashtags say what they are. */}
+        {detail.tags && <TopicTags tags={detail.tags} max={Infinity} onSelect={onSelectTopic} active={activeTopic} />}
 
         {sources.length > 0 && (
           <div className={s.sources}>

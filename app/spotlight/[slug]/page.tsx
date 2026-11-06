@@ -6,6 +6,7 @@ import { getTeamPitchAccessServer } from '@/services/team-pitch/team-pitch-acces
 import type { TeamPitchAccess } from '@/services/team-pitch/hooks/useGetTeamPitchAccess';
 import { getTeamSpotlightPath } from '@/services/team-pitch/constants';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { serializeJsonLd } from '@/utils/json-ld';
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -111,7 +112,8 @@ export default async function SpotlightPage(props: PageProps) {
       {access && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(buildSpotlightJsonLd(access, pageUrl)) }}
+          // eslint-disable-next-line react/no-danger -- JSON-LD from serializeJsonLd, which escapes it for a script tag
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(buildSpotlightJsonLd(access, pageUrl)) }}
         />
       )}
       <Suspense fallback={<PitchViewSkeleton />}>

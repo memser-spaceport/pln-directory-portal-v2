@@ -9,12 +9,14 @@ export type McpAccess = {
   canConnect: boolean;
   isLoading: boolean;
   isError: boolean;
+  /** False until the access check has run: also while the client has no session yet (query disabled). */
+  isFetched: boolean;
 };
 
 export function useMcpAccess(): McpAccess {
   const userInfo = getUserInfoFromLocal();
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, isFetched } = useQuery({
     queryKey: ['access-control-me', 'mcp'],
     queryFn: async () => {
       const access = await fetchMyAccess();
@@ -30,5 +32,6 @@ export function useMcpAccess(): McpAccess {
     canConnect: data?.canConnect ?? false,
     isLoading,
     isError,
+    isFetched,
   };
 }

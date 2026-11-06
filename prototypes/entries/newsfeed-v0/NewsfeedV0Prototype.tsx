@@ -357,6 +357,7 @@ export default function NewsfeedV0Prototype() {
       // Kept for Share (copies the article link) — the modal no longer renders a
       // "Read full article" link, but a Discuss button instead.
       readUrl: story.sourceUrl ?? undefined,
+      tags: story.tags,
     });
 
   // Discuss version: a forum post lives in the forum, so send the user there

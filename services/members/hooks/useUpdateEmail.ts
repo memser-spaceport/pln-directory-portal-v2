@@ -2,14 +2,13 @@
 
 import { useCallback, useEffect, useRef } from 'react';
 import Cookies from 'js-cookie';
-import { setSessionCookie } from '@/utils/third-party.helper';
+import { establishSession } from '@/services/session.service';
 
 import { useAuthAnalytics, type EmailUpdateSource } from '@/analytics/auth.analytics';
 import { authEvents } from '@/components/core/login/utils';
 import { toast } from '@/components/core/ToastContainer';
 import { updateUserDirectoryEmail } from '@/services/members.service';
 import { IUserInfo } from '@/types/shared.types';
-import { decodeToken } from '@/utils/auth.utils';
 import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
 
 export type EmailUpdateFailureReason = 'same-email' | 'rejected' | 'unexpected';
@@ -129,18 +128,12 @@ export function useUpdateEmail({ uid, email, userInfo, onFailure, source }: Para
           return;
         }
 
-        const accessTokenExpiry = decodeToken(accessToken);
-        const refreshTokenExpiry = decodeToken(refreshToken);
-
-        setSessionCookie('authToken', JSON.stringify(accessToken), {
-          expires: new Date(accessTokenExpiry.exp * 1000),
-        });
-        setSessionCookie('refreshToken', JSON.stringify(refreshToken), {
-          expires: new Date(refreshTokenExpiry.exp * 1000),
-        });
-        setSessionCookie('userInfo', JSON.stringify(newUserInfo), {
-          expires: new Date(refreshTokenExpiry.exp * 1000),
-        });
+        // The new session replaces the old one on the server; refreshToken is httpOnly.
+        if (!(await establishSession({ accessToken, refreshToken, userInfo: newUserInfo }))) {
+          currentAnalytics.onUpdateEmailFailure({ newEmail, oldEmail: currentEmail }, currentSource);
+          fail('unexpected', rejectedMessage(newEmail));
+          return;
+        }
 
         currentAnalytics.onUpdateEmailSuccess({ newEmail, oldEmail: currentEmail }, currentSource);
         toast.success('Email Updated Successfully');

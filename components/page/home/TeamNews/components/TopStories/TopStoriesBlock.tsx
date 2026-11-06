@@ -18,6 +18,7 @@ import { CommentButton } from '../NewsCard/components/CommentButton/CommentButto
 import { NewsShareMenu } from '../NewsShareMenu';
 import { SourceList } from '../SourceList/SourceList';
 import { ViewCount } from '../ViewCount/ViewCount';
+import { NewsTagChips } from '../NewsTagChips';
 import { TopStoryCard } from './TopStoryCard';
 
 import newsCardStyles from '../NewsCard/NewsCard.module.scss';
@@ -40,6 +41,10 @@ interface TopStoriesBlockProps {
   /** Fired once a card (lead or row) scrolls into the viewport (view-impression recording). */
   onStoryVisible: (uid: string) => void;
   analyticsSource?: TeamNewsAnalyticsSource;
+  /** Makes the `#tag` chips links that filter the Home feed by that tag (LAB-3010). */
+  onTagSelect?: (tag: string) => void;
+  /** The Home feed's current tag filter, shown as the selected chip. */
+  activeTag?: string;
 }
 
 /**
@@ -48,7 +53,7 @@ interface TopStoriesBlockProps {
  * Asymmetric on purpose — three equal heroes would push the stream under the
  * fold. The lead keeps the eyebrow and the full summary; the runners-up are
  * rows carrying the same anatomy as a feed card (head row, headline, clamped
- * summary, meta) minus the card's own border, because the band supplies it.
+ * summary, topic chips, meta) minus the card's own border, because the band supplies it.
  *
  * One band, not three cards: separate cards would read as feed items that
  * happen to sit high, rather than as part of one pick.
@@ -63,6 +68,8 @@ export function TopStoriesBlock({
   onStoryOpen,
   onStoryVisible,
   analyticsSource = 'home',
+  onTagSelect,
+  activeTag,
 }: TopStoriesBlockProps) {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
@@ -104,6 +111,8 @@ export function TopStoriesBlock({
         onOpen={(item) => onStoryOpen(item, 'lead', 0)}
         onVisible={onStoryVisible}
         analyticsSource={analyticsSource}
+        onTagSelect={onTagSelect}
+        activeTag={activeTag}
       />
 
       {also.length > 0 && (
@@ -120,6 +129,8 @@ export function TopStoriesBlock({
               onUpvoteClick={handleUpvoteClick(item)}
               onOpen={() => onStoryOpen(item, 'row', index + 1)}
               onVisible={onStoryVisible}
+              onTagSelect={onTagSelect}
+              activeTag={activeTag}
             />
           ))}
         </ul>
@@ -138,6 +149,8 @@ interface AlsoRowProps {
   onUpvoteClick: () => void;
   onOpen: () => void;
   onVisible: (uid: string) => void;
+  onTagSelect?: (tag: string) => void;
+  activeTag?: string;
 }
 
 // Extracted so useCardVisibilityTracking has a legal, stable hook call site —
@@ -154,13 +167,19 @@ function AlsoRow({
   onUpvoteClick,
   onOpen,
   onVisible,
+  onTagSelect,
+  activeTag,
 }: AlsoRowProps) {
   const { label: eventTypeLabel, dotClassName } = getEventTypeConfig(item.eventType);
 
   // Memoized so this row's IntersectionObserver isn't torn down/rebuilt on
   // every unrelated re-render of the block.
   const handleVisible = useCallback(() => onVisible(item.uid), [onVisible, item.uid]);
-  const rowRef = useCardVisibilityTracking<HTMLLIElement>({ onVisible: handleVisible, threshold: 0.5, trackOnce: true });
+  const rowRef = useCardVisibilityTracking<HTMLLIElement>({
+    onVisible: handleVisible,
+    threshold: 0.5,
+    trackOnce: true,
+  });
 
   return (
     <li ref={rowRef} className={s.alsoRow}>
@@ -191,6 +210,8 @@ function AlsoRow({
       </button>
 
       {item.summary && <p className={s.alsoSummary}>{item.summary}</p>}
+
+      <NewsTagChips tags={item.tags} variant="card" onSelect={onTagSelect} active={activeTag} />
 
       <div className={newsCardStyles.metaLine}>
         <div className={newsCardStyles.meta}>

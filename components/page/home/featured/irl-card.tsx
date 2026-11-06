@@ -2,8 +2,8 @@
 
 import { IIrlCard } from '@/types/irl.types';
 import { formatIrlEventDate, isPastDate } from '@/utils/irl.utils';
-import DOMPurify from 'isomorphic-dompurify';
 import clip from 'text-clipper';
+import { safeHtmlProps, sanitizeHtml } from '@/utils/html';
 
 export default function IrlCard(props: IIrlCard) {
   //props
@@ -22,7 +22,7 @@ export default function IrlCard(props: IIrlCard) {
   const isPastEvent = isPastDate(endDate);
   const isLongName = name?.length > 25;
 
-  const sanitizedDesc = DOMPurify.sanitize(description || '');
+  const sanitizedDesc = sanitizeHtml(description);
 
   const clippedDesc = clip(sanitizedDesc, 250, { html: true, maxLines: isLongName ? 2 : 3 });
 
@@ -38,7 +38,7 @@ export default function IrlCard(props: IIrlCard) {
             <div
               aria-label="Event description"
               className={`irlCard__body__desc ${isLongName ? 'irlCard__body__desc--short' : ''}`}
-              dangerouslySetInnerHTML={{ __html: clippedDesc }}
+              {...safeHtmlProps(clippedDesc)}
             ></div>
           )}
           <div className="irlCard__body__location" aria-label="Event location">

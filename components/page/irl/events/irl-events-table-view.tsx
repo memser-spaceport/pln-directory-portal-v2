@@ -5,6 +5,7 @@ import { IRL_EVENTS_DEFAULT_IMAGE } from '@/utils/constants';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { IUserInfo } from '@/types/shared.types';
 import { useIrlGoingAccess } from '@/services/access-control/hooks/useIrlGoingAccess';
+import { safeHtmlProps } from '@/utils/html';
 
 interface IrlEventsTableViewProps {
   index?: number;
@@ -165,10 +166,7 @@ const IrlEventsTableView = ({
             )}
           </div>
         </div>
-        <div
-          className="root__irl__table-col__contentDesc"
-          dangerouslySetInnerHTML={{ __html: gathering?.description }}
-        ></div>
+        <div className="root__irl__table-col__contentDesc" {...safeHtmlProps(gathering?.description)}></div>
       </div>
       <style jsx>{`
         .root__irl__table-header {

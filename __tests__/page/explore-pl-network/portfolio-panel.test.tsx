@@ -48,7 +48,35 @@ describe('PortfolioPanel', () => {
     setup();
     expect(screen.getByRole('button', { name: 'Map' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('group', { name: 'PL Network portfolio map' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Previous year' })).toBeInTheDocument();
+  });
+
+  // LAB-2877: past-year data is not accurate, so the year control is hidden and the map shows 2026 only.
+  it('hides the year control and shows no year label', () => {
+    setup();
+    expect(screen.queryByRole('button', { name: 'Previous year' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Next year' })).not.toBeInTheDocument();
+    for (let y = 2014; y <= 2026; y++) {
+      expect(screen.queryByRole('button', { name: String(y) })).not.toBeInTheDocument();
+    }
+    expect(screen.queryByText('2026')).not.toBeInTheDocument();
+  });
+
+  it('draws every team on the 2026 map', () => {
+    setup();
+    const map = screen.getByRole('group', { name: 'PL Network portfolio map' });
+    const drawn = teams.filter((_, i) => on2026.has(i));
+    expect(within(map).getAllByRole('button')).toHaveLength(drawn.length);
+    for (const t of drawn) {
+      expect(within(map).getByRole('button', { name: t.name })).toBeInTheDocument();
+    }
+  });
+
+  it('keeps the category filter without the year control', async () => {
+    const { user } = setup();
+    const island = ISLANDS.find((i) => !i.isCentre)!;
+    await user.click(screen.getByRole('button', { name: new RegExp(`^${island.name}`) }));
+    expect(screen.getByRole('button', { name: /Close/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Previous year' })).not.toBeInTheDocument();
   });
 
   it('opens a team card from a tile, with the DB facts and profile link', async () => {

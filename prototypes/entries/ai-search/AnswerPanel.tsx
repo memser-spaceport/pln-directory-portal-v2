@@ -80,6 +80,8 @@ interface AnswerPanelProps {
    * ai-search-page entry passes its redone composer (same props, same ref).
    */
   InputComponent?: typeof ChatInput;
+  /** Optional content right above the follow-up field (the MCP prototype puts its hint here). Nothing renders without it. */
+  aboveInput?: React.ReactNode;
 }
 
 /**
@@ -126,6 +128,7 @@ export function AnswerPanel({
   hideBar = false,
   layout = 'dialog',
   InputComponent = ChatInput,
+  aboveInput,
 }: AnswerPanelProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
@@ -265,6 +268,7 @@ export function AnswerPanel({
       </div>
 
       <form className={s.inputWrap} onSubmit={(e) => e.preventDefault()}>
+        {aboveInput}
         <InputComponent
           ref={inputRef}
           placeholder="Ask a follow-up"

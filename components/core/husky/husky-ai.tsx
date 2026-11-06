@@ -6,7 +6,7 @@ import HuskyChat from './husky-chat';
 import PageLoader from '../page-loader';
 import HuskyAnswerLoader from './husky-answer-loader';
 import HuskyFeedback from './husky-feedback';
-import { generateUUID, getParsedValue, getUniqueId } from '@/utils/common.utils';
+import { generateUUID, getUniqueId } from '@/utils/common.utils';
 import { getUserCredentialsInfo } from '@/utils/fetch-wrapper';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { useUnifiedSearchAnalytics, type AiQuerySubmitType } from '@/analytics/unified-search.analytics';
@@ -15,6 +15,7 @@ import HuskyAsk from './husky-ask';
 import { z } from 'zod';
 import { experimental_useObject } from 'ai/react';
 import Cookies from 'js-cookie';
+import { hasSession } from '@/utils/third-party.helper';
 import { useCurrentUserStore } from '@/services/auth/store';
 import HuskyLimitStrip from './husky-limit-strip';
 import { AnyNaptrRecord } from 'dns';
@@ -159,9 +160,7 @@ function HuskyAi({
   };
 
   const checkChatLimit = (userInfo: any): boolean => {
-    const refreshToken = getParsedValue(Cookies.get('refreshToken'));
-    if (refreshToken) return true;
-    return false;
+    return hasSession();
   };
 
   const updateChatCount = (): number => {

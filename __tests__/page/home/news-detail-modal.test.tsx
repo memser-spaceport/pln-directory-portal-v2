@@ -218,4 +218,49 @@ describe('NewsDetailModal', () => {
     expect(onUpvoteToggle).toHaveBeenCalledWith(item);
     expect(mockRouterPush).not.toHaveBeenCalled();
   });
+
+  describe('header image (LAB-3134)', () => {
+    const IMAGE = 'https://cdn.example.com/lattice.jpg';
+    // The modal's only <img> with no team logo URL is the story image.
+    const storyImage = () => screen.getByRole('dialog').querySelector('img');
+
+    it('shows the story image under the headline, above the body, when the new Home asks for it', () => {
+      render(
+        <NewsDetailModal
+          item={makeItem({ imageUrl: IMAGE })}
+          onClose={jest.fn()}
+          onUpvoteToggle={jest.fn()}
+          showImage
+        />,
+      );
+
+      const img = storyImage() as HTMLImageElement;
+      expect(img).toHaveAttribute('src', IMAGE);
+      expect(img).toHaveAttribute('alt', '');
+      expect(img).toHaveAttribute('loading', 'lazy');
+      const hero = img.parentElement as HTMLElement;
+      expect(hero).toHaveClass('hero');
+      expect(hero.previousElementSibling).toBe(
+        screen.getByRole('heading', { name: 'Lattice Compute doubles headcount' }),
+      );
+      expect(hero.nextElementSibling).toHaveTextContent('Six new roles opened across protocol engineering.');
+    });
+
+    it('stays text-only by default: the old Home and the profiles share this modal', () => {
+      render(<NewsDetailModal item={makeItem({ imageUrl: IMAGE })} onClose={jest.fn()} onUpvoteToggle={jest.fn()} />);
+      expect(storyImage()).not.toBeInTheDocument();
+    });
+
+    it('draws nothing for a story without an image', () => {
+      render(
+        <NewsDetailModal
+          item={makeItem({ imageUrl: null })}
+          onClose={jest.fn()}
+          onUpvoteToggle={jest.fn()}
+          showImage
+        />,
+      );
+      expect(storyImage()).not.toBeInTheDocument();
+    });
+  });
 });

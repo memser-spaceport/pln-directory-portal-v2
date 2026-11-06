@@ -52,6 +52,8 @@
 
   @include mobile-only {
     gap: 16px;
+    // The tag filter's chip takes its own line above Type and Sort.
+    flex-wrap: wrap;
   }
 }
 
@@ -167,4 +169,78 @@
   align-items: center;
   gap: 6px;
   margin-top: 8px;
+}
+
+// ---------- Tag filter (LAB-3010) ----------
+// The newsfeed prototype's topic scope: "Filter:" + a brand chip with × + the
+// count, kept together so the row wraps between groups, never inside this one.
+.topicScope {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+
+  @include mobile-only {
+    flex-basis: 100%;
+  }
+}
+
+.topicChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 280px;
+  padding: 4px 6px 4px 10px;
+  border: 1px solid var(--border-brand-subtle, #aebfff);
+  border-radius: 9999px;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+}
+
+.topicChipLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.topicChipClear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+}
+
+// Quieter than the "Filter:" label: a fact about the chip, not a control.
+.topicCount {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  white-space: nowrap;
 }

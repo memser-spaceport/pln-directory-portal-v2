@@ -15,17 +15,23 @@ interface Props {
   sideOffset?: number;
   delay?: number;
   forceTooltip?: boolean;
+  classes?: {
+    trigger?: string;
+  };
 }
 
-export default function CustomTooltip({
-  trigger,
-  content,
-  className,
-  side = 'top',
-  sideOffset = 10,
-  delay = 0,
-  forceTooltip = false, // ✅ default to false
-}: Props) {
+export default function CustomTooltip(props: Props) {
+  const {
+    trigger,
+    content,
+    className,
+    classes,
+    side = 'top',
+    sideOffset = 10,
+    delay = 0,
+    forceTooltip = false, // ✅ default to false
+  } = props;
+
   const triggerRef = useRef<HTMLElement>(null);
   const [isTruncated, setIsTruncated] = useState(false);
 
@@ -64,7 +70,13 @@ export default function CustomTooltip({
   return (
     <Tooltip.Provider delay={delay}>
       <Tooltip.Root>
-        <Tooltip.Trigger render={(props) => <div {...props}>{clonedTrigger}</div>} />
+        <Tooltip.Trigger
+          render={(props) => (
+            <div {...props} className={clsx(props.className, classes?.trigger)}>
+              {clonedTrigger}
+            </div>
+          )}
+        />
         <Tooltip.Portal>
           <Tooltip.Positioner side={side} sideOffset={sideOffset} style={{ zIndex: 11 }}>
             <Tooltip.Popup className={clsx(styles.Popup, className)}>

@@ -1,6 +1,8 @@
 import React from 'react';
 import { redirect } from 'next/navigation';
+import { decode } from 'he';
 
+import { fetchForumTopic } from '@/services/forum/forum-nodebb.server';
 import { TopicResponse } from '@/services/forum/hooks/useForumPost';
 
 import { isAdminUser } from '@/utils/user/isAdminUser';
@@ -27,7 +29,7 @@ interface PageProps {
 const EditPostPage = async (props: PageProps) => {
   const searchParams = await props.searchParams;
   const params = await props.params;
-  const { isLoggedIn, userInfo, authToken } = await getCookiesFromHeaders();
+  const { isLoggedIn, userInfo } = await getCookiesFromHeaders();
   const isAdmin = isAdminUser(userInfo);
 
   if (!isLoggedIn) {
@@ -38,14 +40,7 @@ const EditPostPage = async (props: PageProps) => {
     );
   }
 
-  const token = process.env.CUSTOM_FORUM_AUTH_TOKEN ?? authToken;
-
-  const response = await fetch(`${process.env.FORUM_API_URL}/api/topic/${params.topicId}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-  });
+  const response = await fetchForumTopic(params.topicId);
 
   if (!response?.ok) {
     const redirectUrl = `/forum/topics/${params.categoryId}/${params.topicId}?error=post-not-found${searchParams.from ? `&from=${searchParams.from}` : ''}`;
@@ -70,7 +65,7 @@ const EditPostPage = async (props: PageProps) => {
             isAdmin && data.posts?.[0]?.user
               ? { label: data.posts[0].user.displayname, value: data.posts[0].user.memberUid }
               : null,
-          topic: { label: data.category.name, value: data.category.cid.toString() },
+          topic: { label: decode(data.category.name), value: data.category.cid.toString() },
           title: data.title,
           content: data.posts?.[0]?.content,
         }}

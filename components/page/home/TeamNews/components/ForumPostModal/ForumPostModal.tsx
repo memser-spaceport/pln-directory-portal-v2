@@ -2,13 +2,12 @@
 
 import clsx from 'clsx';
 import { useCallback, useMemo, useState } from 'react';
-import parse from 'html-react-parser';
 
 import { Modal } from '@/components/common/Modal';
 import { CloseIcon } from '@/components/icons';
 import { processPostContent } from '@/components/page/forum/Post';
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
-import { linkifyHtml, sanitizeForumPostHtml } from '@/utils/html';
+import { linkifyHtml, parseSafeHtml } from '@/utils/html';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { useFeedForumTopicBodyHtml } from '@/services/feed/hooks/useFeedComments';
 import type { IFeedForumPost } from '@/types/feed.types';
@@ -82,7 +81,7 @@ export function ForumPostModal(props: ForumPostModalProps) {
     // ignores `select` and hands back its stub object, and NodeBB wire data
     // carries no runtime guarantees either.
     if (typeof bodyHtml !== 'string' || !bodyHtml) return null;
-    return parse(sanitizeForumPostHtml(linkifyHtml(processPostContent(bodyHtml).processedContent)));
+    return parseSafeHtml(linkifyHtml(processPostContent(bodyHtml).processedContent), 'forumPost');
   }, [bodyHtml]);
 
   const focusOnAttach = useCallback((node: HTMLButtonElement | null) => {

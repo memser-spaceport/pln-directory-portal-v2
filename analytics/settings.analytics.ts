@@ -6,6 +6,9 @@ import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDige
 
 export type ForumDigestAnalyticsSource = 'home-feed' | 'settings';
 
+/** How a member reached News preferences (the page's `from` param). */
+export type NewsPreferencesArrival = 'digest' | 'feed' | 'settings';
+
 export interface ForumDigestOptionSelectParams extends ForumDigestSettings {
   source: ForumDigestAnalyticsSource;
 }
@@ -237,7 +240,52 @@ export const useSettingsAnalytics = () => {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_EMAIL_CHANGE_CANCELLED);
   }
 
+  // News preferences (LAB-2941)
+  function onNewsPreferencesOpened(from: NewsPreferencesArrival) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_OPENED, { from });
+  }
+
+  function onNewsPreferencesTagToggled(params: { tag: string; on: boolean; from: NewsPreferencesArrival }) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_TAG_TOGGLED, params);
+  }
+
+  function onNewsPreferencesSaveFailed(params: { section: 'tags' | 'teams'; teamUid?: string }) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_SAVE_FAILED, params);
+  }
+
+  function onNewsPreferencesFollowToggled(params: {
+    teamUid: string;
+    following: boolean;
+    from: NewsPreferencesArrival;
+    /** True when the team was one of the suggestions shown to a member who follows none (LAB-3037). */
+    suggested?: boolean;
+  }) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_FOLLOW_TOGGLED, params);
+  }
+
+  /** When the member leaves the tag search with text in it (LAB-3023). */
+  function onNewsPreferencesTagSearched(params: { query: string; matches: number }) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_TAG_SEARCHED, params);
+  }
+
+  /** "Show N more" on a long theme (LAB-3039); not sent for "Show less". */
+  function onNewsPreferencesThemeExpanded(params: { theme: string; from: NewsPreferencesArrival }) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_GROUP_EXPANDED, params);
+  }
+
+  /** "For You" in the page intro, which opens the For You feed on Home (LAB-3036). */
+  function onNewsPreferencesForYouLinkClicked(from: NewsPreferencesArrival) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_FOR_YOU_LINK_CLICKED, { from });
+  }
+
   return {
+    onNewsPreferencesOpened,
+    onNewsPreferencesTagToggled,
+    onNewsPreferencesSaveFailed,
+    onNewsPreferencesFollowToggled,
+    onNewsPreferencesTagSearched,
+    onNewsPreferencesThemeExpanded,
+    onNewsPreferencesForYouLinkClicked,
     recordSettingsSideMenuClick,
     recordManageTeamsTeamChange,
     recordManageTeamSave,

@@ -40,11 +40,6 @@ describe('ExplorePlNetworkView', () => {
     expect(screen.queryByText('Listed below')).not.toBeInTheDocument();
   });
 
-  it('keeps its Q&A to the network; the Spotlight questions live on the Spotlight page', () => {
-    expect(screen.getByText('What is the PL Network?')).toBeInTheDocument();
-    expect(screen.queryByText('What is PL Spotlight?')).not.toBeInTheDocument();
-  });
-
   it('links every PL entity in a new tab', () => {
     const entities = within(screen.getByRole('region', { name: 'Protocol Labs entities' }));
     for (const e of PL_ENTITIES) {
@@ -54,11 +49,14 @@ describe('ExplorePlNetworkView', () => {
     }
   });
 
-  it('has the logo wall, the FAQ and the footer', () => {
+  it('has the logo wall and a footer without the FAQ, PL Capital, or legal links', () => {
     expect(screen.getByRole('heading', { name: /raised from top VCs/ })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Questions investors ask' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'PL Capital' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Privacy Policy' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Questions investors ask' })).not.toBeInTheDocument();
+    const footer = screen.getByRole('contentinfo');
+    expect(within(footer).queryByRole('link', { name: 'PL Capital' })).not.toBeInTheDocument();
+    expect(within(footer).queryByText(/PL Capital/)).not.toBeInTheDocument();
+    expect(within(footer).queryByRole('link', { name: 'Privacy Policy' })).not.toBeInTheDocument();
+    expect(within(footer).queryByRole('link', { name: 'Terms & Conditions' })).not.toBeInTheDocument();
   });
 
   it("reports a tile by marketing's logo id, the directory uid and the island", async () => {
@@ -74,7 +72,7 @@ describe('ExplorePlNetworkView', () => {
   });
 
   it('draws its own top bar, with no routes into the app', () => {
-    expect(screen.getByText('PL Network')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Contact us' })).toHaveAttribute('href', 'mailto:spotlight@protocol.ai');
+    expect(screen.getByText('Protocol Labs Network')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Contact us' })).not.toBeInTheDocument();
   });
 });

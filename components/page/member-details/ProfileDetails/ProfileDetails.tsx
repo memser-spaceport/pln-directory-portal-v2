@@ -1,7 +1,6 @@
 'use client';
 
 import { clsx } from 'clsx';
-import DOMPurify from 'isomorphic-dompurify';
 
 import { isBlankHtml } from '@/utils/html';
 import React, { useRef, useState } from 'react';
@@ -16,6 +15,7 @@ import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 import { ExpandableDescription } from '@/components/common/ExpandableDescription';
 
 import s from './ProfileDetails.module.scss';
+import { SafeHtml } from '@/components/ui/SafeHtml';
 
 interface Props {
   member: IMember;
@@ -77,10 +77,7 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member, variant }: Props)
             <div className={s.bioContainer}>
               <div className={s.bioTitle}>Bio</div>
               <ExpandableDescription>
-                {/* Sanitize-on-read, like the experience descriptions one section
-                    down: the bio is member-authored rich text and this is a new
-                    execution context for whatever is stored in it. */}
-                <div className={s.bioContent} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(member.bio) }} />
+                <SafeHtml className={s.bioContent} html={member.bio} />
               </ExpandableDescription>
             </div>
           )}

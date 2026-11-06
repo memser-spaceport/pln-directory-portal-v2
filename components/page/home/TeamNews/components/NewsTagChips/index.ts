@@ -1,0 +1,1 @@
+export { NewsTagChips } from './NewsTagChips';

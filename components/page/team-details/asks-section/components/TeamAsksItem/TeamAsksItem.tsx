@@ -4,6 +4,7 @@ import { ITeam, ITeamAsk } from '@/types/teams.types';
 import s from './TeamAsksItem.module.css';
 import { EditAskDialog } from '@/components/core/edit-ask-dialog';
 import { AskActionsMenu } from '@/components/page/team-details/asks-section/components/AskActionsMenu';
+import { SafeHtml } from '@/components/ui/SafeHtml';
 
 interface Props {
   data: ITeamAsk;
@@ -34,7 +35,7 @@ export const TeamAsksItem: FC<Props> = ({ data, canEdit, team }) => {
 
         {canEdit && <AskActionsMenu team={team} ask={data} deleteOnly={data.status === 'CLOSED'} />}
       </div>
-      <div ref={contentRef} className={s.content} dangerouslySetInnerHTML={{ __html: data.description }} />
+      <SafeHtml ref={contentRef} className={s.content} html={data.description} />
       <div className={s.tags}>
         {data?.tags?.map((tag: string, index: number) => (
           <div key={`${tag}+${index}`} className={s.tag}>

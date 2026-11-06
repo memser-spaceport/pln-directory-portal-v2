@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
+import { hasSession } from '@/utils/third-party.helper';
 
 import { ADMIN_ROLE, EVENTS, IRL_DEFAULT_TOPICS, TOAST_MESSAGES } from '@/utils/constants';
 import Toolbar from './toolbar';
@@ -83,7 +84,7 @@ const AttendeeList = (props: IAttendeeList) => {
 
   const onLogin = useCallback(async () => {
     const toast = (await import('react-toastify')).toast;
-    if (Cookies.get('refreshToken')) {
+    if (hasSession()) {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       window.location.reload();
     } else {

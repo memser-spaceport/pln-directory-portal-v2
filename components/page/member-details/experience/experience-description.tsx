@@ -1,51 +1,37 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import clip from 'text-clipper';
-import DOMPurify from 'dompurify';
+import { SafeHtml } from '@/components/ui/SafeHtml';
+import { sanitizeHtml } from '@/utils/html';
 import styles from './list.module.css';
 
 export default function ExperienceDescription({ description = '' }: { description: string }) {
-  const [sanitized, setSanitized] = useState('');
-  const [isClipped, setIsClipped] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
-  useEffect(() => {
-    if (description && typeof window !== 'undefined') {
-      const clean = DOMPurify.sanitize(description, {
-        ALLOWED_ATTR: ['href', 'target', 'rel'],
-        ADD_ATTR: ['target', 'rel'],
-        ADD_TAGS: ['a'], // only if you're limiting tags
-      });
-      const clipped = clip(clean, 255, { html: true, maxLines: 2 });
-
-      setSanitized(clipped);
-      setIsClipped(clean.length > clipped.length);
-    }
+  const { clean, clipped } = useMemo(() => {
+    const clean = sanitizeHtml(description);
+    return { clean, clipped: clip(clean, 255, { html: true, maxLines: 2 }) };
   }, [description]);
 
-  const handleToggle = () => {
-    setIsClipped(!isClipped);
-  };
+  const isClipped = !expanded && clean.length > clipped.length;
 
   return (
     <div className={styles.memberDetail__experience__item__detail__description}>
-      {sanitized && (
-        <p
-          dangerouslySetInnerHTML={{
-            __html: isClipped
-              ? sanitized
-              : DOMPurify.sanitize(description, {
-                  ALLOWED_ATTR: ['href', 'target', 'rel'],
-                  ADD_ATTR: ['target', 'rel'],
-                  ADD_TAGS: ['a'],
-                }),
-          }}
+      {clean && (
+        // A div, not a <p>: the description is rich-text HTML with its own <p>s, which a <p> cannot hold in
+        // server HTML (LAB-2930).
+        <SafeHtml
+          html={isClipped ? clipped : clean}
           className={styles.memberDetail__experience__item__detail__description__text}
         />
       )}
 
       {isClipped && (
-        <span onClick={handleToggle} className={styles.memberDetail__experience__item__detail__description__text__more}>
+        <span
+          onClick={() => setExpanded(true)}
+          className={styles.memberDetail__experience__item__detail__description__text__more}
+        >
           Show more
         </span>
       )}

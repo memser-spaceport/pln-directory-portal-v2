@@ -9,7 +9,7 @@ import { getCookiesFromClient } from '@/utils/third-party.helper';
  *
  * **The token check is load-bearing, not belt-and-braces.** `getStoredCv` goes
  * through `customFetch(..., true)`, and that wrapper does not merely fail when
- * there is no refresh token — it calls `logoutUser()` and then
+ * there is no session — it calls `logoutUser()` and then
  * `window.location.reload()`. A query that fires while signed out therefore
  * reloads the page, remounts, fires again, and the profile reloads forever. That
  * is not a hypothetical: it shipped, on every member profile, to every

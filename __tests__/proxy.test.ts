@@ -4,6 +4,8 @@
 import { NextRequest } from 'next/server';
 
 import { proxy } from '@/proxy';
+import { checkIsValidToken, renewAccessToken } from '@/services/auth.service';
+import { calculateExpiry, decodeToken } from '@/utils/auth.utils';
 
 jest.mock('@/services/auth.service', () => ({
   checkIsValidToken: jest.fn(),
@@ -15,7 +17,45 @@ jest.mock('@/utils/auth.utils', () => ({
   decodeToken: jest.fn(),
 }));
 
+const mockedCheck = checkIsValidToken as jest.Mock;
+const mockedRenew = renewAccessToken as jest.Mock;
+const mockedExpiry = calculateExpiry as jest.Mock;
+const mockedDecode = decodeToken as jest.Mock;
+
 const ORIGIN = 'https://os.pl.xyz';
+const TOKEN_RESPONSE_HEADERS = ['authToken', 'refreshToken', 'userInfo'] as const;
+
+const SESSION = {
+  authToken: JSON.stringify('access.jwt'),
+  refreshToken: JSON.stringify('refresh.jwt'),
+  userInfo: JSON.stringify({ uid: 'm-1', name: 'Ada' }),
+};
+
+const SPOOFED_AUTH_HEADERS = {
+  isLoggedIn: 'true',
+  authToken: JSON.stringify('spoofed-access'),
+  refreshToken: JSON.stringify('spoofed-refresh'),
+  userInfo: encodeURIComponent(JSON.stringify({ uid: 'spoof' })),
+};
+
+function request(path: string, cookies: Record<string, string> = {}, headers: Record<string, string> = {}) {
+  const cookie = Object.entries(cookies)
+    .map(([name, value]) => `${name}=${encodeURIComponent(value)}`)
+    .join('; ');
+  return new NextRequest(`${ORIGIN}${path}`, {
+    headers: { ...(cookie ? { cookie } : {}), ...headers },
+  });
+}
+
+function forwarded(res: Response, name: string) {
+  return res.headers.get(`x-middleware-request-${name.toLowerCase()}`);
+}
+
+function expectNoTokenResponseHeaders(res: Response) {
+  for (const name of TOKEN_RESPONSE_HEADERS) {
+    expect(res.headers.get(name)).toBeNull();
+  }
+}
 
 async function run(path: string) {
   const res = await proxy(new NextRequest(`${ORIGIN}${path}`));
@@ -80,5 +120,70 @@ describe('proxy: legacy AI App ?path= deep links', () => {
 
     expect(status).toBe(307);
     expect(location?.pathname).toBe('/members');
+  });
+});
+
+describe('proxy: auth state stays off the page response', () => {
+  const previousDomain = process.env.COOKIE_DOMAIN;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env.COOKIE_DOMAIN = '.os.pl.xyz';
+    mockedExpiry.mockImplementation((exp: number) => exp - Date.now() / 1000);
+    mockedDecode.mockImplementation(() => ({ exp: Math.floor(Date.now() / 1000) + 3600 }));
+  });
+
+  afterAll(() => {
+    if (previousDomain === undefined) delete process.env.COOKIE_DOMAIN;
+    else process.env.COOKIE_DOMAIN = previousDomain;
+  });
+
+  it('renders a signed-in page from the session cookies and omits token headers', async () => {
+    mockedCheck.mockResolvedValue({ active: true });
+
+    const res = await proxy(request('/home', SESSION, SPOOFED_AUTH_HEADERS));
+
+    expect(res?.status).toBe(200);
+    expectNoTokenResponseHeaders(res!);
+    expect(forwarded(res!, 'isLoggedIn')).toBe('true');
+    expect(forwarded(res!, 'authToken')).toBe(SESSION.authToken);
+    expect(forwarded(res!, 'refreshToken')).toBe(SESSION.refreshToken);
+    expect(forwarded(res!, 'userInfo')).toBe(encodeURIComponent(SESSION.userInfo));
+  });
+
+  it('renews an expired access token on the first response, with no token headers', async () => {
+    mockedCheck.mockResolvedValue({ active: false });
+    mockedRenew.mockResolvedValue({
+      data: { accessToken: 'access.new', refreshToken: 'refresh.new', userInfo: { uid: 'm-1' } },
+    });
+
+    const res = await proxy(request('/home', SESSION, SPOOFED_AUTH_HEADERS));
+
+    expect(res?.status).toBe(200);
+    expectNoTokenResponseHeaders(res!);
+    expect(forwarded(res!, 'isLoggedIn')).toBe('true');
+    expect(forwarded(res!, 'authToken')).toBe(JSON.stringify('access.new'));
+    expect(forwarded(res!, 'refreshToken')).toBe(JSON.stringify('refresh.new'));
+    expect(forwarded(res!, 'userInfo')).toBe(encodeURIComponent(JSON.stringify({ uid: 'm-1' })));
+    expect(res!.headers.getSetCookie().some((line) => line.startsWith('authToken='))).toBe(true);
+  });
+
+  it('ignores client auth headers when the visitor has no session', async () => {
+    const res = await proxy(request('/home', {}, SPOOFED_AUTH_HEADERS));
+
+    expect(res?.status).toBe(200);
+    expectNoTokenResponseHeaders(res!);
+    expect(res!.headers.get('isLoggedIn')).toBeNull();
+    for (const name of ['isLoggedIn', 'authToken', 'refreshToken', 'userInfo']) {
+      expect(forwarded(res!, name)).toBeNull();
+    }
+  });
+
+  it('still sends a protected page to login when the client sends auth headers and no session', async () => {
+    const res = await proxy(request('/investors', {}, SPOOFED_AUTH_HEADERS));
+
+    expect(res?.status).toBe(307);
+    expect(res!.headers.get('location')).toContain('/members');
+    expectNoTokenResponseHeaders(res!);
   });
 });

@@ -37,7 +37,7 @@ export const EditorialIntro = ({ portfolioCount, onEntityClicked }: Props) => (
       ))}
     </dl>
 
-    <section className={s.edSection} aria-labelledby="ed-focus">
+    <section id="focus-areas" className={s.edSection} aria-labelledby="ed-focus">
       <h2 id="ed-focus" className={s.edSectionTitle}>
         Focus areas
       </h2>
@@ -52,7 +52,7 @@ export const EditorialIntro = ({ portfolioCount, onEntityClicked }: Props) => (
       </ol>
     </section>
 
-    <section className={s.edSection} aria-labelledby="ed-entities">
+    <section id="entities" className={s.edSection} aria-labelledby="ed-entities">
       <h2 id="ed-entities" className={s.edSectionTitle}>
         Protocol Labs entities
       </h2>

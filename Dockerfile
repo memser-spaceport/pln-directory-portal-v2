@@ -10,7 +10,7 @@
 # The runner contains neither the sources nor the full node_modules, which is
 # what keeps the image small and the pod start fast.
 
-ARG NODE_VERSION=20
+ARG NODE_VERSION=22.23.4
 
 # ============================
 # Stage 1: dependencies

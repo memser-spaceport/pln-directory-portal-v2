@@ -1,13 +1,11 @@
-import { getParsedValue } from './common.utils';
 import { DAILY_CHAT_LIMIT } from './constants';
 import Cookies from 'js-cookie';
+import { hasSession } from './third-party.helper';
 
 const COOKIE_NAME = 'dailyChats';
 
 export const checkRefreshToken = (): boolean => {
-  const refreshToken = getParsedValue(Cookies.get('refreshToken'));
-  if (refreshToken) return true;
-  return false;
+  return hasSession();
 };
 
 export const updateChatCount = (): number => {

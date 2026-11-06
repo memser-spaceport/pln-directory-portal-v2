@@ -2,12 +2,14 @@
 
 import {
   type CSSProperties,
+  type DragEvent,
   type ReactNode,
   type RefObject,
   useCallback,
   useEffect,
   useId,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -20,6 +22,7 @@ import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
 import { ConfirmDialog } from '@/components/page/demo-day/FounderPendingView/components/ConfirmDialog';
 import { FormEditor } from '@/components/form/FormEditor';
+import type { NoteImageEdit, NoteImageRemoval } from '@/components/ui/RichTextEditor/RichTextEditorClient';
 import { FormSelect } from '@/components/form/FormSelect/FormSelect';
 import { CloseIcon, CommentIcon, PencilSimpleLineIcon } from '@/components/icons';
 import { toast } from '@/components/core/ToastContainer';
@@ -55,10 +58,13 @@ import {
   attachImageFile,
   cropImageToDataUrl,
   emptyAnnotations,
+  flattenAnnotatedNoteImages,
   frameRectToCapturePixels,
   grabVideoFrame,
   hasAnyAnnotation,
   isCaptureSupported,
+  parseAnnotations,
+  serializeAnnotations,
   isPersistentReason,
   requestTabCapture,
   stopCaptureStream,
@@ -121,6 +127,9 @@ export const MAX_SCREENSHOTS = 5;
  * never refused there for a rounding difference in how the body is counted.
  */
 const MAX_PAYLOAD = 199_000;
+/** A screenshot chip dragged into the note. The editor copies that image and keeps its marks. */
+const FEEDBACK_SHOT_DRAG_TYPE = 'application/x-pln-feedback-shot';
+
 const FEEDBACK_TOOLBAR: (string | Record<string, unknown>)[][] = [
   [{ header: [1, 2, 3, false] }],
   ['bold', 'link', 'image'],
@@ -287,9 +296,19 @@ interface Props {
  * runs against the latest state rather than a closure.
  */
 type AutoShot =
-  | { token: number; status: 'waiting' | 'draft' | 'attached' | 'failed' | 'skipped' | 'removed' }
+  | { token: number; status: 'waiting' | 'draft' | 'attached' | 'removed' }
   | { token: number; status: 'capturing'; late?: boolean }
-  | { token: number; status: 'landed'; dataUrl: string };
+  | { token: number; status: 'landed'; dataUrl: string }
+  | { token: number; status: 'failed'; tooSlow: boolean };
+
+/**
+ * The one capture failure the member is told the cause of: past the drawing
+ * budget (`too-slow`), or an app's bridge that never answered (`timeout`).
+ * Every other cause gets the general message; none has anything to act on.
+ */
+function tookTooLong(error: unknown): boolean {
+  return error instanceof Error && (error.message === CAPTURE_TOO_SLOW || error.message === 'timeout');
+}
 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -455,8 +474,16 @@ export function GiveAiAppFeedbackDialog({
   };
   const [isHostingImages, setIsHostingImages] = useState(false);
   const [screenshots, setScreenshots] = useState<ScreenshotAttachment[]>([]);
+  const screenshotsRef = useRef(screenshots);
+  screenshotsRef.current = screenshots;
   const [freezeSrc, setFreezeSrc] = useState<string | null>(null);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [noteImageEdit, setNoteImageEdit] = useState<{
+    src: string;
+    initial?: AnnotationState;
+    commit: (annotations: string | null) => void;
+  } | null>(null);
+  const [pendingNoteRemove, setPendingNoteRemove] = useState<(() => void) | null>(null);
   /**
    * Which capture the annotator is open on, when it is an edit.
    *
@@ -494,7 +521,7 @@ export function GiveAiAppFeedbackDialog({
   const useBridge = canCapture && !bridgeFailed;
   const canPickLive = useBridge && (pickViewport || Boolean(frameRef));
   const captureNoun = appUid ? 'app' : 'page';
-  const isBusy = isCapturing || Boolean(freezeSrc) || Boolean(cropSrc) || isPickingPart;
+  const isBusy = isCapturing || Boolean(freezeSrc) || Boolean(cropSrc) || Boolean(noteImageEdit) || isPickingPart;
   const isHidden = isOpen && isBusy;
   const isSending = isAppFeedbackPending || isContactSupportPending || isHostingImages;
   const isPending = isSending || isRequestedCapture;
@@ -637,9 +664,7 @@ export function GiveAiAppFeedbackDialog({
         });
       })
       .catch((error: unknown) => {
-        /* A page too heavy to draw in time gets no picture and no apology: the member never asked for one. */
-        const tooSlow = error instanceof Error && error.message === CAPTURE_TOO_SLOW;
-        settle({ token: autoToken, status: tooSlow ? 'skipped' : 'failed' });
+        settle({ token: autoToken, status: 'failed', tooSlow: tookTooLong(error) });
         analyticsRef.current.onFeedbackAppCapture({
           appUid,
           source: 'auto',
@@ -920,7 +945,11 @@ export function GiveAiAppFeedbackDialog({
       });
       /* No automatic screen share: the browser only allows one straight from a click. */
       setBridgeFailed(true);
-      toast.error(`Couldn’t capture the ${captureNoun}. Try again — it will use screen sharing.`);
+      toast.error(
+        tookTooLong(error)
+          ? `The ${captureNoun} took too long to capture. Try again — it will use screen sharing.`
+          : `Couldn’t capture the ${captureNoun}. Try again — it will use screen sharing.`,
+      );
       return null;
     } finally {
       setIsRequestedCapture(false);
@@ -1017,6 +1046,56 @@ export function GiveAiAppFeedbackDialog({
     setCropSrc(shot.imageDataUrl);
   };
 
+  const onAnnotateNoteImage = (edit: NoteImageEdit) => {
+    analytics.onFeedbackScreenshotEditOpened();
+    setNoteImageEdit({
+      src: edit.src,
+      initial: parseAnnotations(edit.annotations) ?? undefined,
+      commit: edit.commit,
+    });
+  };
+
+  const onNoteImageAdd = (annotations: AnnotationState) => {
+    if (!noteImageEdit) return;
+    const hasAnnotations = hasAnyAnnotation(annotations);
+    analytics.onFeedbackScreenshotEditSaved({ hasAnnotations });
+    noteImageEdit.commit(hasAnnotations ? serializeAnnotations(annotations) : null);
+    setNoteImageEdit(null);
+  };
+
+  const onNoteImageDiscard = () => {
+    analytics.onFeedbackScreenshotAnnotatorDiscarded({ isEditing: true });
+    setNoteImageEdit(null);
+  };
+
+  const onRemoveNoteImage = (removal: NoteImageRemoval) => {
+    if (hasAnyAnnotation(parseAnnotations(removal.annotations))) {
+      setPendingNoteRemove(() => removal.remove);
+      return;
+    }
+    removal.remove();
+  };
+
+  const shotDrop = useMemo(
+    () => ({
+      dragType: FEEDBACK_SHOT_DRAG_TYPE,
+      resolve: (id: string) => {
+        const shot = screenshotsRef.current.find((item) => item.id === id);
+        if (!shot) return null;
+        return {
+          src: shot.imageDataUrl,
+          annotations: hasAnyAnnotation(shot.annotations) ? serializeAnnotations(shot.annotations) : null,
+        };
+      },
+    }),
+    [],
+  );
+
+  const onShotDragStart = (event: DragEvent, shotId: string) => {
+    event.dataTransfer.setData(FEEDBACK_SHOT_DRAG_TYPE, shotId);
+    event.dataTransfer.effectAllowed = 'copy';
+  };
+
   const onAnnotatorDiscard = () => {
     analytics.onFeedbackScreenshotAnnotatorDiscarded({ isEditing: Boolean(editingShotId) });
     setCropSrc(null);
@@ -1086,6 +1165,7 @@ export function GiveAiAppFeedbackDialog({
 
     try {
       setIsHostingImages(true);
+      trimmedMessage = await flattenAnnotatedNoteImages(trimmedMessage);
       trimmedMessage = await hostDataUriImages(trimmedMessage);
       /* The rest follows the note as HTML blocks, which markdown carries as they are. */
       let attached = isHere ? '' : `<p>Started on ${escapeHtml(placeLabel(draftPlace))}</p>`;
@@ -1286,7 +1366,8 @@ export function GiveAiAppFeedbackDialog({
     showAppPicker,
   ]);
 
-  const closeOnEscape = !isBusy && !pendingRemoveId && !shortcutsOpen && !isDiscardPending && !isHidePending;
+  const closeOnEscape =
+    !isBusy && !pendingRemoveId && !pendingNoteRemove && !shortcutsOpen && !isDiscardPending && !isHidePending;
 
   /* Drawer: Esc closes it, as Modal's closeOnEscape does for the popover, unless something on top owns Esc
      (a confirm, the shortcuts sheet, a capture). On the Comments tab, comment mode owns Esc. */
@@ -1523,7 +1604,9 @@ export function GiveAiAppFeedbackDialog({
                       )}
                       {auto?.status === 'failed' && screenshots.length === 0 && (
                         <p className={s.shotNote}>
-                          Couldn’t capture the {captureNoun} automatically — add a screenshot below.
+                          {auto.tooSlow
+                            ? `The ${captureNoun} took too long to capture — add a screenshot below.`
+                            : `Couldn’t capture the ${captureNoun} automatically — add a screenshot below.`}
                         </p>
                       )}
                       {screenshots.map((shot, index) => (
@@ -1531,8 +1614,10 @@ export function GiveAiAppFeedbackDialog({
                           <div className={s.shot}>
                             <button
                               type="button"
+                              draggable
                               className={s.shotImage}
                               aria-label={`Open screenshot ${index + 1}`}
+                              onDragStart={(event) => onShotDragStart(event, shot.id)}
                               onClick={() => onEditShot(shot)}
                             >
                               {/* Marks show on the preview too, so nothing drawn is out of sight (prototype). */}
@@ -1684,6 +1769,9 @@ export function GiveAiAppFeedbackDialog({
                         markdownShortcuts
                         minHeight={isWide ? 360 : 120}
                         className={s.editor}
+                        onAnnotateImage={onAnnotateNoteImage}
+                        onRemoveImage={onRemoveNoteImage}
+                        externalImageDrop={shotDrop}
                       />
                     ) : (
                       <textarea
@@ -1721,6 +1809,20 @@ export function GiveAiAppFeedbackDialog({
               {/* Portalled out: this panel is a small anchored popover, and a
               `fixed` child of it is laid out against the popover rather than
               the viewport wherever a transform survives on the container. */}
+              <ConfirmLayer isOpen={Boolean(pendingNoteRemove)}>
+                <ConfirmDialog
+                  isOpen
+                  title="Delete image?"
+                  message="This image and the annotations on it will be removed from your feedback."
+                  confirmText="Delete"
+                  cancelText="Keep"
+                  onConfirm={() => {
+                    pendingNoteRemove?.();
+                    setPendingNoteRemove(null);
+                  }}
+                  onCancel={() => setPendingNoteRemove(null)}
+                />
+              </ConfirmLayer>
               <ConfirmLayer isOpen={Boolean(pendingRemoveShot)}>
                 <ConfirmDialog
                   isOpen
@@ -1831,7 +1933,7 @@ export function GiveAiAppFeedbackDialog({
           isOpen={isOpen}
           wide={isWideShown}
           hidden={isBusy || collapsed}
-          reserveSpace={Boolean(appUid)}
+          reserveSpace={Boolean(appUid) && showingAlt}
           label={title}
         >
           {panel}
@@ -1875,13 +1977,13 @@ export function GiveAiAppFeedbackDialog({
           onCancel={onPartCancel}
         />
       )}
-      {cropSrc && (
+      {(cropSrc || noteImageEdit) && (
         <AnnotatorModal
-          imageSrc={cropSrc}
-          onDiscard={onAnnotatorDiscard}
-          onAdd={onAnnotatorAdd}
+          imageSrc={noteImageEdit?.src ?? cropSrc ?? ''}
+          onDiscard={noteImageEdit ? onNoteImageDiscard : onAnnotatorDiscard}
+          onAdd={noteImageEdit ? onNoteImageAdd : onAnnotatorAdd}
           onToolSelected={(tool) => analytics.onFeedbackScreenshotToolSelected({ tool })}
-          initialAnnotations={editingShot?.annotations}
+          initialAnnotations={noteImageEdit?.initial ?? editingShot?.annotations}
         />
       )}
       <ShortcutHelp

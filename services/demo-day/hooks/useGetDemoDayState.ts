@@ -3,6 +3,7 @@ import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useParams } from 'next/navigation';
+import type { DemoDayState as ServerDemoDayState } from '@/app/actions/demo-day.actions';
 
 type DemoDayState = {
   uid: string;
@@ -57,7 +58,16 @@ export async function getDemoDayState(demoDaySlug: string, memberUid?: string) {
   return data;
 }
 
-export function useGetDemoDayState(initialData?: any, options?: { enabled?: boolean }) {
+export function useGetDemoDayState(
+  initialData?: any,
+  options?: {
+    enabled?: boolean;
+    /* Server-fetched state to show until the query loads. Unlike initialData it stays out of the shared cache, so it
+       works even when another component (DemoDayStats in the root layout) created the query first, and it never
+       lands in the server's process-wide QueryClient (LAB-2930). */
+    placeholderData?: ServerDemoDayState;
+  },
+) {
   const { currentUser: userInfo } = useCurrentUserStore();
   const params = useParams();
   const demoDaySlug = params.demoDayId as string | undefined;
@@ -66,6 +76,8 @@ export function useGetDemoDayState(initialData?: any, options?: { enabled?: bool
     queryKey: [DemoDayQueryKeys.GET_DEMO_DAY_STATE, demoDaySlug, userInfo?.uid],
     queryFn: () => getDemoDayState(demoDaySlug as string, userInfo?.uid),
     initialData,
+    // The same API response, typed by the server action, where shortDescription is optional.
+    placeholderData: options?.placeholderData as DemoDayState | undefined,
     enabled: (options?.enabled ?? true) && !!demoDaySlug,
   });
 }

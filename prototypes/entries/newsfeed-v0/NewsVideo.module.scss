@@ -58,6 +58,17 @@
   background: linear-gradient(135deg, var(--transparent-brand-12, #1b4dff1f), var(--transparent-brand-4, #1b4dff0a));
 }
 
+/* A still image in the same frame: not a control, so it takes its row's cursor. */
+.still {
+  cursor: inherit;
+}
+
+/* Card, image under the description: the text column's full width, the poster's radius. */
+.wide {
+  width: 100%;
+  margin-top: 4px;
+}
+
 .iframe {
   display: block;
   width: 100%;

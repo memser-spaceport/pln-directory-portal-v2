@@ -15,6 +15,7 @@ import type { ForumPost, FeedComment } from './mocks';
 import { LikeButton, CommentButton, ViewCount, SaveButton } from './FeedActions';
 import { ShareMenu } from './ShareMenu';
 import { CommentsThread } from './CommentsThread';
+import { TopicTags } from './TopicTags';
 
 interface Props {
   post: ForumPost;
@@ -33,6 +34,12 @@ interface Props {
    *  same way a story is — one list, one bookmark. */
   saved?: boolean;
   onToggleSave?: () => void;
+  /** Present = the post's hashtags are links that filter the feed to that topic. */
+  onSelectTopic?: (tag: string) => void;
+  /** The feed's current topic filter, shown selected on the tags. */
+  activeTopic?: string | string[];
+  /** Author as a byline: a 32px avatar beside name (bold) over role, instead of one "Name · Role" row. home-v2-b. */
+  authorStacked?: boolean;
 }
 
 /**
@@ -54,6 +61,9 @@ export function ForumPostCard({
   onOpenDetail,
   saved = false,
   onToggleSave,
+  onSelectTopic,
+  activeTopic,
+  authorStacked = false,
 }: Props) {
   const [threadOpen, setThreadOpen] = useState(false);
 
@@ -63,19 +73,37 @@ export function ForumPostCard({
 
   return (
     <div className={clsx(s.card, local.feedCard)}>
-      <div className={s.head}>
-        <img className={clsx(s.logo, local.authorAvatar)} src={getDefaultAvatar(post.author)} alt="" loading="lazy" />
-        <a
-          href={`/members/${post.memberUid}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={clsx(s.teamName, local.teamNameTight)}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {post.author}
-        </a>
-        <span className={local.authorRole}>· {post.role}</span>
-      </div>
+      {authorStacked ? (
+        <div className={local.byline}>
+          <img className={local.bylineAvatar} src={getDefaultAvatar(post.author)} alt="" loading="lazy" />
+          <span className={local.bylineText}>
+            <a
+              href={`/members/${post.memberUid}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={local.bylineName}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {post.author}
+            </a>
+            <span className={local.bylineRole}>{post.role}</span>
+          </span>
+        </div>
+      ) : (
+        <div className={s.head}>
+          <img className={clsx(s.logo, local.authorAvatar)} src={getDefaultAvatar(post.author)} alt="" loading="lazy" />
+          <a
+            href={`/members/${post.memberUid}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={clsx(s.teamName, local.teamNameTight)}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {post.author}
+          </a>
+          <span className={local.authorRole}>· {post.role}</span>
+        </div>
+      )}
 
       {/* The story body is a click convenience, not the link — the title below is
           the real one, so it (not this div) carries the tab stop and the a11y role. */}
@@ -105,6 +133,7 @@ export function ForumPostCard({
           </a>
         </h3>
         <p className={local.summary}>{post.body}</p>
+        <TopicTags tags={post.tags} className={local.topicTags} onSelect={onSelectTopic} active={activeTopic} />
         <div className={local.footer}>
           <span className={local.source}>
             <span className={local.metaForum}>Discussion</span>

@@ -183,6 +183,60 @@
   line-height: 20px;
 }
 
+// ---------- `settings` variant: plain line, link on the right ----------
+// No slab: the words sit on the page itself, the action is a text link with an
+// arrow at the row's end (Home v2 style refresh's "Tune For You").
+
+.plainHint {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 24px;
+  margin-bottom: 16px;
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.plainHintText {
+  margin: 0;
+  min-width: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.plainHintLabel {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-weight: 500;
+}
+
+.plainHintLink {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+  text-decoration: underline;
+  text-decoration-color: var(--border-neutral-strong, rgba(27, 56, 96, 0.32));
+  text-underline-offset: 4px;
+
+  &:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+.arrow {
+  flex-shrink: 0;
+}
+
 // ---------- Thin-feed ask ----------
 
 .thinAsk.thinAsk {

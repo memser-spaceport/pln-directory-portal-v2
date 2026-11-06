@@ -1176,3 +1176,92 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+// ---- Section nav (explore-pl-network-sections) ----------------------------------
+// Sections the header links to land below the sticky bar, not under it.
+// globals.scss gives every [id] a 140px scroll-margin by this variable, which
+// out-ranks a class. Each heading lands 24px under the bar: the bar is 80px from
+// 960px and two rows (~112px) below (see .secBar), and production's Portfolio
+// and FAQ sections open on 40px of padding; the logo wall (.anchorFlush) doesn't.
+.anchor {
+  --scroll-margin-top: 96px;
+
+  @media (min-width: 960px) {
+    --scroll-margin-top: 64px;
+  }
+}
+
+.anchorFlush {
+  --scroll-margin-top: 136px;
+
+  @media (min-width: 960px) {
+    --scroll-margin-top: 104px;
+  }
+}
+
+.secBar.secBar {
+  gap: 16px;
+
+  // Two rows under tablet-landscape: brand + Contact us, then the links.
+  @media (max-width: 959px) {
+    flex-wrap: wrap;
+    height: auto;
+    row-gap: 4px;
+    padding-bottom: 8px;
+  }
+}
+
+// A button, so the brand returns to the top; it keeps SpvNavBar's look.
+.secBrand {
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  // Equal flexible sides (with .secRight) keep the links centred in the bar.
+  flex: 1 0 0;
+  min-width: max-content;
+}
+
+.secNav {
+  min-width: 0;
+
+  @media (max-width: 959px) {
+    order: 3;
+    flex-basis: calc(100% + 32px); // edge to edge, past the bar's 16px padding
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-inline: -16px;
+    padding-inline: 12px;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}
+
+.secList {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// Production's trigger is 40px tall; a 32px pill sits lighter in a text row.
+.secLink.secLink {
+  white-space: nowrap;
+  height: 32px;
+  padding: 6px 10px;
+}
+
+.secLinkActive.secLinkActive {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.secRight.secRight {
+  flex: 1 0 0;
+  min-width: max-content;
+}

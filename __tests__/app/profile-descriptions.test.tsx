@@ -25,7 +25,6 @@ jest.mock('@/services/teams.service', () => ({
 const mockGetProject = jest.fn();
 jest.mock('@/services/projects.service', () => ({
   getProject: (...args: unknown[]) => mockGetProject(...args),
-  getProjectOsoDetails: jest.fn(),
 }));
 jest.mock('@/services/members.service', () => ({ getMembers: jest.fn() }));
 jest.mock('@/services/common.service', () => ({ getFocusAreas: jest.fn() }));

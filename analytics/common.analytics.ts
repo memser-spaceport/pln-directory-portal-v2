@@ -84,6 +84,11 @@ export const useCommonAnalytics = () => {
     captureEvent(COMMON_ANALYTICS_EVENTS.CONTACT_SUPPORT_TOPIC_PILL_SELECTED, { topic, user });
   }
 
+  /** A successful Contact Support submit. Topic and page only — never the message. */
+  function onContactSupportSubmitted(topic: string, page: string) {
+    captureEvent(COMMON_ANALYTICS_EVENTS.CONTACT_SUPPORT_SUBMITTED, { topic, page });
+  }
+
   function onNavAccountItemClicked(name: string, user: IAnalyticsUserInfo | null) {
     const params = {
       name,
@@ -180,6 +185,7 @@ export const useCommonAnalytics = () => {
     onHelpCalloutShown,
     onHelpCalloutDismissed,
     onContactSupportTopicPillSelected,
+    onContactSupportSubmitted,
     onNavAccountItemClicked,
     onNavJoinNetworkClicked,
     onNavJoinNetworkOptionClicked,

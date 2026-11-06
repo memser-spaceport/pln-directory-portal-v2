@@ -34,7 +34,7 @@ export interface TrustBuyback {
 type ViewMode = 'monthly-graph' | 'table';
 
 const VIEW_OPTIONS: { id: ViewMode; label: string }[] = [
-  { id: 'monthly-graph', label: 'Monthly Graph' },
+  { id: 'monthly-graph', label: 'Chart View' },
   { id: 'table', label: 'Table View' },
 ];
 
@@ -297,8 +297,8 @@ interface BuybackMarker {
   text: string;
 }
 
-// Newest auction wins when two share a month. A price that never settled
-// reads 'TBD' and plots nothing.
+// Each auction is matched to its own month. Newest auction wins when two share
+// a month. A price that never settled reads 'TBD' and plots nothing.
 function buybackMarkersByPeriod(buybacks: TrustBuyback[]): Record<string, BuybackMarker> {
   const markers: Record<string, BuybackMarker> = {};
   buybacks.forEach((entry) => {
@@ -311,7 +311,7 @@ function buybackMarkersByPeriod(buybacks: TrustBuyback[]): Record<string, Buybac
   return markers;
 }
 
-// Final category (the latest month) highlighted in blue.
+// Final category (latest month) highlighted in blue.
 const renderAxisTick = (lastLabel: string) => (props: any) => {
   const { x, y, payload } = props;
   const isLast = payload.value === lastLabel;
@@ -352,7 +352,7 @@ function NavChart({
       buybackLabel: marker?.text ?? '',
     };
   });
-  // A handful of bars are drawn wide (per design); denser series get
+  // A short series gets wide bars (per design); denser series get
   // proportionally narrower bars.
   const dense = chartData.length > 8;
   const barSize = dense ? 40 : 92;
@@ -634,7 +634,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
   const { onNavMenuClicked } = useAlignmentAssetsAnalytics();
   useScrollDepthTracking('trust-holdings');
 
-  // Table keeps the full series; Monthly Graph is limited to MONTHLY_WINDOW months.
+  // Table keeps the full series; Chart View is limited to MONTHLY_WINDOW months.
   const monthlyWindow = takeRecentMonths(data.monthly, MONTHLY_WINDOW);
   const buybackMarkers = buybackMarkersByPeriod(buybacks);
   const metrics = capstoneMetrics(data, buybacks);

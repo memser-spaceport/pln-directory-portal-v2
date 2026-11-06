@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Protocol Labs Directory frontend — a Next.js 16.2.3 (App Router) application for browsing and managing members, teams, projects, events, and forum content in the Protocol Labs network. Uses React 19.2.5, TypeScript, SCSS modules, and Zustand/React Query for state management. Node 22 (`.nvmrc`), npm (`package-lock.json`; `.npmrc` sets `legacy-peer-deps=true`).
+Protocol Labs Directory frontend — a Next.js 16.4.3 (App Router) application for browsing and managing members, teams, projects, events, and forum content in the Protocol Labs network. Uses React 19.2.5, TypeScript, SCSS modules, and Zustand/React Query for state management. Node 22.23.4 (`.nvmrc` and the Dockerfile; `engines` `22.x`), npm (`package-lock.json`; `.npmrc` sets `legacy-peer-deps=true`).
 
 ## Mandatory pre-PR authentication check
 
@@ -39,7 +39,7 @@ Next 16 request APIs are async: `await cookies()` / `await headers()`, and page/
 
 ### Authentication Flow
 
-- **Proxy** (`proxy.ts`, the Next 16 name for middleware): Server-side auth via cookies (`authToken`, `refreshToken`, `userInfo`). Validates tokens on every request, refreshes expired tokens, and passes auth state via response headers.
+- **Proxy** (`proxy.ts`, the Next 16 name for middleware): Server-side auth via cookies (`authToken`, `refreshToken`, `userInfo`). Validates tokens on every request, refreshes expired tokens, and passes auth state to Server Components on the forwarded request. It ignores client-sent `authToken`, `refreshToken`, `userInfo`, and `isLoggedIn` headers. Page responses do not include `authToken`, `refreshToken`, or `userInfo`.
 - **Client-side**: `getCookiesFromHeaders()` in `utils/next-helpers.ts` reads auth state from headers in Server Components. Client components use `getCookiesFromClient()` from `utils/third-party.helper.ts`.
 - **Fetch wrapper** (`utils/fetch-wrapper.ts`): `customFetch()` handles authenticated API calls with automatic token refresh and retry on 401.
 - **Auth provider**: Privy (`@privy-io/react-auth`) for login.
@@ -101,7 +101,8 @@ Copy `.env.example` to `.env` for local setup. Key env vars: `DIRECTORY_API_URL`
 
 ## Conventions
 
-- ESLint flat config extends `eslint-config-next/core-web-vitals` and the Storybook plugin — `@next/next/no-img-element` and `jsx-a11y/alt-text` rules are disabled
+- ESLint flat config extends `eslint-config-next/core-web-vitals` and the Storybook plugin — `@next/next/no-img-element` and `jsx-a11y/alt-text` rules are disabled; `react/no-danger` is an error, and `dompurify` / `isomorphic-dompurify` / `html-react-parser` imports are restricted to `utils/html/`
+- Member- or AI-written HTML renders only through `SafeHtml` (`@/components/ui/SafeHtml`), `safeHtmlProps` (styled-jsx components) or `parseSafeHtml` (`@/utils/html`), with a named profile from `utils/html/sanitizeProfiles.ts` (`richText` by default)
 - Prettier: single quotes, 120 char print width
 - Client-only components for the root layout are `dynamic(..., { ssr: false })` exports in `app/ClientDynamics.tsx` (a `'use client'` module; `ssr: false` is not allowed in Server Components)
 - React Query hooks follow the pattern: fetcher function + `useQuery`/`useMutation` wrapper with query keys from domain constants

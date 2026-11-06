@@ -19,6 +19,7 @@ import { CommentButton } from '../NewsCard/components/CommentButton/CommentButto
 import { NewsShareMenu } from '../NewsShareMenu';
 import { SourceList } from '../SourceList/SourceList';
 import { ViewCount } from '../ViewCount/ViewCount';
+import { NewsTagChips } from '../NewsTagChips';
 
 import newsCardStyles from '../NewsCard/NewsCard.module.scss';
 import s from './TopStories.module.scss';
@@ -56,6 +57,10 @@ interface TopStoryCardProps {
   /** Fired once this card scrolls into the viewport (view-impression recording). */
   onVisible: (uid: string) => void;
   analyticsSource?: TeamNewsAnalyticsSource;
+  /** Makes the `#tag` chips links that filter the Home feed by that tag (LAB-3010). */
+  onTagSelect?: (tag: string) => void;
+  /** The Home feed's current tag filter, shown as the selected chip. */
+  activeTag?: string;
 }
 
 /**
@@ -80,6 +85,8 @@ export function TopStoryCard({
   onOpen,
   onVisible,
   analyticsSource = 'home',
+  onTagSelect,
+  activeTag,
 }: TopStoryCardProps) {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
@@ -151,6 +158,8 @@ export function TopStoryCard({
         <h2 className={s.leadTitle}>{story.title}</h2>
         {story.summary && <p className={s.leadSummary}>{story.summary}</p>}
       </button>
+
+      <NewsTagChips tags={story.tags} variant="card" onSelect={onTagSelect} active={activeTag} />
 
       <div className={newsCardStyles.metaLine}>
         <div className={newsCardStyles.meta}>

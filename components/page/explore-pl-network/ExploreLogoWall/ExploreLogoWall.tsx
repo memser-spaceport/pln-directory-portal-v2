@@ -4,10 +4,13 @@ import React, { useState } from 'react';
 import clsx from 'clsx';
 import { Button } from '@/components/common/Button';
 import { LOGOS } from '@/components/common/LogosGrid/constants';
+import { LOGO_HREF } from '@/components/common/LogosGrid/logoLinks';
 import s from './ExploreLogoWall.module.scss';
 
 type Props = {
   onShowAllToggled?: (expanded: boolean) => void;
+  /** Each logo links to the backer's site in a new tab (Home, LAB-3174). Off on Explore. */
+  linked?: boolean;
 };
 
 const logoName = (path: string) => path.replace('/icons/demoday/landing/logos/', '').replace('.svg', '');
@@ -17,7 +20,7 @@ const logoName = (path: string) => path.replace('/icons/demoday/landing/logos/',
  * LogosGrid itself is hard-coded to "past demo days" and fires Demo Day
  * analytics on Show All, so only its logo list is shared.
  */
-export const ExploreLogoWall = ({ onShowAllToggled }: Props) => {
+export const ExploreLogoWall = ({ onShowAllToggled, linked = false }: Props) => {
   const [showAll, setShowAll] = useState(false);
 
   return (
@@ -26,11 +29,28 @@ export const ExploreLogoWall = ({ onShowAllToggled }: Props) => {
 
       <div className={clsx(s.gridContainer, { [s.expanded]: showAll })}>
         <ul className={s.grid}>
-          {LOGOS.map((icon) => (
-            <li key={icon} className={s.cell}>
-              <img src={icon} className={s.logo} alt={logoName(icon)} loading="lazy" />
-            </li>
-          ))}
+          {LOGOS.map((icon) => {
+            const name = logoName(icon);
+            const href = linked ? LOGO_HREF[name] : undefined;
+            const img = <img src={icon} className={s.logo} alt={name} loading="lazy" />;
+            return (
+              <li key={icon} className={s.cell}>
+                {href ? (
+                  <a
+                    className={s.logoLink}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`${name} (opens in a new tab)`}
+                  >
+                    {img}
+                  </a>
+                ) : (
+                  img
+                )}
+              </li>
+            );
+          })}
         </ul>
         <div className={s.bottomShadow} aria-hidden />
       </div>

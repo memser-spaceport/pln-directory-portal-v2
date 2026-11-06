@@ -1,23 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import {
-  HandHeart,
-  Coins,
-  ArrowsLeftRight,
-  TrendUp,
-  RocketLaunch,
-  Flask,
-  Code,
-  Strategy,
-  Check,
-} from '@phosphor-icons/react';
+import { HandHeart, Coins, ArrowsLeftRight, TrendUp, Check } from '@phosphor-icons/react';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import type { TrustHoldingsData } from '@/services/plaa/trust-holdings.service';
 import styles from './overview.module.scss';
 import type { ReactNode } from 'react';
 import { cssVars } from './css-vars';
 import { OVERVIEW_SECTION_IDS } from './section-ids';
+import { ROLE_ITEMS } from './role-items';
 
 interface HowItem {
   number: number;
@@ -72,17 +63,6 @@ const HOW_ITEMS: HowItem[] = [
     withActivitiesLink: false,
     targetId: OVERVIEW_SECTION_IDS.redeemingPlaa,
   },
-];
-
-const ROLE_ITEMS = [
-  { role: 'Founders', description: 'driving new ventures', icon: <RocketLaunch size={19} weight="regular" /> },
-  { role: 'Researchers', description: 'accelerating frontier fields', icon: <Flask size={19} weight="regular" /> },
-  {
-    role: 'Builders',
-    description: 'shipping tools, products, and experiments',
-    icon: <Code size={19} weight="regular" />,
-  },
-  { role: 'Operators', description: 'coordinating teams and projects', icon: <Strategy size={19} weight="regular" /> },
 ];
 
 const BENEFIT_ITEMS = [

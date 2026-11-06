@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import Cookies from 'js-cookie';
+import { hasSession } from '@/utils/third-party.helper';
 
 import { useCommonAnalytics } from '@/analytics/common.analytics';
 
@@ -41,8 +41,7 @@ export function CookieChecker({ isLoggedIn }: CookieCheckerProps) {
 
   useEffect(() => {
     const checkCookieExpiry = () => {
-      const cookie = Cookies.get('refreshToken');
-      if (isUserLoggedIn && !cookie) {
+      if (isUserLoggedIn && !hasSession()) {
         dialogRef.current?.showModal();
       }
     };

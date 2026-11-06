@@ -1,10 +1,12 @@
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { ITeam } from '@/types/teams.types';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useFollowAnalytics } from '@/analytics/follow.analytics';
 
+import { FollowQueryKeys } from '../constants';
 import { useFollowTeam } from './useFollowTeam';
 
 export function useTeamFollowToggle(team: ITeam, initialIsFollowed: boolean) {
@@ -13,6 +15,7 @@ export function useTeamFollowToggle(team: ITeam, initialIsFollowed: boolean) {
 
   const { currentUser } = useCurrentUserStore();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { mutate, isPending } = useFollowTeam();
   const { onTeamFollowed, onTeamUnfollowed, onTeamFollowFailed } = useFollowAnalytics();
 
@@ -32,6 +35,7 @@ export function useTeamFollowToggle(team: ITeam, initialIsFollowed: boolean) {
         onSuccess: (data) => {
           if (data) {
             setIsFollowing(data.following);
+            queryClient.invalidateQueries({ queryKey: [FollowQueryKeys.FOLLOWED_TEAMS, 'followers', team.id] });
             if (willFollow) {
               onTeamFollowed({ teamUid: team.id, teamName: team.name ?? '', source: 'team-profile' });
             } else {

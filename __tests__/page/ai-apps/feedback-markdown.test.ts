@@ -25,6 +25,16 @@ describe('feedback note markdown', () => {
     expect(htmlToMarkdown(markdownToHtml(source))).toBe(source);
   });
 
+  it('keeps drawing data on an image when the note becomes markdown and comes back', () => {
+    const html =
+      '<p>See this</p><p><img src="https://cdn.test/i.png" alt="pic" data-annotations="%7B%22version%22%3A1%7D"></p>';
+    const markdown = htmlToMarkdown(html);
+    expect(markdown).toContain('<img ');
+    expect(markdown).toContain('data-annotations="%7B%22version%22%3A1%7D"');
+    expect(markdown).not.toContain('![');
+    expect(markdownToHtml(markdown)).toContain('data-annotations="%7B%22version%22%3A1%7D"');
+  });
+
   it('passes HTML blocks after the note through, for the screenshots', () => {
     expect(markdownToHtml('a < b\n\n<p><img src="https://cdn.test/s.png" data-annotations="%7B%7D"></p>')).toBe(
       '<p>a &lt; b</p><p><img src="https://cdn.test/s.png" data-annotations="%7B%7D"></p>',

@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { customFetch } from '@/utils/fetch-wrapper';
 import { ForumQueryKeys } from '@/services/forum/constants';
-import { toast } from '@/components/core/ToastContainer';
+import { forumFetch } from '@/services/forum/forum.service';
 import { useCurrentUserStore } from '@/services/auth/store';
 
 export interface EditPostMutationParams {
@@ -12,26 +11,18 @@ export interface EditPostMutationParams {
 }
 
 async function mutation({ pid, title, content, uid }: EditPostMutationParams) {
-  const token = process.env.CUSTOM_FORUM_AUTH_TOKEN;
   const currentUser = useCurrentUserStore.getState().currentUser;
 
-  const response = await customFetch(
-    `${process.env.FORUM_API_URL}/api/v3/posts/${pid}`,
-    {
-      method: 'PUT',
-      body: JSON.stringify({
-        title,
-        content,
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...(uid && uid !== currentUser?.uid ? { 'x-impersonate-member-uid': uid } : {}),
-      },
-      credentials: 'include',
+  const response = await forumFetch(`/api/v3/posts/${pid}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      title,
+      content,
+    }),
+    headers: {
+      ...(uid && uid !== currentUser?.uid ? { 'x-impersonate-member-uid': uid } : {}),
     },
-    !token,
-  );
+  });
 
   if (!response?.ok) {
     const res = await response?.json();

@@ -17,6 +17,8 @@ export interface IDeal {
   teamsUsingCount: number;
   logoUrl: string | null;
   isHighValue?: boolean;
+  /** The offer's headline value, short enough for a pill ("12 mo free", "$50K credits"; LAB-3071). Null when unset. */
+  offerValue?: string | null;
 }
 
 export interface IDealFilterOption {

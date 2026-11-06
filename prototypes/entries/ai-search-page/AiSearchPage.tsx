@@ -64,6 +64,8 @@ interface AiSearchPageProps {
   term?: string;
   /** False while the host keeps the page mounted but hidden (⌘B stays off). */
   open?: boolean;
+  /** Passed to AnswerPanel: optional content right above the follow-up field (the MCP prototype's hint). */
+  aboveInput?: React.ReactNode;
 }
 
 /**
@@ -95,6 +97,7 @@ export function AiSearchPage({
   onBackToSearch,
   term,
   open = true,
+  aboveInput,
 }: AiSearchPageProps) {
   const [railOpen, setRailOpen] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -508,6 +511,7 @@ export function AiSearchPage({
                 onAsk={followUp}
                 draft={drafts[draftKey] ?? ''}
                 onDraftChange={setDraft}
+                aboveInput={aboveInput}
               />
             </div>
           </>
@@ -626,32 +630,35 @@ function NewChat({ scope, onRemoveScope, onAsk, draft, onDraftChange }: NewChatP
           </p>
         </div>
 
-        {scope && (
-          <span className={clsx(sf.scopeChip, av.titleChip, s.scopeChip)}>
-            <img
-              className={clsx(sf.scopeLogo, scope.kind === 'member' && sf.scopeLogoPerson)}
-              src={scope.logo}
-              alt=""
-              width={16}
-              height={16}
-            />
-            <span className={sf.scopeName}>About {scope.name}</span>
-            <button
-              type="button"
-              className={sf.scopeRemove}
-              onClick={onRemoveScope}
-              aria-label={`Remove ${scope.name}, ask the whole network`}
-            >
-              <CloseIcon width={12} height={12} />
-            </button>
-          </span>
-        )}
-
         <form className={s.composer} onSubmit={(e) => e.preventDefault()}>
           <Composer
             ref={inputRef}
             id={COMPOSER_ID}
             size="home"
+            /* The scope rides inside the field, above the text: it is part of
+               the question being asked, not a heading over the box. */
+            leading={
+              scope && (
+                <span className={clsx(sf.scopeChip, av.titleChip, s.scopeChip)}>
+                  <img
+                    className={clsx(sf.scopeLogo, scope.kind === 'member' && sf.scopeLogoPerson)}
+                    src={scope.logo}
+                    alt=""
+                    width={16}
+                    height={16}
+                  />
+                  <span className={sf.scopeName}>About {scope.name}</span>
+                  <button
+                    type="button"
+                    className={sf.scopeRemove}
+                    onClick={onRemoveScope}
+                    aria-label={`Remove ${scope.name}, ask the whole network`}
+                  >
+                    <CloseIcon width={12} height={12} />
+                  </button>
+                </span>
+              )
+            }
             placeholder={scope ? `Ask about ${scope.name}` : 'Ask anything about the network'}
             rows={1}
             autoFocus

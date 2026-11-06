@@ -18,6 +18,7 @@ import { useUpdateAiAppFeedbackStatus } from '@/services/ai-app-feedback/hooks/u
 import { ArrowBackIcon } from '@/components/icons';
 import { Button } from '@/components/common/Button/Button';
 import { SortDropdown, type SortOption } from '@/components/common/filters/SortDropdown';
+import { McpHint } from '@/components/core/mcp-hints/McpHint';
 
 import type { FeedbackPriorityFilterValue, FeedbackReportKindFilterValue, FeedbackStatusFilterValue } from './types';
 import type { FeedbackImage } from './utils/splitFeedbackMedia';
@@ -260,6 +261,10 @@ export function FeedbackPage({ view }: { view: FeedbackView }) {
             </div>
           )}
         </div>
+
+        {isReceived && (
+          <McpHint context="comments" newCount={received.feedback.filter((row) => row.status === 'NEW').length} />
+        )}
 
         {isLoading ? (
           <div className={s.state}>Loading feedback…</div>

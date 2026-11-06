@@ -1,1 +1,1 @@
-export { UserInfoChecker } from './UserInfoChecker';
+export { UserInfoChecker, compactRbac } from './UserInfoChecker';

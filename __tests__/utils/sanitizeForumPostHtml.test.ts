@@ -6,7 +6,7 @@ describe('sanitizeForumPostHtml', () => {
     expect(sanitizeForumPostHtml(html)).toBe(html);
   });
 
-  it('keeps the empty paragraphs that carry an author\'s blank lines', () => {
+  it("keeps the empty paragraphs that carry an author's blank lines", () => {
     // NodeBB stores a blank line as <p></p> (it strips the <br> Quill puts
     // inside). The CSS that renders them as blank lines is worthless if the
     // sanitizer prunes them on the way through.
@@ -16,7 +16,7 @@ describe('sanitizeForumPostHtml', () => {
 
   it('keeps images and their src/alt, dropping the inline style', () => {
     expect(sanitizeForumPostHtml('<img src="https://cdn.test/x.png" alt="shot" style="max-width:100%" />')).toBe(
-      '<img alt="shot" src="https://cdn.test/x.png">',
+      '<img src="https://cdn.test/x.png" alt="shot">',
     );
   });
 

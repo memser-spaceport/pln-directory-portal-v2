@@ -3,7 +3,8 @@
 import { useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
-import DOMPurify from 'isomorphic-dompurify';
+import { sanitizeHtml } from '@/utils/html';
+import { SafeHtml } from '@/components/ui/SafeHtml';
 
 import { ArrowBackIcon, CloseIcon } from '@/components/icons';
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -20,6 +21,8 @@ import { UpvoteButton } from '../NewsCard/components/UpvoteButton';
 import { NewsShareMenu } from '../NewsShareMenu';
 import { ViewCount } from '../ViewCount/ViewCount';
 import { FeedCommentsThread } from '../FeedCommentsThread/FeedCommentsThread';
+import { NewsTagChips } from '../NewsTagChips';
+import { NewsImage } from '../NewsImage';
 
 import newsCardStyles from '../NewsCard/NewsCard.module.scss';
 import s from './NewsDetailModal.module.scss';
@@ -50,28 +53,15 @@ interface NewsDetailBodyProps {
   /** Lifted: while the share popover is open the SHELL detaches its own
    *  Escape/backdrop closers, so the first Escape closes the popover, not the modal. */
   onShareOpenChange?: (open: boolean) => void;
+  /** Home only: makes the `#tag` chips links that filter the feed by that tag
+   *  (LAB-3010). Other hosts leave it out, so their chips stay grey labels. */
+  onTagSelect?: (tag: string) => void;
+  /** The feed's tag scope: one tag, or the new Home's stacked list (LAB-3125). */
+  activeTag?: string | readonly string[];
+  /** New Home only (LAB-3134): the story's `imageUrl` as the header image under the headline. Opt-in, so the old
+   *  Home and the team and member profiles, which share this body, stay text-only. */
+  showImage?: boolean;
 }
-
-// contentHtml comes from the AI enrichment pipeline — the least trusted markup
-// in the app, and the app ships no CSP, so this sanitizer is the only defense
-// layer (same rationale as PrdContent's). Enrichment output is 2–5 paragraphs
-// with inline emphasis and the odd link/list — allow exactly that, nothing else.
-const CONTENT_SANITIZE_CONFIG = {
-  ALLOWED_TAGS: ['p', 'strong', 'em', 'b', 'i', 'a', 'ul', 'ol', 'li', 'br'],
-  ALLOWED_ATTR: ['href'],
-  ALLOWED_URI_REGEXP: /^https?:/i,
-};
-
-// Registered once at module scope — DOMPurify hooks are global and stack if
-// added per render. Forcing target/rel after sanitizing is the canonical
-// cure53 pattern (before, they'd be stripped). Idempotent alongside the same
-// hook registered by other consumers (PrdContent).
-DOMPurify.addHook('afterSanitizeAttributes', (node) => {
-  if (node.tagName === 'A' && node.hasAttribute('href')) {
-    node.setAttribute('target', '_blank');
-    node.setAttribute('rel', 'noopener noreferrer');
-  }
-});
 
 /**
  * One story, in full — header, body and footer actions, as three siblings for
@@ -93,6 +83,9 @@ export function NewsDetailBody({
   source = 'news-modal',
   loginHref,
   onShareOpenChange,
+  onTagSelect,
+  activeTag,
+  showImage = false,
 }: NewsDetailBodyProps) {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
@@ -139,10 +132,7 @@ export function NewsDetailBody({
   const sources = getNewsSourcesWithPrimaryFallback(item);
   // Rich body from the API where present (older items fall back to the plain
   // summary until re-enriched server-side). Sanitized — never render raw.
-  const sanitizedContentHtml = useMemo(
-    () => (item.contentHtml ? DOMPurify.sanitize(item.contentHtml, CONTENT_SANITIZE_CONFIG) : null),
-    [item.contentHtml],
-  );
+  const sanitizedContentHtml = useMemo(() => sanitizeHtml(item.contentHtml, 'teamNews') || null, [item.contentHtml]);
 
   return (
     <>
@@ -200,12 +190,17 @@ export function NewsDetailBody({
           <span className={newsCardStyles.time}>{formatTimeAgo(item.eventDate)}</span>
         </div>
 
+        <NewsTagChips tags={item.tags} variant="detail" onSelect={onTagSelect} active={activeTag} />
+
         <h3 id={TITLE_ID} className={s.title}>
           {item.title}
         </h3>
 
+        {/* Where a video would play: under the headline, above the body. */}
+        {showImage && item.imageUrl && <NewsImage src={item.imageUrl} variant="hero" />}
+
         {sanitizedContentHtml ? (
-          <div className={s.content} dangerouslySetInnerHTML={{ __html: sanitizedContentHtml }} />
+          <SafeHtml className={s.content} profile="teamNews" html={sanitizedContentHtml} />
         ) : (
           item.summary && <p className={clsx(s.content, s.contentPlain)}>{item.summary}</p>
         )}

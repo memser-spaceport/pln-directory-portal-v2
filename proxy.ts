@@ -2,14 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { checkIsValidToken, renewAccessToken } from './services/auth.service';
 import { calculateExpiry, decodeToken } from './utils/auth.utils';
 import { isAiAppsRoute, isProtectedRoute } from './utils/isProtectedRoute';
-import {
-  clearSessionCookies,
-  expireSharedCookies,
-  hostOnlySessionCookies,
-  SESSION_SCOPE_COOKIE,
-  sessionScopeValue,
-  shareAuthTokenWithApps,
-} from './utils/sessionCookies';
+import { clearSessionCookies, SESSION_SCOPE_COOKIE, sessionScopeValue } from './utils/sessionCookies';
+import { setSessionCookies } from './utils/sessionResponse';
 
 export const config = {
   matcher: [
@@ -21,8 +15,10 @@ export const config = {
      * - favicon.ico (favicon file)
      * - icons (icons file)
      * - images (image file)
+     * - sitemap.xml, sitemaps/ and robots.txt: crawler files with no session, which must not answer with session
+     *   cookie headers (LAB-3106)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|icons|images).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|icons|images|sitemap\\.xml|sitemaps/|robots\\.txt).*)',
     '/teams/:path',
     '/members/:path',
     '/projects/:path',
@@ -52,35 +48,51 @@ function createLoginRedirect(req: NextRequest, pathname: string): NextResponse {
 }
 
 /**
- * One-time move of an existing session's refreshToken/userInfo from the shared COOKIE_DOMAIN to LabOS's own host, so
- * deployed AI Apps stop receiving them. Runs on the valid-session path until the host-only marker is set; a malformed
- * token only skips the move (it must never end the session).
+ * One-time rewrite of an existing session's cookies into the current layout (see sessionScopeValue): refreshToken
+ * httpOnly and host-only, every cookie with Secure/SameSite, plus the session marker. Runs on the valid-session path
+ * until the migration marker matches; a malformed token only skips the rewrite (it must never end the session).
  */
-function migrateSessionCookiesToHost(req: NextRequest, response: NextResponse, authToken: string) {
-  const scope = sessionScopeValue();
-  if (req.cookies.get(SESSION_SCOPE_COOKIE)?.value === scope) return;
-  const refreshToken = req.cookies.get('refreshToken')?.value;
+function migrateSessionCookies(req: NextRequest, response: NextResponse, authToken: string) {
+  if (req.cookies.get(SESSION_SCOPE_COOKIE)?.value === sessionScopeValue()) return;
+  const refreshToken = req.cookies.get('refreshToken')?.value?.replace(/"/g, '');
   const userInfo = req.cookies.get('userInfo')?.value;
-  const authTokenCookie = req.cookies.get('authToken')?.value;
   if (!refreshToken || !userInfo) return;
   try {
-    const refreshExpiry = calculateExpiry((decodeToken(refreshToken.replace(/"/g, '')) as any)?.exp);
+    const refreshExpiry = calculateExpiry((decodeToken(refreshToken) as any)?.exp);
     const accessExpiry = calculateExpiry((decodeToken(authToken) as any)?.exp);
     if (!(refreshExpiry > 0) || !(accessExpiry > 0)) return;
-    response.cookies.set('refreshToken', refreshToken, { maxAge: refreshExpiry, path: '/' });
-    response.cookies.set('userInfo', userInfo, { maxAge: accessExpiry, path: '/' });
-    if (!shareAuthTokenWithApps() && authTokenCookie) {
-      response.cookies.set('authToken', authTokenCookie, { maxAge: accessExpiry, path: '/' });
-    }
-    response.cookies.set(SESSION_SCOPE_COOKIE, scope, { maxAge: refreshExpiry, path: '/' });
-    expireSharedCookies(response, hostOnlySessionCookies());
+    setSessionCookies(response, req, { accessToken: authToken, refreshToken, userInfo: JSON.parse(userInfo) });
   } catch (err) {
     console.error('Session cookie migration skipped', err);
   }
 }
 
+const AUTH_STATE_HEADERS = ['authToken', 'refreshToken', 'userInfo', 'isLoggedIn'] as const;
+
 const LEGACY_DEEP_LINK_ROUTES = [/^\/pl-infra-os$/, /^\/pl-infra\/ai-apps\/[^/]+$/];
 const RELATIVE_PATH_PROBE_BASE = 'https://placeholder.invalid';
+
+// Server Components read the request. A response header would reach the browser.
+// A client can send these names, so drop that copy before this proxy sets its own.
+function pageRequestHeaders(req: NextRequest): Headers {
+  const headers = new Headers(req.headers);
+  for (const name of AUTH_STATE_HEADERS) headers.delete(name);
+  return headers;
+}
+
+function setSignedInRequestHeaders(
+  headers: Headers,
+  session: { authToken: string; refreshToken: string; userInfo: string },
+) {
+  headers.set('authToken', session.authToken);
+  headers.set('refreshToken', session.refreshToken);
+  headers.set('userInfo', session.userInfo);
+  headers.set('isLoggedIn', 'true');
+}
+
+function nextPage(requestHeaders: Headers): NextResponse {
+  return NextResponse.next({ request: { headers: requestHeaders } });
+}
 
 // AI App deep links used to carry the open subpage as `?path=`; those links
 // are still shared and bookmarked, so send them to the segment form
@@ -106,7 +118,7 @@ export async function proxy(req: NextRequest) {
   const legacyRedirect = legacyDeepLinkRedirect(req);
   if (legacyRedirect) return legacyRedirect;
 
-  const response = NextResponse.next();
+  const requestHeaders = pageRequestHeaders(req);
   const refreshTokenFromCookie = req?.cookies?.get('refreshToken');
   const authTokenFromCookie = req?.cookies?.get('authToken');
   const userInfo = req?.cookies?.get('userInfo');
@@ -120,6 +132,7 @@ export async function proxy(req: NextRequest) {
     }
 
     if (!refreshTokenFromCookie) {
+      const response = nextPage(requestHeaders);
       clearSessionCookies(response);
       return response;
     }
@@ -130,12 +143,12 @@ export async function proxy(req: NextRequest) {
 
       // Priority 1: Check for force logout (regardless of active status)
       if (validCheckResponse?.forceLogout) {
-        clearSessionCookies(response);
-
         // Redirect to login if accessing protected route after force logout
         if (isProtectedRoute(pathname)) {
           return createLoginRedirect(req, pathname);
         }
+        const response = nextPage(requestHeaders);
+        clearSessionCookies(response);
         return response;
       }
 
@@ -143,11 +156,13 @@ export async function proxy(req: NextRequest) {
       isValidAuthToken = (validCheckResponse && validCheckResponse?.active) || false;
       if (isValidAuthToken && userInfo?.value) {
         // Only set logged in if we have valid userInfo
-        response.headers.set('refreshToken', refreshTokenFromCookie?.value as string);
-        response.headers.set('authToken', authTokenFromCookie?.value as string);
-        response.headers.set('userInfo', encodeURIComponent(userInfo.value));
-        response.headers.set('isLoggedIn', 'true');
-        migrateSessionCookiesToHost(req, response, authToken);
+        setSignedInRequestHeaders(requestHeaders, {
+          refreshToken: refreshTokenFromCookie.value,
+          authToken: authTokenFromCookie?.value as string,
+          userInfo: encodeURIComponent(userInfo.value),
+        });
+        const response = nextPage(requestHeaders);
+        migrateSessionCookies(req, response, authToken);
         return response;
       }
     }
@@ -157,52 +172,34 @@ export async function proxy(req: NextRequest) {
       const renewAccessTokenResponse = await renewAccessToken(refreshTokenFromCookie?.value.replace(/"/g, ''));
       const { accessToken, refreshToken, userInfo } = renewAccessTokenResponse?.data;
 
-      const accessTokenExpiry = decodeToken(accessToken) as any;
-      const refreshTokenExpiry = decodeToken(refreshToken) as any;
       if (accessToken && refreshToken && userInfo && userInfo.uid) {
         // Only set logged in if userInfo has a valid uid
-        // refreshToken/userInfo stay on LabOS's own host; authToken is shared with AI Apps while the switch is on.
-        response.cookies.set('refreshToken', JSON.stringify(refreshToken), {
-          maxAge: calculateExpiry(refreshTokenExpiry?.exp),
-          path: '/',
+        setSignedInRequestHeaders(requestHeaders, {
+          refreshToken: JSON.stringify(refreshToken),
+          authToken: JSON.stringify(accessToken),
+          userInfo: encodeURIComponent(JSON.stringify(userInfo)),
         });
-        response.cookies.set('authToken', JSON.stringify(accessToken), {
-          maxAge: calculateExpiry(accessTokenExpiry?.exp),
-          // Shared with AI Apps until every app's auth gate issues its own sessions (AI_APPS_SHARE_AUTH_TOKEN).
-          ...(shareAuthTokenWithApps() ? { domain: process.env.COOKIE_DOMAIN } : { path: '/' }),
-        });
-        response.cookies.set('userInfo', JSON.stringify(userInfo), {
-          maxAge: calculateExpiry(accessTokenExpiry?.exp),
-          path: '/',
-        });
-        response.cookies.set(SESSION_SCOPE_COOKIE, sessionScopeValue(), {
-          maxAge: calculateExpiry(refreshTokenExpiry?.exp),
-          path: '/',
-        });
-        expireSharedCookies(response, hostOnlySessionCookies());
-        response.headers.set('refreshToken', JSON.stringify(refreshToken));
-        response.headers.set('authToken', JSON.stringify(accessToken));
-        response.headers.set('userInfo', encodeURIComponent(JSON.stringify(userInfo)));
-        response.headers.set('isLoggedIn', 'true');
+        const response = nextPage(requestHeaders);
+        setSessionCookies(response, req, { accessToken, refreshToken, userInfo });
         return response;
       }
     } else {
-      clearSessionCookies(response);
-
       // Redirect to login if accessing protected route with invalid tokens
       if (isProtectedRoute(pathname)) {
         return createLoginRedirect(req, pathname);
       }
+      const response = nextPage(requestHeaders);
+      clearSessionCookies(response);
       return response;
     }
   } catch (err) {
     console.error(err);
-    clearSessionCookies(response);
-
     // Redirect to login if accessing protected route and an error occurred
     if (isProtectedRoute(pathname)) {
       return createLoginRedirect(req, pathname);
     }
+    const response = nextPage(requestHeaders);
+    clearSessionCookies(response);
     return response;
   }
 }

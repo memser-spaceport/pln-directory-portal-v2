@@ -7,6 +7,7 @@ import { updateUserDirectoryEmail } from '@/services/members.service';
 import { triggerLoader } from '@/utils/common.utils';
 import { toast } from '@/components/core/ToastContainer';
 import Cookies from 'js-cookie';
+import { establishSession } from '@/services/session.service';
 import type { IUserInfo } from '@/types/shared.types';
 
 const mockCookies = Cookies as unknown as { get: jest.Mock; set: jest.Mock };
@@ -27,6 +28,10 @@ jest.mock('@/utils/common.utils', () => ({
 
 jest.mock('@/components/core/ToastContainer', () => ({
   toast: { success: jest.fn(), error: jest.fn() },
+}));
+
+jest.mock('@/services/session.service', () => ({
+  establishSession: jest.fn().mockResolvedValue(true),
 }));
 
 jest.mock('@/utils/auth.utils', () => ({
@@ -134,7 +139,7 @@ describe('EmailIdentityRow', () => {
     expect(toast.success).not.toHaveBeenCalled();
   });
 
-  it('reissues the auth cookies when the change goes through', async () => {
+  it('reissues the session through the server when the change goes through', async () => {
     const reload = jest.fn();
     Object.defineProperty(window, 'location', {
       configurable: true,
@@ -150,13 +155,12 @@ describe('EmailIdentityRow', () => {
     await emitPrivyResult('new@plrs.xyz');
 
     await waitFor(() => expect(reload).toHaveBeenCalled());
-    expect(mockCookies.set).toHaveBeenCalledWith('authToken', JSON.stringify('new-access'), expect.anything());
-    expect(mockCookies.set).toHaveBeenCalledWith('refreshToken', JSON.stringify('new-refresh'), expect.anything());
-    expect(mockCookies.set).toHaveBeenCalledWith(
-      'userInfo',
-      JSON.stringify({ uid: 'member-1', email: 'new@plrs.xyz' }),
-      expect.anything(),
-    );
+    expect(establishSession).toHaveBeenCalledWith({
+      accessToken: 'new-access',
+      refreshToken: 'new-refresh',
+      userInfo: { uid: 'member-1', email: 'new@plrs.xyz' },
+    });
+    expect(mockCookies.set).not.toHaveBeenCalledWith('refreshToken', expect.anything(), expect.anything());
     expect(toast.success).toHaveBeenCalledWith('Email Updated Successfully');
   });
 });

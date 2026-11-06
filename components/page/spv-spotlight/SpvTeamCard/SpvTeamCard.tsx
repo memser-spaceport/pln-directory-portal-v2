@@ -5,11 +5,13 @@ import { useCardVisibilityTracking } from '@/hooks/useCardVisibilityTracking';
 import clsx from 'clsx';
 import type { SpvTeamWebsiteSource } from '@/analytics/spv-spotlight.analytics';
 import type { SpvMedia, SpvTeam } from '@/services/spv-spotlight/types';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { sanitizeSpvHtml } from '@/utils/html/sanitizeSpvHtml';
 import { collapseSpvAbout } from '@/utils/html/collapseSpvAbout';
 import { ArrowRightIcon, ArrowUpRightIcon, ExternalIcon, LockIcon } from '../icons';
 import { SpvMediaCarousel } from '../SpvMediaCarousel/SpvMediaCarousel';
 import s from './SpvTeamCard.module.scss';
+import { SafeHtml } from '@/components/ui/SafeHtml';
 
 type Props = {
   team: SpvTeam;
@@ -205,10 +207,7 @@ export function SpvTeamCard({
           <section className={s.asideBlock}>
             <h3 className={s.asideLabel}>About</h3>
             {aboutHtml ? (
-              <div
-                className={s.aboutFull}
-                dangerouslySetInnerHTML={{ __html: showFull ? aboutHtml : collapsedAbout.html }}
-              />
+              <SafeHtml className={s.aboutFull} profile="spv" html={showFull ? aboutHtml : collapsedAbout.html} />
             ) : null}
             {aboutHtml && collapsedAbout.hasMore && (
               <button
@@ -248,10 +247,10 @@ export function SpvTeamCard({
                       rel="noopener noreferrer"
                       onClick={() => onFounderClicked?.(f.uid)}
                     >
-                      <div
+                      <img
                         className={s.founderAvatar}
-                        style={f.imageUrl ? { backgroundImage: `url('${f.imageUrl}')` } : undefined}
-                        aria-hidden
+                        src={f.imageUrl || getDefaultAvatar(f.uid)}
+                        alt=""
                       />
                       <div className={s.founderText}>
                         <div className={s.founderName}>{f.name}</div>

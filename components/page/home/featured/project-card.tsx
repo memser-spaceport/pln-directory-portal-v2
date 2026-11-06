@@ -1,5 +1,5 @@
 'use client';
-import DOMPurify from 'isomorphic-dompurify';
+import { safeHtmlProps, sanitizeHtml } from '@/utils/html';
 
 const ProjectCard = (props: any) => {
   const name = props?.name;
@@ -8,7 +8,7 @@ const ProjectCard = (props: any) => {
   const logo = props?.logo || '/icons/project-default.svg';
   const isNew = props?.isNew;
 
-  const sanitizedDescription = DOMPurify.sanitize(description);
+  const sanitizedDescription = sanitizeHtml(description);
   const descriptionContent = sanitizedDescription?.replace(/<[^>]+>/g, '');
 
   return (
@@ -44,7 +44,7 @@ const ProjectCard = (props: any) => {
         </div>
         <div className="projectCard__content">
           <h3 className="projectCard__content__ttl">{name}</h3>
-          <p className="projectCard__content__desc" dangerouslySetInnerHTML={{ __html: descriptionContent }}></p>
+          <p className="projectCard__content__desc" {...safeHtmlProps(descriptionContent)}></p>
         </div>
       </div>
       <style jsx>{`

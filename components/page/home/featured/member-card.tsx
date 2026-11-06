@@ -1,12 +1,12 @@
 'use client';
 
 import { Tooltip } from '@/components/core/tooltip/tooltip';
-import DOMPurify from 'isomorphic-dompurify';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { EVENTS } from '@/utils/constants';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { safeHtmlProps, sanitizeHtml } from '@/utils/html';
 
 const MemberCard = (props: any) => {
   const member = props?.member;
@@ -25,7 +25,7 @@ const MemberCard = (props: any) => {
   const isNew = member?.isNew;
   const bio = member?.bio;
 
-  const sanitizedBio = DOMPurify.sanitize(bio);
+  const sanitizedBio = sanitizeHtml(bio);
   const bioContent = sanitizedBio?.replace(/<[^>]+>/g, '');
   const shortBio = bioContent?.slice(0, 80);
 
@@ -148,7 +148,7 @@ const MemberCard = (props: any) => {
           <div className="member__details__bio">
             {bio ? (
               <>
-                <span className="member__details__bio__txt" dangerouslySetInnerHTML={{ __html: shortBio }}></span>
+                <span className="member__details__bio__txt" {...safeHtmlProps(shortBio)}></span>
                 {bioContent?.length > shortBio?.length && (
                   <span>
                     ...

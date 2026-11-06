@@ -110,19 +110,6 @@
   line-height: 20px;
 }
 
-.rowHead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
-  width: 100%;
-
-  > button {
-    flex: none;
-    white-space: nowrap;
-  }
-}
-
 .saved {
   display: inline-flex;
   align-items: center;
@@ -139,6 +126,16 @@
   color: var(--foreground-neutral-tertiary, #8897ae);
   font-size: 14px;
   line-height: 22px;
+}
+
+// Production SearchInput, capped so it doesn't stretch across the card.
+.topicSearch {
+  max-width: 320px;
+  margin-top: 4px;
+
+  @include media.mobile-only {
+    max-width: none;
+  }
 }
 
 .chips {
@@ -206,62 +203,6 @@
   svg {
     color: currentColor;
   }
-}
-
-// ---------- Suggested from your profile (read-only signals) ----------
-
-.signals {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  margin: 8px 0 0;
-  border-top: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
-}
-
-.signal {
-  display: grid;
-  grid-template-columns: 112px minmax(0, 1fr);
-  gap: 4px 16px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
-
-  &:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-  }
-
-  @include media.mobile-only {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-.signalLabel {
-  color: var(--foreground-neutral-tertiary, #8897ae);
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-}
-
-.signalValue {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 4px 16px;
-  margin: 0;
-  color: var(--foreground-neutral-primary, #0a0c11);
-  font-size: 14px;
-  line-height: 20px;
-
-  > a {
-    flex: none;
-    white-space: nowrap;
-  }
-}
-
-.signalMeta,
-.signalEmpty {
-  color: var(--foreground-neutral-tertiary, #8897ae);
 }
 
 .inlineLink {
@@ -348,7 +289,45 @@
 
 .emptyLine {
   margin: 0;
+  overflow-wrap: anywhere; /* backstop: a long unbroken word still wraps inside the card */
   color: var(--foreground-neutral-tertiary, #8897ae);
   font-size: 14px;
   line-height: 22px;
+}
+
+// Tags in themed rows (mocks TAG_GROUPS): groups clearly apart, each label
+// tight on its own chips.
+.tagGroups {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.tagGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .chips {
+    margin-top: 0;
+  }
+}
+
+.tagGroupLabel {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+// Empty state: names where the suggestions come from (network-wide, since the
+// member has no team to suggest from). Sits tight on the group it labels.
+.groupLabel {
+  margin: 8px 0 -4px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
 }

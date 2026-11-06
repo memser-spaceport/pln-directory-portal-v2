@@ -11,7 +11,7 @@ import { EditIcon, SpinnerIcon } from '@/components/icons';
 // rather than re-drawn. Same job: something that has to stay in reach while the
 // person is somewhere else on the page. Its pill and label are not used; the
 // bar draws its own ground and puts the design system's rounded buttons in it.
-import fab from '@/components/page/ai-apps/components/FloatingFeedbackButton/FloatingFeedbackButton.module.scss';
+import fab from '@/components/page/ai-apps/components/FeedbackFabButton/FeedbackFabButton.module.scss';
 // The status line wears the editor's control row's title — the bar reports on
 // that row at a distance, so it borrows the row's type rather than
 // approximating it.

@@ -328,6 +328,17 @@ It SHALL also record `home-role-clicked`, `home-event-clicked`, `home-see-all-cl
 - **WHEN** anyone opens the news page
 - **THEN** the page says news isn't available right now, and does not show the error page
 
+### Requirement: Back to top on the news page
+
+Once the reader is more than one screen down the news page, a "Back to top" button SHALL show in the bottom-right corner, whichever way they are scrolling, and pressing it SHALL scroll smoothly to the top (LAB-3164). It SHALL be hidden, and out of the tab order, within the first screen. On phones it SHALL sit above the bottom bar, and above the feedback button when that is on the page. Pressing it SHALL send the go-to-top event with page name `Home news`.
+
+#### Scenario: Back up from deep in the list
+
+- **GIVEN** a reader far down `/home?view=news`
+- **WHEN** they start scrolling back up
+- **THEN** "Back to top" stays visible
+- **AND** pressing it brings them to the page head
+
 ### Requirement: News page filters
 
 The news page SHALL offer For You (only when it has stories) · All · Top · Funding · Launch · Announcement with counts, and Sort by (Latest, Following, Most popular). It SHALL have no Discussions pill and SHALL open on All. A pill with a count of 0 SHALL be hidden, pressing the active pill SHALL reset to All, and phones SHALL get the "Type:" dropdown.

@@ -34,6 +34,8 @@ export function FeedbackFabButton(props: Props) {
     <div
       {...{ [FEEDBACK_CAPTURE_IGNORE_ATTR]: '' }}
       className={clsx(s.wrap, isHidden && s.wrapHidden, isDrawerOpen && s.fabHidden)}
+      // Lets a floating control in the same corner stack above it on phones (Home news page's back-to-top, LAB-3164).
+      data-feedback-fab=""
       data-collapsed={isCollapsed || isDrawerOpen}
       aria-hidden={isDrawerOpen || undefined}
     >

@@ -4,8 +4,10 @@ import clsx from 'clsx';
 import Link from 'next/link';
 import { useMemo } from 'react';
 
+import { useCommonAnalytics } from '@/analytics/common.analytics';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { SearchInput } from '@/components/common/filters/SearchInput';
+import { ScrollToTopButton } from '@/components/page/forum/ScrollToTopButton';
 import { useNewsTopicSlugs } from '@/services/team-news/hooks/useNewsTopicSlugs';
 import { PAGE_ROUTES } from '@/utils/constants';
 import { SHOW_NEWS_PREFERENCES } from '@/utils/news-categories';
@@ -40,6 +42,8 @@ const noop = () => {};
  *   its image on the card's floor.
  *
  * Signed out, Follow and Like are the sign-up ask; the card still opens the story.
+ *
+ * The window holds dozens of stories, so a "Back to top" button shows once the reader is a screen down (LAB-3164).
  */
 export function NewsPage({
   feed: feedProps,
@@ -52,6 +56,7 @@ export function NewsPage({
   unavailable?: boolean;
 }) {
   const analytics = useHomeAnalytics();
+  const { goToTopBtnClicked } = useCommonAnalytics();
   const { signUp } = useHomeAuthDoors();
   const topicSlugs = useNewsTopicSlugs();
   const feed = useHomeFeed(feedProps, {
@@ -207,6 +212,8 @@ export function NewsPage({
               )}
             </p>
           )}
+
+          <ScrollToTopButton showWhen="scrolled" onClick={() => goToTopBtnClicked(null, 'Home news')} />
 
           <AutoMarkNewsCommentNotification newsItemUid={activeNewsUid} />
           {activeNewsItem &&

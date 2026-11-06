@@ -128,6 +128,81 @@ $band-inset-phone: 24px;
   }
 }
 
+.sideLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// The mid-page Join card spans the content column (2026-11-05: "stretch
+// horizontally"); its layout is the `wide` variant below.
+.joinCardEnd.joinCardEnd {
+  width: 100%;
+  // 2026-11-05: more air between the focus areas, the entities and this band.
+  margin-top: 24px;
+  margin-bottom: 32px;
+}
+
+// The doors as one group, so the wide variant can move them as a unit.
+.joinActions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+// Wide: copy over facepile on the left, Sign up · or · Sign in in a row on the
+// right, both vertically centred. Below tablet-landscape it stays the card.
+// Doubled: `.joinCard` (display: flex) is declared after this and would win a tie.
+.joinCardWide.joinCardWide {
+  @include media.tablet-landscape {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'head actions'
+      'proof actions';
+    align-items: center;
+    column-gap: 48px;
+    row-gap: 12px;
+    padding: 28px 32px;
+
+    .joinHead {
+      grid-area: head;
+      align-self: end;
+    }
+
+    .joinProof {
+      grid-area: proof;
+      align-self: start;
+    }
+
+    .joinActions {
+      grid-area: actions;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+    }
+
+    // 2026-11-05: no "or" in the band (two buttons side by side already read as a
+    // choice), and the buttons hug their labels instead of a 168px minimum.
+    .joinOr {
+      display: none;
+    }
+
+    .joinBtn.joinBtn {
+      width: auto;
+    }
+  }
+}
+
 .joinCard {
   display: flex;
   flex-direction: column;
@@ -306,21 +381,6 @@ $band-inset-phone: 24px;
   line-height: 24px;
 }
 
-.sideLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--foreground-brand-primary, #1b4dff);
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
 .newsPreviewList {
   padding: 4px 20px;
   background: var(--background-neutral-default, #fff);
@@ -330,6 +390,15 @@ $band-inset-phone: 24px;
   @include media.mobile-only {
     padding: 4px 16px;
   }
+}
+
+// "See all N updates" closes the card: the expander's own 16px above, matched below.
+// The last story's divider is already its rule, so its own top border goes (tripled
+// to beat newsfeed-v0's doubled `.viewAllExpander`).
+.newsPreviewAll.newsPreviewAll.newsPreviewAll {
+  display: block;
+  padding-bottom: 16px;
+  border-top: 0;
 }
 
 // cardFlat's first row drops its top padding for a bare list; inside a box
@@ -432,7 +501,7 @@ $band-inset-phone: 24px;
 }
 
 .storySection.storySection {
-  padding-top: 0;
+  padding-top: 32px;
 }
 
 /* The logo wall closes the content, above the footer. */
@@ -752,11 +821,9 @@ $band-inset-phone: 24px;
   line-height: 28px;
 }
 
-.railNote {
-  margin: 4px 0 0;
-  color: var(--foreground-neutral-secondary, #455468);
-  font-size: 14px;
-  line-height: 20px;
+/* Open roles' sign-up ask: one full-width glossy "Sign up to apply" above See all. */
+.railSignUp {
+  margin: 8px 0 0;
 }
 
 .inlineLink {
@@ -1381,4 +1448,16 @@ $band-inset-phone: 24px;
    tighter than a word deserves; 12px gives it the weight of the counted pills beside it. */
 .catAll.catAll {
   padding: 2px 12px;
+}
+
+/* "See all news" scroll-to-top (production's forum button): signed in, the Agent pill
+   owns the bottom-right corner (40px tall at 24px desktop / 80px phones), so the
+   round button stacks 12px above it. Doubled class beats the prod module's order. */
+.scrollTopAboveAgent.scrollTopAboveAgent > button {
+  bottom: calc(80px + env(safe-area-inset-bottom) + 52px);
+  z-index: 50;
+
+  @include media.tablet-landscape {
+    bottom: 76px;
+  }
 }

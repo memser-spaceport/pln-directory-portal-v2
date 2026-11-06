@@ -114,6 +114,13 @@ export const SUGGESTION_REASON_RANK: Record<SuggestionReasonKind, number> = {
 export interface SuggestionReason {
   kind: SuggestionReasonKind;
   text: string;
+  /**
+   * A contribution to a project the hiring team itself works on — the
+   * "contributes to the same project" signal. A contribution elsewhere is a
+   * fact about the member, not a tie to this team, so it does not outrank the
+   * skill fact in the email's why line (`suggestionWhyFact`).
+   */
+  sharedProject?: boolean;
 }
 
 /**
@@ -204,6 +211,37 @@ export const suggestionWhy = (
   const extra = met.length - named.length;
   return `Matches on ${named.join(', ')}${extra > 0 ? ` +${extra}` : ''}`;
 };
+
+/**
+ * The email card's one why line (2026-11-05): a *fact from the profile*, never
+ * the requirement's own words and never labelled "strength".
+ *
+ *   1. A strong network signal wins — worked with people on the hiring team
+ *      (`vouch`), or contributes to a project the team works on
+ *      (`contribution` with `sharedProject`). That is what only this network
+ *      knows.
+ *   2. Otherwise the evidence behind the role's most important met
+ *      requirement — criteria are in the role's own order, first = most
+ *      important — e.g. "Runs Saturn’s retrieval path; four years on
+ *      Cloudflare’s edge cache."
+ *
+ * The row's `suggestionWhy` above still says "Matches on …"; this is the
+ * email's stricter rule.
+ */
+export const suggestionWhyFact = (
+  person: RoleSuggested,
+  criteria: RoleCriterion[],
+  off?: ReadonlySet<string>,
+): string | undefined => {
+  const signal = person.reasons.find((r) => r.kind === 'vouch' || (r.kind === 'contribution' && r.sharedProject));
+  if (signal) return sentence(signal.text);
+  const fact = matchWorking(person, criteria, off)
+    .met.map((c) => person.evidence?.[c.id])
+    .find(Boolean);
+  return fact ? sentence(fact) : undefined;
+};
+
+const sentence = (text: string) => (/[.!?]$/.test(text) ? text : `${text}.`);
 
 /** Only members at or above the floor, against the criteria that are on. */
 export const visibleSuggested = (
@@ -435,6 +473,36 @@ export const MOCK_SUGGESTED: Record<string, RoleSuggested[]> = {
         tz: 'Berlin, Germany',
       },
       reasons: [{ kind: 'vouch', text: 'Worked with 2 people on your team on the Tableland–Filecoin bridge' }],
+    },
+    {
+      // The fifth at or above the floor (3 of 5), so the email's total is 5
+      // with three named — "Here are the strongest 3".
+      id: 'sug-8',
+      memberId: 'amara-okafor',
+      name: 'Amara Okafor',
+      role: 'Networking Engineer · Fleek',
+      title: 'Networking Engineer',
+      team: 'Fleek',
+      location: 'London, United Kingdom',
+      email: 'amara@fleek.xyz',
+      avatar: 'https://i.pravatar.cc/96?img=32',
+      skills: ['Go', 'libp2p', 'Networking'],
+      experience: [
+        exp('amara-okafor', 'ao1', 'Networking Engineer', 'Fleek', '2022-01', null, 'London, United Kingdom'),
+      ],
+      profile: {
+        githubHandle: 'aokafor',
+        teams: [{ id: 'fleek', name: 'Fleek', role: 'Networking Engineer', mainTeam: true }],
+        contributions: [{ uid: 'aoc1', project: 'libp2p', role: 'Contributor', start: '2022-06', end: null }],
+        repositories: [],
+      },
+      met: ['rg', 'sn', 'tz'],
+      evidence: {
+        rg: 'Go on her profile; ships Fleek’s edge networking in Go',
+        sn: 'libp2p contributor since 2022',
+        tz: 'London, United Kingdom',
+      },
+      reasons: [{ kind: 'contribution', text: 'Contributes to libp2p, which your team maintains', sharedProject: true }],
     },
     {
       // Under the floor with every requirement on (2 of 5 = 40%), so hidden.

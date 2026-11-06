@@ -79,32 +79,37 @@ export function JoinCard({
   onSignUp,
   faces,
   className,
+  wide = false,
 }: {
   id: string;
   onSignIn: () => void;
   onSignUp: () => void;
   faces: (string | PortfolioTeam)[];
   className?: string;
+  /** Mid-page band (2026-11-05): copy and facepile on the left, the doors in a row on the right; stacks on phones. */
+  wide?: boolean;
 }) {
   return (
-    <aside className={clsx(local.joinCard, className)} aria-labelledby={id}>
+    <aside className={clsx(local.joinCard, wide && local.joinCardWide, className)} aria-labelledby={id}>
       <div className={local.joinHead}>
         <h2 id={id} className={local.joinTitle}>
           Join the network
         </h2>
         <p className={local.joinText}>Access the directory to find people, roles, deals, and what teams are shipping.</p>
       </div>
-      {/* The product's glossy primary (follow-shared `.glossy`, the three-shadow
-          highlight production hand-rolls on its headline presses) at size m. */}
-      <Button size="m" style="fill" variant="primary" className={clsx(local.joinBtn, fb.glossy)} onClick={onSignUp}>
-        Sign up for free
-      </Button>
-      <div className={local.joinOr} aria-hidden>
-        or
+      <div className={local.joinActions}>
+        {/* The product's glossy primary (follow-shared `.glossy`, the three-shadow
+            highlight production hand-rolls on its headline presses) at size m. */}
+        <Button size="m" style="fill" variant="primary" className={clsx(local.joinBtn, fb.glossy)} onClick={onSignUp}>
+          Sign up for free
+        </Button>
+        <div className={local.joinOr} aria-hidden>
+          or
+        </div>
+        <Button size="m" style="border" variant="neutral" className={local.joinBtn} onClick={onSignIn}>
+          Sign in
+        </Button>
       </div>
-      <Button size="m" style="border" variant="neutral" className={local.joinBtn} onClick={onSignIn}>
-        Sign in
-      </Button>
       <p className={local.joinProof}>
         <span className={tp.subAvatars} aria-hidden>
           {faces.map((f) => (typeof f === 'string' ? f : logoSrc(f.logo))).map((src) => (

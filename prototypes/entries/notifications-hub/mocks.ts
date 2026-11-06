@@ -66,9 +66,9 @@ export const MOCK_NOTIFICATIONS: HubNotification[] = [
     // Team lead seat of the team-profile prototype.
     id: 'n-jobs-1',
     category: 'JOB_CANDIDATES',
-    title: '4 suggested candidates for Senior Distributed Systems Engineer',
+    title: '5 suggested candidates for Senior Distributed Systems Engineer',
     description:
-      'Inês Carvalho, Kofi Mensah, Yuki Tanabe and 1 more match the role on their profiles. They haven’t applied.',
+      'Inês Carvalho, Kofi Mensah, Amara Okafor and 2 more match the role on their profiles. None have applied yet.',
     minutesAgo: 25,
     isRead: false,
     link: '/prototypes/team-profile?candidates=pl-1&tab=suggested',

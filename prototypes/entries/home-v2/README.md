@@ -4,6 +4,27 @@
 **Route:** `/prototypes/homepage-redesign-v0` (was `/prototypes/home-v2` until 2026-11-03; the folder keeps its name)
 **Review switches:** `?state=signed-out` (default) `| signed-in | signed-in-no-deals | email-not-found`, `?events=upcoming` (default) `| none`, and signed in `?repos=picks` (default) `| none` and `?cue=fade|jump`. The same switches sit in the grey review band under the navbar.
 
+## 2026-11-05 LabOS Agent V0
+
+Signed in, a floating **Agent** button (or Ctrl/⌘ J) opens a panel docked on the right. `?agent=open` opens it on arrival, and `?viewer=founder` (default) `| member` picks who is signed in. The panel is home-v2-b's `AgentPanel`, imported rather than forked: steps, streaming, composer. `AgentV0.tsx` holds only this version's script and its three cards. Replies are scripted, and Send, Apply and Post only switch a card to its receipt.
+
+What V0 does, from the V0 notes:
+
+| Ask | What the agent does |
+|---|---|
+| **Request to the PL Venture team** (portfolio founders only). "I need intros to founders who raised a Series A this year, I'm planning a fundraise" | Asks the one thing the profile can't answer, *when are you raising?*, as numbered options. Then it returns an editable request: To PL Venture team, the text, what goes with it (your profile and your team's), where the reply goes. Sends only on **Send to PL Venture team**. |
+| **Update the team profile from a URL**. "Update our team profile from latticecompute.xyz", or a bare link | Reads the site and lists each field it would change as old (struck through) → new, all ticked. **Apply N changes** counts the ticked rows, and Undo is on the receipt. A link sent on its own gets "What should I do with it?" (team profile / forum post) rather than a guess. |
+| **Update my profile**. "I'm now CEO and based in Lisbon" | The same change card, for the member's own profile. |
+| **Draft and create a forum post** | An editable title and body, posted on **Post to forum**. |
+
+Not for investors: V0 has no use case for them. A member who isn't a portfolio founder gets no request prompt, and if they type one anyway, the agent says who requests are for and links to AI Search.
+
+Why these shapes (Mobbin): Delphi edits a card in place in the thread and saves it ("ready for you to refine before saving"). Whop and AirOps ask in the thread when the agent isn't sure, rather than guessing. Cofounder shows tasks marked "Requires approval". The agent asks before it changes or sends anything, as B's follow proposal already does.
+
+Navigation was left as it is (the V0 notes put agent UX first). Home has no sidebar, so the door is B's phone pill at every width. Collapsing the left nav inside AI apps is for those apps and isn't built here.
+
+Open: does a sent request show up anywhere after the receipt (a thread, an email)? Does the PL Venture team reply in LabOS or by email? Can a founder see their earlier requests?
+
 ## 2026-11-02 design standup: what changed
 
 V0 (this prototype) was picked as the version to build now: V1's signed-out page with V0's member page. V1 (`home-v2-b`) now re-exports this prototype's `SignedOutHome.tsx`, so the two signed-out pages can't drift. The style refresh is parked: the structure works, but the styling reads as generated. Top-level navigation stays as it is until there's a clear answer. The likely first move is Job Board out of More.
@@ -71,11 +92,11 @@ Sections 1 and 2 follow the 2026-10-30 mock, on a neutral ground (`--background-
 
 1. **Who PL is** (`StoryIntro.tsx`). EditorialIntro's header (overline, title at 48/56 so it holds one line, mission lede, the two General Info paragraphs; production classes and `data/content.ts`), left-aligned beside a **Join the network** card: one line on what the directory is for, **Sign up for free** (DS primary with the product's glossy highlight, follow-shared `.glossy`), an "or" rule, **Sign in** (outlined), both 42px, then three founders' faces (Juan Benet, Molly Mackinlay, Vincent Weisser, each the photo on their own directory profile) and "750+ organizations in the network". The door order follows the mock, not the navbar pair (Sign up quiet first, Sign in filled): this reader is mostly new, so Sign up leads.
    - **Figures band:** EditorialIntro's four figures as a full-bleed white strip, hairline-divided ("Network organizations", the mock's shorter label for one that wraps).
-2. **This week in the network beside PL Entities.** Left: three stories in one white card (`NewsPreviewList.tsx`, production `NewsCard`'s flat rows with the mock's changes: time at the head row's end, the event type as a brand Badge beside the source) and **See all updates →**; Follow and Like are the sign-up ask, the row opens the story. Right: EditorialIntro's PL entities as stacked cards, each linking out.
+2. **This week in the network beside PL Entities.** Left: three stories in one white card (`NewsPreviewList.tsx`, production `NewsCard`'s flat rows with the mock's changes: time at the head row's end, the event type as a brand Badge beside the source) with **See all updates →** in the header corner and again as **See all 23 updates**, the card's last row (added 2026-11-05: Anuj found the corner link alone hard to see; the bottom row matches the rail's "See all N jobs / events" expanders, and both are kept); Follow and Like are the sign-up ask, the row opens the story. Right: EditorialIntro's PL entities as stacked cards, each linking out.
 3. **The portfolio.** Production `PortfolioPanel` (islands map and list), fed the static fallback JSON. Under it are four focus-area tiles. Each has a **Teams** and a **Projects** link to `/teams?focusAreas=<name>` / `/projects?focusAreas=<name>`, the URL shape the old Home `FocusAreaSection` used. On phones the map is clamped to 640px with a fade and "Show the whole map". Unclamped it is about 3,000px of hexes, which buries everything after it.
-4. **Open roles.** home-refactor's `JobsRail` (4 roles plus "See all 64 jobs"). Its new optional `note` slot carries "Sign up to apply with your directory profile." /jobs is the top next page for signed-out visitors.
+4. **Open roles.** home-refactor's `JobsRail` (4 roles plus "See all 64 jobs"). Its new optional `note` slot carries a full-width glossy **Sign up to apply** button (the Join card's primary at size s) (2026-11-05 review: as inline brand text it read the same as "See all N jobs" below it and was easy to miss). /jobs is the top next page for signed-out visitors.
 5. **Logo wall.** Production `ExploreLogoWall`.
-6. **Closing CTA.** The hero's Join the network card again (`JoinCard`, one component for both), centred above the footer for whoever read to the end.
+6. **Closing CTA.** The hero's Join the network card again (`JoinCard`, one component for both), in its `wide` layout (copy and facepile on the left, Sign up · or · Sign in in a row on the right, full content width from 960px; the stacked card below) right after the PL entities and before the logo wall (restored 2026-11-05: the hero asks before anyone has read the page, so the ask comes back once the story is told).
 7. **Footer.** The live Explore page's `SpvFooter` with its note, Privacy Policy and Terms & Conditions on (Explore turns them off; this is the directory's Home).
 
 ### Signed in, in order

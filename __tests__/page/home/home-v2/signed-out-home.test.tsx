@@ -125,6 +125,8 @@ const renderHome = (props: Partial<React.ComponentProps<typeof SignedOutHome>> =
   render(<SignedOutHome stories={stories} roles={roles} events={events} portfolio={portfolio} {...props} />);
 
 const rolesSection = () => screen.queryByRole('region', { name: 'Open roles in the network' });
+/** The hero's Join card; the second one (LAB-3174) sits after the PL entities. */
+const heroJoin = () => screen.getAllByRole('complementary', { name: 'Join the network' })[0];
 const eventsSection = () => screen.queryByRole('region', { name: 'Upcoming events' });
 
 beforeEach(() => {
@@ -149,7 +151,7 @@ describe('SignedOutHome', () => {
     it('offers both doors in the Join the network card', () => {
       renderHome();
 
-      const card = screen.getByRole('complementary', { name: 'Join the network' });
+      const card = heroJoin();
       expect(within(card).getByRole('button', { name: 'Sign up for free' })).toBeInTheDocument();
       expect(within(card).getByRole('button', { name: 'Sign in' })).toBeInTheDocument();
       expect(within(card).getByText('750+ organizations in the network')).toBeInTheDocument();
@@ -158,7 +160,7 @@ describe('SignedOutHome', () => {
     it('opens sign-up from Sign up for free and records the hero door', async () => {
       renderHome();
 
-      await userEvent.click(screen.getByRole('button', { name: 'Sign up for free' }));
+      await userEvent.click(within(heroJoin()).getByRole('button', { name: 'Sign up for free' }));
 
       expect(mockHome.onAuthDoorClicked).toHaveBeenCalledWith({ door: 'sign_up', section: 'hero' });
       expect(mockRouter.push).toHaveBeenCalledWith(`/sign-up?returnTo=${encodeURIComponent('/')}`);
@@ -167,25 +169,42 @@ describe('SignedOutHome', () => {
     it('starts the navbar’s sign-in from Sign in', async () => {
       renderHome();
 
-      await userEvent.hover(screen.getByRole('button', { name: 'Sign in' }));
+      await userEvent.hover(within(heroJoin()).getByRole('button', { name: 'Sign in' }));
       expect(mockPrefetchPrivy).toHaveBeenCalled();
-      await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+      await userEvent.click(within(heroJoin()).getByRole('button', { name: 'Sign in' }));
 
       expect(mockHome.onAuthDoorClicked).toHaveBeenCalledWith({ door: 'sign_in', section: 'hero' });
       expect(mockAuth.onLoginBtnClicked).toHaveBeenCalled();
       expect(mockGoToLogin).toHaveBeenCalled();
+    });
+
+    // LAB-3174, phones: the figures come up between the copy and the Join card, before Sign up / Sign in; the
+    // full-width band is for 640px and up (CSS shows one or the other).
+    it('puts the figures in the hero, before the doors, for phones', () => {
+      const { container } = renderHome();
+
+      const inline = container.querySelector('[class*="introFacts"]')!;
+      expect(within(inline as HTMLElement).getByText('Network organizations')).toBeInTheDocument();
+      const h1 = screen.getByRole('heading', { level: 1 });
+      expect(h1.compareDocumentPosition(inline) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(inline.compareDocumentPosition(heroJoin()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(container.querySelector('[class*="factsBandWide"]')).not.toBeNull();
     });
   });
 
   it('shows the sections in the spec’s order', () => {
     const { container } = renderHome();
 
+    const [hero, end] = screen.getAllByRole('complementary', { name: 'Join the network' });
     const order = [
       screen.getByRole('heading', { level: 1 }),
-      screen.getByText('Network organizations'),
+      hero,
+      container.querySelector('[class*="factsBandWide"]')!,
       screen.getByRole('heading', { name: 'This week in the network' }),
       screen.getByRole('heading', { name: 'The portfolio' }),
       screen.getByRole('heading', { name: 'Protocol Labs entities' }),
+      end,
+      screen.getByRole('heading', { name: /raised from top VCs/ }),
       container.querySelector('footer')!,
     ];
     for (let i = 1; i < order.length; i += 1) {
@@ -239,13 +258,23 @@ describe('SignedOutHome', () => {
       expect(mockHome.onNewsPickClicked).not.toHaveBeenCalled();
     });
 
-    it('links See all updates to the news view', async () => {
+    it('links See all updates to the news view, in the header and again as the list’s last row', async () => {
+      renderHome({ newsCount: 23 });
+
+      const header = screen.getByRole('link', { name: 'See all updates' });
+      // LAB-3174: the header link alone was easy to miss; the list now ends on "See all N updates" too.
+      const row = screen.getByRole('link', { name: 'See all 23 updates' });
+      for (const link of [header, row]) expect(link).toHaveAttribute('href', '/home?view=news');
+      expect(header.compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+      await userEvent.click(row);
+      expect(mockHome.onSeeAllClicked).toHaveBeenCalledWith({ section: 'news' });
+    });
+
+    it('says "See all updates" on the row too when the count is unknown', () => {
       renderHome();
 
-      const link = screen.getByRole('link', { name: 'See all updates' });
-      expect(link).toHaveAttribute('href', '/home?view=news');
-      await userEvent.click(link);
-      expect(mockHome.onSeeAllClicked).toHaveBeenCalledWith({ section: 'news' });
+      expect(screen.getAllByRole('link', { name: 'See all updates' })).toHaveLength(2);
     });
   });
 
@@ -293,12 +322,12 @@ describe('SignedOutHome', () => {
       expect(within(rolesSection()!).getAllByRole('listitem')).toHaveLength(5);
     });
 
-    it('carries the sign-up note on the roles', async () => {
+    it('asks for an account on the roles with a full-width Sign up to apply button', async () => {
       renderHome();
 
       const rolesEl = rolesSection()!;
-      expect(rolesEl).toHaveTextContent('Sign up to apply with your directory profile.');
-      await userEvent.click(within(rolesEl).getByRole('button', { name: 'Sign up' }));
+      // LAB-3174: a button, not inline text that read like "See all N jobs" under it.
+      await userEvent.click(within(rolesEl).getByRole('button', { name: 'Sign up to apply' }));
       expect(mockHome.onAuthDoorClicked).toHaveBeenCalledWith({ door: 'sign_up', section: 'roles' });
       expect(mockRouter.push).toHaveBeenCalled();
     });
@@ -326,7 +355,33 @@ describe('SignedOutHome', () => {
       expect(
         screen.getByText(`${portfolio.length} teams across four focus areas, with Protocol Labs at the centre.`),
       ).toBeInTheDocument();
-      expect(screen.getByText(String(portfolio.length))).toBeInTheDocument();
+      // Twice: the phone figures in the hero and the band from 640px (CSS shows one).
+      expect(screen.getAllByText(String(portfolio.length))).toHaveLength(2);
+    });
+
+    // LAB-3174: the same Join card asks again once the story is told, as a band after the PL entities.
+    it('asks again after the PL entities, recorded as its own door', async () => {
+      renderHome();
+
+      const end = screen.getAllByRole('complementary', { name: 'Join the network' })[1];
+      expect(
+        screen.getByRole('heading', { name: 'Protocol Labs entities' }).compareDocumentPosition(end) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+      await userEvent.click(within(end).getByRole('button', { name: 'Sign up for free' }));
+      expect(mockHome.onAuthDoorClicked).toHaveBeenCalledWith({ door: 'sign_up', section: 'join-end' });
+      await userEvent.click(within(end).getByRole('button', { name: 'Sign in' }));
+      expect(mockHome.onAuthDoorClicked).toHaveBeenCalledWith({ door: 'sign_in', section: 'join-end' });
+    });
+
+    it('links each investor logo to its site in a new tab, and leaves the ones without a site plain', () => {
+      renderHome();
+
+      const a16z = screen.getByRole('link', { name: 'A16zcrypto (opens in a new tab)' });
+      expect(a16z).toHaveAttribute('href', 'https://a16zcrypto.com');
+      expect(a16z).toHaveAttribute('target', '_blank');
+      expect(a16z).toHaveAttribute('rel', 'noopener noreferrer');
+      expect(screen.getByRole('img', { name: 'NIV' }).closest('a')).toBeNull();
     });
 
     it('unclamps the map from Show the whole map', async () => {

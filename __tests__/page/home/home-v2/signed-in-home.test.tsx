@@ -287,6 +287,25 @@ describe('Network Updates: the stream', () => {
     expect(screen.getByRole('dialog').querySelector('.hero img')).toHaveAttribute('src', IMAGE);
   });
 
+  // LAB-3174 (prototype 2026-11-06): the line is under the pills on every filter, not only under For You, and its
+  // door is "Update your profile", inline after the sentence (it replaced the far-right "Tune For You" link).
+  it('shows the For you line on every filter, with Update your profile right after the sentence', () => {
+    renderHome([story('a', 'LAUNCH'), story('b', 'FUNDING')]);
+
+    const line = () => screen.getByText(/Curated from your profile, your team, and the teams you follow\./);
+    expect(line()).toHaveTextContent(
+      'For you · Curated from your profile, your team, and the teams you follow. Update your profile',
+    );
+    expect(within(line()).getByRole('link', { name: 'Update your profile' })).toHaveAttribute(
+      'href',
+      '/settings/profile',
+    );
+    expect(screen.queryByRole('link', { name: /make it more relevant|Tune For You/ })).not.toBeInTheDocument();
+
+    fireEvent.click(within(pillRow()).getByRole('button', { name: /^Funding/ }));
+    expect(line()).toBeInTheDocument();
+  });
+
   it('fetches and injects no hiring, deals or For You job entries', () => {
     mockUseFeedHiring.mockReturnValue({ hiring: [{ team: { uid: 'h' } } as unknown as IJobTeamGroup] });
     mockUseFeedDeals.mockReturnValue({ deals: [deal('d1', '2026-11-01')] });

@@ -6,6 +6,7 @@ import { useMemo } from 'react';
 
 import { useCommonAnalytics } from '@/analytics/common.analytics';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
+import { Button } from '@/components/common/Button';
 import { SearchInput } from '@/components/common/filters/SearchInput';
 import { ScrollToTopButton } from '@/components/page/forum/ScrollToTopButton';
 import { useNewsTopicSlugs } from '@/services/team-news/hooks/useNewsTopicSlugs';
@@ -16,6 +17,7 @@ import { NewsCard } from '@/components/page/home/TeamNews/components/NewsCard';
 import { NewsDetailModal } from '@/components/page/home/TeamNews/components/NewsDetailModal';
 import { NewsSearch } from '@/components/page/home/TeamNews/components/NewsSearch';
 import { useHomeFeed, type HomeFeedProps } from '@/components/page/home/TeamNews/hooks/useHomeFeed';
+import { FOR_YOU_CAT } from '@/components/page/home/TeamNews/constants';
 import { matchesTeamNewsQuery } from '@/components/page/home/TeamNews/utils/matchesTeamNewsQuery';
 import tn from '@/components/page/home/TeamNews/TeamNews.module.scss';
 import home from '@/app/home/page.module.css';
@@ -44,6 +46,9 @@ const noop = () => {};
  * Signed out, Follow and Like are the sign-up ask; the card still opens the story.
  *
  * The window holds dozens of stories, so a "Back to top" button shows once the reader is a screen down (LAB-3164).
+ *
+ * Signed out there is no For You pill (nothing of the visitor to pick from); the For You note becomes the offer instead
+ * (LAB-3174): "Personalize my news" opens the sign-up modal over the page.
  */
 export function NewsPage({
   feed: feedProps,
@@ -57,7 +62,7 @@ export function NewsPage({
 }) {
   const analytics = useHomeAnalytics();
   const { goToTopBtnClicked } = useCommonAnalytics();
-  const { signUp } = useHomeAuthDoors();
+  const { signUp, signUpHere } = useHomeAuthDoors();
   const topicSlugs = useNewsTopicSlugs();
   const feed = useHomeFeed(feedProps, {
     layout: 'stream',
@@ -92,6 +97,8 @@ export function NewsPage({
   } = feed;
 
   const askForAccount = signedIn ? undefined : () => signUp('news');
+  // Signed out there is nothing of the visitor to pick from: no For You pill (LAB-3174), the Personalize row instead.
+  const categories = signedIn ? streamCategories : streamCategories.filter((c) => c.id !== FOR_YOU_CAT);
 
   const narrowBy = useMemo(
     () => selectNarrowByTags(feedItems, topicScope, (item) => chipVocabulary(item, topicSlugs, SHOW_NEWS_PREFERENCES)),
@@ -148,12 +155,30 @@ export function NewsPage({
 
           {allItems.length > 0 && (
             <FeedFilterBar
-              categories={streamCategories}
+              categories={categories}
               activeCategory={activeCategory}
               onCategory={handleCategory}
               sort={sort}
               onSort={handleSort}
             />
+          )}
+
+          {!signedIn && (
+            <div className={s.personalize}>
+              <p className={s.personalizeText}>
+                <span className={s.personalizeLabel}>For you</span> · Sign up to see news picked for your skills, your
+                team, and the teams you follow.
+              </p>
+              <Button
+                size="s"
+                style="fill"
+                variant="primary"
+                className={s.glossy}
+                onClick={() => signUpHere('personalize')}
+              >
+                Personalize my news
+              </Button>
+            </div>
           )}
 
           {topicScope.length > 0 && (

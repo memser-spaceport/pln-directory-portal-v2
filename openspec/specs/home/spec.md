@@ -33,19 +33,21 @@ What `/home` shows to signed-out visitors and signed-in members, in what order, 
 With the flag on, a signed-out visitor's `/home` SHALL show these sections in order, all in the server HTML:
 
 1. **Hero:**
-   - The mission "Protocol Labs drives breakthroughs in computing to push humanity forward." as the page's `<h1>`, at 40/48 on desktop and 32/40 on phones, with no overline.
+   - The mission "Protocol Labs drives breakthroughs in computing to push humanity forward." as the page's `<h1>`, at 40/48 on desktop, 32/40 on tablets and 24/32 on phones, with no overline.
    - One sentence under it.
+   - On phones only, the four network figures, between that sentence and the Join card.
    - A "Join the network" card with "Sign up for free" (primary) and "Sign in".
-2. **Figures band:** the four network figures on a full-width white strip.
+2. **Figures band:** the four network figures on a full-width white strip, from 640px (phones have them in the hero).
 3. **This week:**
-   - Three news stories, with "See all updates →".
+   - Three news stories, with "See all updates →" in the header and again as "See all N updates", the list's last row, where N is the news page's story count.
    - Beside them, one sidebar with open roles and upcoming events.
 4. **The portfolio:**
    - The islands map, then four focus-area cards.
    - On phones the map is clamped to 640px with a fade and a "Show the whole map" button that unclamps it.
 5. **Protocol Labs entities:** a row of the PL entities, each linking out.
-6. **Investor logo wall.**
-7. **Footer:**
+6. **Join the network again:** the hero's card as a band across the content (copy and faces on the left, Sign up and Sign in in a row on the right from 960px; the stacked card below that).
+7. **Investor logo wall:** each logo with a known site links to it in a new tab; the rest stay plain images.
+8. **Footer:**
    - The logo and mission.
    - Directory, Network and Protocol Labs link columns.
    - "©" and "Contact support", which opens the support form.
@@ -56,7 +58,14 @@ The page SHALL NOT show the Welcome card, the previous news feed, the previous f
 
 - **GIVEN** the flag is on
 - **WHEN** a signed-out visitor opens `/home` at 1440, 768 or 375 px wide
-- **THEN** the hero, figures, This week, portfolio, entities, logo wall and footer appear in that order with no horizontal scroll
+- **THEN** the hero, figures, This week, portfolio, entities, the second Join card, logo wall and footer appear in that order with no horizontal scroll
+
+#### Scenario: A shorter top on phones (LAB-3174)
+
+- **GIVEN** a 375 px wide screen
+- **WHEN** a signed-out visitor opens `/home`
+- **THEN** the headline is 24/32 and the four figures show before "Sign up for free"
+- **AND** there is no separate figures band
 
 #### Scenario: Auth doors
 
@@ -84,7 +93,7 @@ The three stories SHALL be the editorial top stories (rank 1 to 3) when there ar
 
 ### Requirement: Open roles and upcoming events beside the news
 
-The sidebar SHALL list the newest open roles, with "See all N jobs" where N is the total number of open roles. It SHALL list up to three events that start in the next 30 days, soonest first, with "See all" to the events page. Signed out, the roles section SHALL carry the note "Sign up to apply with your directory profile.", where "Sign up" opens sign-up.
+The sidebar SHALL list the newest open roles, with "See all N jobs" where N is the total number of open roles. It SHALL list up to three events that start in the next 30 days, soonest first, with "See all" to the events page. Signed out, a full-width primary "Sign up to apply" button SHALL sit above "See all N jobs" and open sign-up.
 
 When no event starts in the next 30 days, the events section SHALL be absent and the roles section SHALL list five roles instead of three.
 
@@ -111,7 +120,7 @@ When no event starts in the next 30 days, the events section SHALL be absent and
 Under the map, the page SHALL show one card for each of the portfolio's four focus areas. Each card SHALL show:
 
 - the number of teams "Teams →" lists, as "N teams" (LAB-3162), read from the same search the Teams page counts;
-- a pile of the logos of the portfolio teams on that area's island;
+- a pile of up to four logos: the island's portfolio teams that have a Directory logo, in their own colours on white (LAB-3174);
 - the area's name and its one-line description;
 - "Teams →" to `/teams?focusAreas=<title>`;
 - "Projects →" to `/projects?focusAreas=<title>`, only when the directory has at least one project in that area. Without it, "Teams →" takes the whole foot of the card.
@@ -180,6 +189,8 @@ Above the stream, the filter row SHALL offer For You · All · Top · Discussion
 - Discussions SHALL show forum posts only, and is present only for members with forum access.
 - Top SHALL show the editorial top stories (rank 1 to 3).
 - For You SHALL show what production's For You shows.
+
+Under the pills, on every filter, a line SHALL read "For you · Curated from your profile, your team, and the teams you follow." followed by an "Update your profile" link to `/settings/profile` (LAB-3174).
 
 Milestone, Partnership and Other stories SHALL stay under All and keep their label on the card.
 
@@ -357,7 +368,7 @@ Once the reader is more than one screen down the news page, a "Back to top" butt
 
 ### Requirement: News page filters
 
-The news page SHALL offer For You (only when it has stories) · All · Top · Funding · Launch · Announcement with counts, and Sort by (Latest, Following, Most popular). It SHALL have no Discussions pill and SHALL open on All. A pill with a count of 0 SHALL be hidden, pressing the active pill SHALL reset to All, and phones SHALL get the "Type:" dropdown.
+The news page SHALL offer For You (signed in, and only when it has stories) · All · Top · Funding · Launch · Announcement with counts, and Sort by (Latest, Following, Most popular). It SHALL have no Discussions pill and SHALL open on All. A pill with a count of 0 SHALL be hidden, pressing the active pill SHALL reset to All, and phones SHALL get the "Type:" dropdown.
 
 #### Scenario: Active pill pressed again
 
@@ -370,6 +381,16 @@ The news page SHALL offer For You (only when it has stories) · All · Top · Fu
 - **GIVEN** a member whose For You has stories
 - **WHEN** they open the news page
 - **THEN** For You is offered, and All is the active pill
+
+### Requirement: Personalize my news
+
+Signed out, the news page SHALL show no For You pill. Under the filters it SHALL show a row reading "For you · Sign up to see news picked for your skills, your team, and the teams you follow." with a "Personalize my news" button that opens the sign-up modal over the page (LAB-3174). A member SHALL NOT see the row.
+
+#### Scenario: A visitor asks for personal news
+
+- **GIVEN** a signed-out visitor on `/home?view=news`
+- **WHEN** they press "Personalize my news"
+- **THEN** the sign-up form opens over the news page
 
 ### Requirement: News page search and tags
 

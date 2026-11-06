@@ -91,13 +91,20 @@ $band-inset-phone: 24px;
 
 // 2026-11-02 standup: 48/56 read too large against the rest of the page; 32/40
 // then read slightly small for a hero H1 (user, 2026-11-03), so desktop sits
-// between at 40/48. Phones keep 32/40. The H1 is the mission sentence, so it
+// between at 40/48. Tablets keep 32/40; phones (LAB-3174) drop to 24/32 so the
+// figures and the doors come up sooner. The H1 is the mission sentence, so it
 // wraps to two lines: balanced, not ragged.
 .introTitle.introTitle {
   font-size: 32px;
   line-height: 40px;
   letter-spacing: -0.8px;
   text-wrap: balance;
+
+  @include media.mobile-only {
+    font-size: 24px;
+    line-height: 32px;
+    letter-spacing: -0.5px;
+  }
 
   @include media.tablet-landscape {
     font-size: 40px;
@@ -164,6 +171,63 @@ $band-inset-phone: 24px;
   justify-content: center;
 }
 
+// The doors as one group, so the wide variant can move them as a unit.
+.joinActions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+// The second Join card spans the content column, after the PL entities (LAB-3174).
+.joinCardEnd.joinCardEnd {
+  width: 100%;
+  margin-top: 24px;
+  margin-bottom: 32px;
+}
+
+// Wide (prototype 2026-11-05): copy over facepile on the left, Sign up and Sign in
+// in a row on the right, both vertically centred. Below tablet-landscape it stays
+// the stacked card. Doubled: `.joinCard` (display: flex) would win a tie.
+.joinCardWide.joinCardWide {
+  @include media.tablet-landscape {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'head actions'
+      'proof actions';
+    align-items: center;
+    column-gap: 48px;
+    row-gap: 12px;
+    padding: 28px 32px;
+
+    .joinHead {
+      grid-area: head;
+      align-self: end;
+    }
+
+    .joinProof {
+      grid-area: proof;
+      align-self: start;
+    }
+
+    .joinActions {
+      grid-area: actions;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+    }
+
+    // Two buttons side by side already read as a choice, and they hug their labels.
+    .joinOr {
+      display: none;
+    }
+
+    .joinBtn.joinBtn {
+      width: auto;
+    }
+  }
+}
+
 // "or" on a hairline, the auth forms' divider.
 .joinOr {
   display: flex;
@@ -204,6 +268,36 @@ $band-inset-phone: 24px;
 
   & + & {
     margin-left: -9px;
+  }
+}
+
+/* LAB-3174, phones: the figures move into the hero, between the copy and the Join
+   card (hairline-ruled, no band or insets); the full-bleed band only from 640px up. */
+.introFacts {
+  display: none;
+
+  @include media.mobile-only {
+    display: block;
+  }
+}
+
+.factsBandWide {
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.factsInline.factsInline {
+  background: none;
+
+  .facts {
+    padding: 16px 0;
+  }
+
+  .factValue {
+    font-size: 24px;
+    line-height: 32px;
+    letter-spacing: -0.5px;
   }
 }
 
@@ -432,7 +526,7 @@ $band-inset-phone: 24px;
 }
 
 .storySection.storySection {
-  padding-top: 0;
+  padding-top: 32px;
 }
 
 /* The logo wall closes the content, above the footer. */
@@ -659,11 +753,11 @@ $band-inset-phone: 24px;
 .focusLogo.focusLogo {
   width: 24px;
   height: 24px;
-  padding: 3px;
   border-radius: 6px;
   border-width: 2px;
-  object-fit: contain;
-  background: var(--focus-color);
+  object-fit: cover;
+  // LAB-3174: the teams' own colour logos on white (was the map's white tile on the island colour).
+  background: var(--background-neutral-primary, #fff);
 
   & + & {
     margin-left: -6px;
@@ -741,11 +835,43 @@ $band-inset-phone: 24px;
   }
 }
 
-.railNote {
-  margin: 4px 0 0;
+/* LAB-3174: the signed-out news page's "For you" offer, in the For You note's layout
+   (sentence left, action right; stacked on phones), one quiet bordered row so it reads
+   as an offer about the page, not a news card. */
+.personalize {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  margin: 0;
+  padding: 12px 12px 12px 16px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: var(--background-neutral-primary, #fff);
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.personalizeText {
+  margin: 0;
+  min-width: 0;
   color: var(--foreground-neutral-secondary, #455468);
   font-size: 14px;
   line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.personalizeLabel {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-weight: 500;
+}
+
+/* Open roles' sign-up ask (LAB-3174): one full-width glossy "Sign up to apply" above See all. */
+.railSignUp {
+  margin: 8px 0 0;
 }
 
 .inlineLink {
@@ -838,6 +964,15 @@ $band-inset-phone: 24px;
   padding-top: 16px;
   border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   text-align: center;
+}
+
+// "See all N updates" closes This week's card (LAB-3174): the expander's 16px above,
+// matched below. The last story's divider is already its rule, so its own top border
+// goes (tripled to beat the doubled `.viewAllExpander`).
+.newsPreviewAll.newsPreviewAll.newsPreviewAll {
+  display: block;
+  padding-bottom: 16px;
+  border-top: 0;
 }
 
 /* Rail modules reuse the news-card shell but aren't clickable as a whole. */
@@ -1173,62 +1308,21 @@ $band-inset-phone: 24px;
   padding: 2px 12px;
 }
 
-/* For You caption: production ForYouHint's 14/20 secondary type and brand
-   link, without its grey box. It names the pill just chosen, so it hangs 8px
-   under the filter bar (pulling back the bar's margin) and keeps the stream's
-   20px below it. One line on desktop; on a phone the link wraps to the
-   content edge rather than hugging the right. */
-.forYouCaption {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 4px 16px;
+/* The signed-in "For you" line (LAB-3174): 14/20 secondary type on the plain page
+   ground, on every filter, with "Update your profile" inline after the sentence. It
+   hangs 8px under the filter bar (pulling back the bar's margin) and keeps the
+   stream's 20px below it. */
+.forYouLine.forYouLine {
   margin: -12px 0 8px;
-  color: var(--foreground-neutral-secondary, #455468);
-  font-size: 14px;
-  line-height: 20px;
-  letter-spacing: -0.2px;
-
-  @include media.mobile-only {
-    justify-content: flex-start;
-  }
 }
 
-.forYouText {
-  min-width: 0;
-}
-
-.forYouLabel {
-  color: var(--foreground-neutral-primary, #0a0c11);
-  font-weight: 600;
-}
-
-.forYouDot {
-  margin: 0 6px;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-}
-
-.forYouLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
+.forYouInlineLink {
   color: var(--foreground-brand-primary, #1b4dff);
   font-weight: 500;
   text-decoration: none;
-  white-space: nowrap;
-
-  svg {
-    transition: transform 0.15s ease;
-  }
 
   &:hover {
     text-decoration: underline;
-
-    svg {
-      transform: translateX(2px);
-    }
   }
 }
 

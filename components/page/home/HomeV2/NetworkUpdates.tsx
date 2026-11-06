@@ -11,9 +11,7 @@ import { FollowButton } from '@/components/ui/FollowButton';
 import { useGetMemberPreferences } from '@/services/members/hooks/useGetMemberPreferences';
 import { useSetNewsTags } from '@/services/members/hooks/useSetNewsTags';
 import { useNewsTopicSlugs } from '@/services/team-news/hooks/useNewsTopicSlugs';
-import { PAGE_ROUTES } from '@/utils/constants';
 import { SHOW_NEWS_PREFERENCES } from '@/utils/news-categories';
-import { FOR_YOU_CAT } from '@/components/page/home/TeamNews/constants';
 import { AutoMarkNewsCommentNotification } from '@/components/page/home/TeamNews/AutoMarkNewsCommentNotification';
 import { ForumPostCard } from '@/components/page/home/TeamNews/components/ForumPostCard';
 import { ForumPostModal } from '@/components/page/home/TeamNews/components/ForumPostModal/ForumPostModal';
@@ -31,8 +29,10 @@ import nb from '@/components/page/home/TeamNews/components/NewsBase/NewsBase.mod
 import jobsCss from '@/components/page/jobs/TeamGroupCard/TeamGroupCard.module.scss';
 
 import { HOME_NEWS_VIEW_HREF } from './constants';
+
+/** "Update your profile" (LAB-3174): the member's own profile settings. */
+const PROFILE_SETTINGS_HREF = '/settings/profile';
 import { FeedFilterBar } from './FeedFilterBar';
-import { ArrowRightIcon } from './icons';
 import { chipVocabulary, selectNarrowByTags } from './utils/narrowByTags';
 import { TagScopeRow } from './TagScopeRow';
 import { computeStreamCut, STREAM_CUT_MIN_STACKED, STREAM_SIDE_BY_SIDE_QUERY, type StreamCut } from './utils/streamCut';
@@ -204,9 +204,8 @@ export function NetworkUpdates({
         />
       )}
 
-      {/* Production's ForYouHint, where production puts it (head of the stream, For You only), drawn as the
-          prototype's caption: the view's name, what it is made of, and the door to tune it. */}
-      {activeCategory === FOR_YOU_CAT && <ForYouCaption memberUid={currentUser?.uid} />}
+      {/* The "For you" line, on every filter (LAB-3174): what For You is made of, and the door to the profile it reads. */}
+      <ForYouCaption memberUid={currentUser?.uid} />
 
       {/* The cut: full cards down to the rail's end, the next fading into the page under "See all news". Cards past the
           cut are inert, so the faded one can't be half-clicked. tabIndex={-1}: the dialogs' focus-restore fallback. */}
@@ -326,43 +325,24 @@ function streamEntryKey(entry: HomeFeed['entries'][number]): string {
 }
 
 /**
- * For You's caption: production `ForYouHint`'s copy and link, redrawn as the prototype's caption (the view's name in
- * bold, what it is made of, and the link at the row's end) instead of a grey box.
+ * The "For you" line (LAB-3174, prototype 2026-11-06): under the filter pills on every filter, on the plain page
+ * ground, with "Update your profile" as a brand text link right after the sentence. It replaces the caption that showed
+ * only under For You with its link at the row's far end. The link opens the member's profile settings.
  */
 function ForYouCaption({ memberUid }: { memberUid?: string }) {
-  const { onTeamNewsForYouTuneClicked, onTeamNewsForYouUpdateProfileClicked } = useTeamNewsAnalytics();
+  const { onTeamNewsForYouUpdateProfileClicked } = useTeamNewsAnalytics();
 
   return (
-    <p className={s.forYouCaption}>
-      <span className={s.forYouText}>
-        <strong className={s.forYouLabel}>For you</strong>
-        <span className={s.forYouDot} aria-hidden>
-          ·
-        </span>
-        Curated based on your profile, primary team attributes, and the teams you follow.
-      </span>
-      {memberUid &&
-        (SHOW_NEWS_PREFERENCES ? (
-          <Link
-            href="/settings/news-preferences?from=feed"
-            className={s.forYouLink}
-            onClick={() => onTeamNewsForYouTuneClicked(memberUid)}
-          >
-            Update to make it more relevant
-            <ArrowRightIcon />
-          </Link>
-        ) : (
-          <Link
-            href={`${PAGE_ROUTES.MEMBERS}/${memberUid}?backTo=${encodeURIComponent(PAGE_ROUTES.HOME)}`}
-            className={s.forYouLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => onTeamNewsForYouUpdateProfileClicked(memberUid)}
-          >
-            Update your profile
-            <ArrowRightIcon />
-          </Link>
-        ))}
+    <p className={clsx(s.personalizeText, s.forYouLine)}>
+      <span className={s.personalizeLabel}>For you</span> · Curated from your profile, your team, and the teams you
+      follow.{' '}
+      <Link
+        href={PROFILE_SETTINGS_HREF}
+        className={s.forYouInlineLink}
+        onClick={() => memberUid && onTeamNewsForYouUpdateProfileClicked(memberUid)}
+      >
+        Update your profile
+      </Link>
     </p>
   );
 }

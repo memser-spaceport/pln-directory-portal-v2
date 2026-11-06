@@ -17,8 +17,9 @@ export const HOME_NEWS_VIEW_HREF = '/home?view=news';
 /** The rail's See all targets. */
 export const JOBS_HREF = '/jobs';
 /**
- * Events on Home (each event, "See all N events", the footer's Events): All Events, not IRL Gatherings, which is for
- * admins only (3ed2399a8), so a member following the link would land on a page they can't open.
+ * Events on Home ("See all N events", the footer's Events, and each event with its details open, `eventCalendarHref`):
+ * All Events, not IRL Gatherings, which is for admins only (3ed2399a8), so a member following the link would land on a
+ * page they can't open.
  */
 export const EVENTS_HREF = '/events/all';
 export const DEALS_HREF = '/deals';

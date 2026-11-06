@@ -10,7 +10,7 @@ import jobsCss from '@/components/page/jobs/TeamGroupCard/TeamGroupCard.module.s
 import { ArrowIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/Icons';
 
 import { EVENTS_HREF } from './constants';
-import { eventDay, eventMonth, eventRange } from './utils/upcomingEvents';
+import { eventCalendarHref, eventDay, eventMonth, eventRange } from './utils/upcomingEvents';
 import s from './HomeV2.module.scss';
 
 /**
@@ -42,7 +42,7 @@ export function EventsSection({ events, total, signedIn }: { events: IHomeEvent[
               </span>
               <span className={s.jobText}>
                 <Link
-                  href={EVENTS_HREF}
+                  href={eventCalendarHref(ev.name)}
                   className={clsx(s.roleTitle, s.jobTitle, s.eventLink)}
                   onClick={() =>
                     analytics.onEventClicked({ event_uid: ev.uid, position: index + 1, signed_in: signedIn })

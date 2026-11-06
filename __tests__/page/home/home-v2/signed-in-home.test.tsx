@@ -572,12 +572,11 @@ describe('Network Updates: the cut', () => {
     renderHome(many);
     measure();
 
-    // Cards end at 200, 420, 640: three whole, the rest faded and inert. The list ends at the rail's 650px, or 24px
-    // into the fourth card (it starts at 660) when the rail ends sooner: 684.
-    expect(cards().filter((c) => !c.hasAttribute('inert'))).toHaveLength(3);
-    expect(cards()[3]).toHaveAttribute('inert');
-    expect(cards()[3]).toHaveAttribute('aria-hidden', 'true');
-    expect(stream()).toHaveStyle({ maxHeight: '684px' });
+    // The rail ends at 650px, which fits three cards. The floor is four. The fifth starts at 880, so the clip is 904.
+    expect(cards().filter((c) => !c.hasAttribute('inert'))).toHaveLength(4);
+    expect(cards()[4]).toHaveAttribute('inert');
+    expect(cards()[4]).toHaveAttribute('aria-hidden', 'true');
+    expect(stream()).toHaveStyle({ maxHeight: '904px' });
   });
 
   it('stacked on a phone, shows three cards and 140px of the fourth', () => {

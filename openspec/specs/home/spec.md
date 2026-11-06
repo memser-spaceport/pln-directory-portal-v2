@@ -83,7 +83,7 @@ The page SHALL NOT show the Welcome card, the previous news feed, the previous f
 
 ### Requirement: This week's stories
 
-The stories SHALL be the editorial top stories (rank 1 to 3) when there are any, then the newest stories. Beside the sidebar, the list SHALL show as many whole rows as fit that sidebar's height, and SHALL measure again when the sidebar grows after the news has rendered. On a phone the list SHALL show three rows, then part of the next one. Each row SHALL show the team, the event type, the time, and the title. Opening a row SHALL open the story. Follow SHALL ask a signed-out visitor to sign up. Like SHALL open the "Join the network" card as a modal, with Sign up and Sign in. "See all updates →" SHALL open `/home?view=news`.
+The stories SHALL be the editorial top stories (rank 1 to 3) when there are any, then the newest stories. Beside the sidebar, the list SHALL show as many whole rows as fit that sidebar's height, and at least four when the sidebar is shorter. It SHALL measure again when the sidebar grows after the news has rendered. On a phone the list SHALL show three rows, then part of the next one. Each row SHALL show the team, the event type, the time, and the title. Opening a row SHALL open the story. Follow SHALL ask a signed-out visitor to sign up. Like SHALL open the "Join the network" card as a modal, with Sign up and Sign in. "See all updates →" SHALL open `/home?view=news`.
 
 #### Scenario: Editorial picks first
 
@@ -239,7 +239,7 @@ Under Most popular, forum posts SHALL rank by likes against the stories' upvotes
 
 ### Requirement: The stream ends where the rail ends
 
-On screens wide enough for the rail to sit beside the stream, the stream SHALL be cut level with the bottom of the rail, using the rail's content height when that is taller than its box. The cut SHALL be measured again when the rail grows after the news has rendered. The last visible card fades out, and under it "See all news" opens `/home?view=news`. The faded card SHALL NOT respond to clicks. On phones the stream SHALL show three cards, then 140px of a fourth, faded, then "See all news". Every filter, including For You, uses this cut.
+On screens wide enough for the rail to sit beside the stream, the stream SHALL be cut level with the bottom of the rail, using the rail's content height when that is taller than its box. The stream SHALL show at least four whole cards when the rail is shorter than that. The cut SHALL be measured again when the rail grows after the news has rendered. The last visible card fades out, and under it "See all news" opens `/home?view=news`. The faded card SHALL NOT respond to clicks. On phones the stream SHALL show three cards, then 140px of a fourth, faded, then "See all news". Every filter, including For You, uses this cut.
 
 #### Scenario: Desktop cut
 

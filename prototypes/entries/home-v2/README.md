@@ -205,3 +205,9 @@ Where "See all news" (signed in, under the cut feed) and "See all updates" (sign
    - `auth_invalid_user_try_another_clicked`
 5. **Focus-area mapping.** The links pass marketing's names (Digital Human Rights, Economies & Governance, AI & Robotics, Neurotechnology) as `focusAreas` titles. The directory's focus-area tree may name them differently, and if so a link lands on an empty filter.
 6. **AI Apps visibility.** AI Apps lives under `/pl-infra/ai-apps`. If members outside PL Infra can't open it, the lead shortcut has to follow the same access check.
+
+## 2026-11-06 changes
+
+- **Investor logo wall:** each logo links to the backer's site in a new tab (`LinkedLogoWall.tsx`, a copy of production `ExploreLogoWall` plus the links; NIV and Mesh stay unlinked). Hover fades the logo to 60%.
+- **Focus area cards:** the logo pile shows the teams' own colour logos (directory logos in `COLOR_LOGO_BY_UID`, mocks.ts) instead of the map's white tiles on the island colour.
+- **Network news, signed out:** no For You pill (nothing of the visitor to pick from). A "Make it yours" row under the filters with a glossy **Personalize my news** button opens production's sign-up modal (`SignupWizard`, the `?dialog=signup` one). Its submit calls the real API, so in the prototype it is for looking at.

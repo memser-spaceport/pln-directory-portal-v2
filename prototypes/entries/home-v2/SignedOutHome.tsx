@@ -6,7 +6,7 @@ import { useState } from 'react';
 import type { ITeamNewsItem } from '@/types/team-news.types';
 import { Button } from '@/components/common/Button';
 import { PortfolioPanel } from '@/components/page/explore-pl-network/PortfolioPanel/PortfolioPanel';
-import { ExploreLogoWall } from '@/components/page/explore-pl-network/ExploreLogoWall/ExploreLogoWall';
+import { LinkedLogoWall } from './LinkedLogoWall';
 import { aileron } from '@/components/page/explore-pl-network/aileron';
 import explore from '@/components/page/explore-pl-network/ExplorePlNetworkView.module.scss';
 
@@ -79,11 +79,17 @@ export function SignedOutHome({
     <div className={clsx(s.storyPage, aileron.variable)}>
       {/* 1. Who PL is, beside the Join card. */}
       <div className={s.storyBand}>
-        <StoryIntro onSignUp={onSignUp} onSignIn={onSignIn} faces={JOIN_FACES} />
+        {/* Phones (2026-11-06): the figures sit inside the hero, before Sign up / Sign in. */}
+        <StoryIntro
+          onSignUp={onSignUp}
+          onSignIn={onSignIn}
+          faces={JOIN_FACES}
+          facts={<FactsBand portfolioCount={PORTFOLIO_TEAMS.length} className={s.factsInline} />}
+        />
       </div>
 
-      {/* 2. The figures as their own white band. */}
-      <FactsBand portfolioCount={PORTFOLIO_TEAMS.length} />
+      {/* 2. The figures as their own white band (tablet and up; phones show them in the hero). */}
+      <FactsBand portfolioCount={PORTFOLIO_TEAMS.length} className={s.factsBandWide} />
 
       {/* 3. This week's news beside roles + events: jobs are the reason a third of signed-out visitors click on. */}
       <div className={s.storyBand}>
@@ -167,7 +173,7 @@ export function SignedOutHome({
 
           {/* 5. Who has backed the network. */}
           <section className={clsx(explore.sectionPartners, s.storyEnd)}>
-            <ExploreLogoWall />
+            <LinkedLogoWall />
           </section>
         </div>
       </div>

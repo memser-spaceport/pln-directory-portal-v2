@@ -222,3 +222,29 @@ export const LATEST_DEALS: IDeal[] = [
 ];
 
 export const TOTAL_DEALS = 38;
+
+/**
+ * 2026-11-06: the focus cards' logo piles in colour. The portfolio data's logos
+ * are marketing's white map tiles (built for the coloured hexes), so the
+ * directory's own team logos are listed here (production API, fetched
+ * 2026-11-06, the first teams per area that have one).
+ */
+const S3 = 'https://pl-directory-images-prod.s3.us-west-1.amazonaws.com/';
+export const COLOR_LOGO_BY_UID: Record<string, string> = {
+  cldvntvou00bju21ksihnvixq: `${S3}32983a5af6547216.webp`, // Agoric Systems
+  cmh24631p88e7ly4f06o9pu7g: `${S3}team-enrichment-cmh24631p88e7ly4f06o9pu7g-1780674501938.png`, // Animoca Brands
+  clr5hztot0009yq0232zvjq5w: `${S3}a3c74dd59c40be30.webp`, // Ansa Research
+  cldvntv0a00b9u21kbusi8zvx: `${S3}a484aa48433d20eb.webp`, // Anytype
+  cmghivqs20ykupk4gcx9d4pvz: `${S3}3241c6ed36c464ee.png`, // Allo.Capital
+  clthfrxky000vv902ufapmkh5: `${S3}842ef4b6e8aee507.webp`, // bio.xyz
+  clultpfri0019wf02nj3hnxb6: `${S3}7b3a22d93d8afd53.webp`, // Celo
+  cly50xtx300303l02gi5d9ngx: `${S3}9a0cefefc0843985.webp`, // Cerebrum DAO
+  cldvnx5vo01cnu21ka4368lfo: `${S3}c5ecb2aa75371bc7.webp`, // Anjuna
+  clrl8529d0006wq02qltw5bab: `${S3}a5e631808a4a16e7.webp`, // Atlas Computing Initiative
+  cloohy2iz0000v0022l0e8aqy: `${S3}49e864299de0b9ce.webp`, // Bagel
+  cm7k6v3yr001up302a7wh0416: `${S3}d433231e5859742b.jpeg`, // FrodoBots (BitRobot Network)
+  cly4ypxxz002e3l022n0nm4bx: `${S3}8f99c352f78883f6.webp`, // ARIA
+  clmus648a00024t029wm7g2vw: `${S3}88cce3e533393917.webp`, // Atomos (Fathom Radiant)
+  cmmhy8quh117qpi4floejf237: `${S3}68ad95144da73fe3.jpeg`, // Blackrock Neurotech
+  cldvnykpo01ufu21kuln37nh8: `${S3}f29278c6dfdd40c3.webp`, // Convergent Research FROs
+};

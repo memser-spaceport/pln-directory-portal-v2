@@ -7,7 +7,7 @@
  *   explore-pl-network/EditorialIntro ...... its classes + data/content.ts, split into StoryIntro (header + Join card),
  *                                            FactsBand and EntitiesColumn per the 2026-10-30 mock
  *   explore-pl-network/PortfolioPanel ...... islands map + list (fed the static fallback JSON)
- *   explore-pl-network/ExploreLogoWall ..... VC logo wall
+ *   explore-pl-network/ExploreLogoWall ..... VC logo wall (LinkedLogoWall: + a link per logo)
  *   explore-pl-network/aileron ............. the map's font variable (the live page sets it on its root)
  *   ExplorePlNetworkView.module.scss ....... white sheet, section titles
  *   navbar Signup / LoginBtn SCSS .......... the two auth doors, Sign up quiet + Sign in filled
@@ -69,6 +69,7 @@ import { WeekFeed } from './WeekFeed';
 import { FocusAreas } from './StoryIntro';
 import { SignedOutHome } from './SignedOutHome';
 import { NewsGrid } from './NewsGrid';
+import { SignupWizard } from '@/components/page/sign-up/components/SignupWizard';
 import { TeamsToFollowRail } from './TeamsToFollowRail';
 import { EmailNotFoundModal } from './EmailNotFoundModal';
 import { AiSearchIcon } from '@/components/icons/AiSearchIcon';
@@ -343,6 +344,10 @@ export default function HomeV2Prototype() {
      email-not-found state is reached from the review band. */
   const signUp = () => setState('signed-in');
   const signIn = () => setState('signed-in');
+  /* Network news' "Personalize my news" (signed out) opens production's sign-up modal,
+     SignupWizard, the one production shows for ?dialog=signup. Its submit calls the
+     real API, so in the prototype it's for looking at, not completing. */
+  const [signUpOpen, setSignUpOpen] = useState(false);
 
   if (!mounted) return <div className={s.mountShell} />;
 
@@ -394,6 +399,8 @@ export default function HomeV2Prototype() {
         </div>
       </div>
 
+      {signUpOpen && <SignupWizard onClose={() => setSignUpOpen(false)} />}
+
       {view === 'news' ? (
         /* "See all news": news only, 3 / 2 / 1 columns. Same page in both states;
            signed out, Follow and Like are the sign-up ask. */
@@ -409,6 +416,7 @@ export default function HomeV2Prototype() {
               onLike={(uid) => (signedIn ? toggleLike(uid) : signUp())}
               onFollow={(teamUid) => (signedIn ? toggleFollow(teamUid) : signUp())}
               homeHref={viewHref('home')}
+              onPersonalize={signedIn ? undefined : () => setSignUpOpen(true)}
             />
           </div>
           {/* Production's forum ScrollToTopButton, unchanged (shows while scrolling down).

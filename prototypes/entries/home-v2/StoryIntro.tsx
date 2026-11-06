@@ -1,6 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
+import type { ReactNode } from 'react';
 
 import { Button } from '@/components/common/Button';
 import {
@@ -17,7 +18,7 @@ import ei from '@/components/page/explore-pl-network/EditorialIntro/EditorialInt
 // The team profile's follower facepile (20px rounds, 1.5px white ring, -7px overlap).
 import tp from '../team-profile/TeamProfile.module.scss';
 import fb from '../follow-shared/FollowButton.module.scss';
-import { FOCUS_AREA_LINKS } from './mocks';
+import { COLOR_LOGO_BY_UID, FOCUS_AREA_LINKS } from './mocks';
 import local from './HomeV2Prototype.module.scss';
 
 /** Marketing's About text up to "Organizations collaborate across…" (its first sentence). */
@@ -41,9 +42,12 @@ export function StoryIntro({
   onSignUp,
   faces,
   titleClassName,
+  facts,
 }: {
   onSignIn: () => void;
   onSignUp: () => void;
+  /** Phones only (2026-11-06): the figures between the copy and the Join card, so they show before the doors. */
+  facts?: ReactNode;
   /** Extra paint on the title (home-v2-b sets it in the PL gradient). */
   titleClassName?: string;
   /** Four faces for the pile under the doors: image URLs (home-v2 passes member avatars), or portfolio teams (home-v2-b). */
@@ -63,6 +67,8 @@ export function StoryIntro({
           <p>{INTRO_ABOUT}</p>
         </div>
       </header>
+
+      {facts && <div className={local.introFacts}>{facts}</div>}
 
       <JoinCard id="home-join-title" onSignIn={onSignIn} onSignUp={onSignUp} faces={faces} />
     </section>
@@ -126,9 +132,9 @@ export function JoinCard({
 const FACT_LABEL: Record<string, string> = { 'Organizations in the network': 'Network organizations' };
 
 /** The figures as a full-bleed white band (the mock's second strip): EditorialIntro's PL_FACTS, left-aligned, hairline-divided. */
-export function FactsBand({ portfolioCount }: { portfolioCount: number }) {
+export function FactsBand({ portfolioCount, className }: { portfolioCount: number; className?: string }) {
   return (
-    <div className={local.factsBand}>
+    <div className={clsx(local.factsBand, className)}>
       <dl className={local.facts}>
         {PL_FACTS.map((f) => (
           <div key={f.label} className={local.fact}>
@@ -192,6 +198,8 @@ export function FocusAreas({ teams }: { teams: PortfolioTeam[] }) {
     <ol className={local.focusAreas} aria-label="Browse the directory by focus area">
       {FOCUS_AREA_LINKS.map((a) => {
         const inArea = teams.filter((t) => t.island === a.id);
+        /* 2026-11-06: the pile in the teams' own colours (directory logos), not the map's white tiles. */
+        const pile = inArea.filter((t) => t.uid && COLOR_LOGO_BY_UID[t.uid]).slice(0, 4);
         return (
           <li
             key={a.id}
@@ -201,8 +209,8 @@ export function FocusAreas({ teams }: { teams: PortfolioTeam[] }) {
             <div className={local.focusBody}>
               <div className={local.focusMeta}>
                 <span className={tp.subAvatars} aria-hidden>
-                  {inArea.slice(0, 4).map((t) => (
-                    <img key={t.name} className={clsx(tp.subAvatar, local.focusLogo)} src={logoSrc(t.logo)} alt="" loading="lazy" />
+                  {pile.map((t) => (
+                    <img key={t.name} className={clsx(tp.subAvatar, local.focusLogo)} src={COLOR_LOGO_BY_UID[t.uid!]} alt="" loading="lazy" />
                   ))}
                 </span>
                 <span className={local.focusCount}>{inArea.length} portfolio teams</span>

@@ -139,3 +139,19 @@ On `/home`, images below the fold SHALL load lazily and every image SHALL declar
 - **GIVEN** a signed-out visitor opening a member profile
 - **WHEN** the browser reads the page's HTML
 - **THEN** the request for the largest element's image starts without waiting for a stylesheet
+
+### Requirement: A new page opens at the top
+
+When an in-app link or push opens a different page (a new pathname, or a new `view` on the same path, such as `/home?view=news`), the page SHALL open scrolled to the top, whatever the previous page's offset (LAB-3169). A change of other query parameters on the same page (filters, `?news=` story modals) SHALL keep the scroll position. Back and Forward, the first page load, and URLs with a `#hash` SHALL be left to the browser and Next.
+
+#### Scenario: Focus-area link from the bottom of Home
+
+- **GIVEN** a visitor scrolled down to "Browse by focus area" on `/home`
+- **WHEN** they open Teams or Projects on a card
+- **THEN** the list page opens at its top
+
+#### Scenario: Filter on a list
+
+- **GIVEN** a visitor scrolled down `/teams`
+- **WHEN** they tick a filter
+- **THEN** the page stays where it was

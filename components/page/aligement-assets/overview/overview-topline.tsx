@@ -7,6 +7,7 @@ import type { TrustHoldingsData } from '@/services/plaa/trust-holdings.service';
 import styles from './overview.module.scss';
 import type { ReactNode } from 'react';
 import { cssVars } from './css-vars';
+import { OVERVIEW_SECTION_IDS } from './section-ids';
 import { ROLE_ITEMS } from './role-items';
 
 interface HowItem {
@@ -18,6 +19,8 @@ interface HowItem {
   iconOpacity?: string;
   icon: ReactNode;
   withActivitiesLink: boolean;
+  /** The section this step explains, scrolled to when the card is clicked. */
+  targetId: string;
 }
 
 const HOW_ITEMS: HowItem[] = [
@@ -29,6 +32,7 @@ const HOW_ITEMS: HowItem[] = [
     iconOpacity: '0.5',
     icon: <HandHeart size={20} weight="regular" />,
     withActivitiesLink: true,
+    targetId: OVERVIEW_SECTION_IDS.whoItsFor,
   },
   {
     number: 2,
@@ -37,6 +41,7 @@ const HOW_ITEMS: HowItem[] = [
     accent: '#2c6aee',
     icon: <Coins size={20} weight="regular" />,
     withActivitiesLink: false,
+    targetId: OVERVIEW_SECTION_IDS.snapshotsAndPoints,
   },
   {
     number: 3,
@@ -46,6 +51,7 @@ const HOW_ITEMS: HowItem[] = [
     badgeAccent: '#0e6e9e',
     icon: <ArrowsLeftRight size={20} weight="regular" />,
     withActivitiesLink: false,
+    targetId: OVERVIEW_SECTION_IDS.pointsToPlaa,
   },
   {
     number: 4,
@@ -55,6 +61,7 @@ const HOW_ITEMS: HowItem[] = [
     badgeAccent: '#0b7a6d',
     icon: <TrendUp size={20} weight="regular" />,
     withActivitiesLink: false,
+    targetId: OVERVIEW_SECTION_IDS.redeemingPlaa,
   },
 ];
 
@@ -70,9 +77,13 @@ export interface OverviewToplineProps {
 }
 
 export default function OverviewTopline({ trustHoldings }: OverviewToplineProps) {
-  const { onOverviewPortfolioLinkClicked, onOverviewActivitiesLinkClicked } = useAlignmentAssetsAnalytics();
+  const { onOverviewPortfolioLinkClicked, onOverviewActivitiesLinkClicked, onOverviewHowStepClicked } =
+    useAlignmentAssetsAnalytics();
 
   const handlePortfolioClick = () => onOverviewPortfolioLinkClicked('/alignment-asset/portfolio-holdings');
+  // The browser owns the scroll (the global `[id]` rule makes it smooth and clears
+  // the sticky header); this only records which step sent the member where.
+  const handleHowCardClick = (step: string, targetId: string) => onOverviewHowStepClicked(step, targetId);
   const handleActivitiesClick = () => onOverviewActivitiesLinkClicked('/alignment-asset/activities', 'how-it-works');
 
   return (
@@ -119,7 +130,15 @@ export default function OverviewTopline({ trustHoldings }: OverviewToplineProps)
             >
               <div className={styles.howCardHeader}>
                 <span className={styles.howCardBadge}>{item.number}</span>
-                <div className={styles.howCardTitle}>{item.title}</div>
+                {/* The title is the link; its ::after covers the card, so the whole
+                    card is clickable without nesting the activities link inside it. */}
+                <a
+                  href={`#${item.targetId}`}
+                  className={styles.howCardTitleLink}
+                  onClick={() => handleHowCardClick(item.title, item.targetId)}
+                >
+                  {item.title}
+                </a>
               </div>
               <div className={styles.howCardDesc}>{item.description}</div>
               {item.withActivitiesLink ? (
@@ -141,7 +160,7 @@ export default function OverviewTopline({ trustHoldings }: OverviewToplineProps)
         </div>
       </div>
 
-      <div className={`${styles.card} ${styles.whoCard}`}>
+      <div className={`${styles.card} ${styles.whoCard}`} id={OVERVIEW_SECTION_IDS.whoItsFor}>
         <div className={styles.whoTop}>
           <h2 className={styles.sectionTitle}>Who It’s For</h2>
           <div className={styles.roleGrid}>

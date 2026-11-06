@@ -1,0 +1,87 @@
+/* Chrome shared by the two profile charts: the balance chart on Snapshot history
+   and the monthly flow chart on Contribution profile. */
+
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow:
+    inset 0 0 0 1px rgba(27, 56, 96, 0.12),
+    0 1px 2px rgba(15, 23, 42, 0.06);
+  padding: 24px;
+}
+
+.chartHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.chartTitle {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 26px;
+  color: #0a0c11;
+}
+
+.chartSubtitle {
+  font-size: 14px;
+  line-height: 20px;
+  color: #8897ae;
+  margin-top: 4px;
+}
+
+.legend {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: #455468;
+}
+
+/* Colour comes from the series itself, so a new series needs no new class. */
+.legendSwatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.legendSwatchLine {
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.chart {
+  width: 100%;
+  height: auto;
+  margin-top: 18px;
+  overflow: visible;
+}
+
+.axisLabels {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 6px;
+}
+
+.axisLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #8897ae;
+}
+
+.axisLabel.brand {
+  color: #1b4dff;
+}

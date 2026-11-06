@@ -1,4 +1,9 @@
-import { buildContributionHistory, type SnapshotHistoryEntry } from '@/services/plaa/hooks/useProfileData';
+import { buildContributionHistory, type MonthRedemption, type SnapshotHistoryEntry } from '@/services/plaa/hooks/useProfileData';
+
+/** A month's redemption with no auction price attached. */
+function r(plaa: number): MonthRedemption {
+  return { plaa, usd: null, price: null, isAverage: false };
+}
 
 function snapshot(periodIso: string, period: string, activityPlaa: number, infra: number): SnapshotHistoryEntry {
   return {
@@ -32,32 +37,32 @@ describe('buildContributionHistory', () => {
   });
 
   it('subtracts a redemption from the running balance, from its month onward', () => {
-    const result = buildContributionHistory(history, { '2026-02': 25 }, {});
+    const result = buildContributionHistory(history, { '2026-02': r(25) }, {});
 
     // Jan 10, Feb +50 -25, Mar +50.
     expect(result.map((e) => e.cum)).toEqual([10, 35, 85]);
   });
 
   it('keeps subtracting earlier redemptions from every later month', () => {
-    const result = buildContributionHistory(history, { '2026-01': 5, '2026-03': 20 }, {});
+    const result = buildContributionHistory(history, { '2026-01': r(5), '2026-03': r(20) }, {});
 
     expect(result.map((e) => e.cum)).toEqual([5, 55, 85]);
   });
 
   it('attributes a redemption to the month its auction closed in', () => {
-    const result = buildContributionHistory(history, { '2026-02': 500 }, {});
+    const result = buildContributionHistory(history, { '2026-02': r(500) }, {});
 
     expect(result.map((e) => e.redeemed)).toEqual([null, 500, null]);
   });
 
   it('matches a redemption on year-month, since snapshot rows carry a day-of-month and auctions close on the first', () => {
-    const result = buildContributionHistory(history, { '2026-03': 120 }, {});
+    const result = buildContributionHistory(history, { '2026-03': r(120) }, {});
 
     expect(result.find((e) => e.period === 'Mar 2026')?.redeemed).toBe(120);
   });
 
   it('leaves redeemed null for months with no redemption, never zero', () => {
-    const result = buildContributionHistory(history, { '2026-01': 40 }, {});
+    const result = buildContributionHistory(history, { '2026-01': r(40) }, {});
 
     expect(result.find((e) => e.period === 'Feb 2026')?.redeemed).toBeNull();
   });

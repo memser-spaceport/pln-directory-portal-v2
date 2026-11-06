@@ -62,7 +62,7 @@ export default function PlaaHomeFooter() {
       </div>
 
       <div className="pf__legal">
-        &copy; {new Date().getFullYear()} Protocol Labs. PLAA are a regulated security and not ownership interests.
+        &copy; {new Date().getFullYear()} Protocol Labs. PLAA are not ownership interests in the PLAA1 Trust.
         Nothing herein is an offer, solicitation, or financial advice.
       </div>
 

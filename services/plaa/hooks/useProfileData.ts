@@ -3,7 +3,8 @@ import { useCurrentSnapshotStatus } from '@/services/plaa/hooks/useCurrentSnapsh
 import { useIsInfraMember } from '@/services/plaa/hooks/useIsInfraMember';
 import { useProfileBalance } from '@/services/plaa/hooks/useProfileBalance';
 import { useProfilePlaaHistory, type ProfilePlaaHistoryEntry } from '@/services/plaa/hooks/useProfilePlaaHistory';
-import { useRedemptionHistory } from '@/services/plaa/hooks/useRedemptionHistory';
+import { useBuybackPrices, type BuybackPrice } from '@/services/plaa/hooks/useBuybackPrices';
+import { useRedemptionHistory, type RedemptionHistoryEntry } from '@/services/plaa/hooks/useRedemptionHistory';
 import { useSnapshotLifecycle, type SnapshotLifecycleEntry } from '@/services/plaa/hooks/useSnapshotLifecycle';
 import { useSnapshotPointsHistory, type SnapshotPointsByPeriod } from '@/services/plaa/hooks/useSnapshotPointsHistory';
 import type { SnapshotPointsResponse } from '@/services/points/hooks/usePoints';
@@ -36,9 +37,23 @@ export interface ContributionHistoryEntry {
   plaa: number;
   infra: number;
   redeemed: number | null;
+  /** What the redeemed PLAA fetched, null when any of the month's auctions has no price. */
+  redeemedUsd: number | null;
+  /** Price per PLAA behind redeemedUsd. */
+  redeemedPrice: number | null;
+  /** The month spans auctions that cleared at different prices, so the price is a blend. */
+  redeemedPriceIsAverage: boolean;
   /** The snapshot is not closed yet, so its own figures are provisional. */
   isPending: boolean;
   cum: number;
+}
+
+/** What a month's redemptions came to, once priced at the auctions that cleared them. */
+export interface MonthRedemption {
+  plaa: number;
+  usd: number | null;
+  price: number | null;
+  isAverage: boolean;
 }
 
 export interface ProfileIdentity {
@@ -158,9 +173,59 @@ function withMissingSnapshots(
   return [...history, ...missing].sort((a, b) => a.period.localeCompare(b.period));
 }
 
+/**
+ * Prices each month's redemptions at the auction that cleared them.
+ *
+ * A redemption is matched on auction number, falling back to round number,
+ * since auctionNumber is nullable on both sides. A month whose redemptions are
+ * not all priced carries no dollar figure at all: a partial total read as a
+ * full one would understate what the member gave up.
+ */
+export function summarizeRedemptions(
+  redemptions: RedemptionHistoryEntry[] | null | undefined,
+  prices: BuybackPrice[] | null | undefined,
+): Record<string, MonthRedemption> {
+  const byAuction = new Map<number, number>();
+  const byRound = new Map<number, number>();
+  for (const price of prices ?? []) {
+    if (price.auctionNumber !== null) byAuction.set(price.auctionNumber, price.clearingPrice);
+    byRound.set(price.roundNumber, price.clearingPrice);
+  }
+
+  const months: Record<string, { plaa: number; usd: number; priced: number; prices: Set<number> }> = {};
+  for (const entry of redemptions ?? []) {
+    if (entry.period === null || entry.plaaRedeemed === null) continue;
+    const month = monthKey(entry.period);
+    const price =
+      (entry.auctionNumber !== null ? byAuction.get(entry.auctionNumber) : undefined) ??
+      (entry.roundNumber !== null ? byRound.get(entry.roundNumber) : undefined) ??
+      null;
+
+    const bucket = (months[month] ??= { plaa: 0, usd: 0, priced: 0, prices: new Set() });
+    bucket.plaa += entry.plaaRedeemed;
+    if (price !== null) {
+      bucket.usd += entry.plaaRedeemed * price;
+      bucket.priced += entry.plaaRedeemed;
+      bucket.prices.add(price);
+    }
+  }
+
+  const summary: Record<string, MonthRedemption> = {};
+  for (const [month, bucket] of Object.entries(months)) {
+    const fullyPriced = bucket.priced === bucket.plaa && bucket.plaa > 0;
+    summary[month] = {
+      plaa: bucket.plaa,
+      usd: fullyPriced ? bucket.usd : null,
+      price: fullyPriced ? bucket.usd / bucket.plaa : null,
+      isAverage: bucket.prices.size > 1,
+    };
+  }
+  return summary;
+}
+
 export function buildContributionHistory(
   snapshotHistory: SnapshotHistoryEntry[],
-  redeemedByMonth: Record<string, number>,
+  redeemedByMonth: Record<string, MonthRedemption>,
   closedByMonth: Record<string, boolean>,
 ): ContributionHistoryEntry[] {
   const oldestFirst = [...snapshotHistory].reverse();
@@ -170,14 +235,18 @@ export function buildContributionHistory(
     const closed = closedByMonth[month];
     // An open snapshot's PLAA joins the balance only once the snapshot closes.
     if (closed !== false) cum += entry.activityPlaa + entry.infra;
+    const redemption = redeemedByMonth[month] ?? null;
     // The balance is net: a redemption leaves it from the month its auction closed in.
-    cum -= redeemedByMonth[month] ?? 0;
+    cum -= redemption?.plaa ?? 0;
     return {
       period: entry.period,
       points: entry.points,
       plaa: entry.activityPlaa,
       infra: entry.infra,
-      redeemed: redeemedByMonth[month] ?? null,
+      redeemed: redemption?.plaa ?? null,
+      redeemedUsd: redemption?.usd ?? null,
+      redeemedPrice: redemption?.price ?? null,
+      redeemedPriceIsAverage: redemption?.isAverage ?? false,
       isPending: closed === undefined ? false : !closed,
       cum,
     };
@@ -192,6 +261,7 @@ export function useProfileData(): ProfileData {
   const { data: historyData, isLoading: isHistoryLoading } = useProfilePlaaHistory();
   const historyStatus: ProfileHistoryStatus = isHistoryLoading ? 'loading' : historyData ? 'ready' : 'unavailable';
   const { data: redemptionData } = useRedemptionHistory();
+  const { data: buybackPrices } = useBuybackPrices();
   const { data: lifecycleData } = useSnapshotLifecycle();
   const candidateHistory = historyData ? withMissingSnapshots(historyData, lifecycleData ?? [], new Date()) : null;
   const pointsByPeriod = useSnapshotPointsHistory(candidateHistory?.map((e) => e.period) ?? []);
@@ -203,12 +273,7 @@ export function useProfileData(): ProfileData {
   const isInfraMember = useIsInfraMember();
 
   const name = currentUser?.name || 'Member';
-  const redeemedByMonth: Record<string, number> = {};
-  for (const entry of redemptionData ?? []) {
-    if (entry.period === null || entry.plaaRedeemed === null) continue;
-    const month = monthKey(entry.period);
-    redeemedByMonth[month] = (redeemedByMonth[month] ?? 0) + entry.plaaRedeemed;
-  }
+  const redeemedByMonth = summarizeRedemptions(redemptionData, buybackPrices);
 
   const closedByMonth: Record<string, boolean> = {};
   for (const entry of lifecycleData ?? []) {

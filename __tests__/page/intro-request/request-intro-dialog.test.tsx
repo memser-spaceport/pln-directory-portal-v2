@@ -35,6 +35,18 @@ describe('RequestIntroDialog', () => {
     onClose.mockReset();
   });
 
+  it('limits the text to 3500 characters so the message fits in Telegram', () => {
+    render(<RequestIntroDialog type="TEAM" targetId="team-1" targetName="Acme" onClose={onClose} />);
+
+    const field = screen.getByLabelText(FIELD_LABEL);
+    expect(field).toHaveAttribute('maxLength', '3500');
+    expect(screen.getByText('0/3500')).toBeInTheDocument();
+
+    fireEvent.change(field, { target: { value: 'a'.repeat(3500) } });
+    expect(screen.getByText('3500/3500')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Send' })).toBeEnabled();
+  });
+
   it('keeps Send off until the text has 20 characters', () => {
     render(<RequestIntroDialog type="MEMBER" targetId="member-2" targetName="Ada Lovelace" onClose={onClose} />);
 

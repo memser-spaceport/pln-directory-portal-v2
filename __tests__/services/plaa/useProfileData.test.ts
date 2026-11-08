@@ -52,7 +52,6 @@ function setNodeEnv(value: string) {
 /** Fresh require so the module's IS_DEV constant re-evaluates against the current NODE_ENV. */
 function loadUseProfileData() {
   jest.resetModules();
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   return require('@/services/plaa/hooks/useProfileData').useProfileData;
 }
 

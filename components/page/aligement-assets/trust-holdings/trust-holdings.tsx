@@ -155,62 +155,61 @@ function interpolatedBuybackY(rows: ChartRow[], index: number): number | null {
 // bar unless that collides with the NAV/PLAA pill or buyback chip at the
 // same index — the label moves to clear it, since it's the only one of
 // the three not anchored to a real plotted value.
-const renderTotalLabel = (rows: NavPoint[]) => (props: any) => {
-  const { x, y, width, value, index } = props;
-  if (!value) return null;
-  const row = rows[index] as ChartRow | undefined;
-  const highlight = row && row.plvh > 0;
-  const defaultBaseline = y - 10;
+const renderTotalLabel = (rows: NavPoint[]) =>
+  function TotalLabel(props: any) {
+    const { x, y, width, value, index } = props;
+    if (!value) return null;
+    const row = rows[index] as ChartRow | undefined;
+    const highlight = row && row.plvh > 0;
+    const defaultBaseline = y - 10;
 
-  // [top, bottom] of each price-series band this label might overlap.
-  const bands: Array<[number, number]> = [];
-  if (row?.navPerPlaa != null) {
-    const cy = perPlaaPixelY(row.navPerPlaa);
-    bands.push([cy - PILL_HEIGHT / 2, cy + PILL_HEIGHT / 2]);
-  }
-  if (row?.buyback != null) {
-    const cy = perPlaaPixelY(row.buyback);
-    bands.push([cy - BUYBACK_CHIP_HEIGHT / 2, cy + BUYBACK_CHIP_HEIGHT / 2]);
-  } else {
-    const interpolated = interpolatedBuybackY(rows as ChartRow[], index);
-    if (interpolated != null) {
-      const cy = perPlaaPixelY(interpolated);
-      bands.push([cy - INTERPOLATED_LINE_HALF_BAND, cy + INTERPOLATED_LINE_HALF_BAND]);
+    const bands: Array<[number, number]> = [];
+    if (row?.navPerPlaa != null) {
+      const cy = perPlaaPixelY(row.navPerPlaa);
+      bands.push([cy - PILL_HEIGHT / 2, cy + PILL_HEIGHT / 2]);
     }
-  }
+    if (row?.buyback != null) {
+      const cy = perPlaaPixelY(row.buyback);
+      bands.push([cy - BUYBACK_CHIP_HEIGHT / 2, cy + BUYBACK_CHIP_HEIGHT / 2]);
+    } else {
+      const interpolated = interpolatedBuybackY(rows as ChartRow[], index);
+      if (interpolated != null) {
+        const cy = perPlaaPixelY(interpolated);
+        bands.push([cy - INTERPOLATED_LINE_HALF_BAND, cy + INTERPOLATED_LINE_HALF_BAND]);
+      }
+    }
 
-  const defaultLabelTop = defaultBaseline - TOTAL_LABEL_ASCENT;
-  const defaultLabelBottom = defaultBaseline + TOTAL_LABEL_DESCENT;
-  const collidingTops = bands
-    .filter(
-      ([bandTop, bandBottom]) =>
-        defaultLabelTop - TOTAL_LABEL_CLEARANCE < bandBottom && bandTop < defaultLabelBottom + TOTAL_LABEL_CLEARANCE,
-    )
-    .map(([bandTop]) => bandTop);
-  // Clearing the nearest colliding band clears every band, since the rest sit at or below it.
-  const baseline = collidingTops.length
-    ? Math.max(
-        MIN_TOTAL_LABEL_Y + TOTAL_LABEL_ASCENT,
-        Math.min(...collidingTops) - TOTAL_LABEL_CLEARANCE - TOTAL_LABEL_DESCENT,
+    const defaultLabelTop = defaultBaseline - TOTAL_LABEL_ASCENT;
+    const defaultLabelBottom = defaultBaseline + TOTAL_LABEL_DESCENT;
+    const collidingTops = bands
+      .filter(
+        ([bandTop, bandBottom]) =>
+          defaultLabelTop - TOTAL_LABEL_CLEARANCE < bandBottom && bandTop < defaultLabelBottom + TOTAL_LABEL_CLEARANCE,
       )
-    : defaultBaseline;
+      .map(([bandTop]) => bandTop);
+    const baseline = collidingTops.length
+      ? Math.max(
+          MIN_TOTAL_LABEL_Y + TOTAL_LABEL_ASCENT,
+          Math.min(...collidingTops) - TOTAL_LABEL_CLEARANCE - TOTAL_LABEL_DESCENT,
+        )
+      : defaultBaseline;
 
-  return (
-    <text
-      x={x + width / 2}
-      y={baseline}
-      textAnchor="middle"
-      fill={highlight ? SERIES_COLORS.plvh : '#475569'}
-      stroke="#f8fafc"
-      strokeWidth={4}
-      paintOrder="stroke"
-      fontSize={13}
-      fontWeight={700}
-    >
-      {formatMillions(value)}
-    </text>
-  );
-};
+    return (
+      <text
+        x={x + width / 2}
+        y={baseline}
+        textAnchor="middle"
+        fill={highlight ? SERIES_COLORS.plvh : '#475569'}
+        stroke="#f8fafc"
+        strokeWidth={4}
+        paintOrder="stroke"
+        fontSize={13}
+        fontWeight={700}
+      >
+        {formatMillions(value)}
+      </text>
+    );
+  };
 
 // Chip centers sit on the dotted track's points, same as the NAV pills.
 const BUYBACK_CHIP_HEIGHT = 22;
@@ -315,23 +314,24 @@ function buybackMarkersByPeriod(buybacks: TrustBuyback[]): Record<string, Buybac
 }
 
 // Final category (latest month) highlighted in blue.
-const renderAxisTick = (lastLabel: string) => (props: any) => {
-  const { x, y, payload } = props;
-  const isLast = payload.value === lastLabel;
-  return (
-    <text
-      x={x}
-      y={y}
-      dy={16}
-      textAnchor="middle"
-      {...AXIS_TEXT_STYLE}
-      fill={isLast ? '#0090ff' : AXIS_TEXT_STYLE.fill}
-      fontWeight={isLast ? 600 : AXIS_TEXT_STYLE.fontWeight}
-    >
-      {payload.value}
-    </text>
-  );
-};
+const renderAxisTick = (lastLabel: string) =>
+  function AxisTick(props: any) {
+    const { x, y, payload } = props;
+    const isLast = payload.value === lastLabel;
+    return (
+      <text
+        x={x}
+        y={y}
+        dy={16}
+        textAnchor="middle"
+        {...AXIS_TEXT_STYLE}
+        fill={isLast ? '#0090ff' : AXIS_TEXT_STYLE.fill}
+        fontWeight={isLast ? 600 : AXIS_TEXT_STYLE.fontWeight}
+      >
+        {payload.value}
+      </text>
+    );
+  };
 
 function NavChart({
   data,

@@ -54,14 +54,11 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
 
           <div className="snapshot-section__progress-container">
             <h3 className="snapshot-section__progress-title">Current Snapshot Period - {dateRangeLabel}</h3>
-            
+
             <div className="snapshot-section__progress-bar">
-              <div 
-                className="snapshot-section__progress-fill"
-                style={{ width: `${progressPercentage}%` }}
-              />
+              <div className="snapshot-section__progress-fill" style={{ width: `${progressPercentage}%` }} />
             </div>
-            
+
             <p className="snapshot-section__progress-text">{timeRemaining}</p>
           </div>
 
@@ -73,34 +70,66 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
               <p className="snapshot-section__tip-text">
                 <strong>Tip:</strong> {tipContent.tipText}
               </p>
-              
+
               <p className="snapshot-section__tip-explore">{tipContent.exploreTitle}</p>
-              
+
               <div className="snapshot-section__tip-links">
                 {tipContent.links.map((link, index) => (
                   <p key={`${link.linkText}-${index}`} className="snapshot-section__tip-link-item">
-                    <span className="snapshot-section__tip-arrow">→</span>
-                    {' '}{link.prefix}{' '}
+                    <span className="snapshot-section__tip-arrow">→</span> {link.prefix}{' '}
                     {link.url === '#' ? (
-                      <span className="snapshot-section__tip-link snapshot-section__tip-link--disabled">{link.linkText}</span>
+                      <span className="snapshot-section__tip-link snapshot-section__tip-link--disabled">
+                        {link.linkText}
+                      </span>
                     ) : isInternalUrl(link.url) ? (
-                      <Link href={link.url} className="snapshot-section__tip-link" onClick={() => handleTipLinkClick(link.linkText, link.url)}>{link.linkText}</Link>
+                      <Link
+                        href={link.url}
+                        className="snapshot-section__tip-link"
+                        onClick={() => handleTipLinkClick(link.linkText, link.url)}
+                      >
+                        {link.linkText}
+                      </Link>
                     ) : (
-                      <Link href={link.url} target="_blank" rel="noopener noreferrer" className="snapshot-section__tip-link" onClick={() => handleTipLinkClick(link.linkText, link.url)}>{link.linkText}</Link>
+                      <Link
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="snapshot-section__tip-link"
+                        onClick={() => handleTipLinkClick(link.linkText, link.url)}
+                      >
+                        {link.linkText}
+                      </Link>
                     )}
-                    {link.suffix && <>{' '}{link.suffix}</>}
+                    {link.suffix && <> {link.suffix}</>}
                   </p>
                 ))}
               </div>
-              
+
               <p className="snapshot-section__tip-bottom">
                 {tipContent.bottomLink.url === '#' ? (
-                  <span className="snapshot-section__tip-link snapshot-section__tip-link--disabled">{tipContent.bottomLink.text}</span>
+                  <span className="snapshot-section__tip-link snapshot-section__tip-link--disabled">
+                    {tipContent.bottomLink.text}
+                  </span>
                 ) : isInternalUrl(tipContent.bottomLink.url) ? (
-                  <Link href={tipContent.bottomLink.url} className="snapshot-section__tip-link" onClick={() => handleTipLinkClick(tipContent.bottomLink.text, tipContent.bottomLink.url)}>{tipContent.bottomLink.text}</Link>
+                  <Link
+                    href={tipContent.bottomLink.url}
+                    className="snapshot-section__tip-link"
+                    onClick={() => handleTipLinkClick(tipContent.bottomLink.text, tipContent.bottomLink.url)}
+                  >
+                    {tipContent.bottomLink.text}
+                  </Link>
                 ) : (
-                  <Link href={tipContent.bottomLink.url} target="_blank" rel="noopener noreferrer" className="snapshot-section__tip-link" onClick={() => handleTipLinkClick(tipContent.bottomLink.text, tipContent.bottomLink.url)}>{tipContent.bottomLink.text}</Link>
-                )}.
+                  <Link
+                    href={tipContent.bottomLink.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="snapshot-section__tip-link"
+                    onClick={() => handleTipLinkClick(tipContent.bottomLink.text, tipContent.bottomLink.url)}
+                  >
+                    {tipContent.bottomLink.text}
+                  </Link>
+                )}
+                .
               </p>
             </div>
           </div>

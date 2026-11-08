@@ -8,7 +8,11 @@ import { toast } from '@/components/core/ToastContainer';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useUpdateCommunityKudos } from '@/hooks/use-kudos';
 import { useKudosAnalytics } from '@/analytics/kudos.analytics';
-import { buildCommunityKudosSchema, type CommunityKudosFormValues, type CommunityKudosLimits } from '@/schema/kudos-forms';
+import {
+  buildCommunityKudosSchema,
+  type CommunityKudosFormValues,
+  type CommunityKudosLimits,
+} from '@/schema/kudos-forms';
 import { communityGiftOptions } from './data/kudos-board.data';
 import type { ICommunityKudos, ICommunityKudosInput, IUserSummary } from './data/kudos-board.types';
 
@@ -292,7 +296,11 @@ export function KudosCard({
               </button>
             )}
             {isLocked && (
-              <span className="card__lock" title="Finalized — no longer editable" aria-label="Finalized — no longer editable">
+              <span
+                className="card__lock"
+                title="Finalized — no longer editable"
+                aria-label="Finalized — no longer editable"
+              >
                 <LockIcon />
               </span>
             )}

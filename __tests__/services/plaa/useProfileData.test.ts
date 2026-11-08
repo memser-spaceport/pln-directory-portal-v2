@@ -238,7 +238,7 @@ describe('useProfileData', () => {
       { period: '2026-07-26', iaPlaa: 50, irPlaa: 0, plaaTotal: 50 },
     ];
 
-    it("requests points for each period's raw ISO date, not the formatted \"Mon YYYY\" label", () => {
+    it('requests points for each period\'s raw ISO date, not the formatted "Mon YYYY" label', () => {
       mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
       mockUseProfilePlaaHistory.mockReturnValue({ data: REAL_HISTORY, isLoading: false });
       renderHook(() => useProfileDataDefault());
@@ -278,7 +278,12 @@ describe('useProfileData', () => {
       mockUseSnapshotPointsHistory.mockReturnValue({
         '2026-05-26': undefined, // still loading
         '2026-06-26': null, // settled, no data
-        '2026-07-26': { snapshotPeriod: '2026-07-26', records: [{ category: 'Category A', activityName: 'Activity 1', description: '', pointsCollectedPerSnapshot: 10 }] },
+        '2026-07-26': {
+          snapshotPeriod: '2026-07-26',
+          records: [
+            { category: 'Category A', activityName: 'Activity 1', description: '', pointsCollectedPerSnapshot: 10 },
+          ],
+        },
       });
       const { result } = renderHook(() => useProfileDataDefault());
 
@@ -296,7 +301,9 @@ describe('useProfileData', () => {
       mockUseSnapshotPointsHistory.mockReturnValue({
         '2026-07-26': {
           snapshotPeriod: '2026-07-26',
-          records: [{ category: 'Category A', activityName: 'Activity 1', description: '', pointsCollectedPerSnapshot: 450 }],
+          records: [
+            { category: 'Category A', activityName: 'Activity 1', description: '', pointsCollectedPerSnapshot: 450 },
+          ],
         },
       });
       const { result } = renderHook(() => useProfileDataDefault());
@@ -312,7 +319,7 @@ describe('useProfileData', () => {
       { period: '2026-06-26', iaPlaa: 0, irPlaa: 0, plaaTotal: 0 },
     ];
 
-    it('reports isInfraMember from the member\'s Infra policy', () => {
+    it("reports isInfraMember from the member's Infra policy", () => {
       mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
 
       mockUseIsInfraMember.mockReturnValue(true);
@@ -339,7 +346,14 @@ describe('useProfileData', () => {
       mockUseSnapshotPointsHistory.mockReturnValue({
         '2026-05-26': {
           snapshotPeriod: '2026-05-01',
-          records: [{ category: 'PLAA', activityName: 'Onboarding', description: 'Month Onboarded to PLAA', pointsCollectedPerSnapshot: 0 }],
+          records: [
+            {
+              category: 'PLAA',
+              activityName: 'Onboarding',
+              description: 'Month Onboarded to PLAA',
+              pointsCollectedPerSnapshot: 0,
+            },
+          ],
         },
         '2026-06-26': { snapshotPeriod: '2026-06-01', records: [] },
       });
@@ -387,9 +401,7 @@ describe('useProfileData', () => {
       });
       const { result } = renderHook(() => useProfileDataDefault());
 
-      const byPeriod = Object.fromEntries(
-        result.current.contributionHistory.map((e) => [e.period, e.redeemed]),
-      );
+      const byPeriod = Object.fromEntries(result.current.contributionHistory.map((e) => [e.period, e.redeemed]));
       expect(byPeriod['Jun 2026']).toBe(640);
       expect(byPeriod['May 2026']).toBeNull();
       expect(byPeriod['Jul 2026']).toBeNull();
@@ -427,14 +439,12 @@ describe('useProfileData', () => {
       });
       const { result } = renderHook(() => useProfileDataDefault());
 
-      const byPeriod = Object.fromEntries(
-        result.current.contributionHistory.map((e) => [e.period, e.isPending]),
-      );
+      const byPeriod = Object.fromEntries(result.current.contributionHistory.map((e) => [e.period, e.isPending]));
       expect(byPeriod['May 2026']).toBe(false);
       expect(byPeriod['Jul 2026']).toBe(true);
     });
 
-    it('does not add an open snapshot\'s PLAA to the running balance until it closes', () => {
+    it("does not add an open snapshot's PLAA to the running balance until it closes", () => {
       mockUseSnapshotLifecycle.mockReturnValue({
         data: [
           { roundNumber: 1, period: '2026-05-01', status: 'Snapshot Closed', plaaLocked: true, isClosed: true },
@@ -497,7 +507,17 @@ describe('useProfileData', () => {
           periods.map((p) => [
             p,
             p.startsWith('2026-08')
-              ? { snapshotPeriod: '2026-08-01', records: [{ category: 'Category A', activityName: 'Activity 1', description: '', pointsCollectedPerSnapshot: 120 }] }
+              ? {
+                  snapshotPeriod: '2026-08-01',
+                  records: [
+                    {
+                      category: 'Category A',
+                      activityName: 'Activity 1',
+                      description: '',
+                      pointsCollectedPerSnapshot: 120,
+                    },
+                  ],
+                }
               : null,
           ]),
         ),
@@ -507,7 +527,12 @@ describe('useProfileData', () => {
       const aug = result.current.snapshotHistory.find((e) => e.period === 'Aug 2026')!;
       expect(aug.points).toBe(120);
       expect(aug.activities).toBe(1);
-      expect(mockUseSnapshotPointsHistory).toHaveBeenCalledWith(['2026-06-26', '2026-07-26', '2026-08-01', '2026-09-01']);
+      expect(mockUseSnapshotPointsHistory).toHaveBeenCalledWith([
+        '2026-06-26',
+        '2026-07-26',
+        '2026-08-01',
+        '2026-09-01',
+      ]);
     });
 
     it('carries the confirmed balance forward through open snapshots in the contribution history', () => {
@@ -538,7 +563,7 @@ describe('useProfileData', () => {
       expect(aug.activityPlaa).toBe(0);
     });
 
-    it('does not invent months from before the member\'s first snapshot', () => {
+    it("does not invent months from before the member's first snapshot", () => {
       mockUseSnapshotLifecycle.mockReturnValue({
         data: [
           { roundNumber: 15, period: '2026-04-01', status: 'Snapshot Closed', plaaLocked: true, isClosed: true },
@@ -587,7 +612,12 @@ describe('useProfileData', () => {
           periods.map((p) => [
             p,
             p.startsWith('2026-09')
-              ? { snapshotPeriod: '2026-09-01', records: [{ category: 'PLAA', activityName: 'Onboarding', description: '', pointsCollectedPerSnapshot: 0 }] }
+              ? {
+                  snapshotPeriod: '2026-09-01',
+                  records: [
+                    { category: 'PLAA', activityName: 'Onboarding', description: '', pointsCollectedPerSnapshot: 0 },
+                  ],
+                }
               : null,
           ]),
         ),

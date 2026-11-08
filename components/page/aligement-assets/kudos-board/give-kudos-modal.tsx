@@ -5,7 +5,11 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/components/core/ToastContainer';
 
-import { buildCommunityKudosSchema, type CommunityKudosFormValues, type CommunityKudosLimits } from '@/schema/kudos-forms';
+import {
+  buildCommunityKudosSchema,
+  type CommunityKudosFormValues,
+  type CommunityKudosLimits,
+} from '@/schema/kudos-forms';
 import { communityGiftOptions } from './data/kudos-board.data';
 import { useGiveCommunityKudos } from '@/hooks/use-kudos';
 import { useKudosAnalytics } from '@/analytics/kudos.analytics';
@@ -117,9 +121,7 @@ export function GiveCommunityKudosModal({
           {/* An empty picker and a picker that hasn't loaded look identical to a
               user, so say which one it is rather than letting them wonder. */}
           <select id="recipient" className="form-control" disabled={recipientsLoading} {...register('recipientId')}>
-            <option value="">
-              {recipientsLoading ? 'Loading recipients…' : '— Select a network contributor —'}
-            </option>
+            <option value="">{recipientsLoading ? 'Loading recipients…' : '— Select a network contributor —'}</option>
             {recipients.map((r) => (
               <option key={r.memberId} value={r.memberId}>
                 {r.name}

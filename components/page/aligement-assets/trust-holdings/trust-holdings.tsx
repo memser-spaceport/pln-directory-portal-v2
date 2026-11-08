@@ -81,7 +81,17 @@ const formatPerPlaa = (value: number) => `$${value.toFixed(2)}`;
 const formatMillions = (value: number) => `$${(value / 1_000_000).toFixed(2)}M`;
 const formatCount = (value: number) => value.toLocaleString('en-US');
 
-const renderIssuanceDot = ({ cx, cy, payload, index }: { cx?: number; cy?: number; payload?: NavPoint; index?: number }) => (
+const renderIssuanceDot = ({
+  cx,
+  cy,
+  payload,
+  index,
+}: {
+  cx?: number;
+  cy?: number;
+  payload?: NavPoint;
+  index?: number;
+}) => (
   <circle key={`issuance-${index}`} cx={cx} cy={cy} r={3} fill={SERIES_COLORS.issuance} strokeWidth={0}>
     <title>{payload ? `${payload.label}: ${formatCount(payload.totalPlaa)} PLAA in circulation` : ''}</title>
   </circle>
@@ -124,11 +134,17 @@ function interpolatedBuybackY(rows: ChartRow[], index: number): number | null {
   if (rows[index]?.buyback != null) return null; // real chip already covers this index
   let before = -1;
   for (let i = index - 1; i >= 0; i--) {
-    if (rows[i]?.buyback != null) { before = i; break; }
+    if (rows[i]?.buyback != null) {
+      before = i;
+      break;
+    }
   }
   let after = -1;
   for (let i = index + 1; i < rows.length; i++) {
-    if (rows[i]?.buyback != null) { after = i; break; }
+    if (rows[i]?.buyback != null) {
+      after = i;
+      break;
+    }
   }
   if (before === -1 || after === -1) return null;
   const t = (index - before) / (after - before);
@@ -166,11 +182,17 @@ const renderTotalLabel = (rows: NavPoint[]) => (props: any) => {
   const defaultLabelTop = defaultBaseline - TOTAL_LABEL_ASCENT;
   const defaultLabelBottom = defaultBaseline + TOTAL_LABEL_DESCENT;
   const collidingTops = bands
-    .filter(([bandTop, bandBottom]) => defaultLabelTop - TOTAL_LABEL_CLEARANCE < bandBottom && bandTop < defaultLabelBottom + TOTAL_LABEL_CLEARANCE)
+    .filter(
+      ([bandTop, bandBottom]) =>
+        defaultLabelTop - TOTAL_LABEL_CLEARANCE < bandBottom && bandTop < defaultLabelBottom + TOTAL_LABEL_CLEARANCE,
+    )
     .map(([bandTop]) => bandTop);
   // Clearing the nearest colliding band clears every band, since the rest sit at or below it.
   const baseline = collidingTops.length
-    ? Math.max(MIN_TOTAL_LABEL_Y + TOTAL_LABEL_ASCENT, Math.min(...collidingTops) - TOTAL_LABEL_CLEARANCE - TOTAL_LABEL_DESCENT)
+    ? Math.max(
+        MIN_TOTAL_LABEL_Y + TOTAL_LABEL_ASCENT,
+        Math.min(...collidingTops) - TOTAL_LABEL_CLEARANCE - TOTAL_LABEL_DESCENT,
+      )
     : defaultBaseline;
 
   return (
@@ -342,86 +364,91 @@ function NavChart({
   return (
     <div className={`th-chart ${dense || showIssuance ? 'th-chart--dense' : ''}`}>
       <div className="th-chart__inner">
-      <ResponsiveContainer width="100%" height={420}>
-        <ComposedChart data={chartData} margin={CHART_MARGIN} barCategoryGap="42%">
-          <CartesianGrid strokeDasharray="0" stroke="#e2e8f0" vertical={false} />
-          <XAxis
-            dataKey="label"
-            axisLine={{ stroke: '#cbd5e1' }}
-            tickLine={false}
-            tick={renderAxisTick(chartData[chartData.length - 1]?.label)}
-            interval={0}
-          />
-          <YAxis yAxisId="nav" hide domain={[0, (max: number) => max * 1.15]} />
-          <YAxis yAxisId="perPlaa" hide domain={[0, PER_PLAA_DOMAIN_MAX]} />
-          {showIssuance && (
-            <YAxis
-              yAxisId="issuance"
-              orientation="right"
-              width={110}
-              domain={[0, (max: number) => Math.max(1, max)]}
-              padding={{ bottom: 32 }}
-              allowDecimals={false}
-              tickFormatter={formatCount}
-              tick={AXIS_TEXT_STYLE}
+        <ResponsiveContainer width="100%" height={420}>
+          <ComposedChart data={chartData} margin={CHART_MARGIN} barCategoryGap="42%">
+            <CartesianGrid strokeDasharray="0" stroke="#e2e8f0" vertical={false} />
+            <XAxis
+              dataKey="label"
+              axisLine={{ stroke: '#cbd5e1' }}
               tickLine={false}
-              axisLine={false}
-              label={{
-                ...AXIS_TEXT_STYLE,
-                value: 'PLAA in circulation',
-                angle: -90,
-                position: 'insideRight',
-                style: { textAnchor: 'middle' },
-              }}
+              tick={renderAxisTick(chartData[chartData.length - 1]?.label)}
+              interval={0}
             />
-          )}
-          {showIssuance && (
-            <Line
-              className="th-issuance-line"
-              yAxisId="issuance"
-              type="linear"
-              dataKey="totalPlaa"
-              name="PLAA issuance"
-              stroke={SERIES_COLORS.issuance}
-              strokeWidth={NAV_LINE_WIDTH}
-              dot={renderIssuanceDot}
-              activeDot={false}
-              isAnimationActive={false}
-            />
-          )}
-          <Bar yAxisId="nav" dataKey="treasuries" stackId="nav" fill={SERIES_COLORS.treasuries} barSize={barSize} />
-          <Bar yAxisId="nav" dataKey="digital" stackId="nav" fill={SERIES_COLORS.digital} barSize={barSize} />
-          <Bar yAxisId="nav" dataKey="plvh" stackId="nav" fill={SERIES_COLORS.plvh} barSize={barSize} radius={[4, 4, 0, 0]}>
-            <LabelList dataKey="nav" content={renderTotalLabel(chartData)} />
-          </Bar>
-          <Line
-            yAxisId="perPlaa"
-            type="linear"
-            dataKey="navPerPlaa"
-            stroke={SERIES_COLORS.nav}
-            strokeWidth={NAV_LINE_WIDTH}
-            dot={{ r: 3, fill: SERIES_COLORS.nav, strokeWidth: 0 }}
-            label={renderNavLabel}
-            isAnimationActive={false}
-          />
-          {/* Auctions are months apart, so the track is dotted through the
-              periods that had none rather than implying a price in between. */}
-          {hasBuybacks && (
+            <YAxis yAxisId="nav" hide domain={[0, (max: number) => max * 1.15]} />
+            <YAxis yAxisId="perPlaa" hide domain={[0, PER_PLAA_DOMAIN_MAX]} />
+            {showIssuance && (
+              <YAxis
+                yAxisId="issuance"
+                orientation="right"
+                width={110}
+                domain={[0, (max: number) => Math.max(1, max)]}
+                padding={{ bottom: 32 }}
+                allowDecimals={false}
+                tickFormatter={formatCount}
+                tick={AXIS_TEXT_STYLE}
+                tickLine={false}
+                axisLine={false}
+                label={{
+                  ...AXIS_TEXT_STYLE,
+                  value: 'PLAA in circulation',
+                  angle: -90,
+                  position: 'insideRight',
+                  style: { textAnchor: 'middle' },
+                }}
+              />
+            )}
+            {showIssuance && (
+              <Line
+                className="th-issuance-line"
+                yAxisId="issuance"
+                type="linear"
+                dataKey="totalPlaa"
+                name="PLAA issuance"
+                stroke={SERIES_COLORS.issuance}
+                strokeWidth={NAV_LINE_WIDTH}
+                dot={renderIssuanceDot}
+                activeDot={false}
+                isAnimationActive={false}
+              />
+            )}
+            <Bar yAxisId="nav" dataKey="treasuries" stackId="nav" fill={SERIES_COLORS.treasuries} barSize={barSize} />
+            <Bar yAxisId="nav" dataKey="digital" stackId="nav" fill={SERIES_COLORS.digital} barSize={barSize} />
+            <Bar
+              yAxisId="nav"
+              dataKey="plvh"
+              stackId="nav"
+              fill={SERIES_COLORS.plvh}
+              barSize={barSize}
+              radius={[4, 4, 0, 0]}
+            >
+              <LabelList dataKey="nav" content={renderTotalLabel(chartData)} />
+            </Bar>
             <Line
               yAxisId="perPlaa"
               type="linear"
-              dataKey="buyback"
-              stroke={BUYBACK_COLOR}
-              strokeWidth={1.5}
-              strokeDasharray="4 5"
-              connectNulls
-              dot={renderBuybackChip}
-              activeDot={false}
+              dataKey="navPerPlaa"
+              stroke={SERIES_COLORS.nav}
+              strokeWidth={NAV_LINE_WIDTH}
+              dot={{ r: 3, fill: SERIES_COLORS.nav, strokeWidth: 0 }}
+              label={renderNavLabel}
               isAnimationActive={false}
             />
-          )}
-        </ComposedChart>
-      </ResponsiveContainer>
+            {hasBuybacks && (
+              <Line
+                yAxisId="perPlaa"
+                type="linear"
+                dataKey="buyback"
+                stroke={BUYBACK_COLOR}
+                strokeWidth={1.5}
+                strokeDasharray="4 5"
+                connectNulls
+                dot={renderBuybackChip}
+                activeDot={false}
+                isAnimationActive={false}
+              />
+            )}
+          </ComposedChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );
@@ -489,7 +516,9 @@ function BuybackResultsAccordion({ buybacks }: { buybacks: TrustBuyback[] }) {
                     Round {entry.roundNumber} · {entry.monthYear}
                   </td>
                   {metricLabels.map((label) => (
-                    <td key={label}>{entry.section.summary.items.find((item) => item.label === label)?.value ?? '—'}</td>
+                    <td key={label}>
+                      {entry.section.summary.items.find((item) => item.label === label)?.value ?? '—'}
+                    </td>
                   ))}
                   <td>{entry.section.totalFilled ?? '—'}</td>
                 </tr>
@@ -502,8 +531,7 @@ function BuybackResultsAccordion({ buybacks }: { buybacks: TrustBuyback[] }) {
   );
 }
 
-const assetCell = (value: number) =>
-  value ? formatAsset(value) : <span className="th-table__dash">—</span>;
+const assetCell = (value: number) => (value ? formatAsset(value) : <span className="th-table__dash">—</span>);
 
 function NavTable({ data }: { data: NavPoint[] }) {
   return (
@@ -614,7 +642,6 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
   const buybackMarkers = buybackMarkersByPeriod(buybacks);
   const metrics = capstoneMetrics(data, buybacks);
 
-
   const latestMonthly = data.monthly[data.monthly.length - 1];
 
   return (
@@ -696,7 +723,6 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
             This is the last price at which rights were bought back. It is not a guarantee or estimate of the current
             value of any right.
           </p>
-
         </div>
 
         {buybacks.length > 0 && (
@@ -710,7 +736,9 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
       <section className="th-cta">
         <div className="th-cta__text">
           <h2 className="th-cta__title">Interested in collecting Alignment Asset?</h2>
-          <p className="th-cta__subtitle">Complete activities to support the network &amp; increase your PLAA holdings</p>
+          <p className="th-cta__subtitle">
+            Complete activities to support the network &amp; increase your PLAA holdings
+          </p>
         </div>
         <a
           className="th-cta__button"
@@ -725,12 +753,16 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
       <section className="th-card th-card--padded">
         <h2 className="th-heading">PLAA Venture Portfolio Summary</h2>
         <p className="th-heading__sub">
-          An aggregate view of the Protocol Labs portfolio companies held by the PLAA Trust through the PLVH SPV, added in
-          Q2 2026.
+          An aggregate view of the Protocol Labs portfolio companies held by the PLAA Trust through the PLVH SPV, added
+          in Q2 2026.
         </p>
 
         <div className="th-split">
-          <Donut slices={data.focusAreas} centerValue={String(data.portfolioCompanies)} centerLabel="PORTFOLIO COMPANIES" />
+          <Donut
+            slices={data.focusAreas}
+            centerValue={String(data.portfolioCompanies)}
+            centerLabel="PORTFOLIO COMPANIES"
+          />
 
           <div className="th-legend">
             <p className="th-section-eyebrow">FOCUS AREA BREAKDOWN</p>
@@ -756,7 +788,12 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
         </p>
 
         <div className="th-split">
-          <Donut slices={data.trustComposition} centerValue={data.trustTotalValue} centerLabel="TOTAL TRUST VALUE" valueSize={30} />
+          <Donut
+            slices={data.trustComposition}
+            centerValue={data.trustTotalValue}
+            centerLabel="TOTAL TRUST VALUE"
+            valueSize={30}
+          />
 
           <div className="th-legend">
             <ul className="th-legend__list th-legend__list--detailed">
@@ -794,11 +831,11 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           i
         </span>
         <p className="th-callout__text">
-          PLAA refers to both PLAA1 tokens and off-chain, contractual rights to those tokens. Both are redeemable when you
-          participate in a periodic reverse auction buyback. Buybacks provide PLAA holders with exposure to Protocol Labs
-          Network&rsquo;s portfolio of frontier technology investments, as well as cryptocurrencies and other digital
-          assets. Whether you hold PLAA1 tokens or contractual rights, the experience is the same, so we just call it
-          PLAA.
+          PLAA refers to both PLAA1 tokens and off-chain, contractual rights to those tokens. Both are redeemable when
+          you participate in a periodic reverse auction buyback. Buybacks provide PLAA holders with exposure to Protocol
+          Labs Network&rsquo;s portfolio of frontier technology investments, as well as cryptocurrencies and other
+          digital assets. Whether you hold PLAA1 tokens or contractual rights, the experience is the same, so we just
+          call it PLAA.
         </p>
       </section>
 
@@ -904,7 +941,9 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           font-weight: 500;
           color: #64748b;
           cursor: pointer;
-          transition: background-color 0.15s ease, color 0.15s ease;
+          transition:
+            background-color 0.15s ease,
+            color 0.15s ease;
         }
 
         .th-toggle__btn--active {
@@ -1170,7 +1209,6 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           flex-wrap: wrap;
           gap: 16px;
         }
-
 
         .th-metric {
           flex: 1 1 200px;

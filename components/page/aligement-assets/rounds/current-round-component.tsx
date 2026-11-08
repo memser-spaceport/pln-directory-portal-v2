@@ -14,10 +14,7 @@ import SupportSection from './sections/support-section';
 import { CurrentRoundData, LeaderboardSectionData } from './types';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 import { useIsLoggedIn } from '@/hooks/useIsLoggedIn';
-import {
-  LeaderboardApiResponse,
-  splitLeaderboardEntries,
-} from '@/services/plaa/leaderboard.utils';
+import { LeaderboardApiResponse, splitLeaderboardEntries } from '@/services/plaa/leaderboard.utils';
 
 interface CurrentRoundComponentProps {
   currentRound?: number;
@@ -28,10 +25,7 @@ interface CurrentRoundComponentProps {
   leaderboardResponse?: LeaderboardApiResponse;
 }
 
-export default function CurrentRoundComponent({
-  data,
-  leaderboardResponse,
-}: CurrentRoundComponentProps) {
+export default function CurrentRoundComponent({ data, leaderboardResponse }: CurrentRoundComponentProps) {
   const isLoggedIn = useIsLoggedIn();
   const [leaderboardView, setLeaderboardView] = useState<'current' | 'alltime'>('current');
 
@@ -48,7 +42,7 @@ export default function CurrentRoundComponent({
   const { startDate, endDate } = useMemo(() => {
     return {
       startDate: new Date(data.snapshotProgress.startDate),
-      endDate: new Date(data.snapshotProgress.endDate)
+      endDate: new Date(data.snapshotProgress.endDate),
     };
   }, [data.snapshotProgress.startDate, data.snapshotProgress.endDate]);
 
@@ -59,10 +53,7 @@ export default function CurrentRoundComponent({
       <div className="current-round">
         <HeroSection data={data.hero} />
 
-        <RoundDescriptionSection
-          data={data.roundDescription}
-          tokensAllocated={data.stats.totalTokensAvailable}
-        />
+        <RoundDescriptionSection data={data.roundDescription} tokensAllocated={data.stats.totalTokensAvailable} />
 
         <SnapshotProgressSection
           startDate={startDate}
@@ -85,9 +76,7 @@ export default function CurrentRoundComponent({
           />
         )}
 
-        {data.buybackAuction.bids.length > 0 && (
-          <BuybackAuctionSection data={data.buybackAuction} />
-        )}
+        {data.buybackAuction.bids.length > 0 && <BuybackAuctionSection data={data.buybackAuction} />}
 
         <LearnMoreSection data={data.learnMore} />
 

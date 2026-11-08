@@ -31,10 +31,16 @@ export default function DisclaimerSection({ children }: DisclaimerSectionProps) 
       <section className="disclaimer-section">
         <div className="disclaimer-section__container">
           <div className="disclaimer-section__header">
-            <Image src="/icons/rounds/info-gray.svg" alt="" width={16} height={16} className="disclaimer-section__icon" />
+            <Image
+              src="/icons/rounds/info-gray.svg"
+              alt=""
+              width={16}
+              height={16}
+              className="disclaimer-section__icon"
+            />
             <span className="disclaimer-section__title">Disclaimer:</span>
           </div>
-          
+
           <p className="disclaimer-section__text">
             <em>{children ?? defaultContent}</em>
           </p>
@@ -111,7 +117,7 @@ export default function DisclaimerSection({ children }: DisclaimerSectionProps) 
           }
         }
       `}</style>
-      
+
       <style jsx global>{`
         .disclaimer-section__link {
           color: #0b4f66;

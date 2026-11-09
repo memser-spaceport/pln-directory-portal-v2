@@ -19,7 +19,8 @@ interface ProfileHeroProps {
   currentSnapshotLabel: string;
 }
 
-const balanceSourcesLabel = (expanded: boolean) => (expanded ? 'Hide PLAA balance breakdown' : 'Show PLAA balance breakdown');
+const balanceSourcesLabel = (expanded: boolean) =>
+  expanded ? 'Hide PLAA balance breakdown' : 'Show PLAA balance breakdown';
 
 function displayBalanceValue(status: ProfileBalanceStatus, value: number): string {
   if (status === 'ready') return value.toLocaleString();
@@ -137,12 +138,16 @@ export default function ProfileHero({
               {balance.infraRewards > 0 && (
                 <>
                   <span className={styles.breakdownLabel}>Infra rewards</span>
-                  <span className={styles.breakdownValue}>{displayBalanceValue(balanceStatus, balance.infraRewards)}</span>
+                  <span className={styles.breakdownValue}>
+                    {displayBalanceValue(balanceStatus, balance.infraRewards)}
+                  </span>
                 </>
               )}
               <span className={styles.breakdownLabel}>Redeemed</span>
               <span className={styles.breakdownValue}>
-                {balanceStatus === 'ready' ? `−${balance.redeemed.toLocaleString()}` : displayBalanceValue(balanceStatus, balance.redeemed)}
+                {balanceStatus === 'ready'
+                  ? `−${balance.redeemed.toLocaleString()}`
+                  : displayBalanceValue(balanceStatus, balance.redeemed)}
               </span>
             </motion.div>
           )}

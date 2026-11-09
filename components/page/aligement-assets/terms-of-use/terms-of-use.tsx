@@ -41,11 +41,10 @@ export default function TermsOfUsePage() {
         <div className="terms-of-use__overview">
           <p className="terms-of-use__overview__paragraph">
             The following terms and conditions govern your access to and use of the Network Contribution Points program,
-            any PLAA dashboards, websites, webforms, tools, and documents, and all content,
-            services, tools and products available at or through the PL Alignment Asset Rights Hub dashboards, websites,
-            webforms, tools, and documents (collectively, the “Platform”). Please read these terms carefully. If you
-            don’t agree to all of these terms and conditions (“Terms”) without modification, you may not use or access
-            the Platform.
+            any PLAA dashboards, websites, webforms, tools, and documents, and all content, services, tools and products
+            available at or through the PL Alignment Asset Rights Hub dashboards, websites, webforms, tools, and
+            documents (collectively, the “Platform”). Please read these terms carefully. If you don’t agree to all of
+            these terms and conditions (“Terms”) without modification, you may not use or access the Platform.
           </p>
           <p className="terms-of-use__content__paragraph">
             Polaris Labs, Inc. (“we,” “our,” “us,” or “Polaris”) may make changes to these Terms from time to time. If
@@ -96,8 +95,8 @@ export default function TermsOfUsePage() {
                 <p className="terms-of-use__content__paragraph">
                   Third parties, such as the PLAA1 Trust and Surus Trust Company, have full discretion, in accordance
                   with their governing documents and applicable terms and conditions, to issue auction participation
-                  rights (“PLAA”) or other forms of consideration in connection with network activity. Any PLAA
-                  issued may be settled through the issuance of tokens and redeemed for cash or other consideration in
+                  rights (“PLAA”) or other forms of consideration in connection with network activity. Any PLAA issued
+                  may be settled through the issuance of tokens and redeemed for cash or other consideration in
                   accordance with the governing documents of PLAA1 Trust. You are solely responsible for any expenses,
                   taxes or other consequences arising from the issuance, receipt, settlement or redemption of any such
                   PLAA, settlement tokens or other consideration.
@@ -121,10 +120,7 @@ export default function TermsOfUsePage() {
                   either express or implied (including quality, merchantability, and fitness for a particular purpose).
                   In order to participate in the Program, you agree that you have reviewed and agree with the disclaimer
                   linked here:{' '}
-                  <Link
-                    href={DISCLOSURE_URL}
-                    className="terms-of-use__link"
-                  >
+                  <Link href={DISCLOSURE_URL} className="terms-of-use__link">
                     PL Alignment Asset Rights Disclosure
                   </Link>
                 </p>
@@ -250,7 +246,9 @@ export default function TermsOfUsePage() {
                       </ul>
                     </li>
                     <li className="terms-of-use__content__paragraph__list__item">
-                      <span><b>Other Harmful and Unlawful Purposes </b> - Don’t use the Platform to :</span>
+                      <span>
+                        <b>Other Harmful and Unlawful Purposes </b> - Don’t use the Platform to :
+                      </span>
                       <ul className="terms-of-use__content__paragraph__list">
                         <li>Promote or solicit unlawful services or unlawful obscene material.</li>
                         <li>
@@ -415,7 +413,12 @@ export default function TermsOfUsePage() {
                 <p className="terms-of-use__content__paragraph">
                   If you have any questions, comments, concerns, or feedback regarding these Terms or about the Platform
                   or Program, you may contact us at{' '}
-                  <a href="mailto:plaa-wg@plrs.xyz" className="terms-of-use__link" target="_blank" rel="noopener noreferrer">
+                  <a
+                    href="mailto:plaa-wg@plrs.xyz"
+                    className="terms-of-use__link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     plaa-wg@plrs.xyz
                   </a>
                   .
@@ -429,11 +432,11 @@ export default function TermsOfUsePage() {
         <div className="terms-of-use__disclaimer">
           <DisclaimerSection>
             The Points Program may evolve over time as we continue to learn and improve. While the PLAA1 Trust
-            ultimately has discretion over the issuance of PLAA and the settlement of PLAA through Tokens,
-            which may in turn be redeemed for cash or other consideration, we cannot guarantee that Points will be
-            converted into PLAA or result in any settlement. Nevertheless, participation today allows you to engage
-            with and help shape this evolving initiative. This information is provided for informational purposes only,
-            and does not constitute legal, tax, financial or investment advice. Please read our{' '}
+            ultimately has discretion over the issuance of PLAA and the settlement of PLAA through Tokens, which may in
+            turn be redeemed for cash or other consideration, we cannot guarantee that Points will be converted into
+            PLAA or result in any settlement. Nevertheless, participation today allows you to engage with and help shape
+            this evolving initiative. This information is provided for informational purposes only, and does not
+            constitute legal, tax, financial or investment advice. Please read our{' '}
             <Link href={DISCLOSURE_URL} className="terms-of-use__link">
               disclosure
             </Link>
@@ -554,7 +557,8 @@ export default function TermsOfUsePage() {
           }
         }
 
-        .terms-of-use__overview__paragraph, .terms-of-use__content__paragraph {
+        .terms-of-use__overview__paragraph,
+        .terms-of-use__content__paragraph {
           font-size: 14px;
           font-weight: 400;
           line-height: 20px;
@@ -563,7 +567,8 @@ export default function TermsOfUsePage() {
           margin: 0 0 16px 0;
         }
 
-        .terms-of-use__overview__paragraph:last-child, .terms-of-use__content__paragraph:last-child {
+        .terms-of-use__overview__paragraph:last-child,
+        .terms-of-use__content__paragraph:last-child {
           margin-bottom: 0;
         }
 

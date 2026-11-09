@@ -49,7 +49,7 @@ export interface TipContent {
 
 export interface SnapshotProgressSectionData {
   startDate: string; // ISO date string
-  endDate: string;   // ISO date string
+  endDate: string; // ISO date string
   tipContent: TipContent;
 }
 

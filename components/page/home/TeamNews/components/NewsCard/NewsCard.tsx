@@ -98,6 +98,8 @@ interface NewsCardProps {
    * Home passes its sign-up door instead.
    */
   onNeedsAccount?: () => void;
+  /** Like only. When set, a signed-out Like uses this instead of `onNeedsAccount`. */
+  onLikeNeedsAccount?: () => void;
 }
 
 /** The news card. The `full` variant is its own component, so its comment-thread state stays out of the others. */
@@ -128,6 +130,7 @@ const NewsCardBase = ({
   showImage = false,
   stretch = false,
   onNeedsAccount,
+  onLikeNeedsAccount,
 }: NewsCardProps) => {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
@@ -161,6 +164,10 @@ const NewsCardBase = ({
 
   const handleUpvoteToggle = () => {
     if (!currentUser) {
+      if (onLikeNeedsAccount) {
+        onLikeNeedsAccount();
+        return;
+      }
       askForAccount();
       return;
     }

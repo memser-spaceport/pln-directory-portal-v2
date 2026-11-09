@@ -39,7 +39,7 @@ With the flag on, a signed-out visitor's `/home` SHALL show these sections in or
    - A "Join the network" card with "Sign up for free" (primary) and "Sign in".
 2. **Figures band:** the four network figures on a full-width white strip, from 640px (phones have them in the hero).
 3. **This week:**
-   - Three news stories, with "See all updates →" in the header and again as "See all N updates", the list's last row, where N is the news page's story count.
+   - News stories, with "See all updates →" in the header and again as "See all N updates", the list's last row, where N is the news page's story count. Beside the sidebar, the list is cut to the sidebar height.
    - Beside them, one sidebar with open roles and upcoming events.
 4. **The portfolio:**
    - The islands map, then four focus-area cards.
@@ -83,13 +83,13 @@ The page SHALL NOT show the Welcome card, the previous news feed, the previous f
 
 ### Requirement: This week's stories
 
-The three stories SHALL be the editorial top stories (rank 1 to 3) when there are any, topped up with the newest stories so that there are always three when three exist. Each row SHALL show the team, the event type, the time, and the title. Opening a row SHALL open the story. Follow and Like SHALL ask a signed-out visitor to sign up. "See all updates →" SHALL open `/home?view=news`.
+The stories SHALL be the editorial top stories (rank 1 to 3) when there are any, then the newest stories. Beside the sidebar, the list SHALL show as many whole rows as fit that sidebar's height, and at least four when the sidebar is shorter. It SHALL measure again when the sidebar grows after the news has rendered. On a phone the list SHALL show three rows, then part of the next one. Each row SHALL show the team, the event type, the time, and the title. Opening a row SHALL open the story. Follow SHALL ask a signed-out visitor to sign up. Like SHALL open the "Join the network" card as a modal, with Sign up and Sign in. "See all updates →" SHALL open `/home?view=news`.
 
 #### Scenario: Editorial picks first
 
 - **GIVEN** two stories with editorial rank 1 and 2, and newer unranked stories
 - **WHEN** a signed-out visitor opens `/home`
-- **THEN** This week shows the two ranked stories, then the newest unranked story
+- **THEN** the two ranked stories come first, then the newest unranked stories
 
 ### Requirement: Open roles and upcoming events beside the news
 
@@ -239,7 +239,7 @@ Under Most popular, forum posts SHALL rank by likes against the stories' upvotes
 
 ### Requirement: The stream ends where the rail ends
 
-On screens wide enough for the rail to sit beside the stream, the stream SHALL be cut level with the bottom of the rail. The last visible card fades out, and under it "See all news" opens `/home?view=news`. The faded card SHALL NOT respond to clicks. On phones the stream SHALL show three cards, then 140px of a fourth, faded, then "See all news".
+On screens wide enough for the rail to sit beside the stream, the stream SHALL be cut level with the bottom of the rail, using the rail's content height when that is taller than its box. The stream SHALL show at least four whole cards when the rail is shorter than that. The cut SHALL be measured again when the rail grows after the news has rendered, including when a section such as deals or teams to follow renders later. The last visible card fades out, and under it "See all news" opens `/home?view=news`. The faded card SHALL NOT respond to clicks. On phones the stream SHALL show three cards, then 140px of a fourth, faded, then "See all news". Every filter, including For You, uses this cut.
 
 #### Scenario: Desktop cut
 
@@ -346,7 +346,7 @@ It SHALL also record `home-role-clicked`, `home-event-clicked`, `home-see-all-cl
 
 ### Requirement: The news page
 
-"See all news" (signed in) and "See all updates" (signed out) SHALL open `/home?view=news`: the last 14 days' network news only, with no forum posts, roll-ups or deals. The head SHALL show "← Home", "Network news" as the page's only `<h1>`, and "N stories from network teams". The stories SHALL be production's boxed news card with its `#tag` links, in 2 columns from 640px and 1 below. Signed out, Follow and Like SHALL open sign-up.
+"See all news" (signed in) and "See all updates" (signed out) SHALL open `/home?view=news`: the last 14 days' network news only, with no forum posts, roll-ups or deals. The head SHALL show "← Home", "Network news" as the page's only `<h1>`, and "N stories from network teams". The stories SHALL be production's boxed news card with its `#tag` links, in 2 columns from 640px and 1 below. Signed out, Follow SHALL open sign-up. Like SHALL open the "Join the network" card as a modal. Closing the sign-up form opened from that modal, or from "Personalize my news", SHALL leave the reader at the same scroll position. The story dialog SHALL open without a scale animation, and closing it SHALL NOT show the dialog again.
 
 #### Scenario: News only
 
@@ -357,8 +357,10 @@ It SHALL also record `home-role-clicked`, `home-event-clicked`, `home-see-all-cl
 #### Scenario: Signed out
 
 - **GIVEN** a signed-out visitor on the news page
-- **WHEN** they press Follow or Like on a card
+- **WHEN** they press Follow on a card
 - **THEN** sign-up opens
+- **AND WHEN** they press Like on a card
+- **THEN** the "Join the network" modal opens, and sign-up does not
 - **AND** pressing the card itself opens the story
 
 #### Scenario: No news

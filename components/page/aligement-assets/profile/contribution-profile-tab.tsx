@@ -88,7 +88,10 @@ function redeemedValueLabel(amountUsd: number, price: number, isAverage: boolean
 }
 
 /** Sums what is known: a month with no figure is left out rather than voiding the whole total. */
-function sumKnown(entries: ContributionHistoryEntry[], pick: (e: ContributionHistoryEntry) => number | null): number | null {
+function sumKnown(
+  entries: ContributionHistoryEntry[],
+  pick: (e: ContributionHistoryEntry) => number | null,
+): number | null {
   let total: number | null = null;
   for (const e of entries) {
     const v = pick(e);
@@ -179,7 +182,11 @@ function buildFlowChart(entries: ContributionHistoryEntry[]) {
   });
 
   // PLAA axis: the bar scale, read both ways from zero.
-  const plaaTicks = [maxNew, maxNew / 2, 0].map((v) => ({ y: zeroY - v * plaaScale, value: v, label: Math.round(v).toLocaleString() }));
+  const plaaTicks = [maxNew, maxNew / 2, 0].map((v) => ({
+    y: zeroY - v * plaaScale,
+    value: v,
+    label: Math.round(v).toLocaleString(),
+  }));
   if (maxRedeemed > 0) {
     for (const v of [maxRedeemed / 2, maxRedeemed]) {
       plaaTicks.push({ y: zeroY + v * redeemedScale, value: -v, label: `−${Math.round(v).toLocaleString()}` });
@@ -190,20 +197,25 @@ function buildFlowChart(entries: ContributionHistoryEntry[]) {
   // as a movement and never strays below the line among the redemptions.
   const maxBalance = niceMax(Math.max(...entries.map((e) => e.cum), 1));
   const balanceY = (v: number) => zeroY - (v / maxBalance) * positiveHeight;
-  const balanceTicks = [maxBalance, maxBalance / 2].map((v) => ({ y: balanceY(v), label: Math.round(v).toLocaleString() }));
+  const balanceTicks = [maxBalance, maxBalance / 2].map((v) => ({
+    y: balanceY(v),
+    label: Math.round(v).toLocaleString(),
+  }));
   const balanceDots = entries.map((e, i) => ({ cx: centers[i], cy: balanceY(e.cum) }));
   const balanceLine = balanceDots.map((d) => `${d.cx},${d.cy}`).join(' ');
 
   const labelIndices = pickLabelIndices(entries.length, MAX_X_LABELS);
-  const labels = entries
-    .map((e, i) => ({ x: centers[i], period: e.period, i }))
-    .filter(({ i }) => labelIndices.has(i));
+  const labels = entries.map((e, i) => ({ x: centers[i], period: e.period, i })).filter(({ i }) => labelIndices.has(i));
   const hoverZones = entries.map((_, i) => ({ x: centers[i] - step / 2, w: step }));
 
   return { bars, plaaTicks, balanceTicks, balanceLine, balanceDots, labels, hoverZones, zeroY };
 }
 
-export default function ContributionProfileTab({ entries, currentBalance, totalRedeemed }: ContributionProfileTabProps) {
+export default function ContributionProfileTab({
+  entries,
+  currentBalance,
+  totalRedeemed,
+}: ContributionProfileTabProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   if (entries.length === 0) {
@@ -306,38 +318,39 @@ export default function ContributionProfileTab({ entries, currentBalance, totalR
             </text>
           ))}
 
-          {hoveredIndex !== null && (() => {
-            const entry = entries[hoveredIndex];
-            const bar = chart.bars[hoveredIndex];
-            const rows = tooltipRows(entry, hasPointsData);
-            const boxW = 172;
-            const boxH = TOOLTIP_TITLE_OFFSET + rows.length * TOOLTIP_ROW_HEIGHT + 10;
-            const boxX = Math.min(Math.max(bar.x + bar.w / 2 - boxW / 2, PLOT_LEFT), PLOT_RIGHT - boxW);
-            // Above the bar where there is room, below it near the top edge, so a
-            // tall bar does not sit under its own tooltip.
-            const above = bar.topY - boxH - 12;
-            const boxY = above >= PLOT_TOP ? above : Math.min(bar.topY + 12, PLOT_BOTTOM - boxH);
-            return (
-              <g style={{ pointerEvents: 'none' }}>
-                <rect x={boxX} y={boxY} width={boxW} height={boxH} rx="8" fill="#156ff7" />
-                <text x={boxX + 12} y={boxY + 19} textAnchor="start" fontSize="11" fontWeight="700" fill="#ffffff">
-                  {entry.period}
-                </text>
-                {rows.map((row, i) => (
-                  <text
-                    key={row.label}
-                    x={boxX + 12}
-                    y={boxY + TOOLTIP_TITLE_OFFSET + i * TOOLTIP_ROW_HEIGHT}
-                    textAnchor="start"
-                    fontSize="10"
-                    fill="#dbeafe"
-                  >
-                    {row.label}: {row.value}
+          {hoveredIndex !== null &&
+            (() => {
+              const entry = entries[hoveredIndex];
+              const bar = chart.bars[hoveredIndex];
+              const rows = tooltipRows(entry, hasPointsData);
+              const boxW = 172;
+              const boxH = TOOLTIP_TITLE_OFFSET + rows.length * TOOLTIP_ROW_HEIGHT + 10;
+              const boxX = Math.min(Math.max(bar.x + bar.w / 2 - boxW / 2, PLOT_LEFT), PLOT_RIGHT - boxW);
+              // Above the bar where there is room, below it near the top edge, so a
+              // tall bar does not sit under its own tooltip.
+              const above = bar.topY - boxH - 12;
+              const boxY = above >= PLOT_TOP ? above : Math.min(bar.topY + 12, PLOT_BOTTOM - boxH);
+              return (
+                <g style={{ pointerEvents: 'none' }}>
+                  <rect x={boxX} y={boxY} width={boxW} height={boxH} rx="8" fill="#156ff7" />
+                  <text x={boxX + 12} y={boxY + 19} textAnchor="start" fontSize="11" fontWeight="700" fill="#ffffff">
+                    {entry.period}
                   </text>
-                ))}
-              </g>
-            );
-          })()}
+                  {rows.map((row, i) => (
+                    <text
+                      key={row.label}
+                      x={boxX + 12}
+                      y={boxY + TOOLTIP_TITLE_OFFSET + i * TOOLTIP_ROW_HEIGHT}
+                      textAnchor="start"
+                      fontSize="10"
+                      fill="#dbeafe"
+                    >
+                      {row.label}: {row.value}
+                    </text>
+                  ))}
+                </g>
+              );
+            })()}
 
           {chart.hoverZones.map((z, i) => (
             <rect
@@ -422,7 +435,9 @@ export default function ContributionProfileTab({ entries, currentBalance, totalR
                 </span>
               )}
             </span>
-            <span className={styles.balanceChip}>{currentBalance === null ? '—' : currentBalance.toLocaleString()}</span>
+            <span className={styles.balanceChip}>
+              {currentBalance === null ? '—' : currentBalance.toLocaleString()}
+            </span>
           </div>
         </div>
       </div>

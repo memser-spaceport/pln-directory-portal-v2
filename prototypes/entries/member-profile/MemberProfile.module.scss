@@ -437,23 +437,6 @@
     order: -1;
   }
 
-  /* An outlined badge on a phone ("Let's do it in an outlined badge for
-     mobile"): a brand hairline, fully rounded, the DS Button's `xxs` (12/16
-     type, 4×8 padding, 26px with the hairline); the glyph at 12px. First in
-     the column and at its own width: a small tool, not a third button. */
-  .askAiBtn.askAiBadge {
-    order: -2;
-    align-self: flex-start;
-    min-height: 26px;
-    padding: 4px 8px;
-    margin: 0;
-    font-size: 12px;
-    line-height: 16px;
-    letter-spacing: -0.2px;
-    border: 1px solid var(--border-brand-subtle, #aebfff);
-    border-radius: 999px;
-    background: var(--background-base-white, #fff);
-  }
 }
 
 /* ---- Phone header (the mock's): 72px picture, name over stacked role / team
@@ -879,12 +862,6 @@
   letter-spacing: -0.2px;
 }
 
-/* The hairline before the location: the location wraps to its own line
-   beside the header's two actions, so the divider has nothing to divide. */
-.dividerBeforeWrap {
-  display: none !important;
-}
-
 /* ---- Office Hours body (see OfficeHoursCard) ----
    Inside production's grey inset container, like the sibling cards. */
 .ohBody {
@@ -994,4 +971,113 @@
 
 .pressFirst {
   order: -1;
+}
+
+/* Tablet up: name | action cluster on the first row, the facts line across
+   the whole card under both. The wrapper drops out of the box tree so the
+   name and the facts become grid items of production's `.headerDetails`. */
+@include media.tablet-portrait {
+  .detailsWide {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    column-gap: 10px;
+  }
+
+  .factsWrap {
+    display: contents;
+  }
+
+  .factsFull {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
+/* Production's `.location` carries 24px of right padding; as the line's last
+   fact it only pushes the city onto a line of its own before the card's edge
+   is reached. */
+.factsFull > div[class*='location'] {
+  padding-right: 0;
+}
+
+/* Admin's Edit in the header cluster: the xs presses' 34px box, label
+   centred in it, so it sits on the same line as Ask AI and the press. */
+.editCell {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+}
+
+/* Admin's Edit on a phone: the card's top-right corner, icon-only, level
+   with the name — the team profile's phone corner (`.adminActionsCorner`:
+   16px in, `font-size: 0` hides only the label, which stays the accessible
+   name). Hidden from tablet up, where Edit closes the header row. */
+.mEditCorner {
+  display: none;
+}
+
+@include media.mobile-only {
+  .card:has(.mEditCorner) {
+    position: relative;
+
+    /* The name keeps clear of the 26px icon. */
+    .mName {
+      padding-right: 32px;
+    }
+  }
+
+  .mEditCorner {
+    display: block;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+
+    button {
+      font-size: 0;
+      gap: 0;
+      padding: 6px;
+    }
+  }
+}
+
+/* Phone, option 1 (2026-11-06, "Let's do 1"): Ask AI and the contact press
+   share ONE row — Ask AI bordered at its own width on the left, the glossy
+   press filling the rest — LinkedIn's main + secondary row. Follow (the
+   member-follow entry) takes a full line under them. */
+@include media.mobile-only {
+  .introMobileRow {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .introMobileRow .askAiBtn.askAiSplit {
+    order: 0;
+    flex: 0 0 auto;
+    justify-content: center;
+    gap: 6px;
+    min-height: 38px;
+    margin: 0;
+    padding: 8px 14px;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+    border: 1px solid var(--border-brand-subtle, #aebfff);
+    border-radius: 8px;
+    background: var(--background-base-white, #fff);
+  }
+
+  .introMobileRow .contactFirst.contactFirst {
+    order: 1;
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
+  }
+
+  .introMobileRow .followFlat.followFlat {
+    order: 2;
+    flex: 1 0 100%;
+  }
 }

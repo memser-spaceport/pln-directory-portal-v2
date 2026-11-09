@@ -4,12 +4,17 @@ import { getParsedValue } from '@/utils/common.utils';
 
 import type { LeaderboardApiResponse, LeaderboardType } from './leaderboard.utils';
 
-export type { LeaderboardApiResponse, LeaderboardType, ApiLeaderboardEntry, MappedLeaderboardEntry } from './leaderboard.utils';
+export type {
+  LeaderboardApiResponse,
+  LeaderboardType,
+  ApiLeaderboardEntry,
+  MappedLeaderboardEntry,
+} from './leaderboard.utils';
 export { mapEntries, splitLeaderboardEntries, getPastRoundLeaderboardEntries } from './leaderboard.utils';
 
 export const getLeaderboard = async (
   roundNumber: number,
-  leaderboardType?: LeaderboardType
+  leaderboardType?: LeaderboardType,
 ): Promise<{ data?: LeaderboardApiResponse; error?: { message: string } }> => {
   try {
     const cookieStore = await cookies();

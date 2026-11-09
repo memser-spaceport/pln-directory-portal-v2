@@ -1,11 +1,15 @@
 'use client';
 
 import { useEffect, useMemo } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/components/core/ToastContainer';
 
-import { buildCommunityKudosSchema, type CommunityKudosFormValues, type CommunityKudosLimits } from '@/schema/kudos-forms';
+import {
+  buildCommunityKudosSchema,
+  type CommunityKudosFormValues,
+  type CommunityKudosLimits,
+} from '@/schema/kudos-forms';
 import { communityGiftOptions } from './data/kudos-board.data';
 import { useGiveCommunityKudos } from '@/hooks/use-kudos';
 import { useKudosAnalytics } from '@/analytics/kudos.analytics';
@@ -38,7 +42,6 @@ export function GiveCommunityKudosModal({
     control,
     register,
     handleSubmit,
-    watch,
     reset,
     formState: { errors, isSubmitting, isValid },
   } = useForm<CommunityKudosFormValues>({
@@ -67,13 +70,17 @@ export function GiveCommunityKudosModal({
     };
   }, [open, onClose, reset]);
 
+  const [selectedRecipientId, watchedPoints, watchedMessage] = useWatch({
+    control,
+    name: ['recipientId', 'points', 'message'],
+  });
+
   if (!open) return null;
 
   const giftOpts = communityGiftOptions(poolRemaining, limits.pointsMin, limits.pointsMax, limits.pointsStep);
-  const selectedRecipientId = watch('recipientId');
-  const selectedPoints = Number(watch('points')) || 0;
+  const selectedPoints = Number(watchedPoints) || 0;
   const selectedRecipient = recipients.find((r) => r.memberId === selectedRecipientId);
-  const message = watch('message') ?? '';
+  const message = watchedMessage ?? '';
 
   async function onSubmit(values: CommunityKudosFormValues) {
     try {
@@ -117,9 +124,7 @@ export function GiveCommunityKudosModal({
           {/* An empty picker and a picker that hasn't loaded look identical to a
               user, so say which one it is rather than letting them wonder. */}
           <select id="recipient" className="form-control" disabled={recipientsLoading} {...register('recipientId')}>
-            <option value="">
-              {recipientsLoading ? 'Loading recipients…' : '— Select a network contributor —'}
-            </option>
+            <option value="">{recipientsLoading ? 'Loading recipients…' : '— Select a network contributor —'}</option>
             {recipients.map((r) => (
               <option key={r.memberId} value={r.memberId}>
                 {r.name}

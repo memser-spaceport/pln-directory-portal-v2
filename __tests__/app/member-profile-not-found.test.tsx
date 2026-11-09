@@ -74,3 +74,29 @@ it('leaves a loaded profile indexable (LAB-3087)', async () => {
   expect(metadata.title).toBe('Ada | Protocol Labs Directory');
   expect(metadata.robots).toBeUndefined();
 });
+
+/* LAB-3096: a profile with no photo and no bio is a name and nothing else. It stays reachable, but is not indexed. */
+it('does not index an empty profile: no photo, no bio', async () => {
+  mockGetMember.mockResolvedValue({
+    data: {
+      formattedData: {
+        name: 'Empty',
+        bio: '<p><em>Bio is AI generated &amp; may not be accurate.</em></p>',
+        profile: null,
+      },
+    },
+  });
+
+  const metadata = await generateMetadata(props);
+
+  expect(metadata.title).toBe('Empty | Protocol Labs Directory');
+  expect(metadata.robots).toEqual({ index: false, follow: true });
+});
+
+it('indexes a profile with a photo and no bio', async () => {
+  mockGetMember.mockResolvedValue({
+    data: { formattedData: { name: 'Pic', bio: null, profile: 'https://cdn.example/pic.png', imageUid: 'img-1' } },
+  });
+
+  expect((await generateMetadata(props)).robots).toBeUndefined();
+});

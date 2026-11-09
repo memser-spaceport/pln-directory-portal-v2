@@ -2,7 +2,7 @@
 
 import clsx from 'clsx';
 import Link from 'next/link';
-import { useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react';
+import { useMemo, useRef, useState, type RefObject } from 'react';
 
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
@@ -35,7 +35,7 @@ const PROFILE_SETTINGS_HREF = '/settings/profile';
 import { FeedFilterBar } from './FeedFilterBar';
 import { chipVocabulary, selectNarrowByTags } from './utils/narrowByTags';
 import { TagScopeRow } from './TagScopeRow';
-import { computeStreamCut, STREAM_CUT_MIN_STACKED, STREAM_SIDE_BY_SIDE_QUERY, type StreamCut } from './utils/streamCut';
+import { useColumnCut } from './utils/useColumnCut';
 import s from './HomeV2.module.scss';
 
 /**
@@ -59,11 +59,14 @@ export const STREAM_RENDER_MAX = 24;
 export function NetworkUpdates({
   feed,
   fillTo,
+  fillKey = '',
   forYouTags,
 }: {
   feed: HomeFeed;
   /** The rail beside the stream: the cut lands where it ends. */
   fillTo: RefObject<HTMLElement | null>;
+  /** Changes when the rail gains a section, so the cut is measured again after that render. */
+  fillKey?: string;
   /** The member's news tags as the page arrived with them (For You's), until their preferences load. */
   forYouTags?: string[];
 }) {
@@ -118,34 +121,10 @@ export function NetworkUpdates({
   const isEmpty = allItems.length === 0 && (forumPosts?.length ?? 0) === 0;
 
   /* The cut follows the rail: as many full cards as end above the rail's bottom, then the next one fades out where the
-     rail ends, so the stream reaches the band below instead of leaving a gap. Every card stays in the DOM at its
-     natural height (clipped by the list), so the measurement holds when the rail grows or the filter changes. */
+     rail ends. Measured again when the rail grows after this list (deals, teams, images). */
   const listRef = useRef<HTMLDivElement>(null);
-  const [fit, setFit] = useState<StreamCut>({ full: STREAM_CUT_MIN_STACKED });
   const visibleKey = renderedEntries.map(feedEntryKey).join(',');
-  useLayoutEffect(() => {
-    const list = listRef.current;
-    if (!list || typeof ResizeObserver === 'undefined') return;
-    const measure = () => {
-      const rail = fillTo.current;
-      const besideRail = Boolean(rail) && (window.matchMedia?.(STREAM_SIDE_BY_SIDE_QUERY).matches ?? false);
-      const railBottom =
-        rail && besideRail ? rail.getBoundingClientRect().bottom - list.getBoundingClientRect().top : null;
-      const next = computeStreamCut(Array.from(list.children) as HTMLElement[], railBottom);
-      // The list observes its own size, which the clip changes: only re-render on a real change.
-      setFit((prev) => (prev.full === next.full && prev.clip === next.clip ? prev : next));
-    };
-    // A ResizeObserver reports each target once on observe, between layout and paint, so the first cut needs no
-    // separate call.
-    const ro = new ResizeObserver(measure);
-    ro.observe(list);
-    if (fillTo.current) ro.observe(fillTo.current);
-    window.addEventListener('resize', measure);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener('resize', measure);
-    };
-  }, [fillTo, visibleKey]);
+  const fit = useColumnCut(listRef, fillTo, `${visibleKey}|${fillKey}`);
   const cut = renderedEntries.length > fit.full;
 
   return (

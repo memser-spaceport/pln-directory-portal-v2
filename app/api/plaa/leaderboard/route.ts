@@ -38,10 +38,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!res.ok) {
-      return NextResponse.json(
-        { error: `PLAA API request failed: ${res.status}` },
-        { status: res.status }
-      );
+      return NextResponse.json({ error: `PLAA API request failed: ${res.status}` }, { status: res.status });
     }
 
     const data = await res.json();

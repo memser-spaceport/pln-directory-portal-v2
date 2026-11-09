@@ -102,6 +102,41 @@ describe('sitemap', () => {
     expect(urls).toContain('https://os.pl.xyz/teams/team-1');
   });
 
+  /* LAB-3096: members come from their crawl index, which leaves out empty profiles (no photo, no bio); the member page
+     marks those noindex. The full list only stands in while the API has no crawl index. */
+  it('lists members from the crawl index, not the full list', async () => {
+    (global.fetch as jest.Mock).mockImplementation((url: string) => {
+      if (url.includes('/v1/members/crawl-index')) {
+        return jsonOk({ members: [{ uid: 'member-with-bio', updatedAt: '2026-03-01T00:00:00.000Z' }] });
+      }
+      if (url.includes('/v1/members')) {
+        return jsonOk({ members: [{ uid: 'member-with-bio' }, { uid: 'empty-member' }] });
+      }
+      return jsonOk({});
+    });
+
+    const urls = (await sitemap()).map((entry) => entry.url);
+
+    expect(urls).toContain('https://os.pl.xyz/members/member-with-bio');
+    expect(urls).not.toContain('https://os.pl.xyz/members/empty-member');
+  });
+
+  it('falls back to the full member list when the API has no member crawl index', async () => {
+    (global.fetch as jest.Mock).mockImplementation((url: string) => {
+      if (url.includes('/v1/members/crawl-index')) {
+        return Promise.resolve({ ok: false, json: async () => ({}) });
+      }
+      if (url.includes('/v1/members')) {
+        return jsonOk({ members: [{ uid: 'member-1' }] });
+      }
+      return jsonOk({});
+    });
+
+    const urls = (await sitemap()).map((entry) => entry.url);
+
+    expect(urls).toContain('https://os.pl.xyz/members/member-1');
+  });
+
   /* LAB-3094: Google ignores changefreq and priority; lastmod is the one field it reads, and a job's must be the
      posting's own date, not the nightly sync that rewrites updatedAt. */
   it('has no changefreq or priority, and dates a job by lastModified, never by updatedAt', async () => {

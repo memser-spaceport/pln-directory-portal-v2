@@ -3,7 +3,7 @@
 import clsx from 'clsx';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import { useCommonAnalytics } from '@/analytics/common.analytics';
 import { useHomeAnalytics } from '@/analytics/home.analytics';
@@ -24,7 +24,9 @@ import tn from '@/components/page/home/TeamNews/TeamNews.module.scss';
 import home from '@/app/home/page.module.css';
 
 import { FeedFilterBar } from './FeedFilterBar';
+import { JoinNetworkModal } from './JoinNetworkModal';
 import { TagScopeRow } from './TagScopeRow';
+import { readPageScroll, writePageScroll } from './pageScroll';
 import { useHomeAuthDoors } from './useHomeAuthDoors';
 import { chipVocabulary, selectNarrowByTags } from './utils/narrowByTags';
 import s from './HomeV2.module.scss';
@@ -50,7 +52,7 @@ const noop = () => {};
  * - The grid: 2 columns from 640px, 1 on phones. Each story is production's boxed `NewsCard` with its `#tag` links and
  *   its image on the card's floor.
  *
- * Signed out, Follow and Like are the sign-up ask; the card still opens the story.
+ * Signed out, Follow is the sign-up ask and Like opens the Join card. The card still opens the story.
  *
  * The window holds dozens of stories, so a "Back to top" button shows once the reader is a screen down (LAB-3164).
  *
@@ -70,9 +72,21 @@ export function NewsPage({
 }) {
   const analytics = useHomeAnalytics();
   const { goToTopBtnClicked } = useCommonAnalytics();
-  const { signUp, recordSignUpHere } = useHomeAuthDoors();
-  // "Personalize my news" opens the sign-up form right here: mounted on press, no URL change and no fade.
+  const { signUp, recordSignUpHere, signIn } = useHomeAuthDoors();
+  // "Personalize my news" and Like's Sign up open the form here: no URL change, so close keeps the scroll position.
   const [signUpOpen, setSignUpOpen] = useState(false);
+  const [joinOpen, setJoinOpen] = useState(false);
+  const signUpScroll = useRef(0);
+  const openSignUp = (section: 'news' | 'personalize') => {
+    signUpScroll.current = readPageScroll();
+    recordSignUpHere(section);
+    setJoinOpen(false);
+    setSignUpOpen(true);
+  };
+  const closeSignUp = () => {
+    setSignUpOpen(false);
+    writePageScroll(signUpScroll.current);
+  };
   const topicSlugs = useNewsTopicSlugs();
   const feed = useHomeFeed(feedProps, {
     layout: 'stream',
@@ -107,6 +121,7 @@ export function NewsPage({
   } = feed;
 
   const askForAccount = signedIn ? undefined : () => signUp('news');
+  const askToJoin = signedIn ? undefined : () => setJoinOpen(true);
   // Signed out there is nothing of the visitor to pick from: no For You pill (LAB-3174), the Personalize row instead.
   const categories = signedIn ? streamCategories : streamCategories.filter((c) => c.id !== FOR_YOU_CAT);
 
@@ -184,10 +199,7 @@ export function NewsPage({
                 style="fill"
                 variant="primary"
                 className={s.glossy}
-                onClick={() => {
-                  recordSignUpHere('personalize');
-                  setSignUpOpen(true);
-                }}
+                onClick={() => openSignUp('personalize')}
               >
                 Personalize my news
               </Button>
@@ -222,6 +234,7 @@ export function NewsPage({
                     viewerHasUpvoted={Boolean(item.viewerHasUpvoted)}
                     onUpvoteToggle={handleUpvoteToggle}
                     onNeedsAccount={askForAccount}
+                    onLikeNeedsAccount={askToJoin}
                     onOpenDetail={(story, via) =>
                       handleStoryOpen(story, via === 'comments' ? 'view-all-comments' : 'row')
                     }
@@ -253,7 +266,17 @@ export function NewsPage({
 
           <ScrollToTopButton showWhen="scrolled" onClick={() => goToTopBtnClicked(null, 'Home news')} />
 
-          {signUpOpen && <SignupWizard onClose={() => setSignUpOpen(false)} />}
+          {joinOpen && (
+            <JoinNetworkModal
+              onClose={() => setJoinOpen(false)}
+              onSignUp={() => openSignUp('news')}
+              onSignIn={() => {
+                setJoinOpen(false);
+                signIn('news');
+              }}
+            />
+          )}
+          {signUpOpen && <SignupWizard onClose={closeSignUp} />}
 
           <AutoMarkNewsCommentNotification newsItemUid={activeNewsUid} />
           {activeNewsItem &&
@@ -272,7 +295,7 @@ export function NewsPage({
               <NewsDetailModal
                 item={activeNewsItem}
                 onClose={closeNews}
-                // Signed out, the modal's Like asks the reader to sign up first, as on the signed-out Home.
+                onGuestUpvote={() => setJoinOpen(true)}
                 onUpvoteToggle={() => signUp('news')}
                 source="home"
                 showImage

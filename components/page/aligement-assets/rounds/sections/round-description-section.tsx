@@ -31,25 +31,36 @@ function renderParagraphWithLinks(paragraph: RoundDescriptionSectionData['paragr
   }
 
   let result: (string | React.JSX.Element)[] = [paragraph.text];
-  
+
   paragraph.links.forEach((link, linkIndex) => {
     result = result.flatMap((part) => {
       if (typeof part !== 'string') return part;
-      
+
       const parts = part.split(link.placeholder);
       if (parts.length === 1) return part;
-      
+
       return parts.flatMap((p, i) => {
         if (i < parts.length - 1) {
           // If URL is '#', render as non-clickable styled text
           if (link.url === '#') {
-            return [p, <span key={`link-${linkIndex}-${i}`} className="round-description__link round-description__link--disabled">{link.text}</span>];
+            return [
+              p,
+              <span
+                key={`link-${linkIndex}-${i}`}
+                className="round-description__link round-description__link--disabled"
+              >
+                {link.text}
+              </span>,
+            ];
           }
           // Internal links open in same tab, external links open in new tab
-          const linkProps = isInternalUrl(link.url) 
-            ? {} 
-            : { target: '_blank' as const, rel: 'noopener noreferrer' };
-          return [p, <Link key={`link-${linkIndex}-${i}`} href={link.url} {...linkProps} className="round-description__link">{link.text}</Link>];
+          const linkProps = isInternalUrl(link.url) ? {} : { target: '_blank' as const, rel: 'noopener noreferrer' };
+          return [
+            p,
+            <Link key={`link-${linkIndex}-${i}`} href={link.url} {...linkProps} className="round-description__link">
+              {link.text}
+            </Link>,
+          ];
         }
         return p;
       });
@@ -58,7 +69,6 @@ function renderParagraphWithLinks(paragraph: RoundDescriptionSectionData['paragr
 
   return result;
 }
-
 
 /**
  * RoundDescriptionSection - Displays round title, badge, and description paragraphs
@@ -80,7 +90,9 @@ export default function RoundDescriptionSection({ data, tokensAllocated }: Round
         <div className="round-description__container round-description__container--desktop">
           {/* Header with title and badge */}
           <div className="round-description__header">
-            <h2 className="round-description__title">Round {data.roundNumber}: {data.monthYear}</h2>
+            <h2 className="round-description__title">
+              Round {data.roundNumber}: {data.monthYear}
+            </h2>
             <span className="round-description__badge">{data.badgeText}</span>
           </div>
 
@@ -96,34 +108,28 @@ export default function RoundDescriptionSection({ data, tokensAllocated }: Round
 
         {/* Mobile view - collapsible card */}
         <div className="round-description__card round-description__card--mobile">
-          <button 
-            className="round-description__card-header"
-            onClick={handleToggle}
-            aria-expanded={isExpanded}
-          >
+          <button className="round-description__card-header" onClick={handleToggle} aria-expanded={isExpanded}>
             <div className="round-description__card-info">
               <span className="round-description__badge round-description__badge--mobile">{data.badgeText}</span>
               <div className="round-description__card-title-row">
                 <h2 className="round-description__card-title">
                   Round {data.roundNumber}: {data.monthYear}
                 </h2>
-                <Image 
-                  src="/icons/arrow-down-light.svg" 
-                  alt="" 
-                  width={16} 
+                <Image
+                  src="/icons/arrow-down-light.svg"
+                  alt=""
+                  width={16}
                   height={16}
                   className={`round-description__chevron ${isExpanded ? 'round-description__chevron--expanded' : ''}`}
                 />
               </div>
-              {tokensAllocated && (
-                <p className="round-description__card-subtitle">
-                  {tokensAllocated} PLAA allocated
-                </p>
-              )}
+              {tokensAllocated && <p className="round-description__card-subtitle">{tokensAllocated} PLAA allocated</p>}
             </div>
           </button>
 
-          <div className={`round-description__card-content ${isExpanded ? 'round-description__card-content--expanded' : ''}`}>
+          <div
+            className={`round-description__card-content ${isExpanded ? 'round-description__card-content--expanded' : ''}`}
+          >
             <div className="round-description__card-content-inner">
               <div className="round-description__content">
                 {data.paragraphs.map((paragraph, index) => (

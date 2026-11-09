@@ -27,7 +27,10 @@ describe('getTrustHoldings', () => {
 
   it('forwards the member session and does not cache protected data', async () => {
     process.env.PLAA_API_URL = 'https://plaa.example';
-    const history = { quarterly: [{ label: 'Q1 2026' }], monthly: Array.from({ length: 18 }, (_, i) => ({ totalPlaa: i })) };
+    const history = {
+      quarterly: [{ label: 'Q1 2026' }],
+      monthly: Array.from({ length: 18 }, (_, i) => ({ totalPlaa: i })),
+    };
     fetchMock.mockResolvedValue({ ok: true, json: async () => history });
 
     const result = await getTrustHoldings('test-member-session');

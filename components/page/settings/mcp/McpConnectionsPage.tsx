@@ -47,6 +47,9 @@ export function McpConnectionsPage({ isDirectoryAdmin = false }: { isDirectoryAd
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const requestUid = searchParams.get('request');
+  // LAB-3136: `?connection=<uid>&scope=ai_apps` (the AI Apps page hint's "Allow changes") opens that connection's drawer.
+  const connectionParam = searchParams.get('connection');
+  const scopeParam = searchParams.get('scope');
   const analytics = useMcpAnalytics();
 
   const { canConnect, isFetched: accessChecked } = useMcpAccess();
@@ -61,6 +64,7 @@ export function McpConnectionsPage({ isDirectoryAdmin = false }: { isDirectoryAd
   const { open: isNew, dismiss: dismissNew } = useOneTimeCallout(MCP_CONNECTIONS_NEW_FLAG);
   const [isPhone, setIsPhone] = useState(false);
   const handledRequestRef = useRef<string | null>(null);
+  const handledConnectionRef = useRef<string | null>(null);
   const trackedViewRef = useRef(false);
 
   const items = useMemo(() => connections.data ?? [], [connections.data]);
@@ -137,14 +141,38 @@ export function McpConnectionsPage({ isDirectoryAdmin = false }: { isDirectoryAd
     analytics,
   ]);
 
+  // `?connection=<uid>[&scope=<key>]`: open that connection's drawer, with the scope set to write when the member may
+  // set it. Nothing is saved until the member presses Save. An unknown connection opens nothing.
+  useEffect(() => {
+    // The link was cleared (drawer closed): the same link opens the drawer again next time.
+    if (!connectionParam) handledConnectionRef.current = null;
+    if (requestUid || !connectionParam || handledConnectionRef.current === connectionParam) return;
+    if (!connections.isSuccess) return;
+    handledConnectionRef.current = connectionParam;
+
+    const connection = items.find((item) => item.uid === connectionParam);
+    if (!connection) return;
+    const scope = connection.scopes.find((item) => item.key === scopeParam);
+    const preset: McpLevels | undefined =
+      scope && levelAtLeast(scope.maxLevel, 'write') ? { [scope.key]: 'write' } : undefined;
+    setEditing({ uid: connection.uid, preset });
+    analytics.onPermissionsDrawerOpened({
+      authorizationUid: connection.uid,
+      clientName: connection.clientName,
+      source: 'hint',
+    });
+  }, [requestUid, connectionParam, scopeParam, connections.isSuccess, items, analytics]);
+
   const editingConnection = editing ? (items.find((item) => item.uid === editing.uid) ?? null) : null;
 
   const closeDrawer = () => {
     setEditing(null);
     updateScopes.reset();
-    if (requestUid) {
+    if (requestUid || connectionParam) {
       const params = new URLSearchParams(searchParams.toString());
       params.delete('request');
+      params.delete('connection');
+      params.delete('scope');
       const query = params.toString();
       router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
     }

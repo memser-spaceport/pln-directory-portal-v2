@@ -78,6 +78,11 @@ export function useNewsDeepLink({ isValidUid }: { isValidUid: (uid: string) => b
   // searchParams without remounting TeamNews. Card openNews sets state before
   // writeUrl, so the matching-uid branch is a no-op (not marked deep-link).
   useEffect(() => {
+    // replaceState updates the address before useSearchParams. Acting on the stale
+    // param closes a story that just opened, then opens it again: a zoom, then a flash on close.
+    const liveNews = new URLSearchParams(window.location.search).get(NEWS_PARAM);
+    if ((newsParam ?? null) !== liveNews) return;
+
     if (newsParam && isValidUid(newsParam)) {
       if (activeNewsUid !== newsParam) {
         setActiveNewsUid(newsParam);

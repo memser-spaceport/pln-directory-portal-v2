@@ -411,6 +411,24 @@ The candidates page (`/teams/<id>/applicants`) SHALL open the Suggested tab when
 - **WHEN** a lead opens the page with `edit=criteria`
 - **THEN** no modal opens and `edit` is removed from the URL
 
+### Requirement: Protocol Labs candidates page shows only Suggested
+
+The candidates page SHALL let a lead of Protocol Labs, or a Directory admin, in to the Suggested tab. For Protocol Labs, the page SHALL show the Suggested tab alone: no Applied or Interested tab, and no applicant counts. It SHALL open on Suggested for every link. Protocol Labs applicants live in PL's own ATS. Its leads still get the weekly suggested-candidates email, and every link in that email opens this page. The team profile's count line SHALL stay hidden for Protocol Labs. Other teams SHALL not change.
+
+#### Scenario: Protocol Labs lead follows an email link
+
+- **GIVEN** a signed-in lead of Protocol Labs
+- **WHEN** they open `/teams/<PL uid>/applicants?role=R&tab=suggested&suggested=M` from the weekly email
+- **THEN** the page opens on the Suggested tab with person M selected
+- **AND** they are not redirected to the team profile
+
+#### Scenario: Protocol Labs page has no applicant tabs
+
+- **GIVEN** a Protocol Labs role that has applicants
+- **WHEN** a lead of Protocol Labs opens the candidates page
+- **THEN** only the Suggested tab shows
+- **AND** the page does not request the role's applicants or the team's applicant counts
+
 ### Requirement: Suggested link on the role row
 
 On the team profile, a role's count line SHALL show "N suggested" as its own link when the role has suggestions. It SHALL open `/teams/<id>/applicants?role=<uid>&tab=suggested`. The applicants and interested count SHALL keep its own link, without `tab`.

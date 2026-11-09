@@ -38,11 +38,24 @@ export default function LearnMoreSection({ data }: LearnMoreSectionProps) {
               {data.faqUrl === '#' ? (
                 <span className="learn-more-section__link learn-more-section__link--disabled">FAQ</span>
               ) : isInternalUrl(data.faqUrl) ? (
-                <Link href={data.faqUrl} className="learn-more-section__link" onClick={handleFaqClick}>FAQ</Link>
+                <Link href={data.faqUrl} className="learn-more-section__link" onClick={handleFaqClick}>
+                  FAQ
+                </Link>
               ) : (
-                <Link href={data.faqUrl} target="_blank" rel="noopener noreferrer" className="learn-more-section__link" onClick={handleFaqClick}>FAQ</Link>
+                <Link
+                  href={data.faqUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="learn-more-section__link"
+                  onClick={handleFaqClick}
+                >
+                  FAQ
+                </Link>
               )}
-              <span className="learn-more-section__text-body"> for details on batch auctions, clearing price calculation, and how bids are selected.</span>
+              <span className="learn-more-section__text-body">
+                {' '}
+                for details on batch auctions, clearing price calculation, and how bids are selected.
+              </span>
             </p>
           </div>
         </div>
@@ -95,7 +108,7 @@ export default function LearnMoreSection({ data }: LearnMoreSectionProps) {
           .learn-more-section__container {
             padding: 8px 16px;
           }
-          
+
           .learn-more-section__text {
             font-size: 14px;
             white-space: normal;

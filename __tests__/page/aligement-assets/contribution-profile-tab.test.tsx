@@ -5,9 +5,42 @@ import ContributionProfileTab from '@/components/page/aligement-assets/profile/c
 import type { ContributionHistoryEntry } from '@/services/plaa/hooks/useProfileData';
 
 const entries: ContributionHistoryEntry[] = [
-  { period: 'May 2026', points: 350, plaa: 35, infra: 0, redeemed: 0, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 35 },
-  { period: 'Jun 2026', points: 220, plaa: 22, infra: 30, redeemed: 0, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 87 },
-  { period: 'Jul 2026', points: 450, plaa: 45, infra: 30, redeemed: 50, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 112 },
+  {
+    period: 'May 2026',
+    points: 350,
+    plaa: 35,
+    infra: 0,
+    redeemed: 0,
+    redeemedUsd: null,
+    redeemedPrice: null,
+    redeemedPriceIsAverage: false,
+    isPending: false,
+    cum: 35,
+  },
+  {
+    period: 'Jun 2026',
+    points: 220,
+    plaa: 22,
+    infra: 30,
+    redeemed: 0,
+    redeemedUsd: null,
+    redeemedPrice: null,
+    redeemedPriceIsAverage: false,
+    isPending: false,
+    cum: 87,
+  },
+  {
+    period: 'Jul 2026',
+    points: 450,
+    plaa: 45,
+    infra: 30,
+    redeemed: 50,
+    redeemedUsd: null,
+    redeemedPrice: null,
+    redeemedPriceIsAverage: false,
+    isPending: false,
+    cum: 112,
+  },
 ];
 
 describe('ContributionProfileTab', () => {
@@ -16,7 +49,7 @@ describe('ContributionProfileTab', () => {
     expect(screen.getByText('No snapshot history yet.')).toBeInTheDocument();
 
     expect(() =>
-      rerender(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />)
+      rerender(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />),
     ).not.toThrow();
     expect(screen.getByText('Contribution History')).toBeInTheDocument();
   });
@@ -26,7 +59,7 @@ describe('ContributionProfileTab', () => {
     expect(screen.getByText('Contribution History')).toBeInTheDocument();
 
     expect(() =>
-      rerender(<ContributionProfileTab entries={[]} currentBalance={null} totalRedeemed={null} />)
+      rerender(<ContributionProfileTab entries={[]} currentBalance={null} totalRedeemed={null} />),
     ).not.toThrow();
     expect(screen.getByText('No snapshot history yet.')).toBeInTheDocument();
   });
@@ -58,7 +91,7 @@ describe('ContributionProfileTab', () => {
     expect(within(totalRow).getByText('112')).toBeInTheDocument();
   });
 
-  it('renders the footer balance from the real currentBalance prop, not entries\' own last cum — the two can legitimately differ', () => {
+  it("renders the footer balance from the real currentBalance prop, not entries' own last cum — the two can legitimately differ", () => {
     render(<ContributionProfileTab entries={entries} currentBalance={999} totalRedeemed={50} />);
 
     const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
@@ -78,7 +111,7 @@ describe('ContributionProfileTab', () => {
   it('renders the real total redeemed in the footer even though no per-period breakdown exists', () => {
     const noRedemptionSource: ContributionHistoryEntry[] = entries.map((e) => ({ ...e, redeemed: null }));
     const { container } = render(
-      <ContributionProfileTab entries={noRedemptionSource} currentBalance={112} totalRedeemed={231} />
+      <ContributionProfileTab entries={noRedemptionSource} currentBalance={112} totalRedeemed={231} />,
     );
 
     const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
@@ -102,9 +135,9 @@ describe('ContributionProfileTab', () => {
   describe('the monthly flow chart', () => {
     /** Bars in draw order: one group per snapshot, oldest first. */
     function barGroups(container: HTMLElement): SVGRectElement[][] {
-      return Array.from(container.querySelectorAll('svg g')).
-        map((g) => Array.from(g.querySelectorAll('rect')) as SVGRectElement[]).
-        filter((rects) => rects.length > 0 && rects[0].getAttribute('fill') === '#1b4dff');
+      return Array.from(container.querySelectorAll('svg g'))
+        .map((g) => Array.from(g.querySelectorAll('rect')) as SVGRectElement[])
+        .filter((rects) => rects.length > 0 && rects[0].getAttribute('fill') === '#1b4dff');
     }
 
     const yOf = (rect: SVGRectElement) => Number(rect.getAttribute('y'));
@@ -113,7 +146,9 @@ describe('ContributionProfileTab', () => {
       Number((container.querySelector('svg line[stroke="#cbd5e1"]') as SVGLineElement).getAttribute('y1'));
 
     it('stacks infra rewards on top of activities above the zero line', () => {
-      const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
+      const { container } = render(
+        <ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />,
+      );
       const groups = barGroups(container);
       expect(groups).toHaveLength(3);
 
@@ -126,7 +161,9 @@ describe('ContributionProfileTab', () => {
     });
 
     it('hangs redemptions below the zero line, in the room kept under it', () => {
-      const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
+      const { container } = render(
+        <ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />,
+      );
       const zero = zeroLineY(container);
 
       // Only Jul 2026 redeemed, so exactly one bar hangs below the line.
@@ -144,9 +181,22 @@ describe('ContributionProfileTab', () => {
 
     it('keeps additions 3\u20134x the room redemptions get for a 20k-up / 10k-down month', () => {
       const whale: ContributionHistoryEntry[] = [
-        { period: 'May 2026', points: 9000, plaa: 12000, infra: 8000, redeemed: 10000, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 10000 },
+        {
+          period: 'May 2026',
+          points: 9000,
+          plaa: 12000,
+          infra: 8000,
+          redeemed: 10000,
+          redeemedUsd: null,
+          redeemedPrice: null,
+          redeemedPriceIsAverage: false,
+          isPending: false,
+          cum: 10000,
+        },
       ];
-      const { container } = render(<ContributionProfileTab entries={whale} currentBalance={10000} totalRedeemed={10000} />);
+      const { container } = render(
+        <ContributionProfileTab entries={whale} currentBalance={10000} totalRedeemed={10000} />,
+      );
 
       const share = redeemedShareOfPlot(container);
       // The band plus its 8px padding, against the whole plot.
@@ -163,9 +213,22 @@ describe('ContributionProfileTab', () => {
 
     it('keeps a small redemption readable rather than squashing it to a sliver', () => {
       const lopsided: ContributionHistoryEntry[] = [
-        { period: 'May 2026', points: 9000, plaa: 12000, infra: 8000, redeemed: 200, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 19800 },
+        {
+          period: 'May 2026',
+          points: 9000,
+          plaa: 12000,
+          infra: 8000,
+          redeemed: 200,
+          redeemedUsd: null,
+          redeemedPrice: null,
+          redeemedPriceIsAverage: false,
+          isPending: false,
+          cum: 19800,
+        },
       ];
-      const { container } = render(<ContributionProfileTab entries={lopsided} currentBalance={19800} totalRedeemed={200} />);
+      const { container } = render(
+        <ContributionProfileTab entries={lopsided} currentBalance={19800} totalRedeemed={200} />,
+      );
 
       // Proportionally it would be ~2px; it gets its own band instead.
       expect(redeemedShareOfPlot(container)).toBeGreaterThanOrEqual(0.2);
@@ -173,14 +236,18 @@ describe('ContributionProfileTab', () => {
 
     it('gives no room below the line when nothing has ever been redeemed', () => {
       const noRedemptions = entries.map((e) => ({ ...e, redeemed: 0 }));
-      const { container } = render(<ContributionProfileTab entries={noRedemptions} currentBalance={112} totalRedeemed={0} />);
+      const { container } = render(
+        <ContributionProfileTab entries={noRedemptions} currentBalance={112} totalRedeemed={0} />,
+      );
 
       expect(container.querySelectorAll('svg rect[fill="#f59e0b"]')).toHaveLength(0);
       expect(zeroLineY(container)).toBe(240); // the plot floor
     });
 
     it('draws the balance as a line over the bars, with a dot per snapshot', () => {
-      const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
+      const { container } = render(
+        <ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />,
+      );
 
       const line = container.querySelector('svg polyline[stroke="#7c3aed"]') as SVGPolylineElement;
       expect(line).toBeInTheDocument();
@@ -196,7 +263,9 @@ describe('ContributionProfileTab', () => {
     });
 
     it('charts no points: those belong to the Snapshot history tab', () => {
-      const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
+      const { container } = render(
+        <ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />,
+      );
 
       expect(container.querySelectorAll('svg text[font-weight="600"]')).toHaveLength(0);
     });
@@ -208,8 +277,10 @@ describe('ContributionProfileTab', () => {
       return Array.from(container.querySelectorAll('svg text[fill="#dbeafe"]')).map((n) => n.textContent ?? '');
     }
 
-    it('lists the month\'s movements, signed as the table signs them', () => {
-      const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
+    it("lists the month's movements, signed as the table signs them", () => {
+      const { container } = render(
+        <ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />,
+      );
       const hoverZones = Array.from(container.querySelectorAll('rect[fill="transparent"]'));
       expect(hoverZones).toHaveLength(3);
       expect(screen.queryByText(/Activities:/)).not.toBeInTheDocument();
@@ -232,7 +303,9 @@ describe('ContributionProfileTab', () => {
     });
 
     it('shows a month with no infra or redemption as 0 rather than omitting the rows', () => {
-      const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
+      const { container } = render(
+        <ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />,
+      );
 
       fireEvent.mouseEnter(container.querySelectorAll('rect[fill="transparent"]')[0]);
       expect(tooltipRows(container)).toEqual([
@@ -247,9 +320,22 @@ describe('ContributionProfileTab', () => {
     it('reads Pending for an open snapshot, whose PLAA is not final', () => {
       const pending: ContributionHistoryEntry[] = [
         ...entries,
-        { period: 'Aug 2026', points: 120, plaa: 12, infra: 8, redeemed: null, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: true, cum: 112 },
+        {
+          period: 'Aug 2026',
+          points: 120,
+          plaa: 12,
+          infra: 8,
+          redeemed: null,
+          redeemedUsd: null,
+          redeemedPrice: null,
+          redeemedPriceIsAverage: false,
+          isPending: true,
+          cum: 112,
+        },
       ];
-      const { container } = render(<ContributionProfileTab entries={pending} currentBalance={112} totalRedeemed={50} />);
+      const { container } = render(
+        <ContributionProfileTab entries={pending} currentBalance={112} totalRedeemed={50} />,
+      );
 
       fireEvent.mouseEnter(container.querySelectorAll('rect[fill="transparent"]')[3]);
       expect(tooltipRows(container)).toEqual([
@@ -263,9 +349,22 @@ describe('ContributionProfileTab', () => {
 
     it('drops only the points row when the member has no points data', () => {
       const noPoints: ContributionHistoryEntry[] = [
-        { period: 'May 2026', points: null, plaa: 100, infra: 900, redeemed: 200, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 800 },
+        {
+          period: 'May 2026',
+          points: null,
+          plaa: 100,
+          infra: 900,
+          redeemed: 200,
+          redeemedUsd: null,
+          redeemedPrice: null,
+          redeemedPriceIsAverage: false,
+          isPending: false,
+          cum: 800,
+        },
       ];
-      const { container } = render(<ContributionProfileTab entries={noPoints} currentBalance={800} totalRedeemed={200} />);
+      const { container } = render(
+        <ContributionProfileTab entries={noPoints} currentBalance={800} totalRedeemed={200} />,
+      );
 
       fireEvent.mouseEnter(container.querySelectorAll('rect[fill="transparent"]')[0]);
       expect(tooltipRows(container)).toEqual([
@@ -279,20 +378,57 @@ describe('ContributionProfileTab', () => {
 
   describe('a period with no points data (still loading or settled empty)', () => {
     const realEntries: ContributionHistoryEntry[] = [
-      { period: 'May 2026', points: null, plaa: 100, infra: 900, redeemed: null, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 1000 },
-      { period: 'Jun 2026', points: null, plaa: 0, infra: 0, redeemed: null, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 1000 },
-      { period: 'Jul 2026', points: null, plaa: 50, infra: 0, redeemed: null, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 1050 },
+      {
+        period: 'May 2026',
+        points: null,
+        plaa: 100,
+        infra: 900,
+        redeemed: null,
+        redeemedUsd: null,
+        redeemedPrice: null,
+        redeemedPriceIsAverage: false,
+        isPending: false,
+        cum: 1000,
+      },
+      {
+        period: 'Jun 2026',
+        points: null,
+        plaa: 0,
+        infra: 0,
+        redeemed: null,
+        redeemedUsd: null,
+        redeemedPrice: null,
+        redeemedPriceIsAverage: false,
+        isPending: false,
+        cum: 1000,
+      },
+      {
+        period: 'Jul 2026',
+        points: null,
+        plaa: 50,
+        infra: 0,
+        redeemed: null,
+        redeemedUsd: null,
+        redeemedPrice: null,
+        redeemedPriceIsAverage: false,
+        isPending: false,
+        cum: 1050,
+      },
     ];
 
     it('keeps the PLAA bars, their axis, and the balance line, which do not depend on points', () => {
-      const { container } = render(<ContributionProfileTab entries={realEntries} currentBalance={1050} totalRedeemed={null} />);
+      const { container } = render(
+        <ContributionProfileTab entries={realEntries} currentBalance={1050} totalRedeemed={null} />,
+      );
 
       expect(screen.queryByText('Points collected')).not.toBeInTheDocument();
       expect(screen.queryByText('Points per snapshot')).not.toBeInTheDocument();
       expect(container.querySelectorAll('svg polyline[stroke="#7c3aed"]')).toHaveLength(1);
 
       const svgTexts = Array.from(container.querySelectorAll('svg text'));
-      const rightAxisTexts = svgTexts.filter((el) => el.getAttribute('fill') === '#156ff7' && el.getAttribute('text-anchor') === 'start');
+      const rightAxisTexts = svgTexts.filter(
+        (el) => el.getAttribute('fill') === '#156ff7' && el.getAttribute('text-anchor') === 'start',
+      );
       expect(rightAxisTexts.length).toBeGreaterThan(0);
     });
 
@@ -308,7 +444,9 @@ describe('ContributionProfileTab', () => {
     });
 
     it('omits Points collected from the hover tooltip when no period has real points data', () => {
-      const { container } = render(<ContributionProfileTab entries={realEntries} currentBalance={1050} totalRedeemed={null} />);
+      const { container } = render(
+        <ContributionProfileTab entries={realEntries} currentBalance={1050} totalRedeemed={null} />,
+      );
 
       const hoverZones = Array.from(container.querySelectorAll('rect[fill="transparent"]'));
       fireEvent.mouseEnter(hoverZones[0]);
@@ -338,7 +476,9 @@ describe('ContributionProfileTab', () => {
       isPending: false,
       cum: (i + 1) * 10,
     }));
-    const { container } = render(<ContributionProfileTab entries={manyEntries} currentBalance={170} totalRedeemed={0} />);
+    const { container } = render(
+      <ContributionProfileTab entries={manyEntries} currentBalance={170} totalRedeemed={0} />,
+    );
 
     // Every period still gets a table row...
     expect(screen.getAllByText('P17')).toHaveLength(2);
@@ -370,13 +510,35 @@ describe('ContributionProfileTab', () => {
   describe('an open snapshot (not yet closed)', () => {
     // cum on the open row carries the confirmed balance forward; its own PLAA is not in it yet.
     const withPending: ContributionHistoryEntry[] = [
-      { period: 'May 2026', points: 350, plaa: 35, infra: 0, redeemed: null, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 35 },
-      { period: 'Jun 2026', points: 220, plaa: 22, infra: 30, redeemed: null, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: true, cum: 35 },
+      {
+        period: 'May 2026',
+        points: 350,
+        plaa: 35,
+        infra: 0,
+        redeemed: null,
+        redeemedUsd: null,
+        redeemedPrice: null,
+        redeemedPriceIsAverage: false,
+        isPending: false,
+        cum: 35,
+      },
+      {
+        period: 'Jun 2026',
+        points: 220,
+        plaa: 22,
+        infra: 30,
+        redeemed: null,
+        redeemedUsd: null,
+        redeemedPrice: null,
+        redeemedPriceIsAverage: false,
+        isPending: true,
+        cum: 35,
+      },
     ];
 
     const pendingRow = () => screen.getAllByText('Jun 2026')[1].closest('[class*="dataRow"]') as HTMLElement;
 
-    it('shows Pending for the snapshot\'s own PLAA figures and balance', () => {
+    it("shows Pending for the snapshot's own PLAA figures and balance", () => {
       render(<ContributionProfileTab entries={withPending} currentBalance={35} totalRedeemed={null} />);
 
       expect(within(pendingRow()).getAllByText('Pending')).toHaveLength(3);
@@ -385,21 +547,23 @@ describe('ContributionProfileTab', () => {
       expect(within(pendingRow()).queryByText('35')).not.toBeInTheDocument();
     });
 
-    it('still shows the open snapshot\'s points as they come in, marked as not final', () => {
+    it("still shows the open snapshot's points as they come in, marked as not final", () => {
       render(<ContributionProfileTab entries={withPending} currentBalance={35} totalRedeemed={null} />);
 
       expect(within(pendingRow()).getByText('220 points so far')).toBeInTheDocument();
     });
 
-    it('shows Pending for the open snapshot\'s own PLAA in its tooltip', () => {
-      const { container } = render(<ContributionProfileTab entries={withPending} currentBalance={35} totalRedeemed={null} />);
+    it("shows Pending for the open snapshot's own PLAA in its tooltip", () => {
+      const { container } = render(
+        <ContributionProfileTab entries={withPending} currentBalance={35} totalRedeemed={null} />,
+      );
 
       fireEvent.mouseEnter(container.querySelectorAll('rect[fill="transparent"]')[1]);
       expect(screen.getByText('Activities: Pending')).toBeInTheDocument();
       expect(screen.getByText('Points collected: 220')).toBeInTheDocument();
     });
 
-    it('leaves a closed snapshot\'s own figures untouched', () => {
+    it("leaves a closed snapshot's own figures untouched", () => {
       render(<ContributionProfileTab entries={withPending} currentBalance={35} totalRedeemed={null} />);
 
       const closedRow = screen.getAllByText('May 2026')[1].closest('[class*="dataRow"]') as HTMLElement;
@@ -408,7 +572,7 @@ describe('ContributionProfileTab', () => {
       expect(within(closedRow).queryByText(/so far/)).not.toBeInTheDocument();
     });
 
-    it('keeps the open snapshot\'s PLAA out of the footer totals, but counts its points', () => {
+    it("keeps the open snapshot's PLAA out of the footer totals, but counts its points", () => {
       render(<ContributionProfileTab entries={withPending} currentBalance={35} totalRedeemed={null} />);
 
       const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
@@ -422,12 +586,34 @@ describe('ContributionProfileTab', () => {
 
   it('renders a per-period redeemed figure when one is attributed to that month', () => {
     const redeemed: ContributionHistoryEntry[] = [
-      { period: 'May 2026', points: 350, plaa: 35, infra: 0, redeemed: null, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 35 },
-      { period: 'Jun 2026', points: 220, plaa: 22, infra: 30, redeemed: 640, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 87 },
+      {
+        period: 'May 2026',
+        points: 350,
+        plaa: 35,
+        infra: 0,
+        redeemed: null,
+        redeemedUsd: null,
+        redeemedPrice: null,
+        redeemedPriceIsAverage: false,
+        isPending: false,
+        cum: 35,
+      },
+      {
+        period: 'Jun 2026',
+        points: 220,
+        plaa: 22,
+        infra: 30,
+        redeemed: 640,
+        redeemedUsd: null,
+        redeemedPrice: null,
+        redeemedPriceIsAverage: false,
+        isPending: false,
+        cum: 87,
+      },
     ];
     render(<ContributionProfileTab entries={redeemed} currentBalance={35} totalRedeemed={640} />);
 
-    const row = (screen.getAllByText('Jun 2026')[1].closest('[class*="dataRow"]')) as HTMLElement;
+    const row = screen.getAllByText('Jun 2026')[1].closest('[class*="dataRow"]') as HTMLElement;
     expect(within(row).getByText('\u2212\u0036\u0034\u0030')).toBeInTheDocument();
   });
 
@@ -439,9 +625,42 @@ describe('ContributionProfileTab', () => {
 
   it('totals the points it has, rather than blanking the whole total when one month has none', () => {
     const someMissing: ContributionHistoryEntry[] = [
-      { period: 'May 2026', points: 350, plaa: 35, infra: 0, redeemed: null, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 35 },
-      { period: 'Jun 2026', points: null, plaa: 22, infra: 30, redeemed: null, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 87 },
-      { period: 'Jul 2026', points: 450, plaa: 45, infra: 30, redeemed: null, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 112 },
+      {
+        period: 'May 2026',
+        points: 350,
+        plaa: 35,
+        infra: 0,
+        redeemed: null,
+        redeemedUsd: null,
+        redeemedPrice: null,
+        redeemedPriceIsAverage: false,
+        isPending: false,
+        cum: 35,
+      },
+      {
+        period: 'Jun 2026',
+        points: null,
+        plaa: 22,
+        infra: 30,
+        redeemed: null,
+        redeemedUsd: null,
+        redeemedPrice: null,
+        redeemedPriceIsAverage: false,
+        isPending: false,
+        cum: 87,
+      },
+      {
+        period: 'Jul 2026',
+        points: 450,
+        plaa: 45,
+        infra: 30,
+        redeemed: null,
+        redeemedUsd: null,
+        redeemedPrice: null,
+        redeemedPriceIsAverage: false,
+        isPending: false,
+        cum: 112,
+      },
     ];
     render(<ContributionProfileTab entries={someMissing} currentBalance={112} totalRedeemed={null} />);
 
@@ -549,7 +768,7 @@ describe('ContributionProfileTab', () => {
       expect(tablePeriods()).toEqual(['Jul 2026', 'Jun 2026', 'May 2026']);
     });
 
-    it('keeps each row\'s own figures with it when the order flips', () => {
+    it("keeps each row's own figures with it when the order flips", () => {
       render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
 
       const top = document.querySelectorAll('[class*="dataRow"]')[0];
@@ -563,7 +782,9 @@ describe('ContributionProfileTab', () => {
     });
 
     it('still draws the chart oldest-first, so the balance line reads left to right', () => {
-      const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
+      const { container } = render(
+        <ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />,
+      );
 
       const axisLabels = Array.from(container.querySelectorAll('svg text[fill="#94a3b8"]')).map((n) => n.textContent);
       expect(axisLabels).toEqual(['May 2026', 'Jun 2026', 'Jul 2026']);
@@ -572,7 +793,18 @@ describe('ContributionProfileTab', () => {
     it('puts an open snapshot at the top, above the closed periods', () => {
       const withPending: ContributionHistoryEntry[] = [
         ...entries,
-        { period: 'Aug 2026', points: 120, plaa: 12, infra: 8, redeemed: null, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: true, cum: 112 },
+        {
+          period: 'Aug 2026',
+          points: 120,
+          plaa: 12,
+          infra: 8,
+          redeemed: null,
+          redeemedUsd: null,
+          redeemedPrice: null,
+          redeemedPriceIsAverage: false,
+          isPending: true,
+          cum: 112,
+        },
       ];
       render(<ContributionProfileTab entries={withPending} currentBalance={112} totalRedeemed={50} />);
 

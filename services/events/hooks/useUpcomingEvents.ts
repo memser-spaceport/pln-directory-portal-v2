@@ -4,6 +4,8 @@ import { EventsQueryKeys } from '@/services/events/constants';
 export type UpcomingEvent = {
   uid: string;
   name: string;
+  /** The pln-events event id; absent before backend #3680. */
+  externalId?: string | null;
   logo: string;
   location: string;
   flag: string;

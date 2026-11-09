@@ -25,6 +25,11 @@ export interface IHomeEvent {
   /** ISO date-time of the last day. */
   endDate: string;
   location: string;
+  /**
+   * The pln-events id (the API's `externalId`): the calendar opens this one event from `#<id>` (pln-events #950).
+   * Null when the API doesn't send it (an event not from pln-events, or before backend #3680 is deployed).
+   */
+  calendarId: string | null;
 }
 
 /** The rail's events section: up to three events and the total for "See all". */

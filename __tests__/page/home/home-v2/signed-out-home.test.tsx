@@ -108,6 +108,7 @@ const events: IHomeEvents = {
       startDate: '2026-11-03T09:00:00.000Z',
       endDate: '2026-11-07T18:00:00.000Z',
       location: 'Lisbon',
+      calendarId: null,
     },
     {
       uid: 'e2',
@@ -115,6 +116,7 @@ const events: IHomeEvents = {
       startDate: '2026-11-20T09:00:00.000Z',
       endDate: '2026-11-20T18:00:00.000Z',
       location: 'Berlin',
+      calendarId: 'G7PqVYP7jsVr',
     },
   ],
 };
@@ -302,6 +304,11 @@ describe('SignedOutHome', () => {
       expect(within(eventsEl).getByRole('link', { name: 'LabWeek Lisbon' })).toHaveAttribute(
         'href',
         '/events/all?embedPath=%2Fembed%2Fprogram%23labweek-lisbon',
+      );
+      // With the pln-events id from the API, by the id, which opens this event even when another shares its name.
+      expect(within(eventsEl).getByRole('link', { name: 'libp2p Day' })).toHaveAttribute(
+        'href',
+        '/events/all?embedPath=%2Fembed%2Fprogram%23G7PqVYP7jsVr',
       );
       expect(within(eventsEl).getByRole('link', { name: 'See all 9 events' })).toHaveAttribute('href', '/events/all');
     });

@@ -491,7 +491,8 @@ export const activitiesData: ActivitiesData = {
           'If the PL Infra Events AI App identifies you as a speaker or panelist, you automatically qualify. Otherwise, submit a link to the event page or published schedule that lists you as a speaker or panelist.',
           'One award per person per snapshot month, however many talks you give.',
           `You can't collect points for speaking at an event you also host or co-host. Collect points for that event through Host an Event instead.`,
-          'The PLAA Working Group reviews each submitted link before points are awarded.'
+          'The PLAA Working Group reviews each submitted link before points are awarded.',
+          `Submit your link after the event, within 30 days of the event date. Links submitted before the event takes place aren't accepted.`
         ],
         links: [
           { text: 'PL Infra Events AI App', url: '/pl-infra/ai-apps/cmsg2psgb031pnq4g7nls6q81' },

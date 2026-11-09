@@ -2,7 +2,7 @@
 
 import clsx from 'clsx';
 import Link from 'next/link';
-import { useMemo, useRef, useState, type RefObject } from 'react';
+import { Fragment, useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react';
 
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
@@ -21,7 +21,11 @@ import { NewsSearch } from '@/components/page/home/TeamNews/components/NewsSearc
 import type { HomeFeed } from '@/components/page/home/TeamNews/hooks/useHomeFeed';
 import { isOwnForumPost } from '@/components/page/home/TeamNews/utils/isOwnForumPost';
 import { assertNever, feedEntryKey } from '@/components/page/home/TeamNews/utils/mergeFeedEntries';
+import { ALL_CAT } from '@/components/page/home/TeamNews/constants';
 import { isEditorialRank } from '@/components/page/home/TeamNews/utils/selectTopStories';
+import { matchesTeamNewsQuery } from '@/components/page/home/TeamNews/utils/matchesTeamNewsQuery';
+import { sortTeamNewsClusters } from '@/components/page/home/TeamNews/utils/sortTeamNewsClusters';
+import type { ITeamNewsItem } from '@/types/team-news.types';
 // Production Home's mobile search row and its description line, as the prototype.
 import tn from '@/components/page/home/TeamNews/TeamNews.module.scss';
 import nb from '@/components/page/home/TeamNews/components/NewsBase/NewsBase.module.scss';
@@ -29,14 +33,14 @@ import nb from '@/components/page/home/TeamNews/components/NewsBase/NewsBase.mod
 import jobsCss from '@/components/page/jobs/TeamGroupCard/TeamGroupCard.module.scss';
 
 import { HOME_NEWS_VIEW_HREF } from './constants';
-
-/** "Update your profile" (LAB-3174): the member's own profile settings. */
-const PROFILE_SETTINGS_HREF = '/settings/profile';
 import { FeedFilterBar } from './FeedFilterBar';
 import { chipVocabulary, selectNarrowByTags } from './utils/narrowByTags';
 import { TagScopeRow } from './TagScopeRow';
 import { useColumnCut } from './utils/useColumnCut';
 import s from './HomeV2.module.scss';
+
+/** The For You line's link (LAB-3174): News preferences, not general profile settings. */
+const NEWS_PREFERENCES_HREF = '/settings/news-preferences';
 
 /**
  * The stream mounts at most this many cards. The cut keeps a few on screen beside the rail, and "See all news" leads
@@ -54,7 +58,8 @@ export const STREAM_RENDER_MAX = 24;
  * The pill row is fixed (For You · All · Top · Discussions · Funding · Launch · Announcement); a pill with nothing
  * under it is hidden, and pressing the active pill again goes back to All. Tags stack: each `#tag` clicked joins the
  * scope row under the pills, and a story must carry every one. The stream is cut level with the rail's end, the last
- * card fading under "See all news".
+ * card fading under "See all news". A filtered tab that ends above the rail keeps its stories first, then "Other news"
+ * and the rest of All, so the column still meets the rail. All itself is not filled.
  */
 export function NetworkUpdates({
   feed,
@@ -116,16 +121,40 @@ export function NetworkUpdates({
     [feedItems, topicScope, topicSlugs],
   );
 
-  const renderedEntries = entries.slice(0, STREAM_RENDER_MAX);
+  const ownEntries = entries.slice(0, STREAM_RENDER_MAX);
   const trimmedQuery = query.trim();
   const isEmpty = allItems.length === 0 && (forumPosts?.length ?? 0) === 0;
+  // All, in the current sort, minus stories the tab already shows. Empty on All, and when the tab has nothing.
+  const otherPool = useMemo(
+    () =>
+      activeCategory === ALL_CAT
+        ? []
+        : selectOtherNews(feedItems, newsUids(entries), trimmedQuery, sort, followedTeamUids),
+    [activeCategory, feedItems, entries, trimmedQuery, sort, followedTeamUids],
+  );
+  const fillFromAll = activeCategory !== ALL_CAT && ownEntries.length > 0 && otherPool.length > 0;
+  const tabKey = `${String(activeCategory)}|${topicScope.join(',')}|${trimmedQuery}|${sort}`;
+  const [otherNewsFor, setOtherNewsFor] = useState<string | null>(null);
+  const showOther = fillFromAll && otherNewsFor === tabKey && ownEntries.length < STREAM_RENDER_MAX;
+  const renderedEntries = showOther
+    ? [...ownEntries, ...otherPool.slice(0, STREAM_RENDER_MAX - ownEntries.length)]
+    : ownEntries;
 
   /* The cut follows the rail: as many full cards as end above the rail's bottom, then the next one fades out where the
-     rail ends. Measured again when the rail grows after this list (deals, teams, images). */
+     rail ends. Measured again when the rail grows after this list (deals, teams, images). A filtered tab that stops
+     short of the rail then mounts Other news and is measured again. */
   const listRef = useRef<HTMLDivElement>(null);
   const visibleKey = renderedEntries.map(feedEntryKey).join(',');
-  const fit = useColumnCut(listRef, fillTo, `${visibleKey}|${fillKey}`);
+  const fit = useColumnCut(
+    listRef,
+    fillTo,
+    `${visibleKey}|${fillKey}`,
+    fillFromAll ? ownEntries.length : undefined,
+  );
   const cut = renderedEntries.length > fit.full;
+  useLayoutEffect(() => {
+    setOtherNewsFor(fillFromAll && !fit.reachesRef.current ? tabKey : null);
+  }, [fillFromAll, fit.primaryReaches, fit.reachesRef, tabKey, fillKey, visibleKey]);
 
   return (
     <section className={s.weekFeed} aria-labelledby="home-week-title">
@@ -183,7 +212,7 @@ export function NetworkUpdates({
         />
       )}
 
-      {/* The "For you" line, on every filter (LAB-3174): what For You is made of, and the door to the profile it reads. */}
+      {/* The "For you" line, on every filter (LAB-3174): what For You is made of, and the door to News preferences. */}
       <ForYouCaption memberUid={currentUser?.uid} />
 
       {/* The cut: full cards down to the rail's end, the next fading into the page under "See all news". Cards past the
@@ -199,11 +228,23 @@ export function NetworkUpdates({
           const cutAway = cut && index >= fit.full;
           // Remounts a card when the filter changes, so its own state (an open thread) resets, as on the previous Home.
           const key = `${String(activeCategory)}::${topicScope.join(',')}::${streamEntryKey(entry)}`;
-          return (
-            <div key={key} aria-hidden={cutAway || undefined} inert={cutAway || undefined}>
+          const card = (
+            <div key={key} data-feed-card aria-hidden={cutAway || undefined} inert={cutAway || undefined}>
               {renderEntry(entry, index)}
             </div>
           );
+          // The tab's own cards stay a block. Other news starts only after the last of them.
+          if (showOther && index === ownEntries.length) {
+            return (
+              <Fragment key={`other-news-${key}`}>
+                <p className={s.otherNews} data-feed-skip>
+                  Other news
+                </p>
+                {card}
+              </Fragment>
+            );
+          }
+          return card;
         })}
       </div>
 
@@ -305,25 +346,59 @@ function streamEntryKey(entry: HomeFeed['entries'][number]): string {
 
 /**
  * The "For you" line (LAB-3174, prototype 2026-11-06): under the filter pills on every filter, on the plain page
- * ground, with "Update your profile" as a brand text link right after the sentence. It replaces the caption that showed
- * only under For You with its link at the row's far end. The link opens the member's profile settings.
+ * ground, with "News preferences" as a brand text link right after the sentence. The link opens News preferences.
  */
 function ForYouCaption({ memberUid }: { memberUid?: string }) {
-  const { onTeamNewsForYouUpdateProfileClicked } = useTeamNewsAnalytics();
+  const { onTeamNewsForYouTuneClicked } = useTeamNewsAnalytics();
 
   return (
     <p className={clsx(s.personalizeText, s.forYouLine)}>
       <span className={s.personalizeLabel}>For you</span> · Curated from your profile, your team, and the teams you
       follow.{' '}
       <Link
-        href={PROFILE_SETTINGS_HREF}
+        href={NEWS_PREFERENCES_HREF}
         className={s.forYouInlineLink}
-        onClick={() => memberUid && onTeamNewsForYouUpdateProfileClicked(memberUid)}
+        onClick={() => memberUid && onTeamNewsForYouTuneClicked(memberUid)}
       >
-        Update your profile
+        News preferences
       </Link>
     </p>
   );
+}
+
+/** News uids already in the tab. Other news must not show them again. */
+function newsUids(entries: HomeFeed['entries']): Set<string> {
+  const uids = new Set<string>();
+  for (const entry of entries) {
+    if (entry.kind === 'news' && entry.cluster.items[0]) uids.add(entry.cluster.items[0].uid);
+  }
+  return uids;
+}
+
+/**
+ * The All list under the current search and sort, without stories the active tab already shows.
+ * `items` is All's order (latest). The sort puts it in the order All would use.
+ */
+function selectOtherNews(
+  items: ITeamNewsItem[],
+  shownUids: ReadonlySet<string>,
+  query: string,
+  sort: Parameters<typeof sortTeamNewsClusters>[1],
+  followedTeamUids: ReadonlySet<string>,
+): HomeFeed['entries'] {
+  const q = query.trim().toLowerCase();
+  const pool = items.filter((item) => !shownUids.has(item.uid) && (!q || matchesTeamNewsQuery(item, q)));
+  const counts = new Map(pool.map((item) => [item.uid, item.upvoteCount ?? 0]));
+  const clusters = pool.map((item) => ({
+    teamUid: item.teamUid,
+    teamName: item.teamName,
+    teamLogoUrl: item.teamLogoUrl,
+    items: [item],
+  }));
+  return sortTeamNewsClusters(clusters, sort, followedTeamUids, counts).map((cluster) => ({
+    kind: 'news' as const,
+    cluster,
+  }));
 }
 
 /**

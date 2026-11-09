@@ -1,8 +1,21 @@
 'use client';
 
-import { useLayoutEffect, useState, type RefObject } from 'react';
+import { useLayoutEffect, useRef, useState, type RefObject } from 'react';
 
 import { computeStreamCut, STREAM_CUT_MIN_STACKED, STREAM_SIDE_BY_SIDE_QUERY, type StreamCut } from './streamCut';
+
+/** The divider between a short tab and the All stories under it. Not a card, so the cut skips it. */
+const FEED_SKIP_ATTR = 'data-feed-skip';
+
+export interface ColumnFit extends StreamCut {
+  /**
+   * The first `primaryCount` cards already reach the rail. True when the rail is not beside the list, or when
+   * there is no primary split. A short filtered tab uses this to decide whether to append other news.
+   */
+  primaryReaches: boolean;
+  /** Same value as `primaryReaches`, updated during measure before the state commit. */
+  reachesRef: RefObject<boolean>;
+}
 
 /**
  * How many cards of `listRef` fit beside `columnRef`.
@@ -10,13 +23,22 @@ import { computeStreamCut, STREAM_CUT_MIN_STACKED, STREAM_SIDE_BY_SIDE_QUERY, ty
  * The news list paints before the sidebar finishes (deals, teams to follow, images). A box-only measure then
  * locks the list to that short height. The content height (`scrollHeight`) is the sidebar the reader sees, and a
  * mutation on the sidebar measures again when those sections arrive.
+ *
+ * `primaryCount` is the tab's own cards at the head of the list. The cut still measures every card. Children
+ * marked `data-feed-skip` (the Other news divider) are not cards.
  */
 export function useColumnCut(
   listRef: RefObject<HTMLElement | null>,
   columnRef: RefObject<HTMLElement | null>,
   contentKey: string,
-): StreamCut {
-  const [fit, setFit] = useState<StreamCut>({ full: STREAM_CUT_MIN_STACKED });
+  primaryCount?: number,
+): ColumnFit {
+  const [fit, setFit] = useState<StreamCut & { primaryReaches: boolean }>({
+    full: STREAM_CUT_MIN_STACKED,
+    primaryReaches: true,
+  });
+  // Written in measure(), before setState, so a layout effect in the caller can read this commit's result.
+  const reachesRef = useRef(true);
 
   useLayoutEffect(() => {
     const list = listRef.current;
@@ -37,8 +59,19 @@ export function useColumnCut(
         if (nextTarget <= 0) return;
         target = nextTarget;
       }
-      const next = computeStreamCut(Array.from(list.children) as HTMLElement[], target);
-      setFit((prev) => (prev.full === next.full && prev.clip === next.clip ? prev : next));
+      const cards = (Array.from(list.children) as HTMLElement[]).filter((el) => !el.hasAttribute(FEED_SKIP_ATTR));
+      const next = computeStreamCut(cards, target);
+      let primaryReaches = true;
+      if (beside && target !== null && primaryCount && primaryCount > 0) {
+        const lastPrimary = cards[Math.min(primaryCount, cards.length) - 1];
+        if (lastPrimary) primaryReaches = lastPrimary.offsetTop + lastPrimary.offsetHeight >= target;
+      }
+      reachesRef.current = primaryReaches;
+      setFit((prev) =>
+        prev.full === next.full && prev.clip === next.clip && prev.primaryReaches === primaryReaches
+          ? prev
+          : { ...next, primaryReaches },
+      );
     };
 
     const ro = new ResizeObserver(measure);
@@ -58,7 +91,7 @@ export function useColumnCut(
       mo?.disconnect();
       window.removeEventListener('resize', measure);
     };
-  }, [listRef, columnRef, contentKey]);
+  }, [listRef, columnRef, contentKey, primaryCount]);
 
-  return fit;
+  return { ...fit, reachesRef };
 }

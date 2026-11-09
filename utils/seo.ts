@@ -61,3 +61,9 @@ export function htmlToPlainSnippet(html: string | null | undefined, max = 160): 
  * that met a backend failure must not index "Something went wrong" as the profile; links are still followed.
  */
 export const PROFILE_ERROR_ROBOTS: Metadata['robots'] = { index: false, follow: true };
+
+/**
+ * `robots` for a member profile with no photo and no bio (LAB-3096): a name and nothing else. It stays reachable and
+ * its links are followed, but it is not indexed, and the sitemap leaves it out.
+ */
+export const EMPTY_PROFILE_ROBOTS: Metadata['robots'] = { index: false, follow: true };

@@ -874,7 +874,7 @@ export default function FAQsPage({ kpiWeights }: FAQsPageProps) {
     return () => {
       window.removeEventListener('hashchange', handleHash);
     };
-  }, [pathname, handleHashNavigation]);
+  }, [pathname, faqCategories, handleHashNavigation]);
 
   useEffect(() => {
     const refs = categoryRefs.current;

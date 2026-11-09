@@ -84,6 +84,46 @@ describe('GiveCommunityKudosModal — send button gating', () => {
   });
 });
 
+describe('GiveCommunityKudosModal — live form summary', () => {
+  test('names the picked recipient', async () => {
+    const user = userEvent.setup();
+    renderModal(100);
+
+    await user.selectOptions(screen.getByLabelText(/recipient/i), 'uid-b');
+
+    expect(screen.getByText(/@Bob\b/)).toBeInTheDocument();
+  });
+
+  test('shows the pool left after the picked amount', async () => {
+    const user = userEvent.setup();
+    renderModal(100);
+
+    await user.selectOptions(screen.getByLabelText(/points to give/i), '30');
+
+    expect(screen.getByText(/\b70 pts\b/)).toBeInTheDocument();
+  });
+
+  test('counts the trimmed message length as the member types', async () => {
+    const user = userEvent.setup();
+    renderModal(100);
+
+    await user.type(screen.getByLabelText(/your message/i), '  hello  ');
+
+    expect(screen.getByText(new RegExp(`\\b5 / ${LIMITS.messageMax}\\b`))).toBeInTheDocument();
+  });
+
+  test('keeps working after the modal is closed and opened again', async () => {
+    const user = userEvent.setup();
+    const props = { onClose: jest.fn(), recipients, poolRemaining: 100, limits: LIMITS };
+    const { rerender } = render(<GiveCommunityKudosModal open={false} {...props} />);
+    rerender(<GiveCommunityKudosModal open {...props} />);
+
+    await user.selectOptions(screen.getByLabelText(/recipient/i), 'uid-a');
+
+    expect(screen.getByText(/@Alice\b/)).toBeInTheDocument();
+  });
+});
+
 describe('GiveCommunityKudosModal — recipients still loading', () => {
   beforeEach(() => jest.clearAllMocks());
 

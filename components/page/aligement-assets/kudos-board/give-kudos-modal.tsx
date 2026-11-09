@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/components/core/ToastContainer';
 
@@ -42,7 +42,6 @@ export function GiveCommunityKudosModal({
     control,
     register,
     handleSubmit,
-    watch,
     reset,
     formState: { errors, isSubmitting, isValid },
   } = useForm<CommunityKudosFormValues>({
@@ -71,13 +70,17 @@ export function GiveCommunityKudosModal({
     };
   }, [open, onClose, reset]);
 
+  const [selectedRecipientId, watchedPoints, watchedMessage] = useWatch({
+    control,
+    name: ['recipientId', 'points', 'message'],
+  });
+
   if (!open) return null;
 
   const giftOpts = communityGiftOptions(poolRemaining, limits.pointsMin, limits.pointsMax, limits.pointsStep);
-  const selectedRecipientId = watch('recipientId');
-  const selectedPoints = Number(watch('points')) || 0;
+  const selectedPoints = Number(watchedPoints) || 0;
   const selectedRecipient = recipients.find((r) => r.memberId === selectedRecipientId);
-  const message = watch('message') ?? '';
+  const message = watchedMessage ?? '';
 
   async function onSubmit(values: CommunityKudosFormValues) {
     try {

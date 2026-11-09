@@ -644,8 +644,10 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
    * the PL team picks the person (a founder, the events lead…) and makes the
    * intro. So the target is the team itself, and the press lives in the
    * header cluster beside Ask AI and Follow, like the member page's contact
-   * press. Visitors only: the team's own members (the Admin / Team lead /
-   * Member seats, production's team view) have nobody to be introduced to.
+   * press. Visitors and directory admins: an admin is not necessarily on the
+   * team, so they may want an intro like anyone else (2026-11-06: "Admin
+   * should also be able to request an intro"). The Team lead / Member seats
+   * are on the team and have nobody to be introduced to.
    */
   const intro = useRequestIntro();
   const teamIntroUid = team.id ?? 'protocol-labs';
@@ -744,15 +746,19 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
       )}
     </div>
   );
-  const visitorIntro = (
+  /* One glossy press in every seat, the admin's text-action row included
+     (2026-11-06: tried the dev build's flat DS button there, reverted —
+     "get back to shiny"). */
+  const introPress = (className?: string) => (
     <RequestIntroButton
       requested={intro.requested(teamIntroUid)}
       onClick={() => intro.request({ uid: teamIntroUid, name: team.name ?? 'this team', kind: 'team' })}
       name={team.name ?? 'this team'}
       size={isMobile ? 's' : 'xs'}
-      className={local.introPress}
+      className={clsx(local.introPress, className)}
     />
   );
+  const visitorIntro = introPress();
 
   return (
     <div className={local.page}>
@@ -963,7 +969,7 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
                               outlined badge ("Use the same badge for team
                               profile as well"): the same object in every seat
                               and on both profile pages. */}
-                          {askAiButton(clsx(local.mobileOnly, local.askAiBadge), 12)}
+                          {askAiButton(clsx(local.mobileOnly, local.askAiBadge), 14)}
                         </div>
                       </div>
                     ) : (
@@ -983,13 +989,20 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
                                     team): Follow joins the action row ahead of Edit, as on
                                     Wellfound's company page seen by its admin. Phone: the
                                     absolute corner has no room, so it sits by the followers. */}
+                                {/* Admin also gets the intro press (not
+                                    necessarily on the team): after Follow, as
+                                    in the visitor's cluster, ahead of the
+                                    management actions Edit / Delete. */}
                                 {view === 'admin' && (
-                                  <FollowPill
-                                    following={following}
-                                    onToggle={handleFollowToggle}
-                                    name={team.name ?? 'this team'}
-                                    className={local.fromTablet}
-                                  />
+                                  <>
+                                    <FollowPill
+                                      following={following}
+                                      onToggle={handleFollowToggle}
+                                      name={team.name ?? 'this team'}
+                                      className={local.fromTablet}
+                                    />
+                                    {introPress(local.fromTablet)}
+                                  </>
                                 )}
                               </>
                             }
@@ -999,7 +1012,7 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
                           team name, so Ask AI leaves it and joins the row that
                           wraps under the tags — where the visitor's Ask AI
                           already sits on a phone. */}
-                        {askAiButton(clsx(local.askAiMobileOnly, local.askAiBadge), 12)}
+                        {askAiButton(clsx(local.askAiMobileOnly, local.askAiBadge), 14)}
                         <TeamFollowBlock
                           count={followCount}
                           followers={MOCK_FOLLOWERS}
@@ -1007,12 +1020,15 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
                           onOpenChange={setFollowersOpen}
                           action={
                             view === 'admin' ? (
-                              <FollowPill
-                                following={following}
-                                onToggle={handleFollowToggle}
-                                name={team.name ?? 'this team'}
-                                className={local.mobileOnly}
-                              />
+                              <>
+                                <FollowPill
+                                  following={following}
+                                  onToggle={handleFollowToggle}
+                                  name={team.name ?? 'this team'}
+                                  className={local.mobileOnly}
+                                />
+                                {introPress(local.mobileOnly)}
+                              </>
                             ) : undefined
                           }
                         />

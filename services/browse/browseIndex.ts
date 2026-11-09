@@ -3,8 +3,8 @@
  *
  * The listings show 50 profiles in their server HTML and load the rest as the visitor scrolls, so a crawler following
  * links reached only those 50. These pages reach every profile the sitemap lists, by the same API reads: the full list
- * for members and projects, and for teams the full list narrowed to the crawl index, which leaves out the teams a
- * signed-out visitor cannot open.
+ * for projects, and for teams and members the full list narrowed to the crawl index. The team index leaves out the
+ * teams a signed-out visitor cannot open; the member index leaves out empty profiles, which are `noindex` (LAB-3096).
  */
 import { PAGE_ROUTES } from '@/utils/constants';
 
@@ -55,14 +55,14 @@ export async function loadBrowseEntries(kind: BrowseKind): Promise<BrowseEntry[]
 
   const items = listOf(await fetchJson(`${apiBase}/v1/${kind}?pagination=false&select=uid,name`), kind);
   if (!items) return null;
-  if (kind !== 'teams') return toBrowseEntries(items);
+  if (kind === 'projects') return toBrowseEntries(items);
 
   // Until the API serves the crawl index, the full list stands in, as it does for the sitemap.
-  const crawlIndex = listOf(await fetchJson(`${apiBase}/v1/teams/crawl-index`), 'teams');
-  const publicUids = crawlIndex
-    ? new Set(crawlIndex.map((team) => (team as { uid?: unknown })?.uid).filter((uid): uid is string => !!uid))
+  const crawlIndex = listOf(await fetchJson(`${apiBase}/v1/${kind}/crawl-index`), kind);
+  const indexedUids = crawlIndex
+    ? new Set(crawlIndex.map((item) => (item as { uid?: unknown })?.uid).filter((uid): uid is string => !!uid))
     : undefined;
-  return toBrowseEntries(items, publicUids);
+  return toBrowseEntries(items, indexedUids);
 }
 
 /** The page a `?page=` value asks for: 1 when absent, null when it is not a whole number from 1 up. */

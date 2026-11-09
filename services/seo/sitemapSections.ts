@@ -89,22 +89,25 @@ async function fetchJobCrawlIndex(): Promise<SitemapEntity[]> {
 }
 
 /**
- * Teams a logged-out visitor can open (LAB-3087). The full list included the `L0` teams, which the API refuses to a
- * logged-out visitor: 931 sitemap URLs that each rendered an error page. Until the API serves the crawl index, the
- * full list stands in, so the sitemap never loses its teams.
+ * A listing's crawl index: the profiles meant to be indexed, `{ <listKey>: [{ uid, updatedAt }] }`. Until the API serves
+ * it, the full list stands in, so the sitemap never loses a section.
+ *
+ * - Teams (LAB-3087): the full list included the `L0` teams, which the API refuses to a logged-out visitor: 931 sitemap
+ *   URLs that each rendered an error page.
+ * - Members (LAB-3096): leaves out profiles with no photo and no bio, which the member page marks `noindex`.
  */
-async function fetchTeamCrawlIndex(): Promise<SitemapEntity[]> {
+async function fetchCrawlIndex(path: string, listKey: string): Promise<SitemapEntity[]> {
   const apiBase = process.env.DIRECTORY_API_URL;
   if (!apiBase) {
     return [];
   }
 
-  const data = await fetchJson(`${apiBase}/v1/teams/crawl-index`);
-  const teams = (data as { teams?: unknown } | null)?.teams;
-  if (Array.isArray(teams)) {
-    return parseEntities(teams);
+  const data = await fetchJson(`${apiBase}${path}/crawl-index`);
+  const items = (data as { [key: string]: unknown } | null)?.[listKey];
+  if (Array.isArray(items)) {
+    return parseEntities(items);
   }
-  return fetchEntities('/v1/teams', 'teams');
+  return fetchEntities(path, listKey);
 }
 
 // No changefreq or priority anywhere (LAB-3094): Google ignores both. lastmod is the one field it reads.
@@ -134,9 +137,9 @@ export async function sitemapSection(section: SitemapSection): Promise<MetadataR
     case 'pages':
       return STATIC_PATHS.map((path) => ({ url: `${baseUrl}${path}` }));
     case 'teams':
-      return entityEntries(await fetchTeamCrawlIndex(), PAGE_ROUTES.TEAMS, baseUrl);
+      return entityEntries(await fetchCrawlIndex('/v1/teams', 'teams'), PAGE_ROUTES.TEAMS, baseUrl);
     case 'members':
-      return entityEntries(await fetchEntities('/v1/members', 'members'), PAGE_ROUTES.MEMBERS, baseUrl);
+      return entityEntries(await fetchCrawlIndex('/v1/members', 'members'), PAGE_ROUTES.MEMBERS, baseUrl);
     case 'projects':
       return entityEntries(await fetchEntities('/v1/projects', 'projects'), PAGE_ROUTES.PROJECTS, baseUrl);
     case 'jobs':

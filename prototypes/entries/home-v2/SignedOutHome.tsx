@@ -1,7 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 
 import type { ITeamNewsItem } from '@/types/team-news.types';
 import { Button } from '@/components/common/Button';
@@ -73,8 +73,6 @@ export function SignedOutHome({
   /** Any open event in the next 30 days (the ?events= review switch). */
   hasEvents?: boolean;
 }) {
-  const [mapOpen, setMapOpen] = useState(false);
-
   return (
     <div className={clsx(s.storyPage, aileron.variable)}>
       {/* 1. Who PL is, beside the Join card. */}
@@ -126,60 +124,86 @@ export function SignedOutHome({
         </div>
       </div>
 
-      {/* From the portfolio down: one full-bleed white band (no grey ground, no sheet). */}
-      <div className={clsx(explore.root, s.whiteBand)}>
-        <div className={clsx(explore.content, s.whiteSheet)}>
-          {/* 4. The portfolio on the islands map, the focus areas under it, then the PL entities. */}
-          <section className={explore.sectionTeams} aria-labelledby="home-portfolio-title">
-            <div className={explore.subtitle}>
-              <h2 id="home-portfolio-title" className={explore.label}>
-                The portfolio
-              </h2>
-              <p className={explore.supportingText}>
-                {PORTFOLIO_TEAMS.length} teams across four focus areas, with Protocol Labs at the centre.
-              </p>
-            </div>
-            {/* On phones the map is ~3,000px of hexes; Home clamps it so the story keeps moving. */}
-            <div className={clsx(s.mapClamp, mapOpen && s.mapClampOpen)}>
-              <PortfolioPanel teams={PORTFOLIO_TEAMS} />
-              {!mapOpen && (
-                <button type="button" className={s.mapMore} onClick={() => setMapOpen(true)}>
-                  Show the whole map
-                </button>
-              )}
-            </div>
-            <FocusAreas teams={PORTFOLIO_TEAMS} />
-          </section>
-
-          <section className={clsx(explore.sectionTeams, s.storySection)} aria-labelledby="home-entities-title">
-            <div className={explore.subtitle}>
-              <h2 id="home-entities-title" className={explore.label}>
-                Protocol Labs entities
-              </h2>
-            </div>
-            <EntitiesRow />
-          </section>
-
-          {/* 2026-11-05 review: the hero asks before anyone has read the page, so the same
-              Join card asks again once the story is told (one component, so the two can't drift). */}
-          <JoinCard
-            id="home-join-end-title"
-            onSignIn={onSignIn}
-            onSignUp={onSignUp}
-            faces={JOIN_FACES}
-            className={s.joinCardEnd}
-            wide
-          />
-
-          {/* 5. Who has backed the network. */}
-          <section className={clsx(explore.sectionPartners, s.storyEnd)}>
-            <LinkedLogoWall />
-          </section>
-        </div>
-      </div>
+      {/* 4–5. The portfolio, focus areas and entities, the Join card again, then the logo wall. */}
+      <NetworkOverview>
+        {/* 2026-11-05 review: the hero asks before anyone has read the page, so the same
+            Join card asks again once the story is told (one component, so the two can't drift). */}
+        <JoinCard
+          id="home-join-end-title"
+          onSignIn={onSignIn}
+          onSignUp={onSignUp}
+          faces={JOIN_FACES}
+          className={s.joinCardEnd}
+          wide
+        />
+      </NetworkOverview>
 
       {/* 6. The directory's own footer (no SPV disclaimer, no Demo Day legal PDFs). */}
       <HomeFooter />
+    </div>
+  );
+}
+
+/**
+ * The network overview: the portfolio on the islands map, the focus areas under
+ * it, the PL entities, then the investor logo wall, on one full-bleed white band.
+ * Signed out it carries the closing Join card (`children`, between the entities
+ * and the logos). Signed in (2026-11-06) it sits under the feed's own "Browse by
+ * focus area" section, so `focusAreas={false}` leaves the cards out rather than
+ * showing them twice.
+ */
+export function NetworkOverview({
+  focusAreas = true,
+  className,
+  children,
+}: {
+  focusAreas?: boolean;
+  className?: string;
+  /** Between the entities and the logo wall (signed out: the closing Join card). */
+  children?: ReactNode;
+}) {
+  const [mapOpen, setMapOpen] = useState(false);
+
+  return (
+    <div className={clsx(explore.root, s.whiteBand, aileron.variable, className)}>
+      <div className={clsx(explore.content, s.whiteSheet)}>
+        <section className={explore.sectionTeams} aria-labelledby="home-portfolio-title">
+          <div className={explore.subtitle}>
+            <h2 id="home-portfolio-title" className={explore.label}>
+              Protocol Labs portfolio
+            </h2>
+            <p className={explore.supportingText}>
+              {PORTFOLIO_TEAMS.length} teams across four focus areas, with Protocol Labs at the centre.
+            </p>
+          </div>
+          {/* On phones the map is ~3,000px of hexes; Home clamps it so the story keeps moving. */}
+          <div className={clsx(s.mapClamp, mapOpen && s.mapClampOpen)}>
+            <PortfolioPanel teams={PORTFOLIO_TEAMS} />
+            {!mapOpen && (
+              <button type="button" className={s.mapMore} onClick={() => setMapOpen(true)}>
+                Show the whole map
+              </button>
+            )}
+          </div>
+          {focusAreas && <FocusAreas teams={PORTFOLIO_TEAMS} />}
+        </section>
+
+        <section className={clsx(explore.sectionTeams, s.storySection)} aria-labelledby="home-entities-title">
+          <div className={explore.subtitle}>
+            <h2 id="home-entities-title" className={explore.label}>
+              Protocol Labs entities
+            </h2>
+          </div>
+          <EntitiesRow />
+        </section>
+
+        {children}
+
+        {/* Who has backed the network. */}
+        <section className={clsx(explore.sectionPartners, s.storyEnd)}>
+          <LinkedLogoWall />
+        </section>
+      </div>
     </div>
   );
 }

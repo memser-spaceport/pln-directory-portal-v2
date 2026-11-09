@@ -1567,3 +1567,9 @@ $band-inset-phone: 24px;
 .personalizePlain.personalizePlain {
   margin: 0;
 }
+
+/* Signed in (2026-11-06): the network overview spans the window under the
+   member page's centred column, as the white band does signed out. */
+.memberOverview.memberOverview {
+  width: 100%;
+}

@@ -455,7 +455,8 @@ export const activitiesData: ActivitiesData = {
       popupContent: {
         title: 'Host an Event',
         overview: `Host or co-host a curated event for Protocol Labs participants on topics relating to one of PL's focus areas or general innovation and entrepreneurship like company formation, GTM, hiring, etc. Events must be designed with intent, run independently without PL directly paying for your time or labor, and focused on delivering real value to the broader PL community.`,
-        networkBenefits: 'Encourages member-led events that deliver practical value without relying only on central sponsorship.',
+        networkBenefits:
+          'Encourages member-led events that deliver practical value without relying only on central sponsorship.',
         rules: [
           'Create and publish the event in Luma, and include it on a live calendar or listing people can find.',
           'Add events@plrs.xyz as an Event Manager in Luma so registration and attendance data can be accessed.',
@@ -463,15 +464,15 @@ export const activitiesData: ActivitiesData = {
           'Your profile must be clearly listed under the Host section of the event.',
           'At least 10 people not associated with your organization or company must attend.',
           'If the PL Infra Events AI App identifies you as a host, you automatically meet these requirements.',
-          'Private event? Skip the public listing and directory, and send the invite to plaa-wg@plrs.xyz showing you as host.'
+          'Private event? Skip the public listing and directory, and send the invite to plaa-wg@plrs.xyz showing you as host.',
         ],
         links: [
           { text: 'events@plrs.xyz', url: 'mailto:events@plrs.xyz' },
           { text: 'plaa-wg@plrs.xyz', url: 'mailto:plaa-wg@plrs.xyz' },
           { text: 'https://irl.plnetwork.io/events/', url: 'https://irl.plnetwork.io/events/' },
-          { text: 'PL Infra Events AI App', url: '/pl-infra/ai-apps/cmsg2psgb031pnq4g7nls6q81' }
-        ]
-      }
+          { text: 'PL Infra Events AI App', url: '/pl-infra/ai-apps/cmsg2psgb031pnq4g7nls6q81' },
+        ],
+      },
     },
     {
       id: 'speak-at-event',
@@ -484,21 +485,23 @@ export const activitiesData: ActivitiesData = {
       cta: 'submit',
       popupContent: {
         title: 'Speak at an Event',
-        overview: 'Give a talk or join a panel at a live event where you represent a PL network project or a PL entity. This can be a PL-sponsored event or an outside conference.',
-        networkBenefits: 'Makes the network more visible at events inside and outside PL, and recognizes members who represent their projects or the network at-large in public.',
+        overview:
+          'Give a talk or join a panel at a live event where you represent a PL network project or a PL entity. This can be a PL-sponsored event or an outside conference.',
+        networkBenefits:
+          'Makes the network more visible at events inside and outside PL, and recognizes members who represent their projects or the network at-large in public.',
         rules: [
           `Give a talk or join a panel at a live event where you represent a PL network project or a PL entity. The event doesn't need to be PL-sponsored.`,
           'If the PL Infra Events AI App identifies you as a speaker or panelist, you automatically qualify. Otherwise, submit a link to the event page or published schedule that lists you as a speaker or panelist.',
           'One award per person per snapshot month, however many talks you give.',
           `You can't collect points for speaking at an event you also host or co-host. Collect points for that event through Host an Event instead.`,
           'The PLAA Working Group reviews each submitted link before points are awarded.',
-          `Submit your link after the event, within 30 days of the event date. Links submitted before the event takes place aren't accepted.`
+          `Submit your link after the event, within 30 days of the event date. Links submitted before the event takes place aren't accepted.`,
         ],
         links: [
           { text: 'PL Infra Events AI App', url: '/pl-infra/ai-apps/cmsg2psgb031pnq4g7nls6q81' },
-          { text: 'Host an Event', url: '/alignment-asset/activities#help-organize-event' }
-        ]
-      }
+          { text: 'Host an Event', url: '/alignment-asset/activities#help-organize-event' },
+        ],
+      },
     },
     {
       id: 'build-ai-app-for-the-network',
@@ -596,15 +599,16 @@ export const activitiesData: ActivitiesData = {
       cta: 'confirm',
       popupContent: {
         title: 'Connect LabOS to Your AI',
-        overview: 'Connect LabOS to Claude, Codex or any other MCP client so you can use LabOS from your AI sessions. Once connected, you can search members, teams, projects and events, get summaries of network news and forum posts, post team updates, and go through feedback on your AI Apps.',
+        overview:
+          'Connect LabOS to Claude, Codex or any other MCP client so you can use LabOS from your AI sessions. Once connected, you can search members, teams, projects and events, get summaries of network news and forum posts, post team updates, and go through feedback on your AI Apps.',
         networkBenefits: `Makes it easier for members to find and use the network's people, projects, and tools from where they already work.`,
         rules: [
           'Add LabOS as a connection in your MCP client using the steps on the MCP connections page.',
           'Sign in to LabOS and approve the connection.',
-          'One award per person, collected once.'
+          'One award per person, collected once.',
         ],
-        links: [{ text: 'MCP connections page', url: '/settings/mcp' }]
-      }
+        links: [{ text: 'MCP connections page', url: '/settings/mcp' }],
+      },
     },
     {
       id: 'update-directory-profile',

@@ -120,32 +120,16 @@
   width: 100%;
 }
 
-.followCaption {
-  margin: 0;
-  font-size: 12px;
-  line-height: 16px;
-  text-align: right;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-}
-
-.visitorActions {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.followCol {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-}
-
-// Same box as TeamFollowButton's `.followBtn`, so "Request intro" is not taller than Follow (LAB-3186).
 .introButton {
-  height: 32px;
-  padding: 0 10px;
   flex-shrink: 0;
+}
+
+.desktopContact {
+  display: contents;
+
+  @include media.mobile-only {
+    display: none;
+  }
 }
 
 .followSlotDesktop {
@@ -162,37 +146,29 @@
 .followSlotMobile {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
+  align-items: stretch;
+  gap: 8px;
   margin-top: 12px;
 
-  .followCaption {
-    text-align: left;
+  @include media.tablet-portrait {
+    display: none;
   }
+}
 
-  .visitorActions {
-    flex-direction: column;
-    align-items: stretch;
-    width: 100%;
-  }
+.mobileContact {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
 
-  .followCol {
-    align-items: stretch;
-    width: 100%;
-
-    > button {
-      width: 100%;
-    }
-  }
-
-  .introButton {
-    order: -1;
+  > button {
     width: 100%;
     justify-content: center;
   }
 
-  @include media.tablet-portrait {
-    display: none;
+  .introButton {
+    order: -1;
   }
 }
 
@@ -226,6 +202,41 @@
   display: flex;
   gap: 12px;
   align-items: center;
+}
+
+.headerActionSlot .actions:not(.adminCorner) {
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.textAction {
+  display: inline-flex;
+  align-items: center;
+
+  @include media.tablet-portrait {
+    min-height: 34px;
+  }
+}
+
+.adminCorner {
+  @include media.mobile-only {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+
+    button {
+      font-size: 0;
+      gap: 0;
+      padding: 6px;
+    }
+  }
+}
+
+@include media.mobile-only {
+  .logoTagsContainer:has(.adminCorner) .nameAndActions {
+    padding-right: 64px;
+  }
 }
 
 .delete {

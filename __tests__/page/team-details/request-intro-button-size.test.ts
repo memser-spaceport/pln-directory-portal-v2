@@ -2,12 +2,10 @@ import fs from 'fs';
 import path from 'path';
 
 /**
- * LAB-3186: on a team page, "Request intro" was taller than "Follow".
- *
- * Both are `size="xs"` buttons, but `TeamFollowButton` pins its box to
- * `height: 32px; padding: 0 10px`, while "Request intro" kept the xs padding
- * (6px + 20px line height + 2px border = 34px). The team page now gives
- * "Request intro" the same box as Follow.
+ * LAB-3187: "Request an intro" shares one row with Follow, Edit, and Delete.
+ * The button keeps the xs box (padding 6px 10px, 34px). Follow stays 32px.
+ * The row centres them. Edit and Delete sit in a 34px box. The Follow caption
+ * is gone, so it no longer pushes the button down.
  *
  * jsdom applies no stylesheet, so the test compares the SCSS rules.
  */
@@ -43,23 +41,34 @@ function topLevelRule(scss: string, selector: string): Record<string, string> {
   return decls;
 }
 
-describe('Request intro and Follow on a team page', () => {
-  const follow = topLevelRule(
-    read('components/page/team-details/TeamFollowButton/TeamFollowButton.module.scss'),
-    '.followBtn',
-  );
-  const intro = topLevelRule(read('components/page/team-details/TeamDetails/TeamDetails.module.scss'), '.introButton');
+describe('Request an intro and Follow on a team page', () => {
+  const scss = read('components/page/team-details/TeamDetails/TeamDetails.module.scss');
+  const tsx = read('components/page/team-details/TeamDetails/TeamDetails.tsx');
+  const intro = topLevelRule(scss, '.introButton');
+  const actions = topLevelRule(scss, '.actions');
 
-  it('Follow has a fixed height and padding', () => {
-    expect(follow.height).toBe('32px');
-    expect(follow.padding).toBeDefined();
+  it('keeps the xs box instead of the Follow height', () => {
+    expect(intro.height).toBeUndefined();
+    expect(intro.padding).toBeUndefined();
+    expect(intro['flex-shrink']).toBe('0');
   });
 
-  it('Request intro has the same height as Follow', () => {
-    expect(intro.height).toBe(follow.height);
+  it('centres the row on the button', () => {
+    expect(actions['align-items']).toBe('center');
+    expect(actions.display).toBe('flex');
   });
 
-  it('Request intro has the same padding as Follow', () => {
-    expect(intro.padding).toBe(follow.padding);
+  it('puts Follow and the button in the actions row', () => {
+    expect(tsx).toMatch(/className=\{s\.desktopContact\}/);
+    expect(topLevelRule(scss, '.desktopContact').display).toBe('contents');
+  });
+
+  it('gives Edit and Delete a 34px box from 640px', () => {
+    expect(scss).toMatch(/\.textAction[\s\S]*min-height:\s*34px/);
+  });
+
+  it('does not show a caption under Follow', () => {
+    expect(tsx).not.toMatch(/Get updates/);
+    expect(scss).not.toMatch(/\.followCaption/);
   });
 });

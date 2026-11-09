@@ -9,8 +9,9 @@ import path from 'path';
  * `.headerActions`. When the name block was wider than the free space, the
  * actions wrapped to the next line. From 640px up `.headerDetails` is now a
  * grid: the name and the actions share the first row (actions at the top
- * right), and the role and location row spans the full width below. Below 640px
- * the actions still go below the name at full width.
+ * right). The role and location row sits below the name in the first column
+ * only, so it ends before the actions and wraps there instead of running under
+ * them. Below 640px the actions still go below the name at full width.
  *
  * jsdom applies no stylesheet, so the test compares the SCSS rules.
  */
@@ -106,11 +107,27 @@ describe('Request intro position on a member page', () => {
     expect(actions['grid-column']).toBe('2');
   });
 
-  it('from 640px, the role and location row spans the full width below', () => {
+  it('from 640px, the role and location row stays in the first column, before the actions', () => {
     const info = includeBlock(topLevelBlock(scss, '.headerInfo'), 'tablet-portrait');
     const row = declarations(topLevelBlock(info, '> .roleAndLocation'));
     expect(row['grid-row']).toBe('2');
-    expect(row['grid-column']).toBe('1 / -1');
+    expect(row['grid-column']).toBe('1');
+  });
+
+  it('the role and location row wraps, and a wrapped line hides the divider it starts with', () => {
+    const list = declarations(topLevelBlock(scss, '.metaList'));
+    expect(list['flex-wrap']).toBe('wrap');
+
+    // Each item draws its divider in its left padding; the list is pulled left by
+    // that padding and the row clips it, so the item at a line start loses it.
+    const item = topLevelBlock(scss, '.metaItem');
+    const padding = declarations(item)['padding-left'];
+    expect(list['margin-left']).toBe(`-${padding}`);
+    expect(declarations(topLevelBlock(scss, '.roleAndLocation'))['overflow-x']).toBe('clip');
+    expect(item).toMatch(/&::before\s*\{/);
+
+    expect(tsx).not.toMatch(/s\.divider/);
+    expect(tsx.match(/s\.metaItem/g)?.length).toBeGreaterThanOrEqual(4);
   });
 
   it('the actions stay at the top right and share the button centre', () => {

@@ -89,24 +89,20 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
             <div className={s.specificsHdr}>
               <CustomTooltip trigger={<h1 className={s.specificsName}>{name}</h1>} content={name} />
             </div>
+            {/* Each item carries the divider before it, so a wrapped line never starts or ends on one. */}
             <div className={s.roleAndLocation}>
-              {member?.teams?.length > 0 ? (
-                <>
-                  <div className={s.teams}>
+              <div className={s.metaList}>
+                {member?.teams?.length > 0 ? (
+                  <div className={clsx(s.metaItem, s.teams)}>
                     <CustomTooltip
                       trigger={
                         <p className={s.teamsName}>
-                          {' '}
-                          {member?.teams?.length > 0 ? (
-                            <Link href={`/teams/${mainTeam?.id}`} target="_blank" className={s.teamLink}>
-                              {mainTeam?.name} <LinkIcon />
-                            </Link>
-                          ) : (
-                            ''
-                          )}{' '}
+                          <Link href={`/teams/${mainTeam?.id}`} target="_blank" className={s.teamLink}>
+                            {mainTeam?.name} <LinkIcon />
+                          </Link>
                         </p>
                       }
-                      content={member?.teams?.length > 0 ? mainTeam?.name : ''}
+                      content={mainTeam?.name}
                     />
                     {member?.teams?.length > 1 && (
                       <CustomTooltip
@@ -129,51 +125,53 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
                       />
                     )}
                   </div>
-                  <div className={clsx(s.divider, s.desktopOnly)} />
-                </>
-              ) : (
-                !isAdmin && !isOwner && <span className={s.teamLinkEmpty}>Team Not Provided</span>
-              )}
-              {role ? (
-                <CustomTooltip trigger={<p className={s.role}>{role}</p>} content={role} />
-              ) : isOwner || isAdmin ? (
-                <button
-                  className={s.addButton}
-                  type="button"
-                  onClick={() => {
-                    analytics.onAddYourRoleClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
-                    onEdit();
-                  }}
-                >
-                  + Your Role
-                </button>
-              ) : null}
-
-              {isLoggedIn && (
-                <>
-                  <div className={s.divider} />
-                  {(isOwner || isAdmin) && location === 'Unknown' ? (
+                ) : (
+                  !isAdmin && !isOwner && <span className={clsx(s.metaItem, s.teamLinkEmpty)}>Team Not Provided</span>
+                )}
+                {role ? (
+                  <div className={s.metaItem}>
+                    <CustomTooltip trigger={<p className={s.role}>{role}</p>} content={role} />
+                  </div>
+                ) : isOwner || isAdmin ? (
+                  <div className={s.metaItem}>
                     <button
                       className={s.addButton}
                       type="button"
                       onClick={() => {
-                        analytics.onAddYourLocationClicked(
-                          getAnalyticsUserInfo(userInfo),
-                          getAnalyticsMemberInfo(member),
-                        );
+                        analytics.onAddYourRoleClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
                         onEdit();
                       }}
                     >
-                      + Your Location
+                      + Your Role
                     </button>
-                  ) : (
-                    <div className={s.location}>
-                      <LocationIcon />
-                      <p className={s.locationName}>{location ? location : 'Unknown'}</p>
-                    </div>
-                  )}
-                </>
-              )}
+                  </div>
+                ) : null}
+
+                {isLoggedIn && (
+                  <div className={s.metaItem}>
+                    {(isOwner || isAdmin) && location === 'Unknown' ? (
+                      <button
+                        className={s.addButton}
+                        type="button"
+                        onClick={() => {
+                          analytics.onAddYourLocationClicked(
+                            getAnalyticsUserInfo(userInfo),
+                            getAnalyticsMemberInfo(member),
+                          );
+                          onEdit();
+                        }}
+                      >
+                        + Your Location
+                      </button>
+                    ) : (
+                      <div className={s.location}>
+                        <LocationIcon />
+                        <p className={s.locationName}>{location ? location : 'Unknown'}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

@@ -98,11 +98,40 @@ describe('loadBrowseEntries', () => {
     await expect(loadBrowseEntries('teams')).resolves.toEqual([{ uid: 't', name: 'T' }]);
   });
 
-  it('reads members and projects from their full lists, and answers null when the API fails', async () => {
+  // LAB-3096: empty member profiles are noindex and out of the sitemap, so the browse index leaves them out too.
+  it('leaves out members that are not in the member crawl index', async () => {
     (global.fetch as jest.Mock).mockImplementation((url: string) =>
-      url.includes('/v1/members') ? ok({ members: [{ uid: 'm', name: 'M' }] }) : Promise.resolve({ ok: false }),
+      url.includes('/v1/members/crawl-index')
+        ? ok({ members: [{ uid: 'm', updatedAt: '2026-01-01T00:00:00.000Z' }] })
+        : ok({
+            members: [
+              { uid: 'm', name: 'M' },
+              { uid: 'empty', name: 'Empty' },
+            ],
+          }),
+    );
+    await expect(loadBrowseEntries('members')).resolves.toEqual([{ uid: 'm', name: 'M' }]);
+  });
+
+  it('lists every member while the API has no member crawl index, and answers null when the API fails', async () => {
+    (global.fetch as jest.Mock).mockImplementation((url: string) =>
+      url.includes('crawl-index')
+        ? Promise.resolve({ ok: false })
+        : url.includes('/v1/members')
+          ? ok({ members: [{ uid: 'm', name: 'M' }] })
+          : Promise.resolve({ ok: false }),
     );
     await expect(loadBrowseEntries('members')).resolves.toEqual([{ uid: 'm', name: 'M' }]);
     await expect(loadBrowseEntries('projects')).resolves.toBeNull();
+  });
+
+  it('reads projects from their full list, with no crawl index', async () => {
+    (global.fetch as jest.Mock).mockImplementation((url: string) =>
+      url.includes('/v1/projects') ? ok({ projects: [{ uid: 'p', name: 'P' }] }) : Promise.resolve({ ok: false }),
+    );
+    await expect(loadBrowseEntries('projects')).resolves.toEqual([{ uid: 'p', name: 'P' }]);
+    expect((global.fetch as jest.Mock).mock.calls.map(([url]) => url)).not.toContainEqual(
+      expect.stringContaining('crawl-index'),
+    );
   });
 });

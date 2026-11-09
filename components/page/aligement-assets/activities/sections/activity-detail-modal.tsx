@@ -8,8 +8,8 @@ import { CloseIcon } from '@/components/icons';
 import { Activity, PopupLink } from '../types';
 import { isInfraOnlyActivity } from '../data';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
-import { ACTIVITY_FORM_URL, ACTIVITY_CONFIRM_TOAST } from '@/constants/plaa';
-import { toast } from '@/components/core/ToastContainer';
+import { ACTIVITY_FORM_URL } from '@/constants/plaa';
+import { useActivityConfirmToast } from '../confirm-toast';
 import { openPlaaBotForActivity } from '@/components/core/plaa-bot/plaa-bot.utils';
 import { PLAA_BOT_ANALYTICS_TARGET } from '@/components/core/plaa-bot/constants';
 
@@ -28,6 +28,7 @@ interface ActivityDetailModalProps {
  */
 export default function ActivityDetailModal({ isOpen, onClose, activity }: ActivityDetailModalProps) {
   const { onActivitiesModalLinkClicked } = useAlignmentAssetsAnalytics();
+  const showConfirmToast = useActivityConfirmToast();
 
   if (!activity) return null;
 
@@ -51,9 +52,9 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
   };
 
   const handleCtaClick = () => {
-    // Confirm CTA: acknowledge with a toast, no navigation.
+    // Confirm CTA: acknowledge with a toast of this snapshot's credits, no navigation.
     if (activity.cta === 'confirm') {
-      toast.success(ACTIVITY_CONFIRM_TOAST);
+      showConfirmToast(activity);
       return;
     }
 

@@ -3,6 +3,9 @@ import { toast as rtToast, ToastOptions, TypeOptions } from 'react-toastify';
 
 import { Toast } from '../components/Toast';
 
+/** Pass as `className` for a wider toast (600px on desktop) when the message runs long. */
+export const WIDE_TOAST_CLASS = 'toast--wide';
+
 type ToastFn = (content: ReactNode, options?: ToastOptions) => void;
 type ToastWithMethods = ToastFn & Record<TypeOptions, ToastFn>;
 

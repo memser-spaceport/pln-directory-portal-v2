@@ -4,9 +4,9 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { Activity } from '../types';
 import { isInfraOnlyActivity } from '../data';
-import { ACTIVITY_FORM_URL, ACTIVITY_CONFIRM_TOAST } from '@/constants/plaa';
+import { ACTIVITY_FORM_URL } from '@/constants/plaa';
+import { useActivityConfirmToast } from '../confirm-toast';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
-import { toast } from '@/components/core/ToastContainer';
 import { openPlaaBotForActivity } from '@/components/core/plaa-bot/plaa-bot.utils';
 import { PLAA_BOT_ANALYTICS_TARGET } from '@/components/core/plaa-bot/constants';
 
@@ -38,6 +38,7 @@ const SECTION_METADATA = [
 
 export default function ActivityTable({ activities, onRowClick }: ActivityTableProps) {
   const { onActivitiesFormLinkClicked, onActivitiesRowClicked } = useAlignmentAssetsAnalytics();
+  const showConfirmToast = useActivityConfirmToast();
 
   // Group activities by frequency
   const groupedActivities = activities.reduce(
@@ -71,9 +72,9 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
   const handleCtaClick = (e: React.MouseEvent, activity: Activity) => {
     e.stopPropagation();
 
-    // Confirm CTA: acknowledge with a toast, no navigation.
+    // Confirm CTA: acknowledge with a toast of this snapshot's credits, no navigation.
     if (activity.cta === 'confirm') {
-      toast.success(ACTIVITY_CONFIRM_TOAST);
+      showConfirmToast(activity);
       return;
     }
 

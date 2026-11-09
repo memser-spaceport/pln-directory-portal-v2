@@ -182,7 +182,9 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
               <RequestIntroEntry type="MEMBER" targetId={member.id} targetName={name} className={s.introButton} />
             )}
             {isLoggedIn && (isAdmin || isOwner) && (
-              <EditButton onClick={onEditProfileClick} incomplete={showIncomplete} />
+              <span className={s.editCell}>
+                <EditButton onClick={onEditProfileClick} incomplete={showIncomplete} />
+              </span>
             )}
           </div>
         </div>

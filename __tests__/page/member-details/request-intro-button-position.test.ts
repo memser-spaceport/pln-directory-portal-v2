@@ -113,10 +113,23 @@ describe('Request intro position on a member page', () => {
     expect(row['grid-column']).toBe('1 / -1');
   });
 
-  it('the actions stay at the top right', () => {
+  it('the actions stay at the top right and share the button centre', () => {
     const actions = declarations(topLevelBlock(scss, '.headerActions'));
     expect(actions['margin-left']).toBe('auto');
-    expect(actions['align-items']).toBe('flex-start');
+    expect(actions['align-items']).toBe('center');
     expect(actions['flex-shrink']).toBe('0');
+  });
+
+  it('Edit sits in a 34px box on the button centre', () => {
+    expect(tsx).toMatch(/className=\{s\.editCell\}/);
+    const cell = declarations(topLevelBlock(scss, '.editCell'));
+    expect(cell.display).toBe('inline-flex');
+    expect(cell['align-items']).toBe('center');
+    expect(cell['min-height']).toBe('34px');
+  });
+
+  it('the city has no extra right padding', () => {
+    const location = declarations(topLevelBlock(scss, '.location'));
+    expect(location['padding-right']).toBeUndefined();
   });
 });

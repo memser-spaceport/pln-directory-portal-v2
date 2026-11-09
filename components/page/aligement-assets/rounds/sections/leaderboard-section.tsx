@@ -25,12 +25,13 @@ export default function LeaderboardSection({
   onViewChange,
   currentSnapshotData,
   cumulativeData,
-  roundNumber
+  roundNumber,
 }: LeaderboardSectionProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [visibleCount, setVisibleCount] = useState(5);
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
-  const { onLeaderboardViewToggleClicked, onLeaderboardSearchUsed, onLeaderboardShowMoreClicked } = useAlignmentAssetsAnalytics();
+  const { onLeaderboardViewToggleClicked, onLeaderboardSearchUsed, onLeaderboardShowMoreClicked } =
+    useAlignmentAssetsAnalytics();
 
   // Select data based on current view
   const allData = useMemo(() => {
@@ -38,13 +39,14 @@ export default function LeaderboardSection({
   }, [view, currentSnapshotData, cumulativeData]);
 
   const tableTitle = view === 'current' ? `Round ${roundNumber}: Top Contributors` : 'All-Time: Top Contributors';
-  
+
   // Filter data based on search term
-  const filteredData = allData.filter(entry => 
-    entry.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    entry.activities.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredData = allData.filter(
+    (entry) =>
+      entry.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      entry.activities.toLowerCase().includes(searchTerm.toLowerCase()),
   );
-  
+
   // Get visible data
   const visibleData = filteredData.slice(0, visibleCount);
   const hasMore = filteredData.length > visibleCount;
@@ -52,7 +54,7 @@ export default function LeaderboardSection({
 
   const handleShowMore = () => {
     onLeaderboardShowMoreClicked(visibleCount, remainingCount);
-    setVisibleCount(prev => prev + 10);
+    setVisibleCount((prev) => prev + 10);
   };
 
   const handleViewChange = (newView: 'current' | 'alltime') => {
@@ -63,7 +65,7 @@ export default function LeaderboardSection({
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchTerm(value);
-    
+
     // Debounce analytics
     if (searchDebounceRef.current) {
       clearTimeout(searchDebounceRef.current);
@@ -83,7 +85,10 @@ export default function LeaderboardSection({
           <div className="leaderboard-section__header">
             <h2 className="leaderboard-section__title">Points Leaderboard</h2>
             <p className="leaderboard-section__description">
-              This leaderboard highlights contributors who have strengthened the network through verified activities in the current snapshot. View Current Round or slide over to view the All-Time Leaderboard to see ongoing impact. Please note that the Current Round Leaderboard results are not reflected in the All-Time Leaderboard.
+              This leaderboard highlights contributors who have strengthened the network through verified activities in
+              the current snapshot. View Current Round or slide over to view the All-Time Leaderboard to see ongoing
+              impact. Please note that the Current Round Leaderboard results are not reflected in the All-Time
+              Leaderboard.
             </p>
           </div>
 
@@ -93,8 +98,21 @@ export default function LeaderboardSection({
             <div className="leaderboard-section__filter-header">
               <div className="leaderboard-section__search">
                 <div className="leaderboard-section__search-input">
-                  <svg className="leaderboard-section__search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M14.5 14.5L10.5 10.5M12 7C12 9.76142 9.76142 12 7 12C4.23858 12 2 9.76142 2 7C2 4.23858 4.23858 2 7 2C9.76142 2 12 4.23858 12 7Z" stroke="#64748B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <svg
+                    className="leaderboard-section__search-icon"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M14.5 14.5L10.5 10.5M12 7C12 9.76142 9.76142 12 7 12C4.23858 12 2 9.76142 2 7C2 4.23858 4.23858 2 7 2C9.76142 2 12 4.23858 12 7Z"
+                      stroke="#64748B"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                   <input
                     type="text"
@@ -105,15 +123,15 @@ export default function LeaderboardSection({
                   />
                 </div>
               </div>
-              
+
               <div className="leaderboard-section__view-toggle">
-                <button 
+                <button
                   className={`leaderboard-section__toggle-btn ${view === 'current' ? 'leaderboard-section__toggle-btn--active' : ''}`}
                   onClick={() => handleViewChange('current')}
                 >
                   Current Round
                 </button>
-                <button 
+                <button
                   className={`leaderboard-section__toggle-btn ${view === 'alltime' ? 'leaderboard-section__toggle-btn--active' : ''}`}
                   onClick={() => handleViewChange('alltime')}
                 >
@@ -131,12 +149,7 @@ export default function LeaderboardSection({
             {filteredData.length === 0 && searchTerm ? (
               <div className="leaderboard-section__empty-state">
                 <div className="leaderboard-section__empty-illustration">
-                  <Image 
-                    src="/icons/rounds/empty-search.svg" 
-                    alt="No results found" 
-                    width={200} 
-                    height={178}
-                  />
+                  <Image src="/icons/rounds/empty-search.svg" alt="No results found" width={200} height={178} />
                 </div>
                 <div className="leaderboard-section__empty-content">
                   <h3 className="leaderboard-section__empty-title">Participant not found</h3>
@@ -147,21 +160,36 @@ export default function LeaderboardSection({
               <div className="leaderboard-section__table-content">
                 <div className={`leaderboard-section__table ${!hasMore ? 'leaderboard-section__table--last' : ''}`}>
                   {visibleData.map((entry, index) => (
-                    <div 
-                      key={`${entry.name}-${entry.rank}`} 
+                    <div
+                      key={`${entry.name}-${entry.rank}`}
                       className={`leaderboard-section__row ${index === visibleData.length - 1 && !hasMore ? 'leaderboard-section__row--last' : ''}`}
                     >
                       <div className="leaderboard-section__row-left">
                         <div className="leaderboard-section__rank-cell">
                           <span className="leaderboard-section__rank">#{entry.rank}</span>
                           {entry.rank === 1 && (
-                            <Image src="/icons/rounds/points_leader_board/first.svg" alt="1st place" width={24} height={28} />
+                            <Image
+                              src="/icons/rounds/points_leader_board/first.svg"
+                              alt="1st place"
+                              width={24}
+                              height={28}
+                            />
                           )}
                           {entry.rank === 2 && (
-                            <Image src="/icons/rounds/points_leader_board/second.svg" alt="2nd place" width={24} height={28} />
+                            <Image
+                              src="/icons/rounds/points_leader_board/second.svg"
+                              alt="2nd place"
+                              width={24}
+                              height={28}
+                            />
                           )}
                           {entry.rank === 3 && (
-                            <Image src="/icons/rounds/points_leader_board/third.svg" alt="3rd place" width={24} height={28} />
+                            <Image
+                              src="/icons/rounds/points_leader_board/third.svg"
+                              alt="3rd place"
+                              width={24}
+                              height={28}
+                            />
                           )}
                         </div>
                         <div className="leaderboard-section__user-info">
@@ -185,7 +213,13 @@ export default function LeaderboardSection({
                     <button className="leaderboard-section__show-more-btn" onClick={handleShowMore}>
                       <span>Show +{Math.min(10, remainingCount)} more</span>
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M4 6L8 10L12 6" stroke="#0B4F66" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path
+                          d="M4 6L8 10L12 6"
+                          stroke="#0B4F66"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -321,7 +355,9 @@ export default function LeaderboardSection({
           font-weight: 500;
           line-height: 20px;
           cursor: pointer;
-          transition: background-color 0.15s ease, color 0.15s ease;
+          transition:
+            background-color 0.15s ease,
+            color 0.15s ease;
           background-color: transparent;
           color: #0f172a;
           min-width: 120px;
@@ -525,15 +561,15 @@ export default function LeaderboardSection({
             gap: 16px;
             align-items: stretch;
           }
-          
+
           .leaderboard-section__search {
             width: 100%;
           }
-          
+
           .leaderboard-section__view-toggle {
             align-self: center;
           }
-          
+
           .leaderboard-section__row {
             padding: 16px;
           }
@@ -541,7 +577,7 @@ export default function LeaderboardSection({
           .leaderboard-section__row-left {
             gap: 16px;
           }
-          
+
           .leaderboard-section__user-info {
             width: auto;
             flex: 1;

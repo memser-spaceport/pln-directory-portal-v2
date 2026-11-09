@@ -24,7 +24,7 @@ const productVersions: VersionData[] = [
     version: 'v0.6',
     dateRange: 'June 2026 - present',
     added: [
-      'PLVH portfolio holdings added to the Trust\'s assets',
+      "PLVH portfolio holdings added to the Trust's assets",
       'Launched PLAA Dashboard',
       'Introduced Simultaneous Settlement Program',
     ],
@@ -41,10 +41,7 @@ const productVersions: VersionData[] = [
       '+6 new activities introduced H1 2026',
       '2 activities removed February 2026 to better align with network needs',
     ],
-    changed: [
-      'Expanded onboarded participants from 48 to 62',
-      'Removed the strict login gate for the website',
-    ],
+    changed: ['Expanded onboarded participants from 48 to 62', 'Removed the strict login gate for the website'],
     learned: [
       'Users strongly prefer activities that are tracked and rewarded automatically',
       'Users desire a more frequent cadence for buyback auctions',
@@ -91,10 +88,7 @@ const productVersions: VersionData[] = [
       'Increased activity options from 14 to 16',
       'Pay-as-bid to batch auction model',
     ],
-    learned: [
-      'PLAA issuance created tangible ownership sense',
-      'Conducted buyback user research',
-    ],
+    learned: ['PLAA issuance created tangible ownership sense', 'Conducted buyback user research'],
   },
   {
     version: 'v0.1',
@@ -195,13 +189,13 @@ export default function ProductVersionsPage() {
         <div className="product-versions__versions-list">
           {productVersions.map((version) => {
             const isExpanded = expandedVersions[version.version];
-            
+
             const availableTabs = [
               { key: 'added', label: 'Added', icon: '/icons/added-icon.png', data: version.added },
               { key: 'changed', label: 'Changed', icon: '/icons/changed-icon.png', data: version.changed },
               { key: 'learned', label: 'Learned', icon: '/icons/learned-icon.png', data: version.learned },
               { key: 'launched', label: 'Launched', icon: '/icons/launched-icon.png', data: version.launched },
-            ].filter(tab => tab.data && tab.data.length > 0);
+            ].filter((tab) => tab.data && tab.data.length > 0);
 
             const activeTabKey = activeTabs[version.version] || (availableTabs.length > 0 ? availableTabs[0].key : '');
 
@@ -232,76 +226,70 @@ export default function ProductVersionsPage() {
                         <button
                           key={tab.key}
                           className={`product-versions__tab ${activeTabKey === tab.key ? 'product-versions__tab--active' : ''}`}
-                          onClick={() => setActiveTabs(prev => ({ ...prev, [version.version]: tab.key }))}
+                          onClick={() => setActiveTabs((prev) => ({ ...prev, [version.version]: tab.key }))}
                         >
-                          <Image
-                             src={tab.icon} 
-                             alt="" 
-                             width={16} 
-                             height={16} 
-                             className="product-versions__tab__icon"
-                          />
+                          <Image src={tab.icon} alt="" width={16} height={16} className="product-versions__tab__icon" />
                           {tab.label}
                         </button>
                       ))}
                     </div>
 
                     <div className="product-versions__tab-content">
-                       {availableTabs.map((tab) => {
-                         if (tab.key !== activeTabKey) return null;
-                         return (
-                           <div key={tab.key} className="product-versions__section animation-fade-in">
-                             {renderList(tab.data as (string | VersionItem)[])}
-                           </div>
-                         );
-                       })}
+                      {availableTabs.map((tab) => {
+                        if (tab.key !== activeTabKey) return null;
+                        return (
+                          <div key={tab.key} className="product-versions__section animation-fade-in">
+                            {renderList(tab.data as (string | VersionItem)[])}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
 
                 {isExpanded && (
                   <div className="product-versions__desktop-view">
-                     <div className="product-versions__version-card__content">
-                    {version.launched && version.launched.length > 0 && (
-                      <div className="product-versions__section">
-                        <h3 className="product-versions__section__title product-versions__section__title--launched">
-                          <Image src="/icons/launched-icon.png" alt="" width={16} height={16} />
-                          Launched
-                        </h3>
-                        {renderList(version.launched)}
-                      </div>
-                    )}
+                    <div className="product-versions__version-card__content">
+                      {version.launched && version.launched.length > 0 && (
+                        <div className="product-versions__section">
+                          <h3 className="product-versions__section__title product-versions__section__title--launched">
+                            <Image src="/icons/launched-icon.png" alt="" width={16} height={16} />
+                            Launched
+                          </h3>
+                          {renderList(version.launched)}
+                        </div>
+                      )}
 
-                    {version.added && version.added.length > 0 && (
-                      <div className="product-versions__section">
-                        <h3 className="product-versions__section__title product-versions__section__title--added">
-                          <Image src="/icons/added-icon.png" alt="" width={16} height={16} />
-                          Added
-                        </h3>
-                        {renderList(version.added)}
-                      </div>
-                    )}
+                      {version.added && version.added.length > 0 && (
+                        <div className="product-versions__section">
+                          <h3 className="product-versions__section__title product-versions__section__title--added">
+                            <Image src="/icons/added-icon.png" alt="" width={16} height={16} />
+                            Added
+                          </h3>
+                          {renderList(version.added)}
+                        </div>
+                      )}
 
-                    {version.changed && version.changed.length > 0 && (
-                      <div className="product-versions__section">
-                        <h3 className="product-versions__section__title product-versions__section__title--changed">
-                          <Image src="/icons/changed-icon.png" alt="" width={16} height={16} />
-                          Changed
-                        </h3>
-                        {renderList(version.changed)}
-                      </div>
-                    )}
+                      {version.changed && version.changed.length > 0 && (
+                        <div className="product-versions__section">
+                          <h3 className="product-versions__section__title product-versions__section__title--changed">
+                            <Image src="/icons/changed-icon.png" alt="" width={16} height={16} />
+                            Changed
+                          </h3>
+                          {renderList(version.changed)}
+                        </div>
+                      )}
 
-                    {version.learned && version.learned.length > 0 && (
-                      <div className="product-versions__section">
-                        <h3 className="product-versions__section__title product-versions__section__title--learned">
-                          <Image src="/icons/learned-icon.png" alt="" width={16} height={16} />
-                          Learned
-                        </h3>
-                        {renderList(version.learned)}
-                      </div>
-                    )}
-                  </div>
+                      {version.learned && version.learned.length > 0 && (
+                        <div className="product-versions__section">
+                          <h3 className="product-versions__section__title product-versions__section__title--learned">
+                            <Image src="/icons/learned-icon.png" alt="" width={16} height={16} />
+                            Learned
+                          </h3>
+                          {renderList(version.learned)}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -418,7 +406,7 @@ export default function ProductVersionsPage() {
         .product-versions__chevron {
           transition: transform 0.3s ease;
           flex-shrink: 0;
-          margin-top: 4px; 
+          margin-top: 4px;
         }
 
         .product-versions__chevron--expanded {
@@ -440,7 +428,7 @@ export default function ProductVersionsPage() {
             transform: translateY(0);
           }
         }
-        
+
         .animation-fade-in {
           animation: fadeIn 0.3s ease;
         }
@@ -455,7 +443,7 @@ export default function ProductVersionsPage() {
           overflow-x: auto;
           scrollbar-width: none;
         }
-        
+
         .product-versions__tabs::-webkit-scrollbar {
           display: none;
         }
@@ -478,7 +466,7 @@ export default function ProductVersionsPage() {
         }
 
         .product-versions__tab--active {
-          color: #3b82f6; 
+          color: #3b82f6;
           border-bottom-color: #3b82f6;
         }
 
@@ -487,7 +475,7 @@ export default function ProductVersionsPage() {
         }
 
         .product-versions__tab--active .product-versions__tab__icon {
-          opacity: 1; 
+          opacity: 1;
         }
 
         .product-versions__section {
@@ -591,32 +579,31 @@ export default function ProductVersionsPage() {
           }
 
           .product-versions__header {
-             margin-bottom: 32px;
+            margin-bottom: 32px;
           }
 
           .product-versions__version-card__button {
-             align-items: center;
+            align-items: center;
           }
 
           .product-versions__version-card__header {
-             flex-direction: row;
-             align-items: center;
-             gap: 12px;
+            flex-direction: row;
+            align-items: center;
+            gap: 12px;
           }
 
           .product-versions__version-card__version {
-             font-size: 18px;
+            font-size: 18px;
           }
-          
+
           .product-versions__version-card__content {
-             display: grid;
-             grid-template-columns: repeat(3, 1fr);
-             gap: 20px;
-             padding: 32px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 32px;
           }
         }
       `}</style>
     </>
   );
 }
-

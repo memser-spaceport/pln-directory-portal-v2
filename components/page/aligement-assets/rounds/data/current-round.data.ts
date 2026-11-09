@@ -9,27 +9,28 @@ export const currentRoundData: CurrentRoundData = {
   meta: {
     roundNumber: 19,
     isCurrentRound: true,
-    lastUpdated: '2026-08-11T00:00:00'
+    lastUpdated: '2026-08-11T00:00:00',
   },
 
   hero: {
     title: 'PL Alignment Asset',
-    subtitle: 'The PL Alignment Asset connects contributions across the Protocol Labs network — turning collaboration into shared success.',
+    subtitle:
+      'The PL Alignment Asset connects contributions across the Protocol Labs network — turning collaboration into shared success.',
     actions: [
       {
         label: 'Submit Activities',
         url: '/alignment-asset/activities',
         type: 'primary',
-        openInNewTab: false
+        openInNewTab: false,
       },
       {
         label: 'Manage your Surus Account',
         url: 'https://app.surus.io/invest/PLAA1Trust',
         type: 'secondary',
         icon: '/icons/rounds/filecoin.svg',
-        openInNewTab: true
-      }
-    ]
+        openInNewTab: true,
+      },
+    ],
   },
 
   roundDescription: {
@@ -43,15 +44,15 @@ export const currentRoundData: CurrentRoundData = {
           {
             placeholder: '{incentivizedActivities}',
             text: 'activities',
-            url: '/alignment-asset/activities'
-          }
-        ]
+            url: '/alignment-asset/activities',
+          },
+        ],
       },
       {
-        text: 'Your PLAA amount depends on participation within each category: when more people contribute, the PLAA pool is more widely distributed; when activity is lower in a category, more PLAA is available per contributor.'
+        text: 'Your PLAA amount depends on participation within each category: when more people contribute, the PLAA pool is more widely distributed; when activity is lower in a category, more PLAA is available per contributor.',
       },
       {
-        text: 'Some categories update in real time, while others rely on participants submitting information. Consequently, the point totals may not always reflect the most recent activity — especially for activities such as Custom Incentive Experiments, Talent Referrals, Curate X Spaces, and Referral Program submissions. Our new activity assistant bot streamlines most submissions, though some activities will still require submission via a Google form or manual updates. We\'ll continue updating as new submissions come in and are working toward more automations this year.'
+        text: "Some categories update in real time, while others rely on participants submitting information. Consequently, the point totals may not always reflect the most recent activity — especially for activities such as Custom Incentive Experiments, Talent Referrals, Curate X Spaces, and Referral Program submissions. Our new activity assistant bot streamlines most submissions, though some activities will still require submission via a Google form or manual updates. We'll continue updating as new submissions come in and are working toward more automations this year.",
       },
       {
         text: 'Each round represents a single monthly snapshot period. View the PLAA allocations and activity levels for the current round below. You can also see how points convert to PLAA on the {overviewPage}.',
@@ -59,48 +60,50 @@ export const currentRoundData: CurrentRoundData = {
           {
             placeholder: '{overviewPage}',
             text: 'Overview page',
-            url: '/alignment-asset/overview'
-          }
-        ]
-      }
-    ]
+            url: '/alignment-asset/overview',
+          },
+        ],
+      },
+    ],
   },
 
   snapshotProgress: {
     startDate: '2026-08-01T00:00:00',
     endDate: '2026-08-31T23:59:59',
     tipContent: {
-      tipText: 'Lower activity in a category generally means more PLAA is available to collect per contributor, while higher activity means PLAA is distributed more widely.',
+      tipText:
+        'Lower activity in a category generally means more PLAA is available to collect per contributor, while higher activity means PLAA is distributed more widely.',
       exploreTitle: 'Explore where you can make the biggest impact this month:',
       links: [
         {
           prefix: 'Browse activities you can complete in the',
           linkText: 'Activities List',
-          url: '/alignment-asset/activities'
+          url: '/alignment-asset/activities',
         },
         {
           prefix: 'Learn how',
           linkText: 'Point-to-PLAA Conversion',
           suffix: 'works',
-          url: '/alignment-asset/faqs#point-to-token-conversion'
+          url: '/alignment-asset/faqs#point-to-token-conversion',
         },
         {
           prefix: 'Review the',
           linkText: 'Overview page',
           suffix: 'for how points and PLAA map to each other by category this snapshot',
-          url: '/alignment-asset/overview'
-        }
+          url: '/alignment-asset/overview',
+        },
       ],
       bottomLink: {
         text: 'See what happened in the last round (Round 18)',
-        url: '/alignment-asset/rounds/18'
-      }
-    }
+        url: '/alignment-asset/rounds/18',
+      },
+    },
   },
 
   chart: {
     title: 'Total Points Collected Per KPI category In Current Snapshot Period (updated weekly)',
-    subtitle: 'Please note: totals may not include the most recent submissions, as some activities rely on participant reporting.',
+    subtitle:
+      'Please note: totals may not include the most recent submissions, as some activities rely on participant reporting.',
     maxValue: 500,
     chartData: [
       { name: 'Brand', value: 0 },
@@ -108,8 +111,8 @@ export const currentRoundData: CurrentRoundData = {
       { name: 'Network Tooling', value: 200 },
       { name: 'People/Talent', value: 0 },
       { name: 'Programs', value: 0 },
-      { name: 'Projects', value: 500 }
-    ]
+      { name: 'Projects', value: 500 },
+    ],
   },
 
   stats: {
@@ -139,23 +142,23 @@ export const currentRoundData: CurrentRoundData = {
       'Build an AI App',
       'Setup Your PL Directory Profile',
       'Share Compensation Data',
-      'Design a Custom Incentive Experiment'
+      'Design a Custom Incentive Experiment',
     ],
     // Sum of chart.chartData values above (450 + 200 + 500)
     totalPointsCollected: '1,150',
     totalTokensAvailable: '10,000',
-    numberOfBuybacks: 0
+    numberOfBuybacks: 0,
   },
 
   leaderboard: {
     currentSnapshotData: [],
-    cumulativeData: []
+    cumulativeData: [],
   },
 
   buybackAuction: {
     headerStats: {
       totalFilled: '$0.00',
-      fillRate: '0%'
+      fillRate: '0%',
     },
     summary: {
       title: 'Buyback Auction - July 2026 - Key Results',
@@ -163,42 +166,41 @@ export const currentRoundData: CurrentRoundData = {
         {
           icon: '/icons/rounds/buy_action_results/wallet-01.svg',
           label: 'Total Buyback Pool',
-          value: 'TBD'
+          value: 'TBD',
         },
         {
           icon: '/icons/rounds/buy_action_results/pie-chart.svg',
           label: 'Pool Used',
-          value: 'TBD'
+          value: 'TBD',
         },
         {
           icon: '/icons/rounds/buy_action_results/coins-02.svg',
           label: 'Clearing Price',
-          value: 'TBD'
+          value: 'TBD',
         },
         {
           icon: '/icons/rounds/buy_action_results/analytics-01.svg',
           label: 'Capped Allocation',
-          value: 'TBD'
+          value: 'TBD',
         },
         {
           icon: '/icons/rounds/buy_action_results/dollar-02.svg',
           label: 'PLAA Redeemed',
-          value: 'TBD'
+          value: 'TBD',
         },
         {
           icon: '/icons/rounds/buy_action_results/user-multiple.svg',
           label: 'Accepted Bidders',
-          value: 'TBD'
-        }
-      ]
+          value: 'TBD',
+        },
+      ],
     },
-    bids: []
+    bids: [],
   },
 
   learnMore: {
-    faqUrl: '/alignment-asset/faqs'
+    faqUrl: '/alignment-asset/faqs',
   },
-
 };
 
 export default currentRoundData;

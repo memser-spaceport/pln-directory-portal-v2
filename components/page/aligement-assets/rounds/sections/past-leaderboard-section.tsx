@@ -16,14 +16,14 @@ interface PastLeaderboardSectionProps {
  */
 export default function PastLeaderboardSection({ roundNumber, leaderboardData }: PastLeaderboardSectionProps) {
   const [visibleCount, setVisibleCount] = useState(10);
-  
+
   // Get visible data
   const visibleData = leaderboardData.slice(0, visibleCount);
   const hasMore = leaderboardData.length > visibleCount;
   const remainingCount = leaderboardData.length - visibleCount;
 
   const handleShowMore = () => {
-    setVisibleCount(prev => prev + 10);
+    setVisibleCount((prev) => prev + 10);
   };
 
   return (
@@ -34,8 +34,8 @@ export default function PastLeaderboardSection({ roundNumber, leaderboardData }:
           <div className="leaderboard-section__header">
             <h2 className="leaderboard-section__title">Points Leaderboard</h2>
             <p className="leaderboard-section__description">
-              This leaderboard highlights the top contributors who strengthened the network through verified
-              activities in Round {roundNumber}.
+              This leaderboard highlights the top contributors who strengthened the network through verified activities
+              in Round {roundNumber}.
             </p>
           </div>
 
@@ -103,7 +103,13 @@ export default function PastLeaderboardSection({ roundNumber, leaderboardData }:
                   <button className="leaderboard-section__show-more-btn" onClick={handleShowMore}>
                     <span>Show +{Math.min(10, remainingCount)} more</span>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M4 6L8 10L12 6" stroke="#0B4F66" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path
+                        d="M4 6L8 10L12 6"
+                        stroke="#0B4F66"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                   </button>
                 </div>

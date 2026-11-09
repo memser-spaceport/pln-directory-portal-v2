@@ -28,12 +28,12 @@ export default function HeroSection({ data }: HeroSectionProps) {
             <h1 className="hero-section__title">{data.title}</h1>
             <p className="hero-section__subtitle">{data.subtitle}</p>
           </div>
-          
+
           <div className="hero-section__actions">
             {data.actions.map((action, index) => (
-              <Link 
+              <Link
                 key={`${action.type}-${action.label}`}
-                href={action.url} 
+                href={action.url}
                 target={action.openInNewTab ? '_blank' : undefined}
                 rel={action.openInNewTab ? 'noopener noreferrer' : undefined}
                 className={`hero-section__btn hero-section__btn--${action.type}`}
@@ -140,7 +140,7 @@ export default function HeroSection({ data }: HeroSectionProps) {
             flex-direction: column;
             align-items: stretch;
           }
-          
+
           .hero-section__btn {
             width: 100%;
           }

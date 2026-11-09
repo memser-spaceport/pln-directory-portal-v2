@@ -19,8 +19,8 @@ export default function StatsSection({ data }: StatsSectionProps) {
   const [isLabweekActivitiesExpanded, setIsLabweekActivitiesExpanded] = useState(false);
 
   const hiddenActivitiesCount = Math.max(0, stats.incentivizedActivities.length - MOBILE_VISIBLE_ACTIVITIES);
-  const hiddenLabweekActivitiesCount = stats?.labweek25IncentivizedActivities 
-    ? Math.max(0, stats.labweek25IncentivizedActivities.length - MOBILE_VISIBLE_ACTIVITIES) 
+  const hiddenLabweekActivitiesCount = stats?.labweek25IncentivizedActivities
+    ? Math.max(0, stats.labweek25IncentivizedActivities.length - MOBILE_VISIBLE_ACTIVITIES)
     : 0;
 
   return (
@@ -56,8 +56,8 @@ export default function StatsSection({ data }: StatsSectionProps) {
                 <td className="stats-section__value">
                   <div className="stats-section__chips">
                     {stats.incentivizedActivities.map((activity, index) => (
-                      <span 
-                        key={`activity-${activity}-${index}`} 
+                      <span
+                        key={`activity-${activity}-${index}`}
                         className={`stats-section__chip ${!isActivitiesExpanded && index >= MOBILE_VISIBLE_ACTIVITIES ? 'stats-section__chip--hidden-mobile' : ''}`}
                       >
                         {activity}
@@ -65,7 +65,7 @@ export default function StatsSection({ data }: StatsSectionProps) {
                     ))}
                   </div>
                   {hiddenActivitiesCount > 0 && (
-                    <button 
+                    <button
                       className="stats-section__show-more"
                       onClick={() => setIsActivitiesExpanded(!isActivitiesExpanded)}
                       type="button"
@@ -77,30 +77,32 @@ export default function StatsSection({ data }: StatsSectionProps) {
               </tr>
 
               {/* Labweek25 Incentivized Activities */}
-              {stats?.labweek25IncentivizedActivities && stats.labweek25IncentivizedActivities.length > 0 && <tr className="stats-section__row stats-section__row--activities">
-                <td className="stats-section__label">Labweek25 Incentivized Activities:</td>
-                <td className="stats-section__value">
-                  <div className="stats-section__chips">
-                    {stats?.labweek25IncentivizedActivities?.map((activity, index) => (
-                      <span 
-                        key={`labweek-activity-${activity}-${index}`} 
-                        className={`stats-section__chip ${!isLabweekActivitiesExpanded && index >= MOBILE_VISIBLE_ACTIVITIES ? 'stats-section__chip--hidden-mobile' : ''}`}
+              {stats?.labweek25IncentivizedActivities && stats.labweek25IncentivizedActivities.length > 0 && (
+                <tr className="stats-section__row stats-section__row--activities">
+                  <td className="stats-section__label">Labweek25 Incentivized Activities:</td>
+                  <td className="stats-section__value">
+                    <div className="stats-section__chips">
+                      {stats?.labweek25IncentivizedActivities?.map((activity, index) => (
+                        <span
+                          key={`labweek-activity-${activity}-${index}`}
+                          className={`stats-section__chip ${!isLabweekActivitiesExpanded && index >= MOBILE_VISIBLE_ACTIVITIES ? 'stats-section__chip--hidden-mobile' : ''}`}
+                        >
+                          {activity}
+                        </span>
+                      ))}
+                    </div>
+                    {hiddenLabweekActivitiesCount > 0 && (
+                      <button
+                        className="stats-section__show-more"
+                        onClick={() => setIsLabweekActivitiesExpanded(!isLabweekActivitiesExpanded)}
+                        type="button"
                       >
-                        {activity}
-                      </span>
-                    ))}
-                  </div>
-                  {hiddenLabweekActivitiesCount > 0 && (
-                    <button 
-                      className="stats-section__show-more"
-                      onClick={() => setIsLabweekActivitiesExpanded(!isLabweekActivitiesExpanded)}
-                      type="button"
-                    >
-                      {isLabweekActivitiesExpanded ? '- Show less' : `+ Show ${hiddenLabweekActivitiesCount} more`}
-                    </button>
-                  )}
-                </td>
-              </tr>}
+                        {isLabweekActivitiesExpanded ? '- Show less' : `+ Show ${hiddenLabweekActivitiesCount} more`}
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              )}
 
               {/* Total Points Collected */}
               <tr className="stats-section__row">
@@ -109,16 +111,20 @@ export default function StatsSection({ data }: StatsSectionProps) {
               </tr>
 
               {/* Total Tokens Available */}
-              {stats.totalTokensAvailable && <tr className="stats-section__row">
-                <td className="stats-section__label">Total PLAA Available:</td>
-                <td className="stats-section__value">{stats.totalTokensAvailable}</td>
-              </tr>}
+              {stats.totalTokensAvailable && (
+                <tr className="stats-section__row">
+                  <td className="stats-section__label">Total PLAA Available:</td>
+                  <td className="stats-section__value">{stats.totalTokensAvailable}</td>
+                </tr>
+              )}
 
               {/* Total Tokens Distributed  */}
-              {stats.totalTokensDistributed && <tr className="stats-section__row">
-                <td className="stats-section__label">Total Tokens Distributed:</td>
-                <td className="stats-section__value">{stats.totalTokensDistributed}</td>
-              </tr>}
+              {stats.totalTokensDistributed && (
+                <tr className="stats-section__row">
+                  <td className="stats-section__label">Total Tokens Distributed:</td>
+                  <td className="stats-section__value">{stats.totalTokensDistributed}</td>
+                </tr>
+              )}
 
               {/* Number of Buybacks */}
               {typeof stats?.numberOfBuybacks === 'number' && stats.numberOfBuybacks > 0 && (

@@ -8,7 +8,7 @@ export const LeaderboardQueryKeys = {
 
 async function fetchLeaderboard(
   roundNumber: number,
-  leaderboardType?: LeaderboardType
+  leaderboardType?: LeaderboardType,
 ): Promise<LeaderboardApiResponse | null> {
   const { authToken } = getCookiesFromClient();
   if (!authToken) return null;

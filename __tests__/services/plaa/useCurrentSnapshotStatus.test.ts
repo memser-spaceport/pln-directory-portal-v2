@@ -114,9 +114,24 @@ describe('useCurrentSnapshotStatus', () => {
 
   describe('real snapshot points data', () => {
     const records = [
-      { category: 'Knowledge Sharing', activityName: 'Host Office Hours', description: '', pointsCollectedPerSnapshot: 100 },
-      { category: 'Knowledge Sharing', activityName: 'Thoughtful Responder', description: '', pointsCollectedPerSnapshot: 250 },
-      { category: 'Programs', activityName: 'Make a Network Introduction', description: '', pointsCollectedPerSnapshot: 500 },
+      {
+        category: 'Knowledge Sharing',
+        activityName: 'Host Office Hours',
+        description: '',
+        pointsCollectedPerSnapshot: 100,
+      },
+      {
+        category: 'Knowledge Sharing',
+        activityName: 'Thoughtful Responder',
+        description: '',
+        pointsCollectedPerSnapshot: 250,
+      },
+      {
+        category: 'Programs',
+        activityName: 'Make a Network Introduction',
+        description: '',
+        pointsCollectedPerSnapshot: 500,
+      },
     ];
 
     beforeEach(() => {
@@ -156,7 +171,14 @@ describe('useCurrentSnapshotStatus', () => {
       mockUseSnapshotPoints.mockReturnValue({
         data: {
           snapshotPeriod: '2026-08',
-          records: [{ category: 'Brand', activityName: 'X', description: '', pointsCollectedPerSnapshot: '75' as unknown as number }],
+          records: [
+            {
+              category: 'Brand',
+              activityName: 'X',
+              description: '',
+              pointsCollectedPerSnapshot: '75' as unknown as number,
+            },
+          ],
         },
         isLoading: false,
       });

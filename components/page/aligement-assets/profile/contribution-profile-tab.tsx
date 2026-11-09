@@ -29,7 +29,10 @@ function dashOr(value: number | null): string {
 }
 
 /** Sums what is known: a month with no figure is left out rather than voiding the whole total. */
-function sumKnown(entries: ContributionHistoryEntry[], pick: (e: ContributionHistoryEntry) => number | null): number | null {
+function sumKnown(
+  entries: ContributionHistoryEntry[],
+  pick: (e: ContributionHistoryEntry) => number | null,
+): number | null {
   let total: number | null = null;
   for (const e of entries) {
     const v = pick(e);
@@ -63,7 +66,10 @@ function buildChart(entries: ContributionHistoryEntry[], hasPointsData: boolean)
   const step = plotWidth / entries.length;
 
   const grid = Array.from({ length: GRID_LINES }, (_, i) => PLOT_TOP + (plotHeight / (GRID_LINES - 1)) * i);
-  const rightAxisTicks = grid.map((y, i) => ({ y, label: Math.round((maxBalance * (GRID_LINES - 1 - i)) / (GRID_LINES - 1)) }));
+  const rightAxisTicks = grid.map((y, i) => ({
+    y,
+    label: Math.round((maxBalance * (GRID_LINES - 1 - i)) / (GRID_LINES - 1)),
+  }));
 
   const centers = entries.map((_, i) => PLOT_LEFT + step * i + step / 2);
   const labelIndices = pickLabelIndices(entries.length, MAX_X_LABELS);
@@ -74,7 +80,10 @@ function buildChart(entries: ContributionHistoryEntry[], hasPointsData: boolean)
   let leftAxisTicks: Array<{ y: number; label: number }> = [];
   if (hasPointsData) {
     const maxPoints = niceMax(Math.max(...entries.map((e) => e.points ?? 0), 1));
-    leftAxisTicks = grid.map((y, i) => ({ y, label: Math.round((maxPoints * (GRID_LINES - 1 - i)) / (GRID_LINES - 1)) }));
+    leftAxisTicks = grid.map((y, i) => ({
+      y,
+      label: Math.round((maxPoints * (GRID_LINES - 1 - i)) / (GRID_LINES - 1)),
+    }));
     bars = entries.map((e, i) => {
       const h = ((e.points ?? 0) / maxPoints) * plotHeight;
       return { x: centers[i] - barWidth / 2, y: PLOT_BOTTOM - h, w: barWidth, h, value: e.points ?? 0 };
@@ -87,15 +96,17 @@ function buildChart(entries: ContributionHistoryEntry[], hasPointsData: boolean)
   }));
 
   const line = dots.map((d) => `${d.cx},${d.cy}`).join(' ');
-  const labels = entries
-    .map((e, i) => ({ x: centers[i], period: e.period, i }))
-    .filter(({ i }) => labelIndices.has(i));
+  const labels = entries.map((e, i) => ({ x: centers[i], period: e.period, i })).filter(({ i }) => labelIndices.has(i));
   const hoverZones = entries.map((e, i) => ({ x: centers[i] - step / 2, w: step, balance: e.cum }));
 
   return { grid, bars, dots, line, labels, leftAxisTicks, rightAxisTicks, hoverZones };
 }
 
-export default function ContributionProfileTab({ entries, currentBalance, totalRedeemed }: ContributionProfileTabProps) {
+export default function ContributionProfileTab({
+  entries,
+  currentBalance,
+  totalRedeemed,
+}: ContributionProfileTabProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   if (entries.length === 0) {
@@ -198,30 +209,37 @@ export default function ContributionProfileTab({ entries, currentBalance, totalR
               {l.period}
             </text>
           ))}
-          {hoveredIndex !== null && (() => {
-            const entry = entries[hoveredIndex];
-            const dot = chart.dots[hoveredIndex];
-            const boxW = 140;
-            const boxH = hasPointsData ? 64 : 42;
-            const boxX = Math.min(Math.max(dot.cx - boxW / 2, PLOT_LEFT), PLOT_RIGHT - boxW);
-            const boxY = Math.max(dot.cy - boxH - 14, PLOT_TOP);
-            return (
-              <g style={{ pointerEvents: 'none' }}>
-                <rect x={boxX} y={boxY} width={boxW} height={boxH} rx="8" fill="#156ff7" />
-                <text x={boxX + 12} y={boxY + 19} textAnchor="start" fontSize="11" fontWeight="700" fill="#ffffff">
-                  {entry.period}
-                </text>
-                {hasPointsData && (
-                  <text x={boxX + 12} y={boxY + 37} textAnchor="start" fontSize="10" fill="#dbeafe">
-                    Points collected: {dashOr(entry.points)}
+          {hoveredIndex !== null &&
+            (() => {
+              const entry = entries[hoveredIndex];
+              const dot = chart.dots[hoveredIndex];
+              const boxW = 140;
+              const boxH = hasPointsData ? 64 : 42;
+              const boxX = Math.min(Math.max(dot.cx - boxW / 2, PLOT_LEFT), PLOT_RIGHT - boxW);
+              const boxY = Math.max(dot.cy - boxH - 14, PLOT_TOP);
+              return (
+                <g style={{ pointerEvents: 'none' }}>
+                  <rect x={boxX} y={boxY} width={boxW} height={boxH} rx="8" fill="#156ff7" />
+                  <text x={boxX + 12} y={boxY + 19} textAnchor="start" fontSize="11" fontWeight="700" fill="#ffffff">
+                    {entry.period}
                   </text>
-                )}
-                <text x={boxX + 12} y={boxY + (hasPointsData ? 55 : 37)} textAnchor="start" fontSize="10" fill="#dbeafe">
-                  PLAA balance: {entry.isPending ? PENDING_LABEL : entry.cum.toLocaleString()}
-                </text>
-              </g>
-            );
-          })()}
+                  {hasPointsData && (
+                    <text x={boxX + 12} y={boxY + 37} textAnchor="start" fontSize="10" fill="#dbeafe">
+                      Points collected: {dashOr(entry.points)}
+                    </text>
+                  )}
+                  <text
+                    x={boxX + 12}
+                    y={boxY + (hasPointsData ? 55 : 37)}
+                    textAnchor="start"
+                    fontSize="10"
+                    fill="#dbeafe"
+                  >
+                    PLAA balance: {entry.isPending ? PENDING_LABEL : entry.cum.toLocaleString()}
+                  </text>
+                </g>
+              );
+            })()}
           {chart.hoverZones.map((z, i) => (
             <rect
               key={i}
@@ -286,7 +304,9 @@ export default function ContributionProfileTab({ entries, currentBalance, totalR
             <span className={`${styles.footerValue} ${styles.secondary}`}>{totalPlaa.toLocaleString()}</span>
             <span className={`${styles.footerValue} ${styles.secondary}`}>{totalInfra.toLocaleString()}</span>
             <span className={`${styles.footerValue} ${styles.tertiary}`}>{dashOr(totalRedeemed)}</span>
-            <span className={styles.balanceChip}>{currentBalance === null ? '—' : currentBalance.toLocaleString()}</span>
+            <span className={styles.balanceChip}>
+              {currentBalance === null ? '—' : currentBalance.toLocaleString()}
+            </span>
           </div>
         </div>
       </div>

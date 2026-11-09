@@ -26,6 +26,14 @@ function PlaaRoundSelector({ currentRound, totalRounds, viewingRound, onRoundNav
   // Use viewingRound if provided, otherwise fall back to currentRound
   const [selectedRound, setSelectedRound] = useState(viewingRound ?? currentRound);
   const [inputValue, setInputValue] = useState(String(viewingRound ?? currentRound));
+  const [syncedViewingRound, setSyncedViewingRound] = useState(viewingRound);
+  if (viewingRound !== syncedViewingRound) {
+    setSyncedViewingRound(viewingRound);
+    if (viewingRound !== undefined) {
+      setSelectedRound(viewingRound);
+      setInputValue(String(viewingRound));
+    }
+  }
   const dropdownRef = useRef<HTMLDivElement>(null);
   const {
     onRoundSelectorOpened,
@@ -33,14 +41,6 @@ function PlaaRoundSelector({ currentRound, totalRounds, viewingRound, onRoundNav
     onRoundSelectorNextClicked,
     onRoundSelectorGoToCurrentClicked,
   } = useAlignmentAssetsAnalytics();
-
-  // Sync selectedRound with viewingRound prop when it changes (e.g., direct URL access)
-  useEffect(() => {
-    if (viewingRound !== undefined) {
-      setSelectedRound(viewingRound);
-      setInputValue(String(viewingRound));
-    }
-  }, [viewingRound]);
 
   // Close dropdown when clicking outside
   useEffect(() => {

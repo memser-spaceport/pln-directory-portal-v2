@@ -1,4 +1,7 @@
-import { canReadApplicants } from '@/components/page/team-details/TeamApplicants/canReadApplicants';
+import {
+  canReadApplicants,
+  canReadSuggestedCandidates,
+} from '@/components/page/team-details/TeamApplicants/canReadApplicants';
 import type { IUserInfo } from '@/types/shared.types';
 
 /**
@@ -125,5 +128,46 @@ describe('canReadApplicants', () => {
   it('does not throw on a malformed userInfo', () => {
     expect(ask({ userInfo: undefined })).toBe(false);
     expect(ask({ userInfo: {} as IUserInfo })).toBe(false);
+  });
+});
+
+/**
+ * LAB-3190: the Candidates page's own gate, for the Suggested tab. The same
+ * rule without the Protocol Labs exclusion: PL leads get the weekly
+ * suggested-candidates email, and every link in it opens this page.
+ */
+describe('canReadSuggestedCandidates', () => {
+  const askSuggested = (over: Partial<Parameters<typeof canReadSuggestedCandidates>[0]>) =>
+    canReadSuggestedCandidates({ flagOn: true, isLoggedIn: true, userInfo: lead, team: team(), ...over });
+  const plLead = { uid: 'u9', leadingTeams: [PL_UID] } as IUserInfo;
+  const pl = team({ uid: PL_UID, name: 'Protocol Labs' });
+
+  it('lets Protocol Labs’ own lead in', () => {
+    expect(askSuggested({ userInfo: plLead, team: pl })).toBe(true);
+  });
+
+  it('lets a Directory admin in for Protocol Labs', () => {
+    expect(askSuggested({ userInfo: admin, team: pl })).toBe(true);
+  });
+
+  it('lets in a lead of a seeded PL team matched by name only', () => {
+    const leadOfSeeded = { uid: 'u9', leadingTeams: ['pl-uat-seed'] } as IUserInfo;
+    expect(askSuggested({ userInfo: leadOfSeeded, team: team({ uid: 'pl-uat-seed', name: 'Protocol Labs' }) })).toBe(
+      true,
+    );
+  });
+
+  it('keeps out everyone canReadApplicants keeps out for another reason', () => {
+    expect(askSuggested({ userInfo: otherLead, team: pl })).toBe(false);
+    expect(askSuggested({ userInfo: member })).toBe(false);
+    expect(askSuggested({ isLoggedIn: '', userInfo: null })).toBe(false);
+    expect(askSuggested({ flagOn: false, userInfo: admin })).toBe(false);
+    expect(askSuggested({ team: team({ uid: '' }), userInfo: admin })).toBe(false);
+    expect(askSuggested({ team: null, userInfo: admin })).toBe(false);
+  });
+
+  it('agrees with canReadApplicants on every team but Protocol Labs', () => {
+    expect(askSuggested({})).toBe(true);
+    expect(askSuggested({ userInfo: admin, team: team({ uid: 'team-nobody-leads' }) })).toBe(true);
   });
 });

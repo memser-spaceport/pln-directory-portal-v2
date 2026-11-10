@@ -237,6 +237,16 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/member-follow/MemberFollowPrototype'),
   },
   {
+    key: 'member-events-going',
+    status: 'ideation',
+    version: 1,
+    title: 'Member profile — events they are going to',
+    description:
+      'IRL Gatherings is admin-only since 2026-11-05, so a member marks attendance and sees who is going in the gathering modal, opened from their profile or Home. The profile has one Events section: "You\'re going to" rows above past events, moved under Office Hours while there are plans, signed-in members only. The owner gets Add event, Edit details, Hide from my profile and Remove. Marking is shared with homepage for the session.',
+    category: 'Members',
+    load: () => import('./entries/member-events-going/MemberEventsGoingPrototype'),
+  },
+  {
     key: 'job-board',
     status: 'dev',
     version: 1,
@@ -277,26 +287,6 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/saving/SavingPrototype'),
   },
   {
-    key: 'newsfeed-discovery',
-    status: 'progress',
-    version: 1,
-    title: 'Newsfeed current',
-    description:
-      "The feed isn't hard to find — `/` redirects to `/home`, so every session starts on it. It's hard to get *back* to: the navbar has no Home or News item, and the logo is the only route there. Rather than a second /newsfeed route competing with the page that already owns network news, this adds a labelled News item to the real navbar, reorders home so the feed leads and Quick Actions demotes to a chip strip, and puts the unread signal on that item — a dot, never a count. Cards published since your last visit carry a New tag (a Badge, right-aligned into one scan column), which suppresses itself entirely once new items pass a third of the list, since a tag on everything labels nothing. Both signals read one primitive, `newsLastSeenAt`: no per-item read state, no viewport tracking, no mark-all-as-read. A Last visit switch flips between nothing new, a few new, and everything new; clicking News clears the dot and the tags together.",
-    category: 'Newsfeed',
-    load: () => import('./entries/newsfeed-discovery/NewsfeedDiscoveryPrototype'),
-  },
-  {
-    key: 'newsfeed',
-    status: 'dev',
-    version: 2,
-    title: 'Newsfeed — curated feed + weekly email',
-    description:
-      'Quality for an investor audience, in two surfaces. The feed opens on "For You" — the default production itself uses — so the personalization is what a reader lands in rather than something they have to go find. (The network-wide Top Story block that used to lead the week is hidden for now behind `SHOW_TOP_STORIES`; its three picks are ordinary feed cards while it is off.) The "For You" pill production ships on /home leads the category row here too — the same teams-you-match slice, with a one-line note under it on the plain page, link at the right end, in two states (review band For You switch, or ?foryou=not-set): set up, "For you · Curated based on your profile, primary team attributes, and the teams you follow." with Update For You →; not set up yet, there is no For You pill — the feed rests on All categories, and the note there reads "For you · Not set up yet. Choose topics and teams in Settings to see news picked for you." with Set up For You →. Both open News preferences; a personalized view that never states its inputs leaves a reader unable to tell a thin week from a thin profile — and naming follows as an input is what makes the Follow buttons already on the page read as personalization controls. A **Preview as** switch under the navbar (or `?viewer=logged-out`) opens the page as the visitor with no account: production tells that person nothing about any of this (its For You hint only renders behind the pill, and the pill only exists once there is an auth token), so here the signed-out home banner carries the offer and the same sentence, with Sign in inside it. A Sourcing switch demonstrates the recall bug behind it: production builds the All tab as the union of the focus-area groups, so an untagged story — including this week\'s top story — reaches no tab at all; flipping to "One stream" demotes focus area to a filter beside Sort and the untagged long tail comes back. Job-board activity joins the feed as a per-team hiring signal rather than pasted listings, and follow suggestions carry the relational `reason` production already returns. The rail adds an Upcoming events card under Teams to follow: up to three gatherings (a start-date tile, name, city — no attendee count, the data does not exist) and a View all events link. Only events starting in the next 30 days qualify; with none, the whole section is gone (no empty state) — the **Events** switch (Upcoming / None in 30 days) shows both. It leaves out events you already attend and invite-only ones you have no invite to, and saves places for cities you follow before filling with the soonest, shown in date order (signed out: the next three open events) — dated events rather than location cards, because the old home Featured row\'s event cards drew 4–5% of monthly visitors to its city cards\' ~1%. The Email digest view is the same curation as the Monday send — client chrome, subject line, top story with its why-line, the week in one line each, who started hiring — because the editorial bet is cheaper and more measurable to test in an inbox than in a hero card. The (?) in the header is the proposed help & feedback menu (see the Help & feedback menu entry), announced on arrival by the same one-time brand-blue callout the team profile uses for Post news — this is the page a session starts on, so it is where the announcement is met; shown on every load in the prototype. Team-posted stories (the two the team profile seeds) reflect what the team did to them on its profile this session: an edit shows the new text with an "Edited" mark beside the time and the author\'s own body in the story, a removed one is gone — read once at mount from the same session-scoped mock; the feed itself offers no edit control.',
-    category: 'Newsfeed',
-    load: () => import('./entries/newsfeed/NewsfeedPrototype'),
-  },
-  {
     key: 'for-you-levers',
     status: 'dev',
     version: 1,
@@ -315,16 +305,6 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'The bell dropdown, reworked so it is something you can act on rather than only read. Header follows the Airtable notification panel: an All / Unread / Read segmented switch, in-panel search, and a visible Mark all as read above the list (with an undo window rather than a confirm). Read state is decoupled from navigation — a per-row read toggle on a real 28px target plus per-row dismiss — and status is split from action the way the reference splits it: a non-interactive dot leads each row so unread reads down the left edge. The panel behaves like a dialog — Escape, focus trap, focus restore, positioned against the bell instead of a fixed offset — and has real loading and error states instead of falling through to "No new updates". The eight categories get distinct hues and keep their glyph on mobile, and every accent carrying text clears 4.5:1.',
     category: 'Newsfeed',
     load: () => import('./entries/notifications-hub/NotificationsHubPrototype'),
-  },
-  {
-    key: 'notifications-inbox',
-    status: 'progress',
-    version: 2,
-    title: 'Notifications — full Updates page',
-    description:
-      'The standalone counterpart to the bell panel: the full Updates page grouped by Today / Yesterday / Earlier and closed with a terminator instead of infinite scroll simply stopping. Carries the same All / Unread / Read switch, search, per-row read toggle and dismiss as the panel, plus Mark all as read with an undo window — production wires markAllAsRead through the provider and the service but no component ever calls it. Shares its state hook, filter, row component and stylesheet with the panel entry so the two surfaces cannot drift.',
-    category: 'Newsfeed',
-    load: () => import('./entries/notifications-inbox/NotificationsInboxPrototype'),
   },
   {
     key: 'email-preferences',
@@ -423,7 +403,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     title: 'Agent session — chat & detail',
     description:
       'Mocked recreation of /pl-infra/agent-sessions/<id>: the sticky identity header with its status badge, the Overview / Chat tabs, the message thread (agent markdown vs. plain admin bubbles, amber reserved for the one question the run is actually stopped on, an outcome row that closes a finished run with the PR and feature-environment links it produced, and a failure block with the error code, namespace and Kubernetes job name plus a Retry) and the docked composer that says sending starts a new agent run. Overview carries the meta grid, the prompt, an inline confirmation for deleting the feature environment, and the derived progress steps. A state switcher moves the session between running, waiting for input, PR created with a live feature env, and failed; View as flips between the admin (tabs + chat) and the VIEW-only member, who gets no tab bar at all. Answering the agent while it waits resumes the run — reachable from Overview too, which has no composer — and Deploy / Delete walk the feature environment through its states.',
-    category: 'PL Infra',
+    category: 'Agents',
     load: () => import('./entries/agent-session-chat/AgentSessionChatPrototype'),
   },
   {
@@ -537,54 +517,34 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/ai-mode-results/AiModeResultsPrototype'),
   },
   {
-    key: 'home-ai-ask',
-    status: 'progress',
-    version: 1,
-    title: 'Home — AI Search field',
-    description:
-      'The Home prototype (newsfeed) with AI Search\'s field leading the page; for members it replaces Quick Actions (signed out, the banner stays under it). The header carries ai-mode\'s search — the field fills the free width, results hang under it without the "Chat with AI Search about…" row, and its AI badge opens AI Search with what you typed — and Job Board as its own item between Events and Forum (out of More; Demo Day moves into the Events menu as its last row so the row fits with its icons).It opens on the Big field (the AI Search page\'s own composer, two lines at rest); the review band\'s Field switch offers the one-line Search box, which reads as a search box, not a chat composer:the AI Search mark and name inside one line, Enter to ask, an Ask button only once there is text, and "Try" plus three questions as a line of links (not pills, so they are not read as another row of feed filters). Enter shows Google\'s AI Overview pattern — one short answer under the field with the AI Search wait, the prose, the first four directory results and "Continue in AI Search", which opens the ai-search-page with that answer as a thread; there is no follow-up box on Home, so it never becomes a third chat. LAB-2704 (review band Viewer → Portfolio founder): the same field takes general requests for the PL team. The placeholder names both jobs; text that reads as a request ("Help me get intros to investors in climate tech") gets a "Send this to the PL team" draft instead of an AI answer — editable, sent with the founder\'s profile and team, confirmed in place with "The PL team has your request" and where the reply goes. Each card has a labelled door to the other (Search the network instead / Send to the PL team instead). Works signed out too (the page opens as a guest; no request door). Everything mocked.',
-    category: 'Newsfeed',
-    load: () => import('./entries/home-ai-ask/HomeAiAskPrototype'),
-  },
-  {
-    key: 'home-refactor',
-    status: 'ideation',
-    version: 1,
-    title: 'Home refactor — AI Search hero + editorial sections',
-    description:
-      'Exploration, not a committed design. Home opens on an open AI Search field (typeable, three Try prompts; Enter answers under the field or opens AI Search, switchable), then editorial sections in a deliberate order: This week in the network (lead story + rows), From the forum (author on top), Open roles in the network as the rail beside them, and a curated Selected GitHub repos grid from network teams. Built from home-ai-ask, newsfeed and newsfeed-v0 pieces; the repo card is new. Open questions in its README.',
-    category: 'Newsfeed',
-    load: () => import('./entries/home-refactor/HomeRefactorPrototype'),
-  },
-  {
-    key: 'home-refactor-b',
-    status: 'ideation',
-    version: 1,
-    title: 'Home refactor B — ask-first, one column',
-    description:
-      'Version B of Home refactor, same brief and same week of content, different structure. Exploration, not a committed design. One 760px column with no rail: a greeting with the date, an AI composer with scope chips inside it (Anything · People · Teams · Jobs · Repos change the placeholder and the prompts), "Start with a question" cards built from this week\'s jobs, news, forum and repos (a card fills and submits the field; the inline answer and Continue in AI Search are A\'s), then ONE "This week in the network" module, tabs All · News · Forum · Jobs · Repos · Events over compact rows that open A\'s modals, each tab ending in See all. A small Picked repos strip keeps the curated idea visible. The navbar search hides while the composer is on screen (switchable). Mocks are re-dated to the viewer\'s week. Mobbin references and the A/B comparison in its README.',
-    category: 'Newsfeed',
-    load: () => import('./entries/home-refactor-b/HomeRefactorBPrototype'),
-  },
-  {
-    key: 'homepage-redesign-v0',
-    status: 'ideation',
+    key: 'homepage',
+    status: 'dev',
     version: 2,
-    title: 'homepage-redesign-v0',
+    title: 'Homepage',
     description:
-      'The new Home: two pages behind one URL, switched with ?state=. Signed out (default): the mission as the headline beside a Join the network card (Sign up, Sign in), the figures as a white band, this week\'s three stories beside one sidebar of open roles and upcoming events, then on one white band the portfolio on the islands map, four focus-area cards (portfolio-team count and logos, name, line, Teams / Projects links), the PL entities as a row, the investor logo wall and a link footer. Signed in: one "Network Updates" stream of news and forum posts in full, with pills For You · All · Top · Discussions · Funding · Launch · Announcement, Top stories labelled in the stream, header search where a #tag query matches tags, and Sort by; the stream is cut where the rail ends, the next card fading under See all news. Hashtags on news and forum cards are blue #tag links; clicks stack into a scope row with a chip per tag, the count, and Follow or Clear all. The rail: open roles, upcoming events (?events=none drops them and roles take the room), Teams to follow, deals (only with deals.read; signed-in-no-deals drops them), Popular this week. Under it the Open source picks band (?repos=none drops it), then the focus-area cards. See all news (signed in) and See all updates (signed out) open ?view=news: news only, in a 2-column grid (1 on phones) of production NewsCard boxes, each with the story\'s image or video poster under its text, with the same pills and Sort, and production\'s news search held open beside the title. State email-not-found opens "This email isn\'t in the directory yet" with Sign up and Try another email. Signed in also has LabOS Agent V0: a floating Agent button (or Ctrl/⌘ J, or ?agent=open) opens home-v2-b\'s docked panel. As a portfolio founder (?viewer=founder, default) it turns "I need an intro to X, I\'m planning a fundraise" into an editable request to the PL Venture team, after asking when you\'re raising. For any member it updates your profile and your team\'s from a dropped URL, as a ticked old → new list you apply, and drafts forum posts you post. Nothing is sent or changed until you press. ?viewer=member has no venture requests. Rationale, the production files each section would touch, and open questions are in its README.',
+      'The current Home, as on develop (LAB-3070): two pages behind one URL, switched with ?state=. Signed out (default): the mission as the headline beside a Join the network card (Sign up, Sign in), the figures as a white band, this week\'s three stories beside one sidebar of open roles and upcoming events, then on one white band the portfolio on the islands map, four focus-area cards (portfolio-team count and logos, name, line, Teams / Projects links), the PL entities as a row, the investor logo wall and a link footer. Signed in: one "Network Updates" stream of news and forum posts in full, with pills For You · All · Top · Discussions · Funding · Launch · Announcement, Top stories labelled in the stream, header search where a #tag query matches tags, and Sort by; the stream is cut where the rail ends, the next card fading under See all news. Hashtags on news and forum cards are blue #tag links; clicks stack into a scope row with a chip per tag, the count, and Follow or Clear all. The rail: open roles, upcoming events, each row opening the gathering modal over Home: "Yes, I\'m going" saves that event, the row then reads Going, and the toast links to the member-events-going profile (?events=none drops them and roles take the room), Teams to follow, deals (only with deals.read; signed-in-no-deals drops them), Popular this week. Under it the Open source picks band (?repos=none drops it), then the focus-area cards. See all news (signed in) and See all updates (signed out) open ?view=news: news only, in a 2-column grid (1 on phones) of production NewsCard boxes, each with the story\'s image or video poster under its text, with the same pills and Sort, and production\'s news search held open beside the title. State email-not-found opens "This email isn\'t in the directory yet" with Sign up and Try another email. Signed in also has LabOS Agent V0: a floating Agent button (or Ctrl/⌘ J, or ?agent=open) opens a docked panel. As a portfolio founder (?viewer=founder, default) it turns "I need an intro to X, I\'m planning a fundraise" into an editable request to the PL Venture team, after asking when you\'re raising. For any member it updates your profile and your team\'s from a dropped URL, as a ticked old → new list you apply, and drafts forum posts you post. Nothing is sent or changed until you press. ?viewer=member has no venture requests. Two parts are proposals and not on develop yet: the gathering modal on the events rail and LabOS Agent V0. Rationale, the production files each section would touch, and open questions are in its README.',
     category: 'Newsfeed',
     load: () => import('./entries/home-v2/HomeV2Prototype'),
   },
   {
-    key: 'home-v2-b',
-    status: 'progress',
+    key: 'homepage-redesign-v0-agent',
+    status: 'ideation',
     version: 2,
-    title: 'Home v2 B — Network Updates: forum carousel + news, repos',
+    title: 'Homepage — Agent beside feedback',
     description:
-      'An alternative signed-in Home to homepage-redesign-v0. "Network Updates" is the page header, over two sections: "From the forum" as a carousel (production Featured\'s embla engine over the feed\'s ForumPostCard) and "News updates" (the Top stories band, then the stream down to the end of the rail, fading under See all news, which opens ?view=news as 2–3 columns). Under both, home-v2\'s open-source picks band. The rail: Popular this week (production\x27s card + team logos), open roles, Teams to follow, deals. Signed in also has an Agent, like Linear\x27s: the sidebar row (or Ctrl/⌘ J, or a floating button on phones) opens a docked panel that reads the page, shows its steps, answers with stories, teams and roles you can open, drafts a forum post, and proposes following teams, which only happens when you confirm. Signed out (the default, ?state=signed-in for the member page) is home-v2\x27s signed-out story, built from home-v2\x27s own pieces.',
+      'A copy of homepage with the Agent moved into the bottom-right corner next to the Give feedback button, as in Linear: Agent with a pointer mark, then a history icon that lists recent chats and reopens one. Signed in only (?state=signed-in). Ctrl/⌘ J and ?agent=open still open the panel, and Give feedback opens the mocked LabOS drawer.',
+    category: 'Agents',
+    load: () => import('./entries/home-v2-agent-dock/HomeV2Prototype'),
+  },
+  {
+    key: 'digest-more-like-this',
+    status: 'ideation',
+    version: 1,
+    title: 'Digest — More / Less like this landing',
+    description:
+      'Where a digest story\'s More like this / Less like this link lands: More opens the signed-in Home feed already filtered to the story\'s topic, with a message above it; Less (?feedback=less) opens the unfiltered feed with a modal confirming the change.',
     category: 'Newsfeed',
-    load: () => import('./entries/home-v2-b/HomeV2BPrototype'),
+    load: () => import('./entries/digest-more-like-this/DigestMoreLikeThisPrototype'),
   },
   {
     key: 'home-v2-style-refresh',
@@ -614,7 +574,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     title: 'MCP connect and agent control in Settings',
     description:
       'Its own Settings tab, MCP connections, with mock data: a launch banner, one card per connection with Permissions (edit, then one Save), View activity and Revoke, the connect steps per client, and the LabOS consent screen. Every connection starts read only, with a checkbox acknowledging it can see other members’ contact details; write is turned on per feature later from that connection’s Permissions, behind its own checkbox consent that names what it can do as you. Some features are switched off by admins, and job applications are off for L0/L1 members and job aspirants. Also shows the in-product hints in search, forum and comments. Dashed tags mark the parts that need new backend work. LAB-2948, revised after the 2026-10-26 syncs.',
-    category: 'AI Apps',
+    category: 'Agents',
     load: () => import('./entries/lab-2948-prototype-a-better-mcp-connect/PrototypeABetterMcpConnectPrototype'),
   },
   {
@@ -732,7 +692,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     title: 'MCP connect steps as tabs',
     description:
       'The MCP connections page in Settings with the connect steps as one tab bar: Claude app (selected first), Claude Code, Codex and Others, each with only its own steps and copy buttons. The "For developers" group is gone. Opens on No connections; on phones the tab bar scrolls sideways. A copy of the LAB-2948 prototype with only the connect block changed. LAB-3054.',
-    category: 'AI Apps',
+    category: 'Agents',
     load: () => import('./entries/lab-3054-design-the-connect-step-tabs-o/DesignTheConnectStepTabsOPrototype'),
   },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.

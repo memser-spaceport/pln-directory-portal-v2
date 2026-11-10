@@ -144,7 +144,7 @@ export default function AiSearchPagePrototype() {
     <>
       <PrototypeNavBar
         hasUnreadNews={false}
-        newsHref="/prototypes/newsfeed"
+        newsHref="/prototypes/homepage?state=signed-in"
         isLoggedIn={signedIn}
         onSignIn={() => switchViewer('in')}
         onSignUp={() => switchViewer('in')}

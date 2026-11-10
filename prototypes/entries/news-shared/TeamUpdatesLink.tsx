@@ -92,7 +92,7 @@ function timeAgo(iso: string): string {
  * board, teams grid, profile rows) are scanning surfaces — the feed is the place
  * built for reading news, and sending people there beats rebuilding it three times.
  *
- * TARGET: `/prototypes/newsfeed?team=<uid>` — the feed filtered to this team, so
+ * TARGET: `/prototypes/homepage?state=signed-in&view=news&team=<uid>` — the feed filtered to this team, so
  * the count and the destination agree. Production has no such param today (the
  * only deep link `/home` understands is `?news=<uid>`, one story's modal — see
  * `useNewsDeepLink`); demonstrating `?team=` here is the ask.
@@ -135,7 +135,7 @@ export function TeamUpdatesLink({
         : label === 'new-count'
           ? newCountLabel
           : countLabel;
-  const href = hrefOverride ?? `/prototypes/newsfeed?team=${latest.teamUid}`;
+  const href = hrefOverride ?? `/prototypes/homepage?state=signed-in&view=news&team=${latest.teamUid}`;
 
   const className = `${s.badge} ${size === 'small' ? s.small : ''} ${size === 'chip' ? s.chip : ''}`;
   // The badge sits beside the team's name, so the label alone reads right on

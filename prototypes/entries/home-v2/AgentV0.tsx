@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * LabOS Agent V0 (2026-11-05), on homepage-redesign-v0's signed-in Home.
+ * LabOS Agent V0 (2026-11-05), on homepage's signed-in Home.
  *
  * The panel, its steps, streaming and composer are home-v2-b's AgentPanel (imported, not forked); this file
  * is only V0's script and the three cards it acts through. Scope from the V0 notes:
@@ -24,7 +24,7 @@ import { useState, type ReactNode } from 'react';
 import { Button } from '@/components/common/Button';
 import { Checkbox } from '@/components/common/Checkbox';
 
-import type { AgentBlock, AgentBlockContext, AgentReply } from '../home-v2-b/agentScript';
+import type { AgentBlock, AgentBlockContext, AgentPrompt, AgentReply } from '../home-v2-b/agentScript';
 import agentCss from '../home-v2-b/AgentPanel.module.scss';
 
 import s from './AgentV0.module.scss';
@@ -87,11 +87,24 @@ export const AGENT_VIEWERS: Record<AgentViewer['key'], AgentViewer> = {
   },
 };
 
-export const agentPrompts = (v: AgentViewer) => [
-  ...(v.portfolio ? ["I need intros to founders who raised a Series A this year, I'm planning a fundraise"] : []),
-  `Update our team profile from ${v.site}`,
-  v.portfolio ? "Update my profile: I'm now CEO and based in Lisbon" : 'Update my profile: I moved to Lisbon',
-  v.portfolio ? 'Draft a forum post announcing our testnet' : 'Draft a forum post about our new sync library',
+export const agentPrompts = (v: AgentViewer): AgentPrompt[] => [
+  ...(v.portfolio
+    ? [
+        {
+          text: "I need intros to founders who raised a Series A this year, I'm planning a fundraise",
+          topic: 'intro' as const,
+        },
+      ]
+    : []),
+  { text: `Update our team profile from ${v.site}`, topic: 'team' },
+  {
+    text: v.portfolio ? "Update my profile: I'm now CEO and based in Lisbon" : 'Update my profile: I moved to Lisbon',
+    topic: 'profile',
+  },
+  {
+    text: v.portfolio ? 'Draft a forum post announcing our testnet' : 'Draft a forum post about our new sync library',
+    topic: 'forum',
+  },
 ];
 
 export const agentIntro = (v: AgentViewer) =>

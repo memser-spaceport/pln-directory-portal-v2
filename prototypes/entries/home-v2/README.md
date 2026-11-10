@@ -1,7 +1,7 @@
-# homepage-redesign-v0: onboarding story signed out, member desk signed in
+# homepage: onboarding story signed out, member desk signed in
 
 **Status:** proposal prototype. Mocked data only.
-**Route:** `/prototypes/homepage-redesign-v0` (was `/prototypes/home-v2` until 2026-11-03; the folder keeps its name)
+**Route:** `/prototypes/homepage` (`homepage-redesign-v0` until 2026-11-10, `/prototypes/home-v2` until 2026-11-03; the folder keeps its name)
 **Review switches:** `?state=signed-out` (default) `| signed-in | signed-in-no-deals | email-not-found`, `?events=upcoming` (default) `| none`, and signed in `?repos=picks` (default) `| none` and `?cue=fade|jump`. The same switches sit in the grey review band under the navbar.
 
 ## 2026-11-05 LabOS Agent V0

@@ -153,7 +153,7 @@ export default function AiModePrototype() {
     <>
       <PrototypeNavBar
         hasUnreadNews={false}
-        newsHref="/prototypes/newsfeed"
+        newsHref="/prototypes/homepage?state=signed-in"
         searchable
         searchOpen={searchOpen}
         onSearchOpenChange={setSearchOpen}
@@ -285,7 +285,7 @@ export default function AiModePrototype() {
       {/* The chat page has its input at the bottom edge; the tab bar under it
           would stack two bars where the thumb is. The page bar's Back to
           search is the way out on phones. */}
-      {!onAiPage && <PrototypeMobileNav hasUnreadNews={false} newsHref="/prototypes/newsfeed" active={false} />}
+      {!onAiPage && <PrototypeMobileNav hasUnreadNews={false} newsHref="/prototypes/homepage?state=signed-in" active={false} />}
     </>
   );
 }

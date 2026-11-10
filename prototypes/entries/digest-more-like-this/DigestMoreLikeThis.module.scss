@@ -1,0 +1,82 @@
+.modal {
+  width: 400px;
+  max-width: calc(100vw - 32px);
+}
+
+// Keeps a long title clear of ModalBase's absolute close button on phones.
+.title {
+  display: block;
+  padding: 0 24px;
+}
+
+// The blue of the "Subscribe for Digest" card, sampled from the screenshot Polina supplied.
+.notice {
+  margin-bottom: 24px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #354bb8 0%, #4870f6 67%);
+}
+
+.noticeMark {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 40px;
+  background: var(--transparent-light-32, rgba(255, 255, 255, 0.32));
+}
+
+.noticeMarkDisc {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 28px;
+  background: var(--Neutral-White, #fff);
+}
+
+.noticeText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  letter-spacing: -0.2px;
+}
+
+.noticeTitle {
+  color: var(--Neutral-White, #fff);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.noticeDescription {
+  color: var(--Neutral-White, #fff);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+// ModalBase's close button shape, with a light fill for the gradient.
+.noticeClose {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 24px;
+  background: var(--transparent-light-32, rgba(255, 255, 255, 0.32));
+  cursor: pointer;
+
+  &:active {
+    opacity: 0.8;
+  }
+}

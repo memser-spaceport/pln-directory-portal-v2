@@ -103,7 +103,7 @@ export const MOCK_NOTIFICATIONS: HubNotification[] = [
     // the teams directory, which is where these used to go. `?news=<uid>` is the
     // deep link production's /home already understands (`useNewsDeepLink`), so
     // this is the one hand-off that needs no new URL vocabulary.
-    link: '/prototypes/newsfeed?news=x1',
+    link: '/prototypes/homepage?state=signed-in&view=news&news=x1',
   },
   {
     id: 'n-05',
@@ -189,7 +189,7 @@ export const MOCK_NOTIFICATIONS: HubNotification[] = [
     description: 'Consumer hardware can now run a slice of a larger model locally.',
     minutesAgo: 60 * 144,
     isRead: true,
-    link: '/prototypes/newsfeed?news=x3',
+    link: '/prototypes/homepage?state=signed-in&view=news&news=x3',
   },
   {
     id: 'n-14',

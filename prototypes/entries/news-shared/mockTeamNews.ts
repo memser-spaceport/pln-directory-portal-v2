@@ -184,7 +184,7 @@ function toNewsItem(teamUid: string, teamName: string, n: MockNews): ITeamNewsIt
  */
 export function newsHref(item: ITeamNewsItem): string {
   const inFeed = ALL_CURATED_ITEMS.some((i) => i.uid === item.uid);
-  return inFeed ? `/prototypes/newsfeed?news=${item.uid}` : `/prototypes/newsfeed?team=${item.teamUid}`;
+  return inFeed ? `/prototypes/homepage?state=signed-in&view=news&news=${item.uid}` : `/prototypes/homepage?state=signed-in&view=news&team=${item.teamUid}`;
 }
 
 /** Within the "new" window — the test for whether the feed still carries a story. */
@@ -202,7 +202,7 @@ export const isNewsRecent = (item: ITeamNewsItem): boolean =>
  * feed.
  */
 export function feedFocusHref(item: ITeamNewsItem): string {
-  return `/prototypes/newsfeed?focus=${item.teamUid}`;
+  return `/prototypes/homepage?state=signed-in&view=news&focus=${item.teamUid}`;
 }
 
 export function getTeamNews(teamUid: string, teamName: string = teamNameFor(teamUid)): ITeamNewsItem[] {

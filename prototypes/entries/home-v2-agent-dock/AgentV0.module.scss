@@ -1,0 +1,221 @@
+/* LabOS Agent V0's cards. The frame is AgentPanel's .draft/.proposal card (subtle border, 12px radius,
+   12px pad, 12px gap), so every card in the thread is one object. */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+}
+
+.cardHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+}
+
+/* Field names and the "To" label: the profile's small grey label lineage. */
+.label {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.recipient {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+/* Where the proposal came from, on its own line under the title. */
+.source {
+  flex-basis: 100%;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* Inputs: the DS field (8px radius, subtle border, brand focus ring) at the panel's 14/20 type. */
+.field {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-neutral-default, #fff);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font: inherit;
+  font-size: 14px !important; /* beats the global 16px input guard */
+  line-height: 20px;
+  resize: vertical;
+  /* Grow with the draft so nothing the agent wrote sits below a fold inside the card. */
+  field-sizing: content;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+
+  &:focus {
+    border-color: var(--border-brand-primary, #1b4dff);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--border-brand-subtle, #aebfff);
+  }
+}
+
+.titleField {
+  font-weight: 600;
+}
+
+.note {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.muted {
+  margin: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* ---------- Sent receipt ---------- */
+
+.receiptTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.quote {
+  margin: 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+  white-space: pre-wrap;
+}
+
+.inlineLink {
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-weight: 500;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* ---------- Proposed changes ---------- */
+
+.changes {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.change {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  &:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  &:last-child {
+    padding-bottom: 0;
+  }
+}
+
+.changeText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Old value: struck, the quieter ink; new value: the line you're agreeing to. */
+.from {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 14px;
+  line-height: 20px;
+  text-decoration: line-through;
+}
+
+.to {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* Unticked: the field stays as it is, so the proposal fades and only the current value reads. */
+.changeOff .to {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.changeOff .from {
+  color: var(--foreground-neutral-secondary, #455468);
+  text-decoration: none;
+}
+
+/* ---------- A question's answers ---------- */
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.optionNum {
+  flex-shrink: 0;
+  width: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  text-align: center;
+}
+
+/* ---------- Placement on Home (no app shell to push) ---------- */
+
+/* AgentPanel turns into a sticky shell column from 1600px (home-v2-b's sidebar layout). Home has a top
+   bar and no shell, so it stays docked over the right edge at every width from 960. */
+.panelOnHome.panelOnHome {
+  @media (min-width: 1600px) {
+    position: fixed;
+    inset: 0 0 0 auto;
+    height: auto;
+    box-shadow: -8px 0 24px var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
+  }
+}
+

@@ -83,7 +83,7 @@ The page SHALL NOT show the Welcome card, the previous news feed, the previous f
 
 ### Requirement: This week's stories
 
-The stories SHALL be the editorial top stories (rank 1 to 3) when there are any, then the newest stories. Beside the sidebar, the list SHALL show as many whole rows as fit that sidebar's height, and at least four when the sidebar is shorter. It SHALL measure again when the sidebar grows after the news has rendered. On a phone the list SHALL show three rows, then part of the next one. Each row SHALL show the team, the event type, the time, and the title. Opening a row SHALL open the story. Follow SHALL ask a signed-out visitor to sign up. Like SHALL open the "Join the network" card as a modal, with Sign up and Sign in. "See all updates →" SHALL open `/home?view=news`.
+The stories SHALL be the editorial top stories (rank 1 to 5) when there are any, then the newest stories. Beside the sidebar, the list SHALL show as many whole rows as fit that sidebar's height, and at least four when the sidebar is shorter. It SHALL measure again when the sidebar grows after the news has rendered. On a phone the list SHALL show three rows, then part of the next one. Each row SHALL show the team, the event type, the time, and the title. Opening a row SHALL open the story. Follow SHALL ask a signed-out visitor to sign up. Like SHALL open the "Join the network" card as a modal, with Sign up and Sign in. "See all updates →" SHALL open `/home?view=news`.
 
 #### Scenario: Editorial picks first
 
@@ -199,7 +199,7 @@ Above the stream, the filter row SHALL offer For You · All · Top · Discussion
 - Pressing the active pill SHALL reset to All.
 - On phones the pills SHALL be a "Type:" dropdown.
 - Discussions SHALL show forum posts only, and is present only for members with forum access.
-- Top SHALL show the editorial top stories (rank 1 to 3).
+- Top SHALL show the editorial top stories (rank 1 to 5).
 - For You SHALL show what production's For You shows.
 
 Under the pills, on every filter, a line SHALL read "For you · Curated from your profile, your team, and the teams you follow." followed by a "News preferences" link to `/settings/news-preferences` (LAB-3174).
@@ -216,9 +216,9 @@ The editorial top stories SHALL be labelled "Top story" on their card where they
 
 #### Scenario: Top pill
 
-- **GIVEN** three stories with editorial rank 1 to 3
+- **GIVEN** five stories with editorial rank 1 to 5, and one unranked story
 - **WHEN** the member presses Top
-- **THEN** only those three show, each labelled "Top story"
+- **THEN** only those five show, each labelled "Top story"
 - **AND** pressing Top again returns to All
 
 #### Scenario: Empty pill

@@ -45,15 +45,15 @@ describe('pickThisWeek', () => {
     expect(pickThisWeek([])).toEqual([]);
   });
 
-  it('takes ranks 1 to 3 only, and never a story twice', () => {
+  it('takes ranks 1 to 5, and never a story twice', () => {
     const items = [
-      makeStory('rank-4', { eventDate: day(1), editorialRank: 4 }),
-      makeStory('rank-3', { eventDate: day(2), editorialRank: 3 }),
-      makeStory('rank-3', { eventDate: day(2), editorialRank: 3 }),
+      makeStory('rank-6', { eventDate: day(1), editorialRank: 6 }),
+      makeStory('rank-5', { eventDate: day(2), editorialRank: 5 }),
+      makeStory('rank-5', { eventDate: day(2), editorialRank: 5 }),
       makeStory('newest', { eventDate: day(6) }),
     ];
 
-    expect(pickThisWeek(items).map((i) => i.uid)).toEqual(['rank-3', 'newest', 'rank-4']);
+    expect(pickThisWeek(items, 2).map((i) => i.uid)).toEqual(['rank-5', 'newest']);
   });
 
   it('leaves out hiring roll-ups, deals and forum posts', () => {

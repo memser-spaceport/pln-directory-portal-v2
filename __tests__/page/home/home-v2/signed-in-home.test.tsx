@@ -359,19 +359,20 @@ describe('Network Updates: the stream', () => {
       story('r2', 'FUNDING', { editorialRank: 2 }),
       story('r3', 'LAUNCH', { editorialRank: 3 }),
       story('r4', 'LAUNCH', { editorialRank: 4 }),
+      story('r5', 'LAUNCH', { editorialRank: 5 }),
       story('plain', 'LAUNCH'),
     ]);
 
     // In the stream, where they stand: badged, not pinned.
-    expect(within(stream()).getAllByText('Top story')).toHaveLength(3);
+    expect(within(stream()).getAllByText('Top story')).toHaveLength(5);
 
     const top = within(pillRow()).getByRole('button', { name: /^Top/ });
     fireEvent.click(top);
-    expect(streamHeadlines()).toEqual(['Headline r1', 'Headline r2', 'Headline r3']);
+    expect(streamHeadlines()).toEqual(['Headline r1', 'Headline r2', 'Headline r3', 'Headline r4', 'Headline r5']);
     expect(top).toHaveAttribute('aria-pressed', 'true');
 
     fireEvent.click(top);
-    expect(streamHeadlines()).toHaveLength(5);
+    expect(streamHeadlines()).toHaveLength(6);
     expect(within(pillRow()).getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true');
   });
 

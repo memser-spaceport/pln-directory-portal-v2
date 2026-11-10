@@ -312,12 +312,12 @@ describe('NewsPreferences tags (LAB-3000)', () => {
 
   it('explains seeded tags, and saves them together with the first change', () => {
     renderPage({ initialTags: ['desci'], initialTagsSeeded: true });
-    expect(screen.getByText(/We picked these from your teams’ focus areas/)).toBeInTheDocument();
+    expect(screen.getByText(/We picked these to get you started/)).toBeInTheDocument();
 
     fireEvent.click(chip('#ai'));
 
     expect(mockSetNewsTags).toHaveBeenCalledWith(['desci', 'ai'], expect.any(Object));
-    expect(screen.queryByText(/We picked these from your teams’ focus areas/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/We picked these to get you started/)).not.toBeInTheDocument();
   });
 
   it('prefers the client query over the server-read tags once it loads', () => {

@@ -1600,7 +1600,7 @@ export default function JobBoardPrototype() {
           keep today's behaviour. */}
       <PrototypeNavBar
         hasUnreadNews={hasNewsUpdates}
-        newsHref="/prototypes/newsfeed"
+        newsHref="/prototypes/homepage?state=signed-in"
         isLoggedIn={isLoggedIn}
         onSignIn={onSignIn}
         onSignUp={onSignUp}
@@ -1611,7 +1611,7 @@ export default function JobBoardPrototype() {
           the exception — it's signed-in-only, so the slot follows the viewer. */}
       <PrototypeMobileNav
         hasUnreadNews={hasNewsUpdates}
-        newsHref="/prototypes/newsfeed"
+        newsHref="/prototypes/homepage?state=signed-in"
         active={false}
         plInfra={isLoggedIn}
       />

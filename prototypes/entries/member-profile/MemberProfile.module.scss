@@ -116,6 +116,16 @@
   }
 }
 
+/* Same split as .updatesMobile: the rail is hidden below tablet-landscape. */
+.suggestionsMobile {
+  display: flex;
+  flex-direction: column;
+
+  @include media.tablet-landscape {
+    display: none;
+  }
+}
+
 /* Brand-tinted surface over BookWithOther's card shell — the same
    soft-surface + subtle-border pair the jobs alert banner uses. The shadow goes
    with it: a tinted card reads as a distinct surface on its own, and keeping

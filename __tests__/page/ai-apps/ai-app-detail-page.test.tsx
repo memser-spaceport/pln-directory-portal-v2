@@ -786,4 +786,178 @@ describe('AiAppDetailPage', () => {
       expect(remounted.getAttribute('src')).toBe(`${APP_ORIGIN}/reports/42`);
     });
   });
+
+  describe('apps without a deployment', () => {
+    type Target = NonNullable<NonNullable<AiApp['deployments']>['prod']>;
+
+    // The API shape of an environment nothing was ever deployed to: no address at all.
+    const undeployedTarget = (environment: 'prod' | 'preview', overrides: Partial<Target> = {}): Target => ({
+      environment,
+      status: 'DRAFT',
+      url: null,
+      httpUrl: null,
+      host: null,
+      lastDeployedAt: null,
+      serving: 'none',
+      requiredEnvVars: ['PERPLEXITY_API_KEY'],
+      providedEnvVars: [],
+      hasBuild: true,
+      ...overrides,
+    });
+
+    const deployedPreview = (): Target => ({
+      environment: 'preview',
+      status: 'READY',
+      url: 'https://preview.example.com',
+      httpUrl: 'https://preview.example.com',
+      host: 'preview.example.com',
+      lastDeployedAt: '2026-07-02T00:00:00.000Z',
+      serving: 'latest',
+      requiredEnvVars: [],
+      providedEnvVars: [],
+      hasBuild: true,
+    });
+
+    const buildUndeployedApp = (overrides: Partial<AiApp> = {}): AiApp =>
+      buildApp({
+        status: 'DRAFT',
+        url: null,
+        httpUrl: null,
+        host: null,
+        providedEnvVars: [],
+        deployments: { prod: undeployedTarget('prod'), preview: null },
+        ...overrides,
+      } as Partial<AiApp>);
+
+    const renderApp = (app: AiApp) => {
+      mockUseAiAppReturn = { app, isLoading: false, isError: false };
+      return render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
+    };
+
+    it('shows the setup view to a manager of a never-deployed draft', () => {
+      renderApp(buildUndeployedApp());
+
+      expect(screen.queryByText('App not found.')).not.toBeInTheDocument();
+      expect(screen.getByText('AppSecretsPanel')).toBeInTheDocument();
+      expect(document.querySelector('iframe')).toBeNull();
+    });
+
+    it('shows "App not found." when the API answers 404', () => {
+      mockUseAiAppReturn = { app: null, isLoading: false, isError: false, errorKind: 'not-found' };
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
+
+      expect(screen.getByText('App not found.')).toBeInTheDocument();
+    });
+
+    it('shows "App not found." for a deleted app', () => {
+      renderApp(buildUndeployedApp({ status: 'DELETED', deployments: undefined }));
+
+      expect(screen.getByText('App not found.')).toBeInTheDocument();
+      expect(screen.queryByText('AppSecretsPanel')).not.toBeInTheDocument();
+    });
+
+    it('shows the setup view for a never-deployed draft with no required values', () => {
+      renderApp(
+        buildUndeployedApp({
+          requiredEnvVars: [],
+          deployments: { prod: undeployedTarget('prod', { requiredEnvVars: [] }), preview: null },
+        }),
+      );
+
+      expect(screen.getByText('AppSecretsPanel')).toBeInTheDocument();
+      expect(mockAnalytics.onDraftSetupViewed).not.toHaveBeenCalled();
+    });
+
+    it('tells a non-manager the draft is not deployed yet, without the form', () => {
+      renderApp(buildUndeployedApp({ canManage: false }));
+
+      expect(screen.getByText(/This app is not deployed yet\. Only Ada can provide/)).toBeInTheDocument();
+      expect(screen.queryByText('AppSecretsPanel')).not.toBeInTheDocument();
+      expect(screen.queryByText('App not found.')).not.toBeInTheDocument();
+    });
+
+    it('shows both statuses when Production and Preview are never-deployed drafts', () => {
+      renderApp(
+        buildUndeployedApp({
+          access: 'PRIVATE',
+          canViewPreview: true,
+          deployments: { prod: undeployedTarget('prod'), preview: undeployedTarget('preview') },
+        }),
+      );
+
+      expect(screen.getByText(/Prod Draft · Preview Draft/)).toBeInTheDocument();
+      expect(screen.getByText('AppSecretsPanel')).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: 'Production' })).toHaveAttribute('aria-selected', 'true');
+    });
+
+    it('keeps mounting the app for a draft with no required values that was deployed before', () => {
+      renderApp(buildApp({ status: 'DRAFT', requiredEnvVars: [], providedEnvVars: [] }));
+
+      expect(screen.queryByText('AppSecretsPanel')).not.toBeInTheDocument();
+      expect(screen.queryByText('App not found.')).not.toBeInTheDocument();
+      expect(screen.getByRole('link', { name: /^back$/i })).toBeInTheDocument();
+    });
+
+    it('shows "Production is not deployed yet" when nothing is deployed and Preview is not available', () => {
+      renderApp(
+        buildUndeployedApp({
+          status: 'IN_DEVELOPMENT',
+          requiredEnvVars: [],
+          deployments: {
+            prod: undeployedTarget('prod', { status: 'IN_DEVELOPMENT', requiredEnvVars: [], hasBuild: false }),
+            preview: null,
+          },
+        }),
+      );
+
+      expect(screen.getByText('Production is not deployed yet')).toBeInTheDocument();
+      expect(screen.queryByText(/Switch to Preview/)).not.toBeInTheDocument();
+      expect(screen.queryByText('App not found.')).not.toBeInTheDocument();
+      expect(screen.queryByText('AppSecretsPanel')).not.toBeInTheDocument();
+      expect(screen.getByRole('link', { name: /^back$/i })).toBeInTheDocument();
+    });
+
+    describe('starting environment', () => {
+      const previewOnlyApp = () =>
+        buildUndeployedApp({
+          status: 'IN_DEVELOPMENT',
+          requiredEnvVars: [],
+          canViewPreview: true,
+          deployments: {
+            prod: undeployedTarget('prod', { status: 'IN_DEVELOPMENT', requiredEnvVars: [], hasBuild: false }),
+            preview: deployedPreview(),
+          },
+        });
+
+      it('opens on Preview when only Preview has an address', () => {
+        renderApp(previewOnlyApp());
+
+        expect(screen.getByRole('tab', { name: 'Preview' })).toHaveAttribute('aria-selected', 'true');
+        expect(screen.queryByText('Production is not deployed yet')).not.toBeInTheDocument();
+      });
+
+      it('keeps Production once the viewer picks it, and offers the way back to Preview', () => {
+        const app = previewOnlyApp();
+        const { rerender } = renderApp(app);
+
+        fireEvent.click(screen.getByRole('tab', { name: 'Production' }));
+
+        expect(mockAnalytics.onEnvironmentSelected).toHaveBeenCalledWith({ environment: 'prod', surface: 'detail' });
+        expect(screen.getByRole('tab', { name: 'Production' })).toHaveAttribute('aria-selected', 'true');
+        expect(screen.getByText('Production is not deployed yet')).toBeInTheDocument();
+        expect(screen.getByText(/Switch to Preview/)).toBeInTheDocument();
+        expect(screen.getByRole('tab', { name: 'Preview' })).toBeInTheDocument();
+
+        mockUseAiAppReturn = { app: { ...app }, isLoading: false, isError: false };
+        rerender(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
+        expect(screen.getByRole('tab', { name: 'Production' })).toHaveAttribute('aria-selected', 'true');
+      });
+
+      it('opens on Production when both environments have an address', () => {
+        renderApp(buildApp({ canViewPreview: true, deployments: { prod: null as never, preview: deployedPreview() } }));
+
+        expect(screen.getByRole('tab', { name: 'Production' })).toHaveAttribute('aria-selected', 'true');
+      });
+    });
+  });
 });

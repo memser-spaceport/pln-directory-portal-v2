@@ -4,7 +4,7 @@ import { logTimestampSortValue } from '@/services/ai-apps/ai-apps-logs.utils';
 const AI_APPS_API_URL = `${process.env.DIRECTORY_API_URL}/v1/ai-apps`;
 
 /** Keep in sync with the status set the web-api emits (LAB-2101). */
-export type AiAppStatus = 'DRAFT' | 'DEPLOYING' | 'READY' | 'ERROR';
+export type AiAppStatus = 'IN_DEVELOPMENT' | 'DRAFT' | 'DEPLOYING' | 'READY' | 'ERROR' | 'DELETING' | 'DELETED';
 
 /**
  * What is actually serving traffic — independent of whether the last deploy

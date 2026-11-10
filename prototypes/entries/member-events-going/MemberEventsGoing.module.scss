@@ -1,0 +1,319 @@
+/* Shared by the profile and Home entries. Token + fallback pairs from production. */
+
+.row.row {
+  position: relative;
+}
+
+.rowTitle {
+  display: block;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+
+  /* The title's press covers the row. */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+.rowBadges {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Above the row's press, so a menu stays its own target. */
+.rowTrailing.rowTrailing {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  opacity: 1;
+}
+
+.goingMark {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: var(--foreground-success-primary, #0a9952);
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* Profile section */
+
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.groupLabel {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.pastList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 32px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @media (max-width: 959px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.pastRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 0;
+
+  /* Between rows only: the first row of each column has the label above it. */
+  &:nth-child(n + 3) {
+    border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+
+  @media (max-width: 959px) {
+    &:nth-child(2) {
+      border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+    }
+  }
+}
+
+.pastName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pastRole {
+  flex-shrink: 0;
+}
+
+/* Fixed width so a row with a role and one without end on the same edge. */
+.pastDate {
+  flex-shrink: 0;
+  width: 56px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.emptyText {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.menuDanger.menuDanger {
+  color: var(--foreground-error-primary, #dd2c5a);
+}
+
+/* Modal additions */
+
+.askBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.consentText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.consentLabel {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.consentHint {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.backButton {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  color: var(--foreground-neutral-secondary, #455468);
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  cursor: pointer;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.searchWrap {
+  flex-shrink: 0;
+  padding: 16px 24px 8px;
+}
+
+.search {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  background: var(--background-base-white, #ffffff);
+
+  &::placeholder {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+
+  &:focus {
+    border-color: var(--foreground-brand-primary, #1b4dff);
+    outline: none;
+  }
+}
+
+.attendees,
+.pickList {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0 24px 24px;
+  overflow-y: auto;
+  list-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.attendee {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+a.attendee:hover .attendeeName {
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.attendeeImg {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  object-fit: cover;
+}
+
+.attendeeText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.attendeeName {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.attendeeMeta {
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attendeeTag {
+  flex-shrink: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.noResults {
+  padding: 16px 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.toastLink {
+  color: inherit;
+  font-weight: 500;
+  text-decoration: underline;
+}

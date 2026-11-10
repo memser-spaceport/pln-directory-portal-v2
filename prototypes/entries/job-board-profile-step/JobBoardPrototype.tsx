@@ -982,7 +982,7 @@ export default function JobBoardPrototype() {
           keep today's behaviour. */}
       <PrototypeNavBar
         hasUnreadNews={hasNewsUpdates}
-        newsHref="/prototypes/newsfeed"
+        newsHref="/prototypes/homepage?state=signed-in"
         isLoggedIn={isLoggedIn}
         onSignIn={onSignIn}
         onSignUp={onSignUp}
@@ -991,7 +991,7 @@ export default function JobBoardPrototype() {
       {/* No auth prop: the mobile bottom bar carries no account cluster in
           production either, so there is nothing for it to switch. PL Infra is
           the exception — it's signed-in-only, so the slot follows the viewer. */}
-      <PrototypeMobileNav hasUnreadNews={hasNewsUpdates} newsHref="/prototypes/newsfeed" active={false} />
+      <PrototypeMobileNav hasUnreadNews={hasNewsUpdates} newsHref="/prototypes/homepage?state=signed-in" active={false} />
     </>
   );
 

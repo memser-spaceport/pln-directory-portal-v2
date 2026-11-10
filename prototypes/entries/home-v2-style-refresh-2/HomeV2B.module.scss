@@ -220,14 +220,3 @@
   margin: 0;
 }
 
-// Signed-out hero title (B only): production's PL gradient text, the one AI search's result titles use
-// (DirectoryResults.module.scss). Doubled so it beats EditorialIntro's .edTitle colour (equal specificity).
-.gradientTitle.gradientTitle {
-  background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-  // Shrink the paint box to the words, so the teal end lands on the last letter, not the column's edge.
-  width: fit-content;
-}

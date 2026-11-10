@@ -155,6 +155,34 @@
   }
 }
 
+/* The one thing the agent is mainly for: already on the rows' hover ground, set apart from the rest. */
+.promptPrimary {
+  margin-bottom: 8px;
+  border-color: var(--border-brand-subtle, #aebfff);
+  background: var(--background-brand-soft-surface, #f2f5ff);
+
+  &:hover {
+    border-color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+/* home-refactor-b's .promptKind, as its own line above the question. Keeps its grey when the row hovers brand. */
+.promptTopic {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+
+  svg {
+    flex-shrink: 0;
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+}
+
 /* ---------- Turns ---------- */
 
 .userTurn {

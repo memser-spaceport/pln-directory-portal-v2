@@ -282,7 +282,7 @@ export function TeamNewsModal({
               beside team-scoped lists for the same reason — a cross-surface exit
               that reads differently per page is how vocabulary drifts. */}
           <div className={local.newsModalFooter}>
-            <Link href="/prototypes/newsfeed" prefetch={false} className={local.newsModalFeedLink}>
+            <Link href="/prototypes/homepage?state=signed-in&view=news" prefetch={false} className={local.newsModalFeedLink}>
               All network updates
               <ArrowUpRightIcon aria-hidden="true" />
             </Link>

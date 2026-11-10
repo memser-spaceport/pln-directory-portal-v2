@@ -17,7 +17,8 @@
  *
  * Sibling prototypes (imported, not forked):
  *   home-refactor-b .... the week-feed grouping (title, now "Network Updates"; tab values) and its re-dated mocks
- *   home-refactor ...... JobsRail (gains an optional `note`), EventsRail, rail styles, mocks
+ *   home-refactor ...... JobsRail (gains an optional `note`), rail styles, mocks
+ *   member-events-going  HomeEventsRail (each Upcoming events row opens the gathering modal over Home)
  *   newsfeed-v0 ........ V0FeedCard + ForumPostCard (full cards in WeekFeed), ForumPostModal, FeedDetailModal, switch chrome
  *   nav-shared ......... PrototypeNavBar / PrototypeMobileNav
  *
@@ -26,7 +27,7 @@
  */
 
 import clsx from 'clsx';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import type { ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
@@ -54,7 +55,7 @@ import {
 } from '../newsfeed-v0/mocks';
 import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
 import { JobsRail } from '../home-refactor/JobsRail';
-import { EventsRail } from '../home-refactor/EventsRail';
+import { HomeEventsRail } from '../member-events-going/HomeEventsRail';
 import hr from '../home-refactor/HomeRefactorPrototype.module.scss';
 import { RepoBanner } from '../home-refactor/RepoBanner';
 import { CURATED_REPOS, REPOS_ATTRIBUTION } from '../home-refactor/mocks';
@@ -88,9 +89,7 @@ import {
   SUGGESTED_TEAMS,
   TOTAL_DEALS,
   TOTAL_OPEN_ROLES,
-  TOTAL_UPCOMING_EVENTS,
   UNKNOWN_EMAIL,
-  UPCOMING_EVENTS,
   isHomeState,
   rolesBesideEvents,
   type EventsState,
@@ -180,7 +179,18 @@ function Switch<T extends string>({
 }
 
 
-export default function HomeV2Prototype() {
+export default function HomeV2Prototype({
+  initialState = 'signed-out',
+  initialFeedTopics,
+  feedNotice,
+}: {
+  /** The state with no ?state= param. */
+  initialState?: HomeState;
+  /** Hashtags the signed-in feed opens filtered by (`digest-more-like-this`). */
+  initialFeedTopics?: string[];
+  /** A message at the top of the signed-in feed (`digest-more-like-this`). */
+  feedNotice?: ReactNode;
+} = {}) {
   /* Prototype routes server-render: read the URL only after mount so SSR === first client render. */
   const [mounted, setMounted] = useState(false);
   /* The week module's times are the viewer's clock (home-refactor-b re-dates its mocks to this week). */
@@ -195,7 +205,7 @@ export default function HomeV2Prototype() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const rawState = searchParams.get('state');
-  const state: HomeState = isHomeState(rawState) ? rawState : 'signed-out';
+  const state: HomeState = isHomeState(rawState) ? rawState : initialState;
   const eventsState: EventsState = searchParams.get('events') === 'none' ? 'none' : 'upcoming';
   const hasEvents = eventsState === 'upcoming';
   const reposState: ReposState = searchParams.get('repos') === 'none' ? 'none' : 'picks';
@@ -210,7 +220,7 @@ export default function HomeV2Prototype() {
     const q = next.toString();
     router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
   };
-  const setState = (v: HomeState) => setParam('state', v, 'signed-out');
+  const setState = (v: HomeState) => setParam('state', v, initialState);
 
   /* ?view=news is the "See all news" page; the other review params ride along. */
   const view: 'home' | 'news' = searchParams.get('view') === 'news' ? 'news' : 'home';
@@ -441,6 +451,8 @@ export default function HomeV2Prototype() {
                 fillTo={railRef}
                 newsHref={viewHref('news')}
                 topStoryUids={TOP_STORY_UIDS}
+                initialTopics={initialFeedTopics}
+                notice={feedNotice}
                 renderNews={(story, topic, isTop) => (
                   <V0FeedCard
                     onSelectTopic={topic.onSelectTopic}
@@ -495,7 +507,7 @@ export default function HomeV2Prototype() {
                 <div className={s.sidebar}>
                   {/* Open roles always; upcoming events only when there are some, else roles take the room. */}
                   <JobsRail jobs={rolesBesideEvents(hasEvents)} total={TOTAL_OPEN_ROLES} />
-                  {hasEvents && <EventsRail events={UPCOMING_EVENTS} total={TOTAL_UPCOMING_EVENTS} />}
+                  {hasEvents && <HomeEventsRail />}
                   {/* Production's news rail, in its order: Teams to follow, then Popular this week. */}
                   <TeamsToFollowRail
                     suggestions={SUGGESTED_TEAMS}

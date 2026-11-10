@@ -141,7 +141,7 @@ describe('SnapshotHistoryTab', () => {
       { ...entries[1], isPending: false },
     ];
 
-    it('shows Pending for the snapshot\'s PLAA, but still shows its points', () => {
+    it("shows Pending for the snapshot's PLAA, but still shows its points", () => {
       render(<SnapshotHistoryTab entries={withPending} />);
 
       const openRow = screen.getByText('Jul 2026').closest('button') as HTMLElement;
@@ -163,7 +163,7 @@ describe('SnapshotHistoryTab', () => {
       expect(screen.getAllByText('Pending')).toHaveLength(4);
     });
 
-    it('keeps the open snapshot\'s PLAA out of the footer total, but counts its points', () => {
+    it("keeps the open snapshot's PLAA out of the footer total, but counts its points", () => {
       render(<SnapshotHistoryTab entries={withPending} />);
 
       const footer = screen.getByText('Total to date').parentElement as HTMLElement;

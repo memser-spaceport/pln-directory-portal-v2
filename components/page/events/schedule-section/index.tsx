@@ -9,7 +9,7 @@ import { getSubmitEventUrl } from '@/utils/irl-submit-url';
 import { FEEDBACK_BRIDGE_ATTR } from '@/components/page/ai-apps/components/screenshot-feedback/captureBridgedFrames';
 
 const EMBED_URL_PARAM = 'embedPath';
-const DEFAULT_EMBED_PATH = '/embed/program/';
+const DEFAULT_EMBED_PATH = '/embed/calendar/';
 
 export default function ScheduleSection(props: any) {
   const { onSubmitEventButtonClicked, onGoToEventsButtonClicked, onSubscribeForUpdatesButtonClicked } =
@@ -57,7 +57,7 @@ export default function ScheduleSection(props: any) {
             </ShadowButton>
           </a>
           <a
-            href={`${process.env.PL_EVENTS_BASE_URL}/program`}
+            href={`${process.env.PL_EVENTS_BASE_URL}/calendar`}
             target="_blank"
             onClick={() => onGoToEventsButtonClicked()}
           >

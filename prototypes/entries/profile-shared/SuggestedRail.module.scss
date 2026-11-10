@@ -1,0 +1,25 @@
+.title {
+  margin: 0;
+}
+
+.list {
+  width: 100%;
+
+  /* The card's own padding and gap already space the first and last rows. */
+  > :first-child {
+    padding-top: 0;
+  }
+
+  > :last-child {
+    padding-bottom: 0;
+  }
+}
+
+/* Doubled: these override production classes that may load later. */
+.round.round {
+  border-radius: 50%;
+}
+
+.twoLines.twoLines {
+  -webkit-line-clamp: 2;
+}

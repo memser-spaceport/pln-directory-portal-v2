@@ -9,6 +9,9 @@ export const TOP_STORIES_ROW_COUNT = 2;
 /** How many stories the band consumes when it renders. */
 export const TOP_STORIES_TOTAL = TOP_STORIES_LEAD_COUNT + TOP_STORIES_ROW_COUNT;
 
+/** Editorial ranks the seed stores. The Home Top tab and the "Top story" badge use this. */
+export const EDITORIAL_TOP_COUNT = 5;
+
 /** The feed's default first page — see TeamNews' `pageSize` default. */
 const DEFAULT_FEED_PAGE = 6;
 
@@ -38,9 +41,9 @@ export interface TopStoriesSelection {
 
 const EMPTY: TopStoriesSelection = { lead: null, also: [], uids: new Set() };
 
-/** An editorial pick for the band: rank 1 (lead) to TOP_STORIES_TOTAL. Shared with Home's This week (pickThisWeek). */
+/** An editorial pick: rank 1 (lead) through EDITORIAL_TOP_COUNT. Shared with the Home Top tab and This week. */
 export function isEditorialRank(rank: number | null | undefined): rank is number {
-  return typeof rank === 'number' && rank >= 1 && rank <= TOP_STORIES_TOTAL;
+  return typeof rank === 'number' && rank >= 1 && rank <= EDITORIAL_TOP_COUNT;
 }
 
 /**

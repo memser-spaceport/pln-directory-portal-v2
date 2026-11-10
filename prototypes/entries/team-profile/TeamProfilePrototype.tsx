@@ -74,6 +74,7 @@ import { ConfirmDialog } from '@/components/core/ConfirmDialog/ConfirmDialog';
 import { NewsEmptyCard } from './NewsEmptyCard';
 import { PostNewsButton } from './PostNewsButton';
 import { deriveDomain } from './newsUrl';
+import { SuggestedRail, SUGGESTED_TEAMS } from '../profile-shared/SuggestedRail';
 import { FollowPill } from '../follow-shared/FollowPill';
 import { FollowToast } from '../follow-shared/FollowToast';
 // Team-level "Request an intro" (LAB-2698): the member profile's press and
@@ -633,10 +634,7 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
    * are gone. The URL carries the seat so the page builds the same scope.
    */
   const openAiSearch = () =>
-    window.open(
-      teamAiSearchUrl({ view, canSeeCandidates: canSubmitJobs, hasRoles: !!teamRoles }),
-      '_blank',
-    );
+    window.open(teamAiSearchUrl({ view, canSeeCandidates: canSubmitJobs, hasRoles: !!teamRoles }), '_blank');
   /**
    * "Request an intro to <team>" (LAB-2698, reversed back in at the
    * 2026-09-28 standup). The requester — a founder, an operator, a BD person —
@@ -644,8 +642,10 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
    * the PL team picks the person (a founder, the events lead…) and makes the
    * intro. So the target is the team itself, and the press lives in the
    * header cluster beside Ask AI and Follow, like the member page's contact
-   * press. Visitors only: the team's own members (the Admin / Team lead /
-   * Member seats, production's team view) have nobody to be introduced to.
+   * press. Visitors and directory admins: an admin is not necessarily on the
+   * team, so they may want an intro like anyone else (2026-11-06: "Admin
+   * should also be able to request an intro"). The Team lead / Member seats
+   * are on the team and have nobody to be introduced to.
    */
   const intro = useRequestIntro();
   const teamIntroUid = team.id ?? 'protocol-labs';
@@ -744,15 +744,19 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
       )}
     </div>
   );
-  const visitorIntro = (
+  /* One glossy press in every seat, the admin's text-action row included
+     (2026-11-06: tried the dev build's flat DS button there, reverted —
+     "get back to shiny"). */
+  const introPress = (className?: string) => (
     <RequestIntroButton
       requested={intro.requested(teamIntroUid)}
       onClick={() => intro.request({ uid: teamIntroUid, name: team.name ?? 'this team', kind: 'team' })}
       name={team.name ?? 'this team'}
       size={isMobile ? 's' : 'xs'}
-      className={local.introPress}
+      className={clsx(local.introPress, className)}
     />
   );
+  const visitorIntro = introPress();
 
   return (
     <div className={local.page}>
@@ -963,7 +967,7 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
                               outlined badge ("Use the same badge for team
                               profile as well"): the same object in every seat
                               and on both profile pages. */}
-                          {askAiButton(clsx(local.mobileOnly, local.askAiBadge), 12)}
+                          {askAiButton(clsx(local.mobileOnly, local.askAiBadge), 14)}
                         </div>
                       </div>
                     ) : (
@@ -983,13 +987,20 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
                                     team): Follow joins the action row ahead of Edit, as on
                                     Wellfound's company page seen by its admin. Phone: the
                                     absolute corner has no room, so it sits by the followers. */}
+                                {/* Admin also gets the intro press (not
+                                    necessarily on the team): after Follow, as
+                                    in the visitor's cluster, ahead of the
+                                    management actions Edit / Delete. */}
                                 {view === 'admin' && (
-                                  <FollowPill
-                                    following={following}
-                                    onToggle={handleFollowToggle}
-                                    name={team.name ?? 'this team'}
-                                    className={local.fromTablet}
-                                  />
+                                  <>
+                                    <FollowPill
+                                      following={following}
+                                      onToggle={handleFollowToggle}
+                                      name={team.name ?? 'this team'}
+                                      className={local.fromTablet}
+                                    />
+                                    {introPress(local.fromTablet)}
+                                  </>
                                 )}
                               </>
                             }
@@ -999,7 +1010,7 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
                           team name, so Ask AI leaves it and joins the row that
                           wraps under the tags — where the visitor's Ask AI
                           already sits on a phone. */}
-                        {askAiButton(clsx(local.askAiMobileOnly, local.askAiBadge), 12)}
+                        {askAiButton(clsx(local.askAiMobileOnly, local.askAiBadge), 14)}
                         <TeamFollowBlock
                           count={followCount}
                           followers={MOCK_FOLLOWERS}
@@ -1007,12 +1018,15 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
                           onOpenChange={setFollowersOpen}
                           action={
                             view === 'admin' ? (
-                              <FollowPill
-                                following={following}
-                                onToggle={handleFollowToggle}
-                                name={team.name ?? 'this team'}
-                                className={local.mobileOnly}
-                              />
+                              <>
+                                <FollowPill
+                                  following={following}
+                                  onToggle={handleFollowToggle}
+                                  name={team.name ?? 'this team'}
+                                  className={local.mobileOnly}
+                                />
+                                {introPress(local.mobileOnly)}
+                              </>
                             ) : undefined
                           }
                         />
@@ -1113,33 +1127,33 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
           </div>
 
           {/* News rail — team-related news (mocked), reusing the homepage NewsCard. */}
-          {showRail && (
-            <aside className={local.rail}>
-              {/* Reserve the Back button's height so the news panel lines up with the
+          <aside className={local.rail}>
+            {/* Reserve the Back button's height so the news panel lines up with the
             team card top (the main column has a Back button above it). */}
-              <div className={local.railBackSpacer} aria-hidden="true">
-                <BackButton to="/prototypes/teams" />
-              </div>
+            <div className={local.railBackSpacer} aria-hidden="true">
+              <BackButton to="/prototypes/teams" />
+            </div>
+            {showRail && (
               <div className={local.newsPanel}>
                 {/* No "(0)" over the empty card — the card already says there is nothing. */}
                 <DetailsSectionHeader
                   title={displayNews.length > 0 ? `${team.name} News (${displayNews.length})` : `${team.name} News`}
                 >
                   {/* The section's own action, in the corner every profile section
-                    keeps for one — only for someone who can post, and only once
-                    there is news: with none, the empty card below is the one
-                    door, and a second one here would open into the same room.
+                      keeps for one — only for someone who can post, and only once
+                      there is news: with none, the empty card below is the one
+                      door, and a second one here would open into the same room.
 
-                    A small filled primary button with a one-time callout (see
-                    PostNewsButton). The placements it went through, for the
-                    record: the sections' link-style HeaderActionBtn here (blue
-                    14px text beside this panel's blue 14px title — "almost
-                    impossible to notice"); a bordered button here (read, but
-                    crowded); a full-width bordered row under the header; an
-                    input-shaped compose prompt in that row (the feed idiom).
-                    The corner won with a filled button and an announcement:
-                    a new feature is found by being announced, not by taking
-                    more of the list. */}
+                      A small filled primary button with a one-time callout (see
+                      PostNewsButton). The placements it went through, for the
+                      record: the sections' link-style HeaderActionBtn here (blue
+                      14px text beside this panel's blue 14px title — "almost
+                      impossible to notice"); a bordered button here (read, but
+                      crowded); a full-width bordered row under the header; an
+                      input-shaped compose prompt in that row (the feed idiom).
+                      The corner won with a filled button and an announcement:
+                      a new feature is found by being announced, not by taking
+                      more of the list. */}
                   {canPost && displayNews.length > 0 && (
                     <PostNewsButton
                       teamName={team.name ?? 'this team'}
@@ -1170,26 +1184,27 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
                   ))}
                 </div>
                 {/* The rail's two exits, paired on one row. They're deliberately not
-              interchangeable: "View all news" stays inside this team (the modal
-              is its own archive), while "All network updates" leaves for the home feed
-              (which carries forum/events/Demo Day too — not just team news; "all"
-              is the word marking that widening, and the ↗ carries "elsewhere")
-              — hence the ↗ and the quieter neutral text against the blue. When
-              there's no archive to open, the remaining button takes the row. */}
+                interchangeable: "View all news" stays inside this team (the modal
+                is its own archive), while "All network updates" leaves for the home feed
+                (which carries forum/events/Demo Day too — not just team news; "all"
+                is the word marking that widening, and the ↗ carries "elsewhere")
+                — hence the ↗ and the quieter neutral text against the blue. When
+                there's no archive to open, the remaining button takes the row. */}
                 <div className={local.newsFooter}>
                   {hasMore && (
                     <button type="button" className={local.viewAll} onClick={() => openNewsFeed()}>
                       View all news ({displayNews.length})
                     </button>
                   )}
-                  <Link href="/prototypes/newsfeed" prefetch={false} className={local.viewFeed}>
+                  <Link href="/prototypes/homepage?state=signed-in&view=news" prefetch={false} className={local.viewFeed}>
                     All network updates
                     <ArrowUpRightIcon aria-hidden="true" />
                   </Link>
                 </div>
               </div>
-            </aside>
-          )}
+            )}
+            <SuggestedRail kind="team" items={SUGGESTED_TEAMS} className={local.suggestedCard} />
+          </aside>
 
           {/* The team's full archive. Mobile gets a full-screen page
           (Notifications-style), desktop a modal with its own scroll.

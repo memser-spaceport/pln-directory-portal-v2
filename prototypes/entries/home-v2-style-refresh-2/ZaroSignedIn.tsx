@@ -8,6 +8,7 @@ import type { ISuggestedTeam, ITeamNewsItem } from '@/types/team-news.types';
 import type { IDeal } from '@/types/deals.types';
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { AppLogo } from '@/components/core/navbar/components/icons';
+import { CloseIcon } from '@/components/icons/CloseIcon';
 import { EVENT_TYPE_LABEL } from '@/components/page/home/TeamNews/utils/getEventTypeConfig';
 import { SORT_OPTIONS, type TeamNewsSort } from '@/components/page/home/TeamNews/utils/sortTeamNewsClusters';
 
@@ -75,8 +76,8 @@ const NAV = [
 ] as const;
 
 /**
- * B's left sidebar in the reference's grammar: paper column, hairline edge, uppercase mono group labels,
- * the current page marked by a ground fill and a lavender bar, the member at the foot.
+ * B's left sidebar in the reference's grammar: paper column, hairline edge, plain group labels, the
+ * current page marked by a ground fill, the member at the foot.
  */
 export function ZaroSidebar() {
   return (
@@ -137,7 +138,7 @@ type Pill = { id: string; label: string; count: number };
 /**
  * home-v2-b's member page — Network Updates over the forum and the news, a rail of Popular this week,
  * open roles, Teams to follow and deals, then the open-source picks — redrawn in zaro.ai's language:
- * two-tone headlines, hairline grids instead of cards-on-cards, square controls, mono labels, a lavender
+ * plain titles, hairline grids instead of cards-on-cards, sentence-case labels in one family, a lavender
  * Top stories panel and a dark repos band. Same data and state as B (the parent owns it).
  */
 export function ZaroSignedIn(props: {
@@ -238,10 +239,8 @@ export function ZaroSignedIn(props: {
   return (
     <div className={clsx(z.page, m.page, grotesk.variable, mono.variable)}>
       <header className={m.head}>
-        <p className={z.overline}>Week of {p.weekLabel}</p>
-        <h1 className={m.headTitle}>
-          <span>Network updates.</span> <span>What shipped, raised and launched this week.</span>
-        </h1>
+        <h1 className={m.headTitle}>Network updates</h1>
+        <p className={m.headWeek}>Week of {p.weekLabel}</p>
       </header>
 
       <div className={m.row}>
@@ -254,7 +253,7 @@ export function ZaroSignedIn(props: {
               </h2>
               <span className={m.pager}>
                 <span className={m.pagerCount}>
-                  {String(forumPage + 1).padStart(2, '0')} / {String(forumPages).padStart(2, '0')}
+                  {forumPage + 1} / {forumPages}
                 </span>
                 <button
                   type="button"
@@ -280,7 +279,6 @@ export function ZaroSignedIn(props: {
               {threads.map((post) => (
                 <article key={post.uid} className={m.thread} onClick={() => p.onOpenForum(post)}>
                   <span className={m.metaLine}>
-                    <span className={m.square} />
                     {post.category} · {formatTimeAgo(post.createdAt)}
                   </span>
                   <button type="button" className={m.threadTitle} onClick={() => p.onOpenForum(post)}>
@@ -322,7 +320,6 @@ export function ZaroSignedIn(props: {
                     onClick={() => p.onCat(pill.id)}
                   >
                     {pill.label}
-                    {pill.id !== 'all' && <span className={m.pillCount}>{pill.count}</span>}
                   </button>
                 ))}
               </div>
@@ -340,14 +337,14 @@ export function ZaroSignedIn(props: {
 
             {p.topic ? (
               <div className={m.scope}>
-                <span className={z.overline}>Filter</span>
+                <span className={m.scopeCount}>Filter</span>
                 <button
                   type="button"
                   className={m.scopeChip}
                   aria-label={`Clear the #${p.topic} filter`}
                   onClick={() => p.onTopic(p.topic)}
                 >
-                  #{p.topic} <span aria-hidden>✕</span>
+                  #{p.topic} <CloseIcon width={12} height={12} aria-hidden />
                 </button>
                 <span className={m.scopeCount}>
                   {p.topicCount} {p.topicCount === 1 ? 'update' : 'updates'}
@@ -360,10 +357,11 @@ export function ZaroSignedIn(props: {
               p.activeCat === p.forYouId && (
                 <p className={m.caption}>
                   <span>
-                    <strong>For you</strong> · Curated from your profile, your team, and the teams you follow.
+                    <strong>For you</strong> · Curated based on your profile, primary team attributes, and the teams you
+                    follow.
                   </span>
                   <Link href="/prototypes/digest-topics?from=feed" className={z.textLink}>
-                    Tune For You <Arrow />
+                    Update For You <Arrow />
                   </Link>
                 </p>
               )
@@ -371,10 +369,7 @@ export function ZaroSignedIn(props: {
 
             {p.topLead && (
               <div className={m.top}>
-                <span className={z.tags}>
-                  <span className={z.tag}>Top stories</span>
-                  <span className={z.tag}>Week of {p.weekLabel}</span>
-                </span>
+                <h3 className={m.topHead}>Top stories</h3>
                 <button type="button" className={m.topLead} onClick={() => p.onOpenStory(p.topLead!)}>
                   <span className={m.metaLine}>
                     {p.topLead.teamName} · {EVENT_TYPE_LABEL[p.topLead.eventType]}
@@ -383,10 +378,9 @@ export function ZaroSignedIn(props: {
                   {p.topLead.summary && <span className={m.topSummary}>{p.topLead.summary}</span>}
                 </button>
                 <ul className={m.topAlso}>
-                  {p.topAlso.map((s, i) => (
+                  {p.topAlso.map((s) => (
                     <li key={s.uid}>
                       <button type="button" className={m.topRow} onClick={() => p.onOpenStory(s)}>
-                        <span className={z.cardNumPlain}>{String(i + 2).padStart(2, '0')}</span>
                         <span className={m.topRowMain}>
                           <span className={m.metaLine}>{s.teamName}</span>
                           <span>{s.title}</span>
@@ -428,14 +422,14 @@ export function ZaroSignedIn(props: {
         {/* Rail: one hairline column, each module a cell. */}
         <aside className={m.rail} aria-label="This week">
           <section className={m.cell} aria-labelledby="zm-popular">
-            <h2 id="zm-popular" className={z.overline}>
+            <h2 id="zm-popular" className={z.railTitle}>
               Popular this week
             </h2>
             <ol className={m.list}>
               {p.popular.map((item, i) => (
                 <li key={item.uid}>
                   <button type="button" className={m.listRow} onClick={() => p.onOpenPopular(item.uid)}>
-                    <span className={z.cardNumPlain}>{String(i + 1).padStart(2, '0')}</span>
+                    <span className={m.rank}>{i + 1}</span>
                     <span className={m.listMain}>
                       <span className={m.listTitle}>{item.title}</span>
                       <span className={m.listMeta}>
@@ -449,7 +443,7 @@ export function ZaroSignedIn(props: {
           </section>
 
           <section className={m.cell} aria-labelledby="zm-roles">
-            <h2 id="zm-roles" className={z.overline}>
+            <h2 id="zm-roles" className={z.railTitle}>
               Open roles
             </h2>
             <ul className={m.list}>
@@ -473,7 +467,7 @@ export function ZaroSignedIn(props: {
           </section>
 
           <section className={m.cell} aria-labelledby="zm-teams">
-            <h2 id="zm-teams" className={z.overline}>
+            <h2 id="zm-teams" className={z.railTitle}>
               Teams to follow
             </h2>
             <ul className={m.list}>
@@ -486,7 +480,7 @@ export function ZaroSignedIn(props: {
                   </span>
                   <button
                     type="button"
-                    className={clsx(z.btn, z.btnSmall, p.followed.has(t.uid) ? z.btnOutline : z.btnBrand, m.followBtn)}
+                    className={clsx(z.btn, z.btnSmall, z.btnOutline, m.followBtn, p.followed.has(t.uid) && m.followBtnOn)}
                     aria-pressed={p.followed.has(t.uid)}
                     onClick={() => p.onToggleFollow(t.uid)}
                   >
@@ -497,8 +491,8 @@ export function ZaroSignedIn(props: {
             </ul>
           </section>
 
-          <section className={clsx(m.cell, m.cellLav)} aria-labelledby="zm-deals">
-            <h2 id="zm-deals" className={z.overline}>
+          <section className={m.cell} aria-labelledby="zm-deals">
+            <h2 id="zm-deals" className={z.railTitle}>
               New deals for your team
             </h2>
             <ul className={m.list}>
@@ -521,11 +515,11 @@ export function ZaroSignedIn(props: {
         </aside>
       </div>
 
-      {/* 3. The network's open-source picks, on the reference's dark band. */}
+      {/* 3. The network's open-source picks, on the dark band. */}
       <section className={m.repos} aria-labelledby="zm-repos">
         <div className={m.reposHead}>
           <h2 id="zm-repos" className={m.reposTitle}>
-            <span>Open source picks.</span> <span>Week of {p.weekLabel}.</span>
+            Open source picks
           </h2>
           <p className={m.reposNote}>{p.reposAttribution}</p>
         </div>

@@ -4,7 +4,8 @@ import { notFound } from 'next/navigation';
 import { getMember } from '@/services/members.service';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
-import { absoluteUrl, htmlToPlainSnippet, PROFILE_ERROR_ROBOTS } from '@/utils/seo';
+import { absoluteUrl, EMPTY_PROFILE_ROBOTS, htmlToPlainSnippet, PROFILE_ERROR_ROBOTS } from '@/utils/seo';
+import { isMemberIndexable } from '@/utils/member-indexing';
 
 type LayoutProps = {
   children: ReactNode;
@@ -63,9 +64,13 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
   const description = htmlToPlainSnippet(member.bio) || `${member.name} on Protocol Labs Directory`;
   const image = member.profile || SOCIAL_IMAGE_URL;
 
+  const indexable = isMemberIndexable({ bio: member.bio, hasPhoto: !!(member.profile || member.imageUid) });
+
   return {
     title: `${member.name} | Protocol Labs Directory`,
     description,
+    // An empty profile, no photo and no bio, is not indexed (LAB-3096); the sitemap leaves it out too.
+    ...(indexable ? {} : { robots: EMPTY_PROFILE_ROBOTS }),
     alternates: { canonical: pageUrl },
     openGraph: {
       type: 'profile',

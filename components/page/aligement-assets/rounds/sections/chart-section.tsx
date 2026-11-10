@@ -47,11 +47,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
                   margin={{ top: 40, right: 20, left: 20, bottom: 20 }}
                   barCategoryGap="20%"
                 >
-                  <CartesianGrid 
-                    strokeDasharray="0" 
-                    stroke="#cbd5e1" 
-                    vertical={false}
-                  />
+                  <CartesianGrid strokeDasharray="0" stroke="#cbd5e1" vertical={false} />
                   <XAxis
                     dataKey="name"
                     axisLine={{ stroke: '#64748b' }}
@@ -63,7 +59,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
                     tick={{
                       fill: '#475569',
                       fontSize: 12,
-                      fontWeight: 600
+                      fontWeight: 600,
                     }}
                     dy={10}
                   />
@@ -72,30 +68,26 @@ export default function ChartSection({ data }: ChartSectionProps) {
                     ticks={buildYAxisTicks(axisMaxValue)}
                     axisLine={false}
                     tickLine={false}
-                    tick={{ 
-                      fill: '#475569', 
-                      fontSize: 12, 
-                      fontWeight: 600
+                    tick={{
+                      fill: '#475569',
+                      fontSize: 12,
+                      fontWeight: 600,
                     }}
                     width={60}
                     tickFormatter={(value) => value.toLocaleString()}
                   />
-                  <Bar 
-                    dataKey="value" 
-                    radius={[8, 8, 0, 0]}
-                    barSize={40}
-                  >
+                  <Bar dataKey="value" radius={[8, 8, 0, 0]} barSize={40}>
                     {data.chartData.map((entry, index) => (
                       <Cell key={`cell-${entry.name}-${entry.value}`} fill="#93c5fd" />
                     ))}
-                    <LabelList 
-                      dataKey="value" 
+                    <LabelList
+                      dataKey="value"
                       position="top"
                       formatter={(value: number) => value.toLocaleString()}
                       style={{
                         fill: '#475569',
                         fontSize: 12,
-                        fontWeight: 600
+                        fontWeight: 600,
                       }}
                       offset={10}
                     />

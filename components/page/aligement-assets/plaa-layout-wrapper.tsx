@@ -52,6 +52,11 @@ export default function PlaaLayoutWrapper({ children, isLoggedIn }: PlaaLayoutWr
   const pathname = usePathname();
   const { activeItem, title } = getPageInfo(pathname ?? '');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [menuPathname, setMenuPathname] = useState(pathname);
+  if (menuPathname !== pathname) {
+    setMenuPathname(pathname);
+    setIsMobileMenuOpen(false);
+  }
 
   const { onMobileNavMenuClicked, onMobileNavMenuClosed } = useAlignmentAssetsAnalytics();
 
@@ -63,11 +68,6 @@ export default function PlaaLayoutWrapper({ children, isLoggedIn }: PlaaLayoutWr
     window.scrollTo(0, 0);
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
-  }, [pathname]);
-
-  // Close mobile menu on pathname change (navigation)
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
   }, [pathname]);
 
   const handleOpenMenu = () => {

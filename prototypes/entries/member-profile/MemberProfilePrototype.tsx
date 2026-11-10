@@ -15,6 +15,7 @@ import {
   NoDataBlock,
 } from '@/components/common/profile/DetailsSection';
 import { Divider } from '@/components/common/profile/Divider';
+import { EditButton } from '@/components/common/profile/EditButton';
 import { Badge } from '@/components/common/Badge';
 import { CalendarBlankIcon, UsersThreeIcon } from '@/components/icons';
 import { TagsList } from '@/components/common/profile/TagsList';
@@ -44,6 +45,7 @@ import { BlueskyRailCard } from './BlueskyRailCard';
 import { ACTIVITY_SCENARIOS } from './activityMocks';
 
 import { PlTeamOnlyPill } from '../profile-shared/PlTeamOnlyPill';
+import { SuggestedRail, SUGGESTED_MEMBERS } from '../profile-shared/SuggestedRail';
 import { RequestIntroButton } from '../intro-shared/RequestIntroButton';
 import { useRequestIntro } from '../intro-shared/useRequestIntro';
 import { FollowPill } from '../follow-shared/FollowPill';
@@ -119,7 +121,7 @@ export function memberAiSearchUrl(question?: string, hasOfficeHours = true): str
 }
 
 export default function MemberProfilePrototype() {
-  return <MemberProfilePage askAi="header" />;
+  return <MemberProfilePage askAi="header" suggestions={<SuggestedRail kind="member" items={SUGGESTED_MEMBERS} />} />;
 }
 
 /**
@@ -141,11 +143,27 @@ export function MemberProfilePage({
   askAi,
   follow = false,
   aiOpens = 'view',
+  reviewBand,
+  isOwner = false,
+  eventsSection,
+  eventsHigh = false,
+  suggestions,
 }: {
   askAi: AskAiPlacement;
   follow?: boolean;
   aiOpens?: AskAiOpens;
+  /** Replaces this page's review band, and drops the PL-internal rail cards it reviews. */
+  reviewBand?: ReactNode;
+  /** The member's own profile: Edit instead of the visitor's actions. */
+  isOwner?: boolean;
+  /** Events card (`member-events-going`). Production's slot is after Contributions. */
+  eventsSection?: ReactNode;
+  /** Moves the events card up, under Office Hours. */
+  eventsHigh?: boolean;
+  /** "You might be interested in" card: in the rail on desktop, at the end of the page below it. */
+  suggestions?: ReactNode;
 }) {
+  const showInternalCards = reviewBand === undefined;
   // Reusing interactive production components — gate on a mounted flag so SSR ===
   // first client render and we avoid hydration drift.
   const [mounted, setMounted] = useState(false);
@@ -158,6 +176,13 @@ export function MemberProfilePage({
   /* Where Follow and the contact press stand: the header cluster (the Sep 28
      decision, default) or a row under the bio, to compare. */
   const [actionsAt, setActionsAt] = useState<'header' | 'bio'>('header');
+  /* Who is looking. Admin (a directory admin, not this member) keeps every
+     visitor action and gains production's Edit at the end of the cluster —
+     the team profile's admin row, on a person (2026-11-06). */
+  const [viewer, setViewer] = useState<'visitor' | 'admin'>('visitor');
+  /* Demo-only: the header's three facts at their worst — a long team name,
+     a long role and a long city — to see how the line breaks. */
+  const [factsLength, setFactsLength] = useState<'typical' | 'long'>('long');
   /* Follow, session-local, with the team page's green receipt. */
   const [following, setFollowing] = useState(false);
   const [followToast, setFollowToast] = useState(false);
@@ -211,6 +236,7 @@ export function MemberProfilePage({
 
   return (
     <div className={s.pageBackdrop}>
+      {reviewBand !== undefined ? reviewBand : (
       <div className={s.demoSwitch}>
         {/* Both Affinity controls govern the same card, so they share a row. */}
         <div className={s.demoSwitchGroupRow}>
@@ -310,7 +336,50 @@ export function MemberProfilePage({
             ))}
           </div>
         </div>
+
+        <div className={s.demoSwitchGroup}>
+          <span className={s.demoSwitchLabel}>Viewer</span>
+          <div className={s.demoSwitchRow}>
+            {(
+              [
+                ['visitor', 'Visitor'],
+                ['admin', 'Admin'],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                className={clsx(s.demoSwitchBtn, { [s.active]: value === viewer })}
+                onClick={() => setViewer(value)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className={s.demoSwitchGroup}>
+          <span className={s.demoSwitchLabel}>Team · role · city</span>
+          <div className={s.demoSwitchRow}>
+            {(
+              [
+                ['typical', 'Typical'],
+                ['long', 'Long'],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                className={clsx(s.demoSwitchBtn, { [s.active]: value === factsLength })}
+                onClick={() => setFactsLength(value)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
+      )}
 
       <div className={page.memberDetail}>
         <div className={page.container}>
@@ -329,6 +398,9 @@ export function MemberProfilePage({
                 follow={follow ? { following, onToggle: toggleFollow } : undefined}
                 hasOfficeHours={hasOfficeHours}
                 actionsUnderBio={actionsAt === 'bio'}
+                isAdmin={viewer === 'admin' || isOwner}
+                isOwner={isOwner}
+                facts={factsLength === 'long' ? LONG_FACTS : undefined}
                 askAbout={
                   askAi === 'strip' ? (
                     <AskAboutStrip
@@ -340,9 +412,11 @@ export function MemberProfilePage({
                 }
               />
               {/* Inline Affinity copy — only shown below tablet-landscape, where the rail is hidden. */}
-              <div className={s.affinityMobile}>
-                <AffinityCard relationship={scenario.relationship} empty={scenario.empty} accent={cardAccent} />
-              </div>
+              {showInternalCards && (
+                <div className={s.affinityMobile}>
+                  <AffinityCard relationship={scenario.relationship} empty={scenario.empty} accent={cardAccent} />
+                </div>
+              )}
               {/* `member-*` ids: where an AI answer's door lands (see aiSearchScope). */}
               {/* Production renders no card for a visitor when there is no
                   booking link (OfficeHoursDetails returns null). */}
@@ -351,6 +425,7 @@ export function MemberProfilePage({
                   <OfficeHoursCard />
                 </div>
               )}
+              {eventsHigh && eventsSection}
               <ContactCard />
               {/* Production's slot for this section: after Contact details,
                   before Teams. Reproduced so the rail card is judged against a
@@ -382,9 +457,11 @@ export function MemberProfilePage({
               <div id="member-contributions" className={s.aiAnchor}>
                 <ContributionsCard />
               </div>
+              {!eventsHigh && eventsSection}
               <div id="member-repositories" className={s.aiAnchor}>
                 <RepositoriesCard />
               </div>
+              {suggestions && <div className={s.suggestionsMobile}>{suggestions}</div>}
             </div>
           </div>
 
@@ -394,7 +471,9 @@ export function MemberProfilePage({
               <BackButton to="/members" />
             </div>
             <div className={s.rail}>
-              <AffinityCard relationship={scenario.relationship} empty={scenario.empty} accent={cardAccent} />
+              {showInternalCards && (
+                <AffinityCard relationship={scenario.relationship} empty={scenario.empty} accent={cardAccent} />
+              )}
               {/* Team updates above Bluesky. An earlier pass had these the other
                   way round, on the grounds that a person's own posting is
                   "closer to the person" than their teams' news — a taxonomy
@@ -414,12 +493,15 @@ export function MemberProfilePage({
                   downwards instead of pulling the eye past Relationship — which
                   is what an internal reader opened this column for. */}
               <MemberTeamUpdates teams={MOCK_MEMBER.teams} />
+              {/* Above Bluesky for the fill-rate reason above: this card is on
+                  every profile, and Bluesky's images would push it far down. */}
+              {suggestions}
               <BlueskyRailCard
                 showsBluesky={activity.showsBluesky}
                 isOwner={activity.isOwner}
                 notConnected={activity.notConnected}
               />
-              <BookWithOtherCard />
+              {showInternalCards && <BookWithOtherCard />}
             </div>
           </div>
         </div>
@@ -438,6 +520,15 @@ export function MemberProfilePage({
   );
 }
 
+/* The review band's "Long" facts: real-world worst cases for each slot. */
+// Long enough that the one facts line reaches the card's right edge on desktop
+// ("not so long but to the end of the white section").
+const LONG_FACTS = {
+  team: 'Interplanetary Compute Labs',
+  role: 'Co-founder & Chief Technology Officer',
+  location: 'San Francisco, United States',
+};
+
 /* ---------- Profile header (mirrors ProfileDetails + MemberDetailHeader) ---------- */
 function ProfileHeaderCard({
   introRequested,
@@ -447,7 +538,16 @@ function ProfileHeaderCard({
   follow,
   hasOfficeHours,
   actionsUnderBio,
+  isAdmin = false,
+  isOwner = false,
+  facts,
 }: {
+  /** Viewer is a directory admin: production's Edit joins the cluster, last. */
+  isAdmin?: boolean;
+  /** The member's own page: Edit only, none of a visitor's actions. */
+  isOwner?: boolean;
+  /** Overrides the mock's team / role / city (the review band's "Long"). */
+  facts?: { team: string; role: string; location: string };
   /** Review band "Actions": Follow + the contact press under the bio instead of the header. */
   actionsUnderBio: boolean;
   introRequested: boolean;
@@ -462,8 +562,28 @@ function ProfileHeaderCard({
   askAbout?: ReactNode;
 }) {
   const isMobile = useIsMobile();
+  const teamName = facts?.team ?? MOCK_MEMBER.teams[0].name;
+  const roleLabel = facts?.role ?? MOCK_MEMBER.role;
+  const locationLabel = facts?.location ?? MOCK_MEMBER.locationLabel;
+  // Prototype-only: production opens the edit form.
+  const [editToast, setEditToast] = useState(false);
+  const onEdit = isAdmin
+    ? () => {
+        setEditToast(true);
+        setTimeout(() => setEditToast(false), 3000);
+      }
+    : undefined;
   return (
     <div className={clsx(profile.root, s.card)}>
+      {editToast && <FollowToast>Production opens the profile edit form here.</FollowToast>}
+      {/* Phone: Edit goes to the card's top-right corner, icon-only, level
+          with the name ("Put edit on top in the mobile view") — the team
+          profile's phone corner for Edit / Delete. */}
+      {onEdit && (
+        <span className={s.mEditCorner}>
+          <EditButton onClick={onEdit} />
+        </span>
+      )}
       {/* Phone (the mock's layout): a 72px picture beside the name with role,
           team and city stacked under it; the intro as a full-width row; the
           tags; a hairline; the bio. The `m*` classes are the phone overrides
@@ -473,17 +593,22 @@ function ProfileHeaderCard({
           <img className={clsx(h.headerProfileImg, s.mAvatar)} src={MOCK_MEMBER.profile} alt={MOCK_MEMBER.name} />
         </div>
 
-        <div className={clsx(h.headerDetails, s.mDetails)}>
-          <div>
+        {/* Tablet up: the name shares a row with the action cluster and the
+            facts line runs under the cluster to the card's edge (`.detailsWide`)
+            — "to the end of the white section", 2026-11-06. */}
+        <div className={clsx(h.headerDetails, s.mDetails, s.detailsWide)}>
+          <div className={s.factsWrap}>
             <div className={h.specificsHdr}>
               <CustomTooltip
                 trigger={<h1 className={clsx(h.specificsName, s.mName)}>{MOCK_MEMBER.name}</h1>}
                 content={MOCK_MEMBER.name}
               />
             </div>
-            <div className={clsx(h.roleAndLocation, s.mRole)}>
+            <div className={clsx(h.roleAndLocation, s.mRole, s.factsFull)}>
               <div className={h.teams}>
-                <p className={h.teamsName}>{MOCK_MEMBER.teams[0].name}</p>
+                <p className={h.teamsName} title={teamName}>
+                  {teamName}
+                </p>
                 {MOCK_MEMBER.teams.length > 1 && (
                   <button onClick={(e) => e.preventDefault()} className={h.moreTeamsButton}>
                     +{MOCK_MEMBER.teams.length - 1}
@@ -493,14 +618,14 @@ function ProfileHeaderCard({
               <div className={clsx(h.divider, h.desktopOnly)} />
               {/* Phone stacks these and puts the role first: it is the headline
                   fact about a person, the team is where they do it. */}
-              <p className={clsx(h.role, s.mRoleFirst)}>{MOCK_MEMBER.role}</p>
-              {/* With two actions beside it the facts column is too narrow for
-                  three facts on a line, so the location always wraps; a hairline
-                  left at the end of the first line points at nothing. */}
-              <div className={clsx(h.divider, s.dividerBeforeWrap)} />
+              <p className={clsx(h.role, s.mRoleFirst)}>{roleLabel}</p>
+              {/* The line now runs the card's full width, so all three facts
+                  fit on it and the location's hairline is back (it was hidden
+                  while the cluster squeezed the column and forced a wrap). */}
+              <div className={clsx(h.divider, h.desktopOnly)} />
               <div className={h.location}>
                 <LocationIcon />
-                <p className={h.locationName}>{MOCK_MEMBER.locationLabel}</p>
+                <p className={h.locationName}>{locationLabel}</p>
               </div>
             </div>
           </div>
@@ -523,6 +648,8 @@ function ProfileHeaderCard({
               onRequestIntro={onRequestIntro}
               size="xs"
               part={actionsUnderBio ? 'askAi' : 'all'}
+              onEdit={onEdit}
+              ownerView={isOwner}
             />
           </div>
         </div>
@@ -531,17 +658,19 @@ function ProfileHeaderCard({
             tags — a control beside a 20px name has nowhere to stand at 390px.
             The Ask AI badge first at its own width, then the presses full
             width (the team profile's phone header, same order). */}
-        <div className={s.introMobileRow}>
-          <ProfileActions
-            onAskAi={onAskAi}
-            follow={follow}
-            hasOfficeHours={hasOfficeHours}
-            introRequested={introRequested}
-            onRequestIntro={onRequestIntro}
-            size="s"
-            part={actionsUnderBio ? 'askAi' : 'all'}
-          />
-        </div>
+        {!isOwner && (
+          <div className={s.introMobileRow}>
+            <ProfileActions
+              onAskAi={onAskAi}
+              follow={follow}
+              hasOfficeHours={hasOfficeHours}
+              introRequested={introRequested}
+              onRequestIntro={onRequestIntro}
+              size="s"
+              part={actionsUnderBio ? 'askAi' : 'all'}
+            />
+          </div>
+        )}
 
         <div className={clsx(h.tags, s.mTags)}>
           <span className={s.founderTag}>Founder</span>
@@ -619,7 +748,14 @@ function ProfileActions({
   onRequestIntro,
   size,
   part = 'all',
+  onEdit,
+  ownerView = false,
 }: {
+  /** Admin only: production's EditButton, last in the cluster (the team
+      admin row's Edit). On a phone it shares the Ask AI badge's line. */
+  onEdit?: () => void;
+  /** Their own profile: Edit alone. */
+  ownerView?: boolean;
   onAskAi: () => void;
   follow?: { following: boolean; onToggle: () => void };
   hasOfficeHours: boolean;
@@ -632,13 +768,32 @@ function ProfileActions({
   part?: 'all' | 'askAi' | 'presses';
 }) {
   const phone = size === 's';
+  /* Phone: a bordered button at the presses' height, left of the contact
+     press on ONE row (LinkedIn's main + secondary row; 2026-11-06, option 1)
+     — it was a 26px badge on a line of its own. */
+  const askAi = (
+    <AskAiButton onClick={onAskAi} iconSize={phone ? 14 : 18} className={phone ? s.askAiSplit : undefined} />
+  );
+  /* Wrapped: the cluster aligns to the top and EditButton is a 20px text
+     action, so it rode above the 34px presses' centre ("Center edit"). The
+     cell takes the presses' height, as Ask AI does with its min-height. */
+  const edit = onEdit ? (
+    <span className={s.editCell}>
+      <EditButton onClick={onEdit} />
+    </span>
+  ) : null;
+  if (ownerView) return edit;
+  // Phone passes no `onEdit`: there Edit sits in the card's corner (`.mEditCorner`).
   if (part === 'askAi')
-    return <AskAiButton onClick={onAskAi} iconSize={phone ? 12 : 18} className={phone ? s.askAiBadge : undefined} />;
+    return (
+      <>
+        {askAi}
+        {edit}
+      </>
+    );
   return (
     <>
-      {part === 'all' && (
-        <AskAiButton onClick={onAskAi} iconSize={phone ? 12 : 18} className={phone ? s.askAiBadge : undefined} />
-      )}
+      {part === 'all' && askAi}
       {follow && (
         <FollowPill
           following={follow.following}
@@ -666,6 +821,9 @@ function ProfileActions({
           className={phone ? clsx(s.rowPressFull, s.contactFirst) : part === 'presses' ? s.pressFirst : undefined}
         />
       )}
+      {/* Edit closes the header row, after the contact press — the team
+          admin's Ask AI · Follow · contact · Edit order. */}
+      {part === 'all' && !phone && edit}
     </>
   );
 }

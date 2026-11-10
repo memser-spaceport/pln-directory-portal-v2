@@ -121,7 +121,7 @@ export default function AiModeResultsPrototype() {
     <>
       <PrototypeNavBar
         hasUnreadNews={false}
-        newsHref="/prototypes/newsfeed"
+        newsHref="/prototypes/homepage?state=signed-in"
         isLoggedIn={signedIn}
         onSignIn={() => switchViewer('in')}
         onSignUp={() => switchViewer('in')}

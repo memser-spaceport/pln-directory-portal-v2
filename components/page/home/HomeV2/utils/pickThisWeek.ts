@@ -18,11 +18,11 @@ const isNewsStory = (item: ITeamNewsItem) =>
   item.eventType !== 'HIRING' && item.eventType !== 'DEALS' && !isForumPostUid(item.uid);
 
 /**
- * The signed-out Home's stories: the editorial top stories (rank 1–3, the Top Stories band's picks) in rank
+ * The signed-out Home's stories: the editorial top stories (rank 1–5) in rank
  * order, topped up with the newest stories not already chosen. The page mounts `THIS_WEEK_RENDER_MAX` and
  * cuts the list to the sidebar.
  *
- * Unlike `selectTopStories`, it doesn't need all three ranks or a minimum corpus: one or two ranked stories still
+ * Unlike `selectTopStories`, it doesn't need every rank or a minimum corpus: one or two ranked stories still
  * lead, and with none ranked the three newest show.
  */
 export function pickThisWeek(items: ITeamNewsItem[], count: number = THIS_WEEK_COUNT): ITeamNewsItem[] {

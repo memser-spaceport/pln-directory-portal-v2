@@ -295,7 +295,7 @@ export const ALL_LATEST_CAP = 8;
 
 /** Counts behind each tab's "See all" door — the whole surface, not the week. */
 export const SEE_ALL: Record<WeekKind, { label: string; href: string }> = {
-  news: { label: 'See all news', href: '/prototypes/newsfeed' },
+  news: { label: 'See all news', href: '/prototypes/homepage?state=signed-in&view=news' },
   forum: { label: 'See all forum posts', href: '/forum' },
   job: { label: `See all ${TOTAL_OPEN_ROLES} jobs`, href: '/prototypes/job-board' },
   /* No repos page exists; the full curated set lives in version A's grid. */

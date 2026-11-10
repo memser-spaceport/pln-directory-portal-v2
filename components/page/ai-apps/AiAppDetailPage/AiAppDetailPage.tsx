@@ -224,7 +224,8 @@ export function AiAppDetailPage(props: Props) {
   const [showDetails, setShowDetails] = useState(false);
   // Bumped by "Try again" to restart the polling effect after it gave up.
   const [retryToken, setRetryToken] = useState(0);
-  const [previewEnv, setPreviewEnv] = useState<AiAppTargetEnvironment>('prod');
+  // null = the viewer has not used the environment switch; the page picks the starting one.
+  const [chosenEnv, setChosenEnv] = useState<AiAppTargetEnvironment | null>(null);
   // Result of the liveness polling, tagged with the generation it probed. A new
   // generation (fresh deploy or retry) makes the derived status fall back to
   // 'checking' without the effect having to reset any state synchronously.
@@ -298,7 +299,13 @@ export function AiAppDetailPage(props: Props) {
   const previewRow = app?.deployments?.preview ?? null;
   const canOpenPreview = !!previewRow && !!app?.canViewPreview;
   const previewTargetRow = app ? aiAppTarget(app, 'preview') : null;
-  const selectedEnv = canOpenPreview ? previewEnv : 'prod';
+  const prodUrl = prodTarget?.url ?? app?.url ?? null;
+  // A Production draft nothing was ever deployed from: the setup view is its page.
+  const prodAwaitsFirstDeploy = app?.status === 'DRAFT' && !prodUrl;
+  // An app that only exists on Preview opens there instead of on an empty Production.
+  const startingEnv: AiAppTargetEnvironment =
+    !prodUrl && !prodAwaitsFirstDeploy && previewTargetRow?.url ? 'preview' : 'prod';
+  const selectedEnv = canOpenPreview ? (chosenEnv ?? startingEnv) : 'prod';
   const previewTarget = selectedEnv === 'preview' ? previewTargetRow : prodTarget;
   const appUrl = previewTarget?.url ?? (selectedEnv === 'prod' ? (app?.url ?? null) : null);
   const appOrigin = useMemo(() => {
@@ -581,7 +588,9 @@ export function AiAppDetailPage(props: Props) {
     );
   }
 
-  if ((!isLoading && !appUrl) || !app) {
+  // An app with no address yet (never deployed) still exists — only a missing
+  // or deleted one is "not found".
+  if (!app || app.status === 'DELETED') {
     return <div className={s.state}>App not found.</div>;
   }
 
@@ -594,7 +603,8 @@ export function AiAppDetailPage(props: Props) {
   // for a deploy in progress or failed with nothing serving — a 'warning'
   // failure (previous revision still up) renders the normal layout instead.
   const showSetupCard =
-    selectedEnv !== 'preview' && (needsSetup || (deployFailed && failureKind !== 'warning') || deployInProgress);
+    selectedEnv !== 'preview' &&
+    (needsSetup || prodAwaitsFirstDeploy || (deployFailed && failureKind !== 'warning') || deployInProgress);
 
   // Comment mode needs the app's bridge (kit 1.15+) and a running frame; without
   // them the feedback button stays today's door (pins or the dialog).
@@ -712,6 +722,19 @@ export function AiAppDetailPage(props: Props) {
       );
     }
 
+    if (!appUrl && !isRedeploying) {
+      return (
+        <div className={s.frameState}>
+          <div className={s.progress}>
+            <p className={s.progressTitle}>Production is not deployed yet</p>
+            {canOpenPreview && (
+              <p className={s.progressText}>Switch to Preview, or open settings to deploy this environment.</p>
+            )}
+          </div>
+        </div>
+      );
+    }
+
     if (isRedeploying) {
       return (
         <div className={s.frameState}>
@@ -796,7 +819,7 @@ export function AiAppDetailPage(props: Props) {
               onClick={() => {
                 if (selectedEnv === 'prod') return;
                 analytics.onEnvironmentSelected({ environment: 'prod', surface: 'detail' });
-                setPreviewEnv('prod');
+                setChosenEnv('prod');
               }}
             >
               Production
@@ -809,7 +832,7 @@ export function AiAppDetailPage(props: Props) {
               onClick={() => {
                 if (selectedEnv === 'preview') return;
                 analytics.onEnvironmentSelected({ environment: 'preview', surface: 'detail' });
-                setPreviewEnv('preview');
+                setChosenEnv('preview');
               }}
             >
               Preview

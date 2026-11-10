@@ -18,7 +18,7 @@ export const LOGO_LABEL = 'Protocol Labs Directory, home';
 /**
  * Where Home points when a prototype doesn't own the feed itself.
  */
-export const HOME_HREF = '/prototypes/newsfeed';
+export const HOME_HREF = '/prototypes/homepage?state=signed-in';
 
 /**
  * `html, body { height: 100dvh }` in app/globals.scss makes the scroll

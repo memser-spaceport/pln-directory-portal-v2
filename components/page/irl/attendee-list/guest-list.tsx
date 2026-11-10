@@ -44,7 +44,7 @@ const GuestList = (props: IGuestList) => {
   const analytics = useIrlAnalytics();
   const router = useRouter();
 
-  const scheduleURL = `${process.env.SCHEDULE_BASE_URL}/program?location=${encodeURIComponent(location?.name)}`;
+  const scheduleURL = `${process.env.SCHEDULE_BASE_URL}/calendar?location=${encodeURIComponent(location?.name)}`;
 
   const onchangeSelectionStatus = (uid: string) => {
     setSelectedGuests((prevSelectedIds: string[]) => {

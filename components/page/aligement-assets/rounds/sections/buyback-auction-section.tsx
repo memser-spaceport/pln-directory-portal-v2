@@ -13,14 +13,14 @@ interface BuybackAuctionSectionProps {
 export default function BuybackAuctionSection({ data }: BuybackAuctionSectionProps) {
   const [visibleBids, setVisibleBids] = useState(10);
   const { onBuybackShowMoreClicked } = useAlignmentAssetsAnalytics();
-  
+
   const visibleBidData = data.bids.slice(0, visibleBids);
   const hasMore = data.bids.length > visibleBids;
   const remainingCount = data.bids.length - visibleBids;
 
   const handleShowMore = () => {
     onBuybackShowMoreClicked(visibleBids, remainingCount);
-    setVisibleBids(prev => prev + 10);
+    setVisibleBids((prev) => prev + 10);
   };
 
   return (
@@ -31,13 +31,16 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
             <div className="buyback-section__header-left">
               <h2 className="buyback-section__title">Buyback Auction Results</h2>
               <p className="buyback-section__description">
-                Below is a summary of the key outcomes from the most recent Buyback Auction — the clearing price, how much of the buyback pool was used, the number of accepted bidders, and the total PLAA redeemed.
+                Below is a summary of the key outcomes from the most recent Buyback Auction — the clearing price, how
+                much of the buyback pool was used, the number of accepted bidders, and the total PLAA redeemed.
               </p>
             </div>
             <div className="buyback-section__header-right">
               <div className="buyback-section__stat">
                 <span className="buyback-section__stat-label">Total Filled</span>
-                <span className="buyback-section__stat-value buyback-section__stat-value--calculating">{data.headerStats.totalFilled}</span>
+                <span className="buyback-section__stat-value buyback-section__stat-value--calculating">
+                  {data.headerStats.totalFilled}
+                </span>
               </div>
             </div>
           </div>
@@ -57,7 +60,9 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
             </div>
           </div>
 
-          <div className={`buyback-section__table-container ${!hasMore ? 'buyback-section__table-container--no-more' : ''}`}>
+          <div
+            className={`buyback-section__table-container ${!hasMore ? 'buyback-section__table-container--no-more' : ''}`}
+          >
             <table className="buyback-section__table">
               <thead>
                 <tr className="buyback-section__table-header-row">
@@ -75,11 +80,7 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
                             <Image src="/icons/rounds/info-gray.svg" alt="Bid value info" width={16} height={16} />
                           </span>
                         }
-                        content={
-                          <div className="buyback-section__tooltip-content">
-                            (tokens bid * price per token)
-                          </div>
-                        }
+                        content={<div className="buyback-section__tooltip-content">(tokens bid * price per token)</div>}
                       />
                       BID VALUE
                     </div>
@@ -100,13 +101,18 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
                   </tr>
                 ) : (
                   visibleBidData.map((bid, index) => (
-                    <tr key={`${bid.bidderId}-${bid.tokenPrice}-${index}`} className={`buyback-section__table-row ${index === visibleBidData.length - 1 && !hasMore ? 'buyback-section__table-row--last' : ''}`}>
+                    <tr
+                      key={`${bid.bidderId}-${bid.tokenPrice}-${index}`}
+                      className={`buyback-section__table-row ${index === visibleBidData.length - 1 && !hasMore ? 'buyback-section__table-row--last' : ''}`}
+                    >
                       <td className="buyback-section__td">{bid.bidderId}</td>
                       <td className="buyback-section__td">{bid.tokensBid}</td>
                       <td className="buyback-section__td buyback-section__td--bold">{bid.tokenPrice}</td>
                       <td className="buyback-section__td">{bid.bidValue}</td>
                       <td className="buyback-section__td">
-                        <span className={`buyback-section__status buyback-section__status--${bid.status === 'Fully Filled' ? 'filled' : 'partial'}`}>
+                        <span
+                          className={`buyback-section__status buyback-section__status--${bid.status === 'Fully Filled' ? 'filled' : 'partial'}`}
+                        >
                           {bid.status}
                         </span>
                       </td>
@@ -116,8 +122,8 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
                       <td className="buyback-section__td">
                         <div className="buyback-section__capture">
                           <div className="buyback-section__capture-bar">
-                            <div 
-                              className="buyback-section__capture-fill" 
+                            <div
+                              className="buyback-section__capture-fill"
                               style={{ width: `${parseFloat(bid.percentCapture)}%` }}
                             />
                           </div>
@@ -135,7 +141,13 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
                 <button className="buyback-section__show-more-btn" onClick={handleShowMore}>
                   <span>Show +{Math.min(10, remainingCount)} more</span>
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 6L8 10L12 6" stroke="#0B4F66" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path
+                      d="M4 6L8 10L12 6"
+                      stroke="#0B4F66"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 </button>
               </div>

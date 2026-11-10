@@ -116,7 +116,7 @@ export default function AiSearchIntrosPrototype() {
     <AiSearchViewerContext.Provider value="member">
       <PrototypeNavBar
         hasUnreadNews={false}
-        newsHref="/prototypes/newsfeed"
+        newsHref="/prototypes/homepage?state=signed-in"
         searchable
         searchOpen={searchOpen}
         onSearchOpenChange={(open) => (open ? setSearchOpen(true) : closeSearch())}
@@ -169,7 +169,7 @@ export default function AiSearchIntrosPrototype() {
         </div>
       </main>
 
-      <PrototypeMobileNav hasUnreadNews={false} newsHref="/prototypes/newsfeed" active={false} />
+      <PrototypeMobileNav hasUnreadNews={false} newsHref="/prototypes/homepage?state=signed-in" active={false} />
       {introLayer}
     </AiSearchViewerContext.Provider>
   );

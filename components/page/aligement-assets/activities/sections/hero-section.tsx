@@ -42,7 +42,7 @@ export default function HeroSection({ data }: HeroSectionProps) {
           font-size: 24px;
           font-weight: 600;
           line-height: 32px;
-          color: #16161F;
+          color: #16161f;
           margin: 0;
         }
 
@@ -82,5 +82,3 @@ export default function HeroSection({ data }: HeroSectionProps) {
     </>
   );
 }
-
-

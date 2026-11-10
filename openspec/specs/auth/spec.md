@@ -286,3 +286,19 @@ When sign-in completes but no member profile uses the email, outside a demo day,
 - **GIVEN** a visitor on a demo day page while it is open for registration or active
 - **WHEN** sign-in ends in "email not found"
 - **THEN** they see the demo day Access Denied dialog with Apply, as before this change
+
+### Requirement: Analytics never records login link parameters
+
+No analytics event or person property SHALL carry a login link's `loginToken` or `prefillEmail` query parameter, in any URL it records: current URL, referrer, session entry URL and referrer, or initial person info. Other query parameters and the hash SHALL be kept.
+
+#### Scenario: Visitor opens an invite link
+
+- **GIVEN** a visitor who opens a link with `loginToken` and `prefillEmail` in the address
+- **WHEN** analytics records the page view, the sign-in, and the events after the page reloads signed in
+- **THEN** no recorded URL contains `loginToken` or `prefillEmail`
+
+#### Scenario: Browser that opened an invite link before this change
+
+- **GIVEN** a browser whose stored analytics state still holds an invite URL with a `loginToken`
+- **WHEN** analytics sends any event
+- **THEN** the event carries that URL without `loginToken` or `prefillEmail`

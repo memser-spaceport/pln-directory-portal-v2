@@ -58,7 +58,7 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
   // fragment the proxy adds, and that fragment is what opens the login dialog.
   const openSignin = () => {
     onNavMenuClicked('Get started', OVERVIEW_URL);
-    window.location.assign(OVERVIEW_URL);
+    window.location.assign(new URL(OVERVIEW_URL, window.location.origin).href);
   };
 
   const scrollToIncentive = () => {

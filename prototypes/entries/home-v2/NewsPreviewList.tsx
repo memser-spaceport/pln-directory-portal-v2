@@ -55,7 +55,7 @@ export function NewsPreviewList({
         <h2 id="home-news-title" className={local.sideTitle}>
           This week in the network
         </h2>
-        <a href={allHref ?? '/prototypes/newsfeed'} className={local.sideLink}>
+        <a href={allHref ?? '/prototypes/homepage?view=news'} className={local.sideLink}>
           See all updates
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
             <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -117,7 +117,7 @@ export function NewsPreviewList({
             also ends on it, as the same "See all N …" expander the roles and events beside
             it end on. Both kept (user, same day): the header for scanners, this for readers. */}
         <a
-          href={allHref ?? '/prototypes/newsfeed'}
+          href={allHref ?? '/prototypes/homepage?view=news'}
           className={clsx(jobsCss.expander, v0.viewAllExpander, local.newsPreviewAll)}
         >
           {allCount ? `See all ${allCount} updates` : 'See all updates'}

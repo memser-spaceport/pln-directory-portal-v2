@@ -798,6 +798,16 @@
   }
 }
 
+/* Under the news panel, the one part of the capped rail that doesn't scroll or
+   shrink: the news list gives up the height instead. */
+.suggestedCard {
+  flex-shrink: 0;
+}
+
+.newsPanel + .suggestedCard {
+  margin-top: 16px;
+}
+
 /* Desktop only: nudges the news panel down to the first team section's line.
    On mobile the rail stacks under the profile, so no spacer is needed. */
 .railSpacer {
@@ -1761,6 +1771,78 @@
     /* Full-width pills centre their label, as the header stack does. */
     button {
       justify-content: center;
+    }
+  }
+}
+
+/* Phone, option 1 (2026-11-06, the member page's split row, "For team?"):
+   Ask AI bordered at its own width LEFT of the glossy Request an intro, which
+   fills the row; Follow takes a full line under them. Replaces the 26px
+   outlined badge on a line of its own. Same values as member-profile's
+   `.askAiSplit`: 38px (the phone presses' height), 8px radius. */
+@include media.mobile-only {
+  .askAiBadge.askAiBadge {
+    justify-content: center;
+    gap: 6px;
+    min-height: 38px;
+    padding: 8px 14px;
+    font-size: 14px;
+    line-height: 20px;
+    border-radius: 8px;
+  }
+
+  /* Visitor seat. */
+  .headerActionRow.headerActionRow {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    > .askAiBadge.askAiBadge {
+      order: 0;
+      flex: 0 0 auto;
+      width: auto;
+      align-self: stretch;
+    }
+
+    > .introPress.introPress {
+      order: 1;
+      flex: 1 1 0;
+      min-width: 0;
+      width: auto;
+    }
+
+    > .followCol {
+      order: 2;
+      flex: 1 0 100%;
+      margin-top: 4px;
+    }
+  }
+
+  /* Admin seat (the only team-view seat with the intro): the followers line,
+     left, then the split row, then Follow. Team lead / Member keep followers
+     left + Ask AI right on one line. */
+  .teamHeaderCluster.teamHeaderCluster:has(.introPress) {
+    column-gap: 8px;
+
+    .subStackRow {
+      flex-basis: 100%;
+      justify-content: flex-start;
+    }
+
+    > .askAiMobileOnly.askAiBadge {
+      order: 0;
+      margin-left: 0;
+    }
+
+    .followersWithAction > .introPress.introPress {
+      order: 1;
+      flex: 1 1 0;
+      min-width: 0;
+      width: auto;
+    }
+
+    .followersWithAction > button:not(.introPress) {
+      order: 2;
     }
   }
 }

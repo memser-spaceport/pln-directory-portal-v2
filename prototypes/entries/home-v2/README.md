@@ -1,7 +1,7 @@
-# homepage-redesign-v0: onboarding story signed out, member desk signed in
+# homepage: onboarding story signed out, member desk signed in
 
 **Status:** proposal prototype. Mocked data only.
-**Route:** `/prototypes/homepage-redesign-v0` (was `/prototypes/home-v2` until 2026-11-03; the folder keeps its name)
+**Route:** `/prototypes/homepage` (`homepage-redesign-v0` until 2026-11-10, `/prototypes/home-v2` until 2026-11-03; the folder keeps its name)
 **Review switches:** `?state=signed-out` (default) `| signed-in | signed-in-no-deals | email-not-found`, `?events=upcoming` (default) `| none`, and signed in `?repos=picks` (default) `| none` and `?cue=fade|jump`. The same switches sit in the grey review band under the navbar.
 
 ## 2026-11-05 LabOS Agent V0
@@ -211,3 +211,4 @@ Where "See all news" (signed in, under the cut feed) and "See all updates" (sign
 - **Investor logo wall:** each logo links to the backer's site in a new tab (`LinkedLogoWall.tsx`, a copy of production `ExploreLogoWall` plus the links; NIV and Mesh stay unlinked). Hover fades the logo to 60%.
 - **Focus area cards:** the logo pile shows the teams' own colour logos (directory logos in `COLOR_LOGO_BY_UID`, mocks.ts) instead of the map's white tiles on the island colour.
 - **Network news, signed out:** no For You pill (nothing of the visitor to pick from). A "Make it yours" row under the filters with a glossy **Personalize my news** button opens production's sign-up modal (`SignupWizard`, the `?dialog=signup` one). Its submit calls the real API, so in the prototype it is for looking at.
+- **Signed in, under Browse by focus area:** the signed-out network overview (portfolio map, Protocol Labs entities, investor logo wall) on the same full-bleed white band. It is one component, `NetworkOverview` in `SignedOutHome.tsx`, which both states render. Signed in passes `focusAreas={false}` because the cards are already above it. Signed out passes the closing Join card as its children.

@@ -118,7 +118,7 @@ const IrlEvents = (props: IIrlEvents) => {
   const onViewScheduleClick = () => {
     analytics.trackViewScheduleClick({
       location: irlLocation,
-      link: `${process.env.PL_EVENTS_BASE_URL}/program?location=${encodeURIComponent(toTitleCase(irlLocation))}`,
+      link: `${process.env.PL_EVENTS_BASE_URL}/calendar?location=${encodeURIComponent(toTitleCase(irlLocation))}`,
     });
   };
 
@@ -414,7 +414,7 @@ const IrlEvents = (props: IIrlEvents) => {
                 <Link
                   legacyBehavior
                   target="_blank"
-                  href={`${process.env.PL_EVENTS_BASE_URL}/program?location=${encodeURIComponent(toTitleCase(irlLocation))}`}
+                  href={`${process.env.PL_EVENTS_BASE_URL}/calendar?location=${encodeURIComponent(toTitleCase(irlLocation))}`}
                 >
                   <a target="_blank" className="root__schedule" onClick={onViewScheduleClick}>
                     {/* <img src="/icons/calendar-white.svg" height={16} width={16} className="root__schedule__img" alt="calendar" /> */}

@@ -102,7 +102,7 @@ export function JobTeamGroupCard({
   /** The chip's list of this team's news, opened over the board. */
   const [newsOpen, setNewsOpen] = useState(false);
   const [liked, setLiked] = useState(false);
-  const [feedHref, setFeedHref] = useState('/prototypes/newsfeed');
+  const [feedHref, setFeedHref] = useState('/prototypes/homepage?state=signed-in&view=news');
   const openStory = (item: ITeamNewsItem) => {
     setLiked(false);
     setFeedHref(feedFocusHref(item));

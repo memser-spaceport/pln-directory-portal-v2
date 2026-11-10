@@ -78,6 +78,10 @@ export interface WeekFeedProps {
   topStoryUids?: string[];
   /** Where "See all news" goes (home-v2's news-only page); falls back to the newsfeed prototype. */
   newsHref?: string;
+  /** Hashtags already applied on arrival, and shown as followed (`digest-more-like-this`). */
+  initialTopics?: string[];
+  /** A message above the section's title (`digest-more-like-this`). */
+  notice?: ReactNode;
 }
 
 /** The fewest full cards before the cut; beside a longer rail the feed shows more. */
@@ -137,14 +141,16 @@ export function WeekFeed({
   fillTo,
   topStoryUids = [],
   newsHref,
+  initialTopics = [],
+  notice,
 }: WeekFeedProps) {
   const [cat, setCat] = useState<Cat>(ALL_CAT);
   const [sort, setSort] = useState<TeamNewsSort>('latest');
   /* Selected hashtags, in the order they were added. A story must carry all of them. */
-  const [topics, setTopics] = useState<string[]>([]);
+  const [topics, setTopics] = useState<string[]>(initialTopics);
   const toggleTopic = (tag: string) =>
     setTopics((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
-  const [followedTopics, setFollowedTopics] = useState<Set<string>>(new Set());
+  const [followedTopics, setFollowedTopics] = useState<Set<string>>(new Set(initialTopics));
   const [query, setQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -276,10 +282,11 @@ export function WeekFeed({
     };
   }, [fillTo, visibleKey]);
   const cut = visible.length > fit.full;
-  const seeAll = { href: newsHref ?? '/prototypes/newsfeed', label: 'See all news' };
+  const seeAll = { href: newsHref ?? '/prototypes/homepage?state=signed-in&view=news', label: 'See all news' };
 
   return (
     <section className={local.weekFeed} aria-labelledby="home-week-title">
+      {notice}
       <div className={hr.sectionHead}>
         {/* Production Home's title size (NewsBase `.title`: 24px, 32/42 from 1024px, weight 500). */}
         <h2 id="home-week-title" className={nb.title}>

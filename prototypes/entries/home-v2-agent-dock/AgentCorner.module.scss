@@ -1,0 +1,112 @@
+@use 'styles/media';
+
+/* Production's feedback button offsets (24px right; 72px above the phone nav, 24px from 960 up), now on the
+   row that holds it. Doubled class: the button's own wrapper is position: fixed, and in the row it must be a
+   flex item. z-index one above production's 9, so a reviewer who is really signed in sees this mocked button
+   over the real one in the same spot. */
+.corner {
+  position: fixed;
+  right: 24px;
+  bottom: 72px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  @include media.tablet-landscape {
+    bottom: 24px;
+  }
+}
+
+.corner.corner > * {
+  position: static;
+}
+
+/* One object beside the disc, at its 48px height. White, so the feedback disc stays the corner's only brand fill. */
+.dock {
+  display: inline-flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 4px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 999px;
+  background: var(--background-neutral-default, #fff);
+  box-shadow: 0 6px 18px var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
+}
+
+.glyph {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.agent,
+.history {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+      color: var(--foreground-neutral-primary, #0a0c11);
+    }
+  }
+
+  &[data-popup-open] {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: -2px;
+  }
+}
+
+.agent {
+  gap: 8px;
+  padding: 0 12px 0 10px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.history {
+  width: 40px;
+  padding: 0;
+}
+
+/* Scrolls rather than grows: a member's history runs long, the fixture doesn't. */
+.popup.popup {
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  max-height: min(360px, calc(100dvh - 120px));
+  overflow-y: auto;
+}
+
+.chat.chat {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.chatTitle {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chatWhen {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}

@@ -4,9 +4,7 @@ import { getKpiWeights } from '@/services/plaa/kpi-weights.service';
 
 const page = async () => {
   const { data } = await getKpiWeights();
-  return (
-    <FAQsPage kpiWeights={data?.items} />
-  );
+  return <FAQsPage kpiWeights={data?.items} />;
 };
 
 export default page;

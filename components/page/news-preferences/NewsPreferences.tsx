@@ -59,7 +59,7 @@ interface Props {
   from: NewsPreferencesArrival;
   /** Server-read tags, until the client query has its own. */
   initialTags: string[];
-  /** True when `initialTags` were seeded from the member's teams (never saved). */
+  /** True when `initialTags` were starting tags the member never saved. */
   initialTagsSeeded: boolean;
 }
 
@@ -318,7 +318,7 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
             </p>
           )}
           <div className={toggleCss.desc}>
-            {seeded && tags.length > 0 && 'We picked these from your teams’ focus areas. '}
+            {seeded && tags.length > 0 && 'We picked these to get you started. '}
             Pick a few tags. They shape For You and your digest.
           </div>
           {allTags.length > 0 && (

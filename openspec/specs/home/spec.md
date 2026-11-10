@@ -202,7 +202,7 @@ Above the stream, the filter row SHALL offer For You · All · Top · Discussion
 - Top SHALL show the editorial top stories (rank 1 to 3).
 - For You SHALL show what production's For You shows.
 
-Under the pills, on every filter, a line SHALL read "For you · Curated from your profile, your team, and the teams you follow." followed by an "Update your profile" link to `/settings/profile` (LAB-3174).
+Under the pills, on every filter, a line SHALL read "For you · Curated from your profile, your team, and the teams you follow." followed by a "News preferences" link to `/settings/news-preferences` (LAB-3174).
 
 Milestone, Partnership and Other stories SHALL stay under All and keep their label on the card.
 
@@ -227,6 +227,11 @@ The editorial top stories SHALL be labelled "Top story" on their card where they
 - **WHEN** the member opens `/home`
 - **THEN** there is no Launch pill
 
+#### Scenario: News preferences link
+
+- **WHEN** the member follows the "News preferences" link under the pills
+- **THEN** it opens `/settings/news-preferences`
+
 ### Requirement: Forum posts under Most popular
 
 Under Most popular, forum posts SHALL rank by likes against the stories' upvotes. The best-ranked post that has a like or a comment SHALL come second, after the first story. A post with no likes and no comments SHALL NOT be promoted; it keeps its ranked place, below every story with an upvote (LAB-3163).
@@ -241,11 +246,26 @@ Under Most popular, forum posts SHALL rank by likes against the stories' upvotes
 
 On screens wide enough for the rail to sit beside the stream, the stream SHALL be cut level with the bottom of the rail, using the rail's content height when that is taller than its box. The stream SHALL show at least four whole cards when the rail is shorter than that. The cut SHALL be measured again when the rail grows after the news has rendered, including when a section such as deals or teams to follow renders later. The last visible card fades out, and under it "See all news" opens `/home?view=news`. The faded card SHALL NOT respond to clicks. On phones the stream SHALL show three cards, then 140px of a fourth, faded, then "See all news". Every filter, including For You, uses this cut.
 
+When a filter other than All has at least one story and those stories end above the rail, the stream SHALL keep that filter's stories first, then a divider labelled "Other news", then stories from All that are not already shown, until the combined list reaches the rail. All SHALL NOT show the divider. A filter whose stories already reach the rail SHALL NOT show it. A filter with no stories SHALL NOT show it. The member's For You match SHALL NOT change.
+
 #### Scenario: Desktop cut
 
 - **GIVEN** a 1440 px wide screen
 - **WHEN** the member scrolls to the end of Network Updates
 - **THEN** the stream's faded edge and the rail's bottom line up, with "See all news" under the fade
+
+#### Scenario: A short filtered tab
+
+- **GIVEN** the rail sits beside the stream and For You has fewer stories than reach the rail, and All has more
+- **WHEN** the member views For You
+- **THEN** the For You stories come first, then "Other news", then other All stories, with no story repeated
+- **AND** the combined list is cut level with the rail
+
+#### Scenario: A filter that already fills
+
+- **GIVEN** the active filter's stories already reach the rail
+- **WHEN** the member views that filter
+- **THEN** there is no "Other news" divider
 
 ### Requirement: News stories show their image
 

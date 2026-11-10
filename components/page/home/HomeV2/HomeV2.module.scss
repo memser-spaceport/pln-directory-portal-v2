@@ -1342,7 +1342,7 @@ $band-inset-phone: 24px;
 }
 
 /* The signed-in "For you" line (LAB-3174): 14/20 secondary type on the plain page
-   ground, on every filter, with "Update your profile" inline after the sentence. It
+   ground, on every filter, with "News preferences" inline after the sentence. It
    hangs 8px under the filter bar (pulling back the bar's margin) and keeps the
    stream's 20px below it. */
 .forYouLine.forYouLine {
@@ -1356,6 +1356,26 @@ $band-inset-phone: 24px;
 
   &:hover {
     text-decoration: underline;
+  }
+}
+
+/* Between a short filtered tab and the All stories that fill the column down to the rail. */
+.otherNews {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   }
 }
 

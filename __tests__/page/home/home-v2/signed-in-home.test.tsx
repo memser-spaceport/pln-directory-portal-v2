@@ -204,12 +204,13 @@ function renderHome(
     events?: IHomeEvents | null;
     portfolio?: React.ComponentProps<typeof SignedInHome>['portfolio'];
     projectFocusAreaCounts?: Record<string, number> | null;
+    forYouTeamUids?: string[];
   } = {},
 ) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const ui: ReactElement = (
     <SignedInHome
-      feed={{ groups: groupsOf(items), forYouTeamUids: [], popularItems: [] }}
+      feed={{ groups: groupsOf(items), forYouTeamUids: extra.forYouTeamUids ?? [], popularItems: [] }}
       roles={extra.roles === undefined ? ROLES : extra.roles}
       events={extra.events === undefined ? EVENTS : extra.events}
       portfolio={extra.portfolio ?? []}
@@ -288,20 +289,21 @@ describe('Network Updates: the stream', () => {
     expect(screen.getByRole('dialog').querySelector('.hero img')).toHaveAttribute('src', IMAGE);
   });
 
-  // LAB-3174 (prototype 2026-11-06): the line is under the pills on every filter, not only under For You, and its
-  // door is "Update your profile", inline after the sentence (it replaced the far-right "Tune For You" link).
-  it('shows the For you line on every filter, with Update your profile right after the sentence', () => {
+  // LAB-3174: the line is under the pills on every filter. Its link opens News preferences, not general Settings.
+  it('shows the For you line on every filter, with News preferences right after the sentence', () => {
     renderHome([story('a', 'LAUNCH'), story('b', 'FUNDING')]);
 
     const line = () => screen.getByText(/Curated from your profile, your team, and the teams you follow\./);
     expect(line()).toHaveTextContent(
-      'For you · Curated from your profile, your team, and the teams you follow. Update your profile',
+      'For you · Curated from your profile, your team, and the teams you follow. News preferences',
     );
-    expect(within(line()).getByRole('link', { name: 'Update your profile' })).toHaveAttribute(
+    expect(within(line()).getByRole('link', { name: 'News preferences' })).toHaveAttribute(
       'href',
-      '/settings/profile',
+      '/settings/news-preferences',
     );
-    expect(screen.queryByRole('link', { name: /make it more relevant|Tune For You/ })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: /Update your profile|make it more relevant|Tune For You/ }),
+    ).not.toBeInTheDocument();
 
     fireEvent.click(within(pillRow()).getByRole('button', { name: /^Funding/ }));
     expect(line()).toBeInTheDocument();
@@ -634,6 +636,82 @@ describe('Network Updates: the cut', () => {
 
     expect(cards().some((c) => c.hasAttribute('inert'))).toBe(false);
     expect(stream().style.maxHeight).toBe('');
+    expect(screen.queryByText('Other news')).not.toBeInTheDocument();
+  });
+
+  const onDate = (uid: string, eventType: TeamNewsEventType, day: number, teamUid: string, rank?: number) =>
+    story(uid, eventType, {
+      teamUid,
+      editorialRank: rank,
+      eventDate: `2026-11-${String(day).padStart(2, '0')}T12:00:00.000Z`,
+    });
+
+  it('keeps a short For You list first, then Other news, and cuts the column at the rail', () => {
+    wide = true;
+    renderHome(
+      [
+        onDate('fy1', 'LAUNCH', 9, 't1'),
+        onDate('fy2', 'FUNDING', 8, 't2'),
+        onDate('fy1-old', 'LAUNCH', 1, 't1'),
+        onDate('o0', 'LAUNCH', 7, 'o0'),
+        onDate('o1', 'FUNDING', 6, 'o1'),
+        onDate('o2', 'LAUNCH', 5, 'o2'),
+        onDate('o3', 'ANNOUNCEMENT', 4, 'o3'),
+        onDate('o4', 'LAUNCH', 3, 'o4'),
+      ],
+      { forYouTeamUids: ['t1', 't2'] },
+    );
+    measure();
+
+    expect(within(pillRow()).getByRole('button', { name: /^For You/ })).toHaveAttribute('aria-pressed', 'true');
+    const headlines = streamHeadlines();
+    expect(headlines.slice(0, 2)).toEqual(['Headline fy1', 'Headline fy2']);
+    expect(headlines.filter((title) => title === 'Headline fy1')).toHaveLength(1);
+    expect(headlines).toContain('Headline fy1-old');
+    expect(headlines).toContain('Headline o0');
+    const divider = screen.getByText('Other news');
+    const second = within(stream()).getByRole('heading', { name: 'Headline fy2' });
+    const firstOther = within(stream()).getByRole('heading', { name: 'Headline o0' });
+    expect(second.compareDocumentPosition(divider) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(divider.compareDocumentPosition(firstOther) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(cards().filter((c) => c.hasAttribute('data-feed-card') && !c.hasAttribute('inert'))).toHaveLength(4);
+    expect(stream().style.maxHeight).not.toBe('');
+  });
+
+  it('fills a short Top list the same way, without repeating the top story', () => {
+    wide = true;
+    renderHome([
+      onDate('top', 'LAUNCH', 9, 'top-team', 1),
+      onDate('o0', 'FUNDING', 8, 'o0'),
+      onDate('o1', 'FUNDING', 7, 'o1'),
+      onDate('o2', 'FUNDING', 6, 'o2'),
+      onDate('o3', 'FUNDING', 5, 'o3'),
+      onDate('o4', 'FUNDING', 4, 'o4'),
+      onDate('o5', 'FUNDING', 3, 'o5'),
+    ]);
+    fireEvent.click(within(pillRow()).getByRole('button', { name: /^Top/ }));
+    measure();
+
+    const headlines = streamHeadlines();
+    expect(headlines[0]).toBe('Headline top');
+    expect(headlines.filter((title) => title === 'Headline top')).toHaveLength(1);
+    expect(screen.getByText('Other news')).toBeInTheDocument();
+    expect(cards().filter((c) => c.hasAttribute('data-feed-card') && !c.hasAttribute('inert'))).toHaveLength(4);
+    expect(stream().style.maxHeight).not.toBe('');
+  });
+
+  it('does not add Other news when the tab already reaches the rail', () => {
+    wide = true;
+    const forYou = Array.from({ length: 8 }, (_, i) => onDate(`s${i}`, 'LAUNCH', 20 - i, `t${i}`));
+    renderHome([...forYou, onDate('extra', 'FUNDING', 1, 'extra')], {
+      forYouTeamUids: forYou.map((item) => item.teamUid),
+    });
+    measure();
+
+    expect(within(pillRow()).getByRole('button', { name: /^For You/ })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByText('Other news')).not.toBeInTheDocument();
+    expect(cards().filter((c) => !c.hasAttribute('inert'))).toHaveLength(4);
+    expect(stream()).toHaveStyle({ maxHeight: '904px' });
   });
 
   it(`mounts at most ${STREAM_RENDER_MAX} cards`, () => {

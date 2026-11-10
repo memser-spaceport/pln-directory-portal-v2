@@ -372,6 +372,35 @@ export async function fetchAiApps(): Promise<AiApp[]> {
 }
 
 /**
+ * An app a directory admin published to a wider group of members (LAB-3200).
+ * Those members have no `ai_apps.read`, so this is everything LabOS knows about
+ * the app for them: enough for a More menu entry and the embedded frame.
+ */
+export interface PublishedAiApp {
+  uid: string;
+  appId: string;
+  name: string;
+  description: string | null;
+  url: string;
+}
+
+/**
+ * Live apps published to the requester; empty for most members. Throws on a
+ * failed request so a background refetch keeps the last good list instead of
+ * dropping an open app — `usePublishedAiApps` reads a failure as "none".
+ */
+export async function fetchPublishedAiApps(): Promise<PublishedAiApp[]> {
+  const response = await customFetch(`${AI_APPS_API_URL}/published`, { method: 'GET' }, true);
+
+  if (!response?.ok) {
+    throw new Error(`Failed to load published AI Apps: ${response?.status ?? 'no response'}`);
+  }
+
+  const body = await response.json();
+  return Array.isArray(body?.apps) ? body.apps : [];
+}
+
+/**
  * Record a Directory iframe load for tile signals. Fire-and-forget — a failed
  * POST must not affect the iframe. 204 on success.
  */

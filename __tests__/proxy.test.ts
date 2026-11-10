@@ -115,6 +115,16 @@ describe('proxy: legacy AI App ?path= deep links', () => {
     expect(location?.hash).toBe('#login');
   });
 
+  // LAB-3200: a published app's link must survive the login round trip, subpage and query included.
+  it('sends a signed-out published-app link to login with the same URL as the backlink', async () => {
+    const { status, location } = await run('/apps/cmplaybook1/reports/42?tab=weekly');
+
+    expect(status).toBe(307);
+    expect(location?.pathname).toBe('/members');
+    expect(location?.searchParams.get('backlink')).toBe('/apps/cmplaybook1/reports/42?tab=weekly');
+    expect(location?.hash).toBe('#login');
+  });
+
   it('leaves ?path= alone outside the app detail routes', async () => {
     const { status, location } = await run('/pl-infra/ai-apps/app-1/prd?path=%2Fx');
 

@@ -2837,6 +2837,8 @@ export const AI_APPS_ANALYTICS = {
   ACCESS_SAVED: 'ai_apps_access_saved',
   ACCESS_SAVE_FAILED: 'ai_apps_access_save_failed',
   PRIVATE_BLOCKED: 'ai_apps_private_blocked',
+  PUBLISHED_APP_OPENED: 'ai_apps_published_app_opened',
+  PUBLISHED_APP_UNAVAILABLE: 'ai_apps_published_app_unavailable',
   ACCESS_REDEPLOY_PROMPTED: 'ai_apps_access_redeploy_prompted',
   ACCESS_REDEPLOY_CLICKED: 'ai_apps_access_redeploy_clicked',
   ACCESS_REDEPLOY_DISMISSED: 'ai_apps_access_redeploy_dismissed',

@@ -2,7 +2,14 @@
  * Routes that require authentication. Users accessing these without a valid
  * session are redirected to login (see proxy.ts).
  */
-export const PROTECTED_ROUTES = ['/deals/', '/founder-guides', '/investors', '/pl-infra-os', '/alignment-asset'];
+export const PROTECTED_ROUTES = [
+  '/deals/',
+  '/founder-guides',
+  '/investors',
+  '/pl-infra-os',
+  '/alignment-asset',
+  '/apps/',
+];
 
 /**
  * AI Apps sub-paths that deliberately show their own signed-out state instead
@@ -21,6 +28,11 @@ export function isAiAppsRoute(pathname: string): boolean {
   return (
     pathname === '/pl-infra/ai-apps' || pathname.startsWith('/pl-infra/ai-apps/') || pathname.startsWith('/pl-infra-os')
   );
+}
+
+/** A published AI App (`/apps/<uid>/…`, LAB-3200): members only, but not behind `ai_apps.read`. */
+export function isPublishedAiAppRoute(pathname: string): boolean {
+  return pathname.startsWith('/apps/');
 }
 
 export function isProtectedRoute(pathname: string): boolean {

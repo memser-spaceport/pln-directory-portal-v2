@@ -56,6 +56,18 @@ describe('isProtectedRoute', () => {
     });
   });
 
+  // LAB-3200: `/apps/<uid>` is for members, but not behind the AI Apps permission.
+  describe('published AI Apps', () => {
+    it('protects a published app and every subpage of it', () => {
+      expect(isProtectedRoute('/apps/cmplaybook1')).toBe(true);
+      expect(isProtectedRoute('/apps/cmplaybook1/reports/42')).toBe(true);
+    });
+
+    it('does not protect a path that only shares the prefix', () => {
+      expect(isProtectedRoute('/apps-gallery')).toBe(false);
+    });
+  });
+
   it('leaves unconfigured sections open', () => {
     expect(isProtectedRoute('/members')).toBe(false);
     expect(isProtectedRoute('/teams')).toBe(false);

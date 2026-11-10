@@ -16,7 +16,7 @@ export type AgentBlock =
   | { kind: 'draft'; title: string; body: string }
   /** A change the agent wants to make: nothing happens until the member presses it. */
   | { kind: 'proposal'; title: string; confirmLabel: string; teamUids: string[] }
-  | { kind: 'suggest'; prompts: string[] }
+  | { kind: 'suggest'; prompts: AgentPrompt[] }
   /** A block another entry scripts (home-v2's request, change and draft cards); it owns its own state. */
   | { kind: 'custom'; render: (ctx: AgentBlockContext) => ReactNode };
 
@@ -25,11 +25,27 @@ export type AgentBlockContext = { send: (text: string) => void; busy: boolean };
 
 export type AgentReply = { steps: string[]; blocks: AgentBlock[] };
 
-export const AGENT_PROMPTS = [
-  "Summarize this week's network updates",
-  'Which teams should I follow?',
-  'Find open roles that fit my profile',
-  'Draft a forum post introducing my team',
+export type AgentTopic = 'news' | 'forum' | 'job' | 'team' | 'profile' | 'intro';
+
+export const AGENT_TOPIC_LABEL: Record<AgentTopic, string> = {
+  news: 'News',
+  forum: 'Forum',
+  job: 'Job',
+  team: 'Team',
+  profile: 'Profile',
+  intro: 'Intro',
+};
+
+/** A suggested question, labelled with the topic it is about. `primary`: the one the agent is mainly for. */
+export type AgentPrompt = { text: string; topic: AgentTopic; primary?: boolean };
+
+const FOLLOW_PROMPT: AgentPrompt = { text: 'Which teams should I follow?', topic: 'team' };
+
+export const AGENT_PROMPTS: AgentPrompt[] = [
+  { text: "Summarize this week's network updates", topic: 'news' },
+  FOLLOW_PROMPT,
+  { text: 'Find open roles that fit my profile', topic: 'job' },
+  { text: 'Draft a forum post introducing my team', topic: 'forum' },
 ];
 
 export type AgentData = {
@@ -44,7 +60,7 @@ export type AgentData = {
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
-export function agentReply(prompt: string, d: AgentData): AgentReply {
+export function agentReply(prompt: string, d: AgentData, canDo: AgentPrompt[] = AGENT_PROMPTS): AgentReply {
   const q = prompt.toLowerCase();
 
   if (/summar|this week|happen|update|news/.test(q)) {
@@ -65,7 +81,7 @@ export function agentReply(prompt: string, d: AgentData): AgentReply {
           text: `This week ${plural(teams, 'team')} posted ${plural(d.news.length, 'update')} (${byType}), and the forum had ${plural(d.forumCount, 'new thread')}. The three people reacted to most:`,
         },
         { kind: 'stories', items: top },
-        { kind: 'suggest', prompts: ['Which teams should I follow?'] },
+        { kind: 'suggest', prompts: [FOLLOW_PROMPT] },
       ],
     };
   }
@@ -129,7 +145,7 @@ export function agentReply(prompt: string, d: AgentData): AgentReply {
         kind: 'text',
         text: "I can't answer that in this prototype yet. Here's what I can do:",
       },
-      { kind: 'suggest', prompts: AGENT_PROMPTS },
+      { kind: 'suggest', prompts: canDo },
     ],
   };
 }

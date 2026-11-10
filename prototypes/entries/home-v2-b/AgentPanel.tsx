@@ -1,7 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 
 import type { ITeamNewsItem } from '@/types/team-news.types';
 import { AiSearchIcon } from '@/components/icons/AiSearchIcon';
@@ -12,7 +12,16 @@ import Composer from '../ai-mode-results/Composer';
 import { HomeIcon } from '../nav-shared/icons';
 import { EVENT_TYPE_LABEL } from '../newsfeed-v0/eventMeta';
 
-import { AGENT_PROMPTS, agentReply, blockUnits, replyUnits, type AgentData, type AgentReply } from './agentScript';
+import { AgentTopicLabel } from './AgentTopicLabel';
+import {
+  AGENT_PROMPTS,
+  agentReply,
+  blockUnits,
+  replyUnits,
+  type AgentData,
+  type AgentPrompt,
+  type AgentReply,
+} from './agentScript';
 import s from './AgentPanel.module.scss';
 
 const STEP_MS = 650;
@@ -55,6 +64,8 @@ export function AgentPanel({
   prompts = AGENT_PROMPTS,
   placeholder = 'Ask the agent or tell it what to do',
   className,
+  headIcon,
+  initialThread,
 }: {
   open: boolean;
   onClose: () => void;
@@ -64,22 +75,40 @@ export function AgentPanel({
   /** Applies (or, with `undo`, reverts) a follow proposal. */
   onFollowTeams?: (teamUids: string[], undo?: boolean) => void;
   /** Another entry's script (home-v2's V0 actions). Defaults to home-v2-b's, read from `data`. */
-  reply?: (text: string) => AgentReply;
+  reply?: (text: string, data?: AgentData) => AgentReply;
   greeting?: string;
   intro?: string;
-  prompts?: string[];
+  prompts?: AgentPrompt[];
   placeholder?: string;
   /** The host's placement override (home-v2 has no app shell to push). */
   className?: string;
+  /** The mark in the header (the host's door may wear its own). Defaults to the AI mark. */
+  headIcon?: ReactNode;
+  /** A past chat to open on, already answered. Read on mount, so the host keys the panel per chat. */
+  initialThread?: { text: string; reply: AgentReply }[];
 }) {
-  const [turns, setTurns] = useState<Turn[]>([]);
+  const [turns, setTurns] = useState<Turn[]>(() =>
+    (initialThread ?? []).flatMap((t, i): Turn[] => [
+      { id: i * 2 + 1, role: 'user', text: t.text },
+      {
+        id: i * 2 + 2,
+        role: 'agent',
+        reply: t.reply,
+        step: t.reply.steps.length,
+        units: replyUnits(t.reply),
+        done: true,
+        startedAt: Date.now() - t.reply.steps.length * 2000,
+        endedAt: Date.now(),
+      },
+    ]),
+  );
   const [resolved, setResolved] = useState<Record<number, 'applied' | 'dismissed'>>({});
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const [copied, setCopied] = useState<number | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const threadRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
-  const nextId = useRef(1);
+  const nextId = useRef((initialThread?.length ?? 0) * 2 + 1);
 
   const working = turns.find((t): t is Extract<Turn, { role: 'agent' }> => t.role === 'agent' && !t.done);
 
@@ -149,7 +178,7 @@ export function AgentPanel({
     const agentId = nextId.current++;
     /* Outside the updater: a script may keep state (home-v2's open questions), and StrictMode runs
        updaters twice, so a reply built inside one would answer the same message two ways. */
-    const agentTurnReply = reply ? reply(text) : agentReply(text, data!);
+    const agentTurnReply = reply ? reply(text, data) : agentReply(text, data!);
     setTurns((prev) => [
       ...prev,
       { id: userId, role: 'user', text },
@@ -415,8 +444,9 @@ export function AgentPanel({
                 return (
                   <div key={key} className={s.followUps}>
                     {b.prompts.map((p) => (
-                      <button key={p} type="button" className={s.followUp} onClick={() => send(p)}>
-                        {p}
+                      <button key={p.text} type="button" className={s.followUp} onClick={() => send(p.text)}>
+                        <AgentTopicLabel topic={p.topic} />
+                        {p.text}
                       </button>
                     ))}
                   </div>
@@ -434,7 +464,7 @@ export function AgentPanel({
     <aside ref={panelRef} className={clsx(s.panel, className)} aria-label="Agent">
       <header className={s.head}>
         <span className={s.headTitle}>
-          <AiSearchIcon size={18} />
+          {headIcon ?? <AiSearchIcon size={18} />}
           Agent
         </span>
         <span className={s.headActions}>
@@ -465,9 +495,14 @@ export function AgentPanel({
             <p className={s.helloSub}>{intro}</p>
             <ul className={s.prompts}>
               {prompts.map((p) => (
-                <li key={p}>
-                  <button type="button" className={s.prompt} onClick={() => send(p)}>
-                    {p}
+                <li key={p.text}>
+                  <button
+                    type="button"
+                    className={clsx(s.prompt, p.primary && s.promptPrimary)}
+                    onClick={() => send(p.text)}
+                  >
+                    <AgentTopicLabel topic={p.topic} />
+                    {p.text}
                   </button>
                 </li>
               ))}

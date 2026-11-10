@@ -34,7 +34,7 @@
   flex-shrink: 0;
 }
 
-/* ---------- Buttons: square, 48px in the page, 36px in the bar ---------- */
+/* ---------- Buttons: 48px in the page, 36px in the bar ---------- */
 
 .btn {
   display: inline-flex;
@@ -71,15 +71,6 @@
   gap: 6px;
 }
 
-.btnDark {
-  background: var(--z-ink);
-  color: var(--z-on-dark);
-
-  &:hover {
-    background: #3a2c27;
-  }
-}
-
 // The signed-out page's presses in PL blue: the DS Button primary's fill and hover (Button.module.scss).
 .btnBrand {
   background: var(--foreground-brand-primary, #1b4dff);
@@ -98,25 +89,6 @@
   &:hover {
     background: var(--z-ground);
     border-color: var(--z-ink);
-  }
-}
-
-.btnLight {
-  background: var(--z-on-dark);
-  color: var(--z-ink);
-
-  &:hover {
-    background: var(--z-lav);
-  }
-}
-
-.btnGhost {
-  background: transparent;
-  border-color: var(--z-dark-2);
-  color: var(--z-on-dark);
-
-  &:hover {
-    border-color: var(--z-on-dark-2);
   }
 }
 
@@ -142,8 +114,7 @@
   gap: 36px;
   height: 56px;
   padding: 0 16px;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(8px);
+  background: var(--z-white);
   border: 1px solid var(--z-line);
 
   @include media.mobile-only {
@@ -229,27 +200,17 @@
 
 /* ---------- Type ---------- */
 
-.overline {
+// A rail module's title on the member page.
+.railTitle {
   margin: 0;
-  font-family: var(--z-mono), 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 500;
-  line-height: 16px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--z-ink-3);
+  line-height: 22px;
+  letter-spacing: -0.01em;
+  color: var(--z-ink);
 }
 
-.monoNote {
-  font-family: var(--z-mono), ui-monospace, monospace;
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--z-ink-3);
-}
-
-// A headline in two sentences: the claim in ink, the continuation a step greyer.
-.twoTone {
+.sectionTitle {
   max-width: 880px;
   margin: 0;
   font-size: 48px;
@@ -257,10 +218,6 @@
   line-height: 1.1;
   letter-spacing: -0.022em;
   text-wrap: balance;
-
-  span:last-child {
-    color: var(--z-ink-2);
-  }
 
   @include media.mobile-only {
     font-size: 32px;
@@ -337,28 +294,6 @@
   }
 }
 
-.faces {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.facePile {
-  display: flex;
-
-  img {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    border: 2px solid var(--z-paper);
-    object-fit: cover;
-
-    & + img {
-      margin-left: -8px;
-    }
-  }
-}
-
 .stack {
   position: relative;
   justify-self: center;
@@ -391,11 +326,9 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    font-family: var(--z-mono), ui-monospace, monospace;
-    font-size: 10px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--z-ink-3);
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--z-ink-2);
   }
 
   @media (max-width: 1199px) {
@@ -469,7 +402,7 @@
 .stripCell {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  justify-content: center;
   padding: 24px 64px 28px;
 
   @media (max-width: 959px) {
@@ -490,21 +423,11 @@
   }
 }
 
-.boxRow {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.dashedBox {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 60px;
-  border: 1px dashed var(--z-dash);
-  font-size: 22px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
+.origin {
+  max-width: 560px;
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.5;
   color: var(--z-ink-2);
 }
 
@@ -572,10 +495,11 @@
 
 /* Focus-area cards: a coloured top with a notched corner, then the line and two doors. */
 
+/* No hairline over the shapes (user, 2026-11-02): the notched art carries its own edge, so the grid's
+   frame moved down to the card bodies (.cardBody), where the text needs one. */
 .cards {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  border: 1px solid var(--z-line);
   background: var(--z-paper);
 
   @media (max-width: 1199px) {
@@ -590,9 +514,17 @@
 .card {
   display: flex;
   flex-direction: column;
-  border-right: 1px solid var(--z-line);
-  border-bottom: 1px solid var(--z-line);
-  margin: 0 -1px -1px 0;
+  // Hover lifts the whole card out of its row, like a folder pulled up from a drawer.
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  &:hover,
+  &:focus-within {
+    transform: translateY(-8px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 }
 
 .cardArt {
@@ -625,31 +557,6 @@
   }
 }
 
-.cardNum,
-.cardNumPlain {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 22px;
-  height: 18px;
-  padding: 0 3px;
-  font-family: var(--z-mono), ui-monospace, monospace;
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--z-ink);
-}
-
-.cardNum {
-  margin-top: 2px;
-  border: 1px solid var(--z-ink);
-}
-
-.cardNumPlain {
-  justify-content: flex-start;
-  padding: 0;
-  color: var(--z-ink-3);
-}
-
 .cardTitle {
   margin: 0;
   font-size: 18px;
@@ -661,6 +568,10 @@
 .cardBody {
   display: flex;
   flex: 1;
+  // The frame the grid used to draw, on the text only: sides and bottom, shared edges collapsed by -1px.
+  border: 1px solid var(--z-line);
+  border-top: 0;
+  margin: 0 -1px -1px 0;
   flex-direction: column;
   justify-content: space-between;
   gap: 20px;
@@ -699,22 +610,15 @@
   }
 }
 
-/* Two panels in one hairline frame: grey for news, lavender for roles. */
+/* Two panels side by side: grey for news, lavender for roles. */
 
 .split {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 12px;
-  padding: 12px;
-  border: 1px solid var(--z-line);
 
   @media (max-width: 959px) {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  @include media.mobile-only {
-    padding: 8px;
-    gap: 8px;
   }
 }
 
@@ -733,34 +637,11 @@
 
 .panelLav {
   background: var(--z-lav);
-}
 
-.tags {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 24px;
-}
-
-.tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  height: 20px;
-  padding: 0 6px;
-  border: 1px solid var(--z-ink-4);
-  font-size: 12px;
-  color: var(--z-ink-2);
-
-  i {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #6cc070;
+  // ink-3 is 3.97:1 on the lavender, under AA.
+  .panelSub {
+    color: var(--z-ink-2);
   }
-}
-
-.tagLive {
-  border-color: var(--z-ink-4);
 }
 
 .panelTitle {
@@ -819,10 +700,8 @@
 }
 
 .rowMeta {
-  font-family: var(--z-mono), ui-monospace, monospace;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: 13px;
+  line-height: 18px;
   color: var(--z-ink-3);
 }
 
@@ -834,10 +713,8 @@
 
 .rowTime {
   flex-shrink: 0;
-  font-family: var(--z-mono), ui-monospace, monospace;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: 13px;
+  line-height: 18px;
   color: var(--z-ink-3);
 
   @include media.mobile-only {
@@ -884,19 +761,6 @@
   cursor: pointer;
 }
 
-/* The portfolio map inside a hairline frame. */
-
-.frame {
-  padding: 12px;
-  border: 1px solid var(--z-line);
-  background: var(--z-white);
-
-  @include media.mobile-only {
-    padding: 0;
-    border: 0;
-  }
-}
-
 /* Entities: a five-cell hairline grid. */
 
 .entities {
@@ -918,7 +782,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  min-height: 220px;
+  min-height: 180px;
   padding: 20px;
   border-right: 1px solid var(--z-line);
   border-bottom: 1px solid var(--z-line);
@@ -936,7 +800,6 @@
 }
 
 .entityName {
-  margin-top: 16px;
   font-size: 20px;
   font-weight: 500;
   letter-spacing: -0.015em;
@@ -953,10 +816,8 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-family: var(--z-mono), ui-monospace, monospace;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: 13px;
+  line-height: 18px;
   color: var(--z-ink-2);
 }
 
@@ -968,40 +829,11 @@
   }
 }
 
-/* ---------- Closing band: PL blue, dotted gutters behind hairline rules ---------- */
+/* ---------- Closing band: PL blue ---------- */
 
 .dark {
-  position: relative;
   background: var(--foreground-brand-primary, #1b4dff);
   color: #ffffff;
-
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 100px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.24) 1.2px, transparent 1.5px) 0 0 / 10px 10px;
-    mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
-  }
-
-  &::before {
-    left: 0;
-    border-right: 1px solid rgba(255, 255, 255, 0.2);
-  }
-
-  &::after {
-    right: 0;
-    border-left: 1px solid rgba(255, 255, 255, 0.2);
-  }
-
-  @include media.mobile-only {
-    &::before,
-    &::after {
-      width: 16px;
-    }
-  }
 }
 
 .darkInner {
@@ -1026,11 +858,6 @@
   line-height: 1.05;
   letter-spacing: -0.02em;
   text-wrap: balance;
-
-  // The continuation a step quieter, as on paper: white at reduced strength over the blue.
-  span:last-child {
-    color: rgba(255, 255, 255, 0.64);
-  }
 
   @include media.mobile-only {
     font-size: 40px;
@@ -1132,38 +959,22 @@
   font-weight: 500;
 }
 
-.footMark {
-  margin: 72px 0 24px;
-  // Sized so the wordmark spans the footer's content width, as the reference's does.
-  font-size: clamp(40px, 15.4vw, 236px);
-  font-weight: 500;
-  line-height: 0.9;
-  letter-spacing: -0.04em;
-  white-space: nowrap;
-  color: #2c2724;
-
-  @include media.mobile-only {
-    margin-top: 48px;
-  }
-}
-
 .footBottom {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 12px 24px;
-  font-family: var(--z-mono), ui-monospace, monospace;
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #6d655d;
+  margin-top: 56px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--z-on-dark-2);
 
   a {
     color: inherit;
     text-decoration: none;
 
     &:hover {
-      color: var(--z-on-dark-2);
+      color: var(--z-on-dark);
     }
   }
 }
@@ -1171,4 +982,18 @@
 .footLegal {
   display: flex;
   gap: 24px;
+}
+
+/* Keyboard focus for the links and rows the buttons above don't cover. */
+
+.navSignIn,
+.chip,
+.row,
+.textLink,
+.inlineLink,
+.entity {
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
 }

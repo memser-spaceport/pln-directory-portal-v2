@@ -51,7 +51,7 @@ export default function HelpFeedbackMenuPrototype() {
     <div className={s.page}>
       <PrototypeNavBar
         hasUnreadNews={false}
-        newsHref="/prototypes/newsfeed"
+        newsHref="/prototypes/homepage?state=signed-in"
         searchable
         // `key` remounts the menu when the callout switch flips back on, so the
         // announcement reopens instead of staying dismissed from the last look.

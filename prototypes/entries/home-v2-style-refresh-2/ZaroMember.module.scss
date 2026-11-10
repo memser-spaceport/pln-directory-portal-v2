@@ -64,11 +64,8 @@ $side: 248px;
 .sideGroupLabel {
   margin: 0 0 6px;
   padding: 0 10px;
-  font-family: var(--z-mono), ui-monospace, monospace;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 13px;
+  line-height: 18px;
   color: var(--z-ink-3);
 }
 
@@ -90,16 +87,6 @@ $side: 248px;
 .sideLinkActive {
   background: var(--z-ground);
   color: var(--z-ink);
-
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 6px;
-    bottom: 6px;
-    width: 2px;
-    background: var(--z-lav-ink);
-  }
 }
 
 .sideMe {
@@ -118,8 +105,8 @@ $side: 248px;
   flex-shrink: 0;
   width: 32px;
   height: 32px;
-  background: var(--z-lav);
-  color: var(--z-lav-ink);
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  color: var(--foreground-brand-primary, #1b4dff);
   font-size: 14px;
   font-weight: 500;
 }
@@ -167,34 +154,33 @@ $side: 248px;
 .head {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 48px 0 40px;
+  gap: 4px;
+  padding: 40px 0 32px;
 
   @include media.mobile-only {
-    padding: 32px 0 28px;
+    padding: 28px 0 24px;
   }
 }
 
+// A product page's title, not a landing headline: one step above the section titles below it.
 .headTitle {
-  max-width: 900px;
   margin: 0;
-  font-size: 56px;
+  font-size: 40px;
   font-weight: 500;
-  line-height: 1.04;
+  line-height: 48px;
   letter-spacing: -0.02em;
-  text-wrap: balance;
-
-  span:last-child {
-    color: var(--z-ink-2);
-  }
-
-  @media (max-width: 1199px) {
-    font-size: 44px;
-  }
 
   @include media.mobile-only {
-    font-size: 32px;
+    font-size: 28px;
+    line-height: 34px;
   }
+}
+
+.headWeek {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--z-ink-3);
 }
 
 .row {
@@ -228,19 +214,22 @@ $side: 248px;
 
 .blockHead {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--z-ink);
 }
 
 .blockTitle {
   margin: 0;
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 500;
-  line-height: 32px;
-  letter-spacing: -0.02em;
+  line-height: 30px;
+  letter-spacing: -0.015em;
+
+  @include media.mobile-only {
+    font-size: 20px;
+    line-height: 26px;
+  }
 }
 
 .blockLink {
@@ -251,20 +240,12 @@ $side: 248px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--z-mono), ui-monospace, monospace;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: 13px;
+  line-height: 18px;
   color: var(--z-ink-3);
 }
 
-.square {
-  width: 8px;
-  height: 8px;
-  background: var(--z-lav-strong);
-}
-
-/* Forum: three threads in a hairline grid, paged with square arrows. */
+/* Forum: three threads in a hairline grid, paged with arrows. */
 
 .pager {
   display: flex;
@@ -274,9 +255,7 @@ $side: 248px;
 
 .pagerCount {
   margin-right: 6px;
-  font-family: var(--z-mono), ui-monospace, monospace;
-  font-size: 11px;
-  letter-spacing: 0.04em;
+  font-size: 13px;
   color: var(--z-ink-3);
 }
 
@@ -324,15 +303,10 @@ $side: 248px;
   border-bottom: 1px solid var(--z-line);
   background: var(--z-white);
   cursor: pointer;
-  transition: background-color 0.15s ease;
 
-  &:hover {
-    background: #fdfdfc;
-
-    .threadTitle {
-      text-decoration: underline;
-      text-underline-offset: 3px;
-    }
+  &:hover .threadTitle {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 }
 
@@ -381,7 +355,7 @@ $side: 248px;
   }
 }
 
-/* Likes, comments, follow: square, quiet, brand only when on. */
+/* Likes, comments, follow: quiet, brand only when on. */
 
 .actions {
   display: flex;
@@ -416,9 +390,9 @@ $side: 248px;
 }
 
 .actionOn {
-  border-color: var(--z-lav-strong);
-  background: var(--z-lav);
-  color: var(--z-lav-ink);
+  border-color: var(--border-brand-subtle, #aebfff);
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  color: var(--foreground-brand-primary, #1b4dff);
 }
 
 .followText {
@@ -445,7 +419,7 @@ $side: 248px;
   text-decoration: none;
 }
 
-/* News filters: square pills with mono counts; the sort as a bordered select. */
+/* News filters: pills; the sort as a bordered select. */
 
 .filters {
   display: flex;
@@ -494,16 +468,6 @@ $side: 248px;
     background: #0f3cd9;
     color: #ffffff;
   }
-
-  .pillCount {
-    color: rgba(255, 255, 255, 0.75);
-  }
-}
-
-.pillCount {
-  font-family: var(--z-mono), ui-monospace, monospace;
-  font-size: 11px;
-  color: var(--z-ink-3);
 }
 
 .sort {
@@ -512,10 +476,7 @@ $side: 248px;
   gap: 8px;
 
   span {
-    font-family: var(--z-mono), ui-monospace, monospace;
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    font-size: 14px;
     color: var(--z-ink-3);
   }
 
@@ -550,11 +511,10 @@ $side: 248px;
   gap: 8px;
   height: 28px;
   padding: 0 10px;
-  border: 1px solid var(--z-lav-strong);
-  background: var(--z-lav);
-  font-family: var(--z-mono), ui-monospace, monospace;
+  border: 1px solid var(--border-brand-subtle, #aebfff);
+  background: var(--background-brand-soft-surface, #f2f5ff);
   font-size: 13px;
-  color: var(--z-lav-ink);
+  color: var(--foreground-brand-primary, #1b4dff);
   cursor: pointer;
 }
 
@@ -597,9 +557,9 @@ $side: 248px;
   padding: 24px;
   background: var(--z-lav);
 
-  > span:first-child {
-    grid-column: 1 / -1;
-    margin-bottom: 8px;
+  // ink-3 is 3.97:1 on the lavender, under AA.
+  .metaLine {
+    color: var(--z-ink-2);
   }
 
   @media (max-width: 1199px) {
@@ -609,6 +569,14 @@ $side: 248px;
   @include media.mobile-only {
     padding: 20px 16px;
   }
+}
+
+.topHead {
+  grid-column: 1 / -1;
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 22px;
 }
 
 .topLead {
@@ -650,12 +618,11 @@ $side: 248px;
   color: var(--z-ink-2);
 }
 
+// Rows straight on the lavender: a white card here would be a card inside the panel.
 .topAlso {
   margin: 0;
   padding: 0;
   list-style: none;
-  background: var(--z-white);
-  border: 1px solid var(--z-line);
   align-self: start;
 
   li + li {
@@ -667,7 +634,7 @@ $side: 248px;
   display: flex;
   gap: 12px;
   width: 100%;
-  padding: 14px 16px;
+  padding: 12px 0;
   border: 0;
   background: none;
   font: inherit;
@@ -758,9 +725,8 @@ $side: 248px;
   padding: 0;
   border: 0;
   background: none;
-  font-family: var(--z-mono), ui-monospace, monospace;
-  font-size: 12px;
-  color: var(--z-lav-ink);
+  font-size: 13px;
+  color: var(--foreground-brand-primary, #1b4dff);
   cursor: pointer;
 
   &:hover {
@@ -821,8 +787,13 @@ $side: 248px;
   }
 }
 
-.cellLav {
-  background: var(--z-lav);
+// Popular this week is a real ranking, so it keeps its order, as a plain figure.
+.rank {
+  flex-shrink: 0;
+  min-width: 12px;
+  font-size: 14px;
+  line-height: 19px;
+  color: var(--z-ink-3);
 }
 
 .list {
@@ -896,6 +867,17 @@ $side: 248px;
   font-size: 13px;
 }
 
+// Following steps back: the action was the press, and the row shouldn't keep asking.
+.followBtn.followBtnOn {
+  border-color: transparent;
+  color: var(--z-ink-3);
+
+  &:hover {
+    border-color: var(--z-ink-4);
+    background: transparent;
+  }
+}
+
 /* ---------- Repos: the dark band, full bleed past the page padding ---------- */
 
 .repos {
@@ -926,26 +908,21 @@ $side: 248px;
 
 .reposTitle {
   margin: 0;
-  font-size: 40px;
+  font-size: 24px;
   font-weight: 500;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-
-  span:last-child {
-    color: var(--z-on-dark-2);
-  }
+  line-height: 30px;
+  letter-spacing: -0.015em;
 
   @include media.mobile-only {
-    font-size: 28px;
+    font-size: 20px;
+    line-height: 26px;
   }
 }
 
 .reposNote {
   margin: 0;
-  font-family: var(--z-mono), ui-monospace, monospace;
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 13px;
+  line-height: 18px;
   color: var(--z-on-dark-2);
 }
 
@@ -997,15 +974,49 @@ $side: 248px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--z-mono), ui-monospace, monospace;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: 13px;
+  line-height: 18px;
   color: var(--z-on-dark-2);
 
   i {
     width: 8px;
     height: 8px;
     border-radius: 50%;
+  }
+}
+
+/* Phones: the small controls get a target a finger can hit. */
+
+@include media.mobile-only {
+  .action,
+  .actionStatic {
+    height: 32px;
+  }
+
+  .pagerBtn {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* Keyboard focus for every control the DS-style buttons don't cover. */
+
+.sideLink,
+.pagerBtn,
+.threadTitle,
+.storyTitle,
+.action,
+.followText,
+.pill,
+.scopeChip,
+.topLead,
+.topRow,
+.hashtag,
+.listRow,
+.repo,
+.sort select {
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
   }
 }

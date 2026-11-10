@@ -22,7 +22,6 @@ import { EVENT_TYPE_LABEL } from '@/components/page/home/TeamNews/utils/getEvent
 
 import {
   FOCUS_AREA_LINKS,
-  FOUNDER_FACES,
   NEWS_PREVIEW,
   PORTFOLIO_TEAMS,
   ROLES,
@@ -35,7 +34,6 @@ import z from './Zaro.module.scss';
 
 const ISLAND_COLOR = Object.fromEntries(ISLANDS.map((i) => [i.id, i.color]));
 const PORTFOLIO_COUNT = PORTFOLIO_TEAMS.length;
-const ORIGIN_PROJECTS = ['IPFS', 'Filecoin', 'libp2p'];
 
 const Arrow = () => (
   <svg className={z.arrow} width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
@@ -75,7 +73,7 @@ export function ZaroNavBar({ onSignUp, onSignIn }: { onSignUp: () => void; onSig
             Sign in
           </button>
           <button type="button" className={clsx(z.btn, z.btnBrand, z.btnSmall)} onClick={onSignUp}>
-            Sign up <Arrow />
+            Sign up
           </button>
         </div>
       </nav>
@@ -242,8 +240,8 @@ function NetworkStack() {
 
 /**
  * home-v2's signed-out story, redrawn in zaro.ai's visual language: warm paper ground, near-black
- * brown ink, very large tight headlines whose second sentence goes grey, square buttons, hairline
- * frames and dashed boxes, uppercase mono labels, a lavender accent, a dark closing band and footer.
+ * brown ink, very large tight headlines, hairline frames, a lavender accent, a closing band and footer.
+ * Section titles are home-v2's plain ones; labels and meta are sentence case in the page's one family.
  * Same content and order as home-v2 (who PL is, the figures, this week, focus areas, the portfolio,
  * open roles, entities, backers, the Join ask), same mocks.
  */
@@ -268,26 +266,17 @@ export function ZaroSignedOut({
       {/* 1. Who PL is. */}
       <section className={z.hero} aria-labelledby="z-hero-title">
         <div className={z.heroCopy}>
-          <p className={z.overline}>{EDITORIAL_HEADER.overline}</p>
           <h1 id="z-hero-title" className={z.heroTitle}>
-            {EDITORIAL_HEADER.title}.
+            {EDITORIAL_HEADER.title}
           </h1>
           <p className={z.heroLede}>{PL_CONTEXT.mission}</p>
           <div className={z.heroActions}>
             <button type="button" className={clsx(z.btn, z.btnBrand)} onClick={onSignUp}>
-              Sign up for free <Arrow />
+              Sign up for free
             </button>
             <button type="button" className={clsx(z.btn, z.btnOutline)} onClick={onSignIn}>
               Sign in
             </button>
-          </div>
-          <div className={z.faces}>
-            <span className={z.facePile}>
-              {FOUNDER_FACES.map((f) => (
-                <img key={f.uid} src={f.image} alt={f.name} title={f.name} />
-              ))}
-            </span>
-            <span className={z.monoNote}>750+ organizations in the network</span>
           </div>
         </div>
         <NetworkStack />
@@ -296,17 +285,9 @@ export function ZaroSignedOut({
       {/* The figures, beside the projects PL started as. */}
       <section className={z.strip} aria-label="Protocol Labs at a glance">
         <div className={z.stripCell}>
-          <p className={z.overline}>Started as the team behind</p>
-          <div className={z.boxRow}>
-            {ORIGIN_PROJECTS.map((p) => (
-              <span key={p} className={z.dashedBox}>
-                {p}
-              </span>
-            ))}
-          </div>
+          <p className={z.origin}>{PL_CONTEXT.origin}</p>
         </div>
         <div className={clsx(z.stripCell, z.stripFacts)}>
-          <p className={z.overline}>By the numbers</p>
           <dl className={z.facts}>
             {PL_FACTS.map((f) => (
               <div key={f.label} className={z.fact}>
@@ -318,18 +299,17 @@ export function ZaroSignedOut({
         </div>
       </section>
 
-      {/* 2. Focus areas as numbered cards, each a door into the directory. */}
+      {/* 2. Focus areas as cards, each a door into the directory. */}
       <section className={z.section} aria-labelledby="z-focus-title">
-        <h2 id="z-focus-title" className={z.twoTone}>
-          <span>One network, 750+ organizations.</span> <span>Four frontiers of computing.</span>
+        <h2 id="z-focus-title" className={z.sectionTitle}>
+          Browse by focus area
         </h2>
         <p className={z.sectionLede}>{PL_CONTEXT.about}</p>
         <div className={z.cards}>
-          {FOCUS_AREA_LINKS.map((a, i) => (
+          {FOCUS_AREA_LINKS.map((a) => (
             <article key={a.id} className={z.card}>
               <div className={z.cardArt} style={{ ['--z-area' as string]: ISLAND_COLOR[a.id] }}>
-                <span className={z.cardNum}>{String(i + 1).padStart(2, '0')}</span>
-                <h3 className={z.cardTitle}>{a.name}.</h3>
+                <h3 className={z.cardTitle}>{a.name}</h3>
               </div>
               <div className={z.cardBody}>
                 <p>{a.line}</p>
@@ -347,20 +327,14 @@ export function ZaroSignedOut({
         </div>
       </section>
 
-      {/* 3. This week beside open roles: the reference's two-panel comparison frame. */}
+      {/* 3. This week beside open roles. */}
       <section className={z.section} aria-labelledby="z-week-title">
-        <h2 id="z-week-title" className={z.twoTone}>
-          <span>The network moves every week.</span> <span>Here is what happened.</span>
+        <h2 id="z-week-title" className={z.sectionTitle}>
+          News and open roles
         </h2>
         <div className={z.split}>
           <div className={z.panel}>
-            <span className={z.tags}>
-              <span className={z.tag}>News</span>
-              <span className={clsx(z.tag, z.tagLive)}>
-                <i /> This week
-              </span>
-            </span>
-            <h3 className={z.panelTitle}>This week in the network.</h3>
+            <h3 className={z.panelTitle}>This week in the network</h3>
             <p className={z.panelSub}>Launches, funding and announcements from network teams.</p>
             <ul className={z.rows}>
               {stories.map((s) => (
@@ -382,14 +356,8 @@ export function ZaroSignedOut({
             </a>
           </div>
           <div className={clsx(z.panel, z.panelLav)}>
-            <span className={z.tags}>
-              <span className={z.tag}>Job Board</span>
-              <span className={clsx(z.tag, z.tagLive)}>
-                <i /> {TOTAL_OPEN_ROLES} open
-              </span>
-            </span>
-            <h3 className={z.panelTitle}>Work with a network team.</h3>
-            <p className={z.panelSub}>Anyone can browse. A profile lets you apply.</p>
+            <h3 className={z.panelTitle}>Work with a network team</h3>
+            <p className={z.panelSub}>Open roles at teams across the network.</p>
             <ul className={z.rows}>
               {ROLES.map((r) => (
                 <li key={`${r.teamUid}-${r.title}`}>
@@ -416,32 +384,29 @@ export function ZaroSignedOut({
         </div>
       </section>
 
-      {/* 4. The portfolio, framed. */}
+      {/* 4. The portfolio. */}
       <section className={z.section} aria-labelledby="z-portfolio-title">
-        <h2 id="z-portfolio-title" className={z.twoTone}>
-          <span>The portfolio.</span> <span>{PORTFOLIO_COUNT} teams, with Protocol Labs at the centre.</span>
+        <h2 id="z-portfolio-title" className={z.sectionTitle}>
+          Protocol Labs portfolio
         </h2>
-        <div className={z.frame}>
-          <div className={clsx(v2.mapClamp, mapOpen && v2.mapClampOpen)}>
-            <PortfolioPanel teams={PORTFOLIO_TEAMS} />
-            {!mapOpen && (
-              <button type="button" className={v2.mapMore} onClick={() => setMapOpen(true)}>
-                Show the whole map
-              </button>
-            )}
-          </div>
+        <div className={clsx(v2.mapClamp, mapOpen && v2.mapClampOpen)}>
+          <PortfolioPanel teams={PORTFOLIO_TEAMS} />
+          {!mapOpen && (
+            <button type="button" className={v2.mapMore} onClick={() => setMapOpen(true)}>
+              Show the whole map
+            </button>
+          )}
         </div>
       </section>
 
       {/* 5. The PL entities, as a hairline grid. */}
       <section className={z.section} aria-labelledby="z-entities-title">
-        <h2 id="z-entities-title" className={z.twoTone}>
-          <span>Five organizations.</span> <span>One mission.</span>
+        <h2 id="z-entities-title" className={z.sectionTitle}>
+          Protocol Labs entities
         </h2>
         <div className={z.entities}>
-          {PL_ENTITIES.map((e, i) => (
+          {PL_ENTITIES.map((e) => (
             <a key={e.name} href={e.href} target="_blank" rel="noreferrer" className={z.entity}>
-              <span className={z.cardNumPlain}>{String(i + 1).padStart(2, '0')}</span>
               <span className={z.entityName}>{e.name}</span>
               <span className={z.entityLine}>{e.line}</span>
               <span className={z.entityDomain}>
@@ -457,18 +422,18 @@ export function ZaroSignedOut({
         <ExploreLogoWall />
       </section>
 
-      {/* 7. The closing ask, on the reference's dark band. */}
+      {/* 7. The closing ask, on the PL blue band. */}
       <section className={z.dark} aria-labelledby="z-join-title">
         <div className={z.darkInner}>
           <h2 id="z-join-title" className={z.darkTitle}>
-            <span>Join the network.</span> <span>Find your people at the frontier.</span>
+            Join the network
           </h2>
           <p className={z.darkLede}>
             The directory is how 750+ organizations find each other: members, teams, projects, roles and events.
           </p>
           <div className={z.heroActions}>
             <button type="button" className={clsx(z.btn, z.btnOnBlue)} onClick={onSignUp}>
-              Sign up for free <Arrow />
+              Sign up for free
             </button>
             <button type="button" className={clsx(z.btn, z.btnGhostOnBlue)} onClick={onSignIn}>
               Sign in
@@ -507,9 +472,6 @@ export function ZaroSignedOut({
             </button>
           </div>
         </div>
-        <p className={z.footMark} aria-hidden>
-          Protocol Labs
-        </p>
         <div className={z.footBottom}>
           <span>© {new Date().getFullYear()} Protocol Labs. Team information is provided by the teams.</span>
           <span className={z.footLegal}>

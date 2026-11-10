@@ -35,7 +35,7 @@ export default function EventsBanner(props: any) {
             </ShadowButton>
           </a>
           <a
-            href={`${process.env.PL_EVENTS_BASE_URL}/program`}
+            href={`${process.env.PL_EVENTS_BASE_URL}/calendar`}
             target="_blank"
             className="button-link"
             onClick={() => onViewAllEventsClicked()}

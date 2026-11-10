@@ -56,7 +56,7 @@ export function eventRange(startIso: string, endIso: string): string | null {
 }
 
 /**
- * The calendar's anchor for an event: pln-events opens an event's details from `/embed/program#<slug>`, where the slug
+ * The calendar's anchor for an event: pln-events opens an event's details from `/embed/calendar#<slug>`, where the slug
  * is `stringToSlug(event_name)` (pln-events `utils/helper.ts`, used by `service/events.service.ts`), computed on every
  * page and never stored. The Directory has only the pln-events id (`slugURL`), which the calendar can't open by, so
  * this is that function, ported as is.
@@ -85,5 +85,5 @@ export function eventCalendarSlug(name: string): string {
 export function eventCalendarHref(name: string): string {
   const slug = eventCalendarSlug(name);
   if (!/[a-z0-9]/.test(slug)) return EVENTS_HREF;
-  return `${EVENTS_HREF}?embedPath=${encodeURIComponent(`/embed/program#${slug}`)}`;
+  return `${EVENTS_HREF}?embedPath=${encodeURIComponent(`/embed/calendar#${slug}`)}`;
 }

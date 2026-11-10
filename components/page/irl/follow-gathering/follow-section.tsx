@@ -75,7 +75,7 @@ const FollowSection = (props: IFollowSectionProps) => {
   const nearestEventDate = props?.nearestEventDate;
   const scheduleURL =
     locationEvents?.additionalInfo?.schedule_url ||
-    `${process.env.SCHEDULE_BASE_URL}/program?location=${encodeURIComponent(eventLocationSummary.name)}${nearestEventDate ? `&date=${nearestEventDate}` : ''}`;
+    `${process.env.SCHEDULE_BASE_URL}/calendar?location=${encodeURIComponent(eventLocationSummary.name)}${nearestEventDate ? `&date=${nearestEventDate}` : ''}`;
 
   // IRL Gathering Modal state - derived from URL param
   const [isEditMode, setIsEditMode] = useState(false);

@@ -82,7 +82,7 @@ export function RequestIntroDialog({ type, targetId, targetName, onClose }: Prop
           <CloseIcon />
         </button>
         <h2 id="request-intro-title" className={s.title}>
-          Request intro to {targetName}
+          Request an intro to {targetName}
         </h2>
         {sent ? (
           <p className={s.received} role="status">

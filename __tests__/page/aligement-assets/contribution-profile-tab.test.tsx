@@ -16,7 +16,7 @@ describe('ContributionProfileTab', () => {
     expect(screen.getByText('No snapshot history yet.')).toBeInTheDocument();
 
     expect(() =>
-      rerender(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />)
+      rerender(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />),
     ).not.toThrow();
     expect(screen.getByText('Contribution History')).toBeInTheDocument();
   });
@@ -26,7 +26,7 @@ describe('ContributionProfileTab', () => {
     expect(screen.getByText('Contribution History')).toBeInTheDocument();
 
     expect(() =>
-      rerender(<ContributionProfileTab entries={[]} currentBalance={null} totalRedeemed={null} />)
+      rerender(<ContributionProfileTab entries={[]} currentBalance={null} totalRedeemed={null} />),
     ).not.toThrow();
     expect(screen.getByText('No snapshot history yet.')).toBeInTheDocument();
   });
@@ -56,7 +56,7 @@ describe('ContributionProfileTab', () => {
     expect(within(totalRow).getByText('112')).toBeInTheDocument();
   });
 
-  it('renders the footer balance from the real currentBalance prop, not entries\' own last cum — the two can legitimately differ', () => {
+  it("renders the footer balance from the real currentBalance prop, not entries' own last cum — the two can legitimately differ", () => {
     render(<ContributionProfileTab entries={entries} currentBalance={999} totalRedeemed={50} />);
 
     const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
@@ -76,7 +76,7 @@ describe('ContributionProfileTab', () => {
   it('renders the real total redeemed in the footer even though no per-period breakdown exists', () => {
     const noRedemptionSource: ContributionHistoryEntry[] = entries.map((e) => ({ ...e, redeemed: null }));
     const { container } = render(
-      <ContributionProfileTab entries={noRedemptionSource} currentBalance={112} totalRedeemed={231} />
+      <ContributionProfileTab entries={noRedemptionSource} currentBalance={112} totalRedeemed={231} />,
     );
 
     const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
@@ -97,7 +97,7 @@ describe('ContributionProfileTab', () => {
     expect(within(totalRow).getByText('—')).toBeInTheDocument();
   });
 
-  it('renders each bar\'s points value and a numeric scale on both Y axes', () => {
+  it("renders each bar's points value and a numeric scale on both Y axes", () => {
     const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
 
     // Each period's points value renders twice: once as a bar label in the chart,
@@ -109,8 +109,12 @@ describe('ContributionProfileTab', () => {
     expect(barLabelValues).toEqual(['350', '220', '450']);
 
     // Left (points) and right (PLAA balance) axis tick text exist and are colored distinctly.
-    const leftAxisTexts = svgTexts.filter((el) => el.getAttribute('fill') === '#4f9eff' && el.getAttribute('text-anchor') === 'end');
-    const rightAxisTexts = svgTexts.filter((el) => el.getAttribute('fill') === '#156ff7' && el.getAttribute('text-anchor') === 'start');
+    const leftAxisTexts = svgTexts.filter(
+      (el) => el.getAttribute('fill') === '#4f9eff' && el.getAttribute('text-anchor') === 'end',
+    );
+    const rightAxisTexts = svgTexts.filter(
+      (el) => el.getAttribute('fill') === '#156ff7' && el.getAttribute('text-anchor') === 'start',
+    );
     expect(leftAxisTexts.length).toBeGreaterThan(0);
     expect(rightAxisTexts.length).toBeGreaterThan(0);
   });
@@ -146,17 +150,23 @@ describe('ContributionProfileTab', () => {
     ];
 
     it('hides the points bars and left axis, keeps the real PLAA balance line and right axis', () => {
-      const { container } = render(<ContributionProfileTab entries={realEntries} currentBalance={1050} totalRedeemed={null} />);
+      const { container } = render(
+        <ContributionProfileTab entries={realEntries} currentBalance={1050} totalRedeemed={null} />,
+      );
 
       expect(screen.getByText('PLAA balance over time')).toBeInTheDocument();
       expect(screen.queryByText('Points collected')).not.toBeInTheDocument();
       expect(screen.queryByText('Points per snapshot')).not.toBeInTheDocument();
 
       const svgTexts = Array.from(container.querySelectorAll('svg text'));
-      const barLabels = svgTexts.filter((el) => el.getAttribute('font-weight') === '600' && el.getAttribute('fill') === '#4f9eff');
+      const barLabels = svgTexts.filter(
+        (el) => el.getAttribute('font-weight') === '600' && el.getAttribute('fill') === '#4f9eff',
+      );
       expect(barLabels).toHaveLength(0);
 
-      const rightAxisTexts = svgTexts.filter((el) => el.getAttribute('fill') === '#156ff7' && el.getAttribute('text-anchor') === 'start');
+      const rightAxisTexts = svgTexts.filter(
+        (el) => el.getAttribute('fill') === '#156ff7' && el.getAttribute('text-anchor') === 'start',
+      );
       expect(rightAxisTexts.length).toBeGreaterThan(0);
     });
 
@@ -170,7 +180,9 @@ describe('ContributionProfileTab', () => {
     });
 
     it('omits Points collected from the hover tooltip when no period has real points data', () => {
-      const { container } = render(<ContributionProfileTab entries={realEntries} currentBalance={1050} totalRedeemed={null} />);
+      const { container } = render(
+        <ContributionProfileTab entries={realEntries} currentBalance={1050} totalRedeemed={null} />,
+      );
 
       const hoverZones = Array.from(container.querySelectorAll('rect[fill="transparent"]'));
       fireEvent.mouseEnter(hoverZones[0]);
@@ -197,7 +209,9 @@ describe('ContributionProfileTab', () => {
       isPending: false,
       cum: (i + 1) * 10,
     }));
-    const { container } = render(<ContributionProfileTab entries={manyEntries} currentBalance={170} totalRedeemed={0} />);
+    const { container } = render(
+      <ContributionProfileTab entries={manyEntries} currentBalance={170} totalRedeemed={0} />,
+    );
 
     // Every period still gets a table row...
     expect(screen.getAllByText('P17')).toHaveLength(2);
@@ -235,7 +249,7 @@ describe('ContributionProfileTab', () => {
 
     const pendingRow = () => screen.getAllByText('Jun 2026')[1].closest('[class*="dataRow"]') as HTMLElement;
 
-    it('shows Pending for the snapshot\'s own PLAA figures and balance', () => {
+    it("shows Pending for the snapshot's own PLAA figures and balance", () => {
       render(<ContributionProfileTab entries={withPending} currentBalance={35} totalRedeemed={null} />);
 
       expect(within(pendingRow()).getAllByText('Pending')).toHaveLength(3);
@@ -244,21 +258,23 @@ describe('ContributionProfileTab', () => {
       expect(within(pendingRow()).queryByText('35')).not.toBeInTheDocument();
     });
 
-    it('still shows the open snapshot\'s points as they come in', () => {
+    it("still shows the open snapshot's points as they come in", () => {
       render(<ContributionProfileTab entries={withPending} currentBalance={35} totalRedeemed={null} />);
 
       expect(within(pendingRow()).getByText('220')).toBeInTheDocument();
     });
 
-    it('shows Pending for the balance in the open snapshot\'s tooltip', () => {
-      const { container } = render(<ContributionProfileTab entries={withPending} currentBalance={35} totalRedeemed={null} />);
+    it("shows Pending for the balance in the open snapshot's tooltip", () => {
+      const { container } = render(
+        <ContributionProfileTab entries={withPending} currentBalance={35} totalRedeemed={null} />,
+      );
 
       fireEvent.mouseEnter(container.querySelectorAll('rect[fill="transparent"]')[1]);
       expect(screen.getByText('PLAA balance: Pending')).toBeInTheDocument();
       expect(screen.getByText('Points collected: 220')).toBeInTheDocument();
     });
 
-    it('leaves a closed snapshot\'s own figures untouched', () => {
+    it("leaves a closed snapshot's own figures untouched", () => {
       render(<ContributionProfileTab entries={withPending} currentBalance={35} totalRedeemed={null} />);
 
       const closedRow = screen.getAllByText('May 2026')[1].closest('[class*="dataRow"]') as HTMLElement;
@@ -266,7 +282,7 @@ describe('ContributionProfileTab', () => {
       expect(within(closedRow).getByText('350')).toBeInTheDocument();
     });
 
-    it('keeps the open snapshot\'s PLAA out of the footer totals, but counts its points', () => {
+    it("keeps the open snapshot's PLAA out of the footer totals, but counts its points", () => {
       render(<ContributionProfileTab entries={withPending} currentBalance={35} totalRedeemed={null} />);
 
       const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
@@ -284,7 +300,7 @@ describe('ContributionProfileTab', () => {
     ];
     render(<ContributionProfileTab entries={redeemed} currentBalance={35} totalRedeemed={640} />);
 
-    const row = (screen.getAllByText('Jun 2026')[1].closest('[class*="dataRow"]')) as HTMLElement;
+    const row = screen.getAllByText('Jun 2026')[1].closest('[class*="dataRow"]') as HTMLElement;
     expect(within(row).getByText('640')).toBeInTheDocument();
   });
 

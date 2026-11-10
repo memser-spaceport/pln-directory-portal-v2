@@ -88,10 +88,17 @@ function formatPeriodLabel(isoDate: string): string {
 }
 
 function activityItemsFrom(response: SnapshotPointsResponse): ProfileActivityItem[] {
-  return response.records.map((r) => ({ category: r.category, title: r.activityName, points: r.pointsCollectedPerSnapshot }));
+  return response.records.map((r) => ({
+    category: r.category,
+    title: r.activityName,
+    points: r.pointsCollectedPerSnapshot,
+  }));
 }
 
-function findMemberSince(historyData: ProfilePlaaHistoryEntry[] | null | undefined, pointsByPeriod: SnapshotPointsByPeriod): string | null {
+function findMemberSince(
+  historyData: ProfilePlaaHistoryEntry[] | null | undefined,
+  pointsByPeriod: SnapshotPointsByPeriod,
+): string | null {
   if (!historyData) return null;
   for (const entry of historyData) {
     const points = pointsByPeriod[entry.period];
@@ -198,7 +205,7 @@ export function useProfileData(): ProfileData {
   // Someone with no history at all only gets a month once they have points in it.
   const fullHistory =
     historyData && historyData.length === 0
-      ? candidateHistory?.filter((e) => pointsByPeriod[e.period]) ?? null
+      ? (candidateHistory?.filter((e) => pointsByPeriod[e.period]) ?? null)
       : candidateHistory;
   const isInfraMember = useIsInfraMember();
 

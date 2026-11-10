@@ -301,7 +301,7 @@ describe('SignedOutHome', () => {
       expect(within(eventsEl).getByText('Nov 3–7 · Lisbon')).toBeInTheDocument();
       expect(within(eventsEl).getByRole('link', { name: 'LabWeek Lisbon' })).toHaveAttribute(
         'href',
-        '/events/all?embedPath=%2Fembed%2Fprogram%23labweek-lisbon',
+        '/events/all?embedPath=%2Fembed%2Fcalendar%23labweek-lisbon',
       );
       expect(within(eventsEl).getByRole('link', { name: 'See all 9 events' })).toHaveAttribute('href', '/events/all');
     });

@@ -62,17 +62,42 @@ export function buildBuybackSimulation(buyback: RoundBuybackStats): BuybackSimul
   return {
     title: buyback.simulation ? 'Buyback Simulation' : 'Live Buyback Auction',
     headerDescription:
-      buyback.headerDescription ?? `Results from this round's buyback ${buyback.simulation ? 'simulation' : 'auction'}.`,
+      buyback.headerDescription ??
+      `Results from this round's buyback ${buyback.simulation ? 'simulation' : 'auction'}.`,
     totalFilled: buyback.totalFilled ?? 'TBD',
     summary: {
       title: `${numbered} - Key Results`,
       items: [
-        { icon: '/icons/rounds/buy_action_results/wallet-01.svg', label: 'Total Buyback Pool', value: buyback.totalBuybackPool ?? 'TBD' },
-        { icon: '/icons/rounds/buy_action_results/pie-chart.svg', label: 'Pool Used', value: formatPercent(buyback.poolUsed) },
-        { icon: '/icons/rounds/buy_action_results/coins-02.svg', label: 'Clearing Price', value: formatCurrency(buyback.clearingPrice) },
-        { icon: '/icons/rounds/buy_action_results/analytics-01.svg', label: 'Capped Allocation', value: buyback.cappedAllocation ?? 'TBD' },
-        { icon: '/icons/rounds/buy_action_results/dollar-02.svg', label: 'PLAA Redeemed', value: formatCount(buyback.tokensPurchased) },
-        { icon: '/icons/rounds/buy_action_results/user-multiple.svg', label: 'Accepted Bidders', value: formatCount(buyback.winningBidders) },
+        {
+          icon: '/icons/rounds/buy_action_results/wallet-01.svg',
+          label: 'Total Buyback Pool',
+          value: buyback.totalBuybackPool ?? 'TBD',
+        },
+        {
+          icon: '/icons/rounds/buy_action_results/pie-chart.svg',
+          label: 'Pool Used',
+          value: formatPercent(buyback.poolUsed),
+        },
+        {
+          icon: '/icons/rounds/buy_action_results/coins-02.svg',
+          label: 'Clearing Price',
+          value: formatCurrency(buyback.clearingPrice),
+        },
+        {
+          icon: '/icons/rounds/buy_action_results/analytics-01.svg',
+          label: 'Capped Allocation',
+          value: buyback.cappedAllocation ?? 'TBD',
+        },
+        {
+          icon: '/icons/rounds/buy_action_results/dollar-02.svg',
+          label: 'PLAA Redeemed',
+          value: formatCount(buyback.tokensPurchased),
+        },
+        {
+          icon: '/icons/rounds/buy_action_results/user-multiple.svg',
+          label: 'Accepted Bidders',
+          value: formatCount(buyback.winningBidders),
+        },
       ],
     },
     bids: buyback.bids.map(mapBid),

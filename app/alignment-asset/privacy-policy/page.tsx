@@ -1,10 +1,8 @@
-import React from 'react'
-import PrivacyPolicyPage from '@/components/page/aligement-assets/privacy-policy/privacy-policy'
+import React from 'react';
+import PrivacyPolicyPage from '@/components/page/aligement-assets/privacy-policy/privacy-policy';
 
 const page = () => {
-  return (
-    <PrivacyPolicyPage />
-  )
-}
+  return <PrivacyPolicyPage />;
+};
 
-export default page
+export default page;

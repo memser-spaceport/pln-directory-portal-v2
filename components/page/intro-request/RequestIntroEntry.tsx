@@ -34,7 +34,7 @@ export function RequestIntroEntry({ type, targetId, targetName, className }: Pro
         onClick={() => setOpen(true)}
       >
         <EnvelopeIcon />
-        Request intro
+        Request an intro
       </Button>
       {open && (
         <RequestIntroDialog type={type} targetId={targetId} targetName={targetName} onClose={() => setOpen(false)} />

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import {SUPPORT_URL, SUPPORT_EMAIL} from '@/constants/plaa';
+import { SUPPORT_URL, SUPPORT_EMAIL } from '@/constants/plaa';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 
 /**
@@ -27,19 +27,35 @@ export default function SupportSection() {
         <div className="support-section__line-wrapper">
           <div className="support-section__line" />
         </div>
-        
+
         {/* Content with gradient background */}
         <div className="support-section__bg-wrapper">
           <div className="support-section__content">
             <p className="support-section__text">
               <strong>Have questions or need help with onboarding?</strong>{' '}
-              <Link href={SUPPORT_URL} target="_blank" rel="noopener noreferrer" className="support-section__link" onClick={handleOfficeHoursClick}>Schedule office hours</Link>
-              {' '}for 1:1 support or email{' '}
-              <Link href={`mailto:${SUPPORT_EMAIL}`} target="_blank" rel="noopener noreferrer" className="support-section__link" onClick={handleEmailClick}>{SUPPORT_EMAIL}</Link>
+              <Link
+                href={SUPPORT_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="support-section__link"
+                onClick={handleOfficeHoursClick}
+              >
+                Schedule office hours
+              </Link>{' '}
+              for 1:1 support or email{' '}
+              <Link
+                href={`mailto:${SUPPORT_EMAIL}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="support-section__link"
+                onClick={handleEmailClick}
+              >
+                {SUPPORT_EMAIL}
+              </Link>
             </p>
           </div>
         </div>
-        
+
         {/* Bottom gradient line */}
         <div className="support-section__line-wrapper">
           <div className="support-section__line" />
@@ -64,22 +80,12 @@ export default function SupportSection() {
           width: 802px;
           max-width: 100%;
           height: 1px;
-          background: linear-gradient(
-            90deg,
-            rgba(66, 125, 255, 0) 0%,
-            #427dff 50%,
-            rgba(66, 125, 255, 0) 100%
-          );
+          background: linear-gradient(90deg, rgba(66, 125, 255, 0) 0%, #427dff 50%, rgba(66, 125, 255, 0) 100%);
         }
 
         .support-section__bg-wrapper {
           width: 100%;
-          background: linear-gradient(
-            90deg,
-            rgba(241, 245, 249, 0) 0%,
-            #fafcff 50.205%,
-            rgba(241, 245, 249, 0) 100%
-          );
+          background: linear-gradient(90deg, rgba(241, 245, 249, 0) 0%, #fafcff 50.205%, rgba(241, 245, 249, 0) 100%);
         }
 
         .support-section__content {
@@ -103,12 +109,11 @@ export default function SupportSection() {
           color: #0f172a;
         }
 
-
         @media (max-width: 768px) {
           .support-section__content {
             padding: 20px 16px;
           }
-          
+
           .support-section__text {
             font-size: 14px;
             line-height: 18px;

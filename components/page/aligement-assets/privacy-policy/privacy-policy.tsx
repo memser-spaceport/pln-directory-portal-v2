@@ -126,8 +126,8 @@ export default function PrivacyPolicyPage() {
                     </li>
                     <li className="privacy-policy__content__paragraph__list__item">
                       <b>Compensation Benchmarking:</b> To create a compensation benchmarking service using anonymized
-                      Personal Data you have given us with consent (by “anonymized,” we mean data processed in accordance
-                      with recognized standards such that re-identification is not reasonably possible)
+                      Personal Data you have given us with consent (by “anonymized,” we mean data processed in
+                      accordance with recognized standards such that re-identification is not reasonably possible)
                     </li>
                     <li className="privacy-policy__content__paragraph__list__item">
                       <b>Usage Information:</b> We may automatically collect certain information about your interaction
@@ -311,8 +311,8 @@ export default function PrivacyPolicyPage() {
                       <b>Legal and Law Enforcement:</b> We will access, disclose, and preserve data when we believe
                       doing so is necessary to comply with applicable law or respond to valid legal process, including
                       from law enforcement, national security or other government agencies. Where permitted by law, we
-                      will endeavor to notify affected users prior to disclosing their Personal Data in response to legal
-                      process.
+                      will endeavor to notify affected users prior to disclosing their Personal Data in response to
+                      legal process.
                     </li>
                     <li className="privacy-policy__content__paragraph__list__item">
                       <b>Security, Safety, Protecting Rights:</b> We will disclose data if we believe it is necessary to
@@ -322,7 +322,9 @@ export default function PrivacyPolicyPage() {
                       (c) protect the rights or property of ourselves and others, including enforcing our agreements,
                       terms, and policies.
                     </li>
-                    <li className="privacy-policy__content__paragraph__list__item">We may provide de-identified information in accordance with applicable law. </li>
+                    <li className="privacy-policy__content__paragraph__list__item">
+                      We may provide de-identified information in accordance with applicable law.{' '}
+                    </li>
                   </ul>
                 </p>
               </div>
@@ -348,8 +350,8 @@ export default function PrivacyPolicyPage() {
               <div className="privacy-policy__container__section__content">
                 <p className="privacy-policy__content__paragraph">
                   You have choices you may elect regarding how we use your data. Local data protection laws may make
-                  these controls and choices enforceable as rights under the law if you are located in or are a
-                  resident of that country, state, or territory.
+                  these controls and choices enforceable as rights under the law if you are located in or are a resident
+                  of that country, state, or territory.
                 </p>
                 <p className="privacy-policy__content__paragraph">
                   <ul className="privacy-policy__content__paragraph__list">
@@ -479,7 +481,9 @@ export default function PrivacyPolicyPage() {
                       You have the right to opt-out from any future “sales” or “sharing” of your data as those terms are
                       defined by the CCPA.
                     </li>
-                    <li className="privacy-policy__content__paragraph__list__item">You have the right not to be discriminated against for exercising these rights</li>
+                    <li className="privacy-policy__content__paragraph__list__item">
+                      You have the right not to be discriminated against for exercising these rights
+                    </li>
                     <li className="privacy-policy__content__paragraph__list__item">
                       To make such requests, please contact us following the instructions provided below. Please note,
                       in order to best serve you, we may require additional information about you to verify your
@@ -688,14 +692,16 @@ export default function PrivacyPolicyPage() {
           }
         }
 
-        .privacy-policy__overview__paragraph, .privacy-policy__content__paragraph {
+        .privacy-policy__overview__paragraph,
+        .privacy-policy__content__paragraph {
           font-size: 14px;
           line-height: 20px;
           color: rgba(71, 85, 105, 1);
           margin: 0 0 16px 0;
         }
 
-        .privacy-policy__overview__paragraph:last-child, .privacy-policy__content__paragraph:last-child {
+        .privacy-policy__overview__paragraph:last-child,
+        .privacy-policy__content__paragraph:last-child {
           margin-bottom: 0;
         }
 

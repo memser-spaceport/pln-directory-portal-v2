@@ -32,8 +32,8 @@ const Profile = () => {
           </span>
           <h1 className={styles.notOnboardedTitle}>Your profile starts here</h1>
           <p className={styles.notOnboardedDesc}>
-            Onboard to the Alignment Asset to build your member profile, contribute to the network, and start
-            collecting recognition for your work.
+            Onboard to the Alignment Asset to build your member profile, contribute to the network, and start collecting
+            recognition for your work.
           </p>
           <button
             className={styles.notOnboardedBtn}

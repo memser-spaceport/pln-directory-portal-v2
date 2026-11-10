@@ -1,12 +1,12 @@
 'use client';
 
 import { useMemo } from 'react';
-import HeroSection from "./sections/hero-section";
-import PastLeaderboardSection from "./sections/past-leaderboard-section";
-import StatsSection from "./sections/stats-section";
-import { IPastRoundData, LeaderboardEntry } from "./types/current-round.types";
-import PastRoundDescription from "../past-rounds/past-round-description";
-import SupportSection from "./sections/support-section";
+import HeroSection from './sections/hero-section';
+import PastLeaderboardSection from './sections/past-leaderboard-section';
+import StatsSection from './sections/stats-section';
+import { IPastRoundData, LeaderboardEntry } from './types/current-round.types';
+import PastRoundDescription from '../past-rounds/past-round-description';
+import SupportSection from './sections/support-section';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 import { useIsLoggedIn } from '@/hooks/useIsLoggedIn';
 import { getPastRoundLeaderboardEntries } from '@/services/plaa/leaderboard.utils';
@@ -38,17 +38,14 @@ export default function PastRoundComponent({ pastRoundData }: PastRoundComponent
       <div className="past-round">
         <HeroSection data={data.hero} />
         <PastRoundDescription
-          roundNumber={data.meta.roundNumber} 
-          month={data.meta.month} 
+          roundNumber={data.meta.roundNumber}
+          month={data.meta.month}
           year={data.meta.year}
           tokensAllocated={data.stats.totalTokensAvailable}
         />
         <StatsSection data={data.stats} />
         {isLoggedIn && resolvedLeaderboard.length > 0 && (
-          <PastLeaderboardSection
-            roundNumber={data.meta.roundNumber}
-            leaderboardData={resolvedLeaderboard}
-          />
+          <PastLeaderboardSection roundNumber={data.meta.roundNumber} leaderboardData={resolvedLeaderboard} />
         )}
         <SupportSection />
       </div>
@@ -107,12 +104,11 @@ export default function PastRoundComponent({ pastRoundData }: PastRoundComponent
         }
 
         @media (max-width: 768px) {
-          
           .past-round__title {
             font-size: 24px;
             line-height: 32px;
           }
-          
+
           .past-round__placeholder {
             padding: 32px 16px;
           }

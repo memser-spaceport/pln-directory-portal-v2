@@ -28,10 +28,9 @@ describe('useSnapshotPointsHistory', () => {
   it('fetches the whole history in a single call regardless of how many periods are requested', async () => {
     mockFetchPointsHistory.mockResolvedValue([{ snapshotPeriod: '2026-05-01', records: [] }]);
 
-    const { result } = renderHook(
-      () => useSnapshotPointsHistory(['2026-05-26', '2026-06-26', '2026-07-26']),
-      { wrapper }
-    );
+    const { result } = renderHook(() => useSnapshotPointsHistory(['2026-05-26', '2026-06-26', '2026-07-26']), {
+      wrapper,
+    });
 
     await waitFor(() => expect(result.current['2026-05-26']).not.toBeUndefined());
     expect(mockFetchPointsHistory).toHaveBeenCalledTimes(1);
@@ -39,7 +38,12 @@ describe('useSnapshotPointsHistory', () => {
 
   it('matches each period to its month by year-month, regardless of the day in the period string', async () => {
     mockFetchPointsHistory.mockResolvedValue([
-      { snapshotPeriod: '2026-05-01', records: [{ category: 'Category A', activityName: 'Activity 1', description: '', pointsCollectedPerSnapshot: 150 }] },
+      {
+        snapshotPeriod: '2026-05-01',
+        records: [
+          { category: 'Category A', activityName: 'Activity 1', description: '', pointsCollectedPerSnapshot: 150 },
+        ],
+      },
     ]);
 
     const { result } = renderHook(() => useSnapshotPointsHistory(['2026-05-26']), { wrapper });
@@ -47,7 +51,9 @@ describe('useSnapshotPointsHistory', () => {
     await waitFor(() => expect(result.current['2026-05-26']).not.toBeUndefined());
     expect(result.current['2026-05-26']).toEqual({
       snapshotPeriod: '2026-05-01',
-      records: [{ category: 'Category A', activityName: 'Activity 1', description: '', pointsCollectedPerSnapshot: 150 }],
+      records: [
+        { category: 'Category A', activityName: 'Activity 1', description: '', pointsCollectedPerSnapshot: 150 },
+      ],
     });
   });
 

@@ -1,10 +1,8 @@
-import React from 'react'
-import TermsOfUsePage from '@/components/page/aligement-assets/terms-of-use/terms-of-use'
+import React from 'react';
+import TermsOfUsePage from '@/components/page/aligement-assets/terms-of-use/terms-of-use';
 
 const page = () => {
-  return (
-    <TermsOfUsePage />
-  )
-}
+  return <TermsOfUsePage />;
+};
 
-export default page
+export default page;

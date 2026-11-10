@@ -54,7 +54,7 @@ describe('the event date labels', () => {
   });
 });
 
-// Names and slugs from the dev calendar (pln-events), 2026-11-06; each slug opened its event at /embed/program#<slug>.
+// Names and slugs from the dev calendar (pln-events), 2026-11-06; each slug opened its event at /embed/calendar#<slug>.
 // The last two cases follow pln-events' stringToSlug (utils/helper.ts), which this ports.
 describe('eventCalendarSlug', () => {
   it.each([
@@ -86,13 +86,13 @@ describe('eventCalendarSlug', () => {
 describe('eventCalendarHref', () => {
   it('opens All Events with the event open, the link the calendar writes itself', () => {
     expect(eventCalendarHref('Singapore Tech Event')).toBe(
-      '/events/all?embedPath=%2Fembed%2Fprogram%23singapore-tech-event',
+      '/events/all?embedPath=%2Fembed%2Fcalendar%23singapore-tech-event',
     );
   });
 
   it('keeps the edge dashes pln-events keeps', () => {
     expect(eventCalendarHref('AdoptionCon | ETHDenver 🇺🇸')).toBe(
-      '/events/all?embedPath=%2Fembed%2Fprogram%23adoptioncon-ethdenver-',
+      '/events/all?embedPath=%2Fembed%2Fcalendar%23adoptioncon-ethdenver-',
     );
   });
 

@@ -49,20 +49,6 @@
   letter-spacing: -0.2px;
 }
 
-.divider {
-  width: 1px;
-  height: 20px;
-  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
-}
-
-.desktopOnly {
-  display: none !important;
-
-  @include media.tablet-landscape {
-    display: block !important;
-  }
-}
-
 .locationName {
   color: var(--foreground-neutral-secondary, #455468);
   text-align: center;
@@ -102,11 +88,12 @@
   grid-column: span 4 / span 4;
   margin-bottom: 16px;
 
-  // From 640px the actions sit at the top right, on the name's line; the role and location row
-  // below keeps the full width (LAB-3187).
+  // From 640px the actions sit at the top right, on the name's line. The role and location row
+  // below stays in the first column, so it ends before the actions and wraps there (LAB-3187).
   @include media.tablet-portrait {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
     column-gap: 10px;
     row-gap: 0;
   }
@@ -122,7 +109,7 @@
     }
 
     > .roleAndLocation {
-      grid-column: 1 / -1;
+      grid-column: 1;
       grid-row: 2;
     }
   }
@@ -131,7 +118,7 @@
 .headerActions {
   display: flex;
   flex-shrink: 0;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
   margin-left: auto;
 
@@ -151,8 +138,20 @@
 .introButton {
   @include media.mobile-only {
     flex: 1 0 100%;
+    order: 1;
     width: 100%;
     justify-content: center;
+  }
+}
+
+.editCell {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+
+  @include media.mobile-only {
+    order: 0;
+    margin-left: auto;
   }
 }
 
@@ -180,17 +179,48 @@
   color: #0f172a;
 }
 
+// Every item draws the divider before it in its own left padding. The list is pulled left by that
+// padding and the row clips it, so the item that starts a line hides its divider: a wrapped row
+// never starts or ends on a divider.
 .roleAndLocation {
+  min-width: 0;
+  overflow-x: clip;
+  overflow-clip-margin: 4px; // keeps focus rings; the divider sits 17px out
+}
+
+.metaList {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
   align-items: center;
+  row-gap: 8px;
+  margin-left: -33px;
+}
+
+.metaItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+  padding-left: 33px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 16px;
+    width: 1px;
+    height: 20px;
+    transform: translateY(-50%);
+    background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  }
 }
 
 .teamsName {
   font-size: 14px;
   font-weight: 500;
-  max-width: 200px;
+  min-width: 0;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -203,7 +233,6 @@
 .location {
   display: flex;
   gap: 4px;
-  padding-right: 24px;
   align-items: center;
 }
 

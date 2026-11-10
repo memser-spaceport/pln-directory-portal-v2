@@ -14,7 +14,7 @@ export function matchesTeamNewsCategory(item: ITeamNewsItem, categoryId: TeamNew
   // Forum posts also live under this pill, but they aren't news items — see
   // filterFeedForumPosts for that half.
   if (categoryId === DISCUSSIONS_CAT) return hasExistingDiscussion(item.discussion);
-  // The editorial top stories (LAB-3125): the same rank 1–3 the Top stories band picks from.
+  // The editorial top stories (LAB-3125, LAB-3202): ranks 1–5.
   if (categoryId === TOP_CAT) return isEditorialRank(item.editorialRank);
   return item.eventType === categoryId;
 }

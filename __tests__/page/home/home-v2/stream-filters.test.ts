@@ -29,11 +29,11 @@ const item = (overrides: Partial<ITeamNewsItem> = {}): ITeamNewsItem => ({
 });
 
 describe('the Top category', () => {
-  it.each([1, 2, 3])('holds editorial rank %i', (rank) => {
+  it.each([1, 2, 3, 4, 5])('holds editorial rank %i', (rank) => {
     expect(matchesTeamNewsCategory(item({ editorialRank: rank }), TOP_CAT)).toBe(true);
   });
 
-  it.each([0, 4, null, undefined])('leaves out rank %p', (rank) => {
+  it.each([0, 6, null, undefined])('leaves out rank %p', (rank) => {
     expect(matchesTeamNewsCategory(item({ editorialRank: rank as number | null }), TOP_CAT)).toBe(false);
   });
 });

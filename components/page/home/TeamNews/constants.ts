@@ -28,7 +28,7 @@ export const HOME_FOR_YOU_HREF = '/home?feed=for-you';
  */
 export const DISCUSSIONS_CAT = 'discussions';
 
-/** The editorial top stories (`editorialRank` 1–3): a pill on the new Home (LAB-3125), where they stay in the stream. */
+/** The editorial top stories (`editorialRank` 1–5): a pill on the new Home (LAB-3125), where they stay in the stream. */
 export const TOP_CAT = 'top';
 
 export type TeamNewsCategoryId =

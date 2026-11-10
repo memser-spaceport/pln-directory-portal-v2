@@ -357,7 +357,7 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
             </div>
 
             <div className={s.row}>
-              <ProfileLocationInput />
+              <ProfileLocationInput member={member} />
             </div>
             {variant !== 'investor-drawer' && (
               <div className={s.row}>

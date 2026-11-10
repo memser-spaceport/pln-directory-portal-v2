@@ -53,3 +53,14 @@
   line-height: 18px; /* 150% */
   letter-spacing: -0.2px;
 }
+
+.warning {
+  padding: 8px 12px;
+  border: 1px solid var(--border-warning-subtle, #fde68a);
+  border-radius: 8px;
+  background: var(--background-warning-subtle, #fffbeb);
+  color: var(--foreground-warning-primary, #b45309);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+}

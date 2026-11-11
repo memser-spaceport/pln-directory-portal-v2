@@ -55,7 +55,11 @@ import { useAffinityMember } from '@/services/affinity/hooks/useAffinityMember';
 import { useJobEmailProfileLinkEventCapture } from '@/components/page/member-details/hooks';
 import { RelationshipDetails } from '@/components/page/member-details/RelationshipDetails';
 import { useLoginRedirect } from '@/components/core/login/utils';
-import { MemberEventsSection, useMemberProfileEvents } from '@/components/page/member-details/MemberEventsSection';
+import {
+  MemberEventsSection,
+  OwnerMemberEventsSection,
+  useMemberProfileEvents,
+} from '@/components/page/member-details/MemberEventsSection';
 import type { MemberEvents } from '@/services/events/profile-events.service';
 import { SHOW_EVENT_DRAWER } from '@/utils/event-drawer';
 
@@ -229,14 +233,25 @@ const MemberDetails = ({ memberId, serverMember, serverMemberEvents }: MemberDet
     });
     const eventsSection = SHOW_EVENT_DRAWER ? (
       <ProfileSection name="Events">
-        <MemberEventsSection
-          firstName={member.name?.trim().split(/\s+/)[0] ?? ''}
-          isOwner={isOwner}
-          upcoming={memberEvents.upcoming}
-          upcomingTotal={memberEvents.upcomingTotal}
-          past={memberEvents.past}
-          pastTotal={memberEvents.pastTotal}
-        />
+        {isOwner ? (
+          <OwnerMemberEventsSection
+            memberUid={memberId}
+            firstName={member.name?.trim().split(/\s+/)[0] ?? ''}
+            upcoming={memberEvents.upcoming}
+            upcomingTotal={memberEvents.upcomingTotal}
+            past={memberEvents.past}
+            pastTotal={memberEvents.pastTotal}
+          />
+        ) : (
+          <MemberEventsSection
+            firstName={member.name?.trim().split(/\s+/)[0] ?? ''}
+            isOwner={false}
+            upcoming={memberEvents.upcoming}
+            upcomingTotal={memberEvents.upcomingTotal}
+            past={memberEvents.past}
+            pastTotal={memberEvents.pastTotal}
+          />
+        )}
       </ProfileSection>
     ) : null;
     const cvSection = showCvSection ? (

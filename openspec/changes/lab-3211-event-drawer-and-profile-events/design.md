@@ -188,6 +188,8 @@ Differences from the shapes assumed before the BE was built:
 - [BE contract drift.] → The service layer was checked against BE `lab-3211` / `lab-3211-3213` (contract block above); the mapper reads the free-string fields tolerantly and hides what it can't read. Re-check on the `lab-3211` feature env once #3698 is merged.
 - [Members without `irlg.going.write` (investors, job aspirants) can't mark attendance.] → By decision. They see the event and attendees. Widening RBAC is a separate scope call.
 - [Prototype vs ticket on footer buttons.] → The ticket says "no Save or Cancel buttons". The prototype (2026-11-11) has "No / Yes, I'm going" and then "Skip|Cancel / Save" in the plans step, because the plans need a submit. We follow the prototype, as the ticket says to on conflicts, and flag it to Polina in design review.
+- [Prototype vs build on the owner's picker (LAB-3218).] → The prototype's "Add an event you're going to" lists every upcoming event and marks the owner's own as "Going". The build leaves those out (hidden ones too, from the profile's list and `MY_UPCOMING_EVENT_UIDS`) so every row is something to add, and says "You're already going to every upcoming event we know of." when none are left. Flag it to Polina in design review.
+- [Owner menu without the write permission (LAB-3218).] → Edit details and Remove call routes that need `irlg.going.write`; the toggle doesn't. Without the permission the menu offers only Hide / Show, and there is no "Add event" or empty state.
 
 ## Migration Plan
 

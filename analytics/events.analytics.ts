@@ -210,6 +210,15 @@ export const useEventsAnalytics = () => {
     captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_ATTENDEES_OPENED, { event_uid: params.eventUid });
   }
 
+  /** `from`: the section header (the owner has upcoming events) or the empty state. */
+  function onProfileEventAddClicked(params: { from: 'header' | 'empty-state' }) {
+    captureEvent(EVENT_DRAWER_ANALYTICS.ON_PROFILE_EVENT_ADD_CLICKED, { from: params.from });
+  }
+
+  function onProfileEventRemoved(params: { eventUid: string }) {
+    captureEvent(EVENT_DRAWER_ANALYTICS.ON_PROFILE_EVENT_REMOVED, { event_uid: params.eventUid });
+  }
+
   return {
     onEventDrawerOpened,
     onEventGoingMarked,
@@ -217,6 +226,8 @@ export const useEventsAnalytics = () => {
     onEventShowOnProfileToggled,
     onEventPlansSaved,
     onEventAttendeesOpened,
+    onProfileEventAddClicked,
+    onProfileEventRemoved,
     onIrlLocationClicked,
     onEventCardClicked,
     onContributorClicked,

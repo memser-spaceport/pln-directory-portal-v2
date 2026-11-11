@@ -110,13 +110,19 @@ The Events section SHALL sit under Office Hours when the viewer sees at least on
 
 ### Requirement: The owner adds an event from their profile
 
-On their own profile, a member with permission to mark attendance SHALL have "Add event", in the section header when they have upcoming events and in the empty state otherwise. It SHALL open "Add an event you're going to": a list of upcoming events, searchable by event or city, that marks the ones they already go to as "Going". Choosing one SHALL open the event drawer on it.
+On their own profile, a member with permission to mark attendance SHALL have "Add event", in the section header when they have upcoming events and in the empty state otherwise. It SHALL open "Add an event you're going to": a list of upcoming events, searchable by event or city, that leaves out the events the owner already goes to (hidden ones too) and says so when none are left. Choosing one SHALL open the event drawer on it.
 
 #### Scenario: Owner adds an event
 
 - **GIVEN** the owner is going to no events
 - **WHEN** they press "Add event", choose event A and press "Yes, I'm going" with "Show on my profile" ticked
 - **THEN** event A appears under their upcoming events
+
+#### Scenario: The list leaves out events the owner already has
+
+- **GIVEN** the owner is going to event A and has hidden event B
+- **WHEN** they open "Add an event you're going to"
+- **THEN** neither A nor B is listed
 
 #### Scenario: Owner with nothing upcoming
 
@@ -143,6 +149,24 @@ Each of the owner's upcoming cards SHALL have a ⋯ menu with "Edit details", "H
 - **GIVEN** the owner is going to events A and B
 - **WHEN** they choose "Remove" on A and confirm
 - **THEN** A leaves their profile and its attendee list, and B stays
+
+### Requirement: Owner controls follow the attendance permission
+
+On their own profile, "Add event", "Edit details" and "Remove" SHALL need the permission to mark attendance; "Hide from my profile" and "Show on my profile" SHALL NOT. A failed change from the ⋯ menu SHALL say so in an error toast and leave the card as it was.
+
+#### Scenario: Owner without the permission
+
+- **GIVEN** the owner cannot mark attendance and is going to event A
+- **WHEN** they open the ⋯ menu on A
+- **THEN** it offers only "Hide from my profile"
+- **AND** the section has no "Add event"
+
+#### Scenario: A failed hide
+
+- **GIVEN** the owner shows event A on their profile
+- **WHEN** they choose "Hide from my profile" and the request fails
+- **THEN** an error toast says so
+- **AND** event A's card has no "Only visible to you"
 
 ### Requirement: Owner profile analytics
 

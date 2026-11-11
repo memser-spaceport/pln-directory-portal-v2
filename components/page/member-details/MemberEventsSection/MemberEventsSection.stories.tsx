@@ -61,5 +61,5 @@ export const ManyUpcoming: Story = {
   },
 };
 
-/** The owner's own view, before LAB-3218 adds its controls. */
+/** `isOwner` alone: titles and labels in the second person. The owner's controls are in `OwnerMemberEventsSection`'s stories. */
 export const Owner: Story = { args: { isOwner: true } };

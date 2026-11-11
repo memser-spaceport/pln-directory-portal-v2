@@ -29,9 +29,9 @@ Each group is one subtask branch (`lab-3211-<sub#>`, cut from `lab-3211`) and on
 
 ## 4. LAB-3218: owner controls on the member profile
 
-- [ ] 4.1 Add "Add event" (header when there are upcoming events; empty state "No upcoming events on your profile yet." otherwise), gated on `canWrite`. It opens the "Add an event you're going to" picker (`useUpcomingEvents`, client-side search by event or city, "Going" mark), and choosing one opens `EventDrawer` with `source: add-event`. Verify with tests for "Owner adds an event" and "Owner with nothing upcoming".
-- [ ] 4.2 Add the ⋯ menu (base-ui Menu, as the prototype): Edit details (drawer at the plans step), Hide / Show (`useSetShowOnProfile`, no confirm, "Only visible to you" pill), Remove (`ConfirmDialog` with the spec copy, `useRemoveGoing`, toast "Removed <event>."). Verify with tests for "Owner hides an event" and "Owner removes an event".
-- [ ] 4.3 Fire `profile-event-add-clicked`, `event-show-on-profile-toggled` (`from: profile-menu`) and `profile-event-removed`. Verify with a test for the analytics scenario.
+- [x] 4.1 Add "Add event" (header when there are upcoming events; empty state "No upcoming events on your profile yet." otherwise), gated on `canWrite`. It opens the "Add an event you're going to" picker (`useUpcomingEvents`, client-side search by event or city, leaving out the events the owner already has), and choosing one opens `EventDrawer` with `source: add-event`. Verify with tests for "Owner adds an event" and "Owner with nothing upcoming".
+- [x] 4.2 Add the ⋯ menu (base-ui Menu, as the prototype): Edit details (drawer at the plans step), Hide / Show (`useSetShowOnProfile`, no confirm, "Only visible to you" pill), Remove (`ConfirmDialog` with the spec copy, `useRemoveGoing`, toast "Removed <event>."). Verify with tests for "Owner hides an event" and "Owner removes an event".
+- [x] 4.3 Fire `profile-event-add-clicked`, `event-show-on-profile-toggled` (`from: profile-menu`) and `profile-event-removed`. Verify with a test for the analytics scenario.
 
 ## 5. LAB-3219: team profile Events section
 

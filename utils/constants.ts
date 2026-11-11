@@ -863,6 +863,10 @@ export const EVENT_DRAWER_ANALYTICS = {
   ON_EVENT_SHOW_ON_PROFILE_TOGGLED: 'event-show-on-profile-toggled',
   ON_EVENT_PLANS_SAVED: 'event-plans-saved',
   ON_EVENT_ATTENDEES_OPENED: 'event-attendees-opened',
+  /** The owner's "Add event" on their profile (LAB-3218). */
+  ON_PROFILE_EVENT_ADD_CLICKED: 'profile-event-add-clicked',
+  /** The owner removed an event from the ⋯ menu on their profile (LAB-3218). */
+  ON_PROFILE_EVENT_REMOVED: 'profile-event-removed',
 };
 
 export const EVENTS_ANALYTICS = {

@@ -65,6 +65,17 @@ describe('plaa-bot.utils', () => {
   });
 
   describe('loadPlaaBot', () => {
+    it('turns on the widget launcher so the bot can be opened from any page', async () => {
+      const init = jest.fn();
+      stubScriptLoad(() => {
+        window.PLAABot = { init, open: jest.fn() };
+      });
+
+      await loadPlaaBot(OPTIONS);
+
+      expect(init).toHaveBeenCalledWith(expect.objectContaining({ launcher: true }));
+    });
+
     it('injects the widget script and initialises it once loaded', async () => {
       const init = jest.fn();
       stubScriptLoad(() => {
@@ -76,7 +87,7 @@ describe('plaa-bot.utils', () => {
       const script = document.getElementById(PLAA_BOT_SCRIPT_ID) as HTMLScriptElement;
       expect(script.getAttribute('src')).toBe(OPTIONS.scriptUrl);
       expect(init).toHaveBeenCalledTimes(1);
-      expect(init.mock.calls[0][0]).toStrictEqual({
+      expect(init.mock.calls[0][0]).toMatchObject({
         webhookUrl: OPTIONS.webhookUrl,
         configUrl: OPTIONS.configUrl,
       });

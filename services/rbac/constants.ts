@@ -35,6 +35,8 @@ export const PERMISSIONS = {
   },
   PLAA: {
     PERM_ACCESS: 'plaa.access',
+    PERM_GUEST: 'plaa.guest',
+    PERM_MEMBER: 'plaa.member',
   },
   ATS: {
     PERM_USER: 'ats_user',

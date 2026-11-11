@@ -165,7 +165,16 @@ Differences from the shapes assumed before the BE was built:
 - No venue address or region: the address row shows `location.location` and the region line is left out.
 - Hosts are `details.host` + `details.coHosts` (organisations); when the sync sent none, the members marked Host.
 - No `registrationUrl` or `scheduleUrl`: the schedule link is built with `buildEventsLink` as `IrlGatheringModal` does.
-- `GET /v1/members/:uid/events` and `GET /v1/teams/:uid/events` are BE LAB-3215, not built yet. The `MEMBER_EVENTS` / `TEAM_EVENTS` keys exist (the drawer's writes invalidate them), and the hooks move to tasks 3.2 and 5.2.
+- `GET /v1/members/:uid/events` and `GET /v1/teams/:uid/events` are BE LAB-3215 (BE #3699, `libs/contracts/src/schema/profile-events.ts`). The FE mirrors them in `services/events/profile-events.types.ts`, the one file to change if the shapes change.
+
+### D12. The member profile's Events section (LAB-3217)
+
+- One request per viewer carries every card (`limit=50`, the BE's max), so "Show all N" expands in place without another round trip. The server's signed-out fetch is `group=past&limit=50`. A member with more than 50 events in a group shows the first 50, and "Show all N" still says N.
+- Items carry no time zone, so dates are drawn in UTC, as on Home's rail.
+- The section also filters out `showOnProfile: false` items for anyone but the owner, and sorts both groups, though the BE already does both.
+- A failed read, an unknown member (404) or a malformed response leaves the server's past list, or no section when there is none. The page doesn't crash.
+- The cards live in `components/page/events/EventCards` for the team section (LAB-3219) to reuse. The section has slots for the owner's controls (LAB-3218): `headerAction`, `renderCardMenu`, `renderCardBadges`, `upcomingEmpty`.
+- The prototype's page-wide 20px card padding (`MemberProfile.module.scss`) isn't ported: the section uses production's `DetailsSection` padding, like its neighbours.
 
 ## Risks / Trade-offs
 

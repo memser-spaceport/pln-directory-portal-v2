@@ -29,13 +29,6 @@ export interface FeedbackFormValues {
   screenshots: File[];
 }
 
-/**
- * Give feedback (F-1).
- *
- * Validation mirrors the service so a rejectable submission never leaves the
- * browser, but the service is still the authority — this is a courtesy, not a
- * gate.
- */
 export default function FeedbackForm({
   onClose,
   onSubmit,
@@ -47,7 +40,6 @@ export default function FeedbackForm({
   onSubmit: (values: FeedbackFormValues) => void;
   isSubmitting: boolean;
   submitError?: unknown;
-  /** Captured silently for bugs (§6). */
   sourcePath?: string;
 }) {
   const titleId = useId();
@@ -81,9 +73,6 @@ export default function FeedbackForm({
   };
   const isValid = !errors.title && !errors.description && !errors.link;
 
-  // AC-T5.1: focus lands on the type selector, Esc closes, unsaved text asks first.
-  // On close, focus returns to whatever opened the modal and the page gets its
-  // scroll back — otherwise the reader is dropped at the top of the document.
   useEffect(() => {
     const opener = document.activeElement as HTMLElement | null;
     const previousOverflow = document.body.style.overflow;
@@ -95,18 +84,6 @@ export default function FeedbackForm({
       opener?.focus?.();
     };
   }, []);
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.stopPropagation();
-        requestClose();
-      }
-      if (event.key === 'Tab') trapFocus(event);
-    };
-    document.addEventListener('keydown', onKeyDown, true);
-    return () => document.removeEventListener('keydown', onKeyDown, true);
-  });
 
   function trapFocus(event: KeyboardEvent) {
     const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
@@ -132,6 +109,18 @@ export default function FeedbackForm({
     onClose();
   }
 
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation();
+        requestClose();
+      }
+      if (event.key === 'Tab') trapFocus(event);
+    };
+    document.addEventListener('keydown', onKeyDown, true);
+    return () => document.removeEventListener('keydown', onKeyDown, true);
+  });
+
   async function handleFiles(fileList: FileList | null) {
     if (!fileList?.length) return;
     setFileError(null);
@@ -147,10 +136,8 @@ export default function FeedbackForm({
       const problem = validateScreenshotFile(file);
       if (problem) {
         setFileError(problem);
-        return; // Nothing is attached if any file is bad.
+        return;
       }
-      // §6: re-encode through a canvas so EXIF (including GPS) never leaves the
-      // browser. Falls back to the original file if the browser can't decode it.
       accepted.push(await stripImageMetadata(file));
     }
     setScreenshots((current) => [...current, ...accepted]);
@@ -246,8 +233,7 @@ export default function FeedbackForm({
           </label>
 
           <div className="fb-field">
-            {/* htmlFor, not a wrapping label: clicking a wrapped file input
-                re-opens the picker from anywhere in the block. */}
+            {/* htmlFor, not a wrapping label: a wrapped file input re-opens the picker on any click in the block. */}
             <label className="fb-label" htmlFor="fb-screenshot-input">
               Screenshot
             </label>
@@ -323,7 +309,6 @@ export default function FeedbackForm({
             </p>
           )}
 
-          {/* Pending Legal review (Javier) before launch — §6. */}
           <p className="fb-guidelines" data-pending-legal-review="true">
             Posts are visible to PLAA members. Don&apos;t include personal or account details, balances, or anything
             confidential. Screenshots and bug reports are visible only to you and the PLAA team.

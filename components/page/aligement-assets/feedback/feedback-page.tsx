@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useEffectEvent, useMemo, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { FeedbackItem, FeedbackStatus, FeedbackType } from '@/services/plaa/feedback/feedback.types';
 import {
@@ -64,10 +64,9 @@ export default function FeedbackPage() {
     [pathname, router, searchParams],
   );
 
+  const onBoardViewed = useEffectEvent((viewedTab: Tab) => analytics.onBoardViewed(viewedTab));
   useEffect(() => {
-    analytics.onBoardViewed(tab);
-    // Only a tab change is a new view.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    onBoardViewed(tab);
   }, [tab]);
 
   const listParams = useMemo(
@@ -250,7 +249,7 @@ export default function FeedbackPage() {
               items={triageQuery.data?.items ?? []}
               onMove={handleMove}
               onRetryLinear={(id) => retryLinear.mutate(id)}
-              retryingId={retryLinear.isPending ? (retryLinear.variables as string) : undefined}
+              retryingId={retryLinear.isPending ? retryLinear.variables : undefined}
             />
           )
         ) : listQuery.isLoading ? (

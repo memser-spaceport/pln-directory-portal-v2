@@ -79,22 +79,8 @@ async function readJson(response: Response): Promise<unknown> {
 
 type RouteContext = { params: Promise<{ path: string[] }> };
 
-export async function GET(request: NextRequest, context: RouteContext) {
+async function handler(request: NextRequest, context: RouteContext) {
   return proxy(request, (await context.params).path);
 }
 
-export async function POST(request: NextRequest, context: RouteContext) {
-  return proxy(request, (await context.params).path);
-}
-
-export async function PUT(request: NextRequest, context: RouteContext) {
-  return proxy(request, (await context.params).path);
-}
-
-export async function PATCH(request: NextRequest, context: RouteContext) {
-  return proxy(request, (await context.params).path);
-}
-
-export async function DELETE(request: NextRequest, context: RouteContext) {
-  return proxy(request, (await context.params).path);
-}
+export { handler as GET, handler as POST, handler as PUT, handler as PATCH, handler as DELETE };

@@ -28,11 +28,14 @@ function TestForm({ member }: { member: IMember }) {
 }
 
 describe('ProfileLocationInput PLAA warning', () => {
-  it('warns a member with PLAA access that a location change can remove it', () => {
-    render(<TestForm member={memberWith(['plaa.access'])} />);
+  it.each(['plaa.access', 'plaa.guest', 'plaa.member'])(
+    'warns a member holding %s that a location change can remove it',
+    (permission) => {
+      render(<TestForm member={memberWith([permission])} />);
 
-    expect(screen.getByText(WARNING)).toBeInTheDocument();
-  });
+      expect(screen.getByText(WARNING)).toBeInTheDocument();
+    },
+  );
 
   it('shows no warning to a member without PLAA access', () => {
     render(<TestForm member={memberWith(['founder_guides.view'])} />);

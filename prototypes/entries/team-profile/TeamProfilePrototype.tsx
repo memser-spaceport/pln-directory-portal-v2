@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import clsx from 'clsx';
 import Link from 'next/link';
 
@@ -34,7 +34,7 @@ import { TeamDetailsView } from './TeamDetailsView';
 import { TeamInvestorView } from './TeamInvestorView';
 import { TeamContactView } from './TeamContactView';
 import { TeamMembersView } from './TeamMembersView';
-import { TeamContributionsView } from './TeamContributionsView';
+import { TeamEventsSection } from '../member-events-going/TeamEventsSection';
 import { TeamProjectsView } from './TeamProjectsView';
 import { TeamOpenRolesView } from './TeamOpenRolesView';
 import { TeamCandidatesPage, type CandidatesTab } from './TeamCandidatesPage';
@@ -97,14 +97,12 @@ import {
   MOCK_FOCUS_AREAS,
   MOCK_TEAM_FOCUS_AREAS,
   MOCK_PROJECTS,
-  MOCK_CONTRIBUTIONS,
   MOCK_NEWS,
   NEWS_LIKES,
   NEWS_VIEWS,
   NEWS_COMMENT_THREADS,
   MOCK_FOLLOWERS,
   TEAM_FOLLOWER_COUNT,
-  MOCK_TEAM_DEMO_DAY,
   MOCK_TEAM_ROLES,
   MOCK_CANDIDATES,
   MOCK_INTERESTED,
@@ -123,8 +121,13 @@ const NEWS_PREVIEW_COUNT = 3;
 /**
  * `newsCallout` — a host that mounts this page mid-tour (guided-tour) turns the
  * Post news callout off: a tour and a callout on one arrival is two announcements.
+ *
+ * `demoBarExtra` — a host (member-events-going) adds its review switches to this bar.
  */
-export default function TeamProfilePrototype({ newsCallout = true }: { newsCallout?: boolean } = {}) {
+export default function TeamProfilePrototype({
+  newsCallout = true,
+  demoBarExtra,
+}: { newsCallout?: boolean; demoBarExtra?: ReactNode } = {}) {
   // Several reused leaf components are base-ui / client-only (Tooltip, Tag
   // popovers). Gate render on mount so SSR === first client render.
   const [mounted, setMounted] = useState(false);
@@ -884,6 +887,8 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
             placements for View posting. Top of list won, so the group and
             `candidatesLayouts.ts` went — a review switch left up after the
             decision invites it to be re-litigated.) */}
+
+        {demoBarExtra}
       </div>
 
       {candidatesRole && teamRoles ? (
@@ -1110,15 +1115,14 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
                 <TeamFocusAreasView team={team} userInfo={null} focusAreas={focusAreas} toggleIsEditMode={() => {}} />
               </DetailsSection>
 
-              {/* Contributions — event-primary tiles; Demo Day featured when present.
-              Muted role tags, settled: the vibrant/muted switch was scaffolding
-              for choosing between them, and it dies with the choice. */}
+              {/* Events — the member profile's Events section, team edition
+              (member-events-going/TeamEventsSection, 2026-11-11): what the team's
+              members are going to, stacked above Contributions as the same cards
+              (month · year tile, city, muted role pills, Demo Day in date order).
+              It replaced the event-primary tile grid + "+N" modal
+              (TeamContributionsView, kept on disk). */}
               <div id="team-contributions" className={local.aiAnchor}>
-                <TeamContributionsView
-                  contributions={MOCK_CONTRIBUTIONS}
-                  demoDay={MOCK_TEAM_DEMO_DAY}
-                  variant="muted"
-                />
+                <TeamEventsSection teamName={team.name ?? 'This team'} />
               </div>
 
               {/* Projects */}

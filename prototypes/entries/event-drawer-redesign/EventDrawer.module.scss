@@ -1,0 +1,819 @@
+@use 'styles/media';
+
+// The redesigned event drawer. Colours are the house token pairs (prototypes/CLAUDE.md §4);
+// type sits on the PL scale (12/16, 14/20, 16/24, 24/32).
+
+.root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* ---------- Toolbar ---------- */
+
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 24px;
+  background: var(--background-neutral-primary, #ffffff);
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  @include media.mobile-only {
+    padding: 12px 16px;
+  }
+}
+
+.toolbarGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.toolbarRule {
+  width: 1px;
+  height: 20px;
+  margin: 0 4px;
+  background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+// DS Button is inline-block, so an svg child rides the baseline and `gap` is ignored.
+.btn.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  white-space: nowrap;
+  text-decoration: none;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.btnLabelWide {
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-subtle, #aebfff);
+    outline-offset: 1px;
+  }
+}
+
+/* ---------- Body ---------- */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px 24px 40px;
+
+  @include media.mobile-only {
+    padding: 20px 16px 32px;
+  }
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+/* The event's picture, small: it identifies the event, the title still leads. */
+.logo {
+  display: block;
+  width: 56px;
+  height: 56px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  object-fit: cover;
+  background: var(--background-neutral-secondary, #f8fafc);
+  flex-shrink: 0;
+}
+
+/* Thumbnail beside the title + hosts: 56px is the two lines' height (32 + 20 + 4). */
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.titleText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  text-wrap: balance;
+}
+
+// Close under the title (titleText's 4px gap): it qualifies it.
+.hosts {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.hostLink {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-weight: 500;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration: underline;
+  }
+}
+
+/* ---------- When and where ---------- */
+
+.facts {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+// The rail row's date tile (home-refactor .dateTile), one step larger beside a two-line fact.
+.dateTile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-neutral-primary, #ffffff);
+}
+
+.dateTileSmall {
+  width: 40px;
+  height: 40px;
+}
+
+.dateMonth {
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.dateDay {
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.factIcon {
+  @extend .dateTile;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.factText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.factMain {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.factLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  text-decoration: none;
+
+  svg {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration: underline;
+
+    svg {
+      color: currentColor;
+    }
+  }
+}
+
+.factSub {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* ---------- The ask ---------- */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: var(--background-neutral-primary, #ffffff);
+  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.04);
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+
+/* The state in the card's own ink; only the mark is green (one green thing, Luma's "You're In"). */
+.cardTitleGoing {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  svg {
+    flex-shrink: 0;
+    color: var(--foreground-success-primary, #0a9952);
+  }
+}
+
+/* Going: status + people on the left, the external Register on the right. */
+.goingTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.goingText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* One line: the choice, then who it reaches, a step quieter. */
+.consentInline {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.consentQualifier {
+  font-weight: 400;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* The next thing to do, as a row that leads on (Luma's "Get ready for the event ›"). */
+.plansRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 10px;
+  background: var(--background-neutral-primary, #ffffff);
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--border-brand-subtle, #aebfff);
+    background: var(--background-brand-soft-surface, #f2f5ff);
+
+    .plansTitle,
+    .plansArrow {
+      color: var(--foreground-brand-primary, #1b4dff);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+.plansIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.plansText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.plansTitle {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.plansHint {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.plansArrow {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* Leaving, as Luma words it: a sentence at the foot, not a third press in a row. */
+.leaveLine {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.goingLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration: underline;
+  }
+}
+
+// TeamFollowBlock's facepile: 24px, 2px white ring, 6px overlap.
+.facepile {
+  display: inline-flex;
+
+  img {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--background-neutral-primary, #ffffff);
+    background: var(--background-neutral-primary, #ffffff);
+    object-fit: cover;
+
+    & + img {
+      margin-left: -6px;
+    }
+  }
+}
+
+.consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.consentText {
+  display: flex;
+  flex-direction: column;
+}
+
+.consentLabel {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+.consentHint {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.cardActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+
+  @include media.mobile-only {
+    > button,
+    > a {
+      flex: 1 1 auto;
+    }
+  }
+}
+
+/* Pressable at rest: the sentence's own size, a step darker and underlined. */
+.notGoing {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+/* ---------- Sections ---------- */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+
+.paragraph {
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.tag.tag {
+  font-size: 12px;
+  line-height: 16px;
+  padding: 2px 8px;
+}
+
+/* ---------- Agenda ---------- */
+
+.agendaDay {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.agendaDayTitle {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.agendaList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.agendaRow {
+  display: grid;
+  grid-template-columns: 148px 1fr;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  @include media.mobile-only {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+
+.agendaTime {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-variant-numeric: tabular-nums;
+}
+
+.agendaText {
+  display: flex;
+  flex-direction: column;
+}
+
+.agendaTitle {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+.agendaAbout {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* ---------- The gathering ---------- */
+
+.siblings {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  overflow: hidden;
+
+  li + li {
+    border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+}
+
+.sibling {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: var(--background-neutral-primary, #ffffff);
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+
+    .siblingName {
+      color: var(--foreground-brand-primary, #1b4dff);
+    }
+  }
+}
+
+.siblingText {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.siblingName {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.siblingMeta {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.siblingArrow {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.goingMark {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ---------- Sub-views ---------- */
+
+.subHead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.subTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+.people {
+  display: flex;
+  flex-direction: column;
+  margin: -8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 8px;
+  margin: 0 -8px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+.personImg {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.personText {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.personName {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+.personMeta {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty {
+  padding: 24px 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  text-align: center;
+}
+
+.planForm {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: auto;
+  padding: 12px 24px;
+  background: var(--background-neutral-primary, #ffffff);
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  @include media.mobile-only {
+    padding: 12px 16px;
+
+    > button {
+      flex: 1;
+    }
+  }
+}

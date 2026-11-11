@@ -76,20 +76,9 @@ import { NewsGrid } from './NewsGrid';
 import { SignupWizard } from '@/components/page/sign-up/components/SignupWizard';
 import { TeamsToFollowRail } from './TeamsToFollowRail';
 import { EmailNotFoundModal } from './EmailNotFoundModal';
-import { AgentPanel } from '../home-v2-b/AgentPanel';
-import type { AgentReply } from '../home-v2-b/agentScript';
-import { AgentCorner, AgentGlyph } from './AgentCorner';
-import {
-  AGENT_VIEWERS,
-  agentHistory,
-  agentIntro,
-  agentPlaceholder,
-  agentPrompts,
-  createAgentV0Script,
-  type AgentChat,
-  type AgentViewer,
-} from './AgentV0';
-import agentV0 from './AgentV0.module.scss';
+import { AGENT_VIEWERS, type AgentViewer } from './AgentV0';
+import { AGENT_PAGES, AgentDock } from './AgentDock';
+import { AgentProfilePage } from './AgentProfilePage';
 import {
   EVENTS_STATES,
   HOME_STATES,
@@ -193,7 +182,63 @@ function Switch<T extends string>({
 }
 
 
+/* Which LabOS page the Agent is shown on (manager review 2026-11-11: "how it looks elsewhere"). */
+const PAGE_OPTIONS: Option<'home' | 'profile'>[] = [
+  { value: 'home', label: 'Home', note: 'Default. The agent opens reading Home.' },
+  {
+    value: 'profile',
+    label: 'Member profile',
+    note: 'Maya Okonkwo’s profile. The agent opens reading it; ✕ takes it away, Add page adds another page.',
+  },
+];
+
+/**
+ * Two pages behind one URL: Home, or (?page=profile, signed in) a member profile with the same Agent corner,
+ * to show the agent reading the page it's on.
+ */
 export default function HomeV2Prototype() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  if (searchParams.get('page') !== 'profile') return <HomePage />;
+
+  const setParam = (key: string, value: string, fallback: string) => {
+    const next = new URLSearchParams(searchParams.toString());
+    if (value === fallback) next.delete(key);
+    else next.set(key, value);
+    const q = next.toString();
+    router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+  };
+  const viewer = AGENT_VIEWERS[searchParams.get('viewer') === 'member' ? 'member' : 'founder'];
+
+  return (
+    <AgentProfilePage
+      viewer={viewer}
+      openOnArrival={searchParams.get('agent') === 'open'}
+      reviewBand={
+        <div className={feed.reviewBand}>
+          <div className={feed.reviewRow}>
+            {/* Back to Home lands signed in: the profile only exists signed in. */}
+            <Switch
+              label="Page"
+              options={PAGE_OPTIONS}
+              value="profile"
+              onChange={(v) => setParam('page', v, 'home')}
+            />
+            <Switch
+              label="Viewer"
+              options={VIEWER_OPTIONS}
+              value={viewer.key}
+              onChange={(v) => setParam('viewer', v, 'founder')}
+            />
+          </div>
+        </div>
+      }
+    />
+  );
+}
+
+function HomePage() {
   /* Prototype routes server-render: read the URL only after mount so SSR === first client render. */
   const [mounted, setMounted] = useState(false);
   /* The week module's times are the viewer's clock (home-refactor-b re-dates its mocks to this week). */
@@ -240,33 +285,9 @@ export default function HomeV2Prototype() {
   /* home-refactor's header search: the field fills the free width, so the signed-out bar fits at 1200. */
   const navExtras = useHeaderSearch(signedIn);
 
-  /* LabOS Agent V0 (members only): Agent in the bottom corner or Ctrl/⌘ J opens home-v2-b's docked panel,
-     running this entry's script. ?agent=open opens it on arrival, for links straight to the agent. */
+  /* LabOS Agent V0 (members only): AgentDock holds the corner, the Agent panel and the feedback drawer in one
+     right-hand slot. ?agent=open opens it on arrival, for links straight to the agent. */
   const viewer = AGENT_VIEWERS[searchParams.get('viewer') === 'member' ? 'member' : 'founder'];
-  const agentReplyFn = useMemo(() => createAgentV0Script(viewer), [viewer]);
-  const [agentOpen, setAgentOpen] = useState(false);
-  /* The past chat the panel is showing. Replayed here, in the click, so the script runs once and an open
-     question in that chat can still be answered. */
-  const [pastChat, setPastChat] = useState<{ chat: AgentChat; reply: AgentReply } | null>(null);
-  const openPastChat = (chat: AgentChat) => {
-    setPastChat({ chat, reply: agentReplyFn(chat.prompt) });
-    setAgentOpen(true);
-  };
-  useEffect(() => {
-    if (signedIn && searchParams.get('agent') === 'open') setAgentOpen(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [signedIn]);
-  useEffect(() => {
-    if (!signedIn) return setAgentOpen(false);
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'j') {
-        e.preventDefault();
-        setAgentOpen((o) => !o);
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [signedIn]);
 
   /* Likes and comments: the feed's own model, seeded from its mocks (as home-refactor). */
   const [liked, setLiked] = useState<Set<string>>(new Set());
@@ -387,6 +408,7 @@ export default function HomeV2Prototype() {
       {/* Review scaffolding — scrolls away; not part of the design. */}
       <div className={feed.reviewBand}>
         <div className={feed.reviewRow}>
+          {signedIn && <Switch label="Page" options={PAGE_OPTIONS} value="home" onChange={(v) => setParam('page', v, 'home')} />}
           <Switch label="State" options={HOME_STATES} value={state} onChange={setState} />
           {signedIn && (
             <Switch
@@ -572,29 +594,14 @@ export default function HomeV2Prototype() {
       )}
 
       {signedIn && (
-        <>
-          {/* Keyed by viewer and past chat: switching either starts from that conversation. */}
-          <AgentPanel
-            key={`${viewer.key}-${pastChat?.chat.id ?? 'new'}`}
-            initialThread={pastChat ? [{ text: pastChat.chat.prompt, reply: pastChat.reply }] : undefined}
-            headIcon={<AgentGlyph />}
-            open={agentOpen}
-            onClose={() => setAgentOpen(false)}
-            reply={agentReplyFn}
-            greeting={`Hi ${viewer.firstName}, what can I do for you?`}
-            intro={agentIntro(viewer)}
-            prompts={agentPrompts(viewer)}
-            placeholder={agentPlaceholder(viewer)}
-            className={agentV0.panelOnHome}
-          />
-          <AgentCorner
-            agentOpen={agentOpen}
-            onOpenAgent={() => setAgentOpen(true)}
-            chats={agentHistory(viewer)}
-            onOpenChat={openPastChat}
-            viewer={{ uid: `viewer-${viewer.key}`, name: viewer.name, email: viewer.email }}
-          />
-        </>
+        /* Keyed by viewer: switching starts a fresh conversation. */
+        <AgentDock
+          key={viewer.key}
+          page={AGENT_PAGES.home}
+          viewer={viewer}
+          recentPages={[AGENT_PAGES.maya, AGENT_PAGES.lattice, AGENT_PAGES.jobs]}
+          openOnArrival={searchParams.get('agent') === 'open'}
+        />
       )}
 
       <EmailNotFoundModal

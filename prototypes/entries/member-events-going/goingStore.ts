@@ -22,7 +22,7 @@ export interface GoingEntry {
 export type GoingMap = Record<string, GoingEntry>;
 type GoingState = Record<GoingScope, GoingMap>;
 
-const KEY = 'member-events-going:v1';
+const KEY = 'member-events-going:v2';
 
 /* Opens with plans on the profile: the section is what's under review. */
 export const SEEDED_OWNER: GoingMap = {
@@ -30,7 +30,11 @@ export const SEEDED_OWNER: GoingMap = {
   'dai-founders-dinner': { roles: ['Attendee'], showOnProfile: true },
 };
 
-const SEED: GoingState = { owner: SEEDED_OWNER, visitor: {} };
+/* The reader is going to one of Maya's events, so "You're going too" is on the default path. */
+const SEED: GoingState = {
+  owner: SEEDED_OWNER,
+  visitor: { 'labweek-lisbon': { roles: ['Attendee'], showOnProfile: true } },
+};
 
 let state: GoingState | null = null;
 const listeners = new Set<() => void>();

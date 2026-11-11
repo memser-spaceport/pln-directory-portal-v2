@@ -13,13 +13,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error?.message ?? 'Failed to fetch buyback prices' }, { status: 502 });
   }
 
-  const prices = data
-    .filter((round) => round.buyback && !round.buyback.simulation && round.buyback.clearingPrice !== null)
-    .map((round) => ({
-      roundNumber: round.roundNumber,
-      auctionNumber: round.buyback!.auctionNumber,
-      clearingPrice: round.buyback!.clearingPrice as number,
-    }));
+  const prices = data.flatMap(({ roundNumber, buyback }) =>
+    buyback && !buyback.simulation && buyback.clearingPrice !== null
+      ? [{ roundNumber, auctionNumber: buyback.auctionNumber, clearingPrice: buyback.clearingPrice }]
+      : [],
+  );
 
   return NextResponse.json(prices);
 }

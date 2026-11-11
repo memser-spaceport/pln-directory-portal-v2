@@ -36,19 +36,11 @@ function buildChart(entries: ContributionHistoryEntry[]) {
   const centers = entries.map((_, i) => PLOT_LEFT + step * i + step / 2);
   const barWidth = Math.min(BAR_WIDTH, step * 0.6);
 
-  const bars = entries
-    .map((e, i) => {
-      const h = ((e.points ?? 0) / maxPoints) * plotHeight;
-      return {
-        x: centers[i] - barWidth / 2,
-        y: PLOT_BOTTOM - h,
-        w: barWidth,
-        h,
-        value: e.points,
-        has: e.points !== null,
-      };
-    })
-    .filter((b) => b.has);
+  const bars = entries.flatMap((e, i) => {
+    if (e.points === null) return [];
+    const h = (e.points / maxPoints) * plotHeight;
+    return [{ x: centers[i] - barWidth / 2, y: PLOT_BOTTOM - h, w: barWidth, h, value: e.points }];
+  });
 
   const labelIndices = pickLabelIndices(entries.length, MAX_X_LABELS);
   const labels = entries.map((e, i) => ({ x: centers[i], period: e.period, i })).filter(({ i }) => labelIndices.has(i));
@@ -98,7 +90,7 @@ export default function PointsChart({ entries }: PointsChartProps) {
             fontWeight="600"
             fill={POINTS_COLOR}
           >
-            {(b.value ?? 0).toLocaleString()}
+            {b.value.toLocaleString()}
           </text>
         ))}
         {chart.labels.map((l, i) => (

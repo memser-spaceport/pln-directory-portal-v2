@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { FeedbackStatus, FEEDBACK_STATUS_ORDER, STATUS_LABELS } from './status-order';
+import { FeedbackStatus, STATUS_LABELS } from '@/services/plaa/feedback/feedback.types';
+import { FEEDBACK_STATUS_ORDER } from './status-order';
 
 export default function MoveToMenu({
   currentStatus,

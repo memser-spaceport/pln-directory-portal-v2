@@ -3,12 +3,6 @@
 import { useState } from 'react';
 import { FeedbackStatus, FEEDBACK_STATUS_ORDER, STATUS_LABELS } from './status-order';
 
-/**
- * Admin "Move to" (§1: no drag-and-drop in v1).
- *
- * Declining asks for the public note the status model requires, so the request
- * can't be sent without one. Marking a duplicate asks for the canonical id.
- */
 export default function MoveToMenu({
   currentStatus,
   onMove,

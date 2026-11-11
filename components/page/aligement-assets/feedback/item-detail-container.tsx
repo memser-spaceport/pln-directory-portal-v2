@@ -19,7 +19,6 @@ import ItemDetail from './item-detail';
 import FeedbackStyles from './feedback-styles';
 import { ErrorState, LoadingRows } from './feedback-bits';
 
-/** Wires the detail view to data; the presentational half stays testable. */
 export default function ItemDetailContainer({ id }: { id: string }) {
   const analytics = usePlaaFeedbackAnalytics();
   const { data: me } = useFeedbackMe();
@@ -44,8 +43,6 @@ export default function ItemDetailContainer({ id }: { id: string }) {
     );
   }
 
-  // A private item the caller doesn't own comes back 404 from the service; show
-  // the same thing for a missing item so neither case reveals the other.
   if (itemQuery.isError || !itemQuery.data) {
     return (
       <div className="fb-page">

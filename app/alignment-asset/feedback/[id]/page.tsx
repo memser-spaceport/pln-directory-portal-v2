@@ -7,7 +7,6 @@ export const metadata: Metadata = {
   title: 'Feedback | PL Alignment Asset',
 };
 
-/** Shareable item page. The id is a UUID — §5 keeps member data out of URLs. */
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   if (!isFeedbackBoardEnabled()) {
     notFound();

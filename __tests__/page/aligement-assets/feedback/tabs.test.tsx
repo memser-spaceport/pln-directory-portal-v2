@@ -48,7 +48,6 @@ function renderPage({ isAdmin, tab }: { isAdmin: boolean; tab?: string }) {
   render(<FeedbackPage />);
 }
 
-/** A roadmap with a card in every column, so each one can be checked. */
 const populatedRoadmap = {
   under_review: [item({ id: 'r1', status: 'under_review' })],
   todo: [item({ id: 'r2', status: 'todo' })],
@@ -110,8 +109,8 @@ describe('AC-T7.3 Move to is admin-only on the roadmap', () => {
   it('gives a member no Move to control on any card', () => {
     renderPage({ isAdmin: false, tab: 'roadmap' });
 
-    expect(screen.getAllByTestId(/^fb-card-r/)).toHaveLength(4); // the cards are there
-    expect(screen.queryAllByTestId(/-moveto$/)).toHaveLength(0); // the controls are not
+    expect(screen.getAllByTestId(/^fb-card-r/)).toHaveLength(4);
+    expect(screen.queryAllByTestId(/-moveto$/)).toHaveLength(0);
     expect(screen.queryByRole('button', { name: /move to/i })).not.toBeInTheDocument();
   });
 
@@ -165,7 +164,6 @@ describe('stylesheet', () => {
   it('wraps the tabs instead of giving them a scrollbar', () => {
     const rule = ruleFor('.fb-tabs');
     expect(rule).toMatch(/flex-wrap:\s*wrap/);
-    // The declaration, not the word "overflow" that appears in the comment.
     expect(rule).not.toMatch(/overflow(-[xy])?\s*:/);
   });
 });

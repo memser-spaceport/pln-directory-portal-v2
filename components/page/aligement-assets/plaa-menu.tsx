@@ -78,7 +78,6 @@ const menuItems: Array<{
   {
     name: 'feedback',
     label: 'Feedback',
-    // Flag off: the Google Form, as before. Flag on: the board (§7 T-8).
     ...feedbackNavTarget(),
     secondary: true,
   },

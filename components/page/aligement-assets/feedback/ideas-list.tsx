@@ -6,11 +6,6 @@ import MemberDisplay from './member-display';
 import { EmptyState, StatusBadge, TypeBadge, VoteButton } from './feedback-bits';
 import { relativeAge } from './feedback.utils';
 
-/**
- * Ideas list (F-3) and My submissions (F-7) — the same row, different query.
- * A row is a link to the item; the vote button sits outside it so voting never
- * navigates.
- */
 export default function IdeasList({
   items,
   onVote,
@@ -24,7 +19,6 @@ export default function IdeasList({
   emptyMessage: string;
   emptyAction?: React.ReactNode;
   votesRemaining?: number;
-  /** My submissions marks a member's own private bugs. */
   showPrivateMarker?: boolean;
 }) {
   if (!items.length) {

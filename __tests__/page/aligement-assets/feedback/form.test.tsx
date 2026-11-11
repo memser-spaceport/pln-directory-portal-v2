@@ -197,7 +197,6 @@ describe('AC-T5.C compliance', () => {
 
   it('uses no banned vocabulary anywhere in the form', () => {
     const { container } = render(<FeedbackForm onClose={jest.fn()} onSubmit={jest.fn()} isSubmitting={false} />);
-    // PLAA guardrail: points are "collected", never the banned verb.
     expect(container.textContent).not.toMatch(/\be[a]rn(s|ed|ing)?\b/i);
   });
 });

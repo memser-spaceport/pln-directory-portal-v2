@@ -29,7 +29,6 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   });
 
   if (!res.ok) {
-    // Keep the status: the UI shows a different message for 429 than for 409.
     throw new FeedbackApiError(await readError(res), res.status);
   }
   if (res.status === 204) return undefined as T;
@@ -69,16 +68,11 @@ export const feedbackApi = {
   triage: (cursor?: string) =>
     request<FeedbackListResponse>(`/triage${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''}`),
 
-  /**
-   * multipart/form-data, matching §5. The payload travels as one JSON part so
-   * the upstream validates exactly one object, not a dozen loose fields.
-   */
   create: ({ screenshots = [], ...payload }: CreateFeedbackInput) => {
     const form = new FormData();
     form.append('payload', JSON.stringify(payload));
     screenshots.forEach((file) => form.append('screenshots', file, file.name));
-    // No Content-Type here on purpose: the browser must set the multipart
-    // boundary itself.
+    // No Content-Type: the browser must set the multipart boundary itself.
     return request<FeedbackItem>('/items', { method: 'POST', body: form });
   },
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkIsValidToken, renewAccessToken } from './services/auth.service';
 import { calculateExpiry, decodeToken } from './utils/auth.utils';
-import { isAiAppsRoute, isProtectedRoute } from './utils/isProtectedRoute';
+import { isAiAppsRoute, isProtectedRoute, isPublishedAiAppRoute } from './utils/isProtectedRoute';
 import { clearSessionCookies, SESSION_SCOPE_COOKIE, sessionScopeValue } from './utils/sessionCookies';
 import { setSessionCookies } from './utils/sessionResponse';
 
@@ -40,8 +40,10 @@ export const config = {
  * @returns NextResponse redirect to /members with backlink and #login hash
  */
 function createLoginRedirect(req: NextRequest, pathname: string): NextResponse {
-  // AI App links carry `?settings=deployment`, so keep the query for them.
-  const target = isAiAppsRoute(pathname) ? `${pathname}${req.nextUrl.search}` : pathname;
+  // AI App links carry `?settings=deployment`, and a published app's deep link
+  // carries the app's own query, so keep the query for them.
+  const keepQuery = isAiAppsRoute(pathname) || isPublishedAiAppRoute(pathname);
+  const target = keepQuery ? `${pathname}${req.nextUrl.search}` : pathname;
   const backlink = encodeURIComponent(target);
   const redirectUrl = new URL(`/members?backlink=${backlink}#login`, req.url);
   return NextResponse.redirect(redirectUrl);

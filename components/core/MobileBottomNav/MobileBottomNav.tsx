@@ -26,6 +26,7 @@ import { useDemoDayAnalyticsAccess } from '@/services/rbac/hooks/useDemoDayAnaly
 import { useMoreNavItems } from '@/components/core/navbar/components/navItems/MoreNavItems/hooks/useMoreNavItems';
 import { useGetPlInfraNavItems } from '@/components/core/navbar/components/navItems/PLInfraNavItems/hook/useGetPlInfraNavItems';
 import { isBareRoute } from '@/utils/isBareRoute';
+import { PUBLISHED_AI_APPS_PATH } from '@/services/ai-apps/constants';
 
 import { NavigationMenu } from '@base-ui-components/react';
 
@@ -40,8 +41,16 @@ import s from './MobileBottomNav.module.scss';
  *  instead of inheriting the desktop menu's. Matched by href prefix so the
  *  three Events links rank together as one block. LAB-3172 swapped Job Board
  *  and Events: Events leads, and Job Board (only here for PL Infra members)
- *  takes Events' old place after Forum. */
-const MORE_ORDER = ['/events', DEALS_LINK.href, FORUM_LINK.href, JOBS_LINK.href, PLAA_LINK.href];
+ *  takes Events' old place after Forum. AI Apps published to the member
+ *  (LAB-3200) close the named block, as they do on desktop. */
+const MORE_ORDER = [
+  '/events',
+  DEALS_LINK.href,
+  FORUM_LINK.href,
+  JOBS_LINK.href,
+  PLAA_LINK.href,
+  `${PUBLISHED_AI_APPS_PATH}/`,
+];
 
 function moreRank({ href }: ISubItem) {
   // Founder Guides sits last by request, below anything this list doesn't name.

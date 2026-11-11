@@ -19,7 +19,8 @@ import {
   PlAtsIcon,
 } from '../components/icons';
 import { MagicSparklesIcon } from '@/components/icons';
-import { PL_INFRA_OS_PATH } from '@/services/ai-apps/constants';
+import { PL_INFRA_OS_PATH, publishedAiAppPath } from '@/services/ai-apps/constants';
+import type { PublishedAiApp } from '@/services/ai-apps/ai-apps.service';
 
 export const INVESTOR_DB_LINK: ISubItem = {
   icon: <AnalyticsIcon />,
@@ -147,6 +148,17 @@ export const AI_APPS_LINK: ISubItem = {
   title: 'AI Apps',
   description: 'Deploy AI apps to LabOS and explore builds from other PL Infra members',
 };
+
+/**
+ * A More entry for an AI App published to the member (LAB-3200). It opens the
+ * embedded app itself — these members have no AI Apps catalog to land on.
+ */
+export const publishedAiAppLink = (app: PublishedAiApp): ISubItem => ({
+  icon: <StarFourIcon />,
+  href: publishedAiAppPath(app.uid),
+  title: app.name,
+  description: app.description ?? undefined,
+});
 
 export const AGENT_SESSIONS_LINK: ISubItem = {
   icon: <MagicSparklesIcon width={20} height={20} />,

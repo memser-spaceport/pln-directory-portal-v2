@@ -282,6 +282,15 @@ export function useAiAppsAnalytics() {
     onAccessSaveFailed: (appUid: string, environment: 'prod' | 'preview') =>
       capture(AI_APPS_ANALYTICS.ACCESS_SAVE_FAILED, { appUid, environment }),
     onPrivateBlocked: (appUid: string) => capture(AI_APPS_ANALYTICS.PRIVATE_BLOCKED, { appUid }),
+    // A published app (LAB-3200) opened from More or a link, by a member who may have no AI Apps access.
+    onPublishedAppOpened: (appUid: string, appName: string, deepLinkPath: string | null) =>
+      capture(AI_APPS_ANALYTICS.PUBLISHED_APP_OPENED, {
+        appUid,
+        appName,
+        path: `/apps/${appUid}`,
+        deepLinkPath: deepLinkPath ?? undefined,
+      }),
+    onPublishedAppUnavailable: (appUid: string) => capture(AI_APPS_ANALYTICS.PUBLISHED_APP_UNAVAILABLE, { appUid }),
     onAccessRedeployPrompted: (appUid: string) => capture(AI_APPS_ANALYTICS.ACCESS_REDEPLOY_PROMPTED, { appUid }),
     onAccessRedeployClicked: (appUid: string) => capture(AI_APPS_ANALYTICS.ACCESS_REDEPLOY_CLICKED, { appUid }),
     onAccessRedeployDismissed: (appUid: string) => capture(AI_APPS_ANALYTICS.ACCESS_REDEPLOY_DISMISSED, { appUid }),

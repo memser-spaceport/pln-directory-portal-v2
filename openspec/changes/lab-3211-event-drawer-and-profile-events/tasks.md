@@ -35,8 +35,8 @@ Each group is one subtask branch (`lab-3211-<sub#>`, cut from `lab-3211`) and on
 
 ## 5. LAB-3219: team profile Events section
 
-- [ ] 5.1 Build `TeamEventsSection` from the prototype's `TeamEventsSection.tsx`, reusing group 3's cards: upcoming with "N from <team>", the team's faces and role pills, and no Add event, menu or empty state; past with Demo Day first (gradient ring, "Demo Day" pill, link to `/demoday/<slug>`), then newest first, with no pill for plain participation. Verify with tests for "Team with both groups", "Three teammates going" and "Team that took part in a Demo Day".
-- [ ] 5.2 Add `useTeamEvents` (key `TEAM_EVENTS`) once BE LAB-3215 exists. Wire the data per D5 in `app/teams/[id]/page.tsx` (past + Demo Day on the server, upcoming on the client for signed-in viewers), behind `SHOW_EVENT_DRAWER`, in place of `TeamIrlContributions`. Upcoming cards open `EventDrawer` with `source: team-profile`. Verify with a test for "Signed-out visitor on a team profile", and that the flag off keeps `TeamIrlContributions`.
+- [x] 5.1 Build `TeamEventsSection` from the prototype's `TeamEventsSection.tsx`, reusing group 3's cards: upcoming with "N from <team>", the team's faces and role pills, and no Add event, menu or empty state; past with Demo Day first (gradient ring, "Demo Day" pill, link to `/demoday/<slug>`), then newest first, with no pill for plain participation. Verify with tests for "Team with both groups", "Three teammates going" and "Team that took part in a Demo Day".
+- [x] 5.2 Add `useTeamEvents` (key `TEAM_EVENTS`) once BE LAB-3215 exists. Wire the data per D5 in `app/teams/[id]/page.tsx` (past + Demo Day on the server, upcoming on the client for signed-in viewers), behind `SHOW_EVENT_DRAWER`, in place of `TeamIrlContributions`. Upcoming cards open `EventDrawer` with `source: team-profile`. Verify with a test for "Signed-out visitor on a team profile", and that the flag off keeps `TeamIrlContributions`.
 
 ## 6. LAB-3220: Home v2 rail opens the drawer
 

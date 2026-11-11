@@ -48,3 +48,10 @@ With the event drawer flag on, a signed-in member's event row SHALL instead open
 - **GIVEN** the event drawer flag is on
 - **WHEN** a signed-out visitor presses an event in the sidebar
 - **THEN** All Events opens with that event's details, as today
+
+#### Scenario: The viewer's events fail to load
+
+- **GIVEN** the event drawer flag is on and the request for a signed-in member's own upcoming events fails
+- **WHEN** they open `/home`
+- **THEN** the rail shows its events with no "Going" marks
+- **AND** pressing an event still opens the event drawer

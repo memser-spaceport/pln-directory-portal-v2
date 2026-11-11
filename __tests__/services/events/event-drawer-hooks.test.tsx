@@ -46,6 +46,7 @@ const ALL_KEYS = [
   EventsQueryKeys.MY_GATHERING_PLANS,
   EventsQueryKeys.MEMBER_EVENTS,
   EventsQueryKeys.TEAM_EVENTS,
+  EventsQueryKeys.MY_UPCOMING_EVENT_UIDS,
 ];
 
 describe('event drawer hooks (LAB-3216)', () => {

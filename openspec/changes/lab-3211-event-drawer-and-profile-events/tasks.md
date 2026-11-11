@@ -40,8 +40,8 @@ Each group is one subtask branch (`lab-3211-<sub#>`, cut from `lab-3211`) and on
 
 ## 6. LAB-3220: Home v2 rail opens the drawer
 
-- [ ] 6.1 Add `locationUid` to `IHomeEvent` and map it in `getUpcomingEvents`. Verify with the existing upcoming-events mapping test, extended.
-- [ ] 6.2 In `HomeV2/EventsSection.tsx`, with the flag on and signed in, make each row a button that opens `EventDrawer` (`source: home`) and still fires `home-event-clicked`. Replace the arrow with "Going" for events in the viewer's `useMemberEvents(currentUser.uid).upcoming`, and show the toast with "View profile" linking to `/members/<uid>`. Signed out, keep the links. Verify with tests for "Signed-in row opens the drawer", "Going from the rail" and "Signed out with the flag on".
+- [x] 6.1 Add `locationUid` to `IHomeEvent` and map it in `getUpcomingEvents`. Verify with the existing upcoming-events mapping test, extended.
+- [x] 6.2 In `HomeV2/EventsSection.tsx`, with the flag on and signed in, make each row a button that opens `EventDrawer` (`source: home`, loaded with `next/dynamic` on the first press) and still fires `home-event-clicked`. Replace the arrow with "Going" for events in the viewer's own upcoming events (`useMyUpcomingEventUids`, its own `MY_UPCOMING_EVENT_UIDS` key over `GET /v1/members/<viewer>/events?group=upcoming`, invalidated by the drawer's writes; it can be folded into `useMemberEvents` later), and show the toast with "View profile" linking to `/members/<uid>`. Signed out, keep the links. Verify with tests for "Signed-in row opens the drawer", "Going from the rail" and "Signed out with the flag on".
 
 ## 7. Checks on lab-3211
 

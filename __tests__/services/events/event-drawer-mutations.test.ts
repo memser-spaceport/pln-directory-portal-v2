@@ -122,6 +122,7 @@ describe('saving plans is a diff, never PUT (LAB-3216, design D4)', () => {
       EventsQueryKeys.MY_GATHERING_PLANS,
       EventsQueryKeys.MEMBER_EVENTS,
       EventsQueryKeys.TEAM_EVENTS,
+      EventsQueryKeys.MY_UPCOMING_EVENT_UIDS,
     ]);
     expect(
       (queryClient.invalidateQueries.mock.calls as unknown as [{ queryKey: string[] }][]).map(([arg]) => arg.queryKey),

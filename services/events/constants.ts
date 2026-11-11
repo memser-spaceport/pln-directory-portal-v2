@@ -10,4 +10,6 @@ export enum EventsQueryKeys {
   MEMBER_EVENTS = 'MEMBER_EVENTS',
   /** A team profile's events (LAB-3215 endpoint; hook lands with LAB-3219): `[TEAM_EVENTS, teamUid, viewerUid]`. */
   TEAM_EVENTS = 'TEAM_EVENTS',
+  /** The viewer's own upcoming event uids, for Home's "Going" marks (LAB-3220): `[MY_UPCOMING_EVENT_UIDS, viewerUid]`. */
+  MY_UPCOMING_EVENT_UIDS = 'MY_UPCOMING_EVENT_UIDS',
 }

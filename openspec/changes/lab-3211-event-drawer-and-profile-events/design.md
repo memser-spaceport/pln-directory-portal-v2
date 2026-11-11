@@ -64,7 +64,7 @@ The mutations are:
 - `useSetShowOnProfile`: the toggle.
 - `useSavePlans`: see D4.
 
-Each invalidates `EVENT_DETAIL`, `EVENT_ATTENDEES`, `MY_GATHERING_PLANS`, `MEMBER_EVENTS` and `TEAM_EVENTS`, on success and on failure (a partial save still changed rows). `useMemberEvents` / `useTeamEvents` wait for BE LAB-3215 and land with LAB-3217 / LAB-3219.
+Each invalidates `EVENT_DETAIL`, `EVENT_ATTENDEES`, `MY_GATHERING_PLANS`, `MEMBER_EVENTS`, `TEAM_EVENTS` and `MY_UPCOMING_EVENT_UIDS` (Home's "Going" marks, LAB-3220), on success and on failure (a partial save still changed rows). `useMemberEvents` / `useTeamEvents` wait for BE LAB-3215 and land with LAB-3217 / LAB-3219.
 
 ### D4. Saving plans is a diff, never PUT
 

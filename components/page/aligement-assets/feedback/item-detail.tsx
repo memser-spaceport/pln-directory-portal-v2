@@ -2,12 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import {
-  FeedbackComment,
-  FeedbackItem,
-  FeedbackStatus,
-  STATUS_LABELS,
-} from '@/services/plaa/feedback/feedback.types';
+import { FeedbackComment, FeedbackItem, FeedbackStatus, STATUS_LABELS } from '@/services/plaa/feedback/feedback.types';
 import MemberDisplay from './member-display';
 import MoveToMenu from './move-to-menu';
 import { StatusBadge, TypeBadge, VoteButton } from './feedback-bits';
@@ -57,8 +52,7 @@ export default function ItemDetail({
     <article className="fb-detail">
       {item.duplicate_of && (
         <div className="fb-duplicate" role="status">
-          Merged into{' '}
-          <Link href={`/alignment-asset/feedback/${item.duplicate_of.id}`}>{item.duplicate_of.title}</Link>.
+          Merged into <Link href={`/alignment-asset/feedback/${item.duplicate_of.id}`}>{item.duplicate_of.title}</Link>.
         </div>
       )}
 
@@ -217,11 +211,7 @@ export default function ItemDetail({
               placeholder="Add a comment"
               onChange={(event) => setDraft(event.target.value)}
             />
-            <button
-              type="submit"
-              className="fb-btn fb-btn--primary"
-              disabled={!draft.trim() || commentPending}
-            >
+            <button type="submit" className="fb-btn fb-btn--primary" disabled={!draft.trim() || commentPending}>
               {commentPending ? 'Posting…' : 'Post'}
             </button>
           </form>

@@ -27,7 +27,8 @@ export default function MoveToMenu({
 
   const needsNote = target === 'declined';
   const needsCanonical = target === 'duplicate';
-  const canConfirm = target !== null && (!needsNote || note.trim().length > 0) && (!needsCanonical || duplicateOfId.trim().length > 0);
+  const canConfirm =
+    target !== null && (!needsNote || note.trim().length > 0) && (!needsCanonical || duplicateOfId.trim().length > 0);
 
   function reset() {
     setOpen(false);

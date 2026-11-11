@@ -1,4 +1,8 @@
-import { buildContributionHistory, type MonthRedemption, type SnapshotHistoryEntry } from '@/services/plaa/hooks/useProfileData';
+import {
+  buildContributionHistory,
+  type MonthRedemption,
+  type SnapshotHistoryEntry,
+} from '@/services/plaa/hooks/useProfileData';
 
 /** A month's redemption with no auction price attached. */
 function r(plaa: number): MonthRedemption {

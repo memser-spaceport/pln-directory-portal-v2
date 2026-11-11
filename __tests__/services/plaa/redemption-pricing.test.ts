@@ -49,7 +49,7 @@ describe('summarizeRedemptions', () => {
     expect(result['2026-07']).toEqual({ plaa: 400, usd: 592, price: 1.48, isAverage: false });
   });
 
-  it('withholds the dollar figure when any of the month\'s redemptions has no price, rather than understating it', () => {
+  it("withholds the dollar figure when any of the month's redemptions has no price, rather than understating it", () => {
     const result = summarizeRedemptions(
       [redemption({ plaaRedeemed: 400 }), redemption({ auctionNumber: 99, roundNumber: 99, plaaRedeemed: 100 })],
       prices,

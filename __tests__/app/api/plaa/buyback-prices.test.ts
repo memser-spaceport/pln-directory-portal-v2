@@ -39,7 +39,9 @@ describe('GET /api/plaa/buyback-prices', () => {
 
   it('returns only round, auction, and price — not the per-bidder bids', async () => {
     mockGetAllRoundStats.mockResolvedValue({
-      data: [round({ buyback: { auctionNumber: 7, clearingPrice: 1.48, simulation: false, bids: [{ bidderId: 'm1' }] } })],
+      data: [
+        round({ buyback: { auctionNumber: 7, clearingPrice: 1.48, simulation: false, bids: [{ bidderId: 'm1' }] } }),
+      ],
     });
 
     const body = await (await GET(request({ authorization: 'Bearer t' }))).json();

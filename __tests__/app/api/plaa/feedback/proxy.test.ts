@@ -45,7 +45,10 @@ describe('the feature flag', () => {
     if (flag === undefined) delete process.env.NEXT_PUBLIC_PLAA_FEEDBACK_BOARD;
     else process.env.NEXT_PUBLIC_PLAA_FEEDBACK_BOARD = flag;
 
-    const response = await GET(makeRequest(`http://portal/api/plaa/feedback/items`, { headers: AUTH }), context(['items']));
+    const response = await GET(
+      makeRequest(`http://portal/api/plaa/feedback/items`, { headers: AUTH }),
+      context(['items']),
+    );
 
     expect(response.status).toBe(404);
     expect(global.fetch).not.toHaveBeenCalled();

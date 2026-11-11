@@ -79,7 +79,9 @@ describe('vote button respects the budget', () => {
   });
 
   it('still blocks voting on a closed item, budget or not', () => {
-    render(<VoteButton item={item({ status: 'completed', has_voted: false })} onToggle={jest.fn()} votesRemaining={5} />);
+    render(
+      <VoteButton item={item({ status: 'completed', has_voted: false })} onToggle={jest.fn()} votesRemaining={5} />,
+    );
     expect(screen.getByRole('button')).toBeDisabled();
   });
 });

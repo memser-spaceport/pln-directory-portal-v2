@@ -5,9 +5,42 @@ import PointsChart from '@/components/page/aligement-assets/profile/points-chart
 import type { ContributionHistoryEntry } from '@/services/plaa/hooks/useProfileData';
 
 const entries: ContributionHistoryEntry[] = [
-  { period: 'May 2026', points: 350, plaa: 35, infra: 0, redeemed: 0, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 35 },
-  { period: 'Jun 2026', points: 220, plaa: 22, infra: 30, redeemed: 0, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 87 },
-  { period: 'Jul 2026', points: 450, plaa: 45, infra: 30, redeemed: 50, redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false, isPending: false, cum: 112 },
+  {
+    period: 'May 2026',
+    points: 350,
+    plaa: 35,
+    infra: 0,
+    redeemed: 0,
+    redeemedUsd: null,
+    redeemedPrice: null,
+    redeemedPriceIsAverage: false,
+    isPending: false,
+    cum: 35,
+  },
+  {
+    period: 'Jun 2026',
+    points: 220,
+    plaa: 22,
+    infra: 30,
+    redeemed: 0,
+    redeemedUsd: null,
+    redeemedPrice: null,
+    redeemedPriceIsAverage: false,
+    isPending: false,
+    cum: 87,
+  },
+  {
+    period: 'Jul 2026',
+    points: 450,
+    plaa: 45,
+    infra: 30,
+    redeemed: 50,
+    redeemedUsd: null,
+    redeemedPrice: null,
+    redeemedPriceIsAverage: false,
+    isPending: false,
+    cum: 112,
+  },
 ];
 
 describe('PointsChart', () => {
@@ -39,7 +72,9 @@ describe('PointsChart', () => {
       .map((el) => el.textContent);
     expect(barLabelValues).toEqual(['350', '220', '450']);
 
-    const axisTexts = svgTexts.filter((el) => el.getAttribute('fill') === '#4f9eff' && el.getAttribute('text-anchor') === 'end');
+    const axisTexts = svgTexts.filter(
+      (el) => el.getAttribute('fill') === '#4f9eff' && el.getAttribute('text-anchor') === 'end',
+    );
     expect(axisTexts.length).toBeGreaterThan(0);
   });
 

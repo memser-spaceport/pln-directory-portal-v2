@@ -1,0 +1,210 @@
+/**
+ * LAB-3217: the member profile's Events section, viewer view. Scenarios from the `profiles` spec delta of
+ * `openspec/changes/lab-3211-event-drawer-and-profile-events`; copy strings are sentinels (design D8).
+ */
+import { fireEvent, render, screen, within } from '@testing-library/react';
+import '@testing-library/jest-dom';
+
+const mockDrawer = jest.fn();
+jest.mock('@/components/page/events/EventDrawer', () => ({
+  ...jest.requireActual('@/components/page/events/EventDrawer/toast'),
+  EventDrawer: (props: { eventUid: string | null; source: string; onGoing?: (notice: unknown) => void }) => {
+    mockDrawer(props);
+    return props.eventUid ? (
+      <div data-testid="event-drawer">
+        {props.eventUid} from {props.source}
+        <button onClick={() => props.onGoing?.({ eventName: 'FIL Berlin', showOnProfile: true })}>
+          {"Yes, I'm going"}
+        </button>
+      </div>
+    ) : null;
+  },
+}));
+const mockToastSuccess = jest.fn();
+jest.mock('@/components/core/ToastContainer', () => ({ toast: { success: (text: string) => mockToastSuccess(text) } }));
+
+import {
+  MemberEventsSection,
+  type MemberEventsSectionProps,
+} from '@/components/page/member-details/MemberEventsSection';
+import {
+  PAST,
+  SEVEN_PAST,
+  UPCOMING,
+} from '@/components/page/member-details/MemberEventsSection/MemberEventsSection.fixtures';
+
+const renderSection = (props: Partial<MemberEventsSectionProps> = {}) =>
+  render(
+    <MemberEventsSection
+      firstName="Ana"
+      isOwner={false}
+      upcoming={UPCOMING}
+      upcomingTotal={UPCOMING.length}
+      past={PAST}
+      pastTotal={PAST.length}
+      {...props}
+    />,
+  );
+
+const title = () => screen.getByRole('heading', { level: 2 });
+const groupLabels = () => screen.queryAllByRole('heading', { level: 3 }).map((h) => h.textContent);
+
+beforeEach(() => {
+  mockDrawer.mockClear();
+  mockToastSuccess.mockClear();
+});
+
+describe('MemberEventsSection (LAB-3217)', () => {
+  it('Only past events: titled "Past events", with no group labels', () => {
+    renderSection({ upcoming: [], upcomingTotal: 0 });
+
+    expect(title()).toHaveTextContent('Past events');
+    expect(groupLabels()).toEqual([]);
+    expect(within(screen.getByRole('list', { name: 'Past events' })).getAllByRole('listitem')).toHaveLength(3);
+  });
+
+  it('Both groups: titled "Events", with "Ana is going to" over the upcoming cards and "Contributions" over the past', () => {
+    renderSection();
+
+    expect(title()).toHaveTextContent(/^Events$/);
+    expect(groupLabels()).toEqual(['Ana is going to', 'Contributions']);
+    expect(within(screen.getByRole('list', { name: 'Events Ana is going to' })).getAllByRole('listitem')).toHaveLength(
+      2,
+    );
+    expect(within(screen.getByRole('list', { name: 'Contributions' })).getAllByRole('listitem')).toHaveLength(3);
+  });
+
+  it('only upcoming: titled "Events Ana is going to", with no group labels', () => {
+    renderSection({ past: [], pastTotal: 0 });
+
+    expect(title()).toHaveTextContent('Events Ana is going to');
+    expect(groupLabels()).toEqual([]);
+  });
+
+  it('the owner reads "Events you are going to" and "You\'re going to"', () => {
+    const { rerender } = renderSection({ isOwner: true });
+    expect(groupLabels()).toEqual(["You're going to", 'Contributions']);
+
+    rerender(
+      <MemberEventsSection firstName="Ana" isOwner upcoming={UPCOMING} upcomingTotal={2} past={[]} pastTotal={0} />,
+    );
+    expect(title()).toHaveTextContent('Events you are going to');
+  });
+
+  it('neither group: no section', () => {
+    const { container } = renderSection({ upcoming: [], upcomingTotal: 0, past: [], pastTotal: 0 });
+
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it('Viewer going to the same event: that card says "You\'re going too", and only that one', () => {
+    renderSection();
+
+    const [berlin, commons] = within(screen.getByRole('list', { name: 'Events Ana is going to' })).getAllByRole(
+      'listitem',
+    );
+    expect(within(berlin).getByText("You're going too")).toBeInTheDocument();
+    expect(within(commons).queryByText("You're going too")).not.toBeInTheDocument();
+  });
+
+  it('an upcoming card: date tile, range and city for a multi-day event, roles, and "N going"', () => {
+    renderSection();
+
+    const [berlin, commons] = within(screen.getByRole('list', { name: 'Events Ana is going to' })).getAllByRole(
+      'listitem',
+    );
+    expect(berlin).toHaveTextContent('NOV18');
+    expect(within(berlin).getByText('Nov 18–20 · Berlin')).toBeInTheDocument();
+    expect(within(berlin).getByText('Speaker')).toBeInTheDocument();
+    expect(within(berlin).getByText('42 going')).toBeInTheDocument();
+    // The tile already says a one-day event's date, so its meta is the city alone.
+    expect(within(commons).getByText('Berlin')).toBeInTheDocument();
+    expect(within(commons).getByText('7 going')).toBeInTheDocument();
+  });
+
+  it('Past event with a role: "MAR", "2026", "Founders Forum", "Lisbon" and a "Speaker" tag, and no link', () => {
+    renderSection({ upcoming: [], upcomingTotal: 0 });
+
+    const [card] = within(screen.getByRole('list', { name: 'Past events' })).getAllByRole('listitem');
+    for (const text of ['MAR', '2026', 'Founders Forum', 'Lisbon', 'Speaker']) {
+      expect(within(card).getByText(text)).toBeInTheDocument();
+    }
+    expect(within(card).queryByRole('link')).not.toBeInTheDocument();
+    expect(within(card).queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('Seven past events: four cards, then "Show all 7 past events", which shows all seven in place', () => {
+    renderSection({ upcoming: [], upcomingTotal: 0, past: SEVEN_PAST, pastTotal: 7 });
+
+    const list = () => within(screen.getByRole('list', { name: 'Past events' })).getAllByRole('listitem');
+    expect(list()).toHaveLength(4);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show all 7 past events' }));
+
+    expect(list()).toHaveLength(7);
+    expect(screen.queryByRole('button', { name: /Show all/ })).not.toBeInTheDocument();
+  });
+
+  it('five upcoming events: four cards, then "Show all 5 upcoming events"', () => {
+    const five = [...UPCOMING, ...SEVEN_PAST.slice(0, 3)];
+    renderSection({ upcoming: five, upcomingTotal: 5 });
+
+    expect(within(screen.getByRole('list', { name: 'Events Ana is going to' })).getAllByRole('listitem')).toHaveLength(
+      4,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Show all 5 upcoming events' }));
+    expect(within(screen.getByRole('list', { name: 'Events Ana is going to' })).getAllByRole('listitem')).toHaveLength(
+      5,
+    );
+  });
+
+  it('Card opens the drawer: the title opens the event drawer on that event, from the member profile', () => {
+    renderSection();
+    expect(screen.queryByTestId('event-drawer')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'FIL Berlin, Nov 18–20' }));
+
+    expect(screen.getByTestId('event-drawer')).toHaveTextContent('up-1 from member-profile');
+  });
+
+  it('shows the D8 toast when the drawer reports the viewer is going', () => {
+    renderSection();
+    fireEvent.click(screen.getByRole('button', { name: 'Funding the Commons, Dec 4' }));
+
+    fireEvent.click(screen.getByRole('button', { name: "Yes, I'm going" }));
+
+    expect(mockToastSuccess).toHaveBeenCalledWith('FIL Berlin is on your profile.');
+  });
+
+  it("leaves slots for the owner's controls (LAB-3218)", () => {
+    renderSection({
+      isOwner: true,
+      upcoming: [],
+      upcomingTotal: 0,
+      headerAction: <button>Add event</button>,
+      upcomingEmpty: <p>No upcoming events on your profile yet.</p>,
+    });
+
+    // The empty slot keeps the upcoming group, so both groups are labelled.
+    expect(title()).toHaveTextContent(/^Events$/);
+    expect(screen.getByText('No upcoming events on your profile yet.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Add event' })).toBeInTheDocument();
+  });
+
+  it('renders a card menu and extra badges from the slots, and the menu can open the drawer at the plans step', () => {
+    renderSection({
+      isOwner: true,
+      renderCardMenu: (event, openDrawer) => (
+        <button onClick={() => openDrawer('plans')}>{`Actions for ${event.name}`}</button>
+      ),
+      renderCardBadges: (event) => (event.uid === 'up-2' ? <span>Only visible to you</span> : null),
+    });
+
+    expect(screen.getByText('Only visible to you')).toBeInTheDocument();
+    // The owner is never told they're going "too".
+    expect(screen.queryByText("You're going too")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Actions for FIL Berlin' }));
+    expect(mockDrawer).toHaveBeenLastCalledWith(expect.objectContaining({ eventUid: 'up-1', initialStep: 'plans' }));
+  });
+});

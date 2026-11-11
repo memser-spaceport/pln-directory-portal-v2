@@ -52,6 +52,12 @@ A block whose data is empty SHALL be left out rather than shown empty. On a narr
 - **WHEN** a member opens it
 - **THEN** the drawer says the event is no longer available, with a way to close it
 
+#### Scenario: The event fails to load
+
+- **GIVEN** the request for the event fails for a reason other than a missing event
+- **WHEN** a member opens it
+- **THEN** the drawer says it couldn't load the event, with "Try again" and a way to close it
+
 ### Requirement: The drawer shows the gathering and the event's attendees
 
 Below the event, the drawer SHALL show:
@@ -65,6 +71,12 @@ N SHALL count the members going to this event only. Members who said they are go
 - **GIVEN** 12 members going to event A, and 5 members going to A's gathering without naming an event
 - **WHEN** a member opens event A
 - **THEN** the drawer reads "12 People going"
+
+#### Scenario: Nobody going yet
+
+- **GIVEN** an event nobody has said they are going to
+- **WHEN** a member opens it
+- **THEN** the Attendees block reads "Nobody has said they are going yet." instead of a count
 
 ### Requirement: The attendee list is for one event and searchable
 
@@ -151,6 +163,13 @@ After "Yes, I'm going", and whenever a member opens an event they are already go
 - **GIVEN** a member going to events A and B at one gathering
 - **WHEN** they open A, untick B in the events picker and press Save
 - **THEN** they are no longer going to B and still going to A
+
+#### Scenario: Saving the plans fails
+
+- **GIVEN** a member on the plans step who has changed their dates and topics
+- **WHEN** they press Save and the request fails
+- **THEN** an error toast shows and the drawer stays open with their changes
+- **AND** pressing Save again does not create the events the failed attempt already saved
 
 ### Requirement: Escape and the backdrop close the top layer first
 

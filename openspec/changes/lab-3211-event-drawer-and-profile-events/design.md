@@ -49,8 +49,9 @@ The service is `event-drawer.service.ts`, with query keys in `services/events/co
 
 | Hook | Call | Key |
 |---|---|---|
-| `useEventDetail(uid)` | `GET /v1/irl/events/:uid` | `[EVENT_DETAIL, uid]` |
-| `useEventAttendees(locationUid, eventUid, search)` | strict guests list, infinite | `[EVENT_ATTENDEES, eventUid, search]` |
+| `useEventDetail(uid)` | `GET /v1/irl/events/:uid` | `[EVENT_DETAIL, uid, viewerUid]` |
+| `useEventAttendees({locationUid, eventUid, search, enabled})` | strict guests list, infinite, 20 a page | `[EVENT_ATTENDEES, eventUid, search, viewerUid]` |
+| `useMyGatheringPlans(locationUid)` | the caller's own rows at the gathering | `[MY_GATHERING_PLANS, locationUid, viewerUid]` |
 | `useMemberEvents(memberUid)` | `GET /v1/members/:uid/events` | `[MEMBER_EVENTS, memberUid, viewerUid]` |
 | `useTeamEvents(teamUid)` | `GET /v1/teams/:uid/events` | `[TEAM_EVENTS, teamUid, viewerUid]` |
 | `useUpcomingEvents` (exists) | `GET /v1/irl/events/upcoming?days=365&limit=50` | existing, reused by the Add event picker |
@@ -63,7 +64,7 @@ The mutations are:
 - `useSetShowOnProfile`: the toggle.
 - `useSavePlans`: see D4.
 
-Each invalidates `EVENT_DETAIL`, `EVENT_ATTENDEES`, `MEMBER_EVENTS` for the viewer and `TEAM_EVENTS`.
+Each invalidates `EVENT_DETAIL`, `EVENT_ATTENDEES`, `MY_GATHERING_PLANS`, `MEMBER_EVENTS` and `TEAM_EVENTS`, on success and on failure (a partial save still changed rows). `useMemberEvents` / `useTeamEvents` wait for BE LAB-3215 and land with LAB-3217 / LAB-3219.
 
 ### D4. Saving plans is a diff, never PUT
 
@@ -108,57 +109,63 @@ Event names go in a new `EVENT_DRAWER_ANALYTICS` block in `utils/constants.ts` (
 
 City = the event location's text up to its first comma, or no city when the text is empty. The BE change returns a `city` field with this rule applied; the FE does not re-derive it.
 
-### Assumed backend contract (confirm against the BE change `lab-3211-per-event-attendance`)
+### D11. Where the drawer differs from the prototype (LAB-3216)
+
+- The attendee list's Close, Escape and backdrop return to the drawer (the prototype's Close closed both), per the "Escape and the backdrop close the top layer first" requirement.
+- States the prototype doesn't draw: loading (skeleton), a failed load ("We couldn't load this event", Try again, Close), a deleted event ("This event is no longer available", Close), and nobody going ("Nobody has said they are going yet.").
+- No region line under the address (no data), and the address's link icon stays decorative, as in the prototype.
+- The plans step keeps production's `PlanningSection` header ("Thanks for confirming! 🎉"), as the prototype does; "What are you planning for <city>?" titles the pickers.
+- A failed write keeps the drawer open with the values and shows the API's message in an error toast. A retry after a partly saved plan doesn't redo what was saved.
+
+### Backend contract (checked against BE `lab-3211` and `lab-3211-3213`, 2026-11-11)
+
+The drawer's service (`services/events/event-drawer.service.ts`) and types (`event-drawer.types.ts`) follow these shapes. `event-drawer.mappers.ts` turns them into what the drawer draws.
 
 ```ts
-// GET /v1/irl/events/:uid  (auth optional; viewerGoing only when signed in)
-interface EventDetail {
-  uid: string; name: string; slugURL: string; externalId: string | null;
-  startDate: string; endDate: string; type: 'IN_PERSON' | 'VIRTUAL' | 'INVITE_ONLY' | null;
-  logoUrl: string | null; bannerUrl: string | null; description: string | null;
-  websiteUrl: string | null; registrationUrl: string | null;
-  // from additionalInfo, filled by the sync (LAB-3214); empty when unknown
-  format: 'IN_PERSON' | 'VIRTUAL' | 'HYBRID' | null;
-  access: 'PAID' | 'FREE_WITH_RSVP' | 'INVITE_ONLY' | null;
-  tags: { name: string; color?: string }[];
-  hosts: { name: string; logoUrl?: string }[];
-  address: string | null; region: string | null;
-  agenda: { day: string; items: { time: string; title: string; about?: string }[] }[];
-  location: { uid: string; name: string; city: string; timezone: string | null; flag: string | null;
-              resources: { type: string; name: string; link: string }[]; scheduleUrl: string | null;
-              events: { uid: string; name: string; startDate: string; endDate: string; websiteUrl: string | null }[] };
+// GET /v1/irl/events/:uid  (auth optional; 404 for an unknown or deleted event)  — BE LAB-3213, ResponsePLEventDetailSchema
+interface EventDetailResponse {
+  uid: string; name: string; slugURL: string; type: string | null;
+  startDate: string; endDate: string; description: string | null; shortDescription: string | null;
+  logo: string | null; banner: string | null; websiteUrl: string | null; externalId: string | null; resources: unknown[];
+  location: { uid: string; location: string; city: string | null; flag: string | null; timezone: string | null;
+              resources: unknown[]; events: { uid: string; name: string; type: string | null; startDate: string; endDate: string }[] } | null;
+  details: {                        // PLEvent.additionalInfo.details, from the events sync (BE LAB-3214); empty when never synced
+    tags: { name: string; color: string | null }[];   // colour is always null: the FE derives it as the PL events app does
+    accessType: string | null; accessOption: string | null; format: string | null;   // free strings, normalised tolerantly
+    host: { name: string; logo: string | null } | null; coHosts: { name; logo }[]; sponsors: { name; logo }[];
+    agenda: { sessions: unknown[]; ... } | null;        // sessions read as { name, start_date, end_date, description }
+  };
+  hosts: { uid: string; name: string; image: string | null }[];   // members marked Host
   goingCount: number;
-  faces: { uid: string; name: string; imageUrl: string | null }[]; // up to 3
-  viewer: { going: boolean; showOnProfile: boolean; roles: ('Host'|'Speaker'|'Sponsor')[] } | null;
-}
-
-// GET /v1/irl/locations/:locationUid/guests?eventUid=<uid>&strict=true&search=&page=&limit=
-//   rows: { memberUid, member{name,imageUrl}, team{name}|null, role|null, eventRoles: ('Host'|'Speaker'|'Sponsor')[] }, plus total
-
-// POST /v1/irl/locations/:locationUid/guests  { ..., events: [{uid,isHost,isSpeaker,isSponsor}], showOnProfile }
-// POST /v1/irl/locations/:locationUid/events/guests  { membersAndEvents: [{ memberUid, events: [eventUid] }] }  -> deletes only those
-// PATCH /v1/irl/events/:uid/me  { showOnProfile }  (toggle, BE D2)
-// PATCH /v1/irl/locations/:uid/guests/me  { topics?, reason?, telegramId?, officeHours?, teamUid?, additionalInfo?, events?: [{uid, isHost?, isSpeaker?, isSponsor?, *SubEvents?}] }  (plans, BE D12)
-// update details at a location (roles of kept events, dates, topics, telegram, officeHours, reason) — exact path per BE change
-
-// GET /v1/members/:uid/events   and   GET /v1/teams/:uid/events
-interface ProfileEvent {
-  uid: string; name: string; startDate: string; endDate: string;
-  locationUid: string | null; city: string | null;
-  roles: ('Host'|'Speaker'|'Sponsor')[];
-  goingCount: number; faces: { uid: string; name: string; imageUrl: string | null }[];
+  faces: { uid: string; name: string; image: string | null }[];   // up to 3
   viewerGoing: boolean;
-  showOnProfile?: boolean;              // member endpoint, owner only
-  teamGoingCount?: number;              // team endpoint: "N from <team>"
-}
-interface ProfileEvents {
-  upcoming: ProfileEvent[];             // [] for signed-out viewers
-  past: ProfileEvent[];
-  demoDay?: { title: string; slug: string; date: string } | null; // team endpoint only
+  viewer: { showOnProfile: boolean; roles: ('Host'|'Speaker'|'Sponsor')[] } | null;   // null when not going
 }
 
-// GET /v1/irl/events/upcoming adds locationUid: string | null per event
+// GET /v1/irl/locations/:locationUid/guests?eventUid=<uid>&search=&page=&limit=   (strict list; no `type`, no `strict`)
+//   rows as `transformMembers` reads them: { memberUid, member{name,image{url},teamMemberRoles?}, team{uid,name,logo},
+//   teamMemberRoles[{role,team}], events[{uid,isHost,isSpeaker,isSponsor}], count }; the viewer's own row first;
+//   the total is `rows[0].count`; search matches member, team and project names.
+
+// GET /v1/irl/locations/:locationUid/guests/:memberUid?type=upcoming   (the caller's own rows, to prefill and diff the plans)
+// POST /v1/irl/locations/:locationUid/guests?type=upcoming
+//   { memberUid, teamUid?, telegramId?, reason?, topics?, officeHours (string), additionalInfo{checkInDate,checkOutDate},
+//     showOnProfile, events: [{uid,isHost,isSpeaker,isSponsor}] }   (no *SubEvents: their link must be a URL)
+// POST /v1/irl/locations/:locationUid/events/guests  { membersAndEvents: [{ memberUid, events: [eventUid] }] }  -> deletes only those
+//   (the FE never sends `events: []`, which still deletes every row at the gathering)
+// PATCH /v1/irl/events/:uid/me  { showOnProfile } -> { eventUid, showOnProfile }   (404 when not going)
+// PATCH /v1/irl/locations/:uid/guests/me  { teamUid?, topics?, reason?, telegramId?, officeHours?,
+//   additionalInfo?{checkInDate?,checkOutDate?}, events?: [{uid,isHost?,isSpeaker?,isSponsor?}] }   (never creates or deletes rows)
 ```
+
+Differences from the shapes assumed before the BE was built:
+- Mode and access are not enums: `details.format` ("IN-PERSON", "VIRTUAL", "HYBRID") and `details.accessOption` ("PAID", "OPEN", "Free w/ RSVP", "INVITE ONLY"…) are free strings. The FE normalises them and hides the badge when it can't read one; mode falls back to `PLEvent.type`.
+- Tag colours are always `null`. The FE derives them like the PL events app: fixed pairs for its default tags, otherwise a hash of the name into 15 colour pairs.
+- The agenda is the events service's raw `sessions` list. The FE groups it by start day in the gathering's timezone ("Day 1 - 1st Dec Tue", "6:00 PM - 6:45 PM • name").
+- No venue address or region: the address row shows `location.location` and the region line is left out.
+- Hosts are `details.host` + `details.coHosts` (organisations); when the sync sent none, the members marked Host.
+- No `registrationUrl` or `scheduleUrl`: the schedule link is built with `buildEventsLink` as `IrlGatheringModal` does.
+- `GET /v1/members/:uid/events` and `GET /v1/teams/:uid/events` are BE LAB-3215, not built yet. The `MEMBER_EVENTS` / `TEAM_EVENTS` keys exist (the drawer's writes invalidate them), and the hooks move to tasks 3.2 and 5.2.
 
 ## Risks / Trade-offs
 
@@ -169,7 +176,7 @@ interface ProfileEvents {
 - [DS token fallbacks are what actually paints.] → When porting the prototype's SCSS, keep each `var(--token, fallback)` fallback as written.
 - [The global `useQuery` jest mock ignores `select`.] → Hook tests assert raw data, or mock the service, not the hook.
 - [Placement jump for signed-in viewers (D6).] → Accepted. The section is mid-page, so the shift is below the fold on desktop.
-- [BE contract drift: the FE is written against the assumed shapes above.] → Tasks 1.x land the service layer first, and it's checked against the BE branch on the `lab-3211` feature env before the UI tasks.
+- [BE contract drift.] → The service layer was checked against BE `lab-3211` / `lab-3211-3213` (contract block above); the mapper reads the free-string fields tolerantly and hides what it can't read. Re-check on the `lab-3211` feature env once #3698 is merged.
 - [Members without `irlg.going.write` (investors, job aspirants) can't mark attendance.] → By decision. They see the event and attendees. Widening RBAC is a separate scope call.
 - [Prototype vs ticket on footer buttons.] → The ticket says "no Save or Cancel buttons". The prototype (2026-11-11) has "No / Yes, I'm going" and then "Skip|Cancel / Save" in the plans step, because the plans need a submit. We follow the prototype, as the ticket says to on conflicts, and flag it to Polina in design review.
 

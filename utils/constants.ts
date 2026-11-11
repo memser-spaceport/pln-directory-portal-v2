@@ -855,6 +855,16 @@ export const TEAM_PITCH_ANALYTICS = {
   ON_PROFILE_READY: 'team-pitch-profile-ready',
 };
 
+/** The event drawer (LAB-3211 / LAB-3216). Each event carries `event_uid`. */
+export const EVENT_DRAWER_ANALYTICS = {
+  ON_EVENT_DRAWER_OPENED: 'event-drawer-opened',
+  ON_EVENT_GOING_MARKED: 'event-going-marked',
+  ON_EVENT_NOT_GOING_MARKED: 'event-not-going-marked',
+  ON_EVENT_SHOW_ON_PROFILE_TOGGLED: 'event-show-on-profile-toggled',
+  ON_EVENT_PLANS_SAVED: 'event-plans-saved',
+  ON_EVENT_ATTENDEES_OPENED: 'event-attendees-opened',
+};
+
 export const EVENTS_ANALYTICS = {
   EVENTS_PAGE_IRL_CARD_CLICKED: 'events-page-irl-card-clicked',
   EVENTS_PAGE_EVENT_CARD_CLICKED: 'events-page-event-card-clicked',

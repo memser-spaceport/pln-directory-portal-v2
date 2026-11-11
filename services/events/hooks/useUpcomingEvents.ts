@@ -10,6 +10,8 @@ export type UpcomingEvent = {
   startDate: string;
   endDate: string;
   websiteUrl: string;
+  /** The event's gathering (LAB-3213). Null when the event has none. */
+  locationUid?: string | null;
 };
 
 async function fetcher() {

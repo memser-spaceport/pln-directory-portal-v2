@@ -46,9 +46,26 @@ describe('getUpcomingEvents', () => {
     global.fetch = respond([row], { total: '7' });
 
     await expect(getUpcomingEvents({ days: 30, limit: 3 })).resolves.toEqual({
-      events: [{ uid: 'e1', name: 'libp2p Day', startDate: row.startDate, endDate: row.endDate, location: 'Lisbon' }],
+      events: [
+        {
+          uid: 'e1',
+          name: 'libp2p Day',
+          startDate: row.startDate,
+          endDate: row.endDate,
+          location: 'Lisbon',
+          locationUid: null,
+        },
+      ],
       total: 7,
     });
+  });
+
+  it('carries the gathering uid, so a row can open the event drawer (LAB-3220)', async () => {
+    global.fetch = respond([{ ...row, locationUid: 'loc-1' }], { total: '1' });
+
+    const { events } = await getUpcomingEvents({ days: 30, limit: 3 });
+
+    expect(events[0].locationUid).toBe('loc-1');
   });
 
   it('falls back to the array length without the header', async () => {

@@ -19,9 +19,7 @@ function renderDetail(props: Partial<React.ComponentProps<typeof ItemDetail>> = 
     onMove: jest.fn(),
     onRetryLinear: jest.fn(),
   };
-  render(
-    <ItemDetail item={item()} comments={[]} isAdmin={false} {...handlers} {...props} />,
-  );
+  render(<ItemDetail item={item()} comments={[]} isAdmin={false} {...handlers} {...props} />);
   return handlers;
 }
 
@@ -212,10 +210,7 @@ describe('ideas list rows', () => {
     const onVote = jest.fn();
     render(<IdeasList items={[item({ id: 'row-1', title: 'Row one' })]} onVote={onVote} emptyMessage="none" />);
 
-    expect(screen.getByRole('link', { name: 'Row one' })).toHaveAttribute(
-      'href',
-      '/alignment-asset/feedback/row-1',
-    );
+    expect(screen.getByRole('link', { name: 'Row one' })).toHaveAttribute('href', '/alignment-asset/feedback/row-1');
     fireEvent.click(screen.getByTestId('fb-vote-row-1'));
     expect(onVote).toHaveBeenCalledTimes(1);
   });

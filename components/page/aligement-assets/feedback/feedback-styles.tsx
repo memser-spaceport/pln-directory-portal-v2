@@ -183,7 +183,8 @@ export default function FeedbackStyles() {
         font-size: 14px;
         color: var(--fb-ink);
         cursor: pointer;
-        background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+        background-image:
+          linear-gradient(45deg, transparent 50%, currentColor 50%),
           linear-gradient(135deg, currentColor 50%, transparent 50%);
         background-position:
           calc(100% - 16px) calc(50% + 1px),

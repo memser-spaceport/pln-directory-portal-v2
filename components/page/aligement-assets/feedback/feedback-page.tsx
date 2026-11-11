@@ -121,7 +121,12 @@ export default function FeedbackPage() {
   const handleSubmit = (values: FeedbackFormValues) => {
     create.mutate(values, {
       onSuccess: (item) => {
-        analytics.onSubmitted(values.type, values.screenshots.length, Boolean(values.link_url), Boolean(values.importance));
+        analytics.onSubmitted(
+          values.type,
+          values.screenshots.length,
+          Boolean(values.link_url),
+          Boolean(values.importance),
+        );
         setFormOpen(false);
         // §6: bugs are private, so the member goes to My submissions rather than
         // an item page they'd be the only one able to open.
@@ -148,8 +153,8 @@ export default function FeedbackPage() {
         <div>
           <h1 className="fb-page__title">Feedback</h1>
           <p className="fb-page__intro">
-            A single place to suggest new features, upvote feature ideas from others, report any bugs, and follow
-            what the PLAA team is currently building.
+            A single place to suggest new features, upvote feature ideas from others, report any bugs, and follow what
+            the PLAA team is currently building.
           </p>
           {voteBudget && (
             <p className="fb-page__budget" data-testid="fb-vote-budget">

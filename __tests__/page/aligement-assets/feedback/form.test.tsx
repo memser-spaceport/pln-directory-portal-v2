@@ -181,7 +181,6 @@ describe('AC-T5.6 link validation', () => {
   it('rejects a javascript: link', () => {
     renderForm();
     fillValid();
-    // eslint-disable-next-line no-script-url
     fireEvent.change(screen.getByLabelText(/^Link/), { target: { value: 'javascript:alert(1)' } });
     expect(submitButton()).toBeDisabled();
   });
@@ -189,9 +188,7 @@ describe('AC-T5.6 link validation', () => {
 
 describe('AC-T5.C compliance', () => {
   it('renders the posting guidelines marked pending Legal review', () => {
-    const { container } = render(
-      <FeedbackForm onClose={jest.fn()} onSubmit={jest.fn()} isSubmitting={false} />,
-    );
+    const { container } = render(<FeedbackForm onClose={jest.fn()} onSubmit={jest.fn()} isSubmitting={false} />);
     const guidelines = container.querySelector('[data-pending-legal-review="true"]');
     expect(guidelines).toBeInTheDocument();
     expect(guidelines).toHaveTextContent(/visible to PLAA members/i);
@@ -199,9 +196,7 @@ describe('AC-T5.C compliance', () => {
   });
 
   it('uses no banned vocabulary anywhere in the form', () => {
-    const { container } = render(
-      <FeedbackForm onClose={jest.fn()} onSubmit={jest.fn()} isSubmitting={false} />,
-    );
+    const { container } = render(<FeedbackForm onClose={jest.fn()} onSubmit={jest.fn()} isSubmitting={false} />);
     // PLAA guardrail: points are "collected", never the banned verb.
     expect(container.textContent).not.toMatch(/\be[a]rn(s|ed|ing)?\b/i);
   });

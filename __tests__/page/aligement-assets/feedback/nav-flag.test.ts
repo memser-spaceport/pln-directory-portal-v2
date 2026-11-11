@@ -8,7 +8,6 @@ function loadUtils(flag: string | undefined) {
   jest.resetModules();
   if (flag === undefined) delete process.env.NEXT_PUBLIC_PLAA_FEEDBACK_BOARD;
   else process.env.NEXT_PUBLIC_PLAA_FEEDBACK_BOARD = flag;
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   return require('@/components/page/aligement-assets/feedback/feedback.utils');
 }
 
@@ -34,10 +33,7 @@ describe('AC-T8.2 flag on', () => {
 
   it('leaves no hard-coded Google Form link in the PLAA menu source', () => {
     // The menu must derive its target, not carry a second copy of the URL.
-    const source = readFileSync(
-      join(process.cwd(), 'components/page/aligement-assets/plaa-menu.tsx'),
-      'utf8',
-    );
+    const source = readFileSync(join(process.cwd(), 'components/page/aligement-assets/plaa-menu.tsx'), 'utf8');
     expect(source).not.toContain('forms.gle');
     expect(source).toContain('feedbackNavTarget');
   });
@@ -48,10 +44,10 @@ describe('§8 compliance: no Linear secret reaches the portal', () => {
     // AC-T2.7. Scans the feedback surface, which is the only place that could
     // plausibly have picked one up.
     const { execSync } = require('child_process');
-    const hits = execSync(
-      'grep -rln "LINEAR_API_KEY\\|lin_api_" app components services analytics || true',
-      { cwd: process.cwd(), encoding: 'utf8' },
-    ).trim();
+    const hits = execSync('grep -rln "LINEAR_API_KEY\\|lin_api_" app components services analytics || true', {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+    }).trim();
     expect(hits).toBe('');
   });
 });

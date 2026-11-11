@@ -21,7 +21,13 @@ const STYLES = readFileSync(
 function contrast(a: string, b: string): number {
   const lum = (hex: string) => {
     const v = hex.replace('#', '');
-    const full = v.length === 3 ? v.split('').map((c) => c + c).join('') : v;
+    const full =
+      v.length === 3
+        ? v
+            .split('')
+            .map((c) => c + c)
+            .join('')
+        : v;
     const [r, g, bl] = [0, 2, 4]
       .map((i) => parseInt(full.slice(i, i + 2), 16) / 255)
       .map((c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)));

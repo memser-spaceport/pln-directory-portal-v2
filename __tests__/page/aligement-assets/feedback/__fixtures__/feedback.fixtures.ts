@@ -1,4 +1,9 @@
-import type { FeedbackComment, FeedbackItem, FeedbackStatus, FeedbackType } from '@/services/plaa/feedback/feedback.types';
+import type {
+  FeedbackComment,
+  FeedbackItem,
+  FeedbackStatus,
+  FeedbackType,
+} from '@/services/plaa/feedback/feedback.types';
 
 /**
  * Fixtures, not live content. Tests assert rules — visibility, gating,

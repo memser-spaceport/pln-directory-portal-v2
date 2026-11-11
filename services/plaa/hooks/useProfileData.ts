@@ -37,18 +37,15 @@ export interface ContributionHistoryEntry {
   plaa: number;
   infra: number;
   redeemed: number | null;
-  /** What the redeemed PLAA fetched, null when any of the month's auctions has no price. */
+  /** Null when any of the month's auctions has no price, so a partial total never shows. */
   redeemedUsd: number | null;
-  /** Price per PLAA behind redeemedUsd. */
   redeemedPrice: number | null;
-  /** The month spans auctions that cleared at different prices, so the price is a blend. */
   redeemedPriceIsAverage: boolean;
   /** The snapshot is not closed yet, so its own figures are provisional. */
   isPending: boolean;
   cum: number;
 }
 
-/** What a month's redemptions came to, once priced at the auctions that cleared them. */
 export interface MonthRedemption {
   plaa: number;
   usd: number | null;
@@ -180,14 +177,6 @@ function withMissingSnapshots(
   return [...history, ...missing].sort((a, b) => a.period.localeCompare(b.period));
 }
 
-/**
- * Prices each month's redemptions at the auction that cleared them.
- *
- * A redemption is matched on auction number, falling back to round number,
- * since auctionNumber is nullable on both sides. A month whose redemptions are
- * not all priced carries no dollar figure at all: a partial total read as a
- * full one would understate what the member gave up.
- */
 export function summarizeRedemptions(
   redemptions: RedemptionHistoryEntry[] | null | undefined,
   prices: BuybackPrice[] | null | undefined,

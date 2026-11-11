@@ -15,20 +15,12 @@ import MoveToMenu from './move-to-menu';
 import { lastMoveLine } from './feedback.utils';
 
 const MOBILE_BREAKPOINT = 768;
-/** §2: 20 cards per column, then "Show more". */
 const PAGE_SIZE = 20;
 
 const COLUMN_SUBTITLE: Partial<Record<RoadmapColumn, string>> = {
   completed: 'Last 90 days',
 };
 
-/**
- * Roadmap Kanban (F-5). Public features and improvements only — bugs never
- * reach this view, which the service already guarantees.
- *
- * Under 768px the four columns become tabs (AC-T7.7) rather than a horizontal
- * scroll, so a phone shows one full column instead of four clipped ones.
- */
 export default function RoadmapBoard({
   roadmap,
   isAdmin,
@@ -88,7 +80,6 @@ export default function RoadmapBoard({
               key={status}
               className="fb-col"
               aria-label={STATUS_LABELS[status]}
-              // Narrow: the column IS the tab's panel. Wide: four peer regions.
               {...(isNarrow
                 ? { role: 'tabpanel', id: `fb-board-panel-${status}`, 'aria-labelledby': `fb-board-tab-${status}` }
                 : {})}

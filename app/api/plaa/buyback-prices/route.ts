@@ -1,13 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllRoundStats } from '@/services/plaa/rounds.service';
 
-/**
- * Clearing price per auction, for pricing a member's redemptions.
- *
- * Goes through a proxy because PLAA_API_URL is server-only, and carries just
- * the three fields the profile needs rather than every round's full stats,
- * which include per-bidder bids this caller has no business receiving.
- */
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
   if (!authHeader) {

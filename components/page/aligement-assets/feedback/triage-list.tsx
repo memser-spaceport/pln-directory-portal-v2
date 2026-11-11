@@ -6,13 +6,6 @@ import { EmptyState, StatusBadge, TypeBadge } from './feedback-bits';
 import MoveToMenu from './move-to-menu';
 import { relativeAge } from './feedback.utils';
 
-/**
- * Triage (F-8), admins only. Oldest first, because the point is the queue.
- *
- * Each row surfaces the Linear state: an identifier link once the issue exists,
- * otherwise pending/failed with a Retry — the only place the board admits
- * Linear exists.
- */
 export default function TriageList({
   items,
   onMove,

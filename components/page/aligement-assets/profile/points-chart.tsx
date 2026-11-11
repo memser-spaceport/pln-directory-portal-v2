@@ -36,7 +36,6 @@ function buildChart(entries: ContributionHistoryEntry[]) {
   const centers = entries.map((_, i) => PLOT_LEFT + step * i + step / 2);
   const barWidth = Math.min(BAR_WIDTH, step * 0.6);
 
-  // A snapshot still waiting on its count is left empty rather than drawn as zero.
   const bars = entries
     .map((e, i) => {
       const h = ((e.points ?? 0) / maxPoints) * plotHeight;
@@ -57,13 +56,7 @@ function buildChart(entries: ContributionHistoryEntry[]) {
   return { grid, bars, axisTicks, labels };
 }
 
-/**
- * Points collected per snapshot. The PLAA those points produced, and the
- * balance they built, are the Balance History tab's story — this one is the
- * input, which is what the snapshot list underneath breaks down.
- */
 export default function PointsChart({ entries }: PointsChartProps) {
-  // Nothing to plot for a member whose points have not landed yet.
   if (entries.length === 0 || !entries.some((e) => e.points !== null)) return null;
 
   const chart = buildChart(entries);

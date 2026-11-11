@@ -1,8 +1,4 @@
-/**
- * @jest-environment node
- *
- * Route handlers run on the server: jsdom has no Request/Response.
- */
+/** @jest-environment node */
 import { NextRequest } from 'next/server';
 import { DELETE, GET, POST, PUT } from '@/app/api/plaa/feedback/[...path]/route';
 

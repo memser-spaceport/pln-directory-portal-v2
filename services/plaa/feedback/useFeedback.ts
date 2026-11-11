@@ -21,10 +21,6 @@ export const FeedbackQueryKeys = {
   COMMENTS: 'plaa-feedback-comments',
 } as const;
 
-/**
- * Viewer-specific reads are never cached across members: staleTime 0 plus the
- * proxy's `private, no-store` means member B can't be served A's board.
- */
 const VIEWER_SPECIFIC = { staleTime: 0, gcTime: 0, refetchOnWindowFocus: false } as const;
 
 export function useFeedbackMe() {
@@ -74,7 +70,6 @@ export function useFeedbackComments(id: string | undefined) {
   });
 }
 
-/** Everything a mutation can stale: list, roadmap, triage and the item itself. */
 function useInvalidateBoard() {
   const queryClient = useQueryClient();
   return (id?: string) => {
@@ -93,11 +88,6 @@ export function useCreateFeedback() {
   });
 }
 
-/**
- * Optimistic vote with rollback (AC-T4.2). The cached list and item are patched
- * before the request so the count moves on click; a failure puts the previous
- * snapshots back exactly.
- */
 export function useVote() {
   const queryClient = useQueryClient();
   const invalidate = useInvalidateBoard();
@@ -116,8 +106,6 @@ export function useVote() {
       const previousMe = queryClient.getQueryData<FeedbackMe>([FeedbackQueryKeys.ME]);
       const delta = voted ? -1 : 1;
 
-      // Spend or refund locally so the remaining count and the disabled state
-      // of every other vote button move with the click, not a round trip later.
       queryClient.setQueryData<FeedbackMe>([FeedbackQueryKeys.ME], (old) =>
         old
           ? {
@@ -147,15 +135,11 @@ export function useVote() {
       if (context?.previousItem) {
         queryClient.setQueryData([FeedbackQueryKeys.ITEM, context.id], context.previousItem);
       }
-      // Refused at the cap: hand the vote back rather than leaving the member
-      // looking one short.
       if (context?.previousMe) {
         queryClient.setQueryData([FeedbackQueryKeys.ME], context.previousMe);
       }
     },
 
-    // The server is authoritative on the budget: a vote freed by an item
-    // shipping elsewhere only shows up here.
     onSuccess: (data) => {
       queryClient.setQueryData<FeedbackMe>([FeedbackQueryKeys.ME], (old) =>
         old ? { ...old, vote_budget: data.budget } : old,

@@ -4,7 +4,6 @@ import {
   type SnapshotHistoryEntry,
 } from '@/services/plaa/hooks/useProfileData';
 
-/** A month's redemption with no auction price attached. */
 function r(plaa: number): MonthRedemption {
   return { plaa, usd: null, price: null, isAverage: false };
 }

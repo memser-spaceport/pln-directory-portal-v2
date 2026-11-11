@@ -1,15 +1,11 @@
-/** Mirrors the plaa-service contract in FEATURE-PLAAFeedbackBoard §5. */
-
 export type FeedbackType = 'feature' | 'bug' | 'improvement';
 
 export type FeedbackStatus = 'under_review' | 'todo' | 'in_progress' | 'completed' | 'declined' | 'duplicate';
 
 export type LinearStatus = 'pending' | 'created' | 'failed';
 
-/** Statuses a member can still vote on (§2). */
 export const VOTABLE_STATUSES: FeedbackStatus[] = ['under_review', 'todo', 'in_progress'];
 
-/** The four Roadmap columns, in board order. Declined and duplicate never show. */
 export type RoadmapColumn = 'under_review' | 'todo' | 'in_progress' | 'completed';
 
 export const ROADMAP_COLUMNS: RoadmapColumn[] = ['under_review', 'todo', 'in_progress', 'completed'];
@@ -61,7 +57,6 @@ export interface FeedbackItem {
   comment_count: number;
   status_events?: FeedbackStatusEvent[];
   duplicate_of: { id: string; title: string } | null;
-  // Admin-only. Absent for everyone else, which is why they are optional.
   linear_status?: LinearStatus;
   linear_issue_identifier?: string | null;
   linear_issue_url?: string | null;
@@ -103,7 +98,7 @@ export interface CreateFeedbackInput {
 
 export interface FeedbackListParams {
   type?: FeedbackType;
-  /** `proposed` is open-but-not-started: the Ideas tab. */
+  /** `proposed` means open but not started. */
   status?: 'open' | 'proposed' | FeedbackStatus;
   sort?: 'top' | 'new';
   mine?: boolean;
@@ -111,7 +106,6 @@ export interface FeedbackListParams {
   limit?: number;
 }
 
-/** Upvotes a member is currently spending, and what is left. */
 export interface VoteBudget {
   limit: number;
   used: number;
@@ -129,7 +123,6 @@ export interface VoteResponse {
   budget: VoteBudget;
 }
 
-/** Thrown with the upstream's status so callers can tell 429 from 409. */
 export class FeedbackApiError extends Error {
   constructor(
     message: string,

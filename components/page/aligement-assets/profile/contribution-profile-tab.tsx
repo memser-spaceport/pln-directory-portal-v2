@@ -23,16 +23,8 @@ const PLOT_BOTTOM = 240;
 const BAR_WIDTH = 40;
 const MAX_X_LABELS = 6;
 
-/** Headroom past the tallest bar, so a full-height bar does not touch the frame. */
 const BAR_PADDING = 8;
 
-/**
- * How much of the plot the redemptions get. Additions are the headline, so the
- * space above zero stays 3–4 times the space below it whatever the figures are:
- * a member who earns 20,000 and redeems 200 still gets a readable band below
- * the line, and one who redeems 10,000 does not take half the chart for it. The
- * two sides therefore carry their own scales, which the right axis labels state.
- */
 const MIN_REDEEMED_SHARE = 0.2;
 const MAX_REDEEMED_SHARE = 0.25;
 
@@ -51,7 +43,6 @@ function dashOr(value: number | null): string {
   return value === null ? '—' : value.toLocaleString();
 }
 
-/** Movement columns read as signed amounts: PLAA earned adds, PLAA redeemed subtracts. Zero carries no sign. */
 function signed(value: number, sign: '+' | '−'): string {
   return value === 0 ? '0' : `${sign}${value.toLocaleString()}`;
 }
@@ -60,11 +51,6 @@ function signedDashOr(value: number | null, sign: '+' | '−'): string {
   return value === null ? '—' : signed(value, sign);
 }
 
-/**
- * Points sit under the PLAA they produced rather than in a column of their own:
- * they are the input, not a second currency. An open snapshot says "so far",
- * since its count is still rising.
- */
 function pointsLabel(points: number, isPending: boolean): string {
   return `${points.toLocaleString()} points${isPending ? ' so far' : ''}`;
 }
@@ -73,16 +59,10 @@ function usd(amount: number): string {
   return `$${Math.round(amount).toLocaleString()}`;
 }
 
-/** Prices carry cents: rounding $1.48 to $1 would lose the whole figure. */
 function pricePerPlaa(price: number): string {
   return `$${price.toFixed(2)}`;
 }
 
-/**
- * What a month's redemption fetched, and at what price. "avg" is not decoration:
- * it marks a month whose redemptions cleared at more than one auction price, so
- * the rate shown is a blend rather than a price anyone actually got.
- */
 function redeemedValueLabel(amountUsd: number, price: number, isAverage: boolean): string {
   return `${usd(amountUsd)} at ${isAverage ? 'avg ' : ''}${pricePerPlaa(price)}`;
 }
@@ -101,13 +81,6 @@ function sumKnown(
   return total;
 }
 
-/**
- * The lifetime dollar figure, over the months that have a price.
- *
- * The PLAA total beside it stays the full amount: dropping unpriced months
- * from it would understate how much was redeemed. The rate is therefore an
- * average over what could be priced, which is why it always reads "avg".
- */
 function priceableTotals(entries: ContributionHistoryEntry[]): { usd: number; price: number } | null {
   let usdTotal = 0;
   let plaaTotal = 0;
@@ -120,10 +93,7 @@ function priceableTotals(entries: ContributionHistoryEntry[]): { usd: number; pr
   return { usd: usdTotal, price: usdTotal / plaaTotal };
 }
 
-/** What the hover card lists: the month's movements, in the order the columns read. */
 function tooltipRows(entry: ContributionHistoryEntry, hasPointsData: boolean): Array<{ label: string; value: string }> {
-  // An open snapshot's PLAA is provisional, so its figures read Pending here
-  // exactly as they do in the table below.
   const plaaValue = (amount: number) => (entry.isPending ? PENDING_LABEL : signed(amount, '+'));
   const rows = [
     { label: 'PLAA balance', value: entry.isPending ? PENDING_LABEL : entry.cum.toLocaleString() },
@@ -135,10 +105,6 @@ function tooltipRows(entry: ContributionHistoryEntry, hasPointsData: boolean): A
   return rows;
 }
 
-/**
- * The month-by-month flow: new PLAA stacked above the zero line, buyback
- * redemptions below it, and the balance those movements left, as a line.
- */
 function buildFlowChart(entries: ContributionHistoryEntry[]) {
   const plotWidth = PLOT_RIGHT - PLOT_LEFT;
   const plotHeight = PLOT_BOTTOM - PLOT_TOP;
@@ -146,14 +112,12 @@ function buildFlowChart(entries: ContributionHistoryEntry[]) {
 
   const maxNew = niceMax(Math.max(...entries.map((e) => e.plaa + e.infra), 1));
   const biggestRedemption = Math.max(...entries.map((e) => e.redeemed ?? 0), 0);
-  // No redemptions yet means no room is wasted below the line.
   const maxRedeemed = biggestRedemption > 0 ? niceMax(biggestRedemption) : 0;
 
   const proportionalShare = maxRedeemed === 0 ? 0 : maxRedeemed / (maxNew + maxRedeemed);
   const redeemedShare =
     maxRedeemed === 0 ? 0 : Math.min(Math.max(proportionalShare, MIN_REDEEMED_SHARE), MAX_REDEEMED_SHARE);
 
-  // The padding is spent on whichever side has bars to keep off the frame.
   const usableHeight = plotHeight - BAR_PADDING * (maxRedeemed === 0 ? 1 : 2);
   const negativeHeight = usableHeight * redeemedShare;
   const positiveHeight = usableHeight - negativeHeight;
@@ -164,7 +128,6 @@ function buildFlowChart(entries: ContributionHistoryEntry[]) {
   const centers = entries.map((_, i) => PLOT_LEFT + step * i + step / 2);
   const barWidth = Math.min(BAR_WIDTH, step * 0.6);
 
-  // A real movement always leaves a mark, however small it is against the month beside it.
   const visible = (value: number, height: number) => (value > 0 ? Math.max(height, 2) : 0);
 
   const bars = entries.map((e, i) => {
@@ -181,7 +144,6 @@ function buildFlowChart(entries: ContributionHistoryEntry[]) {
     };
   });
 
-  // PLAA axis: the bar scale, read both ways from zero.
   const plaaTicks = [maxNew, maxNew / 2, 0].map((v) => ({
     y: zeroY - v * plaaScale,
     value: v,
@@ -193,8 +155,6 @@ function buildFlowChart(entries: ContributionHistoryEntry[]) {
     }
   }
 
-  // The balance rides its own axis over the area above zero, so it never reads
-  // as a movement and never strays below the line among the redemptions.
   const maxBalance = niceMax(Math.max(...entries.map((e) => e.cum), 1));
   const balanceY = (v: number) => zeroY - (v / maxBalance) * positiveHeight;
   const balanceTicks = [maxBalance, maxBalance / 2].map((v) => ({
@@ -230,8 +190,6 @@ export default function ContributionProfileTab({
   const hasRedemptions = entries.some((e) => (e.redeemed ?? 0) > 0);
   const chart = buildFlowChart(entries);
 
-  // The chart reads left to right from the oldest period; the table leads with
-  // the newest, which is the one a member came to look at.
   const newestFirst = [...entries].reverse();
 
   const totalPoints = sumKnown(entries, (e) => e.points);
@@ -297,7 +255,6 @@ export default function ContributionProfileTab({
             </g>
           ))}
 
-          {/* Zero is the reference everything is read against, so it is drawn darker than the grid. */}
           <line x1={PLOT_LEFT} y1={chart.zeroY} x2={PLOT_RIGHT} y2={chart.zeroY} stroke="#cbd5e1" strokeWidth="1.5" />
 
           <polyline
@@ -326,8 +283,6 @@ export default function ContributionProfileTab({
               const boxW = 172;
               const boxH = TOOLTIP_TITLE_OFFSET + rows.length * TOOLTIP_ROW_HEIGHT + 10;
               const boxX = Math.min(Math.max(bar.x + bar.w / 2 - boxW / 2, PLOT_LEFT), PLOT_RIGHT - boxW);
-              // Above the bar where there is room, below it near the top edge, so a
-              // tall bar does not sit under its own tooltip.
               const above = bar.topY - boxH - 12;
               const boxY = above >= PLOT_TOP ? above : Math.min(bar.topY + 12, PLOT_BOTTOM - boxH);
               return (

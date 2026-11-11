@@ -17,7 +17,6 @@ const STYLES = readFileSync(
   'utf8',
 );
 
-/** WCAG relative luminance / contrast, so the thresholds are measured not guessed. */
 function contrast(a: string, b: string): number {
   const lum = (hex: string) => {
     const v = hex.replace('#', '');
@@ -42,7 +41,6 @@ function declaredValue(variable: string): string {
   return match ? match[1].trim() : '';
 }
 
-/** Body of the rule whose selector list contains `selector` (grouped or alone). */
 function ruleBody(selector: string): string {
   const escaped = selector.replace(/[.\\]/g, '\\$&');
   const match = STYLES.match(new RegExp(`(?:^|[,{}])\\s*[^{}]*${escaped}\\s*(?:,[^{}]*)?\\{([^}]*)\\}`, 'm'));
@@ -50,10 +48,6 @@ function ruleBody(selector: string): string {
   return match[1];
 }
 
-/**
- * The colour a selector actually paints with, following one var() hop.
- * Reading the token alone would pass even if the rule stopped using it.
- */
 function resolvedColor(selector: string, property = 'color'): string {
   const raw = ruleBody(selector).match(new RegExp(`(?<![a-z-])${property}:\\s*([^;]+);`));
   if (!raw) throw new Error(`No ${property} in ${selector}`);
@@ -69,7 +63,6 @@ function minHeightOf(selector: string): number {
 
 describe('stylesheet is valid CSS', () => {
   it('declares no malformed hex colour', () => {
-    // A 5-digit hex is silently dropped by the browser, taking its rule with it.
     const malformed = [...STYLES.matchAll(/#([0-9a-fA-F]+)\b/g)]
       .map((m) => m[1])
       .filter((hex) => ![3, 4, 6, 8].includes(hex.length));
@@ -92,8 +85,6 @@ describe('stylesheet is valid CSS', () => {
 });
 
 describe('contrast meets WCAG AA', () => {
-  // Each case resolves the colour the selector paints with, so swapping the
-  // token back out for a literal still fails.
   it.each([
     ['muted badge (Private / Declined / Duplicate)', '.fb-badge--muted', '#f1f5f9'],
     ['slate badge', '.fb-badge--slate', '#f1f5f9'],
@@ -111,8 +102,6 @@ describe('contrast meets WCAG AA', () => {
 });
 
 describe('touch targets clear WCAG 2.5.8 (24px)', () => {
-  // minHeightOf returns 0 when the declaration is missing, so deleting it fails
-  // the assertion rather than skipping it.
   it.each(['.fb-linkbtn', '.fb-files__remove', '.fb-modal__close'])('%s reaches 24px', (selector) => {
     expect(minHeightOf(selector)).toBeGreaterThanOrEqual(24);
   });

@@ -3,16 +3,6 @@
 import { getInitials } from '../leaderboard/leaderboard.mapper';
 import type { FeedbackAuthor } from '@/services/plaa/feedback/feedback.types';
 
-/**
- * The leaderboard's member treatment, as a component.
- *
- * Same palette, same `getInitials`, same initials-on-colour avatar, so a member
- * looks identical wherever they appear (AC-T6.5). The colour is picked from the
- * member uid rather than a list index, so one person keeps one colour across
- * the Ideas list, the Roadmap and a comment thread.
- *
- * Deliberately no profile lookup: the author object arrives with the item.
- */
 export const AVATAR_COLORS = ['#F2792B', '#8B5CF6', '#13A89E', '#048746', '#365A83', '#D6418B'];
 
 function colorFor(uid: string): string {
@@ -30,7 +20,6 @@ export default function MemberDisplay({
 }: {
   author: FeedbackAuthor;
   size?: 'sm' | 'md';
-  /** e.g. the "PLAA team" marker on an admin's comment. */
   badge?: string;
 }) {
   const dimension = size === 'sm' ? 24 : 32;
@@ -54,9 +43,6 @@ export default function MemberDisplay({
           gap: 8px;
           min-width: 0;
         }
-        /* The Directory's --text-* tokens are mounted per PLAA page (see
-           plaa-home-tokens) and are absent on this route, so this component
-           states its own sizes and falls back to the board's local ink. */
         .fb-member__avatar {
           border-radius: 999px;
           color: #fff;

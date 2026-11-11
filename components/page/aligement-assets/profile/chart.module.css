@@ -1,6 +1,3 @@
-/* Chrome shared by the two profile charts: the balance chart on Snapshot history
-   and the monthly flow chart on Contribution profile. */
-
 .card {
   background: #ffffff;
   border-radius: 16px;
@@ -47,7 +44,6 @@
   color: #455468;
 }
 
-/* Colour comes from the series itself, so a new series needs no new class. */
 .legendSwatch {
   width: 12px;
   height: 12px;

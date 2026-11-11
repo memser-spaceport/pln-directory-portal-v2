@@ -34,8 +34,8 @@ describe('summarizeRedemptions', () => {
   it('blends two auctions in one month and marks the rate as an average', () => {
     const result = summarizeRedemptions(
       [
-        redemption({ auctionNumber: 7, roundNumber: 12, plaaRedeemed: 400 }), // at 1.48 = 592
-        redemption({ auctionNumber: 5, roundNumber: 10, plaaRedeemed: 100 }), // at 1.42 = 142
+        redemption({ auctionNumber: 7, roundNumber: 12, plaaRedeemed: 400 }),
+        redemption({ auctionNumber: 5, roundNumber: 10, plaaRedeemed: 100 }),
       ],
       prices,
     );
@@ -55,7 +55,6 @@ describe('summarizeRedemptions', () => {
       prices,
     );
 
-    // The PLAA is still counted in full: only the valuation is withheld.
     expect(result['2026-07']).toEqual({ plaa: 500, usd: null, price: null, isAverage: false });
   });
 

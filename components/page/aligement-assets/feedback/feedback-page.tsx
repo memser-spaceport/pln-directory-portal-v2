@@ -21,7 +21,6 @@ import TriageList from './triage-list';
 import { ErrorState, LoadingRows } from './feedback-bits';
 import FeedbackStyles from './feedback-styles';
 
-// No Completed tab: the Roadmap's fourth column already shows shipped work.
 type Tab = 'ideas' | 'roadmap' | 'mine' | 'triage';
 
 const TAB_LABELS: Record<Tab, string> = {
@@ -33,15 +32,8 @@ const TAB_LABELS: Record<Tab, string> = {
 
 const PUBLIC_TABS: Tab[] = ['ideas', 'roadmap', 'mine'];
 
-/** Triage is admin-only, both as a tab and as a reachable ?tab= value. */
 const tabsFor = (isAdmin: boolean): Tab[] => (isAdmin ? [...PUBLIC_TABS, 'triage'] : PUBLIC_TABS);
 
-/**
- * Feedback Board (§6).
- *
- * Tab, sort and filter live in the query string so a view is shareable; nothing
- * personal goes in the URL — `mine` is a boolean, never a member uid.
- */
 export default function FeedbackPage() {
   const router = useRouter();
   const pathname = usePathname();
@@ -53,8 +45,6 @@ export default function FeedbackPage() {
   const voteBudget = me?.vote_budget;
 
   const tabParam = (searchParams.get('tab') ?? 'ideas') as Tab;
-  // An unknown or non-permitted tab falls back to Ideas, so ?tab=triage does
-  // nothing for a non-admin and an old ?tab=completed link still lands safely.
   const tab: Tab = tabsFor(isAdmin).includes(tabParam) ? tabParam : 'ideas';
   const sort = (searchParams.get('sort') ?? 'top') as 'top' | 'new';
   const typeFilter = (searchParams.get('type') ?? '') as FeedbackType | '';
@@ -85,9 +75,6 @@ export default function FeedbackPage() {
       sort,
       ...(typeFilter ? { type: typeFilter } : {}),
       ...(tab === 'mine' ? { mine: true } : {}),
-      // Ideas is work still up for discussion: anything already being built is
-      // the Roadmap's job. My submissions keeps showing everything of yours,
-      // including the item that just got picked up.
       ...(statusFilter === 'open' ? { status: tab === 'mine' ? ('open' as const) : ('proposed' as const) } : {}),
     }),
     [sort, typeFilter, tab, statusFilter],
@@ -128,8 +115,6 @@ export default function FeedbackPage() {
           Boolean(values.importance),
         );
         setFormOpen(false);
-        // §6: bugs are private, so the member goes to My submissions rather than
-        // an item page they'd be the only one able to open.
         if (values.type === 'bug') setParam({ tab: 'mine' });
         else router.push(`/alignment-asset/feedback/${item.id}`);
       },

@@ -73,7 +73,6 @@ const Profile = () => {
 
       {activeTab === 'snapshots' && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24 }}>
-          {/* The points per snapshot; the rows below break each one down into the activities behind it. */}
           <PointsChart entries={data.contributionHistory} />
           <SnapshotHistoryTab entries={data.snapshotHistory} />
         </div>

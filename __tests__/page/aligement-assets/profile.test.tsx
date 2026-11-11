@@ -72,7 +72,6 @@ describe('Profile', () => {
     expect(screen.getByTestId('contribution-profile-tab')).toBeInTheDocument();
     expect(screen.queryByTestId('snapshot-history-tab')).not.toBeInTheDocument();
 
-    // Balance History leads the tab strip, Snapshot history follows.
     expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Balance History', 'Snapshot history']);
   });
 

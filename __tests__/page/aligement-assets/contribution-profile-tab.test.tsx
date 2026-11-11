@@ -68,7 +68,6 @@ describe('ContributionProfileTab', () => {
     render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
 
     expect(screen.getByRole('heading', { name: 'PLAA balance' })).toBeInTheDocument();
-    // The points chart lives on the Snapshot history tab, not here.
     expect(screen.queryByText('Points collected per snapshot')).not.toBeInTheDocument();
     // Each period appears twice: once as a chart x-axis label, once as a table row.
     expect(screen.getAllByText('May 2026')).toHaveLength(2);
@@ -133,7 +132,6 @@ describe('ContributionProfileTab', () => {
   });
 
   describe('the monthly flow chart', () => {
-    /** Bars in draw order: one group per snapshot, oldest first. */
     function barGroups(container: HTMLElement): SVGRectElement[][] {
       return Array.from(container.querySelectorAll('svg g'))
         .map((g) => Array.from(g.querySelectorAll('rect')) as SVGRectElement[])
@@ -153,10 +151,9 @@ describe('ContributionProfileTab', () => {
       expect(groups).toHaveLength(3);
 
       const zero = zeroLineY(container);
-      const [activity, infra] = groups[2]; // Jul 2026: 45 activities + 30 infra
-      expect(yOf(activity) + hOf(activity)).toBeCloseTo(zero, 5); // sits on the line
-      expect(yOf(infra) + hOf(infra)).toBeCloseTo(yOf(activity), 5); // stacked directly on it
-      // The two segments keep the 45:30 ratio of the figures they represent.
+      const [activity, infra] = groups[2];
+      expect(yOf(activity) + hOf(activity)).toBeCloseTo(zero, 5);
+      expect(yOf(infra) + hOf(infra)).toBeCloseTo(yOf(activity), 5);
       expect(hOf(activity) / hOf(infra)).toBeCloseTo(45 / 30, 5);
     });
 
@@ -166,14 +163,12 @@ describe('ContributionProfileTab', () => {
       );
       const zero = zeroLineY(container);
 
-      // Only Jul 2026 redeemed, so exactly one bar hangs below the line.
       const below = Array.from(container.querySelectorAll('svg rect[fill="#f59e0b"]')) as SVGRectElement[];
       expect(below).toHaveLength(1);
       expect(yOf(below[0])).toBeCloseTo(zero, 5);
       expect(hOf(below[0])).toBeGreaterThan(0);
     });
 
-    /** Additions keep 3\u20134x the room redemptions get, whatever the figures are. */
     function redeemedShareOfPlot(container: HTMLElement): number {
       const plotHeight = 240 - 16;
       return (240 - zeroLineY(container)) / plotHeight;
@@ -199,14 +194,11 @@ describe('ContributionProfileTab', () => {
       );
 
       const share = redeemedShareOfPlot(container);
-      // The band plus its 8px padding, against the whole plot.
       expect(share).toBeGreaterThanOrEqual(0.2);
       expect(share).toBeLessThanOrEqual(0.28);
 
-      // Both bands are still fully used: the tallest bar reaches the top padding...
       const [, infra] = barGroups(container)[0];
       expect(yOf(infra)).toBeLessThan(30);
-      // ...and the deepest redemption reaches the bottom of its band.
       const redeemed = container.querySelector('svg rect[fill="#f59e0b"]') as SVGRectElement;
       expect(yOf(redeemed) + hOf(redeemed)).toBeGreaterThan(230);
     });
@@ -230,7 +222,6 @@ describe('ContributionProfileTab', () => {
         <ContributionProfileTab entries={lopsided} currentBalance={19800} totalRedeemed={200} />,
       );
 
-      // Proportionally it would be ~2px; it gets its own band instead.
       expect(redeemedShareOfPlot(container)).toBeGreaterThanOrEqual(0.2);
     });
 
@@ -241,7 +232,7 @@ describe('ContributionProfileTab', () => {
       );
 
       expect(container.querySelectorAll('svg rect[fill="#f59e0b"]')).toHaveLength(0);
-      expect(zeroLineY(container)).toBe(240); // the plot floor
+      expect(zeroLineY(container)).toBe(240);
     });
 
     it('draws the balance as a line over the bars, with a dot per snapshot', () => {
@@ -253,10 +244,8 @@ describe('ContributionProfileTab', () => {
       expect(line).toBeInTheDocument();
       const ys = (line.getAttribute('points') ?? '').split(' ').map((p) => Number(p.split(',')[1]));
       expect(ys).toHaveLength(3);
-      // The balance rises across these three snapshots, so the line climbs.
       expect(ys[0]).toBeGreaterThan(ys[1]);
       expect(ys[1]).toBeGreaterThan(ys[2]);
-      // It never strays below zero into the redemptions.
       expect(Math.max(...ys)).toBeLessThanOrEqual(zeroLineY(container));
 
       expect(container.querySelectorAll('svg circle[stroke="#7c3aed"]')).toHaveLength(3);
@@ -272,7 +261,6 @@ describe('ContributionProfileTab', () => {
   });
 
   describe('the hover card accounts for the whole snapshot', () => {
-    /** The rows of the hover card, in the order they are drawn. */
     function tooltipRows(container: HTMLElement): string[] {
       return Array.from(container.querySelectorAll('svg text[fill="#dbeafe"]')).map((n) => n.textContent ?? '');
     }
@@ -287,7 +275,6 @@ describe('ContributionProfileTab', () => {
 
       const tooltipTitle = () => container.querySelector('svg text[font-weight="700"][fill="#ffffff"]');
 
-      // Jul 2026: 45 from activities, 30 infra, 50 redeemed, 450 points.
       fireEvent.mouseEnter(hoverZones[2]);
       expect(tooltipTitle()?.textContent).toBe('Jul 2026');
       expect(tooltipRows(container)).toEqual([
@@ -438,8 +425,8 @@ describe('ContributionProfileTab', () => {
       expect(screen.queryByText(/points/)).not.toBeInTheDocument();
 
       const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
-      expect(within(totalRow).getByText('+150')).toBeInTheDocument(); // plaa total: 100+0+50
-      expect(within(totalRow).getByText('+900')).toBeInTheDocument(); // infra total
+      expect(within(totalRow).getByText('+150')).toBeInTheDocument();
+      expect(within(totalRow).getByText('+900')).toBeInTheDocument();
       expect(within(totalRow).getByText('1,050')).toBeInTheDocument(); // real currentBalance
     });
 
@@ -577,10 +564,10 @@ describe('ContributionProfileTab', () => {
 
       const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
       expect(within(totalRow).queryByText('Pending')).not.toBeInTheDocument();
-      expect(within(totalRow).getByText('570 points')).toBeInTheDocument(); // points 350 + 220
-      expect(within(totalRow).getByText('+35')).toBeInTheDocument(); // activity PLAA, May only
-      expect(within(totalRow).getByText('35')).toBeInTheDocument(); // balance
-      expect(within(totalRow).getByText('0')).toBeInTheDocument(); // infra, May only \u2014 zero carries no sign
+      expect(within(totalRow).getByText('570 points')).toBeInTheDocument();
+      expect(within(totalRow).getByText('+35')).toBeInTheDocument();
+      expect(within(totalRow).getByText('35')).toBeInTheDocument();
+      expect(within(totalRow).getByText('0')).toBeInTheDocument();
     });
   });
 
@@ -737,7 +724,6 @@ describe('ContributionProfileTab', () => {
 
       const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
       expect(within(totalRow).getByText('\u2212\u0035\u0038\u0030')).toBeInTheDocument();
-      // 848 over 580 PLAA = 1.462...
       expect(within(totalRow).getByText('$848 \u00b7 avg $1.46')).toBeInTheDocument();
     });
 
@@ -774,7 +760,7 @@ describe('ContributionProfileTab', () => {
       const top = document.querySelectorAll('[class*="dataRow"]')[0];
       expect(Array.from(top.children).map((c) => c.textContent)).toEqual([
         'Jul 2026',
-        '+45450 points', // 45 PLAA on one line, 450 points on the next
+        '+45450 points',
         '+30',
         '\u2212\u0035\u0030',
         '112',
@@ -827,10 +813,9 @@ describe('ContributionProfileTab', () => {
 
       const row = screen.getAllByText('Jul 2026')[1].closest('[class*="dataRow"]') as HTMLElement;
       const activities = row.children[1];
-      expect(activities.children[0].textContent).toBe('+45'); // the PLAA
-      expect(activities.children[1].textContent).toBe('450 points'); // what produced it, underneath
+      expect(activities.children[0].textContent).toBe('+45');
+      expect(activities.children[1].textContent).toBe('450 points');
 
-      // One cell per column on every row, so the grid stays aligned.
       expect(row.children).toHaveLength(5);
     });
   });

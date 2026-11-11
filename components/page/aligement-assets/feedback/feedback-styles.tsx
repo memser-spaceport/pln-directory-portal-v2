@@ -1,20 +1,5 @@
 'use client';
 
-/**
- * Feedback Board styles.
- *
- * Design references (per the vault's design-references pattern):
- * - Linear — near-zero-chrome surfaces; hierarchy from spacing and weight
- *   alone, almost no borders or fills. This is an Operate surface: a long list
- *   people scan, so rows are separated by one hairline and nothing else.
- * - Aura — restrained palette and generous whitespace so the one thing that
- *   matters per row is the only thing competing for attention. Here that is the
- *   title; the vote count is the only accent.
- *
- * Brand primary #1B4CFE per §6, white surfaces, near-black text, no yellow
- * except as a status tint. Tokens come from the Directory shell where they
- * exist, so the page reads as one site.
- */
 export default function FeedbackStyles() {
   return (
     <style jsx global>{`
@@ -23,14 +8,11 @@ export default function FeedbackStyles() {
         --fb-brand-dark: #133cc4;
         --fb-ink: #0f172a;
         --fb-muted: #64748b;
-        /* Dimmer than --fb-muted but still AA on a tinted chip (4.58:1). */
         --fb-muted-strong: #5b6878;
         --fb-hairline: #e2e8f0;
         --fb-surface: #ffffff;
         --fb-raised: #f8fafc;
 
-        /* 94% of the shell, with a ceiling so the Ideas rows don't stretch to
-           an unreadable line length on a wide monitor. */
         width: 94%;
         max-width: 1440px;
         margin: 0 auto;
@@ -50,7 +32,6 @@ export default function FeedbackStyles() {
         border: 0;
       }
 
-      /* ---------- header ---------- */
       .fb-page__head {
         display: flex;
         align-items: flex-start;
@@ -68,7 +49,6 @@ export default function FeedbackStyles() {
         margin: 0;
         color: var(--fb-muted);
         font-size: 15px;
-        /* Wide enough that the longer subheader sets as two lines, not four. */
         max-width: 72ch;
       }
       .fb-page__budget {
@@ -81,7 +61,6 @@ export default function FeedbackStyles() {
         font-weight: 600;
       }
 
-      /* ---------- buttons ---------- */
       .fb-btn {
         appearance: none;
         border: 0;
@@ -129,7 +108,6 @@ export default function FeedbackStyles() {
       .fb-linkbtn {
         background: none;
         border: 0;
-        /* WCAG 2.5.8: the hit area clears 24px even though the text is 13px. */
         padding: 6px 2px;
         min-height: 24px;
         font-size: 13px;
@@ -138,14 +116,11 @@ export default function FeedbackStyles() {
         text-decoration: underline;
       }
 
-      /* ---------- tabs ---------- */
       .fb-tabs {
         display: flex;
         gap: 4px;
         border-bottom: 1px solid var(--fb-hairline);
         margin-bottom: 20px;
-        /* Wrap rather than scroll: four short tabs never need a scrollbar, and
-           a hidden one would leave the overflowing tab unreachable. */
         flex-wrap: wrap;
       }
       .fb-tabs__tab {
@@ -167,7 +142,6 @@ export default function FeedbackStyles() {
         border-bottom-color: var(--fb-brand);
       }
 
-      /* ---------- filters ---------- */
       .fb-filters {
         display: flex;
         gap: 10px;
@@ -193,7 +167,6 @@ export default function FeedbackStyles() {
         background-repeat: no-repeat;
       }
 
-      /* ---------- list rows (Linear: one hairline, no card chrome) ---------- */
       .fb-list {
         list-style: none;
         margin: 0;
@@ -245,7 +218,6 @@ export default function FeedbackStyles() {
         font-size: 13px;
       }
 
-      /* ---------- vote ---------- */
       .fb-vote {
         flex: none;
         display: flex;
@@ -283,7 +255,6 @@ export default function FeedbackStyles() {
         font-weight: 700;
       }
 
-      /* ---------- badges ---------- */
       .fb-badge {
         display: inline-flex;
         align-items: center;
@@ -311,7 +282,6 @@ export default function FeedbackStyles() {
       }
       .fb-badge--muted {
         background: #f1f5f9;
-        /* #94a3b8 measured 2.34:1 here and failed AA. */
         color: var(--fb-muted-strong);
       }
       .fb-badge--type {
@@ -320,7 +290,6 @@ export default function FeedbackStyles() {
         color: var(--fb-muted);
       }
 
-      /* ---------- empty / loading / error ---------- */
       .fb-empty {
         display: flex;
         flex-direction: column;
@@ -354,7 +323,6 @@ export default function FeedbackStyles() {
         }
       }
 
-      /* ---------- roadmap ---------- */
       .fb-board__tabs {
         display: flex;
         gap: 6px;
@@ -366,7 +334,6 @@ export default function FeedbackStyles() {
         border: 1px solid var(--fb-hairline);
         background: var(--fb-surface);
         border-radius: 999px;
-        /* Thumb-sized: this is the only way to change column on a phone. */
         min-height: 44px;
         padding: 10px 14px;
         font-size: 13px;
@@ -471,7 +438,6 @@ export default function FeedbackStyles() {
         color: var(--fb-muted);
       }
 
-      /* ---------- move to ---------- */
       .fb-moveto {
         position: relative;
       }
@@ -522,7 +488,6 @@ export default function FeedbackStyles() {
         padding-top: 6px;
       }
 
-      /* ---------- detail ---------- */
       .fb-detail {
         display: grid;
         gap: 28px;
@@ -635,7 +600,6 @@ export default function FeedbackStyles() {
         color: var(--fb-muted);
       }
 
-      /* ---------- comments ---------- */
       .fb-comments__list {
         list-style: none;
         margin: 0 0 20px;
@@ -676,7 +640,6 @@ export default function FeedbackStyles() {
         justify-items: start;
       }
 
-      /* ---------- form ---------- */
       .fb-modal__backdrop {
         position: fixed;
         inset: 0;
@@ -862,7 +825,6 @@ export default function FeedbackStyles() {
         font-weight: 600;
       }
 
-      /* ---------- responsive ---------- */
       @media (max-width: 767px) {
         .fb-page {
           padding: 20px 16px 96px;
@@ -871,7 +833,6 @@ export default function FeedbackStyles() {
           flex-direction: column;
           gap: 14px;
         }
-        /* §6: the primary action stays reachable on a long list. */
         .fb-page__cta {
           position: sticky;
           bottom: 16px;

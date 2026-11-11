@@ -69,7 +69,6 @@ const buybacks = [
   },
 ] as unknown as TrustBuyback[];
 
-// Selected by testid, not legend copy: relabelling a series must not fail these.
 const legendBox = (series: 'nav' | 'buyback' | 'issuance') => screen.getByTestId(`th-key-${series}`);
 
 test('offers only the monthly graph and the table, opening on the monthly graph', () => {
@@ -79,7 +78,6 @@ test('offers only the monthly graph and the table, opening on the monthly graph'
   expect(views).toEqual(['Chart View', 'Table View']);
   expect(screen.queryByRole('button', { name: /Quarterly/ })).not.toBeInTheDocument();
 
-  // The monthly view is live on first render: its issuance axis is already drawn.
   expect(screen.getByTestId('axis-issuance')).toBeInTheDocument();
 });
 

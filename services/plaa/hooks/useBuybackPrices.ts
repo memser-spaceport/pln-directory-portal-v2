@@ -34,7 +34,6 @@ async function fetchBuybackPrices(): Promise<BuybackPrice[] | null> {
   }
 }
 
-/** Prices change only when an auction closes, so this is cached longer than live figures. */
 export function useBuybackPrices() {
   return useQuery<BuybackPrice[] | null>({
     queryKey: [BuybackPricesQueryKeys.PRICES],

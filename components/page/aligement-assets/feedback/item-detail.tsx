@@ -10,10 +10,6 @@ import { formatDate, relativeAge } from './feedback.utils';
 
 const COMMENT_MAX = 2000;
 
-/**
- * Item detail (F-4). Everything a member needs to judge an idea: what it is,
- * where it stands, who moved it and why, and what others said.
- */
 export default function ItemDetail({
   item,
   comments,
@@ -88,7 +84,6 @@ export default function ItemDetail({
           </p>
         )}
 
-        {/* §6: the count only. The images live in Linear, never on the board. */}
         {item.screenshot_count > 0 && (
           <p className="fb-detail__screenshots">
             {item.screenshot_count} screenshot{item.screenshot_count === 1 ? '' : 's'} sent to the PLAA team

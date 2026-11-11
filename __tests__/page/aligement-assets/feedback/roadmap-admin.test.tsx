@@ -131,8 +131,6 @@ describe('AC-T7.7 narrow viewport', () => {
 
     const tabs = screen.getAllByRole('tab');
     expect(tabs).toHaveLength(4);
-    // Only the selected column is on screen, and it is that tab's panel.
-    // The panel takes its name from the tab, which carries the item count.
     expect(screen.getByRole('tabpanel', { name: /Under Review/ })).toBeInTheDocument();
     expect(screen.queryByRole('tabpanel', { name: /To Do/ })).not.toBeInTheDocument();
 

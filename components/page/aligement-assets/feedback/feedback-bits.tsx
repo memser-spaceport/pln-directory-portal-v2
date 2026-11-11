@@ -26,10 +26,6 @@ export function TypeBadge({ type }: { type: FeedbackType }) {
   return <span className={`fb-badge fb-badge--type fb-badge--${type}`}>{TYPE_LABELS[type]}</span>;
 }
 
-/**
- * Vote control. `aria-pressed` carries the state (AC-T6.3); on a closed item the
- * button is disabled and says why rather than silently doing nothing.
- */
 export function VoteButton({
   item,
   onToggle,
@@ -39,11 +35,10 @@ export function VoteButton({
   item: FeedbackItem;
   onToggle: () => void;
   pending?: boolean;
-  /** Undefined until the viewer's budget loads; the cap is not enforced then. */
+  /** Undefined until the budget loads; the cap is not enforced then. */
   votesRemaining?: number;
 }) {
   const votable = canVote(item.status);
-  // Removing a vote is always allowed \u2014 that is how a member frees one up.
   const outOfVotes = !item.has_voted && votesRemaining === 0;
   const reason = !votable
     ? voteDisabledReason(item.status)

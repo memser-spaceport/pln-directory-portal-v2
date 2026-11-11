@@ -5,10 +5,6 @@ import type {
   FeedbackType,
 } from '@/services/plaa/feedback/feedback.types';
 
-/**
- * Fixtures, not live content. Tests assert rules — visibility, gating,
- * formatting, state changes — against these, never against production copy.
- */
 export function item(overrides: Partial<FeedbackItem> = {}): FeedbackItem {
   return {
     id: overrides.id ?? '11111111-1111-1111-1111-111111111111',

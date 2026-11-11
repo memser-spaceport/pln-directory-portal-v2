@@ -19,7 +19,6 @@ interface HowItem {
   iconOpacity?: string;
   icon: ReactNode;
   withActivitiesLink: boolean;
-  /** The section this step explains, scrolled to when the card is clicked. */
   targetId: string;
 }
 
@@ -81,8 +80,6 @@ export default function OverviewTopline({ trustHoldings }: OverviewToplineProps)
     useAlignmentAssetsAnalytics();
 
   const handlePortfolioClick = () => onOverviewPortfolioLinkClicked('/alignment-asset/portfolio-holdings');
-  // The browser owns the scroll (the global `[id]` rule makes it smooth and clears
-  // the sticky header); this only records which step sent the member where.
   const handleHowCardClick = (step: string, targetId: string) => onOverviewHowStepClicked(step, targetId);
   const handleActivitiesClick = () => onOverviewActivitiesLinkClicked('/alignment-asset/activities', 'how-it-works');
 
@@ -130,8 +127,6 @@ export default function OverviewTopline({ trustHoldings }: OverviewToplineProps)
             >
               <div className={styles.howCardHeader}>
                 <span className={styles.howCardBadge}>{item.number}</span>
-                {/* The title is the link; its ::after covers the card, so the whole
-                    card is clickable without nesting the activities link inside it. */}
                 <a
                   href={`#${item.targetId}`}
                   className={styles.howCardTitleLink}

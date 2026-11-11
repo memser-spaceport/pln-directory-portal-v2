@@ -167,7 +167,6 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  /* Anchors the title link's stretched hit area below. */
   position: relative;
   transition:
     box-shadow 0.15s ease,
@@ -178,7 +177,6 @@
     transform: translateY(-1px);
   }
 
-  /* The hit area is the title link, so focus has to show on the card it covers. */
   &:focus-within {
     outline: 2px solid var(--ov-accent, var(--ov-blue-500));
     outline-offset: 2px;
@@ -220,7 +218,6 @@
   line-height: 24px;
 }
 
-/* Stretched link: the whole card scrolls to the section this step explains. */
 .howCardTitleLink {
   @extend .howCardTitle;
   color: inherit;

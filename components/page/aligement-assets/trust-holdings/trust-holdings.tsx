@@ -57,7 +57,6 @@ const NAV_LINE_WIDTH = 2;
 
 const digitalTotal = (p: { btc: number; eth: number; fil: number }) => p.btc + p.eth + p.fil;
 
-// The three line series the reader can switch off from the key.
 type SeriesToggle = 'nav' | 'buyback' | 'issuance';
 
 type HiddenSeries = Record<SeriesToggle, boolean>;

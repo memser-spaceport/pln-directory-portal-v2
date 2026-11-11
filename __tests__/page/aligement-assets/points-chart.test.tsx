@@ -90,7 +90,6 @@ describe('PointsChart', () => {
     const { container } = render(<PointsChart entries={partial} />);
 
     expect(container.querySelectorAll('svg rect')).toHaveLength(2);
-    // The missing month still keeps its slot on the x axis.
     expect(Array.from(container.querySelectorAll('svg text[fill="#94a3b8"]'))).toHaveLength(3);
   });
 

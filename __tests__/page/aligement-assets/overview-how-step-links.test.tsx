@@ -44,7 +44,6 @@ const HISTORY: RoundHistoryEntry[] = [
   { roundNumber: 18, label: 'September 2026', categories: [{ name: 'Network Tooling', points: 1800, plaa: 1935 }] },
 ];
 
-/** The step a member clicks, and the section they expect to land on. */
 const STEP_TARGETS: Array<[string, string, string]> = [
   ['Contribute', OVERVIEW_SECTION_IDS.whoItsFor, 'Who It’s For'],
   ['Collect', OVERVIEW_SECTION_IDS.snapshotsAndPoints, 'Snapshots & Points'],
@@ -69,7 +68,6 @@ describe('How It Works steps jump to the section they explain', () => {
 
     const section = container.querySelector(`#${targetId}`);
     expect(section).toBeInTheDocument();
-    // The anchor is the section itself, not a stray wrapper: its heading is inside it.
     expect(section).toHaveTextContent(heading);
   });
 
@@ -86,7 +84,6 @@ describe('How It Works steps jump to the section they explain', () => {
 
     const activities = screen.getByRole('link', { name: /See activities/ });
     expect(activities).toHaveAttribute('href', '/alignment-asset/activities');
-    // Two distinct links on that card: the step anchor and the activities link.
     expect(screen.getByRole('link', { name: 'Contribute' })).not.toBe(activities);
   });
 });

@@ -45,11 +45,13 @@ Each group is one subtask branch (`lab-3211-<sub#>`, cut from `lab-3211`) and on
 
 ## 7. Checks on lab-3211
 
-- [ ] 7.1 Run `npm run lint`, `npx tsc --noEmit` and `npm run test` in the worktree. All pass, or failures are shown to also fail on `origin/develop`.
-- [ ] 7.2 Run `npx -y @fission-ai/openspec@1.14.1 validate lab-3211-event-drawer-and-profile-events --json` and confirm it reports valid.
+- [x] 7.1 Run `npm run lint`, `npx tsc --noEmit` and `npm run test` in the worktree. All pass, or failures are shown to also fail on `origin/develop`.
+- [x] 7.2 Run `npx -y @fission-ai/openspec@1.14.1 validate lab-3211-event-drawer-and-profile-events --json` and confirm it reports valid.
 - [ ] 7.3 On the `lab-3211` feature env (`NEXT_PUBLIC_SHOW_EVENT_DRAWER=true`, `NEXT_PUBLIC_SHOW_HOME_V2=true`), walk through every Scenarios item of LAB-3211 with a dev account that has `irlg.going.write`, and one without it.
 
 ## Workflow follow-up
 
 - Archive this change (`/opsx:archive`) in the PR of the last subtask that merges into `lab-3211`, so `openspec/specs/` changes with the code.
 - Polina reviews the drawer footer (prototype "Skip/Cancel + Save" vs the ticket's "no Save/Cancel") on the feature env.
+
+> Archived 2026-11-11 with 2 tasks open by design: 2.8 (side-by-side prototype check; local `/prototypes/*` returns 500) and 7.3 (walk-through of LAB-3211's scenarios). Both run on the `lab-3211` feature env before the Goal moves to Ready for test. 7.1 on `lab-3211` @ 1dab2f129: jest 690 suites / 6729 tests pass; tsc 61 errors, all pre-existing; eslint 0 errors in the 71 files changed vs `develop` (333 pre-existing elsewhere).

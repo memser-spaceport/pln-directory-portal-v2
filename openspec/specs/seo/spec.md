@@ -77,6 +77,22 @@ A member profile with no photo and no bio text SHALL have `robots` `noindex, fol
 - **WHEN** a client requests `/sitemap.xml`, a section sitemap or `/robots.txt`
 - **THEN** the response has no `Set-Cookie` header
 
+### Requirement: The old host's addresses have their own sitemap during the domain move
+
+`directory.plnetwork.io` answers every path with a 301 to the same path on `os.pl.xyz` (a Cloudflare rule). Until Search Console shows the move complete, production (`APPLICATION_BASE_URL` `https://os.pl.xyz`) SHALL serve `/sitemaps/legacy-directory-plnetwork.xml`: every address the section sitemaps list, and the root `/`, on the old host, each once and with no `lastmod`. It is submitted in Search Console by hand; Google accepts it because one account has verified both hosts. `/sitemap.xml` and robots.txt SHALL NOT name it. Every other deployment SHALL answer it with 404, since its entity ids are not the old host's. It SHALL NOT be answered with session cookie headers.
+
+#### Scenario: Crawler reads the old host's sitemap on production
+
+- **GIVEN** the team sitemap lists `https://os.pl.xyz/teams/T`
+- **WHEN** a crawler requests `https://os.pl.xyz/sitemaps/legacy-directory-plnetwork.xml`
+- **THEN** it lists `https://directory.plnetwork.io/teams/T` and `https://directory.plnetwork.io/`
+- **AND** it lists no `os.pl.xyz` address and no `lastmod`
+
+#### Scenario: Feature env
+
+- **WHEN** a client requests `/sitemaps/legacy-directory-plnetwork.xml` on `directory-portal-lab-<n>.os.pl.xyz`
+- **THEN** the response is 404
+
 ### Requirement: One address for the events calendar
 
 `/events` SHALL redirect permanently (308) to `/events/all`, and `/events/all` SHALL declare itself as its canonical address. Other pages under `/events/` SHALL NOT redirect.

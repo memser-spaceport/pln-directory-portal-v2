@@ -76,7 +76,7 @@ export async function loadPlaaBot({ scriptUrl, webhookUrl, configUrl }: LoadPlaa
     throw new Error('PLAABot is not available after loading the widget script');
   }
 
-  window.PLAABot.init({ webhookUrl, configUrl });
+  window.PLAABot.init({ webhookUrl, configUrl, launcher: true });
   script.dataset.initialised = 'true';
 }
 

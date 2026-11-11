@@ -1,6 +1,7 @@
 export interface PlaaBotInitOptions {
   webhookUrl: string;
   configUrl: string;
+  launcher?: boolean;
 }
 
 export interface PlaaBotApi {

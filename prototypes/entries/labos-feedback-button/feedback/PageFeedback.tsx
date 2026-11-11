@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { clsx } from 'clsx';
 import { CommentIcon } from '@/components/icons';
 import { isAnyDialogOpen, isOpenFeedbackKey, useShortcutLabels } from '@/components/page/ai-apps/shortcutKeys';
@@ -59,15 +59,23 @@ export function PageFeedbackDrawer({
   page,
   viewer,
   onSubmit,
+  headerTabs,
+  instant,
 }: {
   isOpen: boolean;
   onClose: () => void;
   page: { name: string; path: string };
   viewer?: PageFeedbackViewer;
   onSubmit?: (feedback: SubmittedFeedback) => void;
+  /** Replaces the "Give feedback" title (home-v2-agent-dock's Agent | Feedback tabs). */
+  headerTabs?: ReactNode;
+  /** No slide in or out (one tab of a pair). */
+  instant?: boolean;
 }) {
   return (
     <GiveAiAppFeedbackDialog
+      headerTabs={headerTabs}
+      instant={instant}
       variant="drawer"
       isOpen={isOpen}
       onClose={onClose}

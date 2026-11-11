@@ -1,3 +1,5 @@
+@use 'styles/media';
+
 /* LabOS Agent V0's cards. The frame is AgentPanel's .draft/.proposal card (subtle border, 12px radius,
    12px pad, 12px gap), so every card in the thread is one object. */
 
@@ -211,6 +213,19 @@
 /* AgentPanel turns into a sticky shell column from 1600px (home-v2-b's sidebar layout). Home has a top
    bar and no shell, so it stays docked over the right edge at every width from 960. */
 .panelOnHome.panelOnHome {
+  /* The feedback drawer's width (FEEDBACK_DRAWER_NARROW), so the Agent | Feedback tabs swap one drawer. */
+  @include media.tablet-landscape {
+    width: 480px;
+  }
+
+  /* Its header's side padding too, so the tabs sit where the feedback drawer's do. */
+  /* Measured against it: production .header is 20px 24px around the 32px tabs, plus its 1px rule (73px);
+     23px left, as the panel's own 1px left border is the other pixel. */
+  > header {
+    height: 73px;
+    padding: 0 20px 0 23px;
+  }
+
   @media (min-width: 1600px) {
     position: fixed;
     inset: 0 0 0 auto;

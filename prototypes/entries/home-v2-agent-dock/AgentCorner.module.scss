@@ -110,3 +110,322 @@
   font-size: 12px;
   line-height: 16px;
 }
+
+/* ---------- The pages the agent reads (above the composer) ---------- */
+
+.contextRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+/* AgentPanel's .context chip, with a remove ✕ at the end. */
+.contextChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  height: 24px;
+  padding: 0 4px 0 8px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 6px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+
+  svg {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.contextLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contextRemove {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+      color: var(--foreground-neutral-primary, #0a0c11);
+    }
+  }
+}
+
+/* Dashed: a slot to fill, not a page already read. */
+.contextAdd {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 8px 0 6px;
+  border: 1px dashed var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  border-radius: 6px;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  cursor: pointer;
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      color: var(--foreground-neutral-secondary, #455468);
+      border-color: var(--foreground-neutral-tertiary, #8897ae);
+    }
+  }
+
+  &[data-popup-open] {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.pagePopup.pagePopup {
+  width: 280px;
+  max-width: calc(100vw - 32px);
+}
+
+.pageItem.pageItem {
+  gap: 8px;
+
+  svg {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+}
+
+.pageItemText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pageItemKind {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* ---------- Agent | Feedback tabs (production FeedbackTabs + glyphs) ---------- */
+
+.slotTab.slotTab svg {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+/* ---------- Closed: Agent | Feedback as two tabs on the pill (.dock) ---------- */
+
+/* Both tabs are .agent; the comment glyph sizes like the pointer. 2px between them, the open tabs' gap. */
+.dock {
+  gap: 2px;
+}
+
+.agent svg {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+/* History, now in the Agent panel's header: AgentPanel's .iconBtn (28px round, tertiary → secondary). */
+.historyInHead {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+      color: var(--foreground-neutral-secondary, #455468);
+    }
+  }
+
+  &[data-popup-open] {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+}
+
+.popupOverPanel.popupOverPanel {
+  max-height: min(360px, calc(100dvh - 96px));
+}
+
+/* Rounded like the closed corner's pill (user, 2026-11-11): production FeedbackTabs' 8px track and 6px tabs
+   become full pills. Doubled classes: equal specificity against the imported stylesheet can lose on order. */
+.slotTrack.slotTrack {
+  border-radius: 999px;
+}
+
+.slotTab.slotTab {
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+
+/* ---------- Closed tabs: glyphs, labels animated as production's floating feedback button ---------- */
+
+/* Kept mounted while the drawer is open (no arrival replay on close). Production's .fabHidden. */
+.cornerHidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Production's fabIn: it arrives rather than appearing. */
+.dock {
+  animation: dockIn 280ms ease-out both;
+}
+
+@keyframes dockIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* FeedbackFabButton's .button move on a 40px tab: no explicit width; the label animates its own max-width
+   and margin, the padding goes to 0, and min-width makes the settled tab a 40px disc. The glyph-to-label
+   8px is the label's margin, not the row's gap, so a collapsed glyph sits on the disc's centre. */
+.agent.agent {
+  gap: 0;
+  min-width: 40px;
+  padding: 0 14px 0 10px;
+  transition:
+    padding 0.28s ease,
+    background-color 0.15s,
+    color 0.15s;
+}
+
+.tabLabel {
+  display: inline-flex;
+  max-width: 120px;
+  margin-left: 8px;
+  overflow: hidden;
+  white-space: nowrap;
+  transition:
+    max-width 0.28s ease,
+    margin-left 0.28s ease,
+    opacity 0.18s ease;
+}
+
+@mixin expanded-tab {
+  padding: 0 14px 0 10px;
+
+  .tabLabel {
+    max-width: 120px;
+    margin-left: 8px;
+    opacity: 1;
+  }
+}
+
+.dock[data-collapsed='true'] {
+  .agent.agent {
+    padding: 0;
+  }
+
+  .tabLabel {
+    max-width: 0;
+    margin-left: 0;
+    opacity: 0;
+  }
+}
+
+/* One tab at a time: the one under the pointer (or focused) says its name. */
+@media (hover: hover) {
+  .dock[data-collapsed='true'] .agent.agent:hover {
+    @include expanded-tab;
+  }
+}
+
+.dock[data-collapsed='true'] .agent.agent:focus-visible {
+  @include expanded-tab;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dock {
+    animation: none;
+  }
+
+  .agent.agent,
+  .tabLabel {
+    transition: none;
+  }
+}
+
+/* Feedback in dev's brand fill (user, 2026-11-11): FeedbackFabButton's colours, shadow and hover lift, on
+   the closed tab, so the feedback door keeps the look members already know. Tripled to beat .agent.agent and
+   its hover. */
+.feedbackTab.feedbackTab.feedbackTab {
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(27, 77, 255, 0.3);
+  transition:
+    padding 0.28s ease,
+    box-shadow 0.15s,
+    transform 0.15s;
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--foreground-brand-primary, #1b4dff);
+      color: #fff;
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(27, 77, 255, 0.38);
+    }
+  }
+
+  &:focus-visible {
+    outline-offset: 2px;
+  }
+}

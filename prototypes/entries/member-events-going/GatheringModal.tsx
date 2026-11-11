@@ -3,13 +3,14 @@
 import { useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
+import { Button } from '@/components/common/Button';
 import { Checkbox } from '@/components/common/Checkbox';
+import { Drawer } from '@/components/common/Drawer';
 import { Modal } from '@/components/common/Modal/Modal';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import type { ITeam } from '@/types/teams.types';
 
 // Production's presentational parts, imported as they are. They render from props.
-import { AboutSection } from '@/components/core/UpdatesPanel/IrlGatheringModal/components/AboutSection';
 import { AdditionalDetailsSection } from '@/components/core/UpdatesPanel/IrlGatheringModal/components/AdditionalDetailsSection';
 import { DatePickerView } from '@/components/core/UpdatesPanel/IrlGatheringModal/components/DatePickerView';
 import { EventsPickerView } from '@/components/core/UpdatesPanel/IrlGatheringModal/components/EventsPickerView';
@@ -21,9 +22,21 @@ import { CloseIcon } from '@/components/core/UpdatesPanel/IrlGatheringModal/icon
 import type { EventRoleSelection, IrlGatheringFormData } from '@/components/core/UpdatesPanel/IrlGatheringModal/types';
 import m from '@/components/core/UpdatesPanel/IrlGatheringModal/IrlGatheringModal.module.scss';
 
+import { BackIcon, EventSummary, HostIcon, Label, PinLabelIcon } from './EventDetails';
+import e from './EventDetails.module.scss';
 import { EventRow, GoingMark } from './EventRow';
 import { markGoing, saveGathering, useGoing, type GoingScope } from './goingStore';
-import { ATTENDEES, eventsOf, gatheringOf, GOING_EVENTS, MAYA_TEAMS, toEventData, type GoingEvent } from './mocks';
+import {
+  ATTENDEES,
+  EVENT_DETAILS,
+  EVENT_THUMBS,
+  eventsOf,
+  gatheringOf,
+  GOING_EVENTS,
+  MAYA_TEAMS,
+  toEventData,
+  type GoingEvent,
+} from './mocks';
 import s from './MemberEventsGoing.module.scss';
 
 /** What opened the modal: one event, or the owner's "Add event" list. */
@@ -50,6 +63,10 @@ export interface GatheringNotice {
  *  - "Show on my profile", ticked by default, asked where the answer is given.
  *  - An "Add event" list for the owner's door on their profile.
  *  - The title drops "IRL Gatherings:", the name of the hidden page.
+ *  - 2026-11-10: the event opens as the PL events app draws it (right-hand drawer,
+ *    "EVENT DETAILS", logo, facts, tags, Host, Description, Agenda; see
+ *    `EventDetails`), with the gathering links, Attendees and the ask below it.
+ *    The date pickers and the people list stay modals above the drawer.
  */
 export function GatheringModal({
   target,
@@ -158,69 +175,76 @@ function EventFlow({
     finish(showOnProfile);
   });
 
-  if (picker.currentView === 'datePicker') {
-    return (
-      <Modal isOpen onClose={onClose} overlayClassname={m.modalOverlay}>
-        <DatePickerView
-          planningQuestion={planningQuestion}
-          initialRange={picker.selectedDateRange}
-          onCancel={picker.handleDatePickerCancel}
-          onApply={picker.handleDatePickerApply}
-          gatheringDateRange={{ start: event.startDate, end: event.endDate }}
-          onClear={() => {}}
-        />
-      </Modal>
-    );
-  }
+  const renderOverlay = () => {
+    if (picker.currentView === 'datePicker') {
+      return (
+        <Modal isOpen onClose={picker.handleDatePickerCancel} overlayClassname={m.modalOverlay}>
+          <DatePickerView
+            planningQuestion={planningQuestion}
+            initialRange={picker.selectedDateRange}
+            onCancel={picker.handleDatePickerCancel}
+            onApply={picker.handleDatePickerApply}
+            gatheringDateRange={{ start: event.startDate, end: event.endDate }}
+            onClear={() => {}}
+          />
+        </Modal>
+      );
+    }
 
-  if (picker.currentView === 'topicsPicker') {
-    return (
-      <Modal isOpen onClose={onClose} overlayClassname={m.modalOverlay}>
-        <TopicsPickerView
-          planningQuestion={planningQuestion}
-          initialTopics={picker.selectedTopics}
-          onCancel={picker.handleTopicsPickerCancel}
-          onApply={(topics) => picker.handleTopicsPickerApply(topics, (t) => methods.setValue('topics', t))}
-        />
-      </Modal>
-    );
-  }
+    if (picker.currentView === 'topicsPicker') {
+      return (
+        <Modal isOpen onClose={picker.handleTopicsPickerCancel} overlayClassname={m.modalOverlay}>
+          <TopicsPickerView
+            planningQuestion={planningQuestion}
+            initialTopics={picker.selectedTopics}
+            onCancel={picker.handleTopicsPickerCancel}
+            onApply={(topics) => picker.handleTopicsPickerApply(topics, (t) => methods.setValue('topics', t))}
+          />
+        </Modal>
+      );
+    }
 
-  if (picker.currentView === 'eventsPicker') {
-    return (
-      <Modal isOpen onClose={onClose} overlayClassname={m.modalOverlay}>
-        <EventsPickerView
-          planningQuestion={planningQuestion}
-          locationName={gathering.city}
-          timezone={gathering.timezone}
-          events={eventData}
-          initialSelectedEventUids={selectedEventUids}
-          initialEventRoles={eventRoles}
-          onCancel={picker.handleEventsPickerCancel}
-          onApply={(uids, roles) =>
-            picker.handleEventsPickerApply(
-              uids,
-              roles,
-              (u) => methods.setValue('selectedEventUids', u),
-              (r) => methods.setValue('eventRoles', r),
-            )
-          }
-        />
-      </Modal>
-    );
-  }
+    if (picker.currentView === 'eventsPicker') {
+      return (
+        <Modal isOpen onClose={picker.handleEventsPickerCancel} overlayClassname={m.modalOverlay}>
+          <EventsPickerView
+            planningQuestion={planningQuestion}
+            locationName={gathering.city}
+            timezone={gathering.timezone}
+            events={eventData}
+            initialSelectedEventUids={selectedEventUids}
+            initialEventRoles={eventRoles}
+            onCancel={picker.handleEventsPickerCancel}
+            onApply={(uids, roles) =>
+              picker.handleEventsPickerApply(
+                uids,
+                roles,
+                (u) => methods.setValue('selectedEventUids', u),
+                (r) => methods.setValue('eventRoles', r),
+              )
+            }
+          />
+        </Modal>
+      );
+    }
 
-  if (showAttendees) {
-    return (
-      <AttendeesView
-        eventName={event.name}
-        total={count}
-        you={attending}
-        onBack={() => setShowAttendees(false)}
-        onClose={() => finish(showOnProfile)}
-      />
-    );
-  }
+    if (showAttendees) {
+      return (
+        <AttendeesView
+          eventName={event.name}
+          total={count}
+          you={attending}
+          onBack={() => setShowAttendees(false)}
+          onClose={() => finish(showOnProfile)}
+        />
+      );
+    }
+    return null;
+  };
+  const overlay = renderOverlay();
+  const close = () => finish(showOnProfile);
+  const detail = EVENT_DETAILS[event.uid];
+  const drawerWidth = typeof window === 'undefined' ? 778 : Math.min(778, window.innerWidth);
 
   const consent = (
     <label className={s.consent}>
@@ -235,98 +259,115 @@ function EventFlow({
   );
 
   return (
-    <Modal isOpen onClose={() => finish(showOnProfile)} overlayClassname={m.modalOverlay}>
-      <FormProvider {...methods}>
-        <form onSubmit={onSave} className={m.modal} onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}>
-          <Header title={event.name} onClose={() => finish(showOnProfile)} />
-
-          <div className={m.content}>
-            <AboutSection description={gathering.about} />
-
-            <GatheringDetails
-              dateRange={event.range}
-              location={gathering.city}
-              eventsLink={gathering.scheduleLink}
-              eventsCount={siblings.length}
-              resources={gathering.resources}
-            />
-
-            <div className={m.section}>
-              <h3 className={m.sectionTitle}>Attendees</h3>
-              <div className={m.attendeesRow}>
-                <div className={m.avatarGroup}>
-                  {ATTENDEES.slice(0, 3).map((a) => (
-                    <div key={a.uid} className={m.avatar}>
-                      <img src={getDefaultAvatar(a.name)} alt="" width={24} height={24} />
-                    </div>
-                  ))}
-                </div>
-                <button type="button" className={m.linkButton} onClick={() => setShowAttendees(true)}>
-                  {count} People going
-                </button>
-              </div>
+    <>
+      {/* While a picker or the people list is open above it, Escape and the backdrop belong to that. */}
+      <Drawer isOpen onClose={overlay ? () => {} : close} width={drawerWidth}>
+        <FormProvider {...methods}>
+          <form onSubmit={onSave} className={e.root} onKeyDown={(ev) => ev.key === 'Enter' && ev.preventDefault()}>
+            <div className={e.backBar}>
+              <button type="button" className={e.back} onClick={close}>
+                <BackIcon />
+                Back
+              </button>
             </div>
 
-            {step === 1 && (
-              <div className={s.askBlock}>
-                <div>
-                  <div className={m.step1Title}>Are you going to {event.name}?</div>
-                  <div className={m.step1Subtitle}>Let others know if you are attending.</div>
+            <div className={e.body}>
+              <EventSummary name={event.name} detail={detail} image={EVENT_THUMBS[event.uid]} />
+
+              <div className={e.block}>
+                <Label icon={<PinLabelIcon />}>{gathering.city} gathering</Label>
+                <div className={e.gatheringLinks}>
+                  <GatheringDetails
+                    dateRange={event.range}
+                    location={gathering.city}
+                    eventsLink={gathering.scheduleLink}
+                    eventsCount={siblings.length}
+                    resources={gathering.resources}
+                  />
                 </div>
-                {consent}
+              </div>
+
+              <div className={e.block}>
+                <Label icon={<HostIcon />}>Attendees</Label>
+                <div className={m.attendeesRow}>
+                  <div className={m.avatarGroup}>
+                    {ATTENDEES.slice(0, 3).map((a) => (
+                      <div key={a.uid} className={m.avatar}>
+                        <img src={getDefaultAvatar(a.name)} alt="" width={24} height={24} />
+                      </div>
+                    ))}
+                  </div>
+                  <button type="button" className={m.linkButton} onClick={() => setShowAttendees(true)}>
+                    {count} People going
+                  </button>
+                </div>
+              </div>
+
+              {step === 1 && (
+                <div className={s.askBlock}>
+                  <div>
+                    <div className={m.step1Title}>Are you going to {event.name}?</div>
+                    <div className={m.step1Subtitle}>Let others know if you are attending.</div>
+                  </div>
+                  {consent}
+                </div>
+              )}
+
+              {step === 2 && (
+                <>
+                  <PlanningSection
+                    planningQuestion={planningQuestion}
+                    selectedDateRange={picker.selectedDateRange}
+                    selectedTopics={picker.selectedTopics}
+                    selectedEvents={selectedEvents}
+                    events={eventData}
+                    onDateInputClick={picker.handleOpenDatePicker}
+                    onTopicsInputClick={picker.handleOpenTopicsPicker}
+                    onEventsInputClick={picker.handleOpenEventsPicker}
+                    isLoggedIn
+                  />
+                  <AdditionalDetailsSection
+                    teams={MAYA_TEAMS as unknown as ITeam[]}
+                    telegramHandle="@mayaokonkwo"
+                    officeHours=""
+                    defaultExpanded={false}
+                  />
+                  {consent}
+                </>
+              )}
+            </div>
+
+            {/* Keyed per step. Without it React reuses the "Yes" button as "Save",
+                and its type turns to submit in the middle of the click. */}
+            {/* The directory's own DS buttons, as on the profile's Cancel/Save
+                (EditFormControls) — not the events app's 24px-radius pills the
+                panel was first transcribed with (changed 2026-11-11). */}
+            {step === 1 ? (
+              <div key="ask" className={e.footer}>
+                <Button type="button" style="border" variant="neutral" size="s" className={e.footerBtn} onClick={onClose}>
+                  No
+                </Button>
+                <Button type="button" size="s" className={e.footerBtn} onClick={onYes}>
+                  Yes, I&apos;m going
+                </Button>
+              </div>
+            ) : (
+              <div key="details" className={e.footer}>
+                {/* Step two is optional detail: the answer was saved by "Yes", so
+                    this leaves rather than cancels. */}
+                <Button type="button" style="border" variant="neutral" size="s" className={e.footerBtn} onClick={close}>
+                  {justMarked ? 'Skip' : 'Cancel'}
+                </Button>
+                <Button type="submit" size="s" className={e.footerBtn}>
+                  Save
+                </Button>
               </div>
             )}
-
-            {step === 2 && (
-              <>
-                <PlanningSection
-                  planningQuestion={planningQuestion}
-                  selectedDateRange={picker.selectedDateRange}
-                  selectedTopics={picker.selectedTopics}
-                  selectedEvents={selectedEvents}
-                  events={eventData}
-                  onDateInputClick={picker.handleOpenDatePicker}
-                  onTopicsInputClick={picker.handleOpenTopicsPicker}
-                  onEventsInputClick={picker.handleOpenEventsPicker}
-                  isLoggedIn
-                />
-                <AdditionalDetailsSection
-                  teams={MAYA_TEAMS as unknown as ITeam[]}
-                  telegramHandle="@mayaokonkwo"
-                  officeHours=""
-                  defaultExpanded={false}
-                />
-                {consent}
-              </>
-            )}
-          </div>
-
-          {/* Keyed per step. Without it React reuses the "Yes" button as "Save",
-              and its type turns to submit in the middle of the click. */}
-          {step === 1 ? (
-            <div key="ask" className={m.footer}>
-              <button type="button" className={m.cancelButton} onClick={onClose}>
-                No
-              </button>
-              <button type="button" className={m.goingButton} onClick={onYes}>
-                Yes, I&apos;m going
-              </button>
-            </div>
-          ) : (
-            <div key="details" className={m.footer}>
-              {/* Step two is optional detail: the answer was saved by "Yes", so
-                  this leaves rather than cancels. */}
-              <button type="button" className={m.cancelButton} onClick={() => finish(showOnProfile)}>
-                {justMarked ? 'Skip' : 'Cancel'}
-              </button>
-              <button type="submit" className={m.goingButton}>
-                Save
-              </button>
-            </div>
-          )}
-        </form>
-      </FormProvider>
-    </Modal>
+          </form>
+        </FormProvider>
+      </Drawer>
+      {overlay}
+    </>
   );
 }
 

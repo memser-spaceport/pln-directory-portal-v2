@@ -33,6 +33,8 @@ interface FrameProps {
    * overlays, as the popover did.
    */
   reserveSpace: boolean;
+  /** Prototype (home-v2-agent-dock): no slide in or out, so swapping with the Agent tab reads as one drawer. */
+  instant?: boolean;
 }
 
 /**
@@ -51,7 +53,14 @@ interface FrameProps {
  * While a capture is on screen the drawer is hidden but keeps its inset, so the
  * app does not jump under the crosshair.
  */
-export function FeedbackDrawerFrame({ isOpen, wide, hidden, reserveSpace, children }: PropsWithChildren<FrameProps>) {
+export function FeedbackDrawerFrame({
+  isOpen,
+  wide,
+  hidden,
+  reserveSpace,
+  instant = false,
+  children,
+}: PropsWithChildren<FrameProps>) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -93,9 +102,9 @@ export function FeedbackDrawerFrame({ isOpen, wide, hidden, reserveSpace, childr
             )}
             role="dialog"
             aria-modal={wide}
-            initial={{ x: '100%' }}
+            initial={instant ? false : { x: '100%' }}
             animate={{ x: 0 }}
-            exit={{ x: '100%' }}
+            exit={instant ? { x: 0, transition: { duration: 0 } } : { x: '100%' }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
           >
             {children}

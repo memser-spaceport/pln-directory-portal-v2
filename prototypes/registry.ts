@@ -242,7 +242,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     version: 1,
     title: 'Member profile — events they are going to',
     description:
-      'IRL Gatherings is admin-only since 2026-11-05, so a member marks attendance and sees who is going in the gathering modal, opened from their profile or Home. The profile has one Events section: "You\'re going to" rows above past events, moved under Office Hours while there are plans, signed-in members only. The owner gets Add event, Edit details, Hide from my profile and Remove. Marking is shared with homepage for the session.',
+      "IRL Gatherings is admin-only since 2026-11-05, so a member marks attendance and sees who is going in the gathering modal, opened from their profile or Home. The profile's Events section is one section: upcoming cards above Contributions, past cards with month, year, city and any role beyond attendance. The Profile switch (?profile=team) shows it adapted for the team profile in place of the Contributions tiles: upcoming is what the team's members are going to (\"3 from Protocol Labs\" with their faces, the team's own Host / Sponsor / Speaker role), with no Add event or menu since members add events from their own profile, and Contributions lists the team's past events with Demo Day among them. The member section moves under Office Hours while there are plans; upcoming plans are for signed-in members only. An event opens as the PL events app's detail drawer. The owner gets Add event, Edit details, Hide from my profile and Remove. Marking is shared with homepage for the session.",
     category: 'Members',
     load: () => import('./entries/member-events-going/MemberEventsGoingPrototype'),
   },
@@ -462,7 +462,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     version: 1,
     title: 'Give feedback — on every LabOS page',
     description:
-      'Home, with production\'s header search field (AI badge inside), and one "Give feedback" button that would sit on every LabOS page, opening the AI Apps feedback drawer (Anuj, 2026-10-15). The review band switches where the button lives: In the navbar (a labelled button before the (?), a glyph box below 1440px) or Floating (AI Apps\' own pill, bottom-right, which says its name and then settles to a glyph). Either way the drawer is the AI Apps one on page terms: titled Give feedback with "About this page · Home" under it, no app picker, a screenshot of the page taken on open with production\'s LabOS-page capture (what the AI Apps list uses), Whole page and Pick a part (a drag over the window), annotate, Kind and Priority, Rich / Markdown note, drafts, and the sent screen. F opens it from anywhere. The (?) is develop\'s: hover lists the five support topics, a click opens production\'s Contact support form (topic pills, prefilled email and name, mocked send). Signed out, neither door shows. Everything mocked; nothing is sent.',
+      "Home, with production's header search field (AI badge inside), and one \"Give feedback\" button that would sit on every LabOS page, opening the AI Apps feedback drawer (Anuj, 2026-10-15). The review band switches where the button lives: In the navbar (a labelled button before the (?), a glyph box below 1440px) or Floating (AI Apps' own pill, bottom-right, which says its name and then settles to a glyph). Either way the drawer is the AI Apps one on page terms: titled Give feedback with \"About this page · Home\" under it, no app picker, a screenshot of the page taken on open with production's LabOS-page capture (what the AI Apps list uses), Whole page and Pick a part (a drag over the window), annotate, Kind and Priority, Rich / Markdown note, drafts, and the sent screen. F opens it from anywhere. The (?) is develop's: hover lists the five support topics, a click opens production's Contact support form (topic pills, prefilled email and name, mocked send). Signed out, neither door shows. Everything mocked; nothing is sent.",
     category: 'Cross-product',
     load: () => import('./entries/labos-feedback-button/LabosFeedbackButtonPrototype'),
   },
@@ -517,6 +517,16 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/ai-mode-results/AiModeResultsPrototype'),
   },
   {
+    key: 'event-drawer-redesign',
+    status: 'ideation',
+    version: 1,
+    title: 'Event drawer redesign',
+    description:
+      'One event drawer for both places an event opens, built from design-system parts. Page switch: Home (the homepage entry, signed in; Upcoming events rows open the drawer) and Events (/events/all copied: production\'s Event Calendar header over the embedded events app\'s month grid with its Filters rail; Modes and the month arrows work, click any event). Drawer switch: Redesign (default) or Current (the gathering modal on Home, the events app\'s own panel on Events). The redesign, from Luma\'s side peek, Luma and Circle event pages and Calendly\'s meeting panel: a pinned toolbar (Copy link, Open in PL Events, previous / next through the list it opened from, close); logo, mode and access badges, title, Hosted by; the date tile beside day and time, the venue as a map link over its city; the ask as one card near the top (facepile and "N members going", Show on my profile, Yes, I\'m going, Register), which turns into "You\'re going" with Add your plans for <city> and Not going; About with its tags; Agenda; and Part of the <city> gathering with its other events (each opens in the drawer) and its links. Who\'s going and Your plans (production\'s planning form and pickers) open as pages inside the drawer. Going is shared with member-events-going. Everything mocked.',
+    category: 'Cross-product',
+    load: () => import('./entries/event-drawer-redesign/EventDrawerRedesignPrototype'),
+  },
+  {
     key: 'homepage',
     status: 'dev',
     version: 2,
@@ -529,10 +539,10 @@ export const prototypeRegistry: PrototypeEntry[] = [
   {
     key: 'homepage-redesign-v0-agent',
     status: 'ideation',
-    version: 2,
+    version: 3,
     title: 'Homepage — Agent beside feedback',
     description:
-      'A copy of homepage with the Agent moved into the bottom-right corner next to the Give feedback button, as in Linear: Agent with a pointer mark, then a history icon that lists recent chats and reopens one. Signed in only (?state=signed-in). Ctrl/⌘ J and ?agent=open still open the panel, and Give feedback opens the mocked LabOS drawer.',
+      'A copy of homepage where the Agent and Give feedback are two tabs of one right-hand drawer. Closed, the bottom-right corner is the same pair on one pill: it arrives saying Agent and Feedback, then settles to the two glyphs, and hovering one tab slides its label back out (dev’s feedback button animation). Either press opens the drawer on that tab. Open, the drawer’s title is the Agent | Feedback switch (production’s segmented tabs); both tabs are the same width and switching doesn’t slide (Ctrl/⌘ J and Alt F switch too). The Agent tab’s header has a history icon that lists recent chats and reopens one. Signed in only (?state=signed-in). Above the composer, the agent shows the pages it reads: the page you are on, a ✕ to take it away, and Add page to add a recently viewed one; the steps then name them. The Page switch (?page=profile) shows the same corner on a member profile, where the agent offers questions about that member and says so when the profile has been taken out. Ctrl/⌘ J and ?agent=open still open the panel.',
     category: 'Agents',
     load: () => import('./entries/home-v2-agent-dock/HomeV2Prototype'),
   },
@@ -542,7 +552,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     version: 1,
     title: 'Digest — More / Less like this landing',
     description:
-      'Where a digest story\'s More like this / Less like this link lands: More opens the signed-in Home feed already filtered to the story\'s topic, with a message above it; Less (?feedback=less) opens the unfiltered feed with a modal confirming the change.',
+      "Where a digest story's More like this / Less like this link lands: More opens the signed-in Home feed already filtered to the story's topic, with a message above it; Less (?feedback=less) opens the unfiltered feed with a modal confirming the change.",
     category: 'Newsfeed',
     load: () => import('./entries/digest-more-like-this/DigestMoreLikeThisPrototype'),
   },
@@ -552,7 +562,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     version: 3,
     title: 'Home v2 B — style refresh',
     description:
-      'A copy of home-v2-b redrawn in a new visual language (reference: zaro.ai): warm paper ground, near-black brown ink, very large tight headlines with a greyed second sentence, square buttons, hairline grids and dashed boxes, uppercase mono labels, a lavender accent, and dark bands. Signed out: home-v2\'s story (who PL is, the figures, focus areas, this week beside open roles, the portfolio map, entities, backers, the Join ask) under a framed top bar. Signed in (?state=signed-in): B\'s member page — Network Updates over the forum (paged three at a time) and the news (pills, sort, a lavender Top stories panel, the stream), a hairline rail of Popular this week, open roles, Teams to follow and deals, then the open-source picks on a dark band — beside a restyled sidebar.',
+      "A copy of home-v2-b redrawn in a new visual language (reference: zaro.ai): warm paper ground, near-black brown ink, very large tight headlines with a greyed second sentence, square buttons, hairline grids and dashed boxes, uppercase mono labels, a lavender accent, and dark bands. Signed out: home-v2's story (who PL is, the figures, focus areas, this week beside open roles, the portfolio map, entities, backers, the Join ask) under a framed top bar. Signed in (?state=signed-in): B's member page — Network Updates over the forum (paged three at a time) and the news (pills, sort, a lavender Top stories panel, the stream), a hairline rail of Popular this week, open roles, Teams to follow and deals, then the open-source picks on a dark band — beside a restyled sidebar.",
     category: 'Newsfeed',
     load: () => import('./entries/home-v2-style-refresh/HomeV2ZaroPrototype'),
   },
@@ -562,7 +572,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     version: 3,
     title: 'Home v2 B — style refresh 2',
     description:
-      'The same as home-v2-style-refresh, with the product\'s rounded controls in place of square ones: buttons at the DS Button corners (10px at 48px, 8px below), the top bar\'s Sign up as the navbar\'s pill, and filter pills, like/comment buttons and the filter chip as full pills. Cards, frames and tags stay square.',
+      "The same as home-v2-style-refresh, with the product's rounded controls in place of square ones: buttons at the DS Button corners (10px at 48px, 8px below), the top bar's Sign up as the navbar's pill, and filter pills, like/comment buttons and the filter chip as full pills. Cards, frames and tags stay square.",
     category: 'Newsfeed',
     load: () => import('./entries/home-v2-style-refresh-2/HomeV2ZaroPrototype'),
   },
@@ -583,7 +593,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     version: 1,
     title: 'Top bars above the navbar — inventory',
     description:
-      "Every bar production puts in SiteHeader above the navbar, each over the navbar: Complete your profile (live, both messages), the PLAA buyback/snapshot carousel (live on /alignment-asset), the Demo Day banner (built, commented out), the proposed MCP launch banner, and the stack a pending member would see with both.",
+      'Every bar production puts in SiteHeader above the navbar, each over the navbar: Complete your profile (live, both messages), the PLAA buyback/snapshot carousel (live on /alignment-asset), the Demo Day banner (built, commented out), the proposed MCP launch banner, and the stack a pending member would see with both.',
     category: 'AI Apps',
     load: () => import('./entries/top-bars-inventory/TopBarsInventoryPrototype'),
   },

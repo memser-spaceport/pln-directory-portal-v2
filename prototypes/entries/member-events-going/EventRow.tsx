@@ -11,9 +11,9 @@ import local from '../home-refactor/HomeRefactorPrototype.module.scss';
 import { gatheringOf, type GoingEvent } from './mocks';
 import s from './MemberEventsGoing.module.scss';
 
-const month = (iso: string) =>
+export const month = (iso: string) =>
   new Date(`${iso}T12:00:00`).toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
-const day = (iso: string) => new Date(`${iso}T12:00:00`).getDate();
+export const day = (iso: string) => new Date(`${iso}T12:00:00`).getDate();
 
 /**
  * One event, drawn the same way wherever it appears: Home's rail, the profile
@@ -60,11 +60,11 @@ export function EventRow({
 }
 
 /** The row's receipt once you've said yes: a fact in text, not a second button. */
-export function GoingMark() {
+export function GoingMark({ label = 'Going' }: { label?: string }) {
   return (
     <span className={s.goingMark}>
       <CheckIcon aria-hidden="true" />
-      Going
+      {label}
     </span>
   );
 }

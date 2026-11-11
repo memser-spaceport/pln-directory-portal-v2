@@ -70,7 +70,7 @@ Each invalidates `EVENT_DETAIL`, `EVENT_ATTENDEES`, `MEMBER_EVENTS` for the view
 On Save, the drawer compares the gathering's events the member was going to with the ones now ticked:
 - **Added** events → create (one call, `events: [...]`).
 - **Removed** events → per-event delete.
-- **Kept** events whose role changed, or a change to the shared details (dates, topics, Telegram, office hours, notes) → the BE change's update for the member's details at this location.
+- **Kept** events whose role changed, or a change to the shared details (dates, topics, Telegram, office hours, notes) → `PATCH /v1/irl/locations/:uid/guests/me` (BE D12), which updates roles and shared details in place.
 
 This keeps `showOnProfile` and rows at other gatherings untouched. PUT would delete and recreate every event row in the window, resetting `showOnProfile` to its default.
 
@@ -137,7 +137,8 @@ interface EventDetail {
 
 // POST /v1/irl/locations/:locationUid/guests  { ..., events: [{uid,isHost,isSpeaker,isSponsor}], showOnProfile }
 // POST /v1/irl/locations/:locationUid/events/guests  { membersAndEvents: [{ memberUid, events: [eventUid] }] }  -> deletes only those
-// PATCH (toggle)  { eventUid, showOnProfile }   — exact path per BE change
+// PATCH /v1/irl/events/:uid/me  { showOnProfile }  (toggle, BE D2)
+// PATCH /v1/irl/locations/:uid/guests/me  { topics?, reason?, telegramId?, officeHours?, teamUid?, additionalInfo?, events?: [{uid, isHost?, isSpeaker?, isSponsor?, *SubEvents?}] }  (plans, BE D12)
 // update details at a location (roles of kept events, dates, topics, telegram, officeHours, reason) — exact path per BE change
 
 // GET /v1/members/:uid/events   and   GET /v1/teams/:uid/events
@@ -181,4 +182,4 @@ interface ProfileEvents {
 
 ## Open Questions
 
-- The exact paths for the show-on-profile toggle and the details update at a location: whatever the BE change settles on. This doesn't change the specs or tasks, only the service functions in 1.2.
+- Resolved: toggle = `PATCH /v1/irl/events/:uid/me`, plans = `PATCH /v1/irl/locations/:uid/guests/me` (BE change `lab-3211-per-event-attendance`, D2 and D12).

@@ -1,9 +1,12 @@
 import { IAnalyticsUserInfo } from '@/types/shared.types';
-import { EVENTS_ANALYTICS, HOME_ANALYTICS_EVENTS } from '@/utils/constants';
+import { EVENT_DRAWER_ANALYTICS, EVENTS_ANALYTICS, HOME_ANALYTICS_EVENTS } from '@/utils/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { usePostHog } from 'posthog-js/react';
 import { IUpcomingEvents } from '@/types/irl.types';
 import { UpcomingEvent } from '@/services/events/hooks/useUpcomingEvents';
+
+/** Where the event drawer was opened from. */
+export type EventDrawerSource = 'home' | 'member-profile' | 'team-profile' | 'add-event';
 
 export const useEventsAnalytics = () => {
   const postHogProps = usePostHog();
@@ -166,7 +169,54 @@ export const useEventsAnalytics = () => {
     captureEvent(EVENTS_ANALYTICS.EVENTS_PAGE_CONTRIBUTORS_VIEW_MORE_CLICKED, params);
   }
 
+  /* The event drawer (LAB-3216). */
+
+  function onEventDrawerOpened(params: { eventUid: string; source: EventDrawerSource }) {
+    captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_DRAWER_OPENED, { event_uid: params.eventUid, source: params.source });
+  }
+
+  function onEventGoingMarked(params: { eventUid: string; showOnProfile: boolean; source: EventDrawerSource }) {
+    captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_GOING_MARKED, {
+      event_uid: params.eventUid,
+      show_on_profile: params.showOnProfile,
+      source: params.source,
+    });
+  }
+
+  function onEventNotGoingMarked(params: { eventUid: string }) {
+    captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_NOT_GOING_MARKED, { event_uid: params.eventUid });
+  }
+
+  function onEventShowOnProfileToggled(params: {
+    eventUid: string;
+    showOnProfile: boolean;
+    from: 'drawer' | 'profile-menu';
+  }) {
+    captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_SHOW_ON_PROFILE_TOGGLED, {
+      event_uid: params.eventUid,
+      show_on_profile: params.showOnProfile,
+      from: params.from,
+    });
+  }
+
+  function onEventPlansSaved(params: { eventUid: string; eventsCount: number }) {
+    captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_PLANS_SAVED, {
+      event_uid: params.eventUid,
+      events_count: params.eventsCount,
+    });
+  }
+
+  function onEventAttendeesOpened(params: { eventUid: string }) {
+    captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_ATTENDEES_OPENED, { event_uid: params.eventUid });
+  }
+
   return {
+    onEventDrawerOpened,
+    onEventGoingMarked,
+    onEventNotGoingMarked,
+    onEventShowOnProfileToggled,
+    onEventPlansSaved,
+    onEventAttendeesOpened,
     onIrlLocationClicked,
     onEventCardClicked,
     onContributorClicked,

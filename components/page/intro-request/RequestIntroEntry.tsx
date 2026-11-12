@@ -46,8 +46,14 @@ export function RequestIntroEntry({ type, targetId, targetName, className }: Pro
 function EnvelopeIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <rect x="1.75" y="3.25" width="12.5" height="9.5" rx="1.25" stroke="currentColor" strokeWidth="1.4" />
-      <path d="M2.25 4.1 8 8.15 13.75 4.1" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+      <rect x="1.75" y="3.25" width="12.5" height="9.5" rx="1.5" stroke="currentColor" strokeWidth="1.25" />
+      <path
+        d="M2.25 4.25 8 8.75l5.75-4.5"
+        stroke="currentColor"
+        strokeWidth="1.25"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }

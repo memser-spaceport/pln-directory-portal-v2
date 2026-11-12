@@ -1,5 +1,6 @@
 'use client';
 
+import clsx from 'clsx';
 import { useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
@@ -127,11 +128,19 @@ export function EventDrawerView(props: EventDrawerViewProps) {
           </div>
         ) : (
           <div className={e.state} aria-busy="true" aria-label="Loading the event">
+            {/* Shaped like the panel it becomes (kicker, title, date, place, tags, Host, gathering), so a slow load
+                reads as loading rather than as an empty drawer. */}
             <div className={e.skeleton}>
-              <span className={e.skeletonLine} />
-              <span className={e.skeletonLine} />
-              <span className={e.skeletonLine} />
-              <span className={e.skeletonLine} />
+              <span className={e.kicker}>EVENT DETAILS</span>
+              <span className={clsx(e.skeletonBlock, e.skeletonTitle)} />
+              <span className={clsx(e.skeletonBlock, e.skeletonFact)} />
+              <span className={clsx(e.skeletonBlock, e.skeletonPlace)} />
+              <span className={e.skeletonChips}>
+                <span className={clsx(e.skeletonBlock, e.skeletonChip)} />
+                <span className={clsx(e.skeletonBlock, e.skeletonChip)} />
+              </span>
+              <span className={clsx(e.skeletonBlock, e.skeletonLabel)} />
+              <span className={clsx(e.skeletonBlock, e.skeletonPanel)} />
             </div>
           </div>
         )}
@@ -407,7 +416,7 @@ function EventFlow({
                       </div>
                     )}
                     <button type="button" className={m.linkButton} onClick={openAttendees}>
-                      {count} People going
+                      {count} {count === 1 ? 'Person' : 'People'} going
                     </button>
                   </div>
                 ) : (

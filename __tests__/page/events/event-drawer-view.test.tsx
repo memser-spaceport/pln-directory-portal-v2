@@ -109,12 +109,37 @@ describe('EventDrawerView (LAB-3216)', () => {
       expect(screen.getByLabelText('Loading the event')).toBeInTheDocument();
       expect(screen.queryByText(/Are you going/)).not.toBeInTheDocument();
     });
+
+    it('while loading, keeps Back and the panel kicker so the drawer never reads as empty', () => {
+      render(<Harness status="loading" event={null} />);
+      const loading = screen.getByLabelText('Loading the event');
+      expect(loading).toHaveAttribute('aria-busy', 'true');
+      expect(within(loading).getByText('EVENT DETAILS')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Back' })).toBeInTheDocument();
+    });
+
+    it("shows the event's picture as a thumbnail beside the title", () => {
+      render(<Harness raw={eventResponse({ logo: 'https://cdn.test/logo.png' })} />);
+      // The drawer renders in a portal, outside the render container.
+      expect(document.querySelector('img.thumb')).toHaveAttribute('src', 'https://cdn.test/logo.png');
+    });
+
+    it('leaves the thumbnail out when the event has no picture', () => {
+      render(<Harness raw={eventResponse({ logo: null, banner: null })} />);
+      expect(screen.getByRole('heading', { name: 'LabWeek Lisbon' })).toBeInTheDocument();
+      expect(document.querySelector('img.thumb')).toBeNull();
+    });
   });
 
   describe('attendees', () => {
     it('Count for one event', () => {
       render(<Harness raw={eventResponse({ goingCount: 12 })} />);
       expect(screen.getByRole('button', { name: '12 People going' })).toBeInTheDocument();
+    });
+
+    it('says "Person" for one attendee', () => {
+      render(<Harness raw={eventResponse({ goingCount: 1 })} />);
+      expect(screen.getByRole('button', { name: '1 Person going' })).toBeInTheDocument();
     });
 
     it('shows an empty state when nobody is going', () => {

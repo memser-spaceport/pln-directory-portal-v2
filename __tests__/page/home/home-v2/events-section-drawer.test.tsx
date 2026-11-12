@@ -55,6 +55,13 @@ jest.mock('@tanstack/react-query', () => ({
   useQueryClient: () => queryClient,
 }));
 
+const prefetchEvent = jest.fn();
+jest.mock('@/services/events/hooks/useEventDrawerQueries', () => ({
+  usePrefetchEventDetail: () => prefetchEvent,
+}));
+// The hover preloads the drawer's module; keep the real one (forms, calendar) out of this test.
+jest.mock('@/components/page/events/EventDrawer/EventDrawer', () => ({ EventDrawer: () => null }));
+
 const toastSuccess = jest.fn();
 jest.mock('@/components/core/ToastContainer', () => ({ toast: { success: (...a: unknown[]) => toastSuccess(...a) } }));
 
@@ -189,5 +196,50 @@ describe('Home rail opens the event drawer (LAB-3220)', () => {
     expect(screen.getByRole('link', { name: 'libp2p Day' })).toBeInTheDocument();
     expect(screen.queryByText('Going')).not.toBeInTheDocument();
     expect(going.enabled.every((enabled) => enabled === false)).toBe(true);
+  });
+});
+
+describe('Home rail prepares the drawer before the press', () => {
+  beforeEach(() => {
+    flag.on = true;
+    viewer.currentUser = { uid: 'm1' };
+    going.data = [];
+    drawers.length = 0;
+    jest.clearAllMocks();
+  });
+
+  it('prefetches the event when the pointer reaches a row', () => {
+    renderRail();
+
+    fireEvent.pointerEnter(screen.getByRole('button', { name: 'FIL Builders' }));
+
+    expect(prefetchEvent).toHaveBeenCalledWith('e2');
+  });
+
+  it('prefetches the event when a row gets keyboard focus', () => {
+    renderRail();
+
+    fireEvent.focus(screen.getByRole('button', { name: 'libp2p Day' }));
+
+    expect(prefetchEvent).toHaveBeenCalledWith('e1');
+  });
+
+  it('prefetches nothing for signed-out rows, which stay links', () => {
+    renderRail(false);
+
+    fireEvent.pointerEnter(screen.getByRole('link', { name: 'FIL Builders' }));
+
+    expect(prefetchEvent).not.toHaveBeenCalled();
+  });
+});
+
+describe('Home rail "See all" count', () => {
+  it('says "event" for one and "events" for more', () => {
+    const { unmount } = render(<EventsSection events={events} total={1} signedIn />);
+    expect(screen.getByRole('link', { name: 'See all 1 event' })).toBeInTheDocument();
+    unmount();
+
+    render(<EventsSection events={events} total={7} signedIn />);
+    expect(screen.getByRole('link', { name: 'See all 7 events' })).toBeInTheDocument();
   });
 });

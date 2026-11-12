@@ -66,6 +66,8 @@ export interface UpcomingEventCardProps {
   countLabel: string;
   /** The title's press, which covers the card: opens the event drawer. */
   onOpen: () => void;
+  /** Pointer over or focus on the press, before it happens: prefetch the event so the drawer opens filled. */
+  onIntent?: () => void;
   /** Top right, above the card's press (the owner's ⋯ menu). */
   menu?: ReactNode;
   /** The foot's right side, above the card's press ("You're going too", "Only visible to you"). */
@@ -85,6 +87,7 @@ export function UpcomingEventCard({
   faces,
   countLabel,
   onOpen,
+  onIntent,
   menu,
   badges,
 }: UpcomingEventCardProps) {
@@ -101,7 +104,14 @@ export function UpcomingEventCard({
 
       <div className={s.cardBody}>
         <div className={s.cardHead}>
-          <button type="button" className={s.cardTitle} onClick={onOpen} aria-label={`${name}, ${when}`}>
+          <button
+            type="button"
+            className={s.cardTitle}
+            onClick={onOpen}
+            onPointerEnter={onIntent}
+            onFocus={onIntent}
+            aria-label={`${name}, ${when}`}
+          >
             {name}
           </button>
           {menu && <span className={s.cardMenu}>{menu}</span>}

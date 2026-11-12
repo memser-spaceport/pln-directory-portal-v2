@@ -17,6 +17,7 @@ import type { EventGoingNotice } from '@/components/page/events/EventDrawer/Even
 import { eventGoingToastText } from '@/components/page/events/EventDrawer/toast';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { EventsQueryKeys } from '@/services/events/constants';
+import { usePrefetchEventDetail } from '@/services/events/hooks/useEventDrawerQueries';
 import { useMyUpcomingEventUids } from '@/services/events/hooks/useMyUpcomingEventUids';
 import { SHOW_EVENT_DRAWER } from '@/utils/event-drawer';
 
@@ -24,13 +25,11 @@ import { EVENTS_HREF } from './constants';
 import { eventCalendarHref, eventDay, eventMonth, eventRange } from './utils/upcomingEvents';
 import s from './HomeV2.module.scss';
 
-/** Loaded on the first press, so Home doesn't ship the drawer (calendar, forms) to everyone. */
-const EventDrawer = dynamic(
-  () => import('@/components/page/events/EventDrawer/EventDrawer').then((m) => m.EventDrawer),
-  {
-    ssr: false,
-  },
-);
+/** Loaded on the first press (or the hover before it), so Home doesn't ship the drawer (calendar, forms) to everyone. */
+const loadEventDrawer = () => import('@/components/page/events/EventDrawer/EventDrawer');
+const EventDrawer = dynamic(() => loadEventDrawer().then((m) => m.EventDrawer), {
+  ssr: false,
+});
 
 /**
  * Upcoming events, under the roles in the same rail card and row vocabulary (prototype `EventsRail`,
@@ -53,8 +52,15 @@ export function EventsSection({ events, total, signedIn }: { events: IHomeEvent[
   const goingUids = new Set(Array.isArray(goingData) ? goingData : []);
 
   const [openUid, setOpenUid] = useState<string | null>(null);
+  const prefetchEvent = usePrefetchEventDetail();
 
   if (events.length === 0) return null;
+
+  // Pointing at or focusing a row starts the drawer's code and the event's data, so the press opens it filled.
+  const prepare = (eventUid: string) => {
+    void loadEventDrawer();
+    prefetchEvent(eventUid);
+  };
 
   const onGoing = (eventUid: string) => (notice: EventGoingNotice) => {
     if (viewerUid) {
@@ -102,6 +108,8 @@ export function EventsSection({ events, total, signedIn }: { events: IHomeEvent[
                   <button
                     type="button"
                     className={clsx(s.roleTitle, s.jobTitle, s.eventLink, s.eventPress)}
+                    onPointerEnter={() => prepare(ev.uid)}
+                    onFocus={() => prepare(ev.uid)}
                     onClick={() => {
                       onPress();
                       setOpenUid(ev.uid);
@@ -143,7 +151,7 @@ export function EventsSection({ events, total, signedIn }: { events: IHomeEvent[
         className={clsx(jobsCss.expander, s.viewAllExpander)}
         onClick={() => analytics.onSeeAllClicked({ section: 'events' })}
       >
-        See all {total} events
+        See all {total} {total === 1 ? 'event' : 'events'}
       </Link>
 
       {drawerMode && openUid && (

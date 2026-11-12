@@ -14,6 +14,7 @@ import {
   UpcomingEventCard,
 } from '@/components/page/events/EventCards';
 import { EventDrawer, eventGoingToastText } from '@/components/page/events/EventDrawer';
+import { usePrefetchEventDetail } from '@/services/events/hooks/useEventDrawerQueries';
 import type { TeamPastEvent, TeamProfileDemoDay, TeamProfileEvent } from '@/services/events/profile-events.types';
 
 /** Cards per group before "Show all N", as on the member profile. */
@@ -45,6 +46,7 @@ export function TeamEventsSection({ teamName, upcoming, upcomingTotal, past, pas
   const [drawerEventUid, setDrawerEventUid] = useState<string | null>(null);
   const [allUpcoming, setAllUpcoming] = useState(false);
   const [allPast, setAllPast] = useState(false);
+  const prefetchEvent = usePrefetchEventDetail();
 
   const hasUpcoming = upcoming.length > 0;
   const hasPast = past.length > 0;
@@ -77,6 +79,7 @@ export function TeamEventsSection({ teamName, upcoming, upcomingTotal, past, pas
                 faces={event.members}
                 countLabel={`${event.memberCount} from ${teamName}`}
                 onOpen={() => setDrawerEventUid(event.uid)}
+                onIntent={() => prefetchEvent(event.uid)}
                 badges={event.viewerGoing ? <GoingMark label="You're going too" /> : undefined}
               />
             ))}

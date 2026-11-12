@@ -14,6 +14,7 @@ import {
   UpcomingEventCard,
 } from '@/components/page/events/EventCards';
 import { EventDrawer, eventGoingToastText, type EventDrawerStep } from '@/components/page/events/EventDrawer';
+import { usePrefetchEventDetail } from '@/services/events/hooks/useEventDrawerQueries';
 import type { MemberProfileEvent } from '@/services/events/profile-events.types';
 
 /** Cards per group before "Show all N". */
@@ -65,6 +66,7 @@ export function MemberEventsSection({
   const [drawer, setDrawer] = useState<{ eventUid: string; step?: EventDrawerStep } | null>(null);
   const [allUpcoming, setAllUpcoming] = useState(false);
   const [allPast, setAllPast] = useState(false);
+  const prefetchEvent = usePrefetchEventDetail();
 
   const hasUpcoming = upcoming.length > 0 || !!upcomingEmpty;
   const hasPast = past.length > 0;
@@ -109,6 +111,7 @@ export function MemberEventsSection({
                   faces={event.faces}
                   countLabel={`${event.goingCount} going`}
                   onOpen={() => openDrawer()}
+                  onIntent={() => prefetchEvent(event.uid)}
                   menu={renderCardMenu?.(event, openDrawer)}
                   badges={badges}
                 />

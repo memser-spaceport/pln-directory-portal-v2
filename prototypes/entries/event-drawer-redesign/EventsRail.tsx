@@ -2,14 +2,14 @@
 
 import clsx from 'clsx';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import s from '@/components/page/home/TeamNews/components/NewsCard/NewsCard.module.scss';
 import jobsCss from '@/components/page/jobs/TeamGroupCard/TeamGroupCard.module.scss';
 import { ArrowIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/Icons';
 
 import { FollowToast } from '../follow-shared/FollowToast';
-import agentCss from '../home-v2-b/AgentPanel.module.scss';
+import { useHideAgentWhileOpen } from '../member-events-going/useHideAgentWhileOpen';
 import local from '../home-refactor/HomeRefactorPrototype.module.scss';
 import feed from '../newsfeed/Newsfeed.module.scss';
 import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
@@ -34,11 +34,7 @@ export function EventsRail({ eventsHref }: { eventsHref: string }) {
 
   /* Home's floating Agent button sits above every overlay and would cover the
      drawer's pinned Save; it steps aside while an event is open. */
-  useEffect(() => {
-    const fabs = Array.from(document.querySelectorAll<HTMLElement>(`.${agentCss.fab}`));
-    fabs.forEach((el) => (el.style.visibility = openUid ? 'hidden' : ''));
-    return () => fabs.forEach((el) => (el.style.visibility = ''));
-  }, [openUid]);
+  useHideAgentWhileOpen(!!openUid);
 
   const onNotice = (next: EventNotice) => {
     setNotice(next);

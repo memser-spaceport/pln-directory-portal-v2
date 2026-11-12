@@ -58,7 +58,6 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import btn from '@/components/common/Button/Button.module.scss';
-import { Checkbox } from '@/components/common/Checkbox';
 import { Drawer } from '@/components/common/Drawer';
 import { Modal } from '@/components/common/Modal/Modal';
 import { SearchInput } from '@/components/common/filters/SearchInput';
@@ -66,13 +65,11 @@ import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import {
   ArrowBackIcon,
   ArrowUpRightIcon,
-  CalendarBlankIcon,
   CaretLeftIcon,
   CaretRightIcon,
   CheckIcon,
   CloseIcon,
   GlobeIcon,
-  SuccessCircleIcon,
 } from '@/components/icons';
 import type { ITeam } from '@/types/teams.types';
 
@@ -89,7 +86,7 @@ import type {
 } from '@/components/core/UpdatesPanel/IrlGatheringModal/types';
 import m from '@/components/core/UpdatesPanel/IrlGatheringModal/IrlGatheringModal.module.scss';
 
-import { markGoing, removeGoing, saveGathering, setShowOnProfile, useGoing } from '../member-events-going/goingStore';
+import { saveGathering, useGoing } from '../member-events-going/goingStore';
 import { ATTENDEES, MAYA_TEAMS, type EventDetail, type Gathering } from '../member-events-going/mocks';
 
 import {
@@ -108,11 +105,11 @@ import {
   eventByUid,
   eventsAppHref,
   gatheringFor,
-  registerHref,
   siblingsOf,
   THUMBS,
   type CalEvent,
 } from './mocks';
+import { RsvpCard } from './RsvpCard';
 import d from './EventDrawer.module.scss';
 
 const SCOPE = 'owner' as const;
@@ -432,159 +429,6 @@ function Section({ title, aside, children }: { title: ReactNode; aside?: ReactNo
   );
 }
 
-/* ---------- The ask ---------- */
-
-function Facepile({ count }: { count: number }) {
-  return (
-    <span className={d.facepile} aria-hidden>
-      {ATTENDEES.slice(0, Math.min(3, count)).map((a) => (
-        <img key={a.uid} src={getDefaultAvatar(a.name)} alt="" width={24} height={24} />
-      ))}
-    </span>
-  );
-}
-
-function RsvpCard({
-  event,
-  gathering,
-  onOpenAttendees,
-  onOpenPlans,
-  onMarked,
-  onUnmarked,
-}: {
-  event: CalEvent;
-  gathering: Gathering | null;
-  onOpenAttendees: () => void;
-  onOpenPlans: () => void;
-  onMarked: (onProfile: boolean) => void;
-  onUnmarked: () => void;
-}) {
-  const going = useGoing(SCOPE);
-  const entry = going[event.uid];
-  const [show, setShow] = useState(entry?.showOnProfile ?? true);
-  const others = event.attendeeCount;
-
-  const register = (
-    <a
-      href={registerHref(event.uid)}
-      target="_blank"
-      rel="noreferrer"
-      className={clsx(btn.root, btn.small, btn.border, btn.neutral, d.btn)}
-    >
-      Register
-      <ArrowUpRightIcon width={14} height={14} />
-    </a>
-  );
-
-  const consent = (
-    <label className={d.consent}>
-      <Checkbox
-        checked={entry ? entry.showOnProfile : show}
-        onChange={(v: boolean) => (entry ? setShowOnProfile(SCOPE, event.uid, v) : setShow(v))}
-        aria-labelledby={`consent-${event.uid}`}
-      />
-      <span className={d.consentText}>
-        <span id={`consent-${event.uid}`} className={d.consentLabel}>
-          Show on my profile
-        </span>
-        <span className={d.consentHint}>Signed-in members see it in your Events.</span>
-      </span>
-    </label>
-  );
-
-  if (!entry) {
-    return (
-      <div className={d.card}>
-        <div className={d.cardHead}>
-          <p className={d.cardTitle}>Are you going?</p>
-          <button type="button" className={d.goingLink} onClick={onOpenAttendees}>
-            <Facepile count={others} />
-            {others} members going
-          </button>
-        </div>
-        {consent}
-        <div className={d.cardActions}>
-          <Button
-            size="s"
-            onClick={() => {
-              markGoing(SCOPE, event.uid, show);
-              onMarked(show);
-            }}
-          >
-            Yes, I&apos;m going
-          </Button>
-          {register}
-        </div>
-      </div>
-    );
-  }
-
-  /*
-   * Going, after Luma's "You're In" card in its event side peek (Mobbin, 2026-11-11):
-   * a neutral card, the state as a plain dark title with one green mark, the
-   * people under it, one row that leads on to the next thing to do ("Get ready
-   * for the event ›" there, "Add your plans" here), and leaving as a quiet
-   * sentence at the foot instead of a third press in the action row. The green
-   * wash went: a tint says "the system is reporting", and nothing else on the
-   * card needed to compete with the plans row.
-   */
-  return (
-    <div className={d.card}>
-      <div className={d.goingTop}>
-        <div className={d.goingText}>
-          <p className={clsx(d.cardTitle, d.cardTitleGoing)}>
-            <SuccessCircleIcon width={20} height={20} />
-            You&apos;re going
-          </p>
-          <button type="button" className={d.goingLink} onClick={onOpenAttendees}>
-            <Facepile count={others} />
-            You and {others} members
-          </button>
-        </div>
-        {register}
-      </div>
-
-      <label className={d.consentInline}>
-        <Checkbox
-          checked={entry.showOnProfile}
-          onChange={(v: boolean) => setShowOnProfile(SCOPE, event.uid, v)}
-          aria-labelledby={`consent-${event.uid}`}
-        />
-        <span id={`consent-${event.uid}`} className={d.consentLabel}>
-          Show on my profile <span className={d.consentQualifier}>· signed-in members see it</span>
-        </span>
-      </label>
-
-      {gathering && (
-        <button type="button" className={d.plansRow} onClick={onOpenPlans}>
-          <span className={d.plansIcon} aria-hidden>
-            <CalendarBlankIcon width={18} height={18} />
-          </span>
-          <span className={d.plansText}>
-            <span className={d.plansTitle}>Add your plans for {gathering.city}</span>
-            <span className={d.plansHint}>Dates, topics and the events you&apos;ll be at</span>
-          </span>
-          <CaretRightIcon width={16} height={16} className={d.plansArrow} />
-        </button>
-      )}
-
-      <p className={d.leaveLine}>
-        Can&apos;t make it?{' '}
-        <button
-          type="button"
-          className={d.notGoing}
-          onClick={() => {
-            removeGoing(SCOPE, event.uid);
-            onUnmarked();
-          }}
-        >
-          Mark as not going
-        </button>
-      </p>
-    </div>
-  );
-}
-
 /* ---------- Agenda ---------- */
 
 function Agenda({ agenda }: { agenda: EventDetail['agenda'] }) {
@@ -703,7 +547,7 @@ function SubHead({ title, onBack }: { title: string; onBack: () => void }) {
   );
 }
 
-function AttendeesView({ event, onBack }: { event: CalEvent; onBack: () => void }) {
+export function AttendeesView({ event, onBack }: { event: CalEvent; onBack: () => void }) {
   const going = useGoing(SCOPE);
   const you = !!going[event.uid];
   const [query, setQuery] = useState('');
@@ -765,7 +609,7 @@ const toEventData = (e: CalEvent): EventData => ({
  * production's PlanningSection + AdditionalDetailsSection, Save pinned under
  * them. Same pickers, same store, so what's saved here is what the profile reads.
  */
-function PlansView({
+export function PlansView({
   event,
   gathering,
   onBack,

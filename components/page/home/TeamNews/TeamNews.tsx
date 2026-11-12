@@ -7,6 +7,7 @@ import { Button } from '@/components/common/Button';
 import { SearchInput } from '@/components/common/filters/SearchInput';
 import { SortDropdown } from '@/components/common/filters/SortDropdown';
 import sortCss from '@/components/common/filters/SortDropdown/SortDropdown.module.scss';
+import { SHOW_NEWS_PREFERENCES } from '@/utils/news-categories';
 
 import {
   ALL_CAT,
@@ -24,6 +25,7 @@ import { NewsBase } from './components/NewsBase';
 import { NewsRail } from './components/NewsRail';
 import { NewsSearch } from './components/NewsSearch';
 import { ForYouHint } from './components/ForYouHint/ForYouHint';
+import { ForYouSetupPrompt, isForYouSetupVisible } from './components/ForYouSetupPrompt/ForYouSetupPrompt';
 import { TeamNewsTabs } from './components/TeamNewsTabs';
 import { NewsGroupCard } from './components/NewsGroupCard';
 import { ForumPostCard } from './components/ForumPostCard';
@@ -59,6 +61,7 @@ export const TeamNews = (props: HomeFeedProps) => {
     feedItems,
     activeTab,
     handleTab,
+    forYouHasNoInputs,
     categoriesWithCounts,
     categoryOptions,
     activeCategory,
@@ -101,6 +104,15 @@ export const TeamNews = (props: HomeFeedProps) => {
   } = useHomeFeed(props);
   // This layout filters by one tag at most (LAB-3010); stacking is the new Home's.
   const topicFilter = topicScope[0] ?? '';
+  const showForYouSetup = isForYouSetupVisible({
+    preferencesOn: SHOW_NEWS_PREFERENCES,
+    signedIn: Boolean(currentUser?.uid),
+    forYouHasNoInputs,
+    activeTab,
+    activeCategory,
+    query,
+    hasTopicFilter: Boolean(topicFilter),
+  });
 
   // A forum-access member with zero news in the window still gets their posts
   // (they render alone once the posts query lands — accepted pop-in).
@@ -201,6 +213,7 @@ export const TeamNews = (props: HomeFeedProps) => {
             land somewhere in the feed, never on <body>. */}
         <div className={s.main} data-news-feed-root tabIndex={-1}>
           {activeCategory === FOR_YOU_CAT && <ForYouHint memberUid={currentUser?.uid} />}
+          <ForYouSetupPrompt memberUid={currentUser?.uid} visible={showForYouSetup} />
           {topStories?.lead && (
             <div className={s.topStories}>
               <TopStoriesBlock

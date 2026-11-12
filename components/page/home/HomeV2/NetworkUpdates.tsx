@@ -21,7 +21,11 @@ import { NewsSearch } from '@/components/page/home/TeamNews/components/NewsSearc
 import type { HomeFeed } from '@/components/page/home/TeamNews/hooks/useHomeFeed';
 import { isOwnForumPost } from '@/components/page/home/TeamNews/utils/isOwnForumPost';
 import { assertNever, feedEntryKey } from '@/components/page/home/TeamNews/utils/mergeFeedEntries';
-import { ALL_CAT } from '@/components/page/home/TeamNews/constants';
+import { ALL_CAT, ALL_TAB } from '@/components/page/home/TeamNews/constants';
+import {
+  ForYouSetupPrompt,
+  isForYouSetupVisible,
+} from '@/components/page/home/TeamNews/components/ForYouSetupPrompt/ForYouSetupPrompt';
 import { isEditorialRank } from '@/components/page/home/TeamNews/utils/selectTopStories';
 import { matchesTeamNewsQuery } from '@/components/page/home/TeamNews/utils/matchesTeamNewsQuery';
 import { sortTeamNewsClusters } from '@/components/page/home/TeamNews/utils/sortTeamNewsClusters';
@@ -88,6 +92,8 @@ export function NetworkUpdates({
     streamCategories,
     activeCategory,
     handleCategory,
+    activeTab,
+    forYouHasNoInputs,
     sort,
     handleSort,
     topicScope,
@@ -145,12 +151,7 @@ export function NetworkUpdates({
      short of the rail then mounts Other news and is measured again. */
   const listRef = useRef<HTMLDivElement>(null);
   const visibleKey = renderedEntries.map(feedEntryKey).join(',');
-  const fit = useColumnCut(
-    listRef,
-    fillTo,
-    `${visibleKey}|${fillKey}`,
-    fillFromAll ? ownEntries.length : undefined,
-  );
+  const fit = useColumnCut(listRef, fillTo, `${visibleKey}|${fillKey}`, fillFromAll ? ownEntries.length : undefined);
   const cut = renderedEntries.length > fit.full;
   useLayoutEffect(() => {
     setOtherNewsFor(fillFromAll && !fit.reachesRef.current ? tabKey : null);
@@ -212,8 +213,25 @@ export function NetworkUpdates({
         />
       )}
 
-      {/* The "For you" line, on every filter (LAB-3174): what For You is made of, and the door to News preferences. */}
-      <ForYouCaption memberUid={currentUser?.uid} />
+      {/* A member with nothing For You can match on gets the set-up line on resting All (LAB-3080), in this slot.
+          Anyone else keeps the curated line on every filter (LAB-3174). */}
+      {SHOW_NEWS_PREFERENCES && currentUser?.uid && forYouHasNoInputs ? (
+        <ForYouSetupPrompt
+          memberUid={currentUser.uid}
+          visible={isForYouSetupVisible({
+            preferencesOn: SHOW_NEWS_PREFERENCES,
+            signedIn: Boolean(currentUser.uid),
+            forYouHasNoInputs,
+            activeTab,
+            activeCategory,
+            query,
+            hasTopicFilter: topicScope.length > 0,
+          })}
+          className={s.forYouLine}
+        />
+      ) : (
+        <ForYouCaption memberUid={currentUser?.uid} />
+      )}
 
       {/* The cut: full cards down to the rail's end, the next fading into the page under "See all news". Cards past the
           cut are inert, so the faded one can't be half-clicked. tabIndex={-1}: the dialogs' focus-restore fallback. */}

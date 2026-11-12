@@ -753,6 +753,10 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_COUNT_CHIP_SHOWN: 'team-news-count-chip-shown',
   TEAM_NEWS_FOR_YOU_UPDATE_PROFILE_CLICKED: 'team-news-for-you-update-profile-clicked',
   TEAM_NEWS_FOR_YOU_TUNE_CLICKED: 'team-news-for-you-tune-clicked',
+  // The Home row for a member For You cannot match yet (LAB-3080). Shown is the
+  // denominator for the click; the click is not the hint's Update event.
+  TEAM_NEWS_FOR_YOU_SETUP_SHOWN: 'team-news-for-you-setup-shown',
+  TEAM_NEWS_FOR_YOU_SETUP_CLICKED: 'team-news-for-you-setup-clicked',
   // A `#tag` on a Home story narrows the feed to that tag (LAB-3010); cleared by
   // the filter chip's × or by clicking the active tag again.
   TEAM_NEWS_TAG_FILTER_APPLIED: 'team-news-tag-filter-applied',

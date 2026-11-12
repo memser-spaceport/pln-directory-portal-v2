@@ -160,6 +160,9 @@ export function useHomeFeed(
   const [initialForYouTags] = useState<ReadonlySet<string> | undefined>(() =>
     forYouTags ? new Set(forYouTags) : undefined,
   );
+  // Tags must be an array. Undefined means the flag is off or the backend did not send them, so "not set up" is unknown.
+  const forYouHasNoInputs =
+    initialForYouTags !== undefined && initialForYouTags.size === 0 && initialForYouTeamUids.size === 0;
   const [selectedCategory, setActiveCategory] = useState<TeamNewsCategoryId>(() => {
     if (isNewsOnly) return ALL_CAT;
     const items = sortAllTabItemsByEventDate(dedupeByUid([...groups.flatMap((g) => g.items), ...allTabExtraItems]));
@@ -1194,6 +1197,7 @@ export function useHomeFeed(
     feedItems,
     activeTab,
     handleTab,
+    forYouHasNoInputs,
     categoriesWithCounts,
     categoryOptions,
     streamCategories,

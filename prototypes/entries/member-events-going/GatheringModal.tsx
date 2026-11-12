@@ -3,7 +3,11 @@
 import { useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
+import clsx from 'clsx';
+
 import { Button } from '@/components/common/Button';
+import btn from '@/components/common/Button/Button.module.scss';
+import { ArrowUpRightIcon } from '@/components/icons';
 import { Checkbox } from '@/components/common/Checkbox';
 import { Drawer } from '@/components/common/Drawer';
 import { Modal } from '@/components/common/Modal/Modal';
@@ -38,6 +42,11 @@ import {
   type GoingEvent,
 } from './mocks';
 import s from './MemberEventsGoing.module.scss';
+// The new drawer's RSVP card chrome (event-drawer-redesign), for the "Are you going?" ask.
+import d from '../event-drawer-redesign/EventDrawer.module.scss';
+
+/** The events app's register page (event-drawer-redesign's `registerHref`, restated to keep the import one-way). */
+const registerHref = (uid: string) => `https://events.plnetwork.io/register/${uid}`;
 
 /** What opened the modal: one event, or the owner's "Add event" list. */
 export type GatheringTarget = { kind: 'event'; eventUid: string } | { kind: 'pick' };
@@ -258,6 +267,50 @@ function EventFlow({
     </label>
   );
 
+  /* The ask, as event-drawer-redesign's RsvpCard asks it (user, 2026-11-12: "use the option from the newest
+     drawer, a block that asks Going?"): one card holding the question, who's going (it opens the list), the
+     profile consent and both presses, Yes, I'm going and Register ↗. It replaces the step-one heading, the
+     separate Attendees row and the No / Yes footer. Styles are the new drawer's, imported. It sits above the
+     Agenda (user, same day), not at the foot of the drawer. */
+  const askCard = (
+    <div className={d.card}>
+      <div className={d.cardHead}>
+        <p className={d.cardTitle}>Are you going?</p>
+        <button type="button" className={d.goingLink} onClick={() => setShowAttendees(true)}>
+          <span className={d.facepile} aria-hidden>
+            {ATTENDEES.slice(0, 3).map((a) => (
+              <img key={a.uid} src={getDefaultAvatar(a.name)} alt="" width={24} height={24} />
+            ))}
+          </span>
+          {count} members going
+        </button>
+      </div>
+      <label className={d.consent}>
+        <Checkbox checked={showOnProfile} onChange={setShow} aria-labelledby="going-consent-label" />
+        <span className={d.consentText}>
+          <span id="going-consent-label" className={d.consentLabel}>
+            Show on my profile
+          </span>
+          <span className={d.consentHint}>Signed-in members see it in your Events.</span>
+        </span>
+      </label>
+      <div className={d.cardActions}>
+        <Button type="button" size="s" onClick={onYes}>
+          Yes, I&apos;m going
+        </Button>
+        <a
+          href={registerHref(event.uid)}
+          target="_blank"
+          rel="noreferrer"
+          className={clsx(btn.root, btn.small, btn.border, btn.neutral, d.btn)}
+        >
+          Register
+          <ArrowUpRightIcon width={14} height={14} />
+        </a>
+      </div>
+    </div>
+  );
+
   return (
     <>
       {/* While a picker or the people list is open above it, Escape and the backdrop belong to that. */}
@@ -272,7 +325,12 @@ function EventFlow({
             </div>
 
             <div className={e.body}>
-              <EventSummary name={event.name} detail={detail} image={EVENT_THUMBS[event.uid]} />
+              <EventSummary
+                name={event.name}
+                detail={detail}
+                image={EVENT_THUMBS[event.uid]}
+                beforeAgenda={step === 1 ? askCard : undefined}
+              />
 
               <div className={e.block}>
                 <Label icon={<PinLabelIcon />}>{gathering.city} gathering</Label>
@@ -287,34 +345,23 @@ function EventFlow({
                 </div>
               </div>
 
-              <div className={e.block}>
-                <Label icon={<HostIcon />}>Attendees</Label>
-                <div className={m.attendeesRow}>
-                  <div className={m.avatarGroup}>
-                    {ATTENDEES.slice(0, 3).map((a) => (
-                      <div key={a.uid} className={m.avatar}>
-                        <img src={getDefaultAvatar(a.name)} alt="" width={24} height={24} />
-                      </div>
-                    ))}
-                  </div>
-                  <button type="button" className={m.linkButton} onClick={() => setShowAttendees(true)}>
-                    {count} People going
-                  </button>
-                </div>
-              </div>
-
-              {step === 1 && (
-                <div className={s.askBlock}>
-                  <div>
-                    <div className={m.step1Title}>Are you going to {event.name}?</div>
-                    <div className={m.step1Subtitle}>Let others know if you are attending.</div>
-                  </div>
-                  {consent}
-                </div>
-              )}
-
               {step === 2 && (
                 <>
+                  <div className={e.block}>
+                    <Label icon={<HostIcon />}>Attendees</Label>
+                    <div className={m.attendeesRow}>
+                      <div className={m.avatarGroup}>
+                        {ATTENDEES.slice(0, 3).map((a) => (
+                          <div key={a.uid} className={m.avatar}>
+                            <img src={getDefaultAvatar(a.name)} alt="" width={24} height={24} />
+                          </div>
+                        ))}
+                      </div>
+                      <button type="button" className={m.linkButton} onClick={() => setShowAttendees(true)}>
+                        {count} People going
+                      </button>
+                    </div>
+                  </div>
                   <PlanningSection
                     planningQuestion={planningQuestion}
                     selectedDateRange={picker.selectedDateRange}
@@ -342,16 +389,8 @@ function EventFlow({
             {/* The directory's own DS buttons, as on the profile's Cancel/Save
                 (EditFormControls) — not the events app's 24px-radius pills the
                 panel was first transcribed with (changed 2026-11-11). */}
-            {step === 1 ? (
-              <div key="ask" className={e.footer}>
-                <Button type="button" style="border" variant="neutral" size="s" className={e.footerBtn} onClick={onClose}>
-                  No
-                </Button>
-                <Button type="button" size="s" className={e.footerBtn} onClick={onYes}>
-                  Yes, I&apos;m going
-                </Button>
-              </div>
-            ) : (
+            {/* Step one has no footer: its presses are in the card. */}
+            {step === 2 && (
               <div key="details" className={e.footer}>
                 {/* Step two is optional detail: the answer was saved by "Yes", so
                     this leaves rather than cancels. */}

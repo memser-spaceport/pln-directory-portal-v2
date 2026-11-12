@@ -13,8 +13,12 @@ jest.mock('@/analytics/ai-apps.analytics', () => ({
 }));
 
 let mockPublished: { apps: PublishedAiApp[]; isLoading: boolean };
+const mockUsePublishedAiApps = jest.fn();
 jest.mock('@/services/ai-apps/hooks/usePublishedAiApps', () => ({
-  usePublishedAiApps: () => mockPublished,
+  usePublishedAiApps: (...args: unknown[]) => {
+    mockUsePublishedAiApps(...args);
+    return mockPublished;
+  },
 }));
 
 // The page must work for a member without `ai_apps.read`: any call into the
@@ -77,6 +81,13 @@ describe('PublishedAiAppPage', () => {
     expect(screen.getByText('Loading app…')).toBeInTheDocument();
     expect(frame()).toBeNull();
     expect(mockAnalytics.onPublishedAppUnavailable).not.toHaveBeenCalled();
+  });
+
+  // The More menu may still list an app taken back a moment ago; the page must not frame it from that cache.
+  it('asks for a fresh published list, not the one the menu cached', () => {
+    renderPage();
+
+    expect(mockUsePublishedAiApps).toHaveBeenCalledWith({ fresh: true });
   });
 
   describe('an app that is not published to the member', () => {

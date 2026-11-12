@@ -115,6 +115,61 @@ describe('usePublishedAiApps', () => {
     expect(result.current).toEqual({ apps: [], isLoading: false });
   });
 
+  // A take-back applies to access at once; the menu must not keep the app for minutes.
+  it('trusts the list for 30 seconds and fetches it again when the member comes back to the tab', () => {
+    useCurrentUserStore.setState({ currentUser: signedIn, isHydrated: true });
+
+    renderHook(() => usePublishedAiApps());
+
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ staleTime: 30 * 1000, refetchOnWindowFocus: true, refetchOnMount: true }),
+    );
+  });
+
+  it('does not show a background refetch as loading', () => {
+    useCurrentUserStore.setState({ currentUser: signedIn, isHydrated: true });
+    mockUseQuery.mockReturnValue({ data: [playbook], isPending: false, isFetchedAfterMount: false });
+
+    const { result } = renderHook(() => usePublishedAiApps());
+
+    expect(result.current).toEqual({ apps: [playbook], isLoading: false });
+  });
+
+  describe('fresh (the page that frames the app)', () => {
+    beforeEach(() => useCurrentUserStore.setState({ currentUser: signedIn, isHydrated: true }));
+
+    it('always fetches on mount', () => {
+      renderHook(() => usePublishedAiApps({ fresh: true }));
+
+      expect(mockUseQuery).toHaveBeenCalledWith(expect.objectContaining({ refetchOnMount: 'always' }));
+    });
+
+    it('stays loading while only the cached list is known, so a taken-back app is never framed', () => {
+      mockUseQuery.mockReturnValue({ data: [playbook], isPending: false, isFetchedAfterMount: false });
+
+      const { result } = renderHook(() => usePublishedAiApps({ fresh: true }));
+
+      expect(result.current.isLoading).toBe(true);
+    });
+
+    it('answers once a list fetched after the mount arrives', () => {
+      mockUseQuery.mockReturnValue({ data: [], isPending: false, isFetchedAfterMount: true });
+
+      const { result } = renderHook(() => usePublishedAiApps({ fresh: true }));
+
+      expect(result.current).toEqual({ apps: [], isLoading: false });
+    });
+
+    it('is not left loading for a signed-out visitor', () => {
+      useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
+      mockUseQuery.mockReturnValue({ data: undefined, isPending: true, isFetchedAfterMount: false });
+
+      const { result } = renderHook(() => usePublishedAiApps({ fresh: true }));
+
+      expect(result.current).toEqual({ apps: [], isLoading: false });
+    });
+  });
+
   it('keeps the same empty list between renders, so the nav memo holds', () => {
     useCurrentUserStore.setState({ currentUser: signedIn, isHydrated: true });
     mockUseQuery.mockReturnValue({ data: undefined, isPending: false });

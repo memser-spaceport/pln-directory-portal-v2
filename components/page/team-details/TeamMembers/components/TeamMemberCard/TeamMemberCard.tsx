@@ -8,6 +8,7 @@ import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 import { OhBadge } from '@/components/core/OhBadge/OhBadge';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
+import { MemberAccessBadges } from '@/components/common/AccessLevelBadges/MemberAccessBadges';
 
 import { SkillsList } from '../SkillsList/SkillsList';
 
@@ -80,6 +81,7 @@ export function TeamMemberCard(props: Props) {
                 trigger={<p className={s.role}>{role}</p>}
                 content={role}
               />
+              <MemberAccessBadges isJobAspirant={member.isJobAspirant} className={s.accessBadge} />
               {isAvailableToConnect && <OhBadge variant="secondary" />}
             </div>
           </div>

@@ -19,9 +19,11 @@ import { useRecommendationLinkAnalyticsReport } from '@/services/members/hooks/u
 import CustomTooltip from '@/components/ui/Tooltip/Tooltip';
 import { TagsList } from '@/components/common/profile/TagsList';
 import { EditButton } from '@/components/common/profile/EditButton';
+import { MemberAccessBadges } from '@/components/common/AccessLevelBadges/MemberAccessBadges';
 
 import { RequestIntroEntry } from '@/components/page/intro-request/RequestIntroEntry';
 
+import { isJobAspirantMember } from '../job-aspirant-profile';
 import { shouldShowInvestorTag } from './utils/shouldShowInvestorTag';
 
 import s from './MemberDetailHeader.module.scss';
@@ -88,6 +90,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
           <div className={s.headerInfo}>
             <div className={s.specificsHdr}>
               <CustomTooltip trigger={<h1 className={s.specificsName}>{name}</h1>} content={name} />
+              <MemberAccessBadges state={member.rbac?.status} isJobAspirant={isJobAspirantMember(member)} />
             </div>
             {/* Each item carries the divider before it, so a wrapped line never starts or ends on one. */}
             <div className={s.roleAndLocation}>

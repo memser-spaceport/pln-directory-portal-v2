@@ -57,11 +57,27 @@ A block whose data is empty SHALL be left out rather than shown empty. On a narr
 - **WHEN** a member opens it
 - **THEN** the drawer says it couldn't load the event, with "Try again" and a way to close it
 
+### Requirement: The drawer never opens empty
+
+While the event loads, the drawer SHALL keep the Back bar and the "EVENT DETAILS" line, with placeholders in the panel's shape. Pointing at or focusing a Home rail row or a profile event card that opens the drawer SHALL start loading that event.
+
+#### Scenario: The event is still loading
+
+- **GIVEN** a member opens an event that has not loaded yet
+- **WHEN** the drawer appears
+- **THEN** it shows the Back bar, "EVENT DETAILS" and loading placeholders, not an empty panel
+
+#### Scenario: The event loads before the press
+
+- **GIVEN** a signed-in member on Home
+- **WHEN** they point at an upcoming event row, then open it
+- **THEN** the event started loading when they pointed at the row
+
 ### Requirement: The drawer shows the gathering and the event's attendees
 
 Below the event, the drawer SHALL show:
 - the gathering's links (its schedule, its resources such as Telegram and shared notes, and the number of its events);
-- "Attendees", with up to three faces and "N People going".
+- "Attendees", with up to three faces and "N People going" ("1 Person going" for one).
 
 N SHALL count the members going to this event only. Members who said they are going to the gathering as a whole without naming an event SHALL NOT count.
 
@@ -70,6 +86,12 @@ N SHALL count the members going to this event only. Members who said they are go
 - **GIVEN** 12 members going to event A, and 5 members going to A's gathering without naming an event
 - **WHEN** a member opens event A
 - **THEN** the drawer reads "12 People going"
+
+#### Scenario: One member going
+
+- **GIVEN** one member going to event A
+- **WHEN** a member opens event A
+- **THEN** the drawer reads "1 Person going"
 
 #### Scenario: Nobody going yet
 

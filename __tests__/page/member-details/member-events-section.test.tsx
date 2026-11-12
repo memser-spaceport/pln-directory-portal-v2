@@ -20,6 +20,10 @@ jest.mock('@/components/page/events/EventDrawer', () => ({
     ) : null;
   },
 }));
+const mockPrefetchEvent = jest.fn();
+jest.mock('@/services/events/hooks/useEventDrawerQueries', () => ({
+  usePrefetchEventDetail: () => mockPrefetchEvent,
+}));
 const mockToastSuccess = jest.fn();
 jest.mock('@/components/core/ToastContainer', () => ({ toast: { success: (text: string) => mockToastSuccess(text) } }));
 
@@ -206,5 +210,21 @@ describe('MemberEventsSection (LAB-3217)', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Actions for FIL Berlin' }));
     expect(mockDrawer).toHaveBeenLastCalledWith(expect.objectContaining({ eventUid: 'up-1', initialStep: 'plans' }));
+  });
+});
+
+describe('prefetching the event before the press', () => {
+  it('loads the event when the pointer reaches a card, and on keyboard focus', () => {
+    mockPrefetchEvent.mockClear();
+    renderSection();
+    const [event] = UPCOMING;
+    const press = screen.getByRole('button', { name: new RegExp(`^${event.name}, `) });
+
+    fireEvent.pointerEnter(press);
+    expect(mockPrefetchEvent).toHaveBeenCalledWith(event.uid);
+
+    mockPrefetchEvent.mockClear();
+    fireEvent.focus(press);
+    expect(mockPrefetchEvent).toHaveBeenCalledWith(event.uid);
   });
 });

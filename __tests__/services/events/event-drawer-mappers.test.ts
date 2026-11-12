@@ -138,6 +138,17 @@ describe('event drawer mappers (LAB-3216)', () => {
       expect(event.timezone).toBe('UTC');
     });
 
+    it("uses the event's logo as its picture, then its banner", () => {
+      expect(
+        toEventDetail(eventResponse({ logo: 'https://cdn.test/logo.png', banner: 'https://cdn.test/banner.png' }))
+          .image,
+      ).toBe('https://cdn.test/logo.png');
+      expect(toEventDetail(eventResponse({ logo: null, banner: 'https://cdn.test/banner.png' })).image).toBe(
+        'https://cdn.test/banner.png',
+      );
+      expect(toEventDetail(eventResponse({ logo: null, banner: null })).image).toBeNull();
+    });
+
     it('falls back to the member hosts when the sync sent none', () => {
       const event = toEventDetail(bareEventResponse({ hosts: [{ uid: 'm-9', name: 'Iris Host', image: null }] }));
       expect(event.hosts).toEqual(['Iris Host']);

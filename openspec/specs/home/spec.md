@@ -93,7 +93,7 @@ The stories SHALL be the editorial top stories (rank 1 to 5) when there are any,
 
 ### Requirement: Open roles and upcoming events beside the news
 
-The sidebar SHALL list the newest open roles, with "See all N jobs" where N is the total number of open roles. It SHALL list up to three events that start in the next 30 days, soonest first, with "See all" to the events page. Signed out, a full-width primary "Sign up to apply" button SHALL sit above "See all N jobs" and open sign-up.
+The sidebar SHALL list the newest open roles, with "See all N jobs" where N is the total number of open roles. It SHALL list up to three events that start in the next 30 days, soonest first, with "See all N events" ("See all 1 event" for one) to the events page. Signed out, a full-width primary "Sign up to apply" button SHALL sit above "See all N jobs" and open sign-up.
 
 When no event starts in the next 30 days, the events section SHALL be absent and the roles section SHALL list five roles instead of three.
 

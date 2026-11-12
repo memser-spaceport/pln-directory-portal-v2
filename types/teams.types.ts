@@ -85,6 +85,7 @@ export interface ITeamResponse {
   location?: string | null;
   locations?: string[];
   status?: TeamStatus | null;
+  accessLevel?: string | null;
   linkedinHandle?: string | null;
   createdAt?: string;
   asks?: string[];
@@ -175,6 +176,8 @@ export interface ITeam {
   locations?: string[];
   /** Absent or null counts as `ACTIVE` — see `isTeamInactive`. */
   status?: TeamStatus | null;
+  /** Free text in the API; teams only get `L0`, `L1` or null. */
+  accessLevel?: string | null;
   blog?: string | null;
   isFollowed?: boolean;
 }

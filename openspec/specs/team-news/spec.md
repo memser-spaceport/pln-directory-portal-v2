@@ -58,10 +58,11 @@ The Teams you follow section SHALL list the teams the member follows, each with 
 
 ### Requirement: Ways in
 
-The page SHALL be reachable from three places:
+The page SHALL be reachable from four places:
 
 - the digest email's News preferences link (`from=digest`);
 - an "Update" link in Home's For You hint, which reads "Update to make it more relevant." (`from=feed`);
+- a row on Home's All view for a signed-in member with no own teams, no followed teams and no news tags, while News preferences is on (`from=feed`). The row reads "For you · Get news picked for you. Choose your topics and teams in News preferences." The link reads "Open News preferences →". The row is hidden when a focus-area tab, a category other than All, a topic filter or search text is on. It is hidden for a signed-out visitor, when News preferences is off, when the member's tags are unknown, and when the member has teams or tags but no stories. On the new Home this row replaces the curated "For you" line for that member, and only on that resting All view;
 - the settings menu (`from=settings`).
 
 Arriving with `from=digest` or `from=feed` SHALL outline one section until the member's first change: Teams you follow when they have topics but follow no teams, otherwise Topics. Email Preferences SHALL link to the page under its Network news setting.
@@ -71,6 +72,13 @@ Arriving with `from=digest` or `from=feed` SHALL outline one section until the m
 - **GIVEN** a signed-in member who follows at least one team, on Home's For You view
 - **WHEN** they click "Update"
 - **THEN** News preferences opens with Topics outlined
+
+#### Scenario: From the set-up row
+
+- **GIVEN** a signed-in member with no own teams, no followed teams and no news tags, on Home's All view, with News preferences on
+- **WHEN** they click "Open News preferences →"
+- **THEN** News preferences opens with Topics outlined
+- **AND** `team-news-for-you-setup-clicked` is recorded with their member id, and `team-news-for-you-tune-clicked` is not
 
 #### Scenario: From Email Preferences
 
@@ -90,6 +98,8 @@ The page SHALL record:
 - `settings-news-preferences-group-expanded`, with the theme and `from`, when a long theme's "Show N more" is clicked.
 
 The For You hint SHALL record `team-news-for-you-tune-clicked`.
+
+The set-up row SHALL record `team-news-for-you-setup-shown` once per page load when it renders, with the member id. A click SHALL record `team-news-for-you-setup-clicked` with the member id, and SHALL NOT record `team-news-for-you-tune-clicked`.
 
 #### Scenario: Page opened from the digest
 
@@ -298,16 +308,20 @@ With `NEXT_PUBLIC_SHOW_HOME_V2` on, Home's news cards SHALL show their tags as `
 - **THEN** stories tagged `ai` match
 
 ### Requirement: Posting an update is recorded
+
 Opening the composer on a team page or a member page SHALL record `team-news-create-clicked` with the team uid, team name and source. A successful publish SHALL record `team-news-create-post-submitted` with the same fields. A failed publish SHALL record neither submit event. The event SHALL NOT include the post title, body or URL.
 
 #### Scenario: Publish from the team page
+
 - **WHEN** a member opens the composer on a team page and the post succeeds
 - **THEN** PostHog gets `team-news-create-clicked` and `team-news-create-post-submitted` with source `team-profile-rail`
 
 #### Scenario: Publish from the member page
+
 - **WHEN** a member opens the composer on their member page and the post succeeds
 - **THEN** PostHog gets both events with source `member-profile`
 
 #### Scenario: Publish fails
+
 - **WHEN** the create request fails
 - **THEN** PostHog gets `team-news-create-clicked` and no `team-news-create-post-submitted`

@@ -1,7 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { Button } from '@/components/common/Button';
@@ -76,6 +76,8 @@ export interface EventDrawerViewProps {
 }
 
 /** The prototype's drawer width; full width on narrow screens. */
+const NOOP = () => {};
+
 function drawerWidth() {
   return typeof window === 'undefined' ? 778 : Math.min(778, window.innerWidth);
 }
@@ -88,64 +90,79 @@ export function EventDrawerView(props: EventDrawerViewProps) {
   const { status, event, canMarkGoing, plans, onClose, onRetry } = props;
   const ready = status === 'ready' && !!event && (!canMarkGoing || !!plans);
 
-  if (ready && event) {
-    return <EventFlow key={event.uid} {...props} event={event} plans={plans} />;
-  }
+  // One drawer for every state. Swapping the loading panel for the event must not mount a second drawer, or its
+  // slide-in plays again. What Escape and the backdrop do depends on the state, so the flow registers its own handler.
+  const closeRef = useRef<() => void>(onClose);
+  useEffect(() => {
+    if (!ready) closeRef.current = onClose;
+  });
+  const handleDrawerClose = useCallback(() => closeRef.current(), []);
 
   return (
-    <Drawer isOpen onClose={onClose} width={drawerWidth()}>
-      <div className={e.root}>
-        <div className={e.backBar}>
-          <button type="button" className={e.back} onClick={onClose}>
-            <BackIcon />
-            <span>Back</span>
-          </button>
-        </div>
-        {status === 'not-found' ? (
-          <div className={e.state} role="status">
-            <h2 className={e.stateTitle}>This event is no longer available</h2>
-            <p className={e.stateText}>It may have been removed or cancelled.</p>
-            <div className={e.stateActions}>
-              <Button type="button" style="border" variant="neutral" size="s" onClick={onClose}>
-                Close
-              </Button>
-            </div>
-          </div>
-        ) : status === 'error' ? (
-          <div className={e.state} role="alert">
-            <h2 className={e.stateTitle}>We couldn&apos;t load this event</h2>
-            <p className={e.stateText}>Check your connection and try again.</p>
-            <div className={e.stateActions}>
-              <Button type="button" style="border" variant="neutral" size="s" onClick={onClose}>
-                Close
-              </Button>
-              {onRetry && (
-                <Button type="button" size="s" onClick={onRetry}>
-                  Try again
-                </Button>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className={e.state} aria-busy="true" aria-label="Loading the event">
-            {/* Shaped like the panel it becomes (kicker, title, date, place, tags, Host, gathering), so a slow load
-                reads as loading rather than as an empty drawer. */}
-            <div className={e.skeleton}>
-              <span className={e.kicker}>EVENT DETAILS</span>
-              <span className={clsx(e.skeletonBlock, e.skeletonTitle)} />
-              <span className={clsx(e.skeletonBlock, e.skeletonFact)} />
-              <span className={clsx(e.skeletonBlock, e.skeletonPlace)} />
-              <span className={e.skeletonChips}>
-                <span className={clsx(e.skeletonBlock, e.skeletonChip)} />
-                <span className={clsx(e.skeletonBlock, e.skeletonChip)} />
-              </span>
-              <span className={clsx(e.skeletonBlock, e.skeletonLabel)} />
-              <span className={clsx(e.skeletonBlock, e.skeletonPanel)} />
-            </div>
-          </div>
-        )}
-      </div>
+    <Drawer isOpen onClose={handleDrawerClose} width={drawerWidth()}>
+      {ready && event ? (
+        <EventFlow key={event.uid} {...props} event={event} plans={plans} drawerCloseRef={closeRef} />
+      ) : (
+        <DrawerStates status={status} onClose={onClose} onRetry={onRetry} />
+      )}
     </Drawer>
+  );
+}
+
+/** Loading, missing and failed: the drawer's body before an event can show. */
+function DrawerStates({ status, onClose, onRetry }: Pick<EventDrawerViewProps, 'status' | 'onClose' | 'onRetry'>) {
+  return (
+    <div className={e.root}>
+      <div className={e.backBar}>
+        <button type="button" className={e.back} onClick={onClose}>
+          <BackIcon />
+          <span>Back</span>
+        </button>
+      </div>
+      {status === 'not-found' ? (
+        <div className={e.state} role="status">
+          <h2 className={e.stateTitle}>This event is no longer available</h2>
+          <p className={e.stateText}>It may have been removed or cancelled.</p>
+          <div className={e.stateActions}>
+            <Button type="button" style="border" variant="neutral" size="s" onClick={onClose}>
+              Close
+            </Button>
+          </div>
+        </div>
+      ) : status === 'error' ? (
+        <div className={e.state} role="alert">
+          <h2 className={e.stateTitle}>We couldn&apos;t load this event</h2>
+          <p className={e.stateText}>Check your connection and try again.</p>
+          <div className={e.stateActions}>
+            <Button type="button" style="border" variant="neutral" size="s" onClick={onClose}>
+              Close
+            </Button>
+            {onRetry && (
+              <Button type="button" size="s" onClick={onRetry}>
+                Try again
+              </Button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className={e.state} aria-busy="true" aria-label="Loading the event">
+          {/* Shaped like the panel it becomes (kicker, title, date, place, tags, Host, gathering), so a slow load
+                reads as loading rather than as an empty drawer. */}
+          <div className={e.skeleton}>
+            <span className={e.kicker}>EVENT DETAILS</span>
+            <span className={clsx(e.skeletonBlock, e.skeletonTitle)} />
+            <span className={clsx(e.skeletonBlock, e.skeletonFact)} />
+            <span className={clsx(e.skeletonBlock, e.skeletonPlace)} />
+            <span className={e.skeletonChips}>
+              <span className={clsx(e.skeletonBlock, e.skeletonChip)} />
+              <span className={clsx(e.skeletonBlock, e.skeletonChip)} />
+            </span>
+            <span className={clsx(e.skeletonBlock, e.skeletonLabel)} />
+            <span className={clsx(e.skeletonBlock, e.skeletonPanel)} />
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -182,7 +199,8 @@ function EventFlow({
   onYes,
   onSave,
   onGoing,
-}: EventDrawerViewProps & { event: EventDetail }) {
+  drawerCloseRef,
+}: EventDrawerViewProps & { event: EventDetail; drawerCloseRef: MutableRefObject<() => void> }) {
   const gathering = event.gathering;
   const wasGoing = !!event.viewer;
   const [step, setStep] = useState<EventDrawerStep>(
@@ -359,6 +377,11 @@ function EventFlow({
   };
   const overlay = renderOverlay();
 
+  // While a picker or the people list is open above it, Escape and the backdrop belong to that (design D7).
+  useEffect(() => {
+    drawerCloseRef.current = overlay ? NOOP : close;
+  });
+
   const consent = (
     <label className={e.consent}>
       <Checkbox checked={showOnProfile} onChange={setShowOnProfile} aria-labelledby="going-consent-label" />
@@ -373,124 +396,114 @@ function EventFlow({
 
   return (
     <>
-      {/* While a picker or the people list is open above it, Escape and the backdrop belong to that (design D7). */}
-      <Drawer isOpen onClose={overlay ? () => {} : close} width={drawerWidth()}>
-        <FormProvider {...methods}>
-          <form onSubmit={handleSave} className={e.root} onKeyDown={(ev) => ev.key === 'Enter' && ev.preventDefault()}>
-            <div className={e.backBar}>
-              <button type="button" className={e.back} onClick={close}>
-                <BackIcon />
-                <span>Back</span>
-              </button>
-            </div>
+      <FormProvider {...methods}>
+        <form onSubmit={handleSave} className={e.root} onKeyDown={(ev) => ev.key === 'Enter' && ev.preventDefault()}>
+          <div className={e.backBar}>
+            <button type="button" className={e.back} onClick={close}>
+              <BackIcon />
+              <span>Back</span>
+            </button>
+          </div>
 
-            <div className={e.body}>
-              <EventSummary event={event} />
+          <div className={e.body}>
+            <EventSummary event={event} />
 
-              {gathering && (
-                <div className={e.block}>
-                  <Label icon={<PinLabelIcon />}>{city} gathering</Label>
-                  <div className={e.gatheringLinks}>
-                    <GatheringDetails
-                      dateRange={event.dateLine}
-                      location={city}
-                      eventsLink={buildEventsLink(gathering.location, event.startDate)}
-                      eventsCount={gathering.events.length}
-                      resources={gathering.resources}
-                    />
-                  </div>
-                </div>
-              )}
-
+            {gathering && (
               <div className={e.block}>
-                <Label icon={<HostIcon />}>Attendees</Label>
-                {count > 0 ? (
-                  <div className={m.attendeesRow}>
-                    {event.faces.length > 0 && (
-                      <div className={m.avatarGroup}>
-                        {event.faces.slice(0, 3).map((face) => (
-                          <div key={face.uid} className={m.avatar}>
-                            <img src={face.image || getDefaultAvatar(face.name)} alt="" width={24} height={24} />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    <button type="button" className={m.linkButton} onClick={openAttendees}>
-                      {count} {count === 1 ? 'Person' : 'People'} going
-                    </button>
-                  </div>
-                ) : (
-                  <p className={e.emptyNote}>Nobody has said they are going yet.</p>
-                )}
-              </div>
-
-              {canMarkGoing && step === 'ask' && (
-                <div className={e.askBlock}>
-                  <div>
-                    <div className={m.step1Title}>Are you going to {event.name}?</div>
-                    <div className={m.step1Subtitle}>Let others know if you are attending.</div>
-                  </div>
-                  {consent}
+                <Label icon={<PinLabelIcon />}>{city} gathering</Label>
+                <div className={e.gatheringLinks}>
+                  <GatheringDetails
+                    dateRange={event.dateLine}
+                    location={city}
+                    eventsLink={buildEventsLink(gathering.location, event.startDate)}
+                    eventsCount={gathering.events.length}
+                    resources={gathering.resources}
+                  />
                 </div>
-              )}
+              </div>
+            )}
 
-              {canMarkGoing && step === 'plans' && (
-                <>
-                  <PlanningSection
-                    planningQuestion={planningQuestion}
-                    selectedDateRange={picker.selectedDateRange}
-                    selectedTopics={picker.selectedTopics}
-                    selectedEvents={selectedEvents}
-                    events={eventData}
-                    onDateInputClick={picker.handleOpenDatePicker}
-                    onTopicsInputClick={picker.handleOpenTopicsPicker}
-                    onEventsInputClick={picker.handleOpenEventsPicker}
-                    isLoggedIn
-                  />
-                  <AdditionalDetailsSection
-                    teams={teams}
-                    telegramHandle={plans?.telegramId || member.telegramHandle}
-                    officeHours={plans?.officeHours || member.officeHours}
-                    defaultExpanded={false}
-                  />
-                  {consent}
-                </>
+            <div className={e.block}>
+              <Label icon={<HostIcon />}>Attendees</Label>
+              {count > 0 ? (
+                <div className={m.attendeesRow}>
+                  {event.faces.length > 0 && (
+                    <div className={m.avatarGroup}>
+                      {event.faces.slice(0, 3).map((face) => (
+                        <div key={face.uid} className={m.avatar}>
+                          <img src={face.image || getDefaultAvatar(face.name)} alt="" width={24} height={24} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <button type="button" className={m.linkButton} onClick={openAttendees}>
+                    {count} {count === 1 ? 'Person' : 'People'} going
+                  </button>
+                </div>
+              ) : (
+                <p className={e.emptyNote}>Nobody has said they are going yet.</p>
               )}
             </div>
 
-            {/* Keyed per step: without it React reuses the "Yes" button as "Save", and its type turns to submit
-                in the middle of the click (prototype note). */}
             {canMarkGoing && step === 'ask' && (
-              <div key="ask" className={e.footer}>
-                <Button
-                  type="button"
-                  style="border"
-                  variant="neutral"
-                  size="s"
-                  className={e.footerBtn}
-                  onClick={onClose}
-                >
-                  No
-                </Button>
-                <Button type="button" size="s" className={e.footerBtn} onClick={handleYes} disabled={saving}>
-                  Yes, I&apos;m going
-                </Button>
+              <div className={e.askBlock}>
+                <div>
+                  <div className={m.step1Title}>Are you going to {event.name}?</div>
+                  <div className={m.step1Subtitle}>Let others know if you are attending.</div>
+                </div>
+                {consent}
               </div>
             )}
+
             {canMarkGoing && step === 'plans' && (
-              <div key="details" className={e.footer}>
-                {/* The answer was saved by "Yes", so right after it this leaves rather than cancels. */}
-                <Button type="button" style="border" variant="neutral" size="s" className={e.footerBtn} onClick={close}>
-                  {justMarked ? 'Skip' : 'Cancel'}
-                </Button>
-                <Button type="submit" size="s" className={e.footerBtn} disabled={saving}>
-                  Save
-                </Button>
-              </div>
+              <>
+                <PlanningSection
+                  planningQuestion={planningQuestion}
+                  selectedDateRange={picker.selectedDateRange}
+                  selectedTopics={picker.selectedTopics}
+                  selectedEvents={selectedEvents}
+                  events={eventData}
+                  onDateInputClick={picker.handleOpenDatePicker}
+                  onTopicsInputClick={picker.handleOpenTopicsPicker}
+                  onEventsInputClick={picker.handleOpenEventsPicker}
+                  isLoggedIn
+                />
+                <AdditionalDetailsSection
+                  teams={teams}
+                  telegramHandle={plans?.telegramId || member.telegramHandle}
+                  officeHours={plans?.officeHours || member.officeHours}
+                  defaultExpanded={false}
+                />
+                {consent}
+              </>
             )}
-          </form>
-        </FormProvider>
-      </Drawer>
+          </div>
+
+          {/* Keyed per step: without it React reuses the "Yes" button as "Save", and its type turns to submit
+                in the middle of the click (prototype note). */}
+          {canMarkGoing && step === 'ask' && (
+            <div key="ask" className={e.footer}>
+              <Button type="button" style="border" variant="neutral" size="s" className={e.footerBtn} onClick={onClose}>
+                No
+              </Button>
+              <Button type="button" size="s" className={e.footerBtn} onClick={handleYes} disabled={saving}>
+                Yes, I&apos;m going
+              </Button>
+            </div>
+          )}
+          {canMarkGoing && step === 'plans' && (
+            <div key="details" className={e.footer}>
+              {/* The answer was saved by "Yes", so right after it this leaves rather than cancels. */}
+              <Button type="button" style="border" variant="neutral" size="s" className={e.footerBtn} onClick={close}>
+                {justMarked ? 'Skip' : 'Cancel'}
+              </Button>
+              <Button type="submit" size="s" className={e.footerBtn} disabled={saving}>
+                Save
+              </Button>
+            </div>
+          )}
+        </form>
+      </FormProvider>
       {overlay}
     </>
   );

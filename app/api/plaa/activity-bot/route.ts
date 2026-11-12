@@ -2,12 +2,22 @@ import { sign } from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
+const MAX_TEXT = 2000;
+
 const turnSchema = z
   .object({
     sessionId: z.string().min(1).max(128),
-    activityId: z.string().regex(/^[A-Za-z0-9_-]{1,64}$/),
-    message: z.string().max(2000).optional(),
-    event: z.literal('privacy_acknowledged').optional(),
+    activityId: z
+      .string()
+      .regex(/^[A-Za-z0-9_-]{1,64}$/)
+      .optional(),
+    mode: z.enum(['activity', 'question', 'suggest']).optional(),
+    message: z.string().max(MAX_TEXT).optional(),
+    event: z.enum(['privacy_acknowledged', 'feedback']).optional(),
+    rating: z.enum(['up', 'down']).optional(),
+    comment: z.string().max(MAX_TEXT).optional(),
+    question: z.string().max(MAX_TEXT).optional(),
+    answer: z.string().max(MAX_TEXT).optional(),
   })
   .strip();
 

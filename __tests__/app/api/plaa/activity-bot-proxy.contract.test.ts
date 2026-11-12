@@ -244,10 +244,46 @@ describe('activity bot proxy route', () => {
   });
 
   it.each([
+    [
+      'a question from the launcher, with no activity',
+      { sessionId: 'session-1', mode: 'question', message: 'What is PLAA?' },
+    ],
+    ['a suggestion request, with no activity', { sessionId: 'session-1', mode: 'suggest', message: '' }],
+    [
+      'a rating on an answer',
+      {
+        sessionId: 'session-1',
+        event: 'feedback',
+        rating: 'up',
+        mode: 'question',
+        question: 'What is PLAA?',
+        answer: 'A program.',
+      },
+    ],
+    ['a feedback comment', { sessionId: 'session-1', event: 'feedback', comment: 'Could be shorter.' }],
+  ])('forwards %s unchanged', async (_label, body) => {
+    const res = await postTurn(makeRequest({ body }));
+
+    expect(res.status).toBe(200);
+    expect(JSON.parse(callsTo(WEBHOOK_URL)[0][1].body)).toEqual(body);
+  });
+
+  it.each([
     ['no session id', { activityId: 'x_space', message: 'hi' }],
     ['an activity id with a path in it', { sessionId: 's', activityId: '../x', message: 'hi' }],
     ['a message over 2000 characters', { sessionId: 's', activityId: 'x_space', message: 'a'.repeat(2001) }],
     ['an unknown event', { sessionId: 's', activityId: 'x_space', event: 'something_else' }],
+    ['an unknown mode', { sessionId: 's', mode: 'admin', message: 'hi' }],
+    ['an unknown rating', { sessionId: 's', event: 'feedback', rating: 'five-stars' }],
+    ['a feedback comment over 2000 characters', { sessionId: 's', event: 'feedback', comment: 'a'.repeat(2001) }],
+    [
+      'a rated question over 2000 characters',
+      { sessionId: 's', event: 'feedback', rating: 'up', question: 'a'.repeat(2001) },
+    ],
+    [
+      'a rated answer over 2000 characters',
+      { sessionId: 's', event: 'feedback', rating: 'up', answer: 'a'.repeat(2001) },
+    ],
     ['a body that is not an object', 'not json'],
   ])('returns 400 for %s', async (_label, body) => {
     const res = await postTurn(makeRequest({ body }));

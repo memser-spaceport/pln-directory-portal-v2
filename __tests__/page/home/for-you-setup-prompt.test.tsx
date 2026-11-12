@@ -22,7 +22,10 @@ import { ALL_CAT, ALL_TAB, FOR_YOU_CAT } from '@/components/page/home/TeamNews/c
 const resting = {
   preferencesOn: true,
   signedIn: true,
-  forYouHasNoInputs: true,
+  hasNoNewsTags: true,
+  hasForYouNews: false,
+  followsAnyTeam: false,
+  followsSettled: true,
   activeTab: ALL_TAB,
   activeCategory: ALL_CAT,
   query: '',
@@ -30,11 +33,14 @@ const resting = {
 };
 
 describe('isForYouSetupVisible', () => {
-  it('is true only on resting All for a signed-in member with no For You inputs', () => {
+  it('is true on resting All when For You has no stories, tags are empty and the member follows no team', () => {
     expect(isForYouSetupVisible(resting)).toBe(true);
     expect(isForYouSetupVisible({ ...resting, preferencesOn: false })).toBe(false);
     expect(isForYouSetupVisible({ ...resting, signedIn: false })).toBe(false);
-    expect(isForYouSetupVisible({ ...resting, forYouHasNoInputs: false })).toBe(false);
+    expect(isForYouSetupVisible({ ...resting, hasNoNewsTags: false })).toBe(false);
+    expect(isForYouSetupVisible({ ...resting, hasForYouNews: true })).toBe(false);
+    expect(isForYouSetupVisible({ ...resting, followsAnyTeam: true })).toBe(false);
+    expect(isForYouSetupVisible({ ...resting, followsSettled: false })).toBe(false);
     expect(isForYouSetupVisible({ ...resting, activeTab: 'AI & Robotics' })).toBe(false);
     expect(isForYouSetupVisible({ ...resting, activeCategory: FOR_YOU_CAT })).toBe(false);
     expect(isForYouSetupVisible({ ...resting, query: ' filecoin ' })).toBe(false);

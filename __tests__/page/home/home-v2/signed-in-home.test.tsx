@@ -333,6 +333,17 @@ describe('Network Updates: the stream', () => {
     expect(screen.getByRole('link', { name: 'Open News preferences →' })).toBeInTheDocument();
   });
 
+  it('shows the set-up row when the member has teams but no For You news, no tags and no follows', () => {
+    renderHome([story('a', 'LAUNCH'), story('b', 'FUNDING')], { forYouTags: [], forYouTeamUids: ['team-missing'] });
+
+    expect(screen.getByRole('link', { name: 'Open News preferences →' })).toHaveAttribute(
+      'href',
+      '/settings/news-preferences?from=feed',
+    );
+    expect(screen.queryByText(/Curated from your profile/)).not.toBeInTheDocument();
+    expect(within(pillRow()).queryByRole('button', { name: /For You/ })).not.toBeInTheDocument();
+  });
+
   it('keeps the curated line when the member has a tag but no stories this week', () => {
     renderHome([story('a', 'LAUNCH')], { forYouTags: ['neurotech'], forYouTeamUids: [] });
 

@@ -105,6 +105,13 @@ const mockOnTagFilterApplied = jest.fn();
 const mockOnTagFilterCleared = jest.fn();
 const mockOnForYouSetupShown = jest.fn();
 const mockOnForYouSetupClicked = jest.fn();
+const mockMemberFollows = { uids: [] as string[] };
+jest.mock('@/services/follow/hooks/useFollowedTeamUids', () => ({
+  useFollowedTeamUids: () => ({
+    followedTeamUids: new Set(mockMemberFollows.uids),
+    isSettled: true,
+  }),
+}));
 jest.mock('@/analytics/team-news.analytics', () => ({
   useTeamNewsAnalytics: () => ({
     onTeamNewsTabClicked: (...a: unknown[]) => mockOnTabClicked(...a),
@@ -2628,6 +2635,7 @@ describe('TeamNews', () => {
     beforeEach(() => {
       mockShowNewsPreferences = true;
       mockTopicSlugs = new Set(['ai']);
+      mockMemberFollows.uids = [];
       useCurrentUserStore.setState({ currentUser: { uid: 'user-1' }, isHydrated: true });
     });
 
@@ -2684,7 +2692,7 @@ describe('TeamNews', () => {
       jest.useRealTimers();
     });
 
-    it('stays hidden for a guest, a member with inputs, a quiet week, and when News preferences is off', () => {
+    it('stays hidden for a guest, a member with a tag, and when News preferences is off', () => {
       useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
       renderUnset();
       expect(setupLink()).not.toBeInTheDocument();
@@ -2696,13 +2704,24 @@ describe('TeamNews', () => {
       expect(within(catRow()).getByRole('button', { name: /For You/ })).toBeInTheDocument();
       cleanup();
 
-      renderUnset(['team-missing'], []);
+      renderUnset([], ['neurotech']);
       expect(setupLink()).not.toBeInTheDocument();
       expect(within(catRow()).queryByRole('button', { name: /For You/ })).not.toBeInTheDocument();
       cleanup();
 
       mockShowNewsPreferences = false;
       renderUnset();
+      expect(setupLink()).not.toBeInTheDocument();
+    });
+
+    it('shows the row when the member has teams but no For You news, and hides it when they follow a team', () => {
+      renderUnset(['team-missing'], []);
+      expect(setupLink()).toBeInTheDocument();
+      expect(within(catRow()).queryByRole('button', { name: /For You/ })).not.toBeInTheDocument();
+      cleanup();
+
+      mockMemberFollows.uids = ['team-followed'];
+      renderUnset(['team-missing'], []);
       expect(setupLink()).not.toBeInTheDocument();
     });
   });

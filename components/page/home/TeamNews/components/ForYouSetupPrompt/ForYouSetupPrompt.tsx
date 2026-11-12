@@ -16,32 +16,40 @@ interface ForYouSetupPromptProps {
   className?: string;
 }
 
-/** Home's All view, with no focus-area tab, category, topic filter or search. */
-export function isForYouSetupVisible({
+/** No For You stories, no news tags, and no followed teams. Own teams do not count. */
+export function isForYouSetupEligible({
   preferencesOn,
   signedIn,
-  forYouHasNoInputs,
-  activeTab,
-  activeCategory,
-  query,
-  hasTopicFilter,
+  hasNoNewsTags,
+  hasForYouNews,
+  followsAnyTeam,
+  followsSettled,
 }: {
   preferencesOn: boolean;
   signedIn: boolean;
-  forYouHasNoInputs: boolean;
-  activeTab: string;
-  activeCategory: string;
-  query: string;
-  hasTopicFilter: boolean;
+  hasNoNewsTags: boolean;
+  hasForYouNews: boolean;
+  followsAnyTeam: boolean;
+  followsSettled: boolean;
 }): boolean {
+  return preferencesOn && signedIn && hasNoNewsTags && !hasForYouNews && followsSettled && !followsAnyTeam;
+}
+
+/** The eligible member, on Home's All view, with no focus-area tab, category, topic filter or search. */
+export function isForYouSetupVisible(
+  input: Parameters<typeof isForYouSetupEligible>[0] & {
+    activeTab: string;
+    activeCategory: string;
+    query: string;
+    hasTopicFilter: boolean;
+  },
+): boolean {
   return (
-    preferencesOn &&
-    signedIn &&
-    forYouHasNoInputs &&
-    activeTab === ALL_TAB &&
-    activeCategory === ALL_CAT &&
-    query.trim() === '' &&
-    !hasTopicFilter
+    isForYouSetupEligible(input) &&
+    input.activeTab === ALL_TAB &&
+    input.activeCategory === ALL_CAT &&
+    input.query.trim() === '' &&
+    !input.hasTopicFilter
   );
 }
 

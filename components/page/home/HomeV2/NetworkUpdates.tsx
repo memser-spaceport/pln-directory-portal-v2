@@ -24,6 +24,7 @@ import { assertNever, feedEntryKey } from '@/components/page/home/TeamNews/utils
 import { ALL_CAT, ALL_TAB } from '@/components/page/home/TeamNews/constants';
 import {
   ForYouSetupPrompt,
+  isForYouSetupEligible,
   isForYouSetupVisible,
 } from '@/components/page/home/TeamNews/components/ForYouSetupPrompt/ForYouSetupPrompt';
 import { isEditorialRank } from '@/components/page/home/TeamNews/utils/selectTopStories';
@@ -93,7 +94,10 @@ export function NetworkUpdates({
     activeCategory,
     handleCategory,
     activeTab,
-    forYouHasNoInputs,
+    hasNoNewsTags,
+    hasForYouNews,
+    followsAnyTeam,
+    followsSettled,
     sort,
     handleSort,
     topicScope,
@@ -157,6 +161,19 @@ export function NetworkUpdates({
     setOtherNewsFor(fillFromAll && !fit.reachesRef.current ? tabKey : null);
   }, [fillFromAll, fit.primaryReaches, fit.reachesRef, tabKey, fillKey, visibleKey]);
 
+  const forYouSetupInput = {
+    preferencesOn: SHOW_NEWS_PREFERENCES,
+    signedIn: Boolean(currentUser?.uid),
+    hasNoNewsTags,
+    hasForYouNews,
+    followsAnyTeam,
+    followsSettled,
+  };
+  const showForYouSetup = isForYouSetupEligible(forYouSetupInput);
+  // Holds the curated line back until follows load, so it does not flash for a member who follows nobody.
+  const awaitingFollows =
+    SHOW_NEWS_PREFERENCES && Boolean(currentUser?.uid) && hasNoNewsTags && !hasForYouNews && !followsSettled;
+
   return (
     <section className={s.weekFeed} aria-labelledby="home-week-title">
       <div className={s.sectionHead}>
@@ -213,15 +230,13 @@ export function NetworkUpdates({
         />
       )}
 
-      {/* A member with nothing For You can match on gets the set-up line on resting All (LAB-3080), in this slot.
-          Anyone else keeps the curated line on every filter (LAB-3174). */}
-      {SHOW_NEWS_PREFERENCES && currentUser?.uid && forYouHasNoInputs ? (
+      {/* No For You stories, no tags and no follows: the set-up line on resting All (LAB-3080).
+          Own teams do not hide it. Anyone else keeps the curated line (LAB-3174). */}
+      {showForYouSetup ? (
         <ForYouSetupPrompt
-          memberUid={currentUser.uid}
+          memberUid={currentUser?.uid}
           visible={isForYouSetupVisible({
-            preferencesOn: SHOW_NEWS_PREFERENCES,
-            signedIn: Boolean(currentUser.uid),
-            forYouHasNoInputs,
+            ...forYouSetupInput,
             activeTab,
             activeCategory,
             query,
@@ -229,7 +244,7 @@ export function NetworkUpdates({
           })}
           className={s.forYouLine}
         />
-      ) : (
+      ) : awaitingFollows ? null : (
         <ForYouCaption memberUid={currentUser?.uid} />
       )}
 

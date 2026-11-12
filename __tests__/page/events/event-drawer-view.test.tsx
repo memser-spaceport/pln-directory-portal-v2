@@ -118,6 +118,18 @@ describe('EventDrawerView (LAB-3216)', () => {
       expect(screen.getByRole('button', { name: 'Back' })).toBeInTheDocument();
     });
 
+    it('fills the same drawer when the event arrives, instead of opening a second one', () => {
+      const { rerender } = render(<Harness status="loading" event={null} />);
+      const drawer = screen.getByRole('button', { name: 'Back' }).closest('.container') as HTMLElement;
+      expect(drawer).not.toBeNull();
+
+      rerender(<Harness />);
+
+      const title = screen.getByRole('heading', { name: 'LabWeek Lisbon' });
+      expect(drawer.contains(title)).toBe(true);
+      expect(document.querySelectorAll('.container')).toHaveLength(1);
+    });
+
     it("shows the event's picture as a thumbnail beside the title", () => {
       render(<Harness raw={eventResponse({ logo: 'https://cdn.test/logo.png' })} />);
       // The drawer renders in a portal, outside the render container.

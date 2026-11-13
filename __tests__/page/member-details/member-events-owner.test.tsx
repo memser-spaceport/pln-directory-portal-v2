@@ -123,6 +123,9 @@ describe('OwnerMemberEventsSection (LAB-3218)', () => {
 
       const dialog = screen.getByRole('heading', { name: "Add an event you're going to" }).closest('div')!;
       expect(dialog).toBeInTheDocument();
+      // LAB-3228: the header carries the prototype's city icon next to the title.
+      const header = dialog.parentElement!;
+      expect(header.querySelector('img[src="/images/irl/defaultCity.svg"]')).toBeInTheDocument();
       expect(mockUpcomingEvents).toHaveBeenLastCalledWith({ days: 365, limit: 50, sort: 'soonest' }, { enabled: true });
 
       // FIL Berlin is on the profile and Hidden Summit is in the viewer's own list: both are left out.

@@ -65,6 +65,9 @@ export function AddEventPicker({
       <div className={m.modal}>
         <div className={m.header}>
           <div className={m.headerContent}>
+            <div className={m.iconWrapper} aria-hidden>
+              <img src="/images/irl/defaultCity.svg" alt="" width={40} height={40} />
+            </div>
             <div className={m.headerText}>
               <h2 className={m.title}>Add an event you&apos;re going to</h2>
             </div>

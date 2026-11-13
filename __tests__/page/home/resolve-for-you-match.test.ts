@@ -8,13 +8,26 @@ const response = {
 
 describe('resolveForYouMatch (LAB-3001)', () => {
   it('matches own and followed teams plus tags when News preferences is on', () => {
-    expect(resolveForYouMatch(response, true)).toEqual({ teamUids: ['own', 'followed'], tags: ['ai', 'desci'] });
+    expect(resolveForYouMatch(response, true)).toEqual({
+      teamUids: ['own', 'followed'],
+      tags: ['ai', 'desci'],
+      categories: [],
+    });
   });
 
   it('keeps an empty tag list: the member chose no tags', () => {
     expect(resolveForYouMatch({ ...response, forYouTags: [] }, true)).toEqual({
       teamUids: ['own', 'followed'],
       tags: [],
+      categories: [],
+    });
+  });
+
+  it('passes the picked categories when the backend sends them', () => {
+    expect(resolveForYouMatch({ ...response, forYouCategories: ['FUNDING'] }, true)).toEqual({
+      teamUids: ['own', 'followed'],
+      tags: ['ai', 'desci'],
+      categories: ['FUNDING'],
     });
   });
 

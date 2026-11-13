@@ -1,7 +1,7 @@
 import { MembersQueryKeys } from '@/services/members/constants';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { useQuery } from '@tanstack/react-query';
-import { readNewsTags } from '@/utils/news-tags';
+import { readNewsCategoryTags, readNewsTags } from '@/utils/news-tags';
 
 export interface MemberPreferencesResponse {
   preferenceSettings: {
@@ -36,6 +36,8 @@ export interface MemberPreferencesResponse {
   newsTags: string[];
   /** True while the member never saved tags: `newsTags` are then their teams' focus areas. */
   newsTagsSeeded: boolean;
+  /** News category tags (LAB-3140). Empty when the member never saved any. */
+  newsCategoryTags: string[];
 }
 
 async function fetcher(uid: string | undefined): Promise<MemberPreferencesResponse | null> {
@@ -60,6 +62,7 @@ async function fetcher(uid: string | undefined): Promise<MemberPreferencesRespon
   const rawPreferences = await response.json();
   // Named fields, not a spread: a spread here breaks the object-literal union callers narrow with `isError`.
   const { newsTags, newsTagsSeeded } = readNewsTags(rawPreferences);
+  const newsCategoryTags = readNewsCategoryTags(rawPreferences);
 
   const preferenceSettings = {
     email: rawPreferences?.email ?? false,
@@ -98,6 +101,7 @@ async function fetcher(uid: string | undefined): Promise<MemberPreferencesRespon
     // back in a PATCH must not carry it along.
     newsTags,
     newsTagsSeeded,
+    newsCategoryTags,
   };
 }
 

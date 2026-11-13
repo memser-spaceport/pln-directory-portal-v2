@@ -91,7 +91,7 @@ Arriving with `from=digest` or `from=feed` SHALL outline one section until the m
 The page SHALL record:
 
 - `settings-news-preferences-opened`, with `from`;
-- `settings-news-preferences-tag-toggled`, with the tag, its new state, and `from`;
+- `settings-news-preferences-tag-toggled`, with the tag, its new state, `from`, and `kind` (`topic` or `category`);
 - `settings-news-preferences-save-failed`, with the section (`tags` or `teams`);
 - `settings-news-preferences-follow-toggled`;
 - `settings-news-preferences-for-you-link-clicked`, with `from`, when the intro's "For You" link is clicked;
@@ -110,17 +110,35 @@ The set-up row SHALL record `team-news-for-you-setup-shown` once per page load w
 
 - **GIVEN** a member on News preferences
 - **WHEN** they add the AI tag
-- **THEN** `settings-news-preferences-tag-toggled` is recorded with tag `ai` and state on
+- **THEN** `settings-news-preferences-tag-toggled` is recorded with tag `ai`, state on, and kind `topic`
+
+#### Scenario: Category tag added
+
+- **GIVEN** a member on News preferences
+- **WHEN** they add Funding
+- **THEN** `settings-news-preferences-tag-toggled` is recorded with tag `FUNDING`, state on, and kind `category`
 
 ### Requirement: News tags
 
-The Topics section SHALL be headed "What do you want news about?" and SHALL offer the news tags (focus-area slugs) that tagged at least one news story in the last 90 days, plus any tag the member already has, as `#slug` chips grouped by theme: AI & frontier tech, Web3 infrastructure, Digital rights, Economies & governance, The network, and Other for any tag no theme lists. Themes are an editorial grouping in the frontend, not the focus-area hierarchy; chips are alphabetical within a theme and keep their place when toggled. A search field SHALL narrow the chips as the member types, matching part of a tag or a theme's name, and hide themes with no match. A theme with more than 9 tags SHALL show its first 8, plus every tag the member has or toggled in this visit, and end its chip row with "Show N more"; open, the theme shows every tag and the link reads "Show less". A theme that would hide only one tag shows it instead, and while the search has text every match shows with no link. Subscribing or unsubscribing SHALL save at once and show "Saved". The member SHALL be able to unsubscribe from every topic.
+The Topics section SHALL be headed "What do you want news about?" and SHALL offer the news tags (focus-area slugs) that tagged at least one news story in the last 90 days, plus any tag the member already has, as `#slug` chips grouped by theme: AI & frontier tech, Web3 infrastructure, Digital rights, Economies & governance, The network, and Other for any tag no theme lists. Above those themes, with no heading of their own, the section SHALL also offer Funding, Launch and Announcement. Those three use the category name, not a `#slug`. Themes are an editorial grouping in the frontend, not the focus-area hierarchy; chips are alphabetical within a theme and keep their place when toggled. A search field SHALL narrow the chips as the member types, matching part of a tag, a category name, or a theme's name, and hide themes and category chips with no match. A theme with more than 9 tags SHALL show its first 8, plus every tag the member has or toggled in this visit, and end its chip row with "Show N more"; open, the theme shows every tag and the link reads "Show less". A theme that would hide only one tag shows it instead, and while the search has text every match shows with no link. Subscribing or unsubscribing SHALL save at once and show "Saved". A category chip SHALL save only the category list. The member SHALL be able to unsubscribe from every topic and every category chip.
 
 #### Scenario: Search tags
 
 - **GIVEN** a member on News preferences
 - **WHEN** they type "decentralized" in Search tags
 - **THEN** only #decentralized-compute and #decentralized-storage show, under Web3 infrastructure, and choosing one saves it as usual
+
+#### Scenario: Search a category
+
+- **GIVEN** a member on News preferences
+- **WHEN** they type "fund" in Search tags
+- **THEN** the Funding chip shows, and the topic themes with no match are hidden
+
+#### Scenario: Choose a category
+
+- **GIVEN** a member who has not chosen Funding
+- **WHEN** they choose Funding
+- **THEN** Funding is saved in their category tags, their topic tags are unchanged, "Saved" appears, and Funding stays chosen after a reload
 
 #### Scenario: Search matches nothing
 
@@ -196,13 +214,25 @@ The Topics section SHALL be headed "What do you want news about?" and SHALL offe
 
 ### Requirement: For You matches news by tags
 
-With News preferences on, Home's For You view SHALL show a story when its team is one of the member's own or followed teams, or when it shares any tag with the member's tags (a parent focus area also matches its children). Teams related to the member's teams SHALL no longer match on their own. For You SHALL keep the newest story per team. When the backend does not send the member's tags, or News preferences is off, For You SHALL match the member's own, followed and related teams as before. The All view SHALL never be narrowed.
+With News preferences on, Home's For You view SHALL show a story when its team is one of the member's own or followed teams, or when it shares any tag with the member's tags (a parent focus area also matches its children), or when its category is one the member picked (Funding, Launch or Announcement). No picked category SHALL leave this match as the teams and tags alone. Teams related to the member's teams SHALL no longer match on their own. For You SHALL keep the newest story per team. When the backend does not send the member's tags, or News preferences is off, For You SHALL match the member's own, followed and related teams as before. The All view SHALL never be narrowed.
 
 #### Scenario: A tag brings in another team's story
 
 - **GIVEN** News preferences on and a member tagged AI
 - **WHEN** a team they have no link to posts a story tagged AI
 - **THEN** the story appears in For You
+
+#### Scenario: A category brings in another team's story
+
+- **GIVEN** News preferences on and a member who picked Funding
+- **WHEN** a team they have no link to posts a Funding story that matches none of their tags
+- **THEN** the story appears in For You
+
+#### Scenario: No category picked
+
+- **GIVEN** News preferences on and a member who picked no category
+- **WHEN** a team they have no link to posts a Funding story that matches none of their tags
+- **THEN** the story is not in For You
 
 #### Scenario: A related team without a matching tag
 

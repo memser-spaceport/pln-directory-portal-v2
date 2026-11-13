@@ -25,4 +25,14 @@ describe('getMemberPreferences newsTags (LAB-3000)', () => {
 
     expect(await getMemberPreferences('m1', 'token')).toMatchObject({ newsTags: [], newsTagsSeeded: false });
   });
+
+  it('returns category tags, and a missing list as none', async () => {
+    respond({ newsCategoryTags: ['LAUNCH', 'FUNDING'] });
+    expect(await getMemberPreferences('m1', 'token')).toMatchObject({
+      newsCategoryTags: ['LAUNCH', 'FUNDING'],
+    });
+
+    respond({ showEmail: true });
+    expect(await getMemberPreferences('m1', 'token')).toMatchObject({ newsCategoryTags: [] });
+  });
 });

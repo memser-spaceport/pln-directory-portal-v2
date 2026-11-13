@@ -122,6 +122,7 @@ export default async function Home(props: HomeProps) {
               allTabExtraItems={teamNewsAllTabExtraItems}
               forYouTeamUids={teamNewsForYouMatch.teamUids}
               forYouTags={teamNewsForYouMatch.tags}
+              forYouCategories={teamNewsForYouMatch.categories}
               popularItems={popularItems}
               initialDigestSettings={initialDigestSettings}
               deepLinkedItem={deepLinkedNewsItem}
@@ -312,6 +313,7 @@ const getSignedInPageData = async (deepLinkedNewsUid?: string) => {
       allTabExtraItems: newsResponse?.allTabExtraItems ?? [],
       forYouTeamUids: forYouMatch.teamUids,
       forYouTags: forYouMatch.tags,
+      forYouCategories: forYouMatch.categories,
       popularItems: settled(popularResult)?.items ?? [],
       initialDigestSettings: settled(digestResult),
       deepLinkedItem: settled(deepLinkedResult),
@@ -345,6 +347,7 @@ const getNewsPageData = async (deepLinkedNewsUid?: string) => {
       allTabExtraItems: newsResponse?.allTabExtraItems ?? [],
       forYouTeamUids: forYouMatch.teamUids,
       forYouTags: forYouMatch.tags,
+      forYouCategories: forYouMatch.categories,
       deepLinkedItem: settled(deepLinkedResult),
     },
   };

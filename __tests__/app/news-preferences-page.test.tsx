@@ -63,11 +63,17 @@ describe('News preferences page data (LAB-3000)', () => {
   const propsOf = (element: any) => element.props.children[1].props.children[1].props.children.props;
 
   it("passes the member's tags and the seeded marker to the page", async () => {
-    mockGetMemberPreferences.mockResolvedValue({ newsTags: ['desci'], newsTagsSeeded: true });
+    mockGetMemberPreferences.mockResolvedValue({ newsTags: ['desci'], newsTagsSeeded: true, newsCategoryTags: ['FUNDING'] });
 
     const page = await NewsPreferencesPage({ searchParams });
 
-    expect(propsOf(page)).toMatchObject({ uid: 'm1', from: 'digest', initialTags: ['desci'], initialTagsSeeded: true });
+    expect(propsOf(page)).toMatchObject({
+      uid: 'm1',
+      from: 'digest',
+      initialTags: ['desci'],
+      initialTagsSeeded: true,
+      initialCategoryTags: ['FUNDING'],
+    });
   });
 
   it('starts with no tags when the preferences read fails', async () => {
@@ -75,6 +81,6 @@ describe('News preferences page data (LAB-3000)', () => {
 
     const page = await NewsPreferencesPage({ searchParams });
 
-    expect(propsOf(page)).toMatchObject({ initialTags: [], initialTagsSeeded: false });
+    expect(propsOf(page)).toMatchObject({ initialTags: [], initialTagsSeeded: false, initialCategoryTags: [] });
   });
 });

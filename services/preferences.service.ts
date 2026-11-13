@@ -1,5 +1,5 @@
 import { MemberNotificationSettings } from '@/services/members/types';
-import { readNewsTags } from '@/utils/news-tags';
+import { readNewsCategoryTags, readNewsTags } from '@/utils/news-tags';
 
 export const getMemberNotificationSettings = async (uid: string, authToken: string) => {
   const url = `${process.env.DIRECTORY_API_URL}/v1/notification/settings/${uid}`;
@@ -37,6 +37,7 @@ export const getMemberPreferences = async (uid: string, authToken: string) => {
   const rawPreferences = await result.json();
   // Named fields, not a spread: a spread here breaks the object-literal union callers narrow with `isError`.
   const { newsTags, newsTagsSeeded } = readNewsTags(rawPreferences);
+  const newsCategoryTags = readNewsCategoryTags(rawPreferences);
   const preferenceSettings = {
     email: rawPreferences?.email ?? false,
     github: rawPreferences?.github ?? false,
@@ -66,5 +67,6 @@ export const getMemberPreferences = async (uid: string, authToken: string) => {
     isPreferenceAvailable: rawPreferences.isnull,
     newsTags,
     newsTagsSeeded,
+    newsCategoryTags,
   };
 };

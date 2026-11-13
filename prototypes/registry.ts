@@ -327,6 +327,16 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/digest-topics/DigestTopicsPrototype'),
   },
   {
+    key: 'pl-digest-issue',
+    status: 'progress',
+    version: 1,
+    title: 'PL Network Digest: one issue (email + LabOS page)',
+    description:
+      'No. 07 as one edition for founders and investors: a short teaser email and the full issue as a LabOS page (lead with per-cohort takeaways, one dated deals table, For founders, For investors, boxed editor’s take, dates). Per story: team page, follow, request an intro, copy link; end: submit news, feedback. ?view=email|page, ?width=desktop|phone.',
+    category: 'Digest',
+    load: () => import('./entries/pl-digest-issue/PlDigestIssuePrototype'),
+  },
+  {
     key: 'settings-contact-details',
     status: 'dev',
     version: 1,

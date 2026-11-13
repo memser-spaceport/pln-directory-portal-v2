@@ -96,6 +96,14 @@ Treat this repository as a **Next.js frontend monolith** using the App Router.
 19. When adding navigation items, update both desktop (`navbar/`) and mobile (`MobileBottomNav/`) navigation. Include proper icons and selected states for mobile nav items.
 20. Render member- or AI-written HTML only through `SafeHtml` (`@/components/ui/SafeHtml`), `safeHtmlProps` (styled-jsx components) or `parseSafeHtml` (`@/utils/html`). For content with its own rules, add a profile to `utils/html/sanitizeProfiles.ts` instead of a local DOMPurify config. Lint fails on `dangerouslySetInnerHTML` and on direct `dompurify` / `isomorphic-dompurify` / `html-react-parser` imports outside `utils/html/`.
 
+## Mandatory pre-PR authentication check
+
+Before creating or updating any PR for this repository/project, restore all real authentication and authorization checks. Search the full PR diff and working tree for commented-out auth, forced logged-in states, mock identities, and local preview bypasses. Remove temporary member-preview wiring, financial fixtures, image-preview branches, preview banners, development-only API-key fallbacks, and preview-only helpers/tests; unset local `PLAA_MEMBER_PREVIEW` and `PLAA_API_KEY`. Verify no route-gate exceptions remain in `utils/isProtectedRoute.ts` or `proxy.ts`. Verify signed-out PLAA visitors see the prospect homepage and protected PLAA routes redirect to login; verify the normal authenticated flow still works (report any inability to test it). Never submit a PR with authentication disabled, even if the bypass is development-only. Keep this instruction after cleanup.
+
+## Trust & Holdings data rule
+
+Use real authenticated PLAA API history on Portfolio & Holdings. Never replace missing credentials or a failed fetch with invented or image-based financial data. Retain genuine member-session forwarding and all route gates; do not add development-only credential or identity fallbacks. API or login failures must remain visible. Report authenticated live-data verification as blocked until valid credentials are available. Never expose credentials in public environment variables, browser code, logs, or committed files.
+
 ## AI prototypes
 
 Interactive mocked UIs live at `/prototypes` when enabled (`PROTOTYPES_ENABLED`; on in development by default, off in production). All prototype code stays under `prototypes/`; do not change production `components/`, `services/`, or feature routes to build one.

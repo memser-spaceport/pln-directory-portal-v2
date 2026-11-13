@@ -230,9 +230,11 @@ Above the stream, the filter row SHALL offer For You · All · Top · Discussion
 - Top SHALL show the editorial top stories (rank 1 to 5).
 - For You SHALL show what production's For You shows.
 
-Under the pills, on every filter, a member who is not shown the set-up line SHALL see a line that reads "For you · Curated from your profile, your team, and the teams you follow." followed by a "News preferences" link to `/settings/news-preferences` (LAB-3174).
+Under the pills, on every filter, a member who is shown neither the set-up line nor the tag card SHALL see a line that reads "For you · Curated from your profile, your team, and the teams you follow." followed by a "News preferences" link to `/settings/news-preferences` (LAB-3174).
 
-A signed-in member with no For You stories, no news tags and no followed teams, while News preferences is on, SHALL instead see "For you · Get news picked for you. Choose your topics and teams in News preferences." on the All view when no topic filter and no search text is set. Own teams do not hide the line. The link SHALL read "Open News preferences →" and open `/settings/news-preferences?from=feed`. A topic filter, a pill other than All, or search text SHALL hide that line and SHALL NOT show the curated line. The line SHALL record `team-news-for-you-setup-shown` once per page load, and a click SHALL record `team-news-for-you-setup-clicked`. When the member's tags are unknown, the member follows a team, the member has a news tag, For You has stories, or News preferences is off, the curated line SHALL stay.
+A signed-in member whose default news tags are not approved and not set by the member, while News preferences is on, SHALL instead see the tag card (team-news spec, "Tag card") in that place, on the For You filter and on the All view when no topic filter and no search text is set. On any other filter, with a topic filter, or with search text, the card SHALL be hidden; the curated line SHALL then show, unless the member is one the set-up line is for.
+
+A signed-in member with no For You stories, no news tags and no followed teams, while News preferences is on and the tag card is not shown, SHALL instead see "For you · Get news picked for you. Choose your topics and teams in News preferences." on the All view when no topic filter and no search text is set. Own teams do not hide the line. The link SHALL read "Open News preferences →" and open `/settings/news-preferences?from=feed`. A topic filter, a pill other than All, or search text SHALL hide that line and SHALL NOT show the curated line. The line SHALL record `team-news-for-you-setup-shown` once per page load, and a click SHALL record `team-news-for-you-setup-clicked`. When the member's tags are unknown, the member follows a team, the member has a news tag, For You has stories, or News preferences is off, the curated line SHALL stay.
 
 Milestone, Partnership and Other stories SHALL stay under All and keep their label on the card.
 
@@ -259,13 +261,20 @@ The editorial top stories SHALL be labelled "Top story" on their card where they
 
 #### Scenario: News preferences link
 
-- **GIVEN** a member who is not shown the set-up line
+- **GIVEN** a member who is shown neither the set-up line nor the tag card
 - **WHEN** the member follows the "News preferences" link under the pills
 - **THEN** it opens `/settings/news-preferences`
 
+#### Scenario: Member with unapproved default tags
+
+- **GIVEN** a signed-in member whose default news tags are not approved, and News preferences on
+- **WHEN** they open `/home` on All, with no topic filter and no search, or on For You
+- **THEN** the tag card shows under the pills, and the curated line and the set-up line do not
+- **AND** pressing the Top pill hides the card and shows the curated line
+
 #### Scenario: Member with nothing For You can match on
 
-- **GIVEN** a signed-in member with no For You stories, no news tags and no followed teams, and News preferences on
+- **GIVEN** a signed-in member with no For You stories, no news tags and no followed teams, and News preferences on, whose default tags are empty
 - **WHEN** they open `/home` on All, with no topic filter and no search
 - **THEN** the line reads "For you · Get news picked for you. Choose your topics and teams in News preferences." and "Open News preferences →" opens `/settings/news-preferences?from=feed`
 - **AND** a topic filter, another pill or search text hides that line, and the curated line does not show

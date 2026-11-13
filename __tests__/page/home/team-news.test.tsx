@@ -16,6 +16,7 @@ import type { IDeal } from '@/types/deals.types';
 import type { IJobTeamGroup } from '@/types/jobs.types';
 import type {
   ITeamNewsDiscussion,
+  INewsDefaultTags,
   ITeamNewsGroup,
   ITeamNewsItem,
   ITeamNewsPopularItem,
@@ -112,6 +113,11 @@ jest.mock('@/services/follow/hooks/useFollowedTeamUids', () => ({
     isSettled: true,
   }),
 }));
+let mockDefaultTags: INewsDefaultTags | undefined;
+jest.mock('@/services/team-news/hooks/useNewsDefaultTags', () => ({
+  useNewsDefaultTags: () => ({ data: mockDefaultTags }),
+  useApproveNewsDefaultTags: () => ({ mutate: jest.fn(), isPending: false }),
+}));
 jest.mock('@/analytics/team-news.analytics', () => ({
   useTeamNewsAnalytics: () => ({
     onTeamNewsTabClicked: (...a: unknown[]) => mockOnTabClicked(...a),
@@ -142,6 +148,7 @@ jest.mock('@/analytics/team-news.analytics', () => ({
     onTeamNewsForYouUpdateProfileClicked: jest.fn(),
     onTeamNewsForYouTuneClicked: jest.fn(),
     onTeamNewsForYouSetupShown: (...a: unknown[]) => mockOnForYouSetupShown(...a),
+    onTeamNewsTagsCardShown: jest.fn(),
     onTeamNewsForYouSetupClicked: (...a: unknown[]) => mockOnForYouSetupClicked(...a),
     onTeamNewsTagFilterApplied: (...a: unknown[]) => mockOnTagFilterApplied(...a),
     onTeamNewsTagFilterCleared: (...a: unknown[]) => mockOnTagFilterCleared(...a),
@@ -352,6 +359,7 @@ describe('TeamNews', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     observed.length = 0;
+    mockDefaultTags = undefined;
     mockUseSuggestedTeamsToFollow.mockReturnValue({ suggestions: [], isLoading: false });
     // clearAllMocks clears calls, NOT return values — without this, a describe
     // that supplies forum posts leaks them into every later test's feed.
@@ -2647,6 +2655,22 @@ describe('TeamNews', () => {
     function renderUnset(forYouTeamUids: string[] = [], forYouTags: string[] = []) {
       renderTeamNews(<TeamNews groups={setupGroups} forYouTeamUids={forYouTeamUids} forYouTags={forYouTags} />);
     }
+
+    // LAB-3250: the tag card stands in for the row while the member has not answered it.
+    it('shows the tag card and no set-up row when the member has unapproved default tags', () => {
+      mockDefaultTags = {
+        tags: [{ slug: 'ai', title: 'AI' }],
+        source: 'team',
+        approved: false,
+        approvedAt: null,
+        generatedAt: null,
+      };
+      renderUnset();
+
+      expect(screen.getByRole('heading', { name: 'We picked these topics for you' })).toBeInTheDocument();
+      expect(setupLink()).not.toBeInTheDocument();
+      expect(mockOnForYouSetupShown).not.toHaveBeenCalled();
+    });
 
     it('shows the row on All and records the set-up click', () => {
       renderUnset();

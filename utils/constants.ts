@@ -757,6 +757,12 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   // denominator for the click; the click is not the hint's Update event.
   TEAM_NEWS_FOR_YOU_SETUP_SHOWN: 'team-news-for-you-setup-shown',
   TEAM_NEWS_FOR_YOU_SETUP_CLICKED: 'team-news-for-you-setup-clicked',
+  // The Home tag card (LAB-3250): the member's default news tags, to approve or change. Shown is the denominator.
+  TEAM_NEWS_TAGS_CARD_SHOWN: 'team-news-tags-card-shown',
+  TEAM_NEWS_TAGS_CARD_TAG_TOGGLED: 'team-news-tags-card-tag-toggled',
+  TEAM_NEWS_TAGS_CARD_APPROVED: 'team-news-tags-card-approved',
+  TEAM_NEWS_TAGS_CARD_SAVED: 'team-news-tags-card-saved',
+  TEAM_NEWS_TAGS_CARD_SEE_ALL_CLICKED: 'team-news-tags-card-see-all-clicked',
   // A `#tag` on a Home story narrows the feed to that tag (LAB-3010); cleared by
   // the filter chip's × or by clicking the active tag again.
   TEAM_NEWS_TAG_FILTER_APPLIED: 'team-news-tag-filter-applied',

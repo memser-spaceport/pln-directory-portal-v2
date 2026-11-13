@@ -4,6 +4,8 @@ export type ForYouMatch = {
   teamUids: string[];
   /** Present only when For You matches by tags; undefined = teams only. */
   tags?: string[];
+  /** Present with `tags`. Empty means the member picked no category tags. */
+  categories?: string[];
 };
 
 /**
@@ -12,11 +14,18 @@ export type ForYouMatch = {
  * Otherwise `forYouTeamUids` (own, followed and related teams), as before.
  */
 export function resolveForYouMatch(
-  response: Pick<ITeamNewsGroupedResponse, 'forYouTeamUids' | 'forYouTags' | 'forYouOwnTeamUids'> | null | undefined,
+  response:
+    | Pick<ITeamNewsGroupedResponse, 'forYouTeamUids' | 'forYouTags' | 'forYouOwnTeamUids' | 'forYouCategories'>
+    | null
+    | undefined,
   byTags: boolean,
 ): ForYouMatch {
   if (byTags && Array.isArray(response?.forYouTags) && Array.isArray(response?.forYouOwnTeamUids)) {
-    return { teamUids: response.forYouOwnTeamUids, tags: response.forYouTags };
+    return {
+      teamUids: response.forYouOwnTeamUids,
+      tags: response.forYouTags,
+      categories: Array.isArray(response.forYouCategories) ? response.forYouCategories : [],
+    };
   }
   return { teamUids: response?.forYouTeamUids ?? [] };
 }

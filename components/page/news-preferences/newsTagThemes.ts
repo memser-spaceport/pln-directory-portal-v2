@@ -1,3 +1,5 @@
+import { EVENT_TYPE_LABEL } from '@/components/page/home/TeamNews/utils/getEventTypeConfig';
+
 /**
  * Themes for the News preferences tag picker (LAB-3023, Polina's grouping).
  *
@@ -37,6 +39,20 @@ export const NEWS_TAG_THEMES: ReadonlyArray<{ title: string; slugs: readonly str
 ];
 
 export const OTHER_THEME = 'Other';
+
+/** Categories a member can pick in the same tag list (LAB-3140). Not focus-area slugs. */
+export const NEWS_CATEGORY_TAG_VALUES = ['FUNDING', 'LAUNCH', 'ANNOUNCEMENT'] as const;
+
+export type NewsCategoryTag = (typeof NEWS_CATEGORY_TAG_VALUES)[number];
+
+/** Category chips that match `query`. An empty query returns all three, in list order. */
+export function matchingNewsCategoryTags(query = ''): NewsCategoryTag[] {
+  const q = normalize(query);
+  return NEWS_CATEGORY_TAG_VALUES.filter((value) => {
+    if (!q) return true;
+    return normalize(EVENT_TYPE_LABEL[value]).includes(q) || value.toLowerCase().includes(q);
+  });
+}
 
 export interface NewsTagTheme {
   title: string;

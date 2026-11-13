@@ -7,20 +7,26 @@ import { sortAllTabItemsByEventDate } from './sortAllTabItemsByEventDate';
  *
  * `tags` (News preferences, LAB-3001) also keeps stories from any team that
  * share one of the member's tags, so `teamUids` is then only their own and
- * followed teams. Mirrors the backend's `selectNewsItemsByTagsAndTeams`, so For
- * You and the digest pick the same stories. Omitted = teams only, as before.
+ * followed teams. `categories` (LAB-3140) also keeps a story whose category
+ * the member picked. An empty set adds nothing. Mirrors the backend's
+ * `selectNewsItemsByTagsAndTeams`, so For You and the digest pick the same
+ * stories. Omitted = teams only, as before.
  */
 export function selectForYouItems(
   items: ITeamNewsItem[],
   teamUids: ReadonlySet<string>,
   tags?: ReadonlySet<string>,
+  categories?: ReadonlySet<string>,
 ): ITeamNewsItem[] {
-  if (teamUids.size === 0 && !tags?.size) return [];
+  if (teamUids.size === 0 && !tags?.size && !categories?.size) return [];
 
   const seen = new Set<string>();
   const selected: ITeamNewsItem[] = [];
   const candidates = items.filter(
-    (i) => teamUids.has(i.teamUid) || (!!tags && (i.tags ?? []).some((tag) => tags.has(tag.trim().toLowerCase()))),
+    (i) =>
+      teamUids.has(i.teamUid) ||
+      (!!tags?.size && (i.tags ?? []).some((tag) => tags.has(tag.trim().toLowerCase()))) ||
+      (!!categories?.size && categories.has(i.eventType)),
   );
   for (const item of sortAllTabItemsByEventDate(candidates)) {
     if (seen.has(item.teamUid)) continue;

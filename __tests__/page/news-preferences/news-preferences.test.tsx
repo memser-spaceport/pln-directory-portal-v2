@@ -5,6 +5,7 @@ import { NewsPreferences } from '@/components/page/news-preferences/NewsPreferen
 import type { INewsTagGroup } from '@/types/team-news.types';
 
 const mockSetNewsTags = jest.fn();
+const mockSetNewsCategoryTags = jest.fn();
 const mockToggleFollow = jest.fn();
 const mockAnalytics = {
   onNewsPreferencesOpened: jest.fn(),
@@ -15,7 +16,7 @@ const mockAnalytics = {
   onNewsPreferencesForYouLinkClicked: jest.fn(),
   onNewsPreferencesThemeExpanded: jest.fn(),
 };
-let mockPreferences: { newsTags: string[]; newsTagsSeeded: boolean } | undefined;
+let mockPreferences: { newsTags: string[]; newsTagsSeeded: boolean; newsCategoryTags?: string[] } | undefined;
 let mockTagList: { data?: INewsTagGroup[]; isError: boolean };
 let mockFollowed: Array<{ uid: string; name: string; logoUrl: string | null }> = [];
 let mockSuggested: Array<{ uid: string; name: string; logo: string | null; reason: string }> = [];
@@ -27,6 +28,9 @@ jest.mock('@/services/members/hooks/useGetMemberPreferences', () => ({
 }));
 jest.mock('@/services/members/hooks/useSetNewsTags', () => ({
   useSetNewsTags: () => mockSetNewsTags,
+}));
+jest.mock('@/services/members/hooks/useSetNewsCategoryTags', () => ({
+  useSetNewsCategoryTags: () => mockSetNewsCategoryTags,
 }));
 jest.mock('@/services/team-news/hooks/useNewsTags', () => ({
   useNewsTags: () => mockTagList,
@@ -78,6 +82,7 @@ describe('NewsPreferences tags (LAB-3000)', () => {
     jest.clearAllMocks();
     // clearAllMocks keeps implementations: a failing save would leak into the next test.
     mockSetNewsTags.mockReset();
+    mockSetNewsCategoryTags.mockReset();
     mockPreferences = undefined;
     mockTagList = { data: TAG_LIST, isError: false };
     mockFollowed = [{ uid: 'acme', name: 'Acme', logoUrl: null }];
@@ -106,7 +111,16 @@ describe('NewsPreferences tags (LAB-3000)', () => {
         .map((b) => b.textContent);
     expect(theme('AI & frontier tech')).toEqual(['#ai', '#ai-robotics', '#desci']);
     expect(theme('Economies & governance')).toEqual(['#defi', '#economies-governance']);
-    expect(chipNames()).toEqual(['#ai', '#ai-robotics', '#desci', '#defi', '#economies-governance']);
+    expect(chipNames()).toEqual([
+      'Funding',
+      'Launch',
+      'Announcement',
+      '#ai',
+      '#ai-robotics',
+      '#desci',
+      '#defi',
+      '#economies-governance',
+    ]);
     expect(chip('#desci')).toHaveAttribute('aria-pressed', 'true');
     expect(chip('#ai')).toHaveAttribute('aria-pressed', 'false');
     expect(chip('#desci')).toHaveAttribute('title', 'Unsubscribe from #desci');
@@ -231,7 +245,16 @@ describe('NewsPreferences tags (LAB-3000)', () => {
 
       expect(search()).toHaveValue('');
       expect(search()).toHaveFocus();
-      expect(chipNames()).toEqual(['#ai', '#ai-robotics', '#desci', '#defi', '#economies-governance']);
+      expect(chipNames()).toEqual([
+      'Funding',
+      'Launch',
+      'Announcement',
+      '#ai',
+      '#ai-robotics',
+      '#desci',
+      '#defi',
+      '#economies-governance',
+    ]);
       expect(screen.queryByRole('button', { name: 'Clear search' })).not.toBeInTheDocument();
     });
 
@@ -280,9 +303,47 @@ describe('NewsPreferences tags (LAB-3000)', () => {
     fireEvent.click(chip('#ai'));
 
     expect(mockSetNewsTags).toHaveBeenCalledWith(['desci', 'ai'], expect.any(Object));
-    expect(mockAnalytics.onNewsPreferencesTagToggled).toHaveBeenCalledWith({ tag: 'ai', on: true, from: 'settings' });
+    expect(mockAnalytics.onNewsPreferencesTagToggled).toHaveBeenCalledWith({
+      tag: 'ai',
+      on: true,
+      from: 'settings',
+      kind: 'topic',
+    });
     expect(chip('#ai')).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('status')).toHaveTextContent('Saved');
+  });
+
+  it('shows Funding, Launch and Announcement with the topic tags, and search finds Funding', () => {
+    renderPage();
+
+    expect(chip('Funding')).toHaveAttribute('aria-pressed', 'false');
+    expect(chip('Launch')).toBeInTheDocument();
+    expect(chip('Announcement')).toBeInTheDocument();
+    expect(screen.queryByRole('group', { name: 'News type' })).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Search tags' }), { target: { value: 'fund' } });
+    expect(chipNames()).toEqual(['Funding']);
+  });
+
+  it('saves a category tag on its own and keeps it after the preferences read', () => {
+    mockSetNewsCategoryTags.mockImplementation((_next: string[], opts: { onSuccess: () => void }) => opts.onSuccess());
+    mockPreferences = { newsTags: ['desci'], newsTagsSeeded: false, newsCategoryTags: ['FUNDING'] };
+    renderPage();
+
+    expect(chip('Funding')).toHaveAttribute('aria-pressed', 'true');
+    expect(chip('Launch')).toHaveAttribute('aria-pressed', 'false');
+
+    fireEvent.click(chip('Launch'));
+
+    expect(mockSetNewsCategoryTags).toHaveBeenCalledWith(['FUNDING', 'LAUNCH'], expect.any(Object));
+    expect(mockSetNewsTags).not.toHaveBeenCalled();
+    expect(mockAnalytics.onNewsPreferencesTagToggled).toHaveBeenCalledWith({
+      tag: 'LAUNCH',
+      on: true,
+      from: 'settings',
+      kind: 'category',
+    });
+    expect(chip('Launch')).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('keeps a removed tag in place so it can be added back', () => {
@@ -337,7 +398,7 @@ describe('NewsPreferences tags (LAB-3000)', () => {
     mockTagList = { data: undefined, isError: true };
     renderPage({ initialTags: ['desci'] });
 
-    expect(chipNames()).toEqual(['#desci']);
+    expect(chipNames()).toEqual(['Funding', 'Launch', 'Announcement', '#desci']);
     expect(chip('#desci')).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByText(/We couldn’t load the list of topics/)).toBeInTheDocument();
     expect(screen.getByText(/Teams you follow/)).toBeInTheDocument();

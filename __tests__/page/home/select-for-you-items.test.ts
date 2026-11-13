@@ -80,4 +80,18 @@ describe('selectForYouItems with news tags (LAB-3001)', () => {
   it('returns nothing with no teams and no tags', () => {
     expect(selectForYouItems([own, tagged], new Set(), new Set())).toEqual([]);
   });
+
+  it('adds a story in a picked category from any team', () => {
+    const funding = makeItem('funding', 'team-y', { eventType: 'FUNDING' });
+    expect(
+      selectForYouItems([own, funding], new Set(['team-own']), new Set(), new Set(['FUNDING'])).map((i) => i.uid),
+    ).toEqual(['own', 'funding']);
+  });
+
+  it('adds nothing when the category set is empty', () => {
+    const funding = makeItem('funding', 'team-y', { eventType: 'FUNDING' });
+    expect(selectForYouItems([own, funding], new Set(['team-own']), new Set(), new Set()).map((i) => i.uid)).toEqual([
+      'own',
+    ]);
+  });
 });

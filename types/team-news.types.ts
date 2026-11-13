@@ -144,6 +144,8 @@ export interface ITeamNewsGroupedResponse {
   forYouTags?: string[];
   /** Memberships ∪ follows, without the related teams (LAB-2999); empty for anonymous. */
   forYouOwnTeamUids?: string[];
+  /** Categories the viewer picked (LAB-3140). Empty when none are picked or the viewer is anonymous. */
+  forYouCategories?: string[];
 }
 
 export interface TeamCluster {

@@ -88,8 +88,8 @@
   grid-column: span 4 / span 4;
   margin-bottom: 16px;
 
-  // From 640px the actions sit at the top right, on the name's line. The role and location row
-  // below stays in the first column, so it ends before the actions and wraps there (LAB-3187).
+  // From 640px the actions sit at the top right, on the name's line. The facts row below spans
+  // both columns, so it runs under the actions to the card's right edge.
   @include media.tablet-portrait {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -109,7 +109,7 @@
     }
 
     > .roleAndLocation {
-      grid-column: 1;
+      grid-column: 1 / -1;
       grid-row: 2;
     }
   }

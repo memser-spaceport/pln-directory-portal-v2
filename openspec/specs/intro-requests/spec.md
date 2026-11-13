@@ -8,7 +8,7 @@ A signed-in member with a current role on a PL Portfolio team, or with the PL In
 
 ### Requirement: Only an eligible member sees Request an intro
 
-A signed-in member sees a "Request an intro" control on another member's page and on a team page when that member has a current role on a PL Portfolio team, or holds the PL Infra policy `pl_infra_team_pl_internal`. A current role has no end date, or an end date that is still today or later. Every other visitor sees no control. A member sees no control on their own profile, or on a team page for a team they currently belong to. The investor drawer and the apply flow do not show the control.
+A signed-in member sees a "Request an intro" control on another member's page and on a team page when that member has a current role on a PL Portfolio team, or holds the PL Infra policy `pl_infra_team_pl_internal`. A current role has no end date, or an end date that is still today or later. Every other visitor sees no control. A member sees no control on their own profile, or on a team page for a team they currently belong to. A directory admin who is eligible sees the control too, before Edit. A member page shows one contact button: when the member has office hours, the page shows only Schedule Meeting and no "Request an intro"; otherwise it shows only "Request an intro". A team page always shows "Request an intro" to an eligible member outside the team. The investor drawer and the apply flow do not show the control.
 
 #### Scenario: Portfolio member on another profile
 
@@ -28,15 +28,22 @@ A signed-in member sees a "Request an intro" control on another member's page an
 - **WHEN** they open a member page or a team page
 - **THEN** the page shows no "Request an intro" control
 
+#### Scenario: Member with office hours
+
+- **GIVEN** an eligible signed-in member
+- **WHEN** they open the page of a member who has office hours
+- **THEN** the page shows Schedule Meeting
+- **AND** the page shows no "Request an intro" control
+
 #### Scenario: Own profile
 
 - **GIVEN** an eligible signed-in member
 - **WHEN** they open their own profile
 - **THEN** the page shows no "Request an intro" control
 
-### Requirement: Request an intro sits beside Follow on a team page
+### Requirement: Request an intro sits on the name's line
 
-On a team page at 640px or wider, "Request an intro" sits to the right of Follow on one row. Edit and Delete, when shown, share that row. Each text action sits in a 34px box so its label centres on the button. The row has no caption under Follow. Below 640px, "Request an intro" is a full-width primary button above Follow, both under the followers, and Follow is full width too. Edit and Delete, when shown, are icon-only in the card's top-right corner. On another member's page, "Request an intro" stays in the profile header. At 640px or wider, it sits at the top right of the header, on the same line as the member's name, and Edit shares that line in a 34px box. The facts line (team, role, city) sits under the name and ends before those actions; when it does not fit, it wraps there, and a wrapped line never starts or ends on a divider. The city on the facts line has no extra right padding. Below 640px on a member page, Edit sits on the right under the facts and "Request an intro" is a full-width primary button below it.
+"Request an intro" uses the glossy primary style of Schedule Meeting: 34px high, padding 6px 10px, a 16px envelope icon and a 6px gap. At 640px or wider it sits in one row at the top right of the header, on the same line as the name. The row order is Follow (team pages only), "Request an intro", Edit, then Delete (team admins only). Every item centres on the 34px button. The row has no caption under Follow. The facts line (team, role, city) on a member page sits under the name and the actions and spans the full card width, so it runs under the actions to the card's right edge. When it does not fit, it wraps, and a wrapped line never starts or ends on a divider. The city has no extra right padding. Below 640px on a team page, Edit and Delete are icon-only in the card's top-right corner, and Follow then "Request an intro" are full-width buttons under the followers. Below 640px on a member page, Edit sits on the right under the facts and "Request an intro" is a full-width button below it.
 
 #### Scenario: Team page from 640px
 
@@ -49,22 +56,36 @@ On a team page at 640px or wider, "Request an intro" sits to the right of Follow
 
 - **GIVEN** an eligible member on a team page below 640px wide
 - **WHEN** the page shows Follow and "Request an intro"
-- **THEN** "Request an intro" is a full-width primary button above Follow
-- **AND** Follow is full width
-- **AND** both sit under the followers
+- **THEN** Follow and "Request an intro" are full-width buttons under the followers, Follow first
 
 #### Scenario: Member page from 640px
 
 - **GIVEN** an eligible member on another member's page at least 640px wide
 - **WHEN** the page shows "Request an intro"
 - **THEN** "Request an intro" sits at the top right of the profile header, on the same line as the member's name
-- **AND** Edit, when shown, shares that line and centres on the button
+- **AND** Edit, when shown, follows it and centres on the button
+
+#### Scenario: Long facts line
+
+- **GIVEN** a member page at least 640px wide whose facts line is longer than the space beside the actions
+- **WHEN** the page shows the header
+- **THEN** the facts line sits under the name and the actions and reaches the card's right edge
 
 #### Scenario: Member page below 640px
 
 - **GIVEN** an eligible member on another member's page below 640px wide
 - **WHEN** the page shows "Request an intro"
 - **THEN** "Request an intro" is a full-width primary button in the profile header
+
+### Requirement: A sent request replaces the button
+
+After a successful send, "Request an intro" on that page becomes the line "✓ Intro requested" in the same 34px box, so the row does not move.
+
+#### Scenario: Request sent
+
+- **WHEN** the member sends a request and the API returns `{ uid }`
+- **THEN** the button is replaced by "✓ Intro requested"
+- **AND** the other actions in the row keep their place
 
 ### Requirement: The form sends one required message
 

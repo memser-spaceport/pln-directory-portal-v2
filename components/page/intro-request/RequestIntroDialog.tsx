@@ -28,10 +28,11 @@ interface Props {
   type: IntroRequestTargetType;
   targetId: string;
   targetName: string;
+  onSent: () => void;
   onClose: () => void;
 }
 
-export function RequestIntroDialog({ type, targetId, targetName, onClose }: Props) {
+export function RequestIntroDialog({ type, targetId, targetName, onSent, onClose }: Props) {
   const [text, setText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -59,6 +60,7 @@ export function RequestIntroDialog({ type, targetId, targetName, onClose }: Prop
       await createIntroRequest({ type, targetId, text: message });
       onAskSubmitted(targetType);
       setSent(true);
+      onSent();
     } catch (sendError) {
       const fallback = 'The request could not be sent. Try again.';
       setError(sendError instanceof IntroRequestError ? sendError.message : fallback);

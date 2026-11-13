@@ -705,6 +705,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     category: 'Agents',
     load: () => import('./entries/lab-3054-design-the-connect-step-tabs-o/DesignTheConnectStepTabsOPrototype'),
   },
+  {
+    key: 'lab-3038-design-the-long-tag-list-on-ne',
+    title: 'News preferences: long tag list',
+    description:
+      'News preferences with 44 tags and "Show more" / "Show less". A switch shows two limits: the first 8 tags of each theme, or the first 20 tags of the whole list. Picked tags always show, and a search shows every match. LAB-3038.',
+    category: 'Newsfeed',
+    load: () => import('./entries/lab-3038-design-the-long-tag-list-on-ne/DesignTheLongTagListOnNePrototype'),
+  },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).
   // {

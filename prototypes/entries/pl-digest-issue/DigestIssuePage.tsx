@@ -333,7 +333,7 @@ function ShareIssue({ onShare }: { onShare: () => void }) {
  * cards, press links; then deals, signals, forum, take and dates. The reader's
  * turn closes it.
  */
-export function DigestIssuePage({ forumAccess }: { forumAccess: boolean }) {
+export function DigestIssuePage({ forumAccess, signals }: { forumAccess: boolean; signals: boolean }) {
   const intro = useRequestIntro();
   const [follows, setFollows] = useState<Set<string>>(() => new Set());
   const [toast, setToast] = useState<string | null>(null);
@@ -377,7 +377,7 @@ export function DigestIssuePage({ forumAccess }: { forumAccess: boolean }) {
   };
 
   const forum = showForum(forumAccess);
-  const sections = SECTIONS.filter((sec) => sec.id !== 'forum' || forum);
+  const sections = SECTIONS.filter((sec) => (sec.id !== 'forum' || forum) && (sec.id !== 'signals' || signals));
   const anyMock = EDITION.signals.some((sig) => sig.mock);
 
   return (
@@ -494,42 +494,44 @@ export function DigestIssuePage({ forumAccess }: { forumAccess: boolean }) {
             <p className={s.note}>{EDITION.deals.catchUpNote}</p>
           </section>
 
-          {/* Specter-style count rows. Each opens the LabOS page it counts. No ads. */}
-          <section id="signals" className={s.section} aria-labelledby="signals-title">
-            <SectionHead
-              id="signals"
-              title="Network signals"
-              sub={anyMock ? 'Items marked “mock” are placeholder data in this prototype.' : undefined}
-            />
-            <ul className={s.signals}>
-              {EDITION.signals.map((sig) => (
-                <li key={sig.id} className={clsx(sig.examples && s.signalWide)}>
-                  <a className={s.signal} href={sig.href}>
-                    <span className={s.signalFigure}>{sig.figure}</span>
-                    <span className={s.signalLabel}>
-                      {sig.label}
-                      {sig.mock && <span className={s.mockTag}>mock</span>}
-                    </span>
-                    <span className={s.signalArrow} aria-hidden="true">
-                      →
-                    </span>
-                  </a>
-                  {sig.examples && (
-                    <ul className={s.roles} aria-label="Example roles">
-                      {sig.examples.map((ex) => (
-                        <li key={ex.label} className={s.role}>
-                          <a className={s.roleLink} href={ex.href}>
-                            {ex.label}
-                          </a>
-                          <span className={s.roleMeta}>{ex.meta}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </section>
+          {/* Optional signals block (count rows, no ads). Each row opens the LabOS page it counts. */}
+          {signals && (
+            <section id="signals" className={s.section} aria-labelledby="signals-title">
+              <SectionHead
+                id="signals"
+                title="Network signals this month"
+                sub={anyMock ? 'Items marked “mock” are placeholder data in this prototype.' : undefined}
+              />
+              <ul className={s.signals}>
+                {EDITION.signals.map((sig) => (
+                  <li key={sig.id} className={clsx(sig.examples && s.signalWide)}>
+                    <a className={s.signal} href={sig.href}>
+                      <span className={s.signalFigure}>{sig.figure}</span>
+                      <span className={s.signalLabel}>
+                        {sig.label}
+                        {sig.mock && <span className={s.mockTag}>mock</span>}
+                      </span>
+                      <span className={s.signalArrow} aria-hidden="true">
+                        →
+                      </span>
+                    </a>
+                    {sig.examples && (
+                      <ul className={s.roles} aria-label="Example roles">
+                        {sig.examples.map((ex) => (
+                          <li key={ex.label} className={s.role}>
+                            <a className={s.roleLink} href={ex.href}>
+                              {ex.label}
+                            </a>
+                            <span className={s.roleMeta}>{ex.meta}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           {forum && (
             <section id="forum" className={s.section} aria-labelledby="forum-title">

@@ -9,7 +9,7 @@ import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
 import { PrototypeMobileNav } from '../nav-shared/PrototypeMobileNav';
 import { PrototypeNavBar } from '../nav-shared/PrototypeNavBar';
 
-import { DigestEmail, type EmailVariant } from './DigestEmail';
+import { DigestEmail } from './DigestEmail';
 import { DigestIssuePage } from './DigestIssuePage';
 import s from './PlDigestIssue.module.scss';
 
@@ -24,9 +24,11 @@ const FORUM: { value: 'on' | 'off'; label: string }[] = [
   { value: 'on', label: 'On' },
   { value: 'off', label: 'Off' },
 ];
-const EMAIL_VARIANTS: { value: EmailVariant; label: string }[] = [
-  { value: 'editorial', label: 'Editorial' },
-  { value: 'signal', label: 'Signal-first' },
+// Production makes the signals block configurable per issue (monthly or
+// quarterly); the review switch shows the two states of one issue.
+const SIGNALS: { value: 'off' | 'monthly'; label: string }[] = [
+  { value: 'off', label: 'Off' },
+  { value: 'monthly', label: 'Monthly' },
 ];
 const WIDTHS: { value: Width; label: string }[] = [
   { value: 'desktop', label: 'Desktop' },
@@ -47,7 +49,7 @@ const isServer = () => false;
  *
  * URL: `?view=email|page`, `?width=desktop|phone`, `?forum=on|off` (the
  * viewer's forum access; "From the forum" needs it AND new threads),
- * `?email=editorial|signal` (the two email variants under review). `embed=1`
+ * `?signals=off|monthly` (the optional signals block, default off). `embed=1`
  * is the framed copy (no review band).
  */
 export default function PlDigestIssuePrototype() {
@@ -60,9 +62,9 @@ export default function PlDigestIssuePrototype() {
   const width: Width = params.get('width') === 'phone' ? 'phone' : 'desktop';
   const embed = params.get('embed') === '1';
   const forumAccess = params.get('forum') !== 'off';
-  const variant: EmailVariant = params.get('email') === 'signal' ? 'signal' : 'editorial';
+  const signals = params.get('signals') === 'monthly';
 
-  const setParam = (key: 'view' | 'width' | 'forum' | 'email', value: string) => {
+  const setParam = (key: 'view' | 'width' | 'forum' | 'signals', value: string) => {
     const next = new URLSearchParams(params.toString());
     next.set(key, value);
     router.replace(`${pathname}?${next.toString()}`, { scroll: false });
@@ -73,7 +75,7 @@ export default function PlDigestIssuePrototype() {
   if (!mounted) return <div className={s.root} />;
 
   const surface =
-    view === 'page' ? <DigestIssuePage forumAccess={forumAccess} /> : <DigestEmail forumAccess={forumAccess} variant={variant} />;
+    view === 'page' ? <DigestIssuePage forumAccess={forumAccess} signals={signals} /> : <DigestEmail forumAccess={forumAccess} signals={signals} />;
 
   if (embed) {
     return (
@@ -118,24 +120,22 @@ export default function PlDigestIssuePrototype() {
                 : 'The full issue a reader lands on from the email.'}
             </span>
           </div>
-          {view === 'email' && (
-            <div className={v0.switchBar}>
-              <span className={v0.switchLabel}>Email style</span>
-              <div className={v0.switch} role="group" aria-label="Email style">
-                {EMAIL_VARIANTS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    className={clsx(v0.switchBtn, variant === opt.value && v0.switchBtnActive)}
-                    aria-pressed={variant === opt.value}
-                    onClick={() => setParam('email', opt.value)}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
+          <div className={v0.switchBar}>
+            <span className={v0.switchLabel}>Signals block</span>
+            <div className={v0.switch} role="group" aria-label="Signals block">
+              {SIGNALS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={clsx(v0.switchBtn, (signals ? 'monthly' : 'off') === opt.value && v0.switchBtnActive)}
+                  aria-pressed={(signals ? 'monthly' : 'off') === opt.value}
+                  onClick={() => setParam('signals', opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
             </div>
-          )}
+          </div>
           <div className={v0.switchBar}>
             <span className={v0.switchLabel}>Forum access</span>
             <div className={v0.switch} role="group" aria-label="Forum access">
@@ -174,9 +174,9 @@ export default function PlDigestIssuePrototype() {
       {framed ? (
         <div className={s.phoneStage}>
           <iframe
-            key={`${view}-${forumAccess}-${variant}`}
+            key={`${view}-${forumAccess}-${signals}`}
             className={s.phoneFrame}
-            src={`${pathname}?view=${view}&forum=${forumAccess ? 'on' : 'off'}&email=${variant}&embed=1`}
+            src={`${pathname}?view=${view}&forum=${forumAccess ? 'on' : 'off'}&signals=${signals ? 'monthly' : 'off'}&embed=1`}
             title={`${view === 'page' ? 'LabOS page' : 'Email'} at 390px`}
           />
         </div>

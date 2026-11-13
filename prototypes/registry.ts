@@ -332,7 +332,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     version: 2,
     title: 'PL Network Digest: one issue (email + LabOS page)',
     description:
-      'No. 07 in one voice for the whole network. LabOS page in the YC weekly pattern: The Latest (short stories with an image, linked headline, one Why it matters line, one next step), New from network teams (launch cards to team pages), Network news (press links), deals table, network signals with mock counts and roles, From the forum (numbered, gated by forum access), editor’s take, dates, most read, explore all teams, and the news ask with one field. Email in two variants for review: Editorial and Signal-first, each with a strong Read the full issue button. ?view=email|page, ?email=editorial|signal, ?forum=on|off, ?width=desktop|phone.',
+      'No. 07 in one voice for the whole network. LabOS page in the YC weekly pattern: The Latest (short stories with an image, linked headline, one Why it matters line, one next step), New from network teams (launch cards to team pages), Network news (press links), deals table, an optional monthly network signals block (review switch, default off), From the forum (numbered, gated by forum access), editor’s take, dates, most read, explore all teams, and the news ask with one field. Editorial email with a compact Read the full issue button in the first screen and a large one after the stories. ?view=email|page, ?signals=off|monthly, ?forum=on|off, ?width=desktop|phone.',
     category: 'Digest',
     load: () => import('./entries/pl-digest-issue/PlDigestIssuePrototype'),
   },

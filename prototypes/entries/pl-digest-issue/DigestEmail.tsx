@@ -74,9 +74,7 @@ function moreRows(forumAccess: boolean): MoreRow[] {
   return rows;
 }
 
-export type EmailVariant = 'editorial' | 'signal';
-
-/** The inbox chrome and the white card, shared by both variants. */
+/** The inbox chrome and the white card, shared by every issue. */
 function EmailShell({ children }: { children: ReactNode }) {
   const subjectLength = EDITION.subject.length;
   return (
@@ -114,7 +112,7 @@ function EmailShell({ children }: { children: ReactNode }) {
   );
 }
 
-/** "Also in the full issue", then the news ask and the footer. Shared by both variants. */
+/** "Also in the full issue", then the news ask and the footer. Shared by every issue. */
 function EmailEnd({ forumAccess, href }: { forumAccess: boolean; href: (anchor?: string) => string }) {
   return (
     <>
@@ -152,12 +150,13 @@ function EmailEnd({ forumAccess, href }: { forumAccess: boolean; href: (anchor?:
 }
 
 /**
- * Variant A, "Editorial" (Tech Brew / YC feel): a greeting, then stories with
- * an image on alternate sides, each with a linked headline, a two-sentence
- * teaser, one "Why it matters" line and "Read the story". The button follows
- * the stories; team launch cards and network signals come after.
+ * "Editorial" (Tech Brew / YC feel): a greeting with a compact button in the
+ * first phone screen, then stories with an image on alternate sides, each with
+ * a linked headline, a two-sentence teaser, one "Why it matters" line and
+ * "Read the story". The large button follows the stories; team launch cards
+ * and, only when the issue carries it, the signals block come after.
  */
-function EditorialEmail({ forumAccess }: { forumAccess: boolean }) {
+function EditorialEmail({ forumAccess, signals }: { forumAccess: boolean; signals: boolean }) {
   const href = (anchor?: string) => issueHref(anchor, forumAccess);
   return (
     <EmailShell>
@@ -177,6 +176,9 @@ function EditorialEmail({ forumAccess }: { forumAccess: boolean }) {
       <div className={s.emailHello}>
         <p className={s.emailGreeting}>Hi {EMAIL_FIRST_NAME},</p>
         <p className={s.emailIntro}>Here is what network teams shipped, raised and published since No. 06.</p>
+        <a className={clsx(digest.emailCta, s.emailCtaCompact)} href={href()}>
+          Read the full issue
+        </a>
       </div>
 
       <ul className={s.emailStories}>
@@ -234,131 +236,26 @@ function EditorialEmail({ forumAccess }: { forumAccess: boolean }) {
         </ul>
       </div>
 
-      <div className={digest.emailSection}>
-        <h2 className={s.emailBlockTitle}>Network signals</h2>
-        <ul className={s.emailSignals}>
-          {EDITION.signals.map((sig) => (
-            <li key={sig.id}>
-              <a className={s.emailSignal} href={sig.href}>
-                <span className={s.signalFigure}>{sig.figure}</span>
-                <span className={s.signalLabel}>
-                  {sig.label}
-                  {sig.mock && <span className={s.mockTag}>mock</span>}
-                </span>
-                <span className={s.signalArrow} aria-hidden="true">
-                  →
-                </span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <EmailEnd forumAccess={forumAccess} href={href} />
-    </EmailShell>
-  );
-}
-
-/**
- * Variant B, "Signal-first" (Specter feel): the week in numbers on top, the
- * button in the first screen, then a dense list of linked headlines with one
- * "Why it matters" line each, team launches as compact rows and open roles.
- * Many small entry points instead of a long read.
- */
-function SignalEmail({ forumAccess }: { forumAccess: boolean }) {
-  const href = (anchor?: string) => issueHref(anchor, forumAccess);
-  const jobs = EDITION.signals.find((sig) => sig.id === 'jobs');
-  return (
-    <EmailShell>
-      <div className={s.sigHead}>
-        <img className={s.sigLogo} src="/images/email/digest-logo-protocol-labs.png" alt="Protocol Labs" width={120} height={23} />
-        <p className={s.sigIssue}>
-          PL Network Digest · {EDITION.number} · {EDITION.dateLabel}
-        </p>
-      </div>
-
-      <div className={s.sigTop}>
-        <p className={s.emailGreeting}>Hi {EMAIL_FIRST_NAME}, here is the network this week.</p>
-        <ul className={s.sigTiles}>
-          {EDITION.signals.map((sig) => (
-            <li key={sig.id}>
-              <a className={s.sigTile} href={sig.href}>
-                <span className={s.sigFigure}>{sig.figure}</span>
-                <span className={s.sigLabel}>{sig.label}</span>
-                {sig.mock && <span className={s.mockTag}>mock</span>}
-              </a>
-            </li>
-          ))}
-        </ul>
-        <a className={clsx(digest.emailCta, s.emailCtaStrong, s.sigCta)} href={href()}>
-          Read the full issue
-        </a>
-      </div>
-
-      <div className={digest.emailSection}>
-        <h2 className={s.emailBlockTitle}>Top stories</h2>
-        <ol className={s.sigStories}>
-          {EDITION.stories.map((st) => (
-            <li key={st.id} className={s.sigStory}>
-              <div className={s.sigStoryMain}>
-                <p className={s.emailStoryMeta}>
-                  {st.team.name} · {st.date}
-                </p>
-                <h3 className={s.sigStoryTitle}>
-                  <a href={href(st.id)}>{st.headline}</a>
-                </h3>
-                <p className={s.emailStoryWhy}>
-                  <strong>Why it matters:</strong> {st.whyItMatters}
-                </p>
-              </div>
-              <a className={s.sigThumb} href={href(st.id)} tabIndex={-1} aria-hidden="true">
-                <StoryImage seed={st.id} size="side" />
-              </a>
-            </li>
-          ))}
-        </ol>
-      </div>
-
-      <div className={digest.emailSection}>
-        <h2 className={s.emailBlockTitle}>New from network teams</h2>
-        <ul className={s.sigRows}>
-          {EDITION.launches.map((l) => (
-            <li key={l.id}>
-              <a className={s.sigRow} href={teamHref(l.team.uid)}>
-                <span className={clsx(s.mark, s.mark_s)} aria-hidden="true">
-                  {initials(l.team.name)}
-                </span>
-                <span className={s.sigRowText}>
-                  <span className={s.emailCardTitle}>
-                    {l.team.name} <span className={s.cardTagline}>— {l.tagline}</span>
-                  </span>
-                  <span className={s.emailCardLine}>{l.line}</span>
-                </span>
-                <span className={s.badge}>{l.focus}</span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {jobs?.examples && (
+      {/* Optional block: shows only when this issue carries signals. */}
+      {signals && (
         <div className={digest.emailSection}>
-          <h2 className={s.emailBlockTitle}>
-            Open roles in the network <span className={s.mockTag}>mock</span>
-          </h2>
-          <ul className={s.sigRows}>
-            {jobs.examples.map((ex) => (
-              <li key={ex.label}>
-                <a className={s.sigRole} href={ex.href}>
-                  <span className={s.emailCardTitle}>{ex.label}</span>
-                  <span className={s.emailCardLine}>{ex.meta}</span>
+          <h2 className={s.emailBlockTitle}>Network signals this month</h2>
+          <ul className={s.emailSignals}>
+            {EDITION.signals.map((sig) => (
+              <li key={sig.id}>
+                <a className={s.emailSignal} href={sig.href}>
+                  <span className={s.signalFigure}>{sig.figure}</span>
+                  <span className={s.signalLabel}>
+                    {sig.label}
+                    {sig.mock && <span className={s.mockTag}>mock</span>}
+                  </span>
+                  <span className={s.signalArrow} aria-hidden="true">
+                    →
+                  </span>
                 </a>
               </li>
             ))}
           </ul>
-          <a className={s.emailItemStrong} href={jobs.href}>
-            See all {jobs.figure} roles
-          </a>
         </div>
       )}
 
@@ -368,11 +265,11 @@ function SignalEmail({ forumAccess }: { forumAccess: boolean }) {
 }
 
 /**
- * The teaser email. Dana's baseline for the 11 Nov send was 14 of 26 opened and
- * 0 clicked. Both variants keep the fixes: a real button for "Read the full
+ * The teaser email (Editorial is the only variant, decision D-3). Dana's
+ * baseline for the 11 Nov send was 14 of 26 opened and 0 clicked. The fixes: a real button for "Read the full
  * issue", a linked headline on every story, one "Why it matters" line, more
  * than stories (launches, signals) and the news ask.
  */
-export function DigestEmail({ forumAccess, variant }: { forumAccess: boolean; variant: EmailVariant }) {
-  return variant === 'signal' ? <SignalEmail forumAccess={forumAccess} /> : <EditorialEmail forumAccess={forumAccess} />;
+export function DigestEmail({ forumAccess, signals }: { forumAccess: boolean; signals: boolean }) {
+  return <EditorialEmail forumAccess={forumAccess} signals={signals} />;
 }

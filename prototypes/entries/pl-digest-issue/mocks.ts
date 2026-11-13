@@ -131,6 +131,11 @@ export interface Edition {
   launches: Launch[];
   news: PressLink[];
   deals: { rows: DealRow[]; catchUpNote: string };
+  /**
+   * The optional signals block. Signals change slowly from week to week
+   * (decision D-3), so production makes this block configurable per issue:
+   * off, monthly or quarterly. The prototype has a review switch, Off / Monthly.
+   */
   signals: NetworkSignal[];
   /** Top threads since the last issue. The section renders only with forum access and at least one thread. */
   forum: { threads: ForumThread[]; href: string; mock: boolean };
@@ -366,7 +371,7 @@ export const EDITION: Edition = {
       ],
     },
     { id: 'events', figure: '9', label: 'network events in the next 30 days', href: '/events', mock: true },
-    { id: 'teams', figure: '6', label: 'teams joined the network since No. 06', href: '/teams', mock: true },
+    { id: 'teams', figure: '6', label: 'teams joined the network in the past month', href: '/teams', mock: true },
     { id: 'deals', figure: '$250M', label: 'Series D for Precision Neuroscience, the largest round in the window', href: '/deals', mock: false },
   ],
 

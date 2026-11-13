@@ -10,6 +10,8 @@ import { useUnifiedSearchAnalytics } from '@/analytics/unified-search.analytics'
 import { recordMemberSignal, searchIndexToEntityType } from '@/services/member-signals/member-signals.service';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { OhBadge } from '@/components/core/OhBadge/OhBadge';
+import { MemberAccessBadges } from '@/components/common/AccessLevelBadges/MemberAccessBadges';
+import { TeamAccessBadge } from '@/components/common/AccessLevelBadges/TeamAccessBadge';
 
 import { getFieldLabel } from '../../utils/getFieldLabel';
 
@@ -60,6 +62,11 @@ export function ResultItem(props: Props) {
             <div className={s.name}>{parseSafeHtml(matchedName.content, 'searchHighlight')}</div>
           ) : (
             <div className={s.name}>{item.name}</div>
+          )}
+          {/* Admin-only: the API sends these fields only to a directory admin, and AccessBadge checks the viewer too. */}
+          {item.index === 'teams' && <TeamAccessBadge accessLevel={item.accessLevel} className={s.accessBadge} />}
+          {item.index === 'members' && (
+            <MemberAccessBadges state={item.memberState} isJobAspirant={item.isJobAspirant} className={s.accessBadge} />
           )}
           {!!item.availableToConnect && (
             <div className={s.type}>

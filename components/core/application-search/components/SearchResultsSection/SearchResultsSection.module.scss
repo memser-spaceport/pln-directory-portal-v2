@@ -125,6 +125,10 @@ $padding-inline: 16px;
   }
 }
 
+.accessBadge {
+  flex-shrink: 0;
+}
+
 .type {
   position: relative;
   margin-left: auto;

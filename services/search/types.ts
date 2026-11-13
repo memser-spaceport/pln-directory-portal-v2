@@ -9,6 +9,12 @@ export type FoundItem = {
   }[];
   availableToConnect?: boolean;
   scheduleMeetingCount?: number;
+  /** Teams only, and only when a directory admin searches: `L0`, `L1` or null (LAB-3252). */
+  accessLevel?: string | null;
+  /** Members only, and only when a directory admin searches (LAB-3252). */
+  memberState?: 'PENDING' | 'VERIFIED' | 'APPROVED' | 'REJECTED';
+  /** Members only, and only when a directory admin searches (LAB-3252). */
+  isJobAspirant?: boolean;
   source?: {
     additionalInfo: null;
     description: string;

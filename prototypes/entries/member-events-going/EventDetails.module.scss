@@ -338,3 +338,12 @@
   font-weight: 600;
   line-height: 24px;
 }
+
+// The gathering block is about the whole city week, not this event: a hairline (the
+// footer's own border) with 24px either side sets it apart from the RSVP card above.
+// margin-top 9px + the body's 15px gap = 24px above the line.
+.gatheringBlock {
+  margin-top: 9px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}

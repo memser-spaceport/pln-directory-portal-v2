@@ -3,7 +3,7 @@
 import clsx from 'clsx';
 
 // Production's logged-out home banner, reused as-is: `components/page/home/Welcome`
-// is what a signed-out visitor already meets at `/home` (app/home/page.tsx renders
+// is what a signed-out visitor already meets at `/home` (app/page.tsx renders
 // it behind `!isLoggedIn`), so the board wears the same surface, the same type and
 // the same blue CTA rather than inventing a second sign-in look.
 import welcome from '@/components/page/home/Welcome/Welcome.module.scss';

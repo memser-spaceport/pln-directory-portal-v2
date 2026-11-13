@@ -97,7 +97,7 @@ describe('PublishedAiAppPage', () => {
       renderPage('cmsomeoneelse');
 
       expect(screen.getByRole('heading', { name: 'This app is not available to you' })).toBeInTheDocument();
-      expect(screen.getByRole('link', { name: 'Back to home' })).toHaveAttribute('href', '/home');
+      expect(screen.getByRole('link', { name: 'Back to home' })).toHaveAttribute('href', '/');
       expect(document.querySelector('a[href^="/pl-infra"]')).toBeNull();
       expect(frame()).toBeNull();
       expect(mockAnalytics.onPublishedAppUnavailable).toHaveBeenCalledTimes(1);

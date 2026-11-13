@@ -86,19 +86,41 @@ A member profile with no photo and no bio text SHALL have `robots` `noindex, fol
 
 ### Requirement: The old host's addresses have their own sitemap during the domain move
 
-`directory.plnetwork.io` answers every path with a 301 to the same path on `os.pl.xyz` (a Cloudflare rule). Until Search Console shows the move complete, production (`APPLICATION_BASE_URL` `https://os.pl.xyz`) SHALL serve `/sitemaps/legacy-directory-plnetwork.xml`: every address the section sitemaps list, and the root `/`, on the old host, each once and with no `lastmod`. It is submitted in Search Console by hand; Google accepts it because one account has verified both hosts. `/sitemap.xml` and robots.txt SHALL NOT name it. Every other deployment SHALL answer it with 404, since its entity ids are not the old host's. It SHALL NOT be answered with session cookie headers.
+`directory.plnetwork.io` answers every path with a 301 to the same path on `os.pl.xyz` (a Cloudflare rule). Until Search Console shows the move complete, production (`APPLICATION_BASE_URL` `https://os.pl.xyz`) SHALL serve `/sitemaps/legacy-directory-plnetwork.xml`: every address the section sitemaps list, the root `/` and the old homepage `/home`, on the old host, each once and with no `lastmod`. It is submitted in Search Console by hand; Google accepts it because one account has verified both hosts. `/sitemap.xml` and robots.txt SHALL NOT name it. Every other deployment SHALL answer it with 404, since its entity ids are not the old host's. It SHALL NOT be answered with session cookie headers.
 
 #### Scenario: Crawler reads the old host's sitemap on production
 
 - **GIVEN** the team sitemap lists `https://os.pl.xyz/teams/T`
 - **WHEN** a crawler requests `https://os.pl.xyz/sitemaps/legacy-directory-plnetwork.xml`
-- **THEN** it lists `https://directory.plnetwork.io/teams/T` and `https://directory.plnetwork.io/`
+- **THEN** it lists `https://directory.plnetwork.io/teams/T`, `https://directory.plnetwork.io/` and `https://directory.plnetwork.io/home`
 - **AND** it lists no `os.pl.xyz` address and no `lastmod`
 
 #### Scenario: Feature env
 
 - **WHEN** a client requests `/sitemaps/legacy-directory-plnetwork.xml` on `directory-portal-lab-<n>.os.pl.xyz`
 - **THEN** the response is 404
+
+### Requirement: The homepage is the site root
+
+The homepage SHALL render at `/`, and its canonical address, its `WebSite` JSON-LD and the pages sitemap SHALL name the site root (`https://os.pl.xyz/` on production). `/home`, the homepage's address until LAB-3255, SHALL redirect permanently (308) to `/`, keeping its query string, so old links, digest emails and notifications (`/home?news=<uid>`, `/home?view=news`, `/home#login`) open the same view. In-app links to the homepage, and the navigation's check for "already on Home", SHALL use `/`. A notification whose link says `/home` SHALL match the homepage.
+
+#### Scenario: Crawler on the site root
+
+- **WHEN** a crawler requests `https://os.pl.xyz/`
+- **THEN** the response is 200 with the homepage
+- **AND** its canonical address is the site root, `https://os.pl.xyz` (written without the trailing slash, the same address)
+
+#### Scenario: Old homepage link
+
+- **GIVEN** a link to `/home?news=N`
+- **WHEN** a visitor or a crawler requests it
+- **THEN** the response is a 308 redirect to `/?news=N`
+
+#### Scenario: Notification sent before the move
+
+- **GIVEN** an unread notification whose link is `/home?news=N`
+- **WHEN** the member opens `/?news=N`
+- **THEN** the notification is marked read
 
 ### Requirement: One address for the events calendar
 
@@ -139,17 +161,17 @@ Every response SHALL carry `X-Robots-Tag: noindex, nofollow`, whatever host serv
 
 #### Scenario: Preview on a custom domain
 
-- **WHEN** a crawler requests `/home` on `pr-<n>.preview.dev.os.pl.xyz`
+- **WHEN** a crawler requests `/` on `pr-<n>.preview.dev.os.pl.xyz`
 - **THEN** the response carries `X-Robots-Tag: noindex, nofollow`
 
 #### Scenario: Feature env
 
-- **WHEN** a crawler requests `/home` on `directory-portal-lab-<n>.os.pl.xyz`, deployed with `SEO_NOINDEX=true`
+- **WHEN** a crawler requests `/` on `directory-portal-lab-<n>.os.pl.xyz`, deployed with `SEO_NOINDEX=true`
 - **THEN** the response carries `X-Robots-Tag: noindex, nofollow`
 
 #### Scenario: Production
 
-- **WHEN** a crawler requests `/home` on `os.pl.xyz`
+- **WHEN** a crawler requests `/` on `os.pl.xyz`
 - **THEN** the response carries no `X-Robots-Tag`
 
 ### Requirement: Main pages name the searches they should be found for
@@ -158,7 +180,7 @@ The home page, members, teams, projects, the events calendar, the job board and 
 
 #### Scenario: Home page
 
-- **WHEN** a crawler requests `/home`
+- **WHEN** a crawler requests `/`
 - **THEN** its title and description both contain "Protocol Labs" and "innovation network"
 
 #### Scenario: Demo Day
@@ -183,40 +205,40 @@ Each page SHALL have exactly one `<h1>` element in its server-rendered HTML. A p
 
 ### Requirement: The home page says what the network is
 
-With `NEXT_PUBLIC_SHOW_HOME_V2` off, `/home` SHALL have the `<h1>` "Protocol Labs Directory", visually hidden so the top of the page keeps its design, and read by assistive technology. For a signed-out visitor, the page SHALL show a definition of the Protocol Labs network and the directory, of 40 to 60 words, as visible text in an "About" section at the foot of the page.
+With `NEXT_PUBLIC_SHOW_HOME_V2` off, `/` SHALL have the `<h1>` "Protocol Labs Directory", visually hidden so the top of the page keeps its design, and read by assistive technology. For a signed-out visitor, the page SHALL show a definition of the Protocol Labs network and the directory, of 40 to 60 words, as visible text in an "About" section at the foot of the page.
 
-With the flag on, the signed-out `/home` SHALL have one visible `<h1>`, the mission "Protocol Labs drives breakthroughs in computing to push humanity forward.", The visible sentence under it SHALL say what the network is ("We are an innovation network that connects over 760 tech startups, …"), and the Join the network card beside it SHALL say what the directory is for. The page SHALL have no About foot.
+With the flag on, the signed-out `/` SHALL have one visible `<h1>`, the mission "Protocol Labs drives breakthroughs in computing to push humanity forward.", The visible sentence under it SHALL say what the network is ("We are an innovation network that connects over 760 tech startups, …"), and the Join the network card beside it SHALL say what the directory is for. The page SHALL have no About foot.
 
 In both cases, the definition SHALL NOT be hidden from view, because text shown only to crawlers is hidden text.
 
 #### Scenario: Crawler on the home page
 
 - **GIVEN** the flag is off
-- **WHEN** a crawler requests `/home` without cookies
+- **WHEN** a crawler requests `/` without cookies
 - **THEN** the HTML has one `<h1>`, "Protocol Labs Directory"
 - **AND** the definition is in a visible "About Protocol Labs Directory" section after the focus areas
 
 #### Scenario: Visitor on the home page
 
 - **GIVEN** the flag is off
-- **WHEN** a signed-out visitor opens `/home`
+- **WHEN** a signed-out visitor opens `/`
 - **THEN** the top of the page starts with the welcome card, as before LAB-3089
 - **AND** the definition appears at the foot of the page
 
 #### Scenario: Crawler on the new home page
 
 - **GIVEN** the flag is on
-- **WHEN** a crawler requests `/home` without cookies
+- **WHEN** a crawler requests `/` without cookies
 - **THEN** the HTML has one `<h1>`, the mission sentence, with the definition right under it
 - **AND** the Organization and WebSite JSON-LD are still present
 
 ### Requirement: The home page names Protocol Labs as structured data
 
-`/home` SHALL carry JSON-LD with an `Organization` (Protocol Labs, with `sameAs` links to protocol.ai, Wikidata Q63930216, X, LinkedIn and YouTube) and a `WebSite` (Protocol Labs Directory, at the home page's canonical address) published by it.
+`/` SHALL carry JSON-LD with an `Organization` (Protocol Labs, with `sameAs` links to protocol.ai, Wikidata Q63930216, X, LinkedIn and YouTube) and a `WebSite` (Protocol Labs Directory, at the home page's canonical address) published by it.
 
 #### Scenario: Home page markup
 
-- **WHEN** a crawler requests `/home`
+- **WHEN** a crawler requests `/`
 - **THEN** the HTML has an `application/ld+json` script with the `Organization` and the `WebSite`
 
 ### Requirement: Profiles carry entity structured data

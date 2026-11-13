@@ -54,7 +54,7 @@ interface NewsRailProps {
    * card matches on first paint — no client-side flash while the query resolves. */
   initialDigestSettings?: ForumDigestSettings | null;
   /** Server-ranked "Popular this week" (GET /v1/team-news/popular), fetched SSR in
-   * app/home/page.tsx and threaded through TeamNews.tsx. */
+   * app/page.tsx and threaded through TeamNews.tsx. */
   popularItems?: ITeamNewsPopularItem[];
   isLoadingSuggestedTeams?: boolean;
   followedTeamUids?: Set<string>;

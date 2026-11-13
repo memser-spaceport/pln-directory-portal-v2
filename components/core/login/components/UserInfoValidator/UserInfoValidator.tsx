@@ -11,6 +11,7 @@ import { authEvents } from '@/components/core/login/utils';
 import { broadcastLogout } from '../BroadcastChannel';
 import { SessionExpiredModal } from '../modals/SessionExpiredModal';
 import { IUserInfo } from '@/types/shared.types';
+import { PAGE_ROUTES } from '@/utils/constants';
 
 interface UserInfoValidatorProps {
   userInfo: IUserInfo | null | undefined;
@@ -109,7 +110,7 @@ export function UserInfoValidator({ userInfo, isLoggedIn, authToken }: UserInfoV
   useEffect(() => {
     const handleRouteChange = (url: string) => {
       if (url.includes('/members/undefined')) {
-        router.replace('/home');
+        router.replace(PAGE_ROUTES.HOME);
         return;
       }
     };
@@ -117,7 +118,7 @@ export function UserInfoValidator({ userInfo, isLoggedIn, authToken }: UserInfoV
     // Check current URL
     if (typeof window !== 'undefined') {
       if (window.location.pathname.includes('/members/undefined')) {
-        router.replace('/home');
+        router.replace(PAGE_ROUTES.HOME);
       }
     }
   }, [router]);

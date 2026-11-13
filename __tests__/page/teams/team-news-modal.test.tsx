@@ -429,7 +429,7 @@ describe('TeamNewsModal drill', () => {
     const { rerender } = renderModal();
 
     const link = screen.getByRole('link', { name: /All network updates/i });
-    expect(link).toHaveAttribute('href', '/home');
+    expect(link).toHaveAttribute('href', '/');
     // A new tab, so this box — and the reader's place in it — survives the trip.
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', expect.stringContaining('noopener'));

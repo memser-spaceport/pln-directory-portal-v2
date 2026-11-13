@@ -196,7 +196,7 @@ describe('MobileBottomNav', () => {
 
     render(<MobileBottomNav />);
 
-    expect(screen.getByRole('link', { name: /Home/ })).toHaveAttribute('href', '/home');
+    expect(screen.getByRole('link', { name: /Home/ })).toHaveAttribute('href', '/');
   });
 
   it('marks Home with the new-news dot only when there is new news', () => {
@@ -261,7 +261,7 @@ describe('MobileBottomNav', () => {
 
     it('does not count a tap on the page you are already on', () => {
       mockPlInfraItems.mockReturnValue([]);
-      mockUsePathname.mockReturnValue('/home');
+      mockUsePathname.mockReturnValue('/');
 
       render(<MobileBottomNav />);
       fireEvent.click(screen.getByRole('link', { name: /Home/ }));

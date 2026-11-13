@@ -6,5 +6,5 @@ export function isTeamNewsItemNotification(notification: PushNotification, newsI
   if (notification.category !== 'TEAM_NEWS') return false;
   if (notification.metadata?.newsItemUid === newsItemUid) return true;
   if (!notification.link) return false;
-  return normalizeLink(notification.link) === `/home?news=${newsItemUid}`;
+  return normalizeLink(notification.link) === `/?news=${newsItemUid}`;
 }

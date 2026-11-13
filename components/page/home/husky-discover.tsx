@@ -9,7 +9,7 @@ import cookies from 'js-cookie';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from '@/components/core/ToastContainer';
 import { getHuskyResponseBySlug, incrementHuskyViewCount } from '@/services/discovery.service';
-import { TOAST_MESSAGES } from '@/utils/constants';
+import { PAGE_ROUTES, TOAST_MESSAGES } from '@/utils/constants';
 
 let huskyRecorded = false;
 
@@ -30,7 +30,7 @@ function HuskyDiscover(props: any) {
     setInitialChats([]);
     if (modalCode === 'husky') {
       // replace (not push) so Back doesn't return to the modal URL and replay the flow
-      router.replace('/home');
+      router.replace(PAGE_ROUTES.HOME);
     }
   };
   const increaseViewAndShow = (data: any) => {
@@ -72,7 +72,7 @@ function HuskyDiscover(props: any) {
   useEffect(() => {
     if (modalCode === 'husky' && !huskyShareId) {
       // malformed share URL — nothing to open, just clean it up
-      router.replace('/home');
+      router.replace(PAGE_ROUTES.HOME);
       return;
     }
     if (modalCode === 'husky' && huskyShareId && huskyShareId === slugId) {
@@ -89,7 +89,7 @@ function HuskyDiscover(props: any) {
           } else if (result.status === 404) {
             toast.error(TOAST_MESSAGES.HUSKY_SHARED_LINK_EXPIRED, { toastId: 'husky-discover' });
             // strip the dead params so refresh/Back doesn't replay the error
-            router.replace('/home');
+            router.replace(PAGE_ROUTES.HOME);
           } else {
             console.error(`Failed to load shared husky post ${huskyShareId} (status ${result.status})`);
             toast.error(TOAST_MESSAGES.HUSKY_SHARED_LINK_FAILED, { toastId: 'husky-discover' });

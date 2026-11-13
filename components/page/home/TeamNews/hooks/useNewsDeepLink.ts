@@ -56,7 +56,7 @@ export function useNewsDeepLink({ isValidUid }: { isValidUid: (uid: string) => b
         params.delete(FEED_COMMENT_PARAM);
       }
       const qs = params.toString();
-      window.history.replaceState(null, '', `${pathname || '/home'}${qs ? `?${qs}` : ''}`);
+      window.history.replaceState(null, '', `${pathname || '/'}${qs ? `?${qs}` : ''}`);
     },
     [pathname],
   );

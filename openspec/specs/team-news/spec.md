@@ -8,7 +8,7 @@ Describes what a signed-in member sees in the Home feed's For You view, and the 
 
 ### Requirement: News preferences page
 
-Signed-in members SHALL have a News preferences page in Settings, listed right after the email preferences item. It holds two sections, Topics and Teams you follow, under an intro that links to Email Preferences for the digest frequency. The words "For You" in the intro SHALL link, in the same tab, to `/home?feed=for-you`, which opens Home on the For You view (All when the member has no For You stories). Signed-out visitors SHALL be sent to log in and returned to the page afterwards.
+Signed-in members SHALL have a News preferences page in Settings, listed right after the email preferences item. It holds two sections, Topics and Teams you follow, under an intro that links to Email Preferences for the digest frequency. The words "For You" in the intro SHALL link, in the same tab, to `/?feed=for-you`, which opens Home on the For You view (All when the member has no For You stories). Signed-out visitors SHALL be sent to log in and returned to the page afterwards.
 
 #### Scenario: Open from the settings menu
 

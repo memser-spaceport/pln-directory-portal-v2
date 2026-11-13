@@ -17,7 +17,7 @@
  *   navbar Signup / LoginBtn SCSS .......... the two auth doors, Sign up quiet + Sign in filled
  *   DEAL_ICONS (deals/dealsIcons) .......... vendor marks in DealsRail
  *   AuthInvalidUser shell (ModalBase) ...... copied as EmailNotFoundModal, new content
- *   app/home/page.module.css ............... signed-in page width
+ *   app/page.module.css ............... signed-in page width
  *
  * Sibling prototypes (imported, not forked):
  *   home-refactor-b .... the week-feed grouping (title, now "Network Updates"; tab values) and its re-dated mocks
@@ -35,7 +35,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import type { ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
 
-import home from '@/app/home/page.module.css';
+import home from '@/app/page.module.css';
 import { ScrollToTopButton } from '@/components/page/forum/ScrollToTopButton';
 
 import { ALL_CURATED_ITEMS, TOP_STORY } from '../newsfeed/mocks';

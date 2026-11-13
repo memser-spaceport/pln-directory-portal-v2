@@ -2,35 +2,35 @@
 
 ## Purpose
 
-What `/home` shows to signed-out visitors and signed-in members, in what order, and where its data comes from. The new Home (LAB-3070) is behind `NEXT_PUBLIC_SHOW_HOME_V2`.
+What the homepage, `/`, shows to signed-out visitors and signed-in members, in what order, and where its data comes from. The new Home (LAB-3070) is behind `NEXT_PUBLIC_SHOW_HOME_V2`.
 
 ## Requirements
 
 ### Requirement: The new Home is behind a flag
 
-`/home` SHALL show the new Home only when the build-time flag `NEXT_PUBLIC_SHOW_HOME_V2` is `true`. With the flag off, `/home` SHALL render as it did before this change for every viewer, and `?view=news` SHALL be ignored. With the flag on, a signed-out visitor SHALL get the signed-out story below, a signed-in member the signed-in Home, and anyone who opens `/home?view=news` the news page.
+`/` SHALL show the new Home only when the build-time flag `NEXT_PUBLIC_SHOW_HOME_V2` is `true`. With the flag off, `/` SHALL render as it did before this change for every viewer, and `?view=news` SHALL be ignored. With the flag on, a signed-out visitor SHALL get the signed-out story below, a signed-in member the signed-in Home, and anyone who opens `/?view=news` the news page.
 
 #### Scenario: Flag off
 
 - **GIVEN** `NEXT_PUBLIC_SHOW_HOME_V2` is not `true`
-- **WHEN** anyone opens `/home` or `/home?view=news`
+- **WHEN** anyone opens `/` or `/?view=news`
 - **THEN** the page is the previous Home, with the Welcome card, the news feed and the focus areas
 
 #### Scenario: Flag on, signed out
 
 - **GIVEN** the flag is on
-- **WHEN** a signed-out visitor opens `/home`
+- **WHEN** a signed-out visitor opens `/`
 - **THEN** the page is the signed-out story
 
 #### Scenario: Flag on, news view
 
 - **GIVEN** the flag is on
-- **WHEN** a member or a signed-out visitor opens `/home?view=news`
+- **WHEN** a member or a signed-out visitor opens `/?view=news`
 - **THEN** the page is the news page
 
 ### Requirement: The signed-out story
 
-With the flag on, a signed-out visitor's `/home` SHALL show these sections in order, all in the server HTML:
+With the flag on, a signed-out visitor's `/` SHALL show these sections in order, all in the server HTML:
 
 1. **Hero:**
    - The mission "Protocol Labs drives breakthroughs in computing to push humanity forward." as the page's `<h1>`, at 40/48 on desktop, 32/40 on tablets and 24/32 on phones, with no overline.
@@ -57,19 +57,19 @@ The page SHALL NOT show the Welcome card, the previous news feed, the previous f
 #### Scenario: Sections in order
 
 - **GIVEN** the flag is on
-- **WHEN** a signed-out visitor opens `/home` at 1440, 768 or 375 px wide
+- **WHEN** a signed-out visitor opens `/` at 1440, 768 or 375 px wide
 - **THEN** the hero, figures, This week, portfolio, entities, the second Join card, logo wall and footer appear in that order with no horizontal scroll
 
 #### Scenario: A shorter top on phones (LAB-3174)
 
 - **GIVEN** a 375 px wide screen
-- **WHEN** a signed-out visitor opens `/home`
+- **WHEN** a signed-out visitor opens `/`
 - **THEN** the headline is 24/32 and the four figures show before "Sign up for free"
 - **AND** there is no separate figures band
 
 #### Scenario: Auth doors
 
-- **GIVEN** the flag is on and a signed-out visitor on `/home`
+- **GIVEN** the flag is on and a signed-out visitor on `/`
 - **WHEN** they press "Sign up for free"
 - **THEN** sign-up opens
 - **AND** "Sign in" starts the same sign-in as the navbar's Sign in
@@ -83,12 +83,12 @@ The page SHALL NOT show the Welcome card, the previous news feed, the previous f
 
 ### Requirement: This week's stories
 
-The stories SHALL be the editorial top stories (rank 1 to 5) when there are any, then the newest stories. Beside the sidebar, the list SHALL show as many whole rows as fit that sidebar's height, and at least four when the sidebar is shorter. It SHALL measure again when the sidebar grows after the news has rendered. On a phone the list SHALL show three rows, then part of the next one. Each row SHALL show the team, the event type, the time, and the title. Opening a row SHALL open the story. Follow SHALL ask a signed-out visitor to sign up. Like SHALL open the "Join the network" card as a modal, with Sign up and Sign in. "See all updates →" SHALL open `/home?view=news`.
+The stories SHALL be the editorial top stories (rank 1 to 5) when there are any, then the newest stories. Beside the sidebar, the list SHALL show as many whole rows as fit that sidebar's height, and at least four when the sidebar is shorter. It SHALL measure again when the sidebar grows after the news has rendered. On a phone the list SHALL show three rows, then part of the next one. Each row SHALL show the team, the event type, the time, and the title. Opening a row SHALL open the story. Follow SHALL ask a signed-out visitor to sign up. Like SHALL open the "Join the network" card as a modal, with Sign up and Sign in. "See all updates →" SHALL open `/?view=news`.
 
 #### Scenario: Editorial picks first
 
 - **GIVEN** two stories with editorial rank 1 and 2, and newer unranked stories
-- **WHEN** a signed-out visitor opens `/home`
+- **WHEN** a signed-out visitor opens `/`
 - **THEN** the two ranked stories come first, then the newest unranked stories
 
 ### Requirement: Open roles and upcoming events beside the news
@@ -104,13 +104,13 @@ With the event drawer flag on, a signed-in member's event row SHALL instead open
 #### Scenario: Events this month
 
 - **GIVEN** events starting in 3, 20 and 45 days
-- **WHEN** a signed-out visitor opens `/home`
+- **WHEN** a signed-out visitor opens `/`
 - **THEN** the sidebar shows three roles, then the events in 3 and 20 days
 
 #### Scenario: No events this month
 
 - **GIVEN** no event starts in the next 30 days
-- **WHEN** a signed-out visitor opens `/home`
+- **WHEN** a signed-out visitor opens `/`
 - **THEN** there is no events section and five roles show
 
 #### Scenario: A data source fails
@@ -141,7 +141,7 @@ With the event drawer flag on, a signed-in member's event row SHALL instead open
 #### Scenario: The viewer's events fail to load
 
 - **GIVEN** the event drawer flag is on and the request for a signed-in member's own upcoming events fails
-- **WHEN** they open `/home`
+- **WHEN** they open `/`
 - **THEN** the rail shows its events with no "Going" marks
 - **AND** pressing an event still opens the event drawer
 
@@ -194,7 +194,7 @@ The new Home SHALL record these PostHog events:
 
 ### Requirement: The signed-in Home
 
-With `NEXT_PUBLIC_SHOW_HOME_V2` on, a signed-in member's `/home` SHALL show:
+With `NEXT_PUBLIC_SHOW_HOME_V2` on, a signed-in member's `/` SHALL show:
 
 - **Network Updates:** a stream beside one rail. On phones the rail stacks after the stream.
 - **The focus-area cards** under both. They are the same as on the signed-out page.
@@ -204,7 +204,7 @@ It SHALL NOT show Quick Actions, the focus-area tabs, the Top stories band, the 
 #### Scenario: Signed in with the flag on
 
 - **GIVEN** the flag is on
-- **WHEN** a signed-in member opens `/home` at 1440, 768 or 375 px wide
+- **WHEN** a signed-in member opens `/` at 1440, 768 or 375 px wide
 - **THEN** the page shows Network Updates, the rail and the focus-area cards, with no Quick Actions and no horizontal scroll
 
 ### Requirement: The signed-in network overview
@@ -213,7 +213,7 @@ Under the focus-area cards, the signed-in Home SHALL show a full-width white ban
 
 #### Scenario: Below the focus areas
 
-- **GIVEN** a signed-in member on `/home` with the flag on
+- **GIVEN** a signed-in member on `/` with the flag on
 - **WHEN** they scroll past "Browse by focus area"
 - **THEN** they see the portfolio map, the PL entities and the investor logos, in that order
 
@@ -241,7 +241,7 @@ The editorial top stories SHALL be labelled "Top story" on their card where they
 #### Scenario: Member without forum access
 
 - **GIVEN** a member without forum access
-- **WHEN** they open `/home`
+- **WHEN** they open `/`
 - **THEN** the stream has news only, and there is no Discussions pill
 
 #### Scenario: Top pill
@@ -254,7 +254,7 @@ The editorial top stories SHALL be labelled "Top story" on their card where they
 #### Scenario: Empty pill
 
 - **GIVEN** no Launch stories in the last 14 days
-- **WHEN** the member opens `/home`
+- **WHEN** the member opens `/`
 - **THEN** there is no Launch pill
 
 #### Scenario: News preferences link
@@ -266,7 +266,7 @@ The editorial top stories SHALL be labelled "Top story" on their card where they
 #### Scenario: Member with nothing For You can match on
 
 - **GIVEN** a signed-in member with no For You stories, no news tags and no followed teams, and News preferences on
-- **WHEN** they open `/home` on All, with no topic filter and no search
+- **WHEN** they open `/` on All, with no topic filter and no search
 - **THEN** the line reads "For you · Get news picked for you. Choose your topics and teams in News preferences." and "Open News preferences →" opens `/settings/news-preferences?from=feed`
 - **AND** a topic filter, another pill or search text hides that line, and the curated line does not show
 
@@ -282,7 +282,7 @@ Under Most popular, forum posts SHALL rank by likes against the stories' upvotes
 
 ### Requirement: The stream ends where the rail ends
 
-On screens wide enough for the rail to sit beside the stream, the stream SHALL be cut level with the bottom of the rail, using the rail's content height when that is taller than its box. The stream SHALL show at least four whole cards when the rail is shorter than that. The cut SHALL be measured again when the rail grows after the news has rendered, including when a section such as deals or teams to follow renders later. The last visible card fades out, and under it "See all news" opens `/home?view=news`. The faded card SHALL NOT respond to clicks. On phones the stream SHALL show three cards, then 140px of a fourth, faded, then "See all news". Every filter, including For You, uses this cut.
+On screens wide enough for the rail to sit beside the stream, the stream SHALL be cut level with the bottom of the rail, using the rail's content height when that is taller than its box. The stream SHALL show at least four whole cards when the rail is shorter than that. The cut SHALL be measured again when the rail grows after the news has rendered, including when a section such as deals or teams to follow renders later. The last visible card fades out, and under it "See all news" opens `/?view=news`. The faded card SHALL NOT respond to clicks. On phones the stream SHALL show three cards, then 140px of a fourth, faded, then "See all news". Every filter, including For You, uses this cut.
 
 When a filter other than All has at least one story and those stories end above the rail, the stream SHALL keep that filter's stories first, then a divider labelled "Other news", then stories from All that are not already shown, until the combined list reaches the rail. All SHALL NOT show the divider. A filter whose stories already reach the rail SHALL NOT show it. A filter with no stories SHALL NOT show it. The member's For You match SHALL NOT change.
 
@@ -321,14 +321,14 @@ With the flag off nothing SHALL change. The previous Home's cards and its story 
 #### Scenario: Thumbnail on desktop
 
 - **GIVEN** the flag is on and a story in the signed-in stream has an `imageUrl`
-- **WHEN** the member views `/home` at 1440 px wide
+- **WHEN** the member views `/` at 1440 px wide
 - **THEN** the card shows the image as a 168 × 95 thumbnail right of the headline, summary and tags
 - **AND** clicking the image opens the story's dialog once
 
 #### Scenario: Full width on phones
 
 - **GIVEN** the same story
-- **WHEN** the member views `/home` at 375 px wide
+- **WHEN** the member views `/` at 375 px wide
 - **THEN** the image takes the card's full width under the text and above the meta line
 
 #### Scenario: The image fails to load
@@ -352,13 +352,13 @@ With the flag off nothing SHALL change. The previous Home's cards and its story 
 #### Scenario: Previous Home unchanged
 
 - **GIVEN** the flag is off and a story with an `imageUrl`
-- **WHEN** a member opens `/home` and then the story
+- **WHEN** a member opens `/` and then the story
 - **THEN** neither the card nor the dialog shows the image
 
 #### Scenario: News page card
 
 - **GIVEN** the flag is on and a story with an `imageUrl`
-- **WHEN** anyone opens `/home?view=news`
+- **WHEN** anyone opens `/?view=news`
 - **THEN** the story's card shows the image at the card's full width under its tags, with the meta line under it
 
 ### Requirement: The signed-in rail
@@ -378,7 +378,7 @@ The rail SHALL be one card, with sections divided by hairlines, in this order:
 #### Scenario: Member without deals access
 
 - **GIVEN** a member without `deals.read`
-- **WHEN** they open `/home`
+- **WHEN** they open `/`
 - **THEN** the rail has no deals section
 
 #### Scenario: Deal value pill
@@ -404,12 +404,12 @@ It SHALL also record `home-role-clicked`, `home-event-clicked`, `home-see-all-cl
 
 ### Requirement: The news page
 
-"See all news" (signed in) and "See all updates" (signed out) SHALL open `/home?view=news`: the last 14 days' network news only, with no forum posts, roll-ups or deals. The head SHALL show "← Home", "Network news" as the page's only `<h1>`, and "N stories from network teams". The stories SHALL be production's boxed news card with its `#tag` links, in 2 columns from 640px and 1 below. Signed out, Follow SHALL open sign-up. Like SHALL open the "Join the network" card as a modal. Closing the sign-up form opened from that modal, or from "Personalize my news", SHALL leave the reader at the same scroll position. The story dialog SHALL open without a scale animation, and closing it SHALL NOT show the dialog again.
+"See all news" (signed in) and "See all updates" (signed out) SHALL open `/?view=news`: the last 14 days' network news only, with no forum posts, roll-ups or deals. The head SHALL show "← Home", "Network news" as the page's only `<h1>`, and "N stories from network teams". The stories SHALL be production's boxed news card with its `#tag` links, in 2 columns from 640px and 1 below. Signed out, Follow SHALL open sign-up. Like SHALL open the "Join the network" card as a modal. Closing the sign-up form opened from that modal, or from "Personalize my news", SHALL leave the reader at the same scroll position. The story dialog SHALL open without a scale animation, and closing it SHALL NOT show the dialog again.
 
 #### Scenario: News only
 
 - **GIVEN** the flag is on and a member with forum access
-- **WHEN** they open `/home?view=news` at 1440, 768 or 375 px wide
+- **WHEN** they open `/?view=news` at 1440, 768 or 375 px wide
 - **THEN** only news cards show, in 2, 2 and 1 columns
 
 #### Scenario: Signed out
@@ -433,7 +433,7 @@ Once the reader is more than one screen down the news page, a "Back to top" butt
 
 #### Scenario: Back up from deep in the list
 
-- **GIVEN** a reader far down `/home?view=news`
+- **GIVEN** a reader far down `/?view=news`
 - **WHEN** they start scrolling back up
 - **THEN** "Back to top" stays visible
 - **AND** pressing it brings them to the page head
@@ -460,7 +460,7 @@ Signed out, the news page SHALL show no For You pill. Under the filters it SHALL
 
 #### Scenario: A visitor asks for personal news
 
-- **GIVEN** a signed-out visitor on `/home?view=news`
+- **GIVEN** a signed-out visitor on `/?view=news`
 - **WHEN** they press "Personalize my news"
 - **THEN** the sign-up form opens over the news page
 

@@ -19,7 +19,7 @@ const OH_HREF = '/members?hasOfficeHours=true';
 
 interface QuickActionsProps {
   /**
-   * Card set resolved on the server (app/home/page.tsx). Rendering from this
+   * Card set resolved on the server (app/page.tsx). Rendering from this
    * rather than from client state is what makes the first paint final — the
    * user store and /me/access both land after hydration, and deriving the
    * cards from them made the band render 2 cards, collapse, then settle on 2-4.

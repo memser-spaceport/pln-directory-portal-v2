@@ -102,7 +102,7 @@ describe('Navbar — Home entry', () => {
   });
 
   it('does not count a click on the page you are already on', () => {
-    mockUsePathname.mockReturnValue('/home');
+    mockUsePathname.mockReturnValue('/');
 
     render(<Navbar {...props} />);
     fireEvent.click(screen.getByRole('link', { name: /Home/ }));

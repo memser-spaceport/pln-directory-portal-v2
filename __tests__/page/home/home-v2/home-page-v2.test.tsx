@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
-import Home from '@/app/home/page';
+import Home from '@/app/page';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import {
   getTeamNewsGroupedByFocusArea,
@@ -386,7 +386,7 @@ describe('/home with the new Home flag on', () => {
   });
 });
 
-describe('/home?view=news with the new Home flag on', () => {
+describe('/?view=news with the new Home flag on', () => {
   beforeEach(() => {
     mockShowHomeV2 = true;
   });

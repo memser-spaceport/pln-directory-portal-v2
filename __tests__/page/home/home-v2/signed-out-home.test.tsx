@@ -14,7 +14,7 @@ jest.mock('next/font/local', () => () => ({ className: 'aileron', variable: 'ail
 const mockRouter = { push: jest.fn(), replace: jest.fn(), refresh: jest.fn(), prefetch: jest.fn() };
 jest.mock('next/navigation', () => ({
   useRouter: () => mockRouter,
-  usePathname: () => '/home',
+  usePathname: () => '/',
   // Next keeps useSearchParams in step with history.replaceState, which the story modal writes ?news= with.
   useSearchParams: () => new URLSearchParams(window.location.search),
 }));
@@ -268,7 +268,7 @@ describe('SignedOutHome', () => {
       const header = screen.getByRole('link', { name: 'See all updates' });
       // LAB-3174: the header link alone was easy to miss; the list now ends on "See all N updates" too.
       const row = screen.getByRole('link', { name: 'See all 23 updates' });
-      for (const link of [header, row]) expect(link).toHaveAttribute('href', '/home?view=news');
+      for (const link of [header, row]) expect(link).toHaveAttribute('href', '/?view=news');
       expect(header.compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
       await userEvent.click(row);
@@ -497,7 +497,7 @@ describe('SignedOutHome', () => {
   });
 
   it('opens a shared ?news= story that is not one of the three', () => {
-    window.history.replaceState(null, '', '/home?news=shared');
+    window.history.replaceState(null, '', '/?news=shared');
 
     renderHome({ deepLinkedItem: makeStory('shared') });
 

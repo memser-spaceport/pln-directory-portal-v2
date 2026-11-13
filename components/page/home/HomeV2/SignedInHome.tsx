@@ -9,7 +9,7 @@ import type { PortfolioTeam } from '@/components/page/explore-pl-network/data/po
 import { useHomeFeed, type HomeFeedProps } from '@/components/page/home/TeamNews/hooks/useHomeFeed';
 import { SHOW_POPULAR_THIS_WEEK } from '@/components/page/home/TeamNews/constants';
 import { PopularThisWeekCard } from '@/components/page/home/TeamNews/components/NewsRail/components/PopularThisWeekCard';
-import home from '@/app/home/page.module.css';
+import home from '@/app/page.module.css';
 
 import { DealsSection } from './DealsSection';
 import { FocusAreaCards } from './FocusAreaCards';

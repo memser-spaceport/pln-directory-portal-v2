@@ -13,9 +13,9 @@ jest.mock('@/services/team-news/team-news.service', () => ({ getTeamNewsItemByUi
 jest.mock('@/components/core/husky/husky-code-block', () => () => null);
 
 const load = async (): Promise<Record<string, Metadata>> => {
-  const home = await import('@/app/home/page');
+  const home = await import('@/app/page');
   return {
-    '/home': await home.generateMetadata({ searchParams: Promise.resolve({}) } as never),
+    '/': await home.generateMetadata({ searchParams: Promise.resolve({}) } as never),
     '/members': (await import('@/app/members/(members-page)/layout')).metadata,
     '/teams': (await import('@/app/teams/(teams-page)/layout')).metadata,
     '/projects': (await import('@/app/projects/(projects-page)/layout')).metadata,
@@ -32,7 +32,7 @@ beforeAll(async () => {
   pages = await load();
 });
 
-it.each(['/home', '/members', '/teams', '/projects', '/events/all', '/jobs', '/demoday'])(
+it.each(['/', '/members', '/teams', '/projects', '/events/all', '/jobs', '/demoday'])(
   '%s names Protocol Labs in its title and description',
   (path) => {
     expect(text(pages[path].title)).toContain('Protocol Labs');
@@ -41,8 +41,8 @@ it.each(['/home', '/members', '/teams', '/projects', '/events/all', '/jobs', '/d
 );
 
 it('the home page names the innovation network in its title and description', () => {
-  expect(text(pages['/home'].title)).toContain('innovation network');
-  expect(text(pages['/home'].description)).toContain('innovation network');
+  expect(text(pages['/'].title)).toContain('innovation network');
+  expect(text(pages['/'].description)).toContain('innovation network');
 });
 
 it('Demo Day names venture investors and VCs in its title and description', () => {
@@ -59,7 +59,7 @@ it('no two pages share a title or a description', () => {
   expect(new Set(descriptions).size).toBe(descriptions.length);
 });
 
-it.each(['/home', '/members', '/teams', '/projects', '/events/all', '/jobs', '/demoday'])(
+it.each(['/', '/members', '/teams', '/projects', '/events/all', '/jobs', '/demoday'])(
   '%s share cards say the same as its search result',
   (path) => {
     const page = pages[path];

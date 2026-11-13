@@ -46,7 +46,7 @@ afterEach(() => {
 const locs = (xml: string) => [...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((match) => match[1]);
 
 describe(LEGACY_SITEMAP_PATH, () => {
-  it('lists every sitemap address on the old host, plus the old root', async () => {
+  it('lists every sitemap address on the old host, plus the old root and the old /home', async () => {
     const response = await GET();
     const xml = await response.text();
 

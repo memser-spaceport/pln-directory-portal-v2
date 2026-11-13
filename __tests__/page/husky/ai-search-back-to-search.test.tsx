@@ -87,7 +87,7 @@ describe('Back to search on the AI Search page', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Back to search' }));
 
-    expect(push).toHaveBeenCalledWith('/home');
+    expect(push).toHaveBeenCalledWith('/');
   });
 });
 

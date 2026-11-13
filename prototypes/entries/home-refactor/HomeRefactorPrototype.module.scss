@@ -4,7 +4,7 @@
 
 @use 'styles/media';
 
-/* app/home/page.module.css `.home__cn` gives width + 14px/50px padding; the
+/* app/page.module.css `.home__cn` gives width + 14px/50px padding; the
    gap between sections is ours (production's 20/40 is for a single feed). */
 .page.page {
   gap: 40px;

@@ -10,7 +10,7 @@ let mockSearchParams = new URLSearchParams();
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush, replace: mockReplace, prefetch: jest.fn() }),
-  usePathname: () => '/home',
+  usePathname: () => '/',
   useSearchParams: () => mockSearchParams,
 }));
 
@@ -79,7 +79,7 @@ describe('HuskyDiscover shared-link handling', () => {
         toastId: 'husky-discover',
       }),
     );
-    expect(mockReplace).toHaveBeenCalledWith('/home');
+    expect(mockReplace).toHaveBeenCalledWith('/');
     expect(showModalMock).not.toHaveBeenCalled();
   });
 
@@ -102,7 +102,7 @@ describe('HuskyDiscover shared-link handling', () => {
 
     render(<HuskyDiscover isLoggedIn={false} />);
 
-    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/home'));
+    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/'));
     expect(mockGetHuskyResponseBySlug).not.toHaveBeenCalled();
     expect(toast.error).not.toHaveBeenCalled();
   });

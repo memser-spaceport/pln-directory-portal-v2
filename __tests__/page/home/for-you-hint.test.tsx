@@ -49,7 +49,7 @@ describe('ForYouHint', () => {
 
     expect(screen.queryByRole('link', { name: 'Update' })).not.toBeInTheDocument();
     const link = screen.getByRole('link', { name: 'Update your profile' });
-    expect(link).toHaveAttribute('href', '/members/user-1?backTo=%2Fhome');
+    expect(link).toHaveAttribute('href', '/members/user-1?backTo=%2F');
     expect(screen.getByText(/to make it more relevant/)).toBeInTheDocument();
     fireEvent.click(link);
 

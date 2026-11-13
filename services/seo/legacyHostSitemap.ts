@@ -21,7 +21,8 @@ export const LEGACY_HOST_TARGET = 'https://os.pl.xyz';
 export const LEGACY_SITEMAP_PATH = '/sitemaps/legacy-directory-plnetwork.xml';
 
 /**
- * Every address the sitemap index lists, on the old host, plus the old root: the old property's most-seen page. No
+ * Every address the sitemap index lists, on the old host, plus the old root, the old property's most-seen page, and
+ * the old /home, which the homepage was until LAB-3255 moved it to the root. No
  * `lastmod`: the date an old URL became a redirect is not recorded, and a made-up one would teach Google to distrust
  * the field. Empty on any deployment but production, whose entity ids are not the old host's.
  */
@@ -36,7 +37,7 @@ export async function legacyHostUrls(): Promise<string[]> {
     const url = new URL(entry.url);
     return `${url.pathname}${url.search}`;
   });
-  return [...new Set(['/', ...paths])].map((path) => `${LEGACY_HOST}${path}`);
+  return [...new Set(['/', '/home', ...paths])].map((path) => `${LEGACY_HOST}${path}`);
 }
 
 function escapeXml(value: string): string {

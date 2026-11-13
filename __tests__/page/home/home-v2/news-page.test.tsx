@@ -72,7 +72,7 @@ jest.mock('@/analytics/common.analytics', () => ({
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockRouterPush, replace: jest.fn(), prefetch: jest.fn() }),
-  usePathname: () => '/home',
+  usePathname: () => '/',
   useSearchParams: () => new URLSearchParams(window.location.search),
 }));
 // The sign-up form itself, stubbed: what matters here is when the page mounts it.
@@ -192,7 +192,7 @@ beforeEach(() => {
     deepLinkSettled: true,
   });
   useCurrentUserStore.setState({ currentUser: { uid: 'user-1' } as never, isHydrated: true });
-  window.history.replaceState(null, '', '/home?view=news');
+  window.history.replaceState(null, '', '/?view=news');
 });
 
 afterEach(() => {
@@ -211,7 +211,7 @@ describe('News page: head and grid', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: 'Network news' })).toBeInTheDocument();
     expect(screen.getByText('2 stories from network teams')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/home');
+    expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/');
     expect(headlines()).toEqual(['Headline a', 'Headline b']);
     expect(screen.queryByText('Willow Is Live!')).not.toBeInTheDocument();
     expect(within(pillRow()).queryByRole('button', { name: /Discussions/ })).not.toBeInTheDocument();

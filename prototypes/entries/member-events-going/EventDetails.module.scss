@@ -329,3 +329,12 @@
   }
 }
 
+
+/* GatheringModal's plans sub-view title (2026-11-12), in the place of the redesigned drawer's SubHead. */
+.plansTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+}

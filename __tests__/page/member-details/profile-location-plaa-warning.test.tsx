@@ -9,7 +9,8 @@ jest.mock('@/components/ui/LocationSelect', () => ({
   LocationSelect: () => <div>location-select</div>,
 }));
 
-const WARNING = /only available in select locations/i;
+const WARNING =
+  'The PLAA program is limited to certain Geo locations. You may lose access to the page if you change your location.';
 
 function memberWith(permissionCodes: string[]) {
   return {
@@ -28,15 +29,19 @@ function TestForm({ member }: { member: IMember }) {
 }
 
 describe('ProfileLocationInput PLAA warning', () => {
-  it('warns a member with PLAA access that a location change can remove it', () => {
-    render(<TestForm member={memberWith(['plaa.access'])} />);
+  it.each(['plaa.access', 'plaa.guest', 'plaa.member'])(
+    'warns a member holding %s that a location change can remove it',
+    (permission) => {
+      render(<TestForm member={memberWith([permission])} />);
 
-    expect(screen.getByText(WARNING)).toBeInTheDocument();
-  });
+      expect(screen.getByRole('note')).toHaveTextContent(WARNING);
+      expect(screen.getByRole('link', { name: 'The PLAA program' })).toHaveAttribute('href', '/alignment-asset');
+    },
+  );
 
   it('shows no warning to a member without PLAA access', () => {
     render(<TestForm member={memberWith(['founder_guides.view'])} />);
 
-    expect(screen.queryByText(WARNING)).not.toBeInTheDocument();
+    expect(screen.queryByRole('note')).not.toBeInTheDocument();
   });
 });

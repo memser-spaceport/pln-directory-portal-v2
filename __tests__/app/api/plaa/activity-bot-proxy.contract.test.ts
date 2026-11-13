@@ -244,7 +244,42 @@ describe('activity bot proxy route', () => {
   });
 
   it.each([
+    ['a question', { sessionId: 'session-1', mode: 'question', message: 'What is PLAA?' }],
+    ['a request for suggestions', { sessionId: 'session-1', mode: 'suggest', message: '' }],
+    [
+      'a rating after an answer',
+      {
+        sessionId: 'session-1',
+        event: 'feedback',
+        rating: 'down',
+        mode: 'question',
+        question: 'What is PLAA?',
+        answer: 'A program.',
+      },
+    ],
+    [
+      'a rating after a submission',
+      { sessionId: 'session-1', event: 'feedback', rating: 'up', mode: 'activity', activityId: 'x_space' },
+    ],
+    ['a comment after a thumbs-down', { sessionId: 'session-1', event: 'feedback', comment: 'Too long.' }],
+  ])('forwards %s from the widget as it is', async (_label, body) => {
+    const res = await postTurn(makeRequest({ body }));
+
+    expect(res.status).toBe(200);
+    expect(JSON.parse(callsTo(WEBHOOK_URL)[0][1].body)).toEqual(body);
+  });
+
+  it.each([
     ['no session id', { activityId: 'x_space', message: 'hi' }],
+    ['an activity turn with no activity id', { sessionId: 's', message: 'hi' }],
+    ['an unknown mode', { sessionId: 's', mode: 'admin', message: 'hi' }],
+    ['an unknown rating', { sessionId: 's', event: 'feedback', rating: 'meh' }],
+    ['a question over 2000 characters', { sessionId: 's', mode: 'question', message: 'a'.repeat(2001) }],
+    ['a feedback comment over 2000 characters', { sessionId: 's', event: 'feedback', comment: 'a'.repeat(2001) }],
+    [
+      'a feedback answer over 2000 characters',
+      { sessionId: 's', event: 'feedback', rating: 'up', answer: 'a'.repeat(2001) },
+    ],
     ['an activity id with a path in it', { sessionId: 's', activityId: '../x', message: 'hi' }],
     ['a message over 2000 characters', { sessionId: 's', activityId: 'x_space', message: 'a'.repeat(2001) }],
     ['an unknown event', { sessionId: 's', activityId: 'x_space', event: 'something_else' }],

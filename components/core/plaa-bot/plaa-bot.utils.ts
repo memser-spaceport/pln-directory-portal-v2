@@ -7,6 +7,7 @@ const BOT_ACTIVITY_IDS: Record<string, string> = {
   'high-value-connector': 'high_value_connector',
   'host-x-space': 'x_space',
   'propose-incentivized-activity': 'propose_activity',
+  'speak-at-event': 'speak_at_event',
 };
 
 interface LoadPlaaBotOptions {
@@ -75,7 +76,7 @@ export async function loadPlaaBot({ scriptUrl, webhookUrl, configUrl }: LoadPlaa
     throw new Error('PLAABot is not available after loading the widget script');
   }
 
-  window.PLAABot.init({ webhookUrl, configUrl });
+  window.PLAABot.init({ webhookUrl, configUrl, launcher: true });
   script.dataset.initialised = 'true';
 }
 

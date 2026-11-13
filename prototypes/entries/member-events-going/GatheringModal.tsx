@@ -3,8 +3,8 @@
 import { useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
+
 import { Button } from '@/components/common/Button';
-import { Checkbox } from '@/components/common/Checkbox';
 import { Drawer } from '@/components/common/Drawer';
 import { Modal } from '@/components/common/Modal/Modal';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
@@ -22,10 +22,11 @@ import { CloseIcon } from '@/components/core/UpdatesPanel/IrlGatheringModal/icon
 import type { EventRoleSelection, IrlGatheringFormData } from '@/components/core/UpdatesPanel/IrlGatheringModal/types';
 import m from '@/components/core/UpdatesPanel/IrlGatheringModal/IrlGatheringModal.module.scss';
 
-import { BackIcon, EventSummary, HostIcon, Label, PinLabelIcon } from './EventDetails';
+import { BackIcon, EventSummary, Label, PinLabelIcon } from './EventDetails';
 import e from './EventDetails.module.scss';
 import { EventRow, GoingMark } from './EventRow';
-import { markGoing, saveGathering, useGoing, type GoingScope } from './goingStore';
+import { saveGathering, useGoing, type GoingScope } from './goingStore';
+import { useHideAgentWhileOpen } from './useHideAgentWhileOpen';
 import {
   ATTENDEES,
   EVENT_DETAILS,
@@ -38,6 +39,8 @@ import {
   type GoingEvent,
 } from './mocks';
 import s from './MemberEventsGoing.module.scss';
+import { RsvpCard } from '../event-drawer-redesign/RsvpCard';
+
 
 /** What opened the modal: one event, or the owner's "Add event" list. */
 export type GatheringTarget = { kind: 'event'; eventUid: string } | { kind: 'pick' };
@@ -79,6 +82,8 @@ export function GatheringModal({
   onClose: () => void;
   onNotice?: (notice: GatheringNotice) => void;
 }) {
+  /* Home's floating Agent door would cover the drawer's footer; it steps aside while the drawer is open. */
+  useHideAgentWhileOpen(!!target);
   if (!target) return null;
   return <Flow key={JSON.stringify(target)} target={target} scope={scope} onClose={onClose} onNotice={onNotice} />;
 }
@@ -119,9 +124,13 @@ function EventFlow({
   const siblings = useMemo(() => eventsOf(gathering), [gathering]);
   const entries = siblings.filter((e) => going[e.uid]);
 
-  const [step, setStep] = useState<1 | 2>(going[event.uid] ? 2 : 1);
-  const [showOnProfile, setShow] = useState(going[event.uid]?.showOnProfile ?? true);
-  const [justMarked, setJustMarked] = useState(false);
+  /* As the redesigned drawer (user, 2026-11-12: "the same state change and experience"): it always opens on
+     the event; the RSVP card answers in place ("Are you going?" → "You're going"); "Add your plans" opens
+     step 2 as a sub-view whose Back, Cancel and Save all return to the event; the "you're going" toast waits
+     for the drawer to close. */
+  const [step, setStep] = useState<1 | 2>(1);
+  const showOnProfile = going[event.uid]?.showOnProfile ?? true;
+  const [lastMarked, setLastMarked] = useState<GatheringNotice | null>(null);
   const [showAttendees, setShowAttendees] = useState(false);
 
   const initialRoles: EventRoleSelection[] = entries.map((e) => ({ eventUid: e.uid, roles: going[e.uid].roles }));
@@ -147,22 +156,29 @@ function EventFlow({
     .map((e) => ({ uid: e.uid, name: e.name }));
 
   const planningQuestion = `What are you planning for ${gathering.city}?`;
-  const attending = !!going[event.uid] || justMarked;
+  const attending = !!going[event.uid];
   const count = event.attendeeCount + (attending ? 1 : 0);
 
-  const finish = (onProfile: boolean) => {
+  const finish = () => {
     onClose();
-    if (justMarked) onNotice?.({ eventName: event.name, onProfile });
+    if (lastMarked) onNotice?.(lastMarked);
   };
 
-  const onYes = () => {
-    markGoing(scope, event.uid, showOnProfile);
-    // Added to anything else they already said yes to in this city.
-    methods.setValue('selectedEventUids', [...selectedEventUids, event.uid]);
-    methods.setValue('eventRoles', [...eventRoles, { eventUid: event.uid, roles: ['Attendee'] }]);
-    setJustMarked(true);
+  /* The plans form starts from what the store says now (it may have changed on the card since mount),
+     as the redesigned drawer's PlansView builds its form when it opens. */
+  const openPlans = () => {
+    const now = siblings.filter((e) => going[e.uid]);
+    methods.reset({
+      topics: [],
+      selectedEventUids: now.map((e) => e.uid),
+      eventRoles: now.map((e) => ({ eventUid: e.uid, roles: going[e.uid].roles })),
+      additionalDetails: '',
+      telegramHandle: '@mayaokonkwo',
+      officeHours: '',
+    });
     setStep(2);
   };
+  const backToEvent = () => setStep(1);
 
   const onSave = methods.handleSubmit((data) => {
     saveGathering(
@@ -172,7 +188,7 @@ function EventFlow({
       data.eventRoles,
       showOnProfile,
     );
-    finish(showOnProfile);
+    backToEvent();
   });
 
   const renderOverlay = () => {
@@ -235,86 +251,78 @@ function EventFlow({
           total={count}
           you={attending}
           onBack={() => setShowAttendees(false)}
-          onClose={() => finish(showOnProfile)}
+          onClose={finish}
         />
       );
     }
     return null;
   };
   const overlay = renderOverlay();
-  const close = () => finish(showOnProfile);
+  const close = finish;
+  /* Escape and the backdrop: a picker first (it owns them), then the plans sub-view, then the drawer. */
+  const onDrawerClose = () => {
+    if (overlay) return;
+    if (step === 2) backToEvent();
+    else close();
+  };
   const detail = EVENT_DETAILS[event.uid];
   const drawerWidth = typeof window === 'undefined' ? 778 : Math.min(778, window.innerWidth);
-
-  const consent = (
-    <label className={s.consent}>
-      <Checkbox checked={showOnProfile} onChange={setShow} aria-labelledby="going-consent-label" />
-      <span className={s.consentText}>
-        <span id="going-consent-label" className={s.consentLabel}>
-          Show on my profile
-        </span>
-        <span className={s.consentHint}>Signed-in members will see {event.name} on your profile.</span>
-      </span>
-    </label>
-  );
 
   return (
     <>
       {/* While a picker or the people list is open above it, Escape and the backdrop belong to that. */}
-      <Drawer isOpen onClose={overlay ? () => {} : close} width={drawerWidth}>
+      <Drawer isOpen onClose={onDrawerClose} width={drawerWidth}>
         <FormProvider {...methods}>
           <form onSubmit={onSave} className={e.root} onKeyDown={(ev) => ev.key === 'Enter' && ev.preventDefault()}>
             <div className={e.backBar}>
-              <button type="button" className={e.back} onClick={close}>
+              {/* On the plans sub-view Back returns to the event, as the redesigned drawer's SubHead does. */}
+              <button type="button" className={e.back} onClick={step === 2 ? backToEvent : close}>
                 <BackIcon />
-                Back
+                {step === 2 ? 'Back to event' : 'Back'}
               </button>
             </div>
 
             <div className={e.body}>
-              <EventSummary name={event.name} detail={detail} image={EVENT_THUMBS[event.uid]} />
-
-              <div className={e.block}>
-                <Label icon={<PinLabelIcon />}>{gathering.city} gathering</Label>
-                <div className={e.gatheringLinks}>
-                  <GatheringDetails
-                    dateRange={event.range}
-                    location={gathering.city}
-                    eventsLink={gathering.scheduleLink}
-                    eventsCount={siblings.length}
-                    resources={gathering.resources}
-                  />
-                </div>
-              </div>
-
-              <div className={e.block}>
-                <Label icon={<HostIcon />}>Attendees</Label>
-                <div className={m.attendeesRow}>
-                  <div className={m.avatarGroup}>
-                    {ATTENDEES.slice(0, 3).map((a) => (
-                      <div key={a.uid} className={m.avatar}>
-                        <img src={getDefaultAvatar(a.name)} alt="" width={24} height={24} />
-                      </div>
-                    ))}
-                  </div>
-                  <button type="button" className={m.linkButton} onClick={() => setShowAttendees(true)}>
-                    {count} People going
-                  </button>
-                </div>
-              </div>
-
               {step === 1 && (
-                <div className={s.askBlock}>
-                  <div>
-                    <div className={m.step1Title}>Are you going to {event.name}?</div>
-                    <div className={m.step1Subtitle}>Let others know if you are attending.</div>
+                <>
+                  <EventSummary
+                    name={event.name}
+                    detail={detail}
+                    image={EVENT_THUMBS[event.uid]}
+                    beforeAgenda={
+                      /* The redesigned drawer's own RSVP card (event-drawer-redesign/RsvpCard), shared, above
+                         the Agenda (user, 2026-11-12). It answers in place: "Are you going?" → "You're going",
+                         with Show on my profile, Add your plans for <city> and Mark as not going. */
+                      <RsvpCard
+                        event={event}
+                        gathering={gathering}
+                        scope={scope}
+                        onOpenAttendees={() => setShowAttendees(true)}
+                        onOpenPlans={openPlans}
+                        onMarked={(onProfile) => setLastMarked({ eventName: event.name, onProfile })}
+                        onUnmarked={() => setLastMarked(null)}
+                      />
+                    }
+                  />
+
+                  <div className={e.block}>
+                    <Label icon={<PinLabelIcon />}>{gathering.city} gathering</Label>
+                    <div className={e.gatheringLinks}>
+                      <GatheringDetails
+                        dateRange={event.range}
+                        location={gathering.city}
+                        eventsLink={gathering.scheduleLink}
+                        eventsCount={siblings.length}
+                        resources={gathering.resources}
+                      />
+                    </div>
                   </div>
-                  {consent}
-                </div>
+                </>
               )}
 
               {step === 2 && (
                 <>
+                  <h2 className={e.plansTitle}>Your plans for {gathering.city}</h2>
                   <PlanningSection
                     planningQuestion={planningQuestion}
                     selectedDateRange={picker.selectedDateRange}
@@ -332,31 +340,17 @@ function EventFlow({
                     officeHours=""
                     defaultExpanded={false}
                   />
-                  {consent}
                 </>
               )}
             </div>
 
-            {/* Keyed per step. Without it React reuses the "Yes" button as "Save",
-                and its type turns to submit in the middle of the click. */}
             {/* The directory's own DS buttons, as on the profile's Cancel/Save
-                (EditFormControls) — not the events app's 24px-radius pills the
-                panel was first transcribed with (changed 2026-11-11). */}
-            {step === 1 ? (
-              <div key="ask" className={e.footer}>
-                <Button type="button" style="border" variant="neutral" size="s" className={e.footerBtn} onClick={onClose}>
-                  No
-                </Button>
-                <Button type="button" size="s" className={e.footerBtn} onClick={onYes}>
-                  Yes, I&apos;m going
-                </Button>
-              </div>
-            ) : (
+                (EditFormControls). Step one has no footer: its presses are in the card.
+                Cancel and Save both return to the event (the redesigned drawer's PlansView). */}
+            {step === 2 && (
               <div key="details" className={e.footer}>
-                {/* Step two is optional detail: the answer was saved by "Yes", so
-                    this leaves rather than cancels. */}
-                <Button type="button" style="border" variant="neutral" size="s" className={e.footerBtn} onClick={close}>
-                  {justMarked ? 'Skip' : 'Cancel'}
+                <Button type="button" style="border" variant="neutral" size="s" className={e.footerBtn} onClick={backToEvent}>
+                  Cancel
                 </Button>
                 <Button type="submit" size="s" className={e.footerBtn}>
                   Save

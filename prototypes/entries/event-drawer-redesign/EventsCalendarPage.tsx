@@ -26,9 +26,11 @@ import allPage from '@/app/events/all/page.module.css';
 import { BackIcon, EventSummary } from '../member-events-going/EventDetails';
 import e from '../member-events-going/EventDetails.module.scss';
 
-import { EventDrawer, type EventNotice } from './EventDrawer';
+import { AttendeesView, EventDrawer, PlansView, type EventNotice } from './EventDrawer';
+import d from './EventDrawer.module.scss';
+import { RsvpCard } from './RsvpCard';
 import { startTime } from './format';
-import { CAL_EVENTS, DETAILS, eventByUid, registerHref, type CalEvent } from './mocks';
+import { CAL_EVENTS, DETAILS, eventByUid, gatheringFor, type CalEvent } from './mocks';
 import c from './EventsCalendarPage.module.scss';
 
 export type DrawerVersion = 'redesign' | 'current';
@@ -291,34 +293,71 @@ function EventBar({
 /**
  * What /events/all opens today: the events app's own panel, as
  * `member-events-going/EventDetails` transcribed it — Back, EVENT DETAILS, the
- * logo and facts, tags, Host, Description, Agenda, and Register in the footer.
+ * logo and facts, tags, Host, Description, Agenda.
+ *
+ * 2026-11-12 (user: "update the drawer in the events"): the same "Are you going?"
+ * card as Home's drawer, above the Agenda — the shared `RsvpCard`, answering in
+ * place ("You're going", Show on my profile, Add your plans, Mark as not going),
+ * with Who's going and Your plans as in-drawer views (EventDrawer's own). Register
+ * moved from the footer into the card, so the panel has no footer on the event.
  */
 function AppPanel({ eventUid, onClose }: { eventUid: string | null; onClose: () => void }) {
   const event = eventUid ? eventByUid(eventUid) : null;
   const width = typeof window === 'undefined' ? 778 : Math.min(778, window.innerWidth);
+  const [view, setView] = useState<'event' | 'attendees' | 'plans'>('event');
+  const [overlayOpen, setOverlayOpen] = useState(false);
+  const gathering = event ? gatheringFor(event) : null;
+
+  const close = () => {
+    setView('event');
+    onClose();
+  };
+  /* Escape: a picker first, then a sub-view, then the drawer (EventDrawer's order). */
+  const onDrawerClose = () => {
+    if (overlayOpen) return;
+    if (view !== 'event') setView('event');
+    else close();
+  };
+
   return (
-    <Drawer isOpen={!!event} onClose={onClose} width={width}>
-      {event && (
+    <Drawer isOpen={!!event} onClose={onDrawerClose} width={width}>
+      {event && view === 'event' && (
         <div className={e.root}>
           <div className={e.backBar}>
-            <button type="button" className={e.back} onClick={onClose}>
+            <button type="button" className={e.back} onClick={close}>
               <BackIcon />
               Back
             </button>
           </div>
           <div className={e.body}>
-            <EventSummary name={event.name} detail={DETAILS[event.uid]} />
+            <EventSummary
+              name={event.name}
+              detail={DETAILS[event.uid]}
+              beforeAgenda={
+                <RsvpCard
+                  event={event}
+                  gathering={gathering}
+                  onOpenAttendees={() => setView('attendees')}
+                  onOpenPlans={() => setView('plans')}
+                  onMarked={() => {}}
+                  onUnmarked={() => {}}
+                />
+              }
+            />
           </div>
-          <div className={e.footer}>
-            <a
-              href={registerHref(event.uid)}
-              target="_blank"
-              rel="noreferrer"
-              className={`${e.pill} ${e.pillPrimary} ${c.pillLink}`}
-            >
-              Register
-            </a>
-          </div>
+        </div>
+      )}
+      {event && view !== 'event' && (
+        <div className={d.root}>
+          {view === 'attendees' && <AttendeesView event={event} onBack={() => setView('event')} />}
+          {view === 'plans' && gathering && (
+            <PlansView
+              event={event}
+              gathering={gathering}
+              onBack={() => setView('event')}
+              onOverlayChange={setOverlayOpen}
+            />
+          )}
         </div>
       )}
     </Drawer>

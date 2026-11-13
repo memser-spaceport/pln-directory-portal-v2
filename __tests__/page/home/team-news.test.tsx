@@ -103,6 +103,15 @@ jest.mock('@/utils/news-categories', () => ({
 
 const mockOnTagFilterApplied = jest.fn();
 const mockOnTagFilterCleared = jest.fn();
+const mockOnForYouSetupShown = jest.fn();
+const mockOnForYouSetupClicked = jest.fn();
+const mockMemberFollows = { uids: [] as string[] };
+jest.mock('@/services/follow/hooks/useFollowedTeamUids', () => ({
+  useFollowedTeamUids: () => ({
+    followedTeamUids: new Set(mockMemberFollows.uids),
+    isSettled: true,
+  }),
+}));
 jest.mock('@/analytics/team-news.analytics', () => ({
   useTeamNewsAnalytics: () => ({
     onTeamNewsTabClicked: (...a: unknown[]) => mockOnTabClicked(...a),
@@ -131,6 +140,9 @@ jest.mock('@/analytics/team-news.analytics', () => ({
     onFeedHiringViewAllClicked: (...a: unknown[]) => mockOnFeedHiringViewAllClicked(...a),
     onFeedDealClicked: (...a: unknown[]) => mockOnFeedDealClicked(...a),
     onTeamNewsForYouUpdateProfileClicked: jest.fn(),
+    onTeamNewsForYouTuneClicked: jest.fn(),
+    onTeamNewsForYouSetupShown: (...a: unknown[]) => mockOnForYouSetupShown(...a),
+    onTeamNewsForYouSetupClicked: (...a: unknown[]) => mockOnForYouSetupClicked(...a),
     onTeamNewsTagFilterApplied: (...a: unknown[]) => mockOnTagFilterApplied(...a),
     onTeamNewsTagFilterCleared: (...a: unknown[]) => mockOnTagFilterCleared(...a),
   }),
@@ -2609,6 +2621,111 @@ describe('TeamNews', () => {
       expect(screen.queryByText('1 Views')).not.toBeInTheDocument();
     });
   });
+
+  describe('For You set-up row (LAB-3080)', () => {
+    const setupGroups: ITeamNewsGroup[] = [
+      {
+        focusArea: FA_AI,
+        total: 1,
+        items: [{ ...makeItem('setup-1', 'LAUNCH', ['AI & Robotics']), tags: ['ai'] }],
+      },
+    ];
+    const setupLink = () => screen.queryByRole('link', { name: 'Open News preferences →' });
+
+    beforeEach(() => {
+      mockShowNewsPreferences = true;
+      mockTopicSlugs = new Set(['ai']);
+      mockMemberFollows.uids = [];
+      useCurrentUserStore.setState({ currentUser: { uid: 'user-1' }, isHydrated: true });
+    });
+
+    afterEach(() => {
+      mockTopicSlugs = null;
+      useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
+    });
+
+    function renderUnset(forYouTeamUids: string[] = [], forYouTags: string[] = []) {
+      renderTeamNews(<TeamNews groups={setupGroups} forYouTeamUids={forYouTeamUids} forYouTags={forYouTags} />);
+    }
+
+    it('shows the row on All and records the set-up click', () => {
+      renderUnset();
+
+      expect(within(catRow()).getByRole('button', { name: /All categories/ })).toHaveClass(/catActive/);
+      expect(within(catRow()).queryByRole('button', { name: /For You/ })).not.toBeInTheDocument();
+      const link = screen.getByRole('link', { name: 'Open News preferences →' });
+      expect(link).toHaveAttribute('href', '/settings/news-preferences?from=feed');
+      expect(
+        screen.getByText(/Get news picked for you\. Choose your topics and teams in News preferences\./),
+      ).toBeInTheDocument();
+      expect(mockOnForYouSetupShown).toHaveBeenCalledTimes(1);
+      expect(mockOnForYouSetupShown).toHaveBeenCalledWith('user-1');
+
+      fireEvent.click(link);
+
+      expect(mockOnForYouSetupClicked).toHaveBeenCalledWith('user-1');
+    });
+
+    it('hides the row for a focus-area tab, a category, a topic filter and a search', () => {
+      renderUnset();
+
+      fireEvent.click(screen.getByRole('tab', { name: /AI & Robotics/ }));
+      expect(setupLink()).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole('tab', { name: /^All/ }));
+      expect(setupLink()).toBeInTheDocument();
+      expect(mockOnForYouSetupShown).toHaveBeenCalledTimes(1);
+
+      fireEvent.click(screen.getByRole('button', { name: /^Launch\b/ }));
+      expect(setupLink()).not.toBeInTheDocument();
+      fireEvent.click(within(catRow()).getByRole('button', { name: /All categories/ }));
+      expect(setupLink()).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Show only #ai updates' }));
+      expect(setupLink()).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'Show all updates instead of just #ai' }));
+      expect(setupLink()).toBeInTheDocument();
+
+      jest.useFakeTimers();
+      fireEvent.change(screen.getAllByPlaceholderText('Search by news, teams…')[0], { target: { value: 'Headline' } });
+      act(() => jest.advanceTimersByTime(700));
+      expect(setupLink()).not.toBeInTheDocument();
+      jest.useRealTimers();
+    });
+
+    it('stays hidden for a guest, a member with a tag, and when News preferences is off', () => {
+      useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
+      renderUnset();
+      expect(setupLink()).not.toBeInTheDocument();
+      cleanup();
+
+      useCurrentUserStore.setState({ currentUser: { uid: 'user-1' }, isHydrated: true });
+      renderUnset([], ['ai']);
+      expect(setupLink()).not.toBeInTheDocument();
+      expect(within(catRow()).getByRole('button', { name: /For You/ })).toBeInTheDocument();
+      cleanup();
+
+      renderUnset([], ['neurotech']);
+      expect(setupLink()).not.toBeInTheDocument();
+      expect(within(catRow()).queryByRole('button', { name: /For You/ })).not.toBeInTheDocument();
+      cleanup();
+
+      mockShowNewsPreferences = false;
+      renderUnset();
+      expect(setupLink()).not.toBeInTheDocument();
+    });
+
+    it('shows the row when the member has teams but no For You news, and hides it when they follow a team', () => {
+      renderUnset(['team-missing'], []);
+      expect(setupLink()).toBeInTheDocument();
+      expect(within(catRow()).queryByRole('button', { name: /For You/ })).not.toBeInTheDocument();
+      cleanup();
+
+      mockMemberFollows.uids = ['team-followed'];
+      renderUnset(['team-missing'], []);
+      expect(setupLink()).not.toBeInTheDocument();
+    });
+  });
+
   describe('tag filter (LAB-3010)', () => {
     const tagged = (uid: string, tags: string[], focus = 'AI & Robotics', eventType: TeamNewsEventType = 'LAUNCH') => ({
       ...makeItem(uid, eventType, [focus]),

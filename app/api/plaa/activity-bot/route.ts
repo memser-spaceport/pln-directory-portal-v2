@@ -2,14 +2,27 @@ import { sign } from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
+const text = z.string().max(2000).optional();
+
 const turnSchema = z
   .object({
     sessionId: z.string().min(1).max(128),
-    activityId: z.string().regex(/^[A-Za-z0-9_-]{1,64}$/),
-    message: z.string().max(2000).optional(),
-    event: z.literal('privacy_acknowledged').optional(),
+    activityId: z
+      .string()
+      .regex(/^[A-Za-z0-9_-]{1,64}$/)
+      .optional(),
+    mode: z.enum(['activity', 'question', 'suggest']).optional(),
+    message: text,
+    event: z.enum(['privacy_acknowledged', 'feedback']).optional(),
+    rating: z.enum(['up', 'down']).optional(),
+    comment: text,
+    question: text,
+    answer: text,
   })
-  .strip();
+  .strip()
+  .refine(
+    (turn) => turn.activityId || turn.event === 'feedback' || turn.mode === 'question' || turn.mode === 'suggest',
+  );
 
 function siteOrigin(request: NextRequest): string {
   // Behind the ingress the request URL carries the pod's address, not the public one.

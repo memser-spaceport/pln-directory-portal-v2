@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import PlaaMenu, { PlaaActiveItem } from './plaa-menu';
 import PlaaBackButton from './plaa-back-btn';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
+import { PlaaBot } from '@/components/core/plaa-bot/PlaaBot';
 import styles from '@/app/alignment-asset/plaa.module.css';
 
 interface PlaaLayoutWrapperProps {
@@ -82,7 +83,7 @@ export default function PlaaLayoutWrapper({ children, isLoggedIn }: PlaaLayoutWr
 
   return (
     <>
-      <div className={styles.plaa}>
+      <div className={styles.plaa} data-plaa-layout="">
         {/* Mobile Menu Button */}
         <button
           className={styles.plaa__menuBtn}
@@ -128,6 +129,7 @@ export default function PlaaLayoutWrapper({ children, isLoggedIn }: PlaaLayoutWr
           </div>
         )}
       </div>
+      <PlaaBot />
     </>
   );
 }

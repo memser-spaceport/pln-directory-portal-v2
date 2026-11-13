@@ -1,17 +1,19 @@
 import React from 'react';
+import Link from 'next/link';
 import { useFormContext } from 'react-hook-form';
 
 import { IMember } from '@/types/members.types';
 import { TEditProfileForm } from '@/components/page/member-details/ProfileDetails/types';
 
-import { canViewPlaa } from '@/services/rbac/utils/plaa/canViewPlaa';
+import { PERMISSIONS } from '@/services/rbac/constants';
 
 import { LocationSelect } from '@/components/ui/LocationSelect';
 
 import s from './ProfileLocationInput.module.scss';
 
-const PLAA_LOCATION_WARNING =
-  'The PLAA program is only available in select locations. You might lose access if you change your location.';
+const PLAA_PERMISSIONS = [PERMISSIONS.PLAA.PERM_ACCESS, PERMISSIONS.PLAA.PERM_GUEST, PERMISSIONS.PLAA.PERM_MEMBER];
+
+const PLAA_PAGE_HREF = '/alignment-asset';
 
 interface Props {
   member: IMember;
@@ -20,7 +22,7 @@ interface Props {
 export const ProfileLocationInput = ({ member }: Props) => {
   const { setValue, watch } = useFormContext<TEditProfileForm>();
   const { country, city, state } = watch();
-  const hasPlaaAccess = canViewPlaa(new Set(member.rbac.effectivePermissions.map(({ code }) => code)));
+  const hasPlaaAccess = member.rbac.effectivePermissions.some(({ code }) => PLAA_PERMISSIONS.includes(code));
 
   return (
     <div className={s.root}>
@@ -39,7 +41,10 @@ export const ProfileLocationInput = ({ member }: Props) => {
       />
       {hasPlaaAccess && (
         <p className={s.warning} role="note">
-          {PLAA_LOCATION_WARNING}
+          <Link href={PLAA_PAGE_HREF} className={s.link}>
+            The PLAA program
+          </Link>{' '}
+          is limited to certain Geo locations. You may lose access to the page if you change your location.
         </p>
       )}
       <p className={s.hint}>

@@ -1,0 +1,52 @@
+@use 'styles/media';
+
+// The rail's card (home-v2 `.sidebar`): white, subtle border, 16px radius. An ask the
+// feed opens on needs a surface of the page's own, not a tint.
+.card {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 20px 20px;
+  background: var(--background-neutral-default, #fff);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 16px;
+}
+
+.title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// Title and its one line are one unit (lesson 11): 2px, then air before the chips.
+.description {
+  margin: 2px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// News preferences' chip row (digest-topics `.chips`), with the card's own air above it.
+// Doubled so it outranks that module's margin-top whatever the stylesheet order.
+.chips.chips {
+  margin-top: 12px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+
+  // Phones: the pair goes full width, stacked — "Choose my own topics" doesn't fit
+  // half of a 375px card, so equal halves would crop it.
+  @include media.mobile-only {
+    flex-direction: column;
+
+    .action {
+      width: 100%;
+    }
+  }
+}

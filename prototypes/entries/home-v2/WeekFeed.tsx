@@ -82,6 +82,10 @@ export interface WeekFeedProps {
   initialTopics?: string[];
   /** A message above the section's title (`digest-more-like-this`). */
   notice?: ReactNode;
+  /** The pill the feed opens on (`for-you-starter-topics` opens on For You). */
+  initialCat?: string;
+  /** Shown in place of the For You caption while For You is the active pill (`for-you-starter-topics`). */
+  forYouIntro?: ReactNode;
 }
 
 /** The fewest full cards before the cut; beside a longer rail the feed shows more. */
@@ -143,8 +147,10 @@ export function WeekFeed({
   newsHref,
   initialTopics = [],
   notice,
+  initialCat = ALL_CAT,
+  forYouIntro,
 }: WeekFeedProps) {
-  const [cat, setCat] = useState<Cat>(ALL_CAT);
+  const [cat, setCat] = useState<Cat>(initialCat);
   const [sort, setSort] = useState<TeamNewsSort>('latest');
   /* Selected hashtags, in the order they were added. A story must carry all of them. */
   const [topics, setTopics] = useState<string[]>(initialTopics);
@@ -433,13 +439,17 @@ export function WeekFeed({
       {/* 2026-11-06 (user): the personalization message is back on every view, on the
           plain page ground (no card), with "Update your profile" as a blue text link right
           after the sentence instead of the far-right "Tune For You" link. */}
-      <p className={clsx(local.personalizeText, local.personalizePlain)}>
-        <span className={local.personalizeLabel}>For you</span> · Curated from your profile, your team, and the teams
-        you follow.{' '}
-        <a href="/settings/profile" className={local.forYouLink}>
-          Update your profile
-        </a>
-      </p>
+      {forYouIntro && activeCat === FOR_YOU_CAT ? (
+        forYouIntro
+      ) : (
+        <p className={clsx(local.personalizeText, local.personalizePlain)}>
+          <span className={local.personalizeLabel}>For you</span> · Curated from your profile, your team, and the teams
+          you follow.{' '}
+          <a href="/settings/profile" className={local.forYouLink}>
+            Update your profile
+          </a>
+        </p>
+      )}
 
       {/* The cut: full cards down to the rail's end, the next fading into the page under "See all".
           A feed that visibly ends is what tells the reader Home goes on below it. */}

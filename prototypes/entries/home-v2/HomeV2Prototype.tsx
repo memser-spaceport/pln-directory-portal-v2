@@ -185,7 +185,13 @@ export default function HomeV2Prototype({
   feedNotice,
   eventsRail,
   reviewExtra,
+  initialFeedCat,
+  forYouIntro,
 }: {
+  /** The pill the signed-in feed opens on (`for-you-starter-topics`). */
+  initialFeedCat?: string;
+  /** Replaces the For You caption while For You is active (`for-you-starter-topics`). */
+  forYouIntro?: ReactNode;
   /** The state with no ?state= param. */
   initialState?: HomeState;
   /** Hashtags the signed-in feed opens filtered by (`digest-more-like-this`). */
@@ -460,6 +466,8 @@ export default function HomeV2Prototype({
                 topStoryUids={TOP_STORY_UIDS}
                 initialTopics={initialFeedTopics}
                 notice={feedNotice}
+                initialCat={initialFeedCat}
+                forYouIntro={forYouIntro}
                 renderNews={(story, topic, isTop) => (
                   <V0FeedCard
                     onSelectTopic={topic.onSelectTopic}

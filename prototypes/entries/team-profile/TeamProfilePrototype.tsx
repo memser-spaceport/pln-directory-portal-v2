@@ -1072,6 +1072,16 @@ export default function TeamProfilePrototype({
                 </DetailsSectionGreyContentContainer>
               </DetailsSection>
 
+              {/* Events — the member profile's Events section, team edition
+              (member-events-going/TeamEventsSection, 2026-11-11): what the team's
+              members are going to, as the same cards (month · year tile, city,
+              muted role pills, Demo Day in date order). Sits between Community
+              Affiliations and Members (moved 2026-11-13). It replaced the
+              event-primary tile grid + "+N" modal (TeamContributionsView, kept on disk). */}
+              <div id="team-contributions" className={local.aiAnchor}>
+                <TeamEventsSection teamName={team.name ?? 'This team'} />
+              </div>
+
               {/* Members */}
               <div id="team-members" className={`${shell.teamDetail__container__member} ${local.aiAnchor}`}>
                 <TeamMembersView team={team} members={MOCK_MEMBERS} />
@@ -1114,16 +1124,6 @@ export default function TeamProfilePrototype({
               <DetailsSection>
                 <TeamFocusAreasView team={team} userInfo={null} focusAreas={focusAreas} toggleIsEditMode={() => {}} />
               </DetailsSection>
-
-              {/* Events — the member profile's Events section, team edition
-              (member-events-going/TeamEventsSection, 2026-11-11): what the team's
-              members are going to, stacked above Contributions as the same cards
-              (month · year tile, city, muted role pills, Demo Day in date order).
-              It replaced the event-primary tile grid + "+N" modal
-              (TeamContributionsView, kept on disk). */}
-              <div id="team-contributions" className={local.aiAnchor}>
-                <TeamEventsSection teamName={team.name ?? 'This team'} />
-              </div>
 
               {/* Projects */}
               <TeamProjectsView team={team} projects={MOCK_PROJECTS} />

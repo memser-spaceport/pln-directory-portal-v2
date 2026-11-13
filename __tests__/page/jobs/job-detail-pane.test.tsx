@@ -21,6 +21,11 @@ jest.mock('@/components/common/Drawer', () => ({
     isOpen ? <div>{children}</div> : null,
 }));
 
+const mockUseRoleDescriptionHtml = jest.fn();
+jest.mock('@/services/jobs/hooks/useRoleDescriptionHtml', () => ({
+  useRoleDescriptionHtml: (role: { descriptionHtml?: string | null } | null) => mockUseRoleDescriptionHtml(role),
+}));
+
 import { JobDetailPane } from '@/components/page/jobs/JobDetailPane/JobDetailPane';
 import type { IJobRole, IJobTeam } from '@/types/jobs.types';
 
@@ -51,7 +56,14 @@ const renderPane = (props: Partial<React.ComponentProps<typeof JobDetailPane>> =
   render(<JobDetailPane role={role()} team={team} applied={false} source="job-board" showOriginalPosting {...props} />);
 
 describe('the job detail pane', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // The hook's own behaviour for a role that carries its body: hand it back.
+    mockUseRoleDescriptionHtml.mockImplementation((r: { descriptionHtml?: string | null } | null) => ({
+      html: r?.descriptionHtml ?? null,
+      isLoading: false,
+    }));
+  });
 
   it('leads with the role, under the team that posted it', () => {
     renderPane();
@@ -321,5 +333,23 @@ describe('the job detail pane', () => {
 
       expect(screen.queryByTestId('slotted')).not.toBeInTheDocument();
     });
+  });
+
+  /* LAB-3254: a role from the board's server page arrives without its body, and the pane fetches it. While that is in
+     flight the pane must not claim the team shared nothing. */
+  it('says the description is loading, not missing, while a fetched body is on its way', () => {
+    mockUseRoleDescriptionHtml.mockReturnValue({ html: null, isLoading: true });
+    renderPane({ role: role({ descriptionOmitted: true }) });
+
+    expect(screen.getByText('Loading the description…')).toBeInTheDocument();
+    expect(screen.queryByText(/hasn't shared a description/)).not.toBeInTheDocument();
+  });
+
+  it('shows the fetched body once it lands', () => {
+    mockUseRoleDescriptionHtml.mockReturnValue({ html: '<p>Fetched posting body</p>', isLoading: false });
+    renderPane({ role: role({ descriptionOmitted: true }) });
+
+    expect(screen.getByText('Fetched posting body')).toBeInTheDocument();
+    expect(screen.queryByText('Loading the description…')).not.toBeInTheDocument();
   });
 });

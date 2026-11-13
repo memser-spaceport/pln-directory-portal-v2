@@ -12,6 +12,7 @@ import { JOBS_BOARD_TITLE, jobRoleSeoTitle } from '@/services/jobs/jobSeoTitles'
 import { getJobsList } from '@/app/actions/jobs.actions';
 import type { ServerJobsPage } from '@/services/jobs/hooks/useJobsQueries';
 import { pickJobsParams } from '@/services/jobs/jobsParams';
+import { omitRoleDescriptions } from '@/services/jobs/omitRoleDescriptions';
 import { SAVED_PARAM } from '@/services/jobs/savedParam';
 import { jobsBrowserSearchParamsToApiQuery } from '@/utils/jobs-api-query';
 
@@ -45,6 +46,8 @@ const SERVER_PAGE_TIMEOUT_MS = 8_000;
  * HTML carries the list and a link to every role (LAB-2888). A failure, or no answer within 8 s, returns nothing
  * and the board loads in the browser, as it always has — a slow backend never makes a slow page.
  *
+ * Without the roles' descriptions (LAB-3254): they were 85% of a 1.58 MB page, and the cards never show them.
+ *
  * The saved scope is always left out, signed in or not: the hydrating render can't see the session either
  * (`useJobsSearchParams`), and the two must agree. A signed-in viewer's saved list loads right after.
  */
@@ -67,7 +70,7 @@ async function getServerJobsPage(
     authToken || undefined,
     AbortSignal.timeout(SERVER_PAGE_TIMEOUT_MS),
   );
-  return 'isError' in result ? undefined : { key, page: result.data };
+  return 'isError' in result ? undefined : { key, page: omitRoleDescriptions(result.data) };
 }
 
 /** The board writes `?job=<uid>` for its own detail drawer, and links shared

@@ -25,6 +25,7 @@ import { ClockIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferR
 import { jobApplyHref } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
 import { useGetFocusTags } from '@/components/page/jobs/TeamGroupCard/hooks/useGetFocusTags';
 import type { JobSurface } from '@/analytics/jobs.analytics';
+import { useRoleDescriptionHtml } from '@/services/jobs/hooks/useRoleDescriptionHtml';
 
 // The team card's avatar, so the mark beside the team's name here is the mark
 // beside it on the board rather than a second drawing of the same thing.
@@ -134,8 +135,10 @@ export function JobDetailPane(props: JobDetailPaneProps) {
   /* Sanitizing a multi-kilobyte body on every render is waste — this drawer
      re-renders with the board's state. Keyed on the raw string, so reopening on
      a different role recomputes and reopening on the same one does not. */
+  /* A role from the board's server page arrives without its body (LAB-3254); this fetches it. */
+  const { html: rawDescription, isLoading: isDescriptionLoading } = useRoleDescriptionHtml(role);
   const body = useMemo(() => {
-    const raw = role?.descriptionHtml;
+    const raw = rawDescription;
     if (!raw) return '';
     const clean = sanitizeJobDescriptionHtml(normalizeJobDescriptionHtml(raw));
     /* Tested on the SANITIZED string, never the raw one. A body that is only a
@@ -143,7 +146,7 @@ export function JobDetailPane(props: JobDetailPaneProps) {
        down to nothing, and rendering it would give us an empty section under a
        heading rather than the empty state that says where the posting is. */
     return isBlankHtml(clean) ? '' : clean;
-  }, [role?.descriptionHtml]);
+  }, [rawDescription]);
 
   return (
     <>
@@ -218,7 +221,13 @@ export function JobDetailPane(props: JobDetailPaneProps) {
 
           <DetailsSection>
             <DetailsSectionHeader title="About the role" />
-            {body ? (
+            {isDescriptionLoading ? (
+              /* Only for a role that arrived without its body. Not the empty state: that one says the team shared
+                 nothing, which is not known yet. */
+              <p className={d.emptyLead} aria-busy="true">
+                Loading the description…
+              </p>
+            ) : body ? (
               /* Sanitized above, and the sanitizer is the allowlist — see
                    `sanitizeJobDescriptionHtml`. No parser here because nothing
                    transforms the nodes; the stylesheet does all the work. */

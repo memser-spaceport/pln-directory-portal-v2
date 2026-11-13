@@ -37,6 +37,21 @@ The board SHALL accept `?job=<uid>` on `/jobs`. The link preview metadata SHALL 
 - **THEN** the page title is `<role title> at <team name> (<location>) | Protocol Labs Jobs`, with the location part left out when the role has none
 - **AND** the canonical URL is `/jobs/openings/R`
 
+### Requirement: The board's server page is small
+
+The server render of `/jobs` SHALL carry, for each role, what the board's rows show and no description: the descriptions were 85% of a 1.58 MB page for 171 roles, and Googlebot reads only the first 2 MB of a page (LAB-3254). The server HTML SHALL still link every role on page 1 to `/jobs/openings/<uid>`. A role sent without its description SHALL say so (`descriptionOmitted`), and the role's drawer SHALL fetch the description by uid, showing "Loading the description…" until it lands and the usual empty state only when the role has none. The permalink page `/jobs/openings/<uid>` SHALL keep the full description and its `JobPosting` data.
+
+#### Scenario: Crawler reads the board
+
+- **WHEN** a crawler requests `/jobs`
+- **THEN** the HTML holds no role's description, and links every role on page 1 to its permalink
+
+#### Scenario: Drawer opened from a shared link
+
+- **GIVEN** `/jobs?job=R` is opened before the board's own fetch has returned
+- **WHEN** the drawer opens on role R from the server's page
+- **THEN** it shows "Loading the description…" and then R's full description
+
 ### Requirement: Old job board links
 
 Links from the old Getro job board SHALL redirect permanently (308) to `/jobs`. These are `/jobs/companies/…`, `/jobs/jobs/…`, `/jobs/talent-network/…`, `/jobs/job-alerts/…` and `/jobs/cookie-policy`, and the same Getro links without the `/jobs` prefix (`/companies/…`). Role permalinks and the board's own pages SHALL NOT redirect.

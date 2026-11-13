@@ -1,5 +1,7 @@
 export enum JobsQueryKey {
   List = 'jobs-list',
+  /** One role's description, for a role that arrived without it (`IJobRole.descriptionOmitted`). */
+  RoleDescription = 'jobs-role-description',
   Filters = 'jobs-filters',
   BaseFilters = 'jobs-base-filters',
   ReferralDraft = 'jobs-referral-draft',

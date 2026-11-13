@@ -29,6 +29,11 @@ export interface IJobRole {
    * roles on dev carry one, and the rest fall back to the posting link.
    */
   descriptionHtml?: string | null;
+  /**
+   * Set when `descriptionHtml` was left out on purpose: the board's server page drops every body to stay small
+   * (LAB-3254), so whatever opens this role fetches its description by uid (`useRoleDescriptionHtml`).
+   */
+  descriptionOmitted?: true;
   lastUpdated: string;
   postedDate: string | null;
   detectionDate: string | null;

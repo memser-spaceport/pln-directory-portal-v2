@@ -797,11 +797,11 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
         .ph-flywheel__art {
           display: flex;
           justify-content: center;
-          margin-top: clamp(20px, 2.5vw, 32px);
+          margin-top: clamp(16px, 2vw, 24px);
         }
         .ph-flywheel :global(img) {
-          width: 100%;
-          max-width: 520px;
+          width: 80%;
+          max-width: 440px;
           height: auto;
           display: block;
         }

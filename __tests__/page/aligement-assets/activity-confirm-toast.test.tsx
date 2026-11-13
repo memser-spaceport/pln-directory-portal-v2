@@ -1,6 +1,10 @@
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
-import { confirmToastContent, confirmToastMessage } from '@/components/page/aligement-assets/activities/confirm-toast';
+import {
+  confirmToastContent,
+  confirmToastMessage,
+  NOT_PLAA_MEMBER_TOAST,
+} from '@/components/page/aligement-assets/activities/confirm-toast';
 import { ACTIVITY_CONFIRM_TOAST } from '@/constants/plaa';
 import type { SnapshotActivityItem } from '@/services/plaa/hooks/useCurrentSnapshotStatus';
 
@@ -66,6 +70,19 @@ describe('confirmToastMessage', () => {
 
   it('falls back to the static message when the API does not send siteActivityId yet', () => {
     expect(confirmToastMessage(hostOfficeHours, ready([row(undefined), row(undefined)]))).toBe(ACTIVITY_CONFIRM_TOAST);
+  });
+
+  it('tells a LabOS member without PLAA access that points are for PLAA members', () => {
+    const message = confirmToastMessage(hostOfficeHours, ready([]), 'not-member');
+
+    expect(message).toBe(NOT_PLAA_MEMBER_TOAST);
+    expect(message.startsWith('Confirmed!')).toBe(false);
+  });
+
+  it('falls back to the static message while PLAA access is still being checked', () => {
+    expect(confirmToastMessage(hostOfficeHours, ready([row('host-office-hours')]), 'checking')).toBe(
+      ACTIVITY_CONFIRM_TOAST,
+    );
   });
 
   it('links Profile in the fallback message and leaves other messages as plain text', () => {

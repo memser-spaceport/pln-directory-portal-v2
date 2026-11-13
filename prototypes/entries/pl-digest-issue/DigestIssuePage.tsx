@@ -6,14 +6,14 @@ import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/common/Button';
 
-import { FollowPill } from '../follow-shared/FollowPill';
+import followPill from '../follow-shared/FollowPill.module.scss';
 import { FollowToast } from '../follow-shared/FollowToast';
-import { useRequestIntro } from '../intro-shared/useRequestIntro';
 
 import {
   EDITION,
   SECTIONS,
   issueHref,
+  newsHref,
   showForum,
   teamHref,
   type Source,
@@ -23,6 +23,7 @@ import {
 } from './mocks';
 import s from './PlDigestIssue.module.scss';
 import { StoryImage } from './StoryImage';
+import { StoryShareMenu } from './StoryShareMenu';
 
 /* ------------------------------------------------------------------------ */
 /* Small pieces                                                              */
@@ -73,46 +74,61 @@ function Sources({ sources }: { sources: Source[] }) {
 interface ActionsApi {
   following: (uid: string) => boolean;
   toggleFollow: (team: TeamRef) => void;
-  introRequested: (uid: string) => boolean;
-  requestIntro: (team: TeamRef) => void;
-  share: (anchor: string, what: string) => void;
+  share: (anchor: string | undefined, what: string) => void;
+  mockShare: (network: 'linkedin' | 'x') => void;
 }
 
 /**
- * The story's footer: what to read next (sources) and what to do (follow the
- * team, ask the PL team for an intro, pass the story on). Follow is the one
- * bordered press; intro and share are quiet text actions so a page of eight
- * stories does not become a wall of buttons.
+ * Follow a team, as in the product (TeamNews handleFollowToggle,
+ * FollowTeamsScroller). The label names the team, so the reader knows what
+ * they follow. Same DS button as the shared FollowPill: xxs, border, neutral.
+ */
+function TeamFollowPill({ team, following, onToggle }: { team: TeamRef; following: boolean; onToggle: () => void }) {
+  return (
+    <Button
+      size="xxs"
+      style="border"
+      variant="neutral"
+      underline={false}
+      className={followPill.btn}
+      aria-pressed={following}
+      title={`See ${team.name} news in For You`}
+      onClick={onToggle}
+    >
+      <svg width={12} height={12} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        {following ? (
+          <path d="M13.25 4.75 6.5 11.5 2.75 7.75" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+        ) : (
+          <path d="M8 3.5v9M3.5 8h9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        )}
+      </svg>
+      <span>{following ? `Following ${team.name}` : `Follow ${team.name}`}</span>
+    </Button>
+  );
+}
+
+/**
+ * The story's footer: the outside sources, then what to do (follow the team,
+ * share the story). Follow is the one bordered press; Share is a quiet trigger.
+ * No "Request an intro": intro requests stay on team profiles, where
+ * eligibility is checked.
  */
 function StoryFooter({ story, api }: { story: Story; api: ActionsApi }) {
   const { team } = story;
-  const requested = api.introRequested(team.uid);
   return (
     <div className={s.storyFoot}>
       <Sources sources={story.sources} />
       <div className={s.actions}>
         {story.actions.includes('follow') && (
-          <FollowPill
-            following={api.following(team.uid)}
-            onToggle={() => api.toggleFollow(team)}
-            name={team.name}
-            size="xxs"
-          />
+          <TeamFollowPill team={team} following={api.following(team.uid)} onToggle={() => api.toggleFollow(team)} />
         )}
-        {story.actions.includes('intro') &&
-          (requested ? (
-            <span className={s.sent} role="status" title="Your request is with the PL team">
-              <CheckGlyph /> Intro requested
-            </span>
-          ) : (
-            <button type="button" className={s.textAction} onClick={() => api.requestIntro(team)}>
-              Request an intro
-            </button>
-          ))}
         {story.actions.includes('share') && (
-          <button type="button" className={s.textAction} onClick={() => api.share(story.id, 'Story')}>
-            Copy link
-          </button>
+          <StoryShareMenu
+            sharePath={newsHref(story.newsUid)}
+            shareText={`${story.headline} — ${team.name}`}
+            ariaLabel={`Share ${story.headline}`}
+            onMockShare={(network) => api.mockShare(network)}
+          />
         )}
       </div>
     </div>
@@ -143,7 +159,8 @@ function StoryItem({ story, api }: { story: Story; api: ActionsApi }) {
           <TeamLink team={story.team} /> · <time>{story.date}</time>
         </p>
         <h3 className={clsx(s.storyTitle, lead && s.storyTitleLead)}>
-          <a className={s.storyTitleLink} href={story.headlineHref} target="_blank" rel="noreferrer">
+          {/* The headline opens the aggregated news item in LabOS. Outside sources stay in the footer. */}
+          <a className={s.storyTitleLink} href={newsHref(story.newsUid)}>
             {story.headline}
           </a>
         </h3>
@@ -156,8 +173,8 @@ function StoryItem({ story, api }: { story: Story; api: ActionsApi }) {
             <strong className={s.whyLabel}>Yes, but:</strong> {story.yesBut}
           </p>
         )}
-        <a className={s.nextLink} href={story.next.href} target="_blank" rel="noreferrer">
-          {story.next.label}
+        <a className={s.nextLink} href={newsHref(story.newsUid)}>
+          {story.nextLabel}
         </a>
         <StoryFooter story={story} api={api} />
       </div>
@@ -334,7 +351,6 @@ function ShareIssue({ onShare }: { onShare: () => void }) {
  * turn closes it.
  */
 export function DigestIssuePage({ forumAccess, signals }: { forumAccess: boolean; signals: boolean }) {
-  const intro = useRequestIntro();
   const [follows, setFollows] = useState<Set<string>>(() => new Set());
   const [toast, setToast] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -366,14 +382,13 @@ export function DigestIssuePage({ forumAccess, signals }: { forumAccess: boolean
         if (next.has(team.uid)) next.delete(team.uid);
         else {
           next.add(team.uid);
-          flash(`Following ${team.name}. Their updates show in your feed.`);
+          flash(`Following ${team.name}. You will see ${team.name} news in For You.`);
         }
         return next;
       });
     },
-    introRequested: intro.requested,
-    requestIntro: (team) => intro.request({ uid: team.uid, name: team.name, kind: 'team' }),
     share,
+    mockShare: (network) => flash(`This opens ${network === 'x' ? 'X' : 'LinkedIn'} with the story link.`),
   };
 
   const forum = showForum(forumAccess);
@@ -635,7 +650,6 @@ export function DigestIssuePage({ forumAccess, signals }: { forumAccess: boolean
         </aside>
       </div>
 
-      {intro.layer}
       {toast && <FollowToast>{toast}</FollowToast>}
     </div>
   );

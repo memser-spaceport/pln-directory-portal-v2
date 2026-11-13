@@ -13,6 +13,7 @@ import {
   EMAIL_FROM,
   EMAIL_TO,
   issueHref,
+  newsHref,
   showForum,
   teamHref,
   type Story,
@@ -184,7 +185,7 @@ function EditorialEmail({ forumAccess, signals }: { forumAccess: boolean; signal
       <ul className={s.emailStories}>
         {EDITION.stories.map((st, i) => (
           <li key={st.id} className={clsx(s.emailStory, i % 2 === 1 && s.emailStoryFlip)}>
-            <a className={s.emailStoryImage} href={href(st.id)} tabIndex={-1} aria-hidden="true">
+            <a className={s.emailStoryImage} href={newsHref(st.newsUid)} tabIndex={-1} aria-hidden="true">
               <StoryImage seed={st.id} size="side" />
             </a>
             <div className={s.emailStoryMain}>
@@ -193,7 +194,8 @@ function EditorialEmail({ forumAccess, signals }: { forumAccess: boolean; signal
                 {st.team.name} · {st.date}
               </p>
               <h2 className={s.emailStoryTitle}>
-                <a href={href(st.id)}>{st.headline}</a>
+                {/* The headline opens the aggregated news item in LabOS, not the outside source. */}
+                <a href={newsHref(st.newsUid)}>{st.headline}</a>
               </h2>
               <p className={s.emailStoryText}>{teaser(st)}</p>
               <p className={s.emailStoryWhy}>

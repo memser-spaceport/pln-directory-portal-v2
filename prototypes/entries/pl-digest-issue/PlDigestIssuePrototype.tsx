@@ -70,8 +70,8 @@ export default function PlDigestIssuePrototype() {
     router.replace(`${pathname}?${next.toString()}`, { scroll: false });
   };
 
-  // Mount gate: the intro modal portals, the share action reads window, and the
-  // shared follow/intro stores read sessionStorage.
+  // Mount gate: the story Share menu portals and reads window, and the copy
+  // action uses the clipboard.
   if (!mounted) return <div className={s.root} />;
 
   const surface =

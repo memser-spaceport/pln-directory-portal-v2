@@ -29,8 +29,12 @@ export interface Source {
   href: string;
 }
 
-/** What a reader can do on a story, in the order they render. */
-export type StoryAction = 'follow' | 'intro' | 'share';
+/**
+ * What a reader can do on a story, in the order they render.
+ * No "Request an intro" here: intro requests stay on team profiles, where
+ * eligibility is checked (owner feedback, story actions).
+ */
+export type StoryAction = 'follow' | 'share';
 
 /** `lead`: the first story of The Latest, with a larger visual. `story`: the others. */
 export type StoryKind = 'lead' | 'story';
@@ -46,16 +50,20 @@ export interface Story {
   date: string;
   team: TeamRef;
   headline: string;
-  /** Where the headline goes: the primary public source. */
-  headlineHref: string;
+  /**
+   * Mock uid of the aggregated news item in LabOS. The headline, the next
+   * step and the share link all go to `/home?news=<uid>` (see `newsHref`).
+   * Outside sources stay in `sources`.
+   */
+  newsUid: string;
   /** One paragraph, four or five short sentences. */
   paragraph: string;
   /** One line, one voice for every reader: no audience tag. */
   whyItMatters: string;
   /** The lead's counterweight, one line. */
   yesBut?: string;
-  /** The story's one next step, as a link. */
-  next: { label: string; href: string };
+  /** The story's one next step. It opens the news item in LabOS. */
+  nextLabel: string;
   sources: Source[];
   actions: StoryAction[];
 }
@@ -198,7 +206,7 @@ const SRC = {
   },
 } satisfies Record<string, Source>;
 
-const ALL_ACTIONS: StoryAction[] = ['follow', 'intro', 'share'];
+const ALL_ACTIONS: StoryAction[] = ['follow', 'share'];
 
 export const EDITION: Edition = {
   slug: 'no-07',
@@ -216,12 +224,12 @@ export const EDITION: Edition = {
       date: '9 Nov',
       team: TEAMS.zama,
       headline: 'Zama spin-off Raycash brought confidential stablecoin payments to Ethereum',
-      headlineHref: SRC.theBlockRaycash.href,
+      newsUid: 'mock-news-zama-raycash',
       paragraph:
         'On 9 Nov, Raycash, a spin-off of Zama, opened a private beta on Ethereum mainnet. People can hold dollars, send payments and earn yield through Morpho, while the amounts stay encrypted. It is the first retail payment product on the Zama Protocol, which uses fully homomorphic encryption. Raycash does not issue a new stablecoin: it wraps the USDC people already hold, one to one, into confidential ERC-7984 tokens. The company says more than 75,000 people joined the waitlist.',
       whyItMatters: 'Teams on stablecoin rails can now offer payments where the amounts are not public.',
       yesBut: 'The app has no freeze or seize function at the token layer, and regulators will ask about that first.',
-      next: { label: 'Read the launch coverage', href: SRC.theBlockRaycash.href },
+      nextLabel: 'Read the full story in LabOS',
       sources: [SRC.theBlockRaycash, SRC.cryptoBriefingRaycash],
       actions: ALL_ACTIONS,
     },
@@ -231,11 +239,11 @@ export const EDITION: Edition = {
       date: '9 Nov',
       team: TEAMS.gensyn,
       headline: 'Gensyn opened a training run anyone can audit on ordinary hardware',
-      headlineHref: SRC.gensynBlog.href,
+      newsUid: 'mock-news-gensyn-open-8b',
       paragraph:
         'Open-8b is an 8-billion-parameter model that trains in public. It is five times the size of open-1b. Every training step is committed publicly and can be replayed on ordinary hardware. Gensyn says the audit overhead fell from 5.5x the GPU-hours of a standard run for open-1b to about 1.3x for open-8b. After post-training, the model will judge markets on Delphi, Gensyn’s information-market platform.',
       whyItMatters: 'A claim about how a model was trained is now cheap to check.',
-      next: { label: 'Follow the live run', href: SRC.gensynBlog.href },
+      nextLabel: 'Read the full story in LabOS',
       sources: [SRC.gensynBlog],
       actions: ALL_ACTIONS,
     },
@@ -245,11 +253,11 @@ export const EDITION: Edition = {
       date: '7 Nov',
       team: TEAMS.starkware,
       headline: 'StarkWare shipped post-quantum hashing into Starknet',
-      headlineHref: SRC.tokenpostStarknet.href,
+      newsUid: 'mock-news-starknet-v0143',
       paragraph:
         'Starknet v0.14.3 replaces Pedersen with BLAKE2s-256 for operating-system hashes. The change is part of the move to post-quantum security. It changes how proofs are hashed at the protocol level. Accounts can migrate one by one, without a chain-wide signing upgrade.',
       whyItMatters: 'Teams on Starknet must check what the change does to their code before the next deploy.',
-      next: { label: 'Read about v0.14.3 before your next deploy', href: SRC.tokenpostStarknet.href },
+      nextLabel: 'Read the full story in LabOS',
       sources: [SRC.tokenpostStarknet],
       actions: ALL_ACTIONS,
     },
@@ -259,11 +267,11 @@ export const EDITION: Edition = {
       date: '9 Nov',
       team: TEAMS.coinlist,
       headline: 'CoinList became a day-one partner for a tokenized-securities venue on Solana',
-      headlineHref: SRC.coinlistBlog.href,
+      newsUid: 'mock-news-coinlist-formation',
       paragraph:
         'CoinList’s Passage will connect to Formation Securities. Formation told the SEC it plans to run a venue for tokenized stocks and bonds on Solana. Trading is expected in early 2027. Verified investors will get access through Passage partner apps and coinlist.co.',
       whyItMatters: 'It is a second track toward regulated on-chain securities, and it does not run through Ethereum.',
-      next: { label: 'Read CoinList’s announcement', href: SRC.coinlistBlog.href },
+      nextLabel: 'Read the full story in LabOS',
       sources: [SRC.coinlistBlog, SRC.cryptoBriefingFormation],
       actions: ALL_ACTIONS,
     },
@@ -467,5 +475,7 @@ export const EMAIL_TO = 'member@example.com';
 export const EMAIL_FIRST_NAME = 'Alex';
 
 export const teamHref = (uid: string) => `/teams/${uid}`;
+/** The aggregated news item in LabOS, the same deep link as NewsShareMenu. */
+export const newsHref = (uid: string) => `/home?news=${encodeURIComponent(uid)}`;
 export const issueHref = (anchor?: string, forum = true) =>
   `/prototypes/pl-digest-issue?view=page${forum ? '' : '&forum=off'}${anchor ? `#${anchor}` : ''}`;

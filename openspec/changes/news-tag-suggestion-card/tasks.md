@@ -2,7 +2,7 @@
 
 ## 1. Branches
 
-- [ ] 1.1 Create goal branch `lab-3244` from `origin/develop` in pln-directory-portal-v2 and the task branch `feat/LAB-3250-news-tag-card` off it; move this change folder onto the task branch; add `human-only` to LAB-3250 and note on it that saving is by button, as in the LAB-3245 design; verify with `git ls-remote --heads origin lab-3244`
+- [x] 1.1 Create goal branch `lab-3244` from `origin/develop` in pln-directory-portal-v2 and the task branch `feat/LAB-3250-news-tag-card` off it; move this change folder onto the task branch; add `human-only` to LAB-3250 and note on it that saving is by button, as in the LAB-3245 design; verify with `git ls-remote --heads origin lab-3244`
 
 ## 2. Data and events
 
@@ -32,7 +32,7 @@
 - [ ] 6.1 Run `npm run lint` and `npm run test`; verify both pass (the two known non-UTC timezone suites aside)
 - [x] 6.2 Run `openspec validate news-tag-suggestion-card --json`; verify it reports valid
 - [x] 6.3 Sync the deltas into `openspec/specs/team-news/spec.md` and `openspec/specs/home/spec.md` in the same PR; verify the main specs hold the four "Tag card" requirements
-- [ ] 6.4 Open the Task PR into `lab-3244` (Conventional Commit title, LAB-3250 linked) and move LAB-3250 to Code review; verify the PR base is `lab-3244`
+- [x] 6.4 Open the Task PR into `lab-3244` (Conventional Commit title, LAB-3250 linked) and move LAB-3250 to Code review; verify the PR base is `lab-3244`
 
 ## Workflow follow-up
 

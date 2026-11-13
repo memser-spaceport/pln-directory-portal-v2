@@ -243,9 +243,26 @@ Member, team and project profiles SHALL carry JSON-LD built only from what a sig
 - **WHEN** a profile's name or text contains `</script>`
 - **THEN** the JSON-LD escapes it and the script element is not ended early
 
+### Requirement: Pages declare their language
+
+Every page's `<html>` element SHALL have `lang="en"` (LAB-3253).
+
+#### Scenario: Any page
+
+- **WHEN** a client requests any page
+- **THEN** the response's `<html>` element has `lang="en"`
+
 ### Requirement: Links reach every profile
 
 `/members`, `/teams` and `/projects` SHALL each link, in their server HTML, to a browse index at `/<listing>/browse`. The link SHALL be a quiet, visible line under the list, reachable with Tab, and SHALL NOT sit in the listing's toolbar (LAB-3184 found it beside "Sort by"). It was hidden for LAB-3184; Search Console then still called `/teams/browse` "unknown to Google", so it is visible again. The index SHALL list every profile the sitemap lists for that listing, A to Z, 200 per page, as plain links, with links to every page of the index. Each page SHALL have a self-canonical; page 1 SHALL have no `?page=`. A `?page=` that is not a whole number from 1 up, or is past the last page, SHALL answer 404.
+
+The server HTML of every page SHALL link to the pages of each nav dropdown: `/members`, `/teams` and `/projects` from "Directory", and the internal pages of "More" (the events pages among them). Base UI mounts a dropdown's content only while it is open, so each dropdown SHALL also render its internal links as a plain list that is `hidden`: not on screen and not in the accessibility tree (LAB-3253). Links to other sites SHALL be left out of that list.
+
+#### Scenario: Crawler reads any page
+
+- **WHEN** a crawler reads the server HTML of any page, a profile included
+- **THEN** it finds `<a href>` links to `/members`, `/teams` and `/projects`
+- **AND** a member sees no change in the nav
 
 #### Scenario: Crawler follows links only
 

@@ -34,6 +34,18 @@ export function NavItemWithMenu(props: Props) {
           ))}
         </ul>
       </NavigationMenu.Content>
+      {/* The collapsed menu, for crawlers (LAB-3253). Base UI mounts Content only while the menu is open, so without
+          this the server HTML of every page had no link to /teams, /members, /projects or the events pages. `hidden`
+          keeps it off screen and out of the accessibility tree; plain anchors, since nobody clicks them. */}
+      <ul hidden data-testid="nav-menu-links">
+        {items
+          .filter((item) => !item.external)
+          .map((item) => (
+            <li key={item.href}>
+              <a href={item.href}>{item.title}</a>
+            </li>
+          ))}
+      </ul>
     </NavigationMenu.Item>
   );
 }

@@ -200,3 +200,17 @@ export interface INewsTag {
 export interface INewsTagGroup extends INewsTag {
   children: INewsTag[];
 }
+
+export type NewsDefaultTagsSource = 'member-set' | 'interest-profile' | 'ai' | 'team';
+
+/**
+ * The news tags the system uses for the signed-in member (`GET /v1/team-news/default-tags`, LAB-3249). `approved` is
+ * true for a saved list, or once the member answered the Home tag card.
+ */
+export interface INewsDefaultTags {
+  tags: INewsTag[];
+  source: NewsDefaultTagsSource;
+  approved: boolean;
+  approvedAt: string | null;
+  generatedAt: string | null;
+}

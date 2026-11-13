@@ -11,7 +11,13 @@ import type { IDeal } from '@/types/deals.types';
 import type { IFeedForumPost } from '@/types/feed.types';
 import type { IHomeEvents, IHomeRoles } from '@/types/home.types';
 import type { IJobTeamGroup } from '@/types/jobs.types';
-import type { ISuggestedTeam, ITeamNewsGroup, ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
+import type {
+  INewsDefaultTags,
+  ISuggestedTeam,
+  ITeamNewsGroup,
+  ITeamNewsItem,
+  TeamNewsEventType,
+} from '@/types/team-news.types';
 
 // ---- The feed's data hooks (as team-news.test.tsx mocks them) ----
 
@@ -74,6 +80,12 @@ jest.mock('@/services/members/hooks/useSetNewsTags', () => ({ useSetNewsTags: ()
 let mockMemberNewsTags: string[] | undefined = ['storage'];
 jest.mock('@/services/members/hooks/useGetMemberPreferences', () => ({
   useGetMemberPreferences: () => ({ data: mockMemberNewsTags ? { newsTags: mockMemberNewsTags } : undefined }),
+}));
+
+let mockDefaultTags: INewsDefaultTags | undefined;
+jest.mock('@/services/team-news/hooks/useNewsDefaultTags', () => ({
+  useNewsDefaultTags: () => ({ data: mockDefaultTags }),
+  useApproveNewsDefaultTags: () => ({ mutate: jest.fn(), isPending: false }),
 }));
 
 // ---- The rail ----
@@ -256,6 +268,7 @@ beforeEach(() => {
   mockTopicSlugs = new Set(['ai', 'robotics', 'storage', 'defi']);
   mockShowNewsPreferences = true;
   mockMemberNewsTags = ['storage'];
+  mockDefaultTags = undefined;
   mockDeals = null;
   useCurrentUserStore.setState({ currentUser: { uid: 'user-1' } as never, isHydrated: true });
   window.history.replaceState(null, '', '/home');
@@ -313,6 +326,68 @@ describe('Network Updates: the stream', () => {
 
     fireEvent.click(within(pillRow()).getByRole('button', { name: /^Funding/ }));
     expect(line()).toBeInTheDocument();
+  });
+
+  // LAB-3250: a member who has not answered sees their default tags where the For you line is.
+  describe('the tag card', () => {
+    const unapproved: INewsDefaultTags = {
+      tags: [
+        { slug: 'ai', title: 'AI' },
+        { slug: 'storage', title: 'Storage' },
+      ],
+      source: 'ai',
+      approved: false,
+      approvedAt: null,
+      generatedAt: null,
+    };
+    const cardTitle = () => screen.queryByRole('heading', { name: 'We picked these topics for you' });
+    const curatedLine = () => screen.queryByText(/Curated from your profile/);
+    const items = [story('a', 'LAUNCH', { tags: ['storage'] }), story('b', 'FUNDING')];
+
+    it('takes the place of the For you line on All and on For You, and gives it back on another pill', () => {
+      mockDefaultTags = unapproved;
+      renderHome(items, { forYouTags: ['storage'] });
+
+      expect(cardTitle()).toBeInTheDocument();
+      expect(curatedLine()).not.toBeInTheDocument();
+
+      fireEvent.click(within(pillRow()).getByRole('button', { name: /^For You/ }));
+      expect(cardTitle()).toBeInTheDocument();
+      expect(curatedLine()).not.toBeInTheDocument();
+
+      fireEvent.click(within(pillRow()).getByRole('button', { name: /^Funding/ }));
+      expect(cardTitle()).not.toBeInTheDocument();
+      expect(curatedLine()).toBeInTheDocument();
+    });
+
+    it('takes the place of the set-up row for a member with no inputs', () => {
+      mockDefaultTags = { ...unapproved, source: 'team' };
+      renderHome(items, { forYouTags: [], forYouTeamUids: [] });
+
+      expect(cardTitle()).toBeInTheDocument();
+      expect(screen.getByText("Picked from your teams' focus areas.")).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Open News preferences →' })).not.toBeInTheDocument();
+    });
+
+    it.each([
+      ['answered', { ...unapproved, approved: true, approvedAt: '2026-11-12T00:00:00.000Z' }],
+      ['set their own tags', { ...unapproved, source: 'member-set' as const, approved: true }],
+      ['has no default tag', { ...unapproved, tags: [] }],
+    ])('is not shown to a member who %s', (_name, value) => {
+      mockDefaultTags = value;
+      renderHome(items);
+
+      expect(cardTitle()).not.toBeInTheDocument();
+      expect(curatedLine()).toBeInTheDocument();
+    });
+
+    it('is not shown while News preferences is off', () => {
+      mockShowNewsPreferences = false;
+      mockDefaultTags = unapproved;
+      renderHome(items);
+
+      expect(cardTitle()).not.toBeInTheDocument();
+    });
   });
 
   it('replaces the For you line with the set-up row when the member has no inputs (LAB-3080)', () => {

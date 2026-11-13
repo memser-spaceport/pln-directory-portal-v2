@@ -13,7 +13,8 @@ import { memberEvent, PAST, UPCOMING } from './MemberEventsSection.fixtures';
 import { OwnerMemberEventsSection } from './OwnerMemberEventsSection';
 
 /**
- * The member Events section on the member's own profile (LAB-3218): "Add event", the ⋯ menu and "Only visible to you".
+ * The member Events section on the member's own profile (LAB-3218, LAB-3234): "Add event" and the ⋯ menu (Edit details,
+ * Remove).
  * Compare with the prototype at `/prototypes/member-events-going` (owner view). The drawer is behind
  * `NEXT_PUBLIC_SHOW_EVENT_DRAWER`; the writes have no backend here, so a menu choice ends in an error toast.
  */
@@ -39,8 +40,6 @@ const CATALOGUE: UpcomingEvent[] = [
   catalogueEvent('ev-denver', 'ETHDenver', 'Denver, USA', '2027-02-20T00:00:00.000Z', '2027-02-27T00:00:00.000Z'),
   catalogueEvent('ev-labweek', 'LabWeek', 'Buenos Aires, Argentina', '2027-03-10T00:00:00.000Z'),
 ];
-
-const WITH_HIDDEN = [UPCOMING[0], { ...UPCOMING[1], showOnProfile: false }];
 
 function Providers({ canWrite, children }: { canWrite: boolean; children: ReactNode }) {
   const [client] = useState(() => {
@@ -76,19 +75,19 @@ const meta: Meta<Args> = {
       </Providers>
     );
   },
-  args: { canWrite: true, upcoming: WITH_HIDDEN },
+  args: { canWrite: true, upcoming: UPCOMING },
 };
 export default meta;
 
 type Story = StoryObj<Args>;
 
-/** "Add event" in the header, a ⋯ menu on each upcoming card, and the hidden one reads "Only visible to you". */
+/** "Add event" in the header and a ⋯ menu on each upcoming card. */
 export const Owner: Story = {};
 
 /** Nothing upcoming: "No upcoming events on your profile yet." with its own "Add event". */
 export const NothingUpcoming: Story = { args: { upcoming: [] } };
 
-/** Without the write permission: no "Add event", and the menu offers only Hide / Show. */
+/** Without the write permission: no "Add event" and no ⋯ menu. */
 export const WithoutWritePermission: Story = { args: { canWrite: false } };
 
 /** The ⋯ menu open on FIL Berlin. */
@@ -114,12 +113,12 @@ export const RemoveConfirm: Story = {
   },
 };
 
-/** Many upcoming events, one hidden: "Show all 5 upcoming events". */
+/** Many upcoming events: "Show all 5 upcoming events". */
 export const ManyUpcoming: Story = {
   args: {
     upcoming: [
-      ...WITH_HIDDEN,
-      memberEvent({ uid: 'up-3', name: 'IPFS Camp', startDate: '2027-01-15T00:00:00.000Z', showOnProfile: false }),
+      ...UPCOMING,
+      memberEvent({ uid: 'up-3', name: 'IPFS Camp', startDate: '2027-01-15T00:00:00.000Z' }),
       memberEvent({ uid: 'up-4', name: 'ETHDenver', startDate: '2027-02-20T00:00:00.000Z', faces: [] }),
       memberEvent({ uid: 'up-5', name: 'LabWeek', startDate: '2027-03-10T00:00:00.000Z' }),
     ],

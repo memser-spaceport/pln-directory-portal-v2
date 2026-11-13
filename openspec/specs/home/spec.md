@@ -128,7 +128,7 @@ With the event drawer flag on, a signed-in member's event row SHALL instead open
 #### Scenario: Going from the rail
 
 - **GIVEN** the event drawer flag is on and a signed-in member not going to event A
-- **WHEN** they open event A from the rail, say "Yes, I'm going" with "Show on my profile" ticked, and close the drawer
+- **WHEN** they open event A from the rail, say "Yes, I'm going", and close the drawer
 - **THEN** event A's row reads "Going"
 - **AND** a toast reads "A is on your profile." with a "View profile" link to their profile
 

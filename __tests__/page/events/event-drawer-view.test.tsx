@@ -43,6 +43,7 @@ function Harness(props: Partial<EventDrawerViewProps> & { raw?: EventDetailRespo
       saving={false}
       onClose={jest.fn()}
       onYes={jest.fn(async () => true)}
+      onNotGoing={jest.fn(async () => true)}
       onSave={jest.fn(async () => true)}
       {...rest}
     />
@@ -82,7 +83,7 @@ describe('EventDrawerView (LAB-3216)', () => {
       expect(screen.queryByText('Description')).not.toBeInTheDocument();
       expect(screen.queryByText('FREE w/ RSVP')).not.toBeInTheDocument();
       expect(screen.getByRole('heading', { name: 'LabWeek Lisbon' })).toBeInTheDocument();
-      expect(screen.getByText('40 People going')).toBeInTheDocument();
+      expect(screen.getByText('40 members going')).toBeInTheDocument();
     });
 
     it('Event no longer available', () => {
@@ -146,24 +147,24 @@ describe('EventDrawerView (LAB-3216)', () => {
   describe('attendees', () => {
     it('Count for one event', () => {
       render(<Harness raw={eventResponse({ goingCount: 12 })} />);
-      expect(screen.getByRole('button', { name: '12 People going' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '12 members going' })).toBeInTheDocument();
     });
 
-    it('says "Person" for one attendee', () => {
+    it('says "member" for one attendee', () => {
       render(<Harness raw={eventResponse({ goingCount: 1 })} />);
-      expect(screen.getByRole('button', { name: '1 Person going' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '1 member going' })).toBeInTheDocument();
     });
 
     it('shows an empty state when nobody is going', () => {
       render(<Harness raw={eventResponse({ goingCount: 0, faces: [] })} />);
-      expect(screen.queryByText(/People going/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/members? going/)).not.toBeInTheDocument();
       expect(screen.getByText('Nobody has said they are going yet.')).toBeInTheDocument();
     });
 
     it('Searching the list', async () => {
       const onAttendeesOpen = jest.fn();
       render(<Harness onAttendeesOpen={onAttendeesOpen} />);
-      fireEvent.click(screen.getByRole('button', { name: '40 People going' }));
+      fireEvent.click(screen.getByRole('button', { name: '40 members going' }));
       expect(onAttendeesOpen).toHaveBeenCalledTimes(1);
 
       const list = screen.getByTestId('event-attendees');
@@ -194,172 +195,230 @@ describe('EventDrawerView (LAB-3216)', () => {
     });
   });
 
-  describe('the question', () => {
-    it('The question', () => {
+  describe('the going card (LAB-3225, LAB-3234)', () => {
+    const goingEvent = eventResponse({ viewerGoing: true, viewer: { showOnProfile: true, roles: [] } });
+
+    it('asks, with Register to the event page and no "No" or "Show on my profile"', () => {
+      render(<Harness raw={eventResponse({ websiteUrl: 'https://labweek.test' })} />);
+      const card = screen.getByTestId('rsvp-card');
+      expect(within(card).getByText('Are you going?')).toBeInTheDocument();
+      expect(within(card).getByRole('button', { name: "Yes, I'm going" })).toBeInTheDocument();
+      expect(within(card).getByRole('link', { name: 'Register' })).toHaveAttribute('href', 'https://labweek.test');
+      expect(screen.queryByRole('button', { name: 'No' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+      expect(screen.queryByText(/Show on my profile/)).not.toBeInTheDocument();
+    });
+
+    it('sits before the agenda', () => {
       render(<Harness />);
-      expect(screen.getByText('Are you going to LabWeek Lisbon?')).toBeInTheDocument();
-      expect(screen.getByText('Let others know if you are attending.')).toBeInTheDocument();
-      expect(screen.getByRole('checkbox', { name: 'Show on my profile' })).toBeChecked();
-      expect(screen.getByText('Signed-in members will see LabWeek Lisbon on your profile.')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'No' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: "Yes, I'm going" })).toBeInTheDocument();
+      const card = screen.getByTestId('rsvp-card');
+      const agenda = screen.getByText('Agenda');
+      expect(card.compareDocumentPosition(agenda) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
 
-    it('"No" closes without saving', () => {
+    it('leaves Register out when the event has no page', () => {
+      render(<Harness raw={eventResponse({ websiteUrl: null })} />);
+      expect(screen.queryByRole('link', { name: 'Register' })).not.toBeInTheDocument();
+    });
+
+    it('"Yes, I\'m going" turns the card to "You\'re going" in place and counts the viewer', async () => {
+      const onYes = jest.fn(async () => true);
+      render(<Harness onYes={onYes} />);
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: "Yes, I'm going" }));
+      });
+      expect(onYes).toHaveBeenCalledTimes(1);
+      const card = screen.getByTestId('rsvp-card');
+      expect(within(card).getByText("You're going")).toBeInTheDocument();
+      expect(within(card).getByRole('button', { name: 'You and 40 members' })).toBeInTheDocument();
+      expect(within(card).getByRole('button', { name: /Add your plans for Lisbon/ })).toBeInTheDocument();
+      expect(within(card).getByRole('button', { name: 'Mark as not going' })).toBeInTheDocument();
+      // Still the event, not a plans step.
+      expect(screen.getByText('Agenda')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Save' })).not.toBeInTheDocument();
+    });
+
+    it('a failed "Yes" keeps asking and the count does not change', async () => {
+      render(<Harness onYes={jest.fn(async () => false)} />);
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: "Yes, I'm going" }));
+      });
+      expect(screen.getByText('Are you going?')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '40 members going' })).toBeInTheDocument();
+    });
+
+    it('says "You\'re the first one going" when the viewer is alone', () => {
+      render(
+        <Harness
+          raw={eventResponse({ viewerGoing: true, goingCount: 1, viewer: { showOnProfile: true, roles: [] } })}
+        />,
+      );
+      expect(screen.getByRole('button', { name: /You're the first one going/ })).toBeInTheDocument();
+    });
+
+    it('"Mark as not going" removes this event and asks again', async () => {
+      const onNotGoing = jest.fn(async () => true);
+      render(<Harness raw={goingEvent} plans={GOING_PLANS} onNotGoing={onNotGoing} />);
+      expect(screen.getByText("You're going")).toBeInTheDocument();
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'Mark as not going' }));
+      });
+      expect(onNotGoing).toHaveBeenCalledTimes(1);
+      expect(screen.getByText('Are you going?')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '39 members going' })).toBeInTheDocument();
+    });
+
+    it('a failed "Mark as not going" keeps "You\'re going"', async () => {
+      render(<Harness raw={goingEvent} plans={GOING_PLANS} onNotGoing={jest.fn(async () => false)} />);
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'Mark as not going' }));
+      });
+      expect(screen.getByText("You're going")).toBeInTheDocument();
+    });
+
+    it('the toast waits for the drawer to close, and only after a "Yes" in this drawer', async () => {
       const onClose = jest.fn();
-      const onYes = jest.fn();
-      render(<Harness onClose={onClose} onYes={onYes} />);
-      fireEvent.click(screen.getByRole('button', { name: 'No' }));
+      const onGoing = jest.fn();
+      render(<Harness onClose={onClose} onGoing={onGoing} />);
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: "Yes, I'm going" }));
+      });
+      expect(onGoing).not.toHaveBeenCalled();
+      fireEvent.click(screen.getByRole('button', { name: 'Back' }));
       expect(onClose).toHaveBeenCalled();
-      expect(onYes).not.toHaveBeenCalled();
+      expect(onGoing).toHaveBeenCalledWith({ eventName: 'LabWeek Lisbon' });
     });
 
-    it('Going, shown on the profile: saves, counts the viewer and moves to the plans', async () => {
-      const onYes = jest.fn(async () => true);
-      render(<Harness onYes={onYes} />);
+    it('no toast when the viewer was already going', () => {
+      const onGoing = jest.fn();
+      render(<Harness raw={goingEvent} plans={GOING_PLANS} onGoing={onGoing} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+      expect(onGoing).not.toHaveBeenCalled();
+    });
+
+    it('no toast after "Yes" then "Mark as not going"', async () => {
+      const onGoing = jest.fn();
+      render(<Harness onGoing={onGoing} />);
       await act(async () => {
         fireEvent.click(screen.getByRole('button', { name: "Yes, I'm going" }));
       });
-      expect(onYes).toHaveBeenCalledWith(true);
-      expect(screen.getByText(/Thanks for confirming/)).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: '41 People going' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Skip' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument();
-    });
-
-    it('Going, not shown on the profile', async () => {
-      const onYes = jest.fn(async () => true);
-      render(<Harness onYes={onYes} />);
-      fireEvent.click(screen.getByRole('checkbox', { name: 'Show on my profile' }));
       await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: "Yes, I'm going" }));
+        fireEvent.click(screen.getByRole('button', { name: 'Mark as not going' }));
       });
-      expect(onYes).toHaveBeenCalledWith(false);
+      fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+      expect(onGoing).not.toHaveBeenCalled();
     });
 
-    it('Saving fails: stays on the question and the count does not change', async () => {
-      const onYes = jest.fn(async () => false);
-      render(<Harness onYes={onYes} />);
-      fireEvent.click(screen.getByRole('checkbox', { name: 'Show on my profile' }));
-      await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: "Yes, I'm going" }));
-      });
-      expect(screen.getByText('Are you going to LabWeek Lisbon?')).toBeInTheDocument();
-      expect(screen.getByRole('checkbox', { name: 'Show on my profile' })).not.toBeChecked();
-      expect(screen.getByRole('button', { name: '40 People going' })).toBeInTheDocument();
-      expect(screen.queryByText(/Thanks for confirming/)).not.toBeInTheDocument();
-    });
-
-    it('Member without attendance permission', () => {
+    it('Member without attendance permission: "Who\'s going", no question', () => {
       render(<Harness canMarkGoing={false} plans={null} />);
-      expect(screen.getByRole('button', { name: '40 People going' })).toBeInTheDocument();
+      expect(screen.getByText("Who's going")).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '40 members going' })).toBeInTheDocument();
       expect(screen.queryByText(/Are you going/)).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: "Yes, I'm going" })).not.toBeInTheDocument();
-      expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
     });
   });
 
-  describe('the plans step', () => {
-    const goingEvent = eventResponse({ viewerGoing: true, viewer: { showOnProfile: false, roles: [] } });
+  describe('the plans sub-view', () => {
+    const goingEvent = eventResponse({ viewerGoing: true, viewer: { showOnProfile: true, roles: [] } });
 
-    it('opens directly for a viewer already going, with Cancel and their own answer', () => {
+    const openPlans = () => fireEvent.click(screen.getByRole('button', { name: /Add your plans for Lisbon/ }));
+
+    it('opens from "Add your plans": role chips, stay and topics, no events field', () => {
       render(<Harness raw={goingEvent} plans={GOING_PLANS} />);
-      expect(screen.getByText(/Thanks for confirming/)).toBeInTheDocument();
+      openPlans();
+      expect(screen.getByRole('heading', { name: 'Your plans for Lisbon' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Back to event' })).toBeInTheDocument();
+      expect(screen.getByRole('group', { name: 'Your role at LabWeek Lisbon' })).toBeInTheDocument();
+      for (const role of ['Host', 'Speaker', 'Sponsor']) {
+        expect(screen.getByRole('button', { name: role })).toHaveAttribute('aria-pressed', 'false');
+      }
+      expect(screen.queryByText('Select events you plan to attend')).not.toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
-      expect(screen.getByRole('checkbox', { name: 'Show on my profile' })).not.toBeChecked();
-      expect(screen.queryByText(/Are you going/)).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument();
     });
 
-    it('opens on the plans for initialStep="plans"', () => {
+    it('opens on the plans for initialStep="plans" (the owner\'s Edit details)', () => {
+      render(<Harness raw={goingEvent} plans={GOING_PLANS} initialStep="plans" />);
+      expect(screen.getByRole('heading', { name: 'Your plans for Lisbon' })).toBeInTheDocument();
+    });
+
+    it('ignores initialStep="plans" for a viewer not going', () => {
       render(<Harness initialStep="plans" />);
-      expect(screen.getByText(/Thanks for confirming/)).toBeInTheDocument();
+      expect(screen.getByText('Are you going?')).toBeInTheDocument();
     });
 
-    it('Skipping the plans closes and tells the host', async () => {
-      const onClose = jest.fn();
-      const onGoing = jest.fn();
-      const onSave = jest.fn();
-      render(<Harness onClose={onClose} onGoing={onGoing} onSave={onSave} />);
-      await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: "Yes, I'm going" }));
-      });
-      fireEvent.click(screen.getByRole('button', { name: 'Skip' }));
-      expect(onClose).toHaveBeenCalled();
-      expect(onSave).not.toHaveBeenCalled();
-      expect(onGoing).toHaveBeenCalledWith({ eventName: 'LabWeek Lisbon', showOnProfile: true });
-    });
-
-    it('Adding another event of the gathering, as Speaker', async () => {
-      const onSave = jest.fn(async () => true);
-      const onClose = jest.fn();
-      render(<Harness onSave={onSave} onClose={onClose} />);
-      await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: "Yes, I'm going" }));
-      });
-
-      fireEvent.click(screen.getByText('Select events you plan to attend'));
-      const picker = await screen.findByText('libp2p Day');
-      fireEvent.click(picker);
-      const row = screen.getByText('libp2p Day').closest('[role="button"]') as HTMLElement;
-      fireEvent.click(within(row).getByRole('button', { name: 'Speaker' }));
-      fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
-
-      await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-      });
-      expect(onSave).toHaveBeenCalledTimes(1);
-      const values = (onSave.mock.calls[0] as unknown[])[0] as { selectedEventUids: string[]; eventRoles: unknown[] };
-      expect(values.selectedEventUids).toEqual(['labweek-lisbon', 'libp2p-day']);
-      expect(values.eventRoles).toEqual(
-        expect.arrayContaining([{ eventUid: 'libp2p-day', roles: expect.arrayContaining(['Speaker']) }]),
+    it("preselects this event's saved role", () => {
+      render(
+        <Harness
+          raw={eventResponse({ viewerGoing: true, viewer: { showOnProfile: true, roles: ['Speaker'] } })}
+          plans={{ ...GOING_PLANS, eventRoles: [{ eventUid: 'labweek-lisbon', roles: ['Speaker'] }] }}
+          initialStep="plans"
+        />,
       );
-      expect(onClose).toHaveBeenCalled();
+      expect(screen.getByRole('button', { name: 'Speaker' })).toHaveAttribute('aria-pressed', 'true');
+      expect(screen.getByRole('button', { name: 'Host' })).toHaveAttribute('aria-pressed', 'false');
     });
 
-    it('Unticking an event', async () => {
+    it('Save sends the roles and the shared plans, then returns to the event', async () => {
       const onSave = jest.fn(async () => true);
       render(<Harness raw={goingEvent} plans={GOING_PLANS} onSave={onSave} />);
-      fireEvent.click(screen.getByText('Select events you plan to attend'));
-      const row = (await screen.findAllByText('libp2p Day'))
-        .map((el) => el.closest('[role="button"]'))
-        .find(Boolean) as HTMLElement;
-      fireEvent.click(row);
-      fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
-      await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-      });
-      const values = (onSave.mock.calls[0] as unknown[])[0] as { selectedEventUids: string[]; topics: string[] };
-      expect(values.selectedEventUids).toEqual(['labweek-lisbon']);
-      expect(values.topics).toEqual(['AI']);
-    });
-
-    it('A failed save keeps the drawer open with the values', async () => {
-      const onSave = jest.fn(async () => false);
-      const onClose = jest.fn();
-      render(<Harness raw={goingEvent} plans={GOING_PLANS} onSave={onSave} onClose={onClose} />);
-      fireEvent.click(screen.getByRole('checkbox', { name: 'Show on my profile' }));
+      openPlans();
+      fireEvent.click(screen.getByRole('button', { name: 'Host' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Sponsor' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Host' }));
       await act(async () => {
         fireEvent.click(screen.getByRole('button', { name: 'Save' }));
       });
       expect(onSave).toHaveBeenCalledTimes(1);
+      const values = (onSave.mock.calls[0] as unknown[])[0] as Record<string, unknown>;
+      expect(values.roles).toEqual(['Sponsor']);
+      expect(values.topics).toEqual(['AI']);
+      expect(values.reason).toBe('Happy to talk storage.');
+      expect(values.telegramId).toBe('@mayaokonkwo');
+      expect(values.dateRange).toEqual([expect.any(Date), expect.any(Date)]);
+      expect(values).not.toHaveProperty('selectedEventUids');
+      expect(screen.getByText("You're going")).toBeInTheDocument();
+    });
+
+    it('Cancel and "Back to event" return to the event without saving', () => {
+      const onSave = jest.fn();
+      const onClose = jest.fn();
+      render(<Harness raw={goingEvent} plans={GOING_PLANS} onSave={onSave} onClose={onClose} />);
+      openPlans();
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+      expect(screen.getByText("You're going")).toBeInTheDocument();
+      openPlans();
+      fireEvent.click(screen.getByRole('button', { name: 'Back to event' }));
+      expect(screen.getByText("You're going")).toBeInTheDocument();
+      expect(onSave).not.toHaveBeenCalled();
       expect(onClose).not.toHaveBeenCalled();
-      expect(screen.getByRole('checkbox', { name: 'Show on my profile' })).toBeChecked();
+    });
+
+    it('A failed save keeps the plans open with the values', async () => {
+      const onSave = jest.fn(async () => false);
+      render(<Harness raw={goingEvent} plans={GOING_PLANS} onSave={onSave} initialStep="plans" />);
+      fireEvent.click(screen.getByRole('button', { name: 'Speaker' }));
       await act(async () => {
         fireEvent.click(screen.getByRole('button', { name: 'Save' }));
       });
-      expect(onSave).toHaveBeenCalledTimes(2);
+      expect(onSave).toHaveBeenCalledTimes(1);
+      expect(screen.getByRole('heading', { name: 'Your plans for Lisbon' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Speaker' })).toHaveAttribute('aria-pressed', 'true');
     });
 
-    it('Escape in the date picker closes only the picker', async () => {
+    it('Escape: the date picker first, then the plans, then the drawer', async () => {
       const onClose = jest.fn();
-      render(<Harness raw={goingEvent} plans={GOING_PLANS} onClose={onClose} />);
+      render(<Harness raw={goingEvent} plans={GOING_PLANS} onClose={onClose} initialStep="plans" />);
       fireEvent.click(screen.getAllByText('Select date range')[0].closest('button') as HTMLElement);
       expect(await screen.findByRole('button', { name: 'Apply' })).toBeInTheDocument();
 
       fireEvent.keyDown(document, { key: 'Escape' });
       await waitFor(() => expect(screen.queryByRole('button', { name: 'Apply' })).not.toBeInTheDocument());
+      expect(screen.getByRole('heading', { name: 'Your plans for Lisbon' })).toBeInTheDocument();
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(screen.getByText("You're going")).toBeInTheDocument();
       expect(onClose).not.toHaveBeenCalled();
-      expect(drawerIsOpen()).toBe(true);
 
       fireEvent.keyDown(document, { key: 'Escape' });
       expect(onClose).toHaveBeenCalledTimes(1);

@@ -37,8 +37,11 @@ function Description({ text }: { text: string }) {
  *
  * Deviation from the prototype: no region line under the address. The Directory stores only the gathering's
  * location text, not the venue's address and region.
+ *
+ * `beforeAgenda` is drawn between Description and Agenda: the drawer's "Are you going?" card (LAB-3225), where the
+ * prototype puts it.
  */
-export function EventSummary({ event }: { event: EventDetail }) {
+export function EventSummary({ event, beforeAgenda }: { event: EventDetail; beforeAgenda?: ReactNode }) {
   return (
     <>
       <div className={e.head}>
@@ -113,6 +116,8 @@ export function EventSummary({ event }: { event: EventDetail }) {
           <Description text={event.description} />
         </div>
       )}
+
+      {beforeAgenda}
 
       {event.agenda.length > 0 && (
         <div className={e.block}>

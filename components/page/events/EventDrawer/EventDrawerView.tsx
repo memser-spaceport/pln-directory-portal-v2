@@ -5,50 +5,43 @@ import { useCallback, useEffect, useMemo, useRef, useState, type MutableRefObjec
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { Button } from '@/components/common/Button';
-import { Checkbox } from '@/components/common/Checkbox';
 import { Drawer } from '@/components/common/Drawer';
 import { Modal } from '@/components/common/Modal/Modal';
 import { AdditionalDetailsSection } from '@/components/core/UpdatesPanel/IrlGatheringModal/components/AdditionalDetailsSection';
 import { DatePickerView } from '@/components/core/UpdatesPanel/IrlGatheringModal/components/DatePickerView';
-import { EventsPickerView } from '@/components/core/UpdatesPanel/IrlGatheringModal/components/EventsPickerView';
 import { GatheringDetails } from '@/components/core/UpdatesPanel/IrlGatheringModal/components/GatheringDetails';
 import { PlanningSection } from '@/components/core/UpdatesPanel/IrlGatheringModal/components/PlanningSection';
 import { TopicsPickerView } from '@/components/core/UpdatesPanel/IrlGatheringModal/components/TopicsPickerView';
 import { buildEventsLink } from '@/components/core/UpdatesPanel/IrlGatheringModal/helpers';
 import { useIrlGatheringModal } from '@/components/core/UpdatesPanel/IrlGatheringModal/hooks/useIrlGatheringModal';
 import m from '@/components/core/UpdatesPanel/IrlGatheringModal/IrlGatheringModal.module.scss';
-import type {
-  EventData,
-  EventRoleSelection,
-  IrlGatheringFormData,
-} from '@/components/core/UpdatesPanel/IrlGatheringModal/types';
-import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
-import type { EventDetail, MyGatheringPlans } from '@/services/events/event-drawer.types';
+import type { IrlGatheringFormData } from '@/components/core/UpdatesPanel/IrlGatheringModal/types';
+import type { EventDetail, EventRoleName, MyGatheringPlans } from '@/services/events/event-drawer.types';
 import type { ITeam } from '@/types/teams.types';
 
 import { AttendeesModal, type EventAttendeesState } from './AttendeesModal';
-import { BackIcon, EventSummary, HostIcon, Label, PinLabelIcon } from './EventSummary';
+import { BackIcon, EventSummary, Label, PinLabelIcon } from './EventSummary';
 import e from './EventDrawer.module.scss';
+import { RsvpCard } from './RsvpCard';
+import r from './RsvpCard.module.scss';
 
 export type EventDrawerStatus = 'loading' | 'error' | 'not-found' | 'ready';
-export type EventDrawerStep = 'ask' | 'plans';
+/** `event`: the event with its going card. `plans`: the "Add your plans" sub-view (the owner's "Edit details"). */
+export type EventDrawerStep = 'event' | 'plans';
 
-/** What the plans step hands to Save. */
+/** What the plans sub-view hands to Save (LAB-3234: this event's role, the stay, topics, and the details). */
 export interface EventPlansValues {
-  selectedEventUids: string[];
-  eventRoles: EventRoleSelection[];
+  roles: EventRoleName[];
   topics: string[];
   reason: string;
   teamUid: string | null;
   telegramId: string;
   officeHours: string;
   dateRange: [Date, Date] | null;
-  showOnProfile: boolean;
 }
 
 export interface EventGoingNotice {
   eventName: string;
-  showOnProfile: boolean;
 }
 
 export interface EventDrawerViewProps {
@@ -67,9 +60,11 @@ export interface EventDrawerViewProps {
   onClose: () => void;
   onRetry?: () => void;
   onAttendeesOpen?: () => void;
-  /** "Yes, I'm going". Resolves `true` when saved; on `false` the drawer stays on the question. */
-  onYes: (showOnProfile: boolean) => Promise<boolean>;
-  /** The plans step's Save. Resolves `true` when saved; on `false` the drawer stays open with the values. */
+  /** "Yes, I'm going". Resolves `true` when saved; on `false` the card still asks. */
+  onYes: () => Promise<boolean>;
+  /** "Mark as not going": this event only. Resolves `true` when removed. */
+  onNotGoing: () => Promise<boolean>;
+  /** The plans sub-view's Save. Resolves `true` when saved; on `false` it stays open with the values. */
   onSave: (values: EventPlansValues) => Promise<boolean>;
   /** The drawer closed after the member said they are going (the host shows the toast). */
   onGoing?: (notice: EventGoingNotice) => void;
@@ -166,25 +161,27 @@ function DrawerStates({ status, onClose, onRetry }: Pick<EventDrawerViewProps, '
   );
 }
 
-function toEventData(event: { uid: string; name: string; startDate: string; endDate: string }): EventData {
-  return {
-    uid: event.uid,
-    name: event.name,
-    slug: '',
-    startDate: event.startDate,
-    endDate: event.endDate,
-    logoUrl: null,
-    attendeeCount: 0,
-    websiteUrl: null,
-  };
-}
-
 function parseDay(value: string | null): Date | null {
   if (!value) return null;
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+const ROLE_OPTIONS: EventRoleName[] = ['Host', 'Speaker', 'Sponsor'];
+
+/** This event's roles from the viewer's rows, without plain attendance. */
+function rolesFor(event: EventDetail, plans: MyGatheringPlans | null): EventRoleName[] {
+  const fromRows = plans?.eventRoles.find((r) => r.eventUid === event.uid)?.roles;
+  const roles = (fromRows ?? event.viewer?.roles ?? []) as string[];
+  return ROLE_OPTIONS.filter((role) => roles.includes(role));
+}
+
+/**
+ * One event per drawer (LAB-3234, the Nov 12 standup). The going card answers in place ("Are you going?" →
+ * "You're going"); "Add your plans" opens a sub-view for this event's role, the stay and topics, whose Back, Cancel
+ * and Save all return to the event (Polina's 2026-11-12 prototype). There is no event picker and no "Show on my
+ * profile": going is always visible to signed-in members. The "is on your profile" toast waits for the drawer to close.
+ */
 function EventFlow({
   event,
   canMarkGoing,
@@ -192,49 +189,35 @@ function EventFlow({
   plans,
   member,
   attendees,
-  initialStep = 'ask',
+  initialStep = 'event',
   saving,
   onClose,
   onAttendeesOpen,
   onYes,
+  onNotGoing,
   onSave,
   onGoing,
   drawerCloseRef,
 }: EventDrawerViewProps & { event: EventDetail; drawerCloseRef: MutableRefObject<() => void> }) {
   const gathering = event.gathering;
   const wasGoing = !!event.viewer;
-  const [step, setStep] = useState<EventDrawerStep>(
-    canMarkGoing && (wasGoing || initialStep === 'plans') ? 'plans' : 'ask',
-  );
-  const [showOnProfile, setShowOnProfile] = useState(event.viewer?.showOnProfile ?? true);
+  const [going, setGoing] = useState(wasGoing);
   const [justMarked, setJustMarked] = useState(false);
+  const [step, setStep] = useState<EventDrawerStep>(
+    canMarkGoing && wasGoing && initialStep === 'plans' ? 'plans' : 'event',
+  );
   const [showAttendees, setShowAttendees] = useState(false);
+  const [roles, setRoles] = useState<EventRoleName[]>(() => rolesFor(event, plans));
 
-  // The gathering's events a member can still pick: the ones not over yet, and always this one.
-  const pickable = useMemo(() => {
-    const now = Date.now();
-    const list = (gathering?.events ?? []).filter(
-      (ev) => ev.uid === event.uid || new Date(ev.endDate).getTime() >= now,
-    );
-    return list.some((ev) => ev.uid === event.uid) ? list : [event, ...list];
-  }, [gathering, event]);
-  const eventData = useMemo(() => pickable.map(toEventData), [pickable]);
-
-  const formDefaults = (withCurrent: boolean): IrlGatheringFormData => {
-    const uids = plans?.eventUids ?? [];
-    const roles = plans?.eventRoles ?? [];
-    const addCurrent = withCurrent && !uids.includes(event.uid);
-    return {
-      topics: plans?.topics ?? [],
-      selectedEventUids: addCurrent ? [...uids, event.uid] : uids,
-      eventRoles: addCurrent ? [...roles, { eventUid: event.uid, roles: ['Attendee'] }] : roles,
-      additionalDetails: plans?.reason ?? '',
-      telegramHandle: plans?.telegramId ?? '',
-      officeHours: plans?.officeHours ?? '',
-    };
-  };
-
-  const methods = useForm<IrlGatheringFormData>({ defaultValues: formDefaults(wasGoing) });
+  const formDefaults = (): IrlGatheringFormData => ({
+    topics: plans?.topics ?? [],
+    selectedEventUids: [],
+    eventRoles: [],
+    additionalDetails: plans?.reason ?? '',
+    telegramHandle: plans?.telegramId ?? '',
+    officeHours: plans?.officeHours ?? '',
+  });
+  const methods = useForm<IrlGatheringFormData>({ defaultValues: formDefaults() });
 
   const initialDateRange = useMemo<[Date, Date] | null>(() => {
     const start = parseDay(plans?.checkInDate ?? null);
@@ -247,21 +230,16 @@ function EventFlow({
     isOpen: step === 'plans',
   });
 
-  const selectedEventUids = methods.watch('selectedEventUids') || [];
-  const eventRoles = methods.watch('eventRoles') || [];
-  const selectedEvents = selectedEventUids
-    .map((uid) => eventData.find((ev) => ev.uid === uid))
-    .filter((ev): ev is EventData => !!ev)
-    .map((ev) => ({ uid: ev.uid, name: ev.name }));
-
   const city = gathering?.city ?? '';
   const planningQuestion = `What are you planning for ${city}?`;
-  const count = event.goingCount + (justMarked && !event.viewer ? 1 : 0);
+  // The count is the server's until a refetch lands: add or take away the viewer's own answer from this drawer.
+  const count = Math.max(0, event.goingCount + (going && !wasGoing ? 1 : 0) - (!going && wasGoing ? 1 : 0));
   const gatheringRange = useMemo(() => {
-    const starts = pickable.map((ev) => ev.startDate).sort();
-    const ends = pickable.map((ev) => ev.endDate).sort();
+    const list = gathering?.events.length ? gathering.events : [event];
+    const starts = list.map((ev) => ev.startDate).sort();
+    const ends = list.map((ev) => ev.endDate).sort();
     return { start: starts[0], end: ends[ends.length - 1] };
-  }, [pickable]);
+  }, [gathering, event]);
 
   // Teams for the additional details. The team of the member's existing rows is preselected: the section picks
   // the one flagged `mainTeam`.
@@ -270,38 +248,47 @@ function EventFlow({
     return member.teams.map((t) => ({ ...t, mainTeam: t.id === plans.teamUid }));
   }, [member.teams, plans]);
 
-  const finish = (notice: EventGoingNotice | null) => {
+  const close = () => {
     onClose();
-    if (notice) onGoing?.(notice);
+    if (justMarked && going) onGoing?.({ eventName: event.name });
   };
-  const close = () => finish(justMarked ? { eventName: event.name, showOnProfile } : null);
+
+  const openPlans = () => {
+    methods.reset(formDefaults());
+    setRoles(rolesFor(event, plans));
+    setStep('plans');
+  };
+  const backToEvent = () => setStep('event');
 
   const handleYes = async () => {
     if (saving) return;
-    const saved = await onYes(showOnProfile);
-    if (!saved) return;
-    methods.reset(formDefaults(true));
+    if (!(await onYes())) return;
+    setGoing(true);
     setJustMarked(true);
-    setStep('plans');
   };
+
+  const handleNotGoing = async () => {
+    if (saving) return;
+    if (!(await onNotGoing())) return;
+    setGoing(false);
+    setJustMarked(false);
+  };
+
+  const toggleRole = (role: EventRoleName) =>
+    setRoles((current) => (current.includes(role) ? current.filter((r) => r !== role) : [...current, role]));
 
   const handleSave = methods.handleSubmit(async (data) => {
     if (saving) return;
-    const values: EventPlansValues = {
-      selectedEventUids: data.selectedEventUids ?? [],
-      eventRoles: data.eventRoles ?? [],
+    const saved = await onSave({
+      roles,
       topics: data.topics ?? [],
       reason: data.additionalDetails ?? '',
       teamUid: data.selectedTeam?.value || null,
       telegramId: data.telegramHandle ?? '',
       officeHours: data.officeHours ?? '',
       dateRange: picker.selectedDateRange,
-      showOnProfile,
-    };
-    const saved = await onSave(values);
-    if (!saved) return;
-    const goingNow = values.selectedEventUids.includes(event.uid);
-    finish((justMarked || !wasGoing) && goingNow ? { eventName: event.name, showOnProfile } : null);
+    });
+    if (saved) backToEvent();
   });
 
   const openAttendees = () => {
@@ -338,30 +325,6 @@ function EventFlow({
       );
     }
 
-    if (picker.currentView === 'eventsPicker') {
-      return (
-        <Modal isOpen onClose={picker.handleEventsPickerCancel} overlayClassname={m.modalOverlay}>
-          <EventsPickerView
-            planningQuestion={planningQuestion}
-            locationName={city}
-            timezone={event.timezone}
-            events={eventData}
-            initialSelectedEventUids={selectedEventUids}
-            initialEventRoles={eventRoles}
-            onCancel={picker.handleEventsPickerCancel}
-            onApply={(uids, roles) =>
-              picker.handleEventsPickerApply(
-                uids,
-                roles,
-                (u) => methods.setValue('selectedEventUids', u),
-                (r) => methods.setValue('eventRoles', r),
-              )
-            }
-          />
-        </Modal>
-      );
-    }
-
     if (showAttendees) {
       return (
         <AttendeesModal
@@ -377,95 +340,90 @@ function EventFlow({
   };
   const overlay = renderOverlay();
 
-  // While a picker or the people list is open above it, Escape and the backdrop belong to that (design D7).
+  // Escape and the backdrop: a picker or the people list first (design D7), then the plans sub-view, then the drawer.
   useEffect(() => {
-    drawerCloseRef.current = overlay ? NOOP : close;
+    drawerCloseRef.current = overlay ? NOOP : step === 'plans' ? backToEvent : close;
   });
-
-  const consent = (
-    <label className={e.consent}>
-      <Checkbox checked={showOnProfile} onChange={setShowOnProfile} aria-labelledby="going-consent-label" />
-      <span className={e.consentText}>
-        <span id="going-consent-label" className={e.consentLabel}>
-          Show on my profile
-        </span>
-        <span className={e.consentHint}>Signed-in members will see {event.name} on your profile.</span>
-      </span>
-    </label>
-  );
 
   return (
     <>
       <FormProvider {...methods}>
         <form onSubmit={handleSave} className={e.root} onKeyDown={(ev) => ev.key === 'Enter' && ev.preventDefault()}>
           <div className={e.backBar}>
-            <button type="button" className={e.back} onClick={close}>
+            <button type="button" className={e.back} onClick={step === 'plans' ? backToEvent : close}>
               <BackIcon />
-              <span>Back</span>
+              <span>{step === 'plans' ? 'Back to event' : 'Back'}</span>
             </button>
           </div>
 
           <div className={e.body}>
-            <EventSummary event={event} />
-
-            {gathering && (
-              <div className={e.block}>
-                <Label icon={<PinLabelIcon />}>{city} gathering</Label>
-                <div className={e.gatheringLinks}>
-                  <GatheringDetails
-                    dateRange={event.dateLine}
-                    location={city}
-                    eventsLink={buildEventsLink(gathering.location, event.startDate)}
-                    eventsCount={gathering.events.length}
-                    resources={gathering.resources}
-                  />
-                </div>
-              </div>
-            )}
-
-            <div className={e.block}>
-              <Label icon={<HostIcon />}>Attendees</Label>
-              {count > 0 ? (
-                <div className={m.attendeesRow}>
-                  {event.faces.length > 0 && (
-                    <div className={m.avatarGroup}>
-                      {event.faces.slice(0, 3).map((face) => (
-                        <div key={face.uid} className={m.avatar}>
-                          <img src={face.image || getDefaultAvatar(face.name)} alt="" width={24} height={24} />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  <button type="button" className={m.linkButton} onClick={openAttendees}>
-                    {count} {count === 1 ? 'Person' : 'People'} going
-                  </button>
-                </div>
-              ) : (
-                <p className={e.emptyNote}>Nobody has said they are going yet.</p>
-              )}
-            </div>
-
-            {canMarkGoing && step === 'ask' && (
-              <div className={e.askBlock}>
-                <div>
-                  <div className={m.step1Title}>Are you going to {event.name}?</div>
-                  <div className={m.step1Subtitle}>Let others know if you are attending.</div>
-                </div>
-                {consent}
-              </div>
-            )}
-
-            {canMarkGoing && step === 'plans' && (
+            {step === 'event' && (
               <>
+                <EventSummary
+                  event={event}
+                  beforeAgenda={
+                    <RsvpCard
+                      count={count}
+                      faces={event.faces}
+                      going={going}
+                      canMarkGoing={canMarkGoing}
+                      city={gathering?.city ?? null}
+                      registerUrl={event.websiteUrl}
+                      saving={saving}
+                      onOpenAttendees={openAttendees}
+                      onYes={handleYes}
+                      onNotGoing={handleNotGoing}
+                      onOpenPlans={openPlans}
+                    />
+                  }
+                />
+
+                {gathering && (
+                  <div className={e.block}>
+                    <Label icon={<PinLabelIcon />}>{city} gathering</Label>
+                    <div className={e.gatheringLinks}>
+                      <GatheringDetails
+                        dateRange={event.dateLine}
+                        location={city}
+                        eventsLink={buildEventsLink(gathering.location, event.startDate)}
+                        eventsCount={gathering.events.length}
+                        resources={gathering.resources}
+                      />
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {step === 'plans' && (
+              <>
+                <h2 className={r.plansHeading}>{city ? `Your plans for ${city}` : 'Your plans'}</h2>
+                <fieldset className={r.roleField}>
+                  <legend className={r.roleLabel}>Your role at {event.name}</legend>
+                  <span className={r.roleHint}>Leave empty if you&apos;re attending.</span>
+                  <div className={r.roleChips}>
+                    {ROLE_OPTIONS.map((role) => (
+                      <button
+                        key={role}
+                        type="button"
+                        className={r.roleChip}
+                        aria-pressed={roles.includes(role)}
+                        onClick={() => toggleRole(role)}
+                      >
+                        {role}
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
                 <PlanningSection
                   planningQuestion={planningQuestion}
                   selectedDateRange={picker.selectedDateRange}
                   selectedTopics={picker.selectedTopics}
-                  selectedEvents={selectedEvents}
-                  events={eventData}
+                  selectedEvents={[]}
+                  events={[]}
                   onDateInputClick={picker.handleOpenDatePicker}
                   onTopicsInputClick={picker.handleOpenTopicsPicker}
-                  onEventsInputClick={picker.handleOpenEventsPicker}
+                  onEventsInputClick={NOOP}
                   isLoggedIn
                 />
                 <AdditionalDetailsSection
@@ -474,28 +432,22 @@ function EventFlow({
                   officeHours={plans?.officeHours || member.officeHours}
                   defaultExpanded={false}
                 />
-                {consent}
               </>
             )}
           </div>
 
-          {/* Keyed per step: without it React reuses the "Yes" button as "Save", and its type turns to submit
-                in the middle of the click (prototype note). */}
-          {canMarkGoing && step === 'ask' && (
-            <div key="ask" className={e.footer}>
-              <Button type="button" style="border" variant="neutral" size="s" className={e.footerBtn} onClick={onClose}>
-                No
-              </Button>
-              <Button type="button" size="s" className={e.footerBtn} onClick={handleYes} disabled={saving}>
-                Yes, I&apos;m going
-              </Button>
-            </div>
-          )}
-          {canMarkGoing && step === 'plans' && (
-            <div key="details" className={e.footer}>
-              {/* The answer was saved by "Yes", so right after it this leaves rather than cancels. */}
-              <Button type="button" style="border" variant="neutral" size="s" className={e.footerBtn} onClick={close}>
-                {justMarked ? 'Skip' : 'Cancel'}
+          {/* The event step has no footer: its presses are in the card. Cancel and Save return to the event. */}
+          {step === 'plans' && (
+            <div key="plans" className={e.footer}>
+              <Button
+                type="button"
+                style="border"
+                variant="neutral"
+                size="s"
+                className={e.footerBtn}
+                onClick={backToEvent}
+              >
+                Cancel
               </Button>
               <Button type="submit" size="s" className={e.footerBtn} disabled={saving}>
                 Save

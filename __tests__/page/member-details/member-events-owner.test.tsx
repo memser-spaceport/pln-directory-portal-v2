@@ -18,9 +18,7 @@ jest.mock('@/components/page/events/EventDrawer', () => ({
     return props.eventUid ? (
       <div data-testid={`event-drawer-${props.source}`}>
         {props.eventUid} at {props.initialStep ?? 'start'}
-        <button onClick={() => props.onGoing?.({ eventName: 'IPFS Camp', showOnProfile: true })}>
-          {"Yes, I'm going"}
-        </button>
+        <button onClick={() => props.onGoing?.({ eventName: 'IPFS Camp' })}>{"Yes, I'm going"}</button>
       </div>
     ) : null;
   },
@@ -47,10 +45,8 @@ const settle = (options?: MutateOptions) => {
   else options?.onError?.(new Error('nope'));
   options?.onSettled?.();
 };
-const mockSetShow = jest.fn((_vars: unknown, options?: MutateOptions) => settle(options));
 const mockRemove = jest.fn((_vars: unknown, options?: MutateOptions) => settle(options));
 jest.mock('@/services/events/hooks/useEventDrawerMutations', () => ({
-  useSetShowOnProfile: () => ({ mutate: mockSetShow, isPending: false }),
   useRemoveGoing: () => ({ mutate: mockRemove, isPending: false }),
 }));
 
@@ -198,15 +194,15 @@ describe('OwnerMemberEventsSection (LAB-3218)', () => {
         />,
       );
       expect(screen.queryByText('No upcoming events on your profile yet.')).not.toBeInTheDocument();
-      expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Past events');
+      expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(/^Events$/);
     });
   });
 
   describe('⋯ menu', () => {
-    it('lists Edit details, Hide from my profile and Remove, in that order', () => {
+    it('lists Edit details and Remove, and no hide (LAB-3234)', () => {
       renderSection();
       openMenu('FIL Berlin');
-      expect(menuItems()).toEqual(['Edit details', 'Hide from my profile', 'Remove']);
+      expect(menuItems()).toEqual(['Edit details', 'Remove']);
     });
 
     it('is only on upcoming cards', () => {
@@ -214,11 +210,10 @@ describe('OwnerMemberEventsSection (LAB-3218)', () => {
       expect(screen.getAllByRole('button', { name: /^Actions for / })).toHaveLength(UPCOMING.length);
     });
 
-    it('without the write permission offers only Hide / Show', () => {
+    it('without the write permission there is no menu', () => {
       mockCanWrite = false;
       renderSection();
-      openMenu('FIL Berlin');
-      expect(menuItems()).toEqual(['Hide from my profile']);
+      expect(screen.queryByRole('button', { name: /^Actions for / })).not.toBeInTheDocument();
     });
 
     it('Edit details opens the drawer at the plans step', () => {
@@ -228,45 +223,10 @@ describe('OwnerMemberEventsSection (LAB-3218)', () => {
       expect(screen.getByTestId('event-drawer-member-profile')).toHaveTextContent('up-1 at plans');
     });
 
-    it('Owner hides an event: no confirm, the PATCH, the analytics event, then the pill once the read is back', () => {
-      const { rerender } = renderSection();
+    it('an event saved as hidden before LAB-3234 shows no pill', () => {
+      renderSection({ upcoming: [{ ...UPCOMING[0], showOnProfile: false }, UPCOMING[1]], upcomingTotal: 2 });
       expect(screen.queryByText('Only visible to you')).not.toBeInTheDocument();
-
-      openMenu('FIL Berlin');
-      fireEvent.click(screen.getByRole('menuitem', { name: 'Hide from my profile' }));
-
-      expect(screen.queryByRole('heading', { name: /^Remove/ })).not.toBeInTheDocument();
-      expect(mockSetShow).toHaveBeenCalledWith({ eventUid: 'up-1', showOnProfile: false }, expect.any(Object));
-      expect(captured('event-show-on-profile-toggled')).toEqual([
-        expect.objectContaining({ event_uid: 'up-1', show_on_profile: false, from: 'profile-menu' }),
-      ]);
-
-      const hidden = [{ ...UPCOMING[0], showOnProfile: false }, UPCOMING[1]];
-      rerender(
-        <OwnerMemberEventsSection
-          memberUid="me"
-          firstName="Ana"
-          upcoming={hidden}
-          upcomingTotal={2}
-          past={PAST}
-          pastTotal={PAST.length}
-        />,
-      );
-      const card = screen.getByRole('button', { name: /^FIL Berlin,/ }).closest('li')!;
-      expect(within(card).getByText('Only visible to you')).toBeInTheDocument();
-      expect(screen.getAllByText('Only visible to you')).toHaveLength(1);
-
-      openMenu('FIL Berlin');
-      expect(screen.getByRole('menuitem', { name: 'Show on my profile' })).toBeInTheDocument();
-    });
-
-    it('a failed hide says so and leaves the card as it was', () => {
-      mockMutationOutcome = 'error';
-      renderSection();
-      openMenu('FIL Berlin');
-      fireEvent.click(screen.getByRole('menuitem', { name: 'Hide from my profile' }));
-      expect(mockToastError).toHaveBeenCalledWith("We couldn't hide FIL Berlin from your profile. Try again.");
-      expect(screen.queryByText('Only visible to you')).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /^FIL Berlin,/ })).toBeInTheDocument();
     });
 
     it('Owner removes an event: confirm with the spec copy, one event removed, toast and analytics', () => {
@@ -322,14 +282,7 @@ describe('OwnerMemberEventsSection (LAB-3218)', () => {
         fireEvent.keyDown(screen.getByRole('menu'), { key: 'Escape' });
       });
       expect(screen.queryByRole('menu')).not.toBeInTheDocument();
-      expect(mockSetShow).not.toHaveBeenCalled();
       expect(mockRemove).not.toHaveBeenCalled();
     });
-  });
-
-  it('a hidden event without the write permission still shows the pill', () => {
-    mockCanWrite = false;
-    renderSection({ upcoming: [memberEvent({ uid: 'h', name: 'Quiet One', showOnProfile: false })], upcomingTotal: 1 });
-    expect(screen.getByText('Only visible to you')).toBeInTheDocument();
   });
 });

@@ -57,6 +57,7 @@ const meta = {
     onAttendeesOpen: fn(),
     onGoing: fn(),
     onYes: fn(async () => true),
+    onNotGoing: fn(async () => true),
     onSave: fn(async () => true),
   },
 } satisfies Meta<typeof Harness>;
@@ -64,19 +65,19 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** A member with attendance permission who is not going: the question, "Show on my profile" ticked. */
+/** A member with attendance permission who is not going: the card asks "Are you going?". */
 export const NotGoing: Story = {};
 
-/** Already going: opens on the plans step, with Cancel / Save and their own "Show on my profile". */
+/** Already going: the card says "You're going", with "Add your plans" and "Mark as not going". */
 export const Going: Story = {
   args: {
-    raw: eventResponse({ viewerGoing: true, viewer: { showOnProfile: false, roles: [] } }),
+    raw: eventResponse({ viewerGoing: true, viewer: { showOnProfile: true, roles: [] } }),
     plans: GOING_PLANS,
   },
 };
 
-/** Right after "Yes, I'm going": the plans step with Skip / Save. */
-export const PlansAfterYes: Story = {
+/** Right after "Yes, I'm going": the card turns to "You're going" in place. */
+export const JustMarkedGoing: Story = {
   play: async () => {
     await userEvent.click(within(document.body).getByRole('button', { name: "Yes, I'm going" }));
   },
@@ -90,16 +91,26 @@ export const YesFails: Story = {
   },
 };
 
+/** The plans sub-view ("Add your plans" or the owner's "Edit details"): role chips, stay, topics, details. */
+export const Plans: Story = {
+  args: {
+    raw: eventResponse({ viewerGoing: true, viewer: { showOnProfile: true, roles: ['Speaker'] } }),
+    plans: GOING_PLANS,
+    initialStep: 'plans',
+  },
+};
+
 /** Save fails: the plans stay open with the member's values. */
 export const SaveFails: Story = {
   args: {
     raw: eventResponse({ viewerGoing: true, viewer: { showOnProfile: true, roles: [] } }),
     plans: GOING_PLANS,
+    initialStep: 'plans',
     onSave: fn(async () => false),
   },
 };
 
-/** Signed in without `irlg.going.write` (investors, job aspirants): the event and attendees only. */
+/** Signed in without `irlg.going.write` (investors, job aspirants): "Who's going", no question. */
 export const NoWritePermission: Story = {
   args: { canMarkGoing: false, plans: null },
 };
@@ -112,7 +123,7 @@ export const SignedOut: Story = {
 /** The attendee list above the drawer, "You" first. Try "lighthouse", then "zzz" for the empty search. */
 export const AttendeesList: Story = {
   play: async () => {
-    await userEvent.click(within(document.body).getByRole('button', { name: '40 People going' }));
+    await userEvent.click(within(document.body).getByRole('button', { name: '40 members going' }));
   },
 };
 

@@ -75,9 +75,7 @@ While the event loads, the drawer SHALL keep the Back bar and the "EVENT DETAILS
 
 ### Requirement: The drawer shows the gathering and the event's attendees
 
-Below the event, the drawer SHALL show:
-- the gathering's links (its schedule, its resources such as Telegram and shared notes, and the number of its events);
-- "Attendees", with up to three faces and "N People going" ("1 Person going" for one).
+The drawer SHALL show a going card before the agenda (LAB-3225) with up to three faces and "N members going" ("1 member going" for one), and below the event the gathering's links (its schedule, its resources such as Telegram and shared notes, and the number of its events). When the event has its own page, the card SHALL have "Register", which opens that page in a new tab.
 
 N SHALL count the members going to this event only. Members who said they are going to the gathering as a whole without naming an event SHALL NOT count.
 
@@ -85,58 +83,53 @@ N SHALL count the members going to this event only. Members who said they are go
 
 - **GIVEN** 12 members going to event A, and 5 members going to A's gathering without naming an event
 - **WHEN** a member opens event A
-- **THEN** the drawer reads "12 People going"
+- **THEN** the drawer reads "12 members going"
 
 #### Scenario: One member going
 
 - **GIVEN** one member going to event A
 - **WHEN** a member opens event A
-- **THEN** the drawer reads "1 Person going"
+- **THEN** the drawer reads "1 member going"
 
 #### Scenario: Nobody going yet
 
 - **GIVEN** an event nobody has said they are going to
 - **WHEN** a member opens it
-- **THEN** the Attendees block reads "Nobody has said they are going yet." instead of a count
+- **THEN** the going card reads "Nobody has said they are going yet." instead of a count
 
 ### Requirement: The attendee list is for one event and searchable
 
-"N People going" SHALL open the list of that event's attendees above the drawer, titled "N going to <event>". It SHALL show the viewer first as "You" when they are going. Each other row SHALL show the member's photo, name, role and team, with a Host, Speaker or Sponsor tag when they have that role at this event. A row SHALL open that member's profile in a new tab.
+The count SHALL open the list of that event's attendees above the drawer, titled "N going to <event>". It SHALL show the viewer first as "You" when they are going. Each other row SHALL show the member's photo, name, role and team, with a Host, Speaker or Sponsor tag when they have that role at this event. A row SHALL open that member's profile in a new tab.
 
 A search box SHALL filter by name or team. With no match, the list SHALL say "Nobody going matches that search."
 
 #### Scenario: Searching the list
 
 - **GIVEN** an event with 40 attendees, three of them on the team "Lighthouse"
-- **WHEN** the member opens "40 People going" and types "lighthouse"
+- **WHEN** the member opens "40 members going" and types "lighthouse"
 - **THEN** the list shows those three members
 - **AND** closing the list returns to the drawer
 
 ### Requirement: A member says they are going to this event
 
-A signed-in member with permission to mark attendance SHALL be asked whether they are going, with a "Show on my profile" checkbox that is ticked by default, and "No" / "Yes, I'm going". "No" SHALL close the drawer without saving. "Yes, I'm going" SHALL save attendance for this one event only, with the checkbox's value, and leave the member's other events unchanged.
+The drawer SHALL be about one event (LAB-3234). A signed-in member with permission to mark attendance SHALL see the going card ask "Are you going?" with "Yes, I'm going". "Yes, I'm going" SHALL save attendance for this one event only and leave the member's other events unchanged. The card SHALL then read "You're going" in place, with "You and N members" (or "You're the first one going"), "Add your plans for <city>" and "Can't make it? Mark as not going". "Mark as not going" SHALL remove this event only.
+
+Going SHALL always be visible to signed-in members: there is no "Show on my profile" choice.
 
 #### Scenario: The question
 
 - **GIVEN** a member with attendance permission who is not going to "Lisbon Founders Day"
 - **WHEN** they open it
-- **THEN** the drawer asks "Are you going to Lisbon Founders Day?" with "Let others know if you are attending."
-- **AND** "Show on my profile" is ticked, with "Signed-in members will see Lisbon Founders Day on your profile."
-- **AND** the footer has "No" and "Yes, I'm going"
+- **THEN** the going card asks "Are you going?" with "Yes, I'm going"
+- **AND** there is no "No" button and no "Show on my profile" checkbox
 
-#### Scenario: Going, shown on the profile
+#### Scenario: Going
 
 - **GIVEN** a member with attendance permission who is not going to event A
-- **WHEN** they open event A and press "Yes, I'm going" with "Show on my profile" ticked
-- **THEN** they are saved as going to event A, shown on their profile
-- **AND** the attendee count goes up by one and the list shows them as "You"
-
-#### Scenario: Going, not shown on the profile
-
-- **GIVEN** a member with attendance permission
-- **WHEN** they untick "Show on my profile" and press "Yes, I'm going" on event A
+- **WHEN** they open event A and press "Yes, I'm going"
 - **THEN** they are saved as going to event A
-- **AND** other members don't see event A on their profile
+- **AND** the card reads "You're going" and the count goes up by one
+- **AND** the drawer stays on the event
 
 #### Scenario: Other events at the same gathering are kept
 
@@ -144,75 +137,67 @@ A signed-in member with permission to mark attendance SHALL be asked whether the
 - **WHEN** they say yes to event A
 - **THEN** they are going to both A and B
 
+#### Scenario: Marking as not going
+
+- **GIVEN** a member going to events A and B at one gathering
+- **WHEN** they open A and press "Mark as not going"
+- **THEN** they are no longer going to A and still going to B
+- **AND** the card asks "Are you going?" again
+
 #### Scenario: Saving fails
 
 - **GIVEN** the attendance request fails
 - **WHEN** the member presses "Yes, I'm going"
-- **THEN** an error toast shows and the drawer stays on the question
+- **THEN** an error toast shows and the card still asks
 - **AND** the attendee count does not change
 
 ### Requirement: Members who cannot mark attendance see the event only
 
-A signed-in member without permission to mark attendance SHALL see the event, the gathering links and the attendees, and SHALL NOT see the question, the checkbox or the footer buttons.
+A signed-in member without permission to mark attendance SHALL see the event, the gathering links and the attendees in a "Who's going" card, and SHALL NOT see the question or any button that saves.
 
 #### Scenario: Member without attendance permission
 
 - **GIVEN** a signed-in member without `irlg.going.write` or directory admin
 - **WHEN** they open an event
-- **THEN** the drawer shows the event and "N People going"
-- **AND** there is no "Are you going" question and no "Yes, I'm going" button
+- **THEN** the drawer shows the event and "Who's going" with "N members going"
+- **AND** there is no "Are you going?" question and no "Yes, I'm going" button
 
-### Requirement: The member adds their plans after saying yes
+### Requirement: The member adds their plans for the event
 
-After "Yes, I'm going", and whenever a member opens an event they are already going to, the drawer SHALL show the plans step. It asks "What are you planning for <city>?" (dates, topics, the gathering's events and the member's role at each), the additional details (team, Telegram, office hours, notes) and "Show on my profile". The footer reads "Skip" right after a yes, "Cancel" otherwise, then "Save". Pickers open as modals above the drawer.
+"Add your plans for <city>" SHALL open the plans sub-view inside the drawer, titled "Your plans for <city>", with "Back to event". It SHALL show the member's role at this event as Host, Speaker and Sponsor chips (any number; none means attending), "What are you planning for <city>?" with dates and topics, and the additional details (team, Telegram, office hours, notes). There SHALL be no events picker. "Cancel" and "Back to event" SHALL return to the event without saving; "Save" SHALL save in place and return to the event. The owner's "Edit details" on their profile SHALL open the drawer on this sub-view. Pickers open as modals above the drawer.
 
-#### Scenario: Adding another event of the gathering
+Save SHALL change the role of this event only. The dates, topics and details are the member's for the whole gathering.
 
-- **GIVEN** a member who just said yes to event A
-- **WHEN** they tick event B in the events picker, choose "Speaker" for it and press Save
-- **THEN** they are going to A and B, as Speaker at B
-- **AND** the drawer closes
+#### Scenario: Choosing a role
 
-#### Scenario: Skipping the plans
-
-- **GIVEN** a member who just said yes to event A
-- **WHEN** they press "Skip"
-- **THEN** the drawer closes and they stay going to event A
-
-#### Scenario: Unticking an event
-
-- **GIVEN** a member going to events A and B at one gathering
-- **WHEN** they open A, untick B in the events picker and press Save
-- **THEN** they are no longer going to B and still going to A
+- **GIVEN** a member going to events A and B at one gathering, as Speaker at B
+- **WHEN** they open A, choose "Host" in "Add your plans" and press Save
+- **THEN** they are Host at A and still Speaker at B
+- **AND** the drawer returns to event A
 
 #### Scenario: Saving the plans fails
 
-- **GIVEN** a member on the plans step who has changed their dates and topics
+- **GIVEN** a member in "Add your plans" who has changed their role and topics
 - **WHEN** they press Save and the request fails
-- **THEN** an error toast shows and the drawer stays open with their changes
-- **AND** pressing Save again does not create the events the failed attempt already saved
+- **THEN** an error toast shows and the sub-view stays open with their changes
 
 ### Requirement: Escape and the backdrop close the top layer first
 
-While a picker or the attendee list is open above the drawer, Escape and a click on the backdrop SHALL close only that layer and return to the drawer. With nothing above it, Escape and the backdrop SHALL close the drawer.
+While a picker or the attendee list is open above the drawer, Escape and a click on the backdrop SHALL close only that layer and return to the drawer. In "Add your plans" they SHALL return to the event. Otherwise they SHALL close the drawer.
 
 #### Scenario: Escape in the date picker
 
-- **GIVEN** the date picker is open above the drawer
-- **WHEN** the member presses Escape
-- **THEN** the date picker closes and the drawer stays open
+- **GIVEN** the date picker is open above "Add your plans"
+- **WHEN** the member presses Escape three times
+- **THEN** the date picker closes, then the drawer returns to the event, then the drawer closes
 
 ### Requirement: The drawer confirms what was saved
 
-When the drawer closes after a member said yes, the page that opened it SHALL show a toast:
-- "<event> is on your profile." when the event is shown on their profile;
-- "You're going to <event>." when it isn't.
-
-The opening page SHALL then show the member as going.
+When the drawer closes after a member said yes in it, and they are still going, the page that opened it SHALL show the toast "<event> is on your profile." The opening page SHALL then show the member as going.
 
 #### Scenario: Toast after a yes
 
-- **GIVEN** a member said yes to event A with "Show on my profile" ticked
+- **GIVEN** a member said yes to event A
 - **WHEN** they close the drawer
 - **THEN** a toast reads "A is on your profile."
 
@@ -220,10 +205,9 @@ The opening page SHALL then show the member as going.
 
 The drawer SHALL record these PostHog events, each with `event_uid`:
 - `event-drawer-opened`, with `source` (`home`, `member-profile`, `team-profile` or `add-event`);
-- `event-going-marked`, with `show_on_profile` and `source`;
-- `event-not-going-marked`, when Save removes an event;
-- `event-show-on-profile-toggled`, with `show_on_profile` and `from` (`drawer` or `profile-menu`);
-- `event-plans-saved`, with `events_count`;
+- `event-going-marked`, with `source`;
+- `event-not-going-marked`, on "Mark as not going";
+- `event-plans-saved`, with `roles`;
 - `event-attendees-opened`.
 
 #### Scenario: Going from Home

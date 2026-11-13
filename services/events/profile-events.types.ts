@@ -32,7 +32,7 @@ export interface ProfileEventFields {
   /** `location` up to its first comma ("Berlin"), applied by the BE (design D10). */
   city: string | null;
   roles: ProfileEventRole[];
-  /** Distinct members going, as the drawer's "N People going" counts them. */
+  /** Distinct members going, as the drawer's "N members going" counts them. */
   goingCount: number;
   /** Up to three of them. */
   faces: ProfileEventPerson[];
@@ -42,7 +42,10 @@ export interface ProfileEventFields {
 
 /** One of a member's events. */
 export interface MemberProfileEvent extends ProfileEventFields {
-  /** False only on the owner's own view of an event they hid; other viewers never get hidden events. */
+  /**
+   * False only on the owner's own view of an event hidden before LAB-3234, which removed hiding. Other viewers never get
+   * those rows, so the owner's view keeps them and draws them like any other.
+   */
   showOnProfile: boolean;
 }
 

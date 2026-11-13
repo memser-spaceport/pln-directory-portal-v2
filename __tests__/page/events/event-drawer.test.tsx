@@ -5,7 +5,6 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { EventDrawer } from '@/components/page/events/EventDrawer';
 import { GOING_PLANS, NO_PLANS, eventResponse } from '@/components/page/events/EventDrawer/EventDrawer.fixtures';
 import { useCurrentUserStore } from '@/services/auth/store';
-import { SavePlansError } from '@/services/events/hooks/useEventDrawerMutations';
 import type { EventDetailResponse, MyGatheringPlans } from '@/services/events/event-drawer.types';
 
 const flag = { on: true };
@@ -24,7 +23,6 @@ const analytics = {
   onEventDrawerOpened: jest.fn(),
   onEventGoingMarked: jest.fn(),
   onEventNotGoingMarked: jest.fn(),
-  onEventShowOnProfileToggled: jest.fn(),
   onEventPlansSaved: jest.fn(),
   onEventAttendeesOpened: jest.fn(),
 };
@@ -59,13 +57,13 @@ jest.mock('@/services/events/hooks/useEventDrawerQueries', () => ({
 }));
 
 const markGoing = { mutateAsync: jest.fn(), isPending: false };
-const savePlans = { mutateAsync: jest.fn(), isPending: false };
-const setShowOnProfile = { mutateAsync: jest.fn(), isPending: false };
+const removeGoing = { mutateAsync: jest.fn(), isPending: false };
+const updatePlans = { mutateAsync: jest.fn(), isPending: false };
 jest.mock('@/services/events/hooks/useEventDrawerMutations', () => ({
   ...jest.requireActual('@/services/events/hooks/useEventDrawerMutations'),
   useMarkGoing: () => markGoing,
-  useSavePlans: () => savePlans,
-  useSetShowOnProfile: () => setShowOnProfile,
+  useRemoveGoing: () => removeGoing,
+  useUpdateEventPlans: () => updatePlans,
 }));
 
 const yes = () => screen.getByRole('button', { name: "Yes, I'm going" });
@@ -87,12 +85,8 @@ describe('EventDrawer (LAB-3216)', () => {
     queries.attendeesEnabled = [];
     useCurrentUserStore.setState({ currentUser: { uid: 'viewer-1', name: 'Maya', leadingTeams: [] } as never });
     markGoing.mutateAsync.mockResolvedValue(undefined);
-    savePlans.mutateAsync.mockImplementation(async ({ existing, selected }) => ({
-      added: selected.filter((u: string) => !existing.includes(u)),
-      removed: existing.filter((u: string) => !selected.includes(u)),
-      kept: selected.filter((u: string) => existing.includes(u)),
-    }));
-    setShowOnProfile.mutateAsync.mockResolvedValue(undefined);
+    removeGoing.mutateAsync.mockResolvedValue(undefined);
+    updatePlans.mutateAsync.mockResolvedValue(undefined);
   });
 
   it('Flag off: the drawer never mounts', () => {
@@ -135,7 +129,7 @@ describe('EventDrawer (LAB-3216)', () => {
   it('signed out: the event and attendees, no question', () => {
     useCurrentUserStore.setState({ currentUser: null as never });
     render(<EventDrawer eventUid="labweek-lisbon" source="home" onClose={jest.fn()} />);
-    expect(screen.getByRole('button', { name: '40 People going' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '40 members going' })).toBeInTheDocument();
     expect(screen.queryByText(/Are you going/)).not.toBeInTheDocument();
   });
 
@@ -145,7 +139,7 @@ describe('EventDrawer (LAB-3216)', () => {
     expect(screen.queryByRole('button', { name: "Yes, I'm going" })).not.toBeInTheDocument();
   });
 
-  it('Going from Home: saves this one event with the checkbox value and records it', async () => {
+  it('Going from Home: saves this one event, always shown, and records it', async () => {
     render(<EventDrawer eventUid="labweek-lisbon" source="home" onClose={jest.fn()} />);
     await click(yes());
 
@@ -153,18 +147,14 @@ describe('EventDrawer (LAB-3216)', () => {
       locationUid: 'loc-lisbon',
       payload: expect.objectContaining({
         memberUid: 'viewer-1',
-        showOnProfile: true,
         officeHours: '',
         additionalInfo: { checkInDate: '2030-12-01', checkOutDate: '2030-12-05' },
         events: [{ uid: 'labweek-lisbon', isHost: false, isSpeaker: false, isSponsor: false }],
       }),
     });
-    expect(analytics.onEventGoingMarked).toHaveBeenCalledWith({
-      eventUid: 'labweek-lisbon',
-      showOnProfile: true,
-      source: 'home',
-    });
-    expect(screen.getByText(/Thanks for confirming/)).toBeInTheDocument();
+    expect(markGoing.mutateAsync.mock.calls[0][0].payload).not.toHaveProperty('showOnProfile');
+    expect(analytics.onEventGoingMarked).toHaveBeenCalledWith({ eventUid: 'labweek-lisbon', source: 'home' });
+    expect(screen.getByText("You're going")).toBeInTheDocument();
   });
 
   it('Other events at the same gathering are kept: "Yes" creates only this event', async () => {
@@ -183,106 +173,92 @@ describe('EventDrawer (LAB-3216)', () => {
     render(<EventDrawer eventUid="labweek-lisbon" source="home" onClose={jest.fn()} />);
     await click(yes());
     expect(toastError).toHaveBeenCalledWith('Boom');
-    expect(screen.getByText('Are you going to LabWeek Lisbon?')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '40 People going' })).toBeInTheDocument();
+    expect(screen.getByText('Are you going?')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '40 members going' })).toBeInTheDocument();
     expect(analytics.onEventGoingMarked).not.toHaveBeenCalled();
   });
 
-  it('Saving the plans after a yes: the new event counts as existing, then tells the host', async () => {
+  it('closing after a yes tells the host', async () => {
     const onClose = jest.fn();
     const onGoing = jest.fn();
     render(<EventDrawer eventUid="labweek-lisbon" source="home" onClose={onClose} onGoing={onGoing} />);
     await click(yes());
-    await click(screen.getByRole('button', { name: 'Save' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+    expect(onClose).toHaveBeenCalled();
+    expect(onGoing).toHaveBeenCalledWith({ eventName: 'LabWeek Lisbon' });
+  });
 
-    expect(savePlans.mutateAsync).toHaveBeenCalledWith(
-      expect.objectContaining({
+  describe('already going', () => {
+    beforeEach(() => {
+      queries.detail = {
+        data: eventResponse({ viewerGoing: true, viewer: { showOnProfile: true, roles: [] } }),
+        isError: false,
+        refetch: jest.fn(),
+      };
+      queries.plans = { data: GOING_PLANS, isError: false };
+    });
+
+    it('"Mark as not going" removes this event only, and records it', async () => {
+      render(<EventDrawer eventUid="labweek-lisbon" source="home" onClose={jest.fn()} />);
+      await click(screen.getByRole('button', { name: 'Mark as not going' }));
+      expect(removeGoing.mutateAsync).toHaveBeenCalledWith({
         locationUid: 'loc-lisbon',
         memberUid: 'viewer-1',
-        existing: ['labweek-lisbon'],
-        selected: ['labweek-lisbon'],
-        pickable: ['labweek-lisbon', 'libp2p-day', 'lisbon-founders-day'],
-        showOnProfile: true,
-      }),
-    );
-    expect(analytics.onEventPlansSaved).toHaveBeenCalledWith({ eventUid: 'labweek-lisbon', eventsCount: 1 });
-    expect(setShowOnProfile.mutateAsync).not.toHaveBeenCalled();
-    expect(onClose).toHaveBeenCalled();
-    expect(onGoing).toHaveBeenCalledWith({ eventName: 'LabWeek Lisbon', showOnProfile: true });
-  });
-
-  it('a partly failed save toasts, keeps the drawer, and a retry does not recreate what was saved', async () => {
-    queries.detail = {
-      data: eventResponse({ viewerGoing: true, viewer: { showOnProfile: true, roles: [] } }),
-      isError: false,
-      refetch: jest.fn(),
-    };
-    queries.plans = {
-      data: {
-        ...GOING_PLANS,
         eventUids: ['labweek-lisbon'],
-        eventRoles: [{ eventUid: 'labweek-lisbon', roles: ['Attendee'] }],
-      },
-      isError: false,
-    };
-    savePlans.mutateAsync.mockRejectedValueOnce(new SavePlansError('Half way', { added: ['libp2p-day'], removed: [] }));
-    const onClose = jest.fn();
-    render(<EventDrawer eventUid="labweek-lisbon" source="home" onClose={onClose} />);
-
-    await click(screen.getByRole('button', { name: 'Save' }));
-    expect(toastError).toHaveBeenCalledWith('Half way');
-    expect(onClose).not.toHaveBeenCalled();
-
-    await click(screen.getByRole('button', { name: 'Save' }));
-    expect(savePlans.mutateAsync.mock.calls[1][0].existing).toEqual(['labweek-lisbon', 'libp2p-day']);
-  });
-
-  it('changing "Show on my profile" on an event the member is going to toggles it', async () => {
-    queries.detail = {
-      data: eventResponse({ viewerGoing: true, viewer: { showOnProfile: true, roles: [] } }),
-      isError: false,
-      refetch: jest.fn(),
-    };
-    queries.plans = {
-      data: {
-        ...GOING_PLANS,
-        eventUids: ['labweek-lisbon'],
-        eventRoles: [{ eventUid: 'labweek-lisbon', roles: ['Attendee'] }],
-      },
-      isError: false,
-    };
-    const onGoing = jest.fn();
-    render(<EventDrawer eventUid="labweek-lisbon" source="member-profile" onClose={jest.fn()} onGoing={onGoing} />);
-
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Show on my profile' }));
-    await click(screen.getByRole('button', { name: 'Save' }));
-
-    expect(setShowOnProfile.mutateAsync).toHaveBeenCalledWith({ eventUid: 'labweek-lisbon', showOnProfile: false });
-    expect(analytics.onEventShowOnProfileToggled).toHaveBeenCalledWith({
-      eventUid: 'labweek-lisbon',
-      showOnProfile: false,
-      from: 'drawer',
+      });
+      expect(analytics.onEventNotGoingMarked).toHaveBeenCalledWith({ eventUid: 'labweek-lisbon' });
+      expect(screen.getByText('Are you going?')).toBeInTheDocument();
     });
-    expect(onGoing).not.toHaveBeenCalled();
-  });
 
-  it('records not-going for events the save removed', async () => {
-    queries.detail = {
-      data: eventResponse({ viewerGoing: true, viewer: { showOnProfile: true, roles: [] } }),
-      isError: false,
-      refetch: jest.fn(),
-    };
-    queries.plans = { data: GOING_PLANS, isError: false };
-    savePlans.mutateAsync.mockResolvedValue({ added: [], removed: ['libp2p-day'], kept: ['labweek-lisbon'] });
-    render(<EventDrawer eventUid="labweek-lisbon" source="home" onClose={jest.fn()} />);
-    await click(screen.getByRole('button', { name: 'Save' }));
-    expect(analytics.onEventNotGoingMarked).toHaveBeenCalledWith({ eventUid: 'libp2p-day' });
+    it('a failed "Mark as not going" toasts and keeps "You\'re going"', async () => {
+      removeGoing.mutateAsync.mockRejectedValue(new Error('nope'));
+      render(<EventDrawer eventUid="labweek-lisbon" source="home" onClose={jest.fn()} />);
+      await click(screen.getByRole('button', { name: 'Mark as not going' }));
+      expect(toastError).toHaveBeenCalledWith("We couldn't mark you as not going to LabWeek Lisbon. Try again.");
+      expect(analytics.onEventNotGoingMarked).not.toHaveBeenCalled();
+      expect(screen.getByText("You're going")).toBeInTheDocument();
+    });
+
+    it('Save in "Add your plans": one PATCH with this event\'s role and the shared plans', async () => {
+      render(<EventDrawer eventUid="labweek-lisbon" source="member-profile" onClose={jest.fn()} initialStep="plans" />);
+      fireEvent.click(screen.getByRole('button', { name: 'Speaker' }));
+      await click(screen.getByRole('button', { name: 'Save' }));
+
+      expect(updatePlans.mutateAsync).toHaveBeenCalledTimes(1);
+      expect(updatePlans.mutateAsync).toHaveBeenCalledWith({
+        locationUid: 'loc-lisbon',
+        eventUid: 'labweek-lisbon',
+        roles: ['Speaker'],
+        shared: {
+          teamUid: null,
+          topics: ['AI'],
+          reason: 'Happy to talk storage.',
+          telegramId: '@mayaokonkwo',
+          officeHours: '',
+          checkInDate: '2030-12-01',
+          checkOutDate: '2030-12-05',
+        },
+      });
+      expect(markGoing.mutateAsync).not.toHaveBeenCalled();
+      expect(removeGoing.mutateAsync).not.toHaveBeenCalled();
+      expect(analytics.onEventPlansSaved).toHaveBeenCalledWith({ eventUid: 'labweek-lisbon', roles: ['Speaker'] });
+      expect(screen.getByText("You're going")).toBeInTheDocument();
+    });
+
+    it('a failed plans save toasts and keeps the plans open', async () => {
+      updatePlans.mutateAsync.mockRejectedValue(new Error('Half way'));
+      render(<EventDrawer eventUid="labweek-lisbon" source="home" onClose={jest.fn()} initialStep="plans" />);
+      await click(screen.getByRole('button', { name: 'Save' }));
+      expect(toastError).toHaveBeenCalledWith('Half way');
+      expect(analytics.onEventPlansSaved).not.toHaveBeenCalled();
+      expect(screen.getByRole('heading', { name: 'Your plans for Lisbon' })).toBeInTheDocument();
+    });
   });
 
   it('loads the attendee list only once it is opened, and records it', () => {
     render(<EventDrawer eventUid="labweek-lisbon" source="home" onClose={jest.fn()} />);
     expect(queries.attendeesEnabled.every((e) => e === false)).toBe(true);
-    fireEvent.click(screen.getByRole('button', { name: '40 People going' }));
+    fireEvent.click(screen.getByRole('button', { name: '40 members going' }));
     expect(queries.attendeesEnabled[queries.attendeesEnabled.length - 1]).toBe(true);
     expect(analytics.onEventAttendeesOpened).toHaveBeenCalledWith({ eventUid: 'labweek-lisbon' });
   });

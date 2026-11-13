@@ -6,7 +6,6 @@ import {
   getEventDetail,
   getMyGatheringPlans,
   removeEventAttendance,
-  setEventShowOnProfile,
   updateMyGatheringPlans,
 } from '@/services/events/event-drawer.service';
 import { customFetch } from '@/utils/fetch-wrapper';
@@ -110,7 +109,6 @@ describe('event drawer service (LAB-3216)', () => {
         memberUid: 'me',
         officeHours: '',
         additionalInfo: { checkInDate: '2030-12-01', checkOutDate: '2030-12-02' },
-        showOnProfile: false,
         events: [{ uid: 'ev', isHost: false, isSpeaker: false, isSponsor: false }],
       };
       await createEventAttendance('loc', payload);
@@ -128,7 +126,6 @@ describe('event drawer service (LAB-3216)', () => {
           memberUid: 'me',
           officeHours: '',
           additionalInfo: { checkInDate: '', checkOutDate: '' },
-          showOnProfile: true,
           events: [],
         }),
       ).rejects.toThrow('Guest already exists');
@@ -144,15 +141,6 @@ describe('event drawer service (LAB-3216)', () => {
       expect(url).toBe(`${API}/v1/irl/locations/loc/events/guests`);
       expect(init.method).toBe('POST');
       expect(JSON.parse(init.body)).toEqual({ membersAndEvents: [{ memberUid: 'me', events: ['b'] }] });
-    });
-
-    it('toggles show on profile with PATCH', async () => {
-      mockFetch.mockResolvedValue(json({ eventUid: 'ev', showOnProfile: false }));
-      await setEventShowOnProfile('ev', false);
-      const [url, init] = mockFetch.mock.calls[0];
-      expect(url).toBe(`${API}/v1/irl/events/ev/me`);
-      expect(init.method).toBe('PATCH');
-      expect(JSON.parse(init.body)).toEqual({ showOnProfile: false });
     });
 
     it('updates plans in place with PATCH, and fails with a fallback message', async () => {

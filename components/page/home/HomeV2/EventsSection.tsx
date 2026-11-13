@@ -71,7 +71,7 @@ export function EventsSection({ events, total, signedIn }: { events: IHomeEvent[
     toast.success(
       <>
         {eventGoingToastText(notice)}
-        {notice.showOnProfile && viewerUid && (
+        {viewerUid && (
           <>
             {' '}
             <Link href={`/members/${viewerUid}`} className={s.toastLink}>

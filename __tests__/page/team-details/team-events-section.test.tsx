@@ -12,9 +12,7 @@ jest.mock('@/components/page/events/EventDrawer', () => ({
     props.eventUid ? (
       <div data-testid="event-drawer">
         {props.eventUid} from {props.source}
-        <button onClick={() => props.onGoing?.({ eventName: 'FIL Berlin', showOnProfile: true })}>
-          {"Yes, I'm going"}
-        </button>
+        <button onClick={() => props.onGoing?.({ eventName: 'FIL Berlin' })}>{"Yes, I'm going"}</button>
       </div>
     ) : null,
 }));

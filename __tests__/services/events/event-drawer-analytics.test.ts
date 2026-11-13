@@ -28,18 +28,17 @@ describe('event drawer analytics (LAB-3216)', () => {
     ],
     [
       'onEventGoingMarked',
-      { eventUid: 'e', showOnProfile: false, source: 'member-profile' },
+      { eventUid: 'e', source: 'member-profile' },
       'event-going-marked',
-      { event_uid: 'e', show_on_profile: false, source: 'member-profile' },
+      { event_uid: 'e', source: 'member-profile' },
     ],
     ['onEventNotGoingMarked', { eventUid: 'e' }, 'event-not-going-marked', { event_uid: 'e' }],
     [
-      'onEventShowOnProfileToggled',
-      { eventUid: 'e', showOnProfile: true, from: 'drawer' },
-      'event-show-on-profile-toggled',
-      { event_uid: 'e', show_on_profile: true, from: 'drawer' },
+      'onEventPlansSaved',
+      { eventUid: 'e', roles: ['Speaker'] },
+      'event-plans-saved',
+      { event_uid: 'e', roles: ['Speaker'] },
     ],
-    ['onEventPlansSaved', { eventUid: 'e', eventsCount: 2 }, 'event-plans-saved', { event_uid: 'e', events_count: 2 }],
     ['onEventAttendeesOpened', { eventUid: 'e' }, 'event-attendees-opened', { event_uid: 'e' }],
   ] as const)('%s captures %s', (fn, args, name, params) => {
     (run()[fn] as (a: typeof args) => void)(args);

@@ -293,14 +293,20 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
 
       <div className="ph-ways">
         <div className="ph-flywheel" style={{ alignSelf: 'start' }}>
-          <h3 className="ph-visually-hidden">The contribution flywheel</h3>
-          <Image
-            src="/images/alignment-assets/flywheel-v2.webp"
-            alt="The contribution flywheel. Employees and members of the PL Network collect PLAA for their contributions to increasing network value. The cycle runs: contribute, collect points, receive PLAA, the network grows, and repeats."
-            width={1254}
-            height={1254}
-            sizes="(max-width: 1024px) 90vw, 520px"
-          />
+          <h3 className="ph-flywheel__title">The contribution flywheel</h3>
+          <p className="ph-flywheel__sub">
+            Employees and members of the PL Network collect PLAA for their contributions to increasing network value.
+          </p>
+          <div className="ph-flywheel__art">
+            {/* unoptimized: serve the lossless file as-is so the illustration's colors aren't re-encoded */}
+            <Image
+              src="/images/alignment-assets/flywheel-v3.webp"
+              alt="The cycle runs: contribute, collect points, receive PLAA, the network grows, and repeats."
+              width={1254}
+              height={1254}
+              unoptimized
+            />
+          </div>
         </div>
 
         <div>
@@ -767,21 +773,35 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
           border-radius: var(--radius-2xl);
           overflow: hidden;
           box-shadow: var(--shadow-sm);
-          line-height: 0;
+          background: #0c5259;
+          color: #fff;
+          padding: clamp(24px, 3vw, 40px);
+          container-type: inline-size;
         }
-        .ph-visually-hidden {
-          position: absolute;
-          width: 1px;
-          height: 1px;
-          padding: 0;
-          margin: -1px;
-          overflow: hidden;
-          clip: rect(0, 0, 0, 0);
+        .ph-flywheel__title {
+          margin: 0;
+          /* one line: scale with the card's width (cqi), not the viewport */
           white-space: nowrap;
-          border: 0;
+          font-size: clamp(18px, 7.8cqi, 32px);
+          font-weight: 700;
+          line-height: 1.15;
+          letter-spacing: -0.02em;
+          color: #fff;
+        }
+        .ph-flywheel__sub {
+          margin: 12px 0 0;
+          font: var(--text-body-md);
+          color: #fff;
+          max-width: 46ch;
+        }
+        .ph-flywheel__art {
+          display: flex;
+          justify-content: center;
+          margin-top: clamp(20px, 2.5vw, 32px);
         }
         .ph-flywheel :global(img) {
           width: 100%;
+          max-width: 520px;
           height: auto;
           display: block;
         }

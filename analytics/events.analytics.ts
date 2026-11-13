@@ -60,11 +60,7 @@ export const useEventsAnalytics = () => {
     captureEvent(EVENTS_ANALYTICS.EVENTS_PAGE_CONTRIBUTOR_LIST_OPEN_CLICKED);
   }
 
-  function onContributorListSearchChanged(params: {
-    searchQuery: string;
-    resultsCount: number;
-    totalCount: number;
-  }) {
+  function onContributorListSearchChanged(params: { searchQuery: string; resultsCount: number; totalCount: number }) {
     captureEvent(EVENTS_ANALYTICS.EVENTS_PAGE_CONTRIBUTOR_LIST_SEARCH_CHANGED, params);
   }
 
@@ -161,11 +157,7 @@ export const useEventsAnalytics = () => {
     captureEvent(EVENTS_ANALYTICS.EVENTS_PAGE_CONTRIBUTORS_TEAM_TREEMAP_CLICKED, params);
   }
 
-  function onContributorsViewMoreClicked(params: {
-    remainingCount: number;
-    totalCount: number;
-    visibleCount: number;
-  }) {
+  function onContributorsViewMoreClicked(params: { remainingCount: number; totalCount: number; visibleCount: number }) {
     captureEvent(EVENTS_ANALYTICS.EVENTS_PAGE_CONTRIBUTORS_VIEW_MORE_CLICKED, params);
   }
 
@@ -175,10 +167,9 @@ export const useEventsAnalytics = () => {
     captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_DRAWER_OPENED, { event_uid: params.eventUid, source: params.source });
   }
 
-  function onEventGoingMarked(params: { eventUid: string; showOnProfile: boolean; source: EventDrawerSource }) {
+  function onEventGoingMarked(params: { eventUid: string; source: EventDrawerSource }) {
     captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_GOING_MARKED, {
       event_uid: params.eventUid,
-      show_on_profile: params.showOnProfile,
       source: params.source,
     });
   }
@@ -187,22 +178,11 @@ export const useEventsAnalytics = () => {
     captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_NOT_GOING_MARKED, { event_uid: params.eventUid });
   }
 
-  function onEventShowOnProfileToggled(params: {
-    eventUid: string;
-    showOnProfile: boolean;
-    from: 'drawer' | 'profile-menu';
-  }) {
-    captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_SHOW_ON_PROFILE_TOGGLED, {
-      event_uid: params.eventUid,
-      show_on_profile: params.showOnProfile,
-      from: params.from,
-    });
-  }
-
-  function onEventPlansSaved(params: { eventUid: string; eventsCount: number }) {
+  /** "Add your plans" saved; `roles` is this event's Host / Speaker / Sponsor (empty is plain attendance). */
+  function onEventPlansSaved(params: { eventUid: string; roles: string[] }) {
     captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_PLANS_SAVED, {
       event_uid: params.eventUid,
-      events_count: params.eventsCount,
+      roles: params.roles,
     });
   }
 
@@ -223,7 +203,6 @@ export const useEventsAnalytics = () => {
     onEventDrawerOpened,
     onEventGoingMarked,
     onEventNotGoingMarked,
-    onEventShowOnProfileToggled,
     onEventPlansSaved,
     onEventAttendeesOpened,
     onProfileEventAddClicked,

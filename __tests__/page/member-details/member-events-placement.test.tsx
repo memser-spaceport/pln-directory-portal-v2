@@ -144,14 +144,7 @@ it('Member with past events only: the Events section sits after Contributions an
 
   await renderPage();
 
-  expect(order()).toEqual([
-    'profile',
-    'office-hours',
-    'contact',
-    'contributions',
-    'events: Past events',
-    'repositories',
-  ]);
+  expect(order()).toEqual(['profile', 'office-hours', 'contact', 'contributions', 'events: Events', 'repositories']);
 });
 
 it('Hidden event: an event Ana hid is not shown to another member, and does not lift the section', async () => {
@@ -163,14 +156,7 @@ it('Hidden event: an event Ana hid is not shown to another member, and does not 
   await renderPage();
 
   expect(screen.queryByText('Event A')).not.toBeInTheDocument();
-  expect(order()).toEqual([
-    'profile',
-    'office-hours',
-    'contact',
-    'contributions',
-    'events: Past events',
-    'repositories',
-  ]);
+  expect(order()).toEqual(['profile', 'office-hours', 'contact', 'contributions', 'events: Events', 'repositories']);
 });
 
 it('Flag off: the IRL contributions block as today, and no Events section', async () => {

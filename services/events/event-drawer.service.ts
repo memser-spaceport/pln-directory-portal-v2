@@ -134,16 +134,6 @@ export async function removeEventAttendance(locationUid: string, memberUid: stri
   if (!response?.ok) throw new Error(await errorMessage(response, 'Failed to remove the event'));
 }
 
-/** `PATCH /v1/irl/events/:uid/me`: show or hide the caller's attendance on their profile. */
-export async function setEventShowOnProfile(eventUid: string, showOnProfile: boolean) {
-  const response: Response | undefined = await customFetch(
-    `${api()}/v1/irl/events/${encodeURIComponent(eventUid)}/me`,
-    { method: 'PATCH', cache: 'no-store', headers: JSON_HEADERS, body: JSON.stringify({ showOnProfile }) },
-    true,
-  );
-  if (!response?.ok) throw new Error(await errorMessage(response, 'Failed to update your profile'));
-}
-
 /** `PATCH /v1/irl/locations/:uid/guests/me`: roles of kept events and the shared details, in place. */
 export async function updateMyGatheringPlans(locationUid: string, payload: UpdateMyPlansPayload) {
   const response: Response | undefined = await customFetch(

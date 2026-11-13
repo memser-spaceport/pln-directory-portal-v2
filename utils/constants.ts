@@ -860,7 +860,6 @@ export const EVENT_DRAWER_ANALYTICS = {
   ON_EVENT_DRAWER_OPENED: 'event-drawer-opened',
   ON_EVENT_GOING_MARKED: 'event-going-marked',
   ON_EVENT_NOT_GOING_MARKED: 'event-not-going-marked',
-  ON_EVENT_SHOW_ON_PROFILE_TOGGLED: 'event-show-on-profile-toggled',
   ON_EVENT_PLANS_SAVED: 'event-plans-saved',
   ON_EVENT_ATTENDEES_OPENED: 'event-attendees-opened',
   /** The owner's "Add event" on their profile (LAB-3218). */

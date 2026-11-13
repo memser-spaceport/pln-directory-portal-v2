@@ -34,8 +34,6 @@ export interface MemberEventsSectionProps {
   headerAction?: ReactNode;
   /** An upcoming card's ⋯ menu (LAB-3218). `openDrawer` opens the drawer on that event, e.g. at the plans step. */
   renderCardMenu?: (event: MemberProfileEvent, openDrawer: (step?: EventDrawerStep) => void) => ReactNode;
-  /** More badges in an upcoming card's foot ("Only visible to you", LAB-3218). */
-  renderCardBadges?: (event: MemberProfileEvent) => ReactNode;
   /**
    * Drawn in place of the upcoming cards when there are none (the owner's empty state, LAB-3218). With it, the
    * upcoming group is shown even when empty.
@@ -45,9 +43,9 @@ export interface MemberEventsSectionProps {
 
 /**
  * The member profile's Events section (LAB-3217): where can I meet this person, and have they been part of the network.
- * Two groups stacked: what the member is going to, and Contributions (past events). With both, the section is
- * "Events" and each group has a small label; with one, the title names it and there are no labels; with neither,
- * there is no section. Ported from `prototypes/entries/member-events-going/MemberEventsSection.tsx`.
+ * Two groups stacked: what the member is going to, and Past events. The section is always "Events" and each group
+ * present has its small label (LAB-3230); with neither group, there is no section. The cards sit in one column, each
+ * the section's full width (LAB-3234). Ported from `prototypes/entries/member-events-going/MemberEventsSection.tsx`.
  *
  * An upcoming card's title opens the event drawer; the drawer's "I'm going" ends in the D8 toast here.
  */
@@ -60,7 +58,6 @@ export function MemberEventsSection({
   pastTotal,
   headerAction,
   renderCardMenu,
-  renderCardBadges,
   upcomingEmpty,
 }: MemberEventsSectionProps) {
   const [drawer, setDrawer] = useState<{ eventUid: string; step?: EventDrawerStep } | null>(null);
@@ -72,34 +69,22 @@ export function MemberEventsSection({
   const hasPast = past.length > 0;
   if (!hasUpcoming && !hasPast) return null;
 
-  // Group labels only when both groups are in the section; one group is the section itself.
-  const withLabels = hasUpcoming && hasPast;
-  const goingTitle = isOwner ? 'Events you are going to' : `Events ${firstName} is going to`;
-  const title = withLabels ? 'Events' : hasUpcoming ? goingTitle : 'Past events';
+  const goingLabel = isOwner ? "You're going to" : `${firstName} is going to`;
 
   const upcomingShown = allUpcoming ? upcoming : upcoming.slice(0, VISIBLE_EVENTS_PER_GROUP);
   const pastShown = allPast ? past : past.slice(0, VISIBLE_EVENTS_PER_GROUP);
 
   return (
     <DetailsSection>
-      <DetailsSectionHeader title={title}>{headerAction}</DetailsSectionHeader>
+      <DetailsSectionHeader title="Events">{headerAction}</DetailsSectionHeader>
 
-      <EventCardsPanel withLabels={withLabels}>
-        {hasUpcoming && withLabels && (
-          <EventGroupLabel>{isOwner ? "You're going to" : `${firstName} is going to`}</EventGroupLabel>
-        )}
+      <EventCardsPanel withLabels>
+        {hasUpcoming && <EventGroupLabel>{goingLabel}</EventGroupLabel>}
         {upcoming.length > 0 && (
-          <EventCardGrid label={goingTitle}>
+          <EventCardGrid label={goingLabel} columns={1}>
             {upcomingShown.map((event) => {
               const openDrawer = (step?: EventDrawerStep) => setDrawer({ eventUid: event.uid, step });
-              const extraBadges = renderCardBadges?.(event);
-              const badges =
-                (event.viewerGoing && !isOwner) || extraBadges ? (
-                  <>
-                    {event.viewerGoing && !isOwner && <GoingMark label="You're going too" />}
-                    {extraBadges}
-                  </>
-                ) : undefined;
+              const badges = event.viewerGoing && !isOwner ? <GoingMark label="You're going too" /> : undefined;
               return (
                 <UpcomingEventCard
                   key={event.uid}
@@ -129,9 +114,9 @@ export function MemberEventsSection({
           </div>
         )}
 
-        {hasPast && withLabels && <EventGroupLabel after>Contributions</EventGroupLabel>}
+        {hasPast && <EventGroupLabel after={hasUpcoming}>Past events</EventGroupLabel>}
         {hasPast && (
-          <EventCardGrid label={withLabels ? 'Contributions' : title}>
+          <EventCardGrid label="Past events" columns={1}>
             {pastShown.map((event) => (
               <PastEventCard
                 key={event.uid}

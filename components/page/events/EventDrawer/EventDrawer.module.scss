@@ -329,40 +329,6 @@
   }
 }
 
-/* From the prototype's MemberEventsGoing.module.scss ("Modal additions"). */
-
-.askBlock {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.consent {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  cursor: pointer;
-}
-
-.consentText {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.consentLabel {
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  color: var(--foreground-neutral-primary, #0a0c11);
-}
-
-.consentHint {
-  font-size: 12px;
-  line-height: 18px;
-  color: var(--foreground-neutral-secondary, #455468);
-}
-
 /* Not in the prototype: what the drawer shows while loading, on a failed load and for a deleted event. */
 
 .state {
@@ -461,11 +427,4 @@
   to {
     background-position: -100% 0;
   }
-}
-
-.emptyNote {
-  margin: 0;
-  font-size: 14px;
-  line-height: 20px;
-  color: var(--foreground-neutral-secondary, #455468);
 }

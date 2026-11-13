@@ -22,7 +22,7 @@ type DrawerProps = {
   eventUid: string;
   source: string;
   onClose: () => void;
-  onGoing?: (notice: { eventName: string; showOnProfile: boolean }) => void;
+  onGoing?: (notice: { eventName: string }) => void;
 };
 const drawers: DrawerProps[] = [];
 // next/dynamic would hand back a loading placeholder; render a stand-in that records what the rail passes.
@@ -142,11 +142,11 @@ describe('Home rail opens the event drawer (LAB-3220)', () => {
     expect(going.enabled).toContain(true);
   });
 
-  it('after "Yes" with Show on my profile, marks the row and toasts a link to their profile', async () => {
+  it('after "Yes", marks the row and toasts a link to their profile', async () => {
     renderRail();
     await click(screen.getByRole('button', { name: 'libp2p Day' }));
 
-    await act(async () => drawers[drawers.length - 1].onGoing?.({ eventName: 'libp2p Day', showOnProfile: true }));
+    await act(async () => drawers[drawers.length - 1].onGoing?.({ eventName: 'libp2p Day' }));
 
     const [key, update] = queryClient.setQueryData.mock.calls[0];
     expect(key).toEqual([EventsQueryKeys.MY_UPCOMING_EVENT_UIDS, 'm1']);
@@ -156,17 +156,6 @@ describe('Home rail opens the event drawer (LAB-3220)', () => {
     render(<>{toastSuccess.mock.calls[0][0]}</>);
     expect(screen.getByText(/libp2p Day is on your profile\./)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'View profile' })).toHaveAttribute('href', '/members/m1');
-  });
-
-  it('after "Yes" without Show on my profile, toasts without a profile link', async () => {
-    renderRail();
-    await click(screen.getByRole('button', { name: 'libp2p Day' }));
-
-    await act(async () => drawers[drawers.length - 1].onGoing?.({ eventName: 'libp2p Day', showOnProfile: false }));
-
-    render(<>{toastSuccess.mock.calls[0][0]}</>);
-    expect(screen.getByText("You're going to libp2p Day.")).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'View profile' })).not.toBeInTheDocument();
   });
 
   it('without the viewer’s events (failed request), shows no marks and rows still open the drawer', async () => {

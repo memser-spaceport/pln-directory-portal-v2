@@ -171,7 +171,6 @@ export interface CreateEventAttendancePayload {
   topics?: string[];
   officeHours: string;
   additionalInfo: { checkInDate: string; checkOutDate: string };
-  showOnProfile: boolean;
   events: EventRolesPayload[];
 }
 

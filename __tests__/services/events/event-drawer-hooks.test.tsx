@@ -5,12 +5,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { EventsQueryKeys } from '@/services/events/constants';
 import * as service from '@/services/events/event-drawer.service';
-import {
-  useMarkGoing,
-  useRemoveGoing,
-  useSavePlans,
-  useSetShowOnProfile,
-} from '@/services/events/hooks/useEventDrawerMutations';
+import { useMarkGoing, useRemoveGoing, useUpdateEventPlans } from '@/services/events/hooks/useEventDrawerMutations';
 import { useEventAttendees, useEventDetail, useMyGatheringPlans } from '@/services/events/hooks/useEventDrawerQueries';
 
 // The real React Query: the global mock in jest.setup.js ignores `enabled` and never settles a mutation.
@@ -22,7 +17,6 @@ jest.mock('@/services/events/event-drawer.service', () => ({
   getMyGatheringPlans: jest.fn(),
   createEventAttendance: jest.fn(),
   removeEventAttendance: jest.fn(),
-  setEventShowOnProfile: jest.fn(),
   updateMyGatheringPlans: jest.fn(),
 }));
 
@@ -112,12 +106,6 @@ describe('event drawer hooks (LAB-3216)', () => {
         mocked.removeEventAttendance,
         { locationUid: 'loc', memberUid: 'me', eventUids: ['a'] },
       ],
-      [
-        'useSetShowOnProfile',
-        () => useSetShowOnProfile(),
-        mocked.setEventShowOnProfile,
-        { eventUid: 'a', showOnProfile: false },
-      ],
     ] as const)('%s', async (_name, useHook, call, variables) => {
       (call as jest.Mock).mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error('nope'));
       const { wrapper, invalidate } = setup();
@@ -137,19 +125,15 @@ describe('event drawer hooks (LAB-3216)', () => {
       expect(invalidatedKeys(invalidate)).toEqual(ALL_KEYS);
     });
 
-    it('useSavePlans', async () => {
+    it('useUpdateEventPlans: one PATCH, nothing created or removed', async () => {
       mocked.updateMyGatheringPlans.mockResolvedValue(undefined);
       const { wrapper, invalidate } = setup();
-      const { result } = renderHook(() => useSavePlans(), { wrapper });
+      const { result } = renderHook(() => useUpdateEventPlans(), { wrapper });
       await act(async () => {
         await result.current.mutateAsync({
           locationUid: 'loc',
-          memberUid: 'me',
-          existing: ['a'],
-          selected: ['a'],
-          pickable: ['a'],
-          eventRoles: [],
-          showOnProfile: true,
+          eventUid: 'a',
+          roles: ['Host'],
           shared: {
             teamUid: null,
             topics: [],
@@ -162,6 +146,9 @@ describe('event drawer hooks (LAB-3216)', () => {
         });
       });
       expect(mocked.updateMyGatheringPlans).toHaveBeenCalledTimes(1);
+      expect(mocked.updateMyGatheringPlans.mock.calls[0][1].events).toEqual([
+        { uid: 'a', isHost: true, isSpeaker: false, isSponsor: false },
+      ]);
       expect(mocked.createEventAttendance).not.toHaveBeenCalled();
       expect(mocked.removeEventAttendance).not.toHaveBeenCalled();
       expect(invalidatedKeys(invalidate)).toEqual(ALL_KEYS);

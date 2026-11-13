@@ -330,26 +330,3 @@ export function toEventRolesPayload(eventUid: string, roles: EventRole[] = []): 
     isSponsor: roles.includes('Sponsor'),
   };
 }
-
-/**
- * Saving plans is a diff, never PUT (design D4): the gathering's events the member was going to, against the ones
- * ticked now. Events outside `pickable` (past ones, other gatherings) are never touched.
- */
-export function diffPlans({
-  existing,
-  selected,
-  pickable,
-}: {
-  existing: string[];
-  selected: string[];
-  pickable: string[];
-}): { added: string[]; removed: string[]; kept: string[] } {
-  const inScope = new Set(pickable);
-  const was = new Set(existing.filter((uid) => inScope.has(uid)));
-  const now = new Set(selected.filter((uid) => inScope.has(uid)));
-  return {
-    added: [...now].filter((uid) => !was.has(uid)),
-    removed: [...was].filter((uid) => !now.has(uid)),
-    kept: [...now].filter((uid) => was.has(uid)),
-  };
-}

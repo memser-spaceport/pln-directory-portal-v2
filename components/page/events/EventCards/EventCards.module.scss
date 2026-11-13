@@ -45,6 +45,10 @@
   }
 }
 
+.cardsSingle {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 /* Cards */
 
 /* Padding, radius and fill come from production's grey container, the ground of Teams and Experience. */

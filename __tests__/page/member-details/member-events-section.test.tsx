@@ -13,9 +13,7 @@ jest.mock('@/components/page/events/EventDrawer', () => ({
     return props.eventUid ? (
       <div data-testid="event-drawer">
         {props.eventUid} from {props.source}
-        <button onClick={() => props.onGoing?.({ eventName: 'FIL Berlin', showOnProfile: true })}>
-          {"Yes, I'm going"}
-        </button>
+        <button onClick={() => props.onGoing?.({ eventName: 'FIL Berlin' })}>{"Yes, I'm going"}</button>
       </div>
     ) : null;
   },
@@ -59,40 +57,46 @@ beforeEach(() => {
 });
 
 describe('MemberEventsSection (LAB-3217)', () => {
-  it('Only past events: titled "Past events", with no group labels', () => {
+  it('Only past events: titled "Events", with the "Past events" label (LAB-3230, LAB-3234)', () => {
     renderSection({ upcoming: [], upcomingTotal: 0 });
 
-    expect(title()).toHaveTextContent('Past events');
-    expect(groupLabels()).toEqual([]);
+    expect(title()).toHaveTextContent(/^Events$/);
+    expect(groupLabels()).toEqual(['Past events']);
     expect(within(screen.getByRole('list', { name: 'Past events' })).getAllByRole('listitem')).toHaveLength(3);
   });
 
-  it('Both groups: titled "Events", with "Ana is going to" over the upcoming cards and "Contributions" over the past', () => {
+  it('Both groups: titled "Events", with "Ana is going to" over the upcoming cards and "Past events" over the past', () => {
     renderSection();
 
     expect(title()).toHaveTextContent(/^Events$/);
-    expect(groupLabels()).toEqual(['Ana is going to', 'Contributions']);
-    expect(within(screen.getByRole('list', { name: 'Events Ana is going to' })).getAllByRole('listitem')).toHaveLength(
-      2,
-    );
-    expect(within(screen.getByRole('list', { name: 'Contributions' })).getAllByRole('listitem')).toHaveLength(3);
+    expect(groupLabels()).toEqual(['Ana is going to', 'Past events']);
+    expect(within(screen.getByRole('list', { name: 'Ana is going to' })).getAllByRole('listitem')).toHaveLength(2);
+    expect(within(screen.getByRole('list', { name: 'Past events' })).getAllByRole('listitem')).toHaveLength(3);
+    expect(screen.queryByText('Contributions')).not.toBeInTheDocument();
   });
 
-  it('only upcoming: titled "Events Ana is going to", with no group labels', () => {
+  it('only upcoming: titled "Events", with the "Ana is going to" label', () => {
     renderSection({ past: [], pastTotal: 0 });
 
-    expect(title()).toHaveTextContent('Events Ana is going to');
-    expect(groupLabels()).toEqual([]);
+    expect(title()).toHaveTextContent(/^Events$/);
+    expect(groupLabels()).toEqual(['Ana is going to']);
   });
 
-  it('the owner reads "Events you are going to" and "You\'re going to"', () => {
+  it('the owner reads "You\'re going to"', () => {
     const { rerender } = renderSection({ isOwner: true });
-    expect(groupLabels()).toEqual(["You're going to", 'Contributions']);
+    expect(groupLabels()).toEqual(["You're going to", 'Past events']);
 
     rerender(
       <MemberEventsSection firstName="Ana" isOwner upcoming={UPCOMING} upcomingTotal={2} past={[]} pastTotal={0} />,
     );
-    expect(title()).toHaveTextContent('Events you are going to');
+    expect(title()).toHaveTextContent(/^Events$/);
+    expect(groupLabels()).toEqual(["You're going to"]);
+  });
+
+  it('cards sit in one full-width column (LAB-3234)', () => {
+    renderSection();
+    expect(screen.getByRole('list', { name: 'Ana is going to' })).toHaveClass('cardsSingle');
+    expect(screen.getByRole('list', { name: 'Past events' })).toHaveClass('cardsSingle');
   });
 
   it('neither group: no section', () => {
@@ -104,9 +108,7 @@ describe('MemberEventsSection (LAB-3217)', () => {
   it('Viewer going to the same event: that card says "You\'re going too", and only that one', () => {
     renderSection();
 
-    const [berlin, commons] = within(screen.getByRole('list', { name: 'Events Ana is going to' })).getAllByRole(
-      'listitem',
-    );
+    const [berlin, commons] = within(screen.getByRole('list', { name: 'Ana is going to' })).getAllByRole('listitem');
     expect(within(berlin).getByText("You're going too")).toBeInTheDocument();
     expect(within(commons).queryByText("You're going too")).not.toBeInTheDocument();
   });
@@ -114,9 +116,7 @@ describe('MemberEventsSection (LAB-3217)', () => {
   it('an upcoming card: date tile, range and city for a multi-day event, roles, and "N going"', () => {
     renderSection();
 
-    const [berlin, commons] = within(screen.getByRole('list', { name: 'Events Ana is going to' })).getAllByRole(
-      'listitem',
-    );
+    const [berlin, commons] = within(screen.getByRole('list', { name: 'Ana is going to' })).getAllByRole('listitem');
     expect(berlin).toHaveTextContent('NOV18');
     expect(within(berlin).getByText('Nov 18–20 · Berlin')).toBeInTheDocument();
     expect(within(berlin).getByText('Speaker')).toBeInTheDocument();
@@ -153,13 +153,9 @@ describe('MemberEventsSection (LAB-3217)', () => {
     const five = [...UPCOMING, ...SEVEN_PAST.slice(0, 3)];
     renderSection({ upcoming: five, upcomingTotal: 5 });
 
-    expect(within(screen.getByRole('list', { name: 'Events Ana is going to' })).getAllByRole('listitem')).toHaveLength(
-      4,
-    );
+    expect(within(screen.getByRole('list', { name: 'Ana is going to' })).getAllByRole('listitem')).toHaveLength(4);
     fireEvent.click(screen.getByRole('button', { name: 'Show all 5 upcoming events' }));
-    expect(within(screen.getByRole('list', { name: 'Events Ana is going to' })).getAllByRole('listitem')).toHaveLength(
-      5,
-    );
+    expect(within(screen.getByRole('list', { name: 'Ana is going to' })).getAllByRole('listitem')).toHaveLength(5);
   });
 
   it('Card opens the drawer: the title opens the event drawer on that event, from the member profile', () => {
@@ -195,16 +191,14 @@ describe('MemberEventsSection (LAB-3217)', () => {
     expect(screen.getByRole('button', { name: 'Add event' })).toBeInTheDocument();
   });
 
-  it('renders a card menu and extra badges from the slots, and the menu can open the drawer at the plans step', () => {
+  it('renders a card menu from the slot, and the menu can open the drawer at the plans step', () => {
     renderSection({
       isOwner: true,
       renderCardMenu: (event, openDrawer) => (
         <button onClick={() => openDrawer('plans')}>{`Actions for ${event.name}`}</button>
       ),
-      renderCardBadges: (event) => (event.uid === 'up-2' ? <span>Only visible to you</span> : null),
     });
 
-    expect(screen.getByText('Only visible to you')).toBeInTheDocument();
     // The owner is never told they're going "too".
     expect(screen.queryByText("You're going too")).not.toBeInTheDocument();
 

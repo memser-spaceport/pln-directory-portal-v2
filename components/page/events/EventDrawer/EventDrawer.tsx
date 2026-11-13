@@ -10,12 +10,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { useIrlGoingAccess } from '@/services/access-control/hooks/useIrlGoingAccess';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { EMPTY_PLANS, toEventDetail } from '@/services/events/event-drawer.mappers';
-import {
-  SavePlansError,
-  useMarkGoing,
-  useSavePlans,
-  useSetShowOnProfile,
-} from '@/services/events/hooks/useEventDrawerMutations';
+import { useMarkGoing, useRemoveGoing, useUpdateEventPlans } from '@/services/events/hooks/useEventDrawerMutations';
 import { useEventAttendees, useEventDetail, useMyGatheringPlans } from '@/services/events/hooks/useEventDrawerQueries';
 import { getMember } from '@/services/members.service';
 import { MembersQueryKeys } from '@/services/members/constants';
@@ -36,20 +31,17 @@ export interface EventDrawerProps {
   eventUid: string | null;
   /** Where it was opened from, for analytics. */
   source: EventDrawerSource;
-  /** `plans` opens on the plans step (e.g. the owner's "Edit details"). A viewer already going always gets it. */
+  /** `plans` opens on the "Add your plans" sub-view (the owner's "Edit details"), when the viewer is going. */
   initialStep?: EventDrawerStep;
   onClose: () => void;
-  /**
-   * The drawer closed after the member said they are going. The host shows the toast: "<event> is on your
-   * profile." when `showOnProfile`, otherwise "You're going to <event>." (design D2, D8).
-   */
+  /** The drawer closed after the member said they are going. The host shows "<event> is on your profile." (D8). */
   onGoing?: (notice: EventGoingNotice) => void;
 }
 
 /**
- * The event drawer (LAB-3216, option A): one IRL event as the PL events app draws it, the gathering's links, who is
- * going, "Are you going?" with "Show on my profile", and the plans step. Behind `NEXT_PUBLIC_SHOW_EVENT_DRAWER`:
- * with the flag off it never mounts.
+ * The event drawer (LAB-3216, option A; one event per drawer since LAB-3234): one IRL event as the PL events app draws
+ * it, the going card, the gathering's links, and "Add your plans" (role, stay, topics). Behind
+ * `NEXT_PUBLIC_SHOW_EVENT_DRAWER`: with the flag off it never mounts.
  *
  * Each host keeps its own `eventUid` state and renders `<EventDrawer eventUid={uid} … />` (design D2).
  */
@@ -120,14 +112,9 @@ function EventDrawerContainer({
   };
 
   const markGoing = useMarkGoing();
-  const savePlans = useSavePlans();
-  const setShowOnProfile = useSetShowOnProfile();
-  const saving = markGoing.isPending || savePlans.isPending || setShowOnProfile.isPending;
-
-  // What this drawer already saved, so a retry after a partial failure (or before the refetch lands) doesn't redo it.
-  const markedRef = useRef(new Set<string>());
-  const removedRef = useRef(new Set<string>());
-  const markedShowRef = useRef(new Map<string, boolean>());
+  const removeGoing = useRemoveGoing();
+  const updatePlans = useUpdateEventPlans();
+  const saving = markGoing.isPending || removeGoing.isPending || updatePlans.isPending;
 
   const openedRef = useRef(false);
   useEffect(() => {
@@ -153,7 +140,7 @@ function EventDrawerContainer({
   const mainTeamUid = () =>
     plans?.teamUid || memberTeams.find((t) => t.mainTeam)?.id || currentUser?.leadingTeams?.[0] || null;
 
-  const onYes = async (showOnProfile: boolean) => {
+  const onYes = async () => {
     if (!event || !locationUid || !viewerUid) return false;
     const teamUid = mainTeamUid();
     try {
@@ -167,7 +154,6 @@ function EventDrawerContainer({
           reason: plans?.reason ?? '',
           topics: plans?.topics ?? [],
           additionalInfo: defaultDates(),
-          showOnProfile,
           events: [{ uid: event.uid, isHost: false, isSpeaker: false, isSponsor: false }],
         },
       });
@@ -175,32 +161,32 @@ function EventDrawerContainer({
       toast.error(error instanceof Error && error.message ? error.message : 'Failed to save that you are going');
       return false;
     }
-    markedRef.current.add(event.uid);
-    markedShowRef.current.set(event.uid, showOnProfile);
-    removedRef.current.delete(event.uid);
-    analytics.onEventGoingMarked({ eventUid: event.uid, showOnProfile, source });
+    analytics.onEventGoingMarked({ eventUid: event.uid, source });
+    return true;
+  };
+
+  const onNotGoing = async () => {
+    if (!event || !locationUid || !viewerUid) return false;
+    try {
+      await removeGoing.mutateAsync({ locationUid, memberUid: viewerUid, eventUids: [event.uid] });
+    } catch {
+      toast.error(`We couldn't mark you as not going to ${event.name}. Try again.`);
+      return false;
+    }
+    analytics.onEventNotGoingMarked({ eventUid: event.uid });
     return true;
   };
 
   const onSave = async (values: EventPlansValues) => {
-    if (!event || !locationUid || !viewerUid) return false;
-    const existing = Array.from(new Set([...(plans?.eventUids ?? []), ...markedRef.current])).filter(
-      (uid) => !removedRef.current.has(uid),
-    );
-    const pickable = Array.from(new Set([event.uid, ...(event.gathering?.events ?? []).map((ev) => ev.uid)]));
+    if (!event || !locationUid) return false;
     const dates = values.dateRange
       ? { checkInDate: formatDateForApi(values.dateRange[0]), checkOutDate: formatDateForApi(values.dateRange[1]) }
       : defaultDates();
-
     try {
-      const result = await savePlans.mutateAsync({
+      await updatePlans.mutateAsync({
         locationUid,
-        memberUid: viewerUid,
-        existing,
-        selected: values.selectedEventUids,
-        pickable,
-        eventRoles: values.eventRoles,
-        showOnProfile: values.showOnProfile,
+        eventUid: event.uid,
+        roles: values.roles,
         shared: {
           teamUid: values.teamUid,
           topics: values.topics,
@@ -210,43 +196,12 @@ function EventDrawerContainer({
           ...dates,
         },
       });
-      result.added.forEach((uid) => {
-        markedRef.current.add(uid);
-        removedRef.current.delete(uid);
-        analytics.onEventGoingMarked({ eventUid: uid, showOnProfile: values.showOnProfile, source });
-      });
-      result.removed.forEach((uid) => {
-        removedRef.current.add(uid);
-        markedRef.current.delete(uid);
-        analytics.onEventNotGoingMarked({ eventUid: uid });
-      });
-
-      // "Show on my profile" for this event, when the member was already going and changed it here.
-      const keptCurrent = result.kept.includes(event.uid);
-      const currentShow = event.viewer?.showOnProfile ?? markedShowRef.current.get(event.uid) ?? null;
-      if (keptCurrent && currentShow !== null && currentShow !== values.showOnProfile) {
-        await setShowOnProfile.mutateAsync({ eventUid: event.uid, showOnProfile: values.showOnProfile });
-        markedShowRef.current.set(event.uid, values.showOnProfile);
-        analytics.onEventShowOnProfileToggled({
-          eventUid: event.uid,
-          showOnProfile: values.showOnProfile,
-          from: 'drawer',
-        });
-      }
-
-      analytics.onEventPlansSaved({ eventUid: event.uid, eventsCount: values.selectedEventUids.length });
-      return true;
     } catch (error) {
-      if (error instanceof SavePlansError) {
-        error.done.added.forEach((uid) => markedRef.current.add(uid));
-        error.done.removed.forEach((uid) => {
-          removedRef.current.add(uid);
-          markedRef.current.delete(uid);
-        });
-      }
       toast.error(error instanceof Error && error.message ? error.message : 'Failed to save your plans');
       return false;
     }
+    analytics.onEventPlansSaved({ eventUid: event.uid, roles: values.roles });
+    return true;
   };
 
   return (
@@ -267,6 +222,7 @@ function EventDrawerContainer({
         analytics.onEventAttendeesOpened({ eventUid });
       }}
       onYes={onYes}
+      onNotGoing={onNotGoing}
       onSave={onSave}
       onGoing={onGoing}
     />

@@ -1,5 +1,4 @@
 import {
-  diffPlans,
   formatEventDateLine,
   tagColorIndex,
   toAgendaDays,
@@ -221,13 +220,5 @@ describe('event drawer mappers (LAB-3216)', () => {
     });
     expect(toMyGatheringPlans([]).eventUids).toEqual([]);
     expect(toMyGatheringPlans(undefined).eventUids).toEqual([]);
-  });
-
-  it('diffs plans into added, removed and kept, ignoring events outside the picker', () => {
-    expect(diffPlans({ existing: ['a', 'b', 'past'], selected: ['a', 'c'], pickable: ['a', 'b', 'c'] })).toEqual({
-      added: ['c'],
-      removed: ['b'],
-      kept: ['a'],
-    });
   });
 });

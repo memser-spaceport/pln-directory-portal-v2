@@ -43,10 +43,21 @@ export function GoingMark({ label = 'Going' }: { label?: string }) {
   );
 }
 
-/** A group's cards: two columns, one on mobile. */
-export function EventCardGrid({ label, children }: { label: string; children: ReactNode }) {
+/**
+ * A group's cards: two columns, one on mobile. `columns={1}` keeps one column everywhere, every card the full width
+ * (the member profile, LAB-3234: no half-empty row, all cards one length).
+ */
+export function EventCardGrid({
+  label,
+  columns = 2,
+  children,
+}: {
+  label: string;
+  columns?: 1 | 2;
+  children: ReactNode;
+}) {
   return (
-    <ul className={s.cards} aria-label={label}>
+    <ul className={clsx(s.cards, columns === 1 && s.cardsSingle)} aria-label={label}>
       {children}
     </ul>
   );
@@ -70,7 +81,7 @@ export interface UpcomingEventCardProps {
   onIntent?: () => void;
   /** Top right, above the card's press (the owner's ⋯ menu). */
   menu?: ReactNode;
-  /** The foot's right side, above the card's press ("You're going too", "Only visible to you"). */
+  /** The foot's right side, above the card's press ("You're going too"). */
   badges?: ReactNode;
 }
 

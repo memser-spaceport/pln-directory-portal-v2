@@ -9,7 +9,7 @@ import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
 import { PrototypeMobileNav } from '../nav-shared/PrototypeMobileNav';
 import { PrototypeNavBar } from '../nav-shared/PrototypeNavBar';
 
-import { DigestEmail } from './DigestEmail';
+import { DigestEmail, type EmailVariant } from './DigestEmail';
 import { DigestIssuePage } from './DigestIssuePage';
 import s from './PlDigestIssue.module.scss';
 
@@ -19,6 +19,14 @@ type Width = 'desktop' | 'phone';
 const SURFACES: { value: Surface; label: string }[] = [
   { value: 'email', label: 'Email' },
   { value: 'page', label: 'LabOS page' },
+];
+const FORUM: { value: 'on' | 'off'; label: string }[] = [
+  { value: 'on', label: 'On' },
+  { value: 'off', label: 'Off' },
+];
+const EMAIL_VARIANTS: { value: EmailVariant; label: string }[] = [
+  { value: 'editorial', label: 'Editorial' },
+  { value: 'signal', label: 'Signal-first' },
 ];
 const WIDTHS: { value: Width; label: string }[] = [
   { value: 'desktop', label: 'Desktop' },
@@ -32,13 +40,15 @@ const isClient = () => true;
 const isServer = () => false;
 
 /**
- * PL Network Digest No. 07: one issue for founders and investors, on its two
+ * PL Network Digest No. 07: one issue for everyone in the network, on its two
  * surfaces. The email is the teaser; the LabOS page is the issue. A review band
  * switches surface and width; Phone renders the same route at 390px in a frame,
  * so the phone layout is the real one, not a squeezed desktop.
  *
- * URL: `?view=email|page`, `?width=desktop|phone`. `embed=1` is the framed copy
- * (no review band).
+ * URL: `?view=email|page`, `?width=desktop|phone`, `?forum=on|off` (the
+ * viewer's forum access; "From the forum" needs it AND new threads),
+ * `?email=editorial|signal` (the two email variants under review). `embed=1`
+ * is the framed copy (no review band).
  */
 export default function PlDigestIssuePrototype() {
   const params = useSearchParams();
@@ -49,8 +59,10 @@ export default function PlDigestIssuePrototype() {
   const view: Surface = params.get('view') === 'page' ? 'page' : 'email';
   const width: Width = params.get('width') === 'phone' ? 'phone' : 'desktop';
   const embed = params.get('embed') === '1';
+  const forumAccess = params.get('forum') !== 'off';
+  const variant: EmailVariant = params.get('email') === 'signal' ? 'signal' : 'editorial';
 
-  const setParam = (key: 'view' | 'width', value: string) => {
+  const setParam = (key: 'view' | 'width' | 'forum' | 'email', value: string) => {
     const next = new URLSearchParams(params.toString());
     next.set(key, value);
     router.replace(`${pathname}?${next.toString()}`, { scroll: false });
@@ -60,7 +72,8 @@ export default function PlDigestIssuePrototype() {
   // shared follow/intro stores read sessionStorage.
   if (!mounted) return <div className={s.root} />;
 
-  const surface = view === 'page' ? <DigestIssuePage /> : <DigestEmail />;
+  const surface =
+    view === 'page' ? <DigestIssuePage forumAccess={forumAccess} /> : <DigestEmail forumAccess={forumAccess} variant={variant} />;
 
   if (embed) {
     return (
@@ -105,6 +118,40 @@ export default function PlDigestIssuePrototype() {
                 : 'The full issue a reader lands on from the email.'}
             </span>
           </div>
+          {view === 'email' && (
+            <div className={v0.switchBar}>
+              <span className={v0.switchLabel}>Email style</span>
+              <div className={v0.switch} role="group" aria-label="Email style">
+                {EMAIL_VARIANTS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    className={clsx(v0.switchBtn, variant === opt.value && v0.switchBtnActive)}
+                    aria-pressed={variant === opt.value}
+                    onClick={() => setParam('email', opt.value)}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className={v0.switchBar}>
+            <span className={v0.switchLabel}>Forum access</span>
+            <div className={v0.switch} role="group" aria-label="Forum access">
+              {FORUM.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={clsx(v0.switchBtn, (forumAccess ? 'on' : 'off') === opt.value && v0.switchBtnActive)}
+                  aria-pressed={(forumAccess ? 'on' : 'off') === opt.value}
+                  onClick={() => setParam('forum', opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className={clsx(v0.switchBar, s.widthSwitch)}>
             <span className={v0.switchLabel}>Width</span>
             <div className={v0.switch} role="group" aria-label="Width">
@@ -127,9 +174,9 @@ export default function PlDigestIssuePrototype() {
       {framed ? (
         <div className={s.phoneStage}>
           <iframe
-            key={view}
+            key={`${view}-${forumAccess}-${variant}`}
             className={s.phoneFrame}
-            src={`${pathname}?view=${view}&embed=1`}
+            src={`${pathname}?view=${view}&forum=${forumAccess ? 'on' : 'off'}&email=${variant}&embed=1`}
             title={`${view === 'page' ? 'LabOS page' : 'Email'} at 390px`}
           />
         </div>

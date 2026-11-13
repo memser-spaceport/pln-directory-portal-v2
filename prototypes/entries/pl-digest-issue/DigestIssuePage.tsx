@@ -1,7 +1,8 @@
 'use client';
 
 import clsx from 'clsx';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import Link from 'next/link';
+import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/common/Button';
 
@@ -13,15 +14,15 @@ import {
   EDITION,
   SECTIONS,
   issueHref,
+  showForum,
   teamHref,
-  type Group,
-  type SectionKey,
   type Source,
   type Story,
   type TakeSegment,
   type TeamRef,
 } from './mocks';
 import s from './PlDigestIssue.module.scss';
+import { StoryImage } from './StoryImage';
 
 /* ------------------------------------------------------------------------ */
 /* Small pieces                                                              */
@@ -35,16 +36,21 @@ function TeamLink({ team }: { team: TeamRef }) {
   );
 }
 
-/** A body paragraph with the team's first mention as the team-page link (the lead's case). */
-function withTeamLink(text: string, team: TeamRef): ReactNode {
-  const at = text.indexOf(team.name);
-  if (at < 0) return text;
+/**
+ * A neutral logo placeholder: the team's initials on a tinted tile. Never a
+ * person's photo.
+ */
+function Mark({ name, size, className }: { name: string; size: 'xs' | 's'; className?: string }) {
+  const initials = name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
   return (
-    <>
-      {text.slice(0, at)}
-      <TeamLink team={team} />
-      {text.slice(at + team.name.length)}
-    </>
+    <span className={clsx(s.mark, s[`mark_${size}`], className)} aria-hidden="true">
+      {initials}
+    </span>
   );
 }
 
@@ -63,8 +69,6 @@ function Sources({ sources }: { sources: Source[] }) {
     </p>
   );
 }
-
-const COHORT_LABEL = { founders: 'For founders', investors: 'For investors' } as const;
 
 interface ActionsApi {
   following: (uid: string) => boolean;
@@ -123,40 +127,38 @@ function CheckGlyph() {
   );
 }
 
-function Takeaways({ story }: { story: Story }) {
-  if (!story.takeaways.length) return null;
-  return (
-    <dl className={clsx(s.takeaways, story.section === 'lead' && s.takeawaysLead)}>
-      {story.takeaways.map((t) => (
-        <div key={t.label} className={s.takeaway}>
-          <dt className={s.takeawayLabel}>
-            {t.label}
-            {t.cohort && <span className={s.cohortTag}>{COHORT_LABEL[t.cohort]}</span>}
-          </dt>
-          <dd className={s.takeawayText}>{t.text}</dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
-
+/**
+ * A story in The Latest, YC style: an image, a large linked headline, one short
+ * paragraph, one line of "Why it matters", one next step. The lead gets the
+ * full-width image and a one-line "Yes, but". The team logo sits in the meta line.
+ */
 function StoryItem({ story, api }: { story: Story; api: ActionsApi }) {
+  const lead = story.kind === 'lead';
   return (
-    <article id={story.id} className={s.story}>
-      <p className={s.storyDate}>
-        <time>{story.date}</time>
-      </p>
+    <article id={story.id} className={clsx(s.story, lead && s.storyLead)}>
+      <StoryImage seed={story.id} size={lead ? 'hero' : 'side'} className={s.storyVisual} />
       <div className={s.storyMain}>
-        <h4 className={s.storyTitle}>
-          <TeamLink team={story.team} />
-          {story.headlineRest}
-        </h4>
-        {story.body.map((p) => (
-          <p key={p.slice(0, 24)} className={s.storyBody}>
-            {p}
+        <p className={s.storyMeta}>
+          <Mark name={story.team.name} size="xs" />
+          <TeamLink team={story.team} /> · <time>{story.date}</time>
+        </p>
+        <h3 className={clsx(s.storyTitle, lead && s.storyTitleLead)}>
+          <a className={s.storyTitleLink} href={story.headlineHref} target="_blank" rel="noreferrer">
+            {story.headline}
+          </a>
+        </h3>
+        <p className={s.storyBody}>{story.paragraph}</p>
+        <p className={s.why}>
+          <strong className={s.whyLabel}>Why it matters:</strong> {story.whyItMatters}
+        </p>
+        {story.yesBut && (
+          <p className={s.why}>
+            <strong className={s.whyLabel}>Yes, but:</strong> {story.yesBut}
           </p>
-        ))}
-        <Takeaways story={story} />
+        )}
+        <a className={s.nextLink} href={story.next.href} target="_blank" rel="noreferrer">
+          {story.next.label}
+        </a>
         <StoryFooter story={story} api={api} />
       </div>
     </article>
@@ -172,10 +174,6 @@ function SectionHead({ id, title, sub }: { id: string; title: string; sub?: stri
       {sub && <p className={s.sectionSub}>{sub}</p>}
     </header>
   );
-}
-
-function storiesIn(section: SectionKey, group: Group) {
-  return EDITION.stories.filter((st) => st.section === section && st.group === group);
 }
 
 function TakeText({ seg }: { seg: TakeSegment }) {
@@ -197,71 +195,59 @@ function TakeText({ seg }: { seg: TakeSegment }) {
 /* End-of-issue: your turn + feedback                                        */
 /* ------------------------------------------------------------------------ */
 
-function YourTurn() {
-  const [open, setOpen] = useState(false);
-  const [link, setLink] = useState('');
-  const [line, setLine] = useState('');
+/**
+ * The ask, first in the footer: one field, one button. A link alone is enough;
+ * the editor writes the line and checks it against a public source.
+ */
+function SendNews() {
+  const [value, setValue] = useState('');
   const [sent, setSent] = useState(false);
 
   if (sent) {
     return (
       <p className={s.receipt} role="status">
-        <CheckGlyph /> Thanks. The editor reads every submission and checks it against a public source before it runs.
+        <CheckGlyph /> Thanks. The editor reads every submission and checks it against a public source before it
+        runs.
       </p>
     );
   }
 
   return (
-    <div className={s.endBlock}>
-      <h3 className={s.endTitle}>Did your team ship something?</h3>
+    <div className={clsx(s.endBlock, s.askBlock)}>
+      <h3 className={s.askTitle}>Send us your news</h3>
       <p className={s.endText}>
-        Send one line and a public link. Launches, rounds, research and open roles all count.
+        Did your team ship, raise or publish something? Paste a public link. It can run in {nextNumber()}.
       </p>
-      {!open ? (
-        <Button size="xs" style="border" variant="neutral" onClick={() => setOpen(true)}>
-          Submit news for No. 08
+      <form
+        className={s.askForm}
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (value.trim()) setSent(true);
+        }}
+      >
+        <label className={s.srOnly} htmlFor="digest-news">
+          Link to your news
+        </label>
+        <input
+          id="digest-news"
+          className={s.input}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="https://… and one line, if you like"
+          required
+        />
+        <Button size="s" style="fill" variant="primary" type="submit">
+          Send
         </Button>
-      ) : (
-        <form
-          className={s.form}
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (line.trim() && link.trim()) setSent(true);
-          }}
-        >
-          <label className={s.field}>
-            <span className={s.fieldLabel}>What happened</span>
-            <input
-              className={s.input}
-              value={line}
-              onChange={(e) => setLine(e.target.value)}
-              placeholder="Our team launched…"
-              required
-            />
-          </label>
-          <label className={s.field}>
-            <span className={s.fieldLabel}>Public link</span>
-            <input
-              className={s.input}
-              type="url"
-              value={link}
-              onChange={(e) => setLink(e.target.value)}
-              placeholder="https://"
-              required
-            />
-          </label>
-          <div className={s.formRow}>
-            <Button size="xs" style="fill" variant="primary" type="submit">
-              Send to the editor
-            </Button>
-            <button type="button" className={s.textAction} onClick={() => setOpen(false)}>
-              Cancel
-            </button>
-          </div>
-        </form>
-      )}
+      </form>
     </div>
   );
+}
+
+/** "No. 07" → "No. 08". */
+function nextNumber() {
+  const n = Number(EDITION.number.replace(/\D/g, ''));
+  return `No. ${String(n + 1).padStart(2, '0')}`;
 }
 
 function Feedback() {
@@ -272,7 +258,7 @@ function Feedback() {
   if (done) {
     return (
       <p className={s.receipt} role="status">
-        <CheckGlyph /> Thanks. Your answer shapes what goes into No. 08.
+        <CheckGlyph /> Thanks. Your answer shapes what goes into {nextNumber()}.
       </p>
     );
   }
@@ -342,12 +328,12 @@ function ShareIssue({ onShare }: { onShare: () => void }) {
 }
 
 /**
- * The full issue as a LabOS page: one edition, one column, each story once.
- * Shared sections (lead, deals, take, dates) frame two cohort sections, so a
- * founder and an investor read the same page and each finds their part by
- * heading, not by a separate view.
+ * The full issue as a LabOS page, in one voice for everyone in the network.
+ * YC weekly order: The Latest (short stories with a visual), team launches as
+ * cards, press links; then deals, signals, forum, take and dates. The reader's
+ * turn closes it.
  */
-export function DigestIssuePage() {
+export function DigestIssuePage({ forumAccess }: { forumAccess: boolean }) {
   const intro = useRequestIntro();
   const [follows, setFollows] = useState<Set<string>>(() => new Set());
   const [toast, setToast] = useState<string | null>(null);
@@ -390,14 +376,16 @@ export function DigestIssuePage() {
     share,
   };
 
-  const lead = EDITION.stories.find((st) => st.section === 'lead')!;
+  const forum = showForum(forumAccess);
+  const sections = SECTIONS.filter((sec) => sec.id !== 'forum' || forum);
+  const anyMock = EDITION.signals.some((sig) => sig.mock);
 
   return (
     <div className={s.page}>
       <div className={s.pageInner}>
         <main className={s.article}>
           <header className={s.issueHead}>
-            <p className={s.masthead}>PL Network Digest</p>
+            <h1 className={s.masthead}>PL Network Digest</h1>
             <p className={s.issueMeta}>
               {EDITION.number} · <time dateTime={EDITION.date}>{EDITION.dateLabel}</time> · {EDITION.readMinutes} min
               read
@@ -405,29 +393,67 @@ export function DigestIssuePage() {
           </header>
 
           <nav className={s.jumpRow} aria-label="In this issue">
-            {SECTIONS.map((sec) => (
+            {sections.map((sec) => (
               <a key={sec.id} className={s.jumpLink} href={`#${sec.id}`}>
                 {sec.label}
               </a>
             ))}
           </nav>
 
-          {/* The lead: shared, with one takeaway per reader. */}
-          <section id="lead" className={clsx(s.section, s.leadSection)} aria-labelledby="lead-title">
-            <p className={s.kicker}>The lead · {lead.date}</p>
-            <h1 className={s.leadTitle} id="lead-title">
-              {lead.headline}
-            </h1>
-            {lead.body.map((p, i) => (
-              <p key={p.slice(0, 24)} className={s.leadBody}>
-                {i === 0 ? withTeamLink(p, lead.team) : p}
-              </p>
+          <section id="latest" className={clsx(s.section, s.latestSection)} aria-labelledby="latest-title">
+            <SectionHead id="latest" title="The Latest" />
+            {EDITION.stories.map((st) => (
+              <StoryItem key={st.id} story={st} api={api} />
             ))}
-            <Takeaways story={lead} />
-            <StoryFooter story={lead} api={api} />
           </section>
 
-          {/* Capital: one dated table for the whole network. */}
+          {/* YC's Launchpad: bordered cards, each opens the team page in LabOS. */}
+          <section id="launches" className={s.section} aria-labelledby="launches-title">
+            <SectionHead id="launches" title="New from network teams" sub="Launches and releases since No. 06." />
+            <ul className={s.cards}>
+              {EDITION.launches.map((l) => (
+                <li key={l.id} id={l.id} className={s.card}>
+                  <Mark name={l.team.name} size="s" />
+                  <div className={s.cardMain}>
+                    <h3 className={s.cardTitle}>
+                      <a className={s.cardLink} href={teamHref(l.team.uid)}>
+                        {l.team.name}
+                      </a>
+                      <span className={s.cardTagline}> — {l.tagline}</span>
+                    </h3>
+                    <p className={s.cardLine}>{l.line}</p>
+                    <p className={s.cardFoot}>
+                      <span className={s.badge}>{l.focus}</span>
+                      <time className={s.cardDate}>{l.date}</time>
+                      <a className={s.cardSource} href={l.source.href} target="_blank" rel="noreferrer">
+                        {l.source.label}
+                      </a>
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section id="news" className={s.section} aria-labelledby="news-title">
+            <SectionHead id="news" title="Network news" sub="Network teams in the press." />
+            <ul className={s.press}>
+              {EDITION.news.map((n) => (
+                <li key={n.id} className={s.pressRow}>
+                  <StoryImage seed={n.id} size="thumb" className={s.pressThumb} />
+                  <div className={s.pressMain}>
+                    <a className={s.pressLink} href={n.href} target="_blank" rel="noreferrer">
+                      {n.headline}
+                    </a>
+                    <span className={s.pressMeta}>
+                      {n.outlet} · <time>{n.date}</time>
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+
           <section id="deals" className={s.section} aria-labelledby="deals-title">
             <SectionHead id="deals" title="Capital & deals" sub="Rounds announced by network teams." />
             <table className={s.deals}>
@@ -468,29 +494,69 @@ export function DigestIssuePage() {
             <p className={s.note}>{EDITION.deals.catchUpNote}</p>
           </section>
 
-          <section id="founders" className={s.section} aria-labelledby="founders-title">
-            <SectionHead id="founders" title="For founders" sub="Changes that touch your stack, and wins across the network." />
-            {(['Heads-up', 'Wins'] as const).map((g) => (
-              <div key={g} className={s.group}>
-                <h3 className={s.groupTitle}>{g}</h3>
-                {storiesIn('founders', g).map((st) => (
-                  <StoryItem key={st.id} story={st} api={api} />
-                ))}
-              </div>
-            ))}
-          </section>
-
-          <section id="investors" className={s.section} aria-labelledby="investors-title">
-            <SectionHead id="investors" title="For investors" sub="Moves that change where value can sit." />
-            <div className={s.group}>
-              <h3 className={s.groupTitle}>Signals</h3>
-              {storiesIn('investors', 'Signals').map((st) => (
-                <StoryItem key={st.id} story={st} api={api} />
+          {/* Specter-style count rows. Each opens the LabOS page it counts. No ads. */}
+          <section id="signals" className={s.section} aria-labelledby="signals-title">
+            <SectionHead
+              id="signals"
+              title="Network signals"
+              sub={anyMock ? 'Items marked “mock” are placeholder data in this prototype.' : undefined}
+            />
+            <ul className={s.signals}>
+              {EDITION.signals.map((sig) => (
+                <li key={sig.id} className={clsx(sig.examples && s.signalWide)}>
+                  <a className={s.signal} href={sig.href}>
+                    <span className={s.signalFigure}>{sig.figure}</span>
+                    <span className={s.signalLabel}>
+                      {sig.label}
+                      {sig.mock && <span className={s.mockTag}>mock</span>}
+                    </span>
+                    <span className={s.signalArrow} aria-hidden="true">
+                      →
+                    </span>
+                  </a>
+                  {sig.examples && (
+                    <ul className={s.roles} aria-label="Example roles">
+                      {sig.examples.map((ex) => (
+                        <li key={ex.label} className={s.role}>
+                          <a className={s.roleLink} href={ex.href}>
+                            {ex.label}
+                          </a>
+                          <span className={s.roleMeta}>{ex.meta}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
               ))}
-            </div>
+            </ul>
           </section>
 
-          {/* The take comes after the items it cites; every claim links back to one. */}
+          {forum && (
+            <section id="forum" className={s.section} aria-labelledby="forum-title">
+              <SectionHead
+                id="forum"
+                title="From the forum"
+                sub={`Top threads since No. 06.${EDITION.forum.mock ? ' Mock threads.' : ''}`}
+              />
+              <ol className={s.threads}>
+                {EDITION.forum.threads.map((th, i) => (
+                  <li key={th.id} className={s.thread}>
+                    <span className={s.threadRank}>{i + 1}.</span>
+                    <a className={s.threadTitle} href={th.href}>
+                      {th.title}
+                    </a>
+                    <span className={s.threadReplies}>
+                      {th.replies} {th.replies === 1 ? 'reply' : 'replies'}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+              <a className={s.calendarLink} href={EDITION.forum.href}>
+                Open the forum
+              </a>
+            </section>
+          )}
+
           <section id="take" className={s.section} aria-labelledby="take-title">
             <div className={s.takeBox}>
               <p className={s.kicker}>The editor’s take</p>
@@ -525,12 +591,28 @@ export function DigestIssuePage() {
             </a>
           </section>
 
+          <p className={s.mostRead}>
+            <span className={s.mostReadLabel}>Most read last issue</span>
+            <span>
+              {EDITION.mostReadLastIssue.title}{' '}
+              <span className={s.mostReadMeta}>({EDITION.mostReadLastIssue.number})</span>
+              {EDITION.mostReadLastIssue.mock && <span className={s.mockTag}>mock</span>}
+            </span>
+          </p>
+
+          <p className={s.explore}>
+            Find more teams and discover what they build.{' '}
+            <Link className={s.exploreLink} href="/teams">
+              Explore all network teams in LabOS
+            </Link>
+          </p>
+
           <section className={clsx(s.section, s.endSection)} aria-label="Your turn">
+            <SendNews />
+            <Feedback />
             <div className={s.phoneShare}>
               <ShareIssue onShare={() => share(undefined, 'Issue')} />
             </div>
-            <YourTurn />
-            <Feedback />
           </section>
         </main>
 
@@ -538,7 +620,7 @@ export function DigestIssuePage() {
           <div className={s.railSticky}>
             <p className={s.railTitle}>In this issue</p>
             <ol className={s.railList}>
-              {SECTIONS.map((sec) => (
+              {sections.map((sec) => (
                 <li key={sec.id}>
                   <a className={s.railLink} href={`#${sec.id}`}>
                     {sec.label}

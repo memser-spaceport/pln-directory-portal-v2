@@ -1,23 +1,25 @@
 /**
- * PL Network Digest No. 07, as one edition for founders and investors.
+ * PL Network Digest No. 07, v2: one edition, one voice, for everyone in the network.
  *
  * Shaped like the edition the backend would serve from
  * `GET /v1/labos-digest/editions/:slug` (LabosDigestSend / SendStory with
  * edition fields): an edition with a slug and date, and stories that each carry
- * a section, a team, sources and actions. Copy is the No. 07 demo's two views
- * merged into one (pl-network-digest repo, issues/no07); each story appears once.
+ * a kind, a team, sources and actions. The layout follows YC's "This Week at
+ * YC" (8 Nov): "The Latest" (short full stories with a visual), team launches
+ * as cards ("New from network teams"), external press links ("Network news"),
+ * a numbered forum list and a closing link to explore all teams.
  *
- * Teams and public news only. No member names or photos anywhere. Held items
- * (security incidents, leadership changes, settlements) are not in this file.
+ * Copy comes from the No. 07 demo pool (pl-network-digest repo, issues/no07)
+ * plus three LabOS pool items with their own sources (Goldsky, Tiger Data,
+ * Hypercerts). Teams and public news only. No member names or photos anywhere.
+ * Held items (security incidents, leadership changes, settlements) are not here.
+ *
+ * Mock, not data: the network-signal counts, the forum threads and "most read
+ * last issue". Each is marked `mock` so the page can say so.
  */
 
-export type SectionKey = 'lead' | 'founders' | 'investors';
-
-/** Where a story sits inside its cohort section. */
-export type Group = 'Heads-up' | 'Wins' | 'Signals';
-
 export interface TeamRef {
-  /** Directory uid (`dw_company_id`), so the name links to `/teams/:uid`. */
+  /** Directory uid, so the name links to `/teams/:uid`. */
   uid: string;
   name: string;
 }
@@ -30,31 +32,52 @@ export interface Source {
 /** What a reader can do on a story, in the order they render. */
 export type StoryAction = 'follow' | 'intro' | 'share';
 
-/** A labelled line under a story body. `cohort` marks a line written for one reader. */
-export interface Takeaway {
-  label: string;
-  text: string;
-  cohort?: 'founders' | 'investors';
-}
+/** `lead`: the first story of The Latest, with a larger visual. `story`: the others. */
+export type StoryKind = 'lead' | 'story';
 
+/**
+ * A story in "The Latest": one linked headline, one short paragraph, one line
+ * of "Why it matters" and one next step. The visual is a team logo placeholder.
+ */
 export interface Story {
   id: string;
-  section: SectionKey;
-  group?: Group;
+  kind: StoryKind;
   /** Announcement date, shown on every item (A6). */
   date: string;
   team: TeamRef;
-  /**
-   * Headline after the team name, which renders as the team-page link (B3).
-   * A story whose headline does not start with the team (the lead) sets
-   * `headline` instead, and the team's first mention in the body is the link.
-   */
-  headlineRest?: string;
-  headline?: string;
-  body: string[];
-  takeaways: Takeaway[];
+  headline: string;
+  /** Where the headline goes: the primary public source. */
+  headlineHref: string;
+  /** One paragraph, four or five short sentences. */
+  paragraph: string;
+  /** One line, one voice for every reader: no audience tag. */
+  whyItMatters: string;
+  /** The lead's counterweight, one line. */
+  yesBut?: string;
+  /** The story's one next step, as a link. */
+  next: { label: string; href: string };
   sources: Source[];
   actions: StoryAction[];
+}
+
+/** A launch or release card: "Team — tagline", one line, a focus badge. Links to the team page. */
+export interface Launch {
+  id: string;
+  date: string;
+  team: TeamRef;
+  tagline: string;
+  line: string;
+  focus: string;
+  source: Source;
+}
+
+/** An external press link: a thumbnail placeholder, a linked headline and the outlet. */
+export interface PressLink {
+  id: string;
+  date: string;
+  headline: string;
+  outlet: string;
+  href: string;
 }
 
 export interface DealRow {
@@ -76,6 +99,25 @@ export interface EventItem {
   note: string;
 }
 
+/** A compact count row that opens a LabOS page. */
+export interface NetworkSignal {
+  id: 'jobs' | 'events' | 'teams' | 'deals';
+  figure: string;
+  label: string;
+  href: string;
+  mock: boolean;
+  /** Example rows under the count (the jobs row lists a few roles). */
+  examples?: { label: string; meta: string; href: string }[];
+}
+
+/** A forum thread, by title and reply count only. No author, no avatars. */
+export interface ForumThread {
+  id: string;
+  title: string;
+  replies: number;
+  href: string;
+}
+
 export interface Edition {
   slug: string;
   number: string;
@@ -86,10 +128,16 @@ export interface Edition {
   subject: string;
   preheader: string;
   stories: Story[];
+  launches: Launch[];
+  news: PressLink[];
   deals: { rows: DealRow[]; catchUpNote: string };
+  signals: NetworkSignal[];
+  /** Top threads since the last issue. The section renders only with forum access and at least one thread. */
+  forum: { threads: ForumThread[]; href: string; mock: boolean };
   take: { title: string; paragraphs: TakeSegment[][] };
   events: EventItem[];
   eventsHref: string;
+  mostReadLastIssue: { number: string; title: string; mock: boolean };
 }
 
 const TEAMS = {
@@ -101,6 +149,9 @@ const TEAMS = {
   optimism: { uid: 'cluirunzy000csi02q6z869gp', name: 'Optimism' },
   aria: { uid: 'cly4ypxxz002e3l022n0nm4bx', name: 'ARIA' },
   precision: { uid: 'cmmfgpjlb0omdpi4forj6rdgi', name: 'Precision Neuroscience' },
+  hypercerts: { uid: 'clnez5ttg00021h02he9ljx5m', name: 'Hypercerts' },
+  goldsky: { uid: 'cldvnxhe301gzu21k1hug2g42', name: 'Goldsky' },
+  tigerData: { uid: 'cldvnvv0o00x9u21kk5sacswo', name: 'Tiger Data' },
 } satisfies Record<string, TeamRef>;
 
 const SRC = {
@@ -120,7 +171,14 @@ const SRC = {
   },
   tokenpostStarknet: { label: 'TokenPost', href: 'https://www.tokenpost.com/news/technology/52068' },
   tokenpostLido: { label: 'TokenPost', href: 'https://www.tokenpost.com/news/technology/50210' },
-  optimismGov: { label: 'Optimism governance forum', href: 'https://gov.optimism.io/t/upgrade-21-interop-readiness/10948' },
+  optimismVote: {
+    label: 'Optimism Agora',
+    href: 'https://vote.optimism.io/proposals/18704058920168992233750266034048958164367667396985967653465644941701644737084',
+  },
+  optimismDocs: { label: 'Optimism docs', href: 'https://docs.optimism.io/notices/upgrade-21' },
+  hypercertsRelease: { label: 'Hypercerts docs', href: 'https://docs.hypercerts.org/releases/protocol' },
+  goldskyBlog: { label: 'Goldsky', href: 'https://goldsky.com/blog/goldsky-real-time-data-elysium' },
+  infoqTiger: { label: 'InfoQ', href: 'https://www.infoq.com/news/2026/11/postgresql-vector-search/' },
   ariaProgramme: {
     label: 'ARIA',
     href: 'https://aria.org.uk/opportunity-spaces/scalable-neural-interfaces/massively-scalable-neurotechnologies/funded-projects',
@@ -142,145 +200,139 @@ export const EDITION: Edition = {
   number: 'No. 07',
   date: '2026-11-11',
   dateLabel: '11 Nov 2026',
-  readMinutes: 4,
+  readMinutes: 5,
   subject: 'Confidential stablecoin payments reached retail on Ethereum',
-  preheader: 'Also: a $250M neurotech round, an 8B model anyone can audit, and a Starknet change to check before you deploy.',
+  preheader: 'Also: an 8B model anyone can audit, post-quantum hashing on Starknet, and four team launches.',
 
   stories: [
     {
       id: 'lead',
-      section: 'lead',
+      kind: 'lead',
       date: '9 Nov',
       team: TEAMS.zama,
-      headline: 'Confidential stablecoin payments reached retail on Ethereum',
-      body: [
-        'On November 9, Raycash, a spin-off of Zama, opened a private beta on Ethereum mainnet. The app lets people hold dollars, send and receive payments, and earn yield through Morpho, while the amounts stay encrypted. It is the first retail payment product built on the Zama Protocol, which uses fully homomorphic encryption to keep balances and transaction values hidden on a public chain.',
-        'Raycash does not issue a new stablecoin. It wraps the USDC people already hold, one to one, into confidential ERC-7984 tokens. The user does not have to trust a new issuer, only the wrapper.',
-      ],
-      takeaways: [
-        {
-          label: 'Why it matters',
-          cohort: 'investors',
-          text: 'Fully homomorphic encryption has lived in research papers and testnets. This is the first attempt to put it in the hands of people who are not cryptographers. The company says more than 75,000 people joined the waitlist before launch.',
-        },
-        {
-          label: 'What to do',
-          cohort: 'founders',
-          text: 'If you build on stablecoin rails, your users can now pay each other without the amounts being public. If your product depends on reading stablecoin flows, that assumption now has a competitor.',
-        },
-        {
-          label: 'Yes, but',
-          text: 'The app is self-custodial and has no freeze or seize function at the token layer. That is a design choice, and it is the one regulators will ask about first.',
-        },
-      ],
+      headline: 'Zama spin-off Raycash brought confidential stablecoin payments to Ethereum',
+      headlineHref: SRC.theBlockRaycash.href,
+      paragraph:
+        'On 9 Nov, Raycash, a spin-off of Zama, opened a private beta on Ethereum mainnet. People can hold dollars, send payments and earn yield through Morpho, while the amounts stay encrypted. It is the first retail payment product on the Zama Protocol, which uses fully homomorphic encryption. Raycash does not issue a new stablecoin: it wraps the USDC people already hold, one to one, into confidential ERC-7984 tokens. The company says more than 75,000 people joined the waitlist.',
+      whyItMatters: 'Teams on stablecoin rails can now offer payments where the amounts are not public.',
+      yesBut: 'The app has no freeze or seize function at the token layer, and regulators will ask about that first.',
+      next: { label: 'Read the launch coverage', href: SRC.theBlockRaycash.href },
       sources: [SRC.theBlockRaycash, SRC.cryptoBriefingRaycash],
       actions: ALL_ACTIONS,
     },
-
-    // ---- For founders ----
     {
       id: 'gensyn',
-      section: 'founders',
-      group: 'Heads-up',
+      kind: 'story',
       date: '9 Nov',
       team: TEAMS.gensyn,
-      headlineRest: ' opened a training run you can audit on your own machine',
-      body: [
-        'Open-8b is an 8-billion-parameter model training in public, five times the size of open-1b. Every step is committed and can be replayed on ordinary hardware. Gensyn says the audit overhead fell from 5.5x the GPU-hours of a standard run for open-1b to about 1.3x for open-8b.',
-      ],
-      takeaways: [
-        {
-          label: 'What to do',
-          text: 'If your product depends on saying how a model was trained, this is the first time that claim has been cheap to check.',
-        },
-      ],
+      headline: 'Gensyn opened a training run anyone can audit on ordinary hardware',
+      headlineHref: SRC.gensynBlog.href,
+      paragraph:
+        'Open-8b is an 8-billion-parameter model that trains in public. It is five times the size of open-1b. Every training step is committed publicly and can be replayed on ordinary hardware. Gensyn says the audit overhead fell from 5.5x the GPU-hours of a standard run for open-1b to about 1.3x for open-8b. After post-training, the model will judge markets on Delphi, Gensyn’s information-market platform.',
+      whyItMatters: 'A claim about how a model was trained is now cheap to check.',
+      next: { label: 'Follow the live run', href: SRC.gensynBlog.href },
       sources: [SRC.gensynBlog],
       actions: ALL_ACTIONS,
     },
     {
       id: 'starkware',
-      section: 'founders',
-      group: 'Heads-up',
+      kind: 'story',
       date: '7 Nov',
       team: TEAMS.starkware,
-      headlineRest: ' shipped BLAKE2s-256 hashing into Starknet',
-      body: [
-        'Starknet v0.14.3 replaces Pedersen with BLAKE2s-256 for operating-system hashes, part of the move to post-quantum security. Accounts can migrate one by one, without a chain-wide signing upgrade.',
-      ],
-      takeaways: [
-        {
-          label: 'What to do',
-          text: 'If you build on Starknet, this is a protocol-level change to how proofs are hashed. Read the changelog before your next deploy.',
-        },
-      ],
+      headline: 'StarkWare shipped post-quantum hashing into Starknet',
+      headlineHref: SRC.tokenpostStarknet.href,
+      paragraph:
+        'Starknet v0.14.3 replaces Pedersen with BLAKE2s-256 for operating-system hashes. The change is part of the move to post-quantum security. It changes how proofs are hashed at the protocol level. Accounts can migrate one by one, without a chain-wide signing upgrade.',
+      whyItMatters: 'Teams on Starknet must check what the change does to their code before the next deploy.',
+      next: { label: 'Read about v0.14.3 before your next deploy', href: SRC.tokenpostStarknet.href },
       sources: [SRC.tokenpostStarknet],
       actions: ALL_ACTIONS,
     },
     {
-      id: 'lido',
-      section: 'founders',
-      group: 'Wins',
-      date: '5 Nov',
-      team: TEAMS.lido,
-      headlineRest: ' built token swaps into its staking product',
-      body: ['Stakers can now swap tokens inside the app on Ethereum, Arbitrum and Base, through CoW Swap.'],
-      takeaways: [],
-      sources: [SRC.tokenpostLido],
-      actions: ALL_ACTIONS,
-    },
-    {
-      id: 'aria',
-      section: 'founders',
-      group: 'Wins',
-      date: '5 Nov',
-      team: TEAMS.aria,
-      headlineRest: ' funded ten teams in a £50M neurotechnology programme',
-      body: [
-        'The Massively Scalable Neurotechnologies programme backs ten teams testing ways to reach the brain without surgery. Each project is a 36-month feasibility study.',
-      ],
-      takeaways: [],
-      sources: [SRC.ariaProgramme],
-      actions: ALL_ACTIONS,
-    },
-
-    // ---- For investors ----
-    {
       id: 'coinlist',
-      section: 'investors',
-      group: 'Signals',
+      kind: 'story',
       date: '9 Nov',
       team: TEAMS.coinlist,
-      headlineRest: ' is a day-one partner for a tokenized-securities venue on Solana',
-      body: [
-        'Passage will connect to Formation Securities, which told the SEC it plans to run a venue for tokenized stocks, with trading expected in early 2027.',
-      ],
-      takeaways: [
-        {
-          label: 'Why it matters',
-          text: 'It is a second track toward regulated on-chain securities, and it does not run through Ethereum.',
-        },
-      ],
+      headline: 'CoinList became a day-one partner for a tokenized-securities venue on Solana',
+      headlineHref: SRC.coinlistBlog.href,
+      paragraph:
+        'CoinList’s Passage will connect to Formation Securities. Formation told the SEC it plans to run a venue for tokenized stocks and bonds on Solana. Trading is expected in early 2027. Verified investors will get access through Passage partner apps and coinlist.co.',
+      whyItMatters: 'It is a second track toward regulated on-chain securities, and it does not run through Ethereum.',
+      next: { label: 'Read CoinList’s announcement', href: SRC.coinlistBlog.href },
       sources: [SRC.coinlistBlog, SRC.cryptoBriefingFormation],
       actions: ALL_ACTIONS,
     },
+  ],
+
+  // Launches and releases from the No. 07 pool. Each card opens the team page.
+  launches: [
     {
       id: 'optimism',
-      section: 'investors',
-      group: 'Signals',
-      date: '4 Nov',
+      date: '11 Nov',
       team: TEAMS.optimism,
-      headlineRest: ' proposed Upgrade 21 to prepare OP Stack chains for interop',
-      body: [
-        'The governance proposal puts in place the L1 contract changes OP Stack chains need before they can talk to each other directly. It does not switch interop on.',
-      ],
-      takeaways: [
-        {
-          label: 'What’s next',
-          text: 'If interop follows, a rollup becomes less a standalone chain and more a member of a network.',
-        },
-      ],
-      sources: [SRC.optimismGov],
-      actions: ALL_ACTIONS,
+      tagline: 'The OP Stack for Ethereum layer 2s',
+      line: 'Upgrade 21 passed governance on 11 Nov. Mainnet execution is targeted for 16 Nov.',
+      focus: 'Layer 2',
+      source: SRC.optimismVote,
+    },
+    {
+      id: 'goldsky',
+      date: '9 Nov',
+      team: TEAMS.goldsky,
+      tagline: 'Real-time blockchain data',
+      line: 'Went live on Elysium mainnet with its full data stack from day one.',
+      focus: 'Data infrastructure',
+      source: SRC.goldskyBlog,
+    },
+    {
+      id: 'lido',
+      date: '5 Nov',
+      team: TEAMS.lido,
+      tagline: 'Liquid staking for Ethereum',
+      line: 'Built token swaps into its staking app on Ethereum, Arbitrum and Base.',
+      focus: 'DeFi',
+      source: SRC.tokenpostLido,
+    },
+    {
+      id: 'hypercerts',
+      date: '3 Nov',
+      team: TEAMS.hypercerts,
+      tagline: 'Open records of impact work',
+      line: 'Released Lexicons 2.0 for the modern AT Protocol client. Existing records stay valid.',
+      focus: 'Public goods',
+      source: SRC.hypercertsRelease,
+    },
+  ],
+
+  // External press about network teams. Headlines are ours; the outlet is the link target.
+  news: [
+    {
+      id: 'precision-press',
+      date: '25 Sep',
+      headline: 'Precision Neuroscience raised $250M for brain-computer interface work',
+      outlet: 'MedTech Dive',
+      href: SRC.medtechDive.href,
+    },
+    {
+      id: 'formation-press',
+      date: '9 Nov',
+      headline: 'Formation Securities plans an SEC-registered venue for tokenized securities on Solana',
+      outlet: 'CryptoBriefing',
+      href: SRC.cryptoBriefingFormation.href,
+    },
+    {
+      id: 'tiger-press',
+      date: '7 Nov',
+      headline: 'Tiger Data (formerly Timescale) released pg_vectorsearch for PostgreSQL in alpha',
+      outlet: 'InfoQ',
+      href: SRC.infoqTiger.href,
+    },
+    {
+      id: 'aria-press',
+      date: '5 Nov',
+      headline: 'ARIA funded ten teams in its £50M programme to reach the brain without surgery',
+      outlet: 'ARIA',
+      href: SRC.ariaProgramme.href,
     },
   ],
 
@@ -297,6 +349,50 @@ export const EDITION: Edition = {
     ],
     catchUpNote:
       'Catch-up: no network team announced an equity round in the past two weeks. Precision’s round was announced six weeks ago and has not been covered here before.',
+  },
+
+  signals: [
+    {
+      id: 'jobs',
+      figure: '42',
+      label: 'new open roles across 17 network teams',
+      href: '/jobs',
+      mock: true,
+      // Placeholder roles: no team named, so no real opening is implied.
+      examples: [
+        { label: 'Senior Rust engineer, ZK proving', meta: 'Remote', href: '/jobs' },
+        { label: 'Head of business development', meta: 'New York', href: '/jobs' },
+        { label: 'ML research engineer, verifiable training', meta: 'London or remote', href: '/jobs' },
+      ],
+    },
+    { id: 'events', figure: '9', label: 'network events in the next 30 days', href: '/events', mock: true },
+    { id: 'teams', figure: '6', label: 'teams joined the network since No. 06', href: '/teams', mock: true },
+    { id: 'deals', figure: '$250M', label: 'Series D for Precision Neuroscience, the largest round in the window', href: '/deals', mock: false },
+  ],
+
+  forum: {
+    mock: true,
+    href: '/forum',
+    threads: [
+      {
+        id: 'fhe-keys',
+        title: 'How are teams handling key management for FHE in production?',
+        replies: 14,
+        href: '/forum',
+      },
+      {
+        id: 'pq-first',
+        title: 'Post-quantum migration: what did you change first?',
+        replies: 9,
+        href: '/forum',
+      },
+      {
+        id: 'first-bd',
+        title: 'What worked when you hired your first BD lead?',
+        replies: 22,
+        href: '/forum',
+      },
+    ],
   },
 
   take: {
@@ -324,7 +420,7 @@ export const EDITION: Edition = {
       id: 'das-london',
       dates: '10–11 Nov',
       title: 'Digital Asset Summit London 2026',
-      note: 'Runs in London, organized by the DAS team. Network teams are on the ground this week.',
+      note: 'Runs in London, organized by the DAS team.',
     },
     {
       id: 'proof-of-talk',
@@ -334,22 +430,37 @@ export const EDITION: Edition = {
     },
   ],
   eventsHref: 'https://events.plnetwork.io/program',
+
+  mostReadLastIssue: {
+    number: 'No. 06',
+    title: 'If your app fetches from ipfs.io or dweb.link, retrieval is changing under you',
+    mock: true,
+  },
 };
 
-/** Section headings and their anchors, in page order. One list feeds the rail and the email. */
+/** Section headings and their anchors, in page order. `forum` drops out when the section does not render. */
 export const SECTIONS = [
-  { id: 'lead', label: 'The lead' },
+  { id: 'latest', label: 'The Latest' },
+  { id: 'launches', label: 'New from network teams' },
+  { id: 'news', label: 'Network news' },
   { id: 'deals', label: 'Capital & deals' },
-  { id: 'founders', label: 'For founders' },
-  { id: 'investors', label: 'For investors' },
+  { id: 'signals', label: 'Network signals' },
+  { id: 'forum', label: 'From the forum' },
   { id: 'take', label: 'The editor’s take' },
   { id: 'dates', label: 'Where the network will be' },
 ] as const;
 
-/** The sender line in the mock inbox. A placeholder address, not a person. */
-export const EMAIL_FROM = 'PL Network Digest <digest@plnetwork.io>';
+export type SectionId = (typeof SECTIONS)[number]['id'];
+
+/** The forum section's rule: access AND something new to show. */
+export const showForum = (forumAccess: boolean) => forumAccess && EDITION.forum.threads.length > 0;
+
+/** The sender line, the same as the current LabOS digest email (6 Nov). */
+export const EMAIL_FROM = 'Protocol Labs - Member Services <labos@plnetwork.io>';
 export const EMAIL_TO = 'member@example.com';
+/** Mock first name for the greeting. Not a real person. Production uses the member's first name. */
+export const EMAIL_FIRST_NAME = 'Alex';
 
 export const teamHref = (uid: string) => `/teams/${uid}`;
-export const issueHref = (anchor?: string) =>
-  `/prototypes/pl-digest-issue?view=page${anchor ? `#${anchor}` : ''}`;
+export const issueHref = (anchor?: string, forum = true) =>
+  `/prototypes/pl-digest-issue?view=page${forum ? '' : '&forum=off'}${anchor ? `#${anchor}` : ''}`;

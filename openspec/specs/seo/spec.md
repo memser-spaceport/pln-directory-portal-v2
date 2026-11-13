@@ -20,6 +20,13 @@ Which addresses of the site search engines are told to index, and how every othe
 - **THEN** it lists `/events/all` and `/demoday`
 - **AND** it does not list `/events`
 
+#### Scenario: Browse index pages
+
+- **GIVEN** the team browse index has 6 pages
+- **WHEN** the sitemap is generated
+- **THEN** the static pages section lists `/teams/browse` and `/teams/browse?page=2` to `/teams/browse?page=6`, and every page of the member and project indexes the same way
+- **AND** when the API can't be read, it still lists page 1 of each index
+
 #### Scenario: Teams hidden from signed-out visitors
 
 - **GIVEN** the directory API serves `GET /v1/teams/crawl-index`
@@ -238,7 +245,7 @@ Member, team and project profiles SHALL carry JSON-LD built only from what a sig
 
 ### Requirement: Links reach every profile
 
-`/members`, `/teams` and `/projects` SHALL each link, in their server HTML, to a browse index at `/<listing>/browse`. The link is for crawlers: it SHALL NOT be visible on screen or reachable with Tab, and SHALL NOT be removed with `display: none` (LAB-3184). The index SHALL list every profile the sitemap lists for that listing, A to Z, 200 per page, as plain links, with links to every page of the index. Each page SHALL have a self-canonical; page 1 SHALL have no `?page=`. A `?page=` that is not a whole number from 1 up, or is past the last page, SHALL answer 404.
+`/members`, `/teams` and `/projects` SHALL each link, in their server HTML, to a browse index at `/<listing>/browse`. The link SHALL be a quiet, visible line under the list, reachable with Tab, and SHALL NOT sit in the listing's toolbar (LAB-3184 found it beside "Sort by"). It was hidden for LAB-3184; Search Console then still called `/teams/browse` "unknown to Google", so it is visible again. The index SHALL list every profile the sitemap lists for that listing, A to Z, 200 per page, as plain links, with links to every page of the index. Each page SHALL have a self-canonical; page 1 SHALL have no `?page=`. A `?page=` that is not a whole number from 1 up, or is past the last page, SHALL answer 404.
 
 #### Scenario: Crawler follows links only
 
@@ -248,7 +255,7 @@ Member, team and project profiles SHALL carry JSON-LD built only from what a sig
 #### Scenario: Member opens a listing
 
 - **WHEN** a member opens `/teams`, `/members` or `/projects`
-- **THEN** no "Browse all" link shows on the page, and the server HTML still has the `<a href>` to the browse index
+- **THEN** a "Browse all <listing>, A–Z" link shows under the list, not in the toolbar
 
 #### Scenario: Page past the end
 

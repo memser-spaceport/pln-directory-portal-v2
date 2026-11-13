@@ -54,3 +54,23 @@ it('shows the server page, linked to each profile, while the filter values are s
   expect(screen.getAllByRole('link', { name: /Lab Team/ })[0]).toHaveAttribute('href', '/teams/team-1');
   expect(screen.getAllByRole('link', { name: /Other Team/ })[0]).toHaveAttribute('href', '/teams/team-2');
 });
+
+/* LAB-3093 phase 2: the link to the A–Z index sits under the list, not beside it in <main>'s flex row, where LAB-3184
+   found it next to "Sort by". */
+it('puts the browse link after the list, inside the content column', () => {
+  const { container } = render(
+    <QueryClientProvider client={new QueryClient()}>
+      <TeamsContent
+        userInfo={undefined}
+        isLoggedIn={false}
+        serverPage={SERVER_PAGE}
+        browseLink={<p data-testid="browse-all-link">Browse all teams, A–Z</p>}
+      />
+    </QueryClientProvider>,
+  );
+
+  const column = container.firstElementChild as HTMLElement;
+  const browse = screen.getByTestId('browse-all-link');
+  expect(column.lastElementChild).toBe(browse);
+  expect(column.contains(screen.getAllByRole('link', { name: /Other Team/ })[0])).toBe(true);
+});

@@ -6,6 +6,7 @@
 import type { MetadataRoute } from 'next';
 import { DEMO_DAY_PATH, EVENTS_LIST_PATH, PAGE_ROUTES } from '@/utils/constants';
 import { jobOpeningPath } from '@/services/jobs/job-detail-link';
+import { browsePageCount, browsePath, loadBrowseEntries, type BrowseKind } from '@/services/browse/browseIndex';
 import { getApplicationBaseUrl } from '@/utils/seo';
 
 const STATIC_PATHS = [
@@ -110,6 +111,22 @@ async function fetchCrawlIndex(path: string, listKey: string): Promise<SitemapEn
   return fetchEntities(path, listKey);
 }
 
+const BROWSE_KINDS: BrowseKind[] = ['teams', 'members', 'projects'];
+
+/**
+ * Every page of the browse indexes (LAB-3093). Nothing else links to page 2 onwards but page 1, and Search Console still
+ * called `/teams/browse` "unknown to Google" ten days after release. Page 1 is listed even when the API can't be read.
+ */
+async function browsePaths(): Promise<string[]> {
+  const counts = await Promise.all(
+    BROWSE_KINDS.map(async (kind) => {
+      const entries = await loadBrowseEntries(kind);
+      return { kind, pages: entries ? browsePageCount(entries.length) : 1 };
+    }),
+  );
+  return counts.flatMap(({ kind, pages }) => Array.from({ length: pages }, (_, i) => browsePath(kind, i + 1)));
+}
+
 // No changefreq or priority anywhere (LAB-3094): Google ignores both. lastmod is the one field it reads.
 function entityEntries(entities: SitemapEntity[], pathPrefix: string, baseUrl: string): MetadataRoute.Sitemap {
   return entities.map((entity) => ({
@@ -135,7 +152,7 @@ export async function sitemapSection(section: SitemapSection): Promise<MetadataR
 
   switch (section) {
     case 'pages':
-      return STATIC_PATHS.map((path) => ({ url: `${baseUrl}${path}` }));
+      return [...STATIC_PATHS, ...(await browsePaths())].map((path) => ({ url: `${baseUrl}${path}` }));
     case 'teams':
       return entityEntries(await fetchCrawlIndex('/v1/teams', 'teams'), PAGE_ROUTES.TEAMS, baseUrl);
     case 'members':

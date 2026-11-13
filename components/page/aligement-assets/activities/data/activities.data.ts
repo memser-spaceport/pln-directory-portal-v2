@@ -626,6 +626,39 @@ export const activitiesData: ActivitiesData = {
       },
     },
     {
+      id: 'share-your-contacts',
+      category: 'People/Talent',
+      activity: 'Share Your Contacts with the Network',
+      networkValue: 'Help PL Capital find warm paths to relevant connections through your professional network',
+      points: '50',
+      frequency: 'One-Time',
+      verificationType: 'Submission',
+      cta: 'submit',
+      audience: 'pl-infra-members',
+      popupContent: {
+        title: 'Share Your Contacts with the Network',
+        overview:
+          "Help the PL Capital team find warm paths to relevant connections through your professional network. Use the Fundraising Command Center to submit your LinkedIn connections securely, then review the matches it finds and decide which, if any, you're comfortable introducing.",
+        networkBenefits:
+          'Replaces cold outreach with warm relationship paths that members have checked themselves, gathered through a private, controlled process.',
+        rules: [
+          'Available to PL Infra members only.',
+          "Submit your connections only through the Fundraising Command Center. Don't share your contacts any other way, such as in a shared spreadsheet.",
+          'Review and label the matches the app returns by the stated deadline. You can decline any match or introduction.',
+          "Don't share message history or sensitive personal information.",
+          "Points are awarded once, for completing the mapping task. Introductions, meetings, investment interest and capital raised don't collect points, here or under **Make a Network Introduction**.",
+          "Don't pitch, advise or negotiate. Send any investment questions to the PL Capital team.",
+        ],
+        ctaLink: '/pl-infra/ai-apps/cmue66zhd021hvu4fyhn7y29b/contribute',
+        links: [
+          { text: 'Fundraising Command Center', url: '/pl-infra/ai-apps/cmue66zhd021hvu4fyhn7y29b/contribute' },
+          { text: 'Make a Network Introduction', url: '/alignment-asset/activities#network-introduction' },
+        ],
+        disclaimer:
+          'By submitting, I confirm I am performing administrative mapping and am not a broker, solicitor, or agent; I will not pitch, advise, or negotiate; I will immediately direct all investment inquiries to PL Capital; and points are for task completion, not performance or outcomes.',
+      },
+    },
+    {
       id: 'subscribe-pl-newsletter',
       category: 'Brand',
       activity: 'Subscribe to PL Newsletter',

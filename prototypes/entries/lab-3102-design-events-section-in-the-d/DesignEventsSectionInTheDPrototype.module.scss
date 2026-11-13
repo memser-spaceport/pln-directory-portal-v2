@@ -1,0 +1,448 @@
+@use 'styles/media';
+
+/* Colors are token + fallback pairs from prototypes/CLAUDE.md and the newsfeed
+   entry's email digest view. Sizes follow that view, so this section reads as
+   part of the same email. */
+
+.root {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+
+  @include media.mobile-only {
+    padding: 20px 16px 48px;
+  }
+}
+
+.header {
+  max-width: 600px;
+  margin: 0 auto 20px;
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.description {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin-top: 16px;
+}
+
+.switchGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.switchLabel {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.switch {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 8px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.switchBtn {
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+}
+
+.switchBtnActive {
+  background: var(--background-base-white, #fff);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  box-shadow: 0 1px 2px var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.stateNote {
+  margin: 12px 0 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* The email column. 600 px is the usual email width; the mobile switch narrows
+   it to 375 px, and container queries below adapt the layout, the same as a
+   media query does in the real email. */
+.stage {
+  container-type: inline-size;
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: max-width 0.2s ease;
+}
+
+.stageMobile {
+  max-width: 375px;
+}
+
+.clientBar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.clientRow {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.clientLabel {
+  flex-shrink: 0;
+  width: 56px;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 600;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.clientValue {
+  min-width: 0;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.clientSubject {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.email {
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #fff);
+  overflow: hidden;
+}
+
+.emailHead {
+  padding: 24px 28px 20px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.masthead {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.emailWeek {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.top {
+  padding: 28px;
+  background: var(--transparent-brand-8, rgba(27, 77, 255, 0.08));
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.kicker {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.topTitle {
+  margin: 0;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.topSummary {
+  margin: 10px 0 0;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.cta {
+  display: inline-block;
+  margin-top: 18px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: var(--background-base-white, #fff);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.sourceLine {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.section {
+  padding: 22px 28px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.sectionTitle {
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.storyItem,
+.lineItem {
+  display: flex;
+  gap: 10px;
+  padding: 10px 0;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+}
+
+.lineItem {
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chip {
+  flex-shrink: 0;
+  width: 96px;
+  font-size: 12px;
+  line-height: 20px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.itemText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.itemLink {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-decoration: none;
+}
+
+.itemMeta {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* ---- The new section ---- */
+
+.eventsSection {
+  background: var(--background-base-white, #fff);
+}
+
+.eventList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* One card per event: a fixed date tile, then name, date and place, link.
+   Flat (border, no shadow), so it builds as a two-cell table row in email. */
+.eventCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.dateTile {
+  flex-shrink: 0;
+  width: 48px;
+  height: 52px;
+  border-radius: 8px;
+  background: var(--transparent-brand-8, rgba(27, 77, 255, 0.08));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.dateMonth {
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.dateDay {
+  font-size: 20px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.eventBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.eventName {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.eventMeta {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.eventLink {
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: none;
+}
+
+.sectionLink {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: underline;
+}
+
+.foot {
+  padding: 20px 28px 24px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+
+  p {
+    margin: 0 0 6px;
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--foreground-neutral-tertiary, #8897ae);
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  a {
+    color: var(--foreground-neutral-secondary, #455468);
+    text-decoration: underline;
+  }
+}
+
+/* Narrow email (a phone): less padding, the story label goes above its title. */
+@container (max-width: 480px) {
+  .emailHead,
+  .section,
+  .foot {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .top {
+    padding: 20px 18px;
+  }
+
+  .topTitle {
+    font-size: 20px;
+    line-height: 28px;
+    letter-spacing: -0.4px;
+  }
+
+  .storyItem {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .eventCard {
+    gap: 12px;
+    padding: 10px;
+  }
+
+  .dateTile {
+    width: 44px;
+    height: 48px;
+  }
+}

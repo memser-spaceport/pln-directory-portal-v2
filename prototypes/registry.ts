@@ -705,6 +705,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     category: 'Agents',
     load: () => import('./entries/lab-3054-design-the-connect-step-tabs-o/DesignTheConnectStepTabsOPrototype'),
   },
+  {
+    key: 'lab-3206-design-i-m-going-in-the-event-d',
+    title: "Events: I'm going in the drawer, one Events section on the profile",
+    description:
+      'Two views behind one switch. Event drawer: the current drawer with an "I\'m going" button, "Show on my profile" (ticked) and the list of people going. Member profile: one Events section with upcoming and past events as LAB-3078 tiles, Demo Day as a highlighted past tile, "+N" for long lists, and "Add event" for the owner. LAB-3206.',
+    category: 'Members',
+    load: () => import('./entries/lab-3206-design-i-m-going-in-the-event-d/GoingEventsPrototype'),
+  },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).
   // {

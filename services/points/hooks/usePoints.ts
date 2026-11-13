@@ -10,6 +10,8 @@ export interface PointsRecord {
   activityName: string;
   description: string;
   pointsCollectedPerSnapshot: number;
+  /** Site id of the activity card this row was earned from; null when it is not from a site activity. Absent from older API responses. */
+  siteActivityId?: string | null;
 }
 
 export interface SnapshotPointsResponse {

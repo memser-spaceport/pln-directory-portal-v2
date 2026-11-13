@@ -55,6 +55,13 @@ import { useAffinityMember } from '@/services/affinity/hooks/useAffinityMember';
 import { useJobEmailProfileLinkEventCapture } from '@/components/page/member-details/hooks';
 import { RelationshipDetails } from '@/components/page/member-details/RelationshipDetails';
 import { useLoginRedirect } from '@/components/core/login/utils';
+import {
+  MemberEventsSection,
+  OwnerMemberEventsSection,
+  useMemberProfileEvents,
+} from '@/components/page/member-details/MemberEventsSection';
+import type { MemberEvents } from '@/services/events/profile-events.service';
+import { SHOW_EVENT_DRAWER } from '@/utils/event-drawer';
 
 /** The member as `getMember` returns it for a signed-out visitor, fetched by the server page (LAB-2922). */
 export type ServerMemberResult = Extract<Awaited<ReturnType<typeof getMember>>, { data: unknown }>;
@@ -63,9 +70,11 @@ interface MemberDetailsPageProps {
   memberId: string;
   /** The public member from the server, so the profile is in the server HTML. Absent when the server lookup failed. */
   serverMember?: ServerMemberResult;
+  /** The member's past events as a signed-out visitor sees them, from the server (LAB-3217, design D5). */
+  serverMemberEvents?: MemberEvents | null;
 }
 
-const MemberDetails = ({ memberId, serverMember }: MemberDetailsPageProps) => {
+const MemberDetails = ({ memberId, serverMember, serverMemberEvents }: MemberDetailsPageProps) => {
   const searchParams = useSearchParams();
   const goToLogin = useLoginRedirect();
 
@@ -111,6 +120,15 @@ const MemberDetails = ({ memberId, serverMember }: MemberDetailsPageProps) => {
   const isAdmin = isAdminUser(userInfo);
   const isOwner = !!userInfo && userInfo.uid === memberId;
   const isLoggedIn = !!userInfo;
+
+  /* The Events section (LAB-3217), in place of IRL Contributions behind the event drawer flag. Where it sits depends on
+     what this viewer sees, so the data is resolved here (design D6). */
+  const memberEvents = useMemberProfileEvents({
+    memberUid: memberId,
+    serverEvents: serverMemberEvents,
+    isOwner,
+    isLoggedIn,
+  });
 
   const { data: memberInvestorSettings } = useGetMemberInvestorSettings(memberId);
   const { authToken } = getCookiesFromClient();
@@ -213,6 +231,29 @@ const MemberDetails = ({ memberId, serverMember }: MemberDetailsPageProps) => {
       isJobAspirant: jobAspirant,
       isOwner,
     });
+    const eventsSection = SHOW_EVENT_DRAWER ? (
+      <ProfileSection name="Events">
+        {isOwner ? (
+          <OwnerMemberEventsSection
+            memberUid={memberId}
+            firstName={member.name?.trim().split(/\s+/)[0] ?? ''}
+            upcoming={memberEvents.upcoming}
+            upcomingTotal={memberEvents.upcomingTotal}
+            past={memberEvents.past}
+            pastTotal={memberEvents.pastTotal}
+          />
+        ) : (
+          <MemberEventsSection
+            firstName={member.name?.trim().split(/\s+/)[0] ?? ''}
+            isOwner={false}
+            upcoming={memberEvents.upcoming}
+            upcomingTotal={memberEvents.upcomingTotal}
+            past={memberEvents.past}
+            pastTotal={memberEvents.pastTotal}
+          />
+        )}
+      </ProfileSection>
+    ) : null;
     const cvSection = showCvSection ? (
       <ProfileSection name={isOwner ? 'Your CV' : 'CV'}>
         <MemberCvSection member={member} isOwner={isOwner} />
@@ -252,6 +293,8 @@ const MemberDetails = ({ memberId, serverMember }: MemberDetailsPageProps) => {
         <ProfileSection name="Office Hours">
           <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
         </ProfileSection>
+        {/* Where can I meet this person: high up for the owner and whenever there are plans to show. */}
+        {memberEvents.placement === 'high' && eventsSection}
         <ProfileSection name="Contact Details">
           <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
         </ProfileSection>
@@ -326,7 +369,8 @@ const MemberDetails = ({ memberId, serverMember }: MemberDetailsPageProps) => {
           </>
         )}
 
-        {member.eventGuests.length > 0 && (
+        {memberEvents.placement === 'low' && eventsSection}
+        {!SHOW_EVENT_DRAWER && member.eventGuests.length > 0 && (
           <ProfileSection name="IRL Contributions" className={styles?.memberDetail__irlContribution}>
             <IrlMemberContribution member={member} userInfo={userInfo} />
           </ProfileSection>

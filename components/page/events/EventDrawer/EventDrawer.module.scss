@@ -1,0 +1,430 @@
+/*
+ * The PL events app's detail panel, ported from prototypes/entries/member-events-going/EventDetails.module.scss
+ * (LAB-3216). Sizes are its measured values; every `var(--token, fallback)` pair is kept as written there, because
+ * the fallback is what paints when the DS tokens are absent.
+ */
+
+/* The drawer is the scroller; the form fills it so the bars can stick. */
+.root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.backBar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 12px 30px 10px 31px;
+  background: var(--background-base-white, #ffffff);
+
+  @media (max-width: 639px) {
+    padding: 12px 16px 10px;
+  }
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 16px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 15px;
+  padding: 13px 30px 32px 31px;
+
+  @media (max-width: 639px) {
+    padding: 13px 16px 32px;
+  }
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.kicker {
+  font-size: 16px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.mode,
+.access,
+.paid {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.paid {
+  border-radius: 4px;
+  color: var(--foreground-success-primary, #0a9952);
+  background: var(--background-success-subtle, #e9f9ee);
+}
+
+.hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+/* The event's picture, small: it identifies the event, the title still leads. */
+.thumb {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--background-neutral-secondary, #f8fafc);
+
+  @media (max-width: 639px) {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+.heroText {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 26px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.factRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.factIcon {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.pinIcon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.fact {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.linkIcon {
+  vertical-align: -2px;
+}
+
+.place {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.region {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 15px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Background tint and the hash square's colour come from the tag itself (12% and solid). */
+.tag {
+  display: inline-flex;
+  align-items: stretch;
+  height: 23px;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.tagHash {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 21px;
+}
+
+.tagName {
+  padding: 0 8px 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 23px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label,
+.labelMedium {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.labelMedium {
+  font-weight: 500;
+}
+
+.hosts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hostChip {
+  padding: 4px 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  background: var(--background-neutral-subtle, #f1f5f9);
+}
+
+.paragraph {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.agenda {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 13px;
+  border-radius: 8px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+}
+
+.agendaDay {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.agendaDayLabel {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.agendaItem {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px;
+  border-radius: 4px;
+  background: var(--background-base-white, #ffffff);
+}
+
+.agendaHead {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.agendaAbout {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* Our additions below the transcribed panel. */
+
+/* Production's GatheringDetails, minus its first two rows: the date and city above say them. */
+.gatheringLinks {
+  & > div > h3 {
+    display: none;
+  }
+
+  & > div > div > div:nth-child(-n + 2) {
+    display: none;
+  }
+}
+
+.footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 30px 16px 31px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #ffffff);
+
+  @media (max-width: 639px) {
+    padding: 12px 16px 16px;
+
+    .footerBtn.footerBtn {
+      flex: 1;
+    }
+  }
+}
+
+/* Not in the prototype: what the drawer shows while loading, on a failed load and for a deleted event. */
+
+.state {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 13px 30px 32px 31px;
+
+  @media (max-width: 639px) {
+    padding: 13px 16px 32px;
+  }
+}
+
+.stateTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 26px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.stateText {
+  margin: 0 0 8px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.stateActions {
+  display: flex;
+  gap: 8px;
+}
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.skeletonBlock {
+  display: block;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #eef2f7 25%, #dfe5ee 50%, #eef2f7 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.skeletonTitle {
+  width: 72%;
+  height: 28px;
+}
+
+.skeletonFact {
+  width: 58%;
+  height: 16px;
+}
+
+.skeletonPlace {
+  width: 34%;
+  height: 16px;
+}
+
+.skeletonChips {
+  display: flex;
+  gap: 8px;
+}
+
+.skeletonChip {
+  width: 120px;
+  height: 24px;
+}
+
+.skeletonLabel {
+  width: 64px;
+  height: 16px;
+  margin-top: 6px;
+}
+
+.skeletonPanel {
+  width: 100%;
+  height: 120px;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}

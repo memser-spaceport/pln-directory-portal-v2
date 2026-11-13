@@ -25,6 +25,8 @@ export interface IHomeEvent {
   /** ISO date-time of the last day. */
   endDate: string;
   location: string;
+  /** The event's gathering, so the rail can open the event drawer on it (LAB-3220). Null when the event has none. */
+  locationUid?: string | null;
 }
 
 /** The rail's events section: up to three events and the total for "See all". */

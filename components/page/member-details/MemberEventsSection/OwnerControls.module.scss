@@ -1,0 +1,74 @@
+/* The owner's controls in the member Events section (LAB-3218), from the prototype's MemberEventsGoing.module.scss
+   fallbacks as written there. */
+
+.menuDanger.menuDanger {
+  color: var(--foreground-error-primary, #dd2c5a);
+}
+
+/* The upcoming group with nothing in it. */
+.empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.emptyText {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* The "Add an event you're going to" list. */
+.searchWrap {
+  flex-shrink: 0;
+  padding: 16px 24px 8px;
+}
+
+.search {
+  box-sizing: border-box;
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  background: var(--background-base-white, #ffffff);
+
+  &::placeholder {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+
+  &:focus {
+    border-color: var(--foreground-brand-primary, #1b4dff);
+    outline: none;
+  }
+}
+
+.pickList.pickList {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0 24px 24px;
+  overflow-y: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Home's row has a negative side margin for its hover ground; inside the list's padding that is what we want. */
+.pickRow.pickRow {
+  margin: 0;
+}
+
+.noResults {
+  padding: 16px 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}

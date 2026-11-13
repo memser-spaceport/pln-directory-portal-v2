@@ -1,0 +1,325 @@
+/*
+ * The profile Events sections' cards (LAB-3211), ported from `prototypes/entries/member-events-going`
+ * (`MemberEventsGoing.module.scss`), with the date tile from `home-refactor` and the muted role pills from
+ * `team-profile/TeamContributions`. Token + fallback pairs from production.
+ */
+
+/* Section body */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+/* Directly under the section title, the gap every other section on the page has. */
+.panelNoLabels {
+  margin-top: 0;
+}
+
+/* "You're going to" over the upcoming cards, "Contributions" over the past ones. */
+.groupLabel {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* A second group starts further from the cards above than from its own. */
+.groupLabelAfter {
+  margin-top: 12px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @media (max-width: 639px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.cardsSingle {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Cards */
+
+/* Padding, radius and fill come from production's grey container, the ground of Teams and Experience. */
+.card {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* Home's rail date tile. */
+.dateTile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  /* Transparent on Home's white rail; on grey it needs its own ground. */
+  background: var(--background-base-white, #ffffff);
+}
+
+.dateMonth {
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.dateDay {
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* Four digits where the upcoming tile has one or two, so a step down from its 14px. */
+.dateYear {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.cardBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+/* The title's press covers the card; the menu sits above it. */
+.cardTitle {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-align: left;
+  cursor: pointer;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+  }
+
+  &:focus-visible {
+    outline: none;
+
+    &::after {
+      outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+      outline-offset: -1px;
+    }
+  }
+
+  .card:hover & {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.cardMenu {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.cardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin-top: 2px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* Pinned to the card's floor, so cards in a row line up when one title wraps. */
+.cardFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-top: auto;
+  padding-top: 12px;
+}
+
+/* Above the title's press, so a badge with its own press stays its own target. */
+.cardBadges {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.people {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.faces {
+  display: inline-flex;
+  flex: none;
+}
+
+/* The team profile's follower facepile: 20px rounds, 1.5px ring in the card's ground, -7px overlap. */
+.face {
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid var(--background-neutral-secondary, #f8fafc);
+  border-radius: 50%;
+  object-fit: cover;
+
+  & + & {
+    margin-left: -7px;
+  }
+}
+
+/* A row can mix cards with and without a role, so the text centres against the date tile. */
+.pastCard {
+  align-items: center;
+}
+
+/* The highlighted contribution (a team's Demo Day): the old Demo Day tile's PL gradient ring (1.1px, 135°),
+   drawn as a masked ::before so the grey ground and radius stay the card's own. */
+.pastFeatured {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.1px;
+    background: linear-gradient(135deg, #1b4dff 0%, #4cee8c 100%);
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+}
+
+.pastName {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* The title's press covers the card, as on the upcoming cards. */
+.pastLink {
+  text-decoration: none;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+  }
+
+  &:focus-visible {
+    outline: none;
+
+    &::after {
+      outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+      outline-offset: -1px;
+    }
+  }
+
+  .pastFeatured:hover & {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+/* The receipt once you've said yes: a fact in text, not a second button. */
+.goingMark {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: var(--foreground-success-primary, #0a9952);
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* Role pills: the IRL gathering tags' shape, in the muted fills of the team profile's Contributions tiles. */
+.roleTag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 20px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 20px;
+  white-space: nowrap;
+  color: var(--foreground-neutral-secondary, #455468);
+  background: rgba(136, 151, 174, 0.18);
+}
+
+.roleTagHost {
+  color: #7c5ce6; // violet — matches the IRL host pill hue (no DS token exists)
+  background: rgba(158, 126, 255, 0.18);
+}
+
+.roleTagSpeaker {
+  color: var(--foreground-success-primary, #0a9952);
+  background: rgba(10, 153, 82, 0.12);
+}
+
+.roleTagSponsor {
+  color: var(--foreground-brand-primary, #1b4dff);
+  background: rgba(27, 77, 255, 0.12);
+}
+
+/* The Demo Day pill: brand gradient, white text, the shared hairline so the green edge doesn't fringe. */
+.roleTagDemo {
+  border-color: #ffffff66;
+  color: #fff;
+  background: linear-gradient(97.17deg, #1b4dff 6.23%, #4cee8c 99.44%);
+  background-clip: padding-box;
+}

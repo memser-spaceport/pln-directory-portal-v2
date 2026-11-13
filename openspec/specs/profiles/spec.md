@@ -329,7 +329,7 @@ The owner's actions SHALL record these PostHog events:
 
 ### Requirement: One Events section on the team profile
 
-With the event drawer flag on, a team profile SHALL show an Events section in place of the Contributions tiles. It uses the member profile's cards and four-card limit, in two columns (one on mobile). When both groups are present, the section SHALL be titled "Events" with the labels "<Team> is going to" and "Contributions"; with one group, it SHALL have no labels and be titled "Events <Team> is going to" or "Past events". The team profile keeps these titles and columns after LAB-3234. With the flag off, the team profile SHALL show the Contributions tiles as today.
+With the event drawer flag on, a team profile SHALL show an Events section in place of the Contributions tiles. It uses the member profile's cards and four-card limit, in one column, every card the section's full width (LAB-3240). When both groups are present, the section SHALL be titled "Events" with the labels "<Team> is going to" and "Contributions"; with one group, it SHALL have no labels and be titled "Events <Team> is going to" or "Past events". The team profile keeps these titles after LAB-3234. With the flag off, the team profile SHALL show the Contributions tiles as today.
 
 #### Scenario: Team with both groups
 

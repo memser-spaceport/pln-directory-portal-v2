@@ -67,7 +67,7 @@ export function TeamEventsSection({ teamName, upcoming, upcomingTotal, past, pas
       <EventCardsPanel withLabels={withLabels}>
         {hasUpcoming && withLabels && <EventGroupLabel>{teamName} is going to</EventGroupLabel>}
         {hasUpcoming && (
-          <EventCardGrid label={goingTitle}>
+          <EventCardGrid label={goingTitle} columns={1}>
             {upcomingShown.map((event) => (
               <UpcomingEventCard
                 key={event.uid}
@@ -99,7 +99,7 @@ export function TeamEventsSection({ teamName, upcoming, upcomingTotal, past, pas
 
         {hasPast && withLabels && <EventGroupLabel after>Contributions</EventGroupLabel>}
         {hasPast && (
-          <EventCardGrid label={withLabels ? 'Contributions' : title}>
+          <EventCardGrid label={withLabels ? 'Contributions' : title} columns={1}>
             {pastShown.map((item) =>
               item.kind === 'demo-day' ? (
                 <PastEventCard

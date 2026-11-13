@@ -160,4 +160,41 @@ describe('sitemap', () => {
     expect(job).toBeDefined();
     expect(job?.lastModified).toBeUndefined();
   });
+  /* Every browse page is listed: page 1 is the only one any page links to, and Search Console still had
+     `/teams/browse` as "unknown to Google". 401 teams make three pages; page 1 keeps its one address. */
+  it('lists every page of the browse indexes', async () => {
+    const teams = Array.from({ length: 401 }, (_, i) => ({ uid: `t${i}`, name: `Team ${i}` }));
+    (global.fetch as jest.Mock).mockImplementation((url: string) => {
+      if (url.includes('/v1/teams?pagination=false&select=uid,name')) return jsonOk({ teams });
+      if (url.includes('/v1/members?pagination=false&select=uid,name')) {
+        return jsonOk({ members: [{ uid: 'm1', name: 'Ada' }] });
+      }
+      return jsonOk({});
+    });
+
+    const urls = (await sitemapSection('pages')).map((entry) => entry.url);
+
+    expect(urls.filter((url) => url.includes('/browse'))).toEqual([
+      'https://os.pl.xyz/teams/browse',
+      'https://os.pl.xyz/teams/browse?page=2',
+      'https://os.pl.xyz/teams/browse?page=3',
+      'https://os.pl.xyz/members/browse',
+      'https://os.pl.xyz/projects/browse',
+    ]);
+  });
+
+  it('still lists page 1 of each browse index when the API cannot be read', async () => {
+    (global.fetch as jest.Mock).mockImplementation(() => Promise.resolve({ ok: false, json: async () => ({}) }));
+
+    const urls = (await sitemapSection('pages')).map((entry) => entry.url);
+
+    expect(urls).toEqual(
+      expect.arrayContaining([
+        'https://os.pl.xyz/teams/browse',
+        'https://os.pl.xyz/members/browse',
+        'https://os.pl.xyz/projects/browse',
+      ]),
+    );
+    expect(urls.some((url) => url.includes('?page='))).toBe(false);
+  });
 });

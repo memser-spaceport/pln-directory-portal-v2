@@ -116,16 +116,22 @@
 }
 
 .browseAll {
-  // In the server HTML for crawlers, not on screen (LAB-3184). Not display:none, so the link
-  // stays in the page and the accessibility tree; it takes no room in the listing's flex row.
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  clip-path: inset(50%);
-  white-space: nowrap;
-  border: 0;
+  // A quiet line under the listing (LAB-3093). It was hidden for LAB-3184, but Google never followed the hidden link:
+  // the index was still "unknown to Google" ten days after release. It sits under the list, never in the toolbar.
+  margin: 0;
+  padding: 16px 0 24px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 20px;
+
+  a {
+    color: #455468;
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+      color: #1b4dff;
+      text-decoration: underline;
+    }
+  }
 }

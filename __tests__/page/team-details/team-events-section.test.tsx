@@ -60,6 +60,9 @@ describe('TeamEventsSection (LAB-3219)', () => {
     expect(groupLabels()).toEqual(['Lighthouse is going to', 'Contributions']);
     expect(cards('Events Lighthouse is going to')).toHaveLength(2);
     expect(cards('Contributions')).toHaveLength(3);
+    // LAB-3240: one column, every card the section's full width, as on the member profile.
+    expect(screen.getByRole('list', { name: 'Events Lighthouse is going to' })).toHaveClass('cardsSingle');
+    expect(screen.getByRole('list', { name: 'Contributions' })).toHaveClass('cardsSingle');
   });
 
   it('only past events: titled "Past events", with no group labels', () => {

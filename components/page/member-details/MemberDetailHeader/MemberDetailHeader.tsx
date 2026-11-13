@@ -60,6 +60,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
   mainTeam = !mainTeam && member?.teams.length === 1 ? member.teams[0] : mainTeam;
 
   const isOwner = userInfo?.uid === member.id;
+  const showRequestIntro = isLoggedIn && !isOwner && !variant && !member.officeHours;
   const isAdmin = isAdminUser(userInfo);
   const defaultAvatarImage = useDefaultAvatar(member?.name);
   const profile = member?.profile ?? defaultAvatarImage;
@@ -179,7 +180,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
           </div>
 
           <div className={s.headerActions}>
-            {isLoggedIn && !isOwner && !variant && (
+            {showRequestIntro && (
               <RequestIntroEntry type="MEMBER" targetId={member.id} targetName={name} className={s.introButton} />
             )}
             {isLoggedIn && (isAdmin || isOwner) && (

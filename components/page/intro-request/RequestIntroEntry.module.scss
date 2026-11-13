@@ -1,20 +1,32 @@
-@use 'styles/media';
-
+// The glossy primary of Schedule Meeting (OfficeHoursView .primaryButton) in a 34px box.
 .button.button.button {
   display: inline-flex;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  white-space: nowrap;
+  box-sizing: border-box;
+  height: 34px;
+  padding: 6px 10px;
+  border-radius: var(--corner-radius-md, 8px);
   border-color: var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
+  background: var(--action-background-brand-normal, #1b4dff);
   box-shadow:
     0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset,
     0 4px 6px 0 var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset,
     0 1px 5px 0 var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  color: var(--action-foreground-base-inverted_white, #fff);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
 
+  // Schedule Meeting keeps its fill on hover; Button's darker hover would break the match.
   &:hover:not(:disabled),
   &:active:not(:disabled) {
+    background: var(--action-background-brand-normal, #1b4dff);
     border-color: var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
   }
 
@@ -23,8 +35,43 @@
     outline: 2px solid var(--foreground-brand-primary, #1b4dff);
     outline-offset: 2px;
   }
+}
 
-  @include media.mobile-only {
-    padding: 8px 12px;
+// The line takes the button's exact box: an invisible copy of the button's content sizes the
+// slot, so a send does not shift Follow or Edit in a right-aligned row.
+.sentSlot {
+  display: inline-grid;
+  flex-shrink: 0;
+  height: 34px;
+
+  > * {
+    grid-area: 1 / 1;
   }
+}
+
+.sizer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  visibility: hidden;
+}
+
+.sent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
 }

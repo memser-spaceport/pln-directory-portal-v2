@@ -1,9 +1,12 @@
 import { IAnalyticsUserInfo } from '@/types/shared.types';
-import { EVENTS_ANALYTICS, HOME_ANALYTICS_EVENTS } from '@/utils/constants';
+import { EVENT_DRAWER_ANALYTICS, EVENTS_ANALYTICS, HOME_ANALYTICS_EVENTS } from '@/utils/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { usePostHog } from 'posthog-js/react';
 import { IUpcomingEvents } from '@/types/irl.types';
 import { UpcomingEvent } from '@/services/events/hooks/useUpcomingEvents';
+
+/** Where the event drawer was opened from. */
+export type EventDrawerSource = 'home' | 'member-profile' | 'team-profile' | 'add-event';
 
 export const useEventsAnalytics = () => {
   const postHogProps = usePostHog();
@@ -57,11 +60,7 @@ export const useEventsAnalytics = () => {
     captureEvent(EVENTS_ANALYTICS.EVENTS_PAGE_CONTRIBUTOR_LIST_OPEN_CLICKED);
   }
 
-  function onContributorListSearchChanged(params: {
-    searchQuery: string;
-    resultsCount: number;
-    totalCount: number;
-  }) {
+  function onContributorListSearchChanged(params: { searchQuery: string; resultsCount: number; totalCount: number }) {
     captureEvent(EVENTS_ANALYTICS.EVENTS_PAGE_CONTRIBUTOR_LIST_SEARCH_CHANGED, params);
   }
 
@@ -158,15 +157,56 @@ export const useEventsAnalytics = () => {
     captureEvent(EVENTS_ANALYTICS.EVENTS_PAGE_CONTRIBUTORS_TEAM_TREEMAP_CLICKED, params);
   }
 
-  function onContributorsViewMoreClicked(params: {
-    remainingCount: number;
-    totalCount: number;
-    visibleCount: number;
-  }) {
+  function onContributorsViewMoreClicked(params: { remainingCount: number; totalCount: number; visibleCount: number }) {
     captureEvent(EVENTS_ANALYTICS.EVENTS_PAGE_CONTRIBUTORS_VIEW_MORE_CLICKED, params);
   }
 
+  /* The event drawer (LAB-3216). */
+
+  function onEventDrawerOpened(params: { eventUid: string; source: EventDrawerSource }) {
+    captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_DRAWER_OPENED, { event_uid: params.eventUid, source: params.source });
+  }
+
+  function onEventGoingMarked(params: { eventUid: string; source: EventDrawerSource }) {
+    captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_GOING_MARKED, {
+      event_uid: params.eventUid,
+      source: params.source,
+    });
+  }
+
+  function onEventNotGoingMarked(params: { eventUid: string }) {
+    captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_NOT_GOING_MARKED, { event_uid: params.eventUid });
+  }
+
+  /** "Add your plans" saved; `roles` is this event's Host / Speaker / Sponsor (empty is plain attendance). */
+  function onEventPlansSaved(params: { eventUid: string; roles: string[] }) {
+    captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_PLANS_SAVED, {
+      event_uid: params.eventUid,
+      roles: params.roles,
+    });
+  }
+
+  function onEventAttendeesOpened(params: { eventUid: string }) {
+    captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_ATTENDEES_OPENED, { event_uid: params.eventUid });
+  }
+
+  /** `from`: the section header (the owner has upcoming events) or the empty state. */
+  function onProfileEventAddClicked(params: { from: 'header' | 'empty-state' }) {
+    captureEvent(EVENT_DRAWER_ANALYTICS.ON_PROFILE_EVENT_ADD_CLICKED, { from: params.from });
+  }
+
+  function onProfileEventRemoved(params: { eventUid: string }) {
+    captureEvent(EVENT_DRAWER_ANALYTICS.ON_PROFILE_EVENT_REMOVED, { event_uid: params.eventUid });
+  }
+
   return {
+    onEventDrawerOpened,
+    onEventGoingMarked,
+    onEventNotGoingMarked,
+    onEventPlansSaved,
+    onEventAttendeesOpened,
+    onProfileEventAddClicked,
+    onProfileEventRemoved,
     onIrlLocationClicked,
     onEventCardClicked,
     onContributorClicked,

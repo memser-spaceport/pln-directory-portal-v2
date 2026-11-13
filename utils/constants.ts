@@ -753,6 +753,10 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_COUNT_CHIP_SHOWN: 'team-news-count-chip-shown',
   TEAM_NEWS_FOR_YOU_UPDATE_PROFILE_CLICKED: 'team-news-for-you-update-profile-clicked',
   TEAM_NEWS_FOR_YOU_TUNE_CLICKED: 'team-news-for-you-tune-clicked',
+  // The Home row for a member For You cannot match yet (LAB-3080). Shown is the
+  // denominator for the click; the click is not the hint's Update event.
+  TEAM_NEWS_FOR_YOU_SETUP_SHOWN: 'team-news-for-you-setup-shown',
+  TEAM_NEWS_FOR_YOU_SETUP_CLICKED: 'team-news-for-you-setup-clicked',
   // A `#tag` on a Home story narrows the feed to that tag (LAB-3010); cleared by
   // the filter chip's × or by clicking the active tag again.
   TEAM_NEWS_TAG_FILTER_APPLIED: 'team-news-tag-filter-applied',
@@ -853,6 +857,19 @@ export const TEAM_PITCH_ANALYTICS = {
   ON_MATERIAL_DELETED: 'team-pitch-material-deleted',
   ON_MATERIAL_VIEWED: 'team-pitch-material-viewed',
   ON_PROFILE_READY: 'team-pitch-profile-ready',
+};
+
+/** The event drawer (LAB-3211 / LAB-3216). Each event carries `event_uid`. */
+export const EVENT_DRAWER_ANALYTICS = {
+  ON_EVENT_DRAWER_OPENED: 'event-drawer-opened',
+  ON_EVENT_GOING_MARKED: 'event-going-marked',
+  ON_EVENT_NOT_GOING_MARKED: 'event-not-going-marked',
+  ON_EVENT_PLANS_SAVED: 'event-plans-saved',
+  ON_EVENT_ATTENDEES_OPENED: 'event-attendees-opened',
+  /** The owner's "Add event" on their profile (LAB-3218). */
+  ON_PROFILE_EVENT_ADD_CLICKED: 'profile-event-add-clicked',
+  /** The owner removed an event from the ⋯ menu on their profile (LAB-3218). */
+  ON_PROFILE_EVENT_REMOVED: 'profile-event-removed',
 };
 
 export const EVENTS_ANALYTICS = {
@@ -2837,6 +2854,8 @@ export const AI_APPS_ANALYTICS = {
   ACCESS_SAVED: 'ai_apps_access_saved',
   ACCESS_SAVE_FAILED: 'ai_apps_access_save_failed',
   PRIVATE_BLOCKED: 'ai_apps_private_blocked',
+  PUBLISHED_APP_OPENED: 'ai_apps_published_app_opened',
+  PUBLISHED_APP_UNAVAILABLE: 'ai_apps_published_app_unavailable',
   ACCESS_REDEPLOY_PROMPTED: 'ai_apps_access_redeploy_prompted',
   ACCESS_REDEPLOY_CLICKED: 'ai_apps_access_redeploy_clicked',
   ACCESS_REDEPLOY_DISMISSED: 'ai_apps_access_redeploy_dismissed',

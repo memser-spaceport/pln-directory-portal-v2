@@ -147,6 +147,7 @@ export function MemberProfilePage({
   isOwner = false,
   eventsSection,
   eventsHigh = false,
+  contributionsSection,
   suggestions,
 }: {
   askAi: AskAiPlacement;
@@ -160,6 +161,8 @@ export function MemberProfilePage({
   eventsSection?: ReactNode;
   /** Moves the events card up, under Office Hours. */
   eventsHigh?: boolean;
+  /** Past events as their own section (`member-events-going` two-section layout), in production's slot. */
+  contributionsSection?: ReactNode;
   /** "You might be interested in" card: in the rail on desktop, at the end of the page below it. */
   suggestions?: ReactNode;
 }) {
@@ -236,19 +239,57 @@ export function MemberProfilePage({
 
   return (
     <div className={s.pageBackdrop}>
-      {reviewBand !== undefined ? reviewBand : (
-      <div className={s.demoSwitch}>
-        {/* Both Affinity controls govern the same card, so they share a row. */}
-        <div className={s.demoSwitchGroupRow}>
+      {reviewBand !== undefined ? (
+        reviewBand
+      ) : (
+        <div className={s.demoSwitch}>
+          {/* Both Affinity controls govern the same card, so they share a row. */}
+          <div className={s.demoSwitchGroupRow}>
+            <div className={s.demoSwitchGroup}>
+              <span className={s.demoSwitchLabel}>Affinity — relationship state</span>
+              <div className={s.demoSwitchRow}>
+                {RELATIONSHIP_SCENARIOS.map((sc) => (
+                  <button
+                    key={sc.key}
+                    type="button"
+                    className={clsx(s.demoSwitchBtn, { [s.active]: sc.key === scenario.key })}
+                    onClick={() => setScenarioKey(sc.key)}
+                  >
+                    {sc.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className={s.demoSwitchGroup}>
+              <span className={s.demoSwitchLabel}>Affinity — card accent</span>
+              <div className={s.demoSwitchRow}>
+                {CARD_ACCENTS.map((a) => (
+                  <button
+                    key={a.key}
+                    type="button"
+                    className={clsx(s.demoSwitchBtn, { [s.active]: a.key === cardAccent })}
+                    onClick={() => setCardAccent(a.key)}
+                  >
+                    {a.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* The four states the rail card has to survive. Note the last two are
+            the same fact seen from two sides: with no account connected, the
+            owner is offered the prompt and a visitor gets nothing at all. */}
           <div className={s.demoSwitchGroup}>
-            <span className={s.demoSwitchLabel}>Affinity — relationship state</span>
+            <span className={s.demoSwitchLabel}>Bluesky posts — state</span>
             <div className={s.demoSwitchRow}>
-              {RELATIONSHIP_SCENARIOS.map((sc) => (
+              {ACTIVITY_SCENARIOS.map((sc) => (
                 <button
                   key={sc.key}
                   type="button"
-                  className={clsx(s.demoSwitchBtn, { [s.active]: sc.key === scenario.key })}
-                  onClick={() => setScenarioKey(sc.key)}
+                  className={clsx(s.demoSwitchBtn, { [s.active]: sc.key === activityKey })}
+                  onClick={() => setActivityKey(sc.key)}
                 >
                   {sc.label}
                 </button>
@@ -256,129 +297,93 @@ export function MemberProfilePage({
             </div>
           </div>
 
+          {/* Which contact press the header shows: Available → Schedule
+            Meeting (and the Office Hours card); None → Request an intro as
+            the primary. The two are never on the page together. */}
           <div className={s.demoSwitchGroup}>
-            <span className={s.demoSwitchLabel}>Affinity — card accent</span>
+            <span className={s.demoSwitchLabel}>Office hours</span>
             <div className={s.demoSwitchRow}>
-              {CARD_ACCENTS.map((a) => (
+              {(
+                [
+                  [true, 'Available'],
+                  [false, 'None'],
+                ] as const
+              ).map(([value, label]) => (
                 <button
-                  key={a.key}
+                  key={label}
                   type="button"
-                  className={clsx(s.demoSwitchBtn, { [s.active]: a.key === cardAccent })}
-                  onClick={() => setCardAccent(a.key)}
+                  className={clsx(s.demoSwitchBtn, { [s.active]: value === hasOfficeHours })}
+                  onClick={() => setHasOfficeHours(value)}
                 >
-                  {a.label}
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className={s.demoSwitchGroup}>
+            <span className={s.demoSwitchLabel}>Actions</span>
+            <div className={s.demoSwitchRow}>
+              {(
+                [
+                  ['header', 'In header'],
+                  ['bio', 'Under bio'],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={clsx(s.demoSwitchBtn, { [s.active]: value === actionsAt })}
+                  onClick={() => setActionsAt(value)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className={s.demoSwitchGroup}>
+            <span className={s.demoSwitchLabel}>Viewer</span>
+            <div className={s.demoSwitchRow}>
+              {(
+                [
+                  ['visitor', 'Visitor'],
+                  ['admin', 'Admin'],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={clsx(s.demoSwitchBtn, { [s.active]: value === viewer })}
+                  onClick={() => setViewer(value)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className={s.demoSwitchGroup}>
+            <span className={s.demoSwitchLabel}>Team · role · city</span>
+            <div className={s.demoSwitchRow}>
+              {(
+                [
+                  ['typical', 'Typical'],
+                  ['long', 'Long'],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={clsx(s.demoSwitchBtn, { [s.active]: value === factsLength })}
+                  onClick={() => setFactsLength(value)}
+                >
+                  {label}
                 </button>
               ))}
             </div>
           </div>
         </div>
-
-        {/* The four states the rail card has to survive. Note the last two are
-            the same fact seen from two sides: with no account connected, the
-            owner is offered the prompt and a visitor gets nothing at all. */}
-        <div className={s.demoSwitchGroup}>
-          <span className={s.demoSwitchLabel}>Bluesky posts — state</span>
-          <div className={s.demoSwitchRow}>
-            {ACTIVITY_SCENARIOS.map((sc) => (
-              <button
-                key={sc.key}
-                type="button"
-                className={clsx(s.demoSwitchBtn, { [s.active]: sc.key === activityKey })}
-                onClick={() => setActivityKey(sc.key)}
-              >
-                {sc.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Which contact press the header shows: Available → Schedule
-            Meeting (and the Office Hours card); None → Request an intro as
-            the primary. The two are never on the page together. */}
-        <div className={s.demoSwitchGroup}>
-          <span className={s.demoSwitchLabel}>Office hours</span>
-          <div className={s.demoSwitchRow}>
-            {(
-              [
-                [true, 'Available'],
-                [false, 'None'],
-              ] as const
-            ).map(([value, label]) => (
-              <button
-                key={label}
-                type="button"
-                className={clsx(s.demoSwitchBtn, { [s.active]: value === hasOfficeHours })}
-                onClick={() => setHasOfficeHours(value)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className={s.demoSwitchGroup}>
-          <span className={s.demoSwitchLabel}>Actions</span>
-          <div className={s.demoSwitchRow}>
-            {(
-              [
-                ['header', 'In header'],
-                ['bio', 'Under bio'],
-              ] as const
-            ).map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                className={clsx(s.demoSwitchBtn, { [s.active]: value === actionsAt })}
-                onClick={() => setActionsAt(value)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className={s.demoSwitchGroup}>
-          <span className={s.demoSwitchLabel}>Viewer</span>
-          <div className={s.demoSwitchRow}>
-            {(
-              [
-                ['visitor', 'Visitor'],
-                ['admin', 'Admin'],
-              ] as const
-            ).map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                className={clsx(s.demoSwitchBtn, { [s.active]: value === viewer })}
-                onClick={() => setViewer(value)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className={s.demoSwitchGroup}>
-          <span className={s.demoSwitchLabel}>Team · role · city</span>
-          <div className={s.demoSwitchRow}>
-            {(
-              [
-                ['typical', 'Typical'],
-                ['long', 'Long'],
-              ] as const
-            ).map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                className={clsx(s.demoSwitchBtn, { [s.active]: value === factsLength })}
-                onClick={() => setFactsLength(value)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
       )}
 
       <div className={page.memberDetail}>
@@ -458,6 +463,7 @@ export function MemberProfilePage({
                 <ContributionsCard />
               </div>
               {!eventsHigh && eventsSection}
+              {contributionsSection}
               <div id="member-repositories" className={s.aiAnchor}>
                 <RepositoriesCard />
               </div>
@@ -604,28 +610,33 @@ function ProfileHeaderCard({
                 content={MOCK_MEMBER.name}
               />
             </div>
-            <div className={clsx(h.roleAndLocation, s.mRole, s.factsFull)}>
-              <div className={h.teams}>
-                <p className={h.teamsName} title={teamName}>
-                  {teamName}
-                </p>
-                {MOCK_MEMBER.teams.length > 1 && (
-                  <button onClick={(e) => e.preventDefault()} className={h.moreTeamsButton}>
-                    +{MOCK_MEMBER.teams.length - 1}
-                  </button>
-                )}
-              </div>
-              <div className={clsx(h.divider, h.desktopOnly)} />
-              {/* Phone stacks these and puts the role first: it is the headline
-                  fact about a person, the team is where they do it. */}
-              <p className={clsx(h.role, s.mRoleFirst)}>{roleLabel}</p>
-              {/* The line now runs the card's full width, so all three facts
-                  fit on it and the location's hairline is back (it was hidden
-                  while the cluster squeezed the column and forced a wrap). */}
-              <div className={clsx(h.divider, h.desktopOnly)} />
-              <div className={h.location}>
-                <LocationIcon />
-                <p className={h.locationName}>{locationLabel}</p>
+            {/* Production's current markup (MemberDetailHeader, 2026-11): a
+                wrapping list whose items each draw the divider before them, so
+                a wrapped line never starts or ends on one. The old
+                `.divider` / `.desktopOnly` classes are gone from production. */}
+            <div className={clsx(h.roleAndLocation, s.factsFull)}>
+              <div className={clsx(h.metaList, s.mRole)}>
+                <div className={clsx(h.metaItem, h.teams)}>
+                  <p className={h.teamsName} title={teamName}>
+                    {teamName}
+                  </p>
+                  {MOCK_MEMBER.teams.length > 1 && (
+                    <button onClick={(e) => e.preventDefault()} className={h.moreTeamsButton}>
+                      +{MOCK_MEMBER.teams.length - 1}
+                    </button>
+                  )}
+                </div>
+                {/* Phone stacks these and puts the role first: it is the headline
+                    fact about a person, the team is where they do it. */}
+                <div className={clsx(h.metaItem, s.mRoleFirst)}>
+                  <p className={h.role}>{roleLabel}</p>
+                </div>
+                <div className={h.metaItem}>
+                  <div className={h.location}>
+                    <LocationIcon />
+                    <p className={h.locationName}>{locationLabel}</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

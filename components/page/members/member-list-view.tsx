@@ -8,6 +8,7 @@ import { memberSkillTags } from '@/utils/member/memberSkillTags';
 import MemberSkillList from './member-skill-list';
 import Image from 'next/image';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { MemberAccessBadges } from '@/components/common/AccessLevelBadges/MemberAccessBadges';
 
 interface IMemberListView {
   member: IMember;
@@ -76,6 +77,7 @@ const MemberListView = (props: IMemberListView) => {
                   />
                 )}
               </div>
+              <MemberAccessBadges isJobAspirant={member.isJobAspirant} />
             </div>
             <div className="member-list-view__details-section__right__work-details">
               <div className="member-list-view__details-section__right__work-details__team">

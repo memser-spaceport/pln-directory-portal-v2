@@ -13,6 +13,7 @@ import {
 } from '@/analytics/team-news.analytics';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useIsBelowDesktop } from '@/hooks/useIsBelowDesktop';
+import { useFollowedTeamUids } from '@/services/follow/hooks/useFollowedTeamUids';
 import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
 import { useFeedForumTopicLike } from '@/services/feed/hooks/useFeedComments';
 import { useTeamNewsImpressions } from '@/services/team-news/hooks/useTeamNewsImpressions';
@@ -160,6 +161,8 @@ export function useHomeFeed(
   const [initialForYouTags] = useState<ReadonlySet<string> | undefined>(() =>
     forYouTags ? new Set(forYouTags) : undefined,
   );
+  // Undefined means the flag is off or the backend did not send tags, so an empty list is unknown.
+  const hasNoNewsTags = initialForYouTags !== undefined && initialForYouTags.size === 0;
   const [selectedCategory, setActiveCategory] = useState<TeamNewsCategoryId>(() => {
     if (isNewsOnly) return ALL_CAT;
     const items = sortAllTabItemsByEventDate(dedupeByUid([...groups.flatMap((g) => g.items), ...allTabExtraItems]));
@@ -185,6 +188,11 @@ export function useHomeFeed(
   // Read here rather than beside the rail's suggestions, where it used to sit:
   // the For You jobs query below needs it, and that is above the rail.
   const { currentUser } = useCurrentUserStore();
+  // Real follows, not the teams that happen to have a story in this window.
+  const { followedTeamUids: memberFollowedTeamUids, isSettled: memberFollowsSettled } = useFollowedTeamUids({
+    memberUid: currentUser?.uid,
+    enabled: Boolean(currentUser?.uid) && hasNoNewsTags,
+  });
   // One instance for the whole page: holds every rendered card's dedup/queue
   // state, regardless of tab/category remounts below it (see the hook's own
   // unmount-vs-page-load-scoped comments).
@@ -1194,6 +1202,10 @@ export function useHomeFeed(
     feedItems,
     activeTab,
     handleTab,
+    hasNoNewsTags,
+    hasForYouNews,
+    followsAnyTeam: memberFollowedTeamUids.size > 0,
+    followsSettled: memberFollowsSettled,
     categoriesWithCounts,
     categoryOptions,
     streamCategories,

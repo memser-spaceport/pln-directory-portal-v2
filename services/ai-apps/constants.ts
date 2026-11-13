@@ -11,6 +11,8 @@ export enum AiAppsQueryKeys {
   AI_APP_ACCESS_CANDIDATES = 'ai-app-access-candidates',
   AI_APP_PUBLIC_PATHS = 'ai-app-public-paths',
   AI_APP_TESTING_USERS = 'ai-app-testing-users',
+  // Key shape is [AI_APPS_PUBLISHED, memberUid]: the list is per member.
+  AI_APPS_PUBLISHED = 'ai-apps-published',
 }
 
 /**
@@ -42,6 +44,22 @@ export const AI_APPS_STARTER_KIT_VERSION = '1.19';
 
 export const PL_INFRA_OS_APP_UID = 'cmst544z7008siz4g1d59fubr';
 export const PL_INFRA_OS_PATH = '/pl-infra-os';
+
+/**
+ * Where a published app opens (LAB-3200): an app a directory admin opened to
+ * members outside PL Infra. Deliberately outside `/pl-infra`, so nothing there
+ * (the `ai_apps.read` guard, the catalog) applies to it.
+ */
+export const PUBLISHED_AI_APPS_PATH = '/apps';
+
+/**
+ * How long the published list is trusted. Short on purpose: taking an app back
+ * applies to access at once, and the More menu should follow within seconds,
+ * not the 5 minutes other nav data waits.
+ */
+export const PUBLISHED_AI_APPS_STALE_TIME_MS = 30 * 1000;
+
+export const publishedAiAppPath = (uid: string): string => `${PUBLISHED_AI_APPS_PATH}/${encodeURIComponent(uid)}`;
 
 export const AI_APPS_SEARCH_PARAM = 'search';
 export const AI_APPS_CREATED_BY_PARAM = 'createdBy';

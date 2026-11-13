@@ -251,6 +251,15 @@ export const useTeamNewsAnalytics = () => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FOR_YOU_TUNE_CLICKED, { memberUid });
   };
 
+  /** The Home row that asks a member with no For You inputs to open News preferences (LAB-3080). */
+  const onTeamNewsForYouSetupShown = (memberUid: string) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FOR_YOU_SETUP_SHOWN, { memberUid });
+  };
+
+  const onTeamNewsForYouSetupClicked = (memberUid: string) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FOR_YOU_SETUP_CLICKED, { memberUid });
+  };
+
   /** A `#tag` click narrowed the Home feed to that tag (LAB-3010). `itemCount` is the stories it matched. */
   const onTeamNewsTagFilterApplied = (params: { tag: string; via: TeamNewsTagFilterVia; itemCount: number }) => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_TAG_FILTER_APPLIED, params);
@@ -784,6 +793,8 @@ export const useTeamNewsAnalytics = () => {
     onTeamNewsCountChipShown,
     onTeamNewsForYouUpdateProfileClicked,
     onTeamNewsForYouTuneClicked,
+    onTeamNewsForYouSetupShown,
+    onTeamNewsForYouSetupClicked,
     onTeamNewsTagFilterApplied,
     onTeamNewsTagFilterCleared,
     onTeamNewsShowMoreClicked,

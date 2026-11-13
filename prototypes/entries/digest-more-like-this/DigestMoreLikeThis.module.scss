@@ -3,6 +3,11 @@
   max-width: calc(100vw - 32px);
 }
 
+// ModalBase's footer is a 16px-gap grid and its unused button row still takes a slot.
+.modalActions {
+  margin-top: -16px;
+}
+
 // Keeps a long title clear of ModalBase's absolute close button on phones.
 .title {
   display: block;
@@ -62,19 +67,42 @@
   line-height: 20px;
 }
 
-// ModalBase's close button shape, with a light fill for the gradient.
+// Button xs reserves 72px for a boxed label; a bare link shouldn't hold that width.
+// Doubled so it can't lose to Button's own rule on stylesheet order.
+.noticeUndo.noticeUndo {
+  flex-shrink: 0;
+  min-width: 0;
+  padding: 4px;
+}
+
+// In the card's top corner, where a modal keeps its close; Undo centres on it.
+.noticeActions {
+  flex-shrink: 0;
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+// ModalBase's .close. Its 4% grey is drawn over white so it renders as it does on a modal,
+// since on the gradient alone the disc would disappear.
 .noticeClose {
   width: 24px;
   height: 24px;
   flex-shrink: 0;
-  align-self: flex-start;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 0;
   border-radius: 24px;
-  background: var(--transparent-light-32, rgba(255, 255, 255, 0.32));
+  background:
+    linear-gradient(var(--transparent-dark-4, rgba(14, 15, 17, 0.04)), var(--transparent-dark-4, rgba(14, 15, 17, 0.04))),
+    var(--Neutral-White, #fff);
   cursor: pointer;
+
+  &:hover {
+    border: 1px solid var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
 
   &:active {
     opacity: 0.8;

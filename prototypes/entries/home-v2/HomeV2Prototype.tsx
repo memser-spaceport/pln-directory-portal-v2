@@ -183,6 +183,8 @@ export default function HomeV2Prototype({
   initialState = 'signed-out',
   initialFeedTopics,
   feedNotice,
+  eventsRail,
+  reviewExtra,
 }: {
   /** The state with no ?state= param. */
   initialState?: HomeState;
@@ -190,6 +192,10 @@ export default function HomeV2Prototype({
   initialFeedTopics?: string[];
   /** A message at the top of the signed-in feed (`digest-more-like-this`). */
   feedNotice?: ReactNode;
+  /** Replaces the rail's Upcoming events (`event-drawer-redesign`). */
+  eventsRail?: ReactNode;
+  /** Extra review-band switches, first in the row (`event-drawer-redesign`). */
+  reviewExtra?: ReactNode;
 } = {}) {
   /* Prototype routes server-render: read the URL only after mount so SSR === first client render. */
   const [mounted, setMounted] = useState(false);
@@ -377,6 +383,7 @@ export default function HomeV2Prototype({
       {/* Review scaffolding — scrolls away; not part of the design. */}
       <div className={feed.reviewBand}>
         <div className={feed.reviewRow}>
+          {reviewExtra}
           <Switch label="State" options={HOME_STATES} value={state} onChange={setState} />
           {signedIn && (
             <Switch
@@ -507,7 +514,7 @@ export default function HomeV2Prototype({
                 <div className={s.sidebar}>
                   {/* Open roles always; upcoming events only when there are some, else roles take the room. */}
                   <JobsRail jobs={rolesBesideEvents(hasEvents)} total={TOTAL_OPEN_ROLES} />
-                  {hasEvents && <HomeEventsRail />}
+                  {hasEvents && (eventsRail ?? <HomeEventsRail />)}
                   {/* Production's news rail, in its order: Teams to follow, then Popular this week. */}
                   <TeamsToFollowRail
                     suggestions={SUGGESTED_TEAMS}

@@ -343,6 +343,8 @@ interface Props {
   pickViewport?: boolean;
   /** Page (production's prop): a wheel during Pick a part scrolls the page. */
   scrollApp?: (x: number, y: number, dx: number, dy: number) => void;
+  /** Prototype (home-v2-agent-dock): the drawer opens and closes without its slide (it is one tab of a pair). */
+  instant?: boolean;
 }
 
 /** Page: the place a LabOS page's feedback is kept under (drafts) and sent as. */
@@ -452,6 +454,7 @@ export function GiveAiAppFeedbackDialog({
   page,
   pickViewport = false,
   scrollApp,
+  instant = false,
 }: Props) {
   const isDrawer = variant === 'drawer';
   /* Drawer: on the Comments tab the form's keys (send, screenshot, ?) stand down. */
@@ -1745,7 +1748,7 @@ export function GiveAiAppFeedbackDialog({
   return (
     <>
       {isDrawer ? (
-        <FeedbackDrawerFrame isOpen={isOpen} wide={isWideShown} hidden={isBusy || collapsed} reserveSpace={Boolean(appUid)}>
+        <FeedbackDrawerFrame isOpen={isOpen} wide={isWideShown} hidden={isBusy || collapsed} reserveSpace={Boolean(appUid)} instant={instant}>
           {panel}
         </FeedbackDrawerFrame>
       ) : (

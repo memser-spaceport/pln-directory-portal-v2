@@ -205,12 +205,18 @@ function renderHome(
     portfolio?: React.ComponentProps<typeof SignedInHome>['portfolio'];
     projectFocusAreaCounts?: Record<string, number> | null;
     forYouTeamUids?: string[];
+    forYouTags?: string[];
   } = {},
 ) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const ui: ReactElement = (
     <SignedInHome
-      feed={{ groups: groupsOf(items), forYouTeamUids: extra.forYouTeamUids ?? [], popularItems: [] }}
+      feed={{
+        groups: groupsOf(items),
+        forYouTeamUids: extra.forYouTeamUids ?? [],
+        forYouTags: extra.forYouTags,
+        popularItems: [],
+      }}
       roles={extra.roles === undefined ? ROLES : extra.roles}
       events={extra.events === undefined ? EVENTS : extra.events}
       portfolio={extra.portfolio ?? []}
@@ -307,6 +313,42 @@ describe('Network Updates: the stream', () => {
 
     fireEvent.click(within(pillRow()).getByRole('button', { name: /^Funding/ }));
     expect(line()).toBeInTheDocument();
+  });
+
+  it('replaces the For you line with the set-up row when the member has no inputs (LAB-3080)', () => {
+    renderHome([story('a', 'LAUNCH'), story('b', 'FUNDING')], { forYouTags: [], forYouTeamUids: [] });
+
+    const link = screen.getByRole('link', { name: 'Open News preferences →' });
+    expect(link).toHaveAttribute('href', '/settings/news-preferences?from=feed');
+    expect(
+      screen.getByText(/Get news picked for you\. Choose your topics and teams in News preferences\./),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Curated from your profile/)).not.toBeInTheDocument();
+
+    fireEvent.click(within(pillRow()).getByRole('button', { name: /^Funding/ }));
+    expect(screen.queryByRole('link', { name: 'Open News preferences →' })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Curated from your profile/)).not.toBeInTheDocument();
+
+    fireEvent.click(within(pillRow()).getByRole('button', { name: /^All/ }));
+    expect(screen.getByRole('link', { name: 'Open News preferences →' })).toBeInTheDocument();
+  });
+
+  it('shows the set-up row when the member has teams but no For You news, no tags and no follows', () => {
+    renderHome([story('a', 'LAUNCH'), story('b', 'FUNDING')], { forYouTags: [], forYouTeamUids: ['team-missing'] });
+
+    expect(screen.getByRole('link', { name: 'Open News preferences →' })).toHaveAttribute(
+      'href',
+      '/settings/news-preferences?from=feed',
+    );
+    expect(screen.queryByText(/Curated from your profile/)).not.toBeInTheDocument();
+    expect(within(pillRow()).queryByRole('button', { name: /For You/ })).not.toBeInTheDocument();
+  });
+
+  it('keeps the curated line when the member has a tag but no stories this week', () => {
+    renderHome([story('a', 'LAUNCH')], { forYouTags: ['neurotech'], forYouTeamUids: [] });
+
+    expect(screen.getByText(/Curated from your profile, your team, and the teams you follow\./)).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Open News preferences →' })).not.toBeInTheDocument();
   });
 
   it('fetches and injects no hiring, deals or For You job entries', () => {

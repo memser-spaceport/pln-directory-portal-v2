@@ -93,11 +93,13 @@ The stories SHALL be the editorial top stories (rank 1 to 5) when there are any,
 
 ### Requirement: Open roles and upcoming events beside the news
 
-The sidebar SHALL list the newest open roles, with "See all N jobs" where N is the total number of open roles. It SHALL list up to three events that start in the next 30 days, soonest first, with "See all" to the events page. Signed out, a full-width primary "Sign up to apply" button SHALL sit above "See all N jobs" and open sign-up.
+The sidebar SHALL list the newest open roles, with "See all N jobs" where N is the total number of open roles. It SHALL list up to three events that start in the next 30 days, soonest first, with "See all N events" ("See all 1 event" for one) to the events page. Signed out, a full-width primary "Sign up to apply" button SHALL sit above "See all N jobs" and open sign-up.
 
 When no event starts in the next 30 days, the events section SHALL be absent and the roles section SHALL list five roles instead of three.
 
-Each event SHALL open All Events with that event's details open (`/events/all?embedPath=/embed/program#<slug>`). The slug is rebuilt from the event's name the way the events calendar makes it, because the Directory doesn't store it; where two calendar events share a slug, the calendar opens the first, and a name that matches none opens the calendar with no event open.
+Each event SHALL open All Events with that event's details open (`/events/all?embedPath=/embed/calendar#<slug>`). The slug is rebuilt from the event's name the way the events calendar makes it, because the Directory doesn't store it; where two calendar events share a slug, the calendar opens the first, and a name that matches none opens the calendar with no event open.
+
+With the event drawer flag on, a signed-in member's event row SHALL instead open the event drawer on that event, over Home. The row asks nothing itself. Once the member is going to that event, the row's arrow SHALL be replaced by "Going". `home-event-clicked` SHALL keep firing on a row press.
 
 #### Scenario: Events this month
 
@@ -116,6 +118,32 @@ Each event SHALL open All Events with that event's details open (`/events/all?em
 - **GIVEN** the roles or the events request fails
 - **WHEN** the page renders
 - **THEN** that section is absent, and the rest of the page renders
+
+#### Scenario: Signed-in row opens the drawer
+
+- **GIVEN** the event drawer flag is on
+- **WHEN** a signed-in member presses an event in the rail
+- **THEN** the event drawer opens on that event over Home, and the URL does not change
+
+#### Scenario: Going from the rail
+
+- **GIVEN** the event drawer flag is on and a signed-in member not going to event A
+- **WHEN** they open event A from the rail, say "Yes, I'm going", and close the drawer
+- **THEN** event A's row reads "Going"
+- **AND** a toast reads "A is on your profile." with a "View profile" link to their profile
+
+#### Scenario: Signed out with the flag on
+
+- **GIVEN** the event drawer flag is on
+- **WHEN** a signed-out visitor presses an event in the sidebar
+- **THEN** All Events opens with that event's details, as today
+
+#### Scenario: The viewer's events fail to load
+
+- **GIVEN** the event drawer flag is on and the request for a signed-in member's own upcoming events fails
+- **WHEN** they open `/home`
+- **THEN** the rail shows its events with no "Going" marks
+- **AND** pressing an event still opens the event drawer
 
 ### Requirement: Focus-area cards
 
@@ -202,7 +230,9 @@ Above the stream, the filter row SHALL offer For You · All · Top · Discussion
 - Top SHALL show the editorial top stories (rank 1 to 5).
 - For You SHALL show what production's For You shows.
 
-Under the pills, on every filter, a line SHALL read "For you · Curated from your profile, your team, and the teams you follow." followed by a "News preferences" link to `/settings/news-preferences` (LAB-3174).
+Under the pills, on every filter, a member who is not shown the set-up line SHALL see a line that reads "For you · Curated from your profile, your team, and the teams you follow." followed by a "News preferences" link to `/settings/news-preferences` (LAB-3174).
+
+A signed-in member with no For You stories, no news tags and no followed teams, while News preferences is on, SHALL instead see "For you · Get news picked for you. Choose your topics and teams in News preferences." on the All view when no topic filter and no search text is set. Own teams do not hide the line. The link SHALL read "Open News preferences →" and open `/settings/news-preferences?from=feed`. A topic filter, a pill other than All, or search text SHALL hide that line and SHALL NOT show the curated line. The line SHALL record `team-news-for-you-setup-shown` once per page load, and a click SHALL record `team-news-for-you-setup-clicked`. When the member's tags are unknown, the member follows a team, the member has a news tag, For You has stories, or News preferences is off, the curated line SHALL stay.
 
 Milestone, Partnership and Other stories SHALL stay under All and keep their label on the card.
 
@@ -229,8 +259,16 @@ The editorial top stories SHALL be labelled "Top story" on their card where they
 
 #### Scenario: News preferences link
 
+- **GIVEN** a member who is not shown the set-up line
 - **WHEN** the member follows the "News preferences" link under the pills
 - **THEN** it opens `/settings/news-preferences`
+
+#### Scenario: Member with nothing For You can match on
+
+- **GIVEN** a signed-in member with no For You stories, no news tags and no followed teams, and News preferences on
+- **WHEN** they open `/home` on All, with no topic filter and no search
+- **THEN** the line reads "For you · Get news picked for you. Choose your topics and teams in News preferences." and "Open News preferences →" opens `/settings/news-preferences?from=feed`
+- **AND** a topic filter, another pill or search text hides that line, and the curated line does not show
 
 ### Requirement: Forum posts under Most popular
 

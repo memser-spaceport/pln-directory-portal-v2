@@ -15,6 +15,7 @@ import { isTierUser } from '@/utils/user/isTierUser';
 import { FollowButton } from '@/components/ui/FollowButton';
 import { useToggleTeamFollowInList } from '@/services/follow/hooks/useToggleTeamFollowInList';
 import { TeamNewsCountChip } from '@/components/page/team-news/TeamNewsCountChip';
+import { TeamAccessBadge } from '@/components/common/AccessLevelBadges/TeamAccessBadge';
 
 import s from './TeamGridView.module.scss';
 
@@ -102,6 +103,7 @@ export const TeamGridView = memo(function TeamGridView(props: ITeamGridView) {
       <div className={s.detailsContainer}>
         <div className={s.teamDetail}>
           <h2 className={s.teamName}>{teamName}</h2>
+          <TeamAccessBadge accessLevel={team?.accessLevel} className={s.accessBadge} />
           <p className={s.teamDesc}>{description}</p>
         </div>
 

@@ -446,7 +446,6 @@
   .contactFirst {
     order: -1;
   }
-
 }
 
 /* ---- Phone header (the mock's): 72px picture, name over stacked role / team
@@ -473,16 +472,13 @@
     line-height: 28px;
   }
 
-  /* Role, team, city as three lines; the hairlines between them go. */
-  .mRole {
+  /* Role, team, city as three lines. Every item starts a line, so the row's
+     clip hides each item's divider on its own. */
+  .mRole.mRole {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
     margin-top: 4px;
-
-    > div[class*='divider'] {
-      display: none;
-    }
   }
 
   .mRoleFirst {
@@ -1002,13 +998,6 @@
     grid-column: 1 / -1;
     grid-row: 2;
   }
-}
-
-/* Production's `.location` carries 24px of right padding; as the line's last
-   fact it only pushes the city onto a line of its own before the card's edge
-   is reached. */
-.factsFull > div[class*='location'] {
-  padding-right: 0;
 }
 
 /* Admin's Edit in the header cluster: the xs presses' 34px box, label

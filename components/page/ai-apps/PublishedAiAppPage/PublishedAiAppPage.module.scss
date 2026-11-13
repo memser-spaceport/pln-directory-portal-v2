@@ -1,0 +1,61 @@
+/* Same frame as the AI App detail page, minus its top bar: the app fills the content area. */
+.root {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--app-header-height));
+  width: 100%;
+}
+
+.iframe {
+  width: 100%;
+  flex: 1;
+  border: none;
+  display: block;
+}
+
+.state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - var(--app-header-height));
+  padding: 24px 16px;
+  font-size: 14px;
+  line-height: 20px;
+  color: #64748b;
+  text-align: center;
+}
+
+.unavailable {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: 360px;
+}
+
+.unavailableTitle {
+  margin: 0;
+  font-size: 18px;
+  line-height: 28px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.unavailableText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: #64748b;
+}
+
+.unavailableLink {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #156ff7;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

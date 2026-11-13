@@ -21,6 +21,9 @@ import { getFocusAreas } from '@/services/common.service';
 import { IFocusArea } from '@/types/shared.types';
 import SelectedFocusAreas from '@/components/core/selected-focus-area';
 import TeamIrlContributions from '@/components/page/team-details/team-irl-contributions';
+import { TeamProfileEvents } from '@/components/page/team-details/TeamEventsSection';
+import { getTeamEventsPublic, type TeamEvents } from '@/services/events/profile-events.service';
+import { SHOW_EVENT_DRAWER } from '@/utils/event-drawer';
 import { BackButton } from '@/components/ui/BackButton';
 import React from 'react';
 import { TeamInvestorDetails } from '@/components/page/team-details/TeamInvestorDetails';
@@ -64,6 +67,7 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
     teamNews,
     followers,
     openRoles,
+    teamEvents,
   } = await getPageData(teamId);
 
   if (redirectTeamUid) {
@@ -132,8 +136,20 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
         <TeamMembershipSource team={team} />
         <TeamCommunitiesSection team={team} />
 
+        {/* Events (LAB-3219): what the team's members are going to and its past events, Demo Day first, in place of
+            the Contributions tiles behind the event drawer flag. Past events come from the server without a token
+            (design D5); a signed-in viewer's upcoming events load on the client. */}
+        {SHOW_EVENT_DRAWER && (
+          <TeamProfileEvents
+            teamUid={team.id || teamId}
+            teamName={team.name || 'This team'}
+            serverEvents={teamEvents}
+            isLoggedIn={!!isLoggedIn}
+          />
+        )}
+
         {/* Irl Contribuions */}
-        {(team.eventGuests?.length > 0 || team.associations?.length > 0) && (
+        {!SHOW_EVENT_DRAWER && (team.eventGuests?.length > 0 || team.associations?.length > 0) && (
           <div className={styles?.teamDetail__irlContributions}>
             <TeamIrlContributions team={team} members={members} teamId={teamId} />
           </div>
@@ -229,6 +245,7 @@ async function getPageData(teamId: string) {
   let hasEditAsksAccess: boolean = false;
   let followers: ITeamFollowersResponse | null = null;
   let openRoles: IJobTeamGroup | null = null;
+  let teamEvents: TeamEvents | null = null;
 
   try {
     if (AIRTABLE_REGEX.test(teamId)) {
@@ -241,37 +258,48 @@ async function getPageData(teamId: string) {
       return { redirectTeamUid, team, members, hasProjectsEditAccess, teamProjectList, userInfo };
     }
 
-    const [teamResponse, teamMembersResponse, focusAreaResponse, teamNewsResponse, followersResponse, jobsResponse] =
-      await Promise.all([
-        getTeam(
-          teamId,
-          {
-            with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member,asks',
-          },
-          authToken,
-        ),
-        getMembers(
-          {
-            'teamMemberRoles.team.uid': teamId,
-            isVerified: 'all',
-            select:
-              'uid,name,isVerified,image.url,officeHours,ohStatus,skills.title,customSkills,teamMemberRoles.team.uid,projectContributions,teamMemberRoles.team.name,teamMemberRoles.role,teamMemberRoles.teamLead,teamMemberRoles.mainTeam',
-            pagination: false,
-          },
-          teamId,
-          0,
-          0,
-          isLoggedIn,
-        ),
-        getFocusAreas('Team', {}),
-        fetchTeamNewsByTeam(teamId, { page: 1, limit: TEAM_NEWS_PREVIEW_LIMIT }, authToken),
-        isLoggedIn ? getTeamFollowers(teamId, { authToken }) : Promise.resolve(null),
-        // `limit` pages teams, not roles, so one group carries all of this team's
-        // postings. `getJobsList` resolves an error object rather than throwing, which
-        // matters here: the catch below turns any throw into a 404 for the whole
-        // profile, and a jobs-API blip must not take the team page down with it.
-        getJobsList(`teamUid=${encodeURIComponent(teamId)}&limit=1`),
-      ]);
+    const [
+      teamResponse,
+      teamMembersResponse,
+      focusAreaResponse,
+      teamNewsResponse,
+      followersResponse,
+      jobsResponse,
+      teamEventsResponse,
+    ] = await Promise.all([
+      getTeam(
+        teamId,
+        {
+          with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member,asks',
+        },
+        authToken,
+      ),
+      getMembers(
+        {
+          'teamMemberRoles.team.uid': teamId,
+          isVerified: 'all',
+          select:
+            'uid,name,isVerified,image.url,officeHours,ohStatus,skills.title,customSkills,teamMemberRoles.team.uid,projectContributions,teamMemberRoles.team.name,teamMemberRoles.role,teamMemberRoles.teamLead,teamMemberRoles.mainTeam',
+          pagination: false,
+        },
+        teamId,
+        0,
+        0,
+        isLoggedIn,
+        authToken,
+      ),
+      getFocusAreas('Team', {}),
+      fetchTeamNewsByTeam(teamId, { page: 1, limit: TEAM_NEWS_PREVIEW_LIMIT }, authToken),
+      isLoggedIn ? getTeamFollowers(teamId, { authToken }) : Promise.resolve(null),
+      // `limit` pages teams, not roles, so one group carries all of this team's
+      // postings. `getJobsList` resolves an error object rather than throwing, which
+      // matters here: the catch below turns any throw into a 404 for the whole
+      // profile, and a jobs-API blip must not take the team page down with it.
+      getJobsList(`teamUid=${encodeURIComponent(teamId)}&limit=1`),
+      // The Events section's past events, without a token (LAB-3219, design D5). Resolves `null` on any failure
+      // rather than throwing, for the same reason as the jobs read above.
+      SHOW_EVENT_DRAWER ? getTeamEventsPublic(teamId) : Promise.resolve(null),
+    ]);
     // The API answers a team with 403 only when it is hidden (`L0`) from this viewer: "Team is inactive" when logged
     // out, "Requestor does not have permission…" when logged in but neither the team's lead nor an admin. Either way
     // the team does not exist for them, so it is the not-found page rather than "Oh snap" (LAB-3087).
@@ -283,6 +311,7 @@ async function getPageData(teamId: string) {
     teamNews = teamNewsResponse;
     followers = followersResponse;
     openRoles = selectTeamOpenRoles(jobsResponse, teamId);
+    teamEvents = teamEventsResponse;
 
     if (isLoggedIn) {
       const allTeams = await getAllTeams(
@@ -358,6 +387,7 @@ async function getPageData(teamId: string) {
       teamNews,
       followers,
       openRoles,
+      teamEvents,
     };
   } catch (error: any) {
     console.error(error);

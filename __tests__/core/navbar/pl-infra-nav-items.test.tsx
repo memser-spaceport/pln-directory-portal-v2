@@ -5,6 +5,7 @@ import { useMoreNavItems } from '@/components/core/navbar/components/navItems/Mo
 import { ALL_EVENTS_LINK, EVENT_CONTRIBUTORS_LINK } from '@/components/core/navbar/constants/navLinks';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { PERMISSIONS } from '@/services/rbac/constants';
+import type { PublishedAiApp } from '@/services/ai-apps/ai-apps.service';
 
 /**
  * The nav is the only thing standing between a member and a page they have no
@@ -20,6 +21,21 @@ jest.mock('@/services/rbac/hooks/usePermissions', () => ({
     return { permissions, permsSet: new Set(permissions), isLoading: false, isError: false };
   },
 }));
+
+/** AI Apps published to the member (LAB-3200); none unless a test says so, which is the common case. */
+const mockPublishedApps = jest.fn<PublishedAiApp[], []>(() => []);
+
+jest.mock('@/services/ai-apps/hooks/usePublishedAiApps', () => ({
+  usePublishedAiApps: () => ({ apps: mockPublishedApps(), isLoading: false }),
+}));
+
+const playbook: PublishedAiApp = {
+  uid: 'cmplaybook1',
+  appId: 'playbook',
+  name: 'PLaybook',
+  description: 'How the network runs',
+  url: 'https://playbook.os.pl.xyz',
+};
 
 const titlesOf = (items: Array<{ title: string }>) => items.map((i) => i.title);
 
@@ -39,7 +55,10 @@ const more = (...permissions: string[]) => {
   return renderHook(() => useMoreNavItems()).result.current;
 };
 
-beforeEach(() => jest.clearAllMocks());
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockPublishedApps.mockReturnValue([]);
+});
 
 describe('useGetPlInfraNavItems', () => {
   it('shows nothing to a member with no PL Infra permissions', () => {
@@ -233,5 +252,45 @@ describe('useMoreNavItems', () => {
     rerender();
 
     expect(result.current).toBe(first);
+  });
+
+  // LAB-3200: a directory admin opens one AI App to members outside PL Infra.
+  describe('published AI Apps', () => {
+    it('adds nothing while no app is published to the member', () => {
+      expect(more().some((item) => item.href.startsWith('/apps/'))).toBe(false);
+    });
+
+    it('adds one entry per published app, opening the app itself', () => {
+      mockPublishedApps.mockReturnValue([playbook]);
+
+      const item = more().find((entry) => entry.title === 'PLaybook');
+
+      expect(item).toMatchObject({ href: '/apps/cmplaybook1', description: 'How the network runs' });
+      expect(item?.icon).toBeTruthy();
+    });
+
+    it('needs no AI Apps permission, and never links to the catalog', () => {
+      mockPublishedApps.mockReturnValue([playbook]);
+
+      const items = more();
+
+      expect(titlesOf(items)).toEqual(['Deals', ...EVENTS, 'PLaybook']);
+      expect(items.some((item) => item.href.startsWith('/pl-infra'))).toBe(false);
+    });
+
+    it('lists published apps last, below PLAA, so the menu does not reshuffle', () => {
+      mockPublishedApps.mockReturnValue([playbook, { ...playbook, uid: 'cmatlas2', name: 'Atlas', description: null }]);
+
+      const all = more(PERMISSIONS.PLAA.PERM_ACCESS);
+
+      expect(titlesOf(all)).toEqual(['Deals', ...EVENTS, 'PLAA', 'PLaybook', 'Atlas']);
+      expect(all.at(-1)?.description).toBeUndefined();
+    });
+
+    it('does not put a published app in the PL Infra menu', () => {
+      mockPublishedApps.mockReturnValue([playbook]);
+
+      expect(titlesOf(plInfra())).toEqual([]);
+    });
   });
 });

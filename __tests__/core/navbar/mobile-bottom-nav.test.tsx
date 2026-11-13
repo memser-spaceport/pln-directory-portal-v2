@@ -8,6 +8,7 @@ import {
   IRL_GATHERING_LINK,
   FOUNDER_GUIDES_LINK,
   EVENT_CONTRIBUTORS_LINK,
+  PLAA_LINK,
 } from '@/components/core/navbar/constants/navLinks';
 import type { ISubItem } from '@/components/core/navbar/type';
 
@@ -166,6 +167,17 @@ describe('MobileBottomNav', () => {
       render(<MobileBottomNav />);
 
       expect(moreItems()).toEqual([...EVENTS, 'Deals', 'Forum', 'Job Board']);
+    });
+
+    // LAB-3200: the hook hands a published AI App over as a `/apps/<uid>` entry.
+    it('lists a published AI App after PLAA and above Founder Guides', () => {
+      mockPlInfraItems.mockReturnValue([]);
+      const published: ISubItem = { icon: null, href: '/apps/cmplaybook1', title: 'PLaybook' };
+      mockMoreItems.mockReturnValue([published, FOUNDER_GUIDES_LINK, PLAA_LINK, DEALS_LINK, ...EVENT_LINKS]);
+
+      render(<MobileBottomNav />);
+
+      expect(moreItems()).toEqual([...EVENTS, 'Deals', 'Forum', 'PLAA', 'PLaybook', 'Founder Guides']);
     });
 
     it('pins Founder Guides last', () => {

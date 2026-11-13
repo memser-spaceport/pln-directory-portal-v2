@@ -65,6 +65,9 @@ export function AgentPanel({
   placeholder = 'Ask the agent or tell it what to do',
   className,
   headIcon,
+  headTitle,
+  headExtra,
+  contextSlot,
   initialThread,
 }: {
   open: boolean;
@@ -84,6 +87,12 @@ export function AgentPanel({
   className?: string;
   /** The mark in the header (the host's door may wear its own). Defaults to the AI mark. */
   headIcon?: ReactNode;
+  /** Replaces the mark + "Agent" title (home-v2-agent-dock's Agent | Feedback tabs). */
+  headTitle?: ReactNode;
+  /** Header controls before New chat and Close (home-v2-agent-dock's history menu). */
+  headExtra?: ReactNode;
+  /** Replaces the "Home" page chip above the composer (home-v2-agent-dock's page context row). */
+  contextSlot?: ReactNode;
   /** A past chat to open on, already answered. Read on mount, so the host keys the panel per chat. */
   initialThread?: { text: string; reply: AgentReply }[];
 }) {
@@ -463,11 +472,14 @@ export function AgentPanel({
   return (
     <aside ref={panelRef} className={clsx(s.panel, className)} aria-label="Agent">
       <header className={s.head}>
-        <span className={s.headTitle}>
-          {headIcon ?? <AiSearchIcon size={18} />}
-          Agent
-        </span>
+        {headTitle ?? (
+          <span className={s.headTitle}>
+            {headIcon ?? <AiSearchIcon size={18} />}
+            Agent
+          </span>
+        )}
         <span className={s.headActions}>
+          {headExtra}
           {turns.length > 0 && (
             <button type="button" className={s.iconBtn} onClick={newChat} aria-label="New chat" title="New chat">
               <svg viewBox="0 0 16 16" fill="none" aria-hidden>
@@ -522,10 +534,12 @@ export function AgentPanel({
       </div>
 
       <div className={s.foot}>
-        <span className={s.context} title="The agent reads the page you opened it on">
-          <HomeIcon size={14} />
-          Home
-        </span>
+        {contextSlot ?? (
+          <span className={s.context} title="The agent reads the page you opened it on">
+            <HomeIcon size={14} />
+            Home
+          </span>
+        )}
         <Composer
           ref={inputRef}
           className={s.composer}

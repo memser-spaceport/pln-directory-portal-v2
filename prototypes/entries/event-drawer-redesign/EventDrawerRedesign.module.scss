@@ -1,0 +1,6 @@
+// The Events page sits on production's white page ground, as /events/all does.
+.eventsPage {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--background-base-white, #ffffff);
+}

@@ -18,18 +18,13 @@ export const MEMBER_STATE_BADGES: Partial<Record<MemberState, AccessBadgeContent
   },
 };
 
+/* LAB-3256: only L0 teams get a badge. An L1 team is approved, so it shows no badge. */
 export const TEAM_LEVEL_BADGES: Partial<Record<string, AccessBadgeContent>> = {
   L0: {
     label: 'L0 · Hidden',
     description:
       'Hidden from the Teams list and from logged-out visitors: a new team waiting for approval, a deleted team, or a team whose members have never logged in.',
     variant: 'warning',
-  },
-  L1: {
-    label: 'L1 · Base level',
-    description:
-      'Base team level, listed in the directory. A team gets it once one of its members logs in, or when an admin or an approved member adds it.',
-    variant: 'brand',
   },
 };
 

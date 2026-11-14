@@ -1,7 +1,8 @@
 import '@testing-library/jest-dom';
-import { act, render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 
 import { PublishedAiAppPage } from '@/components/page/ai-apps/PublishedAiAppPage';
+import { useTopNavStore } from '@/components/core/TopNavGate';
 import type { PublishedAiApp } from '@/services/ai-apps/ai-apps.service';
 
 const mockAnalytics = {
@@ -31,8 +32,16 @@ jest.mock('@/utils/fetch-wrapper', () => ({
 const BASE_PATH = '/apps/cmplaybook1';
 const APP_ORIGIN = 'https://playbook.os.pl.xyz';
 let mockPathname = BASE_PATH;
+const mockReplace = jest.fn();
 jest.mock('next/navigation', () => ({
   usePathname: () => mockPathname,
+  useRouter: () => ({ replace: mockReplace }),
+}));
+
+// A member outside PL Infra unless a test says otherwise.
+let mockPermissions: { permsSet: Set<string>; isLoading: boolean };
+jest.mock('@/services/rbac/hooks/usePermissions', () => ({
+  usePermissions: () => mockPermissions,
 }));
 
 jest.mock('next/link', () => ({
@@ -67,6 +76,8 @@ function postRoute(data: unknown, init: Partial<MessageEventInit> = {}) {
 describe('PublishedAiAppPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPermissions = { permsSet: new Set(), isLoading: false };
+    useTopNavStore.setState({ hidden: false });
     mockPathname = BASE_PATH;
     mockPublished = { apps: [playbook], isLoading: false };
     window.history.replaceState(null, '', BASE_PATH);
@@ -215,6 +226,82 @@ describe('PublishedAiAppPage', () => {
       postRoute({ type: 'pln-ai-app:route', path: '//evil.example.com/x', title: '' });
 
       expect(window.location.pathname).toBe(BASE_PATH);
+    });
+  });
+  describe('admin settings (LAB-3238)', () => {
+    const pla: PublishedAiApp = {
+      ...playbook,
+      uid: 'cmpla1',
+      appId: 'pla-portal',
+      name: 'PLA',
+      url: 'https://pla.os.pl.xyz',
+      path: 'pla',
+      hideTopNav: true,
+      showInMore: false,
+    };
+
+    it('opens an app by its admin-set path, and still by its uid', () => {
+      mockPublished = { apps: [pla], isLoading: false };
+
+      renderPage('pla');
+      expect(frame()?.getAttribute('src')).toBe('https://pla.os.pl.xyz');
+      cleanup();
+
+      renderPage('PLA');
+      expect(frame()?.getAttribute('src')).toBe('https://pla.os.pl.xyz');
+      cleanup();
+
+      renderPage('cmpla1');
+      expect(frame()?.getAttribute('src')).toBe('https://pla.os.pl.xyz');
+    });
+
+    it('opens an app hidden from More by its link', () => {
+      mockPublished = { apps: [pla], isLoading: false };
+      renderPage('pla');
+      expect(frame()).not.toBeNull();
+    });
+
+    it('turns the LabOS top navigation off while a full-page app is open, and back on when it closes', () => {
+      mockPublished = { apps: [pla], isLoading: false };
+      const { unmount } = renderPage('pla');
+      expect(useTopNavStore.getState().hidden).toBe(true);
+      expect(document.querySelector('[class*="rootFullPage"]')).not.toBeNull();
+
+      unmount();
+      expect(useTopNavStore.getState().hidden).toBe(false);
+    });
+
+    it('keeps the top navigation for an app that does not hide it', () => {
+      renderPage();
+      expect(useTopNavStore.getState().hidden).toBe(false);
+      expect(document.querySelector('[class*="rootFullPage"]')).toBeNull();
+    });
+
+    it('sends a PL Infra member outside the audience to the app in the catalog', async () => {
+      mockPublished = { apps: [], isLoading: false };
+      mockPermissions = { permsSet: new Set(['ai_apps.read']), isLoading: false };
+      mockCustomFetch.mockResolvedValue({ ok: true, status: 200, json: async () => ({ uid: 'cmpla1' }) });
+
+      renderPage('pla');
+
+      await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/pl-infra/ai-apps/cmpla1'));
+      expect(mockCustomFetch).toHaveBeenCalledWith(
+        expect.stringMatching(/\/v1\/ai-apps\/pla$/),
+        { method: 'GET' },
+        true,
+      );
+      expect(screen.queryByText('This app is not available to you')).toBeNull();
+    });
+
+    it('says "not available" to a PL Infra member when the catalog does not know the link either', async () => {
+      mockPublished = { apps: [], isLoading: false };
+      mockPermissions = { permsSet: new Set(['ai_apps.read']), isLoading: false };
+      mockCustomFetch.mockResolvedValue({ ok: false, status: 404 });
+
+      renderPage('nothing-here');
+
+      expect(await screen.findByText('This app is not available to you')).toBeInTheDocument();
+      expect(mockReplace).not.toHaveBeenCalled();
     });
   });
 });

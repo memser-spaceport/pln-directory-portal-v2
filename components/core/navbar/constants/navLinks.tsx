@@ -20,7 +20,7 @@ import {
 } from '../components/icons';
 import { MagicSparklesIcon } from '@/components/icons';
 import { PL_INFRA_OS_PATH, publishedAiAppPath } from '@/services/ai-apps/constants';
-import type { PublishedAiApp } from '@/services/ai-apps/ai-apps.service';
+import { publishedAiAppSegment, type PublishedAiApp } from '@/services/ai-apps/ai-apps.service';
 
 export const INVESTOR_DB_LINK: ISubItem = {
   icon: <AnalyticsIcon />,
@@ -154,8 +154,12 @@ export const AI_APPS_LINK: ISubItem = {
  * embedded app itself — these members have no AI Apps catalog to land on.
  */
 export const publishedAiAppLink = (app: PublishedAiApp): ISubItem => ({
-  icon: <StarFourIcon />,
-  href: publishedAiAppPath(app.uid),
+  icon: app.iconUrl ? (
+    <img src={app.iconUrl} alt="" width={20} height={20} style={{ borderRadius: 4, objectFit: 'cover' }} />
+  ) : (
+    <StarFourIcon />
+  ),
+  href: publishedAiAppPath(publishedAiAppSegment(app)),
   title: app.name,
   description: app.description ?? undefined,
 });

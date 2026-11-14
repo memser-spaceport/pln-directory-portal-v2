@@ -7,7 +7,7 @@ LAB-3256: an L1 team is approved, so the "L1 · Base level" badge adds noise for
 ## What Changes
 
 - Remove the `L1` entry from `TEAM_LEVEL_BADGES`. `TeamAccessBadge` shows nothing for L1 teams.
-- Keep the L0 team label "L0 · Hidden" (Vova agreed in #labos-team).
+- Change the L0 team label from "L0 · Hidden" to "L0" (Anuj in #labos-team: the badge is only for admins, so the level is enough).
 - No change to member badges, the back office or the backend.
 
 ## Impact

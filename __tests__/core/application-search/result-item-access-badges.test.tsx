@@ -41,7 +41,7 @@ describe('L0/L1 badges on header search results (LAB-3252)', () => {
     viewAs(ADMIN);
     row({ index: 'teams', accessLevel: 'L0' });
 
-    expect(isShown('L0 · Hidden')).toBe(true);
+    expect(isShown('L0')).toBe(true);
   });
 
   it('shows no badge on an L1 team result (LAB-3256)', () => {
@@ -49,7 +49,7 @@ describe('L0/L1 badges on header search results (LAB-3252)', () => {
     row({ index: 'teams', accessLevel: 'L1' });
 
     expect(isShown('L1 · Base level')).toBe(false);
-    expect(isShown('L0 · Hidden')).toBe(false);
+    expect(isShown('L0')).toBe(false);
   });
 
   it.each([
@@ -87,7 +87,7 @@ describe('L0/L1 badges on header search results (LAB-3252)', () => {
   ])('shows no badge to %s', (_, viewer) => {
     viewAs(viewer);
     const { unmount } = row({ index: 'teams', accessLevel: 'L0' });
-    expect(isShown('L0 · Hidden')).toBe(false);
+    expect(isShown('L0')).toBe(false);
     unmount();
 
     row({ index: 'members', memberState: 'PENDING', isJobAspirant: true });
@@ -99,6 +99,6 @@ describe('L0/L1 badges on header search results (LAB-3252)', () => {
     viewAs(ADMIN);
     row({ index: 'projects', accessLevel: 'L0' });
 
-    expect(isShown('L0 · Hidden')).toBe(false);
+    expect(isShown('L0')).toBe(false);
   });
 });

@@ -78,7 +78,7 @@ describe('TeamAccessBadge', () => {
     viewAs(ADMIN);
     render(<TeamAccessBadge accessLevel="L0" />);
 
-    expect(isShown('L0 · Hidden')).toBe(true);
+    expect(isShown('L0')).toBe(true);
   });
 
   it.each([null, undefined, 'L1', 'L2'])('shows nothing for level %s', (accessLevel) => {

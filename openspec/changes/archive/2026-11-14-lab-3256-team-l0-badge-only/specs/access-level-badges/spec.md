@@ -8,13 +8,13 @@
 
 ### Requirement: Admins see a badge only on L0 teams
 
-When a directory admin (`directory.admin.full`) views a team, `TeamAccessBadge` SHALL show "L0 · Hidden" for an `L0` team. It SHALL show no badge for an `L1` team, because an L1 team is approved (LAB-3256). Member badges do not change.
+When a directory admin (`directory.admin.full`) views a team, `TeamAccessBadge` SHALL show "L0" for an `L0` team. It SHALL show no badge for an `L1` team, because an L1 team is approved (LAB-3256). Member badges do not change.
 
 #### Scenario: Admin opens an L0 team
 
 - **GIVEN** a directory admin, and an `L0` team
 - **WHEN** the admin opens the team page or sees the team card
-- **THEN** the team shows "L0 · Hidden"
+- **THEN** the team shows "L0"
 
 #### Scenario: Admin opens an L1 team
 

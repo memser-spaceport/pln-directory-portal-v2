@@ -14,7 +14,7 @@ When a directory admin (`directory.admin.full`) opens header Search results, an 
 
 - **GIVEN** a directory admin, and an `L0` team
 - **WHEN** the admin searches for the team name
-- **THEN** the team result shows "L0 · Hidden" after the name
+- **THEN** the team result shows "L0" after the name
 
 #### Scenario: Admin finds an L1 team
 

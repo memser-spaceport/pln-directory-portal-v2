@@ -710,39 +710,41 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
               ))}
             </div>
 
-            <ul className="th-key">
-              {KEY_ITEMS.filter((item) => !item.monthlyOnly || view === 'monthly-graph').map((item) => {
-                const marker = (
-                  <span
-                    className={`th-key__marker ${item.line ? 'th-key__marker--line' : ''}`}
-                    style={keyMarkerStyle(item)}
-                  />
-                );
-                const toggle = item.toggle;
-                return (
-                  <li key={item.label} className="th-key__item">
-                    {toggle ? (
-                      <label className="th-key__toggle">
-                        <input
-                          type="checkbox"
-                          className="th-key__checkbox"
-                          data-testid={`th-key-${toggle}`}
-                          checked={!hidden[toggle]}
-                          onChange={() => setHidden((prev) => ({ ...prev, [toggle]: !prev[toggle] }))}
-                        />
-                        {marker}
-                        {item.label}
-                      </label>
-                    ) : (
-                      <>
-                        {marker}
-                        {item.label}
-                      </>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
+            {view === 'monthly-graph' && (
+              <ul className="th-key">
+                {KEY_ITEMS.filter((item) => !item.monthlyOnly || view === 'monthly-graph').map((item) => {
+                  const marker = (
+                    <span
+                      className={`th-key__marker ${item.line ? 'th-key__marker--line' : ''}`}
+                      style={keyMarkerStyle(item)}
+                    />
+                  );
+                  const toggle = item.toggle;
+                  return (
+                    <li key={item.label} className="th-key__item">
+                      {toggle ? (
+                        <label className="th-key__toggle">
+                          <input
+                            type="checkbox"
+                            className="th-key__checkbox"
+                            data-testid={`th-key-${toggle}`}
+                            checked={!hidden[toggle]}
+                            onChange={() => setHidden((prev) => ({ ...prev, [toggle]: !prev[toggle] }))}
+                          />
+                          {marker}
+                          {item.label}
+                        </label>
+                      ) : (
+                        <>
+                          {marker}
+                          {item.label}
+                        </>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
 
           {view === 'monthly-graph' && (

@@ -13,8 +13,7 @@ jest.mock('@/components/page/aligement-assets/nav-summary-card/nav-summary-card'
   default: () => null,
 }));
 
-// Recharts needs a measured container to render; stub it and expose each
-// series by its dataKey so the test can assert which lines are plotted.
+// Recharts needs a measured container to render.
 jest.mock('recharts', () => {
   const Passthrough = ({ children }: { children?: React.ReactNode }) => <div>{children}</div>;
   return {
@@ -114,4 +113,14 @@ test('PLAA Outstanding toggle drops its line and its right-hand axis in the mont
   fireEvent.click(legendBox('issuance'));
   expect(screen.queryByTestId('line-totalPlaa')).not.toBeInTheDocument();
   expect(screen.queryByTestId('axis-issuance')).not.toBeInTheDocument();
+});
+
+test('shows series controls only in chart view and keeps selections when switching views', () => {
+  render(<TrustHoldings data={data} buybacks={buybacks} />);
+  fireEvent.click(legendBox('nav'));
+  fireEvent.click(screen.getByRole('button', { name: 'Table View' }));
+  expect(screen.queryByRole('checkbox', { name: 'NAV / PLAA' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('checkbox', { name: 'Buyback clearing price' })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Chart View' }));
+  expect(legendBox('nav')).not.toBeChecked();
 });

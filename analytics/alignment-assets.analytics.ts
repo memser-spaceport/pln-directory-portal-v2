@@ -159,7 +159,6 @@ export const useAlignmentAssetsAnalytics = () => {
     captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.OVERVIEW_ACTIVITIES_LINK_CLICKED, { url, source });
   }
 
-  /** Which How It Works step a member used to jump to its section. */
   function onOverviewHowStepClicked(step: string, sectionId: string) {
     captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.OVERVIEW_HOW_STEP_CLICKED, { step, sectionId });
   }

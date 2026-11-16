@@ -125,17 +125,18 @@ export default function OverviewTopline({ trustHoldings }: OverviewToplineProps)
                 ...(item.iconOpacity ? { '--ov-icon-opacity': item.iconOpacity } : {}),
               })}
             >
-              <div className={styles.howCardHeader}>
-                <span className={styles.howCardBadge}>{item.number}</span>
-                <a
-                  href={`#${item.targetId}`}
-                  className={styles.howCardTitleLink}
-                  onClick={() => handleHowCardClick(item.title, item.targetId)}
-                >
-                  {item.title}
-                </a>
-              </div>
-              <div className={styles.howCardDesc}>{item.description}</div>
+              <a
+                href={`#${item.targetId}`}
+                aria-label={item.title}
+                className={styles.howCardTitleLink}
+                onClick={() => handleHowCardClick(item.title, item.targetId)}
+              >
+                <div className={styles.howCardHeader}>
+                  <span className={styles.howCardBadge}>{item.number}</span>
+                  <span className={styles.howCardTitle}>{item.title}</span>
+                </div>
+                <div className={styles.howCardDesc}>{item.description}</div>
+              </a>
               {item.withActivitiesLink ? (
                 <div className={styles.howCardFooter}>
                   <span className={styles.howCardIcon}>{item.icon}</span>

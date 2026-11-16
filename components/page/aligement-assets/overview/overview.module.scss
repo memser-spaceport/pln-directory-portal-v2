@@ -167,7 +167,6 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  position: relative;
   transition:
     box-shadow 0.15s ease,
     transform 0.15s ease;
@@ -219,19 +218,14 @@
 }
 
 .howCardTitleLink {
-  @extend .howCardTitle;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
   color: inherit;
   text-decoration: none;
-  outline: none;
 
-  &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-  }
-
-  &:hover {
+  &:hover .howCardTitle {
     color: var(--ov-accent, var(--ov-blue-500));
   }
 }
@@ -261,9 +255,6 @@
   font-weight: 600;
   color: var(--ov-blue-500);
   text-decoration: none;
-  /* Sits above the stretched title link so "See activities" stays clickable. */
-  position: relative;
-  z-index: 1;
 
   &:hover {
     text-decoration: underline;

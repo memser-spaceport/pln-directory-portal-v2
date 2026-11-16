@@ -114,8 +114,9 @@ describe('Request intro position on a member page', () => {
     expect(row['grid-column']).toBe('1 / -1');
   });
 
-  it('shows Request an intro only when the member has no office hours', () => {
-    expect(tsx).toMatch(/showRequestIntro = isLoggedIn && !isOwner && !variant && !member\.officeHours/);
+  it('shows one contact button to a signed-in visitor, never on their own profile', () => {
+    expect(tsx).toMatch(/showContactAction = isLoggedIn && !isOwner && !variant/);
+    expect(tsx).toMatch(/<MemberContactAction/);
   });
 
   it('the role and location row wraps, and a wrapped line hides the divider it starts with', () => {

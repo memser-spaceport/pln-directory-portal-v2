@@ -1,40 +1,7 @@
-// The glossy primary of Schedule Meeting (OfficeHoursView .primaryButton) in a 34px box.
+@use 'styles/mixins';
+
 .button.button.button {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  box-sizing: border-box;
-  height: 34px;
-  padding: 6px 10px;
-  border-radius: var(--corner-radius-md, 8px);
-  border-color: var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
-  background: var(--action-background-brand-normal, #1b4dff);
-  box-shadow:
-    0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset,
-    0 4px 6px 0 var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset,
-    0 1px 5px 0 var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
-  color: var(--action-foreground-base-inverted_white, #fff);
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  letter-spacing: -0.2px;
-  white-space: nowrap;
-
-  // Schedule Meeting keeps its fill on hover; Button's darker hover would break the match.
-  &:hover:not(:disabled),
-  &:active:not(:disabled) {
-    background: var(--action-background-brand-normal, #1b4dff);
-    border-color: var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
-  }
-
-  /* The ring is the fill's own ink, so it needs a band of white to be seen. */
-  &:focus-visible {
-    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
-    outline-offset: 2px;
-  }
+  @include mixins.glossy-primary-button;
 }
 
 // The line takes the button's exact box: an invisible copy of the button's content sizes the

@@ -8,7 +8,7 @@ A signed-in member with a current role on a PL Portfolio team, or with the PL In
 
 ### Requirement: Only an eligible member sees Request an intro
 
-A signed-in member sees a "Request an intro" control on another member's page and on a team page when that member has a current role on a PL Portfolio team, or holds the PL Infra policy `pl_infra_team_pl_internal`. A current role has no end date, or an end date that is still today or later. Every other visitor sees no control. A member sees no control on their own profile, or on a team page for a team they currently belong to. A directory admin who is eligible sees the control too, before Edit. A member page shows one contact button: when the member has office hours, the page shows only Schedule Meeting and no "Request an intro"; otherwise it shows only "Request an intro". A team page always shows "Request an intro" to an eligible member outside the team. The investor drawer and the apply flow do not show the control.
+A signed-in member sees a "Request an intro" control on another member's page and on a team page when that member has a current role on a PL Portfolio team, or holds the PL Infra policy `pl_infra_team_pl_internal`. A current role has no end date, or an end date that is still today or later. Every other visitor sees no control. A member sees no control on their own profile, or on a team page for a team they currently belong to. A directory admin who is eligible sees the control too, before Edit. A member page shows one contact button in the profile header: Schedule Meeting when the member has office hours and the viewer may book them, otherwise "Request an intro". The page never shows both. The Office Hours card has no Schedule Meeting button. Where a page does not offer booking (the Suggested tab of team candidates), the contact button is "Request an intro". A team page always shows "Request an intro" to an eligible member outside the team. The investor drawer and the apply flow do not show the control.
 
 #### Scenario: Portfolio member on another profile
 
@@ -32,8 +32,15 @@ A signed-in member sees a "Request an intro" control on another member's page an
 
 - **GIVEN** an eligible signed-in member
 - **WHEN** they open the page of a member who has office hours
-- **THEN** the page shows Schedule Meeting
+- **THEN** the profile header shows Schedule Meeting in the glossy primary style, on the name's line
 - **AND** the page shows no "Request an intro" control
+- **AND** the Office Hours card shows no Schedule Meeting button
+
+#### Scenario: Viewer who cannot book office hours
+
+- **GIVEN** an eligible signed-in member without access to book office hours
+- **WHEN** they open the page of a member who has office hours
+- **THEN** the profile header shows "Request an intro" and no Schedule Meeting
 
 #### Scenario: Own profile
 
@@ -43,7 +50,7 @@ A signed-in member sees a "Request an intro" control on another member's page an
 
 ### Requirement: Request an intro sits on the name's line
 
-"Request an intro" uses the glossy primary style of Schedule Meeting: 34px high, padding 6px 10px, a 16px envelope icon and a 6px gap. At 640px or wider it sits in one row at the top right of the header, on the same line as the name. The row order is Follow (team pages only), "Request an intro", Edit, then Delete (team admins only). Every item centres on the 34px button. The row has no caption under Follow. The facts line (team, role, city) on a member page sits under the name and the actions and spans the full card width, so it runs under the actions to the card's right edge. When it does not fit, it wraps, and a wrapped line never starts or ends on a divider. The city has no extra right padding. Below 640px on a team page, Edit and Delete are icon-only in the card's top-right corner, and Follow then "Request an intro" are full-width buttons under the followers. Below 640px on a member page, Edit sits on the right under the facts and "Request an intro" is a full-width button below it.
+"Request an intro" and Schedule Meeting share one glossy primary style: 34px high, padding 6px 10px, a 16px icon (an envelope on "Request an intro", a calendar on Schedule Meeting) and a 6px gap. At 640px or wider it sits in one row at the top right of the header, on the same line as the name. The row order is Follow (team pages only), "Request an intro", Edit, then Delete (team admins only). Every item centres on the 34px button. The row has no caption under Follow. The facts line (team, role, city) on a member page sits under the name and the actions and spans the full card width, so it runs under the actions to the card's right edge. When it does not fit, it wraps, and a wrapped line never starts or ends on a divider. The city has no extra right padding. Below 640px on a team page, Edit and Delete are icon-only in the card's top-right corner, and Follow then "Request an intro" are full-width buttons under the followers. Below 640px on a member page, Edit sits on the right under the facts and "Request an intro" is a full-width button below it.
 
 #### Scenario: Team page from 640px
 

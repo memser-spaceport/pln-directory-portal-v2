@@ -9,7 +9,7 @@
  * Production (imported read-only):
  *   NewsRail PopularThisWeekCard ........... copied as PopularThisWeekRail, + team logos
  *   embla-carousel-react + usePrevNextButtons  Featured's carousel engine (ForumCarousel)
- *   app/home/page.module.css ............... signed-in page width
+ *   app/page.module.css ............... signed-in page width
  *   TeamGroupCard.module.scss .............. the "See all …" expander on the cut
  *
  * Sibling prototypes (imported, not forked):
@@ -31,7 +31,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import type { ITeamNewsItem } from '@/types/team-news.types';
 
-import home from '@/app/home/page.module.css';
+import home from '@/app/page.module.css';
 
 import sortCss from '@/components/common/filters/SortDropdown/SortDropdown.module.scss';
 

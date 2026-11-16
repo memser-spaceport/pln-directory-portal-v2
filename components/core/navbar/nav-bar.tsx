@@ -91,11 +91,11 @@ function Navbar(props: Readonly<INavbar>) {
 
   const onHomeNavClickHandler = () => {
     // Same already-there guard the generic handler uses: clicking Home from
-    // /home isn't a clickthrough, and counting it would inflate the dot's CTR.
-    if (pathName !== '/home') {
+    // the homepage isn't a clickthrough, and counting it would inflate the dot's CTR.
+    if (pathName !== '/') {
       analytics.onHomeNavClicked('desktop-nav', hasNewNews);
     }
-    onNavItemClickHandler('/home', 'Home');
+    onNavItemClickHandler('/', 'Home');
   };
 
   const onNavbarApplogoClicked = () => {
@@ -113,7 +113,7 @@ function Navbar(props: Readonly<INavbar>) {
     <NavigationMenu.Root className={s.Root}>
       <NavigationMenu.List className={s.List}>
         <NavLink
-          href="/home"
+          href="/"
           onClick={onNavbarApplogoClicked}
           className={s.logoWrapper}
           aria-label="Protocol Labs Directory home"
@@ -124,7 +124,7 @@ function Navbar(props: Readonly<INavbar>) {
         {/* The logo already links to /home, but a logo is not a nav item: it
             carries no label, and a dot on it reads as decoration. */}
         <NavigationMenu.Item className={s.menuItem}>
-          <NavLink className={s.Trigger} href="/home" onClick={onHomeNavClickHandler}>
+          <NavLink className={s.Trigger} href="/" onClick={onHomeNavClickHandler}>
             <HomeIcon /> Home
             {hasNewNews && (
               <>

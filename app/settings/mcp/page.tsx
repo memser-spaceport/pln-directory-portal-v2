@@ -17,7 +17,7 @@ async function McpSettingsPage({ searchParams }: { searchParams: Promise<Record<
 
   if (!isLoggedIn) {
     // Straight to /home: `/` 308s to /home and drops the query, which would lose `returnTo` and the agent's `request`.
-    redirect(`/home?${params ? `${params}&` : ''}returnTo=settings-mcp#login`);
+    redirect(`/?${params ? `${params}&` : ''}returnTo=settings-mcp#login`);
   }
 
   const roles = userInfo.roles ?? [];

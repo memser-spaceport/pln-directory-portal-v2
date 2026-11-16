@@ -22,8 +22,8 @@ Protocol Labs Directory frontend — a Next.js 16.4.3 (App Router) application f
 
 ### App Router Structure (`app/`)
 
-Uses Next.js App Router with route groups. The root page (`/`) redirects to `/home`. Key routes:
-- `/home`, `/members`, `/teams`, `/projects`, `/events`, `/forum`, `/jobs` — main listing pages
+Uses Next.js App Router with route groups. The homepage is the root page (`/`, `app/page.tsx`); the old `/home` redirects to it (`utils/home-redirects.js`). Key routes:
+- `/`, `/members`, `/teams`, `/projects`, `/events`, `/forum`, `/jobs` — main listing pages
 - `/members/[id]`, `/teams/[id]`, `/projects/[id]` — detail pages
 - `/settings`, `/notifications`, `/sign-up`, `/ai-search` (AI Search; old `/husky` URLs redirect) — utility pages
 - `/demoday`, `/alignment-asset`, `/changelog` — feature pages

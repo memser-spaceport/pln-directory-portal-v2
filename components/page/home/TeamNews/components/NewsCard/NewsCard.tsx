@@ -21,7 +21,7 @@ import { SourceList } from '../SourceList/SourceList';
 import { TruncatedSummary } from './TruncatedSummary';
 import { ViewCount } from '../ViewCount/ViewCount';
 import { NewsTagChips } from '../NewsTagChips';
-import { NewsImage } from '../NewsImage';
+import { getNewsImageSources, NewsImage } from '../NewsImage';
 import { NewsCardFull } from './NewsCardFull';
 
 import s from './NewsCard.module.scss';
@@ -134,6 +134,7 @@ const NewsCardBase = ({
 }: NewsCardProps) => {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
+  const imageSources = getNewsImageSources(item.imageUrl, item.image);
 
   const askForAccount = () => {
     if (onNeedsAccount) {
@@ -249,12 +250,19 @@ const NewsCardBase = ({
           <p className={clsx(s.summary, compact && !fullSummary && s.summaryCompact)}>{item.summary}</p>
         ))}
       {onTagSelect && (
-        <NewsTagChips tags={item.tags} variant="card" onSelect={onTagSelect} active={activeTags} ungated />
+        <NewsTagChips
+          tags={item.tags}
+          eventType={item.eventType}
+          variant="card"
+          onSelect={onTagSelect}
+          active={activeTags}
+          ungated
+        />
       )}
       {/* Not a control: a click on the image opens the story with the card. */}
-      {showImage && item.imageUrl && (
+      {showImage && imageSources && (
         <div className={s.cardMedia}>
-          <NewsImage src={item.imageUrl} variant="wide" />
+          <NewsImage {...imageSources} variant="wide" />
         </div>
       )}
 

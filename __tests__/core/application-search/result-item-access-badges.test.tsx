@@ -37,14 +37,19 @@ const row = (fields: Record<string, unknown>) =>
 describe('L0/L1 badges on header search results (LAB-3252)', () => {
   afterEach(() => viewAs(null));
 
-  it.each([
-    ['L1', 'L1 · Base level'],
-    ['L0', 'L0 · Hidden'],
-  ])('shows the %s team badge to an admin', (accessLevel, label) => {
+  it('shows the L0 team badge to an admin', () => {
     viewAs(ADMIN);
-    row({ index: 'teams', accessLevel });
+    row({ index: 'teams', accessLevel: 'L0' });
 
-    expect(isShown(label)).toBe(true);
+    expect(isShown('L0')).toBe(true);
+  });
+
+  it('shows no badge on an L1 team result (LAB-3256)', () => {
+    viewAs(ADMIN);
+    row({ index: 'teams', accessLevel: 'L1' });
+
+    expect(isShown('L1 · Base level')).toBe(false);
+    expect(isShown('L0')).toBe(false);
   });
 
   it.each([
@@ -81,8 +86,8 @@ describe('L0/L1 badges on header search results (LAB-3252)', () => {
     ['a signed-out visitor', null],
   ])('shows no badge to %s', (_, viewer) => {
     viewAs(viewer);
-    const { unmount } = row({ index: 'teams', accessLevel: 'L1' });
-    expect(isShown('L1 · Base level')).toBe(false);
+    const { unmount } = row({ index: 'teams', accessLevel: 'L0' });
+    expect(isShown('L0')).toBe(false);
     unmount();
 
     row({ index: 'members', memberState: 'PENDING', isJobAspirant: true });
@@ -92,8 +97,8 @@ describe('L0/L1 badges on header search results (LAB-3252)', () => {
 
   it('shows no badge on a project result', () => {
     viewAs(ADMIN);
-    row({ index: 'projects', accessLevel: 'L1' });
+    row({ index: 'projects', accessLevel: 'L0' });
 
-    expect(isShown('L1 · Base level')).toBe(false);
+    expect(isShown('L0')).toBe(false);
   });
 });

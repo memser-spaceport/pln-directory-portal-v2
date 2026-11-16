@@ -7,7 +7,7 @@
  *   NewsCard.module.scss ............ card shell, logo, headline, teamName
  *   TeamNews.module.scss ............ .catRow/.cat/.catActive pills, .empty, .showAll
  *   NewsBase.module.scss ............ section shell (mirrored locally for our own heading)
- *   app/home/page.module.css ........ outer home layout + section spacing
+ *   app/page.module.css ........ outer home layout + section spacing
  *   TeamGroupCard.module.scss ....... jobs "View all N …" expander
  *   DealCard.module.scss ............ vendor avatar + audience tag (perk card)
  *   Welcome.module.scss ............. the signed-out banner (SignedOutBanner) —
@@ -80,7 +80,7 @@ import { FEED_FOR_YOU_FORUM_POST_WINDOW_DAYS } from '@/services/feed/constants';
 
 import nb from '@/components/page/home/TeamNews/components/NewsBase/NewsBase.module.scss';
 import s from '@/components/page/home/TeamNews/TeamNews.module.scss';
-import styles from '@/app/home/page.module.css';
+import styles from '@/app/page.module.css';
 
 import { NewsTabs } from '../newsfeed-v0/NewsTabs';
 import { V0FeedCard } from '../newsfeed-v0/V0FeedCard';
@@ -1596,7 +1596,7 @@ export default function NewsfeedPrototype({
       {reviewControls}
       <div className={clsx(v0.page, styles.home)}>
         <div className={styles.home__cn}>
-          {/* Production's own arrangement, kept: `app/home/page.tsx` renders
+          {/* Production's own arrangement, kept: `app/page.tsx` renders
               `Welcome` behind `!isLoggedIn` and `QuickActions` behind
               `isLoggedIn`, in this slot, as the first child of `.home__cn` —
               which is a 20/40px-gap column, so neither needs a wrapper of its

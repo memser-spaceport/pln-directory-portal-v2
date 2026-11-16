@@ -22,7 +22,7 @@ import { SourceList } from '../SourceList/SourceList';
 import { ViewCount } from '../ViewCount/ViewCount';
 import { NewsTagChips } from '../NewsTagChips';
 import { FeedCommentsThread, feedThreadDomId } from '../FeedCommentsThread/FeedCommentsThread';
-import { NewsImage } from '../NewsImage';
+import { getNewsImageSources, NewsImage } from '../NewsImage';
 
 import s from './NewsCard.module.scss';
 import f from './NewsCardFull.module.scss';
@@ -93,6 +93,8 @@ export function NewsCardFull({
     trackOnce: true,
     enabled: Boolean(onVisible),
   });
+
+  const imageSources = getNewsImageSources(item.imageUrl, item.image);
 
   const goToLogin = () => router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
 
@@ -186,6 +188,7 @@ export function NewsCardFull({
             {/* In the text column, so the tags stay with the summary they describe. */}
             <NewsTagChips
               tags={item.tags}
+              eventType={item.eventType}
               variant="card"
               onSelect={onTagSelect}
               active={activeTags}
@@ -195,7 +198,7 @@ export function NewsCardFull({
           </div>
           {/* Beside the text from 640px, full width under it on phones. Not a control: a click opens the story with
               the row. */}
-          {item.imageUrl && <NewsImage src={item.imageUrl} variant="thumb" />}
+          {imageSources && <NewsImage {...imageSources} variant="thumb" />}
         </div>
         <div className={f.footer}>
           <span className={f.source}>

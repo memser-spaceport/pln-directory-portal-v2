@@ -305,7 +305,7 @@ function EventFlow({
                     }
                   />
 
-                  <div className={e.block}>
+                  <div className={`${e.block} ${e.gatheringBlock}`}>
                     <Label icon={<PinLabelIcon />}>{gathering.city} gathering</Label>
                     <div className={e.gatheringLinks}>
                       <GatheringDetails

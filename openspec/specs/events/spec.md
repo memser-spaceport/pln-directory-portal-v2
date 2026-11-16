@@ -12,7 +12,7 @@ The event drawer SHALL be available only when the build flag `NEXT_PUBLIC_SHOW_E
 #### Scenario: Flag off
 
 - **GIVEN** the build has `NEXT_PUBLIC_SHOW_EVENT_DRAWER` unset
-- **WHEN** a signed-in member opens `/home` and a member profile
+- **WHEN** a signed-in member opens `/` and a member profile
 - **THEN** event rows and cards link where they link today
 - **AND** no event drawer opens
 

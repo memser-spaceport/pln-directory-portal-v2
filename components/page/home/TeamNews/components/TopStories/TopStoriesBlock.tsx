@@ -211,7 +211,13 @@ function AlsoRow({
 
       {item.summary && <p className={s.alsoSummary}>{item.summary}</p>}
 
-      <NewsTagChips tags={item.tags} variant="card" onSelect={onTagSelect} active={activeTag} />
+      <NewsTagChips
+        tags={item.tags}
+        eventType={item.eventType}
+        variant="card"
+        onSelect={onTagSelect}
+        active={activeTag}
+      />
 
       <div className={newsCardStyles.metaLine}>
         <div className={newsCardStyles.meta}>

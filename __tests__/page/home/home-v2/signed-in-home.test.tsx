@@ -110,7 +110,7 @@ jest.mock('@/analytics/home.analytics', () => ({ useHomeAnalytics: () => mockHom
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: jest.fn(), replace: jest.fn(), prefetch: jest.fn() }),
-  usePathname: () => '/home',
+  usePathname: () => '/',
   useSearchParams: () => new URLSearchParams(window.location.search),
 }));
 jest.mock('@/utils/formatTimeAgo', () => ({ formatTimeAgo: () => '2d ago' }));
@@ -271,7 +271,7 @@ beforeEach(() => {
   mockDefaultTags = undefined;
   mockDeals = null;
   useCurrentUserStore.setState({ currentUser: { uid: 'user-1' } as never, isHydrated: true });
-  window.history.replaceState(null, '', '/home');
+  window.history.replaceState(null, '', '/');
 });
 
 afterEach(() => {
@@ -291,7 +291,7 @@ describe('Network Updates: the stream', () => {
     expect(screen.queryByText(/View all 2 updates/)).not.toBeInTheDocument();
     expect(screen.queryByRole('tab')).not.toBeInTheDocument();
     expect(screen.queryByRole('region', { name: /Top stories/i })).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'See all news' })).toHaveAttribute('href', '/home?view=news');
+    expect(screen.getByRole('link', { name: 'See all news' })).toHaveAttribute('href', '/?view=news');
   });
 
   it("shows a story's image as its card thumbnail and as the story dialog's header (LAB-3134)", () => {

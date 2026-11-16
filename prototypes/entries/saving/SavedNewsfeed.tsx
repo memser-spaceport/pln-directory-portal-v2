@@ -22,7 +22,7 @@ import { sortAllTabItemsByEventDate } from '@/components/page/home/TeamNews/util
 // Production shells, 1:1 — the same three imports newsfeed-v0 makes.
 import nb from '@/components/page/home/TeamNews/components/NewsBase/NewsBase.module.scss';
 import s from '@/components/page/home/TeamNews/TeamNews.module.scss';
-import styles from '@/app/home/page.module.css';
+import styles from '@/app/page.module.css';
 
 import { NewsTabs } from '../newsfeed-v0/NewsTabs';
 import { V0FeedCard } from '../newsfeed-v0/V0FeedCard';

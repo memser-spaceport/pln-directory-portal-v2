@@ -5,6 +5,8 @@ import clsx from 'clsx';
 import { useNewsTopicSlugs } from '@/services/team-news/hooks/useNewsTopicSlugs';
 import { SHOW_NEWS_PREFERENCES } from '@/utils/news-categories';
 import { getNewsTagChips, NEWS_CARD_TOPIC_LIMIT } from '@/utils/news-tag-chips';
+import type { TeamNewsEventType } from '@/types/team-news.types';
+import { NEWS_CATEGORY_TAG_VALUES } from '@/components/page/news-preferences/newsTagThemes';
 
 /** No topic list to sort by: every tag but the verbs is a chip (the new Home with News preferences off). */
 const NO_TOPIC_SLUGS: ReadonlySet<string> = new Set();
@@ -25,7 +27,19 @@ interface NewsTagChipsProps {
    * no topic list, so every tag but the legacy verbs is a chip, up to the card's limit.
    */
   ungated?: boolean;
+  /**
+   * The story's category (LAB-3266). A category that a member can pick as a tag on News preferences (Funding, Launch,
+   * Announcement, LAB-3140) shows as the first chip, `#funding`. It is a grey label, not a filter link: the feed tag
+   * filter matches `tags`, not the category.
+   */
+  eventType?: TeamNewsEventType | null;
   className?: string;
+}
+
+/** The category chip text for a story, or null when its category is not a News preferences category tag. */
+export function getNewsCategoryChip(eventType: TeamNewsEventType | null | undefined): string | null {
+  if (!eventType) return null;
+  return (NEWS_CATEGORY_TAG_VALUES as readonly string[]).includes(eventType) ? eventType.toLowerCase() : null;
 }
 
 /**
@@ -36,10 +50,25 @@ interface NewsTagChipsProps {
  * Renders nothing until the focus areas load, and nothing when no tag qualifies,
  * so the layout stays as it was.
  */
-export function NewsTagChips({ tags, variant, onSelect, active, ungated = false, className }: NewsTagChipsProps) {
+export function NewsTagChips({
+  tags,
+  variant,
+  onSelect,
+  active,
+  ungated = false,
+  eventType,
+  className,
+}: NewsTagChipsProps) {
   const topicSlugs = useNewsTopicSlugs();
   const chips = selectChips(tags, variant, topicSlugs, ungated, active);
-  if (!chips || chips.length === 0) return null;
+  const category = chips ? getNewsCategoryChip(eventType) : null;
+  if (!chips || (chips.length === 0 && !category)) return null;
+
+  const categoryItem = category ? (
+    <li key={`category-${category}`} className={s.item} data-testid="news-category-chip">
+      <span className={s.chip}>#{category}</span>
+    </li>
+  ) : null;
 
   const isActive = (tag: string) => (typeof active === 'string' ? tag === active : (active?.includes(tag) ?? false));
   const isStacking = Array.isArray(active) && active.length > 0;
@@ -50,6 +79,7 @@ export function NewsTagChips({ tags, variant, onSelect, active, ungated = false,
   if (onSelect) {
     return (
       <ul className={clsx(s.list, s.links, className)} aria-label="Tags">
+        {categoryItem}
         {chips.map((tag) => (
           <li key={tag} className={s.item}>
             <button
@@ -79,6 +109,7 @@ export function NewsTagChips({ tags, variant, onSelect, active, ungated = false,
 
   return (
     <ul className={clsx(s.list, className)} aria-label="Tags">
+      {categoryItem}
       {chips.map((tag) => (
         <li key={tag} className={s.item}>
           <span className={s.chip}>#{tag}</span>

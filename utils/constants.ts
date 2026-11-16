@@ -2945,3 +2945,12 @@ export const EXPLORE_PL_NETWORK_ANALYTICS = {
   ON_SECTION_LINK_CLICKED: 'explore-pl-network-section-link-clicked',
   ON_LOGO_CLICKED: 'explore-pl-network-logo-clicked',
 };
+
+/** LAB-3264: the digest reading page `/digest?t=`. No event carries the link token. */
+export const DIGEST_ANALYTICS_EVENTS = {
+  ON_DIGEST_PAGE_VIEWED: 'digest-page-viewed',
+  ON_DIGEST_STORY_READ: 'digest-story-read',
+  ON_DIGEST_MORE_CLICKED: 'digest-more-clicked',
+  ON_DIGEST_LESS_CLICKED: 'digest-less-clicked',
+  ON_DIGEST_UNDO_CLICKED: 'digest-undo-clicked',
+};

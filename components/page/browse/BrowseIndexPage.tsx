@@ -126,15 +126,13 @@ function BrowsePager({ kind, page, pages }: { kind: BrowseKind; page: number; pa
 }
 
 /**
- * A listing's link to its full A–Z index, for crawlers (LAB-3093). Members don't see it (LAB-3184): it is visually
- * hidden and out of the Tab order, but stays a plain link in the server HTML.
+ * A listing's link to its full A–Z index (LAB-3093): a quiet line under the list, in the server HTML. It must be
+ * visible: hidden for LAB-3184, the link left the index unknown to Google.
  */
 export function BrowseAllLink({ kind }: { kind: BrowseKind }) {
   return (
     <p className={s.browseAll} data-testid="browse-all-link">
-      <a href={browsePath(kind)} tabIndex={-1}>
-        Browse all {LABELS[kind].plural}, A–Z
-      </a>
+      <a href={browsePath(kind)}>Browse all {LABELS[kind].plural}, A–Z</a>
     </p>
   );
 }

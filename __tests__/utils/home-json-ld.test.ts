@@ -24,7 +24,7 @@ describe('buildHomeJsonLd', () => {
     expect(website).toMatchObject({
       '@type': 'WebSite',
       name: 'Protocol Labs Directory',
-      url: 'https://os.pl.xyz/home',
+      url: 'https://os.pl.xyz/',
       publisher: { '@id': organization['@id'] },
     });
   });

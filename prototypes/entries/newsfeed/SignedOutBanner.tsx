@@ -3,7 +3,7 @@
 /**
  * What a visitor with no account is told about the feed under this banner.
  *
- * **Why this slot and this card.** `app/home/page.tsx` already renders
+ * **Why this slot and this card.** `app/page.tsx` already renders
  * `Welcome` behind `!isLoggedIn`, as the first child of `.home__cn`, directly
  * above the same `TeamNews` section this prototype reproduces — and this route
  * *is* Home. So the surface a signed-out visitor meets here is the surface they

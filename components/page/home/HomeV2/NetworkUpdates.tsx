@@ -314,7 +314,7 @@ export function NetworkUpdates({
           onUpvoteToggle={(item) => handleUpvoteToggle(item, 'news-modal')}
           isFollowing={followedTeamUids.has(activeNewsItem.teamUid)}
           onFollowToggle={handleFollowToggle}
-          loginHref={`/home?news=${encodeURIComponent(activeNewsItem.uid)}#login`}
+          loginHref={`/?news=${encodeURIComponent(activeNewsItem.uid)}#login`}
           onTagSelect={(tag) => handleScopeTagToggle(tag, 'modal')}
           activeTag={topicScope}
           showImage

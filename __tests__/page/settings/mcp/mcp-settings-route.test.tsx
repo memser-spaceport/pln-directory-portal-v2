@@ -31,11 +31,11 @@ describe('/settings/mcp signed out', () => {
     await expect(McpSettingsPage({ searchParams: Promise.resolve({ request: 'req-1' }) })).rejects.toThrow(
       'NEXT_REDIRECT',
     );
-    expect(mockRedirect).toHaveBeenCalledWith('/home?request=req-1&returnTo=settings-mcp#login');
+    expect(mockRedirect).toHaveBeenCalledWith('/?request=req-1&returnTo=settings-mcp#login');
   });
 
   it('works without a query too', async () => {
     await expect(McpSettingsPage({ searchParams: Promise.resolve({}) })).rejects.toThrow('NEXT_REDIRECT');
-    expect(mockRedirect).toHaveBeenCalledWith('/home?returnTo=settings-mcp#login');
+    expect(mockRedirect).toHaveBeenCalledWith('/?returnTo=settings-mcp#login');
   });
 });

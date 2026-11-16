@@ -41,7 +41,7 @@ export function HomeFooter() {
       <div className={s.footerInner}>
         <div className={s.footerTop}>
           <div className={s.footerBrand}>
-            <Link href="/home" className={s.footerLogo} aria-label="Protocol Labs directory home">
+            <Link href="/" className={s.footerLogo} aria-label="Protocol Labs directory home">
               <AppLogo />
             </Link>
             <p className={s.footerMission}>{PL_CONTEXT.mission}</p>

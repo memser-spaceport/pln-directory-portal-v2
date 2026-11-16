@@ -1,0 +1,534 @@
+@import 'styles/media.scss';
+
+// Sizes and the email-only colours (#000 titles, #667085 intro, #e2e8f0 dividers, #777 role,
+// #1c1e23 / #8f98b1 sign-off, the pale-blue card wash) are transcribed from Figma 13282:516.
+// Colours that match a PL token use the token + fallback pair.
+
+.page {
+  min-height: 100vh;
+  padding: 40px 16px 80px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  font-family: Inter, sans-serif;
+
+  @include mobile-only {
+    padding: 0 0 40px;
+  }
+}
+
+// Prototype-only: flips between the email and the page it links to.
+.viewSwitch {
+  display: flex;
+  width: fit-content;
+  max-width: calc(100% - 32px);
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 0 auto 16px;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--background-neutral-primary, #fff);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  a {
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    color: var(--foreground-neutral-secondary, #455468);
+    text-decoration: none;
+  }
+
+  @include mobile-only {
+    margin: 0 auto;
+    position: relative;
+    top: 12px;
+    margin-bottom: 12px;
+  }
+}
+
+.viewSwitch a.viewSwitchActive {
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.email {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  background: var(--background-neutral-primary, #fff);
+}
+
+.spacer {
+  height: 40px;
+}
+
+/* Header */
+
+.logoRow {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+
+  img {
+    display: block;
+    width: 144px;
+    height: auto;
+    margin: 12px 0;
+  }
+}
+
+.intro {
+  max-width: 394px;
+  margin: 0 auto;
+  padding: 0 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.greeting {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 34px;
+  letter-spacing: -0.4px;
+  color: #000;
+}
+
+.introText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: #667085;
+}
+
+.introLink {
+  color: var(--foreground-neutral-secondary, #455468);
+  text-decoration: underline;
+}
+
+/* Story cards */
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+.card {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+  border-radius: 8px;
+  background: rgba(224, 239, 249, 0.5);
+  scroll-margin-top: 24px;
+
+  @include mobile-only {
+    padding: 20px;
+  }
+}
+
+.cardBgImage {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 8px;
+  background: var(--card-bg-image) center / cover no-repeat;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+
+  @include mobile-only {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+}
+
+.cardImageLeft .cardTop {
+  flex-direction: row-reverse;
+  align-items: flex-start;
+
+  @include mobile-only {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+}
+
+.cardText {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.topBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background: var(--background-brand-default, #1b4dff);
+  color: var(--foreground-light-primary, #fff);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: normal;
+  color: #000;
+}
+
+.cardSummary,
+.cardBody p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.cardImage {
+  flex: 0 0 216px;
+  height: 148px;
+  overflow: hidden;
+  border-radius: 6.386px;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  @include mobile-only {
+    flex-basis: auto;
+    height: auto;
+    aspect-ratio: 216 / 148;
+  }
+}
+
+.cardImageLeft .cardImage {
+  border-radius: 5.63px;
+}
+
+// The part the email hides behind Read More. Pulled up so it reads as the summary's next
+// paragraph (12px), not a new block (the card's 20px gap).
+.cardBody {
+  margin-top: -8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  @include mobile-only {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+}
+
+.readSource {
+  font-size: 14px;
+  line-height: normal;
+  color: #000;
+  text-decoration: underline;
+}
+
+.feedback {
+  display: flex;
+  gap: 8px;
+}
+
+.feedbackBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 6px 10px;
+  border: 1px solid var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  border-radius: 8px;
+  background: var(--background-neutral-primary, #fff);
+  color: var(--foreground-neutral-secondary, #455468);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+// Pressed: the same chip, brand-outlined, so the press reads without a second colour story.
+.feedbackBtnActive {
+  border-color: var(--foreground-brand-primary, #1b4dff);
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  color: var(--foreground-brand-primary, #1b4dff);
+
+  &:hover {
+    background: var(--background-brand-soft-surface, #f2f5ff);
+  }
+
+  img {
+    // Recolour the grey glyph to brand blue.
+    filter: brightness(0) saturate(100%) invert(22%) sepia(98%) saturate(4400%) hue-rotate(228deg) brightness(101%);
+  }
+}
+
+.thumbBox {
+  position: relative;
+  flex: none;
+  width: 14px;
+  height: 14px;
+
+  img {
+    display: block;
+  }
+}
+
+.thumbDown img {
+  position: absolute;
+  inset: 15.63% 6.25% 6.25% 6.25%;
+  width: 87.5%;
+  height: 78.12%;
+  transform: scaleY(-1);
+}
+
+/* Receipt, inside the card that was pressed */
+
+.receipt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--background-neutral-primary, #fff);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  animation: receiptIn 0.2s ease-out;
+}
+
+.receiptMark {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--foreground-success-primary, #0a9952);
+  color: var(--foreground-light-primary, #fff);
+}
+
+.receiptText {
+  flex: 1;
+  min-width: 0;
+  font-weight: 500;
+}
+
+.receiptUndo {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@keyframes receiptIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/* Forum section */
+
+.dividerRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 32px;
+
+  @include mobile-only {
+    padding: 16px 20px;
+  }
+}
+
+.dividerLine {
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.dividerLabel {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.4px;
+  color: var(--foreground-neutral-secondary, #455468);
+  white-space: nowrap;
+}
+
+.byline {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 32px;
+  font-size: 12px;
+
+  @include mobile-only {
+    padding: 0 20px;
+  }
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50px;
+  object-fit: cover;
+  background: #ffd8b4;
+}
+
+.bylineName {
+  margin-right: -8px;
+  font-weight: 600;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.bylineRole {
+  line-height: 1.17;
+  color: #777;
+}
+
+.postBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 32px;
+
+  @include mobile-only {
+    padding: 16px 20px;
+  }
+}
+
+.postTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: normal;
+  color: #000;
+}
+
+.postText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.postLink {
+  align-self: flex-start;
+  padding: 4px 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #000;
+  text-decoration: underline;
+}
+
+/* Footer */
+
+.signoff {
+  padding: 16px 16px 0;
+  text-align: center;
+  font-family: Montserrat, Inter, sans-serif;
+  font-size: 15px;
+  line-height: 24px;
+
+  p {
+    margin: 0;
+  }
+}
+
+.signoffStrong {
+  font-weight: 600;
+  color: #1c1e23;
+}
+
+.signoffTeam {
+  margin-top: 4px !important;
+  color: #8f98b1;
+}
+
+.footerDivider {
+  display: flex;
+  padding: 16px 32px;
+}
+
+.legal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 16px 24px;
+  text-align: center;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  p {
+    margin: 0;
+    font-size: 11px;
+  }
+}
+
+.legalLinks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px;
+
+  a {
+    color: inherit;
+    text-decoration: underline;
+  }
+}

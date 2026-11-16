@@ -13,7 +13,7 @@
  *   navbar Signup / LoginBtn SCSS .......... the two auth doors, Sign up quiet + Sign in filled
  *   DEAL_ICONS (deals/dealsIcons) .......... vendor marks in DealsRail
  *   AuthInvalidUser shell (ModalBase) ...... copied as EmailNotFoundModal, new content
- *   app/home/page.module.css ............... signed-in page width
+ *   app/page.module.css ............... signed-in page width
  *
  * Sibling prototypes (imported, not forked):
  *   home-refactor-b .... the week-feed grouping (title, now "Network Updates"; tab values) and its re-dated mocks
@@ -32,7 +32,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import type { ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
 
-import home from '@/app/home/page.module.css';
+import home from '@/app/page.module.css';
 import { ScrollToTopButton } from '@/components/page/forum/ScrollToTopButton';
 
 import { ALL_CURATED_ITEMS, TOP_STORY } from '../newsfeed/mocks';
@@ -185,7 +185,13 @@ export default function HomeV2Prototype({
   feedNotice,
   eventsRail,
   reviewExtra,
+  initialFeedCat,
+  forYouIntro,
 }: {
+  /** The pill the signed-in feed opens on (`for-you-starter-topics`). */
+  initialFeedCat?: string;
+  /** Replaces the For You caption while For You is active (`for-you-starter-topics`). */
+  forYouIntro?: ReactNode;
   /** The state with no ?state= param. */
   initialState?: HomeState;
   /** Hashtags the signed-in feed opens filtered by (`digest-more-like-this`). */
@@ -460,6 +466,8 @@ export default function HomeV2Prototype({
                 topStoryUids={TOP_STORY_UIDS}
                 initialTopics={initialFeedTopics}
                 notice={feedNotice}
+                initialCat={initialFeedCat}
+                forYouIntro={forYouIntro}
                 renderNews={(story, topic, isTop) => (
                   <V0FeedCard
                     onSelectTopic={topic.onSelectTopic}

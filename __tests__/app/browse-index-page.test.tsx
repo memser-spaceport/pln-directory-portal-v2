@@ -75,20 +75,20 @@ describe('browse index page', () => {
   });
 });
 
-describe('browse-all link on a listing (LAB-3184)', () => {
-  it('is a plain link in the server HTML, out of the Tab order', () => {
+/* LAB-3184 hid the link; Google then never found the index ("URL is unknown to Google" ten days after release). */
+describe('browse-all link on a listing', () => {
+  it('is a plain link in the server HTML, reachable with Tab', () => {
     const markup = renderToStaticMarkup(<BrowseAllLink kind="teams" />);
     expect(markup).toContain('href="/teams/browse"');
-    expect(markup).toContain('tabindex="-1"');
+    expect(markup).not.toContain('tabindex');
     expect(markup).toContain('class="browseAll"');
   });
 
-  it('is visually hidden, not display:none, so crawlers still get the link', () => {
+  it('is visible on screen, not clipped away', () => {
     const scss = readFileSync(join(process.cwd(), 'components/page/browse/BrowseIndexPage.module.scss'), 'utf8');
     const rule = scss.slice(scss.indexOf('.browseAll {'));
     const body = rule.slice(0, rule.indexOf('\n}'));
-    expect(body).toMatch(/position: absolute/);
-    expect(body).toMatch(/clip-path: inset\(50%\)/);
+    expect(body).not.toMatch(/position: absolute|clip-path|clip:|width: 1px/);
     expect(body).not.toMatch(/^\s*(display:\s*none|visibility:\s*hidden)\s*;/m);
   });
 });

@@ -74,17 +74,14 @@ describe('MemberAccessBadges', () => {
 describe('TeamAccessBadge', () => {
   afterEach(() => viewAs(null));
 
-  it.each([
-    ['L0', 'L0 · Hidden'],
-    ['L1', 'L1 · Base level'],
-  ])('shows %s to an admin', (accessLevel, label) => {
+  it('shows L0 to an admin', () => {
     viewAs(ADMIN);
-    render(<TeamAccessBadge accessLevel={accessLevel} />);
+    render(<TeamAccessBadge accessLevel="L0" />);
 
-    expect(isShown(label)).toBe(true);
+    expect(isShown('L0')).toBe(true);
   });
 
-  it.each([null, undefined, 'L2'])('shows nothing for level %s', (accessLevel) => {
+  it.each([null, undefined, 'L1', 'L2'])('shows nothing for level %s', (accessLevel) => {
     viewAs(ADMIN);
     const { container } = render(<TeamAccessBadge accessLevel={accessLevel} />);
 

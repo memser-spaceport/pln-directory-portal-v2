@@ -177,7 +177,7 @@ A signed-out visitor SHALL NOT download the sign-in system's code or contact its
 #### Scenario: Signed-out visitor reads a page
 
 - **GIVEN** a visitor with no session
-- **WHEN** they load `/home`, `/jobs`, a profile or any other page, and do not choose Sign in
+- **WHEN** they load `/`, `/jobs`, a profile or any other page, and do not choose Sign in
 - **THEN** the page makes no request to `auth.privy.io` and loads no sign-in system code
 
 #### Scenario: Signed-out visitor chooses Sign in

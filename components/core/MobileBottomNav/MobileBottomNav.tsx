@@ -88,7 +88,7 @@ export function MobileBottomNav() {
   // The dot's impression is reported by the desktop navbar alone (both bars
   // stay mounted at every width), so this only adds the click side.
   const onHomeClick = useCallback(() => {
-    if (pathname === '/home') return;
+    if (pathname === '/') return;
     analytics.onHomeNavClicked('mobile-nav', hasNewNews);
     analytics.onNavItemClicked('Home', getAnalyticsUserInfo(currentUser));
   }, [analytics, currentUser, hasNewNews, pathname]);
@@ -151,10 +151,10 @@ export function MobileBottomNav() {
 
           <NavigationMenu.Item>
             <Link
-              href="/home"
+              href="/"
               onClick={onHomeClick}
               className={clsx(s.item, {
-                [s.itemActive]: pathname.startsWith('/home'),
+                [s.itemActive]: pathname === '/',
               })}
             >
               <span className={s.iconWithDot}>

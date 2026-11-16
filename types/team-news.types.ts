@@ -53,6 +53,23 @@ export interface ITeamNewsItem {
   isTeamPosted?: boolean;
   /** The story's image (e.g. the article's og:image), served as stored; null/absent = a text-only story (LAB-3134). */
   imageUrl?: string | null;
+  /** LAB-3135: our resized 16:9 JPEG copies of `imageUrl`, for `srcset`. Null/absent until the copy exists (old
+   *  stories wait for the backfill), so `imageUrl` stays the fallback. */
+  image?: ITeamNewsImage | null;
+}
+
+/** One stored copy of a news image: its pixel width and URL. */
+export interface ITeamNewsImageVariant {
+  width: number;
+  url: string;
+}
+
+/** The API's `image` field on a news item (LAB-3135). `width` × `height` is the stored original; `variants` lists
+ *  every stored copy, the original included, narrowest first. */
+export interface ITeamNewsImage {
+  width: number;
+  height: number;
+  variants: ITeamNewsImageVariant[];
 }
 
 /** Returned by POST/DELETE /v1/team-news/:uid/upvote and carried on every news item. */
@@ -144,6 +161,8 @@ export interface ITeamNewsGroupedResponse {
   forYouTags?: string[];
   /** Memberships ∪ follows, without the related teams (LAB-2999); empty for anonymous. */
   forYouOwnTeamUids?: string[];
+  /** Categories the viewer picked (LAB-3140). Empty when none are picked or the viewer is anonymous. */
+  forYouCategories?: string[];
 }
 
 export interface TeamCluster {

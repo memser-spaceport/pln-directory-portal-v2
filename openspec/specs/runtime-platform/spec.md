@@ -114,7 +114,7 @@ Every response SHALL carry `X-Content-Type-Options: nosniff`, `Referrer-Policy: 
 
 #### Scenario: Home page response
 
-- **WHEN** a client requests `/home`
+- **WHEN** a client requests `/`
 - **THEN** the response has the five headers and no `X-Powered-By`
 - **AND** the HTML has one viewport tag, without `maximum-scale` or `user-scalable`
 
@@ -125,11 +125,11 @@ Every response SHALL carry `X-Content-Type-Options: nosniff`, `Referrer-Policy: 
 
 ### Requirement: Images load in step with what the visitor sees
 
-On `/home`, images below the fold SHALL load lazily and every image SHALL declare its width and height. The image that is the largest element of a member profile SHALL be discoverable from the HTML, not only from a stylesheet.
+On `/`, images below the fold SHALL load lazily and every image SHALL declare its width and height. The image that is the largest element of a member profile SHALL be discoverable from the HTML, not only from a stylesheet.
 
 #### Scenario: Home below the fold
 
-- **GIVEN** a signed-out visitor on `/home`
+- **GIVEN** a signed-out visitor on `/`
 - **WHEN** the page loads
 - **THEN** no image below the fold is requested before the visitor scrolls toward it
 - **AND** nothing on the page shifts as images arrive
@@ -142,11 +142,11 @@ On `/home`, images below the fold SHALL load lazily and every image SHALL declar
 
 ### Requirement: A new page opens at the top
 
-When an in-app link or push opens a different page (a new pathname, or a new `view` on the same path, such as `/home?view=news`), the page SHALL open scrolled to the top, whatever the previous page's offset (LAB-3169). A change of other query parameters on the same page (filters, `?news=` story modals) SHALL keep the scroll position. Back and Forward, the first page load, and URLs with a `#hash` SHALL be left to the browser and Next.
+When an in-app link or push opens a different page (a new pathname, or a new `view` on the same path, such as `/?view=news`), the page SHALL open scrolled to the top, whatever the previous page's offset (LAB-3169). A change of other query parameters on the same page (filters, `?news=` story modals) SHALL keep the scroll position. Back and Forward, the first page load, and URLs with a `#hash` SHALL be left to the browser and Next.
 
 #### Scenario: Focus-area link from the bottom of Home
 
-- **GIVEN** a visitor scrolled down to "Browse by focus area" on `/home`
+- **GIVEN** a visitor scrolled down to "Browse by focus area" on `/`
 - **WHEN** they open Teams or Projects on a card
 - **THEN** the list page opens at its top
 

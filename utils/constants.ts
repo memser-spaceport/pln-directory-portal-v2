@@ -8,7 +8,7 @@ export const EVENTS_LIST_PATH = '/events/all';
 export const DEMO_DAY_PATH = '/demoday';
 
 export const PAGE_ROUTES = {
-  HOME: '/home',
+  HOME: '/',
   MEMBERS: '/members',
   TEAMS: '/teams',
   SETTINGS: '/settings',

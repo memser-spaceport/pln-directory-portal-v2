@@ -1,4 +1,4 @@
-import { readNewsTags } from '@/utils/news-tags';
+import { readNewsCategoryTags, readNewsTags } from '@/utils/news-tags';
 
 describe('readNewsTags (LAB-3000)', () => {
   it('reads the tags and the seeded marker', () => {
@@ -18,5 +18,15 @@ describe('readNewsTags (LAB-3000)', () => {
 
   it('drops entries that are not strings', () => {
     expect(readNewsTags({ newsTags: ['ai', 3, null] }).newsTags).toEqual(['ai']);
+  });
+});
+
+describe('readNewsCategoryTags (LAB-3140)', () => {
+  it('reads the saved categories and drops anything else', () => {
+    expect(readNewsCategoryTags({ newsCategoryTags: ['LAUNCH', 'PARTNERSHIP', 1] })).toEqual(['LAUNCH']);
+  });
+
+  it.each([null, undefined, {}, { newsCategories: ['FUNDING'] }])('reads %p as none', (raw) => {
+    expect(readNewsCategoryTags(raw)).toEqual([]);
   });
 });

@@ -250,7 +250,14 @@ const NewsCardBase = ({
           <p className={clsx(s.summary, compact && !fullSummary && s.summaryCompact)}>{item.summary}</p>
         ))}
       {onTagSelect && (
-        <NewsTagChips tags={item.tags} variant="card" onSelect={onTagSelect} active={activeTags} ungated />
+        <NewsTagChips
+          tags={item.tags}
+          eventType={item.eventType}
+          variant="card"
+          onSelect={onTagSelect}
+          active={activeTags}
+          ungated
+        />
       )}
       {/* Not a control: a click on the image opens the story with the card. */}
       {showImage && imageSources && (

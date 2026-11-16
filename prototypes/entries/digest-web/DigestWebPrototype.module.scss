@@ -62,6 +62,286 @@
   height: 40px;
 }
 
+/* ---------- Web page only (Mobbin pass, 2026-11-16) ---------- */
+
+// The web page sits on white end to end; the grey ground stays on the Email view, an inbox.
+.pageWeb {
+  background: var(--background-neutral-primary, #fff);
+
+  // The header reads as a page, not an email: left-aligned on the story cards' outer edge (16px).
+  // The Email view keeps Figma's centred header.
+  .logoRow {
+    justify-content: flex-start;
+  }
+
+  .issueLine {
+    padding: 0 16px;
+    text-align: left;
+  }
+
+  .intro {
+    max-width: none;
+    margin: 0;
+    text-align: left;
+  }
+}
+
+// The email column, with the contents beside it on the right from 1100px.
+.webLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 640px);
+  justify-content: center;
+  gap: 48px;
+
+  @media (min-width: 1100px) {
+    grid-template-columns: minmax(0, 640px) 260px;
+  }
+}
+
+.rail {
+  display: none;
+
+  @media (min-width: 1100px) {
+    display: block;
+  }
+}
+
+.contentsRail {
+  position: sticky;
+  top: 112px;
+  padding-top: 16px;
+}
+
+// Docs-style contents (Mintlify, Codecademy, Obvious): small label, titles on a thin track.
+.railLabel {
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.railList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-left: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.railItem {
+  display: block;
+  margin-left: -1px;
+  padding: 6px 0 6px 14px;
+  border-left: 2px solid transparent;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-decoration: none;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+// The section in view: brand text and a brand mark on the track.
+.railItemActive,
+.railItemActive:hover {
+  border-left-color: var(--foreground-brand-primary, #1b4dff);
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-weight: 500;
+}
+
+// The forum heading is an anchor target now; leave room for the sticky navbar.
+.forumAnchor {
+  scroll-margin-top: 96px;
+}
+
+// "You're all caught up": the end of the issue (Substack, Pinterest).
+.caughtUp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 48px 16px 0;
+  padding: 32px 16px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  text-align: center;
+}
+
+.caughtUpMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 8px;
+  border-radius: 50%;
+  background: var(--background-success-subtle, rgba(10, 153, 82, 0.08));
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+.caughtUpTitle {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.caughtUpText {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.caughtUpLink {
+  padding: 6px 12px;
+  border: 1px solid var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-decoration: none;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+// The issue's dateline under the logo (Medium Daily Digest, Substack).
+.issueLine {
+  margin: -4px 0 16px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+// "In this issue": a numbered contents list that jumps to each full story (Quartz, NYT Latest).
+.contents {
+  margin: 32px 16px 0;
+  padding: 16px 20px 8px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+
+  // From 1100px the contents live in the right-hand column instead.
+  @media (min-width: 1100px) {
+    display: none;
+  }
+}
+
+.contentsTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.contentsList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li + li {
+    border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+}
+
+.contentsRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  color: inherit;
+  text-decoration: none;
+
+  &:hover .contentsHeadline {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.contentsNum {
+  flex: none;
+  width: 16px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.contentsText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.contentsHeadline {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  transition: color 0.15s ease;
+}
+
+.contentsMeta {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.contentsThumb {
+  flex: none;
+  width: 64px;
+  height: 44px;
+  border-radius: 4px;
+  object-fit: cover;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+// The page is for reading the whole story: titles and body step up the PL scale
+// (Substack, Perplexity). The email keeps Figma's 16px titles and 14px text.
+.cardWeb {
+  .cardTitle {
+    font-size: 20px;
+    line-height: 28px;
+  }
+
+  .cardSummary,
+  .cardBody p {
+    font-size: 16px;
+    line-height: 24px;
+  }
+}
+
+.cardWeb.cardLead .cardTitle {
+  font-size: 24px;
+  line-height: 32px;
+}
+
 /* Header */
 
 .logoRow {
@@ -125,7 +405,9 @@
   gap: 20px;
   padding: 24px;
   border-radius: 8px;
-  background: rgba(224, 239, 249, 0.5);
+  // White cards on the white email, so a subtle border keeps them apart.
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-neutral-primary, #ffffff);
   scroll-margin-top: 24px;
 
   @include mobile-only {
@@ -226,6 +508,50 @@
 .cardImageLeft .cardImage {
   border-radius: 5.63px;
 }
+
+// The lead story on the web page: the image in full, across the card and above the text.
+.cardLead .cardTop {
+  flex-direction: column-reverse;
+  align-items: stretch;
+}
+
+.cardLead .cardImage {
+  flex-basis: auto;
+  height: auto;
+  aspect-ratio: 16 / 7;
+  border-radius: 8px;
+
+  @include mobile-only {
+    aspect-ratio: 16 / 9;
+  }
+}
+
+// "Sources: The Block · CryptoBriefing" under the story, as the news detail lists them.
+.sources {
+  margin: -8px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.sourceLink {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  text-underline-offset: 3px;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration-color: currentColor;
+  }
+}
+
+.cardActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 
 // The part the email hides behind Read More. Pulled up so it reads as the summary's next
 // paragraph (12px), not a new block (the card's 20px gap).
@@ -334,7 +660,10 @@
   gap: 8px;
   padding: 10px 12px;
   border-radius: 8px;
-  background: var(--background-neutral-primary, #fff);
+  // The cards are white now, so the receipt carries its own surface: production's soft
+  // success pair. Green for More and Less alike — it confirms the save, not the sentiment.
+  border: 1px solid var(--border-success-subtle, rgba(4, 135, 70, 0.32));
+  background: var(--background-success-subtle, rgba(10, 153, 82, 0.08));
   font-size: 14px;
   line-height: 20px;
   color: var(--foreground-neutral-primary, #0a0c11);

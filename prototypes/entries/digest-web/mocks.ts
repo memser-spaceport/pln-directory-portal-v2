@@ -23,6 +23,10 @@ export interface DigestStory {
   body: string[];
   topic: string;
   source: string;
+  /** The team the story is about: the page's Follow button follows it. */
+  team: string;
+  /** Where the story was reported; the page lists them under the story. */
+  sources: { name: string; url: string }[];
 }
 
 export interface DigestForumPost {
@@ -56,6 +60,11 @@ export const DIGEST_STORIES: DigestStory[] = [
     ],
     topic: 'ai',
     source: 'TechCrunch',
+    team: 'Proprio Labs',
+    sources: [
+      { name: 'TechCrunch', url: 'https://techcrunch.com' },
+      { name: 'The Robot Report', url: 'https://www.therobotreport.com' },
+    ],
   },
   {
     id: 'starknet-l1',
@@ -71,6 +80,11 @@ export const DIGEST_STORIES: DigestStory[] = [
     ],
     topic: 'crypto',
     source: 'The Block',
+    team: 'Starknet',
+    sources: [
+      { name: 'The Block', url: 'https://www.theblock.co' },
+      { name: 'CryptoBriefing', url: 'https://cryptobriefing.com' },
+    ],
   },
   {
     id: 'op-token',
@@ -85,6 +99,11 @@ export const DIGEST_STORIES: DigestStory[] = [
     ],
     topic: 'crypto',
     source: 'CoinDesk',
+    team: 'Optimism',
+    sources: [
+      { name: 'CoinDesk', url: 'https://www.coindesk.com' },
+      { name: 'Decrypt', url: 'https://decrypt.co' },
+    ],
   },
   {
     id: 'open-ai-models',
@@ -100,6 +119,8 @@ export const DIGEST_STORIES: DigestStory[] = [
     ],
     topic: 'ai',
     source: 'TechCrunch',
+    team: 'Lattice Compute',
+    sources: [{ name: 'TechCrunch', url: 'https://techcrunch.com' }],
   },
   {
     id: 'filecoin-flywheel',
@@ -114,6 +135,8 @@ export const DIGEST_STORIES: DigestStory[] = [
     ],
     topic: 'filecoin',
     source: 'Filecoin Foundation blog',
+    team: 'Filecoin Foundation',
+    sources: [{ name: 'Filecoin Foundation blog', url: 'https://fil.org/blog' }],
   },
 ];
 

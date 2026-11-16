@@ -1,0 +1,95 @@
+@use 'styles/media';
+
+.page {
+  min-height: 100vh;
+  background-color: #f1f5f9; // the page ground, as `member-profile-edit` paints it
+}
+
+/* The page's one statement of the default audience, plus the preview switch.
+   Plain row on the page ground, not a card: it is about the page, not a
+   section of it. Wraps on a phone so the switch starts the next line at the
+   same content edge. */
+.audienceBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 0 4px;
+}
+
+.audienceLine {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  min-width: 0;
+  flex: 1 1 320px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  strong {
+    color: var(--foreground-neutral-primary, #0a0c11);
+    font-weight: 500;
+  }
+}
+
+.viewAs {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.viewAsLabel {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+/* A badge beside a section title — the title keeps its own type, the badge
+   sits on its centre line. */
+.titleRow {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Current only: the contributions list draws its own header, so its badge
+   stands on a line above it. */
+.listBadge {
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* The attachment chip hugs its file name, as it does in the application email. */
+.cvRow {
+  display: flex;
+  align-items: flex-start;
+}
+
+.hiddenNote {
+  margin: 0;
+  padding: 0 4px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}

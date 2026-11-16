@@ -309,6 +309,17 @@ describe('useMoreNavItems', () => {
       expect(more().find((entry) => entry.title === 'PLaybook')?.href).toBe('/apps/playbook');
     });
 
+    it('opens an app without the LabOS top navigation in a new tab, and the rest in place', () => {
+      mockPublishedApps.mockReturnValue([
+        { ...playbook, hideTopNav: true },
+        { ...playbook, uid: 'cmatlas2', name: 'Atlas', hideTopNav: false },
+      ]);
+
+      const items = more();
+      expect(items.find((entry) => entry.title === 'PLaybook')?.external).toBe(true);
+      expect(items.find((entry) => entry.title === 'Atlas')?.external).toBe(false);
+    });
+
     it('shows the uploaded icon, and the star without one', () => {
       mockPublishedApps.mockReturnValue([{ ...playbook, iconUrl: 'https://cdn.example.test/p.png' }]);
       const { container } = render(<>{more().find((entry) => entry.title === 'PLaybook')?.icon}</>);

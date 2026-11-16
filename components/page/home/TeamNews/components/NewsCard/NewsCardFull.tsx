@@ -188,6 +188,7 @@ export function NewsCardFull({
             {/* In the text column, so the tags stay with the summary they describe. */}
             <NewsTagChips
               tags={item.tags}
+              eventType={item.eventType}
               variant="card"
               onSelect={onTagSelect}
               active={activeTags}

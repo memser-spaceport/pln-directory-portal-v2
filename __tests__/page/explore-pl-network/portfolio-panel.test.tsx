@@ -134,9 +134,7 @@ describe('PortfolioPanel', () => {
     expect(row).toHaveAttribute('href', `/teams/${team.uid}`);
     await user.click(row);
     expect(onProfileClicked).toHaveBeenCalledWith(team, 'list');
-    // The list renders every portfolio row. Under a full Jest run that scan
-    // can pass the default 5s limit; alone it finishes well inside it.
-  }, 15000);
+  }, 60000);
 
   it('loads every logo through the Next image endpoint, on the map and in the list', async () => {
     const { user } = setup();

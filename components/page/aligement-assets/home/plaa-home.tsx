@@ -768,6 +768,10 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
           overflow: hidden;
           box-shadow: var(--shadow-sm);
           line-height: 0;
+          /* The artwork is transparent where its backdrop used to be baked in, so
+             the panel reads the same token the hero paints. Changing --color-brand
+             moves both together instead of leaving the image a shade behind. */
+          background: var(--color-brand);
         }
         .ph-visually-hidden {
           position: absolute;

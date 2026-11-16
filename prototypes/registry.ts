@@ -557,6 +557,26 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/digest-more-like-this/DigestMoreLikeThisPrototype'),
   },
   {
+    key: 'for-you-starter-topics',
+    status: 'ideation',
+    version: 1,
+    title: 'For You — starter topics on first visit',
+    description:
+      'The signed-in Homepage, opened on For You for the first time: the head of the stream shows the topics picked for the member by default (the same set News preferences opens with) as ticked chips (News preferences\' own) the member can untick in place, with Looks good (Save topics once anything changed) and See all topics, which goes to News preferences. The card stays until it is answered; after that the usual For You caption is back. Review switch "For You" toggles First visit / Answered.',
+    category: 'Newsfeed',
+    load: () => import('./entries/for-you-starter-topics/ForYouStarterTopicsPrototype'),
+  },
+  {
+    key: 'digest-web',
+    status: 'ideation',
+    version: 1,
+    title: 'Digest — web version (stories in full)',
+    description:
+      "The weekly digest email as a page, every story open in full. A More / Less like this press in the email lands here, scrolled to that story, with the receipt inside its card (Undo beside it) and the rest of the digest untouched. Try ?story=starknet-l1&feedback=more or ?story=op-token&feedback=less; the buttons on the page work too.",
+    category: 'Newsfeed',
+    load: () => import('./entries/digest-web/DigestWebPrototype'),
+  },
+  {
     key: 'home-v2-style-refresh',
     status: 'ideation',
     version: 3,

@@ -48,6 +48,7 @@ export const useAlignmentAssetsAnalytics = () => {
     // Overview Page
     OVERVIEW_PORTFOLIO_LINK_CLICKED: 'alignment-assets-overview-portfolio-link-clicked',
     OVERVIEW_ACTIVITIES_LINK_CLICKED: 'alignment-assets-overview-activities-link-clicked',
+    OVERVIEW_HOW_STEP_CLICKED: 'alignment-assets-overview-how-step-clicked',
     OVERVIEW_FAQ_LINK_CLICKED: 'alignment-assets-overview-faq-link-clicked',
     OVERVIEW_ONBOARDING_LINK_CLICKED: 'alignment-assets-overview-onboarding-link-clicked',
     OVERVIEW_SNAPSHOT_ROUND_CHANGED: 'alignment-assets-overview-snapshot-round-changed',
@@ -156,6 +157,11 @@ export const useAlignmentAssetsAnalytics = () => {
 
   function onOverviewActivitiesLinkClicked(url: string, source: 'how-it-works' | 'cta-banner') {
     captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.OVERVIEW_ACTIVITIES_LINK_CLICKED, { url, source });
+  }
+
+  /** Which How It Works step a member used to jump to its section. */
+  function onOverviewHowStepClicked(step: string, sectionId: string) {
+    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.OVERVIEW_HOW_STEP_CLICKED, { step, sectionId });
   }
 
   function onOverviewFaqLinkClicked(url: string) {
@@ -339,6 +345,7 @@ export const useAlignmentAssetsAnalytics = () => {
     // Overview Page
     onOverviewPortfolioLinkClicked,
     onOverviewActivitiesLinkClicked,
+    onOverviewHowStepClicked,
     onOverviewFaqLinkClicked,
     onOverviewOnboardingLinkClicked,
     onOverviewSnapshotRoundChanged,

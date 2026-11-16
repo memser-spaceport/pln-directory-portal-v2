@@ -1,5 +1,9 @@
-## ADDED Requirements
+# digest Specification
 
+## Purpose
+The digest reading page `/digest?t=` (LAB-3264): the LabOS digest email opens one page with the member's whole digest, without sign-in, with More like this, Less like this and Undo on each story.
+
+## Requirements
 ### Requirement: Digest page
 
 The page `/digest?t=<token>` SHALL show the digest named by the link token to anyone who opens it, signed in or not, with no sign-in prompt. It SHALL show the LabOS top bar on desktop and the bottom bar on mobile. It SHALL show a header with "Your daily digest" or "Your weekly digest" and the send date. Then it SHALL show every story in the order the API returns it, each in full: title, summary, full text, image, and a "Read on <source>" link that opens the source in a new tab. The top story keeps its "Top story" badge. Then it SHALL show a "Recent forum posts" section with each post in full and a "Reply in the forum" link. The page SHALL NOT open a story modal. The page SHALL NOT be indexed by search engines.
@@ -28,7 +32,7 @@ A link with `#story-<uid>` or `#post-<tid>` SHALL open the page scrolled to that
 
 ### Requirement: Choice from the email
 
-A link with `choice=more` or `choice=less` and `story=<uid>` SHALL save that choice once per page load, in the browser after the page loads, never during the server render. While it saves, the button SHALL show as pressed. After the save, the top of that story's card SHALL show "You'll get more stories like this" or "You'll get fewer stories like this" with an Undo button. After the save, the page SHALL remove `choice` and `story` from the address, so a reload does not save again. If the save fails, the button SHALL NOT stay pressed, no confirmation SHALL show, and an error toast SHALL show.
+A link with `choice=more` or `choice=less` and `story=<uid>` SHALL save that choice once per page load, in the browser after the page loads, never during the server render. While it saves, the button SHALL show as pressed. After the save, the top of that story's card SHALL show "You'll get more stories like this" or "You'll get fewer stories like this" with an Undo button. After the save, the page SHALL remove `choice` and `story` from the address, so a reload does not save again. If the save fails, the button SHALL NOT stay pressed, no confirmation SHALL show, an error toast SHALL show, and `choice` and `story` stay in the address so a reload tries again.
 
 #### Scenario: Less from the email
 
@@ -85,3 +89,4 @@ Every URL that PostHog records SHALL have the token parameter removed.
 - **GIVEN** a member opens `/digest?t=<token>`
 - **WHEN** PostHog records the page view
 - **THEN** the recorded URL has no `t` parameter
+

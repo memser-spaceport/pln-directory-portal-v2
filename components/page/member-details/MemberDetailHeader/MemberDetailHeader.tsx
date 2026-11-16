@@ -20,6 +20,7 @@ import CustomTooltip from '@/components/ui/Tooltip/Tooltip';
 import { TagsList } from '@/components/common/profile/TagsList';
 import { EditButton } from '@/components/common/profile/EditButton';
 import { MemberAccessBadges } from '@/components/common/AccessLevelBadges/MemberAccessBadges';
+import { SectionVisibilityBadge } from '@/components/common/profile/SectionVisibility/SectionVisibilityBadge';
 
 import { RequestIntroEntry } from '@/components/page/intro-request/RequestIntroEntry';
 
@@ -91,6 +92,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
             <div className={s.specificsHdr}>
               <CustomTooltip trigger={<h1 className={s.specificsName}>{name}</h1>} content={name} />
               <MemberAccessBadges state={member.rbac?.status} isJobAspirant={isJobAspirantMember(member)} />
+              <SectionVisibilityBadge className={s.visibilityBadge} />
             </div>
             {/* Each item carries the divider before it, so a wrapped line never starts or ends on one. */}
             <div className={s.roleAndLocation}>

@@ -168,6 +168,11 @@
   gap: 8px;
 }
 
+// The row's gap spaces it; the badge's own margin is for section headers.
+.visibilityBadge.visibilityBadge {
+  margin: 0;
+}
+
 .specificsName {
   font-size: 18px;
   font-weight: 700;

@@ -13,6 +13,7 @@ import jobsCss from '@/components/page/jobs/TeamGroupCard/TeamGroupCard.module.s
 import refer from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/ReferRoleRow.module.scss';
 import { ArrowIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/Icons';
 import { jobApplyHref } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
+import { recordMemberSignal } from '@/services/member-signals/member-signals.service';
 
 import { JOBS_HREF } from './constants';
 import s from './HomeV2.module.scss';
@@ -63,9 +64,11 @@ export function RolesSection({
                   href={href ?? JOBS_HREF}
                   {...(href ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                   className={clsx(refer.titleLink, s.roleTitle, s.jobTitle)}
-                  onClick={() =>
-                    analytics.onRoleClicked({ team_uid: job.teamUid, position: index + 1, signed_in: signedIn })
-                  }
+                  onClick={() => {
+                    analytics.onRoleClicked({ team_uid: job.teamUid, position: index + 1, signed_in: signedIn });
+                    // Going straight to the posting counts as opening the job.
+                    if (href) recordMemberSignal({ action: 'view', entityType: 'job-opening', entityId: job.uid });
+                  }}
                 >
                   {job.title}
                 </a>

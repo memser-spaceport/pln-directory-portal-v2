@@ -264,3 +264,36 @@ describe('NewsDetailModal', () => {
     });
   });
 });
+
+jest.mock('@/services/member-signals/member-signals.service', () => ({
+  ...jest.requireActual('@/services/member-signals/member-signals.service'),
+  recordMemberSignal: jest.fn(),
+}));
+const mockRecordSignal = require('@/services/member-signals/member-signals.service').recordMemberSignal as jest.Mock;
+
+describe('NewsDetailModal member signals (LAB-3267)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    useCurrentUserStore.setState({ currentUser: { uid: 'user-1' }, isHydrated: true });
+  });
+  afterEach(() => {
+    useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
+  });
+
+  it('opening a story records one view of the news item', () => {
+    const { rerender } = render(<NewsDetailModal item={makeItem()} onClose={jest.fn()} onUpvoteToggle={jest.fn()} />);
+    rerender(<NewsDetailModal item={makeItem()} onClose={jest.fn()} onUpvoteToggle={jest.fn()} />);
+
+    expect(mockRecordSignal).toHaveBeenCalledTimes(1);
+    expect(mockRecordSignal).toHaveBeenCalledWith({ action: 'view', entityType: 'news-item', entityId: 'story-1' });
+  });
+
+  it('a source link click sends the same view, which the backend keeps to one a day', () => {
+    render(<NewsDetailModal item={makeItem()} onClose={jest.fn()} onUpvoteToggle={jest.fn()} />);
+    mockRecordSignal.mockClear();
+
+    fireEvent.click(screen.getByRole('link', { name: 'example.com' }));
+
+    expect(mockRecordSignal).toHaveBeenCalledWith({ action: 'view', entityType: 'news-item', entityId: 'story-1' });
+  });
+});

@@ -51,11 +51,11 @@ describe('recordMemberSignal (LAB-3123)', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
   });
 
-  it('maps search indexes to entity types and skips events and forum', () => {
+  it('maps search indexes to entity types and skips forum', () => {
     expect(searchIndexToEntityType('members')).toBe('member');
     expect(searchIndexToEntityType('teams')).toBe('team');
     expect(searchIndexToEntityType('projects')).toBe('project');
-    expect(searchIndexToEntityType('events')).toBeUndefined();
+    expect(searchIndexToEntityType('events')).toBe('event');
     expect(searchIndexToEntityType('forumThreads')).toBeUndefined();
     expect(searchIndexToEntityType(undefined)).toBeUndefined();
   });

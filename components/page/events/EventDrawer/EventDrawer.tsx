@@ -12,6 +12,7 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { EMPTY_PLANS, toEventDetail } from '@/services/events/event-drawer.mappers';
 import { useMarkGoing, useRemoveGoing, useUpdateEventPlans } from '@/services/events/hooks/useEventDrawerMutations';
 import { useEventAttendees, useEventDetail, useMyGatheringPlans } from '@/services/events/hooks/useEventDrawerQueries';
+import { recordMemberSignal } from '@/services/member-signals/member-signals.service';
 import { getMember } from '@/services/members.service';
 import { MembersQueryKeys } from '@/services/members/constants';
 import type { ITeam } from '@/types/teams.types';
@@ -121,6 +122,7 @@ function EventDrawerContainer({
     if (openedRef.current) return;
     openedRef.current = true;
     analytics.onEventDrawerOpened({ eventUid, source });
+    recordMemberSignal({ action: 'view', entityType: 'event', entityId: eventUid });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

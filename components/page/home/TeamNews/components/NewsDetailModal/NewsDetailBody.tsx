@@ -22,7 +22,7 @@ import { NewsShareMenu } from '../NewsShareMenu';
 import { ViewCount } from '../ViewCount/ViewCount';
 import { FeedCommentsThread } from '../FeedCommentsThread/FeedCommentsThread';
 import { NewsTagChips } from '../NewsTagChips';
-import { NewsImage } from '../NewsImage';
+import { getNewsImageSources, NewsImage } from '../NewsImage';
 
 import newsCardStyles from '../NewsCard/NewsCard.module.scss';
 import s from './NewsDetailModal.module.scss';
@@ -137,6 +137,7 @@ export function NewsDetailBody({
 
   const { label: eventTypeLabel, dotClassName: eventTypeDotClassName } = getEventTypeConfig(item.eventType);
   const sources = getNewsSourcesWithPrimaryFallback(item);
+  const imageSources = getNewsImageSources(item.imageUrl, item.image);
   // Rich body from the API where present (older items fall back to the plain
   // summary until re-enriched server-side). Sanitized — never render raw.
   const sanitizedContentHtml = useMemo(() => sanitizeHtml(item.contentHtml, 'teamNews') || null, [item.contentHtml]);
@@ -204,7 +205,7 @@ export function NewsDetailBody({
         </h3>
 
         {/* Where a video would play: under the headline, above the body. */}
-        {showImage && item.imageUrl && <NewsImage src={item.imageUrl} variant="hero" />}
+        {showImage && imageSources && <NewsImage {...imageSources} variant="hero" />}
 
         {sanitizedContentHtml ? (
           <SafeHtml className={s.content} profile="teamNews" html={sanitizedContentHtml} />

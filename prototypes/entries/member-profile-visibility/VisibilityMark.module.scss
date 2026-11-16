@@ -1,0 +1,52 @@
+/* The DS Badge (`root` + `default`) as a button: these only undo the browser's
+   button chrome and add the press states a control needs. Size and ink are
+   the Badge's own. */
+.trigger {
+  gap: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+
+  &:hover,
+  &[data-popup-open] {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-subtle, #aebfff);
+    outline-offset: 2px;
+  }
+}
+
+.current {
+  gap: 4px;
+}
+
+.icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.positioner {
+  z-index: 20;
+}
+
+.popup {
+  max-width: 280px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-neutral-primary, #fff);
+  box-shadow:
+    0 0 1px 0 rgba(15, 23, 42, 0.12),
+    0 4px 12px 0 rgba(15, 23, 42, 0.08);
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  outline: none;
+}

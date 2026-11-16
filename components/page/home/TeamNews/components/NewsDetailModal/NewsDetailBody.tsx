@@ -198,7 +198,13 @@ export function NewsDetailBody({
           <span className={newsCardStyles.time}>{formatTimeAgo(item.eventDate)}</span>
         </div>
 
-        <NewsTagChips tags={item.tags} variant="detail" onSelect={onTagSelect} active={activeTag} />
+        <NewsTagChips
+          tags={item.tags}
+          eventType={item.eventType}
+          variant="detail"
+          onSelect={onTagSelect}
+          active={activeTag}
+        />
 
         <h3 id={TITLE_ID} className={s.title}>
           {item.title}

@@ -282,7 +282,13 @@ function StoryRow({
     >
       <h3 className={newsCardStyles.headline}>{story.title}</h3>
       {story.summary && <p className={s.summary}>{story.summary}</p>}
-      <NewsTagChips tags={story.tags} variant="card" onSelect={onTagSelect} active={activeTag} />
+      <NewsTagChips
+        tags={story.tags}
+        eventType={story.eventType}
+        variant="card"
+        onSelect={onTagSelect}
+        active={activeTag}
+      />
       <div className={newsCardStyles.metaLine}>
         <div className={newsCardStyles.meta}>
           <span className={newsCardStyles.eventType}>

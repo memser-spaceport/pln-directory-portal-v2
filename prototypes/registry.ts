@@ -147,6 +147,16 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/members/MembersPrototype'),
   },
   {
+    key: 'member-profile-visibility',
+    status: 'ideation',
+    version: 1,
+    title: 'Member profile — who can see what',
+    description:
+      "A member's own profile, with a Current | Proposed switch for how it shows who can see each part. Current: a badge on every section (Public green, Members only blue, Private grey). Proposed: one line at the top says the default (signed-in network members), only the sections that differ carry a badge (header Public, CV \"Shared when you apply\", Investor Details \"Shared on intro\"), every badge is the same grey DS Badge told apart by icon and word, and pressing or hovering one names who can see it. A View as You / Member / Public switch previews the page as each audience sees it: hidden sections, badges and edit controls disappear, and a closing line counts what was hidden. Audiences are read off production's gates, not the current badges.",
+    category: 'Members',
+    load: () => import('./entries/member-profile-visibility/MemberProfileVisibilityPrototype'),
+  },
+  {
     key: 'member-profile',
     status: 'progress',
     version: 1,
@@ -525,6 +535,16 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'One event drawer for both places an event opens, built from design-system parts. Page switch: Home (the homepage entry, signed in; Upcoming events rows open the drawer) and Events (/events/all copied: production\'s Event Calendar header over the embedded events app\'s month grid with its Filters rail; Modes and the month arrows work, click any event). Drawer switch: Redesign (default) or Current (the gathering modal on Home, the events app\'s own panel on Events). The redesign, from Luma\'s side peek, Luma and Circle event pages and Calendly\'s meeting panel: a pinned toolbar (Copy link, Open in PL Events, previous / next through the list it opened from, close); logo, mode and access badges, title, Hosted by; the date tile beside day and time, the venue as a map link over its city; the ask as one card near the top (facepile and "N members going", Show on my profile, Yes, I\'m going, Register), which turns into "You\'re going" with Add your plans for <city> and Not going; About with its tags; Agenda; and Part of the <city> gathering with its other events (each opens in the drawer) and its links. Who\'s going and Your plans (production\'s planning form and pickers) open as pages inside the drawer. Going is shared with member-events-going. Everything mocked.',
     category: 'Cross-product',
     load: () => import('./entries/event-drawer-redesign/EventDrawerRedesignPrototype'),
+  },
+  {
+    key: 'events-page-redesign',
+    status: 'ideation',
+    version: 1,
+    title: 'Events page redesign',
+    description:
+      'A replacement for /events/all (production\'s Event Calendar header over the events app iframe), from Mobbin references: Luma Discover\'s city tiles, Luma\'s day-grouped list and side peek, Meetup and Eventbrite\'s List / Calendar. Title and lede with Open PL Events and Submit an event; a Gatherings band (city, date span, event count, members going) where a tile scopes the page to that city; one toolbar with search (events, hosts, cities, topics), All / Going / In person / Online pills, and a List | Month switch (?view=month). List: upcoming events by day on a dotted rail (Today, Tomorrow, then dates), each card with time (or Day 2 of 5), title, hosts, venue, facepile and count or a Going badge, Online / Hybrid and Paid / Invite only badges, and the event photo. Month: a Monday-first grid with Today and arrows, your events filled. A Your plans rail lists what you\'re going to. Every event opens event-drawer-redesign\'s drawer, and going is shared with member-events-going. Everything mocked.',
+    category: 'Cross-product',
+    load: () => import('./entries/events-page-redesign/EventsPageRedesignPrototype'),
   },
   {
     key: 'homepage',

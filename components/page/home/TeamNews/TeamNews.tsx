@@ -385,7 +385,7 @@ export const TeamNews = (props: HomeFeedProps) => {
           // Constructed, not left to the body's current-URL fallback: the ?news=
           // param is written with raw history.replaceState, so the round-trip
           // has to name the story explicitly to survive a sign-in.
-          loginHref={`/home?news=${encodeURIComponent(activeNewsItem.uid)}#login`}
+          loginHref={`/?news=${encodeURIComponent(activeNewsItem.uid)}#login`}
           onTagSelect={(tag) => handleTagSelect(tag, 'modal')}
           activeTag={topicFilter || undefined}
         />

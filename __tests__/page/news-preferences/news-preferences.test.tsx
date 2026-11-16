@@ -278,7 +278,7 @@ describe('NewsPreferences tags (LAB-3000)', () => {
     it('links "For You" to the For You feed on Home, in the same tab, and keeps the sentence text', () => {
       renderPage();
       const link = screen.getByRole('link', { name: 'For You' });
-      expect(link).toHaveAttribute('href', '/home?feed=for-you');
+      expect(link).toHaveAttribute('href', '/?feed=for-you');
       expect(link).not.toHaveAttribute('target');
       expect(link).toHaveClass(screen.getByRole('link', { name: 'Email Preferences' }).className);
       expect(link.closest('p')).toHaveTextContent(
@@ -289,7 +289,7 @@ describe('NewsPreferences tags (LAB-3000)', () => {
     it.each(['settings', 'feed', 'digest'] as const)('records a click with how the member arrived (%s)', (from) => {
       renderPage({ from });
       const link = screen.getByRole('link', { name: 'For You' });
-      expect(link).toHaveAttribute('href', '/home?feed=for-you');
+      expect(link).toHaveAttribute('href', '/?feed=for-you');
       fireEvent.click(link);
       expect(mockAnalytics.onNewsPreferencesForYouLinkClicked).toHaveBeenCalledTimes(1);
       expect(mockAnalytics.onNewsPreferencesForYouLinkClicked).toHaveBeenCalledWith(from);

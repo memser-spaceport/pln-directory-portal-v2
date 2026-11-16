@@ -54,7 +54,7 @@ export function TeamNewsFeedLink({ teamUid, teamName, source, variant = 'paired'
 
   return (
     <a
-      href="/home"
+      href="/"
       target="_blank"
       rel="noopener noreferrer"
       className={className ?? (variant === 'solo' ? s.viewFeedSolo : s.viewFeed)}

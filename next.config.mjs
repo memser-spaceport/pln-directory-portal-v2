@@ -4,6 +4,7 @@ import { withPostHogConfig } from '@posthog/nextjs-config';
 import aiSearchRedirects from './utils/ai-search-redirects.js';
 import legacyJobBoardRedirects from './utils/legacy-job-board-redirects.js';
 import eventsRedirects from './utils/events-redirects.js';
+import homeRedirects from './utils/home-redirects.js';
 import imageRemotePatterns from './utils/image-remote-patterns.js';
 import nonProductionNoindex from './utils/non-production-noindex-headers.js';
 import securityHeaders from './utils/security-headers.js';
@@ -88,11 +89,7 @@ const nextConfig = {
   async redirects() {
     return [
       ...eventsRedirects.EVENTS_REDIRECTS,
-      // {
-      //   source: '/home',
-      //   destination: '/',
-      //   permanent: true,
-      // },
+      ...homeRedirects.HOME_REDIRECTS,
       {
         source: '/irl/lw24-web3',
         destination: 'events/irl?location=Thailand',

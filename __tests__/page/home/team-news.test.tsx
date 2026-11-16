@@ -228,7 +228,7 @@ jest.mock('@/components/page/home/TeamNews/hooks/useFeedDeals', () => ({
 const mockRouterPush = jest.fn();
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: (...a: unknown[]) => mockRouterPush(...a), replace: jest.fn(), prefetch: jest.fn() }),
-  usePathname: () => '/home',
+  usePathname: () => '/',
   useSearchParams: () => new URLSearchParams(window.location.search),
 }));
 
@@ -364,7 +364,7 @@ describe('TeamNews', () => {
     mockUseIsBelowDesktop.mockReturnValue(false);
     // useNewsDeepLink reads the real jsdom URL on mount — reset it so a
     // ?news= param written by one test can't open the modal in the next.
-    window.history.replaceState(null, '', '/home');
+    window.history.replaceState(null, '', '/');
   });
 
   it('renders the global empty state when there are no items', () => {
@@ -681,7 +681,7 @@ describe('TeamNews', () => {
         });
 
         it('still opens it from a ?post= deep link, rather than stripping the param', () => {
-          window.history.replaceState(null, '', '/home?post=fp_96');
+          window.history.replaceState(null, '', '/?post=fp_96');
 
           renderTeamNews(<TeamNews groups={groups} />);
 
@@ -1384,7 +1384,7 @@ describe('TeamNews', () => {
     });
 
     it('preserves unrelated query params (utm) across open and close', () => {
-      window.history.replaceState(null, '', '/home?utm_source=li');
+      window.history.replaceState(null, '', '/?utm_source=li');
       renderTeamNews(<TeamNews groups={groups} />);
 
       fireEvent.click(screen.getByRole('button', { name: 'Headline ai-1' }));
@@ -1443,16 +1443,16 @@ describe('TeamNews', () => {
 
     it('anonymous Like in the modal pushes a #login URL that carries the news param', () => {
       useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
-      window.history.replaceState(null, '', '/home?news=ai-1');
+      window.history.replaceState(null, '', '/?news=ai-1');
       renderTeamNews(<TeamNews groups={groups} />);
 
       fireEvent.click(within(getDialog()).getByRole('button', { name: 'Like (0)' }));
 
-      expect(mockRouterPush).toHaveBeenCalledWith('/home?news=ai-1#login', { scroll: false });
+      expect(mockRouterPush).toHaveBeenCalledWith('/?news=ai-1#login', { scroll: false });
     });
 
     it('a valid deep link opens the modal on first render and reports the deep-link open once', () => {
-      window.history.replaceState(null, '', '/home?news=dhr-1');
+      window.history.replaceState(null, '', '/?news=dhr-1');
       renderTeamNews(<TeamNews groups={groups} />);
 
       expect(within(getDialog()).getByRole('heading', { name: 'Headline dhr-1' })).toBeInTheDocument();
@@ -1461,7 +1461,7 @@ describe('TeamNews', () => {
     });
 
     it('an unknown uid renders the plain feed and silently strips the param', () => {
-      window.history.replaceState(null, '', '/home?news=expired-uid&utm_source=li');
+      window.history.replaceState(null, '', '/?news=expired-uid&utm_source=li');
       renderTeamNews(<TeamNews groups={groups} />);
 
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();

@@ -12,7 +12,7 @@ export const JOIN_FACES = [
 export const FACT_LABEL: Record<string, string> = { 'Organizations in the network': 'Network organizations' };
 
 /** "See all updates": the news-only page (LAB-3126). */
-export const HOME_NEWS_VIEW_HREF = '/home?view=news';
+export const HOME_NEWS_VIEW_HREF = '/?view=news';
 
 /** The rail's See all targets. */
 export const JOBS_HREF = '/jobs';

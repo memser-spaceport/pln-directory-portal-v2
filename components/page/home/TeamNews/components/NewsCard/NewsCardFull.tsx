@@ -10,6 +10,7 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { useTeamNewsAnalytics, type TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import type { ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
 import { FollowButton } from '@/components/ui/FollowButton';
+import { recordMemberSignal } from '@/services/member-signals/member-signals.service';
 
 import { getTeamLogoFallback } from '../../utils/getTeamLogoFallback';
 import { getEventTypeConfig } from '../../utils/getEventTypeConfig';
@@ -114,6 +115,7 @@ export function NewsCardFull({
       onOpenDetail(item, 'row');
       return;
     }
+    recordMemberSignal({ action: 'view', entityType: 'news-item', entityId: item.uid });
     window.open(item.sourceUrl, '_blank', 'noopener,noreferrer');
   };
 

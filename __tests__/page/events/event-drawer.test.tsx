@@ -263,3 +263,34 @@ describe('EventDrawer (LAB-3216)', () => {
     expect(analytics.onEventAttendeesOpened).toHaveBeenCalledWith({ eventUid: 'labweek-lisbon' });
   });
 });
+
+jest.mock('@/services/member-signals/member-signals.service', () => ({
+  ...jest.requireActual('@/services/member-signals/member-signals.service'),
+  recordMemberSignal: jest.fn(),
+}));
+const mockRecordSignal = require('@/services/member-signals/member-signals.service').recordMemberSignal as jest.Mock;
+
+describe('EventDrawer member signals (LAB-3267)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    flag.on = true;
+    queries.detail = { data: eventResponse(), isError: false, refetch: jest.fn() };
+    queries.plans = { data: NO_PLANS, isError: false };
+    useCurrentUserStore.setState({ currentUser: { uid: 'viewer-1', name: 'Maya', leadingTeams: [] } as never });
+  });
+
+  it('opening the drawer records one view of the event', () => {
+    const { rerender } = render(<EventDrawer eventUid="labweek-lisbon" source="home" onClose={jest.fn()} />);
+    rerender(<EventDrawer eventUid="labweek-lisbon" source="home" onClose={jest.fn()} />);
+
+    expect(mockRecordSignal).toHaveBeenCalledTimes(1);
+    expect(mockRecordSignal).toHaveBeenCalledWith({ action: 'view', entityType: 'event', entityId: 'labweek-lisbon' });
+  });
+
+  it('records nothing while the drawer is switched off', () => {
+    flag.on = false;
+    render(<EventDrawer eventUid="labweek-lisbon" source="home" onClose={jest.fn()} />);
+
+    expect(mockRecordSignal).not.toHaveBeenCalled();
+  });
+});

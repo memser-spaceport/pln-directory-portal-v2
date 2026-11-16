@@ -23,6 +23,7 @@ import { ViewCount } from '../ViewCount/ViewCount';
 import { NewsTagChips } from '../NewsTagChips';
 import { getNewsImageSources, NewsImage } from '../NewsImage';
 import { NewsCardFull } from './NewsCardFull';
+import { recordMemberSignal } from '@/services/member-signals/member-signals.service';
 
 import s from './NewsCard.module.scss';
 
@@ -181,6 +182,8 @@ const NewsCardBase = ({
       onOpenDetail(item, 'row');
       return;
     }
+    // Going straight to the source counts as reading the story.
+    recordMemberSignal({ action: 'view', entityType: 'news-item', entityId: item.uid });
     window.open(item.sourceUrl, '_blank', 'noopener,noreferrer');
   };
 

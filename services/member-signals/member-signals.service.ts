@@ -26,9 +26,10 @@ const SEARCH_INDEX_ENTITY: Record<string, MemberSignalEntityType> = {
   members: 'member',
   teams: 'team',
   projects: 'project',
+  events: 'event',
 };
 
-/** The signal entity type of a unified search result, or undefined for indexes that are not recorded (events, forum). */
+/** The signal entity type of a unified search result, or undefined for indexes that are not recorded (forum). */
 export function searchIndexToEntityType(index: string | undefined): MemberSignalEntityType | undefined {
   return index ? SEARCH_INDEX_ENTITY[index] : undefined;
 }

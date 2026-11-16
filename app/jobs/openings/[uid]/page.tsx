@@ -2,6 +2,7 @@ import type { Metadata, ResolvingMetadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getJobOpening } from '@/app/actions/jobs.actions';
 import type { IJobRole, IJobTeamGroup } from '@/types/jobs.types';
+import { MemberSignalViewTracker } from '@/components/core/MemberSignalViewTracker';
 import { JobOpeningView } from '@/components/page/jobs/JobOpeningView/JobOpeningView';
 import { jobOpeningPath } from '@/services/jobs/job-detail-link';
 import { jobRoleSeoTitle } from '@/services/jobs/jobSeoTitles';
@@ -102,6 +103,7 @@ export default async function JobOpeningPage({ params }: PageProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
         />
       )}
+      <MemberSignalViewTracker entityType="job-opening" entityId={role.uid} />
       <JobOpeningView group={group} userInfo={userInfo} isLoggedIn={!!isLoggedIn} />
     </>
   );

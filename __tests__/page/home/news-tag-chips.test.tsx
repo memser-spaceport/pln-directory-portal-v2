@@ -52,7 +52,8 @@ const makeItem = (tags: string[]): ITeamNewsItem => ({
   teamUid: 'team-1',
   teamName: 'Acme',
   teamLogoUrl: null,
-  eventType: 'LAUNCH',
+  // Other has no category chip (LAB-3266), so these tests see only the tags. news-category-chip.test.tsx covers it.
+  eventType: 'OTHER',
   eventDate: '2026-10-20T00:00:00.000Z',
   title: 'Acme ships a thing',
   summary: 'Summary.',

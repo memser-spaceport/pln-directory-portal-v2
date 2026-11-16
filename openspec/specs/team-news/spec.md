@@ -262,9 +262,23 @@ With News preferences on, Home's For You view SHALL show a story when its team i
 
 With `NEXT_PUBLIC_SHOW_NEWS_PREFERENCES` on, news items SHALL show their tags as `#slug` chips. On Home (the feed rows, every Top stories item and the detail modal opened there) they SHALL be brand links that filter the feed (see "Filter the Home feed by tag"); everywhere else they SHALL be grey labels that are not clickable. A tag is a topic when it equals the slug of a top-two-level focus area. Home feed rows and every Top stories item (the lead and each runner-up) SHALL show up to 3 topics, in tag order. The detail modal, wherever it opens, SHALL show every topic, then the other tags. Legacy verb tags (`launch`, `fund`, `$`, ...) SHALL never show. With the flag off, nothing SHALL change.
 
+Wherever the tag row shows, an item in a News preferences category (Funding, Launch or Announcement, LAB-3140) SHALL also show its category as the first chip: `#funding`, `#launch` or `#announcement` (LAB-3266). The category chip SHALL be a grey label, also on Home, because the feed tag filter matches tags, not the category. Other categories SHALL show no category chip. The category chip SHALL not count toward the 3-topic limit. The category also stays in the footer label.
+
+#### Scenario: Card shows its category tag
+
+- **GIVEN** an item in the Funding category, tagged `defi`
+- **WHEN** its Home feed row renders
+- **THEN** it shows a grey `#funding` label, then the `#defi` link
+
+#### Scenario: No category chip for Other
+
+- **GIVEN** an item in the Other category
+- **WHEN** its card renders
+- **THEN** it shows no category chip
+
 #### Scenario: Card shows topics only
 
-- **GIVEN** the flag on and an item tagged `ai`, `launch` and `longevity`
+- **GIVEN** the flag on and an item in the Other category, tagged `ai`, `launch` and `longevity`
 - **WHEN** its Home feed row or Top stories item renders
 - **THEN** it shows one chip, `#ai`
 

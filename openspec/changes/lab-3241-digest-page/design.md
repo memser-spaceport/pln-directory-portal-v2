@@ -2,7 +2,7 @@
 
 - The design is the `digest-web` prototype (Polina, 2026-11-13, `prototypes/entries/digest-web`). It uses mock data and `?story=&feedback=` params, and its view switch is for the prototype only.
 - The data and the choice API come from LAB-3263, specified in the backend change `lab-3241-digest-page-api`:
-  - `POST v1/labos-digest/page` `{ token }` returns `{ frequency, sentAt, firstName, stories[], forumPosts[], forumUnavailable }`. Each story has `uid, position, isTopStory, title, summary, contentHtml, image, sourceUrl, sourceDomain, teamName, eventType, tags, choice`. Each post has `tid, title, author, role, avatar, contentHtml, url`.
+  - `POST v1/labos-digest/page` `{ token }` returns `{ frequency, sentAt, firstName, stories[], forumPosts[], forumUnavailable }`. Each story has `uid, position, isTopStory, title, summary, contentHtml, image, sourceUrl, sourceDomain, teamName, eventType, tags, choice`. Each post has `tid, title, authorName, authorRole, authorTeam, authorAvatarUrl, contentHtml, url`. The backend reads the posts with its forum API key, not as the member (backend design 7).
   - Errors: 401 with `reason` (`expired` and others), and 503.
   - `POST v1/labos-digest/choices` `{ token, newsItemUid, choice: more|less|none }` returns `{ newsItemUid, choice, changed }`.
 - Links from the email (LAB-3265) follow this contract: `/digest?t=<token>&utm_source=digest_email_<link_type>_link&link_type=<link_type>&position=<n>[&story=<uid>&choice=more|less][#story-<uid>|#post-<tid>]`. `link_type` is `story`, `read_more`, `more`, `less`, `view_in_browser` or `post`. The links carry no `target_email`.
@@ -28,7 +28,7 @@
    - `app/digest/page.tsx` is a Server Component. It reads `t` from `searchParams` and calls the page read with `fetch` (`cache: 'no-store'`, no auth header, the same as `JobUnsubscribeClient`'s service). It renders the stories in the HTML, so the browser's native `#story-` scroll works on the first paint.
    - `app/digest/loading.tsx` renders the skeleton.
    - The read changes nothing on the backend, so it is safe for scanners that render the page.
-   - The choice from the URL is sent only in a client `useEffect`, guarded by a ref against React Strict Mode double runs. After the save, `router.replace` drops `story` and `choice`. The page writes the URL with `window.history.replaceState` only if it keeps Next's `__NA` state (see the replaceState trap).
+   - The choice from the URL is sent only in a client `useEffect`, guarded by a ref against React Strict Mode double runs. After a successful save, `story` and `choice` are dropped from the address. After a failed save they stay, so a reload tries again. The page drops them with `window.history.replaceState(null, '', url)`. `null` state, never `history.state`, so Next applies the URL (see the replaceState trap). Checked on a production build: the address stays clean after Next's later history sync.
    - Alternative: fetch everything on the client. The first paint would be empty, and the hash scroll would need its own handling. Rejected.
 
 2. **The token is passed as a prop, not stored.** The client island gets the token from the server page and sends it in the body of the choice calls. It never goes to localStorage, cookies or React Query keys, and it never appears in an event.
@@ -39,11 +39,11 @@
    - "Read on <source>" uses `rel="noopener noreferrer"`.
 
 4. **Port, don't redesign.** Copy the prototype's markup and SCSS into `components/page/digest/` (`DigestPage`, `DigestStoryCard`, `DigestForumPost`, `DigestFeedbackButtons`, `DigestReceipt`), one component per file. Take its thumb icons and the top-story background from its `assets/` into `public/images/digest/` (or import them as static assets).
-   - Drop the view switch, the mock intro and "Change topics".
+   - Drop the view switch, the mock intro, "Change topics", the PL logo row (the LabOS top bar is there) and the email's legal line. The footer keeps the sign-off and one "Manage preferences" link to `/settings/email`.
    - Replace the greeting with the header from the proposal.
    - Story and post HTML renders through `SafeHtml` with the `richText` profile.
 
-5. **Choice state.** The `useDigestChoice` mutation (React Query) does an optimistic press, rolls back on error with `toast.error`, and on success sets the receipt position: `top` for the email landing, `under` for a press on the page.
+5. **Choice state.** `useDigestChoices` keeps the per-story choice in local state, seeded from the server render. It is not a React Query mutation: the state is per story, never shared, and the global Jest mock of `useMutation` would hide its behaviour. A press shows at once, and the confirmation shows after the save. A failed save goes back to the last saved state with `toast.error`. When presses overlap on one story, only the latest request's answer applies. The receipt goes at the `top` of the card for the email landing and `under` the buttons for a press on the page. A saved choice from an earlier visit shows as pressed, without a confirmation.
    - A press on the active button sends `none`.
    - Switching More to Less sends `less`; the backend replaces the choice.
 

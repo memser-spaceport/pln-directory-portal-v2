@@ -74,6 +74,27 @@ describe('stripLoginParamsFromEvent', () => {
     expect(result?.properties).toEqual({ $current_url: url, $referrer: '$direct' });
   });
 
+  it('removes the digest link token t, keeping the hash (LAB-3264)', () => {
+    const result = stripLoginParamsFromEvent(
+      makeEvent({
+        properties: {
+          $current_url: 'https://os.pl.xyz/digest?t=v1.abc.sig&link_type=more&story=n1&choice=more#story-n1',
+        },
+      }),
+    );
+
+    expect(result?.properties.$current_url).toBe(
+      'https://os.pl.xyz/digest?link_type=more&story=n1&choice=more#story-n1',
+    );
+  });
+
+  it('leaves a URL alone when "t=" is only part of another param name', () => {
+    const url = 'https://os.pl.xyz/x?format=a%20b&limit=5';
+    const result = stripLoginParamsFromEvent(makeEvent({ properties: { $current_url: url } }));
+
+    expect(result?.properties.$current_url).toBe(url);
+  });
+
   it('keeps non-string values', () => {
     const time = new Date();
     const result = stripLoginParamsFromEvent(

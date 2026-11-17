@@ -29,6 +29,19 @@ function Description({ text }: { text: string }) {
   );
 }
 
+/** The event's own page (LAB-3271), when it is a web address. Shown without the scheme, e.g. "lu.ma/abc". */
+function eventLink(url: string | null): { href: string; label: string } | null {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return null;
+    const label = `${parsed.host.replace(/^www\./, '')}${parsed.pathname === '/' ? '' : parsed.pathname}`;
+    return { href: parsed.href, label };
+  } catch {
+    return null;
+  }
+}
+
 /**
  * The event as the PL events app draws it, ported from `prototypes/entries/member-events-going/EventDetails.tsx`
  * (LAB-3216): "EVENT DETAILS" with mode and access on the right, a 64px thumbnail of the event's picture, the title,
@@ -40,8 +53,12 @@ function Description({ text }: { text: string }) {
  *
  * `beforeAgenda` is drawn between Description and Agenda: the drawer's "Are you going?" card (LAB-3225), where the
  * prototype puts it.
+ *
+ * LAB-3271: under the date and the address, a row with the event's own page (for example its Luma page), which
+ * opens in a new tab. No page, no row.
  */
 export function EventSummary({ event, beforeAgenda }: { event: EventDetail; beforeAgenda?: ReactNode }) {
+  const link = eventLink(event.websiteUrl);
   return (
     <>
       <div className={e.head}>
@@ -77,6 +94,14 @@ export function EventSummary({ event, beforeAgenda }: { event: EventDetail; befo
                   {event.address} <LinkIcon />
                 </span>
               </span>
+            </div>
+          )}
+          {link && (
+            <div className={e.factRow}>
+              <GlobeIcon />
+              <a className={e.eventLink} href={link.href} target="_blank" rel="noopener noreferrer">
+                <span className={e.fact}>{link.label}</span> <LinkIcon />
+              </a>
             </div>
           )}
         </div>
@@ -265,6 +290,18 @@ const LocationIcon = () => (
       clipRule="evenodd"
       d="M2.04006 1.64029C3.09032 0.590029 4.51477 0 6.00006 0C7.48535 0 8.9098 0.590029 9.96006 1.64029C11.0103 2.69054 11.6003 4.115 11.6003 5.60029C11.6003 7.08557 11.0103 8.51003 9.96006 9.56029L6.00006 13.5203L2.04006 9.56029C1.51999 9.04027 1.10745 8.4229 0.825987 7.74344C0.544525 7.06398 0.399658 6.33574 0.399658 5.60029C0.399658 4.86483 0.544525 4.13659 0.825987 3.45713C1.10745 2.77767 1.51999 2.1603 2.04006 1.64029ZM6.00006 7.20028C6.42441 7.20028 6.83137 7.03171 7.13143 6.73166C7.43149 6.4316 7.60006 6.02463 7.60006 5.60029C7.60006 5.17594 7.43149 4.76897 7.13143 4.46891C6.83137 4.16886 6.42441 4.00029 6.00006 4.00029C5.57572 4.00029 5.16875 4.16886 4.86869 4.46891C4.56863 4.76897 4.40006 5.17594 4.40006 5.60029C4.40006 6.02463 4.56863 6.4316 4.86869 6.73166C5.16875 7.03171 5.57572 7.20028 6.00006 7.20028Z"
       fill="currentColor"
+    />
+  </svg>
+);
+
+const GlobeIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true" className={e.factIcon}>
+    <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3" />
+    <path
+      d="M1.5 8H14.5M8 1.5C9.7 3.3 10.6 5.6 10.6 8C10.6 10.4 9.7 12.7 8 14.5C6.3 12.7 5.4 10.4 5.4 8C5.4 5.6 6.3 3.3 8 1.5Z"
+      stroke="currentColor"
+      strokeWidth="1.3"
+      strokeLinejoin="round"
     />
   </svg>
 );

@@ -38,17 +38,20 @@ const EventDrawer = dynamic(() => loadEventDrawer().then((m) => m.EventDrawer), 
  *
  * With the event drawer flag on and a signed-in member (LAB-3220, prototype `member-events-going/HomeEventsRail`), a
  * row opens the event drawer over Home instead of All Events. The row asks nothing itself; once the member is going,
- * its arrow becomes "Going". Signed out, or with the flag off, rows stay links to the calendar.
+ * its arrow becomes "Going". With the flag off, rows stay links to the calendar.
+ *
+ * LAB-3271: signed out with the flag on, a row opens the drawer too; its "Yes, I'm going" starts the sign-in flow. A
+ * row shows "N going" when the API sends a count of 1 or more.
  */
 export function EventsSection({ events, total, signedIn }: { events: IHomeEvent[]; total: number; signedIn: boolean }) {
   const analytics = useHomeAnalytics();
-  const drawerMode = SHOW_EVENT_DRAWER && signedIn;
+  const drawerMode = SHOW_EVENT_DRAWER;
 
   const { currentUser } = useCurrentUserStore();
   const viewerUid = currentUser?.uid ?? null;
   const queryClient = useQueryClient();
   // A failed or pending request leaves the rail without marks; rows still open the drawer.
-  const { data: goingData } = useMyUpcomingEventUids(drawerMode);
+  const { data: goingData } = useMyUpcomingEventUids(drawerMode && signedIn);
   const goingUids = new Set(Array.isArray(goingData) ? goingData : []);
 
   const [openUid, setOpenUid] = useState<string | null>(null);
@@ -94,7 +97,8 @@ export function EventsSection({ events, total, signedIn }: { events: IHomeEvent[
       <ul className={s.roleList}>
         {events.map((ev, index) => {
           const range = eventRange(ev.startDate, ev.endDate);
-          const going = drawerMode && goingUids.has(ev.uid);
+          const going = drawerMode && signedIn && goingUids.has(ev.uid);
+          const goingCount = ev.goingCount && ev.goingCount > 0 ? ev.goingCount : 0;
           const onPress = () =>
             analytics.onEventClicked({ event_uid: ev.uid, position: index + 1, signed_in: signedIn });
           return (
@@ -129,6 +133,7 @@ export function EventsSection({ events, total, signedIn }: { events: IHomeEvent[
                 <span className={s.roleLocation}>
                   {range ? `${range} · ` : ''}
                   {ev.location}
+                  {goingCount > 0 ? ` · ${goingCount} going` : ''}
                 </span>
               </span>
               {going ? (

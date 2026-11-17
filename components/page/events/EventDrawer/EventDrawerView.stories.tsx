@@ -115,9 +115,22 @@ export const NoWritePermission: Story = {
   args: { canMarkGoing: false, plans: null },
 };
 
-/** Signed out: no question, the list without "You". */
+/** Signed out: "Who's going", and "Yes, I'm going" in the sticky footer starts sign-in (LAB-3271). */
 export const SignedOut: Story = {
-  args: { canMarkGoing: false, viewerUid: null, plans: null },
+  args: { canMarkGoing: false, viewerUid: null, plans: null, onSignIn: fn() },
+};
+
+/** LAB-3271: a long description scrolls under the sticky "Yes, I'm going"; the event's Luma page sits by the date. */
+export const LongDescriptionWithLink: Story = {
+  args: {
+    raw: eventResponse({
+      websiteUrl: 'https://lu.ma/labweek-lisbon',
+      description: Array.from(
+        { length: 12 },
+        (_, i) => `Paragraph ${i + 1}. ${'A week of talks and workshops. '.repeat(8)}`,
+      ).join('\n\n'),
+    }),
+  },
 };
 
 /** The attendee list above the drawer, "You" first. Try "lighthouse", then "zzz" for the empty search. */

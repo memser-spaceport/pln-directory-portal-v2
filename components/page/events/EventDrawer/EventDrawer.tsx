@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 import { formatDateForApi } from '@/components/core/UpdatesPanel/IrlGatheringModal/helpers';
+import { useLoginRedirect } from '@/components/core/login/utils/loginRedirect';
 import { toast } from '@/components/core/ToastContainer';
 import { useEventsAnalytics, type EventDrawerSource } from '@/analytics/events.analytics';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -61,6 +62,7 @@ function EventDrawerContainer({
   const { currentUser } = useCurrentUserStore();
   const viewerUid = currentUser?.uid ?? null;
   const analytics = useEventsAnalytics();
+  const goToLogin = useLoginRedirect();
 
   const detailQuery = useEventDetail(eventUid);
   const event = useMemo(() => (detailQuery.data ? toEventDetail(detailQuery.data) : null), [detailQuery.data]);
@@ -206,6 +208,14 @@ function EventDrawerContainer({
     return true;
   };
 
+  // LAB-3271: signed out, "Yes, I'm going" closes the drawer and opens the sign-in modal on this page.
+  const onSignIn = viewerUid
+    ? undefined
+    : () => {
+        onClose();
+        goToLogin();
+      };
+
   return (
     <EventDrawerView
       status={status}
@@ -227,6 +237,7 @@ function EventDrawerContainer({
       onNotGoing={onNotGoing}
       onSave={onSave}
       onGoing={onGoing}
+      onSignIn={onSignIn}
     />
   );
 }

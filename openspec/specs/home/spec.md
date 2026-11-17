@@ -99,7 +99,9 @@ When no event starts in the next 30 days, the events section SHALL be absent and
 
 Each event SHALL open All Events with that event's details open (`/events/all?embedPath=/embed/calendar#<slug>`). The slug is rebuilt from the event's name the way the events calendar makes it, because the Directory doesn't store it; where two calendar events share a slug, the calendar opens the first, and a name that matches none opens the calendar with no event open.
 
-With the event drawer flag on, a signed-in member's event row SHALL instead open the event drawer on that event, over Home. The row asks nothing itself. Once the member is going to that event, the row's arrow SHALL be replaced by "Going". `home-event-clicked` SHALL keep firing on a row press.
+With the event drawer flag on, an event row SHALL instead open the event drawer on that event, over Home, for signed-in members and, since LAB-3271, for signed-out visitors. The row asks nothing itself. Once a signed-in member is going to that event, the row's arrow SHALL be replaced by "Going". `home-event-clicked` SHALL keep firing on a row press.
+
+Each event row SHALL show "N going" after the location when N is 1 or more (LAB-3271). N counts everyone going to the event. With N = 0, or when the API sends no count, the row SHALL show no count. The count comes from `goingCount` on `GET /v1/irl/events/upcoming` (backend PR memser-spaceport/pln-directory-portal#3725). Invite-only events send `null`, and the row SHALL show no count.
 
 #### Scenario: Events this month
 
@@ -135,6 +137,19 @@ With the event drawer flag on, a signed-in member's event row SHALL instead open
 #### Scenario: Signed out with the flag on
 
 - **GIVEN** the event drawer flag is on
+- **WHEN** a signed-out visitor presses an event in the sidebar
+- **THEN** the event drawer opens on that event over Home
+- **AND** its "Yes, I'm going" opens the sign-in modal
+
+#### Scenario: Attendee count on a row
+
+- **GIVEN** event A with 12 people going and event B with none
+- **WHEN** a viewer opens `/`
+- **THEN** event A's row reads "… · 12 going" and event B's row shows no count
+
+#### Scenario: Signed out with the flag off
+
+- **GIVEN** the event drawer flag is off
 - **WHEN** a signed-out visitor presses an event in the sidebar
 - **THEN** All Events opens with that event's details, as today
 

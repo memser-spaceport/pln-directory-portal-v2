@@ -105,13 +105,14 @@ const data = (extra: Partial<DigestPageData> = {}): DigestPageData => ({
       { slug: 'desci', title: 'DeSci' },
     ],
   },
+  issues: [{ sentAt: '2026-11-16T09:00:00.000Z', frequency: 'daily', title: 'Story b', isLinkIssue: true }],
   ...extra,
 });
 
-const open = (url: string, page = data(), strict = false) => {
+const open = (url: string, page = data(), strict = false, issue?: string) => {
   window.history.replaceState(null, '', url);
   searchParams = new URLSearchParams(window.location.search);
-  const ui = <DigestPage token={TOKEN} data={page} isLoggedIn={false} />;
+  const ui = <DigestPage token={TOKEN} issue={issue} data={page} isLoggedIn={false} />;
   return render(strict ? <StrictMode>{ui}</StrictMode> : ui);
 };
 
@@ -263,7 +264,7 @@ describe('DigestPage', () => {
       await flush();
 
       expect(saveDigestChoice).toHaveBeenCalledTimes(1);
-      expect(saveDigestChoice).toHaveBeenCalledWith(TOKEN, 'b', 'less');
+      expect(saveDigestChoice).toHaveBeenCalledWith(TOKEN, 'b', 'less', undefined);
       const receipt = within(card('b')).getByRole('status');
       expect(receipt).toHaveTextContent('You’ll get fewer stories like this');
       // At the top of the card: before the title.
@@ -299,7 +300,7 @@ describe('DigestPage', () => {
       open('/digest?t=x');
       await userEvent.click(within(card('b')).getByRole('button', { name: 'More like this' }));
       await flush();
-      expect(saveDigestChoice).toHaveBeenCalledWith(TOKEN, 'b', 'more');
+      expect(saveDigestChoice).toHaveBeenCalledWith(TOKEN, 'b', 'more', undefined);
       const receipt = within(card('b')).getByRole('status');
       expect(receipt).toHaveTextContent('You’ll get more stories like this');
       expect(within(card('b')).getByRole('button', { name: 'More like this' }).compareDocumentPosition(receipt)).toBe(
@@ -311,7 +312,7 @@ describe('DigestPage', () => {
       open('/digest?t=x');
       await userEvent.click(within(card('a')).getByRole('button', { name: 'More like this' }));
       await flush();
-      expect(saveDigestChoice).toHaveBeenCalledWith(TOKEN, 'a', 'none');
+      expect(saveDigestChoice).toHaveBeenCalledWith(TOKEN, 'a', 'none', undefined);
       expect(within(card('a')).getByRole('button', { name: 'More like this' })).toHaveAttribute(
         'aria-pressed',
         'false',
@@ -325,7 +326,7 @@ describe('DigestPage', () => {
       await flush();
       await userEvent.click(within(card('b')).getByRole('button', { name: 'Undo' }));
       await flush();
-      expect(saveDigestChoice).toHaveBeenLastCalledWith(TOKEN, 'b', 'none');
+      expect(saveDigestChoice).toHaveBeenLastCalledWith(TOKEN, 'b', 'none', undefined);
       expect(within(card('b')).queryByRole('status')).toBeNull();
       expect(toast.success).toHaveBeenCalledTimes(1);
     });
@@ -334,7 +335,7 @@ describe('DigestPage', () => {
       open('/digest?t=x');
       await userEvent.click(within(card('a')).getByRole('button', { name: 'Less like this' }));
       await flush();
-      expect(saveDigestChoice).toHaveBeenCalledWith(TOKEN, 'a', 'less');
+      expect(saveDigestChoice).toHaveBeenCalledWith(TOKEN, 'a', 'less', undefined);
       expect(within(card('a')).getByRole('button', { name: 'Less like this' })).toHaveAttribute('aria-pressed', 'true');
     });
 
@@ -545,6 +546,65 @@ describe('topics (LAB-3289)', () => {
     await flush();
     expect(routerPush).toHaveBeenLastCalledWith('/digest?t=x&topics=open#login', { scroll: false });
     expect(screen.queryByRole('dialog')).toBeNull();
+  });
+});
+
+describe('past issues (LAB-3294)', () => {
+  const issue = (sentAt: string, title: string | null, isLinkIssue = false) => ({
+    sentAt,
+    frequency: 'daily' as const,
+    title,
+    isLinkIssue,
+  });
+  const three = [
+    issue('2026-11-18T09:00:00.000Z', 'Newest lead'),
+    issue('2026-11-16T09:00:00.000Z', 'Story b', true),
+    issue('2026-11-12T09:00:00.000Z', null),
+  ];
+  const rail = () => document.getElementById('past-rail');
+  const toggle = () => screen.getAllByRole('button', { name: 'Past issues' })[0];
+
+  it('is hidden while the link issue is the only one', () => {
+    open('/digest?t=x');
+    expect(screen.queryByRole('button', { name: 'Past issues' })).not.toBeInTheDocument();
+  });
+
+  it('starts collapsed on the latest issue, then lists every issue with its date, Latest and top story', async () => {
+    const latest = data({ sentAt: '2026-11-18T09:00:00.000Z', issues: three });
+    open('/digest?t=x', latest, false, '2026-11-18T09:00:00.000Z');
+    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
+    expect(rail()).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getAllByRole('button', { name: 'Past issues' })[1]);
+    const rows = within(rail()!).getAllByRole('link');
+    expect(rows.map((row) => row.textContent)).toEqual([
+      '18 November 2026 · LatestNewest lead',
+      '16 November 2026Story b',
+      '12 November 2026',
+    ]);
+    expect(rows[0]).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('opens on an older issue, marks it, and links each issue from the same link', () => {
+    open('/digest?t=x', data({ issues: three }));
+    expect(toggle()).toHaveAttribute('aria-expanded', 'true');
+    const rows = within(rail()!).getAllByRole('link');
+    const t = encodeURIComponent(TOKEN);
+    expect(rows.map((row) => row.getAttribute('href'))).toEqual([
+      `?t=${t}&issue=2026-11-18T09%3A00%3A00.000Z`,
+      `?t=${t}`,
+      `?t=${t}&issue=2026-11-12T09%3A00%3A00.000Z`,
+    ]);
+    expect(rows[1]).toHaveAttribute('aria-current', 'page');
+    expect(rows[0]).not.toHaveAttribute('aria-current');
+  });
+
+  it('sends More on a past issue with that issue', async () => {
+    const past = data({ sentAt: '2026-11-12T09:00:00.000Z', issues: three });
+    open('/digest?t=x', past, false, '2026-11-12T09:00:00.000Z');
+    await userEvent.click(within(card('b')).getByRole('button', { name: 'More like this' }));
+    await flush();
+    expect(saveDigestChoice).toHaveBeenCalledWith(TOKEN, 'b', 'more', '2026-11-12T09:00:00.000Z');
   });
 });
 

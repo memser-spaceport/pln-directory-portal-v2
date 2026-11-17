@@ -18,6 +18,7 @@ describe('digest.service', () => {
         isTeamMember: false,
         nextSendAt: null,
         topics: { followed: [], suggested: [] },
+        issues: [],
       },
     });
     expect(global.fetch).toHaveBeenCalledWith('https://api/v1/labos-digest/page', {
@@ -51,6 +52,19 @@ describe('digest.service', () => {
   ])('maps %s %j to %s', async (status, body, error) => {
     respond(status, body);
     await expect(getDigestPage('tok')).resolves.toEqual({ error });
+  });
+
+  it('sends a past issue key with the read and with a choice (LAB-3294)', async () => {
+    respond(200, { frequency: 'daily', stories: [] });
+    await getDigestPage('tok', '2026-11-12T09:00:00.000Z');
+    expect((global.fetch as jest.Mock).mock.calls[0][1].body).toBe(
+      JSON.stringify({ token: 'tok', issue: '2026-11-12T09:00:00.000Z' }),
+    );
+    respond(200, { newsItemUid: 'n1', choice: 'more', changed: true });
+    await saveDigestChoice('tok', 'n1', 'more', '2026-11-12T09:00:00.000Z');
+    expect((global.fetch as jest.Mock).mock.calls[0][1].body).toBe(
+      JSON.stringify({ token: 'tok', newsItemUid: 'n1', choice: 'more', issue: '2026-11-12T09:00:00.000Z' }),
+    );
   });
 
   it('is invalid without a token, and calls nothing', async () => {

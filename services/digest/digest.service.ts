@@ -51,6 +51,7 @@ export function withPageDefaults(raw: DigestPageData): DigestPageData {
     ...raw,
     isTeamMember: raw.isTeamMember ?? false,
     nextSendAt: raw.nextSendAt ?? null,
+    topics: { followed: raw.topics?.followed ?? [], suggested: raw.topics?.suggested ?? [] },
     stories: (raw.stories ?? []).map((story) => ({
       ...story,
       teamLogoUrl: story.teamLogoUrl ?? null,

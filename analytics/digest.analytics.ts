@@ -7,6 +7,9 @@ import type { DigestChoice, DigestFrequency } from '@/services/digest/digest.typ
 /** How the email opened the page; `direct` for a link without a known `link_type`. */
 export type DigestPageFrom = 'email-more' | 'email-less' | 'email-story' | 'email-post' | 'view-in-browser' | 'direct';
 
+/** Where a topics action started (LAB-3289). */
+export type DigestTopicsVia = 'chip' | 'see-all' | 'change-topics' | 'email';
+
 export type DigestLinkType = 'story' | 'read_more' | 'more' | 'less' | 'view_in_browser' | 'post';
 
 export const DIGEST_LINK_TYPES: readonly DigestLinkType[] = [
@@ -101,6 +104,15 @@ export function useDigestAnalytics() {
           choice_reverted: params.choiceReverted,
           via: params.via,
         });
+      },
+      onTopicsSaved(params: { surface: 'card' | 'modal'; added: number; removed: number; total: number }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_TOPICS_SAVED, params);
+      },
+      onTopicsModalOpened(params: { via: Exclude<DigestTopicsVia, 'chip'> }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_TOPICS_MODAL_OPENED, params);
+      },
+      onTopicsSignInPrompted(params: { via: DigestTopicsVia }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_TOPICS_SIGN_IN_PROMPTED, params);
       },
     }),
     [capture],

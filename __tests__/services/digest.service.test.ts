@@ -12,7 +12,13 @@ describe('digest.service', () => {
   it('posts the token in the body, uncached, and returns the page', async () => {
     respond(200, { frequency: 'daily', stories: [] });
     await expect(getDigestPage('tok')).resolves.toEqual({
-      data: { frequency: 'daily', stories: [], isTeamMember: false, nextSendAt: null },
+      data: {
+        frequency: 'daily',
+        stories: [],
+        isTeamMember: false,
+        nextSendAt: null,
+        topics: { followed: [], suggested: [] },
+      },
     });
     expect(global.fetch).toHaveBeenCalledWith('https://api/v1/labos-digest/page', {
       method: 'POST',

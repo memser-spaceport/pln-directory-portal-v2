@@ -18,6 +18,10 @@ describe('summarizeRedemptions', () => {
     expect(result['2026-07']).toEqual({ plaa: 400, usd: 592, price: 1.48, isAverage: false });
   });
 
+  it('does not use a different auction price for the same round', () => {
+    expect(summarizeRedemptions([redemption({ auctionNumber: 99 })], prices)['2026-07'].usd).toBeNull();
+  });
+
   it('falls back to the round number when the auction number is missing on the redemption', () => {
     const result = summarizeRedemptions([redemption({ auctionNumber: null })], prices);
 

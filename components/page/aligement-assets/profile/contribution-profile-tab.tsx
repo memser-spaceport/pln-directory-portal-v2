@@ -81,7 +81,10 @@ function sumKnown(
   return total;
 }
 
-function priceableTotals(entries: ContributionHistoryEntry[]): { usd: number; price: number } | null {
+function priceableTotals(
+  entries: ContributionHistoryEntry[],
+  totalRedeemed: number | null,
+): { usd: number; price: number } | null {
   let usdTotal = 0;
   let plaaTotal = 0;
   for (const entry of entries) {
@@ -90,7 +93,7 @@ function priceableTotals(entries: ContributionHistoryEntry[]): { usd: number; pr
     usdTotal += entry.redeemedUsd;
     plaaTotal += entry.redeemed;
   }
-  if (plaaTotal === 0) return null;
+  if (plaaTotal === 0 || totalRedeemed === null || Math.abs(plaaTotal - totalRedeemed) > 0.000001) return null;
   return { usd: usdTotal, price: usdTotal / plaaTotal };
 }
 
@@ -194,7 +197,7 @@ export default function ContributionProfileTab({
   const newestFirst = [...entries].reverse();
 
   const totalPoints = sumKnown(entries, (e) => e.points);
-  const redeemedTotals = priceableTotals(entries);
+  const redeemedTotals = priceableTotals(entries, totalRedeemed);
   // An open snapshot's PLAA is not final, so it stays out of the totals until it closes.
   const closedEntries = entries.filter((e) => !e.isPending);
   const totalPlaa = closedEntries.reduce((sum, p) => sum + p.plaa, 0);

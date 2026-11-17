@@ -759,6 +759,12 @@ describe('ContributionProfileTab', () => {
       expect(within(totalRow).queryByText(/\$/)).not.toBeInTheDocument();
     });
 
+    it('withholds the lifetime dollar total when history does not cover the balance total', () => {
+      render(<ContributionProfileTab entries={priced} currentBalance={112} totalRedeemed={680} />);
+      const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
+      expect(within(totalRow).queryByText(/\$/)).not.toBeInTheDocument();
+    });
+
     it('rounds dollars to whole units but keeps cents on the price', () => {
       const awkward = [{ ...priced[1], redeemedUsd: 591.62, redeemedPrice: 1.4795 }];
       render(<ContributionProfileTab entries={awkward} currentBalance={112} totalRedeemed={400} />);

@@ -182,19 +182,20 @@ export function summarizeRedemptions(
   prices: BuybackPrice[] | null | undefined,
 ): Record<string, MonthRedemption> {
   const byAuction = new Map<number, number>();
-  const byRound = new Map<number, number>();
+  const byRound = new Map<number, BuybackPrice>();
   for (const price of prices ?? []) {
     if (price.auctionNumber !== null) byAuction.set(price.auctionNumber, price.clearingPrice);
-    byRound.set(price.roundNumber, price.clearingPrice);
+    byRound.set(price.roundNumber, price);
   }
 
   const months: Record<string, { plaa: number; usd: number; priced: number; prices: Set<number> }> = {};
   for (const entry of redemptions ?? []) {
     if (entry.period === null || entry.plaaRedeemed === null) continue;
     const month = monthKey(entry.period);
+    const roundPrice = entry.roundNumber !== null ? byRound.get(entry.roundNumber) : undefined;
     const price =
       (entry.auctionNumber !== null ? byAuction.get(entry.auctionNumber) : undefined) ??
-      (entry.roundNumber !== null ? byRound.get(entry.roundNumber) : undefined) ??
+      (entry.auctionNumber === null || roundPrice?.auctionNumber === null ? roundPrice?.clearingPrice : undefined) ??
       null;
 
     const bucket = (months[month] ??= { plaa: 0, usd: 0, priced: 0, prices: new Set() });
@@ -257,7 +258,9 @@ export function useProfileData(): ProfileData {
   const { data: historyData, isLoading: isHistoryLoading } = useProfilePlaaHistory();
   const historyStatus: ProfileHistoryStatus = isHistoryLoading ? 'loading' : historyData ? 'ready' : 'unavailable';
   const { data: redemptionData } = useRedemptionHistory();
-  const { data: buybackPrices } = useBuybackPrices();
+  const { data: buybackPrices } = useBuybackPrices(
+    currentUser ? (currentUser.uid ?? currentUser.email ?? 'member') : null,
+  );
   const { data: lifecycleData } = useSnapshotLifecycle();
   const candidateHistory = historyData ? withMissingSnapshots(historyData, lifecycleData ?? [], new Date()) : null;
   const pointsByPeriod = useSnapshotPointsHistory(candidateHistory?.map((e) => e.period) ?? []);

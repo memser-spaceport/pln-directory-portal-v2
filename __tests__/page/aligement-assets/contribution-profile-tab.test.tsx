@@ -64,6 +64,22 @@ describe('ContributionProfileTab', () => {
     expect(screen.getByText('No snapshot history yet.')).toBeInTheDocument();
   });
 
+  it('does not plot provisional snapshot amounts as settled chart activity', () => {
+    const pending = { ...entries[2], isPending: true, plaa: 900, infra: 300 };
+    const { container, rerender } = render(
+      <ContributionProfileTab entries={[entries[0], pending]} currentBalance={35} totalRedeemed={50} />,
+    );
+    const chart = container.querySelector('svg')!.innerHTML;
+    rerender(
+      <ContributionProfileTab
+        entries={[entries[0], { ...pending, plaa: 0, infra: 0 }]}
+        currentBalance={35}
+        totalRedeemed={50}
+      />,
+    );
+    expect(container.querySelector('svg')!.innerHTML).toBe(chart);
+  });
+
   it('renders the chart axis labels and every period', () => {
     render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
 
@@ -733,6 +749,13 @@ describe('ContributionProfileTab', () => {
 
       const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
       expect(within(totalRow).getByText('\u2212\u0035\u0038\u0030')).toBeInTheDocument();
+      expect(within(totalRow).queryByText(/\$/)).not.toBeInTheDocument();
+    });
+
+    it('withholds the lifetime dollar total when any redemption is unpriced', () => {
+      const mixed = [priced[0], { ...priced[1], redeemedUsd: null, redeemedPrice: null }];
+      render(<ContributionProfileTab entries={mixed} currentBalance={112} totalRedeemed={580} />);
+      const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
       expect(within(totalRow).queryByText(/\$/)).not.toBeInTheDocument();
     });
 

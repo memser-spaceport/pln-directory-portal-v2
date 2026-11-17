@@ -85,7 +85,8 @@ function priceableTotals(entries: ContributionHistoryEntry[]): { usd: number; pr
   let usdTotal = 0;
   let plaaTotal = 0;
   for (const entry of entries) {
-    if (entry.redeemedUsd === null || entry.redeemed === null) continue;
+    if (entry.redeemed === null || entry.redeemed === 0) continue;
+    if (entry.redeemedUsd === null) return null;
     usdTotal += entry.redeemedUsd;
     plaaTotal += entry.redeemed;
   }
@@ -110,7 +111,7 @@ function buildFlowChart(entries: ContributionHistoryEntry[]) {
   const plotHeight = PLOT_BOTTOM - PLOT_TOP;
   const step = plotWidth / entries.length;
 
-  const maxNew = niceMax(Math.max(...entries.map((e) => e.plaa + e.infra), 1));
+  const maxNew = niceMax(Math.max(...entries.map((e) => (e.isPending ? 0 : e.plaa + e.infra)), 1));
   const biggestRedemption = Math.max(...entries.map((e) => e.redeemed ?? 0), 0);
   const maxRedeemed = biggestRedemption > 0 ? niceMax(biggestRedemption) : 0;
 
@@ -131,8 +132,8 @@ function buildFlowChart(entries: ContributionHistoryEntry[]) {
   const visible = (value: number, height: number) => (value > 0 ? Math.max(height, 2) : 0);
 
   const bars = entries.map((e, i) => {
-    const activityH = visible(e.plaa, e.plaa * plaaScale);
-    const infraH = visible(e.infra, e.infra * plaaScale);
+    const activityH = e.isPending ? 0 : visible(e.plaa, e.plaa * plaaScale);
+    const infraH = e.isPending ? 0 : visible(e.infra, e.infra * plaaScale);
     const redeemedH = visible(e.redeemed ?? 0, (e.redeemed ?? 0) * redeemedScale);
     return {
       x: centers[i] - barWidth / 2,
@@ -161,7 +162,7 @@ function buildFlowChart(entries: ContributionHistoryEntry[]) {
     y: balanceY(v),
     label: Math.round(v).toLocaleString(),
   }));
-  const balanceDots = entries.map((e, i) => ({ cx: centers[i], cy: balanceY(e.cum) }));
+  const balanceDots = entries.flatMap((e, i) => (e.isPending ? [] : [{ cx: centers[i], cy: balanceY(e.cum) }]));
   const balanceLine = balanceDots.map((d) => `${d.cx},${d.cy}`).join(' ');
 
   const labelIndices = pickLabelIndices(entries.length, MAX_X_LABELS);

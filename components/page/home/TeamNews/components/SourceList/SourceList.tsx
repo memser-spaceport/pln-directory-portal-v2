@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { useEffect, useRef, useState } from 'react';
 
 import { useTeamNewsAnalytics, type TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
+import { recordMemberSignal } from '@/services/member-signals/member-signals.service';
 import type { ITeamNewsItem } from '@/types/team-news.types';
 
 import { getNewsSources } from '../../utils/getNewsSources';
@@ -116,6 +117,7 @@ export const SourceList = ({ item, position = 0, analyticsSource = 'home', compa
               onClick={(e) => {
                 e.stopPropagation();
                 onTeamNewsSourceLinkClicked(item, position, src, analyticsSource);
+                recordMemberSignal({ action: 'view', entityType: 'news-item', entityId: item.uid });
                 setOpen(false);
               }}
             >

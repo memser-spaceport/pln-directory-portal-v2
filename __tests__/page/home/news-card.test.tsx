@@ -115,3 +115,38 @@ describe('NewsCard upvotes', () => {
     expect(button).toHaveTextContent('0');
   });
 });
+
+jest.mock('@/services/member-signals/member-signals.service', () => ({
+  ...jest.requireActual('@/services/member-signals/member-signals.service'),
+  recordMemberSignal: jest.fn(),
+}));
+const mockRecordSignal = require('@/services/member-signals/member-signals.service').recordMemberSignal as jest.Mock;
+
+describe('NewsCard member signals (LAB-3267)', () => {
+  let windowOpen: jest.SpyInstance;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseCurrentUserStore.mockReturnValue({ currentUser: { uid: 'm-1' }, isHydrated: true });
+    windowOpen = jest.spyOn(window, 'open').mockImplementation(() => null);
+  });
+  afterEach(() => windowOpen.mockRestore());
+
+  it('a card that goes straight to the source records a view of the news item', () => {
+    render(<NewsCard item={item} upvoteCount={2} viewerHasUpvoted={false} />);
+
+    fireEvent.click(document.querySelector('[data-story-uid="news-1"]') as HTMLElement);
+
+    expect(windowOpen).toHaveBeenCalled();
+    expect(mockRecordSignal).toHaveBeenCalledWith({ action: 'view', entityType: 'news-item', entityId: 'news-1' });
+  });
+
+  it('a card that opens the detail view leaves the view to that view', () => {
+    render(<NewsCard item={item} upvoteCount={2} viewerHasUpvoted={false} onOpenDetail={jest.fn()} />);
+
+    fireEvent.click(document.querySelector('[data-story-uid="news-1"]') as HTMLElement);
+
+    expect(windowOpen).not.toHaveBeenCalled();
+    expect(mockRecordSignal).not.toHaveBeenCalled();
+  });
+});

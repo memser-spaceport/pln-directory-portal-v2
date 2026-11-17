@@ -376,3 +376,55 @@ describe('Apply routing while unapproved', () => {
     expect(mockOnJobApplyFlowClosed).not.toHaveBeenCalled();
   });
 });
+
+jest.mock('@/services/member-signals/member-signals.service', () => ({
+  ...jest.requireActual('@/services/member-signals/member-signals.service'),
+  recordMemberSignal: jest.fn(),
+}));
+const mockRecordSignal = require('@/services/member-signals/member-signals.service').recordMemberSignal as jest.Mock;
+
+describe('Job member signals (LAB-3267)', () => {
+  beforeEach(() => {
+    mockRecordSignal.mockClear();
+    mockOpenExternal.mockClear();
+  });
+
+  it('opening a job records a view of the job', () => {
+    const { result } = setup('approved');
+
+    act(() => result.current.onViewJob(target(OTHER)));
+
+    expect(mockRecordSignal).toHaveBeenCalledWith({ action: 'view', entityType: 'job-opening', entityId: 'r1' });
+  });
+
+  it('Apply records a job-apply-click when the application is on the employer site', async () => {
+    const { result } = setup('pending');
+
+    await act(async () => {
+      await result.current.onApply(target(OTHER));
+    });
+
+    expect(mockOpenExternal).toHaveBeenCalled();
+    expect(mockRecordSignal).toHaveBeenCalledWith({
+      action: 'job-apply-click',
+      entityType: 'job-opening',
+      entityId: 'r1',
+    });
+  });
+
+  it('Apply records a job-apply-click when the application stays in the app', async () => {
+    const { result } = setup('approved');
+
+    await act(async () => {
+      await result.current.onApply(target(OTHER));
+    });
+
+    expect(mockOpenExternal).not.toHaveBeenCalled();
+    expect(mockRecordSignal).toHaveBeenCalledTimes(1);
+    expect(mockRecordSignal).toHaveBeenCalledWith({
+      action: 'job-apply-click',
+      entityType: 'job-opening',
+      entityId: 'r1',
+    });
+  });
+});

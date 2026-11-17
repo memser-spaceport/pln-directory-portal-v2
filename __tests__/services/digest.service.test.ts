@@ -20,6 +20,7 @@ describe('digest.service', () => {
         topics: { followed: [], suggested: [] },
         issues: [],
         networkNews: [],
+        events: { items: [], total: 0 },
       },
     });
     expect(global.fetch).toHaveBeenCalledWith('https://api/v1/labos-digest/page', {

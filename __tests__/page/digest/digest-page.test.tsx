@@ -53,6 +53,22 @@ jest.mock('@/services/team-news/hooks/useNewsTags', () => ({
   }),
 }));
 
+let mockDrawerFlag = false;
+jest.mock('@/utils/event-drawer', () => ({
+  get SHOW_EVENT_DRAWER() {
+    return mockDrawerFlag;
+  },
+}));
+let mockMyEventUids: string[] = [];
+jest.mock('@/services/events/hooks/useMyUpcomingEventUids', () => ({
+  useMyUpcomingEventUids: (enabled: boolean) => ({ data: enabled ? mockMyEventUids : undefined }),
+}));
+jest.mock('@/services/events/hooks/useEventDrawerQueries', () => ({ usePrefetchEventDetail: () => jest.fn() }));
+jest.mock('@/components/page/events/EventDrawer/EventDrawer', () => ({
+  EventDrawer: ({ eventUid, source }: { eventUid: string | null; source: string }) =>
+    eventUid ? <div data-testid="event-drawer">{`${eventUid} from ${source}`}</div> : null,
+}));
+
 const TOKEN = 'v1.secret-token-body.sig';
 
 const story = (uid: string, extra: Partial<DigestStory> = {}): DigestStory => ({
@@ -107,6 +123,7 @@ const data = (extra: Partial<DigestPageData> = {}): DigestPageData => ({
   },
   issues: [{ sentAt: '2026-11-16T09:00:00.000Z', frequency: 'daily', title: 'Story b', isLinkIssue: true }],
   networkNews: [],
+  events: { items: [], total: 0 },
   ...extra,
 });
 
@@ -605,6 +622,87 @@ describe('more from the network (LAB-3291)', () => {
       position: 1,
       domain: 'outlet.example',
     });
+  });
+});
+
+describe('upcoming events (LAB-3292)', () => {
+  const event = (uid: string, extra: Partial<DigestPageData['events']['items'][number]> = {}) => ({
+    uid,
+    name: `Event ${uid}`,
+    startDate: '2026-11-20T10:00:00.000Z',
+    endDate: '2026-11-20T18:00:00.000Z',
+    location: 'Lisbon, Portugal',
+    locationUid: 'loc1',
+    externalId: null,
+    logoUrl: `https://logo.example/${uid}.png`,
+    type: 'IN_PERSON',
+    goingCount: 12,
+    ...extra,
+  });
+  const twoEvents = {
+    items: [
+      event('e1'),
+      event('e2', {
+        name: 'Event e2',
+        startDate: '2026-11-30T09:00:00.000Z',
+        endDate: '2026-12-02T18:00:00.000Z',
+        type: 'VIRTUAL',
+        goingCount: null,
+        logoUrl: null,
+      }),
+    ],
+    total: 9,
+  };
+  const section = () => screen.getByRole('region', { name: 'Upcoming events' });
+
+  afterEach(() => {
+    mockDrawerFlag = false;
+    mockMyEventUids = [];
+    useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
+  });
+
+  it('has no section without events', () => {
+    open('/digest?t=x');
+    expect(screen.queryByRole('heading', { name: 'Upcoming events' })).toBeNull();
+  });
+
+  it('lists the events after the stories, with the date tile, when and where, going, and See all', () => {
+    open('/digest?t=x', data({ events: twoEvents }));
+    const rows = within(section()).getAllByRole('listitem');
+    expect(rows.map((row) => row.textContent)).toEqual([
+      'NOV20Event e1Fri · Lisbon12 going',
+      'NOV30Event e2Nov 30–Dec 2 · Online',
+    ]);
+    expect(rows[0].querySelector('img')).toHaveAttribute('src', 'https://logo.example/e1.png');
+    expect(rows[1].querySelector('img')).toBeNull();
+    expect(within(section()).getByRole('link', { name: 'See all 9 events' })).toHaveAttribute('href', '/events/all');
+    const forum = screen.getByRole('heading', { name: 'Recent forum posts' });
+    expect(card('a').compareDocumentPosition(section()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(section().compareDocumentPosition(forum) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('links a row to the event in the calendar when signed out, even with the drawer on, and records the click', async () => {
+    mockDrawerFlag = true;
+    useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
+    open('/digest?t=x', data({ events: twoEvents }));
+    const row = within(section()).getByRole('link', { name: /Event e1/ });
+    expect(row).toHaveAttribute('href', '/events/all?embedPath=%2Fembed%2Fcalendar%23event-e1');
+    await userEvent.click(row);
+    expect(capture).toHaveBeenCalledWith('digest-event-clicked', { event_uid: 'e1', position: 0, opens: 'calendar' });
+  });
+
+  it('opens the event drawer when signed in with the drawer on, and marks the events the member goes to', async () => {
+    mockDrawerFlag = true;
+    mockMyEventUids = ['e2'];
+    useCurrentUserStore.setState({ currentUser: { uid: 'me' } as any, isHydrated: true });
+    open('/digest?t=x', data({ events: twoEvents }));
+    expect(within(section()).getByRole('button', { name: /Event e2/ })).toHaveTextContent('You’re going');
+    await userEvent.click(within(section()).getByRole('button', { name: /Event e1/ }));
+    expect(capture).toHaveBeenCalledWith(
+      'digest-event-clicked',
+      expect.objectContaining({ event_uid: 'e1', position: 0, opens: 'drawer' }),
+    );
+    expect(await screen.findByTestId('event-drawer')).toHaveTextContent('e1 from digest');
   });
 });
 

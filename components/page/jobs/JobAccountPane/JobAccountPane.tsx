@@ -5,7 +5,7 @@ import clsx from 'clsx';
 import { DetailsSection } from '@/components/common/profile/DetailsSection/DetailsSection';
 import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
 import { DataIncomplete } from '@/components/page/member-details/DataIncomplete/DataIncomplete';
-import { PlTeamOnlyPill } from '@/components/page/jobs/PlTeamOnlyPill/PlTeamOnlyPill';
+import { VisibilityPill } from '@/components/common/VisibilityPill';
 import { JobSearchStatusInput } from '@/components/page/jobs/JobSearchStatusInput/JobSearchStatusInput';
 
 import { AccountFields, useJobSearchStatus } from '@/components/page/jobs/JobSignUpModal/accountFields';
@@ -144,7 +144,7 @@ export function JobAccountPane({ onSignIn, serverError }: JobAccountPaneProps) {
         {!status.answered && <DataIncomplete className={d.incompleteStrip}>Required to continue.</DataIncomplete>}
         <div className={clsx({ [d.missingBody]: !status.answered })}>
           <DetailsSectionHeader title="Job search status">
-            <PlTeamOnlyPill />
+            <VisibilityPill />
           </DetailsSectionHeader>
           <JobSearchStatusInput
             name="signup-job-search-status"

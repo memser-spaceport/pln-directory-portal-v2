@@ -12,6 +12,11 @@ export const MEMBER_SECTION_VISIBILITY = {
     label: 'Shared on intro',
     description: 'Hidden on your profile from other members. Founders see it when you are introduced to them.',
   },
+  jobSearchStatus: {
+    level: 'shared',
+    label: 'Only visible to you',
+    description: 'Nobody else in the network can see your job search status.',
+  },
   cv: {
     level: 'shared',
     label: 'Shared when you apply',

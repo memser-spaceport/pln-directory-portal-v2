@@ -2,7 +2,15 @@ import { FOLLOW_ANALYTICS_EVENTS } from '@/utils/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { usePostHog } from 'posthog-js/react';
 
-export type FollowAnalyticsSource = 'news-feed' | 'team-profile' | 'teams-directory' | 'news-rail' | 'job-apply' | 'job-interest';
+export type FollowAnalyticsSource =
+  | 'news-feed'
+  | 'team-profile'
+  | 'teams-directory'
+  | 'news-rail'
+  | 'job-apply'
+  | 'job-interest'
+  // The digest reading page's team headers (LAB-3287).
+  | 'digest';
 
 export const useFollowAnalytics = () => {
   const postHogProps = usePostHog();

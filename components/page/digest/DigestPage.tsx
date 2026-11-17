@@ -1,7 +1,8 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
-import { useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useRef } from 'react';
 
 import {
   DIGEST_LINK_TYPES,
@@ -9,11 +10,18 @@ import {
   useDigestAnalytics,
   type DigestLinkType,
 } from '@/analytics/digest.analytics';
+import { useCurrentUserStore } from '@/services/auth/store';
 import type { DigestChoice, DigestPageData } from '@/services/digest/digest.types';
 import { useDigestChoices } from '@/services/digest/hooks/useDigestChoices';
+import { useDigestFollows } from '@/services/digest/hooks/useDigestFollows';
+import { feedQueryKeys } from '@/services/feed/constants';
+import type { IFeedCommentCountsResponse } from '@/types/feed.types';
 
 import { DigestForumPost } from './DigestForumPost';
 import { DigestHeader } from './DigestHeader';
+import { DigestCaughtUp } from './DigestIssueEnd';
+import { DigestPostNews } from './DigestPostNews';
+import { DigestSidebar } from './DigestSidebar';
 import { DigestStoryCard } from './DigestStoryCard';
 
 import s from './DigestPage.module.scss';
@@ -28,15 +36,35 @@ type Props = {
 const asChoice = (value: string | null): DigestChoice | null => (value === 'more' || value === 'less' ? value : null);
 
 /**
- * One member's digest (LAB-3264), ported from the digest-web prototype. Opened from the email; the link token
- * decides whose digest it is. A More / Less link's choice is saved here, after the page loads in the browser,
- * so a link scanner that fetches the page changes nothing.
+ * One member's digest (LAB-3264; v2 open layout LAB-3287), ported from the digest-web prototype. Opened from the
+ * email; the link token decides whose digest it is. A More / Less link's choice is saved here, after the page loads in
+ * the browser, so a link scanner that fetches the page changes nothing. Follow, Comments and posting news act for the
+ * signed-in member and send a signed-out reader to sign-in.
  */
 export function DigestPage({ token, data, isLoggedIn }: Props) {
   const searchParams = useSearchParams();
   const { choices, receipts, press, undo, land } = useDigestChoices(token, data.stories);
   const analytics = useDigestAnalytics();
   const started = useRef(false);
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { currentUser, isHydrated } = useCurrentUserStore();
+  const follows = useDigestFollows(data.stories);
+
+  // Back to this page after sign-in: the link token stays in the address.
+  const goToLogin = useCallback(
+    () => router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false }),
+    [router],
+  );
+
+  useEffect(() => {
+    // The page read already counted each story's comments: seed the feed's shared counts entry so Comments shows the
+    // number without another request. Values already there (a comment just posted) win.
+    queryClient.setQueryData<IFeedCommentCountsResponse>(feedQueryKeys.commentCounts(), (old) => ({
+      ...Object.fromEntries(data.stories.map((story) => [story.uid, story.commentCount])),
+      ...old,
+    }));
+  }, [queryClient, data.stories]);
 
   useEffect(() => {
     // Once per page load, Strict Mode included (refs survive its remount).
@@ -103,58 +131,86 @@ export function DigestPage({ token, data, isLoggedIn }: Props) {
   };
 
   return (
-    <div className={s.page}>
-      <article className={s.email}>
-        <DigestHeader frequency={data.frequency} sentAt={data.sentAt} />
+    <div className={`${s.page} ${s.pageWeb}`}>
+      <div className={s.webLayout}>
+        <article className={s.email}>
+          <DigestHeader
+            frequency={data.frequency}
+            sentAt={data.sentAt}
+            storyCount={data.stories.length}
+            firstName={data.firstName}
+          />
 
-        <div className={s.spacer} />
+          <div className={s.spacer} />
 
-        <div className={s.cards}>
-          {data.stories.map((story, index) => (
-            <DigestStoryCard
-              key={story.uid}
-              story={story}
-              index={index}
-              choice={choices[story.uid] ?? null}
-              receipt={receipts[story.uid]}
-              onPress={(kind) => onPress(story.uid, story.position, kind)}
-              onUndo={() => onUndo(story.uid)}
-              onRead={() => analytics.onStoryRead({ newsId: story.uid, position: story.position })}
-            />
-          ))}
-        </div>
+          <div className={s.cards}>
+            {data.stories.map((story, index) => (
+              <DigestStoryCard
+                key={story.uid}
+                story={story}
+                index={index}
+                choice={choices[story.uid] ?? null}
+                receipt={receipts[story.uid]}
+                onPress={(kind) => onPress(story.uid, story.position, kind)}
+                onUndo={() => onUndo(story.uid)}
+                onRead={() => analytics.onStoryRead({ newsId: story.uid, position: story.position })}
+                following={follows.isFollowing(story.teamUid)}
+                onFollow={
+                  isHydrated
+                    ? () => (currentUser ? follows.toggle(story.teamUid, story.teamName) : goToLogin())
+                    : undefined
+                }
+                onSignIn={goToLogin}
+              />
+            ))}
+          </div>
 
-        {data.forumPosts.length > 0 && (
-          <>
-            <div className={s.spacer} />
-            <div className={s.dividerRow}>
-              <span className={s.dividerLine} />
-              <h2 className={s.dividerLabel}>Recent forum posts</h2>
+          {data.forumPosts.length > 0 && (
+            <>
+              <div className={s.spacer} />
+              <div className={s.dividerRow}>
+                <span className={s.dividerLine} />
+                <h2 className={s.dividerLabel}>Recent forum posts</h2>
+                <span className={s.dividerLine} />
+              </div>
+              {data.forumPosts.map((post) => (
+                <DigestForumPost key={post.tid} post={post} />
+              ))}
+            </>
+          )}
+
+          <DigestCaughtUp nextSendAt={data.nextSendAt} />
+
+          {/* Under 1100px there's no room beside the column: the side cards close the page instead. */}
+          <DigestSidebar variant="inline" />
+
+          {data.isTeamMember && (
+            <DigestPostNews openOnLoad={searchParams.get('postnews') === 'open'} onSignIn={goToLogin} />
+          )}
+
+          <footer>
+            <div className={s.signoff}>
+              <p className={s.signoffStrong}>Cheers,</p>
+              <p className={s.signoffTeam}>The Protocol Labs team</p>
+            </div>
+            <div className={s.footerDivider}>
               <span className={s.dividerLine} />
             </div>
-            {data.forumPosts.map((post) => (
-              <DigestForumPost key={post.tid} post={post} />
-            ))}
-          </>
-        )}
+            <div className={s.legal}>
+              <nav className={s.legalLinks}>
+                <a href="/settings/email" className={s.manageLink}>
+                  Manage preferences
+                </a>
+              </nav>
+            </div>
+          </footer>
+        </article>
 
-        <footer>
-          <div className={s.signoff}>
-            <p className={s.signoffStrong}>Cheers,</p>
-            <p className={s.signoffTeam}>The Protocol Labs team</p>
-          </div>
-          <div className={s.footerDivider}>
-            <span className={s.dividerLine} />
-          </div>
-          <div className={s.legal}>
-            <nav className={s.legalLinks}>
-              <a href="/settings/email" className={s.manageLink}>
-                Manage preferences
-              </a>
-            </nav>
-          </div>
-        </footer>
-      </article>
+        {/* 1100px and up: the side cards as a sticky column on the right. */}
+        <aside className={s.rail}>
+          <DigestSidebar variant="rail" />
+        </aside>
+      </div>
     </div>
   );
 }

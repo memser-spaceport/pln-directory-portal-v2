@@ -1,0 +1,58 @@
+// The side column's cards: for-you-starter-topics' card (white, subtle border, 16px radius,
+// 16/20 padding), stacked with 12px between, as Perplexity Discover's rail does.
+
+// Wide screens: sticky beside the column. Capped to the viewport so an opened Past issues
+// list scrolls inside the column instead of running under the fold.
+.rail {
+  position: sticky;
+  top: 112px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: calc(100vh - 128px);
+  overflow-y: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+// Under 1100px: the same cards after the end of the issue.
+.inline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0 16px;
+  padding: 24px 0 32px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  @media (min-width: 1100px) {
+    display: none;
+  }
+}
+
+.card {
+  flex-shrink: 0;
+  padding: 16px 20px;
+  background: var(--background-neutral-default, #fff);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 16px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// Title and its line are one unit: 2px between them.
+.cardText {
+  margin: 2px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}

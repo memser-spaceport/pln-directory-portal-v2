@@ -5,14 +5,21 @@ import userEvent from '@testing-library/user-event';
 
 import { DigestPage } from '@/components/page/digest/DigestPage';
 import { DigestErrorState } from '@/components/page/digest/DigestErrorState';
+import { useCurrentUserStore } from '@/services/auth/store';
 import type { DigestPageData, DigestStory } from '@/services/digest/digest.types';
 
-/** LAB-3264: the digest reading page. */
+/** LAB-3264: the digest reading page; LAB-3287: page v2. */
 let searchParams = new URLSearchParams();
+const routerPush = jest.fn();
 jest.mock('next/navigation', () => ({
   useSearchParams: () => searchParams,
-  useRouter: () => ({ replace: jest.fn(), push: jest.fn() }),
+  useRouter: () => ({ replace: jest.fn(), push: routerPush }),
   usePathname: () => '/digest',
+}));
+
+const followMutate = jest.fn();
+jest.mock('@/services/follow/hooks/useFollowTeam', () => ({
+  useFollowTeam: () => ({ mutate: followMutate }),
 }));
 
 const capture = jest.fn();
@@ -43,6 +50,10 @@ const story = (uid: string, extra: Partial<DigestStory> = {}): DigestStory => ({
   sourceDomain: 'news.example',
   teamUid: 't',
   teamName: 'Team',
+  teamLogoUrl: null,
+  followsTeam: false,
+  sources: [{ url: `https://news.example/${uid}`, domain: 'news.example' }],
+  commentCount: 0,
   eventType: 'LAUNCH',
   tags: ['ai'],
   choice: null,
@@ -67,6 +78,8 @@ const data = (extra: Partial<DigestPageData> = {}): DigestPageData => ({
     },
   ],
   forumUnavailable: false,
+  isTeamMember: false,
+  nextSendAt: '2026-11-18T11:00:00.000Z',
   ...extra,
 });
 
@@ -93,21 +106,93 @@ beforeEach(() => {
 describe('DigestPage', () => {
   it('shows the header, the stories in order with the top story badge, and the forum posts', () => {
     open('/digest?t=x');
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Your daily digest');
-    expect(screen.getByText('Monday, November 16, 2026')).toBeInTheDocument();
-    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
-      'Story b',
-      'Story a',
-      'Recent forum posts',
-    ]);
+    expect(screen.getByText('Daily digest · 16 November 2026 · 2 stories')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Hi Ada,');
+    expect(
+      screen
+        .getAllByRole('heading', { level: 2 })
+        .map((h) => h.textContent)
+        .filter((t) => t !== 'How personalization works'),
+    ).toEqual(['Story b', 'Story a', 'Recent forum posts']);
     expect(within(card('b')).getByText('🔥 Top story')).toBeInTheDocument();
     expect(within(card('a')).queryByText('🔥 Top story')).toBeNull();
     expect(within(card('b')).getByText('Body b')).toBeInTheDocument();
-    expect(screen.getAllByRole('link', { name: 'Read on news.example' })[0]).toHaveAttribute(
-      'rel',
-      'noopener noreferrer',
-    );
+    // Page v2: no "Read on", every source on the Sources line instead.
+    expect(screen.queryByRole('link', { name: /^Read on/ })).toBeNull();
+    expect(within(card('b')).getByText(/^Source:/)).toBeInTheDocument();
+    expect(within(card('b')).getByRole('link', { name: 'news.example' })).toHaveAttribute('rel', 'noopener noreferrer');
     expect(screen.getByText('· Developer @Aave')).toBeInTheDocument();
+  });
+
+  describe('page v2 (LAB-3287)', () => {
+    beforeEach(() => useCurrentUserStore.setState({ currentUser: null, isHydrated: true }));
+    afterEach(() => useCurrentUserStore.setState({ currentUser: null, isHydrated: false }));
+
+    it('shows the team header, every source, the end of the issue and the side card', () => {
+      open(
+        '/digest?t=x',
+        data({
+          stories: [
+            story('b', {
+              isTopStory: true,
+              teamUid: 'team-1',
+              teamName: 'Lattice',
+              teamLogoUrl: 'https://img/lattice.png',
+              sources: [
+                { url: 'https://news.example/b', domain: 'news.example' },
+                { url: 'https://press.example/b', domain: 'press.example' },
+              ],
+            }),
+          ],
+        }),
+      );
+      expect(within(card('b')).getByRole('link', { name: 'Lattice' })).toHaveAttribute('href', '/teams/team-1');
+      expect(within(card('b')).getByText(/^Sources:/)).toBeInTheDocument();
+      expect(within(card('b')).getByRole('link', { name: 'press.example' })).toHaveAttribute(
+        'href',
+        'https://press.example/b',
+      );
+      expect(screen.getByText('You’re all caught up')).toBeInTheDocument();
+      expect(screen.getByText('The next digest arrives on Wednesday, 18 November.')).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'See all network news' })).toHaveAttribute('href', '/');
+      expect(screen.getAllByText('How personalization works')).toHaveLength(2);
+    });
+
+    it('shows "Got news from your team?" only to team members', () => {
+      const { unmount } = open('/digest?t=x');
+      expect(screen.queryByText('Got news from your team?')).toBeNull();
+      unmount();
+      open('/digest?t=x', data({ isTeamMember: true }));
+      expect(screen.getByText('Got news from your team?')).toBeInTheDocument();
+    });
+
+    it('sends a signed-out reader to sign-in from Follow and Post your team news, and saves nothing', async () => {
+      open('/digest?t=x', data({ isTeamMember: true }));
+      await userEvent.click(within(card('b')).getByRole('button', { name: /follow/i }));
+      await userEvent.click(screen.getByRole('button', { name: 'Post your team news →' }));
+      expect(routerPush).toHaveBeenCalledTimes(2);
+      expect(routerPush).toHaveBeenLastCalledWith('/digest?t=x#login', { scroll: false });
+      expect(followMutate).not.toHaveBeenCalled();
+    });
+
+    it('follows for a signed-in reader, and both stories of the team agree', async () => {
+      useCurrentUserStore.setState({ currentUser: { uid: 'me' }, isHydrated: true });
+      open(
+        '/digest?t=x',
+        data({
+          stories: [
+            story('b', { teamUid: 'team-1', teamName: 'Lattice' }),
+            story('a', { teamUid: 'team-1', teamName: 'Lattice' }),
+          ],
+        }),
+      );
+      await userEvent.click(within(card('b')).getByRole('button', { name: /follow/i }));
+      expect(followMutate).toHaveBeenCalledWith({ teamUid: 'team-1', action: 'follow' }, expect.anything());
+      expect(routerPush).not.toHaveBeenCalled();
+      const labels = ['b', 'a'].map((uid) => within(card(uid)).getByRole('button', { name: /follow/i }).textContent);
+      expect(labels[0]).toBe(labels[1]);
+      expect(labels[0]).toMatch(/following/i);
+    });
   });
 
   it('shows the saved choice as pressed, with no confirmation', () => {
@@ -260,7 +345,7 @@ describe('DigestPage', () => {
     it('records the email click and the page view, with no token anywhere', async () => {
       open('/digest?t=x&utm_source=digest_email_more_link&link_type=more&position=2&story=b&choice=more#story-b');
       await flush();
-      await userEvent.click(within(card('b')).getAllByRole('link')[0]);
+      await userEvent.click(within(card('b')).getByRole('link', { name: 'news.example' }));
 
       expect(events()).toEqual([
         [

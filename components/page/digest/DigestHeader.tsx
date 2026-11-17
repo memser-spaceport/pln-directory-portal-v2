@@ -34,13 +34,15 @@ type Props = {
   sentAt: string;
   storyCount: number;
   firstName: string | null;
+  /** Opens the topics modal (LAB-3289). Left out, the intro has no "Change topics". */
+  onChangeTopics?: () => void;
 };
 
 /**
  * The page's header (LAB-3287): the dateline ("Weekly digest · 9 November 2026 · 5 stories"), then the greeting as the
  * page title and the intro line. Left-aligned, with no logo: the LabOS navigation already says where you are.
  */
-export function DigestHeader({ frequency, sentAt, storyCount, firstName }: Props) {
+export function DigestHeader({ frequency, sentAt, storyCount, firstName, onChangeTopics }: Props) {
   const date = formatDigestDate(sentAt, 'date');
   return (
     <header>
@@ -50,7 +52,18 @@ export function DigestHeader({ frequency, sentAt, storyCount, firstName }: Props
       </p>
       <div className={s.intro}>
         <h1 className={s.greeting}>Hi {firstName || 'there'},</h1>
-        <p className={s.introText}>Picked for you from subscribed tags and the teams you follow.</p>
+        <p className={s.introText}>
+          Picked for you from subscribed tags and the teams you follow.
+          {onChangeTopics && (
+            <>
+              {' '}
+              {/* Opens the topics modal, so the issue stays where it was. The email's link lands with ?topics=open. */}
+              <button type="button" className={s.introLink} onClick={onChangeTopics}>
+                Change topics
+              </button>
+            </>
+          )}
+        </p>
       </div>
     </header>
   );

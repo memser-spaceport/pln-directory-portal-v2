@@ -35,6 +35,24 @@ jest.mock('@/services/digest/digest.service', () => ({
   saveDigestChoice: (...args: unknown[]) => saveDigestChoice(...args),
 }));
 
+let mockPrefs: { newsTags: string[] } | undefined;
+jest.mock('@/services/members/hooks/useGetMemberPreferences', () => ({
+  useGetMemberPreferences: (uid: string | undefined) => ({ data: uid ? mockPrefs : undefined }),
+}));
+const setNewsTags = jest.fn();
+jest.mock('@/services/members/hooks/useSetNewsTags', () => ({ useSetNewsTags: () => setNewsTags }));
+jest.mock('@/services/team-news/hooks/useNewsTags', () => ({
+  useNewsTags: () => ({
+    data: [
+      { slug: 'ai', title: 'AI', children: [] },
+      { slug: 'defi', title: 'DeFi', children: [] },
+      { slug: 'desci', title: 'DeSci', children: [] },
+    ],
+    isPending: false,
+    isError: false,
+  }),
+}));
+
 const TOKEN = 'v1.secret-token-body.sig';
 
 const story = (uid: string, extra: Partial<DigestStory> = {}): DigestStory => ({
@@ -80,6 +98,13 @@ const data = (extra: Partial<DigestPageData> = {}): DigestPageData => ({
   forumUnavailable: false,
   isTeamMember: false,
   nextSendAt: '2026-11-18T11:00:00.000Z',
+  topics: {
+    followed: [{ slug: 'ai', title: 'AI' }],
+    suggested: [
+      { slug: 'defi', title: 'DeFi' },
+      { slug: 'desci', title: 'DeSci' },
+    ],
+  },
   ...extra,
 });
 
@@ -95,6 +120,7 @@ const flush = () => act(async () => {});
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockPrefs = undefined;
   Element.prototype.scrollIntoView = jest.fn();
   saveDigestChoice.mockImplementation(async (_t, newsItemUid, choice) => ({
     newsItemUid,
@@ -112,7 +138,7 @@ describe('DigestPage', () => {
       screen
         .getAllByRole('heading', { level: 2 })
         .map((h) => h.textContent)
-        .filter((t) => t !== 'How personalization works'),
+        .filter((t) => t !== 'How personalization works' && t !== 'Add topics'),
     ).toEqual(['Story b', 'Story a', 'Recent forum posts']);
     expect(within(card('b')).getByText('🔥 Top story')).toBeInTheDocument();
     expect(within(card('a')).queryByText('🔥 Top story')).toBeNull();
@@ -398,6 +424,127 @@ describe('DigestPage', () => {
       ]);
       expect(events()[0][1]).toMatchObject({ from: 'direct' });
     });
+  });
+});
+
+describe('topics (LAB-3289)', () => {
+  // The rail and the inline column both render the card (CSS shows one): act on the first.
+  const topicsCard = () => screen.getAllByRole('group', { name: 'Topics to add' })[0];
+  const chip = (slug: string) => within(topicsCard()).getByRole('button', { name: `#${slug}` });
+  const signIn = () => useCurrentUserStore.setState({ currentUser: { uid: 'me' } as any, isHydrated: true });
+  const saveSucceeds = () =>
+    setNewsTags.mockImplementation((next: string[], options?: { onSuccess?: () => void }) => {
+      mockPrefs = { newsTags: next };
+      options?.onSuccess?.();
+    });
+  const saveFails = () =>
+    setNewsTags.mockImplementation((_next: string[], options?: { onError?: () => void }) => options?.onError?.());
+
+  afterEach(() => useCurrentUserStore.setState({ currentUser: null, isHydrated: false }));
+
+  it('suggests the topics in page order and saves a ticked chip on top of the saved tags', async () => {
+    signIn();
+    mockPrefs = { newsTags: ['ai'] };
+    saveSucceeds();
+    open('/digest?t=x');
+    expect(
+      within(topicsCard())
+        .getAllByRole('button')
+        .map((b) => b.textContent),
+    ).toEqual(['#defi', '#desci']);
+    expect(screen.queryByRole('button', { name: 'Save topics' })).toBeNull();
+
+    await userEvent.click(chip('defi'));
+    expect(chip('defi')).toHaveAttribute('aria-pressed', 'true');
+    await userEvent.click(screen.getAllByRole('button', { name: 'Save topics' })[0]);
+
+    expect(setNewsTags).toHaveBeenCalledWith(['ai', 'defi'], expect.anything());
+    expect(toast.success).toHaveBeenCalledWith('Topics saved. Your next digest uses them.');
+    expect(capture).toHaveBeenCalledWith(
+      'digest-topics-saved',
+      expect.objectContaining({ surface: 'card', added: 1, removed: 0, total: 2 }),
+    );
+  });
+
+  it('keeps the picks when the save fails', async () => {
+    signIn();
+    mockPrefs = { newsTags: ['ai'] };
+    saveFails();
+    open('/digest?t=x');
+    await userEvent.click(chip('desci'));
+    await userEvent.click(screen.getAllByRole('button', { name: 'Save topics' })[0]);
+    expect(setNewsTags).toHaveBeenCalled();
+    expect(toast.success).not.toHaveBeenCalled();
+    expect(chip('desci')).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getAllByRole('button', { name: 'Save topics' })[0]).toBeEnabled();
+  });
+
+  it('sends a signed-out reader to sign-in with what they pressed, and saves nothing', async () => {
+    useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
+    open('/digest?t=x');
+    await userEvent.click(chip('defi'));
+    expect(routerPush).toHaveBeenLastCalledWith('/digest?t=x&topic=defi#login', { scroll: false });
+    await userEvent.click(screen.getByRole('button', { name: 'Change topics' }));
+    expect(routerPush).toHaveBeenLastCalledWith('/digest?t=x&topics=open#login', { scroll: false });
+    expect(capture).toHaveBeenCalledWith('digest-topics-sign-in-prompted', expect.objectContaining({ via: 'chip' }));
+    expect(setNewsTags).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('back from sign-in, ticks the chip they pressed and clears it from the address', async () => {
+    signIn();
+    mockPrefs = { newsTags: ['ai'] };
+    open('/digest?t=x&topic=desci');
+    await flush();
+    expect(chip('desci')).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getAllByRole('button', { name: 'Save topics' }).length).toBeGreaterThan(0);
+    expect(window.location.search).toBe('?t=x');
+  });
+
+  it('opens the modal from the email link, and saves the ticked topics', async () => {
+    signIn();
+    mockPrefs = { newsTags: ['ai'] };
+    saveSucceeds();
+    open('/digest?t=x&topics=open');
+    await flush();
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByRole('heading', { name: 'Your topics · 1' })).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: '#ai' })).toHaveAttribute('aria-pressed', 'true');
+    expect(within(dialog).getByRole('button', { name: 'Save topics' })).toBeDisabled();
+
+    await userEvent.click(within(dialog).getByRole('button', { name: '#defi' }));
+    expect(within(dialog).getByRole('heading', { name: 'Your topics · 2' })).toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Save topics' }));
+
+    expect(setNewsTags).toHaveBeenCalledWith(['ai', 'defi'], expect.anything());
+    expect(capture).toHaveBeenCalledWith('digest-topics-saved', expect.objectContaining({ surface: 'modal' }));
+    await flush();
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('Cancel throws the modal picks away', async () => {
+    signIn();
+    mockPrefs = { newsTags: ['ai'] };
+    open('/digest?t=x');
+    await userEvent.click(screen.getByRole('button', { name: 'Change topics' }));
+    const dialog = screen.getByRole('dialog');
+    await userEvent.click(within(dialog).getByRole('button', { name: '#desci' }));
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+    await flush();
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(setNewsTags).not.toHaveBeenCalled();
+    expect(capture).toHaveBeenCalledWith(
+      'digest-topics-modal-opened',
+      expect.objectContaining({ via: 'change-topics' }),
+    );
+  });
+
+  it('sends a signed-out reader from the email link to sign-in first', async () => {
+    useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
+    open('/digest?t=x&topics=open');
+    await flush();
+    expect(routerPush).toHaveBeenLastCalledWith('/digest?t=x&topics=open#login', { scroll: false });
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 });
 

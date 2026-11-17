@@ -2953,4 +2953,7 @@ export const DIGEST_ANALYTICS_EVENTS = {
   ON_DIGEST_MORE_CLICKED: 'digest-more-clicked',
   ON_DIGEST_LESS_CLICKED: 'digest-less-clicked',
   ON_DIGEST_UNDO_CLICKED: 'digest-undo-clicked',
+  ON_DIGEST_TOPICS_SAVED: 'digest-topics-saved',
+  ON_DIGEST_TOPICS_MODAL_OPENED: 'digest-topics-modal-opened',
+  ON_DIGEST_TOPICS_SIGN_IN_PROMPTED: 'digest-topics-sign-in-prompted',
 };

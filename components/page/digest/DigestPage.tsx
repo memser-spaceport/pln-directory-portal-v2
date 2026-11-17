@@ -2,18 +2,20 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   DIGEST_LINK_TYPES,
   digestPageFrom,
   useDigestAnalytics,
   type DigestLinkType,
+  type DigestTopicsVia,
 } from '@/analytics/digest.analytics';
 import { useCurrentUserStore } from '@/services/auth/store';
 import type { DigestChoice, DigestPageData } from '@/services/digest/digest.types';
 import { useDigestChoices } from '@/services/digest/hooks/useDigestChoices';
 import { useDigestFollows } from '@/services/digest/hooks/useDigestFollows';
+import { useDigestTopics } from '@/services/digest/hooks/useDigestTopics';
 import { feedQueryKeys } from '@/services/feed/constants';
 import type { IFeedCommentCountsResponse } from '@/types/feed.types';
 
@@ -23,6 +25,7 @@ import { DigestCaughtUp } from './DigestIssueEnd';
 import { DigestPostNews } from './DigestPostNews';
 import { DigestSidebar } from './DigestSidebar';
 import { DigestStoryCard } from './DigestStoryCard';
+import { DigestTopicsModal } from './DigestTopicsModal';
 
 import s from './DigestPage.module.scss';
 
@@ -50,12 +53,68 @@ export function DigestPage({ token, data, isLoggedIn }: Props) {
   const queryClient = useQueryClient();
   const { currentUser, isHydrated } = useCurrentUserStore();
   const follows = useDigestFollows(data.stories);
+  const topics = useDigestTopics(data.topics);
+  const signedIn = isHydrated ? Boolean(currentUser) : undefined;
+  // What the reader asked for before sign-in comes back in the address: `topics=open` (also the email's Change
+  // topics) opens the modal, `topic=<slug>` ticks that chip in Add topics. Read once, on load.
+  const [topicsOpen, setTopicsOpen] = useState(() => searchParams.get('topics') === 'open');
+  const [pickOnReturn] = useState(() => searchParams.get('topic'));
 
-  // Back to this page after sign-in: the link token stays in the address.
+  // Back to this page after sign-in: the link token stays in the address, plus `extra` to pick up where they were.
   const goToLogin = useCallback(
-    () => router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false }),
+    (extra?: { key: 'topics' | 'topic'; value: string }) => {
+      const url = new URL(window.location.href);
+      if (extra) {
+        url.searchParams.delete('topics');
+        url.searchParams.delete('topic');
+        url.searchParams.set(extra.key, extra.value);
+      }
+      router.push(`${url.pathname}${url.search}#login`, { scroll: false });
+    },
     [router],
   );
+  const signIn = useCallback(() => goToLogin(), [goToLogin]);
+  const signInForTopics = useCallback(
+    (via: DigestTopicsVia, extra: { key: 'topics' | 'topic'; value: string }) => {
+      analytics.onTopicsSignInPrompted({ via });
+      goToLogin(extra);
+    },
+    [analytics, goToLogin],
+  );
+  const openTopics = (via: 'see-all' | 'change-topics') => {
+    if (signedIn === undefined) return;
+    if (!signedIn) return signInForTopics(via, { key: 'topics', value: 'open' });
+    analytics.onTopicsModalOpened({ via });
+    setTopicsOpen(true);
+  };
+
+  useEffect(() => {
+    if (signedIn === undefined) return;
+    if (!signedIn) {
+      // The email's Change topics lands signed out: sign in first, then the address opens the modal.
+      if (searchParams.get('topics') === 'open') signInForTopics('email', { key: 'topics', value: 'open' });
+      return;
+    }
+    // Signed in: the intent is applied, so a reload doesn't repeat it. `null` state: see the __NA trap.
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has('topics') && !url.searchParams.has('topic')) return;
+    url.searchParams.delete('topics');
+    url.searchParams.delete('topic');
+    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+    // Once the auth state is known; the address is read from the window, not from searchParams.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signedIn]);
+
+  const topicsCard = {
+    followed: topics.followed,
+    suggested: topics.suggested,
+    canSave: topics.canSave,
+    signedIn,
+    initialPick: pickOnReturn,
+    onSave: (next: string[]) => topics.save(next, 'card'),
+    onOpenAll: () => openTopics('see-all'),
+    onSignIn: (slug: string) => signInForTopics('chip', { key: 'topic', value: slug }),
+  };
 
   useEffect(() => {
     // The page read already counted each story's comments: seed the feed's shared counts entry so Comments shows the
@@ -139,6 +198,7 @@ export function DigestPage({ token, data, isLoggedIn }: Props) {
             sentAt={data.sentAt}
             storyCount={data.stories.length}
             firstName={data.firstName}
+            onChangeTopics={() => openTopics('change-topics')}
           />
 
           <div className={s.spacer} />
@@ -157,10 +217,10 @@ export function DigestPage({ token, data, isLoggedIn }: Props) {
                 following={follows.isFollowing(story.teamUid)}
                 onFollow={
                   isHydrated
-                    ? () => (currentUser ? follows.toggle(story.teamUid, story.teamName) : goToLogin())
+                    ? () => (currentUser ? follows.toggle(story.teamUid, story.teamName) : signIn())
                     : undefined
                 }
-                onSignIn={goToLogin}
+                onSignIn={signIn}
               />
             ))}
           </div>
@@ -182,10 +242,10 @@ export function DigestPage({ token, data, isLoggedIn }: Props) {
           <DigestCaughtUp nextSendAt={data.nextSendAt} />
 
           {/* Under 1100px there's no room beside the column: the side cards close the page instead. */}
-          <DigestSidebar variant="inline" />
+          <DigestSidebar variant="inline" topics={topicsCard} />
 
           {data.isTeamMember && (
-            <DigestPostNews openOnLoad={searchParams.get('postnews') === 'open'} onSignIn={goToLogin} />
+            <DigestPostNews openOnLoad={searchParams.get('postnews') === 'open'} onSignIn={signIn} />
           )}
 
           <footer>
@@ -208,9 +268,18 @@ export function DigestPage({ token, data, isLoggedIn }: Props) {
 
         {/* 1100px and up: the side cards as a sticky column on the right. */}
         <aside className={s.rail}>
-          <DigestSidebar variant="rail" />
+          <DigestSidebar variant="rail" topics={topicsCard} />
         </aside>
       </div>
+
+      {topicsOpen && signedIn && topics.canSave && (
+        <DigestTopicsModal
+          followed={topics.followed}
+          canSave={topics.canSave}
+          onClose={() => setTopicsOpen(false)}
+          onSave={(next) => topics.save(next, 'modal')}
+        />
+      )}
     </div>
   );
 }

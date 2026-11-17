@@ -56,3 +56,52 @@
   line-height: 20px;
   color: var(--foreground-neutral-secondary, #455468);
 }
+
+// Add topics (LAB-3289): News preferences' chip row with the card's own air above it, clamped to three rows of
+// 24px chips (6px gaps) before the script hides the chips past row three. Padded by 4px so a chip's focus ring
+// isn't clipped. Doubled so it outranks that module's own `.chips` whatever the stylesheet order.
+.chips.chips {
+  max-height: calc(3 * 24px + 2 * 6px + 8px);
+  margin: 8px -4px 0;
+  padding: 4px;
+  overflow: hidden;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+// follow-shared/FollowButton.module.scss: the glossy primary, as on Save topics in the prototype.
+.glossy.glossy {
+  border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
+  box-shadow:
+    0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset,
+    0 4px 6px 0 var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset,
+    0 1px 5px 0 var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+}

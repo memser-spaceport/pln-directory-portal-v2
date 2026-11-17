@@ -62,7 +62,13 @@ export type DigestPageData = {
   isTeamMember: boolean;
   /** When the next digest of this frequency goes out, ISO 8601. */
   nextSendAt: string | null;
+  /** The link member's topics (LAB-3289): followed tags, and the ones to suggest, by interest weight. */
+  topics: DigestTopics;
 };
+
+export type DigestTopic = { slug: string; title: string };
+
+export type DigestTopics = { followed: DigestTopic[]; suggested: DigestTopic[] };
 
 /** `expired`: a 90-day-old link. `invalid`: missing, changed or wrongly signed. `unavailable`: anything else. */
 export type DigestPageError = 'expired' | 'invalid' | 'unavailable';

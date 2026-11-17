@@ -1,8 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 
+import {
+  useIntroRequestAnalytics,
+  type IntroRequestEntryPoint,
+  type IntroRequestEventContext,
+} from '@/analytics/intro-requests.analytics';
 import { Button } from '@/components/common/Button';
 import { useCanRequestIntro } from '@/services/intro-requests/hooks/useCanRequestIntro';
 import type { IntroRequestTargetType } from '@/services/intro-requests/intro-requests.service';
@@ -16,16 +21,43 @@ interface Props {
   targetId: string;
   targetName: string;
   className?: string;
+  /** Where the control sits. Defaults to the member or team page header. */
+  entryPoint?: IntroRequestEntryPoint;
 }
 
-export function RequestIntroEntry({ type, targetId, targetName, className }: Props) {
+export function RequestIntroEntry({ type, targetId, targetName, className, entryPoint }: Props) {
   const canRequest = useCanRequestIntro();
   const [open, setOpen] = useState(false);
   const [sent, setSent] = useState(false);
+  const { onButtonShown, onDialogOpened } = useIntroRequestAnalytics();
+  const shownForRef = useRef<string | null>(null);
+  const visible = Boolean(canRequest && targetId && targetName);
+  const resolvedEntryPoint: IntroRequestEntryPoint =
+    entryPoint ?? (type === 'MEMBER' ? 'member-header' : 'team-header');
+  const context: IntroRequestEventContext = {
+    targetType: type === 'MEMBER' ? 'member' : 'team',
+    entryPoint: resolvedEntryPoint,
+    source: 'modal',
+  };
+  const { targetType } = context;
 
-  if (!canRequest || !targetId || !targetName) {
+  // Once a page view: one event for each target this control shows for.
+  useEffect(() => {
+    if (!visible) return;
+    const key = `${resolvedEntryPoint}:${targetId}`;
+    if (shownForRef.current === key) return;
+    shownForRef.current = key;
+    onButtonShown({ targetType, entryPoint: resolvedEntryPoint, source: 'modal' });
+  }, [visible, targetId, targetType, resolvedEntryPoint, onButtonShown]);
+
+  if (!visible) {
     return null;
   }
+
+  const openDialog = () => {
+    onDialogOpened(context);
+    setOpen(true);
+  };
 
   return (
     <>
@@ -41,13 +73,7 @@ export function RequestIntroEntry({ type, targetId, targetName, className }: Pro
           </span>
         </span>
       ) : (
-        <Button
-          style="fill"
-          variant="primary"
-          size="xs"
-          className={clsx(s.button, className)}
-          onClick={() => setOpen(true)}
-        >
+        <Button style="fill" variant="primary" size="xs" className={clsx(s.button, className)} onClick={openDialog}>
           <EnvelopeIcon />
           Request an intro
         </Button>
@@ -57,6 +83,7 @@ export function RequestIntroEntry({ type, targetId, targetName, className }: Pro
           type={type}
           targetId={targetId}
           targetName={targetName}
+          entryPoint={resolvedEntryPoint}
           onSent={() => setSent(true)}
           onClose={() => setOpen(false)}
         />

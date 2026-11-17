@@ -822,6 +822,10 @@ export const FOLLOW_ANALYTICS_EVENTS = {
 };
 
 export const INTRO_REQUEST_ANALYTICS_EVENTS = {
+  BUTTON_SHOWN: 'intro-request-button-shown',
+  DIALOG_OPENED: 'intro-request-dialog-opened',
+  DIALOG_CLOSED: 'intro-request-dialog-closed',
+  SUBMIT_FAILED: 'intro-request-submit-failed',
   ASK_SUBMITTED: 'ask-submitted',
 };
 

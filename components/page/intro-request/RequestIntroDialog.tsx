@@ -2,7 +2,11 @@
 
 import { FormEvent, useState } from 'react';
 
-import { useIntroRequestAnalytics, type IntroRequestAnalyticsTargetType } from '@/analytics/intro-requests.analytics';
+import {
+  useIntroRequestAnalytics,
+  type IntroRequestEntryPoint,
+  type IntroRequestEventContext,
+} from '@/analytics/intro-requests.analytics';
 import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
 import { CloseIcon } from '@/components/icons';
@@ -28,17 +32,22 @@ interface Props {
   type: IntroRequestTargetType;
   targetId: string;
   targetName: string;
+  entryPoint: IntroRequestEntryPoint;
   onSent: () => void;
   onClose: () => void;
 }
 
-export function RequestIntroDialog({ type, targetId, targetName, onSent, onClose }: Props) {
+export function RequestIntroDialog({ type, targetId, targetName, entryPoint, onSent, onClose }: Props) {
   const [text, setText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [sent, setSent] = useState(false);
-  const { onAskSubmitted } = useIntroRequestAnalytics();
-  const targetType: IntroRequestAnalyticsTargetType = type === 'MEMBER' ? 'member' : 'team';
+  const { onAskSubmitted, onSubmitFailed, onDialogClosed } = useIntroRequestAnalytics();
+  const context: IntroRequestEventContext = {
+    targetType: type === 'MEMBER' ? 'member' : 'team',
+    entryPoint,
+    source: 'modal',
+  };
   const trimmedLength = text.trim().length;
   const showShortText = trimmedLength > 0 && trimmedLength < INTRO_REQUEST_TEXT_MIN_LENGTH;
   const canSend = trimmedLength >= INTRO_REQUEST_TEXT_MIN_LENGTH && !pending;
@@ -58,10 +67,12 @@ export function RequestIntroDialog({ type, targetId, targetName, onSent, onClose
     setError(null);
     try {
       await createIntroRequest({ type, targetId, text: message });
-      onAskSubmitted(targetType);
+      onAskSubmitted({ ...context, textLength: message.length });
       setSent(true);
       onSent();
     } catch (sendError) {
+      const status = sendError instanceof IntroRequestError ? sendError.status : 0;
+      onSubmitFailed({ ...context, status, textLength: message.length });
       const fallback = 'The request could not be sent. Try again.';
       setError(sendError instanceof IntroRequestError ? sendError.message : fallback);
     } finally {
@@ -69,10 +80,18 @@ export function RequestIntroDialog({ type, targetId, targetName, onSent, onClose
     }
   };
 
+  // Close with no send (Cancel, X or Escape). A close after a send is not a drop-off.
+  const handleClose = () => {
+    if (!sent) {
+      onDialogClosed({ ...context, hadText: trimmedLength > 0, textLength: trimmedLength });
+    }
+    onClose();
+  };
+
   return (
     <Modal
       isOpen
-      onClose={onClose}
+      onClose={handleClose}
       closeOnBackdropClick={false}
       lockScroll
       inertBackground
@@ -80,7 +99,7 @@ export function RequestIntroDialog({ type, targetId, targetName, onSent, onClose
       className={s.shell}
     >
       <div className={s.card}>
-        <button type="button" className={s.close} onClick={onClose} aria-label="Close">
+        <button type="button" className={s.close} onClick={handleClose} aria-label="Close">
           <CloseIcon />
         </button>
         <h2 id="request-intro-title" className={s.title}>
@@ -127,7 +146,7 @@ export function RequestIntroDialog({ type, targetId, targetName, onSent, onClose
                 </p>
               )}
               <div className={s.actions}>
-                <Button style="border" variant="primary" onClick={onClose} disabled={pending}>
+                <Button style="border" variant="primary" onClick={handleClose} disabled={pending}>
                   Cancel
                 </Button>
                 <Button type="submit" style="fill" variant="primary" disabled={!canSend}>

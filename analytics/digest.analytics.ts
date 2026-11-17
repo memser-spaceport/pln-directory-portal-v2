@@ -113,6 +113,13 @@ export function useDigestAnalytics() {
       onStoryRead(params: { newsId: string; position: number }) {
         capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_STORY_READ, { news_id: params.newsId, position: params.position });
       },
+      onNetworkNewsClicked(params: { newsId: string; position: number; domain: string | null }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_NETWORK_NEWS_CLICKED, {
+          news_id: params.newsId,
+          position: params.position,
+          domain: params.domain,
+        });
+      },
       onChoiceClicked(params: { kind: DigestChoice; newsId: string; position: number; activeAfter: boolean }) {
         capture(
           params.kind === 'more'

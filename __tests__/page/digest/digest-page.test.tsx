@@ -106,6 +106,7 @@ const data = (extra: Partial<DigestPageData> = {}): DigestPageData => ({
     ],
   },
   issues: [{ sentAt: '2026-11-16T09:00:00.000Z', frequency: 'daily', title: 'Story b', isLinkIssue: true }],
+  networkNews: [],
   ...extra,
 });
 
@@ -558,6 +559,52 @@ describe('topics (LAB-3289)', () => {
     await flush();
     expect(routerPush).toHaveBeenLastCalledWith('/digest?t=x&topics=open#login', { scroll: false });
     expect(screen.queryByRole('dialog')).toBeNull();
+  });
+});
+
+describe('more from the network (LAB-3291)', () => {
+  const press = (uid: string, extra: Partial<DigestPageData['networkNews'][number]> = {}) => ({
+    uid,
+    title: `Press ${uid}`,
+    url: `https://outlet.example/${uid}`,
+    domain: 'outlet.example',
+    image: null,
+    imageUrl: `https://img.example/${uid}.png`,
+    eventDate: '2026-09-25T00:00:00.000Z',
+    teamName: 'Team',
+    ...extra,
+  });
+
+  it('has no section without network news', () => {
+    open('/digest?t=x');
+    expect(screen.queryByRole('heading', { name: 'More from the network' })).toBeNull();
+  });
+
+  it('lists each item after the stories and before the forum posts, opening the outlet in a new tab', () => {
+    open('/digest?t=x', data({ networkNews: [press('x'), press('y', { domain: null, imageUrl: null })] }));
+    const section = screen.getByRole('region', { name: 'More from the network' });
+    const rows = within(section).getAllByRole('link');
+    expect(rows.map((row) => row.textContent)).toEqual(['Press xoutlet.example · 25 Sep', 'Press y25 Sep']);
+    expect(rows[0]).toHaveAttribute('href', 'https://outlet.example/x');
+    expect(rows[0]).toHaveAttribute('target', '_blank');
+    expect(rows[0]).toHaveAttribute('rel', 'noopener noreferrer');
+    expect(rows[0].querySelector('img')).toHaveAttribute('src', 'https://img.example/x.png');
+    expect(rows[1].querySelector('img')).toBeNull();
+    expect(rows[1].querySelector('[aria-hidden] svg')).not.toBeNull();
+    const forum = screen.getByRole('heading', { name: 'Recent forum posts' });
+    expect(card('a').compareDocumentPosition(section) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(section.compareDocumentPosition(forum) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('records a row click with its position and outlet', async () => {
+    open('/digest?t=x', data({ networkNews: [press('x'), press('y')] }));
+    capture.mockClear();
+    await userEvent.click(screen.getByRole('link', { name: /Press y/ }));
+    expect(capture).toHaveBeenCalledWith('digest-network-news-clicked', {
+      news_id: 'y',
+      position: 1,
+      domain: 'outlet.example',
+    });
   });
 });
 

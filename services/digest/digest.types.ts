@@ -66,6 +66,21 @@ export type DigestPageData = {
   topics: DigestTopics;
   /** The member's latest issues, newest first, at most 8, the link's own among them (LAB-3294). */
   issues: DigestIssue[];
+  /** More from the network (LAB-3291): other press about network teams in the issue's week, at most 5. */
+  networkNews: DigestNetworkNews[];
+};
+
+/** One row of More from the network (LAB-3291). Opens `url` at the outlet. */
+export type DigestNetworkNews = {
+  uid: string;
+  title: string;
+  url: string;
+  /** The outlet, as the source's domain. */
+  domain: string | null;
+  image: DigestImage | null;
+  imageUrl: string | null;
+  eventDate: string;
+  teamName: string;
 };
 
 /** One row of Past issues (LAB-3294). `sentAt` is also the issue's key in the address (`?issue=`). */

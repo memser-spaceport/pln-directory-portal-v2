@@ -2950,6 +2950,7 @@ export const EXPLORE_PL_NETWORK_ANALYTICS = {
 export const DIGEST_ANALYTICS_EVENTS = {
   ON_DIGEST_PAGE_VIEWED: 'digest-page-viewed',
   ON_DIGEST_STORY_READ: 'digest-story-read',
+  ON_DIGEST_NETWORK_NEWS_CLICKED: 'digest-network-news-clicked',
   ON_DIGEST_MORE_CLICKED: 'digest-more-clicked',
   ON_DIGEST_LESS_CLICKED: 'digest-less-clicked',
   ON_DIGEST_UNDO_CLICKED: 'digest-undo-clicked',

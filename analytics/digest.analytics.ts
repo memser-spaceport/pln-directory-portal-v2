@@ -5,12 +5,29 @@ import { DIGEST_ANALYTICS_EVENTS, FORUM_ANALYTICS_EVENTS } from '@/utils/constan
 import type { DigestChoice, DigestFrequency } from '@/services/digest/digest.types';
 
 /** How the email opened the page; `direct` for a link without a known `link_type`. */
-export type DigestPageFrom = 'email-more' | 'email-less' | 'email-story' | 'email-post' | 'view-in-browser' | 'direct';
+export type DigestPageFrom =
+  | 'email-more'
+  | 'email-less'
+  | 'email-story'
+  | 'email-post'
+  | 'email-post-news'
+  | 'email-change-topics'
+  | 'view-in-browser'
+  | 'direct';
 
 /** Where a topics action started (LAB-3289). */
 export type DigestTopicsVia = 'chip' | 'see-all' | 'change-topics' | 'email';
 
-export type DigestLinkType = 'story' | 'read_more' | 'more' | 'less' | 'view_in_browser' | 'post';
+/** `post_news` and `change_topics` (LAB-3290): the email's "Post your team news →" and "Change topics". */
+export type DigestLinkType =
+  | 'story'
+  | 'read_more'
+  | 'more'
+  | 'less'
+  | 'view_in_browser'
+  | 'post'
+  | 'post_news'
+  | 'change_topics';
 
 export const DIGEST_LINK_TYPES: readonly DigestLinkType[] = [
   'story',
@@ -19,6 +36,8 @@ export const DIGEST_LINK_TYPES: readonly DigestLinkType[] = [
   'less',
   'view_in_browser',
   'post',
+  'post_news',
+  'change_topics',
 ];
 
 export function digestPageFrom(linkType: string | null): DigestPageFrom {
@@ -32,6 +51,10 @@ export function digestPageFrom(linkType: string | null): DigestPageFrom {
       return 'email-story';
     case 'post':
       return 'email-post';
+    case 'post_news':
+      return 'email-post-news';
+    case 'change_topics':
+      return 'email-change-topics';
     case 'view_in_browser':
       return 'view-in-browser';
     default:

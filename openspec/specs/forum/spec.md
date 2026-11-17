@@ -4,27 +4,28 @@
 
 ## Purpose
 
-A member reads and posts in the forum. The forum bearer token stays on the server. The browser never receives it.
+A member reads and posts in the forum. The server route calls the forum with that member's session token. The browser request does not carry a forum bearer.
 
 ## Requirements
 
-### Requirement: Forum token stays on the server
+### Requirement: Forum calls use the member session
 
-The client bundle SHALL NOT contain the forum bearer token. Forum reads and posts SHALL go through a server route. That route SHALL call the forum with the forum token when the server has one and the member has a session. When the server has no forum token, the route SHALL call the forum with the member session token.
+The client bundle SHALL NOT contain a shared forum bearer token. Forum reads and posts SHALL go through a server route. That route SHALL call the forum with the member session token.
 
 #### Scenario: Member reads and posts
 
 - **GIVEN** a signed-in member
 - **WHEN** the member reads the forum or posts in it
 - **THEN** the browser calls a directory server route
-- **AND** the forum bearer token is not in the browser request
+- **AND** the browser request has no forum bearer token
+- **AND** the server route calls the forum with the member session token
 
 #### Scenario: Visitor has no session
 
 - **GIVEN** a visitor with no session
 - **WHEN** the visitor requests a forum write through the server route
 - **THEN** the route refuses the write
-- **AND** the route does not call the forum with the forum token
+- **AND** the route does not call the forum
 
 ### Requirement: Impersonation comes from the server session
 

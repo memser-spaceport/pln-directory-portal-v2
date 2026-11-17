@@ -40,9 +40,9 @@ export function isForumProxyAllowed(method: string, path: string): boolean {
 }
 
 /**
- * The NodeBB bearer is the forum token when the server has one, otherwise the
- * member session token. The impersonation header is added only for a directory
- * admin, and only for a uid that is not that admin's own.
+ * The NodeBB bearer is the member session token. The impersonation header is
+ * added only for a directory admin, and only for a uid that is not that
+ * admin's own.
  */
 export function userInfoForImpersonation(memberUid: string, effectivePermissions: string[]): IUserInfo {
   return {
@@ -57,13 +57,12 @@ export function userInfoForImpersonation(memberUid: string, effectivePermissions
 }
 
 export function buildForumUpstreamHeaders(input: {
-  forumToken?: string;
   memberToken?: string;
   userInfo: IUserInfo | null;
   impersonateMemberUid: string | null;
 }): Record<string, string> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  const bearer = input.forumToken?.trim() || input.memberToken?.trim();
+  const bearer = input.memberToken?.trim();
   if (bearer) headers.Authorization = `Bearer ${bearer}`;
 
   const requested = input.impersonateMemberUid?.trim() ?? '';

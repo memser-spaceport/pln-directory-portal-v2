@@ -8,17 +8,14 @@ const customFetchMock = customFetch as jest.Mock;
 const FALLBACK = 'Couldn’t post your comment — try again.';
 
 const originalForumApiUrl = process.env.FORUM_API_URL;
-const originalForumToken = process.env.CUSTOM_FORUM_AUTH_TOKEN;
 
 afterAll(() => {
   process.env.FORUM_API_URL = originalForumApiUrl;
-  process.env.CUSTOM_FORUM_AUTH_TOKEN = originalForumToken;
 });
 
 describe('postForumReply', () => {
   beforeAll(() => {
     process.env.FORUM_API_URL = 'https://forum.example.com';
-    process.env.CUSTOM_FORUM_AUTH_TOKEN = 'forum-token';
   });
 
   beforeEach(() => customFetchMock.mockReset());
@@ -40,7 +37,6 @@ describe('postForumReply', () => {
     const headers = customFetchMock.mock.calls[0][1].headers;
     expect(headers.Authorization).toBeUndefined();
     expect(headers.authorization).toBeUndefined();
-    expect(JSON.stringify(customFetchMock.mock.calls[0])).not.toContain('forum-token');
   });
 
   it('throws with NodeBB’s own message when it supplies one', async () => {
@@ -72,8 +68,6 @@ describe('postForumReply', () => {
   });
 
   it('carries a 401 from the auth layer in front of NodeBB, whose body is not NodeBB-shaped', async () => {
-    // Observed with an expired CUSTOM_FORUM_AUTH_TOKEN: reads still succeed as a
-    // guest, writes come back like this.
     customFetchMock.mockResolvedValue({ ok: false, status: 401, json: async () => ({ error: 'Invalid token' }) });
 
     await expect(postForumReply({ tid: 96, toPid: 263, content: '<p>x</p>' })).rejects.toMatchObject({
@@ -113,7 +107,7 @@ describe('forumErrorMessage', () => {
     expect(forumErrorMessage(new Error(''), FALLBACK)).toBe(FALLBACK);
   });
 
-  it('explains a rejected session on 401 — in practice an expired forum token', () => {
+  it('explains a rejected session on 401 — in practice an expired member session', () => {
     const rejected = new ForumWriteError(401, 'Invalid token');
 
     expect(forumErrorMessage(rejected, FALLBACK)).toMatch(/didn’t accept your session/);

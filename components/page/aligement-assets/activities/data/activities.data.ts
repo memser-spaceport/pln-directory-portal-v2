@@ -26,7 +26,7 @@ export const activitiesData: ActivitiesData = {
         rules: [
           'Responses must do at least one of the following: add meaningful insight, ask a sharp follow-up question, share relevant personal or professional experience, or introduce useful evidence, context, or interpretation',
           'Responses must be posted by a human user, not an agent',
-          'Only responses posted within 7 days of the original thread will count',
+          'Only responses posted within 7 business days of the original thread will count',
           'Responses will be reviewed by the PLAA Working Group before points are awarded',
         ],
         links: [{ text: 'LabOS Forum', url: '/forum?cid=0' }],

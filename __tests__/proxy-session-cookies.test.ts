@@ -75,8 +75,9 @@ const SESSION = {
 beforeEach(() => {
   jest.clearAllMocks();
   process.env.COOKIE_DOMAIN = DOMAIN;
+  const now = nowSec();
   mockedDecode.mockImplementation((token: string) => ({
-    exp: nowSec() + (token.startsWith('refresh') ? 30 * 24 * HOUR : HOUR),
+    exp: now + (token.startsWith('refresh') ? 30 * 24 * HOUR : HOUR),
   }));
 });
 

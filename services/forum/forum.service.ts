@@ -1,10 +1,10 @@
 import { customFetch } from '@/utils/fetch-wrapper';
 
 /**
- * Browser calls to NodeBB go through `/api/forum/nodebb`. The forum bearer
- * token stays on that server route. The third argument is false so this call
- * does not put the member directory token on the browser request: the route
- * reads the session cookie and chooses the NodeBB bearer.
+ * Browser calls to NodeBB go through `/api/forum/nodebb`. The route reads the
+ * session cookie and sends that member session token to NodeBB. The third
+ * argument is false so this call does not put the member directory token on
+ * the browser request.
  *
  * Returns customFetch's response, which may be `undefined` when the wrapper
  * logs the user out mid-flight: callers must guard with `response?.ok`.
@@ -88,8 +88,8 @@ export async function postForumReply({ tid, toPid, content }: PostForumReplyPara
  * Rejections members hit routinely and cannot diagnose from a generic line get
  * spelled out: NodeBB's `minimumPostLength` (8 characters by default, so
  * "nice!" is refused), its post-rate limit, and a rejected session — which in
- * practice means an expired forum token, and is otherwise indistinguishable from
- * the composer just not working.
+ * practice means an expired member session, and is otherwise indistinguishable
+ * from the composer just not working.
  */
 export function forumErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof ForumWriteError) {

@@ -64,6 +64,18 @@ export type DigestPageData = {
   nextSendAt: string | null;
   /** The link member's topics (LAB-3289): followed tags, and the ones to suggest, by interest weight. */
   topics: DigestTopics;
+  /** The member's latest issues, newest first, at most 8, the link's own among them (LAB-3294). */
+  issues: DigestIssue[];
+};
+
+/** One row of Past issues (LAB-3294). `sentAt` is also the issue's key in the address (`?issue=`). */
+export type DigestIssue = {
+  sentAt: string;
+  frequency: DigestFrequency;
+  /** The issue's top story title, else its first story's; null when that story is gone. */
+  title: string | null;
+  /** The link's own issue: opened without `issue`. */
+  isLinkIssue: boolean;
 };
 
 export type DigestTopic = { slug: string; title: string };

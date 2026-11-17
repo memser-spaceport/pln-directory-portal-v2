@@ -22,7 +22,7 @@ type ChoiceMap = Record<string, DigestChoice | null>;
  *
  * The token is held in a closure only: never stored, never put in a query key or an event.
  */
-export function useDigestChoices(token: string, stories: DigestStory[]) {
+export function useDigestChoices(token: string, stories: DigestStory[], issue?: string) {
   const [choices, setChoices] = useState<ChoiceMap>(() =>
     Object.fromEntries(stories.map((story) => [story.uid, story.choice])),
   );
@@ -37,7 +37,7 @@ export function useDigestChoices(token: string, stories: DigestStory[]) {
       setChoices((current) => ({ ...current, [uid]: next }));
       setReceipts(({ [uid]: _dropped, ...rest }) => rest);
       try {
-        const response = await saveDigestChoice(token, uid, next ?? 'none');
+        const response = await saveDigestChoice(token, uid, next ?? 'none', issue);
         if (latest.current[uid] !== request) return false;
         saved.current[uid] = response.choice;
         setChoices((current) => ({ ...current, [uid]: response.choice }));
@@ -51,7 +51,7 @@ export function useDigestChoices(token: string, stories: DigestStory[]) {
         return false;
       }
     },
-    [token],
+    [token, issue],
   );
 
   /** A press on a button. Pressing the active one undoes it. Returns the choice after the press. */

@@ -3,16 +3,17 @@ import type { DigestChoice, DigestChoiceResponse, DigestPageData, DigestPageResu
 const apiUrl = (path: string) => `${process.env.DIRECTORY_API_URL}/v1/labos-digest/${path}`;
 
 /**
- * Reads one member's digest from its email link (LAB-3264). Called from the server page: no auth header,
- * no cache. Reading changes nothing on the backend, so a link scanner that fetches the page is safe.
+ * Reads one member's digest from its email link (LAB-3264), or with `issue` (a send time) one of that member's past
+ * issues (LAB-3294). Called from the server page: no auth header, no cache. Reading changes nothing on the backend, so
+ * a link scanner that fetches the page is safe.
  */
-export async function getDigestPage(token: string | undefined): Promise<DigestPageResult> {
+export async function getDigestPage(token: string | undefined, issue?: string): Promise<DigestPageResult> {
   if (!token) return { error: 'invalid' };
   try {
     const response = await fetch(apiUrl('page'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token }),
+      body: JSON.stringify(issue ? { token, issue } : { token }),
       cache: 'no-store',
     });
     if (response.ok) return { data: withPageDefaults(await response.json()) };
@@ -27,16 +28,20 @@ export async function getDigestPage(token: string | undefined): Promise<DigestPa
   }
 }
 
-/** Saves More or Less on one story, or undoes it (`none`). Throws when the save fails. */
+/**
+ * Saves More or Less on one story, or undoes it (`none`). `issue` names the past issue the story is in (LAB-3294).
+ * Throws when the save fails.
+ */
 export async function saveDigestChoice(
   token: string,
   newsItemUid: string,
   choice: DigestChoice | 'none',
+  issue?: string,
 ): Promise<DigestChoiceResponse> {
   const response = await fetch(apiUrl('choices'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token, newsItemUid, choice }),
+    body: JSON.stringify(issue ? { token, newsItemUid, choice, issue } : { token, newsItemUid, choice }),
   });
   if (!response.ok) throw new Error(`Digest choice failed (${response.status})`);
   return response.json();
@@ -52,6 +57,7 @@ export function withPageDefaults(raw: DigestPageData): DigestPageData {
     isTeamMember: raw.isTeamMember ?? false,
     nextSendAt: raw.nextSendAt ?? null,
     topics: { followed: raw.topics?.followed ?? [], suggested: raw.topics?.suggested ?? [] },
+    issues: raw.issues ?? [],
     stories: (raw.stories ?? []).map((story) => ({
       ...story,
       teamLogoUrl: story.teamLogoUrl ?? null,

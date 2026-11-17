@@ -12,7 +12,7 @@ import {
   type DigestTopicsVia,
 } from '@/analytics/digest.analytics';
 import { useCurrentUserStore } from '@/services/auth/store';
-import type { DigestChoice, DigestPageData } from '@/services/digest/digest.types';
+import type { DigestChoice, DigestIssue, DigestPageData } from '@/services/digest/digest.types';
 import { useDigestChoices } from '@/services/digest/hooks/useDigestChoices';
 import { useDigestFollows } from '@/services/digest/hooks/useDigestFollows';
 import { useDigestTopics } from '@/services/digest/hooks/useDigestTopics';
@@ -32,6 +32,8 @@ import s from './DigestPage.module.scss';
 type Props = {
   /** The link token, passed from the server page. Only sent in choice request bodies. */
   token: string;
+  /** The past issue on show (`?issue=`, LAB-3294); undefined for the link's own issue. */
+  issue?: string;
   data: DigestPageData;
   isLoggedIn: boolean;
 };
@@ -44,9 +46,9 @@ const asChoice = (value: string | null): DigestChoice | null => (value === 'more
  * the browser, so a link scanner that fetches the page changes nothing. Follow, Comments and posting news act for the
  * signed-in member and send a signed-out reader to sign-in.
  */
-export function DigestPage({ token, data, isLoggedIn }: Props) {
+export function DigestPage({ token, issue, data, isLoggedIn }: Props) {
   const searchParams = useSearchParams();
-  const { choices, receipts, press, undo, land } = useDigestChoices(token, data.stories);
+  const { choices, receipts, press, undo, land } = useDigestChoices(token, data.stories, issue);
   const analytics = useDigestAnalytics();
   const started = useRef(false);
   const router = useRouter();
@@ -114,6 +116,13 @@ export function DigestPage({ token, data, isLoggedIn }: Props) {
     onSave: (next: string[]) => topics.save(next, 'card'),
     onOpenAll: () => openTopics('see-all'),
     onSignIn: (slug: string) => signInForTopics('chip', { key: 'topic', value: slug }),
+  };
+  // Past issues open from this same link: the link's own issue without `issue`, any other with its send time.
+  const issuesCard = {
+    issues: data.issues,
+    current: data.sentAt,
+    hrefFor: (row: DigestIssue) =>
+      `?t=${encodeURIComponent(token)}${row.isLinkIssue ? '' : `&issue=${encodeURIComponent(row.sentAt)}`}`,
   };
 
   useEffect(() => {
@@ -242,7 +251,7 @@ export function DigestPage({ token, data, isLoggedIn }: Props) {
           <DigestCaughtUp nextSendAt={data.nextSendAt} />
 
           {/* Under 1100px there's no room beside the column: the side cards close the page instead. */}
-          <DigestSidebar variant="inline" topics={topicsCard} />
+          <DigestSidebar variant="inline" topics={topicsCard} issues={issuesCard} />
 
           {data.isTeamMember && (
             <DigestPostNews openOnLoad={searchParams.get('postnews') === 'open'} onSignIn={signIn} />
@@ -268,7 +277,7 @@ export function DigestPage({ token, data, isLoggedIn }: Props) {
 
         {/* 1100px and up: the side cards as a sticky column on the right. */}
         <aside className={s.rail}>
-          <DigestSidebar variant="rail" topics={topicsCard} />
+          <DigestSidebar variant="rail" topics={topicsCard} issues={issuesCard} />
         </aside>
       </div>
 

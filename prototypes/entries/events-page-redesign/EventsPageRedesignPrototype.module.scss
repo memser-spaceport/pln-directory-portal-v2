@@ -8,6 +8,24 @@
   background: var(--background-base-white, #ffffff);
 }
 
+/* The directory frame (DashboardPagesLayout) is grey; this page stays white like Home. Its rail
+   sticks under the prototype navbar, which is the 80px --app-header-height already names. */
+.shell {
+  background: var(--background-base-white, #ffffff);
+
+  > section,
+  > section > main {
+    background: var(--background-base-white, #ffffff);
+  }
+
+  /* The frame pads its content 30px 24px from 1024px; the page brings its own. */
+  > section > main {
+    @media (min-width: 1024px) {
+      padding: 0;
+    }
+  }
+}
+
 .page {
   width: 100%;
   min-height: 100vh;
@@ -140,7 +158,9 @@
   font: inherit;
   color: inherit;
   cursor: pointer;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
 
   &:hover {
     border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
@@ -208,59 +228,24 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  justify-content: space-between;
   margin-top: 32px;
   padding-bottom: 16px;
   border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   flex-wrap: wrap;
 }
 
-.search {
-  flex: 0 1 320px;
-  min-width: 220px;
-
-  @include media.mobile-only {
-    flex: 1 1 100%;
-  }
+/* Phones and tablets: the directory's Filters pill + sheet; it hides itself from 1024px. */
+.mobileFilters {
+  margin-top: 16px;
 }
 
-.pills {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 32px;
-  padding: 0 12px;
-  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-  border-radius: 999px;
-  background: var(--background-neutral-primary, #ffffff);
-  font: inherit;
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 500;
-  color: var(--foreground-neutral-secondary, #455468);
-  cursor: pointer;
-
-  &:hover {
-    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
-  }
-}
-
-.pillActive,
-.pillActive:hover {
-  border-color: var(--foreground-neutral-primary, #0a0c11);
-  background: var(--foreground-neutral-primary, #0a0c11);
-  color: var(--background-neutral-primary, #ffffff);
-}
-
-.pillCount {
-  font-size: 12px;
-  line-height: 16px;
-  opacity: 0.7;
+.toolbarTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
 }
 
 .viewSwitch {
@@ -270,8 +255,9 @@
   border-radius: 8px;
   background: var(--background-neutral-subtle, #f1f5f9);
 
-  @include media.mobile-only {
-    margin-left: 0;
+  /* Under 1024px the Filters bar carries List | Month as its "View:" menu. */
+  @media (max-width: 1023px) {
+    display: none;
   }
 }
 
@@ -292,7 +278,8 @@
 .viewBtnActive {
   background: var(--background-neutral-primary, #ffffff);
   color: var(--foreground-neutral-primary, #0a0c11);
-  box-shadow: 0 1px 2px var(--transparent-dark-4, rgba(14, 15, 17, 0.04)),
+  box-shadow:
+    0 1px 2px var(--transparent-dark-4, rgba(14, 15, 17, 0.04)),
     0 0 0 1px var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 }
 
@@ -426,7 +413,9 @@
   font: inherit;
   color: inherit;
   cursor: pointer;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 
   &:hover {
     border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));

@@ -1,8 +1,7 @@
-/* The DS Badge (`root` + `default`) as a button: these only undo the browser's
-   button chrome and add the press states a control needs. Size and ink are
-   the Badge's own. */
+/* The privacy pill (`PlTeamOnlyPill.module.scss .pill`) as a button: these only
+   undo the browser's button chrome and add the press states a control needs.
+   Size, case and ink are the pill's own. */
 .trigger {
-  gap: 4px;
   cursor: pointer;
   font-family: inherit;
   transition:
@@ -11,7 +10,8 @@
 
   &:hover,
   &[data-popup-open] {
-    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    background: var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
   }
 
   &:focus-visible {

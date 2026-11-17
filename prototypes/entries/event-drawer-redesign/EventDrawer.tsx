@@ -52,7 +52,7 @@
  */
 
 import clsx from 'clsx';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { Badge } from '@/components/common/Badge';
@@ -70,6 +70,7 @@ import {
   CheckIcon,
   CloseIcon,
   GlobeIcon,
+  SuccessCircleIcon,
 } from '@/components/icons';
 import type { ITeam } from '@/types/teams.types';
 
@@ -86,7 +87,7 @@ import type {
 } from '@/components/core/UpdatesPanel/IrlGatheringModal/types';
 import m from '@/components/core/UpdatesPanel/IrlGatheringModal/IrlGatheringModal.module.scss';
 
-import { saveGathering, useGoing } from '../member-events-going/goingStore';
+import { markGoing, saveGathering, useGoing } from '../member-events-going/goingStore';
 import { ATTENDEES, MAYA_TEAMS, type EventDetail, type Gathering } from '../member-events-going/mocks';
 
 import {
@@ -105,6 +106,7 @@ import {
   eventByUid,
   eventsAppHref,
   gatheringFor,
+  registerHref,
   siblingsOf,
   THUMBS,
   type CalEvent,
@@ -326,93 +328,177 @@ function EventView({
   const { venue } = venueOf(detail);
   const online = detail.mode === 'Virtual';
 
+  /* "Away" = less than half the card on screen (a proportion, so it holds on tall monitors too).
+     The sticky toolbar covers the top 56px, so it doesn't count as on screen. */
+  const rsvpRef = useRef<HTMLDivElement>(null);
+  const [rsvpAway, setRsvpAway] = useState(false);
+  useEffect(() => {
+    const el = rsvpRef.current;
+    if (!el) return;
+    /* Vertical only: an IntersectionObserver would also read the drawer's slide-in as "away". */
+    let scroller: HTMLElement | null = el.parentElement;
+    while (scroller && !/(auto|scroll)/.test(getComputedStyle(scroller).overflowY)) scroller = scroller.parentElement;
+    const target: HTMLElement | Window = scroller ?? window;
+    const check = () => {
+      const r = el.getBoundingClientRect();
+      const top = scroller ? scroller.getBoundingClientRect().top + 56 : 56;
+      const bottom = scroller ? scroller.getBoundingClientRect().bottom : window.innerHeight;
+      const visible = Math.max(0, Math.min(r.bottom, bottom) - Math.max(r.top, top));
+      setRsvpAway(visible < r.height / 2);
+    };
+    check();
+    target.addEventListener('scroll', check, { passive: true });
+    window.addEventListener('resize', check);
+    return () => {
+      target.removeEventListener('scroll', check);
+      window.removeEventListener('resize', check);
+    };
+  }, []);
+
   return (
-    <div className={d.body}>
-      <section className={d.hero}>
-        <div className={d.badges}>
-          <Badge>{MODE_LABEL[detail.mode]}</Badge>
-          <Badge>{ACCESS_LABEL[detail.access]}</Badge>
-        </div>
-        {/* The event's own picture as a small thumbnail beside the title and hosts
+    <>
+      <div className={d.body}>
+        <section className={d.hero}>
+          <div className={d.badges}>
+            <Badge>{MODE_LABEL[detail.mode]}</Badge>
+            <Badge>{ACCESS_LABEL[detail.access]}</Badge>
+          </div>
+          {/* The event's own picture as a small thumbnail beside the title and hosts
             (2026-11-11). The calendar-glyph tile it replaced was a placeholder; with
             no picture there is no tile and the title starts at the edge. */}
-        <div className={d.titleRow}>
-          {THUMBS[event.uid] && <img className={d.logo} src={THUMBS[event.uid]} alt="" width={56} height={56} />}
-          <div className={d.titleText}>
-            <h2 className={d.title}>{event.name}</h2>
-            <p className={d.hosts}>
-              Hosted by{' '}
-              {detail.hosts.map((host, i) => (
-                <span key={host}>
-                  {i > 0 && (i === detail.hosts.length - 1 ? ' and ' : ', ')}
-                  <a className={d.hostLink} href="/prototypes/team-profile" target="_blank" rel="noreferrer">
-                    {host}
-                  </a>
-                </span>
-              ))}
-            </p>
+          <div className={d.titleRow}>
+            {THUMBS[event.uid] && <img className={d.logo} src={THUMBS[event.uid]} alt="" width={56} height={56} />}
+            <div className={d.titleText}>
+              <h2 className={d.title}>{event.name}</h2>
+              <p className={d.hosts}>
+                Hosted by{' '}
+                {detail.hosts.map((host, i) => (
+                  <span key={host}>
+                    {i > 0 && (i === detail.hosts.length - 1 ? ' and ' : ', ')}
+                    <a className={d.hostLink} href="/prototypes/team-profile" target="_blank" rel="noreferrer">
+                      {host}
+                    </a>
+                  </span>
+                ))}
+              </p>
+            </div>
           </div>
+        </section>
+
+        <ul className={d.facts}>
+          <li className={d.fact}>
+            <span className={d.dateTile} aria-hidden>
+              <span className={d.dateMonth}>{monthShort(event.startDate)}</span>
+              <span className={d.dateDay}>{dayOfMonth(event.startDate)}</span>
+            </span>
+            <span className={d.factText}>
+              <span className={d.factMain}>{dayLine(event)}</span>
+              <span className={d.factSub}>{timeLine(detail)}</span>
+            </span>
+          </li>
+          <li className={d.fact}>
+            <span className={d.factIcon} aria-hidden>
+              {online ? <GlobeIcon width={20} height={20} /> : <PinIcon />}
+            </span>
+            <span className={d.factText}>
+              {online ? (
+                <span className={d.factMain}>{venue}</span>
+              ) : (
+                <a className={clsx(d.factMain, d.factLink)} href={mapsHref(detail)} target="_blank" rel="noreferrer">
+                  {venue}
+                  <ArrowUpRightIcon width={14} height={14} />
+                </a>
+              )}
+              <span className={d.factSub}>{online ? 'Link sent after you register' : regionLine(detail)}</span>
+            </span>
+          </li>
+        </ul>
+
+        <div ref={rsvpRef}>
+          <RsvpCard
+            event={event}
+            gathering={gathering}
+            onOpenAttendees={onOpenAttendees}
+            onOpenPlans={onOpenPlans}
+            onMarked={onMarked}
+            onUnmarked={onUnmarked}
+          />
         </div>
-      </section>
 
-      <ul className={d.facts}>
-        <li className={d.fact}>
-          <span className={d.dateTile} aria-hidden>
-            <span className={d.dateMonth}>{monthShort(event.startDate)}</span>
-            <span className={d.dateDay}>{dayOfMonth(event.startDate)}</span>
-          </span>
-          <span className={d.factText}>
-            <span className={d.factMain}>{dayLine(event)}</span>
-            <span className={d.factSub}>{timeLine(detail)}</span>
-          </span>
-        </li>
-        <li className={d.fact}>
-          <span className={d.factIcon} aria-hidden>
-            {online ? <GlobeIcon width={20} height={20} /> : <PinIcon />}
-          </span>
-          <span className={d.factText}>
-            {online ? (
-              <span className={d.factMain}>{venue}</span>
-            ) : (
-              <a className={clsx(d.factMain, d.factLink)} href={mapsHref(detail)} target="_blank" rel="noreferrer">
-                {venue}
-                <ArrowUpRightIcon width={14} height={14} />
-              </a>
-            )}
-            <span className={d.factSub}>{online ? 'Link sent after you register' : regionLine(detail)}</span>
-          </span>
-        </li>
-      </ul>
+        <Section title="About">
+          {detail.description.map((p) => (
+            <p key={p.slice(0, 24)} className={d.paragraph}>
+              {p}
+            </p>
+          ))}
+          {detail.tags.length > 0 && (
+            <div className={d.tags}>
+              {detail.tags.map((tag) => (
+                <Badge key={tag.name} className={d.tag}>
+                  {tag.name}
+                </Badge>
+              ))}
+            </div>
+          )}
+        </Section>
 
-      <RsvpCard
-        event={event}
-        gathering={gathering}
-        onOpenAttendees={onOpenAttendees}
-        onOpenPlans={onOpenPlans}
-        onMarked={onMarked}
-        onUnmarked={onUnmarked}
-      />
+        {detail.agenda.length > 0 && <Agenda agenda={detail.agenda} />}
 
-      <Section title="About">
-        {detail.description.map((p) => (
-          <p key={p.slice(0, 24)} className={d.paragraph}>
-            {p}
-          </p>
-        ))}
-        {detail.tags.length > 0 && (
-          <div className={d.tags}>
-            {detail.tags.map((tag) => (
-              <Badge key={tag.name} className={d.tag}>
-                {tag.name}
-              </Badge>
-            ))}
-          </div>
+        {gathering && <GatheringBlock event={event} gathering={gathering} onNavigate={onNavigate} />}
+      </div>
+      {rsvpAway && <RsvpBar event={event} onMarked={onMarked} />}
+    </>
+  );
+}
+
+/**
+ * The ask, pinned (2026-11-16). On a long event (description, agenda, the gathering's other events) the
+ * RSVP card scrolls away and "Yes, I'm going" goes with it. Once less than half the card is on screen,
+ * the same question and the same two presses stand in the drawer's footer, the slot PlansView's
+ * Cancel / Save already use, so the drawer has one bottom bar, not a floating second one. After yes the
+ * bar is the receipt until the card is back in view; the card keeps the follow-ups (consent, plans,
+ * Mark as not going). A yes pressed here takes the card's default, Show on my profile ticked; the card
+ * offers the untick right after.
+ */
+function RsvpBar({ event, onMarked }: { event: CalEvent; onMarked: (onProfile: boolean) => void }) {
+  const going = useGoing(SCOPE);
+  const entry = going[event.uid];
+
+  return (
+    <div className={clsx(d.footer, d.rsvpBar)}>
+      {entry ? (
+        <p className={clsx(d.cardTitle, d.cardTitleGoing, d.rsvpBarText)}>
+          <SuccessCircleIcon width={20} height={20} />
+          You&apos;re going
+        </p>
+      ) : (
+        <p className={d.rsvpBarText}>
+          <span className={d.rsvpBarTitle}>Are you going?</span>
+          <span className={d.rsvpBarMeta}>{event.attendeeCount} members going</span>
+        </p>
+      )}
+      <div className={d.rsvpBarActions}>
+        <a
+          href={registerHref(event.uid)}
+          target="_blank"
+          rel="noreferrer"
+          className={clsx(btn.root, btn.small, btn.border, btn.neutral, d.btn)}
+        >
+          Register
+          <ArrowUpRightIcon width={14} height={14} />
+        </a>
+        {!entry && (
+          <Button
+            size="s"
+            onClick={() => {
+              markGoing(SCOPE, event.uid, true);
+              onMarked(true);
+            }}
+          >
+            Yes, I&apos;m going
+          </Button>
         )}
-      </Section>
-
-      {detail.agenda.length > 0 && <Agenda agenda={detail.agenda} />}
-
-      {gathering && <GatheringBlock event={event} gathering={gathering} onNavigate={onNavigate} />}
+      </div>
     </div>
   );
 }

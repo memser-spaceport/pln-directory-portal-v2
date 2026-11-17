@@ -8,8 +8,12 @@
  *   Luma calendar list ... day headers on a dotted rail, card = time / title / host /
  *                          place / facepile / square thumb on the right → the List view.
  *   Luma side peek ....... clicking a row opens a drawer, list stays behind → EventDrawer.
- *   Meetup "From your groups" / Eventbrite List|Calendar → one toolbar: search, filter
- *                          pills, List | Month switch.
+ *   Meetup "From your groups" / Eventbrite List|Calendar → the Calendar | List | Map switch (the events app's views; Calendar default).
+ *   Filters: the directory's left rail (Teams / Members): DashboardPagesLayout +
+ *                          FiltersSidePanel + FilterSection + GenericCheckboxList /
+ *                          GenericFilterToggle, holding the events app's own filters in full
+ *                          (Show featured, Modes, Access Types, Focus Areas, Gatherings, Hosts)
+ *                          plus Going. Phones: MobileFilterWrapper's Filters pill + sheet.
  *   Nextdoor "Your events → Going" → the "Your plans" rail.
  *
  * Imported, not forked:
@@ -32,7 +36,8 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
-import { SearchInput } from '@/components/common/filters/SearchInput';
+import { MobileFilterWrapper } from '@/components/common/filters/MobileFilterWrapper';
+import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
 import { ArrowUpRightIcon, CaretLeftIcon, CaretRightIcon, CheckIcon, PlusIcon } from '@/components/icons';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
@@ -49,7 +54,6 @@ import { ACCESS_LABEL, MODE_LABEL, startTime, venueOf } from '../event-drawer-re
 import {
   CAL_EVENTS,
   DETAILS,
-  FILTERS,
   THUMBS,
   at,
   dayHeading,
@@ -57,16 +61,26 @@ import {
   isUpcoming,
   iso,
   listDay,
-  matchesFilter,
+  matchesFilters,
   matchesQuery,
   spanLabel,
   upcomingGatherings,
   type CalEvent,
-  type Filter,
+  type EventFilters,
 } from './mocks';
+import { EventsFilterView } from './EventsFilterView';
+import { EventsMap } from './EventsMap';
+import { countAppliedFilters, decodeMulti, encodeMulti, useEventsFilterStore } from './eventsFilterStore';
 import s from './EventsPageRedesignPrototype.module.scss';
 
-type View = 'list' | 'month';
+/** The events app's three views, in its order. Calendar is the default (no ?view= param). */
+type View = 'calendar' | 'list' | 'map';
+
+const VIEW_OPTIONS: { value: View; label: string }[] = [
+  { value: 'calendar', label: 'Calendar' },
+  { value: 'list', label: 'List' },
+  { value: 'map', label: 'Map' },
+];
 
 const SUBMIT_HREF = 'https://irl.os.pl.xyz/events/add';
 const EVENTS_APP_HREF = 'https://events.plnetwork.io/calendar';
@@ -78,10 +92,11 @@ export default function EventsPageRedesignPrototype() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const view: View = searchParams.get('view') === 'month' ? 'month' : 'list';
+  const viewParam = searchParams.get('view');
+  const view: View = viewParam === 'list' || viewParam === 'map' ? viewParam : 'calendar';
   const setView = (next: View) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (next === 'list') params.delete('view');
+    if (next === 'calendar') params.delete('view');
     else params.set('view', next);
     const q = params.toString();
     router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
@@ -91,9 +106,29 @@ export default function EventsPageRedesignPrototype() {
   const going = useGoing('owner');
   const goingUids = useMemo(() => new Set(Object.keys(going)), [going]);
 
-  const [filter, setFilter] = useState<Filter>('all');
-  const [city, setCity] = useState<string | null>(null);
-  const [query, setQuery] = useState('');
+  // Filters live in the rail's store (a URLSearchParams mirror, as on Teams); the page reads them.
+  const { params, setParam, clearParams } = useEventsFilterStore();
+  const filters: EventFilters = useMemo(
+    () => ({
+      going: params.get('going') === 'true',
+      featured: params.get('featured') === 'true',
+      mode: decodeMulti(params.get('mode')),
+      access: decodeMulti(params.get('access')),
+      focus: decodeMulti(params.get('focus')),
+      gathering: decodeMulti(params.get('gathering')),
+      host: decodeMulti(params.get('host')),
+    }),
+    [params],
+  );
+  const query = params.get('search') ?? '';
+  // The city tiles and the rail's Gathering filter are one selection: a tile toggles its city in it.
+  const city = filters.gathering.length === 1 ? filters.gathering[0] : null;
+  const toggleGathering = (cityName: string) => {
+    const next = filters.gathering.includes(cityName)
+      ? filters.gathering.filter((g) => g !== cityName)
+      : [...filters.gathering, cityName];
+    setParam('gathering', next.length ? encodeMulti(next) : undefined);
+  };
   const [openUid, setOpenUid] = useState<string | null>(null);
   const [sequence, setSequence] = useState<string[]>([]);
   const [notice, setNotice] = useState<EventNotice | null>(null);
@@ -101,12 +136,8 @@ export default function EventsPageRedesignPrototype() {
   const todayIso = today ? iso(today) : '';
 
   const visible = useMemo(
-    () =>
-      CAL_EVENTS.filter(
-        (e) =>
-          (!city || e.gatheringUid === city) && matchesFilter(e, filter, goingUids) && matchesQuery(e, query),
-      ),
-    [city, filter, goingUids, query],
+    () => CAL_EVENTS.filter((e) => matchesFilters(e, filters, goingUids) && matchesQuery(e, query)),
+    [filters, goingUids, query],
   );
   const upcoming = useMemo(() => visible.filter((e) => isUpcoming(e, todayIso)), [visible, todayIso]);
 
@@ -120,185 +151,189 @@ export default function EventsPageRedesignPrototype() {
     setNotice(next);
     setTimeout(() => setNotice(null), 6000);
   };
-  const clearAll = () => {
-    setFilter('all');
-    setCity(null);
-    setQuery('');
-  };
-  const filtered = filter !== 'all' || !!city || !!query.trim();
+  const clearAll = clearParams;
+  const filterCount = countAppliedFilters(params);
+  const filtered = filterCount > 0;
 
   const gatherings = upcomingGatherings(todayIso);
-  const cityName = city ? gatherings.find((g) => g.gathering.uid === city)?.gathering.city : null;
+  const cityName = city;
+  // Option counts in the rail are over everything coming up, not over the current result.
+  const allUpcoming = CAL_EVENTS.filter((e) => isUpcoming(e, todayIso));
   const plans = CAL_EVENTS.filter((e) => goingUids.has(e.uid) && isUpcoming(e, todayIso));
+
+  const content = (
+    <div className={s.page}>
+      <div className={s.container}>
+        <header className={s.header}>
+          <div className={s.headerText}>
+            <h1 className={s.title}>Events</h1>
+            <p className={s.lede}>Gatherings, meetups and office hours across the Protocol Labs network.</p>
+          </div>
+          <div className={s.headerActions}>
+            <a href={EVENTS_APP_HREF} target="_blank" rel="noreferrer" className={s.textLink}>
+              Open PL Events <ArrowUpRightIcon width={14} height={14} />
+            </a>
+            <a href={SUBMIT_HREF} target="_blank" rel="noreferrer">
+              <Button style="border" variant="neutral" size="s" className={s.btn}>
+                <PlusIcon width={14} height={14} /> Submit an event
+              </Button>
+            </a>
+          </div>
+        </header>
+
+        {gatherings.length > 0 && (
+          <section className={s.gatherings} aria-labelledby="gatherings-title">
+            <div className={s.sectionHead}>
+              <h2 id="gatherings-title" className={s.sectionTitle}>
+                Gatherings
+              </h2>
+              <span className={s.sectionNote}>Network weeks in one city. Pick one to see its events.</span>
+            </div>
+            <div className={s.gatheringRow}>
+              {gatherings.map(({ gathering, startDate, endDate, eventCount }) => {
+                const active = filters.gathering.includes(gathering.city);
+                return (
+                  <button
+                    key={gathering.uid}
+                    type="button"
+                    aria-pressed={active}
+                    className={clsx(s.gatheringCard, active && s.gatheringActive)}
+                    onClick={() => toggleGathering(gathering.city)}
+                  >
+                    <span className={s.cityMark} aria-hidden>
+                      {gathering.city.slice(0, 1)}
+                    </span>
+                    <span className={s.gatheringText}>
+                      <span className={s.gatheringCity}>{gathering.city}</span>
+                      <span className={s.gatheringMeta}>
+                        {spanLabel(startDate, endDate)} · {eventCount} {eventCount === 1 ? 'event' : 'events'}
+                      </span>
+                      <span className={s.gatheringMeta}>{gathering.attendeesCount} members going</span>
+                    </span>
+                    {active && <CheckIcon width={16} height={16} className={s.gatheringCheck} />}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        <div className={s.toolbar}>
+          <h2 className={s.toolbarTitle}>Coming up</h2>
+          <div className={s.viewSwitch} role="tablist" aria-label="View">
+            {VIEW_OPTIONS.map(({ value: v, label }) => (
+              <button
+                key={v}
+                type="button"
+                role="tab"
+                aria-selected={view === v}
+                className={clsx(s.viewBtn, view === v && s.viewBtnActive)}
+                onClick={() => setView(v)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Phones: the directory's "Filters" pill and bottom sheet (the wrapper hides itself at
+              1024px and up). Its right-hand menu is the Calendar | List | Map switch, so it is one control. */}
+        <div className={s.mobileFilters}>
+          <MobileFilterWrapper
+            filterCount={filterCount}
+            currentSort={view}
+            sortOptions={VIEW_OPTIONS}
+            sortByLabel="View:"
+            onSortChange={(v) => setView(v as View)}
+            onClearFilters={clearParams}
+            renderFilter={(onClose) => (
+              <EventsFilterView events={allUpcoming} goingCount={plans.length} onClose={onClose} />
+            )}
+          />
+        </div>
+
+        {filtered && (
+          <div className={s.scopeRow}>
+            <span>
+              {upcoming.length} upcoming {upcoming.length === 1 ? 'event' : 'events'}
+              {cityName && filterCount === 1 && (
+                <>
+                  {' '}
+                  in <strong>{cityName}</strong>
+                </>
+              )}
+            </span>
+            <button type="button" className={s.clear} onClick={clearAll}>
+              Clear all
+            </button>
+          </div>
+        )}
+
+        <div className={s.layout}>
+          <div className={s.main}>
+            {view === 'list' ? (
+              <ListView events={upcoming} todayIso={todayIso} goingUids={goingUids} onOpen={open} onClear={clearAll} />
+            ) : view === 'map' ? (
+              <EventsMap events={upcoming} goingUids={goingUids} onOpen={open} />
+            ) : (
+              <MonthView
+                events={visible}
+                today={today}
+                goingUids={goingUids}
+                initialMonth={city ? at(upcoming[0]?.startDate ?? todayIso) : today}
+                key={city ?? 'all'}
+                onOpen={open}
+              />
+            )}
+          </div>
+
+          <aside className={s.rail} aria-labelledby="plans-title">
+            <div className={s.railCard}>
+              <h2 id="plans-title" className={s.railTitle}>
+                Your plans
+              </h2>
+              {plans.length ? (
+                <ul className={s.planList}>
+                  {plans.map((e) => (
+                    <li key={e.uid}>
+                      <button type="button" className={s.planRow} onClick={() => open(e.uid, plans)}>
+                        <DateTile isoDay={e.startDate} />
+                        <span className={s.planText}>
+                          <span className={s.planName}>{e.name}</span>
+                          <span className={s.planMeta}>
+                            {spanLabel(e.startDate, e.endDate)} · {e.city}
+                          </span>
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className={s.railEmpty}>
+                  Say you&apos;re going to an event and it shows here, and on your profile if you choose.
+                </p>
+              )}
+              <Link href="/prototypes/member-events-going" className={s.railLink}>
+                See them on your profile
+              </Link>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <>
-      <PrototypeNavBar
-        hasUnreadNews={false}
-        active
-        isLoggedIn
-        onSignIn={() => {}}
-        onSignUp={() => {}}
-        {...navExtras}
-      />
+      <PrototypeNavBar hasUnreadNews={false} active isLoggedIn onSignIn={() => {}} onSignUp={() => {}} {...navExtras} />
       <PrototypeMobileNav hasUnreadNews={false} active />
 
-      <main className={s.page}>
-        <div className={s.container}>
-          <header className={s.header}>
-            <div className={s.headerText}>
-              <h1 className={s.title}>Events</h1>
-              <p className={s.lede}>Gatherings, meetups and office hours across the Protocol Labs network.</p>
-            </div>
-            <div className={s.headerActions}>
-              <a href={EVENTS_APP_HREF} target="_blank" rel="noreferrer" className={s.textLink}>
-                Open PL Events <ArrowUpRightIcon width={14} height={14} />
-              </a>
-              <a href={SUBMIT_HREF} target="_blank" rel="noreferrer">
-                <Button style="border" variant="neutral" size="s" className={s.btn}>
-                  <PlusIcon width={14} height={14} /> Submit an event
-                </Button>
-              </a>
-            </div>
-          </header>
-
-          {gatherings.length > 0 && (
-            <section className={s.gatherings} aria-labelledby="gatherings-title">
-              <div className={s.sectionHead}>
-                <h2 id="gatherings-title" className={s.sectionTitle}>
-                  Gatherings
-                </h2>
-                <span className={s.sectionNote}>Network weeks in one city. Pick one to see its events.</span>
-              </div>
-              <div className={s.gatheringRow}>
-                {gatherings.map(({ gathering, startDate, endDate, eventCount }) => {
-                  const active = city === gathering.uid;
-                  return (
-                    <button
-                      key={gathering.uid}
-                      type="button"
-                      aria-pressed={active}
-                      className={clsx(s.gatheringCard, active && s.gatheringActive)}
-                      onClick={() => setCity(active ? null : gathering.uid)}
-                    >
-                      <span className={s.cityMark} aria-hidden>
-                        {gathering.city.slice(0, 1)}
-                      </span>
-                      <span className={s.gatheringText}>
-                        <span className={s.gatheringCity}>{gathering.city}</span>
-                        <span className={s.gatheringMeta}>
-                          {spanLabel(startDate, endDate)} · {eventCount} {eventCount === 1 ? 'event' : 'events'}
-                        </span>
-                        <span className={s.gatheringMeta}>{gathering.attendeesCount} members going</span>
-                      </span>
-                      {active && <CheckIcon width={16} height={16} className={s.gatheringCheck} />}
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-          )}
-
-          <div className={s.toolbar}>
-            <div className={s.search}>
-              <SearchInput value={query} onChange={setQuery} placeholder="Search events, hosts, cities or topics" />
-            </div>
-            <div className={s.pills} role="group" aria-label="Filter events">
-              {FILTERS.map((f) => (
-                <button
-                  key={f.value}
-                  type="button"
-                  aria-pressed={filter === f.value}
-                  className={clsx(s.pill, filter === f.value && s.pillActive)}
-                  onClick={() => setFilter(f.value)}
-                >
-                  {f.label}
-                  {f.value === 'going' && plans.length > 0 && <span className={s.pillCount}>{plans.length}</span>}
-                </button>
-              ))}
-            </div>
-            <div className={s.viewSwitch} role="tablist" aria-label="View">
-              {(['list', 'month'] as View[]).map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  role="tab"
-                  aria-selected={view === v}
-                  className={clsx(s.viewBtn, view === v && s.viewBtnActive)}
-                  onClick={() => setView(v)}
-                >
-                  {v === 'list' ? 'List' : 'Month'}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {filtered && (
-            <div className={s.scopeRow}>
-              <span>
-                {upcoming.length} upcoming {upcoming.length === 1 ? 'event' : 'events'}
-                {cityName && (
-                  <>
-                    {' '}
-                    in <strong>{cityName}</strong>
-                  </>
-                )}
-              </span>
-              <button type="button" className={s.clear} onClick={clearAll}>
-                Clear all
-              </button>
-            </div>
-          )}
-
-          <div className={s.layout}>
-            <div className={s.main}>
-              {view === 'list' ? (
-                <ListView events={upcoming} todayIso={todayIso} goingUids={goingUids} onOpen={open} onClear={clearAll} />
-              ) : (
-                <MonthView
-                  events={visible}
-                  today={today}
-                  goingUids={goingUids}
-                  initialMonth={city ? at(upcoming[0]?.startDate ?? todayIso) : today}
-                  key={city ?? 'all'}
-                  onOpen={open}
-                />
-              )}
-            </div>
-
-            <aside className={s.rail} aria-labelledby="plans-title">
-              <div className={s.railCard}>
-                <h2 id="plans-title" className={s.railTitle}>
-                  Your plans
-                </h2>
-                {plans.length ? (
-                  <ul className={s.planList}>
-                    {plans.map((e) => (
-                      <li key={e.uid}>
-                        <button type="button" className={s.planRow} onClick={() => open(e.uid, plans)}>
-                          <DateTile isoDay={e.startDate} />
-                          <span className={s.planText}>
-                            <span className={s.planName}>{e.name}</span>
-                            <span className={s.planMeta}>
-                              {spanLabel(e.startDate, e.endDate)} · {e.city}
-                            </span>
-                          </span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className={s.railEmpty}>
-                    Say you&apos;re going to an event and it shows here, and on your profile if you choose.
-                  </p>
-                )}
-                <Link href="/prototypes/member-events-going" className={s.railLink}>
-                  See them on your profile
-                </Link>
-              </div>
-            </aside>
-          </div>
-        </div>
+      {/* The directory's page frame: the filter rail on the left, the page beside it. */}
+      <main className={s.shell}>
+        <DashboardPagesLayout
+          filters={<EventsFilterView events={allUpcoming} goingCount={plans.length} />}
+          content={content}
+        />
       </main>
 
       <EventDrawer
@@ -378,12 +413,7 @@ function ListView({
             <ul className={s.dayEvents}>
               {dayEvents.map((e) => (
                 <li key={e.uid}>
-                  <EventCard
-                    event={e}
-                    day={day}
-                    going={goingUids.has(e.uid)}
-                    onOpen={() => onOpen(e.uid, ordered)}
-                  />
+                  <EventCard event={e} day={day} going={goingUids.has(e.uid)} onOpen={() => onOpen(e.uid, ordered)} />
                 </li>
               ))}
             </ul>
@@ -394,7 +424,17 @@ function ListView({
   );
 }
 
-function EventCard({ event, day, going, onOpen }: { event: CalEvent; day: string; going: boolean; onOpen: () => void }) {
+function EventCard({
+  event,
+  day,
+  going,
+  onOpen,
+}: {
+  event: CalEvent;
+  day: string;
+  going: boolean;
+  onOpen: () => void;
+}) {
   const detail = DETAILS[event.uid];
   const { venue } = venueOf(detail);
   const span = dayOfSpan(event, day);

@@ -27,7 +27,8 @@ import vs from '@/components/core/UpdatesPanel/ViewSwitch/ViewSwitch.module.scss
 
 import demo from '../member-profile/MemberProfile.module.scss';
 import { MOCK_MEMBER } from '../member-profile/mocks';
-import { ExperienceList } from '../job-board/JobProfilePane';
+import { ExperienceList, JobSearchStatusInput } from '../job-board/JobProfilePane';
+import type { JobSearchStatus } from '../job-board/viewerState';
 import { ContactHandlesList } from '../profile-shared/SectionEditor/views';
 import { SEED_PROFILE } from '../member-profile-edit/mocks';
 
@@ -47,9 +48,11 @@ import s from './MemberProfileVisibility.module.scss';
  *     at the top says so, and only the sections that differ carry a badge
  *     (header Public, CV, Investor Details). Seven badges become three, and each
  *     one that remains is news.
- *  2. **One badge style.** The DS Badge's grey lineage for every audience, told
- *     apart by icon and word — not a colour code with no legend, and not brand
- *     blue beside `+ Add` and `Edit`.
+ *  2. **One badge style.** Production's grey privacy pill (`PlTeamOnlyPill`,
+ *     uppercase 11px) for every audience, beside the section title, told apart
+ *     by icon and word — not a colour code with no legend, and not brand blue
+ *     beside `+ Add` and `Edit`. Job search status's "Only visible to you"
+ *     moves from the header's far right to the title, like the rest.
  *  3. **The badge names its readers.** Press or hover it and one sentence says
  *     who can see the section. The two restricted sections are labelled for who
  *     *does* see them ("Shared when you apply", "Shared on intro"), because the
@@ -79,6 +82,7 @@ const SECTIONS: Array<{ key: string; title: string; audience: AudienceKey; curre
     { key: 'office-hours', title: 'Office Hours', audience: 'members', current: 'members' },
     { key: 'contact', title: 'Contact Details', audience: 'members', current: 'members' },
     { key: 'teams', title: 'Teams', audience: 'members', current: 'members' },
+    { key: 'job-status', title: 'Job search status', audience: 'owner', current: 'private' },
     { key: 'cv', title: 'Your CV', audience: 'cv', current: 'private' },
     { key: 'experience', title: 'Experience', audience: 'members', current: 'members' },
     { key: 'contributions', title: 'Project Contributions', audience: 'members', current: 'members' },
@@ -89,6 +93,7 @@ export default function MemberProfileVisibilityPrototype() {
   const [mounted, setMounted] = useState(false);
   const [version, setVersion] = useState<Version>('proposed');
   const [viewer, setViewer] = useState<Viewer>('you');
+  const [jobStatus, setJobStatus] = useState<JobSearchStatus | ''>('open-to-right-role');
 
   useEffect(() => setMounted(true), []);
   if (!mounted) return <div className={s.page} />;
@@ -294,6 +299,16 @@ export default function MemberProfileVisibilityPrototype() {
                 <DetailsSection>
                   <DetailsSectionHeader title={titled(`Teams (${MOCK_MEMBER.teams.length})`, 'teams')} />
                   <TeamsList member={member} userInfo={userInfo} isEditable={false} onEdit={noop} />
+                </DetailsSection>
+              )}
+
+              {/* Job search status — on dev the "Only visible to you" pill sits
+                  at the header's far right; here it joins the title like every
+                  other visibility mark. The radios are the job board's own. */}
+              {visible('job-status') && (
+                <DetailsSection>
+                  <DetailsSectionHeader title={titled('Job search status', 'job-status')} />
+                  <JobSearchStatusInput value={jobStatus} onChange={setJobStatus} />
                 </DetailsSection>
               )}
 

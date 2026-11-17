@@ -600,8 +600,9 @@ function ProfileHeaderCard({
         </div>
 
         {/* Tablet up: the name shares a row with the action cluster and the
-            facts line runs under the cluster to the card's edge (`.detailsWide`)
-            — "to the end of the white section", 2026-11-06. */}
+            facts line sits under the name only, wrapping short of the cluster
+            (`.detailsWide`) — "this line should be wrapped", 2026-11-17, which
+            replaces 2026-11-06's "to the end of the white section". */}
         <div className={clsx(h.headerDetails, s.mDetails, s.detailsWide)}>
           <div className={s.factsWrap}>
             <div className={h.specificsHdr}>
@@ -683,7 +684,7 @@ function ProfileHeaderCard({
           </div>
         )}
 
-        <div className={clsx(h.tags, s.mTags)}>
+        <div className={clsx(h.tags, s.mTags, s.tagsClearPress)}>
           <span className={s.founderTag}>Founder</span>
           {MOCK_MEMBER.openToWork && (
             <div className={h.funds}>

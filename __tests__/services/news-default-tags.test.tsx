@@ -14,7 +14,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { MembersQueryKeys } from '@/services/members/constants';
 import { TeamNewsQueryKeys } from '@/services/team-news/constants';
-import { useApproveNewsDefaultTags, useNewsDefaultTags } from '@/services/team-news/hooks/useNewsDefaultTags';
+import {
+  useApproveNewsDefaultTags,
+  useAutosaveNewsDefaultTags,
+  useNewsDefaultTags,
+} from '@/services/team-news/hooks/useNewsDefaultTags';
 import {
   approveNewsDefaultTags,
   getNewsDefaultTags,
@@ -166,5 +170,25 @@ describe('default tags hooks', () => {
     });
 
     expect(invalidate).toHaveBeenCalledWith({ queryKey: [MembersQueryKeys.GET_MEMBER_PREFERENCES] });
+  });
+
+  it('autosave keeps the cached default tags, so the card stays, and refreshes the preferences (LAB-3295)', async () => {
+    mockCustomFetch.mockResolvedValue(ok({ ...aiTags, source: 'member-set', approved: true }));
+    const { client, wrapper } = setup();
+    client.setQueryData([TeamNewsQueryKeys.DEFAULT_TAGS, 'user-1'], aiTags);
+    const invalidate = jest.spyOn(client, 'invalidateQueries');
+
+    const { result } = renderHook(() => useAutosaveNewsDefaultTags(), { wrapper });
+    await act(async () => {
+      await result.current.mutateAsync({ tags: ['ai'], keepalive: true });
+    });
+
+    expect(client.getQueryData([TeamNewsQueryKeys.DEFAULT_TAGS, 'user-1'])).toEqual(aiTags);
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: [MembersQueryKeys.GET_MEMBER_PREFERENCES] });
+    expect(mockCustomFetch.mock.calls[0][1]).toMatchObject({
+      method: 'POST',
+      keepalive: true,
+      body: '{"tags":["ai"]}',
+    });
   });
 });

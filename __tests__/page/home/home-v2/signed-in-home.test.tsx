@@ -86,6 +86,7 @@ let mockDefaultTags: INewsDefaultTags | undefined;
 jest.mock('@/services/team-news/hooks/useNewsDefaultTags', () => ({
   useNewsDefaultTags: () => ({ data: mockDefaultTags }),
   useApproveNewsDefaultTags: () => ({ mutate: jest.fn(), isPending: false }),
+  useAutosaveNewsDefaultTags: () => ({ mutate: jest.fn() }),
 }));
 
 // ---- The rail ----

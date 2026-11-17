@@ -40,3 +40,21 @@ export function useApproveNewsDefaultTags(memberUid: string | undefined) {
     },
   });
 }
+
+/**
+ * Saves the tag card's selection on its own while the member changes chips (LAB-3295, LAB-3244 scope 4). Unlike
+ * `useApproveNewsDefaultTags`, it does not replace the cached default tags, so the card stays on screen until the
+ * member presses a button or leaves Home. The server keeps the answer, so the card does not show on a later load.
+ */
+export function useAutosaveNewsDefaultTags() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ tags, keepalive }: { tags?: string[]; keepalive?: boolean }) =>
+      approveNewsDefaultTags(tags, { keepalive }),
+    onSuccess: (_data, { tags }) => {
+      if (tags) {
+        queryClient.invalidateQueries({ queryKey: [MembersQueryKeys.GET_MEMBER_PREFERENCES] });
+      }
+    },
+  });
+}

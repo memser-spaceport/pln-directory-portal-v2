@@ -329,7 +329,7 @@ Home SHALL show a tag card to a signed-in member whose default news tags are not
 
 ### Requirement: Tag card content
 
-The card SHALL be titled "We picked these topics for you", with one line that names the source of the topics. It SHALL show the default tags as `#slug` chips in the News preferences chip style, all turned on, in a fixed order. Pressing a chip SHALL turn it off or on in place. Nothing SHALL be saved until the member presses a button.
+The card SHALL be titled "We picked these topics for you", with one line that names the source of the topics. It SHALL show the default tags as `#slug` chips in the News preferences chip style, all turned on, in a fixed order. Pressing a chip SHALL turn it off or on in place. The selection SHALL save on its own (LAB-3244 scope 4, LAB-3295): 800 ms after the last chip press, the chips that are on SHALL be saved as the member's own news tags. A save that waits SHALL go out at once when the member leaves Home or the page unloads. With every chip off, nothing SHALL be saved. An autosave SHALL NOT hide the card; the card goes away only after a button press, and SHALL NOT show again on a later load. A failed autosave SHALL show "Could not save your topics. Please try again."
 
 #### Scenario: AI tags
 
@@ -345,8 +345,20 @@ The card SHALL be titled "We picked these topics for you", with one line that na
 #### Scenario: Turn a chip off and on
 
 - **GIVEN** the card shows `#ai`, `#desci` and `#defi`
-- **WHEN** the member presses `#defi`, then presses it again
-- **THEN** `#defi` is turned off and stays in its place, then is turned on again, and no request is sent
+- **WHEN** the member presses `#defi`, then presses it again within 800 ms
+- **THEN** `#defi` is turned off and stays in its place, then is turned on again, and one autosave sends `ai`, `desci` and `defi`
+
+#### Scenario: Selection saves on its own
+
+- **GIVEN** the card shows `#ai`, `#desci` and `#defi`
+- **WHEN** the member turns `#defi` off and reloads Home without a button press
+- **THEN** `ai` and `desci` are saved as their news tags, and the card does not show again
+
+#### Scenario: After an autosave, a button sends the chips
+
+- **GIVEN** an autosave already went out for the card
+- **WHEN** the member presses "Looks good" or "See all topics"
+- **THEN** the chips that are on are saved as their news tags, not a plain approval
 
 ### Requirement: Tag card answers
 

@@ -356,15 +356,20 @@ export async function getNewsDefaultTags(): Promise<INewsDefaultTags> {
 
 /**
  * The member's answer to the tag card. Without `tags` it approves the default tags as shown; with `tags` it saves
- * them as the member's own news tags. Returns the default tags after the call.
+ * them as the member's own news tags. Returns the default tags after the call. `keepalive` lets the request finish
+ * when the page unloads (the card's autosave, LAB-3295).
  */
-export async function approveNewsDefaultTags(tags?: string[]): Promise<INewsDefaultTags> {
+export async function approveNewsDefaultTags(
+  tags?: string[],
+  options: { keepalive?: boolean } = {},
+): Promise<INewsDefaultTags> {
   const response = await customFetch(
     `${process.env.DIRECTORY_API_URL}/v1/team-news/default-tags/approve`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(tags ? { tags } : {}),
+      ...(options.keepalive ? { keepalive: true } : {}),
     },
     true,
   );

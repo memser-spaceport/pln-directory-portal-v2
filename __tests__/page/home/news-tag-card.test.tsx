@@ -13,8 +13,10 @@ jest.mock('@/analytics/team-news.analytics', () => ({ useTeamNewsAnalytics: () =
 type MutateOptions = { onSuccess?: () => void; onError?: () => void };
 const mockMutate = jest.fn<void, [string[] | undefined, MutateOptions | undefined]>();
 let mockIsPending = false;
+const mockAutosave = jest.fn<void, [{ tags?: string[]; keepalive?: boolean }, MutateOptions | undefined]>();
 jest.mock('@/services/team-news/hooks/useNewsDefaultTags', () => ({
   useApproveNewsDefaultTags: () => ({ mutate: mockMutate, isPending: mockIsPending }),
+  useAutosaveNewsDefaultTags: () => ({ mutate: mockAutosave }),
 }));
 
 const mockPush = jest.fn();
@@ -26,7 +28,8 @@ jest.mock('@/components/core/ToastContainer', () => ({
   toast: { success: (...a: unknown[]) => mockToastSuccess(...a), error: (...a: unknown[]) => mockToastError(...a) },
 }));
 
-import { NewsTagCard } from '@/components/page/home/TeamNews/components/NewsTagCard/NewsTagCard';
+import { act } from '@testing-library/react';
+import { NewsTagCard, TAG_CARD_AUTOSAVE_MS } from '@/components/page/home/TeamNews/components/NewsTagCard/NewsTagCard';
 import {
   isTagCardVisible,
   resolveTagCard,
@@ -147,7 +150,7 @@ describe('NewsTagCard', () => {
     expect(mockToastSuccess).toHaveBeenCalledWith('Topics saved');
   });
 
-  it('turns a chip off and on in place without a request', () => {
+  it('turns a chip off and on in place without an answer request', () => {
     render(<NewsTagCard memberUid="user-1" card={card()} visible />);
 
     fireEvent.click(chip('defi'));
@@ -252,5 +255,115 @@ describe('NewsTagCard', () => {
   it('does not record shown while a filter hides it from the start', () => {
     render(<NewsTagCard memberUid="user-1" card={card()} visible={false} />);
     expect(analytics.onTeamNewsTagsCardShown).not.toHaveBeenCalled();
+  });
+});
+
+describe('NewsTagCard autosave (LAB-3295)', () => {
+  beforeEach(() => jest.useFakeTimers());
+  afterEach(() => jest.useRealTimers());
+
+  it('saves the chips that are on, on its own, after a short wait', () => {
+    render(<NewsTagCard memberUid="user-1" card={card()} visible />);
+
+    fireEvent.click(chip('defi'));
+    fireEvent.click(chip('desci'));
+    expect(mockAutosave).not.toHaveBeenCalled();
+
+    act(() => {
+      jest.advanceTimersByTime(TAG_CARD_AUTOSAVE_MS);
+    });
+
+    expect(mockAutosave).toHaveBeenCalledTimes(1);
+    expect(mockAutosave.mock.calls[0][0]).toEqual({ tags: ['ai'], keepalive: false });
+    expect(mockMutate).not.toHaveBeenCalled();
+    // The card stays, so the member can keep changing chips.
+    expect(screen.getByRole('heading', { name: 'We picked these topics for you' })).toBeInTheDocument();
+  });
+
+  it('saves every shown tag when the member turns all chips on again', () => {
+    render(<NewsTagCard memberUid="user-1" card={card(['ai', 'desci'])} visible />);
+
+    fireEvent.click(chip('desci'));
+    act(() => {
+      jest.advanceTimersByTime(TAG_CARD_AUTOSAVE_MS);
+    });
+    fireEvent.click(chip('desci'));
+    act(() => {
+      jest.advanceTimersByTime(TAG_CARD_AUTOSAVE_MS);
+    });
+
+    expect(mockAutosave.mock.calls.map((c) => c[0].tags)).toEqual([['ai'], ['ai', 'desci']]);
+  });
+
+  it('does not save while every chip is off', () => {
+    render(<NewsTagCard memberUid="user-1" card={card(['ai'])} visible />);
+
+    fireEvent.click(chip('ai'));
+    act(() => {
+      jest.advanceTimersByTime(TAG_CARD_AUTOSAVE_MS);
+    });
+
+    expect(mockAutosave).not.toHaveBeenCalled();
+  });
+
+  it('saves at once when the member leaves Home', () => {
+    const { unmount } = render(<NewsTagCard memberUid="user-1" card={card()} visible />);
+
+    fireEvent.click(chip('defi'));
+    unmount();
+
+    expect(mockAutosave).toHaveBeenCalledTimes(1);
+    expect(mockAutosave.mock.calls[0][0]).toEqual({ tags: ['ai', 'desci'], keepalive: true });
+  });
+
+  it('saves at once when the page unloads', () => {
+    render(<NewsTagCard memberUid="user-1" card={card()} visible />);
+
+    fireEvent.click(chip('defi'));
+    act(() => {
+      window.dispatchEvent(new Event('pagehide'));
+    });
+
+    expect(mockAutosave).toHaveBeenCalledTimes(1);
+    expect(mockAutosave.mock.calls[0][0]).toEqual({ tags: ['ai', 'desci'], keepalive: true });
+  });
+
+  it('sends no autosave after a button press', () => {
+    const { unmount } = render(<NewsTagCard memberUid="user-1" card={card()} visible />);
+
+    fireEvent.click(chip('defi'));
+    fireEvent.click(screen.getByRole('button', { name: 'Save topics' }));
+    act(() => {
+      jest.advanceTimersByTime(TAG_CARD_AUTOSAVE_MS);
+    });
+    unmount();
+
+    expect(mockAutosave).not.toHaveBeenCalled();
+    expect(mockMutate.mock.calls[0][0]).toEqual(['ai', 'desci']);
+  });
+
+  it('sends the chips that are on from Looks good after an autosave', () => {
+    render(<NewsTagCard memberUid="user-1" card={card(['ai', 'desci'])} visible />);
+
+    fireEvent.click(chip('desci'));
+    act(() => {
+      jest.advanceTimersByTime(TAG_CARD_AUTOSAVE_MS);
+    });
+    fireEvent.click(chip('desci'));
+    fireEvent.click(screen.getByRole('button', { name: 'Looks good' }));
+
+    expect(mockMutate.mock.calls[0][0]).toEqual(['ai', 'desci']);
+  });
+
+  it('shows an error when an autosave fails', () => {
+    render(<NewsTagCard memberUid="user-1" card={card()} visible />);
+
+    fireEvent.click(chip('defi'));
+    act(() => {
+      jest.advanceTimersByTime(TAG_CARD_AUTOSAVE_MS);
+    });
+    mockAutosave.mock.calls[0][1]?.onError?.();
+
+    expect(mockToastError).toHaveBeenCalledWith('Could not save your topics. Please try again.');
   });
 });

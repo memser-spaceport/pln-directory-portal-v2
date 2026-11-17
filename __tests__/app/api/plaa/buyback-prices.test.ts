@@ -71,12 +71,19 @@ describe('GET /api/plaa/buyback-prices', () => {
     ]);
   });
 
+  it.each([401, 403, 429])('preserves actionable upstream status %i without leaking its message', async (status) => {
+    mockGetAllRoundStats.mockResolvedValue({ error: { message: 'secret backend detail', status } });
+    const res = await GET(request({ authorization: 'Bearer t' }));
+    expect(res.status).toBe(status);
+    expect(JSON.stringify(await res.json())).not.toContain('secret backend detail');
+  });
+
   it('reports upstream failure as 502 rather than an empty price list', async () => {
     mockGetAllRoundStats.mockResolvedValue({ error: { message: 'upstream exploded' } });
 
     const res = await GET(request({ authorization: 'Bearer t' }));
 
     expect(res.status).toBe(502);
-    expect((await res.json()).error).toBe('upstream exploded');
+    expect((await res.json()).error).toBe('PLAA service is temporarily unavailable');
   });
 });

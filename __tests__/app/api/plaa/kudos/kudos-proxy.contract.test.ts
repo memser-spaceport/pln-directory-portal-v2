@@ -79,6 +79,27 @@ describe('kudos proxy routes — auth gate', () => {
   });
 });
 
+describe('safe upstream errors', () => {
+  it('hides backend details on submit failures', async () => {
+    mockUpstreamOnce({ message: 'internal database secret' }, 500);
+    const res = await postKudos(makeRequest('http://localhost/api/plaa/kudos/community', { auth: 'Bearer t' }));
+    expect(res.status).toBe(502);
+    expect(JSON.stringify(await res.json())).not.toContain('internal database secret');
+  });
+  it('hides unexpected client error details', async () => {
+    mockUpstreamOnce({ message: 'secret internal detail', path: '/private' }, 400);
+    const res = await postKudos(makeRequest('http://localhost/api/plaa/kudos/community', { auth: 'Bearer t' }));
+    expect(res.status).toBe(400);
+    expect(JSON.stringify(await res.json())).not.toContain('secret internal detail');
+  });
+  it('retains useful validation errors', async () => {
+    mockUpstreamOnce({ message: 'Not enough points remaining in your round budget' }, 400);
+    const res = await postKudos(makeRequest('http://localhost/api/plaa/kudos/community', { auth: 'Bearer t' }));
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ message: 'Not enough points remaining in your round budget' });
+  });
+});
+
 describe('kudos proxy routes — upstream contract', () => {
   it('feed: forwards limit+cursor to GET /api/v1/kudos with the auth header verbatim', async () => {
     mockUpstreamOnce({ items: [], nextCursor: null });
@@ -171,7 +192,7 @@ describe('kudos proxy routes — upstream contract', () => {
   });
 
   it('update: forwards upstream rejection (e.g. 403 not the original giver) with the body', async () => {
-    mockUpstreamOnce({ message: 'Only the original giver can edit this kudos' }, 403);
+    mockUpstreamOnce({ message: 'Only the original giver may edit this kudos' }, 403);
     const res = await patchKudos(
       makeRequest('http://localhost/api/plaa/kudos/community/kudos-1', {
         auth: 'Bearer privy-1',
@@ -180,11 +201,11 @@ describe('kudos proxy routes — upstream contract', () => {
       makeContext('kudos-1'),
     );
     expect(res.status).toBe(403);
-    await expect(res.json()).resolves.toEqual({ message: 'Only the original giver can edit this kudos' });
+    await expect(res.json()).resolves.toEqual({ message: 'Only the original giver may edit this kudos' });
   });
 
   it('submit: forwards upstream error statuses (e.g. 400 insufficient budget) with the body', async () => {
-    mockUpstreamOnce({ message: 'Insufficient budget' }, 400);
+    mockUpstreamOnce({ message: 'Not enough points remaining in your round budget' }, 400);
     const res = await postKudos(
       makeRequest('http://localhost/api/plaa/kudos/community', {
         auth: 'Bearer privy-1',
@@ -192,7 +213,7 @@ describe('kudos proxy routes — upstream contract', () => {
       }),
     );
     expect(res.status).toBe(400);
-    await expect(res.json()).resolves.toEqual({ message: 'Insufficient budget' });
+    await expect(res.json()).resolves.toEqual({ message: 'Not enough points remaining in your round budget' });
   });
 
   it('read routes: map upstream failure statuses through (feed 502)', async () => {

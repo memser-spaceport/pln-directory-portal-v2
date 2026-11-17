@@ -1,3 +1,4 @@
+import { upstreamError } from '@/app/api/plaa/_errors';
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllRoundStats } from '@/services/plaa/rounds.service';
 
@@ -10,7 +11,7 @@ export async function GET(request: NextRequest) {
   const { data, error } = await getAllRoundStats(authHeader.replace(/^Bearer\s+/i, ''));
 
   if (error || !data) {
-    return NextResponse.json({ error: error?.message ?? 'Failed to fetch buyback prices' }, { status: 502 });
+    return upstreamError(error?.status, error?.retryAfter);
   }
 
   const prices = data.flatMap(({ roundNumber, buyback }) =>

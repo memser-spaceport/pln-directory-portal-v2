@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { RequestIntroEntry } from '@/components/page/intro-request/RequestIntroEntry';
 
@@ -55,6 +55,61 @@ describe('RequestIntroEntry', () => {
       entryPoint: 'suggested-tab',
       source: 'modal',
     });
+  });
+
+  it('sends intro-request-button-shown once when the page mounts two copies for the same target', () => {
+    render(
+      <>
+        <div data-testid="desktop">
+          <RequestIntroEntry type="TEAM" targetId="team-1" targetName="Acme" />
+        </div>
+        <div data-testid="mobile">
+          <RequestIntroEntry type="TEAM" targetId="team-1" targetName="Acme" />
+        </div>
+      </>,
+    );
+
+    expect(screen.getAllByRole('button', { name: 'Request an intro' })).toHaveLength(2);
+    expect(onButtonShown).toHaveBeenCalledTimes(1);
+    expect(onButtonShown).toHaveBeenCalledWith({ targetType: 'team', entryPoint: 'team-header', source: 'modal' });
+  });
+
+  it('sends intro-request-button-shown again on the next page view', () => {
+    const first = render(<RequestIntroEntry type="TEAM" targetId="team-1" targetName="Acme" />);
+    first.unmount();
+    render(<RequestIntroEntry type="TEAM" targetId="team-1" targetName="Acme" />);
+
+    expect(onButtonShown).toHaveBeenCalledTimes(2);
+  });
+
+  it('sends one event for each target when the page shows two targets', () => {
+    render(
+      <>
+        <RequestIntroEntry type="TEAM" targetId="team-1" targetName="Acme" />
+        <RequestIntroEntry type="TEAM" targetId="team-2" targetName="Beta" />
+      </>,
+    );
+
+    expect(onButtonShown).toHaveBeenCalledTimes(2);
+  });
+
+  it('shows "Intro requested" in every copy after a send in one copy', async () => {
+    createIntroRequest.mockResolvedValue({ uid: 'req-1' });
+    render(
+      <>
+        <RequestIntroEntry type="TEAM" targetId="team-1" targetName="Acme" />
+        <RequestIntroEntry type="TEAM" targetId="team-1" targetName="Acme" />
+      </>,
+    );
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Request an intro' })[0]);
+    fireEvent.change(screen.getByLabelText('What do you need help with?'), {
+      target: { value: 'We want to talk about events.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    await waitFor(() => expect(screen.getAllByText('Intro requested')).toHaveLength(2));
+    expect(screen.queryByRole('button', { name: 'Request an intro' })).not.toBeInTheDocument();
   });
 
   it('does not send intro-request-button-shown when the control is hidden', () => {

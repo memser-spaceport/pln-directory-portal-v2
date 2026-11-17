@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import clsx from 'clsx';
 
 import {
@@ -11,6 +11,14 @@ import {
 import { Button } from '@/components/common/Button';
 import { useCanRequestIntro } from '@/services/intro-requests/hooks/useCanRequestIntro';
 import type { IntroRequestTargetType } from '@/services/intro-requests/intro-requests.service';
+import {
+  claimIntroRequestShown,
+  introRequestTargetKey,
+  isIntroRequestSent,
+  markIntroRequestSent,
+  retainIntroRequestTarget,
+  subscribeIntroRequestTargets,
+} from '@/services/intro-requests/intro-request-entry-registry';
 
 import { RequestIntroDialog } from './RequestIntroDialog';
 
@@ -28,10 +36,15 @@ interface Props {
 export function RequestIntroEntry({ type, targetId, targetName, className, entryPoint }: Props) {
   const canRequest = useCanRequestIntro();
   const [open, setOpen] = useState(false);
-  const [sent, setSent] = useState(false);
   const { onButtonShown, onDialogOpened } = useIntroRequestAnalytics();
   const shownForRef = useRef<string | null>(null);
   const visible = Boolean(canRequest && targetId && targetName);
+  const targetKey = introRequestTargetKey(type, targetId);
+  const sent = useSyncExternalStore(
+    subscribeIntroRequestTargets,
+    () => isIntroRequestSent(targetKey),
+    () => false,
+  );
   const resolvedEntryPoint: IntroRequestEntryPoint =
     entryPoint ?? (type === 'MEMBER' ? 'member-header' : 'team-header');
   const context: IntroRequestEventContext = {
@@ -41,14 +54,23 @@ export function RequestIntroEntry({ type, targetId, targetName, className, entry
   };
   const { targetType } = context;
 
-  // Once a page view: one event for each target this control shows for.
+  // Once a page view for each target and entry point, even when the page mounts
+  // more than one copy of the control (the team page has a desktop and a mobile copy).
   useEffect(() => {
     if (!visible) return;
-    const key = `${resolvedEntryPoint}:${targetId}`;
-    if (shownForRef.current === key) return;
-    shownForRef.current = key;
-    onButtonShown({ targetType, entryPoint: resolvedEntryPoint, source: 'modal' });
-  }, [visible, targetId, targetType, resolvedEntryPoint, onButtonShown]);
+    const release = retainIntroRequestTarget(targetKey);
+    const instanceKey = `${resolvedEntryPoint}:${targetKey}`;
+    if (shownForRef.current !== instanceKey) {
+      shownForRef.current = instanceKey;
+      if (claimIntroRequestShown(targetKey, resolvedEntryPoint)) {
+        onButtonShown({ targetType, entryPoint: resolvedEntryPoint, source: 'modal' });
+      }
+    } else {
+      // A re-run of the effect for this copy (for example React Strict Mode): keep the claim, send nothing.
+      claimIntroRequestShown(targetKey, resolvedEntryPoint);
+    }
+    return release;
+  }, [visible, targetKey, targetType, resolvedEntryPoint, onButtonShown]);
 
   if (!visible) {
     return null;
@@ -84,7 +106,7 @@ export function RequestIntroEntry({ type, targetId, targetName, className, entry
           targetId={targetId}
           targetName={targetName}
           entryPoint={resolvedEntryPoint}
-          onSent={() => setSent(true)}
+          onSent={() => markIntroRequestSent(targetKey)}
           onClose={() => setOpen(false)}
         />
       )}

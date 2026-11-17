@@ -23,6 +23,13 @@ The member page header uses `entryPoint` `member-header`. The team page header u
 - **THEN** PostHog receives one `intro-request-button-shown` with `targetType` `member`, `entryPoint` `member-header` and `source` `modal`
 - **AND** a re-render of the same page sends no second event
 
+#### Scenario: Page mounts two copies of the control
+
+- **GIVEN** a team page that renders a desktop copy and a mobile copy of "Request an intro" and hides one with CSS
+- **WHEN** the page loads
+- **THEN** PostHog receives one `intro-request-button-shown` for the team
+- **AND** after a send from one copy, every copy shows "✓ Intro requested"
+
 #### Scenario: Form opens
 
 - **WHEN** the member clicks "Request an intro" on a team page

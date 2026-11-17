@@ -10,6 +10,7 @@ import { SearchInput } from '@/components/common/filters/SearchInput';
 import { FollowButton } from '@/components/ui/FollowButton';
 import { useGetMemberPreferences } from '@/services/members/hooks/useGetMemberPreferences';
 import { useSetNewsTags } from '@/services/members/hooks/useSetNewsTags';
+import { useNewsDefaultTags } from '@/services/team-news/hooks/useNewsDefaultTags';
 import { useNewsTopicSlugs } from '@/services/team-news/hooks/useNewsTopicSlugs';
 import { SHOW_NEWS_PREFERENCES } from '@/utils/news-categories';
 import { AutoMarkNewsCommentNotification } from '@/components/page/home/TeamNews/AutoMarkNewsCommentNotification';
@@ -27,6 +28,11 @@ import {
   isForYouSetupEligible,
   isForYouSetupVisible,
 } from '@/components/page/home/TeamNews/components/ForYouSetupPrompt/ForYouSetupPrompt';
+import { NewsTagCard } from '@/components/page/home/TeamNews/components/NewsTagCard/NewsTagCard';
+import {
+  isTagCardVisible,
+  resolveTagCard,
+} from '@/components/page/home/TeamNews/components/NewsTagCard/newsTagCard.utils';
 import { isEditorialRank } from '@/components/page/home/TeamNews/utils/selectTopStories';
 import { matchesTeamNewsQuery } from '@/components/page/home/TeamNews/utils/matchesTeamNewsQuery';
 import { sortTeamNewsClusters } from '@/components/page/home/TeamNews/utils/sortTeamNewsClusters';
@@ -170,6 +176,17 @@ export function NetworkUpdates({
     followsSettled,
   };
   const showForYouSetup = isForYouSetupEligible(forYouSetupInput);
+  // The member's default tags, until they answer (LAB-3250). The card stands where the "For you" line is.
+  const tagCard = resolveTagCard(useNewsDefaultTags(currentUser?.uid).data);
+  const tagCardVisible = isTagCardVisible({
+    preferencesOn: SHOW_NEWS_PREFERENCES,
+    signedIn: Boolean(currentUser?.uid),
+    hasCard: tagCard !== null,
+    activeTab,
+    activeCategory,
+    query,
+    hasTopicFilter: topicScope.length > 0,
+  });
   // Holds the curated line back until follows load, so it does not flash for a member who follows nobody.
   const awaitingFollows =
     SHOW_NEWS_PREFERENCES && Boolean(currentUser?.uid) && hasNoNewsTags && !hasForYouNews && !followsSettled;
@@ -230,9 +247,11 @@ export function NetworkUpdates({
         />
       )}
 
-      {/* No For You stories, no tags and no follows: the set-up line on resting All (LAB-3080).
-          Own teams do not hide it. Anyone else keeps the curated line (LAB-3174). */}
-      {showForYouSetup ? (
+      {/* A member who has not answered the tag card sees it here on For You and resting All (LAB-3250).
+          Otherwise: no For You stories, no tags and no follows get the set-up line on resting All (LAB-3080);
+          own teams do not hide it. Anyone else keeps the curated line (LAB-3174). */}
+      <NewsTagCard memberUid={currentUser?.uid} card={tagCard} visible={tagCardVisible} />
+      {tagCardVisible ? null : showForYouSetup ? (
         <ForYouSetupPrompt
           memberUid={currentUser?.uid}
           visible={isForYouSetupVisible({

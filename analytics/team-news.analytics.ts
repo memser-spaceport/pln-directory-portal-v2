@@ -260,6 +260,32 @@ export const useTeamNewsAnalytics = () => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FOR_YOU_SETUP_CLICKED, { memberUid });
   };
 
+  /** The Home tag card (LAB-3250). `source` is where the shown tags come from: interest-profile, ai or team. */
+  const onTeamNewsTagsCardShown = (params: { memberUid: string; source: string; tags: string[] }) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_TAGS_CARD_SHOWN, params);
+  };
+
+  const onTeamNewsTagsCardTagToggled = (params: { memberUid: string; source: string; tag: string; on: boolean }) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_TAGS_CARD_TAG_TOGGLED, params);
+  };
+
+  const onTeamNewsTagsCardApproved = (params: { memberUid: string; source: string; tags: string[] }) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_TAGS_CARD_APPROVED, params);
+  };
+
+  const onTeamNewsTagsCardSaved = (params: {
+    memberUid: string;
+    source: string;
+    tags: string[];
+    removedTags: string[];
+  }) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_TAGS_CARD_SAVED, params);
+  };
+
+  const onTeamNewsTagsCardSeeAllClicked = (params: { memberUid: string; source: string }) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_TAGS_CARD_SEE_ALL_CLICKED, params);
+  };
+
   /** A `#tag` click narrowed the Home feed to that tag (LAB-3010). `itemCount` is the stories it matched. */
   const onTeamNewsTagFilterApplied = (params: { tag: string; via: TeamNewsTagFilterVia; itemCount: number }) => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_TAG_FILTER_APPLIED, params);
@@ -795,6 +821,11 @@ export const useTeamNewsAnalytics = () => {
     onTeamNewsForYouTuneClicked,
     onTeamNewsForYouSetupShown,
     onTeamNewsForYouSetupClicked,
+    onTeamNewsTagsCardShown,
+    onTeamNewsTagsCardTagToggled,
+    onTeamNewsTagsCardApproved,
+    onTeamNewsTagsCardSaved,
+    onTeamNewsTagsCardSeeAllClicked,
     onTeamNewsTagFilterApplied,
     onTeamNewsTagFilterCleared,
     onTeamNewsShowMoreClicked,

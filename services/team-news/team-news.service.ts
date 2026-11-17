@@ -8,6 +8,9 @@ import type {
   ITeamNewsUpvoteStatus,
   INewsFocusArea,
   INewsTagGroup,
+  INewsDefaultTags,
+  INewsTag,
+  NewsDefaultTagsSource,
 } from '@/types/team-news.types';
 import { getHeader } from '@/utils/common.utils';
 import { getNewsTopicSlugs } from '@/utils/news-tag-chips';
@@ -313,4 +316,60 @@ export async function getNewsTags(): Promise<INewsTagGroup[]> {
     throw new Error(`Failed to load news tags (${response.status})`);
   }
   return (await response.json()) as INewsTagGroup[];
+}
+
+const DEFAULT_TAGS_SOURCES: readonly NewsDefaultTagsSource[] = ['member-set', 'interest-profile', 'ai', 'team'];
+
+/** The default-tags response, or null when it does not have the expected shape. */
+export function readNewsDefaultTags(raw: unknown): INewsDefaultTags | null {
+  const value = raw as Partial<INewsDefaultTags> | null;
+  if (!value || !Array.isArray(value.tags) || !DEFAULT_TAGS_SOURCES.includes(value.source as NewsDefaultTagsSource)) {
+    return null;
+  }
+  const tags = value.tags.filter(
+    (tag): tag is INewsTag => typeof tag?.slug === 'string' && typeof tag?.title === 'string',
+  );
+  return {
+    tags,
+    source: value.source as NewsDefaultTagsSource,
+    approved: value.approved === true,
+    approvedAt: typeof value.approvedAt === 'string' ? value.approvedAt : null,
+    generatedAt: typeof value.generatedAt === 'string' ? value.generatedAt : null,
+  };
+}
+
+/**
+ * The signed-in member's default news tags, for the Home tag card (LAB-3250). Throws on failure or an unexpected
+ * shape; the card then stays hidden.
+ */
+export async function getNewsDefaultTags(): Promise<INewsDefaultTags> {
+  const response = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/team-news/default-tags`,
+    { method: 'GET' },
+    true,
+  );
+  if (!response?.ok) throw new Error('Failed to load default news tags');
+  const parsed = readNewsDefaultTags(await response.json());
+  if (!parsed) throw new Error('Unexpected default news tags response');
+  return parsed;
+}
+
+/**
+ * The member's answer to the tag card. Without `tags` it approves the default tags as shown; with `tags` it saves
+ * them as the member's own news tags. Returns the default tags after the call.
+ */
+export async function approveNewsDefaultTags(tags?: string[]): Promise<INewsDefaultTags> {
+  const response = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/team-news/default-tags/approve`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(tags ? { tags } : {}),
+    },
+    true,
+  );
+  if (!response?.ok) throw new Error('Failed to save default news tags');
+  const parsed = readNewsDefaultTags(await response.json());
+  if (!parsed) throw new Error('Unexpected default news tags response');
+  return parsed;
 }

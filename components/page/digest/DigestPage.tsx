@@ -21,6 +21,7 @@ import type { IFeedCommentCountsResponse } from '@/types/feed.types';
 
 import { DigestForumPost } from './DigestForumPost';
 import { DigestHeader } from './DigestHeader';
+import { DigestNetworkNews } from './DigestNetworkNews';
 import { DigestCaughtUp } from './DigestIssueEnd';
 import { DigestPostNews } from './DigestPostNews';
 import { DigestSidebar } from './DigestSidebar';
@@ -233,6 +234,18 @@ export function DigestPage({ token, issue, data, isLoggedIn }: Props) {
               />
             ))}
           </div>
+
+          {data.networkNews.length > 0 && (
+            <>
+              <div className={s.spacer} />
+              <DigestNetworkNews
+                items={data.networkNews}
+                onOpen={(item, position) =>
+                  analytics.onNetworkNewsClicked({ newsId: item.uid, position, domain: item.domain })
+                }
+              />
+            </>
+          )}
 
           {data.forumPosts.length > 0 && (
             <>

@@ -408,6 +408,18 @@ describe('DigestPage', () => {
       expect(events()[1][1]).toMatchObject({ from: 'email-post' });
     });
 
+    it.each([
+      ['post_news', 'postnews=open', 'email-post-news'],
+      ['change_topics', 'topics=open', 'email-change-topics'],
+    ])("records the email's %s link (LAB-3290)", (linkType, open_, from) => {
+      open(`/digest?t=x&utm_source=digest_email_${linkType}_link&link_type=${linkType}&position=0&${open_}`);
+      expect(events()[0]).toEqual([
+        'forum-digest-email-news-clicked',
+        expect.objectContaining({ link_type: linkType, utmSource: `digest_email_${linkType}_link` }),
+      ]);
+      expect(events()[1][1]).toMatchObject({ from });
+    });
+
     it('records presses and undo with their properties', async () => {
       open('/digest?t=x');
       await userEvent.click(within(card('b')).getByRole('button', { name: 'Less like this' }));

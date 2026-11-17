@@ -6,24 +6,12 @@ import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { EditButton } from '@/components/common/profile/EditButton';
 import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
-import { OfficeHoursDialog } from '@/components/page/member-details/OfficeHoursDetails/components/OfficeHoursDialog';
-import { useGetMemberPreferences } from '@/services/members/hooks/useGetMemberPreferences';
+
+import { OfficeHoursDialog } from '../../../components/OfficeHoursDialog';
 
 import s from './OfficeHoursView.module.scss';
-import { InvalidOfficeHoursLinkDialog } from '@/components/page/member-details/OfficeHoursDetails/components/InvalidOfficeHoursLinkDialog';
-import { useReportBrokenOfficeHours } from '@/services/members/hooks/useReportBrokenOfficeHours';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
-import {
-  getAnalyticsMemberInfo,
-  getAnalyticsUserInfo,
-  getParsedValue,
-  normalizeOfficeHoursUrl,
-} from '@/utils/common.utils';
-import { useCreateFollowUp } from '@/services/members/hooks/useCreateFollowUp';
-import Cookies from 'js-cookie';
-import { getFollowUps } from '@/services/office-hours.service';
-import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
-import { toast } from '@/components/core/ToastContainer';
+import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 import { DataIncomplete } from '@/components/page/member-details/DataIncomplete';
 
 interface Props {
@@ -45,8 +33,7 @@ export const OfficeHoursView = ({
   onEdit,
   isOfficeHoursValid,
 }: Props) => {
-  const [showDialog, setShowDialog] = useState<{ view: 'info' | 'actionable' } | null>(null);
-  const [showInvalidLinkDialog, setShowInvalidLinkDialog] = useState(false);
+  const [showInfoDialog, setShowInfoDialog] = useState(false);
   const isOwner = userInfo?.uid === member.id;
   const hasOfficeHours = !!member.officeHours;
   const hasInterestedIn = !!member.ohInterest?.length;
@@ -57,83 +44,7 @@ export const OfficeHoursView = ({
   const showAddButton = !hasOfficeHours && !showAlert && isEditable;
   const showUpdateButton = isEditable && !showAlert && hasOfficeHours && (!hasInterestedIn || !hasCanHelpWith);
   const showAlertUpdateButton = showAlert && isEditable;
-  const { onAddOfficeHourClicked, onEditOfficeHourClicked, onOfficeHourClicked } = useMemberAnalytics();
-  const { mutateAsync: createFollowUp, data } = useCreateFollowUp();
-  const { mutate: reportBrokenLink } = useReportBrokenOfficeHours();
-  const { data: memberPreferences } = useGetMemberPreferences(userInfo?.uid);
-  const shouldShowDialog = memberPreferences?.memberPreferences?.showOfficeHoursDialog !== false;
-
-  const handleScheduleMeeting = () => {
-    if (!hasOfficeHours) return;
-
-    onOfficeHourClicked(getAnalyticsUserInfo(userInfo), getAnalyticsMemberInfo(member));
-
-    if (!isOfficeHoursValid) {
-      setShowInvalidLinkDialog(true);
-      reportBrokenLink({ memberId: member.id });
-      return;
-    }
-
-    if (shouldShowDialog) {
-      setShowDialog({ view: 'actionable' });
-    } else {
-      openOfficeHoursLink();
-    }
-  };
-
-  const openOfficeHoursLink = async () => {
-    if (!userInfo.uid || !member.officeHours) {
-      return;
-    }
-
-    const authToken = Cookies.get('authToken') || '';
-
-    const res = await createFollowUp({
-      logInMemberUid: userInfo.uid,
-      authToken: getParsedValue(authToken),
-      data: {
-        data: {},
-        hasFollowUp: true,
-        type: 'SCHEDULE_MEETING',
-        targetMemberUid: member.id,
-      },
-    });
-
-    if (res?.error) {
-      if (res?.error?.data?.message?.includes('yourself is forbidden')) {
-        toast.error(TOAST_MESSAGES.SELF_INTERACTION_FORBIDDEN);
-      }
-
-      if (res?.error?.data?.message?.includes('Interaction with same user within 30 minutes is forbidden')) {
-        toast.error(TOAST_MESSAGES.INTERACTION_RESTRICTED);
-      }
-
-      return;
-    }
-
-    // Normalize URL - add https:// if no protocol is provided
-    const normalizedOfficeHoursUrl = normalizeOfficeHoursUrl(member.officeHours);
-
-    window.open(normalizedOfficeHoursUrl, '_blank');
-
-    const allFollowups = await getFollowUps(userInfo.uid ?? '', getParsedValue(authToken), 'PENDING,CLOSED');
-
-    if (!allFollowups?.error) {
-      const result = allFollowups?.data ?? [];
-
-      if (result.length > 0) {
-        document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_RATING_POPUP, { detail: { notification: result[0] } }));
-        document.dispatchEvent(
-          new CustomEvent(EVENTS.GET_NOTIFICATIONS, { detail: { status: true, isShowPopup: false } }),
-        );
-      }
-    }
-  };
-
-  const handleDialogContinue = () => {
-    setShowDialog(null);
-    openOfficeHoursLink();
-  };
+  const { onAddOfficeHourClicked, onEditOfficeHourClicked } = useMemberAnalytics();
 
   function getDesc() {
     if (!hasOfficeHours) {
@@ -143,7 +54,7 @@ export const OfficeHoursView = ({
             OH are short 15min 1:1 calls to connect about topics of interest or help others with your expertise. Share
             your calendar. You will also access other members OH.
           </span>
-          <button type="button" className={s.linkBtn} onClick={() => setShowDialog({ view: 'info' })}>
+          <button type="button" className={s.linkBtn} onClick={() => setShowInfoDialog(true)}>
             Learn more <LinkIcon />
           </button>
         </div>
@@ -155,7 +66,7 @@ export const OfficeHoursView = ({
         <>
           <div>
             <span>{member.name} is available for a short 1:1 call to connect or help — no introduction needed.</span>
-            <button type="button" className={s.linkBtn} onClick={() => setShowDialog({ view: 'info' })}>
+            <button type="button" className={s.linkBtn} onClick={() => setShowInfoDialog(true)}>
               Learn more <LinkIcon />
             </button>
           </div>
@@ -268,12 +179,9 @@ export const OfficeHoursView = ({
             <div className={s.col}>
               <div className={s.description}>{getDesc()}</div>
             </div>
-            {hasOfficeHours && !showAlert && !isOwner && (
+            {hasOfficeHours && !isOwner && showPastBookings && (
               <div className={s.primaryButtonWrapper}>
-                <button className={s.primaryButton} disabled={!hasOfficeHours} onClick={handleScheduleMeeting}>
-                  Schedule Meeting
-                </button>
-                {showPastBookings && <span className={s.subtext}>{member.scheduleMeetingCount} past bookings</span>}
+                <span className={s.subtext}>{member.scheduleMeetingCount} past bookings</span>
               </div>
             )}
             {showAddButton && (
@@ -302,18 +210,11 @@ export const OfficeHoursView = ({
         </div>
 
         <OfficeHoursDialog
-          isOpen={showDialog !== null}
-          view={showDialog?.view}
-          onClose={() => setShowDialog(null)}
-          onContinue={handleDialogContinue}
+          isOpen={showInfoDialog}
+          view="info"
+          onClose={() => setShowInfoDialog(false)}
+          onContinue={() => setShowInfoDialog(false)}
           userInfo={userInfo}
-        />
-        <InvalidOfficeHoursLinkDialog
-          isOpen={showInvalidLinkDialog}
-          onClose={() => setShowInvalidLinkDialog(false)}
-          recipientName={member.name}
-          recipientEmail={member.email}
-          recipientTelegram={member.telegramHandle}
         />
       </div>
     </>

@@ -22,9 +22,10 @@ interface Props {
   isLoggedIn: boolean;
   userInfo: IUserInfo | null;
   variant?: 'investor-drawer' | 'apply-flow';
+  offerBooking?: boolean;
 }
 
-export const ProfileDetails = ({ isLoggedIn, userInfo, member, variant }: Props) => {
+export const ProfileDetails = ({ isLoggedIn, userInfo, member, variant, offerBooking = true }: Props) => {
   const [editView, setEditView] = useState(false);
 
   const bioRef = useRef<HTMLDivElement>(null);
@@ -72,6 +73,7 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member, variant }: Props)
               setEditView(true);
             }}
             variant={variant}
+            offerBooking={offerBooking}
           />
           {hasBio && member.bio && variant !== 'investor-drawer' && (
             <div className={s.bioContainer}>

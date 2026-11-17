@@ -28,15 +28,17 @@ jest.mock('@/analytics/intro-requests.analytics', () => ({
 
 describe('RequestIntroDialog', () => {
   const onClose = jest.fn();
+  const onSent = jest.fn();
 
   beforeEach(() => {
     createIntroRequest.mockReset();
     onAskSubmitted.mockReset();
     onClose.mockReset();
+    onSent.mockReset();
   });
 
   it('limits the text to 3500 characters so the message fits in Telegram', () => {
-    render(<RequestIntroDialog type="TEAM" targetId="team-1" targetName="Acme" onClose={onClose} />);
+    render(<RequestIntroDialog type="TEAM" targetId="team-1" targetName="Acme" onSent={onSent} onClose={onClose} />);
 
     const field = screen.getByLabelText(FIELD_LABEL);
     expect(field).toHaveAttribute('maxLength', '3500');
@@ -48,7 +50,15 @@ describe('RequestIntroDialog', () => {
   });
 
   it('keeps Send off until the text has 20 characters', () => {
-    render(<RequestIntroDialog type="MEMBER" targetId="member-2" targetName="Ada Lovelace" onClose={onClose} />);
+    render(
+      <RequestIntroDialog
+        type="MEMBER"
+        targetId="member-2"
+        targetName="Ada Lovelace"
+        onSent={onSent}
+        onClose={onClose}
+      />,
+    );
 
     const field = screen.getByLabelText(FIELD_LABEL);
     expect(field).toHaveAttribute('placeholder', PLACEHOLDER);
@@ -73,7 +83,7 @@ describe('RequestIntroDialog', () => {
 
   it('shows the received message and sends ask-submitted after a successful send', async () => {
     createIntroRequest.mockResolvedValue({ uid: 'req-1' });
-    render(<RequestIntroDialog type="TEAM" targetId="team-9" targetName="Acme" onClose={onClose} />);
+    render(<RequestIntroDialog type="TEAM" targetId="team-9" targetName="Acme" onSent={onSent} onClose={onClose} />);
 
     fireEvent.change(screen.getByLabelText(FIELD_LABEL), {
       target: { value: 'We want to talk about events.' },
@@ -87,12 +97,21 @@ describe('RequestIntroDialog', () => {
       text: 'We want to talk about events.',
     });
     expect(onAskSubmitted).toHaveBeenCalledWith('team');
+    expect(onSent).toHaveBeenCalledTimes(1);
   });
 
   it('shows the error and keeps the text', async () => {
     const { IntroRequestError } = jest.requireActual('@/services/intro-requests/intro-requests.service');
     createIntroRequest.mockRejectedValue(new IntroRequestError(404, 'Team not found'));
-    render(<RequestIntroDialog type="MEMBER" targetId="member-2" targetName="Ada Lovelace" onClose={onClose} />);
+    render(
+      <RequestIntroDialog
+        type="MEMBER"
+        targetId="member-2"
+        targetName="Ada Lovelace"
+        onSent={onSent}
+        onClose={onClose}
+      />,
+    );
 
     const field = screen.getByLabelText(FIELD_LABEL);
     fireEvent.change(field, { target: { value: 'Please introduce us.' } });
@@ -101,5 +120,6 @@ describe('RequestIntroDialog', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Team not found');
     expect(field).toHaveValue('Please introduce us.');
     await waitFor(() => expect(onAskSubmitted).not.toHaveBeenCalled());
+    expect(onSent).not.toHaveBeenCalled();
   });
 });

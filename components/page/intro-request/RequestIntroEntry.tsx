@@ -21,23 +21,45 @@ interface Props {
 export function RequestIntroEntry({ type, targetId, targetName, className }: Props) {
   const canRequest = useCanRequestIntro();
   const [open, setOpen] = useState(false);
+  const [sent, setSent] = useState(false);
 
-  if (!canRequest || !targetId || !targetName) return null;
+  if (!canRequest || !targetId || !targetName) {
+    return null;
+  }
 
   return (
     <>
-      <Button
-        style="fill"
-        variant="primary"
-        size="xs"
-        className={clsx(s.button, className)}
-        onClick={() => setOpen(true)}
-      >
-        <EnvelopeIcon />
-        Request an intro
-      </Button>
+      {sent ? (
+        <span className={clsx(s.sentSlot, className)}>
+          <span className={s.sizer} aria-hidden="true">
+            <EnvelopeIcon />
+            Request an intro
+          </span>
+          <span className={s.sent}>
+            <span aria-hidden="true">✓</span>
+            Intro requested
+          </span>
+        </span>
+      ) : (
+        <Button
+          style="fill"
+          variant="primary"
+          size="xs"
+          className={clsx(s.button, className)}
+          onClick={() => setOpen(true)}
+        >
+          <EnvelopeIcon />
+          Request an intro
+        </Button>
+      )}
       {open && (
-        <RequestIntroDialog type={type} targetId={targetId} targetName={targetName} onClose={() => setOpen(false)} />
+        <RequestIntroDialog
+          type={type}
+          targetId={targetId}
+          targetName={targetName}
+          onSent={() => setSent(true)}
+          onClose={() => setOpen(false)}
+        />
       )}
     </>
   );

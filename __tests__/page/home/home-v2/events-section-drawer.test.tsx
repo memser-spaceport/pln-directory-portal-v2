@@ -168,13 +168,19 @@ describe('Home rail opens the event drawer (LAB-3220)', () => {
     expect(screen.getByTestId('event-drawer')).toHaveAttribute('data-uid', 'e1');
   });
 
-  it('signed out with the flag on, keeps the calendar links and never asks for the viewer’s events', () => {
+  it('signed out with the flag on, opens the drawer and never asks for the viewer’s events (LAB-3271)', async () => {
     viewer.currentUser = null;
+    going.data = ['e1'];
     renderRail(false);
 
-    expect(screen.getByRole('link', { name: 'libp2p Day' }).getAttribute('href')).toMatch(/^\/events\/all\?embedPath=/);
-    expect(screen.queryByRole('button', { name: 'libp2p Day' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'libp2p Day' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Going')).not.toBeInTheDocument();
     expect(going.enabled.every((enabled) => enabled === false)).toBe(true);
+
+    await click(screen.getByRole('button', { name: 'libp2p Day' }));
+
+    expect(screen.getByTestId('event-drawer')).toHaveAttribute('data-uid', 'e1');
+    expect(analytics.onEventClicked).toHaveBeenCalledWith({ event_uid: 'e1', position: 1, signed_in: false });
   });
 
   it('with the flag off, a signed-in member keeps the calendar links and sees no marks', () => {
@@ -213,7 +219,17 @@ describe('Home rail prepares the drawer before the press', () => {
     expect(prefetchEvent).toHaveBeenCalledWith('e1');
   });
 
-  it('prefetches nothing for signed-out rows, which stay links', () => {
+  it('prefetches for signed-out rows too, which open the drawer (LAB-3271)', () => {
+    viewer.currentUser = null;
+    renderRail(false);
+
+    fireEvent.pointerEnter(screen.getByRole('button', { name: 'FIL Builders' }));
+
+    expect(prefetchEvent).toHaveBeenCalledWith('e2');
+  });
+
+  it('prefetches nothing with the flag off, where rows stay links', () => {
+    flag.on = false;
     renderRail(false);
 
     fireEvent.pointerEnter(screen.getByRole('link', { name: 'FIL Builders' }));
@@ -230,5 +246,24 @@ describe('Home rail "See all" count', () => {
 
     render(<EventsSection events={events} total={7} signedIn />);
     expect(screen.getByRole('link', { name: 'See all 7 events' })).toBeInTheDocument();
+  });
+});
+
+describe('Home rail attendee count (LAB-3271)', () => {
+  const withCounts = (counts: (number | undefined)[]) =>
+    events.map((ev, i) => (counts[i] === undefined ? ev : { ...ev, goingCount: counts[i] }));
+
+  it('shows "N going" when the count is 1 or more', () => {
+    render(<EventsSection events={withCounts([1, 12])} total={2} signedIn />);
+
+    expect(row('libp2p Day')).toHaveTextContent('Lisbon · 1 going');
+    expect(row('FIL Builders')).toHaveTextContent('Berlin · 12 going');
+  });
+
+  it('shows no count for 0, or when the API sends none', () => {
+    render(<EventsSection events={withCounts([0, undefined])} total={2} signedIn={false} />);
+
+    expect(row('libp2p Day')).not.toHaveTextContent(/going/);
+    expect(row('FIL Builders')).not.toHaveTextContent(/going/);
   });
 });

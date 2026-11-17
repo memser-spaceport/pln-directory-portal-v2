@@ -54,19 +54,7 @@ describe('isForumProxyAllowed', () => {
 });
 
 describe('buildForumUpstreamHeaders', () => {
-  it('sends the forum token and not the member token when the forum token is set', () => {
-    const headers = buildForumUpstreamHeaders({
-      forumToken: 'forum-token',
-      memberToken: 'member-token',
-      userInfo: member,
-      impersonateMemberUid: 'other-member',
-    });
-
-    expect(headers.Authorization).toBe('Bearer forum-token');
-    expect(headers['x-impersonate-member-uid']).toBeUndefined();
-  });
-
-  it('sends the member token when no forum token is set', () => {
+  it('sends the member session token', () => {
     const headers = buildForumUpstreamHeaders({
       memberToken: 'member-token',
       userInfo: member,
@@ -76,7 +64,7 @@ describe('buildForumUpstreamHeaders', () => {
     expect(headers.Authorization).toBe('Bearer member-token');
   });
 
-  it('omits Authorization when neither token is set', () => {
+  it('omits Authorization when no member token is set', () => {
     const headers = buildForumUpstreamHeaders({
       userInfo: null,
       impersonateMemberUid: 'other-member',
@@ -89,7 +77,7 @@ describe('buildForumUpstreamHeaders', () => {
   it('forwards impersonation only for a directory admin, and only for someone else', () => {
     expect(
       buildForumUpstreamHeaders({
-        forumToken: 'forum-token',
+        memberToken: 'member-token',
         userInfo: admin,
         impersonateMemberUid: 'other-member',
       })['x-impersonate-member-uid'],
@@ -97,7 +85,7 @@ describe('buildForumUpstreamHeaders', () => {
 
     expect(
       buildForumUpstreamHeaders({
-        forumToken: 'forum-token',
+        memberToken: 'member-token',
         userInfo: admin,
         impersonateMemberUid: 'admin-1',
       })['x-impersonate-member-uid'],
@@ -105,7 +93,7 @@ describe('buildForumUpstreamHeaders', () => {
 
     expect(
       buildForumUpstreamHeaders({
-        forumToken: 'forum-token',
+        memberToken: 'member-token',
         userInfo: member,
         impersonateMemberUid: 'other-member',
       })['x-impersonate-member-uid'],
@@ -116,7 +104,7 @@ describe('buildForumUpstreamHeaders', () => {
     const fromAccess = userInfoForImpersonation('admin-1', ['directory.admin.full']);
     expect(
       buildForumUpstreamHeaders({
-        forumToken: 'forum-token',
+        memberToken: 'member-token',
         userInfo: fromAccess,
         impersonateMemberUid: 'other-member',
       })['x-impersonate-member-uid'],
@@ -125,7 +113,7 @@ describe('buildForumUpstreamHeaders', () => {
     const notAdmin = userInfoForImpersonation('member-1', ['forum.write']);
     expect(
       buildForumUpstreamHeaders({
-        forumToken: 'forum-token',
+        memberToken: 'member-token',
         userInfo: notAdmin,
         impersonateMemberUid: 'other-member',
       })['x-impersonate-member-uid'],
@@ -134,7 +122,7 @@ describe('buildForumUpstreamHeaders', () => {
 
   it('ignores an impersonation uid that is not a single token', () => {
     const headers = buildForumUpstreamHeaders({
-      forumToken: 'forum-token',
+      memberToken: 'member-token',
       userInfo: admin,
       impersonateMemberUid: 'other\r\nX-Injected: 1',
     });

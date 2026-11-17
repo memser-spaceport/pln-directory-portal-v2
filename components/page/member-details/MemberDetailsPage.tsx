@@ -327,7 +327,7 @@ const MemberDetails = ({ memberId, serverMember, serverMemberEvents }: MemberDet
             Experience and Contributions sections, and their own job search
             status is not one of the things that should go with them. */}
         {isOwner && (
-          <ProfileSection name="Job Search Status">
+          <ProfileSection name="Job Search Status" visibility={MEMBER_SECTION_VISIBILITY.jobSearchStatus}>
             <JobSearchStatusDetails member={member} />
           </ProfileSection>
         )}

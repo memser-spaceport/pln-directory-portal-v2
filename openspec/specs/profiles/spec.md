@@ -368,12 +368,13 @@ A team's Contributions SHALL list Demo Day first when the team took part in one.
 
 ### Requirement: A member sees who can see the sections that are not obvious
 
-On their own profile, three sections SHALL carry a grey badge that says who can see them. Hovering, focusing or tapping the badge SHALL show a short explanation. Other sections SHALL carry no badge, as their audience is clear from context. No badge SHALL render on anyone else's profile, or while the page still shows the public record before the viewer's own fetch lands.
+On their own profile, four sections SHALL carry a badge right after the section title that says who can see them. The badge is the grey uppercase pill the job board uses for "Only visible to you". Hovering, focusing or tapping the badge SHALL show a short explanation. Other sections SHALL carry no badge, as their audience is clear from context. No badge SHALL render on anyone else's profile, or while the page still shows the public record before the viewer's own fetch lands.
 
 | Section                                                          | Badge                                                 |
 | ---------------------------------------------------------------- | ----------------------------------------------------- |
 | Profile details (photo, name, teams, role, skills, bio), by name | Public; the explanation says location is members only |
 | Investor Profile                                                 | Shared on intro                                       |
+| Job search status                                                | Only visible to you                                   |
 | CV                                                               | Shared when you apply                                 |
 
 The Public badge SHALL match what a logged-out visitor gets: the member record they receive has the photo, name, teams, role, skills and bio, and no location.
@@ -382,7 +383,7 @@ The Public badge SHALL match what a logged-out visitor gets: the member record t
 
 - **GIVEN** a signed-in investor with a CV
 - **WHEN** they open their own profile
-- **THEN** "Public" sits next to their name, Investor Details shows "Shared on intro", Your CV shows "Shared when you apply", and no other section has a badge
+- **THEN** "Public" sits next to their name, Investor Details shows "Shared on intro", Job search status shows "Only visible to you" next to its title, Your CV shows "Shared when you apply", and no other section has a badge
 
 #### Scenario: Member opens someone else's profile
 

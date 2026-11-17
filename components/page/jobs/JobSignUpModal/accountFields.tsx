@@ -14,7 +14,7 @@ import { JobSearchStatusInput } from '@/components/page/jobs/JobSearchStatusInpu
 // imports behind it. That matters here specifically: this module is on the
 // logged-out sign-up path, and `JobProfileDrawer` is loaded through
 // `dynamic({ ssr: false })` precisely so a visitor never downloads that stack.
-import { PlTeamOnlyPill } from '@/components/page/jobs/PlTeamOnlyPill/PlTeamOnlyPill';
+import { VisibilityPill } from '@/components/common/VisibilityPill';
 
 // `FormField`'s own label/error pair, for the labels and the one error this
 // group places by hand — `FormField` types `label` as a `string`, so neither a
@@ -568,7 +568,7 @@ export function JobSearchStatusField() {
           stranger and a member see one promise rather than two. */}
       <div className={ff.labelWrapper}>
         <span className={`${ff.label} ${ff.required}`}>Job search status</span>
-        <PlTeamOnlyPill />
+        <VisibilityPill />
       </div>
       <JobSearchStatusInput
         name="signup-job-search-status"

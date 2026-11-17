@@ -1,21 +1,14 @@
+// A bare button around the pill: the pill draws the badge, the button makes it a popover trigger.
 .trigger {
   display: inline-flex;
   flex-shrink: 0;
-  align-items: center;
-  gap: 4px;
-
   margin: 0 auto 0 8px;
-  padding: 3px 10px;
-  border: 1px solid var(--border-neutral-subtle, rgba(14, 15, 17, 0.16));
-  border-radius: 100px;
-  background: #fff;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: none;
   cursor: pointer;
-
-  color: var(--foreground-neutral-secondary, #455468);
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  white-space: nowrap;
+  font: inherit;
 }
 
 // Above the profile's section status bar and the mobile nav.

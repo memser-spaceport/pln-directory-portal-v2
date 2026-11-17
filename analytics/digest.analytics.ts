@@ -120,6 +120,16 @@ export function useDigestAnalytics() {
           domain: params.domain,
         });
       },
+      onEventClicked(params: { eventUid: string; position: number; opens: 'drawer' | 'calendar' }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_EVENT_CLICKED, {
+          event_uid: params.eventUid,
+          position: params.position,
+          opens: params.opens,
+        });
+      },
+      onEventsSeeAllClicked(params: { total: number }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_EVENTS_SEE_ALL_CLICKED, params);
+      },
       onChoiceClicked(params: { kind: DigestChoice; newsId: string; position: number; activeAfter: boolean }) {
         capture(
           params.kind === 'more'

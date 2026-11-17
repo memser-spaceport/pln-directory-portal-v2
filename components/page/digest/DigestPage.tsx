@@ -20,6 +20,7 @@ import { feedQueryKeys } from '@/services/feed/constants';
 import type { IFeedCommentCountsResponse } from '@/types/feed.types';
 
 import { DigestForumPost } from './DigestForumPost';
+import { DigestEvents } from './DigestEvents';
 import { DigestHeader } from './DigestHeader';
 import { DigestNetworkNews } from './DigestNetworkNews';
 import { DigestCaughtUp } from './DigestIssueEnd';
@@ -244,6 +245,13 @@ export function DigestPage({ token, issue, data, isLoggedIn }: Props) {
                   analytics.onNetworkNewsClicked({ newsId: item.uid, position, domain: item.domain })
                 }
               />
+            </>
+          )}
+
+          {data.events.items.length > 0 && (
+            <>
+              <div className={s.spacer} />
+              <DigestEvents events={data.events.items} total={data.events.total} signedIn={signedIn} />
             </>
           )}
 

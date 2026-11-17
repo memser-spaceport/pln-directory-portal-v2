@@ -68,6 +68,25 @@ export type DigestPageData = {
   issues: DigestIssue[];
   /** More from the network (LAB-3291): other press about network teams in the issue's week, at most 5. */
   networkNews: DigestNetworkNews[];
+  /** Upcoming events (LAB-3292): the next 4 weeks, soonest first, at most 5, and the window's total. */
+  events: { items: DigestEvent[]; total: number };
+};
+
+/** One row of Upcoming events (LAB-3292). */
+export type DigestEvent = {
+  uid: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  /** "Lisbon, Portugal"; null when the gathering has none. */
+  location: string | null;
+  locationUid: string | null;
+  externalId: string | null;
+  logoUrl: string | null;
+  /** IN_PERSON, VIRTUAL or INVITE_ONLY. */
+  type: string | null;
+  /** Members going; null when the event hides it (invite-only). */
+  goingCount: number | null;
 };
 
 /** One row of More from the network (LAB-3291). Opens `url` at the outlet. */

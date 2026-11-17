@@ -4,17 +4,43 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { toast } from '@/components/core/ToastContainer';
-import fb from '@/components/ui/FollowButton/FollowButton.module.scss';
-import { Check } from '@phosphor-icons/react';
+import { getTeamLogoFallback } from '@/components/page/home/TeamNews/utils/getTeamLogoFallback';
+// The feed card's team header (logo, name, Follow), production NewsCard's classes 1:1.
+import nc from '@/components/page/home/TeamNews/components/NewsCard/NewsCard.module.scss';
+import { Check, MegaphoneSimple } from '@phosphor-icons/react';
 
+import { FollowButton } from '../follow-shared/FollowButton';
+import { CommentsThread } from '../newsfeed-v0/CommentsThread';
+import { CommentButton } from '../newsfeed-v0/FeedActions';
+import { ForumPostModal } from '../newsfeed-v0/ForumPostModal';
+import type { FeedComment, ForumPost } from '../newsfeed-v0/mocks';
 import { ShareMenu } from '../newsfeed-v0/ShareMenu';
+import { PostNewsModal } from '../team-profile/PostNewsModal';
 
+import logoLattice from './assets/logo-lattice-compute.svg';
+import logoOptimism from './assets/logo-optimism.svg';
+import logoProprio from './assets/logo-proprio-labs.svg';
+import logoStarknet from './assets/logo-starknet.svg';
 import plLogo from './assets/pl-logo.png';
 import thumbsDown from './assets/thumbs-down.svg';
 import thumbsUp from './assets/thumbs-up.svg';
+import { AllTopicsModal } from './AllTopicsModal';
+import { DigestEvents } from './DigestEvents';
+import { DigestForum } from './DigestForum';
+import { DigestNetworkNews } from './DigestNetworkNews';
+import { DigestSidebar, type PastIssue } from './DigestSidebar';
 import { PrototypeMobileNav } from '../nav-shared/PrototypeMobileNav';
 import { PrototypeNavBar } from '../nav-shared/PrototypeNavBar';
-import { DIGEST_FORUM_POSTS, DIGEST_ISSUE, DIGEST_STORIES, type DigestStory, type Feedback } from './mocks';
+import {
+  DIGEST_COMMENTS,
+  DIGEST_FORUM_POSTS,
+  DIGEST_ISSUE,
+  DIGEST_STORIES,
+  DIGEST_TOPICS,
+  type DigestForumPost,
+  type DigestStory,
+  type Feedback,
+} from './mocks';
 
 import s from './DigestWebPrototype.module.scss';
 
@@ -34,7 +60,21 @@ export default function DigestWebPrototype() {
   const rawFeedback = params.get('feedback');
   const landedFeedback: Feedback | null = rawFeedback === 'more' || rawFeedback === 'less' ? rawFeedback : null;
   const isEmail = params.get('view') === 'email';
+  // "Send us your team news": the team profile's Post news modal. The email's link lands
+  // here with ?postnews=open.
+  const [composeOpen, setComposeOpen] = useState(() => !isEmail && params.get('postnews') === 'open');
   const landed = !isEmail && landedStory && DIGEST_STORIES.some((x) => x.id === landedStory) ? landedStory : null;
+
+  // The reader's topics (mocked, this visit only), shared by the side card and the All topics
+  // modal. The modal opens from the card's See all topics and from the greeting's Change topics;
+  // the email's Change topics lands here with ?topics=open.
+  const [topics, setTopics] = useState<string[]>(DIGEST_TOPICS);
+  const [topicsOpen, setTopicsOpen] = useState(() => !isEmail && params.get('topics') === 'open');
+  const saveTopics = (next: string[]) => {
+    setTopics(next);
+    setTopicsOpen(false);
+    toast.success('Topics saved. Your next digest uses them.');
+  };
 
   const [feedback, setFeedback] = useState<Record<string, Feedback | undefined>>(() =>
     landed && landedFeedback ? { [landed]: landedFeedback } : {},
@@ -43,6 +83,38 @@ export default function DigestWebPrototype() {
   // (a full story is taller than a phone screen, so a receipt under the buttons is off-screen).
   // Once the reader presses on the page, it moves under the buttons they pressed.
   const [receiptAtTop, setReceiptAtTop] = useState<string | null>(landed && landedFeedback ? landed : null);
+  // Story comments, as Home's feed holds them (mocked, this visit only): the thread opens
+  // under the story from its Comments button, one story at a time or several, like the feed.
+  const [comments, setComments] = useState<Record<string, FeedComment[]>>(DIGEST_COMMENTS);
+  const [openThreads, setOpenThreads] = useState<Set<string>>(() => new Set());  const [likedComments, setLikedComments] = useState<Set<string>>(() => new Set());
+  const toggleInSet = (setter: typeof setOpenThreads, key: string) =>
+    setter((current) => {
+      const next = new Set(current);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  const addComment = (storyId: string, text: string, parentUid?: string) =>
+    setComments((prev) => {
+      const existing = prev[storyId] ?? [];
+      const comment: FeedComment = {
+        uid: `c-${storyId}-new-${existing.length + 1}`,
+        author: 'You',
+        role: 'Member @ Protocol Labs',
+        text,
+        createdAt: new Date().toISOString(),
+        parentUid,
+      };
+      return { ...prev, [storyId]: [...existing, comment] };
+    });
+
+  // The forum post open in Home's forum modal (web page only), and the posts liked there.
+  // A post's comments live in `comments` under `post-<id>`.
+  const [openPostId, setOpenPostId] = useState<string | null>(null);
+  const [likedPosts, setLikedPosts] = useState<Set<string>>(() => new Set());
+  const openPost = DIGEST_FORUM_POSTS.find((p) => p.id === openPostId);
+  const postKey = (id: string) => `post-${id}`;
+
   // Teams followed from this page (mocked, this visit only).
   const [followed, setFollowed] = useState<Set<string>>(() => new Set());
   const toggleFollow = (team: string) =>
@@ -57,26 +129,10 @@ export default function DigestWebPrototype() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  // The section in view, for the contents column: the last section (a story, then the forum
-  // posts) whose top has passed a line a third of the way down the screen.
-  const [activeStory, setActiveStory] = useState<string | null>(DIGEST_STORIES[0].id);
-  useEffect(() => {
-    if (!mounted || isEmail) return;
-    const sections = [...DIGEST_STORIES.map((x) => x.id), FORUM_SECTION];
-    const onScroll = () => {
-      const line = window.innerHeight / 3;
-      let current = sections[0];
-      for (const id of sections) {
-        const el = document.getElementById(`story-${id}`);
-        if (el && el.getBoundingClientRect().top <= line) current = id;
-      }
-      setActiveStory(current);
-    };
-    onScroll();
-    // The page scrolls on body in portal-v2, not the document, so listen in the capture phase.
-    window.addEventListener('scroll', onScroll, { capture: true, passive: true });
-    return () => window.removeEventListener('scroll', onScroll, { capture: true });
-  }, [mounted, isEmail]);
+  // Which issue is open: ?issue=<date> from the Past issues list, else this week's.
+  // Mock: every past issue shows this week's stories; only the dateline changes.
+  const rawIssue = params.get('issue');
+  const issueId = PAST_ISSUES.some((x) => x.id === rawIssue) ? rawIssue! : DIGEST_ISSUE.id;
 
   useEffect(() => {
     if (!mounted || !landed) return;
@@ -127,14 +183,17 @@ export default function DigestWebPrototype() {
 
         <div className={isEmail ? undefined : s.webLayout}>
           <article className={s.email}>
-            <div className={s.logoRow}>
-              <img src={plLogo.src} alt="Protocol Labs" width={144} height={32} />
-            </div>
+            {/* Email only: on the web page the platform navbar already says where you are. */}
+            {isEmail && (
+              <div className={s.logoRow}>
+                <img src={plLogo.src} alt="Protocol Labs" width={144} height={32} />
+              </div>
+            )}
 
             {/* Web only: which issue this is (Medium Daily Digest / Substack's dateline). */}
             {!isEmail && (
               <p className={s.issueLine}>
-                Weekly digest · {ISSUE_DATE} · {DIGEST_STORIES.length} stories
+                Weekly digest · {formatIssueDate(issueId)} · {DIGEST_STORIES.length} stories
               </p>
             )}
 
@@ -142,62 +201,83 @@ export default function DigestWebPrototype() {
               <h1 className={s.greeting}>Hi {DIGEST_ISSUE.greetingName},</h1>
               <p className={s.introText}>
                 {DIGEST_ISSUE.intro}{' '}
-                <a href="#" className={s.introLink}>
-                  Change topics
-                </a>
+                {/* Opens the All topics modal, so the issue stays where it was (Anuj: "new tab or
+                    modal"). In the email it's a link that lands on this page with the modal open. */}
+                {isEmail ? (
+                  <a href="?topics=open" className={s.introLink}>
+                    Change topics
+                  </a>
+                ) : (
+                  <button type="button" className={s.introLink} onClick={() => setTopicsOpen(true)}>
+                    Change topics
+                  </button>
+                )}
               </p>
             </header>
 
-            {/* Under 1100px there's no room beside the column: the contents sit here instead. */}
-            {!isEmail && <Contents variant="inline" active={activeStory} />}
+            {!isEmail && topicsOpen && (
+              <AllTopicsModal subscribed={topics} onClose={() => setTopicsOpen(false)} onSave={saveTopics} />
+            )}
 
             <div className={s.spacer} />
 
+            {/* Web: every story in full, one column. The top story is Perplexity Discover's wide
+                card (text beside a big picture); the rest carry the picture beside the text,
+                alternating sides as the email does. The email keeps Figma's rows. */}
             <div className={s.cards}>
               {DIGEST_STORIES.map((story, i) => (
                 <StoryCard
                   key={story.id}
                   story={story}
                   asEmail={isEmail}
-                  lead={i === 0 && !isEmail}
+                  layout={isEmail ? 'email' : i === 0 ? 'hero' : 'row'}
                   following={followed.has(story.team)}
                   onFollow={() => toggleFollow(story.team)}
                   feedback={feedback[story.id]}
                   receiptAtTop={receiptAtTop === story.id}
                   onPress={(next) => press(story.id, next)}
                   onUndo={() => undo(story.id)}
+                  thread={{
+                    comments: comments[story.id] ?? [],
+                    open: openThreads.has(story.id),
+                    onToggle: () => toggleInSet(setOpenThreads, story.id),
+                    onAdd: (text, parentUid) => addComment(story.id, text, parentUid),
+                    isLiked: (uid) => likedComments.has(uid),
+                    onToggleLike: (uid) => toggleInSet(setLikedComments, uid),
+                  }}
                 />
               ))}
             </div>
 
             <div className={s.spacer} />
-            <div id={`story-${FORUM_SECTION}`} className={`${s.dividerRow} ${s.forumAnchor}`}>
-              <span className={s.dividerLine} />
-              <h2 className={s.dividerLabel}>Recent forum posts</h2>
-              <span className={s.dividerLine} />
-            </div>
+            <DigestNetworkNews asEmail={isEmail} id={`story-${NEWS_SECTION}`} />
 
-            {DIGEST_FORUM_POSTS.map((post) => (
-              <section key={post.id} className={s.post}>
-                <div className={s.spacer} />
-                <div className={s.byline}>
-                  <img src={post.avatar.src} alt="" className={s.avatar} width={32} height={32} />
-                  <span className={s.bylineName}>by {post.author}</span>
-                  <span className={s.bylineRole}>· {post.role}</span>
-                </div>
-                <div className={s.postBody}>
-                  <h3 className={s.postTitle}>{post.title}</h3>
-                  {(isEmail ? post.body.slice(0, 1) : post.body).map((p) => (
-                    <p key={p} className={s.postText}>
-                      {p}
-                    </p>
-                  ))}
-                  <a href="#" className={s.postLink}>
-                    {isEmail ? 'Read More' : 'Reply in the forum'}
-                  </a>
-                </div>
-              </section>
-            ))}
+            <div className={s.spacer} />
+            <DigestEvents asEmail={isEmail} id={`story-${EVENTS_SECTION}`} />
+
+            <div className={s.spacer} />
+            {/* A row opens the post in Home's forum modal (full post, likes, comments); in the
+                email it links to the forum. */}
+            <DigestForum
+              asEmail={isEmail}
+              id={`story-${FORUM_SECTION}`}
+              onOpenPost={setOpenPostId}
+              extraReplies={(postId) => (comments[postKey(postId)] ?? []).length}
+            />
+
+            {!isEmail && (
+              <ForumPostModal
+                post={openPost ? toForumPost(openPost) : null}
+                onClose={() => setOpenPostId(null)}
+                likeCount={openPost ? FORUM_LIKES[openPost.id] + (likedPosts.has(openPost.id) ? 1 : 0) : 0}
+                liked={!!openPost && likedPosts.has(openPost.id)}
+                onToggleLike={() => openPost && toggleInSet(setLikedPosts, openPost.id)}
+                comments={openPost ? (comments[postKey(openPost.id)] ?? []) : []}
+                onAddComment={(text, parentUid) => openPost && addComment(postKey(openPost.id), text, parentUid)}
+                isCommentLiked={(uid) => likedComments.has(uid)}
+                onToggleCommentLike={(uid) => toggleInSet(setLikedComments, uid)}
+              />
+            )}
 
             {/* Web only: a clear end to the issue (Substack / Pinterest "all caught up"),
                 with when the next one comes and where to keep reading. */}
@@ -214,6 +294,62 @@ export default function DigestWebPrototype() {
               </section>
             )}
 
+            {/* Under 1100px there's no room beside the column: the side cards close the page instead. */}
+            {!isEmail && (
+              <DigestSidebar
+                variant="inline"
+                currentIssue={issueId}
+                latestIssue={DIGEST_ISSUE.id}
+                pastIssues={PAST_ISSUES}
+                formatDate={(id) => formatIssueDate(id, 'short')}
+                subscribed={topics}
+                onSaveTopics={saveTopics}
+                onOpenAllTopics={() => setTopicsOpen(true)}
+              />
+            )}
+
+            {/* The digest asks for content: on the page it opens the team profile's Post news
+                modal; in the email it lands on the page with that modal open. */}
+            <section className={s.sendNews} aria-label="Send us your team news">
+              {/* Left-aligned with a mark on the left (Polina, 2026-11-17): a megaphone, the
+                  product's "announce" glyph, in the brand-soft tile. */}
+              <span className={s.sendNewsIcon} aria-hidden>
+                <MegaphoneSimple size={20} />
+              </span>
+              <div className={s.sendNewsBody}>
+                <p className={s.sendNewsTitle}>Got news from your team?</p>
+                <p className={s.sendNewsText}>
+                  {/* "Post", not "send" (Anuj, 2026-11-16): nobody reviews it first, it goes
+                      straight onto the feed. */}
+                  Post it here and it goes straight onto the network feed. The best of the week makes the next
+                  digest.
+                </p>
+                {isEmail ? (
+                  <a href="/prototypes/digest-web?postnews=open" className={s.sendNewsLink}>
+                    Post your team news →
+                  </a>
+                ) : (
+                  <button type="button" className={s.sendNewsLink} onClick={() => setComposeOpen(true)}>
+                    Post your team news →
+                  </button>
+                )}
+              </div>
+            </section>
+
+            {!isEmail && (
+              <PostNewsModal
+                open={composeOpen}
+                onClose={() => setComposeOpen(false)}
+                teamUid={VIEWER_TEAM.uid}
+                teamName={VIEWER_TEAM.name}
+                existing={[]}
+                onPublish={() => {
+                  setComposeOpen(false);
+                  toast.success('Posted. It’s on the network feed now.');
+                }}
+              />
+            )}
+
             <footer>
               <div className={s.signoff}>
                 <p className={s.signoffStrong}>Cheers,</p>
@@ -225,19 +361,27 @@ export default function DigestWebPrototype() {
               <div className={s.legal}>
                 <p>You received this email because you are a member of the Protocol Labs network.</p>
                 <nav className={s.legalLinks}>
+                  {/* No frequency switch: the digest is weekly only (Anuj, 2026-11-16). */}
                   <a href="#">Manage preferences</a>
-                  <a href="#">Switch to weekly</a>
                   <a href="#">Unsubscribe</a>
                 </nav>
               </div>
             </footer>
           </article>
 
-          {/* Web only, 1100px and up: the contents as a sticky column on the right,
-              marking the story in view. */}
+          {/* Web only, 1100px and up: the side cards as a sticky column on the right. */}
           {!isEmail && (
             <aside className={s.rail}>
-              <Contents variant="rail" active={activeStory} />
+              <DigestSidebar
+                variant="rail"
+                currentIssue={issueId}
+                latestIssue={DIGEST_ISSUE.id}
+                pastIssues={PAST_ISSUES}
+                formatDate={(id) => formatIssueDate(id, 'short')}
+                subscribed={topics}
+                onSaveTopics={saveTopics}
+                onOpenAllTopics={() => setTopicsOpen(true)}
+              />
             </aside>
           )}
         </div>
@@ -246,86 +390,41 @@ export default function DigestWebPrototype() {
   );
 }
 
-/**
- * "In this issue": every story is open in full, so the page is long. A numbered contents list
- * (Quartz / NYT "Latest") jumps to the story the reader came for. Inline under the greeting on
- * narrow screens; a sticky right-hand column with the story in view marked on wide ones.
- */
-function Contents({ variant, active }: { variant: 'inline' | 'rail'; active: string | null }) {
-  const rail = variant === 'rail';
-  // Wide screens: a docs-style contents column (Mintlify / Codecademy / Obvious) — a small
-  // label, titles on a thin track, the section in view marked on the track. It lists every
-  // part of the page, so the forum posts are in it too.
-  if (rail) {
-    const items = [
-      ...DIGEST_STORIES.map((x) => ({ id: x.id, label: x.title })),
-      { id: FORUM_SECTION, label: 'Recent forum posts' },
-    ];
-    return (
-      <nav className={s.contentsRail} aria-label="In this issue">
-        <h2 className={s.railLabel}>In this issue</h2>
-        <ol className={s.railList}>
-          {items.map((item) => (
-            <li key={item.id}>
-              <a
-                href={`#story-${item.id}`}
-                className={`${s.railItem} ${active === item.id ? s.railItemActive : ''}`}
-                aria-current={active === item.id ? 'location' : undefined}
-              >
-                {item.label}
-              </a>
-            </li>
-          ))}
-        </ol>
-      </nav>
-    );
-  }
-  return (
-    <nav className={rail ? s.contentsRail : s.contents} aria-label="In this issue">
-      <h2 className={s.contentsTitle}>In this issue</h2>
-      <ol className={s.contentsList}>
-        {DIGEST_STORIES.map((story, i) => (
-          <li key={story.id}>
-            <a
-              href={`#story-${story.id}`}
-              className={`${s.contentsRow} ${rail && active === story.id ? s.contentsRowActive : ''}`}
-              aria-current={rail && active === story.id ? 'location' : undefined}
-            >
-              <span className={s.contentsNum}>{i + 1}</span>
-              <span className={s.contentsText}>
-                <span className={s.contentsHeadline}>{story.title}</span>
-                <span className={s.contentsMeta}>{story.team}</span>
-              </span>
-              {!rail && <img src={story.image.src} alt="" className={s.contentsThumb} width={64} height={44} />}
-            </a>
-          </li>
-        ))}
-      </ol>
-    </nav>
-  );
-}
-
 function StoryCard({
   story,
   asEmail,
-  lead,
+  layout,
   following,
   onFollow,
   feedback,
   receiptAtTop,
   onPress,
   onUndo,
+  thread,
 }: {
   story: DigestStory;
   asEmail: boolean;
-  /** The first story on the web page: its image runs the card's full width, above the text. */
-  lead: boolean;
+  /**
+   * email: Figma's row (image beside the text, alternating sides). hero: the page's top story,
+   * text beside a big picture. row: the page's other stories, picture beside the text.
+   * On the page every story is shown in full.
+   */
+  layout: 'email' | 'hero' | 'row';
   following: boolean;
   onFollow: () => void;
   feedback: Feedback | undefined;
   receiptAtTop: boolean;
   onPress: (next: Feedback) => void;
   onUndo: () => void;
+  /** The story's comments (web page only): Home's feed button and thread, reused. */
+  thread: {
+    comments: FeedComment[];
+    open: boolean;
+    onToggle: () => void;
+    onAdd: (text: string, parentUid?: string) => void;
+    isLiked: (uid: string) => boolean;
+    onToggleLike: (uid: string) => void;
+  };
 }) {
   const receipt = feedback && (
     <div className={s.receipt} role="status">
@@ -341,14 +440,41 @@ function StoryCard({
     </div>
   );
 
+  const layoutClass =
+    layout === 'hero'
+      ? s.cardHero
+      : story.imageSide === 'left'
+        ? s.cardImageLeft
+        : '';
+
   return (
     <article
       id={`story-${story.id}`}
-      className={[s.card, !asEmail && s.cardWeb, lead ? s.cardLead : story.imageSide === 'left' ? s.cardImageLeft : '']
-        .filter(Boolean)
-        .join(' ')}
+      className={[s.card, !asEmail && s.cardWeb, layoutClass].filter(Boolean).join(' ')}
     >
       {receiptAtTop && receipt}
+
+      {/* The feed card's team header: logo, the team (to its profile) and Follow beside it. */}
+      {!asEmail && (
+        <div className={`${nc.head} ${s.teamHead}`}>
+          {TEAM_LOGOS[story.team] ? (
+            <img className={nc.logo} src={TEAM_LOGOS[story.team]} alt="" />
+          ) : (
+            <div className={nc.logoFallback}>{getTeamLogoFallback(story.team)}</div>
+          )}
+          <a
+            href="/prototypes/team-profile"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${nc.teamName} ${s.teamHeadName}`}
+          >
+            {story.team}
+          </a>
+          <span className={s.teamHeadFollow}>
+            <FollowButton following={following} onClick={onFollow} name={story.team} size="xs" tertiary />
+          </span>
+        </div>
+      )}
 
       <div className={s.cardTop}>
         <div className={s.cardText}>
@@ -407,32 +533,43 @@ function StoryCard({
         </div>
         {!asEmail && (
           <div className={s.cardActions}>
-            {/* The homepage news card's compact follow (production FollowButton's classes and glyphs),
-                labelled with the team because the card has no team header to sit beside. */}
-            <button
-              type="button"
-              className={`${fb.compactBtn} ${following ? fb.compactFollowing : ''}`}
-              aria-pressed={following}
-              onClick={onFollow}
-            >
-              {following ? <FollowCheckIcon /> : <FollowPlusIcon />}
-              {following ? `Following ${story.team}` : `Follow ${story.team}`}
-            </button>
+            {/* The feed card's Comments item: count + toggle for the thread under the story. */}
+            <CommentButton count={thread.comments.length} open={thread.open} onToggle={thread.onToggle} />
             <ShareMenu variant="modal" url={`/prototypes/digest-web?story=${story.id}`} />
           </div>
         )}
       </div>
 
       {!receiptAtTop && receipt}
+
+      {!asEmail && thread.open && (
+        <CommentsThread
+          comments={thread.comments}
+          onAddComment={thread.onAdd}
+          isCommentLiked={thread.isLiked}
+          onToggleCommentLike={thread.onToggleLike}
+        />
+      )}
     </article>
   );
 }
 
-const ISSUE_DATE = new Date(`${DIGEST_ISSUE.id}T12:00:00`).toLocaleDateString('en-GB', {
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-});
+/** "9 November 2026", or "9 Nov 2026" for the Past issues list. */
+const formatIssueDate = (id: string, size: 'long' | 'short' = 'long') =>
+  new Date(`${id}T12:00:00`).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: size,
+    year: 'numeric',
+  });
+
+/** Mock archive, newest first: each issue's date and its top story. The first is this week's. */
+const PAST_ISSUES: PastIssue[] = [
+  { id: DIGEST_ISSUE.id, lead: DIGEST_STORIES[0].title },
+  { id: '2026-11-02', lead: 'Filecoin Onchain Cloud opens to the first paying customers' },
+  { id: '2026-10-26', lead: 'Optimism ships fault proofs on every OP Stack chain' },
+  { id: '2026-10-19', lead: 'Lattice Compute raises a seed round for verifiable GPU markets' },
+  { id: '2026-10-12', lead: 'Starknet cuts fees tenfold after its v0.14 upgrade' },
+];
 
 /** The digest is weekly: the next issue is seven days after this one ("Monday, 16 November"). */
 const NEXT_ISSUE_DATE = (() => {
@@ -441,27 +578,43 @@ const NEXT_ISSUE_DATE = (() => {
   return next.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
 })();
 
-/** The contents column's key for the forum section (its anchor is `story-forum-posts`). */
+/** The reader's team, which "Send us your team news" posts as (mock viewer, as on Home). */
+const VIEWER_TEAM = { uid: 'protocol-labs', name: 'Protocol Labs' };
+
+/** Seed like counts for the forum posts (mock). */
+const FORUM_LIKES: Record<string, number> = { 'retrieval-latency': 12, 'cross-chain': 7 };
+
+/** A digest forum post in the shape Home's forum modal reads (newsfeed-v0 `ForumPost`). */
+const toForumPost = (post: DigestForumPost): ForumPost => ({
+  uid: post.id,
+  author: post.author,
+  role: post.role,
+  memberUid: post.id,
+  title: post.title,
+  body: post.body.join('\n\n'),
+  category: post.category,
+  focusArea: '',
+  createdAt: post.createdAt,
+  tags: post.tags,
+  views: post.views,
+  forumUrl: '/forum',
+});
+
+/** Each story team's logo, a square mark that reads on white. Filecoin Foundation uses the
+ *  app's own Filecoin icon; the rest are drawn marks (the network CDN only has white wordmarks
+ *  for the dark islands map, which vanish here). */
+const TEAM_LOGOS: Record<string, string> = {
+  'Proprio Labs': logoProprio.src,
+  Starknet: logoStarknet.src,
+  Optimism: logoOptimism.src,
+  'Lattice Compute': logoLattice.src,
+  'Filecoin Foundation': '/icons/technology/filecoin.svg',
+};
+
+/** Section anchors (`story-<key>`), so a link can still land on a section. */
 const FORUM_SECTION = 'forum-posts';
-
-/* Production FollowButton's own glyphs, copied (they aren't exported). */
-const FollowPlusIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-    <path d="M7 1.5v11M1.5 7h11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-  </svg>
-);
-
-const FollowCheckIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-    <path
-      d="M11.667 3.5 5.25 9.917 2.333 7"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+const NEWS_SECTION = 'network-news';
+const EVENTS_SECTION = 'upcoming-events';
 
 function FeedbackButton({
   kind,

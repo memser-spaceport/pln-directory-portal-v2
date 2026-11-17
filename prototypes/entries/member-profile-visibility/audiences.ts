@@ -3,7 +3,7 @@
 // design being reviewed, two of which disagree with the code. See the notes on
 // `cv` and `investor`.
 
-export type AudienceKey = 'public' | 'members' | 'cv' | 'investor';
+export type AudienceKey = 'public' | 'members' | 'cv' | 'investor' | 'owner';
 
 export interface Audience {
   /** The word on the badge. */
@@ -43,6 +43,13 @@ export const AUDIENCES: Record<AudienceKey, Audience> = {
   investor: {
     label: 'Shared on intro',
     who: 'Only you can see it on your profile. Founders see it when the PL team introduces you.',
+    icon: 'lock',
+  },
+  /** Job search status: `JobSearchStatusDetails` renders for the owner only.
+   *  The label is production's `PlTeamOnlyPill` default, word for word. */
+  owner: {
+    label: 'Only visible to you',
+    who: 'Only you can see this. Nobody on the network does, including your current team.',
     icon: 'lock',
   },
 };

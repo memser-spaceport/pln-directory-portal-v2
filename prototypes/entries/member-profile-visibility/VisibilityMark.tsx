@@ -5,13 +5,17 @@ import { Popover } from '@base-ui-components/react/popover';
 
 import b from '@/components/common/Badge/Badge.module.scss';
 
+import pill from '../profile-shared/PlTeamOnlyPill.module.scss';
+
 import { AUDIENCES, type AudienceKey } from './audiences';
 import s from './VisibilityMark.module.scss';
 
 /**
- * The proposed visibility mark: the DS `Badge`'s **default** (grey) lineage for
- * every audience, told apart by icon and word rather than by hue. Pressing it
- * names who can see the section, in one sentence.
+ * The proposed visibility mark, drawn as the privacy pill production already
+ * uses for Job search status (`PlTeamOnlyPill`: grey fill, 11px uppercase, 12px
+ * glyph) so every "who can see this" mark on the profile is one object, told
+ * apart by icon and word rather than by hue. Pressing it names who can see the
+ * section, in one sentence.
  *
  * Grey because the mark is a fact about the section, not an action on it — the
  * current design's blue "Members only" wears the same ink as `+ Add` and `Edit`
@@ -25,7 +29,7 @@ export function VisibilityMark({ audience }: { audience: AudienceKey }) {
   const a = AUDIENCES[audience];
   return (
     <Popover.Root openOnHover delay={150}>
-      <Popover.Trigger className={clsx(b.root, b.default, s.trigger)} aria-label={`${a.label}. ${a.who}`}>
+      <Popover.Trigger className={clsx(pill.pill, s.trigger)} aria-label={`${a.label}. ${a.who}`}>
         <AudienceIcon icon={a.icon} />
         {a.label}
       </Popover.Trigger>

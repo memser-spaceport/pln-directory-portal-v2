@@ -9,14 +9,76 @@ import { CAL_EVENTS, DETAILS, THUMBS, type CalEvent } from '../event-drawer-rede
 export { CAL_EVENTS, DETAILS, THUMBS, GATHERINGS };
 export type { CalEvent, Gathering };
 
-export type Filter = 'all' | 'going' | 'in-person' | 'online';
+/**
+ * The events app's Filters rail (/events/all), kept in full and moved to the directory's left
+ * rail: Show featured events, Modes, Access Types, Focus Areas, Gatherings, Hosts. Plus "Going",
+ * the page's own view of your plans. Values are the labels the rail shows (GenericCheckboxList
+ * stores what it displays), and options come off the events, so none is ever empty.
+ */
+export type FacetKey = 'mode' | 'access' | 'focus' | 'gathering' | 'host';
 
-export const FILTERS: { value: Filter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'going', label: 'Going' },
-  { value: 'in-person', label: 'In person' },
-  { value: 'online', label: 'Online' },
+export interface EventFilters {
+  going: boolean;
+  featured: boolean;
+  mode: string[];
+  access: string[];
+  focus: string[];
+  gathering: string[];
+  host: string[];
+}
+
+/** Mock: the events app marks a few events featured; there is no flag in the drawer mocks. */
+export const FEATURED = new Set(['labweek-lisbon', 'fil-dev-summit', 'dai-summit-bangalore']);
+
+const MODE_LABEL: Record<string, string> = { 'In-Person': 'In person', Virtual: 'Virtual', Hybrid: 'Hybrid' };
+const ACCESS_LABEL: Record<string, string> = {
+  'FREE w/ RSVP': 'Free with RSVP',
+  PAID: 'Paid',
+  'INVITE ONLY': 'Invite only',
+};
+
+/** The labels an event has for each facet. */
+export function facetValues(event: CalEvent, key: FacetKey): string[] {
+  const d = DETAILS[event.uid];
+  if (key === 'mode') return [MODE_LABEL[d.mode]];
+  if (key === 'access') return [ACCESS_LABEL[d.access]];
+  if (key === 'focus') return d.tags.map((x) => x.name);
+  if (key === 'gathering') {
+    const g = event.gatheringUid ? GATHERINGS.find((x) => x.uid === event.gatheringUid) : null;
+    return g ? [g.city] : [];
+  }
+  return d.hosts;
+}
+
+export const FACETS: { key: FacetKey; title: string; label?: string; placeholder?: string; searchable: boolean }[] = [
+  { key: 'mode', title: 'Mode', searchable: false },
+  { key: 'access', title: 'Access type', searchable: false },
+  {
+    key: 'focus',
+    title: 'Focus area',
+    label: 'Search or select a focus area',
+    placeholder: 'E.g. AI',
+    searchable: true,
+  },
+  { key: 'gathering', title: 'Gathering', searchable: false },
+  { key: 'host', title: 'Host', label: 'Search or select a host', placeholder: 'E.g. Protocol Labs', searchable: true },
 ];
+
+/** Options for a facet with how many of the given events carry each, most first. */
+export function facetOptions(events: CalEvent[], key: FacetKey) {
+  const counts = new Map<string, number>();
+  events.forEach((e) => facetValues(e, key).forEach((v) => counts.set(v, (counts.get(v) ?? 0) + 1)));
+  return Array.from(counts, ([value, count]) => ({ value, count, disabled: false })).sort(
+    (x, y) => y.count - x.count || x.value.localeCompare(y.value),
+  );
+}
+
+/** Values within one filter are OR; filters together are AND (the events app's rule). */
+export function matchesFilters(event: CalEvent, f: EventFilters, goingUids: Set<string>) {
+  if (f.going && !goingUids.has(event.uid)) return false;
+  if (f.featured && !FEATURED.has(event.uid)) return false;
+  return FACETS.every(({ key }) => !f[key].length || facetValues(event, key).some((v) => f[key].includes(v)));
+}
 
 export const iso = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -27,16 +89,7 @@ export const at = (isoDay: string) => new Date(`${isoDay}T12:00:00`);
 export const isUpcoming = (event: CalEvent, todayIso: string) => event.endDate >= todayIso;
 
 /** Where a row sits in the list: its first day, or today if it is already under way. */
-export const listDay = (event: CalEvent, todayIso: string) =>
-  event.startDate < todayIso ? todayIso : event.startDate;
-
-export function matchesFilter(event: CalEvent, filter: Filter, goingUids: Set<string>) {
-  const mode = DETAILS[event.uid].mode;
-  if (filter === 'going') return goingUids.has(event.uid);
-  if (filter === 'in-person') return mode !== 'Virtual';
-  if (filter === 'online') return mode !== 'In-Person';
-  return true;
-}
+export const listDay = (event: CalEvent, todayIso: string) => (event.startDate < todayIso ? todayIso : event.startDate);
 
 export function matchesQuery(event: CalEvent, query: string) {
   const q = query.trim().toLowerCase();

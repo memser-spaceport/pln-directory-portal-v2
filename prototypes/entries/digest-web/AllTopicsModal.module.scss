@@ -1,0 +1,27 @@
+// SubmitDealModal's chrome at 560px: 25 chips in five rows don't need the deal form's 600.
+.root.root {
+  width: 560px;
+}
+
+.content.content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px 24px;
+}
+
+.search {
+  width: 100%;
+}
+
+.empty {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// Actions only, so they sit at the end of the row.
+.footer.footer {
+  justify-content: flex-end;
+}

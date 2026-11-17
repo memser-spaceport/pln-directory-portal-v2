@@ -1,4 +1,4 @@
-import type { DigestChoice, DigestChoiceResponse, DigestPageResult } from './digest.types';
+import type { DigestChoice, DigestChoiceResponse, DigestPageData, DigestPageResult } from './digest.types';
 
 const apiUrl = (path: string) => `${process.env.DIRECTORY_API_URL}/v1/labos-digest/${path}`;
 
@@ -15,7 +15,7 @@ export async function getDigestPage(token: string | undefined): Promise<DigestPa
       body: JSON.stringify({ token }),
       cache: 'no-store',
     });
-    if (response.ok) return { data: await response.json() };
+    if (response.ok) return { data: withPageDefaults(await response.json()) };
     if (response.status === 401) {
       const body = await response.json().catch(() => null);
       return { error: body?.reason === 'expired' ? 'expired' : 'invalid' };
@@ -40,4 +40,23 @@ export async function saveDigestChoice(
   });
   if (!response.ok) throw new Error(`Digest choice failed (${response.status})`);
   return response.json();
+}
+
+/**
+ * Fills the page v2 fields (LAB-3288) when the backend doesn't send them yet, so a frontend deployed first still
+ * renders: the main source alone, no logo, not followed, no comments, no team card, no next date.
+ */
+export function withPageDefaults(raw: DigestPageData): DigestPageData {
+  return {
+    ...raw,
+    isTeamMember: raw.isTeamMember ?? false,
+    nextSendAt: raw.nextSendAt ?? null,
+    stories: (raw.stories ?? []).map((story) => ({
+      ...story,
+      teamLogoUrl: story.teamLogoUrl ?? null,
+      followsTeam: story.followsTeam ?? false,
+      sources: story.sources?.length ? story.sources : [{ url: story.sourceUrl, domain: story.sourceDomain }],
+      commentCount: story.commentCount ?? 0,
+    })),
+  };
 }

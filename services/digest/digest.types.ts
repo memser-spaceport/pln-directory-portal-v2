@@ -12,6 +12,9 @@ export type DigestImage = {
   variants: Array<{ width: number; url: string }>;
 };
 
+/** One outlet that reported a story (LAB-3288). `domain` is null when the URL doesn't parse. */
+export type DigestSource = { url: string; domain: string | null };
+
 export type DigestStory = {
   uid: string;
   position: number;
@@ -25,6 +28,13 @@ export type DigestStory = {
   sourceDomain: string | null;
   teamUid: string;
   teamName: string;
+  /** Page v2 (LAB-3288): the team header, Sources line and Comments count. */
+  teamLogoUrl: string | null;
+  /** Whether the link's member follows the team. */
+  followsTeam: boolean;
+  /** Every source, main first, each once. */
+  sources: DigestSource[];
+  commentCount: number;
   eventType: string;
   tags: string[];
   choice: DigestChoice | null;
@@ -48,6 +58,10 @@ export type DigestPageData = {
   stories: DigestStory[];
   forumPosts: DigestForumPost[];
   forumUnavailable: boolean;
+  /** Whether the link's member is on a team now: shows "Got news from your team?". */
+  isTeamMember: boolean;
+  /** When the next digest of this frequency goes out, ISO 8601. */
+  nextSendAt: string | null;
 };
 
 /** `expired`: a 90-day-old link. `invalid`: missing, changed or wrongly signed. `unavailable`: anything else. */

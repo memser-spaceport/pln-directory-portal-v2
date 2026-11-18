@@ -681,6 +681,11 @@ describe('upcoming events (LAB-3292)', () => {
     expect(section().compareDocumentPosition(forum) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
+  it('says "See all 1 event" for a single event', () => {
+    open('/digest?t=x', data({ events: { items: twoEvents.items.slice(0, 1), total: 1 } }));
+    expect(within(section()).getByRole('link', { name: 'See all 1 event' })).toBeInTheDocument();
+  });
+
   it('links a row to the event in the calendar when signed out, even with the drawer on, and records the click', async () => {
     mockDrawerFlag = true;
     useCurrentUserStore.setState({ currentUser: null, isHydrated: true });

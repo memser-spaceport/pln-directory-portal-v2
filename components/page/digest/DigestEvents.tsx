@@ -33,7 +33,7 @@ const EventDrawer = dynamic(() => loadEventDrawer().then((m) => m.EventDrawer), 
 
 type Props = {
   events: DigestEvent[];
-  /** Window's total, for "See all N events". */
+  /** Window's total, for "See all N events" ("See all 1 event"). */
   total: number;
   /** Undefined until the auth store hydrates. */
   signedIn: boolean | undefined;
@@ -138,7 +138,7 @@ export function DigestEvents({ events, total, signedIn }: Props) {
       </ul>
 
       <Link href={EVENTS_HREF} className={s.seeAll} onClick={() => analytics.onEventsSeeAllClicked({ total })}>
-        See all {total} events
+        See all {total} {total === 1 ? 'event' : 'events'}
       </Link>
 
       {drawerMode && (

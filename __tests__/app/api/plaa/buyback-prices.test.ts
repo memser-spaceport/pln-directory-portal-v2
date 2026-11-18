@@ -57,6 +57,14 @@ describe('GET /api/plaa/buyback-prices', () => {
     expect(await (await GET(request({ authorization: 'Bearer t' }))).json()).toEqual([]);
   });
 
+  it('drops an anticipated auction, which has not cleared yet', async () => {
+    mockGetAllRoundStats.mockResolvedValue({
+      data: [round({ buyback: { auctionNumber: 8, clearingPrice: 2.5, simulation: false, anticipated: true } })],
+    });
+
+    expect(await (await GET(request({ authorization: 'Bearer t' }))).json()).toEqual([]);
+  });
+
   it('drops rounds with no price and rounds with no buyback at all', async () => {
     mockGetAllRoundStats.mockResolvedValue({
       data: [

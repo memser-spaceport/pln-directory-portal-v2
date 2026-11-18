@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   }
 
   const prices = data.flatMap(({ roundNumber, buyback }) =>
-    buyback && !buyback.simulation && buyback.clearingPrice !== null
+    buyback && !buyback.simulation && !buyback.anticipated && buyback.clearingPrice !== null
       ? [{ roundNumber, auctionNumber: buyback.auctionNumber, clearingPrice: buyback.clearingPrice }]
       : [],
   );

@@ -1,4 +1,9 @@
-import { getDigestPage, saveDigestChoice } from '@/services/digest/digest.service';
+import {
+  getDigestEmailSettings,
+  getDigestPage,
+  saveDigestChoice,
+  saveDigestEmailSettings,
+} from '@/services/digest/digest.service';
 
 /** LAB-3264: the digest page API client. */
 describe('digest.service', () => {
@@ -56,5 +61,56 @@ describe('digest.service', () => {
     );
     respond(500);
     await expect(saveDigestChoice('tok', 'n1', 'none')).rejects.toThrow();
+  });
+
+  describe('digest email settings (LAB-3312)', () => {
+    it('reads on the server with the token in the body, uncached', async () => {
+      respond(200, { firstName: 'Ada', enabled: true, frequency: 'weekly' });
+      await expect(getDigestEmailSettings('tok')).resolves.toEqual({
+        data: { firstName: 'Ada', enabled: true, frequency: 'weekly' },
+      });
+      expect(global.fetch).toHaveBeenCalledWith('https://api/v1/labos-digest/email-settings/read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: 'tok' }),
+        cache: 'no-store',
+      });
+    });
+
+    it.each([
+      [401, { reason: 'expired' }, 'expired'],
+      [401, { reason: 'signature' }, 'invalid'],
+      [404, {}, 'invalid'],
+      [503, {}, 'unavailable'],
+    ])('maps %s %j to %s', async (status, body, error) => {
+      respond(status, body);
+      await expect(getDigestEmailSettings('tok')).resolves.toEqual({ error });
+    });
+
+    it('is invalid without a token and unavailable when the API does not answer', async () => {
+      respond(200, {});
+      await expect(getDigestEmailSettings(undefined)).resolves.toEqual({ error: 'invalid' });
+      expect(global.fetch).not.toHaveBeenCalled();
+      global.fetch = jest.fn(async () => {
+        throw new Error('down');
+      }) as any;
+      await expect(getDigestEmailSettings('tok')).resolves.toEqual({ error: 'unavailable' });
+    });
+
+    it('saves only the given change and throws on a failed save', async () => {
+      respond(200, { firstName: 'Ada', enabled: false, frequency: 'daily' });
+      await expect(saveDigestEmailSettings('tok', { enabled: false })).resolves.toEqual({
+        firstName: 'Ada',
+        enabled: false,
+        frequency: 'daily',
+      });
+      expect(global.fetch).toHaveBeenCalledWith('https://api/v1/labos-digest/email-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: 'tok', enabled: false }),
+      });
+      respond(500);
+      await expect(saveDigestEmailSettings('tok', { frequency: 'weekly' })).rejects.toThrow();
+    });
   });
 });

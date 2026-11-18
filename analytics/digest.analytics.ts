@@ -106,3 +106,63 @@ export function useDigestAnalytics() {
     [capture],
   );
 }
+
+/** How the email footer opened `/digest/email` (LAB-3312); `direct` for a link without a known `link_type`. */
+export type DigestEmailLinkType = 'manage' | 'unsubscribe' | 'switch_frequency' | 'direct';
+
+export type DigestEmailAction = 'unsubscribe' | 'resubscribe' | 'frequency';
+
+export function digestEmailLinkType(linkType: string | null): DigestEmailLinkType {
+  return linkType === 'manage' || linkType === 'unsubscribe' || linkType === 'switch_frequency' ? linkType : 'direct';
+}
+
+/** Digest email page events (LAB-3312). Built from plain values: the link token never reaches an event. */
+export function useDigestEmailAnalytics() {
+  const posthog = usePostHog();
+
+  const capture = useCallback(
+    (name: string, params: Record<string, unknown>) => {
+      try {
+        const user = useCurrentUserStore.getState().currentUser;
+        posthog?.capture?.(name, { ...params, loggedInUserUid: user?.uid, loggedInUserEmail: user?.email });
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    [posthog],
+  );
+
+  return useMemo(
+    () => ({
+      onPageViewed(params: {
+        linkType: DigestEmailLinkType;
+        enabled: boolean;
+        frequency: DigestFrequency;
+        isLoggedIn: boolean;
+      }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_EMAIL_PAGE_VIEWED, {
+          link_type: params.linkType,
+          enabled: params.enabled,
+          frequency: params.frequency,
+          is_logged_in: params.isLoggedIn,
+        });
+      },
+      onChanged(params: { action: DigestEmailAction; frequency: DigestFrequency; via: 'main-button' | 'controls' }) {
+        const name =
+          params.action === 'unsubscribe'
+            ? DIGEST_ANALYTICS_EVENTS.ON_DIGEST_EMAIL_UNSUBSCRIBED
+            : params.action === 'resubscribe'
+              ? DIGEST_ANALYTICS_EVENTS.ON_DIGEST_EMAIL_RESUBSCRIBED
+              : DIGEST_ANALYTICS_EVENTS.ON_DIGEST_EMAIL_FREQUENCY_CHANGED;
+        capture(name, { via: params.via, ...(params.action === 'frequency' ? { frequency: params.frequency } : {}) });
+      },
+      onUndoClicked(params: { reverted: DigestEmailAction }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_EMAIL_UNDO_CLICKED, { reverted: params.reverted });
+      },
+      onSaveFailed(params: { action: DigestEmailAction | 'undo' }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_EMAIL_SAVE_FAILED, { action: params.action });
+      },
+    }),
+    [capture],
+  );
+}

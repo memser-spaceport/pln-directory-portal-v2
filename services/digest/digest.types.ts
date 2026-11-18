@@ -56,3 +56,16 @@ export type DigestPageError = 'expired' | 'invalid' | 'unavailable';
 export type DigestPageResult = { data: DigestPageData; error?: never } | { data?: never; error: DigestPageError };
 
 export type DigestChoiceResponse = { newsItemUid: string; choice: DigestChoice | null; changed: boolean };
+
+/** The digest email settings a digest link can read and change without sign-in (LAB-3310, LAB-3312). */
+export type DigestEmailSettings = {
+  firstName: string | null;
+  enabled: boolean;
+  frequency: DigestFrequency;
+};
+
+export type DigestEmailSettingsChange = { enabled?: boolean; frequency?: DigestFrequency };
+
+export type DigestEmailSettingsResult =
+  | { data: DigestEmailSettings; error?: undefined }
+  | { data?: undefined; error: DigestPageError };

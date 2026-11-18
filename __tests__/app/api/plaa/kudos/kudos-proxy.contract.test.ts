@@ -98,6 +98,13 @@ describe('safe upstream errors', () => {
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({ message: 'Not enough points remaining in your round budget' });
   });
+  it('keeps the retry message when the Directory cannot verify the recipient', async () => {
+    const message = 'Could not verify the recipient with the Directory. Please try again.';
+    mockUpstreamOnce({ message }, 503);
+    const res = await postKudos(makeRequest('http://localhost/api/plaa/kudos/community', { auth: 'Bearer t' }));
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ message });
+  });
 });
 
 describe('kudos proxy routes — upstream contract', () => {

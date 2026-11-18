@@ -34,11 +34,12 @@ const kudosMessages = new Set([
   'Recipient is not an eligible member',
   'Recipient is not active in the Directory',
   'No active round is open for kudos',
+  'Could not verify the recipient with the Directory. Please try again.',
   'points must be a multiple of 10',
 ]);
 
 export function kudosUpstreamError(status: number, data: unknown, retryAfter?: string | null): NextResponse {
-  if (status === 429 || status >= 500) return upstreamError(status, retryAfter);
+  if (status === 429 || (status >= 500 && status !== 503)) return upstreamError(status, retryAfter);
   const message = data && typeof data === 'object' && 'message' in data ? data.message : undefined;
   if (typeof message === 'string' && kudosMessages.has(message)) {
     return NextResponse.json({ message }, { status });

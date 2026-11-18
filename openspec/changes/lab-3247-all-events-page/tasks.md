@@ -4,36 +4,36 @@ Slices: **A** = LAB-3317 (groups 1–5), **B** = LAB-3320 (group 6), **C** = LAB
 
 ## 1. Flag, data and shared pieces (A)
 
-- [ ] 1.1 Add `utils/events-page.ts` (`SHOW_EVENTS_PAGE_V2`) and `NEXT_PUBLIC_SHOW_EVENTS_PAGE_V2=`, `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=`, `NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID=` to `.env.example`; `app/events/all/page.tsx` renders the iframe when off and the new page when on. Verify: a test renders the page with the flag off (iframe present) and on (no iframe).
-- [ ] 1.2 `services/events/all-events.service.ts` `getAllEventsPageEvents()` per design D2 (upcoming + capped detail calls, `unstable_cache` 300 s, past events dropped at read time, a failed detail keeps the list fields, "Others" → `city: null`). Verify: unit tests for the mapping, a failed detail, an ended event, and "Others".
-- [ ] 1.3 `services/events/all-events.filters.ts`: pure `filterEvents`, `groupByDay`, `topCities`, `nearYou(items, memberCity)` with case-insensitive city matching. Verify: unit tests for each filter key, the going filter, top-5 ordering and ties, and Near you matching "Lisbon" and "lisbon, portugal".
-- [ ] 1.4 Filter store via `createFilterStore()` with keys `search`, `city`, `mode`, `going`, `view`, `cal`, `event`, plus `FilterStoreUrlSync`. Verify: a test that a URL with `?view=calendar&mode=Virtual` restores both.
-- [ ] 1.5 Port `GoingPill` and `EventImage` (brand fallback) from `prototypes/entries/events-shared` to `components/page/events/`. Verify: Storybook story or render test for each.
-- [ ] 1.6 Viewer hooks: going uids (`getMyUpcomingEventUids`) and the member's city, both `enabled` only when signed in; invalidate the going key after the drawer's going and not-going actions. Verify: tests show that a signed-out viewer makes no member request.
+- [x] 1.1 Add `utils/events-page.ts` (`SHOW_EVENTS_PAGE_V2`) and `NEXT_PUBLIC_SHOW_EVENTS_PAGE_V2=`, `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=`, `NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID=` to `.env.example`; `app/events/all/page.tsx` renders the iframe when off and the new page when on. Verify: a test renders the page with the flag off (iframe present) and on (no iframe).
+- [x] 1.2 `services/events/all-events.service.ts` `getAllEventsPageEvents()` per design D2 (upcoming + capped detail calls, `unstable_cache` 300 s, past events dropped at read time, a failed detail keeps the list fields, "Others" → `city: null`). Verify: unit tests for the mapping, a failed detail, an ended event, and "Others".
+- [x] 1.3 `services/events/all-events.filters.ts`: pure `filterEvents`, `groupByDay`, `topCities`, `nearYou(items, memberCity)` with case-insensitive city matching. Verify: unit tests for each filter key, the going filter, top-5 ordering and ties, and Near you matching "Lisbon" and "lisbon, portugal".
+- [x] 1.4 Filter store via `createFilterStore()` with keys `search`, `city`, `mode`, `going`, `view`, `cal`, `event`, plus `FilterStoreUrlSync`. Verify: a test that a URL with `?view=calendar&mode=Virtual` restores both.
+- [x] 1.5 Port `GoingPill` and `EventImage` (brand fallback) from `prototypes/entries/events-shared` to `components/page/events/`. Verify: Storybook story or render test for each.
+- [x] 1.6 Viewer hooks: going uids (`getMyUpcomingEventUids`) and the member's city, both `enabled` only when signed in; invalidate the going key after the drawer's going and not-going actions. Verify: tests show that a signed-out viewer makes no member request.
 
 ## 2. Page shell and sections (A)
 
-- [ ] 2.1 `AllEventsPage` client root: drawer host (`next/dynamic` `EventDrawer`, `source="all-events"`, prefetch on hover), `?event=` opens the drawer and closing removes it through the store. Verify: a test that `?event=<uid>` opens the drawer on load and close clears the key.
-- [ ] 2.2 `AllEventsHeader` with "Open PL Events" (new tab) and "Submit an event" (`getSubmitEventUrl()`). Verify: a test asserts both hrefs.
-- [ ] 2.3 `NearYou` (3 tiles, plain landing only), `AddLocationRow` (signed-in, no location, links to the profile editor), hidden for signed-out visitors. Verify: tests for the four spec scenarios.
-- [ ] 2.4 `CityBand` (top 5, "All N cities" / "Show fewer") and `CityHeader` ("← All cities", count, date range, time zone); tile and City filter share `city`. Verify: tests for choosing and leaving a city.
-- [ ] 2.5 `EventsToolbar`: "Coming up" / "Coming up in <city>", count, Filters button with the applied count, view switch (no Map without a key), sticky under `--app-header-height`. Verify: a test that the count and the view switch follow the store; check sticky by hand in the browser.
+- [x] 2.1 `AllEventsPage` client root: drawer host (`next/dynamic` `EventDrawer`, `source="all-events"`, prefetch on hover), `?event=` opens the drawer and closing removes it through the store. Verify: a test that `?event=<uid>` opens the drawer on load and close clears the key.
+- [x] 2.2 `AllEventsHeader` with "Open PL Events" (new tab) and "Submit an event" (`getSubmitEventUrl()`). Verify: a test asserts both hrefs.
+- [x] 2.3 `NearYou` (3 tiles, plain landing only), `AddLocationRow` (signed-in, no location, links to the profile editor), hidden for signed-out visitors. Verify: tests for the four spec scenarios.
+- [x] 2.4 `CityBand` (top 5, "All N cities" / "Show fewer") and `CityHeader` ("← All cities", count, date range, time zone); tile and City filter share `city`. Verify: tests for choosing and leaving a city.
+- [x] 2.5 `EventsToolbar`: "Coming up" / "Coming up in <city>", count, Filters button with the applied count, view switch (no Map without a key), sticky under `--app-header-height`. Verify: a test that the count and the view switch follow the store; check sticky by hand in the browser.
 
 ## 3. Filters (A)
 
-- [ ] 3.1 Desktop rail on `FiltersSidePanel` (closed by default, close control, Clear All) with search, City, Mode and "Events I'm going to" (signed-in only); a facet with fewer than 2 values is hidden. Verify: tests for open, close, clear and the hidden facet.
-- [ ] 3.2 Chips under the toolbar while the rail is closed, each removable. Verify: the "Removing a chip" scenario as a test.
-- [ ] 3.3 Phone: `MobileFilterWrapper` sheet on a white bar with the view menu. Verify: check at 375 px in the browser with no horizontal scroll.
+- [x] 3.1 Desktop rail on `FiltersSidePanel` (closed by default, close control, Clear All) with search, City, Mode and "Events I'm going to" (signed-in only); a facet with fewer than 2 values is hidden. Verify: tests for open, close, clear and the hidden facet.
+- [x] 3.2 Chips under the toolbar while the rail is closed, each removable. Verify: the "Removing a chip" scenario as a test.
+- [x] 3.3 Phone: `MobileFilterWrapper` sheet on a white bar with the view menu. Verify: check at 375 px in the browser with no horizontal scroll.
 
 ## 4. List view and states (A)
 
-- [ ] 4.1 `ListView` + `EventCard`: day groups with a sticky date label, timeline on desktop, time with UTC offset in the event's time zone, "Day n of m", host when known, place line ("Online", "also online"), Going pill, faces and count, picture. Verify: tests for the multi-day and online scenarios.
-- [ ] 4.2 Loading skeleton, empty ("Clear filters") and error ("Try again", header kept) states, used by every view. Verify: tests for the empty and error scenarios.
+- [x] 4.1 `ListView` + `EventCard`: day groups with a sticky date label, timeline on desktop, time with UTC offset in the event's time zone, "Day n of m", host when known, place line ("Online", "also online"), Going pill, faces and count, picture. Verify: tests for the multi-day and online scenarios.
+- [x] 4.2 Loading skeleton, empty ("Clear filters") and error ("Try again", header kept) states, used by every view. Verify: tests for the empty and error scenarios.
 
 ## 5. Analytics and spec checks (A)
 
-- [ ] 5.1 Add `all-events` to `EventDrawerSource`; add `events-view-changed`, `events-filters-applied` and `events-city-selected` (constants plus `useEventsAnalytics` methods); fire only on user changes. Verify: tests with the PostHog mock for each event, and none on the first load.
-- [ ] 5.2 Compare the page with the prototype (`/prototypes/events-page-redesign` and its states) on the local dev server, desktop and 375 px. Verify: screenshots side by side; differences listed in the PR.
+- [x] 5.1 Add `all-events` to `EventDrawerSource`; add `events-view-changed`, `events-filters-applied` and `events-city-selected` (constants plus `useEventsAnalytics` methods); fire only on user changes. Verify: tests with the PostHog mock for each event, and none on the first load.
+- [x] 5.2 Compare the page with the prototype (`/prototypes/events-page-redesign` and its states) on the local dev server, desktop and 375 px. Verify: screenshots side by side; differences listed in the PR.
 
 ## 6. Calendar view (B)
 

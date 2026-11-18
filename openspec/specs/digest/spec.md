@@ -124,7 +124,7 @@ Each story's team header SHALL have Follow, which starts from the API's `follows
 
 ### Requirement: End of the issue and side cards
 
-After the stories and forum posts, the page SHALL show "You're all caught up" with a check, "The next digest arrives on <weekday>, <day> <month>." from the API's `nextSendAt` (the line is left out when it is missing), and a "See all network news" link to Home. When the API's `isTeamMember` is true, the page SHALL show the outlined "Got news from your team?" card with "Post your team news →". It SHALL open the Post news modal for the signed-in member's main team, or their only team, or their first team; a signed-out reader goes to sign-in instead, and a member with no team sees "Your profile has no team to post for yet." A link with `postnews=open` SHALL open the modal on load the same way. From 1100px the side cards SHALL sit in a sticky column on the right; under 1100px they SHALL follow "You're all caught up". The side cards SHALL include "How personalization works": "Stories come from your topics first, then the teams you follow, then the network's top stories." The page SHALL end with the email's sign-off and footer: "Cheers," "The Protocol Labs team", then "You received this email because you are a member of the Protocol Labs network." with "Manage preferences" and "Unsubscribe" links.
+After the stories and forum posts, the page SHALL show "You're all caught up" with a check, "The next digest arrives on <weekday>, <day> <month>." from the API's `nextSendAt` (the line is left out when it is missing), and a "See all network news" link to Home. When the API's `isTeamMember` is true, the page SHALL show the outlined "Got news from your team?" card with "Post your team news →". It SHALL open the Post news modal for the signed-in member's main team, or their only team, or their first team; a signed-out reader goes to sign-in instead, and a member with no team sees "Your profile has no team to post for yet." A link with `postnews=open` SHALL open the modal on load the same way. From 1100px the side cards SHALL sit in a sticky column on the right; under 1100px they SHALL follow "You're all caught up". The side cards SHALL include "How personalization works": "Stories come from your topics first, then the teams you follow, then the network's top stories."
 
 #### Scenario: Not on a team
 
@@ -132,16 +132,20 @@ After the stories and forum posts, the page SHALL show "You're all caught up" wi
 - **WHEN** the page shows
 - **THEN** "Got news from your team?" is not shown
 
-#### Scenario: Footer
-
-- **WHEN** the page shows
-- **THEN** after "Cheers, The Protocol Labs team" it shows "You received this email because you are a member of the Protocol Labs network." and the links "Manage preferences" and "Unsubscribe", both to the signed-in email settings (`/settings/email`)
-
 #### Scenario: Narrow screen
 
 - **GIVEN** a 390px wide screen
 - **WHEN** the page shows
 - **THEN** there is no side column, and "How personalization works" follows "You're all caught up"
+
+### Requirement: Footer
+
+The page SHALL end with the email's sign-off and footer: "Cheers," and "The Protocol Labs team", then "You received this email because you are a member of the Protocol Labs network." with the links "Manage preferences" and "Unsubscribe". Both links SHALL go to the signed-in email settings (`/settings/email`).
+
+#### Scenario: Footer
+
+- **WHEN** the page shows
+- **THEN** after "Cheers, The Protocol Labs team" it shows "You received this email because you are a member of the Protocol Labs network.", "Manage preferences" and "Unsubscribe"
 
 ### Requirement: Add topics card
 

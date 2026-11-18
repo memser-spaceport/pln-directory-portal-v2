@@ -882,6 +882,13 @@ export const EVENT_DRAWER_ANALYTICS = {
   ON_PROFILE_EVENT_REMOVED: 'profile-event-removed',
 };
 
+/** The native All Events page (LAB-3247). Fired on a member's own change, never on landing from a link. */
+export const ALL_EVENTS_ANALYTICS = {
+  ON_EVENTS_VIEW_CHANGED: 'events-view-changed',
+  ON_EVENTS_FILTERS_APPLIED: 'events-filters-applied',
+  ON_EVENTS_CITY_SELECTED: 'events-city-selected',
+};
+
 export const EVENTS_ANALYTICS = {
   EVENTS_PAGE_IRL_CARD_CLICKED: 'events-page-irl-card-clicked',
   EVENTS_PAGE_EVENT_CARD_CLICKED: 'events-page-event-card-clicked',

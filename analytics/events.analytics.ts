@@ -1,12 +1,17 @@
 import { IAnalyticsUserInfo } from '@/types/shared.types';
-import { EVENT_DRAWER_ANALYTICS, EVENTS_ANALYTICS, HOME_ANALYTICS_EVENTS } from '@/utils/constants';
+import {
+  ALL_EVENTS_ANALYTICS,
+  EVENT_DRAWER_ANALYTICS,
+  EVENTS_ANALYTICS,
+  HOME_ANALYTICS_EVENTS,
+} from '@/utils/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { usePostHog } from 'posthog-js/react';
 import { IUpcomingEvents } from '@/types/irl.types';
 import { UpcomingEvent } from '@/services/events/hooks/useUpcomingEvents';
 
 /** Where the event drawer was opened from. */
-export type EventDrawerSource = 'home' | 'member-profile' | 'team-profile' | 'add-event' | 'digest';
+export type EventDrawerSource = 'home' | 'member-profile' | 'team-profile' | 'add-event' | 'digest' | 'all-events';
 
 export const useEventsAnalytics = () => {
   const postHogProps = usePostHog();
@@ -167,6 +172,21 @@ export const useEventsAnalytics = () => {
     captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_DRAWER_OPENED, { event_uid: params.eventUid, source: params.source });
   }
 
+  /** All Events (LAB-3247): the member switched view; `mode` only for the calendar. */
+  function onEventsViewChanged(params: { view: 'list' | 'calendar' | 'map'; mode?: 'week' | 'month' }) {
+    captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_VIEW_CHANGED, params);
+  }
+
+  /** All Events: one filter changed, with every value it now holds (empty when it was cleared). */
+  function onEventsFiltersApplied(params: { key: string; values: string[] }) {
+    captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_FILTERS_APPLIED, params);
+  }
+
+  /** All Events: a city chosen from a Browse by city tile or Near you's "All <city> events". */
+  function onEventsCitySelected(params: { city: string; from: 'tile' | 'filter' | 'near-you' }) {
+    captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_CITY_SELECTED, params);
+  }
+
   function onEventGoingMarked(params: { eventUid: string; source: EventDrawerSource }) {
     captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_GOING_MARKED, {
       event_uid: params.eventUid,
@@ -201,6 +221,9 @@ export const useEventsAnalytics = () => {
 
   return {
     onEventDrawerOpened,
+    onEventsViewChanged,
+    onEventsFiltersApplied,
+    onEventsCitySelected,
     onEventGoingMarked,
     onEventNotGoingMarked,
     onEventPlansSaved,

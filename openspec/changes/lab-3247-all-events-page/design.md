@@ -56,23 +56,24 @@ A store from `createFilterStore()` (`services/events/all-events-filters.store.ts
 
 ### D5. Viewer data in the browser
 
-The page server component passes `isLoggedIn` and the member uid. Going uids come from a React Query hook over `getMyUpcomingEventUids`, enabled only when signed in (an ungated query would turn the `customFetch` reload into a loop). The member's city comes from the existing member-by-uid service, also gated. After "I'm going" in the drawer, the hook's key is invalidated so the Going pill and the going filter update. The event list itself is not viewer-specific, so the shared cache is safe.
+The page server component passes whether the viewer is signed in and their uid. Going uids come from a React Query hook over `getMyUpcomingEventUids`, enabled only when signed in (an ungated query would turn the `customFetch` reload into a loop). The member's city is read on the server (`getMemberProfileCity`, `GET /v1/members/:uid` with the viewer's token, uncached) only when signed in, so Near you renders with the page and never flashes in. `null` means the profile has no city (the Add location row); `undefined` means it couldn't be read (neither shows). After "I'm going" in the drawer, the hook's key is invalidated so the Going pill and the going filter update. The event list itself is not viewer-specific, so the shared cache is safe.
 
 ### D6. Components, ported out of the prototype
 
 ```
 components/page/events/all-events/
-  AllEventsPage.tsx         client root: store, drawer host, sections
+  AllEventsPage.tsx         client root: store, URL sync, drawer host, sections, phone filter bar
   AllEventsHeader.tsx       title, Open PL Events, Submit an event (getSubmitEventUrl)
-  NearYou.tsx, AddLocationRow.tsx, EventTile.tsx
-  CityBand.tsx, CityHeader.tsx
+  NearYou.tsx               NearYou + AddLocationRow
+  CityBand.tsx              CityBand + CityHeader
   EventsToolbar.tsx         count, Filters button, view switch (sticky under --app-header-height)
-  AllEventsFilters.tsx      rail + chips + mobile sheet
-  ListView.tsx, EventCard.tsx
+  AllEventsFilters.tsx      rail (FilterSearchInput, going switch, Mode, City) + chips
+  ListView.tsx, EventCard.tsx (EventCard + EventTile)
+  icons.tsx
   calendar/WeekBoard.tsx, calendar/MonthGrid.tsx, calendar/weeks.ts
   map/EventsMap.tsx, map/loadGoogleMaps.ts, map/CityPinCard.tsx
   states.tsx                loading skeleton, empty, error
-components/page/events/GoingPill/   (from prototypes/entries/events-shared/GoingTag)
+components/page/events/GoingPill/   (from prototypes/entries/events-shared/GoingTag, its filled green version)
 components/page/events/EventImage/  (from events-shared/EventImage, brand fallback)
 ```
 

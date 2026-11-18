@@ -81,19 +81,19 @@ The page SHALL show "Browse by city" with the 5 cities that have the most upcomi
 
 ### Requirement: The Coming up toolbar and filters
 
-A "Coming up" toolbar SHALL show the number of events that match, a Filters button and the view switch List · Calendar · Map. On desktop and tablet it SHALL stay in view under the navbar while the events scroll. The filter rail SHALL be closed by default. The Filters button SHALL open it and show the number of applied filters. The rail SHALL have a control that closes it and "Clear All". While the rail is closed, each applied filter SHALL show as a removable chip under the toolbar. The filters SHALL be: search (by event name), City, Mode (In-Person, Online, Hybrid) and "Events I'm going to" (signed-in members only). A filter with no values in the data SHALL NOT show. Filters and the view SHALL be kept in the page address, so a copied link reopens the same view and filters, and switching view SHALL keep the filters. On phones the filters SHALL open as a bottom sheet from a Filters button.
+A "Coming up" toolbar SHALL show the number of events that match, a Filters button and the view switch List · Calendar · Map, offering only the views this build has (no switch while there is one). On desktop and tablet it SHALL stay in view under the navbar while the events scroll. The filter rail SHALL be closed by default. The Filters button SHALL open it and show the number of applied filters. The rail SHALL have a control that closes it and "Clear All". While the rail is closed, each applied filter SHALL show as a removable chip under the toolbar. The filters SHALL be: search (event name, host, city or topic), City, Mode (In person, Virtual, Hybrid) and "Events I'm going to" (signed-in members only). A filter with no values in the data SHALL NOT show. Filters and the view SHALL be kept in the page address, so a copied link reopens the same view and filters, and switching view SHALL keep the filters. On phones the filters SHALL open as a bottom sheet from a Filters button.
 
 #### Scenario: Filter survives a view switch
 
-- **GIVEN** the Mode filter set to Online
+- **GIVEN** the Mode filter set to Virtual
 - **WHEN** the visitor switches from List to Calendar
 - **THEN** the calendar shows only online events and the Mode chip stays
 
 #### Scenario: Removing a chip
 
-- **GIVEN** the rail is closed with the chips "Online" and "Dubai"
+- **GIVEN** the rail is closed with the chips "Hybrid", "Dubai" and "Lisbon"
 - **WHEN** the visitor removes "Dubai"
-- **THEN** the events of every city that are online show, and the Filters button reads 1
+- **THEN** the hybrid events in Lisbon show, and the Filters button reads 2
 
 #### Scenario: Events I'm going to
 
@@ -105,7 +105,7 @@ A "Coming up" toolbar SHALL show the number of events that match, a Filters butt
 
 - **GIVEN** filters that match no event
 - **WHEN** the view loads
-- **THEN** it says no events match and offers "Clear filters", which clears every filter
+- **THEN** it says no upcoming events match and offers "Show all events", which clears every filter and keeps the view and an open event
 
 #### Scenario: Events fail to load
 
@@ -175,7 +175,7 @@ Pressing an event in any view or in Near you SHALL open the event drawer for tha
 
 ### Requirement: One Going mark on the page
 
-On the All Events page, an event the signed-in viewer is going to SHALL carry one "Going" pill: a white pill with a green check and the word "Going". No other going mark (badge or tick) SHALL appear on the page.
+On the All Events page, an event the signed-in viewer is going to SHALL carry one "Going" pill: a green pill with a white tick and the word "Going". No other going mark (badge or tick) SHALL appear on the page.
 
 #### Scenario: Going event in the list
 
@@ -190,7 +190,7 @@ The page SHALL record these PostHog events:
 - `event-drawer-opened` with `source` = `all-events` when the drawer opens from the page;
 - `events-view-changed` with `view` (`list`, `calendar` or `map`) and, for the calendar, `mode` (`week` or `month`);
 - `events-filters-applied` with the filter `key` and its `values`;
-- `events-city-selected` with `city` and `from` (`tile` or `filter`).
+- `events-city-selected` with `city` and `from` (`tile`, `filter` or `near-you`).
 
 #### Scenario: Opening an event from the list
 

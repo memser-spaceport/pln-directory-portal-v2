@@ -558,4 +558,55 @@ describe('EventDrawerView (LAB-3216)', () => {
       }
     });
   });
+
+  describe('LAB-3334: websiteUrl first, the Registration resource as fallback', () => {
+    const SITE = 'https://lu.ma/labweek-lisbon';
+    const REG = 'https://luma.com/n4ad0k9m';
+    const resources = [{ name: 'Registration', link: REG, description: 'Registration URL' }];
+    const register = () => within(screen.getByTestId('rsvp-card')).queryByRole('link', { name: 'Register' });
+
+    it('LAB-3334 R1: the link row and Register use websiteUrl when it is a web address', () => {
+      render(<Harness raw={eventResponse({ websiteUrl: SITE, resources })} />);
+      const link = within(screen.getByTestId('event-link-row')).getByRole('link');
+      expect(link).toHaveAttribute('href', SITE);
+      expect(register()).toHaveAttribute('href', SITE);
+    });
+
+    it('LAB-3334 R2: the link row and Register use the Registration link, in a new tab, when websiteUrl is not valid', () => {
+      for (const websiteUrl of [null, '', 'javascript:alert(1)']) {
+        const { unmount } = render(<Harness raw={eventResponse({ websiteUrl, resources })} />);
+        const link = within(screen.getByTestId('event-link-row')).getByRole('link', { name: 'luma.com/n4ad0k9m' });
+        expect(link).toHaveAttribute('href', REG);
+        expect(link).toHaveAttribute('target', '_blank');
+        expect(register()).toHaveAttribute('href', REG);
+        expect(register()).toHaveAttribute('target', '_blank');
+        unmount();
+      }
+    });
+
+    it('LAB-3334 R3: no link row and no Register when neither link is valid', () => {
+      for (const websiteUrl of [null, '', 'javascript:alert(1)']) {
+        const bad = [{ name: 'Registration', link: 'javascript:alert(2)', description: null }];
+        const { unmount } = render(<Harness raw={eventResponse({ websiteUrl, resources: bad })} />);
+        expect(screen.queryByTestId('event-link-row')).not.toBeInTheDocument();
+        expect(register()).not.toBeInTheDocument();
+        unmount();
+      }
+    });
+
+    it('LAB-3334 R4: the name match ignores case and spaces at the ends', () => {
+      render(<Harness raw={eventResponse({ websiteUrl: '', resources: [{ name: '  REGISTRATION ', link: REG }] })} />);
+      expect(within(screen.getByTestId('event-link-row')).getByRole('link')).toHaveAttribute('href', REG);
+      expect(register()).toHaveAttribute('href', REG);
+    });
+
+    it('keeps the LAB-3324 address map link', () => {
+      const base = eventResponse();
+      const map = 'https://www.google.com/maps/search/?api=1&query=Lisbon';
+      render(
+        <Harness raw={eventResponse({ websiteUrl: '', resources, details: { ...base.details!, locationUrl: map } })} />,
+      );
+      expect(screen.getByRole('link', { name: 'Lisbon, Portugal' })).toHaveAttribute('href', map);
+    });
+  });
 });

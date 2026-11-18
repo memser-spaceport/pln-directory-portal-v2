@@ -10,7 +10,11 @@ import { useIntroCollapse } from '@/components/page/ai-apps/components/FeedbackF
 import { FEEDBACK_CAPTURE_IGNORE_ATTR } from '@/components/page/ai-apps/components/screenshot-feedback/capturePage';
 import { useShortcutLabels } from '@/components/page/ai-apps/shortcutKeys';
 import { useCurrentUserStore } from '@/services/auth/store';
-import { useLabosAgentShortcut } from '@/services/labos-agent/hooks/useLabosAgentShortcut';
+import {
+  agentShortcutHint,
+  useLabosAgentShortcut,
+  useShowsKeyHint,
+} from '@/services/labos-agent/hooks/useLabosAgentShortcut';
 import { pageContextFromLocation } from '@/services/labos-agent/labos-agent.page-context';
 import { useLabosAgentStore } from '@/services/labos-agent/store';
 
@@ -48,6 +52,7 @@ export function LabosAgentCorner({
   const uid = useCurrentUserStore((st) => st.currentUser?.uid);
   const analytics = useLabosAgentAnalytics();
   const shortcuts = useShortcutLabels();
+  const showsKeyHint = useShowsKeyHint();
   const slotOpen = isOpen || feedbackOpen;
   const isCollapsed = useIntroCollapse(slotOpen);
   const agentRef = useRef<HTMLButtonElement>(null);
@@ -114,7 +119,7 @@ export function LabosAgentCorner({
           <AiSearchIcon size={20} />
           <span className={s.tabLabel} aria-hidden>
             Agent
-            <kbd className={s.kbd}>{shortcuts.mod} J</kbd>
+            {showsKeyHint && <kbd className={s.kbd}>{agentShortcutHint(shortcuts.mod)}</kbd>}
           </span>
         </button>
         {showFeedback && (

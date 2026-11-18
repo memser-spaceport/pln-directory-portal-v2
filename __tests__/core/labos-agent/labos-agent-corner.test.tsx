@@ -60,7 +60,7 @@ import { GlobalFeedback } from '@/components/core/GlobalFeedback';
 import { LabosAgentRoot } from '@/components/core/labos-agent/LabosAgentRoot/LabosAgentRoot';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useFeedbackDrawerStore } from '@/services/feedback/store';
-import { isAgentShortcut } from '@/services/labos-agent/hooks/useLabosAgentShortcut';
+import { agentShortcutHint, isAgentShortcut, KEY_HINT_QUERY } from '@/services/labos-agent/hooks/useLabosAgentShortcut';
 import { toChatContext } from '@/services/labos-agent/labos-agent.service';
 import { pageContextFromLocation } from '@/services/labos-agent/labos-agent.page-context';
 import { useLabosAgentStore } from '@/services/labos-agent/store';
@@ -94,7 +94,7 @@ const goTo = (url: string) => {
   mockPathname = new URL(url, 'http://localhost').pathname;
 };
 
-const ctrlJ = (target: EventTarget = window) => fireEvent.keyDown(target, { key: 'j', code: 'KeyJ', ctrlKey: true });
+const ctrlJ = (target: Window | Element = window) => fireEvent.keyDown(target, { key: 'j', code: 'KeyJ', ctrlKey: true });
 const agentTab = () => screen.queryByRole('button', { name: 'Agent' });
 const panel = () => screen.queryByRole('complementary', { name: 'Agent' });
 
@@ -195,6 +195,68 @@ describe('LAB-3302: agent corner, Ctrl/⌘ J and context chips', () => {
       ctrlJ();
       expect(useFeedbackDrawerStore.getState().open).toBe(false);
       expect(panel()).toBeInTheDocument();
+    });
+  });
+
+  describe('S5-R6: key hint (AC4)', () => {
+    const realMatchMedia = window.matchMedia;
+    const realUserAgent = navigator.userAgent;
+    const setUserAgent = (ua: string) =>
+      Object.defineProperty(window.navigator, 'userAgent', { value: ua, configurable: true });
+    /** `fine`: the device has a mouse or trackpad and a screen at least 640 wide. */
+    const setDevice = (fine: boolean) => {
+      window.matchMedia = jest.fn().mockImplementation((query: string) => ({
+        matches: query === KEY_HINT_QUERY ? fine : false,
+        media: query,
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+      })) as unknown as typeof window.matchMedia;
+    };
+    const hint = () => agentTab()?.querySelector('kbd') ?? null;
+
+    afterEach(() => {
+      window.matchMedia = realMatchMedia;
+      setUserAgent(realUserAgent);
+    });
+
+    it('a phone or touch device below the tablet breakpoint shows no key hint', async () => {
+      setDevice(false);
+      window.localStorage.setItem('labos-agent', 'on');
+      signIn();
+      renderApp();
+
+      expect(await screen.findByRole('group', { name: 'Agent and feedback' })).toBeInTheDocument();
+      expect(hint()).toBeNull();
+      expect(agentTab()).toHaveAttribute('aria-keyshortcuts', 'Control+J Meta+J');
+    });
+
+    it('a desktop on Windows shows "Ctrl J"', async () => {
+      setDevice(true);
+      setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64)');
+      window.localStorage.setItem('labos-agent', 'on');
+      signIn();
+      renderApp();
+
+      await screen.findByRole('group', { name: 'Agent and feedback' });
+      expect(hint()).toHaveTextContent(/^Ctrl J$/);
+    });
+
+    it('a desktop on a Mac shows "⌘J"', async () => {
+      setDevice(true);
+      setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0)');
+      window.localStorage.setItem('labos-agent', 'on');
+      signIn();
+      renderApp();
+
+      await screen.findByRole('group', { name: 'Agent and feedback' });
+      expect(hint()).toHaveTextContent(/^⌘J$/);
+    });
+
+    it('maps the modifier label to the hint text', () => {
+      expect(agentShortcutHint('⌘')).toBe('⌘J');
+      expect(agentShortcutHint('Ctrl')).toBe('Ctrl J');
     });
   });
 

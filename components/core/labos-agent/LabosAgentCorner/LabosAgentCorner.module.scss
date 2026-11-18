@@ -139,7 +139,12 @@
   font-weight: 600;
   line-height: 14px;
 
+  // A second guard: `useShowsKeyHint` already renders no hint on these screens.
   @include media.no-fine-pointer {
+    display: none;
+  }
+
+  @include media.mobile-only {
     display: none;
   }
 }

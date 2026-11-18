@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 
 import { isAnyDialogOpen } from '@/components/page/ai-apps/shortcutKeys';
 
@@ -47,4 +47,30 @@ export function useLabosAgentShortcut(input: { isEnabled: boolean; feedbackOpen:
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [isEnabled, feedbackOpen, onToggle]);
+}
+
+/** The key hint text: "⌘J" on a Mac, "Ctrl J" on other systems. `mod` comes from `useShortcutLabels`. */
+export function agentShortcutHint(mod: string): string {
+  return mod === '⌘' ? '⌘J' : 'Ctrl J';
+}
+
+/**
+ * A mouse or trackpad and a screen at least tablet-portrait wide (640, `styles/media.scss`). A phone or a bare tablet
+ * has no keys to press, so the corner shows no key hint there.
+ */
+export const KEY_HINT_QUERY = '(any-pointer: fine) and (min-width: 640px)';
+
+function subscribeKeyHint(onChange: () => void) {
+  const mql = window.matchMedia?.(KEY_HINT_QUERY);
+  mql?.addEventListener?.('change', onChange);
+  return () => mql?.removeEventListener?.('change', onChange);
+}
+
+/** Server snapshot is `false`: a phone never gets a flash of the hint before hydration. */
+export function useShowsKeyHint(): boolean {
+  return useSyncExternalStore(
+    subscribeKeyHint,
+    () => Boolean(window.matchMedia?.(KEY_HINT_QUERY).matches),
+    () => false,
+  );
 }

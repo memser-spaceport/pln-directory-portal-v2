@@ -29,7 +29,10 @@ function Description({ text }: { text: string }) {
   );
 }
 
-/** The event's own page (LAB-3271), when it is a web address. Shown without the scheme, e.g. "lu.ma/abc". */
+/**
+ * A web address the drawer may open in a new tab: the event's own page (LAB-3271), shown without the scheme, e.g.
+ * "lu.ma/abc", and the venue's map link (LAB-3324). Anything that is not `http` or `https` gives null.
+ */
 function eventLink(url: string | null): { href: string; label: string } | null {
   if (!url) return null;
   try {
@@ -56,9 +59,13 @@ function eventLink(url: string | null): { href: string; label: string } | null {
  *
  * LAB-3271: under the date and the address, a row with the event's own page (for example its Luma page), which
  * opens in a new tab. No page, no row.
+ *
+ * LAB-3324: when the event has a map link (`locationUrl`), the address and its arrow are one link that opens the
+ * map in a new tab, as on the PL events app. Without a map link, the address is plain text with no arrow.
  */
 export function EventSummary({ event, beforeAgenda }: { event: EventDetail; beforeAgenda?: ReactNode }) {
   const link = eventLink(event.websiteUrl);
+  const mapLink = eventLink(event.locationUrl);
   return (
     <>
       <div className={e.head}>
@@ -90,9 +97,13 @@ export function EventSummary({ event, beforeAgenda }: { event: EventDetail; befo
             <div className={e.factRow}>
               <LocationIcon />
               <span className={e.place}>
-                <span className={e.fact}>
-                  {event.address} <LinkIcon />
-                </span>
+                {mapLink ? (
+                  <a className={e.eventLink} href={mapLink.href} target="_blank" rel="noopener noreferrer">
+                    <span className={e.fact}>{event.address}</span> <LinkIcon />
+                  </a>
+                ) : (
+                  <span className={e.fact}>{event.address}</span>
+                )}
               </span>
             </div>
           )}

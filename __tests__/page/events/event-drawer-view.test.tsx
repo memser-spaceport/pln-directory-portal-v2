@@ -480,4 +480,34 @@ describe('EventDrawerView (LAB-3216)', () => {
       expect(screen.queryByRole('button', { name: "Yes, I'm going" })).not.toBeInTheDocument();
     });
   });
+
+  describe('LAB-3324: the location arrow opens the map', () => {
+    const MAP = 'https://www.google.com/maps/search/?api=1&query=Lisbon';
+    const withMap = (locationUrl: string | null | undefined) => {
+      const base = eventResponse();
+      return eventResponse({ details: { ...base.details!, locationUrl } });
+    };
+
+    it('LAB-3324 R1: with a location link, the address and its arrow open the map in a new tab', () => {
+      render(<Harness raw={withMap(MAP)} />);
+      const link = screen.getByRole('link', { name: 'Lisbon, Portugal' });
+      expect(link).toHaveAttribute('href', MAP);
+      expect(link).toHaveAttribute('target', '_blank');
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+      // The arrow is inside the same link, so a press on it opens the map too.
+      expect(link.querySelector('svg')).not.toBeNull();
+    });
+
+    it('LAB-3324 R2: without a location link, the address is plain text with no arrow', () => {
+      for (const locationUrl of [undefined, null, '', 'javascript:alert(1)']) {
+        const { unmount } = render(<Harness raw={withMap(locationUrl)} />);
+        const address = screen.getByText('Lisbon, Portugal');
+        expect(address.closest('a')).toBeNull();
+        expect(screen.queryByRole('link', { name: 'Lisbon, Portugal' })).not.toBeInTheDocument();
+        // No arrow beside the address: its row holds only the pin.
+        expect((address.closest('.factRow') as HTMLElement).querySelectorAll('svg')).toHaveLength(1);
+        unmount();
+      }
+    });
+  });
 });

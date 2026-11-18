@@ -130,6 +130,16 @@ describe('event drawer mappers (LAB-3216)', () => {
       expect(event.access).toBeNull();
     });
 
+    it('LAB-3324 R1: maps the location link from the details, and null when there is none', () => {
+      const base = eventResponse();
+      const url = 'https://www.google.com/maps/search/?api=1&query=Lisbon';
+      expect(toEventDetail(eventResponse({ details: { ...base.details!, locationUrl: ` ${url} ` } })).locationUrl).toBe(
+        url,
+      );
+      expect(toEventDetail(base).locationUrl).toBeNull();
+      expect(toEventDetail(eventResponse({ details: null })).locationUrl).toBeNull();
+    });
+
     it('survives an event with no details and no location', () => {
       const event = toEventDetail(eventResponse({ details: null, location: null }));
       expect(event.gathering).toBeNull();

@@ -229,6 +229,7 @@ export function toEventDetail(raw: EventDetailResponse): EventDetail {
     access: toEventAccess(details?.accessOption, details?.accessType, raw.type),
     dateLine: formatEventDateLine(raw.startDate, raw.endDate, timezone),
     address: raw.location?.location?.trim() || null,
+    locationUrl: details?.locationUrl?.trim() || null,
     image: raw.logo || raw.banner || null,
     tags,
     hosts,

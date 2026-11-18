@@ -248,6 +248,22 @@ describe('DigestPage', () => {
       expect(followMutate).not.toHaveBeenCalled();
     });
 
+    // LAB-3308: Google and GitHub sign-in come back to the same address, still signed out until Privy finishes.
+    // Sending the reader to sign-in again then throws that sign-in away, so they never get signed in.
+    const OAUTH_RETURN = 'privy_oauth_state=s&privy_oauth_provider=google&privy_oauth_code=c';
+
+    it("sends a signed-out reader from the email's Post your team news link to sign-in, but not on the way back from Google", async () => {
+      const { unmount } = open('/digest?t=x&postnews=open', data({ isTeamMember: true }));
+      await flush();
+      expect(routerPush).toHaveBeenLastCalledWith('/digest?t=x&postnews=open#login', { scroll: false });
+      unmount();
+      routerPush.mockClear();
+
+      open(`/digest?t=x&postnews=open&${OAUTH_RETURN}`, data({ isTeamMember: true }));
+      await flush();
+      expect(routerPush).not.toHaveBeenCalled();
+    });
+
     it('follows for a signed-in reader, and both stories of the team agree', async () => {
       useCurrentUserStore.setState({ currentUser: { uid: 'me' }, isHydrated: true });
       open(
@@ -593,6 +609,17 @@ describe('topics (LAB-3289)', () => {
     open('/digest?t=x&topics=open');
     await flush();
     expect(routerPush).toHaveBeenLastCalledWith('/digest?t=x&topics=open#login', { scroll: false });
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('leaves the sign-in alone on the way back from Google or GitHub (LAB-3308)', async () => {
+    // "See all topics" put `topics=open` in the address, and Google brings the reader back to it signed out: sending
+    // them to sign-in again would clear the sign-in that Privy is finishing.
+    useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
+    open('/digest?t=x&topics=open&privy_oauth_state=s&privy_oauth_provider=google&privy_oauth_code=c');
+    await flush();
+    expect(routerPush).not.toHaveBeenCalled();
+    expect(capture).not.toHaveBeenCalledWith('digest-topics-sign-in-prompted', expect.anything());
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 });

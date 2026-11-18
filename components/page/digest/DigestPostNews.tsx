@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
+import { isPrivyOAuthReturn } from '@/components/core/login/utils/privyOAuthReturn';
 import { toast } from '@/components/core/ToastContainer';
 import { resolvePrimaryTeam } from '@/components/page/member-details/utils/resolvePrimaryTeam';
 import { PostNewsModal } from '@/components/page/team-details/TeamNews/PostNewsModal';
@@ -33,9 +34,10 @@ export function DigestPostNews({ openOnLoad, onSignIn }: Props) {
   const team = teamOf(member);
   const createPost = useCreateTeamNewsPost(team?.uid ?? '');
 
-  // The email link lands signed out: sign in first, then the address (still `?postnews=open`) opens the modal.
+  // The email link lands signed out: sign in first, then the address (still `?postnews=open`) opens the modal. Not on
+  // the way back from Google or GitHub: starting a sign-in again would throw away the one that is finishing (LAB-3308).
   useEffect(() => {
-    if (openOnLoad && isHydrated && !currentUser) onSignIn();
+    if (openOnLoad && isHydrated && !currentUser && !isPrivyOAuthReturn()) onSignIn();
   }, [openOnLoad, isHydrated, currentUser, onSignIn]);
 
   const onPost = () => {

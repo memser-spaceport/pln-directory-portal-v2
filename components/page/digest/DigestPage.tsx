@@ -11,6 +11,7 @@ import {
   type DigestLinkType,
   type DigestTopicsVia,
 } from '@/analytics/digest.analytics';
+import { isPrivyOAuthReturn } from '@/components/core/login/utils/privyOAuthReturn';
 import { useCurrentUserStore } from '@/services/auth/store';
 import type { DigestChoice, DigestIssue, DigestPageData } from '@/services/digest/digest.types';
 import { useDigestChoices } from '@/services/digest/hooks/useDigestChoices';
@@ -95,8 +96,12 @@ export function DigestPage({ token, issue, data, isLoggedIn }: Props) {
   useEffect(() => {
     if (signedIn === undefined) return;
     if (!signedIn) {
-      // The email's Change topics lands signed out: sign in first, then the address opens the modal.
-      if (searchParams.get('topics') === 'open') signInForTopics('email', { key: 'topics', value: 'open' });
+      // The email's Change topics lands signed out: sign in first, then the address opens the modal. Not on the way
+      // back from Google or GitHub, which still carries `topics=open`: starting a sign-in again would throw away the
+      // one that is finishing (LAB-3308).
+      if (searchParams.get('topics') === 'open' && !isPrivyOAuthReturn()) {
+        signInForTopics('email', { key: 'topics', value: 'open' });
+      }
       return;
     }
     // Signed in: the intent is applied, so a reload doesn't repeat it. `null` state: see the __NA trap.

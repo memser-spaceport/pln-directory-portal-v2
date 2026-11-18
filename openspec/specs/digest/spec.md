@@ -159,12 +159,18 @@ After the stories and forum posts, the page SHALL show "You're all caught up" wi
 
 ### Requirement: Footer
 
-The page SHALL end with the email's sign-off and footer: "Cheers," and "The Protocol Labs team", then "You received this email because you are a member of the Protocol Labs network." with the links "Manage preferences" and "Unsubscribe". Both links SHALL go to the signed-in email settings (`/settings/email`).
+The page SHALL end with the email's sign-off and footer: "Cheers," and "The Protocol Labs team", then "You received this email because you are a member of the Protocol Labs network." with the links "Manage preferences" and "Unsubscribe". Both links SHALL open the digest email page (`/digest/email`) with the page's link token, so they work signed out: Manage preferences with `link_type=manage`, Unsubscribe with `link_type=unsubscribe`, each with its own `utm_source` (`digest_page_manage_link`, `digest_page_unsubscribe_link`) so these clicks are told apart from the email's footer.
 
 #### Scenario: Footer
 
 - **WHEN** the page shows
 - **THEN** after "Cheers, The Protocol Labs team" it shows "You received this email because you are a member of the Protocol Labs network.", "Manage preferences" and "Unsubscribe"
+
+#### Scenario: Unsubscribe from the page, signed out
+
+- **GIVEN** a signed-out reader on `/digest?t=<token>`
+- **WHEN** they press "Unsubscribe" in the footer
+- **THEN** `/digest/email?t=<token>&link_type=unsubscribe` opens with the Unsubscribe button, and nothing changes until they press it
 
 ### Requirement: Add topics card
 

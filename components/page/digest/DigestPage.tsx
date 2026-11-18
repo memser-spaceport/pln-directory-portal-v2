@@ -49,6 +49,12 @@ const asChoice = (value: string | null): DigestChoice | null => (value === 'more
  * the browser, so a link scanner that fetches the page changes nothing. Follow, Comments and posting news act for the
  * signed-in member and send a signed-out reader to sign-in.
  */
+/** A footer link to the digest email page for this page's token. */
+function emailSettingsHref(token: string, linkType: 'manage' | 'unsubscribe') {
+  const params = new URLSearchParams({ t: token, utm_source: `digest_page_${linkType}_link`, link_type: linkType });
+  return `/digest/email?${params.toString()}`;
+}
+
 export function DigestPage({ token, issue, data, isLoggedIn }: Props) {
   const searchParams = useSearchParams();
   const { choices, receipts, press, undo, land } = useDigestChoices(token, data.stories, issue);
@@ -289,11 +295,11 @@ export function DigestPage({ token, issue, data, isLoggedIn }: Props) {
             </div>
             <div className={s.legal}>
               <p>You received this email because you are a member of the Protocol Labs network.</p>
-              {/* Signed-in email settings for now. Once LAB-3309's signed-link page (`/digest/email`) is on develop,
-                  both links go there with this page's token, so they work signed out too. */}
+              {/* The digest email page (LAB-3309) with this page's token, so both work signed out, like the email's own
+                  footer. Their own utm_source tells these clicks from the email's. */}
               <nav className={s.legalLinks}>
-                <a href="/settings/email">Manage preferences</a>
-                <a href="/settings/email">Unsubscribe</a>
+                <a href={emailSettingsHref(token, 'manage')}>Manage preferences</a>
+                <a href={emailSettingsHref(token, 'unsubscribe')}>Unsubscribe</a>
               </nav>
             </div>
           </footer>

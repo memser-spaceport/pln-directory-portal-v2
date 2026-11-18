@@ -259,11 +259,18 @@ describe('DigestPage', () => {
       expect(
         within(footer).getByText('You received this email because you are a member of the Protocol Labs network.'),
       ).toBeInTheDocument();
-      expect(within(footer).getByRole('link', { name: 'Manage preferences' })).toHaveAttribute(
-        'href',
-        '/settings/email',
-      );
-      expect(within(footer).getByRole('link', { name: 'Unsubscribe' })).toHaveAttribute('href', '/settings/email');
+      // The digest email page with this page's token, so both work signed out (LAB-3309).
+      const query = (name: string) => {
+        const url = new URL(within(footer).getByRole('link', { name }).getAttribute('href') as string, 'http://x');
+        return [
+          url.pathname,
+          url.searchParams.get('t'),
+          url.searchParams.get('link_type'),
+          url.searchParams.get('utm_source'),
+        ];
+      };
+      expect(query('Manage preferences')).toEqual(['/digest/email', TOKEN, 'manage', 'digest_page_manage_link']);
+      expect(query('Unsubscribe')).toEqual(['/digest/email', TOKEN, 'unsubscribe', 'digest_page_unsubscribe_link']);
     });
 
     it('shows "Got news from your team?" only to team members', () => {

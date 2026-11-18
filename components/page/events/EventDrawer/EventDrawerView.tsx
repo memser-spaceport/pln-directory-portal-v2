@@ -9,10 +9,8 @@ import { Drawer } from '@/components/common/Drawer';
 import { Modal } from '@/components/common/Modal/Modal';
 import { AdditionalDetailsSection } from '@/components/core/UpdatesPanel/IrlGatheringModal/components/AdditionalDetailsSection';
 import { DatePickerView } from '@/components/core/UpdatesPanel/IrlGatheringModal/components/DatePickerView';
-import { GatheringDetails } from '@/components/core/UpdatesPanel/IrlGatheringModal/components/GatheringDetails';
 import { PlanningSection } from '@/components/core/UpdatesPanel/IrlGatheringModal/components/PlanningSection';
 import { TopicsPickerView } from '@/components/core/UpdatesPanel/IrlGatheringModal/components/TopicsPickerView';
-import { buildEventsLink } from '@/components/core/UpdatesPanel/IrlGatheringModal/helpers';
 import { useIrlGatheringModal } from '@/components/core/UpdatesPanel/IrlGatheringModal/hooks/useIrlGatheringModal';
 import m from '@/components/core/UpdatesPanel/IrlGatheringModal/IrlGatheringModal.module.scss';
 import type { IrlGatheringFormData } from '@/components/core/UpdatesPanel/IrlGatheringModal/types';
@@ -20,7 +18,7 @@ import type { EventDetail, EventRoleName, MyGatheringPlans } from '@/services/ev
 import type { ITeam } from '@/types/teams.types';
 
 import { AttendeesModal, type EventAttendeesState } from './AttendeesModal';
-import { BackIcon, EventSummary, Label, PinLabelIcon } from './EventSummary';
+import { BackIcon, EventSummary } from './EventSummary';
 import e from './EventDrawer.module.scss';
 import { RsvpCard } from './RsvpCard';
 import r from './RsvpCard.module.scss';
@@ -146,7 +144,7 @@ function DrawerStates({ status, onClose, onRetry }: Pick<EventDrawerViewProps, '
         </div>
       ) : (
         <div className={e.state} aria-busy="true" aria-label="Loading the event">
-          {/* Shaped like the panel it becomes (kicker, title, date, place, tags, Host, gathering), so a slow load
+          {/* Shaped like the panel it becomes (kicker, title, date, place, tags, Host), so a slow load
                 reads as loading rather than as an empty drawer. */}
           <div className={e.skeleton}>
             <span className={e.kicker}>EVENT DETAILS</span>
@@ -386,21 +384,6 @@ function EventFlow({
                     />
                   }
                 />
-
-                {gathering && (
-                  <div className={e.block}>
-                    <Label icon={<PinLabelIcon />}>{city} gathering</Label>
-                    <div className={e.gatheringLinks}>
-                      <GatheringDetails
-                        dateRange={event.dateLine}
-                        location={city}
-                        eventsLink={buildEventsLink(gathering.location, event.startDate)}
-                        eventsCount={gathering.events.length}
-                        resources={gathering.resources}
-                      />
-                    </div>
-                  </div>
-                )}
               </>
             )}
 

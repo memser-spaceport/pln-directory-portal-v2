@@ -207,8 +207,8 @@ The drawer SHALL open on one event and show, top to bottom:
 2. "EVENT DETAILS".
 3. The event's picture when it has one, title, and date line.
 4. A place row: the address with its region for an in-person event, "Online" for an online event, and the address with "also online" for a hybrid event (LAB-3283).
-5. An access row when the access is known, with an icon and two lines: "Invite only / The hosts approve each guest", "Paid / Tickets on the host's site" or "Free / RSVP to save your spot" (LAB-3283). Mode and access SHALL NOT show as badges.
-6. The event's own page (for example its Luma page) when it has one, as a link under the place row (LAB-3271). The link SHALL open in a new tab. It SHALL show the address without `https://`. An event without a page, or whose page is not an `http` or `https` address, SHALL have no link row.
+5. The event's own page (for example its Luma page) when it has one, as a link under the place row (LAB-3271). The link SHALL open in a new tab. It SHALL show the address without `https://`. An event without a page, or whose page is not an `http` or `https` address, SHALL have no link row.
+6. An access row when the access is known, with an icon and two lines: "Invite only / The hosts approve each guest", "Paid / Tickets on the host's site" or "Free / RSVP to save your spot" (LAB-3283). Mode and access SHALL NOT show as badges.
 7. Tags, Host, Description and Agenda.
 
 A block whose data is empty SHALL be left out rather than shown empty. On a narrow screen the drawer SHALL take the full width.

@@ -44,9 +44,12 @@ function eventLink(url: string | null): { href: string; label: string } | null {
 
 /**
  * The event as the PL events app draws it, ported from `prototypes/entries/member-events-going/EventDetails.tsx`
- * (LAB-3216): "EVENT DETAILS" with mode and access on the right, a 64px thumbnail of the event's picture, the title,
- * date and address rows, tags, Host, Description, Agenda. A block whose data is empty is left out. Icons are that
- * app's own SVGs, inlined.
+ * (LAB-3216): "EVENT DETAILS", a 64px thumbnail of the event's picture, the title, date and place rows, tags, Host,
+ * Description, Agenda. A block whose data is empty is left out. Icons are that app's own SVGs, inlined.
+ *
+ * LAB-3283: mode and access are facts, not badges (Polina's `event-drawer-redesign`, 2026-11-17). The place row says
+ * "Online" for an online event and adds "also online" for a hybrid one; an access row, when the access is known,
+ * says what it is and what it means for the guest.
  *
  * Deviation from the prototype: no region line under the address. The Directory stores only the gathering's
  * location text, not the venue's address and region.
@@ -59,21 +62,12 @@ function eventLink(url: string | null): { href: string; label: string } | null {
  */
 export function EventSummary({ event, beforeAgenda }: { event: EventDetail; beforeAgenda?: ReactNode }) {
   const link = eventLink(event.websiteUrl);
+  const place = placeFact(event);
+  const access = event.access ? { kind: event.access, ...ACCESS_FACT[event.access] } : null;
   return (
     <>
       <div className={e.head}>
         <span className={e.kicker}>EVENT DETAILS</span>
-        {(event.mode || event.access) && (
-          <span className={e.badges}>
-            {event.mode && (
-              <span className={e.mode}>
-                <InPersonIcon />
-                {event.mode}
-              </span>
-            )}
-            {event.access && <AccessBadge access={event.access} />}
-          </span>
-        )}
       </div>
 
       <div className={e.hero}>
@@ -86,14 +80,10 @@ export function EventSummary({ event, beforeAgenda }: { event: EventDetail; befo
               <span className={e.fact}>{event.dateLine}</span>
             </div>
           )}
-          {event.address && (
+          {place && (
             <div className={e.factRow}>
-              <LocationIcon />
-              <span className={e.place}>
-                <span className={e.fact}>
-                  {event.address} <LinkIcon />
-                </span>
-              </span>
+              {place.online ? <GlobeIcon /> : <LocationIcon />}
+              <span className={e.fact}>{place.text}</span>
             </div>
           )}
           {link && (
@@ -102,6 +92,15 @@ export function EventSummary({ event, beforeAgenda }: { event: EventDetail; befo
               <a className={e.eventLink} href={link.href} target="_blank" rel="noopener noreferrer">
                 <span className={e.fact}>{link.label}</span> <LinkIcon />
               </a>
+            </div>
+          )}
+          {access && (
+            <div className={e.factRow} data-testid="event-access">
+              <AccessIcon access={access.kind} />
+              <span className={e.factStack}>
+                <span className={e.fact}>{access.main}</span>
+                <span className={e.factSub}>{access.sub}</span>
+              </span>
             </div>
           )}
         </div>
@@ -169,7 +168,7 @@ export function EventSummary({ event, beforeAgenda }: { event: EventDetail; befo
 }
 
 /** The panel's section label: icon, then a 14px label (bold, or medium for Host). */
-export function Label({
+function Label({
   icon,
   children,
   weight = 'bold',
@@ -186,20 +185,42 @@ export function Label({
   );
 }
 
-function AccessBadge({ access }: { access: EventAccess }) {
-  if (access === 'PAID') {
+/** The access fact as words: what it is, and what it means for the guest (`event-drawer-redesign/AccessIcon.tsx`). */
+const ACCESS_FACT: Record<EventAccess, { main: string; sub: string }> = {
+  'INVITE ONLY': { main: 'Invite only', sub: 'The hosts approve each guest' },
+  PAID: { main: 'Paid', sub: "Tickets on the host's site" },
+  'FREE w/ RSVP': { main: 'Free', sub: 'RSVP to save your spot' },
+};
+
+/** Where the event is: "Online", the address, or the address "· also online" for a hybrid event. */
+function placeFact(event: EventDetail): { text: string; online: boolean } | null {
+  if (event.mode === 'Virtual') return { text: 'Online', online: true };
+  if (event.mode === 'Hybrid') {
+    return event.address ? { text: `${event.address} · also online`, online: false } : { text: 'Online', online: true };
+  }
+  return event.address ? { text: event.address, online: false } : null;
+}
+
+/** Lock for invite only, ticket for paid or free. 1.5px stroke, like the prototype. */
+function AccessIcon({ access }: { access: EventAccess }) {
+  if (access === 'INVITE ONLY') {
     return (
-      <span className={e.paid}>
-        <PaidIcon />
-        PAID
-      </span>
+      <svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true" className={e.factIcon}>
+        <rect x="4" y="9" width="12" height="8.5" rx="2" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M7 9V6.5a3 3 0 016 0V9" stroke="currentColor" strokeWidth="1.5" />
+      </svg>
     );
   }
   return (
-    <span className={e.access}>
-      {access === 'INVITE ONLY' ? <InviteOnlyIcon /> : <FreeIcon />}
-      {access}
-    </span>
+    <svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true" className={e.factIcon}>
+      <path
+        d="M3 6.5A1.5 1.5 0 014.5 5h11A1.5 1.5 0 0117 6.5V8a2 2 0 000 4v1.5a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 013 13.5V12a2 2 0 000-4V6.5z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path d="M12 5.5v9" stroke="currentColor" strokeWidth="1.5" strokeDasharray="1.5 2" />
+    </svg>
   );
 }
 
@@ -211,55 +232,6 @@ export const BackIcon = () => (
       strokeWidth="1.3"
       strokeLinecap="round"
       strokeLinejoin="round"
-    />
-  </svg>
-);
-
-const InPersonIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-    <path
-      d="M0.875 2.33398V3.20898C0.875 5.62982 2.16417 7.74732 4.08333 8.92565V11.6673H12.8333V10.5007C12.8333 8.94898 9.72417 8.16732 8.16667 8.16732H8.02083C5.25 8.16732 2.91667 5.83398 2.91667 3.20898V2.33398M8.16667 2.33398C7.54783 2.33398 6.95434 2.57982 6.51675 3.0174C6.07917 3.45499 5.83333 4.04848 5.83333 4.66732C5.83333 5.28616 6.07917 5.87965 6.51675 6.31723C6.95434 6.75482 7.54783 7.00065 8.16667 7.00065C8.7855 7.00065 9.379 6.75482 9.81658 6.31723C10.2542 5.87965 10.5 5.28616 10.5 4.66732C10.5 4.04848 10.2542 3.45499 9.81658 3.0174C9.379 2.57982 8.7855 2.33398 8.16667 2.33398Z"
-      fill="currentColor"
-    />
-  </svg>
-);
-
-const PaidIcon = () => (
-  <svg width="14" height="15" viewBox="0 0 14 15" fill="none" aria-hidden="true">
-    <path
-      d="M6.31755 0.859375V2.60938H5.00505C3.81505 2.60938 2.81755 3.60688 2.81755 4.79688V5.67188C2.81755 6.86188 3.58755 7.84188 4.72505 8.13938L9.20505 9.29438C9.45005 9.36438 9.80005 9.80188 9.80005 10.0644V10.9394C9.80005 11.1844 9.60755 11.3769 9.36255 11.3769H4.98755C4.83555 11.3763 4.68577 11.3403 4.55005 11.2719V9.62688H2.80005V11.3769C2.80005 11.9719 3.15005 12.4794 3.57005 12.7419C3.97255 13.0219 4.48005 13.1269 4.98755 13.1269H6.30005V14.8769H8.05005V13.1269H9.36255C10.57 13.1269 11.55 12.1469 11.55 10.9394V10.0644C11.55 8.87438 10.78 7.89438 9.64255 7.59688L5.16255 6.44188C4.91755 6.37188 4.56755 5.93438 4.56755 5.67188V4.79688C4.56755 4.55188 4.76005 4.35938 5.00505 4.35938H9.38005C9.57255 4.35938 9.74755 4.42938 9.81755 4.46438V6.10938H11.5675V4.35938C11.5675 3.76438 11.2175 3.25688 10.7975 2.99438C10.395 2.71438 9.88755 2.60938 9.38005 2.60938H8.06755V0.859375H6.31755Z"
-      fill="currentColor"
-    />
-  </svg>
-);
-
-/* The ticket glyph is the events app's magenta; it is drawn in that app's colour, as it is there. */
-const FreeIcon = () => (
-  <svg width="15" height="14" viewBox="0 0 15 14" fill="none" aria-hidden="true">
-    <path
-      d="M3.29175 4.66667L10.5834 1.75L11.7501 4.66667"
-      stroke="#E42CBC"
-      strokeWidth="1.3"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M1.8335 4.66748H13.5002V6.41748C12.6252 6.41748 11.7502 7.00081 11.7502 8.02165C11.7502 9.04248 12.6252 9.91748 13.5002 9.91748V11.6675H1.8335V9.91748C2.7085 9.91748 3.5835 9.33415 3.5835 8.16748C3.5835 7.00081 2.7085 6.41748 1.8335 6.41748V4.66748Z"
-      fill="#E42CBC"
-      stroke="#E42CBC"
-      strokeWidth="0.6"
-      strokeLinejoin="round"
-    />
-    <path d="M5.62524 7.40479H7.37524M5.62524 9.15479H9.70858" stroke="white" strokeWidth="0.6" strokeLinecap="round" />
-  </svg>
-);
-
-const InviteOnlyIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 25 24" fill="none" aria-hidden="true">
-    <rect x="1.22656" y="0.5" width="23" height="23" rx="11.5" fill="#F9F3E9" stroke="#F19100" />
-    <path
-      d="M9.11943 7.5H16.3342C16.4141 7.49999 16.4928 7.51789 16.564 7.55224C16.6351 7.58659 16.6967 7.63641 16.7437 7.69763L18.6782 10.2189C18.7126 10.2638 18.7295 10.3185 18.7261 10.3739C18.7227 10.4293 18.6992 10.4818 18.6595 10.5226L12.9126 16.4228C12.8889 16.4471 12.8601 16.4666 12.8281 16.4798C12.7961 16.4931 12.7615 16.5 12.7266 16.5C12.6916 16.5 12.657 16.4931 12.625 16.4798C12.593 16.4666 12.5642 16.4471 12.5405 16.4228L6.79364 10.523C6.75396 10.4823 6.73041 10.4297 6.72699 10.3744C6.72358 10.319 6.74051 10.2642 6.77491 10.2194L8.70995 7.69811C8.75691 7.63689 8.8185 7.58707 8.88966 7.55272C8.96083 7.51837 9.03957 7.49999 9.11943 7.5Z"
-      fill="#F19100"
     />
   </svg>
 );
@@ -362,5 +334,3 @@ const AgendaIcon = () => (
     />
   </svg>
 );
-
-export const PinLabelIcon = LocationIcon;

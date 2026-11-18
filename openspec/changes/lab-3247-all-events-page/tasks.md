@@ -51,9 +51,9 @@ Slices: **A** = LAB-3317 (groups 1–5), **B** = LAB-3320 (group 6), **C** = LAB
 
 ## 8. Drawer (D)
 
-- [ ] 8.1 Remove the gathering block and its unused styles from `EventDrawerView`; keep the gathering data for going and plans. Verify: update `__tests__/page/events/event-drawer-view.test.tsx` and `event-drawer.test.tsx` (no "Lisbon gathering", going and plans unchanged).
-- [ ] 8.2 `EventSummary`: place row (Online / address / "also online") and access row with `AccessIcon` and its copy; no mode or access badges. Verify: tests for the hybrid, access-unknown and agenda-and-tags scenarios.
-- [ ] 8.3 Update the drawer story (`EventDrawerView.stories.tsx`) to the new rows. Verify: Storybook builds the story.
+- [x] 8.1 Remove the gathering block and its unused styles from `EventDrawerView`; keep the gathering data for going and plans. Verify: update `__tests__/page/events/event-drawer-view.test.tsx` and `event-drawer.test.tsx` (no "Lisbon gathering", going and plans unchanged).
+- [x] 8.2 `EventSummary`: place row (Online / address / "also online") and access row with `AccessIcon` and its copy; no mode or access badges. Verify: tests for the hybrid, access-unknown and agenda-and-tags scenarios.
+- [x] 8.3 Update the drawer story (`EventDrawerView.stories.tsx`) to the new rows. Verify: Storybook builds the story. (No change needed: the story builds its event from the fixtures and has no mode or access text of its own.)
 
 ## 9. Close each slice
 

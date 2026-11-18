@@ -1,3 +1,4 @@
+import { introRequestTargetKey, isIntroRequestSent } from '@/services/intro-requests/intro-request-entry-registry';
 import {
   IntroRequestError,
   messageForIntroRequestFailure,
@@ -8,7 +9,9 @@ import type { LabosAgentDraft, LabosAgentDraftCardState } from '@/types/labos-ag
 /** The C3 text after a 200 (the modal's text). */
 export { INTRO_REQUEST_RECEIVED_MESSAGE as DRAFT_SENT_MESSAGE } from '@/services/intro-requests/intro-requests.service';
 
-export const DRAFT_SIGN_IN_MESSAGE = 'Sign in again, then press Send. Your text is kept.';
+/** On a 401, `customFetch` signs the member out and reloads the page, so the chat and the text are gone. */
+export const DRAFT_SIGN_IN_MESSAGE = 'Your session ended. Sign in again, then ask the agent for a new draft.';
+export const DRAFT_ALREADY_SENT_MESSAGE = 'Intro already requested';
 export const DRAFT_RATE_LIMITED_MESSAGE = 'Try again in a moment.';
 export const DRAFT_SEND_FAILED_MESSAGE = 'The request could not be sent. Try again.';
 
@@ -23,6 +26,19 @@ export function toIntroRequestBody(
     text: text.trim(),
   };
 }
+
+/** The key of a draft target in the page registry and in `sentIntroTargets`, for example `MEMBER:<uid>`. */
+export const draftTargetKey = (draft: LabosAgentDraft) =>
+  introRequestTargetKey(draft.target.type === 'team' ? 'TEAM' : 'MEMBER', draft.target.uid);
+
+/**
+ * True when the target already has an intro request in this page visit: a send from a draft card (`sentIntroTargets`),
+ * or the page's "Intro requested" state (the Request an intro registry). C3 has no duplicate check.
+ */
+export const isDraftTargetSent = (draft: LabosAgentDraft, sentIntroTargets: Record<string, true>) => {
+  const key = draftTargetKey(draft);
+  return !!sentIntroTargets[key] || isIntroRequestSent(key);
+};
 
 /** The HTTP status of a failed C3 call. `0`: no response (network). */
 export const introErrorStatus = (error: unknown) => (error instanceof IntroRequestError ? error.status : 0);

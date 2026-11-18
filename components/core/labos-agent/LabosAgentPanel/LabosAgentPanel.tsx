@@ -58,9 +58,11 @@ export function LabosAgentPanel({ context, onClose }: LabosAgentPanelProps) {
   /* S3: the caller's first message goes in the composer. The member can change it before they send. */
   useEffect(() => {
     if (prefill === null || !inputRef.current) return;
-    inputRef.current.value = prefill;
+    // A second press of "Ask the agent" keeps the text that the member already typed.
+    if (!inputRef.current.value.trim()) inputRef.current.value = prefill;
     inputRef.current.focus();
-    inputRef.current.setSelectionRange(prefill.length, prefill.length);
+    const end = inputRef.current.value.length;
+    inputRef.current.setSelectionRange(end, end);
     clearPrefill();
   }, [prefill, clearPrefill]);
 

@@ -44,6 +44,11 @@ jest.mock('@/components/common/Markdown', () => ({
 
 import { LabosAgentRoot } from '@/components/core/labos-agent/LabosAgentRoot/LabosAgentRoot';
 import { useCurrentUserStore } from '@/services/auth/store';
+import {
+  introRequestTargetKey,
+  markIntroRequestSent,
+  retainIntroRequestTarget,
+} from '@/services/intro-requests/intro-request-entry-registry';
 import { useLabosAgentStore } from '@/services/labos-agent/store';
 import type { IUserInfo } from '@/types/shared.types';
 
@@ -108,7 +113,7 @@ describe('LAB-3300: agent intro draft card', () => {
     [onDialogOpened, onDialogClosed, onAskSubmitted, onSubmitFailed].forEach((f) => f.mockReset());
     window.localStorage.clear();
     window.localStorage.setItem('labos-agent', 'on');
-    useLabosAgentStore.setState({ isOpen: false, context: null, chats: {}, prefill: null });
+    useLabosAgentStore.setState({ isOpen: false, context: null, chats: {}, prefill: null, sentIntroTargets: {} });
     useCurrentUserStore.setState({ currentUser: { uid: 'me' } as IUserInfo, isHydrated: true });
   });
 
@@ -141,6 +146,68 @@ describe('LAB-3300: agent intro draft card', () => {
     fireEvent.change(field(), { target: { value: 'x'.repeat(150) } });
     expect(field().value).toHaveLength(100);
     expect(sendButton()).toBeEnabled();
+  });
+
+  it('S3-R11: Send is off for 20 characters that are mostly spaces (the check trims)', async () => {
+    await openWithDraft();
+    const padded = `${' '.repeat(18)}hi`;
+    expect(padded).toHaveLength(20);
+    fireEvent.change(field(), { target: { value: padded } });
+    expect(sendButton()).toBeDisabled();
+    fireEvent.click(sendButton()!);
+    expect(customFetch).not.toHaveBeenCalled();
+  });
+
+  it('hides the short-text hint on an empty field', async () => {
+    await openWithDraft();
+    fireEvent.change(field(), { target: { value: '' } });
+    expect(sendButton()).toBeDisabled();
+    expect(within(card()).queryByText(/Add a bit more detail/)).not.toBeInTheDocument();
+    expect(field()).not.toHaveAttribute('aria-invalid');
+  });
+
+  it('marks the field invalid and links the error to it', async () => {
+    customFetch.mockResolvedValue(fail(500));
+    await openWithDraft();
+    fireEvent.click(sendButton()!);
+    const error = await within(card()).findByText('The request could not be sent. Try again.');
+    expect(field()).toHaveAttribute('aria-invalid', 'true');
+    expect(field().getAttribute('aria-describedby')).toContain(error.id);
+  });
+
+  it('keeps the text the member typed when "Ask the agent" opens the agent again', async () => {
+    await openWithDraft();
+    const composer = screen.getByLabelText('Message the agent') as HTMLTextAreaElement;
+    fireEvent.change(composer, { target: { value: 'My own question' } });
+    act(() => useLabosAgentStore.getState().actions.openAgent({ context, prefill: 'Help me write an intro request.' }));
+    expect(composer).toHaveValue('My own question');
+  });
+
+  it('Oleg #4: after a send, a second draft for the same target shows "Intro already requested" and no Send', async () => {
+    customFetch.mockResolvedValue(ok());
+    await openWithDraft([draft(), draft({ draftId: 'dr_2', text: 'A second draft for the same member.' })]);
+    const [first, second] = screen.getAllByRole('article', { name: 'Intro request to Ada Lovelace' });
+    fireEvent.click(within(first).getByRole('button', { name: 'Send' }));
+
+    expect(
+      await within(first).findByText('Your request is received. Someone from the team will reach out.'),
+    ).toBeInTheDocument();
+    expect(within(second).getByText('Intro already requested')).toBeInTheDocument();
+    expect(within(second).queryByRole('button', { name: /Send/ })).not.toBeInTheDocument();
+    expect(customFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('Oleg #4: a draft for a target that the page shows as "Intro requested" has no Send', async () => {
+    const release = retainIntroRequestTarget(introRequestTargetKey('MEMBER', 'm-1'));
+    markIntroRequestSent(introRequestTargetKey('MEMBER', 'm-1'));
+    try {
+      await openWithDraft();
+      expect(within(card()).getByText('Intro already requested')).toBeInTheDocument();
+      expect(sendButton()).not.toBeInTheDocument();
+      expect(customFetch).not.toHaveBeenCalled();
+    } finally {
+      release();
+    }
   });
 
   it('S3-R12: Send posts exactly { type, targetId, text } with the edited, trimmed text', async () => {
@@ -202,7 +269,7 @@ describe('LAB-3300: agent intro draft card', () => {
   });
 
   it.each([
-    [401, {}, 'Sign in again, then press Send. Your text is kept.', true],
+    [401, {}, 'Your session ended. Sign in again, then ask the agent for a new draft.', true],
     [
       403,
       { message: 'Only members of portfolio teams and PL Infra can send an intro request' },

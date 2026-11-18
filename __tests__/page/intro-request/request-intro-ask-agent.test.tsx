@@ -30,7 +30,7 @@ import { useLabosAgentStore } from '@/services/labos-agent/store';
 describe('LAB-3300: Ask the agent next to Request an intro', () => {
   beforeEach(() => {
     onDialogOpened.mockReset();
-    useLabosAgentStore.setState({ isOpen: false, context: null, chats: {}, prefill: null });
+    useLabosAgentStore.setState({ isOpen: false, context: null, chats: {}, prefill: null, sentIntroTargets: {} });
   });
 
   it.each([

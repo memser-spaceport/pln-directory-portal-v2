@@ -25,6 +25,11 @@ interface LabosAgentState {
    * The member can change it before they send. The panel takes it once and clears it.
    */
   readonly prefill: string | null;
+  /**
+   * The intro targets that got a C3 send from a draft card in this page visit, by `introRequestTargetKey` (S3). C3 has
+   * no duplicate check, so a later draft card for the same target shows "Intro already requested" and no Send.
+   */
+  readonly sentIntroTargets: Record<string, true>;
   readonly actions: {
     /**
      * The one "open with context" call (LAB-3298). Opens the panel on this context. S2–S5 reuse it.
@@ -33,6 +38,7 @@ interface LabosAgentState {
     openAgent: (options?: { context?: LabosAgentOpenContext | null; prefill?: string }) => void;
     /** The panel calls this after it puts `prefill` in the composer. */
     clearPrefill: () => void;
+    markIntroTargetSent: (key: string) => void;
     closeAgent: () => void;
     /** Changes the turns of one chat. Creates the chat (and its `threadId`) on first use. */
     updateTurns: (key: string, update: (turns: LabosAgentTurn[]) => LabosAgentTurn[]) => void;
@@ -46,9 +52,11 @@ export const useLabosAgentStore = create<LabosAgentState>((set) => ({
   context: null,
   chats: {},
   prefill: null,
+  sentIntroTargets: {},
   actions: {
     openAgent: ({ context = null, prefill } = {}) => set({ isOpen: true, context, prefill: prefill ?? null }),
     clearPrefill: () => set({ prefill: null }),
+    markIntroTargetSent: (key) => set((state) => ({ sentIntroTargets: { ...state.sentIntroTargets, [key]: true } })),
     closeAgent: () => set({ isOpen: false }),
     updateTurns: (key, update) =>
       set((state) => {

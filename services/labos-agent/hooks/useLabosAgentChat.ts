@@ -4,7 +4,7 @@ import { useCallback } from 'react';
 
 import { useIntroRequestAnalytics, type IntroRequestEventContext } from '@/analytics/intro-requests.analytics';
 import { useLabosAgentAnalytics } from '@/analytics/labos-agent.analytics';
-import { introRequestTargetKey, markIntroRequestSent } from '@/services/intro-requests/intro-request-entry-registry';
+import { markIntroRequestSent } from '@/services/intro-requests/intro-request-entry-registry';
 import { createIntroRequest } from '@/services/intro-requests/intro-requests.service';
 import type {
   LabosAgentCardState,
@@ -18,7 +18,13 @@ import type {
 } from '@/types/labos-agent.types';
 import { generateUUID } from '@/utils/common.utils';
 
-import { draftErrorState, introErrorStatus, toIntroRequestBody } from '../labos-agent.drafts';
+import {
+  draftErrorState,
+  draftTargetKey,
+  introErrorStatus,
+  isDraftTargetSent,
+  toIntroRequestBody,
+} from '../labos-agent.drafts';
 import { isStalledAnswer, LabosAgentError } from '../labos-agent.errors';
 import { getLabosAgentClient, toChatContext } from '../labos-agent.service';
 import { chatKey, useLabosAgentStore } from '../store';
@@ -309,17 +315,28 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
       if (!found) return;
       const { draft, card } = found;
       if (card.status !== 'open' && card.status !== 'error') return;
+      // One intro request for each target in a page visit, across turns and New chat (C3 has no duplicate check).
+      const { sentIntroTargets, actions } = useLabosAgentStore.getState();
+      if (isDraftTargetSent(draft, sentIntroTargets)) return;
       const text = card.text.trim();
       if (text.length < draft.minLength || text.length > draft.maxLength) return;
 
       const events = draftEventContext(draft, context);
       setDraftCard(turnId, draftId, { status: 'sending', text: card.text });
+      // Claim the target before the request, so a Send on another card for it in the same tick does nothing.
+      actions.markIntroTargetSent(draftTargetKey(draft));
       try {
         await createIntroRequest(toIntroRequestBody(draft, text));
         setDraftCard(turnId, draftId, { status: 'sent', text: card.text });
         introAnalytics.onAskSubmitted({ ...events, textLength: text.length });
-        markIntroRequestSent(introRequestTargetKey(toIntroRequestBody(draft, text).type, draft.target.uid));
+        markIntroRequestSent(draftTargetKey(draft));
       } catch (err) {
+        // The send failed, so the target is free again.
+        useLabosAgentStore.setState((st) => {
+          const next = { ...st.sentIntroTargets };
+          delete next[draftTargetKey(draft)];
+          return { sentIntroTargets: next };
+        });
         setDraftCard(turnId, draftId, draftErrorState(err, card.text));
         introAnalytics.onSubmitFailed({ ...events, status: introErrorStatus(err), textLength: text.length });
       }

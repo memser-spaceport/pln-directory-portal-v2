@@ -78,7 +78,9 @@ describe('LAB-3300: draft helpers', () => {
       'The request could not be sent. Try again.',
     );
     expect(draftErrorState(e(429), 'kept').message).toBe('Try again in a moment.');
-    expect(draftErrorState(e(401), 'kept').message).toMatch(/Sign in again/);
+    expect(draftErrorState(e(401), 'kept').message).toBe(
+      'Your session ended. Sign in again, then ask the agent for a new draft.',
+    );
     expect(draftErrorState(new TypeError('network'), 'kept')).toEqual({
       status: 'error',
       text: 'kept',
@@ -90,7 +92,7 @@ describe('LAB-3300: draft helpers', () => {
 describe('LAB-3300: sendDraft guard', () => {
   beforeEach(() => {
     createIntroRequest.mockReset();
-    useLabosAgentStore.setState({ isOpen: true, context, chats: {} });
+    useLabosAgentStore.setState({ isOpen: true, context, chats: {}, sentIntroTargets: {} });
   });
 
   it('S3-R13: sends one C3 request when sendDraft runs twice in the same tick', async () => {
@@ -120,11 +122,46 @@ describe('LAB-3300: sendDraft guard', () => {
     expect(createIntroRequest).not.toHaveBeenCalled();
   });
 
-  it('does not send a text below minLength', async () => {
-    seed({ dr_1: { status: 'open', text: '   too short   ' } });
+  it.each([['   too short   '], [`${' '.repeat(18)}hi`]])(
+    'does not send %j (below minLength after trim)',
+    async (text) => {
+      seed({ dr_1: { status: 'open', text } });
+      const { result } = renderHook(() => useLabosAgentChat(context));
+      await act(async () => result.current.sendDraft('t-1', 'dr_1'));
+      expect(createIntroRequest).not.toHaveBeenCalled();
+    },
+  );
+
+  it('Oleg #4: sends once for each target, also from another draft or a New chat', async () => {
+    const second: LabosAgentDraft = { ...draft, draftId: 'dr_2' };
+    useLabosAgentStore.setState({
+      chats: { [key]: { threadId: 'th-1', turns: [{ ...turn(), drafts: [draft, second] }] } },
+    });
+    createIntroRequest.mockResolvedValue({ uid: 'ir-1' });
+    const { result } = renderHook(() => useLabosAgentChat(context));
+
+    await act(async () => result.current.sendDraft('t-1', 'dr_1'));
+    await act(async () => result.current.sendDraft('t-1', 'dr_2'));
+    expect(createIntroRequest).toHaveBeenCalledTimes(1);
+
+    act(() => result.current.newChat());
+    useLabosAgentStore.setState((st) => ({
+      chats: {
+        [key]: { ...st.chats[key], turns: [{ ...turn(), id: 't-2', drafts: [{ ...draft, draftId: 'dr_3' }] }] },
+      },
+    }));
+    await act(async () => result.current.sendDraft('t-2', 'dr_3'));
+    expect(createIntroRequest).toHaveBeenCalledTimes(1);
+  });
+
+  it('frees the target after a failed send', async () => {
+    seed();
+    createIntroRequest.mockRejectedValueOnce(new IntroRequestError(500, 'x')).mockResolvedValueOnce({ uid: 'ir-1' });
     const { result } = renderHook(() => useLabosAgentChat(context));
     await act(async () => result.current.sendDraft('t-1', 'dr_1'));
-    expect(createIntroRequest).not.toHaveBeenCalled();
+    expect(useLabosAgentStore.getState().sentIntroTargets).toEqual({});
+    await act(async () => result.current.sendDraft('t-1', 'dr_1'));
+    expect(createIntroRequest).toHaveBeenCalledTimes(2);
   });
 
   it('S3-R14: cancelDraft closes the card and sends nothing', async () => {

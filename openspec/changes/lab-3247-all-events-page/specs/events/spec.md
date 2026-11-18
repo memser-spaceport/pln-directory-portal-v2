@@ -81,7 +81,7 @@ The page SHALL show "Browse by city" with the 5 cities that have the most upcomi
 
 ### Requirement: The Coming up toolbar and filters
 
-A "Coming up" toolbar SHALL show the number of events that match, a Filters button and the view switch List · Calendar · Map, offering only the views this build has (no switch while there is one). On desktop and tablet it SHALL stay in view under the navbar while the events scroll. The filter rail SHALL be closed by default. The Filters button SHALL open it and show the number of applied filters. The rail SHALL have a control that closes it and "Clear All". While the rail is closed, each applied filter SHALL show as a removable chip under the toolbar. The filters SHALL be: search (event name, host, city or topic), City, Mode (In person, Virtual, Hybrid) and "Events I'm going to" (signed-in members only). A filter with no values in the data SHALL NOT show. Filters and the view SHALL be kept in the page address, so a copied link reopens the same view and filters, and switching view SHALL keep the filters. On phones the filters SHALL open as a bottom sheet from a Filters button.
+A "Coming up" toolbar SHALL show the number of events that match, a Filters button and the view switch List · Calendar · Map, offering only the views this build has (no switch while there is one). On desktop and tablet it SHALL stay in view under the navbar while the events scroll. The filter rail SHALL be closed by default. The Filters button SHALL open it and show the number of applied filters. The rail SHALL have a control that closes it and "Clear All". While the rail is closed, each applied filter SHALL show as a removable chip under the toolbar. The filters SHALL be: search (event name, host, city or topic), City, Mode (In person, Virtual, Hybrid) and "Events I'm going to" (signed-in members only). A Mode or City filter with fewer than 2 values in the loaded events SHALL NOT show, unless it is applied. Filters and the view SHALL be kept in the page address, so a copied link reopens the same view and filters, and switching view SHALL keep the filters. On phones the filters SHALL open as a bottom sheet from a Filters button.
 
 #### Scenario: Filter survives a view switch
 
@@ -130,7 +130,7 @@ The List view SHALL be the default. It SHALL group events by start day, soonest 
 
 ### Requirement: The Calendar view
 
-The Calendar view SHALL have Week (default) and Month, kept in the address (`cal=month`). Weeks SHALL start on Monday, and every event SHALL sit on its days in its own time zone. Week SHALL show one column per day of the week, today marked and past days dimmed. An event that runs several days SHALL be one card across its days. One-day events SHALL stack in their day's column, earliest first, each card showing title, its first topic with "+n" for the rest when it has topics, time, and "city · UTC±n" in the event's time zone. A week with no matching event SHALL say "Nothing this week." On phones the cards SHALL stack by day, and empty days SHALL be skipped. Month SHALL show the month grid with a bar per event per week, today marked. Pressing a day number in Month SHALL open that week in Week, and switching to Month SHALL show the month of the week in view. Previous and next controls SHALL move by one week or one month, and "Today" SHALL return to the current week or month. The calendar SHALL open on the linked event's week, else the chosen city's first event, else the first week from today that has an event.
+The Calendar view SHALL have Week (default) and Month, kept in the address (`cal=month`). Weeks SHALL start on Monday, and every event SHALL sit on its days in its own time zone. Week SHALL show one column per day of the week, today marked and past days dimmed. An event that runs several days SHALL be one card across its days. One-day events SHALL stack in their day's column, earliest first, each card showing title, its first topic with "+n" for the rest when it has topics, time, and the place and zone in the event's time zone ("Lisbon · UTC+0", "Lisbon · also online · UTC+0", "Online · UTC+0"). A week with no matching event SHALL say "Nothing this week." On phones the cards SHALL stack by day, and empty days SHALL be skipped. Month SHALL show the month grid with a bar per event per week, today marked. Pressing a day number in Month SHALL open that week in Week, and switching to Month SHALL show the month of the week in view. Previous and next controls SHALL move by one week or one month, and "Today" SHALL return to the current week or month. The calendar SHALL open on the linked event's week, else the chosen city's first event, else the first week from today that has an event.
 
 #### Scenario: Day number opens its week
 
@@ -181,7 +181,7 @@ Pressing an event in any view or in Near you SHALL open the event drawer for tha
 
 ### Requirement: One Going mark on the page
 
-On the All Events page, an event the signed-in viewer is going to SHALL carry one "Going" pill: a green pill with a white tick and the word "Going". No other going mark (badge or tick) SHALL appear on the page.
+On the All Events page, an event the signed-in viewer is going to SHALL carry one "Going" pill: a green pill with a white tick and the word "Going", on its List card, Near you tile and Week card. A Month bar is too small for the pill and SHALL carry no going mark; the "Events I'm going to" filter lists those events. No other going mark (badge or tick) SHALL appear on the page.
 
 #### Scenario: Going event in the list
 
@@ -195,8 +195,10 @@ The page SHALL record these PostHog events:
 
 - `event-drawer-opened` with `source` = `all-events` when the drawer opens from the page;
 - `events-view-changed` with `view` (`list`, `calendar` or `map`) and, for the calendar, `mode` (`week` or `month`);
-- `events-filters-applied` with the filter `key` and its `values`;
-- `events-city-selected` with `city` and `from` (`tile`, `filter` or `near-you`).
+- `events-filters-applied` with the filter `key` (`search`, `going`, `mode` or `city`) and its `values`, for every filter change whichever control made it (the rail, a chip, a city tile, "Clear all"), once that filter has been still for 300ms; "Clear all" records each filter it empties, with no values;
+- `events-city-selected` with `city` and `from` (`tile`, `filter` or `near-you`), in addition, whenever a single city is chosen.
+
+No filter event SHALL be recorded for filters read from the address on landing, and a later change to another param (the view, the open event) SHALL NOT cancel a pending filter event.
 
 #### Scenario: Opening an event from the list
 

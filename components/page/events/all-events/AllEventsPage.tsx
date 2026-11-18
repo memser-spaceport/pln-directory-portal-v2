@@ -13,12 +13,15 @@ import { toast } from '@/components/core/ToastContainer';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
 import type { EventGoingNotice } from '@/components/page/events/EventDrawer/EventDrawerView';
 import { eventGoingToastText } from '@/components/page/events/EventDrawer/toast';
-import { decodeFilterValues, encodeFilterValues } from '@/services/filters';
+import { encodeFilterValues } from '@/services/filters';
 import { useAllEventsFilterStore } from '@/services/events/all-events-filters.store';
 import {
   FILTER_PARAMS,
+  type FilterParam,
   countAppliedFilters,
   filterEvents,
+  filterValues,
+  isFilterParam,
   listDay,
   localIso,
   nearYou,
@@ -65,6 +68,8 @@ export interface AllEventsPageProps {
 }
 
 const noopSubscribe = () => () => {};
+/** How long a filter must stay still before its change is recorded (the store's former debounce). */
+const FILTER_SETTLE_MS = 300;
 const EMPTY_ITEMS: AllEventsItem[] = [];
 
 /**
@@ -115,22 +120,35 @@ export function AllEventsPage({
   const [landedUid, setLandedUid] = useState<string | null>(null);
   if (!touched && openUid && openUid !== landedUid) setLandedUid(openUid);
 
-  // A filter change made by the member (never the address being read on landing) is recorded once it settles. The
-  // store fires on a 300ms timer that can outlive this page, so on leaving it gets a no-op, never `undefined`.
+  // A filter change made by the member (never the address being read on landing) is recorded once that filter has
+  // settled for 300ms, each filter on its own timer, so typing a search, a view switch or an opened event never
+  // swallows another filter's change. On leaving, pending changes are dropped and the store gets a no-op.
   const analyticsRef = useRef(analytics);
   useEffect(() => {
     analyticsRef.current = analytics;
   });
+  const filterTimers = useRef(new Map<FilterParam, number>());
   useEffect(() => {
+    const timers = filterTimers.current;
     const store = useAllEventsFilterStore as unknown as {
       setAnalyticsCallback: (cb: (key: string, value: string | undefined) => void) => void;
     };
     store.setAnalyticsCallback((key, value) => {
-      if (!(FILTER_PARAMS as readonly string[]).includes(key)) return;
-      const values = key === 'mode' || key === 'city' ? decodeFilterValues(value) : value ? [value] : [];
-      analyticsRef.current.onEventsFiltersApplied({ key, values });
+      if (!isFilterParam(key)) return;
+      window.clearTimeout(timers.get(key));
+      timers.set(
+        key,
+        window.setTimeout(() => {
+          timers.delete(key);
+          analyticsRef.current.onEventsFiltersApplied({ key, values: filterValues(key, value) });
+        }, FILTER_SETTLE_MS),
+      );
     });
-    return () => store.setAnalyticsCallback(() => {});
+    return () => {
+      store.setAnalyticsCallback(() => {});
+      timers.forEach((id) => window.clearTimeout(id));
+      timers.clear();
+    };
   }, []);
 
   // Landing on `?event=`: bring its card into view once.
@@ -149,6 +167,8 @@ export function AllEventsPage({
 
   const visible = useMemo(() => filterEvents(items, filters, goingUids), [items, filters, goingUids]);
   const cities = useMemo(() => topCities(items), [items]);
+  // The city header's dates and zone follow the same filtered events as its count.
+  const visibleCities = useMemo(() => topCities(visible), [visible]);
   const scopedCity = filters.city.length === 1 ? filters.city[0] : null;
   const goingCount = signedIn ? items.filter((item) => goingUids.has(item.uid)).length : null;
 
@@ -215,12 +235,17 @@ export function AllEventsPage({
     if (city) analytics.onEventsCitySelected({ city, from });
   };
   const onCityPicked = (city: string) => analytics.onEventsCitySelected({ city, from: 'filter' });
-  /** Clears the filters only: the view and an open drawer stay. */
+  /** Clears the filters only: the view and an open drawer stay. Each filter that was set is recorded as emptied. */
   const clearFilters = () => {
+    const cleared = FILTER_PARAMS.filter((key) => params.has(key));
     const next = new URLSearchParams(params);
     FILTER_PARAMS.forEach((key) => next.delete(key));
     setAllParams(next);
-    analytics.onEventsFiltersApplied({ key: 'all', values: [] });
+    cleared.forEach((key) => {
+      window.clearTimeout(filterTimers.current.get(key));
+      filterTimers.current.delete(key);
+      analytics.onEventsFiltersApplied({ key, values: [] });
+    });
   };
 
   const viewOptions = AVAILABLE_VIEWS.map((v) => ({ value: v, label: VIEW_LABEL[v] }));
@@ -244,7 +269,7 @@ export function AllEventsPage({
             {scopedCity ? (
               <CityHeader
                 city={scopedCity}
-                summary={cities.find((c) => c.city.toLowerCase() === scopedCity.toLowerCase())}
+                summary={visibleCities.find((c) => c.city.toLowerCase() === scopedCity.toLowerCase())}
                 eventCount={visible.length}
                 onBack={() => setCity(null, 'tile')}
               />

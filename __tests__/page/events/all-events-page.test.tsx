@@ -421,3 +421,46 @@ describe('Calendar', () => {
     expect(screen.getByText('No upcoming events match')).toBeInTheDocument();
   });
 });
+
+/* Review fixes (LAB-3247): analytics that never drop a change, the city header, and the no-Map and unknown-event links. */
+describe('review fixes', () => {
+  it('still records a filter change when the member opens an event right after', async () => {
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: /^Paris/ }));
+    fireEvent.click(card('Paris meetup'));
+    expect(storeParams().get('event')).toBe('paris');
+    act(() => jest.advanceTimersByTime(400));
+    await waitFor(() =>
+      expect(analytics.onEventsFiltersApplied).toHaveBeenCalledWith({ key: 'city', values: ['Paris'] }),
+    );
+  });
+
+  it('records each cleared filter by its own key', () => {
+    renderPage({}, '/events/all?mode=Hybrid&city=Dubai');
+    fireEvent.click(screen.getByRole('button', { name: 'Clear all' }));
+    expect(analytics.onEventsFiltersApplied).toHaveBeenCalledWith({ key: 'mode', values: [] });
+    expect(analytics.onEventsFiltersApplied).toHaveBeenCalledWith({ key: 'city', values: [] });
+    expect(analytics.onEventsFiltersApplied).not.toHaveBeenCalledWith(expect.objectContaining({ key: 'all' }));
+  });
+
+  it('gives the city header the dates of the events it counts', () => {
+    renderPage({}, '/events/all?city=Lisbon&search=event%204');
+    expect(screen.getByText(/^1 upcoming event · Dec 4 · Times in Lisbon time/)).toBeInTheDocument();
+  });
+
+  it('opens the List for `?view=map` while there is no Map', () => {
+    renderPage({}, '/events/all?view=map');
+    expect(screen.getByRole('tab', { name: /List/, selected: true })).toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: /Map/ })).toBeNull();
+    expect(screen.queryByTestId('events-calendar')).toBeNull();
+  });
+
+  it('hands an unknown linked event to the drawer and marks nothing', () => {
+    const { container } = renderPage({}, '/events/all?view=calendar&event=gone');
+    expect(screen.getByTestId('event-drawer')).toHaveAttribute('data-uid', 'gone');
+    expect(container.querySelector('[class*="ighlight"]')).toBeNull();
+    expect(within(screen.getByTestId('events-calendar')).getByRole('heading', { level: 3 }).textContent).toBe(
+      'Nov 25 – Dec 1, 2030',
+    );
+  });
+});

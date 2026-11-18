@@ -9,6 +9,7 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { usePostHog } from 'posthog-js/react';
 import { IUpcomingEvents } from '@/types/irl.types';
 import { UpcomingEvent } from '@/services/events/hooks/useUpcomingEvents';
+import type { FilterParam } from '@/services/events/all-events.filters';
 
 /** Where the event drawer was opened from. */
 export type EventDrawerSource = 'home' | 'member-profile' | 'team-profile' | 'add-event' | 'digest' | 'all-events';
@@ -178,7 +179,7 @@ export const useEventsAnalytics = () => {
   }
 
   /** All Events: one filter changed, with every value it now holds (empty when it was cleared). */
-  function onEventsFiltersApplied(params: { key: string; values: string[] }) {
+  function onEventsFiltersApplied(params: { key: FilterParam; values: string[] }) {
     captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_FILTERS_APPLIED, params);
   }
 

@@ -79,6 +79,8 @@ components/page/events/EventImage/  (from events-shared/EventImage, brand fallba
 
 The Calendar (LAB-3320) is `calendar/EventsCalendar.tsx` (the frame, Week | Month, Today and previous / next) over `WeekBoard` and `MonthGrid`, with `weeks.ts` holding the date maths on the items' `startDay` / `endDay`, which are already in each event's own time zone, so the calendar only counts ISO days (Monday-first, noon-anchored so daylight saving never shifts a day). Which week or month shows is the calendar's own state; the page keys it on its anchor (the event a link landed on, kept for the page's life, else the scoped city's first event, else today), so a link or a new city reopens it while opening cards does not. The mode is the `cal` param. Each item gains `tagColor` (the first topic's colour) for the cards' faint wash; only a `#rrggbb` value reaches a style.
 
+An event's place line and access words live in one place, `services/events/event-facts.ts` (`eventPlace`, `ACCESS_COPY`), used by the List and Near you cards, the Week board and the drawer.
+
 Copy and layout come from the prototype files the Linear tickets name. Mock-only pieces (review band, `VENUE_COORDS`, sample names) are not ported. Date maths use the event's `timezone` with the repo's existing date helpers. The sticky toolbar reads `--app-header-height`; it only reads that variable and never sets it (it is measured).
 
 ### D7. Google Maps with a small loader and a Map ID
@@ -92,7 +94,7 @@ In `EventDrawerView`, the `{gathering && …}` block that renders the "<city> ga
 
 ### D9. Analytics
 
-`analytics/events.analytics.ts`: add `all-events` to `EventDrawerSource`, and add `onEventsViewChanged`, `onEventsFiltersApplied` and `onEventsCitySelected`, with constants `ON_EVENTS_VIEW_CHANGED` and the others in `utils/constants.ts` (`events-view-changed`, `events-filters-applied`, `events-city-selected`). Filter analytics fire on a user change, not on the store's initial URL hydration.
+`analytics/events.analytics.ts`: add `all-events` to `EventDrawerSource`, and add `onEventsViewChanged`, `onEventsFiltersApplied` and `onEventsCitySelected`, with constants `ON_EVENTS_VIEW_CHANGED` and the others in `utils/constants.ts` (`events-view-changed`, `events-filters-applied`, `events-city-selected`). Filter analytics fire on a user change, not on the store's URL hydration (`setAllParams` reports nothing). The store's built-in debounce is one timer shared by every key, so a view switch or an opened event within 300ms would swallow a pending filter change; the All Events store sets `analyticsDebounceMs: 0` (which now reports each change at once) and the page settles each filter key on its own 300ms timer. A city tile records both `events-filters-applied` (a filter changed) and `events-city-selected` (where the city came from): two questions, not a double count.
 
 ## Risks / Trade-offs
 

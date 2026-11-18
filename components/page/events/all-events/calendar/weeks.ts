@@ -1,4 +1,4 @@
-import { localIso } from '@/services/events/all-events.filters';
+import { atNoon as at, localIso, shortDate } from '@/services/events/all-events.filters';
 import type { AllEventsItem } from '@/services/events/all-events.types';
 
 /*
@@ -10,9 +10,6 @@ import type { AllEventsItem } from '@/services/events/all-events.types';
 export type CalMode = 'week' | 'month';
 
 export const WEEKDAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
-
-/** Noon, so adding days never trips over a daylight-saving change. */
-const at = (isoDay: string) => new Date(`${isoDay}T12:00:00`);
 
 export function addDays(isoDay: string, days: number): string {
   const d = at(isoDay);
@@ -89,11 +86,9 @@ export function firstBusyDay(items: AllEventsItem[], anchor: string): string {
   return days.sort()[0] ?? anchor;
 }
 
-const short = (isoDay: string) => at(isoDay).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
 /** "Dec 1 – Dec 7, 2030". */
 export const weekLabel = (monday: string) =>
-  `${short(monday)} – ${at(addDays(monday, 6)).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+  `${shortDate(monday)} – ${at(addDays(monday, 6)).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
 
 /** "December 2030". */
 export const monthLabel = ({ year, month }: MonthRef) =>
@@ -103,8 +98,6 @@ export const dayNumber = (isoDay: string) => at(isoDay).getDate();
 
 export const weekdayName = (isoDay: string, width: 'short' | 'long') =>
   at(isoDay).toLocaleDateString('en-US', { weekday: width });
-
-export const shortDay = short;
 
 /** "Wednesday, December 10" for a day number's label. */
 export const longDay = (isoDay: string) =>

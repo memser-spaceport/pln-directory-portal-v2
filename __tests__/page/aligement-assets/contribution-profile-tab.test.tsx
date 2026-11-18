@@ -11,7 +11,7 @@ const entries: ContributionHistoryEntry[] = [
     plaa: 35,
     infra: 0,
     redeemed: 0,
-    redeemedUsd: null,
+    redeemedUsdWhenFullyPriced: null,
     redeemedPrice: null,
     redeemedPriceIsAverage: false,
     isPending: false,
@@ -23,7 +23,7 @@ const entries: ContributionHistoryEntry[] = [
     plaa: 22,
     infra: 30,
     redeemed: 0,
-    redeemedUsd: null,
+    redeemedUsdWhenFullyPriced: null,
     redeemedPrice: null,
     redeemedPriceIsAverage: false,
     isPending: false,
@@ -35,7 +35,7 @@ const entries: ContributionHistoryEntry[] = [
     plaa: 45,
     infra: 30,
     redeemed: 50,
-    redeemedUsd: null,
+    redeemedUsdWhenFullyPriced: null,
     redeemedPrice: null,
     redeemedPriceIsAverage: false,
     isPending: false,
@@ -198,7 +198,7 @@ describe('ContributionProfileTab', () => {
           plaa: 12000,
           infra: 8000,
           redeemed: 10000,
-          redeemedUsd: null,
+          redeemedUsdWhenFullyPriced: null,
           redeemedPrice: null,
           redeemedPriceIsAverage: false,
           isPending: false,
@@ -227,7 +227,7 @@ describe('ContributionProfileTab', () => {
           plaa: 12000,
           infra: 8000,
           redeemed: 200,
-          redeemedUsd: null,
+          redeemedUsdWhenFullyPriced: null,
           redeemedPrice: null,
           redeemedPriceIsAverage: false,
           isPending: false,
@@ -329,7 +329,7 @@ describe('ContributionProfileTab', () => {
           plaa: 12,
           infra: 8,
           redeemed: null,
-          redeemedUsd: null,
+          redeemedUsdWhenFullyPriced: null,
           redeemedPrice: null,
           redeemedPriceIsAverage: false,
           isPending: true,
@@ -358,7 +358,7 @@ describe('ContributionProfileTab', () => {
           plaa: 100,
           infra: 900,
           redeemed: 200,
-          redeemedUsd: null,
+          redeemedUsdWhenFullyPriced: null,
           redeemedPrice: null,
           redeemedPriceIsAverage: false,
           isPending: false,
@@ -387,7 +387,7 @@ describe('ContributionProfileTab', () => {
         plaa: 100,
         infra: 900,
         redeemed: null,
-        redeemedUsd: null,
+        redeemedUsdWhenFullyPriced: null,
         redeemedPrice: null,
         redeemedPriceIsAverage: false,
         isPending: false,
@@ -399,7 +399,7 @@ describe('ContributionProfileTab', () => {
         plaa: 0,
         infra: 0,
         redeemed: null,
-        redeemedUsd: null,
+        redeemedUsdWhenFullyPriced: null,
         redeemedPrice: null,
         redeemedPriceIsAverage: false,
         isPending: false,
@@ -411,7 +411,7 @@ describe('ContributionProfileTab', () => {
         plaa: 50,
         infra: 0,
         redeemed: null,
-        redeemedUsd: null,
+        redeemedUsdWhenFullyPriced: null,
         redeemedPrice: null,
         redeemedPriceIsAverage: false,
         isPending: false,
@@ -472,7 +472,7 @@ describe('ContributionProfileTab', () => {
       points: 100,
       plaa: 10,
       infra: 0,
-      redeemedUsd: null,
+      redeemedUsdWhenFullyPriced: null,
       redeemedPrice: null,
       redeemedPriceIsAverage: false,
       redeemed: 0,
@@ -519,7 +519,7 @@ describe('ContributionProfileTab', () => {
         plaa: 35,
         infra: 0,
         redeemed: null,
-        redeemedUsd: null,
+        redeemedUsdWhenFullyPriced: null,
         redeemedPrice: null,
         redeemedPriceIsAverage: false,
         isPending: false,
@@ -531,7 +531,7 @@ describe('ContributionProfileTab', () => {
         plaa: 22,
         infra: 30,
         redeemed: null,
-        redeemedUsd: null,
+        redeemedUsdWhenFullyPriced: null,
         redeemedPrice: null,
         redeemedPriceIsAverage: false,
         isPending: true,
@@ -595,7 +595,7 @@ describe('ContributionProfileTab', () => {
         plaa: 35,
         infra: 0,
         redeemed: null,
-        redeemedUsd: null,
+        redeemedUsdWhenFullyPriced: null,
         redeemedPrice: null,
         redeemedPriceIsAverage: false,
         isPending: false,
@@ -607,7 +607,7 @@ describe('ContributionProfileTab', () => {
         plaa: 22,
         infra: 30,
         redeemed: 640,
-        redeemedUsd: null,
+        redeemedUsdWhenFullyPriced: null,
         redeemedPrice: null,
         redeemedPriceIsAverage: false,
         isPending: false,
@@ -634,7 +634,7 @@ describe('ContributionProfileTab', () => {
         plaa: 35,
         infra: 0,
         redeemed: null,
-        redeemedUsd: null,
+        redeemedUsdWhenFullyPriced: null,
         redeemedPrice: null,
         redeemedPriceIsAverage: false,
         isPending: false,
@@ -646,7 +646,7 @@ describe('ContributionProfileTab', () => {
         plaa: 22,
         infra: 30,
         redeemed: null,
-        redeemedUsd: null,
+        redeemedUsdWhenFullyPriced: null,
         redeemedPrice: null,
         redeemedPriceIsAverage: false,
         isPending: false,
@@ -658,7 +658,7 @@ describe('ContributionProfileTab', () => {
         plaa: 45,
         infra: 30,
         redeemed: null,
-        redeemedUsd: null,
+        redeemedUsdWhenFullyPriced: null,
         redeemedPrice: null,
         redeemedPriceIsAverage: false,
         isPending: false,
@@ -687,7 +687,7 @@ describe('ContributionProfileTab', () => {
         plaa: 35,
         infra: 0,
         redeemed: 180,
-        redeemedUsd: 256,
+        redeemedUsdWhenFullyPriced: 256,
         redeemedPrice: 1.42,
         redeemedPriceIsAverage: false,
         isPending: false,
@@ -699,7 +699,7 @@ describe('ContributionProfileTab', () => {
         plaa: 45,
         infra: 30,
         redeemed: 400,
-        redeemedUsd: 592,
+        redeemedUsdWhenFullyPriced: 592,
         redeemedPrice: 1.48,
         redeemedPriceIsAverage: false,
         isPending: false,
@@ -727,7 +727,7 @@ describe('ContributionProfileTab', () => {
     });
 
     it('shows the PLAA alone when the month has no price, rather than a fabricated figure', () => {
-      const unpriced = [{ ...priced[1], redeemedUsd: null, redeemedPrice: null }];
+      const unpriced = [{ ...priced[1], redeemedUsdWhenFullyPriced: null, redeemedPrice: null }];
       render(<ContributionProfileTab entries={unpriced} currentBalance={112} totalRedeemed={400} />);
 
       const redeemedCell = rowFor('Jul 2026').children[3];
@@ -744,7 +744,7 @@ describe('ContributionProfileTab', () => {
     });
 
     it('leaves the dollar total off when no month could be priced', () => {
-      const unpriced = priced.map((e) => ({ ...e, redeemedUsd: null, redeemedPrice: null }));
+      const unpriced = priced.map((e) => ({ ...e, redeemedUsdWhenFullyPriced: null, redeemedPrice: null }));
       render(<ContributionProfileTab entries={unpriced} currentBalance={112} totalRedeemed={580} />);
 
       const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
@@ -753,7 +753,7 @@ describe('ContributionProfileTab', () => {
     });
 
     it('withholds the lifetime dollar total when any redemption is unpriced', () => {
-      const mixed = [priced[0], { ...priced[1], redeemedUsd: null, redeemedPrice: null }];
+      const mixed = [priced[0], { ...priced[1], redeemedUsdWhenFullyPriced: null, redeemedPrice: null }];
       render(<ContributionProfileTab entries={mixed} currentBalance={112} totalRedeemed={580} />);
       const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
       expect(within(totalRow).queryByText(/\$/)).not.toBeInTheDocument();
@@ -766,7 +766,7 @@ describe('ContributionProfileTab', () => {
     });
 
     it('rounds dollars to whole units but keeps cents on the price', () => {
-      const awkward = [{ ...priced[1], redeemedUsd: 591.62, redeemedPrice: 1.4795 }];
+      const awkward = [{ ...priced[1], redeemedUsdWhenFullyPriced: 591.62, redeemedPrice: 1.4795 }];
       render(<ContributionProfileTab entries={awkward} currentBalance={112} totalRedeemed={400} />);
 
       expect(screen.getByText('$592 at $1.48')).toBeInTheDocument();
@@ -814,7 +814,7 @@ describe('ContributionProfileTab', () => {
           plaa: 12,
           infra: 8,
           redeemed: null,
-          redeemedUsd: null,
+          redeemedUsdWhenFullyPriced: null,
           redeemedPrice: null,
           redeemedPriceIsAverage: false,
           isPending: true,

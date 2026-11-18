@@ -37,8 +37,7 @@ export interface ContributionHistoryEntry {
   plaa: number;
   infra: number;
   redeemed: number | null;
-  /** Null when any of the month's auctions has no price, so a partial total never shows. */
-  redeemedUsd: number | null;
+  redeemedUsdWhenFullyPriced: number | null;
   redeemedPrice: number | null;
   redeemedPriceIsAverage: boolean;
   /** The snapshot is not closed yet, so its own figures are provisional. */
@@ -241,7 +240,7 @@ export function buildContributionHistory(
       plaa: entry.activityPlaa,
       infra: entry.infra,
       redeemed: redemption?.plaa ?? null,
-      redeemedUsd: redemption?.usd ?? null,
+      redeemedUsdWhenFullyPriced: redemption?.usd ?? null,
       redeemedPrice: redemption?.price ?? null,
       redeemedPriceIsAverage: redemption?.isAverage ?? false,
       isPending: closed === undefined ? false : !closed,

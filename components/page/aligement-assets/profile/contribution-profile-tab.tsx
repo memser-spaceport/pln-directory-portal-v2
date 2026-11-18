@@ -89,8 +89,8 @@ function priceableTotals(
   let plaaTotal = 0;
   for (const entry of entries) {
     if (entry.redeemed === null || entry.redeemed === 0) continue;
-    if (entry.redeemedUsd === null) return null;
-    usdTotal += entry.redeemedUsd;
+    if (entry.redeemedUsdWhenFullyPriced === null) return null;
+    usdTotal += entry.redeemedUsdWhenFullyPriced;
     plaaTotal += entry.redeemed;
   }
   if (plaaTotal === 0 || totalRedeemed === null || Math.abs(plaaTotal - totalRedeemed) > 0.000001) return null;
@@ -369,9 +369,13 @@ export default function ContributionProfileTab({
               </span>
               <span className={`${styles.right} ${styles.stackedCell} ${styles.tertiary}`}>
                 <span>{signedDashOr(entry.redeemed, '−')}</span>
-                {entry.redeemedUsd !== null && entry.redeemedPrice !== null && (
+                {entry.redeemedUsdWhenFullyPriced !== null && entry.redeemedPrice !== null && (
                   <span className={styles.usdLine}>
-                    {redeemedValueLabel(entry.redeemedUsd, entry.redeemedPrice, entry.redeemedPriceIsAverage)}
+                    {redeemedValueLabel(
+                      entry.redeemedUsdWhenFullyPriced,
+                      entry.redeemedPrice,
+                      entry.redeemedPriceIsAverage,
+                    )}
                   </span>
                 )}
               </span>

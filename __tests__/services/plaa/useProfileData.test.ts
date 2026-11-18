@@ -228,7 +228,7 @@ describe('useProfileData', () => {
       mockUseProfilePlaaHistory.mockReturnValue({ data: REAL_HISTORY, isLoading: false });
       const { result } = renderHook(() => useProfileDataDefault());
 
-      const unpriced = { redeemedUsd: null, redeemedPrice: null, redeemedPriceIsAverage: false };
+      const unpriced = { redeemedUsdWhenFullyPriced: null, redeemedPrice: null, redeemedPriceIsAverage: false };
       expect(result.current.contributionHistory).toEqual([
         {
           period: 'May 2026',

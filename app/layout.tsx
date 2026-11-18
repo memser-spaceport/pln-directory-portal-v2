@@ -35,6 +35,7 @@ import {
   PostHogPageview,
   RatingContainer,
   GlobalFeedback,
+  LabosAgentRoot,
 } from './ClientDynamics';
 import { ScrollTopOnNavigation } from '@/components/core/ScrollTopOnNavigation';
 
@@ -106,6 +107,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <AppChromeGate>
                   <MobileBottomNav />
                 </AppChromeGate>
+                <LabosAgentRoot />
                 <Loader />
                 <ToastContainer />
                 <BroadCastChannel />

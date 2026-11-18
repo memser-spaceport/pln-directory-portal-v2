@@ -10,6 +10,7 @@ import { ArrowBackIcon, CloseIcon } from '@/components/icons';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { recordMemberSignal } from '@/services/member-signals/member-signals.service';
 import { FollowButton } from '@/components/ui/FollowButton';
+import { AskAgentButton } from '@/components/core/labos-agent/AskAgentButton/AskAgentButton';
 import type { TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import type { ITeamNewsItem } from '@/types/team-news.types';
 
@@ -258,6 +259,13 @@ export function NewsDetailBody({
       </div>
 
       <div className={s.footer}>
+        {/* LabOS agent (LAB-3298): absent unless the visitor passes the agent gate. Opening the agent closes the
+            story, so the panel is the only layer. */}
+        <AskAgentButton
+          className={s.askAgent}
+          context={{ page: 'news-story', newsUid: item.uid, label: item.title }}
+          onOpened={onClose}
+        />
         <span className={s.footerActions}>
           <NewsShareMenu item={item} source={source} variant="button" side="top" onOpenChange={onShareOpenChange} />
           <ViewCount count={item.viewCount} exact />

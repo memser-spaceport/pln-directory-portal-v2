@@ -22,6 +22,7 @@
     "prettier:check": "prettier --check ."
   },
   "dependencies": {
+    "@ai-sdk/ui-utils": "1.2.1",
     "@base-ui-components/react": "^1.0.0-beta.3",
     "@dicebear/collection": "^9.2.2",
     "@dicebear/core": "^9.2.2",

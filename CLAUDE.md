@@ -23,6 +23,7 @@ Protocol Labs Directory frontend — a Next.js 16.4.3 (App Router) application f
 ### App Router Structure (`app/`)
 
 Uses Next.js App Router with route groups. The homepage is the root page (`/`, `app/page.tsx`); the old `/home` redirects to it (`utils/home-redirects.js`). Key routes:
+
 - `/`, `/members`, `/teams`, `/projects`, `/events`, `/forum`, `/jobs` — main listing pages
 - `/members/[id]`, `/teams/[id]`, `/projects/[id]` — detail pages
 - `/settings`, `/notifications`, `/sign-up`, `/ai-search` (AI Search; old `/husky` URLs redirect) — utility pages
@@ -43,12 +44,14 @@ Next 16 request APIs are async: `await cookies()` / `await headers()`, and page/
 ### State Management
 
 Two patterns coexist:
+
 1. **Zustand stores** (`services/*/store.ts`) — lightweight client state (user profile image, filter state). Filter stores use a generic factory `createFilterStore()` from `services/filters/`.
 2. **React Query** (`@tanstack/react-query`) — server state, data fetching, and cache invalidation. Hooks live in `services/*/hooks/use*.ts`. Query keys are defined as enums in `services/*/constants.ts`. The `QueryProvider` wraps the app in `providers/QueryProvider.tsx`.
 
 ### Services Layer (`services/`)
 
 Organized by domain (members, teams, events, projects, forum, demo-day, search, notifications, etc.). Each domain typically has:
+
 - `*.service.ts` — API call functions (server-side compatible, use `fetch` directly with `process.env.DIRECTORY_API_URL`)
 - `hooks/use*.ts` — React Query hooks wrapping service functions
 - `constants.ts` — query key enums
@@ -86,6 +89,10 @@ To comment current-cycle Linear issues with related PostHog events, run the `pos
 - **Jest 29** with `@testing-library/react` — tests live in `__tests__/` and mirror the source structure (e.g. `core/`, `page/`, `ui/`, `services/`, `utils/`, `hooks/`); `proxy.test.ts` covers `proxy.ts`. Jest ignores `pl-design-system/`, `prototypes/` and `design-canvas/`.
 - **Storybook 9 + Vitest 3** — `vitest.config.ts` runs Storybook stories as browser tests via Playwright (Chromium)
 - Global mocks for `next/navigation`, `next/image`, `next/cache`, `@tanstack/react-query`, `nuqs`, `react-quill-new`, and `quill-image-uploader` are in `jest.setup.js`
+
+### LabOS agent
+
+The in-app agent (LAB-3272) lives in `services/labos-agent/` and `components/core/labos-agent/`. Open it only with `openAgent({ context })` from `useOpenAgent()`. The gate is off by default; `localStorage['labos-agent'] = 'on'` turns it on in one browser. Chat calls C1 by default; `localStorage['labos-agent-api'] = 'mock'` uses the mock client and shows "Mock answers" in the panel. The store keeps one chat per context, so closing the panel keeps the chat. `LabosAgentRoot` mounts through `app/ClientDynamics.tsx`. Agent events are stubs until S0 is approved. Spec: `openspec/specs/labos-agent/spec.md`.
 
 ### Path Aliases
 

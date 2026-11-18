@@ -91,6 +91,7 @@ import { markGoing, saveGathering, useGoing } from '../member-events-going/going
 import { ATTENDEES, MAYA_TEAMS, type EventDetail, type Gathering } from '../member-events-going/mocks';
 
 import { GoingTag } from '../events-shared/GoingTag';
+import { MUTED_ROLE, ROLE_TAG } from '../member-events-going/roleTags';
 import { AccessIcon, ACCESS_FACT } from './AccessIcon';
 import { dayLine, dayOfMonth, mapsHref, monthShort, regionLine, timeLine, venueOf } from './format';
 import {
@@ -682,7 +683,7 @@ export function AttendeesView({ event, onBack }: { event: CalEvent; onBack: () =
                   {a.role} · {a.team}
                 </span>
               </span>
-              {a.tag && <Badge variant="brand">{a.tag}</Badge>}
+              {a.tag && <span className={clsx(ROLE_TAG, MUTED_ROLE[a.tag], d.personRole)}>{a.tag}</span>}
             </a>
           </li>
         ))}

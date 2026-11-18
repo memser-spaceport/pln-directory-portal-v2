@@ -847,3 +847,9 @@
   gap: 8px;
   flex-shrink: 0;
 }
+
+/* Who's going: the role takes the profile's muted role tag (member-events-going/roleTags.ts),
+   kept from shrinking at the row's end. */
+.personRole {
+  flex-shrink: 0;
+}

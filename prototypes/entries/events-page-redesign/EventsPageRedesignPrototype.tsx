@@ -5,7 +5,7 @@
  *
  * Mobbin references (2026-11-16):
  *   Luma Discover ........ "Explore local events" city tiles → Browse by city.
- *   Luma / Partiful grid . event cards with the picture on top → the Tiles view (default).
+ *   Luma / Partiful grid . event cards with the picture on top → the Near you tiles (the Tiles view was dropped 2026-11-18).
  *   Luma calendar list ... day headers, card = time / title / host / place / facepile → List.
  *   Luma side peek ....... a row opens a drawer, the page stays behind → EventDrawer.
  *   Events app (pln-events) month grid → Calendar · Month (transcribed via event-drawer-redesign).
@@ -32,7 +32,7 @@
  *      with "Near <city>": the next events where the member lives (mock profile location,
  *      `?location=none` for a member without one: the slot asks for a location instead, with
  *      Add location → the profile editor; a review-band switch flips the two).
- *   4. Views: Tiles (default) · Calendar · List · Map.
+ *   4. Views: List (default) · Calendar · Map. Tiles was dropped 2026-11-18 (same events, same order, same facts as List).
  *   5. Calendar has two modes, Month (the events app's grid) and Schedule (LabWeek day).
  *   6. Contrast pass: meta text is secondary ink (#455468, 7.9:1), never tertiary (3:1).
  *
@@ -113,12 +113,14 @@ import {
 } from './eventsFilterStore';
 import s from './EventsPageRedesignPrototype.module.scss';
 
-type View = 'tiles' | 'calendar' | 'list' | 'map';
+/* Three views (2026-11-18): Tiles was dropped. It showed the same events in the same order with
+   the same facts as List, only with a bigger picture; List also answers "when" with its date column.
+   The tile card lives on where pictures help browsing: Near you. */
+type View = 'list' | 'calendar' | 'map';
 
 const VIEW_OPTIONS: { value: View; label: string }[] = [
-  { value: 'tiles', label: 'Tiles' },
-  { value: 'calendar', label: 'Calendar' },
   { value: 'list', label: 'List' },
+  { value: 'calendar', label: 'Calendar' },
   { value: 'map', label: 'Map' },
 ];
 
@@ -144,8 +146,9 @@ export default function EventsPageRedesignPrototype() {
   };
 
   const viewParam = searchParams.get('view');
-  const view: View = viewParam === 'calendar' || viewParam === 'list' || viewParam === 'map' ? viewParam : 'tiles';
-  const setView = (next: View) => setUrl({ view: next === 'tiles' ? null : next });
+  // List is the default (old ?view=tiles links land on it too).
+  const view: View = viewParam === 'calendar' || viewParam === 'map' ? viewParam : 'list';
+  const setView = (next: View) => setUrl({ view: next === 'list' ? null : next });
   const calMode: CalMode = searchParams.get('cal') === 'month' ? 'month' : 'week';
   const setCalMode = (next: CalMode) => setUrl({ cal: next === 'week' ? null : 'month' });
   const railOpen = searchParams.get('filters') === 'open';
@@ -245,9 +248,9 @@ export default function EventsPageRedesignPrototype() {
   // The drawer steps through the list it was opened from; a link lands on the upcoming list.
   const drawerSequence = sequence.length ? sequence : upcoming.map((e) => e.uid);
 
-  // Near you: a plain landing only (the Tiles view, nothing filtered), from the member's profile
-  // location. Switching to Calendar / List / Map is a choice of view, so the band steps aside.
-  const plainLanding = filterCount === 0 && view === 'tiles';
+  // Near you: a plain landing only (the default List view, nothing filtered), from the member's
+  // profile location. Switching to Calendar / Map is a choice of view, so the band steps aside.
+  const plainLanding = filterCount === 0 && view === 'list';
   const nearYou =
     memberCity && plainLanding
       ? allUpcoming.filter((e) => e.city === memberCity && DETAILS[e.uid].mode !== 'Virtual').slice(0, 3)
@@ -394,16 +397,7 @@ export default function EventsPageRedesignPrototype() {
 
         <div className={s.layout}>
           <div className={s.main}>
-            {view === 'tiles' ? (
-              <TileGrid
-                events={upcoming}
-                todayIso={todayIso}
-                goingUids={goingUids}
-                highlightUid={highlightUid}
-                onOpen={open}
-                onClear={clearParams}
-              />
-            ) : view === 'list' ? (
+            {view === 'list' ? (
               <ListView
                 events={upcoming}
                 todayIso={todayIso}
@@ -722,39 +716,7 @@ function AddLocation() {
   );
 }
 
-/* ---------- Tiles ---------- */
-
-function TileGrid({
-  events,
-  todayIso,
-  goingUids,
-  highlightUid,
-  onOpen,
-  onClear,
-}: {
-  events: CalEvent[];
-  todayIso: string;
-  goingUids: Set<string>;
-  highlightUid: string | null;
-  onOpen: (uid: string, from: CalEvent[]) => void;
-  onClear: () => void;
-}) {
-  if (!events.length) return <Empty onClear={onClear} />;
-  return (
-    <div className={s.tiles}>
-      {events.map((e) => (
-        <EventTile
-          key={e.uid}
-          event={e}
-          todayIso={todayIso}
-          going={goingUids.has(e.uid)}
-          highlighted={e.uid === highlightUid}
-          onOpen={() => onOpen(e.uid, events)}
-        />
-      ))}
-    </div>
-  );
-}
+/* ---------- Event tile (Near you) ---------- */
 
 /** "Thu, Nov 19 · 6:00 PM"; a multi-day event reads its span ("Tue, Dec 1 – 5"). */
 function whenLine(event: CalEvent, todayIso: string) {

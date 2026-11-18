@@ -26,6 +26,7 @@ import { day, GoingMark, month } from './EventRow';
 import { GatheringModal, type GatheringTarget } from './GatheringModal';
 import { removeGoing, setShowOnProfile, useGoing, type GoingEntry } from './goingStore';
 import { ATTENDEES, GOING_EVENTS, PAST_EVENTS, gatheringOf, type GoingEvent } from './mocks';
+import { MUTED_ROLE } from './roleTags';
 import s from './MemberEventsGoing.module.scss';
 
 export type ProfileViewer = 'owner' | 'member' | 'signed-out';
@@ -33,11 +34,7 @@ export type ProfileViewer = 'owner' | 'member' | 'signed-out';
 export const VISIBLE_UPCOMING = 4;
 export const VISIBLE_PAST = 4;
 
-export const MUTED_ROLE: Record<string, string> = {
-  Host: tiles.roleTagMutedHost,
-  Speaker: tiles.roleTagMutedSpeaker,
-  Sponsor: tiles.roleTagMutedSponsor,
-};
+export { MUTED_ROLE };
 
 /** Upcoming rows this viewer may see. Plans are for signed-in members only. */
 export function useVisibleUpcoming(viewer: ProfileViewer): GoingEvent[] {

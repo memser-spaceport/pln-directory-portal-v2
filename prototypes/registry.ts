@@ -147,6 +147,16 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/members/MembersPrototype'),
   },
   {
+    key: 'member-profile-visibility',
+    status: 'ideation',
+    version: 1,
+    title: 'Member profile — who can see what',
+    description:
+      'A member\'s own profile, with a Current | Proposed switch for how it shows who can see each part. Current: a badge on every section (Public green, Members only blue, Private grey). Proposed: one line at the top says the default (signed-in network members), only the sections that differ carry a badge (header Public, Job search status "Only visible to you", CV "Shared when you apply", Investor Details "Shared on intro"), every badge is the same grey uppercase privacy pill beside the section title, told apart by icon and word, and pressing or hovering one names who can see it. A View as You / Member / Public switch previews the page as each audience sees it: hidden sections, badges and edit controls disappear, and a closing line counts what was hidden. Audiences are read off production\'s gates, not the current badges.',
+    category: 'Members',
+    load: () => import('./entries/member-profile-visibility/MemberProfileVisibilityPrototype'),
+  },
+  {
     key: 'member-profile',
     status: 'progress',
     version: 1,
@@ -522,9 +532,29 @@ export const prototypeRegistry: PrototypeEntry[] = [
     version: 1,
     title: 'Event drawer redesign',
     description:
-      'One event drawer for both places an event opens, built from design-system parts. Page switch: Home (the homepage entry, signed in; Upcoming events rows open the drawer) and Events (/events/all copied: production\'s Event Calendar header over the embedded events app\'s month grid with its Filters rail; Modes and the month arrows work, click any event). Drawer switch: Redesign (default) or Current (the gathering modal on Home, the events app\'s own panel on Events). The redesign, from Luma\'s side peek, Luma and Circle event pages and Calendly\'s meeting panel: a pinned toolbar (Copy link, Open in PL Events, previous / next through the list it opened from, close); logo, mode and access badges, title, Hosted by; the date tile beside day and time, the venue as a map link over its city; the ask as one card near the top (facepile and "N members going", Show on my profile, Yes, I\'m going, Register), which turns into "You\'re going" with Add your plans for <city> and Not going; About with its tags; Agenda; and Part of the <city> gathering with its other events (each opens in the drawer) and its links. Who\'s going and Your plans (production\'s planning form and pickers) open as pages inside the drawer. Going is shared with member-events-going. Everything mocked.',
+      "One event drawer for both places an event opens, built from design-system parts. Page switch: Home (the homepage entry, signed in; Upcoming events rows open the drawer) and Events (/events/all copied: production's Event Calendar header over the embedded events app's month grid with its Filters rail; Modes and the month arrows work, click any event). Drawer switch: Redesign (default) or Current (the gathering modal on Home, the events app's own panel on Events). The redesign, from Luma's side peek, Luma and Circle event pages and Calendly's meeting panel: a pinned toolbar (Copy link, Open in PL Events, previous / next through the list it opened from, close); thumbnail, title, Hosted by; the date tile beside day and time, the venue as a map link over its city (hybrid adds \"also online\"), and how you get in as a fact row (Invite only, Paid, Free); the ask as one card near the top (facepile and \"N members going\", Show on my profile, Yes, I'm going, Register), which turns into \"You're going\" with Add your plans for <city> and Not going; About with its tags; Agenda; and Part of the <city> gathering with its other events (each opens in the drawer) and its links. Who's going and Your plans (production's planning form and pickers) open as pages inside the drawer. Going is shared with member-events-going. Everything mocked.",
     category: 'Cross-product',
     load: () => import('./entries/event-drawer-redesign/EventDrawerRedesignPrototype'),
+  },
+  {
+    key: 'pl-digest-redesign',
+    status: 'ideation',
+    version: 1,
+    title: 'PL Network Digest: issue page redesign (news-app front)',
+    description:
+      'A redesign of pl-digest-issue\'s LabOS page (PR #3554) on news-app patterns from Mobbin. Masthead with a double rule and the share actions (NYT); the lead story owns the top beside a numbered "In this issue" list with thumbnails (SCMP My Daily 5), which replaces the sticky rail and jump links; the other stories as numbered text-left, image-right rows (Digg); launches as run-in briefs (Apple News) beside the deal as one big figure (Fey) instead of a one-row table; press links as a two-column thumbnail list; signals as stat tiles; the editor\'s take as a tinted block; forum and dates side by side; Send news and Was this useful as two cards. Same copy, follow and share actions as the original. The email is unchanged. ?view=page|email, ?signals=off|monthly, ?forum=on|off, ?width=desktop|phone.',
+    category: 'Digest',
+    load: () => import('./entries/pl-digest-redesign/PlDigestIssuePrototype'),
+  },
+  {
+    key: 'events-page-redesign',
+    status: 'ideation',
+    version: 1,
+    title: 'Events page redesign',
+    description:
+      "A replacement for /events/all (production's Event Calendar header over the events app iframe). Nov 16 standup applied: Browse by city (the main cities as Luma-style tiles; \"Gatherings\" is gone) where a city scopes the page to a city header with the way back, its count, dates and local time zone (?city=Lisbon); on a plain landing, Near you in the member's profile city (?location=none for a member with no location). \"Coming up\" with List (default, Luma-style with a date column) · Calendar · Map (Tiles dropped 2026-11-18); Calendar has Week (default; the LabWeek 2023 board: a column per day, multi-day events spanning the top, one-day events stacked as cards in local time) and Month (the events app's grid with per-week bars, brought back, ?cal=month). The events app's filters in full (Show featured, Mode, Access type, Focus area, City, Host, plus Going) sit in the directory's left rail, closed by default: a Filters button with the applied count in the toolbar opens it (?filters=open), and applied filters show as removable chips while it is closed. ?event=<uid> lands with that event's drawer open and its tile, row, bar or block marked. Every event opens event-drawer-redesign's drawer. Everything mocked.",
+    category: 'Cross-product',
+    load: () => import('./entries/events-page-redesign/EventsPageRedesignPrototype'),
   },
   {
     key: 'homepage',
@@ -545,6 +575,26 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'A copy of homepage where the Agent and Give feedback are two tabs of one right-hand drawer. Closed, the bottom-right corner is the same pair on one pill: it arrives saying Agent and Feedback, then settles to the two glyphs, and hovering one tab slides its label back out (dev’s feedback button animation). Either press opens the drawer on that tab. Open, the drawer’s title is the Agent | Feedback switch (production’s segmented tabs); both tabs are the same width and switching doesn’t slide (Ctrl/⌘ J and Alt F switch too). The Agent tab’s header has a history icon that lists recent chats and reopens one. Signed in only (?state=signed-in). Above the composer, the agent shows the pages it reads: the page you are on, a ✕ to take it away, and Add page to add a recently viewed one; the steps then name them. The Page switch (?page=profile) shows the same corner on a member profile, where the agent offers questions about that member and says so when the profile has been taken out. Ctrl/⌘ J and ?agent=open still open the panel.',
     category: 'Agents',
     load: () => import('./entries/home-v2-agent-dock/HomeV2Prototype'),
+  },
+  {
+    key: 'agent',
+    status: 'ideation',
+    version: 3,
+    title: 'Agent',
+    description:
+      'The LabOS Agent as one right-hand drawer, with feedback folded into it: the corner is a single Agent button (Ctrl/⌘ J), and telling the agent what’s wrong or missing turns into a feedback card about the page you’re on (kind, note, page, screenshot), sent to the LabOS team only on Send. Above the composer, the agent shows what it reads: the page you’re on by default (✕ takes it out), plus anything added with + or by typing @, which opens one picker of pages, news, teams, members, events and forum threads. Ask AI on each news card opens a new chat reading that story, with questions about it (summarize, who to talk to, draft a comment); ?askai=off hides it. What the agent offers follows the member’s role (?viewer=): a portfolio founder gets intros through the PL Venture team plus everything a lead can do; a team lead updates the team profile and posts team news; a member updates their own profile and drafts forum posts, and team changes or news go to the team lead as a suggestion. ?page=profile shows it on a member profile.',
+    category: 'Agents',
+    load: () => import('./entries/agent/AgentPrototype'),
+  },
+  {
+    key: 'profile-agent-actions',
+    status: 'ideation',
+    version: 1,
+    title: 'Profiles — requests through the Agent',
+    description:
+      'The member and team profiles with the header’s contact press turned into an agent door. “Make a request” (the glossy press, where Schedule Meeting or Request an intro stood) opens a short list of what the agent can do with this member or team: Book office hours, and on a team Request an intro (intros to members aren’t offered today), plus Something else. Picking one opens the Agent drawer with the request already sent. For office hours the agent shows open slots on the booking link and a drafted note, and books only on Book; Other times opens the booking page. On a team it first asks who: the people there who take office hours. For an intro it drafts the request to the PL team from both profiles, sent only on Send, and the menu then reads Intro requested (the intro-shared store). Schedule Meeting is back on the Office Hours card, where production has it. A member without office hours shows no press: there is nothing to request. Profile switch: ?profile=team.',
+    category: 'Agents',
+    load: () => import('./entries/profile-agent-actions/ProfileAgentActionsPrototype'),
   },
   {
     key: 'digest-more-like-this',
@@ -572,7 +622,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     version: 1,
     title: 'Digest — web version (stories in full)',
     description:
-      "The weekly digest email as a page, every story open in full. A More / Less like this press in the email lands here, scrolled to that story, with the receipt inside its card (Undo beside it) and the rest of the digest untouched. Try ?story=starknet-l1&feedback=more or ?story=op-token&feedback=less; the buttons on the page work too.",
+      'The weekly digest email as a page, every story open in full. A More / Less like this press in the email lands here, scrolled to that story, with the receipt inside its card (Undo beside it) and the rest of the digest untouched. Try ?story=starknet-l1&feedback=more or ?story=op-token&feedback=less; the buttons on the page work too.',
     category: 'Newsfeed',
     load: () => import('./entries/digest-web/DigestWebPrototype'),
   },

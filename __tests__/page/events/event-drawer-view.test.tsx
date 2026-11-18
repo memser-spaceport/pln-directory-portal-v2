@@ -202,7 +202,9 @@ describe('EventDrawerView (LAB-3216)', () => {
       render(<Harness raw={eventResponse({ websiteUrl: 'https://labweek.test' })} />);
       const card = screen.getByTestId('rsvp-card');
       expect(within(card).getByText('Are you going?')).toBeInTheDocument();
-      expect(within(card).getByRole('button', { name: "Yes, I'm going" })).toBeInTheDocument();
+      // LAB-3271: the press is in the sticky footer, not in the card.
+      expect(within(card).queryByRole('button', { name: "Yes, I'm going" })).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: "Yes, I'm going" })).toBeInTheDocument();
       expect(within(card).getByRole('link', { name: 'Register' })).toHaveAttribute('href', 'https://labweek.test');
       expect(screen.queryByRole('button', { name: 'No' })).not.toBeInTheDocument();
       expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
@@ -422,6 +424,60 @@ describe('EventDrawerView (LAB-3216)', () => {
 
       fireEvent.keyDown(document, { key: 'Escape' });
       expect(onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+  describe('LAB-3271: sticky "Yes, I\'m going", event link and sign-in', () => {
+    it('puts "Yes, I\'m going" in the drawer footer, after the scrolling body', () => {
+      render(<Harness />);
+      const yes = screen.getByRole('button', { name: "Yes, I'm going" });
+      const footer = yes.parentElement as HTMLElement;
+      expect(footer).toHaveClass('footer');
+      expect(
+        screen.getByText('Agenda').compareDocumentPosition(footer) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    });
+
+    it('removes the footer once the viewer is going', async () => {
+      render(<Harness />);
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: "Yes, I'm going" }));
+      });
+      expect(screen.queryByRole('button', { name: "Yes, I'm going" })).not.toBeInTheDocument();
+      expect(within(screen.getByTestId('rsvp-card')).getByText("You're going")).toBeInTheDocument();
+    });
+
+    it('shows the event link beside the date and the address, in a new tab', () => {
+      render(<Harness raw={eventResponse({ websiteUrl: 'https://lu.ma/labweek-lisbon' })} />);
+      const link = screen.getByRole('link', { name: 'lu.ma/labweek-lisbon' });
+      expect(link).toHaveAttribute('href', 'https://lu.ma/labweek-lisbon');
+      expect(link).toHaveAttribute('target', '_blank');
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    });
+
+    it('has no link row when the event has no page, or the page is not a web address', () => {
+      const { unmount } = render(<Harness raw={eventResponse({ websiteUrl: null })} />);
+      expect(screen.queryByRole('link', { name: /lu\.ma|labweek/ })).not.toBeInTheDocument();
+      unmount();
+      render(<Harness raw={eventResponse({ websiteUrl: 'javascript:alert(1)' })} />);
+      expect(screen.queryByRole('link', { name: /alert/ })).not.toBeInTheDocument();
+    });
+
+    it('signed out: "Yes, I\'m going" and the count start sign-in, and nothing saves', () => {
+      const onSignIn = jest.fn();
+      const onYes = jest.fn(async () => true);
+      render(<Harness canMarkGoing={false} viewerUid={null} plans={null} onSignIn={onSignIn} onYes={onYes} />);
+      expect(screen.getByText("Who's going")).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: "Yes, I'm going" }));
+      expect(onSignIn).toHaveBeenCalledTimes(1);
+      fireEvent.click(screen.getByRole('button', { name: '40 members going' }));
+      expect(onSignIn).toHaveBeenCalledTimes(2);
+      expect(screen.queryByText(/40 going to/)).not.toBeInTheDocument();
+      expect(onYes).not.toHaveBeenCalled();
+    });
+
+    it('signed in without permission: no footer press', () => {
+      render(<Harness canMarkGoing={false} plans={null} />);
+      expect(screen.queryByRole('button', { name: "Yes, I'm going" })).not.toBeInTheDocument();
     });
   });
 });

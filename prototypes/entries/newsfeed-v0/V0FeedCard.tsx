@@ -1,7 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import type { ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
@@ -16,6 +16,7 @@ import jobsCss from '@/components/page/jobs/TeamGroupCard/TeamGroupCard.module.s
 import local from './NewsfeedV0.module.scss';
 
 import { FollowButton } from '../follow-shared/FollowButton';
+import { FollowButton as ProdFollowButton } from '@/components/ui/FollowButton';
 import { EVENT_TYPE_LABEL } from './eventMeta';
 import { PL_TEAM_UID, SOURCES_BY_UID, VIDEO_BY_UID, viewsFor } from './mocks';
 import type { FeedComment } from './mocks';
@@ -69,6 +70,10 @@ interface V0FeedCardProps {
   /** Where that image sits: 'side' = the poster's column (default); 'below' = full
    *  width at the bottom of the description, under the tags. home-v2's ?image=. */
   imagePlacement?: 'side' | 'below';
+  /** One more control at the end of the story's action row (the `agent` entry's Ask AI). Absent = the row as it was. */
+  footerExtra?: (story: ITeamNewsItem) => ReactNode;
+  /** The header's Follow as on develop (production ui/FollowButton, compact). Absent = follow-shared's button. */
+  devFollow?: boolean;
 }
 
 /**
@@ -97,6 +102,8 @@ export function V0FeedCard({
   topStory = false,
   imageFor,
   imagePlacement = 'side',
+  footerExtra,
+  devFollow = false,
 }: V0FeedCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [openThreads, setOpenThreads] = useState<Set<string>>(new Set());
@@ -138,9 +145,23 @@ export function V0FeedCard({
         >
           {cluster.teamName}
         </a>
-        <span className={local.headFollow}>
-          <FollowButton following={following} onClick={onToggleFollow} name={cluster.teamName} size="xs" tertiary />
-        </span>
+        {devFollow ? (
+          /* Production NewsCard's own: ui/FollowButton size="compact" ("+ Follow" / "✓ Following"), right after
+             the team name with no wrapper, as on develop. */
+          <ProdFollowButton
+            following={following}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFollow();
+            }}
+            name={cluster.teamName}
+            size="compact"
+          />
+        ) : (
+          <span className={local.headFollow}>
+            <FollowButton following={following} onClick={onToggleFollow} name={cluster.teamName} size="xs" tertiary />
+          </span>
+        )}
       </div>
 
       {visibleStories.map((story) => {
@@ -224,6 +245,7 @@ export function V0FeedCard({
                 {onToggleSave && (
                   <SaveButton saved={isSaved?.(story.uid) ?? false} onToggle={() => onToggleSave(story.uid)} />
                 )}
+                {footerExtra?.(story)}
               </span>
             </div>
 

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 import { formatDateForApi } from '@/components/core/UpdatesPanel/IrlGatheringModal/helpers';
+import { useLoginRedirect } from '@/components/core/login/utils/loginRedirect';
 import { toast } from '@/components/core/ToastContainer';
 import { useEventsAnalytics, type EventDrawerSource } from '@/analytics/events.analytics';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -12,6 +13,7 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { EMPTY_PLANS, toEventDetail } from '@/services/events/event-drawer.mappers';
 import { useMarkGoing, useRemoveGoing, useUpdateEventPlans } from '@/services/events/hooks/useEventDrawerMutations';
 import { useEventAttendees, useEventDetail, useMyGatheringPlans } from '@/services/events/hooks/useEventDrawerQueries';
+import { recordMemberSignal } from '@/services/member-signals/member-signals.service';
 import { getMember } from '@/services/members.service';
 import { MembersQueryKeys } from '@/services/members/constants';
 import type { ITeam } from '@/types/teams.types';
@@ -60,6 +62,7 @@ function EventDrawerContainer({
   const { currentUser } = useCurrentUserStore();
   const viewerUid = currentUser?.uid ?? null;
   const analytics = useEventsAnalytics();
+  const goToLogin = useLoginRedirect();
 
   const detailQuery = useEventDetail(eventUid);
   const event = useMemo(() => (detailQuery.data ? toEventDetail(detailQuery.data) : null), [detailQuery.data]);
@@ -121,6 +124,7 @@ function EventDrawerContainer({
     if (openedRef.current) return;
     openedRef.current = true;
     analytics.onEventDrawerOpened({ eventUid, source });
+    recordMemberSignal({ action: 'view', entityType: 'event', entityId: eventUid });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -204,6 +208,14 @@ function EventDrawerContainer({
     return true;
   };
 
+  // LAB-3271: signed out, "Yes, I'm going" closes the drawer and opens the sign-in modal on this page.
+  const onSignIn = viewerUid
+    ? undefined
+    : () => {
+        onClose();
+        goToLogin();
+      };
+
   return (
     <EventDrawerView
       status={status}
@@ -225,6 +237,7 @@ function EventDrawerContainer({
       onNotGoing={onNotGoing}
       onSave={onSave}
       onGoing={onGoing}
+      onSignIn={onSignIn}
     />
   );
 }

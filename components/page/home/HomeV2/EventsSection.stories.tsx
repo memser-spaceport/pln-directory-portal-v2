@@ -12,6 +12,7 @@ import { EventsSection } from './EventsSection';
  * Home's Upcoming events rail (LAB-3220). Run Storybook with `NEXT_PUBLIC_SHOW_EVENT_DRAWER=true` to see the drawer
  * behaviour: rows open the event drawer, and the viewer's own upcoming events (seeded here) read "Going". Compare with
  * the prototype at `/prototypes/homepage` (signed in, Upcoming events rail). The drawer itself has its own stories.
+ * Rows with `goingCount` of 1 or more read "N going" (LAB-3271); the third row has no count.
  */
 const VIEWER_UID = 'viewer-1';
 
@@ -20,7 +21,15 @@ const at = (days: number, hours = 9) =>
   new Date(Date.UTC(2026, 10, 14) + days * day + hours * 3600 * 1000).toISOString();
 
 const EVENTS: IHomeEvent[] = [
-  { uid: 'e1', name: 'libp2p Day', startDate: at(6), endDate: at(6, 18), location: 'Lisbon', locationUid: 'loc-1' },
+  {
+    uid: 'e1',
+    name: 'libp2p Day',
+    startDate: at(6),
+    endDate: at(6, 18),
+    location: 'Lisbon',
+    locationUid: 'loc-1',
+    goingCount: 12,
+  },
   {
     uid: 'e2',
     name: 'FIL Builders Summit',
@@ -28,6 +37,7 @@ const EVENTS: IHomeEvent[] = [
     endDate: at(12, 18),
     location: 'Berlin, Germany',
     locationUid: 'loc-2',
+    goingCount: 1,
   },
   {
     uid: 'e3',

@@ -302,3 +302,21 @@ describe('NewsGroupCard with a multi-source story', () => {
     expect(windowOpenSpy).not.toHaveBeenCalled();
   });
 });
+
+jest.mock('@/services/member-signals/member-signals.service', () => ({
+  ...jest.requireActual('@/services/member-signals/member-signals.service'),
+  recordMemberSignal: jest.fn(),
+}));
+const mockRecordSignal = require('@/services/member-signals/member-signals.service').recordMemberSignal as jest.Mock;
+
+describe('SourceList member signals (LAB-3267)', () => {
+  it('a source link click records a view of the news item', () => {
+    render(<SourceList item={makeItem('a', { sourceUrls: TWO_SOURCE_URLS })} />);
+    fireEvent.click(screen.getByRole('button', { name: /2 sources/i }));
+    mockRecordSignal.mockClear();
+
+    fireEvent.click(screen.getAllByRole('link')[1]);
+
+    expect(mockRecordSignal).toHaveBeenCalledWith({ action: 'view', entityType: 'news-item', entityId: 'a' });
+  });
+});

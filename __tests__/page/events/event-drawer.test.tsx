@@ -66,6 +66,9 @@ jest.mock('@/services/events/hooks/useEventDrawerMutations', () => ({
   useUpdateEventPlans: () => updatePlans,
 }));
 
+const goToLogin = jest.fn();
+jest.mock('@/components/core/login/utils/loginRedirect', () => ({ useLoginRedirect: () => goToLogin }));
+
 const yes = () => screen.getByRole('button', { name: "Yes, I'm going" });
 
 async function click(el: HTMLElement) {
@@ -131,6 +134,16 @@ describe('EventDrawer (LAB-3216)', () => {
     render(<EventDrawer eventUid="labweek-lisbon" source="home" onClose={jest.fn()} />);
     expect(screen.getByRole('button', { name: '40 members going' })).toBeInTheDocument();
     expect(screen.queryByText(/Are you going/)).not.toBeInTheDocument();
+  });
+
+  it('signed out: "Yes, I\'m going" closes the drawer and starts sign-in, and saves nothing (LAB-3271)', async () => {
+    useCurrentUserStore.setState({ currentUser: null as never });
+    const onClose = jest.fn();
+    render(<EventDrawer eventUid="labweek-lisbon" source="home" onClose={onClose} />);
+    await click(yes());
+    expect(onClose).toHaveBeenCalled();
+    expect(goToLogin).toHaveBeenCalledTimes(1);
+    expect(markGoing.mutateAsync).not.toHaveBeenCalled();
   });
 
   it('Member without attendance permission', () => {
@@ -261,5 +274,36 @@ describe('EventDrawer (LAB-3216)', () => {
     fireEvent.click(screen.getByRole('button', { name: '40 members going' }));
     expect(queries.attendeesEnabled[queries.attendeesEnabled.length - 1]).toBe(true);
     expect(analytics.onEventAttendeesOpened).toHaveBeenCalledWith({ eventUid: 'labweek-lisbon' });
+  });
+});
+
+jest.mock('@/services/member-signals/member-signals.service', () => ({
+  ...jest.requireActual('@/services/member-signals/member-signals.service'),
+  recordMemberSignal: jest.fn(),
+}));
+const mockRecordSignal = require('@/services/member-signals/member-signals.service').recordMemberSignal as jest.Mock;
+
+describe('EventDrawer member signals (LAB-3267)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    flag.on = true;
+    queries.detail = { data: eventResponse(), isError: false, refetch: jest.fn() };
+    queries.plans = { data: NO_PLANS, isError: false };
+    useCurrentUserStore.setState({ currentUser: { uid: 'viewer-1', name: 'Maya', leadingTeams: [] } as never });
+  });
+
+  it('opening the drawer records one view of the event', () => {
+    const { rerender } = render(<EventDrawer eventUid="labweek-lisbon" source="home" onClose={jest.fn()} />);
+    rerender(<EventDrawer eventUid="labweek-lisbon" source="home" onClose={jest.fn()} />);
+
+    expect(mockRecordSignal).toHaveBeenCalledTimes(1);
+    expect(mockRecordSignal).toHaveBeenCalledWith({ action: 'view', entityType: 'event', entityId: 'labweek-lisbon' });
+  });
+
+  it('records nothing while the drawer is switched off', () => {
+    flag.on = false;
+    render(<EventDrawer eventUid="labweek-lisbon" source="home" onClose={jest.fn()} />);
+
+    expect(mockRecordSignal).not.toHaveBeenCalled();
   });
 });

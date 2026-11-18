@@ -1,30 +1,44 @@
-@use 'styles/media';
+@use 'styles/mixins';
 
 .button.button.button {
-  display: inline-flex;
+  @include mixins.glossy-primary-button;
+}
+
+// The line takes the button's exact box: an invisible copy of the button's content sizes the
+// slot, so a send does not shift Follow or Edit in a right-aligned row.
+.sentSlot {
+  display: inline-grid;
   flex-shrink: 0;
+  height: 34px;
+
+  > * {
+    grid-area: 1 / 1;
+  }
+}
+
+.sizer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  visibility: hidden;
+}
+
+.sent {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
   white-space: nowrap;
-  border-color: var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
-  box-shadow:
-    0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset,
-    0 4px 6px 0 var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset,
-    0 1px 5px 0 var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
-
-  &:hover:not(:disabled),
-  &:active:not(:disabled) {
-    border-color: var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
-  }
-
-  /* The ring is the fill's own ink, so it needs a band of white to be seen. */
-  &:focus-visible {
-    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
-    outline-offset: 2px;
-  }
-
-  @include media.mobile-only {
-    padding: 8px 12px;
-  }
 }

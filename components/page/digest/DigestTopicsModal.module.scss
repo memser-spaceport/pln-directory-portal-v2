@@ -1,0 +1,48 @@
+// The digest-web prototype's AllTopicsModal (LAB-3289): SubmitDealModal's chrome at 560px.
+.root.root {
+  width: 560px;
+}
+
+.content.content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px 24px;
+}
+
+.search {
+  width: 100%;
+}
+
+.empty {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.tagGroups {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.tagGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tagGroupLabel {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+// Actions only, so they sit at the end of the row.
+.footer.footer {
+  justify-content: flex-end;
+}

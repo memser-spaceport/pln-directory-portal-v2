@@ -4,6 +4,7 @@ import { useCallback, useReducer, useRef } from 'react';
 
 import { useJobsAnalytics, type JobApplyTrigger, type JobSurface } from '@/analytics/jobs.analytics';
 import { openExternalApply } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
+import { recordMemberSignal } from '@/services/member-signals/member-signals.service';
 import { shouldApplyGoExternal, type BoardViewerState, type JobsAccessVerdict } from '@/services/jobs/job-board-viewer';
 import type { IJobRole, IJobTeam } from '@/types/jobs.types';
 
@@ -189,6 +190,7 @@ export function useJobApplyFlow({ viewer, verdict, refreshVerdict, source }: Job
   const onViewJob = useCallback(
     (target: JobDetailTarget) => {
       analytics.onJobDetailOpened(applyBase(target));
+      recordMemberSignal({ action: 'view', entityType: 'job-opening', entityId: target.role.uid });
       viewStep('review', target);
       dispatch({ type: 'OPEN_FLOW', target, at: 'review' });
     },
@@ -205,6 +207,7 @@ export function useJobApplyFlow({ viewer, verdict, refreshVerdict, source }: Job
   const onApply = useCallback(
     async (target: JobDetailTarget, trigger: JobApplyTrigger = 'row') => {
       analytics.onJobApplyClicked({ ...applyBase(target), trigger });
+      recordMemberSignal({ action: 'job-apply-click', entityType: 'job-opening', entityId: target.role.uid });
 
       if (viewer === 'logged-out') {
         /* Non-PL roles leave the site even without an account — the footer
@@ -428,9 +431,7 @@ export function useJobApplyFlow({ viewer, verdict, refreshVerdict, source }: Job
          rejected account could reach the letter and press send. */
       if (applyRejected) return;
 
-      const at: ApplyFlowStepId = shouldApplyGoExternal({ viewer, verdict, team: target.team })
-        ? 'review'
-        : 'profile';
+      const at: ApplyFlowStepId = shouldApplyGoExternal({ viewer, verdict, team: target.team }) ? 'review' : 'profile';
       /* The only dispatch that sets it. Everything else opening this flow is a
          press on a row, a deep link or a step change — none of which just made
          an account. */

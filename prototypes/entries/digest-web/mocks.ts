@@ -1,4 +1,5 @@
 import type { StaticImageData } from 'next/image';
+import type { FeedComment } from '../newsfeed-v0/mocks';
 
 import avatarJohn from './assets/avatar-john.png';
 import avatarSarah from './assets/avatar-sarah.png';
@@ -23,6 +24,10 @@ export interface DigestStory {
   body: string[];
   topic: string;
   source: string;
+  /** The team the story is about: the page's Follow button follows it. */
+  team: string;
+  /** Where the story was reported; the page lists them under the story. */
+  sources: { name: string; url: string }[];
 }
 
 export interface DigestForumPost {
@@ -32,6 +37,13 @@ export interface DigestForumPost {
   avatar: StaticImageData;
   title: string;
   body: string[];
+  /** For the forum post modal Home uses (newsfeed-v0 ForumPostModal). */
+  category: string;
+  createdAt: string;
+  views: number;
+  tags: string[];
+  /** Replies in the forum thread (mock), for the digest row's "N replies". */
+  replies: number;
 }
 
 export const DIGEST_ISSUE = {
@@ -39,6 +51,23 @@ export const DIGEST_ISSUE = {
   greetingName: 'Polina',
   intro: 'Picked for you from subscribed tags and the teams you follow.',
 };
+
+/**
+ * The rail's "Your topics" card, from the real tag list (digest-topics `TOPICS`).
+ * Subscribed: the tags this issue's stories carry (Proprio → ai-robotics, Starknet and
+ * Optimism → blockchain-protocols, Lattice → decentralized-compute, Filecoin →
+ * decentralized-storage) plus two more. Suggested: a few the reader doesn't follow yet;
+ * the other tags stay behind See all topics.
+ */
+export const DIGEST_TOPICS = [
+  'ai',
+  'ai-robotics',
+  'blockchain-protocols',
+  'decentralized-compute',
+  'decentralized-storage',
+  'network-programs',
+];
+export const DIGEST_SUGGESTED_TOPICS = ['cryptographic-proofs', 'defi', 'desci', 'public-goods-funding'];
 
 export const DIGEST_STORIES: DigestStory[] = [
   {
@@ -56,6 +85,11 @@ export const DIGEST_STORIES: DigestStory[] = [
     ],
     topic: 'ai',
     source: 'TechCrunch',
+    team: 'Proprio Labs',
+    sources: [
+      { name: 'TechCrunch', url: 'https://techcrunch.com' },
+      { name: 'The Robot Report', url: 'https://www.therobotreport.com' },
+    ],
   },
   {
     id: 'starknet-l1',
@@ -71,6 +105,11 @@ export const DIGEST_STORIES: DigestStory[] = [
     ],
     topic: 'crypto',
     source: 'The Block',
+    team: 'Starknet',
+    sources: [
+      { name: 'The Block', url: 'https://www.theblock.co' },
+      { name: 'CryptoBriefing', url: 'https://cryptobriefing.com' },
+    ],
   },
   {
     id: 'op-token',
@@ -85,6 +124,11 @@ export const DIGEST_STORIES: DigestStory[] = [
     ],
     topic: 'crypto',
     source: 'CoinDesk',
+    team: 'Optimism',
+    sources: [
+      { name: 'CoinDesk', url: 'https://www.coindesk.com' },
+      { name: 'Decrypt', url: 'https://decrypt.co' },
+    ],
   },
   {
     id: 'open-ai-models',
@@ -100,6 +144,8 @@ export const DIGEST_STORIES: DigestStory[] = [
     ],
     topic: 'ai',
     source: 'TechCrunch',
+    team: 'Lattice Compute',
+    sources: [{ name: 'TechCrunch', url: 'https://techcrunch.com' }],
   },
   {
     id: 'filecoin-flywheel',
@@ -114,6 +160,8 @@ export const DIGEST_STORIES: DigestStory[] = [
     ],
     topic: 'filecoin',
     source: 'Filecoin Foundation blog',
+    team: 'Filecoin Foundation',
+    sources: [{ name: 'Filecoin Foundation blog', url: 'https://fil.org/blog' }],
   },
 ];
 
@@ -124,8 +172,13 @@ export const DIGEST_FORUM_POSTS: DigestForumPost[] = [
     role: 'Developer @Aave',
     avatar: avatarJohn,
     title: 'How we reduced retrieval latency in a decentralized data pipeline by 45%',
+    category: 'Engineering',
+    createdAt: '2026-11-06T15:20:00Z',
+    views: 214,
+    replies: 14,
+    tags: ['retrieval', 'filecoin'],
     body: [
-      'The round funds a shared manipulation model trained on pooled teleoperation data, with contributors keeping rights to their own recordings. Weights ship under Apache 2.0.',
+      'Our pipeline pulls a few terabytes a day from storage providers, and the slowest step was always the first byte. Here is what brought the median from 1.8s to under a second.',
       'We moved hot content to a regional cache in front of the retrieval providers and batched our CID lookups. Most of the gain came from the batching, not the cache.',
     ],
   },
@@ -135,9 +188,51 @@ export const DIGEST_FORUM_POSTS: DigestForumPost[] = [
     role: 'Developer @Aave',
     avatar: avatarSarah,
     title: 'Introducing a new model for cross-chain data coordination',
+    category: 'Research',
+    createdAt: '2026-11-07T10:05:00Z',
+    views: 138,
+    replies: 9,
+    tags: ['interop'],
     body: [
-      'The round funds a shared manipulation model trained on pooled teleoperation data, with contributors keeping rights to their own recordings. Weights ship under Apache 2.0.',
+      'Cross-chain apps today stitch together bridges and relayers, and every new chain adds another integration to maintain. We have been testing a simpler model.',
       'The model treats each chain as a reader of one shared log instead of passing messages between chains. We are looking for two teams to try it on testnet.',
     ],
   },
 ];
+
+/**
+ * Seeded comments on the page's stories, in the feed's comment shape (newsfeed-v0
+ * `FeedComment`), so a story's thread here is the same thread Home shows. Stories
+ * absent here open an empty thread. New comments are held for the visit only.
+ */
+export const DIGEST_COMMENTS: Record<string, FeedComment[]> = {
+  'proprio-labs': [
+    {
+      uid: 'c-proprio-1',
+      author: 'Devon Okoro',
+      role: 'Protocol Engineer @ libp2p',
+      text: 'Pooled teleop data with contributors keeping their rights is a big deal. Is the recording format open too?',
+      createdAt: '2026-11-09T10:20:00.000Z',
+      likes: 5,
+    },
+    {
+      uid: 'c-proprio-2',
+      author: 'Mira Chen',
+      role: 'Founder @ Lattice Compute',
+      text: 'Yes, the spec is on their GitHub. We are looking at it for our own fleet.',
+      createdAt: '2026-11-09T11:05:00.000Z',
+      parentUid: 'c-proprio-1',
+      likes: 2,
+    },
+  ],
+  'starknet-l1': [
+    {
+      uid: 'c-starknet-1',
+      author: 'Sasha Rao',
+      role: 'Research Lead @ Filecoin Foundation',
+      text: 'Curious how they plan to handle bridged assets during the move. Anyone seen the migration plan?',
+      createdAt: '2026-11-09T14:40:00.000Z',
+      likes: 3,
+    },
+  ],
+};

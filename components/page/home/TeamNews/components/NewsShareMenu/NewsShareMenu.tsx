@@ -150,7 +150,8 @@ function ShareMenuCore({
 }
 
 interface NewsShareMenuProps {
-  item: ITeamNewsItem;
+  /** Only what the share link, text and event need, so the digest page can share its stories too. */
+  item: Pick<ITeamNewsItem, 'uid' | 'title' | 'teamUid' | 'teamName'>;
   source: TeamNewsAnalyticsSource;
   variant?: 'icon' | 'button';
   side?: 'top' | 'bottom';

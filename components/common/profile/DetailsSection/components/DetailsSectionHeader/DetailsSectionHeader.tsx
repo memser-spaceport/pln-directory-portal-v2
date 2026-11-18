@@ -1,6 +1,8 @@
 import { clsx } from 'clsx';
 import React, { PropsWithChildren, ReactNode } from 'react';
 
+import { SectionVisibilityBadge } from '../../../SectionVisibility/SectionVisibilityBadge';
+
 import s from './DetailsSectionHeader.module.scss';
 
 interface Props {
@@ -14,6 +16,7 @@ export function DetailsSectionHeader(props: PropsWithChildren<Props>) {
   return (
     <div className={clsx(s.root, className)}>
       <h2 className={s.title}>{title}</h2>
+      <SectionVisibilityBadge />
       {children}
     </div>
   );

@@ -1,0 +1,446 @@
+@use 'styles/media';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.frame {
+  position: relative;
+  height: 560px;
+  overflow: hidden;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: #b9d3ec; // Esri's water, so tiles still loading read as sea
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  @include media.mobile-only {
+    height: 440px;
+  }
+}
+
+.tiles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.tile {
+  position: absolute;
+  width: 256px;
+  height: 256px;
+}
+
+/* A city pin: its name and how many events, on a white pill with a pointer underneath. */
+.pin {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 4px 10px;
+  transform: translate(-50%, calc(-100% - 6px));
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 999px;
+  background: var(--background-neutral-primary, #ffffff);
+  box-shadow: 0 2px 8px var(--transparent-dark-8, rgba(14, 15, 17, 0.12));
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  cursor: pointer;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -6px;
+    width: 8px;
+    height: 8px;
+    transform: translateX(-50%) rotate(45deg);
+    border-right: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+    border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+    background: inherit;
+  }
+
+  &:hover {
+    z-index: 2;
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+}
+
+.pinActive,
+.pinActive:hover {
+  z-index: 3;
+  border-color: var(--foreground-neutral-primary, #0a0c11);
+  background: var(--foreground-neutral-primary, #0a0c11);
+  color: var(--background-neutral-primary, #ffffff);
+
+  .pinCount {
+    background: var(--background-neutral-primary, #ffffff);
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.pinCount {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--background-brand-default, #1b4dff);
+  font-size: 12px;
+  line-height: 20px;
+  font-weight: 600;
+  text-align: center;
+  color: #ffffff;
+}
+
+/* You're going to something in this city: a green dot on the pin's corner. */
+.pinGoing {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--background-neutral-primary, #ffffff);
+  border-radius: 50%;
+  background: var(--foreground-success-primary, #0a9952);
+}
+
+/* A venue pin (zoomed in): the event's picture in a white ring with a pointer at the venue,
+   Luma's map pin. A count when several events share the venue; a green ring when you're going. */
+.venuePin {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  padding: 3px;
+  transform: translate(-50%, calc(-100% - 7px));
+  border: none;
+  border-radius: 50%;
+  background: var(--background-neutral-primary, #ffffff);
+  box-shadow: 0 2px 8px var(--transparent-dark-8, rgba(14, 15, 17, 0.16));
+  cursor: pointer;
+  transition: transform 0.15s ease;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -6px;
+    width: 10px;
+    height: 10px;
+    transform: translateX(-50%) rotate(45deg);
+    background: inherit;
+    border-radius: 0 0 2px 0;
+  }
+
+  &:hover {
+    z-index: 2;
+    transform: translate(-50%, calc(-100% - 7px)) scale(1.08);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+.venuePhoto {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--background-neutral-subtle, #f1f5f9);
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+// Going: the ring turns green (the one green on the map, like the Going tag's tick).
+.venuePinGoing {
+  background: var(--foreground-success-primary, #0a9952);
+}
+
+// The linked (?event=) or open venue: the brand ring.
+.venuePinActive,
+.venuePinActive:hover {
+  z-index: 3;
+  background: var(--foreground-brand-primary, #1b4dff);
+}
+
+.venueCount {
+  position: absolute;
+  z-index: 2;
+  top: -4px;
+  right: -6px;
+  min-width: 20px;
+  padding: 0 6px;
+  border: 2px solid var(--background-neutral-primary, #ffffff);
+  border-radius: 999px;
+  background: var(--background-brand-default, #1b4dff);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  text-align: center;
+  color: #ffffff;
+}
+
+.controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-neutral-primary, #ffffff);
+  box-shadow: 0 1px 2px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+
+  button {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: none;
+    font: inherit;
+    font-size: 18px;
+    line-height: 1;
+    color: var(--foreground-neutral-primary, #0a0c11);
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    }
+
+    &:disabled {
+      color: var(--foreground-neutral-tertiary, #8897ae);
+      cursor: default;
+    }
+
+    & + button {
+      border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+    }
+  }
+}
+
+/* The zoom slider between + and −: vertical, top = zoomed in. Track in the border grey, filled
+   part and thumb in brand, so it reads as one control with the buttons. */
+.zoomSlider {
+  --fill: var(--foreground-brand-primary, #1b4dff);
+  --track: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  display: block;
+  width: 32px;
+  height: 120px;
+  margin: 0;
+  padding: 8px 0;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  writing-mode: vertical-lr;
+  direction: rtl;
+  background: none;
+  accent-color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: -2px;
+  }
+
+  // Phones zoom with the buttons; a 120px slider costs too much of a short map.
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.fitBtn {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-neutral-primary, #ffffff);
+  box-shadow: 0 1px 2px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+}
+
+/* The selected city's events, docked bottom-left (bottom sheet on phones). */
+.card {
+  position: absolute;
+  left: 12px;
+  bottom: 28px;
+  z-index: 4;
+  width: 320px;
+  max-height: calc(100% - 72px);
+  overflow-y: auto;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: var(--background-neutral-primary, #ffffff);
+  box-shadow: 0 8px 24px var(--transparent-dark-8, rgba(14, 15, 17, 0.12));
+  cursor: default;
+
+  @include media.mobile-only {
+    right: 12px;
+    width: auto;
+  }
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 12px 8px 16px;
+}
+
+.cardTitle {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.cardClose {
+  display: inline-flex;
+  padding: 4px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+.cardList {
+  margin: 0;
+  padding: 0 4px 8px;
+  list-style: none;
+}
+
+.cardRow {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+.cardDate {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.cardName {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.empty {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: 0;
+  padding: 8px 12px;
+  transform: translate(-50%, -50%);
+  border-radius: 8px;
+  background: var(--background-neutral-primary, #ffffff);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.attribution {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 2px 6px;
+  border-top-left-radius: 6px;
+  background: var(--transparent-light-80, rgba(255, 255, 255, 0.8));
+  font-size: 10px;
+  line-height: 14px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  a {
+    color: inherit;
+  }
+}
+
+.online {
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  padding-top: 4px;
+  background: var(--background-base-white, #ffffff); // a white card on the grey page
+}
+
+.onlineTitle {
+  margin: 0;
+  padding: 12px 16px 8px;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* Esri World Street Map, the Google-Maps-like look, shown in its own colours (the grey filter and slate wash
+   were removed 2026-11-18 for "Google Maps style"). */
+
+.pinCompact {
+  padding: 3px;
+}
+
+/* Arriving from a link to one event (?event=): its row is marked, the page's highlight. */
+.cardRowHighlight,
+.cardRowHighlight:hover {
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  box-shadow: inset 0 0 0 1px var(--border-brand-subtle, #aebfff);
+}
+
+// A venue pin's picture or its placeholder (events-shared/EventImage), filling the round slot.
+.venueFill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

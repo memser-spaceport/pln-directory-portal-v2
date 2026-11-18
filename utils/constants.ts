@@ -757,6 +757,12 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   // denominator for the click; the click is not the hint's Update event.
   TEAM_NEWS_FOR_YOU_SETUP_SHOWN: 'team-news-for-you-setup-shown',
   TEAM_NEWS_FOR_YOU_SETUP_CLICKED: 'team-news-for-you-setup-clicked',
+  // The Home tag card (LAB-3250): the member's default news tags, to approve or change. Shown is the denominator.
+  TEAM_NEWS_TAGS_CARD_SHOWN: 'team-news-tags-card-shown',
+  TEAM_NEWS_TAGS_CARD_TAG_TOGGLED: 'team-news-tags-card-tag-toggled',
+  TEAM_NEWS_TAGS_CARD_APPROVED: 'team-news-tags-card-approved',
+  TEAM_NEWS_TAGS_CARD_SAVED: 'team-news-tags-card-saved',
+  TEAM_NEWS_TAGS_CARD_SEE_ALL_CLICKED: 'team-news-tags-card-see-all-clicked',
   // A `#tag` on a Home story narrows the feed to that tag (LAB-3010); cleared by
   // the filter chip's × or by clicking the active tag again.
   TEAM_NEWS_TAG_FILTER_APPLIED: 'team-news-tag-filter-applied',
@@ -816,6 +822,10 @@ export const FOLLOW_ANALYTICS_EVENTS = {
 };
 
 export const INTRO_REQUEST_ANALYTICS_EVENTS = {
+  BUTTON_SHOWN: 'intro-request-button-shown',
+  DIALOG_OPENED: 'intro-request-dialog-opened',
+  DIALOG_CLOSED: 'intro-request-dialog-closed',
+  SUBMIT_FAILED: 'intro-request-submit-failed',
   ASK_SUBMITTED: 'ask-submitted',
 };
 
@@ -2944,4 +2954,28 @@ export const EXPLORE_PL_NETWORK_ANALYTICS = {
   ON_ENTITY_CLICKED: 'explore-pl-network-entity-clicked',
   ON_SECTION_LINK_CLICKED: 'explore-pl-network-section-link-clicked',
   ON_LOGO_CLICKED: 'explore-pl-network-logo-clicked',
+};
+
+/** LAB-3264: the digest reading page `/digest?t=`. No event carries the link token. */
+export const DIGEST_ANALYTICS_EVENTS = {
+  ON_DIGEST_PAGE_VIEWED: 'digest-page-viewed',
+  ON_DIGEST_STORY_READ: 'digest-story-read',
+  ON_DIGEST_NETWORK_NEWS_CLICKED: 'digest-network-news-clicked',
+  ON_DIGEST_EVENT_CLICKED: 'digest-event-clicked',
+  ON_DIGEST_EVENTS_SEE_ALL_CLICKED: 'digest-events-see-all-clicked',
+  ON_DIGEST_FORUM_THREAD_CLICKED: 'digest-forum-thread-clicked',
+  ON_DIGEST_FORUM_OPEN_CLICKED: 'digest-forum-open-clicked',
+  ON_DIGEST_MORE_CLICKED: 'digest-more-clicked',
+  ON_DIGEST_LESS_CLICKED: 'digest-less-clicked',
+  ON_DIGEST_UNDO_CLICKED: 'digest-undo-clicked',
+  ON_DIGEST_TOPICS_SAVED: 'digest-topics-saved',
+  ON_DIGEST_TOPICS_MODAL_OPENED: 'digest-topics-modal-opened',
+  ON_DIGEST_TOPICS_SIGN_IN_PROMPTED: 'digest-topics-sign-in-prompted',
+  // LAB-3312: the digest email page (/digest/email), opened from the email footer.
+  ON_DIGEST_EMAIL_PAGE_VIEWED: 'digest-email-page-viewed',
+  ON_DIGEST_EMAIL_UNSUBSCRIBED: 'digest-email-unsubscribed',
+  ON_DIGEST_EMAIL_RESUBSCRIBED: 'digest-email-resubscribed',
+  ON_DIGEST_EMAIL_FREQUENCY_CHANGED: 'digest-email-frequency-changed',
+  ON_DIGEST_EMAIL_UNDO_CLICKED: 'digest-email-undo-clicked',
+  ON_DIGEST_EMAIL_SAVE_FAILED: 'digest-email-save-failed',
 };

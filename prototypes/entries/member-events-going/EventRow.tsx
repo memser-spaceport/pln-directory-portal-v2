@@ -3,10 +3,10 @@
 import clsx from 'clsx';
 import type { ReactNode } from 'react';
 
-import { CheckIcon } from '@/components/icons';
-
 import feed from '../newsfeed/Newsfeed.module.scss';
 import local from '../home-refactor/HomeRefactorPrototype.module.scss';
+
+import { GoingTag } from '../events-shared/GoingTag';
 
 import { gatheringOf, type GoingEvent } from './mocks';
 import s from './MemberEventsGoing.module.scss';
@@ -59,12 +59,10 @@ export function EventRow({
   );
 }
 
-/** The row's receipt once you've said yes: a fact in text, not a second button. */
+/**
+ * The row's receipt once you've said yes. Since 2026-11-18 it is the shared Going pill
+ * (events-shared/GoingTag), so "Going" looks the same on every surface; it was a green tick + green text.
+ */
 export function GoingMark({ label = 'Going' }: { label?: string }) {
-  return (
-    <span className={s.goingMark}>
-      <CheckIcon aria-hidden="true" />
-      {label}
-    </span>
-  );
+  return <GoingTag label={label} />;
 }

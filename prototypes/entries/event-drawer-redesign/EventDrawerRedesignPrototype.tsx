@@ -16,6 +16,9 @@
  *               icons; production IrlGatheringModal PlanningSection /
  *               AdditionalDetailsSection / pickers for "Your plans"; the
  *               member-events-going going store, mocks and attendee list.
+ *   Footer .... the Redesign with the RSVP press in a pinned bottom bar
+ *               (RsvpFooter); the top card becomes GoingCardCompact, shown
+ *               only after a yes (Show on my profile + Add your plans).
  *   Current ... what each page opens today: Home → member-events-going
  *               GatheringModal (via its HomeEventsRail); Events → the events app's
  *               own panel (member-events-going EventSummary + Register).
@@ -65,6 +68,11 @@ const DRAWER_OPTIONS: Option<DrawerVersion>[] = [
     value: 'redesign',
     label: 'Redesign',
     note: 'Default. One drawer on both pages: toolbar, who/when/where, the ask near the top, About, Agenda, the gathering.',
+  },
+  {
+    value: 'footer',
+    label: 'Footer',
+    note: 'The redesign with the RSVP in a bottom bar pinned to the drawer: “N going”, Register ↗, I’m going; after yes, You’re going + Not going. Plans and Show on my profile stay in the body.',
   },
   {
     value: 'current',
@@ -119,7 +127,8 @@ export default function EventDrawerRedesignPrototype() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const page: Page = searchParams.get('page') === 'events' ? 'events' : 'home';
-  const drawer: DrawerVersion = searchParams.get('drawer') === 'current' ? 'current' : 'redesign';
+  const drawerParam = searchParams.get('drawer');
+  const drawer: DrawerVersion = drawerParam === 'current' || drawerParam === 'footer' ? drawerParam : 'redesign';
   const navExtras = useHeaderSearch(true);
 
   const hrefWith = (key: string, value: string, fallback: string) => {
@@ -157,7 +166,14 @@ export default function EventDrawerRedesignPrototype() {
       <HomeV2Prototype
         initialState="signed-in"
         reviewExtra={switches}
-        eventsRail={drawer === 'redesign' ? <EventsRail eventsHref={hrefWith('page', 'events', 'home')} /> : undefined}
+        eventsRail={
+          drawer !== 'current' ? (
+            <EventsRail
+              eventsHref={hrefWith('page', 'events', 'home')}
+              rsvp={drawer === 'footer' ? 'footer' : 'card'}
+            />
+          ) : undefined
+        }
       />
     );
   }

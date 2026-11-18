@@ -62,6 +62,8 @@ import {
 } from '@/components/page/member-details/MemberEventsSection';
 import type { MemberEvents } from '@/services/events/profile-events.service';
 import { SHOW_EVENT_DRAWER } from '@/utils/event-drawer';
+import { OwnProfileContext } from '@/components/common/profile/SectionVisibility/OwnProfileContext';
+import { MEMBER_SECTION_VISIBILITY } from '@/components/page/member-details/constants/sectionVisibility';
 
 /** The member as `getMember` returns it for a signed-out visitor, fetched by the server page (LAB-2922). */
 export type ServerMemberResult = Extract<Awaited<ReturnType<typeof getMember>>, { data: unknown }>;
@@ -255,7 +257,7 @@ const MemberDetails = ({ memberId, serverMember, serverMemberEvents }: MemberDet
       </ProfileSection>
     ) : null;
     const cvSection = showCvSection ? (
-      <ProfileSection name={isOwner ? 'Your CV' : 'CV'}>
+      <ProfileSection name={isOwner ? 'Your CV' : 'CV'} visibility={MEMBER_SECTION_VISIBILITY.cv}>
         <MemberCvSection member={member} isOwner={isOwner} />
       </ProfileSection>
     ) : null;
@@ -275,12 +277,12 @@ const MemberDetails = ({ memberId, serverMember, serverMemberEvents }: MemberDet
             isNewInvestor={isNewInvestor}
           />
         </ProfileSection>
-        <ProfileSection name="Profile Details">
+        <ProfileSection name="Profile Details" visibility={MEMBER_SECTION_VISIBILITY.profile}>
           <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
         </ProfileSection>
         {cvAfterProfile && cvSection}
         {showInvestorProfile && (
-          <ProfileSection name="Investor Profile">
+          <ProfileSection name="Investor Profile" visibility={MEMBER_SECTION_VISIBILITY.investorProfile}>
             <InvestorProfileDetails
               userInfo={userInfo}
               member={member}
@@ -325,7 +327,7 @@ const MemberDetails = ({ memberId, serverMember, serverMemberEvents }: MemberDet
             Experience and Contributions sections, and their own job search
             status is not one of the things that should go with them. */}
         {isOwner && (
-          <ProfileSection name="Job Search Status">
+          <ProfileSection name="Job Search Status" visibility={MEMBER_SECTION_VISIBILITY.jobSearchStatus}>
             <JobSearchStatusDetails member={member} />
           </ProfileSection>
         )}
@@ -409,7 +411,7 @@ const MemberDetails = ({ memberId, serverMember, serverMemberEvents }: MemberDet
                   [styles.centered]: isAvailableToConnect || isOwner,
                 })}
               >
-                {renderPageContent()}
+                <OwnProfileContext.Provider value={isOwner}>{renderPageContent()}</OwnProfileContext.Provider>
               </div>
             </div>
             {showSidebar && (

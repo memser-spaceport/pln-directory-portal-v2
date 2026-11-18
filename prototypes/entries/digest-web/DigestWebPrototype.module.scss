@@ -62,6 +62,264 @@
   height: 40px;
 }
 
+/* ---------- Web page only (Mobbin pass, 2026-11-16) ---------- */
+
+// The web page is Perplexity Discover's open column: no cards, the stories sit straight on a
+// white page and hairlines part them. The Email view keeps its own inbox grey and white sheet.
+.pageWeb {
+  background: var(--background-neutral-primary, #fff);
+
+  // No sheet behind the column on the web page: it is the page.
+  .email {
+    max-width: 760px;
+    background: none;
+  }
+
+  // Open stories, one after another: no border, radius or fill; a hairline between them and
+  // air above and below, so each story reads as its own section.
+  .cards {
+    gap: 0;
+    padding: 8px 16px 0;
+  }
+
+  .cardWeb {
+    padding: 32px 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+
+    & + .cardWeb {
+      border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+    }
+
+    @include mobile-only {
+      padding: 24px 0;
+    }
+
+    // The top story belongs to the greeting above it: no hairline separates them, so its
+    // 32px section air only pushed it away (Polina, 2026-11-17). ~56px from the description.
+    &:first-child {
+      padding-top: 8px;
+    }
+  }
+
+  .cardHero {
+    padding-top: 16px;
+  }
+
+  // The header reads as a page, not an email: left-aligned on the story cards' outer edge (16px).
+  // The Email view keeps Figma's centred header.
+  .logoRow {
+    justify-content: flex-start;
+  }
+
+  .issueLine {
+    margin: 0 0 8px;
+    padding: 0 16px;
+    text-align: left;
+  }
+
+  .intro {
+    max-width: none;
+    margin: 0;
+    text-align: left;
+  }
+
+  // No logo above it, so the greeting is the page's title: a page heading on the PL scale,
+  // a step above the lead story's 24px title. The Email view keeps Figma's 16px.
+  .greeting {
+    font-size: 32px;
+    line-height: 40px;
+    letter-spacing: -0.6px;
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  .introText {
+    font-size: 16px;
+    line-height: 24px;
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+// The email column, with the side cards beside it on the right from 1100px.
+.webLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 760px);
+  justify-content: center;
+  gap: 48px;
+
+  @media (min-width: 1100px) {
+    grid-template-columns: minmax(0, 760px) 260px;
+  }
+}
+
+.rail {
+  display: none;
+
+  @media (min-width: 1100px) {
+    display: block;
+  }
+}
+
+// The forum heading is an anchor target now; leave room for the sticky navbar.
+.forumAnchor {
+  scroll-margin-top: 96px;
+}
+
+// "You're all caught up": the end of the issue (Substack, Pinterest).
+.caughtUp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 24px 16px 0;
+  padding: 24px 16px 56px;
+  text-align: center;
+}
+
+.caughtUpMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 8px;
+  border-radius: 50%;
+  background: var(--background-success-subtle, rgba(10, 153, 82, 0.08));
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+.caughtUpTitle {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.caughtUpText {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.caughtUpLink {
+  padding: 6px 12px;
+  border: 1px solid var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-decoration: none;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+// The issue's dateline under the logo (Medium Daily Digest, Substack).
+.issueLine {
+  margin: -4px 0 16px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* "Send us your team news" (standup 2026-11-16): the digest's ask for content, after the
+   issue ends. An outlined block (Polina, 2026-11-17) in the side cards' material (white,
+   subtle border, 16px radius), so the ask is one thing you can see, not a run of text
+   after a hairline. Left-aligned, icon on the left, text beside it (Polina, 2026-11-17). */
+.sendNews {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin: 0 16px 32px;
+  padding: 20px 24px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 16px;
+  text-align: left;
+
+  @include mobile-only {
+    gap: 12px;
+    padding: 16px;
+  }
+}
+
+// 40px brand-soft disc with the brand glyph: the one mark in the block.
+.sendNewsIcon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.sendNewsBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.sendNewsTitle {
+  margin: 0 0 2px;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.sendNewsText {
+  margin: 0 0 12px;
+  max-width: 420px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.sendNewsLink {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// The page is for reading the whole story: titles and body step up the PL scale
+// (Substack, Perplexity). The email keeps Figma's 16px titles and 14px text.
+.cardWeb {
+  .cardTitle {
+    font-size: 20px;
+    line-height: 28px;
+  }
+
+  .cardSummary,
+  .cardBody p {
+    font-size: 16px;
+    line-height: 24px;
+  }
+}
+
 /* Header */
 
 .logoRow {
@@ -104,6 +362,12 @@
 }
 
 .introLink {
+  // A button on the page (opens the All topics modal), a link in the email: same look.
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
   color: var(--foreground-neutral-secondary, #455468);
   text-decoration: underline;
 }
@@ -125,7 +389,9 @@
   gap: 20px;
   padding: 24px;
   border-radius: 8px;
-  background: rgba(224, 239, 249, 0.5);
+  // White cards on the white email, so a subtle border keeps them apart.
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-neutral-primary, #ffffff);
   scroll-margin-top: 24px;
 
   @include mobile-only {
@@ -227,6 +493,71 @@
   border-radius: 5.63px;
 }
 
+/* ---------- Web top story (Perplexity Discover, 2026-11-16) ---------- */
+
+// The top story: text beside a big picture (Perplexity Discover's first row), full story below.
+.cardHero {
+  .cardTop {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 24px;
+
+    @include mobile-only {
+      flex-direction: column-reverse;
+    }
+  }
+
+  .cardText {
+    justify-content: center;
+  }
+
+  .cardImage {
+    flex: 0 0 52%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    border-radius: 8px;
+
+    @include mobile-only {
+      flex-basis: auto;
+      aspect-ratio: 16 / 9;
+    }
+  }
+}
+
+.cardWeb.cardHero .cardTitle {
+  font-size: 24px;
+  line-height: 32px;
+}
+
+// "Sources: The Block · CryptoBriefing" under the story, as the news detail lists them.
+.sources {
+  margin: -8px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.sourceLink {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  text-underline-offset: 3px;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration-color: currentColor;
+  }
+}
+
+.cardActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  // "2 Comments" and "Follow <team>" stay on one line each.
+  white-space: nowrap;
+}
+
+
 // The part the email hides behind Read More. Pulled up so it reads as the summary's next
 // paragraph (12px), not a new block (the card's 20px gap).
 .cardBody {
@@ -240,7 +571,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  // With Comments added, a long team name can outgrow the row: the actions drop to a
+  // second line instead of running past the card's edge.
+  flex-wrap: wrap;
+  gap: 12px 20px;
 
   @include mobile-only {
     flex-direction: column;
@@ -334,7 +668,10 @@
   gap: 8px;
   padding: 10px 12px;
   border-radius: 8px;
-  background: var(--background-neutral-primary, #fff);
+  // The cards are white now, so the receipt carries its own surface: production's soft
+  // success pair. Green for More and Less alike — it confirms the save, not the sentiment.
+  border: 1px solid var(--border-success-subtle, rgba(4, 135, 70, 0.32));
+  background: var(--background-success-subtle, rgba(10, 153, 82, 0.08));
   font-size: 14px;
   line-height: 20px;
   color: var(--foreground-neutral-primary, #0a0c11);
@@ -470,10 +807,65 @@
 .postLink {
   align-self: flex-start;
   padding: 4px 0;
+  border: 0;
+  background: none;
+  font: inherit;
   font-size: 14px;
   font-weight: 700;
   color: #000;
   text-decoration: underline;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+// The post title opens the post (a link in the email, the forum modal on the page).
+.postTitleLink {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+/* Story team header (web): the feed card's logo + team + Follow (NewsCard .head) */
+
+// The name hugs its width so Follow sits right beside it, as on the feed (newsfeed-v0
+// .teamNameTight / .headFollow). Doubled to beat NewsCard's .teamName.
+.teamHeadName.teamHeadName {
+  flex: 0 1 auto;
+  min-width: 0;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.teamHeadFollow {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-left: -6px;
+}
+
+// The header belongs to its story: 8px above the title (or the Top story badge), not the
+// card's 20px gap.
+.teamHead {
+  margin-bottom: -12px;
 }
 
 /* Footer */

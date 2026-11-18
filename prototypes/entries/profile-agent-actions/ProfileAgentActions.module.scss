@@ -1,0 +1,129 @@
+@use 'styles/media';
+
+/* ---------- The header press ---------- */
+
+/* intro-shared's `.primary` sizes it; this adds the glyph and the caret. */
+.trigger {
+  gap: 6px;
+}
+
+.triggerGlyph {
+  display: inline-flex;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.caret {
+  flex-shrink: 0;
+  margin-left: -2px;
+  opacity: 0.8;
+}
+
+/* ---------- The menu (NewsShareMenu chrome) ---------- */
+
+.popup.popup {
+  width: 300px;
+  max-width: calc(100vw - 32px);
+}
+
+.item.item {
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+
+  &[data-disabled] {
+    cursor: default;
+    opacity: 0.6;
+  }
+}
+
+.itemIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.itemSvg {
+  width: 16px;
+  height: 16px;
+}
+
+.itemText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.itemLabel {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.itemHint {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+}
+
+.sep {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+/* ---------- Agent cards ---------- */
+
+.fieldLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* A slot is a choice, so it reads as the DS bordered control chip: grey border, brand on hover and when
+   chosen (the control-chip lineage). */
+.slot {
+  padding: 6px 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-neutral-default, #fff);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--border-brand-primary, #1b4dff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+.slotActive {
+  border-color: var(--border-brand-primary, #1b4dff);
+  background: var(--background-brand-subtle, #f1f4ff);
+  color: var(--foreground-brand-primary, #1b4dff);
+}

@@ -99,7 +99,9 @@ When no event starts in the next 30 days, the events section SHALL be absent and
 
 Each event SHALL open All Events with that event's details open (`/events/all?embedPath=/embed/calendar#<slug>`). The slug is rebuilt from the event's name the way the events calendar makes it, because the Directory doesn't store it; where two calendar events share a slug, the calendar opens the first, and a name that matches none opens the calendar with no event open.
 
-With the event drawer flag on, a signed-in member's event row SHALL instead open the event drawer on that event, over Home. The row asks nothing itself. Once the member is going to that event, the row's arrow SHALL be replaced by "Going". `home-event-clicked` SHALL keep firing on a row press.
+With the event drawer flag on, an event row SHALL instead open the event drawer on that event, over Home, for signed-in members and, since LAB-3271, for signed-out visitors. The row asks nothing itself. Once a signed-in member is going to that event, the row's arrow SHALL be replaced by "Going". `home-event-clicked` SHALL keep firing on a row press.
+
+Each event row SHALL show "N going" after the location when N is 1 or more (LAB-3271). N counts everyone going to the event. With N = 0, or when the API sends no count, the row SHALL show no count. The count comes from `goingCount` on `GET /v1/irl/events/upcoming` (backend PR memser-spaceport/pln-directory-portal#3725). Invite-only events send `null`, and the row SHALL show no count.
 
 #### Scenario: Events this month
 
@@ -135,6 +137,19 @@ With the event drawer flag on, a signed-in member's event row SHALL instead open
 #### Scenario: Signed out with the flag on
 
 - **GIVEN** the event drawer flag is on
+- **WHEN** a signed-out visitor presses an event in the sidebar
+- **THEN** the event drawer opens on that event over Home
+- **AND** its "Yes, I'm going" opens the sign-in modal
+
+#### Scenario: Attendee count on a row
+
+- **GIVEN** event A with 12 people going and event B with none
+- **WHEN** a viewer opens `/`
+- **THEN** event A's row reads "… · 12 going" and event B's row shows no count
+
+#### Scenario: Signed out with the flag off
+
+- **GIVEN** the event drawer flag is off
 - **WHEN** a signed-out visitor presses an event in the sidebar
 - **THEN** All Events opens with that event's details, as today
 
@@ -230,9 +245,11 @@ Above the stream, the filter row SHALL offer For You · All · Top · Discussion
 - Top SHALL show the editorial top stories (rank 1 to 5).
 - For You SHALL show what production's For You shows.
 
-Under the pills, on every filter, a member who is not shown the set-up line SHALL see a line that reads "For you · Curated from your profile, your team, and the teams you follow." followed by a "News preferences" link to `/settings/news-preferences` (LAB-3174).
+Under the pills, on every filter, a member who is shown neither the set-up line nor the tag card SHALL see a line that reads "For you · Curated from your profile, your team, and the teams you follow." followed by a "News preferences" link to `/settings/news-preferences` (LAB-3174).
 
-A signed-in member with no For You stories, no news tags and no followed teams, while News preferences is on, SHALL instead see "For you · Get news picked for you. Choose your topics and teams in News preferences." on the All view when no topic filter and no search text is set. Own teams do not hide the line. The link SHALL read "Open News preferences →" and open `/settings/news-preferences?from=feed`. A topic filter, a pill other than All, or search text SHALL hide that line and SHALL NOT show the curated line. The line SHALL record `team-news-for-you-setup-shown` once per page load, and a click SHALL record `team-news-for-you-setup-clicked`. When the member's tags are unknown, the member follows a team, the member has a news tag, For You has stories, or News preferences is off, the curated line SHALL stay.
+A signed-in member whose default news tags are not approved and not set by the member, while News preferences is on, SHALL instead see the tag card (team-news spec, "Tag card") in that place, on the For You filter and on the All view when no topic filter and no search text is set. On any other filter, with a topic filter, or with search text, the card SHALL be hidden; the curated line SHALL then show, unless the member is one the set-up line is for.
+
+A signed-in member with no For You stories, no news tags and no followed teams, while News preferences is on and the tag card is not shown, SHALL instead see "For you · Get news picked for you. Choose your topics and teams in News preferences." on the All view when no topic filter and no search text is set. Own teams do not hide the line. The link SHALL read "Open News preferences →" and open `/settings/news-preferences?from=feed`. A topic filter, a pill other than All, or search text SHALL hide that line and SHALL NOT show the curated line. The line SHALL record `team-news-for-you-setup-shown` once per page load, and a click SHALL record `team-news-for-you-setup-clicked`. When the member's tags are unknown, the member follows a team, the member has a news tag, For You has stories, or News preferences is off, the curated line SHALL stay.
 
 Milestone, Partnership and Other stories SHALL stay under All and keep their label on the card.
 
@@ -259,13 +276,20 @@ The editorial top stories SHALL be labelled "Top story" on their card where they
 
 #### Scenario: News preferences link
 
-- **GIVEN** a member who is not shown the set-up line
+- **GIVEN** a member who is shown neither the set-up line nor the tag card
 - **WHEN** the member follows the "News preferences" link under the pills
 - **THEN** it opens `/settings/news-preferences`
 
+#### Scenario: Member with unapproved default tags
+
+- **GIVEN** a signed-in member whose default news tags are not approved, and News preferences on
+- **WHEN** they open `/` on All, with no topic filter and no search, or on For You
+- **THEN** the tag card shows under the pills, and the curated line and the set-up line do not
+- **AND** pressing the Top pill hides the card and shows the curated line
+
 #### Scenario: Member with nothing For You can match on
 
-- **GIVEN** a signed-in member with no For You stories, no news tags and no followed teams, and News preferences on
+- **GIVEN** a signed-in member with no For You stories, no news tags and no followed teams, and News preferences on, whose default tags are empty
 - **WHEN** they open `/` on All, with no topic filter and no search
 - **THEN** the line reads "For you · Get news picked for you. Choose your topics and teams in News preferences." and "Open News preferences →" opens `/settings/news-preferences?from=feed`
 - **AND** a topic filter, another pill or search text hides that line, and the curated line does not show

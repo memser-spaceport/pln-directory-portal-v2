@@ -1,6 +1,7 @@
 # events Specification
 
 ## Purpose
+
 The event drawer: one place in the Directory where a signed-in member opens a single IRL event, sees who is going, says they are going to that event, chooses whether it shows on their profile, and adds their plans for the gathering.
 
 ## Requirements
@@ -25,12 +26,27 @@ The event drawer SHALL be available only when the build flag `NEXT_PUBLIC_SHOW_E
 ### Requirement: The drawer shows one event as the events app draws it
 
 The drawer SHALL open on one event and show, top to bottom:
+
 1. A Back bar.
 2. "EVENT DETAILS" with the event's mode and access.
 3. The event's picture when it has one, title, date line, and address with its region.
-4. Tags, Host, Description and Agenda.
+4. The event's own page (for example its Luma page) when it has one, as a link under the date and the address (LAB-3271). The link SHALL open in a new tab. It SHALL show the address without `https://`. An event without a page, or whose page is not an `http` or `https` address, SHALL have no link row.
+5. Tags, Host, Description and Agenda.
 
 A block whose data is empty SHALL be left out rather than shown empty. On a narrow screen the drawer SHALL take the full width.
+
+#### Scenario: Event with its own page
+
+- **GIVEN** event A with the page `https://lu.ma/labweek-lisbon`
+- **WHEN** a viewer opens event A
+- **THEN** the drawer shows "lu.ma/labweek-lisbon" under the date and the address
+- **AND** pressing it opens that page in a new tab
+
+#### Scenario: Event without a page
+
+- **GIVEN** event B without a page
+- **WHEN** a viewer opens event B
+- **THEN** the drawer shows no link row
 
 #### Scenario: Event with agenda and tags
 
@@ -112,7 +128,7 @@ A search box SHALL filter by name or team. With no match, the list SHALL say "No
 
 ### Requirement: A member says they are going to this event
 
-The drawer SHALL be about one event (LAB-3234). A signed-in member with permission to mark attendance SHALL see the going card ask "Are you going?" with "Yes, I'm going". "Yes, I'm going" SHALL save attendance for this one event only and leave the member's other events unchanged. The card SHALL then read "You're going" in place, with "You and N members" (or "You're the first one going"), "Add your plans for <city>" and "Can't make it? Mark as not going". "Mark as not going" SHALL remove this event only.
+The drawer SHALL be about one event (LAB-3234). A signed-in member with permission to mark attendance SHALL see the going card ask "Are you going?", and "Yes, I'm going" in the drawer's footer. The footer SHALL stay at the bottom of the drawer on desktop and phone while the event scrolls, so a long description never hides the press (LAB-3271). Once the member is going, the footer SHALL go away. "Yes, I'm going" SHALL save attendance for this one event only and leave the member's other events unchanged. The card SHALL then read "You're going" in place, with "You and N members" (or "You're the first one going"), "Add your plans for <city>" and "Can't make it? Mark as not going". "Mark as not going" SHALL remove this event only.
 
 Going SHALL always be visible to signed-in members: there is no "Show on my profile" choice.
 
@@ -122,6 +138,12 @@ Going SHALL always be visible to signed-in members: there is no "Show on my prof
 - **WHEN** they open it
 - **THEN** the going card asks "Are you going?" with "Yes, I'm going"
 - **AND** there is no "No" button and no "Show on my profile" checkbox
+
+#### Scenario: "Yes, I'm going" stays in view
+
+- **GIVEN** a member with attendance permission who is not going to event A, which has a long description
+- **WHEN** they open event A on desktop or on a phone and scroll the description
+- **THEN** "Yes, I'm going" stays visible at the bottom of the drawer
 
 #### Scenario: Going
 
@@ -161,6 +183,17 @@ A signed-in member without permission to mark attendance SHALL see the event, th
 - **WHEN** they open an event
 - **THEN** the drawer shows the event and "Who's going" with "N members going"
 - **AND** there is no "Are you going?" question and no "Yes, I'm going" button
+
+### Requirement: Signed-out visitors see the event and are asked to sign in
+
+A signed-out visitor SHALL be able to open the drawer from Home (LAB-3271). The drawer SHALL show the event, the gathering links and a "Who's going" card, and "Yes, I'm going" in the sticky footer. "Yes, I'm going" and the people count SHALL close the drawer and open the sign-in modal on the same page. Nothing SHALL save.
+
+#### Scenario: Signed out
+
+- **GIVEN** a signed-out visitor on Home with the event drawer flag on
+- **WHEN** they open event A and press "Yes, I'm going"
+- **THEN** the drawer closes and the sign-in modal opens
+- **AND** no attendance is saved
 
 ### Requirement: The member adds their plans for the event
 
@@ -204,7 +237,8 @@ When the drawer closes after a member said yes in it, and they are still going, 
 ### Requirement: Event drawer analytics
 
 The drawer SHALL record these PostHog events, each with `event_uid`:
-- `event-drawer-opened`, with `source` (`home`, `member-profile`, `team-profile` or `add-event`);
+
+- `event-drawer-opened`, with `source` (`home`, `member-profile`, `team-profile`, `add-event` or `digest`);
 - `event-going-marked`, with `source`;
 - `event-not-going-marked`, on "Mark as not going";
 - `event-plans-saved`, with `roles`;

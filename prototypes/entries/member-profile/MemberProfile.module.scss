@@ -370,8 +370,12 @@
    down to the DS xs Button's 34px (6px pad + 20px line + 1px borders) so the
    pair share a line — production's 8px pad is 38px, and two buttons 4px apart
    in height read as two kinds (lesson 8). Phone: the DS `s` height, 38px —
-   production's own 8px pad. */
-.scheduleBtn {
+   production's own 8px pad.
+   Doubled class: at single-class weight production's `primaryButton` (8px
+   pad) loaded later and won, so the press rendered 38px beside the 34px
+   intro. */
+.scheduleBtn.scheduleBtn {
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -407,7 +411,7 @@
   flex-shrink: 0;
 }
 
-.scheduleBtnS {
+.scheduleBtnS.scheduleBtnS {
   padding: 8px 12px;
 }
 
@@ -979,8 +983,18 @@
   order: -1;
 }
 
-/* Tablet up: name | action cluster on the first row, the facts line across
-   the whole card under both. The wrapper drops out of the box tree so the
+/* "Wrap this tags line before schedule meeting": from tablet up the tags row
+   wraps short of the corner press's column (Schedule Meeting / Request an
+   intro, ~200px at xs) plus the cluster's 8px gap, so no chip runs under it. */
+@include media.tablet-portrait {
+  .tagsClearPress.tagsClearPress {
+    padding-right: 208px;
+  }
+}
+
+/* Tablet up: name | action cluster on the first row, the facts line under
+   the name only, so it wraps short of the cluster's column ("this line should
+   be wrapped", 2026-11-17) instead of running under Schedule Meeting. The wrapper drops out of the box tree so the
    name and the facts become grid items of production's `.headerDetails`. */
 @include media.tablet-portrait {
   .detailsWide {
@@ -995,7 +1009,7 @@
   }
 
   .factsFull {
-    grid-column: 1 / -1;
+    grid-column: 1;
     grid-row: 2;
   }
 }
@@ -1078,5 +1092,30 @@
   .introMobileRow .followFlat.followFlat {
     order: 2;
     flex: 1 0 100%;
+  }
+}
+
+/* `scheduleOnCard` (profile-agent-actions): production's Office Hours row —
+   the description, Schedule Meeting on its right; stacked full width on a
+   phone, as production's `primaryButtonWrapper` is below tablet-landscape. */
+.ohLedeRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.ohSchedule.ohSchedule {
+  flex-shrink: 0;
+  cursor: pointer;
+  font-family: inherit;
+
+  @include media.mobile-only {
+    width: 100%;
   }
 }

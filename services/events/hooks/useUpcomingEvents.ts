@@ -12,6 +12,8 @@ export type UpcomingEvent = {
   websiteUrl: string;
   /** The event's gathering (LAB-3213). Null when the event has none. */
   locationUid?: string | null;
+  /** Everyone going to the event (LAB-3271, BE PR #3725). Null for invite-only events; absent before that PR deploys. */
+  goingCount?: number | null;
 };
 
 /**

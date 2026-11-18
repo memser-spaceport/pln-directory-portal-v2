@@ -105,7 +105,14 @@ describe('member signal call sites (LAB-3123)', () => {
     expect(mockRecord).toHaveBeenCalledWith({ action: 'contact-copy', entityType: 'member', entityId: 'member-1' });
   });
 
-  it('a search result click on a team adds search-result-click; an event result adds nothing', () => {
+  it('a job page records one view of the job (LAB-3267)', () => {
+    render(<MemberSignalViewTracker entityType="job-opening" entityId="job-1" />);
+
+    expect(mockRecord).toHaveBeenCalledTimes(1);
+    expect(mockRecord).toHaveBeenCalledWith({ action: 'view', entityType: 'job-opening', entityId: 'job-1' });
+  });
+
+  it('a search result click on a team or an event adds search-result-click', () => {
     const item = (index: string) => ({ uid: `${index}-1`, name: `${index} result`, index, matches: [] }) as any;
     const { unmount } = render(
       <ul>
@@ -124,6 +131,10 @@ describe('member signal call sites (LAB-3123)', () => {
       </ul>,
     );
     fireEvent.click(screen.getByText('events result'));
-    expect(mockRecord).not.toHaveBeenCalled();
+    expect(mockRecord).toHaveBeenCalledWith({
+      action: 'search-result-click',
+      entityType: 'event',
+      entityId: 'events-1',
+    });
   });
 });

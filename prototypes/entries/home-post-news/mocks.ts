@@ -20,12 +20,12 @@ export const VIEWER_OPTIONS: Option<Viewer>[] = [
   {
     value: 'several-teams',
     label: 'Lead of several teams',
-    note: 'The same button. The form opens with "Post as" on top (the LAB-3202 picker). Post stays off until a team is picked.',
+    note: 'The same button. The form opens with "Post as" on top (the LAB-3202 picker), set to the main team (Driftwood Labs). Each team shows its logo.',
   },
   {
     value: 'member',
     label: 'Not a lead',
-    note: 'A signed-in member who leads no team. No button, and the header keeps only the search, so no gap.',
+    note: 'A signed-in member who leads no team, admins included. No button, and the header keeps only the search, so no gap.',
   },
   {
     value: 'signed-out',
@@ -61,15 +61,47 @@ export const STATE_OPTIONS: Option<ButtonState>[] = [
 export const isViewer = (v: string | null): v is Viewer => VIEWER_OPTIONS.some((o) => o.value === v);
 export const isButtonState = (v: string | null): v is ButtonState => STATE_OPTIONS.some((o) => o.value === v);
 
-/** Invented teams. "Team lead" = the member's `leadingTeams` is not empty (active teams only). */
-export const LEAD_TEAMS: Record<'one-team' | 'several-teams', { uid: string; name: string }[]> = {
-  'one-team': [{ uid: 'lattice-compute', name: 'Lattice Compute' }],
-  'several-teams': [
-    { uid: 'lattice-compute', name: 'Lattice Compute' },
-    { uid: 'driftwood-labs', name: 'Driftwood Labs' },
-    { uid: 'northwind-bio', name: 'Northwind Bio' },
-  ],
+/** A mock logo: a plain tile with a glyph, as an inline SVG. No real team art. */
+const mockLogo = (bg: string, glyph: string) =>
+  `data:image/svg+xml;utf8,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" rx="8" fill="${bg}"/>${glyph}</svg>`,
+  )}`;
+
+export type LeadTeam = { uid: string; name: string; logoUrl: string; isMain?: boolean };
+
+const LATTICE: LeadTeam = {
+  uid: 'lattice-compute',
+  name: 'Lattice Compute',
+  logoUrl: mockLogo(
+    '#1b4dff',
+    '<path d="M10 10h6v6h-6zM24 10h6v6h-6zM17 17h6v6h-6zM10 24h6v6h-6zM24 24h6v6h-6z" fill="#fff"/>',
+  ),
 };
+const DRIFTWOOD: LeadTeam = {
+  uid: 'driftwood-labs',
+  name: 'Driftwood Labs',
+  logoUrl: mockLogo('#0f766e', '<path d="M8 24c6-8 10 4 16-4s8 0 8 0v6c-6-4-8 6-16 2S10 30 8 30z" fill="#fff"/>'),
+};
+const NORTHWIND: LeadTeam = {
+  uid: 'northwind-bio',
+  name: 'Northwind Bio',
+  logoUrl: mockLogo('#b45309', '<circle cx="20" cy="20" r="9" fill="none" stroke="#fff" stroke-width="4"/>'),
+};
+
+/**
+ * Invented teams. "Team lead" = the member's `leadingTeams` is not empty (active
+ * teams only). Admin rights do not count: an admin who leads no team sees no
+ * button (Polina, PR #3613). `isMain` marks the team "Post as" preselects. The
+ * build reads it from the member's main team; here it is mocked on Driftwood
+ * Labs, not the first row, so the preselect is visible as a choice.
+ */
+export const LEAD_TEAMS: Record<'one-team' | 'several-teams', LeadTeam[]> = {
+  'one-team': [LATTICE],
+  'several-teams': [LATTICE, { ...DRIFTWOOD, isMain: true }, NORTHWIND],
+};
+
+/** The team "Post as" opens on: the main team, else the first team. */
+export const mainTeamUid = (teams: LeadTeam[]) => (teams.find((t) => t.isMain) ?? teams[0])?.uid ?? '';
 
 /** The story the review states "Posting" and "Posted" show. */
 export const SAMPLE_POST = {

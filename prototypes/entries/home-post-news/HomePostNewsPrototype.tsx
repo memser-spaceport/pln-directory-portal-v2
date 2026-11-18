@@ -59,6 +59,7 @@ import { HomePostNewsButton } from './HomePostNewsButton';
 import { PostNewsModal, type PostNewsSubmission } from './PostNewsModal';
 import {
   LEAD_TEAMS,
+  mainTeamUid,
   MOCK_CATEGORIES,
   SAMPLE_POST,
   STATE_OPTIONS,
@@ -161,7 +162,7 @@ export default function HomePostNewsPrototype() {
       uid: `posted-${post.teamUid}-${post.title.length}-${post.url.length}`,
       teamUid: team?.uid ?? post.teamUid,
       teamName: team?.name ?? '',
-      teamLogoUrl: null,
+      teamLogoUrl: team?.logoUrl ?? null,
       eventType: 'ANNOUNCEMENT',
       eventDate: (now ?? new Date()).toISOString(),
       title: post.title,
@@ -177,10 +178,7 @@ export default function HomePostNewsPrototype() {
 
   // Review state "Posted": the sample post at the top of the stream and the toast held open.
   const reviewPosted = useMemo(
-    () =>
-      state === 'posted' && isLead
-        ? [makeStory({ teamUid: leadTeams[leadTeams.length > 1 ? 1 : 0].uid, ...SAMPLE_POST })]
-        : [],
+    () => (state === 'posted' && isLead ? [makeStory({ teamUid: mainTeamUid(leadTeams), ...SAMPLE_POST })] : []),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [state, isLead, viewer, now],
   );
@@ -191,8 +189,8 @@ export default function HomePostNewsPrototype() {
   }, [viewer]);
   useEffect(() => {
     if (state === 'posted' && isLead) {
-      const team = leadTeams[leadTeams.length > 1 ? 1 : 0];
-      setToast(team.name);
+      const team = leadTeams.find((t) => t.uid === mainTeamUid(leadTeams));
+      setToast(team?.name ?? null);
       setWashKey((k) => k + 1);
     } else if (state !== 'default') {
       setToast(null);
@@ -366,7 +364,7 @@ export default function HomePostNewsPrototype() {
           open={formOpen}
           onClose={() => setParams({ state: null })}
           teamChoices={leadTeams}
-          initialTeamUid={forcedPublishing && leadTeams.length > 1 ? leadTeams[1].uid : ''}
+          initialTeamUid={mainTeamUid(leadTeams)}
           existing={stream}
           onPublish={handlePublish}
           isPublishing={publishing || forcedPublishing}

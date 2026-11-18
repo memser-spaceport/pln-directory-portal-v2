@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 
 import type { ITeamNewsItem } from '@/types/team-news.types';
@@ -30,14 +30,25 @@ import local from './HomePostNews.module.scss';
  *
  * 1. "Post as" on top (`teamChoices`, more than one team): the LAB-3202 pattern,
  *    "the same UI with a team picker on top", in the look of the team-profile
- *    prototype's picker. It opens EMPTY, and Post stays off until a team is
- *    picked: the post is public under the team's name, so the lead says which
- *    team (design-thinking test 4). The subtitle names the team once picked.
+ *    prototype's picker. It opens on the lead's main team (`initialTeamUid`),
+ *    and the subtitle names that team, so the choice stays in view (Polina,
+ *    PR #3613). Each option and the chosen value show the team logo
+ *    (`formatOptionLabel` for the value, `renderOption` for the list).
  * 2. While `isPublishing`, Post reads "Posting…" and Cancel is off too.
  *    Production only disables Post.
  * 3. `prefill`: the review band opens the form already filled, for "Posting".
  * 4. `newsUrl` from the prototype copy, not `services/`.
  */
+
+/** One "Post as" row: the team logo, then the name. */
+function TeamOptionRow({ logoUrl, label }: { logoUrl?: string; label: ReactNode }) {
+  return (
+    <span className={local.teamOption}>
+      {logoUrl && <img className={local.teamLogo} src={logoUrl} alt="" />}
+      <span className={local.teamName}>{label}</span>
+    </span>
+  );
+}
 
 export interface PostNewsFormData {
   title: string;
@@ -70,8 +81,8 @@ interface Props {
   open: boolean;
   onClose: () => void;
   /** The teams the viewer leads. One: the form is for it. More: "Post as" on top. */
-  teamChoices: { uid: string; name: string }[];
-  /** The team already picked (review states); empty = nothing picked yet. */
+  teamChoices: { uid: string; name: string; logoUrl?: string }[];
+  /** The team "Post as" opens on: the lead's main team. */
   initialTeamUid?: string;
   existing: ITeamNewsItem[];
   onPublish: (post: PostNewsSubmission) => void | Promise<void>;
@@ -91,6 +102,7 @@ export function PostNewsModal({
 }: Props) {
   const several = teamChoices.length > 1;
   const teamOptions: TeamOption[] = teamChoices.map((c) => ({ value: c.uid, label: c.name }));
+  const logoOf = (uid: string) => teamChoices.find((c) => c.uid === uid)?.logoUrl;
   const findOption = (uid: string) => teamOptions.find((o) => o.value === uid) ?? null;
 
   // The team is not part of the post's draft: it is where the post goes.
@@ -244,6 +256,10 @@ export function PostNewsModal({
                     placeholder="Select a team"
                     isRequired
                     options={teamOptions}
+                    renderOption={({ option, label }) => <TeamOptionRow logoUrl={logoOf(option.value)} label={label} />}
+                    formatOptionLabel={(option) => (
+                      <TeamOptionRow logoUrl={logoOf(option.value)} label={option.label} />
+                    )}
                   />
                 </div>
               </FormProvider>

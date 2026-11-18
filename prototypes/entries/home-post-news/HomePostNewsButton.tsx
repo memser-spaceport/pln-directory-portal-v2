@@ -15,11 +15,10 @@ import local from './HomePostNews.module.scss';
  *
  * Same object as the team page: DS `fill` `primary`, the 16px `PlusIcon`, the
  * label "Post news". Two deltas, both marked for the build:
- * 1. No one-time callout. The production hook (`useOneTimeCallout`) reads the
- *    session, so it is left out here. Open question in the PR.
+ * 1. No one-time "New" callout on Home (Polina, PR #3613).
  * 2. Height. It takes the box of the 30px search button beside it on desktop
- *    (lesson 27), and 36px on phones, where it stands alone and must be easy
- *    to tap. The type stays at the DS `xxs` scale on desktop.
+ *    (lesson 27), and 32px on phones (Polina, PR #3613). The type stays at
+ *    the DS `xxs` scale on desktop.
  */
 export function HomePostNewsButton({ onPost, forceHover = false }: { onPost: () => void; forceHover?: boolean }) {
   return (

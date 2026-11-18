@@ -16,16 +16,16 @@
 }
 
 // DS `xxs` type (12/16) in the 30px box of the search button beside it
-// (NewsSearch `.searchBtn`: 30px, 8px radius). Phones: 36px and 14/20, the
-// button stands alone at the end of the title row and must be easy to tap.
+// (NewsSearch `.searchBtn`: 30px, 8px radius). Phones: 32px and 14/20 at the
+// end of the title row (Polina, PR #3613).
 .homePostAction.homePostAction {
   height: 30px;
   padding: 6px 10px;
   border-radius: 8px;
 
   @include media.mobile-only {
-    height: 36px;
-    padding: 8px 12px;
+    height: 32px;
+    padding: 6px 12px;
     font-size: 14px;
     line-height: 20px;
   }
@@ -40,6 +40,29 @@
 // "Post as" sits above the headline, as in the team-profile prototype's picker.
 .postAsField {
   margin-bottom: 24px;
+}
+
+// A "Post as" row: 20px mock logo, 8px gap, the name. The same row in the list
+// and in the chosen value.
+.teamOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.teamLogo {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: 4px;
+}
+
+.teamName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .stream.stream {

@@ -123,11 +123,22 @@ const NEWS_PREVIEW_COUNT = 3;
  * Post news callout off: a tour and a callout on one arrival is two announcements.
  *
  * `demoBarExtra` — a host (member-events-going) adds its review switches to this bar.
+ *
+ * `contactPress` — a host (profile-agent-actions) draws its own press where
+ * Request an intro stands, in every seat; `className` is the seat's.
  */
 export default function TeamProfilePrototype({
   newsCallout = true,
   demoBarExtra,
-}: { newsCallout?: boolean; demoBarExtra?: ReactNode } = {}) {
+  contactPress,
+  initialView = 'lead',
+}: {
+  newsCallout?: boolean;
+  demoBarExtra?: ReactNode;
+  contactPress?: (ctx: { size: 'xs' | 's'; className?: string }) => ReactNode;
+  /** The View switch's starting seat. */
+  initialView?: TeamPostRole;
+} = {}) {
   // Several reused leaf components are base-ui / client-only (Tooltip, Tag
   // popovers). Gate render on mount so SSR === first client render.
   const [mounted, setMounted] = useState(false);
@@ -160,7 +171,7 @@ export default function TeamProfilePrototype({
    * Follow pill, the Asks, posting news, and editing or removing the team's
    * posts (see `canManageTeamPost`). Jobs are narrower (lead or admin).
    */
-  const [view, setView] = useState<TeamPostRole>('lead');
+  const [view, setView] = useState<TeamPostRole>(initialView);
   /* Visitor seat: Follow and Request an intro in the header cluster (the Sep
      28 decision, default) or as a row under About, to compare. */
   const [actionsAt, setActionsAt] = useState<'header' | 'bio'>('header');
@@ -750,15 +761,18 @@ export default function TeamProfilePrototype({
   /* One glossy press in every seat, the admin's text-action row included
      (2026-11-06: tried the dev build's flat DS button there, reverted —
      "get back to shiny"). */
-  const introPress = (className?: string) => (
-    <RequestIntroButton
-      requested={intro.requested(teamIntroUid)}
-      onClick={() => intro.request({ uid: teamIntroUid, name: team.name ?? 'this team', kind: 'team' })}
-      name={team.name ?? 'this team'}
-      size={isMobile ? 's' : 'xs'}
-      className={clsx(local.introPress, className)}
-    />
-  );
+  const introPress = (className?: string) =>
+    contactPress ? (
+      contactPress({ size: isMobile ? 's' : 'xs', className: clsx(local.introPress, className) })
+    ) : (
+      <RequestIntroButton
+        requested={intro.requested(teamIntroUid)}
+        onClick={() => intro.request({ uid: teamIntroUid, name: team.name ?? 'this team', kind: 'team' })}
+        name={team.name ?? 'this team'}
+        size={isMobile ? 's' : 'xs'}
+        className={clsx(local.introPress, className)}
+      />
+    );
   const visitorIntro = introPress();
 
   return (
@@ -1200,7 +1214,11 @@ export default function TeamProfilePrototype({
                       View all news ({displayNews.length})
                     </button>
                   )}
-                  <Link href="/prototypes/homepage?state=signed-in&view=news" prefetch={false} className={local.viewFeed}>
+                  <Link
+                    href="/prototypes/homepage?state=signed-in&view=news"
+                    prefetch={false}
+                    className={local.viewFeed}
+                  >
                     All network updates
                     <ArrowUpRightIcon aria-hidden="true" />
                   </Link>

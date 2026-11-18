@@ -14,7 +14,7 @@ import type { FilterState } from '@/services/filters/types';
  */
 
 /** Params that count toward the panel's applied-filters badge. */
-export const COUNTED_PARAMS = ['search', 'going', 'featured', 'mode', 'access', 'focus', 'gathering', 'host'];
+export const COUNTED_PARAMS = ['search', 'going', 'featured', 'mode', 'access', 'focus', 'city', 'host'];
 
 export const countAppliedFilters = (params: URLSearchParams) => COUNTED_PARAMS.filter((k) => params.get(k)).length;
 

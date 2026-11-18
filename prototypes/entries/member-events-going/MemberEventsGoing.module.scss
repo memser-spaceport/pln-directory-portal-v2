@@ -43,21 +43,6 @@
   opacity: 1;
 }
 
-.goingMark {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 16px;
-  color: var(--foreground-success-primary, #0a9952);
-
-  svg {
-    width: 12px;
-    height: 12px;
-  }
-}
-
 /* Profile section */
 
 .panel {

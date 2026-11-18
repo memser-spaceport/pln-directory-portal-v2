@@ -2971,4 +2971,11 @@ export const DIGEST_ANALYTICS_EVENTS = {
   ON_DIGEST_TOPICS_SAVED: 'digest-topics-saved',
   ON_DIGEST_TOPICS_MODAL_OPENED: 'digest-topics-modal-opened',
   ON_DIGEST_TOPICS_SIGN_IN_PROMPTED: 'digest-topics-sign-in-prompted',
+  // LAB-3312: the digest email page (/digest/email), opened from the email footer.
+  ON_DIGEST_EMAIL_PAGE_VIEWED: 'digest-email-page-viewed',
+  ON_DIGEST_EMAIL_UNSUBSCRIBED: 'digest-email-unsubscribed',
+  ON_DIGEST_EMAIL_RESUBSCRIBED: 'digest-email-resubscribed',
+  ON_DIGEST_EMAIL_FREQUENCY_CHANGED: 'digest-email-frequency-changed',
+  ON_DIGEST_EMAIL_UNDO_CLICKED: 'digest-email-undo-clicked',
+  ON_DIGEST_EMAIL_SAVE_FAILED: 'digest-email-save-failed',
 };

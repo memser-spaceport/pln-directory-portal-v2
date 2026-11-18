@@ -510,4 +510,52 @@ describe('EventDrawerView (LAB-3216)', () => {
       }
     });
   });
+
+  describe('LAB-3333: the event link row looks like the date row', () => {
+    const URL_ = 'https://lu.ma/labweek-lisbon';
+
+    it('LAB-3333 R1: shows the link row directly under the address', () => {
+      render(<Harness raw={eventResponse({ websiteUrl: URL_ })} />);
+      const row = screen.getByTestId('event-link-row');
+      const addressRow = screen.getByText('Lisbon, Portugal').closest('.factRow') as HTMLElement;
+      expect(addressRow.nextElementSibling).toBe(row);
+    });
+
+    it('LAB-3333 R2, R3: a link icon in the calendar style, then the text in the date style, with no arrow', () => {
+      render(<Harness raw={eventResponse({ websiteUrl: URL_ })} />);
+      const row = screen.getByTestId('event-link-row');
+      const icon = within(row).getByTestId('event-link-icon');
+      const dateRow = row.parentElement!.querySelector('.factRow') as HTMLElement;
+      const calendar = dateRow.querySelector('svg')!;
+      for (const attr of ['width', 'height', 'viewBox', 'class']) {
+        expect(icon.getAttribute(attr)).toBe(calendar.getAttribute(attr));
+      }
+      expect(icon.querySelector('path')!.getAttribute('stroke-width')).toBe(
+        calendar.querySelector('path')!.getAttribute('stroke-width'),
+      );
+      const text = within(row).getByText('lu.ma/labweek-lisbon');
+      expect(text).toHaveClass('fact');
+      expect(text.className).toBe(dateRow.querySelector('span')!.className);
+      // Only the icon: no trailing arrow inside the link.
+      expect(row.querySelectorAll('svg')).toHaveLength(1);
+      expect(screen.getByRole('link', { name: 'lu.ma/labweek-lisbon' }).querySelector('svg')).toBeNull();
+    });
+
+    it('LAB-3333 R4: the link opens the event page in a new tab', () => {
+      render(<Harness raw={eventResponse({ websiteUrl: URL_ })} />);
+      const link = within(screen.getByTestId('event-link-row')).getByRole('link');
+      expect(link).toHaveAttribute('href', URL_);
+      expect(link).toHaveAttribute('target', '_blank');
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    });
+
+    it('LAB-3333 R5: no link, no row', () => {
+      for (const websiteUrl of [null, '', 'javascript:alert(1)']) {
+        const { unmount } = render(<Harness raw={eventResponse({ websiteUrl })} />);
+        expect(screen.queryByTestId('event-link-row')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('event-link-icon')).not.toBeInTheDocument();
+        unmount();
+      }
+    });
+  });
 });

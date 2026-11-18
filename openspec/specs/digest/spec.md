@@ -124,7 +124,7 @@ Each story's team header SHALL have Follow, which starts from the API's `follows
 
 ### Requirement: End of the issue and side cards
 
-After the stories and forum posts, the page SHALL show "You're all caught up" with a check, "The next digest arrives on <weekday>, <day> <month>." from the API's `nextSendAt` (the line is left out when it is missing), and a "See all network news" link to Home. When the API's `isTeamMember` is true, the page SHALL show the outlined "Got news from your team?" card with "Post your team news →", except to a signed-in member whose own record lists no team. For a signed-in member of one team, "Post your team news →" SHALL open the Post news modal for that team. For a member of more than one team it SHALL ask "Post as" with one button per team, main team first, and a press SHALL open the modal for that team. A signed-out reader SHALL go to sign-in, and come back to the page with `postnews=open`. A link with `postnews=open` SHALL do the same as a press once the reader is known, bringing the "Post as" question into view, and SHALL then be dropped from the address so a reload doesn't repeat it. The teams SHALL come from the signed-in member's own record (`teamMemberRoles`). From 1100px the side cards SHALL sit in a sticky column on the right; under 1100px they SHALL follow "You're all caught up". The side cards SHALL include "How personalization works": "Stories come from your topics first, then the teams you follow, then the network's top stories."
+After the stories and forum posts, the page SHALL show "You're all caught up" with a check, "The next digest arrives on <weekday>, <day> <month>." from the API's `nextSendAt` (the line is left out when it is missing), and a "See all network news" link to Home. When the API's `isTeamMember` is true, the page SHALL show the outlined "Got news from your team?" card with "Post your team news →", except to a signed-in member whose own record lists no team. For a signed-in member of one team, "Post your team news →" SHALL open the Post news modal for that team. For a member of more than one team it SHALL ask "Post as" with one button per team, main team first, and a press SHALL open the modal for that team. A signed-out reader SHALL go to sign-in, and come back to the page with `postnews=open`. A link with `postnews=open` SHALL do the same as a press once the reader is known (except on the way back from Google or GitHub sign-in, see Saving topics), bringing the "Post as" question into view, and SHALL then be dropped from the address so a reload doesn't repeat it. The teams SHALL come from the signed-in member's own record (`teamMemberRoles`). From 1100px the side cards SHALL sit in a sticky column on the right; under 1100px they SHALL follow "You're all caught up". The side cards SHALL include "How personalization works": "Stories come from your topics first, then the teams you follow, then the network's top stories."
 
 #### Scenario: Not on a team
 
@@ -193,13 +193,19 @@ The side cards SHALL start with "Add topics": "Tick a topic to get stories about
 
 ### Requirement: Saving topics
 
-Topics SHALL save only as the signed-in member's News preferences tags (the full list), through the same save as News preferences, never through the link. Before sign-in the page SHALL show the link member's topics; signed in, the member's own saved tags. A failed save SHALL keep the reader's picks in the card or the modal, show an error toast, and leave the saved topics unchanged. A signed-out reader who presses a chip, "See all topics" or "Change topics" SHALL go to sign-in, and come back to the same digest with the modal open, or with that chip ticked and Save topics showing. A signed-out reader who opens a `topics=open` link SHALL go to sign-in first. Once applied, `topics` and `topic` SHALL be removed from the address.
+Topics SHALL save only as the signed-in member's News preferences tags (the full list), through the same save as News preferences, never through the link. Before sign-in the page SHALL show the link member's topics; signed in, the member's own saved tags. A failed save SHALL keep the reader's picks in the card or the modal, show an error toast, and leave the saved topics unchanged. A signed-out reader who presses a chip, "See all topics" or "Change topics" SHALL go to sign-in, and come back to the same digest with the modal open, or with that chip ticked and Save topics showing. A signed-out reader who opens a `topics=open` link SHALL go to sign-in first. Google and GitHub sign-in come back to the same address with `privy_oauth_*` added, still signed out while the sign-in finishes: the page SHALL NOT start another sign-in then, for `topics=open` or `postnews=open`, because starting one throws away the sign-in that is finishing. Once applied, `topics` and `topic` SHALL be removed from the address.
 
 #### Scenario: Chip before sign-in
 
 - **GIVEN** a signed-out reader
 - **WHEN** they press `#defi`
 - **THEN** sign-in opens, nothing is saved, and after sign-in the page shows `#defi` ticked with Save topics
+
+#### Scenario: Back from Google sign-in
+
+- **GIVEN** a signed-out reader pressed "See all topics" and signed in with Google
+- **WHEN** Google brings them back to `/digest?t=<token>&topics=open&privy_oauth_…`
+- **THEN** sign-in does not open again, the sign-in finishes, and the page reloads signed in with the topics modal open
 
 #### Scenario: Failed save
 

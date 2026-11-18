@@ -9,3 +9,5 @@
 - [x] 1.5 `LabosAgentCorner` and `useLabosAgentShortcut`; `GlobalFeedback` shows the corner for members with agent access.
 - [x] 1.6 Tests: `__tests__/core/labos-agent/labos-agent-corner.test.tsx`.
 - [x] 1.7 `labos-agent` and `feedback` specs, AGENTS.md and CLAUDE.md.
+- [x] 1.8 Key hint only with keys (`useShowsKeyHint`); "⌘J" on a Mac, "Ctrl J" elsewhere.
+- [x] 1.9 Contract change 3 (S5-C25 to S5-C30): `toChatContext` sends `member`, `team`, `job` and `profile` with their ids; the 3 page 404 codes; the mock.

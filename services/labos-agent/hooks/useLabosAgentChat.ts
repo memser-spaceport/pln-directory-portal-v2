@@ -36,6 +36,16 @@ const NO_TURNS: LabosAgentTurn[] = [];
 /** The open stream of each chat, by `chatKey`. Module scope, so a stream outlives the panel and Stop still works. */
 const streams = new Map<string, AbortController>();
 
+/** S5-C29: C1 cannot read the page of the chip (contract 9.3). The turn keeps the member's text. */
+export const PAGE_NOT_FOUND_TEXT = 'The agent cannot read this page. Remove the page chip and ask again.';
+
+/** The C1 codes for a page that the agent cannot read. */
+export const PAGE_NOT_FOUND_CODES: ReadonlySet<LabosAgentChatErrorCode> = new Set([
+  'MEMBER_NOT_FOUND',
+  'TEAM_NOT_FOUND',
+  'JOB_NOT_FOUND',
+]);
+
 /** The text the panel shows for an error code. Plain words, no codes. */
 export function errorText(code: LabosAgentChatErrorCode, retryAfterSeconds?: number): string {
   switch (code) {
@@ -47,6 +57,10 @@ export function errorText(code: LabosAgentChatErrorCode, retryAfterSeconds?: num
       return 'The agent cannot find this news story.';
     case 'INTRO_TARGET_NOT_FOUND':
       return 'The agent cannot find this member or team.';
+    case 'MEMBER_NOT_FOUND':
+    case 'TEAM_NOT_FOUND':
+    case 'JOB_NOT_FOUND':
+      return PAGE_NOT_FOUND_TEXT;
     case 'RATE_LIMITED':
       return retryAfterSeconds
         ? `You sent many messages. Try again in ${retryAfterSeconds} seconds.`

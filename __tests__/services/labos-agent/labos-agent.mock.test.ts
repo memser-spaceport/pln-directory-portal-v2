@@ -156,3 +156,38 @@ describe('LAB-3300: mock intro drafts', () => {
     await check;
   });
 });
+
+describe('LAB-3302: mock C1 for the S5 pages', () => {
+  beforeEach(() => jest.useFakeTimers());
+  afterEach(() => jest.useRealTimers());
+
+  const req = (context: Parameters<typeof mockChatBody>[0]['context']) => ({
+    threadId: 't',
+    chatId: 'c',
+    message: 'What is this?',
+    context,
+  });
+
+  it.each([
+    [{ page: 'member' as const, memberUid: 'm-2' }, 'Reading this member page'],
+    [{ page: 'team' as const, teamUid: 't-1' }, 'Reading this team page'],
+    [{ page: 'job' as const, jobUid: 'j-1' }, 'Reading the job post'],
+    [{ page: 'job' as const }, 'Reading the job post'],
+    [{ page: 'profile' as const }, 'Reading your profile'],
+  ])('answers about the page %o', (context, step) => {
+    const body = mockChatBody(req(context));
+    expect(body.steps).toContain(step);
+    expect(body.content).toMatch(/^This is a mock answer\. The live agent will read /);
+  });
+
+  it.each([
+    [{ page: 'member' as const, memberUid: 'missing-1' }, 'MEMBER_NOT_FOUND'],
+    [{ page: 'team' as const, teamUid: 'missing-1' }, 'TEAM_NOT_FOUND'],
+    [{ page: 'job' as const, jobUid: 'missing-1' }, 'JOB_NOT_FOUND'],
+  ])('gives a 404 for a missing page %o', async (context, code) => {
+    const done = mockLabosAgentClient.chat(req(context));
+    const check = expect(done).rejects.toMatchObject({ status: 404, code });
+    await jest.runAllTimersAsync();
+    await check;
+  });
+});

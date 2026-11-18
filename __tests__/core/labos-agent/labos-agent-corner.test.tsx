@@ -61,6 +61,7 @@ import { LabosAgentRoot } from '@/components/core/labos-agent/LabosAgentRoot/Lab
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useFeedbackDrawerStore } from '@/services/feedback/store';
 import { agentShortcutHint, isAgentShortcut, KEY_HINT_QUERY } from '@/services/labos-agent/hooks/useLabosAgentShortcut';
+import { LabosAgentError } from '@/services/labos-agent/labos-agent.errors';
 import { toChatContext } from '@/services/labos-agent/labos-agent.service';
 import { pageContextFromLocation } from '@/services/labos-agent/labos-agent.page-context';
 import { useLabosAgentStore } from '@/services/labos-agent/store';
@@ -94,7 +95,8 @@ const goTo = (url: string) => {
   mockPathname = new URL(url, 'http://localhost').pathname;
 };
 
-const ctrlJ = (target: Window | Element = window) => fireEvent.keyDown(target, { key: 'j', code: 'KeyJ', ctrlKey: true });
+const ctrlJ = (target: Window | Element = window) =>
+  fireEvent.keyDown(target, { key: 'j', code: 'KeyJ', ctrlKey: true });
 const agentTab = () => screen.queryByRole('button', { name: 'Agent' });
 const panel = () => screen.queryByRole('complementary', { name: 'Agent' });
 
@@ -198,7 +200,7 @@ describe('LAB-3302: agent corner, Ctrl/⌘ J and context chips', () => {
     });
   });
 
-  describe('S5-R6: key hint (AC4)', () => {
+  describe('S5-R5: key hint (AC4)', () => {
     const realMatchMedia = window.matchMedia;
     const realUserAgent = navigator.userAgent;
     const setUserAgent = (ua: string) =>
@@ -339,7 +341,7 @@ describe('LAB-3302: agent corner, Ctrl/⌘ J and context chips', () => {
   });
 
   describe('S5-R4: the context chip (AC2)', () => {
-    it('shows the current page; after ✕ the C1 body has no page context', async () => {
+    it('S5-C28: shows the current page; after ✕ the C1 body has no page context', async () => {
       goTo('/?news=n-1');
       window.localStorage.setItem('labos-agent', 'on');
       signIn();
@@ -383,6 +385,39 @@ describe('LAB-3302: agent corner, Ctrl/⌘ J and context chips', () => {
     });
   });
 
+  describe('S5-C29: the agent cannot read the page (C1 404)', () => {
+    it.each([
+      ['MEMBER_NOT_FOUND', '/members/missing-1', 'Member profile'],
+      ['TEAM_NOT_FOUND', '/teams/missing-1', 'Team page'],
+      ['JOB_NOT_FOUND', '/jobs/openings/missing-1', 'Job post'],
+    ] as const)('%s: the panel tells the member to remove the chip and keeps the text', async (code, url, label) => {
+      goTo(url);
+      chat.mockRejectedValueOnce(new LabosAgentError(404, code, 'Not found.'));
+      window.localStorage.setItem('labos-agent', 'on');
+      signIn();
+      renderApp();
+      fireEvent.click(await screen.findByRole('button', { name: 'Agent' }));
+
+      const composer = screen.getByRole('textbox', { name: 'Message the agent' }) as HTMLTextAreaElement;
+      fireEvent.change(composer, { target: { value: 'What does this page say?' } });
+      fireEvent.keyDown(composer, { key: 'Enter' });
+
+      expect(
+        await screen.findByText('The agent cannot read this page. Remove the page chip and ask again.'),
+      ).toBeInTheDocument();
+      // The turn keeps the text, and the text comes back in the composer.
+      expect(screen.getByText('What does this page say?', { selector: ':not(textarea)' })).toBeInTheDocument();
+      expect(composer.value).toBe('What does this page say?');
+
+      // The member removes the chip and sends again: C1 gets no context.
+      fireEvent.click(screen.getByRole('button', { name: `Stop reading ${label}` }));
+      fireEvent.keyDown(composer, { key: 'Enter' });
+      expect(await screen.findByText('Mock answer text')).toBeInTheDocument();
+      expect(chat).toHaveBeenCalledTimes(2);
+      expect(chat.mock.calls[1][0].context).toBeUndefined();
+    });
+  });
+
   describe('S5-R5: a11y', () => {
     it('Escape closes the panel and focus goes back to the Agent tab', async () => {
       window.localStorage.setItem('labos-agent', 'on');
@@ -398,7 +433,7 @@ describe('LAB-3302: agent corner, Ctrl/⌘ J and context chips', () => {
     });
   });
 
-  describe('S5-R6: each page type maps to its context', () => {
+  describe('S5-R6: each page type maps to its context (contract change 3)', () => {
     it.each([
       ['/', '', { page: 'home', label: 'Home' }, { page: 'home' }],
       [
@@ -407,17 +442,36 @@ describe('LAB-3302: agent corner, Ctrl/⌘ J and context chips', () => {
         { page: 'news-story', newsUid: 'n-1', label: 'News story' },
         { page: 'news-story', newsUid: 'n-1' },
       ],
-      ['/members/m-2', '', { page: 'member', memberUid: 'm-2', label: 'Member profile' }, { page: 'home' }],
-      ['/members/me-1', '', { page: 'profile', label: 'Your profile' }, { page: 'home' }],
-      ['/settings/profile', '', { page: 'profile', label: 'Your profile' }, { page: 'home' }],
-      ['/teams/t-1', '', { page: 'team', teamUid: 't-1', label: 'Team page' }, { page: 'home' }],
-      ['/teams/t-1/applicants', '', { page: 'team', teamUid: 't-1', label: 'Team page' }, { page: 'home' }],
-      ['/jobs/openings/j-1', '', { page: 'job', jobUid: 'j-1', label: 'Job post' }, { page: 'home' }],
-      ['/jobs', '?q=rust', { page: 'job', label: 'Jobs' }, { page: 'home' }],
-    ])('%s%s', (pathname, search, open, wire) => {
+      [
+        '/members/m-2',
+        '',
+        { page: 'member', memberUid: 'm-2', label: 'Member profile' },
+        { page: 'member', memberUid: 'm-2' },
+      ],
+      ['/teams/t-1', '', { page: 'team', teamUid: 't-1', label: 'Team page' }, { page: 'team', teamUid: 't-1' }],
+      [
+        '/teams/t-1/applicants',
+        '',
+        { page: 'team', teamUid: 't-1', label: 'Team page' },
+        { page: 'team', teamUid: 't-1' },
+      ],
+      ['/jobs/openings/j-1', '', { page: 'job', jobUid: 'j-1', label: 'Job post' }, { page: 'job', jobUid: 'j-1' }],
+    ])('S5-C25: %s%s sends its page and id, not home', (pathname, search, open, wire) => {
       const context = pageContextFromLocation(pathname, search, 'me-1');
       expect(context).toEqual(open);
       expect(toChatContext(context)).toEqual(wire);
+    });
+
+    it('S5-C26: /jobs sends { page: "job" } with no jobUid', () => {
+      const wire = toChatContext(pageContextFromLocation('/jobs', '?q=rust', 'me-1'));
+      expect(wire).toEqual({ page: 'job' });
+      expect(wire).not.toHaveProperty('jobUid');
+    });
+
+    it.each(['/settings/profile', '/members/me-1'])('S5-C27: %s sends { page: "profile" } with no id', (pathname) => {
+      const context = pageContextFromLocation(pathname, '', 'me-1');
+      expect(context).toEqual({ page: 'profile', label: 'Your profile' });
+      expect(JSON.parse(JSON.stringify(toChatContext(context)))).toStrictEqual({ page: 'profile' });
     });
 
     it.each(['/members', '/members/browse', '/teams', '/teams/add', '/events', '/forum'])(

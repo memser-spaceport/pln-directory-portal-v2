@@ -33,6 +33,9 @@ const KNOWN_CODES: LabosAgentChatErrorCode[] = [
   'AGENT_NOT_ENABLED',
   'NEWS_NOT_FOUND',
   'INTRO_TARGET_NOT_FOUND',
+  'MEMBER_NOT_FOUND',
+  'TEAM_NOT_FOUND',
+  'JOB_NOT_FOUND',
   'RATE_LIMITED',
   'ACTION_NOT_ALLOWED',
   'PROPOSAL_NOT_FOUND',
@@ -53,9 +56,9 @@ const PROPOSAL_TOOLS: LabosAgentProposalTool[] = [
 const apiUrl = (path: string) => `${process.env.DIRECTORY_API_URL}${path}`;
 
 /**
- * The C1 `context`: only the contract fields. The chip label stays in the browser. The S5 pages (member, team, job,
- * profile) have no C1 value yet, so they go as `home` with no uid (LAB-3302 open point). `null`: the member removed the
- * page chip, so the request has no `context`.
+ * The C1 `context`: only the contract fields. The chip label and the intro entry point stay in the browser. S5
+ * (contract 9.2): each page goes with its own id; `profile` has none, and the job board has no `jobUid`. `null`: the
+ * member removed the page chip, so the request has no `context`.
  */
 export function toChatContext(context: LabosAgentOpenContext | null | undefined): LabosAgentChatContext | undefined {
   if (!context) return undefined;
@@ -63,7 +66,18 @@ export function toChatContext(context: LabosAgentOpenContext | null | undefined)
   if (context.page === 'intro') {
     return { page: 'intro', introTarget: { type: context.introTarget.type, uid: context.introTarget.uid } };
   }
-  return { page: 'home' };
+  switch (context.page) {
+    case 'member':
+      return { page: 'member', memberUid: context.memberUid };
+    case 'team':
+      return { page: 'team', teamUid: context.teamUid };
+    case 'job':
+      return context.jobUid ? { page: 'job', jobUid: context.jobUid } : { page: 'job' };
+    case 'profile':
+      return { page: 'profile' };
+    default:
+      return { page: 'home' };
+  }
 }
 
 /** Trims the message and checks the C1 limits before a request leaves the browser. */

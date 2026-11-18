@@ -191,7 +191,28 @@ For a member who passes the agent gate (`useLabosAgentAccess()`), `GlobalFeedbac
 
 ### Requirement: Each page type maps to one context
 
-`pageContextFromLocation(pathname, search, currentUid)` SHALL map (S5-R6): `/?news=<uid>` to `news-story`; `/` to `home`; `/members/<uid>` to `member` (the member's own uid to `profile`); `/settings/profile` to `profile`; `/teams/<uid>` and its sub-pages to `team`; `/jobs/openings/<uid>` to `job` with the uid; `/jobs` to `job` with no uid. Other pages SHALL get no context and no chip. Labels SHALL be page types ("Member profile", "Team page", "Job post", "Jobs", "Your profile", "News story", "Home"), never names. C1 has no value for `member`, `team`, `job` and `profile` yet. `toChatContext` SHALL send them as `{ page: 'home' }`, with no uid, until the contract adds values.
+`pageContextFromLocation(pathname, search, currentUid)` SHALL map (S5-R6): `/?news=<uid>` to `news-story`; `/` to `home`; `/members/<uid>` to `member` (the member's own uid to `profile`); `/settings/profile` to `profile`; `/teams/<uid>` and its sub-pages to `team`; `/jobs/openings/<uid>` to `job` with the uid; `/jobs` to `job` with no uid. Other pages SHALL get no context and no chip. Labels SHALL be page types ("Member profile", "Team page", "Job post", "Jobs", "Your profile", "News story", "Home"), never names. `toChatContext` SHALL send each page with its id only (contract change 3, section 9.2; S5-C25 to S5-C27, S5-C30): `{ page: 'member', memberUid }`, `{ page: 'team', teamUid }`, `{ page: 'job', jobUid }`, `{ page: 'job' }` on `/jobs`, and `{ page: 'profile' }` with no id on `/settings/profile` and on the member's own `/members/<uid>`. `label` and `entryPoint` SHALL never go to the API.
+
+#### Scenario: A team page goes to C1 with its id
+
+- **GIVEN** a pilot member on `/teams/t-1`
+- **WHEN** they open the agent and send a message
+- **THEN** the C1 `context` is `{ page: 'team', teamUid: 't-1' }`
+
+### Requirement: The agent cannot read the page
+
+When C1 gives 404 `MEMBER_NOT_FOUND`, `TEAM_NOT_FOUND` or `JOB_NOT_FOUND` (contract 9.3), the turn SHALL show "The agent cannot read this page. Remove the page chip and ask again." (S5-C29). The turn SHALL keep the member's text. An empty composer SHALL get the text back, so the member can remove the chip and send again.
+
+#### Scenario: Unknown team
+
+- **GIVEN** a pilot member on a team page that C1 cannot find
+- **WHEN** they send a message
+- **THEN** the panel shows "The agent cannot read this page. Remove the page chip and ask again."
+- **AND** the composer holds their text
+
+### Requirement: The key hint shows only with keys
+
+The Agent tab SHALL show the key hint only on a device with a mouse or trackpad and a screen 640px or wider (`useShowsKeyHint`, `(any-pointer: fine) and (min-width: 640px)`). The hint SHALL be "⌘J" on a Mac and "Ctrl J" on other systems. `aria-keyshortcuts` SHALL stay on all devices.
 
 ### Requirement: The member can remove the page context
 
@@ -205,7 +226,7 @@ The context chip SHALL have a ✕ button "Stop reading <label>" (S5-R4). After �
 
 ### Requirement: The mock gives intro drafts
 
-For `context.page` `intro`, the mock C1 SHALL give one draft for the context target. For a message with "not eligible", it SHALL give `drafts: []` and a refusal. For a target uid that starts with `missing`, it SHALL give a 404 `INTRO_TARGET_NOT_FOUND`. The mock replaces C1 only. Send on a draft card SHALL call the real C3.
+For `context.page` `intro`, the mock C1 SHALL give one draft for the context target. For a message with "not eligible", it SHALL give `drafts: []` and a refusal. For a target uid that starts with `missing`, it SHALL give a 404 `INTRO_TARGET_NOT_FOUND`. S5: for the `member`, `team` and `job` pages, the answer SHALL name the page. For a `memberUid`, `teamUid` or `jobUid` that starts with `missing`, it SHALL give a 404 `MEMBER_NOT_FOUND`, `TEAM_NOT_FOUND` or `JOB_NOT_FOUND`. The mock replaces C1 only. Send on a draft card SHALL call the real C3.
 
 ### Requirement: The API sits behind one client with a mock
 

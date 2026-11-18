@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { ChatInput } from '@/components/core/husky/ChatInput';
 import { AiSearchIcon } from '@/components/icons/AiSearchIcon';
 import { CloseIcon } from '@/components/icons/CloseIcon';
-import { useLabosAgentChat } from '@/services/labos-agent/hooks/useLabosAgentChat';
+import { PAGE_NOT_FOUND_CODES, useLabosAgentChat } from '@/services/labos-agent/hooks/useLabosAgentChat';
 import { isLabosAgentMock } from '@/services/labos-agent/labos-agent.config';
 import { useLabosAgentStore } from '@/services/labos-agent/store';
 import type { LabosAgentOpenContext, LabosAgentOpenPage } from '@/types/labos-agent.types';
@@ -22,7 +22,7 @@ interface LabosAgentPanelProps {
 
 const NETWORK_PROMPTS = ['What happened in the network this week?'];
 
-/** S5 pages (member, team, job, profile) go to C1 as `home` for now, so they get the network prompt only. */
+/** S5 pages (member, team, job, profile) get the network prompt only. Page prompts wait for a design pass. */
 const PROMPTS: Record<LabosAgentOpenPage | 'none', string[]> = {
   'news-story': ['Summarize this story', 'Why does this matter?', 'Which other teams work on this?'],
   home: NETWORK_PROMPTS,
@@ -84,6 +84,19 @@ export function LabosAgentPanel({ context, onClose }: LabosAgentPanelProps) {
     inputRef.current.setSelectionRange(end, end);
     clearPrefill();
   }, [prefill, clearPrefill]);
+
+  /*
+   * S5-C29: C1 cannot read the page of the chip (404 MEMBER_NOT_FOUND, TEAM_NOT_FOUND or JOB_NOT_FOUND). The turn
+   * keeps the member's text, and the text goes back in an empty composer, so the member can remove the chip and send.
+   */
+  const lastTurn = turns[turns.length - 1];
+  const pageErrorTurn =
+    lastTurn?.status === 'error' && lastTurn.error && PAGE_NOT_FOUND_CODES.has(lastTurn.error.code) ? lastTurn : null;
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!pageErrorTurn || !input || input.value.trim()) return;
+    input.value = pageErrorTurn.message;
+  }, [pageErrorTurn]);
 
   /* Esc closes the panel from anywhere inside it. */
   useEffect(() => {

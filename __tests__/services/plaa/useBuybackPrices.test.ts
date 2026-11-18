@@ -1,19 +1,20 @@
 import { useBuybackPrices } from '@/services/plaa/hooks/useBuybackPrices';
 import { useQuery } from '@tanstack/react-query';
-import { hasSession } from '@/utils/third-party.helper';
+import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { customFetch } from '@/utils/fetch-wrapper';
 
 jest.mock('@tanstack/react-query', () => ({ useQuery: jest.fn() }));
-jest.mock('@/utils/third-party.helper', () => ({ hasSession: jest.fn() }));
+jest.mock('@/utils/third-party.helper', () => ({ getCookiesFromClient: jest.fn() }));
 jest.mock('@/utils/fetch-wrapper', () => ({ customFetch: jest.fn() }));
 
 const mockedQuery = useQuery as jest.Mock;
-const mockedSession = hasSession as jest.Mock;
-const mockedFetch = customFetch as jest.Mock;
+const mockedCookies = getCookiesFromClient as jest.Mock;
+const mockedFetch = jest.fn();
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockedSession.mockReturnValue(true);
+  global.fetch = mockedFetch;
+  mockedCookies.mockReturnValue({ authToken: 'jwt' });
 });
 
 function useTestQuery() {
@@ -21,11 +22,20 @@ function useTestQuery() {
   return mockedQuery.mock.calls[0][0].queryFn();
 }
 
-test('uses the authenticated fetch path and returns prices', async () => {
+test("sends the member's token and returns prices", async () => {
   const data = [{ roundNumber: 12, auctionNumber: 7, clearingPrice: 1.48 }];
-  mockedFetch.mockResolvedValue({ ok: true, json: async () => data });
+  mockedFetch.mockResolvedValue({ ok: true, status: 200, json: async () => data });
   await expect(useTestQuery()).resolves.toEqual(data);
-  expect(mockedFetch).toHaveBeenCalledWith('/api/plaa/buyback-prices', expect.any(Object), true);
+  expect(mockedFetch).toHaveBeenCalledWith(
+    '/api/plaa/buyback-prices',
+    expect.objectContaining({ headers: expect.objectContaining({ Authorization: 'Bearer jwt' }) }),
+  );
+});
+
+test('hides prices on a 401 and never takes the sign-out path', async () => {
+  mockedFetch.mockResolvedValue({ ok: false, status: 401 });
+  await expect(useTestQuery()).resolves.toBeNull();
+  expect(customFetch).not.toHaveBeenCalled();
 });
 
 test('rejects transient failures so the query can retry', async () => {
@@ -33,8 +43,8 @@ test('rejects transient failures so the query can retry', async () => {
   await expect(useTestQuery()).rejects.toThrow('502');
 });
 
-test('does not start an authenticated request without a session', async () => {
-  mockedSession.mockReturnValue(false);
+test('does not send a request without a token', async () => {
+  mockedCookies.mockReturnValue({ authToken: undefined });
   await expect(useTestQuery()).resolves.toBeNull();
   expect(mockedFetch).not.toHaveBeenCalled();
 });

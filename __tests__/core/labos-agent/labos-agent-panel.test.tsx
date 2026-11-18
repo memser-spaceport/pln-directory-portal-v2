@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -6,7 +6,8 @@ import type { LabosAgentClient } from '@/types/labos-agent.types';
 import { LabosAgentError } from '@/services/labos-agent/labos-agent.errors';
 
 const chat = jest.fn();
-const client: LabosAgentClient = { chat, getAccess: async () => ({ enabled: true }) };
+const confirmAction = jest.fn();
+const client: LabosAgentClient = { chat, confirmAction, getAccess: async () => ({ enabled: true }) };
 
 jest.mock('@/services/labos-agent/labos-agent.service', () => ({
   ...jest.requireActual('@/services/labos-agent/labos-agent.service'),
@@ -55,6 +56,7 @@ const signIn = () =>
 describe('LAB-3298: agent panel and Ask a follow-up', () => {
   beforeEach(() => {
     chat.mockReset();
+    confirmAction.mockReset();
     window.localStorage.clear();
     useLabosAgentStore.setState({ isOpen: false, context: null, chats: {} });
     useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
@@ -186,5 +188,120 @@ describe('LAB-3298: agent panel and Ask a follow-up', () => {
     fireEvent.click(screen.getByText('Summarize this story'));
     expect(await screen.findByText('Mock answer text')).toBeInTheDocument();
     expect(chat.mock.calls[1][0].threadId).not.toBe(chat.mock.calls[0][0].threadId);
+  });
+});
+
+describe('LAB-3299: action cards', () => {
+  const bio = {
+    proposalId: 'ap_bio',
+    tool: 'update_my_profile' as const,
+    title: 'Update your bio',
+    targetType: 'member' as const,
+    changes: [{ field: 'bio', label: 'Bio', oldValue: 'Old bio', newValue: 'New bio' }],
+  };
+  const team = {
+    proposalId: 'ap_team',
+    tool: 'update_team' as const,
+    title: 'Update the team',
+    targetType: 'team' as const,
+    changes: [{ field: 'tags', label: 'Tags', oldValue: [], newValue: ['AI', 'Data'] }],
+  };
+
+  beforeEach(() => {
+    chat.mockReset();
+    confirmAction.mockReset();
+    window.localStorage.clear();
+    window.localStorage.setItem('labos-agent', 'on');
+    useLabosAgentStore.setState({ isOpen: false, context: null, chats: {} });
+    useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
+    signIn();
+    chat.mockResolvedValue({ ...answer, followUpQuestions: [], proposals: [bio, team] });
+  });
+
+  async function askForEdits() {
+    renderApp();
+    fireEvent.click(await screen.findByText('Ask a follow-up'));
+    fireEvent.click(await screen.findByText('Summarize this story'));
+    await screen.findByText('Update your bio');
+  }
+
+  const card = (title: string) => screen.getByRole('region', { name: title });
+
+  it('shows one card per edit with old and new values, and saves nothing before Confirm', async () => {
+    await askForEdits();
+    expect(screen.getAllByRole('region')).toHaveLength(2);
+    expect(card('Update your bio')).toHaveTextContent('Old bio');
+    expect(card('Update your bio')).toHaveTextContent('New bio');
+    expect(card('Update the team')).toHaveTextContent('Empty');
+    expect(card('Update the team')).toHaveTextContent('AI, Data');
+    expect(confirmAction).not.toHaveBeenCalled();
+  });
+
+  it('confirms through C2 once, shows the result and removes the buttons', async () => {
+    let resolve: (v: unknown) => void = () => {};
+    confirmAction.mockReturnValue(new Promise((r) => (resolve = r)));
+    await askForEdits();
+
+    const bioCard = within(card('Update your bio'));
+    fireEvent.click(bioCard.getByText('Confirm'));
+    expect(bioCard.getByText('Saving').closest('button')).toBeDisabled();
+    fireEvent.click(bioCard.getByText('Saving'));
+    expect(confirmAction).toHaveBeenCalledTimes(1);
+    expect(confirmAction).toHaveBeenCalledWith({ proposalId: 'ap_bio', decision: 'confirm' });
+
+    await act(async () => resolve({ proposalId: 'ap_bio', status: 'done', summary: 'Your bio is updated.' }));
+    expect(bioCard.getByRole('status')).toHaveTextContent('Your bio is updated.');
+    expect(bioCard.queryByRole('button')).not.toBeInTheDocument();
+    expect(within(card('Update the team')).getByText('Confirm')).toBeInTheDocument();
+  });
+
+  it('cancels through C2 and removes the buttons', async () => {
+    confirmAction.mockResolvedValue({ proposalId: 'ap_team', status: 'cancelled', summary: '' });
+    await askForEdits();
+
+    const teamCard = within(card('Update the team'));
+    fireEvent.click(teamCard.getByText('Cancel'));
+    expect(await teamCard.findByText('Cancelled. Nothing was saved.')).toBeInTheDocument();
+    expect(confirmAction).toHaveBeenCalledWith({ proposalId: 'ap_team', decision: 'cancel' });
+    expect(teamCard.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('shows a short message on a 403 and offers no retry', async () => {
+    confirmAction.mockRejectedValue(new LabosAgentError(403, 'ACTION_NOT_ALLOWED', 'Not a lead'));
+    await askForEdits();
+
+    const teamCard = within(card('Update the team'));
+    fireEvent.click(teamCard.getByText('Confirm'));
+    expect(await teamCard.findByRole('alert')).toHaveTextContent('You cannot make this change. Nothing was saved.');
+    expect(teamCard.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('shows Retry after an error, and Retry confirms again', async () => {
+    confirmAction
+      .mockRejectedValueOnce(new LabosAgentError(0, 'STREAM_FAILED', 'broken'))
+      .mockResolvedValueOnce({ proposalId: 'ap_bio', status: 'done', summary: 'Your bio is updated.' });
+    await askForEdits();
+
+    const bioCard = within(card('Update your bio'));
+    fireEvent.click(bioCard.getByText('Confirm'));
+    fireEvent.click(await bioCard.findByText('Retry'));
+    expect(await bioCard.findByText('Your bio is updated.')).toBeInTheDocument();
+    expect(confirmAction).toHaveBeenCalledTimes(2);
+    expect(confirmAction.mock.calls[1][0]).toEqual({ proposalId: 'ap_bio', decision: 'confirm' });
+  });
+
+  it('keeps the cards and their state after close and reopen', async () => {
+    confirmAction.mockResolvedValue({ proposalId: 'ap_bio', status: 'done', summary: 'Your bio is updated.' });
+    await askForEdits();
+    fireEvent.click(within(card('Update your bio')).getByText('Confirm'));
+    await screen.findByText('Your bio is updated.');
+
+    fireEvent.click(screen.getByLabelText('Close agent'));
+    fireEvent.click(screen.getByText('Ask a follow-up'));
+
+    expect(await screen.findByText('Your bio is updated.')).toBeInTheDocument();
+    expect(within(card('Update your bio')).queryByRole('button')).not.toBeInTheDocument();
+    expect(within(card('Update the team')).getByText('Confirm')).toBeInTheDocument();
+    expect(confirmAction).toHaveBeenCalledTimes(1);
   });
 });

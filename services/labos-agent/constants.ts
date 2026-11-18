@@ -5,6 +5,7 @@ export enum LabosAgentQueryKeys {
 export const LABOS_AGENT_ENDPOINTS = {
   chat: '/v1/labos-agent/chat',
   access: '/v1/labos-agent/access',
+  confirm: '/v1/labos-agent/actions/confirm',
 } as const;
 
 /** C1 request limits. */

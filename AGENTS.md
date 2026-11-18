@@ -109,6 +109,7 @@ To add a prototype: create `prototypes/entries/<key>/` (component + `mocks.ts`),
 - `AskAgentButton` and the panel show only when `useLabosAgentAccess()` is true: the local gate, a signed-in member and `GET /v1/labos-agent/access`.
 - The gate is off by default (`LABOS_AGENT_ENABLED_BY_DEFAULT` in `services/labos-agent/constants.ts`). To test in one browser, set `localStorage['labos-agent'] = 'on'`.
 - Chat goes through `getLabosAgentClient()`. It calls C1 by default. Set `localStorage['labos-agent-api'] = 'mock'` to use the mock (`labos-agent.mock.ts`); the panel then shows "Mock answers". No env vars.
+- Action cards (S2): each C1 proposal shows a `LabosAgentActionCard`. Only Confirm calls C2 (`confirmAction`) to save; never save from the chat. Card state lives in `turn.cards` in the store. Mock words: "edit profile", "edit team", "forbidden" (403), "save fails" (Retry).
 - Agent events in `analytics/labos-agent.analytics.ts` are stubs. They send nothing until the S0 event spec is approved.
 - Behaviour spec: `openspec/specs/labos-agent/spec.md`.
 

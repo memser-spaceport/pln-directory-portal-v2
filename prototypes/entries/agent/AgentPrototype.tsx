@@ -19,7 +19,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import type { ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
-import home from '@/app/home/page.module.css';
+import home from '@/app/page.module.css';
 import { PopularThisWeekCard } from '@/components/page/home/TeamNews/components/NewsRail/components/PopularThisWeekCard/PopularThisWeekCard';
 
 import { TOP_STORY } from '../newsfeed/mocks';

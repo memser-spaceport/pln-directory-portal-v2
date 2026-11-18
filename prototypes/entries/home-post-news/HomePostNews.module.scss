@@ -1,0 +1,49 @@
+@use 'styles/media';
+
+.mountShell {
+  min-height: 100vh;
+}
+
+.reviewSwitch.reviewSwitch {
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+
+// The header's right end: production search, then Post news. 8px apart, a
+// tighter pair than the 12px the slot uses, so the two read as one toolbar.
+.headActions.headActions {
+  gap: 8px;
+}
+
+// DS `xxs` type (12/16) in the 30px box of the search button beside it
+// (NewsSearch `.searchBtn`: 30px, 8px radius). Phones: 36px and 14/20, the
+// button stands alone at the end of the title row and must be easy to tap.
+.homePostAction.homePostAction {
+  height: 30px;
+  padding: 6px 10px;
+  border-radius: 8px;
+
+  @include media.mobile-only {
+    height: 36px;
+    padding: 8px 12px;
+    font-size: 14px;
+    line-height: 20px;
+  }
+}
+
+// Review state "Hover": the DS `.fill.primary` hover, without the pointer.
+.forceHover.forceHover {
+  background: var(--action-background-brand-hover, #0f3cd9);
+  border-color: var(--action-background-brand-hover, #0f3cd9);
+}
+
+// "Post as" sits above the headline, as in the team-profile prototype's picker.
+.postAsField {
+  margin-bottom: 24px;
+}
+
+.stream.stream {
+  @include media.tablet-landscape {
+    grid-column: auto;
+  }
+}

@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import { Popover } from '@base-ui-components/react/popover';
 
 import { GlobeIcon, LockIcon } from '@/components/icons';
+import { VisibilityPill } from '@/components/common/VisibilityPill';
 
 import type { SectionVisibilityLevel } from '../types/sectionVisibility';
 
@@ -37,8 +38,7 @@ export function SectionVisibilityBadge(props: Props) {
   return (
     <Popover.Root openOnHover delay={150}>
       <Popover.Trigger className={clsx(s.trigger, className)} aria-label={`${label}: who can see this section`}>
-        <Icon width={14} height={14} aria-hidden />
-        {label}
+        <VisibilityPill label={label} icon={<Icon aria-hidden />} />
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Positioner className={s.positioner} side="top" sideOffset={6}>

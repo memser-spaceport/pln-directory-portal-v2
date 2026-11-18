@@ -68,6 +68,11 @@ export interface EventDrawerViewProps {
   onSave: (values: EventPlansValues) => Promise<boolean>;
   /** The drawer closed after the member said they are going (the host shows the toast). */
   onGoing?: (notice: EventGoingNotice) => void;
+  /**
+   * Signed out only (LAB-3271): "Yes, I'm going" and the people count start the sign-in flow instead.
+   * Leave it out for a signed-in viewer.
+   */
+  onSignIn?: () => void;
 }
 
 /** The prototype's drawer width; full width on narrow screens. */
@@ -197,6 +202,7 @@ function EventFlow({
   onNotGoing,
   onSave,
   onGoing,
+  onSignIn,
   drawerCloseRef,
 }: EventDrawerViewProps & { event: EventDetail; drawerCloseRef: MutableRefObject<() => void> }) {
   const gathering = event.gathering;
@@ -292,6 +298,10 @@ function EventFlow({
   });
 
   const openAttendees = () => {
+    if (onSignIn) {
+      onSignIn();
+      return;
+    }
     setShowAttendees(true);
     onAttendeesOpen?.();
   };
@@ -371,7 +381,6 @@ function EventFlow({
                       registerUrl={event.websiteUrl}
                       saving={saving}
                       onOpenAttendees={openAttendees}
-                      onYes={handleYes}
                       onNotGoing={handleNotGoing}
                       onOpenPlans={openPlans}
                     />
@@ -436,7 +445,23 @@ function EventFlow({
             )}
           </div>
 
-          {/* The event step has no footer: its presses are in the card. Cancel and Save return to the event. */}
+          {/* LAB-3271: "Yes, I'm going" sits in the sticky footer, so a long description never hides it. Signed out,
+                it starts the sign-in flow. Once going, the card answers in place and the footer goes away. */}
+          {step === 'event' && (canMarkGoing ? !going : !!onSignIn) && (
+            <div key="event" className={e.footer}>
+              <Button
+                type="button"
+                size="s"
+                className={e.footerBtn}
+                onClick={canMarkGoing ? handleYes : onSignIn}
+                disabled={saving}
+              >
+                Yes, I&apos;m going
+              </Button>
+            </div>
+          )}
+
+          {/* Cancel and Save return to the event. */}
           {step === 'plans' && (
             <div key="plans" className={e.footer}>
               <Button

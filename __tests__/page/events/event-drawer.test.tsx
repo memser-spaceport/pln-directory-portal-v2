@@ -66,6 +66,9 @@ jest.mock('@/services/events/hooks/useEventDrawerMutations', () => ({
   useUpdateEventPlans: () => updatePlans,
 }));
 
+const goToLogin = jest.fn();
+jest.mock('@/components/core/login/utils/loginRedirect', () => ({ useLoginRedirect: () => goToLogin }));
+
 const yes = () => screen.getByRole('button', { name: "Yes, I'm going" });
 
 async function click(el: HTMLElement) {
@@ -131,6 +134,16 @@ describe('EventDrawer (LAB-3216)', () => {
     render(<EventDrawer eventUid="labweek-lisbon" source="home" onClose={jest.fn()} />);
     expect(screen.getByRole('button', { name: '40 members going' })).toBeInTheDocument();
     expect(screen.queryByText(/Are you going/)).not.toBeInTheDocument();
+  });
+
+  it('signed out: "Yes, I\'m going" closes the drawer and starts sign-in, and saves nothing (LAB-3271)', async () => {
+    useCurrentUserStore.setState({ currentUser: null as never });
+    const onClose = jest.fn();
+    render(<EventDrawer eventUid="labweek-lisbon" source="home" onClose={onClose} />);
+    await click(yes());
+    expect(onClose).toHaveBeenCalled();
+    expect(goToLogin).toHaveBeenCalledTimes(1);
+    expect(markGoing.mutateAsync).not.toHaveBeenCalled();
   });
 
   it('Member without attendance permission', () => {

@@ -3,7 +3,6 @@
 import { toast } from '@/components/core/ToastContainer';
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
-import { PlTeamOnlyPill } from '@/components/page/jobs/PlTeamOnlyPill/PlTeamOnlyPill';
 import { JobSearchStatusInput } from '@/components/page/jobs/JobSearchStatusInput/JobSearchStatusInput';
 import { isJobSearchStatus, type JobSearchStatus } from '@/services/jobs/job-board-viewer';
 import { useUpdateMemberParams } from '@/services/members/hooks/useUpdateMemberParams';
@@ -39,7 +38,7 @@ export function JobSearchStatusDetails({ member }: Props) {
      rule belongs — beside the section order it applies to. This one is a
      backstop: the field is private by contract, and a future host mounting the
      card without that gate would leak it silently rather than loudly. Cheap
-     insurance on a promise the pill inside makes in words. */
+     insurance on a promise the section's visibility badge makes in words. */
   if (!currentUser || currentUser.uid !== member.id) {
     return null;
   }
@@ -51,9 +50,7 @@ export function JobSearchStatusDetails({ member }: Props) {
 
   return (
     <DetailsSection>
-      <DetailsSectionHeader title="Job search status">
-        <PlTeamOnlyPill />
-      </DetailsSectionHeader>
+      <DetailsSectionHeader title="Job search status" />
       <JobSearchStatusInput
         /* Not the component's default `job-search-status`. Two radio groups
            sharing a `name` are one group as far as the browser is concerned,

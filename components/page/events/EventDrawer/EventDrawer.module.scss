@@ -161,6 +161,19 @@
   vertical-align: -2px;
 }
 
+/* LAB-3271: the event's own page, beside the date and the address. Long links wrap instead of widening the drawer. */
+.eventLink {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-decoration: none;
+
+  &:hover .fact,
+  &:focus-visible .fact {
+    text-decoration: underline;
+  }
+}
+
 .place {
   display: flex;
   flex-direction: column;

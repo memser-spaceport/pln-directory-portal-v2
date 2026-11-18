@@ -22,6 +22,7 @@ import type { RoundStatsResponse } from '@/services/plaa/rounds.service';
 import type { TrustHoldingsData } from '@/services/plaa/trust-holdings.service';
 import OverviewTopline from './overview-topline';
 import SnapshotRoundPicker, { RoundChangeMethod } from './snapshot-round-picker';
+import { OVERVIEW_SECTION_IDS } from './section-ids';
 import styles from './overview.module.scss';
 import { cssVars } from './css-vars';
 
@@ -137,7 +138,7 @@ export default function ActiveMemberOverview({
     <div className={styles.wrapper}>
       <OverviewTopline trustHoldings={trustHoldings} />
 
-      <div className={styles.section}>
+      <div className={styles.section} id={OVERVIEW_SECTION_IDS.snapshotsAndPoints}>
         <div className={styles.sectionIntro}>
           <h2 className={styles.sectionTitle}>Snapshots &amp; Points</h2>
           <p className={styles.sectionDesc}>
@@ -347,7 +348,7 @@ export default function ActiveMemberOverview({
         </div>
       </div>
 
-      <div className={styles.section}>
+      <div className={styles.section} id={OVERVIEW_SECTION_IDS.pointsToPlaa}>
         <div className={styles.sectionIntro}>
           <h2 className={styles.sectionTitle}>Points → PLAA Conversion</h2>
           <p className={styles.sectionDesc}>
@@ -477,7 +478,7 @@ export default function ActiveMemberOverview({
         </div>
       </div>
 
-      <div className={styles.section}>
+      <div className={styles.section} id={OVERVIEW_SECTION_IDS.redeemingPlaa}>
         <div className={styles.sectionIntro}>
           <h2 className={styles.sectionTitle}>Redeeming PLAA</h2>
           <p className={styles.sectionDesc}>

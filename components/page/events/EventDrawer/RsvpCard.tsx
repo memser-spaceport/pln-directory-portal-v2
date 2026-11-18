@@ -2,7 +2,6 @@
 
 import clsx from 'clsx';
 
-import { Button } from '@/components/common/Button';
 import btn from '@/components/common/Button/Button.module.scss';
 import { ArrowUpRightIcon, CalendarBlankIcon, CaretRightIcon, SuccessCircleIcon } from '@/components/icons';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
@@ -24,7 +23,6 @@ export interface RsvpCardProps {
   registerUrl: string | null;
   saving: boolean;
   onOpenAttendees: () => void;
-  onYes: () => void;
   onNotGoing: () => void;
   onOpenPlans: () => void;
 }
@@ -48,7 +46,7 @@ function Facepile({ faces }: { faces: EventPersonResponse[] }) {
  * "Add your plans for <city>" and "Mark as not going".
  *
  * Deviation from the prototype, by the Nov 12 standup (LAB-3234): no "Show on my profile". Going is always visible
- * to signed-in members.
+ * to signed-in members. Since LAB-3271, "Yes, I'm going" is in the drawer's sticky footer, not in this card.
  */
 export function RsvpCard({
   count,
@@ -59,7 +57,6 @@ export function RsvpCard({
   registerUrl,
   saving,
   onOpenAttendees,
-  onYes,
   onNotGoing,
   onOpenPlans,
 }: RsvpCardProps) {
@@ -106,12 +103,8 @@ export function RsvpCard({
           <p className={r.cardTitle}>Are you going?</p>
           {people}
         </div>
-        <div className={r.cardActions}>
-          <Button type="button" size="s" onClick={onYes} disabled={saving}>
-            Yes, I&apos;m going
-          </Button>
-          {register}
-        </div>
+        {/* "Yes, I'm going" is in the drawer's sticky footer (LAB-3271). */}
+        {register && <div className={r.cardActions}>{register}</div>}
       </div>
     );
   }

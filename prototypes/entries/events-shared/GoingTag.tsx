@@ -8,10 +8,10 @@ import g from './GoingTag.module.scss';
  * and the event drawer's gathering rows. Before, the events page had a green-outlined DS success
  * Badge and everywhere else had `GoingMark`, a green tick with green text and no container.
  *
- * From Mobbin: Meetup's and Partiful's white pill on the event picture, Circle's solid green
- * check-circle. White pill; the one green thing is a filled check disc; the label is the page's dark
- * ink. `label` keeps the sentence each place needs ("You're going", "You're going too").
- * `onImage` floats it on a tile's picture (shadow, no border); in flow it takes the card border.
+ * From Mobbin: Meetup's and Partiful's pill on the event picture, Luma's solid green "Going".
+ * Since 2026-11-18 a filled green pill with a white tick and label (it was a white pill with a
+ * green check disc). `label` keeps the sentence each place needs ("You're going", "You're going too").
+ * `onImage` floats it on a tile's picture with a thin white ring.
  */
 export function GoingTag({
   label = 'Going',
@@ -24,13 +24,13 @@ export function GoingTag({
 }) {
   return (
     <span className={clsx(g.tag, onImage && g.onImage, className)}>
-      <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden className={g.mark}>
-        <circle cx="8" cy="8" r="8" fill="currentColor" />
+      {/* data-going: a stable hook for tests and screenshots (the mark has no disc any more). */}
+      <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden className={g.mark} data-going="">
         <path
-          d="M4.75 8.25l2.1 2.1 4.4-4.6"
+          d="M3.5 8.5l3 3 6-6.5"
           fill="none"
-          stroke="#ffffff"
-          strokeWidth="1.6"
+          stroke="currentColor"
+          strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
         />

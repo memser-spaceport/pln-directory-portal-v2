@@ -5,21 +5,22 @@
 //
 // Contrast pass (Nov 16 standup): every line of text is primary (#0a0c11) or secondary ink
 // (#455468, 7.9:1 on white). Tertiary (#8897ae, 3:1) fails AA for text at these sizes, so it is
-// used only for glyphs. Surfaces are white cards with the subtle border; one radius for cards
+// used only for glyphs. Surfaces are white cards with the subtle border on the bluish-grey page (#f1f5f9); one radius for cards
 // (12px), one for controls (8px); no tints except state (selected, highlighted).
 
 .mountShell {
   min-height: 100vh;
-  background: var(--background-base-white, #ffffff);
+  background: var(--background-neutral-subtle, #f1f5f9);
 }
 
-/* The directory frame (DashboardPagesLayout) is grey; this page stays white like Home. */
+/* The page sits on the directory frame's bluish grey (DashboardPagesLayout's #f1f5f9), with white cards
+   on it (2026-11-18: "bg bluish grey and cards white"; it used to stay white like Home). */
 .shell {
-  background: var(--background-base-white, #ffffff);
+  background: var(--background-neutral-subtle, #f1f5f9);
 
   > section,
   > section > main {
-    background: var(--background-base-white, #ffffff);
+    background: var(--background-neutral-subtle, #f1f5f9);
   }
 
   /* The frame pads its content 30px 24px from 1024px; the page brings its own. */
@@ -66,7 +67,7 @@
   width: 100%;
   min-height: 100vh;
   padding: 32px 0 80px;
-  background: var(--background-base-white, #ffffff);
+  background: var(--background-neutral-subtle, #f1f5f9);
   color: var(--foreground-neutral-primary, #0a0c11);
 
   @include media.mobile-only {
@@ -428,7 +429,7 @@
   margin-top: 28px;
   padding-top: 12px;
   padding-bottom: 16px;
-  background: var(--background-base-white, #ffffff);
+  background: var(--background-neutral-subtle, #f1f5f9);
   border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   flex-wrap: wrap;
 
@@ -514,16 +515,21 @@
   }
 }
 
+// On the grey page the switch is a white track with the card border; the active tab is the grey.
 .viewSwitch {
   display: inline-flex;
   padding: 2px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   border-radius: 8px;
-  background: var(--background-neutral-subtle, #f1f5f9);
+  background: var(--background-base-white, #ffffff);
 }
 
 .viewBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   height: 28px;
-  padding: 0 12px;
+  padding: 0 12px 0 10px;
   border: none;
   border-radius: 6px;
   background: transparent;
@@ -540,9 +546,8 @@
 }
 
 .viewBtnActive {
-  background: var(--background-base-white, #ffffff);
+  background: var(--background-neutral-subtle, #f1f5f9);
   color: var(--foreground-neutral-primary, #0a0c11);
-  box-shadow: 0 0 0 1px var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 }
 
 /* Phones and tablets: the directory's Filters pill + sheet; it hides itself from 1024px. */
@@ -793,7 +798,8 @@
   gap: 8px;
   padding: 48px 16px;
   border-radius: 12px;
-  background: var(--background-neutral-secondary, #f8fafc);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #ffffff); // a white card on the grey page
   text-align: center;
 }
 
@@ -1034,11 +1040,24 @@
   display: contents;
 
   > div {
-    background: var(--background-base-white, #ffffff);
+    background: var(--background-neutral-subtle, #f1f5f9); // the page's own grey, so the sticky bar is not a band
   }
 
   // On white, the pills' faint shadow no longer draws an edge: give them the card border.
   > div button {
     border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   }
+}
+
+// The view switch's glyphs take the label's ink (secondary at rest, primary when active/hovered).
+.viewIcon {
+  flex-shrink: 0;
+}
+
+// The tile's picture or its placeholder (events-shared/EventImage), filling the 16:9 slot.
+.tileFill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }

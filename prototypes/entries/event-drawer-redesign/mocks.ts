@@ -69,6 +69,45 @@ const EXTRA_EVENTS: CalEvent[] = [
     city: 'San Francisco',
     attendeeCount: 14,
   },
+  // 2026-11-18: upcoming online events, so the online states show (globe on cards, the Online list
+  // under the map, "Link sent after you register" in the drawer).
+  {
+    uid: 'filecoin-community-call',
+    name: 'Filecoin Community Call',
+    startDate: '2026-11-25',
+    endDate: '2026-11-25',
+    range: 'Nov 25',
+    city: 'Online',
+    attendeeCount: 87,
+  },
+  {
+    uid: 'ai-reading-group',
+    name: 'Decentralized AI Reading Group',
+    startDate: '2026-12-09',
+    endDate: '2026-12-09',
+    range: 'Dec 9',
+    city: 'Online',
+    attendeeCount: 24,
+  },
+  {
+    uid: 'pl-founder-office-hours-dec',
+    name: 'PL Founders Office Hours',
+    startDate: '2026-12-10',
+    endDate: '2026-12-10',
+    range: 'Dec 10',
+    city: 'Online',
+    attendeeCount: 29,
+  },
+  // 2026-11-18: an upcoming hybrid event with no picture (shows the placeholder and the Hybrid label).
+  {
+    uid: 'nyc-founders-demo-night',
+    name: 'Founders Demo Night',
+    startDate: '2026-12-15',
+    endDate: '2026-12-15',
+    range: 'Dec 15',
+    city: 'New York',
+    attendeeCount: 42,
+  },
   // 2026-11-18: LabWeek Lisbon side events at other venues across town, so the map has a city
   // whose events split into several venue pins (the main programme stays at Hub Criativo do Beato).
   {
@@ -219,6 +258,54 @@ const EXTRA_DETAILS: Record<string, EventDetail> = {
     ],
     agenda: [],
   },
+  'nyc-founders-demo-night': {
+    mode: 'Hybrid',
+    access: 'FREE w/ RSVP',
+    dateLine: '15th Dec 2026, 18:00 - 15th Dec 2026, 20:30 (UTC -5:00)',
+    address: 'Newlab, 19 Morris Ave, Brooklyn, NY 11205, USA',
+    region: 'New York, New York, United States',
+    tags: [TAG.networking, TAG.talks],
+    hosts: ['PL Venture'],
+    description: ['Six portfolio founders demo what they shipped this quarter, in the room and on the stream.'],
+    agenda: [],
+  },
+  'filecoin-community-call': {
+    mode: 'Virtual',
+    access: 'FREE w/ RSVP',
+    dateLine: '25th Nov 2026, 16:00 - 25th Nov 2026, 17:00 (UTC +0:00)',
+    address: 'Zoom',
+    region: 'Online',
+    tags: [TAG.filecoin, TAG.talks],
+    hosts: ['Filecoin Foundation'],
+    description: [
+      'The monthly call for the Filecoin community: network updates, a demo from a team building on Filecoin, and open questions.',
+    ],
+    agenda: [],
+  },
+  'ai-reading-group': {
+    mode: 'Virtual',
+    access: 'FREE w/ RSVP',
+    dateLine: '9th Dec 2026, 17:00 - 9th Dec 2026, 18:00 (UTC +0:00)',
+    address: 'Google Meet',
+    region: 'Online',
+    tags: [TAG.ai],
+    hosts: ['Protocol Labs'],
+    description: ['One paper on verifiable inference or open models, read before and discussed together.'],
+    agenda: [],
+  },
+  'pl-founder-office-hours-dec': {
+    mode: 'Virtual',
+    access: 'INVITE ONLY',
+    dateLine: '10th Dec 2026, 17:00 - 10th Dec 2026, 18:30 (UTC +0:00)',
+    address: 'Google Meet',
+    region: 'Online',
+    tags: [TAG.networking, TAG.workshop],
+    hosts: ['PL Venture'],
+    description: [
+      'Open office hours for portfolio founders: fundraising, hiring and go-to-market questions, answered by the PL Venture team.',
+    ],
+    agenda: [],
+  },
   'lisbon-founders-breakfast': {
     mode: 'In-Person',
     access: 'INVITE ONLY',
@@ -315,6 +402,8 @@ export const THUMBS: Record<string, string> = {
   'fil-dev-summit': unsplash('1511578314322-379afb476865'), // event hall
   'dai-summit-bangalore': unsplash('1475721027785-f74eccf877e2'), // speaker on stage
   'neurotech-salon': unsplash('1515187029135-18ee286d815b'), // people round a table
+  'filecoin-community-call': unsplash('1475721027785-f74eccf877e2'),
+  'pl-founder-office-hours-dec': unsplash('1515187029135-18ee286d815b'),
   'lisbon-founders-breakfast': unsplash('1528605248644-14dd04022da1'),
   'lisbon-storage-providers': unsplash('1475721027785-f74eccf877e2'),
   'lisbon-closing-party': unsplash('1511578314322-379afb476865'),

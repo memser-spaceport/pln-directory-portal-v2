@@ -33,7 +33,8 @@ import { CaretLeftIcon, CaretRightIcon, CheckIcon } from '@/components/icons';
 import c from '../event-drawer-redesign/EventsCalendarPage.module.scss';
 import { startTime, timeLine } from '../event-drawer-redesign/format';
 
-import { DETAILS, THUMBS, addDays, at, iso, zoneOf, type CalEvent } from './mocks';
+import { DETAILS, addDays, at, iso, zoneOf, type CalEvent } from './mocks';
+import { EventImage } from '../events-shared/EventImage';
 import { GoingTag } from '../events-shared/GoingTag';
 import k from './EventsCalendar.module.scss';
 
@@ -448,11 +449,12 @@ function SpanCard({
       style={{ ...style, ...tint(event) }}
       onClick={() => onOpen(event.uid)}
     >
-      {THUMBS[event.uid] && <img className={k.spanThumb} src={THUMBS[event.uid]} alt="" width={36} height={36} />}
+      <EventImage uid={event.uid} className={k.spanThumb} />
       <span className={k.spanText}>
         <span className={k.cardTitle}>{event.name}</span>
         <span className={k.cardMeta}>
-          {spanShort(event)} · {detail.mode === 'Virtual' ? 'Online' : event.city}
+          {spanShort(event)} ·{' '}
+          {detail.mode === 'Virtual' ? 'Online' : detail.mode === 'Hybrid' ? `Hybrid · ${event.city}` : event.city}
         </span>
       </span>
       {goingUids.has(event.uid) && <GoingTag />}
@@ -482,7 +484,9 @@ function DayCard({ event, goingUids, highlightUid, onOpen }: CardProps & { event
       )}
       <span className={k.cardMeta}>{timeLine(detail).split(' · ')[0] || 'Time TBD'}</span>
       <span className={k.cardMeta}>
-        {[detail.mode === 'Virtual' ? 'Online' : event.city, zone].filter(Boolean).join(' · ')}
+        {[detail.mode === 'Virtual' ? 'Online' : event.city, detail.mode === 'Hybrid' ? 'Hybrid' : '', zone]
+          .filter(Boolean)
+          .join(' · ')}
       </span>
       {goingUids.has(event.uid) && <GoingTag />}
     </button>

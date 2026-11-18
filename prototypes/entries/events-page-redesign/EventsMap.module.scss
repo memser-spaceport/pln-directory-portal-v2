@@ -411,6 +411,7 @@
   border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   border-radius: 12px;
   padding-top: 4px;
+  background: var(--background-base-white, #ffffff); // a white card on the grey page
 }
 
 .onlineTitle {
@@ -434,4 +435,12 @@
 .cardRowHighlight:hover {
   background: var(--background-brand-soft-surface, #f2f5ff);
   box-shadow: inset 0 0 0 1px var(--border-brand-subtle, #aebfff);
+}
+
+// A venue pin's picture or its placeholder (events-shared/EventImage), filling the round slot.
+.venueFill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }

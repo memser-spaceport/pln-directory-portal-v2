@@ -1,0 +1,18 @@
+// No picture: the PL brand gradient (team-profile's .roleTagDemo, the Demo Day tag) with a white
+// calendar. It fills whatever box the caller sizes, so it can stand in for any picture slot.
+.placeholder.placeholder {
+  // Doubled: callers' slot classes (.thumb, .logo) set a background of their own.
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: linear-gradient(135deg, #1b4dff 6%, #4cee8c 100%);
+  color: var(--background-base-white, #ffffff);
+}
+
+.mark {
+  width: 42%;
+  max-width: 56px;
+  min-width: 16px;
+  height: auto;
+}

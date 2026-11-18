@@ -223,13 +223,19 @@ export default function FeedbackForm({
               maxLength={DESCRIPTION_MAX}
               onChange={(event) => setDescription(event.target.value)}
               aria-invalid={showErrors && Boolean(errors.description)}
-              aria-describedby={showErrors && errors.description ? 'fb-desc-error' : undefined}
+              aria-describedby={
+                showErrors && errors.description ? 'fb-privacy-warning fb-desc-error' : 'fb-privacy-warning'
+              }
             />
             {showErrors && errors.description && (
               <span className="fb-error" id="fb-desc-error" role="alert">
                 {errors.description}
               </span>
             )}
+            <span className="fb-note" id="fb-privacy-warning" data-testid="fb-privacy-warning">
+              Don&apos;t include personal or private data, yours or anyone else&apos;s. Your feedback is stored against
+              your member ID and shared with the PLAA team&apos;s tracking tools.
+            </span>
           </label>
 
           <div className="fb-field">
@@ -310,8 +316,7 @@ export default function FeedbackForm({
           )}
 
           <p className="fb-guidelines" data-pending-legal-review="true">
-            Posts are visible to PLAA members. Don&apos;t include personal or account details, balances, or anything
-            confidential. Screenshots and bug reports are visible only to you and the PLAA team.
+            Posts are visible to PLAA members. Screenshots and bug reports are visible only to you and the PLAA team.
           </p>
 
           {submitError != null && (

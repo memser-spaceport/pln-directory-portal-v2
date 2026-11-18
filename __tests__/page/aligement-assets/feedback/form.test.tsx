@@ -199,6 +199,23 @@ describe('AC-T5.C compliance', () => {
     const { container } = render(<FeedbackForm onClose={jest.fn()} onSubmit={jest.fn()} isSubmitting={false} />);
     expect(container.textContent).not.toMatch(/\be[a]rn(s|ed|ing)?\b/i);
   });
+
+  it.each([[/New feature/], [/Bug/], [/Improvement/]])('warns against personal data before submitting %s', (type) => {
+    renderForm();
+    fireEvent.click(typeButton(type));
+
+    const warning = screen.getByTestId('fb-privacy-warning');
+    expect(warning).toBeVisible();
+    expect(warning).toHaveTextContent(/personal or private/i);
+  });
+
+  it('points the description field at the warning, so a screen reader hears it', () => {
+    renderForm();
+    const description = screen.getByLabelText(/Describe the new feature/);
+    const describedBy = description.getAttribute('aria-describedby') ?? '';
+
+    expect(describedBy.split(/\s+/)).toContain('fb-privacy-warning');
+  });
 });
 
 describe('error surfaces', () => {

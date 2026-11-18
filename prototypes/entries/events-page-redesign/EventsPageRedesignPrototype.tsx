@@ -75,6 +75,7 @@ import { ATTENDEES } from '../member-events-going/mocks';
 import going_s from '../member-events-going/MemberEventsGoing.module.scss';
 import { EventDrawer, type EventNotice } from '../event-drawer-redesign/EventDrawer';
 import { AccessIcon, ACCESS_FACT } from '../event-drawer-redesign/AccessIcon';
+import { EventImage } from '../events-shared/EventImage';
 import { GoingTag } from '../events-shared/GoingTag';
 import { startTime, venueOf } from '../event-drawer-redesign/format';
 
@@ -84,7 +85,6 @@ import {
   FACETS,
   MAIN_CITY_COUNT,
   MEMBER_LOCATION,
-  THUMBS,
   at,
   dayHeading,
   dayOfSpan,
@@ -746,7 +746,6 @@ function EventTile({
   const detail = DETAILS[event.uid];
   const { venue } = venueOf(detail);
   const online = detail.mode === 'Virtual';
-  const thumb = THUMBS[event.uid]?.replace('w=160&h=160', 'w=640&h=360');
 
   return (
     <button
@@ -756,7 +755,7 @@ function EventTile({
       onClick={onOpen}
     >
       <span className={s.tileImage}>
-        {thumb && <img src={thumb} alt="" />}
+        <EventImage uid={event.uid} wide className={s.tileFill} />
         {going && <GoingTag onImage />}
       </span>
       <span className={s.tileBody}>
@@ -772,11 +771,11 @@ function EventTile({
   );
 }
 
-/** Where, with the mode folded in: online events say so with a globe, hybrid ones add "also online". */
+/** Where, with the mode folded in: "Online" (globe, no platform name) or "Hybrid · venue, city" (2026-11-18). */
 function placeText(event: CalEvent, venue: string) {
   const mode = DETAILS[event.uid].mode;
-  if (mode === 'Virtual') return venue;
-  return mode === 'Hybrid' ? `${venue}, ${event.city} · also online` : `${venue}, ${event.city}`;
+  if (mode === 'Virtual') return 'Online';
+  return mode === 'Hybrid' ? `Hybrid · ${venue}, ${event.city}` : `${venue}, ${event.city}`;
 }
 
 /**
@@ -897,7 +896,6 @@ function EventCard({
   const zone = zoneOf(detail);
   const when = [[startTime(detail), zone].filter(Boolean).join(' '), span].filter(Boolean).join(' · ');
   const online = detail.mode === 'Virtual';
-  const thumb = THUMBS[event.uid];
 
   return (
     <button
@@ -923,7 +921,7 @@ function EventCard({
         </span>
         <EventFoot event={event} going={going} />
       </span>
-      {thumb && <img src={thumb} alt="" className={s.thumb} width={112} height={112} />}
+      <EventImage uid={event.uid} className={s.thumb} />
     </button>
   );
 }

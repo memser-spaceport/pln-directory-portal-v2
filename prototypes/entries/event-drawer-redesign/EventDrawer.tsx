@@ -90,20 +90,12 @@ import m from '@/components/core/UpdatesPanel/IrlGatheringModal/IrlGatheringModa
 import { markGoing, saveGathering, useGoing } from '../member-events-going/goingStore';
 import { ATTENDEES, MAYA_TEAMS, type EventDetail, type Gathering } from '../member-events-going/mocks';
 
+import { EventImage } from '../events-shared/EventImage';
 import { GoingTag } from '../events-shared/GoingTag';
 import { MUTED_ROLE, ROLE_TAG } from '../member-events-going/roleTags';
 import { AccessIcon, ACCESS_FACT } from './AccessIcon';
 import { dayLine, dayOfMonth, mapsHref, monthShort, regionLine, timeLine, venueOf } from './format';
-import {
-  DETAILS,
-  eventByUid,
-  eventsAppHref,
-  gatheringFor,
-  registerHref,
-  siblingsOf,
-  THUMBS,
-  type CalEvent,
-} from './mocks';
+import { DETAILS, eventByUid, eventsAppHref, gatheringFor, registerHref, siblingsOf, type CalEvent } from './mocks';
 import { RsvpCard } from './RsvpCard';
 import { GoingCardCompact, RsvpFooter } from './RsvpFooter';
 import d from './EventDrawer.module.scss';
@@ -366,7 +358,7 @@ function EventView({
             (2026-11-11). The calendar-glyph tile it replaced was a placeholder; with
             no picture there is no tile and the title starts at the edge. */}
           <div className={d.titleRow}>
-            {THUMBS[event.uid] && <img className={d.logo} src={THUMBS[event.uid]} alt="" width={56} height={56} />}
+            <EventImage uid={event.uid} className={d.logo} />
             <div className={d.titleText}>
               <h2 className={d.title}>{event.name}</h2>
               <p className={d.hosts}>
@@ -401,7 +393,7 @@ function EventView({
             </span>
             <span className={d.factText}>
               {online ? (
-                <span className={d.factMain}>{venue}</span>
+                <span className={d.factMain}>Online</span>
               ) : (
                 <a className={clsx(d.factMain, d.factLink)} href={mapsHref(detail)} target="_blank" rel="noreferrer">
                   {venue}
@@ -412,7 +404,7 @@ function EventView({
                 {online
                   ? 'Link sent after you register'
                   : detail.mode === 'Hybrid'
-                    ? `${regionLine(detail)} · also online`
+                    ? `${regionLine(detail)} · Hybrid, also online`
                     : regionLine(detail)}
               </span>
             </span>

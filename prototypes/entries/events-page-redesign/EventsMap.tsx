@@ -20,7 +20,8 @@ import { CloseIcon } from '@/components/icons';
 
 import { venueOf } from '../event-drawer-redesign/format';
 
-import { DETAILS, THUMBS, spanLabel, type CalEvent } from './mocks';
+import { DETAILS, spanLabel, type CalEvent } from './mocks';
+import { EventImage } from '../events-shared/EventImage';
 import { GoingTag } from '../events-shared/GoingTag';
 import m from './EventsMap.module.scss';
 
@@ -65,6 +66,7 @@ export const VENUE_COORDS: Record<string, [number, number]> = {
   'ipfs-camp-singapore': [1.2966, 103.7892], // BLOCK71
   'tokyo-founders-breakfast': [35.656, 139.7029], // Shibuya Stream
   'desci-austin': [30.269, -97.74], // Capital Factory
+  'nyc-founders-demo-night': [40.6995, -73.9705], // Newlab, Brooklyn Navy Yard
 };
 
 const toU = (lng: number) => (lng + 180) / 360;
@@ -340,7 +342,7 @@ export function EventsMap({
                 onClick={() => (single ? onOpen(first.uid, p.events) : setSelected(selected === p.key ? null : p.key))}
               >
                 <span className={m.venuePhoto}>
-                  {THUMBS[first.uid] && <img src={THUMBS[first.uid]} alt="" draggable={false} />}
+                  <EventImage uid={first.uid} className={m.venueFill} />
                 </span>
                 {!single && <span className={m.venueCount}>{p.events.length}</span>}
               </button>

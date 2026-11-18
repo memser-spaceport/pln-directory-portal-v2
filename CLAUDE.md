@@ -92,7 +92,7 @@ To comment current-cycle Linear issues with related PostHog events, run the `pos
 
 ### LabOS agent
 
-The in-app agent (LAB-3272) lives in `services/labos-agent/` and `components/core/labos-agent/`. Open it only with `openAgent({ context })` from `useOpenAgent()`. The gate is off by default; `localStorage['labos-agent'] = 'on'` turns it on in one browser. Chat uses the mock client until the C1 backend is live; `localStorage['labos-agent-api'] = 'live'` calls C1. Agent events are stubs until S0 is approved. Spec: `openspec/specs/labos-agent/spec.md`.
+The in-app agent (LAB-3272) lives in `services/labos-agent/` and `components/core/labos-agent/`. Open it only with `openAgent({ context })` from `useOpenAgent()`. The gate is off by default; `localStorage['labos-agent'] = 'on'` turns it on in one browser. Chat calls C1 by default; `localStorage['labos-agent-api'] = 'mock'` uses the mock client and shows "Mock answers" in the panel. The store keeps one chat per context, so closing the panel keeps the chat. `LabosAgentRoot` mounts through `app/ClientDynamics.tsx`. Agent events are stubs until S0 is approved. Spec: `openspec/specs/labos-agent/spec.md`.
 
 ### Path Aliases
 

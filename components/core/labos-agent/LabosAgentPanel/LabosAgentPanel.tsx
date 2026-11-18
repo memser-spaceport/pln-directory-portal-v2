@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 
 import { ChatInput } from '@/components/core/husky/ChatInput';
 import { AiSearchIcon } from '@/components/icons/AiSearchIcon';
 import { CloseIcon } from '@/components/icons/CloseIcon';
 import { useLabosAgentChat } from '@/services/labos-agent/hooks/useLabosAgentChat';
+import { isLabosAgentMock } from '@/services/labos-agent/labos-agent.config';
 import type { LabosAgentOpenContext } from '@/types/labos-agent.types';
 
 import { LabosAgentTurn } from '../LabosAgentTurn/LabosAgentTurn';
@@ -40,6 +42,8 @@ export function LabosAgentPanel({ context, onClose }: LabosAgentPanelProps) {
   const threadRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const label = contextLabel(context);
+  /* The panel is client-only, so localStorage is safe to read here. */
+  const [mock] = useState(() => isLabosAgentMock());
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -70,6 +74,11 @@ export function LabosAgentPanel({ context, onClose }: LabosAgentPanelProps) {
         <span className={s.headTitle}>
           <AiSearchIcon size={18} />
           Agent
+          {mock && (
+            <span className={s.mockLabel} title="localStorage labos-agent-api = mock">
+              Mock answers
+            </span>
+          )}
         </span>
         <span className={s.headActions}>
           {turns.length > 0 && (
@@ -121,11 +130,20 @@ export function LabosAgentPanel({ context, onClose }: LabosAgentPanelProps) {
       </div>
 
       <div className={s.foot}>
-        {label && (
-          <span className={s.context} title="The agent reads the page you opened it on">
-            <span className={s.contextText}>{label}</span>
-          </span>
-        )}
+        {label &&
+          (context?.page === 'news-story' ? (
+            <Link
+              href={`/?news=${encodeURIComponent(context.newsUid)}`}
+              className={s.context}
+              title="The agent reads this story. Open the story."
+            >
+              <span className={s.contextText}>{label}</span>
+            </Link>
+          ) : (
+            <span className={s.context} title="The agent reads the page you opened it on">
+              <span className={s.contextText}>{label}</span>
+            </span>
+          ))}
         <ChatInput
           ref={inputRef}
           className={s.composer}

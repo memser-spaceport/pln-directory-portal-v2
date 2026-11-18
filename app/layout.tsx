@@ -35,9 +35,9 @@ import {
   PostHogPageview,
   RatingContainer,
   GlobalFeedback,
+  LabosAgentRoot,
 } from './ClientDynamics';
 import { ScrollTopOnNavigation } from '@/components/core/ScrollTopOnNavigation';
-import { LabosAgentRoot } from '@/components/core/labos-agent/LabosAgentRoot/LabosAgentRoot';
 
 const inter = Inter({ subsets: ['latin'] });
 

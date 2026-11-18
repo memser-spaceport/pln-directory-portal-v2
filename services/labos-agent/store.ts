@@ -1,44 +1,51 @@
 import { create } from 'zustand';
 
-import type { LabosAgentOpenContext } from '@/types/labos-agent.types';
+import type { LabosAgentChat, LabosAgentOpenContext, LabosAgentTurn } from '@/types/labos-agent.types';
+import { generateUUID } from '@/utils/common.utils';
+
+/** One key per context: one chat per story, one for Home, one for no context. */
+export function chatKey(context: LabosAgentOpenContext | null): string {
+  if (!context) return 'none';
+  if (context.page === 'news-story') return `news-story:${context.newsUid}`;
+  return context.page;
+}
 
 interface LabosAgentState {
   readonly isOpen: boolean;
   /** The page the agent reads. `null`: no page context. */
   readonly context: LabosAgentOpenContext | null;
-  /** Goes up on each `openAgent` with a new context, so the panel starts a new chat. */
-  readonly session: number;
+  /**
+   * The chats of this page visit, by `chatKey`. They outlive the panel, so closing and reopening from the same
+   * context restores the chat. A full page load clears them (no saved history in v0).
+   */
+  readonly chats: Record<string, LabosAgentChat>;
   readonly actions: {
     /**
      * The one "open with context" call (LAB-3298). Opens the panel on this context. S2–S5 reuse it.
-     * The same context as the open chat keeps the chat; another context starts a new chat.
+     * The chat of that context comes back; a context with no chat starts a new one.
      */
     openAgent: (options?: { context?: LabosAgentOpenContext | null }) => void;
     closeAgent: () => void;
+    /** Changes the turns of one chat. Creates the chat (and its `threadId`) on first use. */
+    updateTurns: (key: string, update: (turns: LabosAgentTurn[]) => LabosAgentTurn[]) => void;
+    /** New chat: a new `threadId` and no turns. */
+    resetChat: (key: string) => void;
   };
 }
 
-const sameContext = (a: LabosAgentOpenContext | null, b: LabosAgentOpenContext | null) => {
-  if (a === b) return true;
-  if (!a || !b || a.page !== b.page) return false;
-  if (a.page === 'news-story' && b.page === 'news-story') return a.newsUid === b.newsUid;
-  return true;
-};
-
-export const useLabosAgentStore = create<LabosAgentState>((set, get) => ({
+export const useLabosAgentStore = create<LabosAgentState>((set) => ({
   isOpen: false,
   context: null,
-  session: 0,
+  chats: {},
   actions: {
-    openAgent: ({ context = null } = {}) => {
-      const { context: current, session } = get();
-      set({
-        isOpen: true,
-        context,
-        session: sameContext(current, context) && session > 0 ? session : session + 1,
-      });
-    },
+    openAgent: ({ context = null } = {}) => set({ isOpen: true, context }),
     closeAgent: () => set({ isOpen: false }),
+    updateTurns: (key, update) =>
+      set((state) => {
+        const chat = state.chats[key] ?? { threadId: generateUUID(), turns: [] };
+        return { chats: { ...state.chats, [key]: { ...chat, turns: update(chat.turns) } } };
+      }),
+    resetChat: (key) => set((state) => ({ chats: { ...state.chats, [key]: { threadId: generateUUID(), turns: [] } } })),
   },
 }));
 

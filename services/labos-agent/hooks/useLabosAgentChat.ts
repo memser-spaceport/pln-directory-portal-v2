@@ -1,30 +1,26 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback } from 'react';
 
 import { useLabosAgentAnalytics } from '@/analytics/labos-agent.analytics';
-import type { LabosAgentChatErrorCode, LabosAgentOpenContext, LabosAgentSourceRef } from '@/types/labos-agent.types';
+import type {
+  LabosAgentChatErrorCode,
+  LabosAgentOpenContext,
+  LabosAgentTurn,
+  LabosAgentTurnStatus,
+} from '@/types/labos-agent.types';
 import { generateUUID } from '@/utils/common.utils';
 
 import { isStalledAnswer, LabosAgentError } from '../labos-agent.errors';
 import { getLabosAgentClient, toChatContext } from '../labos-agent.service';
+import { chatKey, useLabosAgentStore } from '../store';
 
-export type LabosAgentTurnStatus = 'working' | 'done' | 'stopped' | 'stalled' | 'error';
+export type { LabosAgentTurn, LabosAgentTurnStatus };
 
-export interface LabosAgentTurn {
-  /** The C1 `chatId` of this turn. */
-  id: string;
-  message: string;
-  status: LabosAgentTurnStatus;
-  steps: string[];
-  content: string;
-  sources: string[];
-  sourceRefs: LabosAgentSourceRef[];
-  followUpQuestions: string[];
-  error?: { code: LabosAgentChatErrorCode; status: number; message: string };
-  startedAt: number;
-  endedAt?: number;
-}
+const NO_TURNS: LabosAgentTurn[] = [];
+
+/** The open stream of each chat, by `chatKey`. Module scope, so a stream outlives the panel and Stop still works. */
+const streams = new Map<string, AbortController>();
 
 /** The text the panel shows for an error code. Plain words, no codes. */
 export function errorText(code: LabosAgentChatErrorCode, retryAfterSeconds?: number): string {
@@ -47,19 +43,22 @@ export function errorText(code: LabosAgentChatErrorCode, retryAfterSeconds?: num
 }
 
 /**
- * One chat with the agent, for one context. Each turn streams from the client (mock or C1). A hard error or a stall
- * marks the turn, and `retry` sends the same message again.
+ * One chat with the agent, for one context. Turns live in the store (`chats[chatKey(context)]`), so closing the panel
+ * keeps the chat and an open stream keeps writing to it. A hard error or a stall marks the turn, and `retry` sends the
+ * same message again.
  */
 export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
-  const [turns, setTurns] = useState<LabosAgentTurn[]>([]);
-  const threadIdRef = useRef(generateUUID());
-  const abortRef = useRef<AbortController | null>(null);
+  const key = chatKey(context);
+  const turns = useLabosAgentStore((s) => s.chats[key]?.turns ?? NO_TURNS);
+  const { updateTurns, resetChat } = useLabosAgentStore((s) => s.actions);
   const analytics = useLabosAgentAnalytics();
   const page = context?.page ?? 'none';
 
-  const patch = useCallback((id: string, next: Partial<LabosAgentTurn>) => {
-    setTurns((prev) => prev.map((t) => (t.id === id ? { ...t, ...next } : t)));
-  }, []);
+  const patch = useCallback(
+    (id: string, next: Partial<LabosAgentTurn>) =>
+      updateTurns(key, (prev) => prev.map((t) => (t.id === id ? { ...t, ...next } : t))),
+    [key, updateTurns],
+  );
 
   const run = useCallback(
     async (message: string, replaceId?: string) => {
@@ -75,14 +74,15 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
         followUpQuestions: [],
         startedAt: Date.now(),
       };
-      setTurns((prev) => (replaceId ? prev.map((t) => (t.id === replaceId ? turn : t)) : [...prev, turn]));
+      updateTurns(key, (prev) => (replaceId ? prev.map((t) => (t.id === replaceId ? turn : t)) : [...prev, turn]));
+      const threadId = useLabosAgentStore.getState().chats[key].threadId;
       analytics.onAgentMessageSent({ page, textLength: message.length, isRetry: !!replaceId });
 
       const controller = new AbortController();
-      abortRef.current = controller;
+      streams.set(key, controller);
       try {
         const body = await getLabosAgentClient().chat(
-          { threadId: threadIdRef.current, chatId: id, message, context: toChatContext(context) },
+          { threadId, chatId: id, message, context: toChatContext(context) },
           {
             signal: controller.signal,
             onUpdate: (partial) => {
@@ -110,12 +110,12 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
         });
         analytics.onAgentErrorShown({ page, code: e.code, status: e.status });
       } finally {
-        if (abortRef.current === controller) abortRef.current = null;
+        if (streams.get(key) === controller) streams.delete(key);
       }
     },
     // `analytics` is a stub with new identities each render; the handlers hold no state.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [context, page, patch],
+    [context, key, page, patch, updateTurns],
   );
 
   const busy = turns.some((t) => t.status === 'working');
@@ -140,22 +140,18 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
   );
 
   const stop = useCallback(() => {
-    abortRef.current?.abort();
-    abortRef.current = null;
-    setTurns((prev) =>
+    streams.get(key)?.abort();
+    streams.delete(key);
+    updateTurns(key, (prev) =>
       prev.map((t) => (t.status === 'working' ? { ...t, status: 'stopped', endedAt: Date.now() } : t)),
     );
-  }, []);
+  }, [key, updateTurns]);
 
   const newChat = useCallback(() => {
-    abortRef.current?.abort();
-    abortRef.current = null;
-    threadIdRef.current = generateUUID();
-    setTurns([]);
-  }, []);
-
-  // Abort the open stream when the panel unmounts.
-  useEffect(() => () => abortRef.current?.abort(), []);
+    streams.get(key)?.abort();
+    streams.delete(key);
+    resetChat(key);
+  }, [key, resetChat]);
 
   return { turns, busy, send, retry, stop, newChat };
 }

@@ -28,6 +28,11 @@ export const RatingContainer = dynamic(() => import('@/components/core/office-ho
 export const GlobalFeedback = dynamic(() => import('@/components/core/GlobalFeedback').then((m) => m.GlobalFeedback), {
   ssr: false,
 });
+// LAB-3298: the LabOS agent panel. Client-only: it reads localStorage for the gate and the mock switch.
+export const LabosAgentRoot = dynamic(
+  () => import('@/components/core/labos-agent/LabosAgentRoot/LabosAgentRoot').then((m) => m.LabosAgentRoot),
+  { ssr: false },
+);
 // TODO(deprecated): the Botpress webchat is replaced by the activity chat. Remove this and components/core/botpress.
 // export const BotpressWebchat = dynamic(
 //   () => import('@/components/core/botpress/BotpressWebchat').then((m) => m.BotpressWebchat),

@@ -19,9 +19,7 @@ export function isLabosAgentGateOn(): boolean {
   return LABOS_AGENT_ENABLED_BY_DEFAULT || readStorage(LABOS_AGENT_GATE_STORAGE_KEY) === 'on';
 }
 
-/** Mock client unless `localStorage['labos-agent-api'] = 'live'`. */
+/** The live C1 client unless `localStorage['labos-agent-api'] = 'mock'` (or the code default says mock). */
 export function isLabosAgentMock(): boolean {
-  const value = readStorage(LABOS_AGENT_API_STORAGE_KEY);
-  if (value === 'live') return false;
-  return LABOS_AGENT_MOCK_BY_DEFAULT || value === 'mock';
+  return LABOS_AGENT_MOCK_BY_DEFAULT || readStorage(LABOS_AGENT_API_STORAGE_KEY) === 'mock';
 }

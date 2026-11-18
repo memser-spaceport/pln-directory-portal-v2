@@ -20,19 +20,19 @@ The agent and every control that opens it SHALL show only when three checks pass
 
 #### Scenario: Member outside the backend gate
 
-- **GIVEN** the local gate on and the live client
+- **GIVEN** the local gate on
 - **WHEN** the access check returns `{ "enabled": false }` or fails
 - **THEN** the member sees no agent control
 
 ### Requirement: One call opens the agent with a context
 
-The app SHALL open the agent only through `openAgent({ context })` (`useOpenAgent()`). `context` is `{ page: 'news-story', newsUid, label? }`, `{ page: 'home', label? }` or absent. `label` SHALL show in the context chip above the composer and SHALL never go to the API. The same context as the open chat SHALL keep that chat. A different context SHALL start a new chat. Slices S2 to S5 SHALL reuse this call.
+The app SHALL open the agent only through `openAgent({ context })` (`useOpenAgent()`). `context` is `{ page: 'news-story', newsUid, label? }`, `{ page: 'home', label? }` or absent. `label` SHALL show in the context chip above the composer and SHALL never go to the API. For a news story, the chip SHALL link to `/?news=<uid>`. The store SHALL keep one chat (`threadId` and turns) per context (`chatKey`) for the page visit, so closing the panel SHALL not lose the chat. Opening from the same context SHALL restore its chat. A different context SHALL show its own chat, new if it has none. New chat SHALL start a new thread for the current context. Slices S2 to S5 SHALL reuse this call.
 
 #### Scenario: Same story again
 
 - **GIVEN** a member closed the agent after a chat about story A
 - **WHEN** they open the agent from story A again
-- **THEN** the panel shows the same chat
+- **THEN** the panel shows the same chat with its turns
 
 #### Scenario: Another story
 
@@ -70,7 +70,7 @@ When the request fails before the stream starts, or the connection breaks, the t
 
 ### Requirement: The API sits behind one client with a mock
 
-All agent calls SHALL go through `getLabosAgentClient()`. The live client SHALL call C1 and the access check with `customFetch` (the member's session). Until the C1 backend is live, the client SHALL be the mock: scripted answers, no network and no member data. `localStorage['labos-agent-api'] = 'live'` SHALL select the live client. The mock SHALL break the connection for a message with "error", stall for "stall", and use web sources for "web", so QA can test each path.
+All agent calls SHALL go through `getLabosAgentClient()`. The live client SHALL call C1 and the access check with `customFetch` (the member's session). The live client SHALL be the default (`LABOS_AGENT_MOCK_BY_DEFAULT = false`). `localStorage['labos-agent-api'] = 'mock'` SHALL select the mock in one browser: scripted answers, no network and no member data. While the mock is on, the panel header SHALL show a "Mock answers" label. The mock SHALL break the connection for a message with "error", stall for "stall", and use web sources for "web", so QA can test each path.
 
 ### Requirement: No agent tracking before S0 is approved
 

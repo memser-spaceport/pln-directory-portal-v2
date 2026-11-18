@@ -16,11 +16,11 @@ export const LABOS_AGENT_MESSAGE_MAX = 2000;
  */
 export const LABOS_AGENT_ENABLED_BY_DEFAULT = false;
 
-/** Until the C1 backend is live, the panel talks to the mock client. */
-export const LABOS_AGENT_MOCK_BY_DEFAULT = true;
+/** The panel talks to the live C1 endpoint. `true` makes the mock the default again. */
+export const LABOS_AGENT_MOCK_BY_DEFAULT = false;
 
 /** localStorage key. The value `on` turns the gate on in this browser, for development and QA. */
 export const LABOS_AGENT_GATE_STORAGE_KEY = 'labos-agent';
 
-/** localStorage key. The value `live` sends chat to the real C1 endpoint; any other value keeps the mock. */
+/** localStorage key. The value `mock` sends chat to the mock client in this browser, for development and QA. */
 export const LABOS_AGENT_API_STORAGE_KEY = 'labos-agent-api';

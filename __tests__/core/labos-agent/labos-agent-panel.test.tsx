@@ -21,11 +21,6 @@ jest.mock('@/components/common/Markdown', () => ({
   Markdown: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
 }));
 
-// The panel loads with next/dynamic in the app; load it at once here.
-jest.mock('next/dynamic', () => () => {
-  return jest.requireActual('@/components/core/labos-agent/LabosAgentPanel/LabosAgentPanel').LabosAgentPanel;
-});
-
 import { AskAgentButton } from '@/components/core/labos-agent/AskAgentButton/AskAgentButton';
 import { LabosAgentRoot } from '@/components/core/labos-agent/LabosAgentRoot/LabosAgentRoot';
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -61,7 +56,7 @@ describe('LAB-3298: agent panel and Ask a follow-up', () => {
   beforeEach(() => {
     chat.mockReset();
     window.localStorage.clear();
-    useLabosAgentStore.setState({ isOpen: false, context: null, session: 0 });
+    useLabosAgentStore.setState({ isOpen: false, context: null, chats: {} });
     useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
   });
 
@@ -92,7 +87,8 @@ describe('LAB-3298: agent panel and Ask a follow-up', () => {
     fireEvent.click(await screen.findByText('Ask a follow-up'));
     expect(onOpened).toHaveBeenCalled();
     expect(await screen.findByRole('complementary', { name: 'Agent' })).toBeInTheDocument();
-    expect(screen.getByText('Mock story title')).toBeInTheDocument();
+    expect(screen.getByText('Mock story title').closest('a')).toHaveAttribute('href', '/?news=n-1');
+    expect(screen.queryByText('Mock answers')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByText('Summarize this story'));
 
@@ -149,5 +145,46 @@ describe('LAB-3298: agent panel and Ask a follow-up', () => {
     fireEvent.click(await screen.findByText('Ask a follow-up'));
     fireEvent.click(await screen.findByLabelText('Close agent'));
     expect(screen.queryByRole('complementary', { name: 'Agent' })).not.toBeInTheDocument();
+  });
+
+  it('shows the Mock answers label only while the mock is on', async () => {
+    window.localStorage.setItem('labos-agent', 'on');
+    window.localStorage.setItem('labos-agent-api', 'mock');
+    signIn();
+    renderApp();
+
+    fireEvent.click(await screen.findByText('Ask a follow-up'));
+    expect(await screen.findByText('Mock answers')).toBeInTheDocument();
+  });
+
+  it('keeps the chat after close and reopen from the same story, and a new story starts a new chat', async () => {
+    window.localStorage.setItem('labos-agent', 'on');
+    signIn();
+    chat.mockResolvedValue(answer);
+    renderApp();
+
+    fireEvent.click(await screen.findByText('Ask a follow-up'));
+    fireEvent.click(await screen.findByText('Summarize this story'));
+    expect(await screen.findByText('Mock answer text')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('Close agent'));
+    expect(screen.queryByRole('complementary', { name: 'Agent' })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Ask a follow-up'));
+    expect(await screen.findByText('Mock answer text')).toBeInTheDocument();
+    expect(screen.getAllByText('Summarize this story')).toHaveLength(1);
+
+    act(() =>
+      useLabosAgentStore
+        .getState()
+        .actions.openAgent({ context: { page: 'news-story', newsUid: 'n-2', label: 'Other story' } }),
+    );
+    expect(await screen.findByText('Other story')).toBeInTheDocument();
+    expect(screen.queryByText('Mock answer text')).not.toBeInTheDocument();
+    expect(screen.getByText('What do you want to know?')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Summarize this story'));
+    expect(await screen.findByText('Mock answer text')).toBeInTheDocument();
+    expect(chat.mock.calls[1][0].threadId).not.toBe(chat.mock.calls[0][0].threadId);
   });
 });

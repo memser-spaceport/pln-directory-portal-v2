@@ -181,6 +181,23 @@
   line-height: 16px;
 }
 
+.mockLabel {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--background-warning-subtle, #fef3c7);
+  color: var(--foreground-warning-primary, #92400e);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+a.context {
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .contextText {
   overflow: hidden;
   text-overflow: ellipsis;

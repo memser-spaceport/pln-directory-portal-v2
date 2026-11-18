@@ -145,7 +145,7 @@ async function getAccess(): Promise<LabosAgentAccess> {
 
 export const liveLabosAgentClient: LabosAgentClient = { chat, getAccess };
 
-/** The client the panel uses: the mock until the C1 backend is live (see `labos-agent.config.ts`). */
+/** The client the panel uses: live C1, or the mock when it is selected (see `labos-agent.config.ts`). */
 export function getLabosAgentClient(): LabosAgentClient {
   return isLabosAgentMock() ? mockLabosAgentClient : liveLabosAgentClient;
 }

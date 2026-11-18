@@ -67,3 +67,27 @@ export interface LabosAgentClient {
   getAccess: () => Promise<LabosAgentAccess>;
   chat: (request: LabosAgentChatRequest, options?: LabosAgentStreamOptions) => Promise<LabosAgentChatResponse>;
 }
+
+export type LabosAgentTurnStatus = 'working' | 'done' | 'stopped' | 'stalled' | 'error';
+
+/** One message and the agent's answer to it. */
+export interface LabosAgentTurn {
+  /** The C1 `chatId` of this turn. */
+  id: string;
+  message: string;
+  status: LabosAgentTurnStatus;
+  steps: string[];
+  content: string;
+  sources: string[];
+  sourceRefs: LabosAgentSourceRef[];
+  followUpQuestions: string[];
+  error?: { code: LabosAgentChatErrorCode; status: number; message: string };
+  startedAt: number;
+  endedAt?: number;
+}
+
+/** One chat: the C1 `threadId` and its turns. The store keeps one per context. */
+export interface LabosAgentChat {
+  threadId: string;
+  turns: LabosAgentTurn[];
+}

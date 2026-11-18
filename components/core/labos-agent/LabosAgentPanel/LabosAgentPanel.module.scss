@@ -19,6 +19,11 @@
   }
 }
 
+/* LAB-3302: opened over the news story modal (`Modal` overlay z-index 9999). */
+.overModal {
+  z-index: 10000;
+}
+
 .head {
   display: flex;
   align-items: center;

@@ -20,7 +20,7 @@ interface LabosAgentState {
   readonly context: LabosAgentOpenContext | null;
   /**
    * S5 (LAB-3302): `false` after the member removes the page chip. Then C1 sends no `context`. Each `openAgent` sets it
-   * back to `true`.
+   * back to `true`, except for a chat with `pageUnreadable` (a page 404, S5-C29): that chat opens with the chip off.
    */
   readonly readsPage: boolean;
   /**
@@ -50,6 +50,8 @@ interface LabosAgentState {
     clearPrefill: () => void;
     markIntroTargetSent: (key: string) => void;
     closeAgent: () => void;
+    /** S5-C29: C1 cannot read the page of this chat. A new open of the chat starts with the chip off. */
+    markPageUnreadable: (key: string) => void;
     /** Changes the turns of one chat. Creates the chat (and its `threadId`) on first use. */
     updateTurns: (key: string, update: (turns: LabosAgentTurn[]) => LabosAgentTurn[]) => void;
     /** New chat: a new `threadId` and no turns. */
@@ -66,11 +68,21 @@ export const useLabosAgentStore = create<LabosAgentState>((set) => ({
   sentIntroTargets: {},
   actions: {
     openAgent: ({ context = null, prefill } = {}) =>
-      set({ isOpen: true, context, readsPage: true, prefill: prefill ?? null }),
+      set((state) => ({
+        isOpen: true,
+        context,
+        readsPage: !state.chats[chatKey(context)]?.pageUnreadable,
+        prefill: prefill ?? null,
+      })),
     setReadsPage: (readsPage) => set({ readsPage }),
     clearPrefill: () => set({ prefill: null }),
     markIntroTargetSent: (key) => set((state) => ({ sentIntroTargets: { ...state.sentIntroTargets, [key]: true } })),
     closeAgent: () => set({ isOpen: false }),
+    markPageUnreadable: (key) =>
+      set((state) => {
+        const chat = state.chats[key] ?? { threadId: generateUUID(), turns: [] };
+        return { chats: { ...state.chats, [key]: { ...chat, pageUnreadable: true } } };
+      }),
     updateTurns: (key, update) =>
       set((state) => {
         const chat = state.chats[key] ?? { threadId: generateUUID(), turns: [] };

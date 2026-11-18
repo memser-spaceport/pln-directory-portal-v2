@@ -16,7 +16,7 @@ import { useFeedbackShortcuts } from '@/components/page/ai-apps/hooks/useFeedbac
 import { FeedbackFabButton } from '@/components/page/ai-apps/components/FeedbackFabButton';
 import { GiveAiAppFeedbackDialog } from '@/components/page/ai-apps/components/GiveAiAppFeedbackDialog';
 import { LabosAgentCorner } from '@/components/core/labos-agent/LabosAgentCorner/LabosAgentCorner';
-import { useLabosAgentAccess } from '@/services/labos-agent/hooks/useLabosAgentAccess';
+import { useLabosAgentAccessState } from '@/services/labos-agent/hooks/useLabosAgentAccess';
 
 interface Props {
   isLoggedIn?: boolean;
@@ -47,14 +47,16 @@ export function GlobalFeedback({ isLoggedIn }: Props) {
   const { data: preferences, isLoading } = useGetMemberPreferences(isLoggedIn ? uid : undefined);
   const setShowFeedbackButton = useSetShowFeedbackButton(uid);
   const [isFormHidden, setIsFormHidden] = useState(false);
-  const agentEnabled = useLabosAgentAccess();
+  const agentAccess = useLabosAgentAccessState();
 
   /* Off until the preference loads, so a member who hid the button never sees it flash in. */
   const buttonOn = !isLoading && preferences?.memberPreferences?.showFeedbackButton !== false;
   const hasCorner = Boolean(isLoggedIn) && !isAiAppsRoute(pathname) && !isBareRoute(pathname);
   const showButton = hasCorner && buttonOn;
   /* The agent corner waits for the preference too, so its Feedback tab does not flash in. */
-  const showAgentCorner = hasCorner && agentEnabled && !isLoading;
+  const showAgentCorner = hasCorner && agentAccess === 'on' && !isLoading;
+  /* LAB-3302: while the agent access is `unknown`, neither shows, so the button does not flash before the corner. */
+  const showFab = showButton && agentAccess === 'off';
 
   const openFrom = useCallback(
     (source: FeedbackButtonSource) => {
@@ -91,7 +93,7 @@ export function GlobalFeedback({ isLoggedIn }: Props) {
           onCloseFeedback={closeDrawer}
         />
       )}
-      {showButton && !showAgentCorner && (
+      {showFab && (
         <FeedbackFabButton name="Give feedback" isDrawerOpen={open} isHidden={isFormHidden} onClick={onOpenFloating} />
       )}
       <GiveAiAppFeedbackDialog

@@ -13,6 +13,7 @@ LAB-3302 (https://linear.app/protocollabs/issue/LAB-3302), slice S5 of LAB-3272:
 - `toChatContext` sends each page with its id. A C1 404 for the page shows "The agent cannot read this page. Remove the page chip and ask again."
 - The key hint shows only with a mouse or trackpad and a screen 640px or wider: "⌘J" on a Mac, "Ctrl J" elsewhere.
 - One slot: when the agent opens, the feedback drawer closes, and the reverse.
+- Review fixes (Oleg): the job drawer sends `jobUid`; the agent works over the news story modal; no Feedback button flash while access loads; a page 404 restores the text once only.
 
 ## Out of scope
 

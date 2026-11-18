@@ -132,7 +132,7 @@ export function draftEventContext(
 export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
   const key = chatKey(context);
   const turns = useLabosAgentStore((s) => s.chats[key]?.turns ?? NO_TURNS);
-  const { updateTurns, resetChat } = useLabosAgentStore((s) => s.actions);
+  const { updateTurns, resetChat, markPageUnreadable } = useLabosAgentStore((s) => s.actions);
   const analytics = useLabosAgentAnalytics();
   const introAnalytics = useIntroRequestAnalytics();
   const page = context?.page ?? 'none';
@@ -204,6 +204,8 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
           error: { code: e.code, status: e.status, message: errorText(e.code, e.retryAfterSeconds) },
           endedAt: Date.now(),
         });
+        // S5-C29: the next open of this context starts with the chip off.
+        if (PAGE_NOT_FOUND_CODES.has(e.code)) markPageUnreadable(key);
         analytics.onAgentErrorShown({ page, code: e.code, status: e.status });
       } finally {
         if (streams.get(key) === controller) streams.delete(key);
@@ -211,7 +213,7 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
     },
     // `analytics` is a stub with new identities each render; the handlers hold no state.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [context, key, page, patch, updateTurns, introAnalytics.onDialogOpened],
+    [context, key, page, patch, updateTurns, markPageUnreadable, introAnalytics.onDialogOpened],
   );
 
   const busy = turns.some((t) => t.status === 'working');
@@ -380,5 +382,8 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
     [context, findDraft, introAnalytics, setDraftCard],
   );
 
-  return { turns, busy, send, retry, stop, newChat, decide, editDraft, sendDraft, cancelDraft };
+  /** S5-C29: the panel put the text of a failed turn back in the composer. It does that once only. */
+  const markTextRestored = useCallback((turnId: string) => patch(turnId, { textRestored: true }), [patch]);
+
+  return { turns, busy, send, retry, stop, newChat, decide, editDraft, sendDraft, cancelDraft, markTextRestored };
 }

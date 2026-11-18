@@ -191,3 +191,11 @@
     transition: none;
   }
 }
+
+/*
+  LAB-3302: over the news story modal, from tablet-landscape up. The corner portals above the story's overlay
+  (z-index 9999) with the Agent tab only, so it sits on the scrim to the right of the 680px story card.
+*/
+.cornerOverModal {
+  z-index: 10000;
+}

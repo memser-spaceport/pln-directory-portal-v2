@@ -240,6 +240,8 @@ export interface LabosAgentTurn {
   /** Draft card state by `draftId`. No entry: `open` with the draft text. */
   draftCards: Record<string, LabosAgentDraftCardState>;
   error?: { code: LabosAgentChatErrorCode; status: number; message: string };
+  /** S5-C29: the panel put the text of this failed turn back in the composer. It does that once only. */
+  textRestored?: boolean;
   startedAt: number;
   endedAt?: number;
 }
@@ -248,4 +250,9 @@ export interface LabosAgentTurn {
 export interface LabosAgentChat {
   threadId: string;
   turns: LabosAgentTurn[];
+  /**
+   * S5-C29: C1 gave a page 404 (`MEMBER_NOT_FOUND`, `TEAM_NOT_FOUND`, `JOB_NOT_FOUND`) in this chat. A new open of
+   * this context then starts with the chip off, so a second send does not get the same 404.
+   */
+  pageUnreadable?: true;
 }

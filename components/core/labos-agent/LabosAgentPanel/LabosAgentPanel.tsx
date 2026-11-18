@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { clsx } from 'clsx';
 import Link from 'next/link';
 
 import { ChatInput } from '@/components/core/husky/ChatInput';
@@ -8,6 +9,7 @@ import { AiSearchIcon } from '@/components/icons/AiSearchIcon';
 import { CloseIcon } from '@/components/icons/CloseIcon';
 import { PAGE_NOT_FOUND_CODES, useLabosAgentChat } from '@/services/labos-agent/hooks/useLabosAgentChat';
 import { isLabosAgentMock } from '@/services/labos-agent/labos-agent.config';
+import { keepInteractive } from '@/services/labos-agent/labos-agent.dialogs';
 import { useLabosAgentStore } from '@/services/labos-agent/store';
 import type { LabosAgentOpenContext, LabosAgentOpenPage } from '@/types/labos-agent.types';
 
@@ -18,6 +20,8 @@ import s from './LabosAgentPanel.module.scss';
 interface LabosAgentPanelProps {
   context: LabosAgentOpenContext | null;
   onClose: () => void;
+  /** LAB-3302: the panel opened over the news story modal. It goes above the story's overlay. */
+  overModal?: boolean;
 }
 
 const NETWORK_PROMPTS = ['What happened in the network this week?'];
@@ -54,8 +58,8 @@ const contextLabel = (context: LabosAgentOpenContext | null) => {
  * page it was opened on (`context`), shows its steps, streams its answer and lists its sources. S1: answers only, no
  * writes. Phones: a full-screen sheet. From 960px: a 480px column over the page's right edge.
  */
-export function LabosAgentPanel({ context, onClose }: LabosAgentPanelProps) {
-  const { turns, busy, send, retry, stop, newChat, decide, editDraft, sendDraft, cancelDraft } =
+export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAgentPanelProps) {
+  const { turns, busy, send, retry, stop, newChat, decide, editDraft, sendDraft, cancelDraft, markTextRestored } =
     useLabosAgentChat(context);
   const prefill = useLabosAgentStore((st) => st.prefill);
   const clearPrefill = useLabosAgentStore((st) => st.actions.clearPrefill);
@@ -88,23 +92,35 @@ export function LabosAgentPanel({ context, onClose }: LabosAgentPanelProps) {
   /*
    * S5-C29: C1 cannot read the page of the chip (404 MEMBER_NOT_FOUND, TEAM_NOT_FOUND or JOB_NOT_FOUND). The turn
    * keeps the member's text, and the text goes back in an empty composer, so the member can remove the chip and send.
+   * Once only: a new open of the panel does not put the text back again (the chip is off then, see `openAgent`).
    */
   const lastTurn = turns[turns.length - 1];
   const pageErrorTurn =
-    lastTurn?.status === 'error' && lastTurn.error && PAGE_NOT_FOUND_CODES.has(lastTurn.error.code) ? lastTurn : null;
+    lastTurn?.status === 'error' &&
+    lastTurn.error &&
+    !lastTurn.textRestored &&
+    PAGE_NOT_FOUND_CODES.has(lastTurn.error.code)
+      ? lastTurn
+      : null;
   useEffect(() => {
     const input = inputRef.current;
-    if (!pageErrorTurn || !input || input.value.trim()) return;
-    input.value = pageErrorTurn.message;
-  }, [pageErrorTurn]);
+    if (!pageErrorTurn || !input) return;
+    if (!input.value.trim()) input.value = pageErrorTurn.message;
+    markTextRestored(pageErrorTurn.id);
+  }, [pageErrorTurn, markTextRestored]);
 
-  /* Esc closes the panel from anywhere inside it. */
+  /*
+   * Esc closes the panel from anywhere inside it. Window capture runs before `Modal`'s document capture, so Esc in the
+   * panel over a news story closes the panel only, not the story.
+   */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && panelRef.current?.contains(document.activeElement)) onClose();
+      if (e.key !== 'Escape' || !panelRef.current?.contains(document.activeElement)) return;
+      e.stopImmediatePropagation();
+      onClose();
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
   }, [onClose]);
 
   /* Keep the newest words in view while they arrive. */
@@ -118,7 +134,14 @@ export function LabosAgentPanel({ context, onClose }: LabosAgentPanelProps) {
   };
 
   return (
-    <aside ref={panelRef} className={s.panel} aria-label="Agent">
+    <aside
+      ref={(el) => {
+        panelRef.current = el;
+        if (overModal) keepInteractive(el);
+      }}
+      className={clsx(s.panel, overModal && s.overModal)}
+      aria-label="Agent"
+    >
       <header className={s.head}>
         <span className={s.headTitle}>
           <AiSearchIcon size={18} />

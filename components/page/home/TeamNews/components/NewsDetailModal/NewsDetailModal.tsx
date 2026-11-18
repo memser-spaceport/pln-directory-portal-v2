@@ -110,6 +110,8 @@ export function NewsDetailModal({
         showImage={showImage}
         onGuestUpvote={onGuestUpvote}
       />
+      {/* LAB-3302: the story is a page to read, so the agent corner and Ctrl/⌘ J work over it (`labos-agent.dialogs`). */}
+      <span hidden data-labos-agent-passthrough="" />
     </Modal>
   );
 }

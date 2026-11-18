@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
+import { createPortal } from 'react-dom';
 import { clsx } from 'clsx';
 
 import { useLabosAgentAnalytics } from '@/analytics/labos-agent.analytics';
@@ -16,6 +17,7 @@ import {
   useShowsKeyHint,
 } from '@/services/labos-agent/hooks/useLabosAgentShortcut';
 import { pageContextFromLocation } from '@/services/labos-agent/labos-agent.page-context';
+import { keepInteractive, useIsPassthroughModalOpen } from '@/services/labos-agent/labos-agent.dialogs';
 import { useLabosAgentStore } from '@/services/labos-agent/store';
 
 import s from './LabosAgentCorner.module.scss';
@@ -29,6 +31,22 @@ interface Props {
   onOpenFeedback: () => void;
   onCloseFeedback: () => void;
 }
+
+/** Tablet-landscape up (960, `styles/media.scss`): the story is a centered card with room to its right. */
+export const WIDE_QUERY = '(min-width: 960px)';
+
+function subscribeWide(onChange: () => void) {
+  const mql = window.matchMedia?.(WIDE_QUERY);
+  mql?.addEventListener?.('change', onChange);
+  return () => mql?.removeEventListener?.('change', onChange);
+}
+
+const useIsWide = () =>
+  useSyncExternalStore(
+    subscribeWide,
+    () => Boolean(window.matchMedia?.(WIDE_QUERY).matches),
+    () => false,
+  );
 
 /** The page the member is on now. Read at the press, so a query change (`?news=`) needs no re-render. */
 const currentPageContext = (uid?: string | null) =>
@@ -53,6 +71,14 @@ export function LabosAgentCorner({
   const analytics = useLabosAgentAnalytics();
   const shortcuts = useShortcutLabels();
   const showsKeyHint = useShowsKeyHint();
+  /*
+   * Over the news story modal, from 960px up: the corner portals above the story with the Agent tab only (the feedback
+   * drawer sits below the story). On phones the story fills the screen, so the corner stays under it. Ctrl/⌘ J works
+   * at all widths.
+   */
+  const storyOpen = useIsPassthroughModalOpen();
+  const wide = useIsWide();
+  const overModal = storyOpen && wide;
   const slotOpen = isOpen || feedbackOpen;
   const isCollapsed = useIntroCollapse(slotOpen);
   const agentRef = useRef<HTMLButtonElement>(null);
@@ -98,15 +124,21 @@ export function LabosAgentCorner({
     prevOpen.current = isOpen;
   }, [isOpen, feedbackOpen, onCloseFeedback]);
 
-  return (
+  const corner = (
     <div
+      ref={overModal ? keepInteractive : undefined}
       {...{ [FEEDBACK_CAPTURE_IGNORE_ATTR]: '' }}
-      className={clsx(s.corner, (slotOpen || feedbackHidden) && s.cornerHidden)}
+      className={clsx(s.corner, overModal && s.cornerOverModal, (slotOpen || feedbackHidden) && s.cornerHidden)}
       // The same marker as the feedback button: a floating control in this corner stacks above it on phones.
       data-feedback-fab=""
       aria-hidden={slotOpen || undefined}
     >
-      <div className={s.dock} role="group" aria-label="Agent and feedback" data-collapsed={isCollapsed || slotOpen}>
+      <div
+        className={s.dock}
+        role="group"
+        aria-label="Agent and feedback"
+        data-collapsed={isCollapsed || slotOpen || overModal}
+      >
         <button
           ref={agentRef}
           type="button"
@@ -122,7 +154,7 @@ export function LabosAgentCorner({
             {showsKeyHint && <kbd className={s.kbd}>{agentShortcutHint(shortcuts.mod)}</kbd>}
           </span>
         </button>
-        {showFeedback && (
+        {showFeedback && !overModal && (
           <button
             type="button"
             className={clsx(s.tab, s.feedbackTab)}
@@ -141,4 +173,6 @@ export function LabosAgentCorner({
       </div>
     </div>
   );
+
+  return overModal ? createPortal(corner, document.body) : corner;
 }

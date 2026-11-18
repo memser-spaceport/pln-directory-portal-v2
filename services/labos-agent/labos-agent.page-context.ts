@@ -11,17 +11,30 @@ const NOT_A_UID = new Set(['add', 'browse']);
  * - `/`: Home (C1 `home`).
  * - `/members/<uid>`: that member. The member's own uid gives `profile`. `/settings/profile` gives `profile` too.
  * - `/teams/<uid>` and its sub-pages: that team.
- * - `/jobs/openings/<uid>`: that job. `/jobs`: the job board, no uid.
+ * - `/jobs/openings/<uid>`: that job. `/jobs?job=<uid>` (the board's job drawer): that job too. `/jobs`: the job
+ *   board, no uid.
+ * - A path with a broken escape (`%E0%A4%A`): no context. The page cannot name a uid, so the agent reads no page.
  *
  * The labels are page types, not names: the corner has no page data. No member data goes in a label.
  */
+/** `decodeURIComponent` that gives `null` for a broken escape, in the place of a `URIError`. */
+function safeDecode(segment: string): string | null {
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    return null;
+  }
+}
+
 export function pageContextFromLocation(
   pathname: string,
   search: string,
   currentUid?: string | null,
 ): LabosAgentOpenContext | null {
   const path = pathname.replace(/\/+$/, '') || '/';
-  const parts = path.split('/').filter(Boolean).map(decodeURIComponent);
+  const decoded = path.split('/').filter(Boolean).map(safeDecode);
+  if (decoded.some((part) => part === null)) return null;
+  const parts = decoded as string[];
 
   if (path === '/') {
     const newsUid = new URLSearchParams(search).get('news');
@@ -41,6 +54,9 @@ export function pageContextFromLocation(
   if (first === 'jobs' && second === 'openings' && third && parts.length === 3) {
     return { page: 'job', jobUid: third, label: 'Job post' };
   }
-  if (first === 'jobs' && parts.length === 1) return { page: 'job', label: 'Jobs' };
+  if (first === 'jobs' && parts.length === 1) {
+    const jobUid = new URLSearchParams(search).get('job');
+    return jobUid ? { page: 'job', jobUid, label: 'Job post' } : { page: 'job', label: 'Jobs' };
+  }
   return null;
 }

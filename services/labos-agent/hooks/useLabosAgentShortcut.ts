@@ -2,23 +2,26 @@
 
 import { useEffect, useSyncExternalStore } from 'react';
 
-import { isAnyDialogOpen } from '@/components/page/ai-apps/shortcutKeys';
+import { isBlockingDialogOpen } from '../labos-agent.dialogs';
 
 /** The agent panel's `<aside aria-label="Agent">`. Ctrl/⌘ J in its composer closes the panel. */
 const AGENT_PANEL_SELECTOR = 'aside[aria-label="Agent"]';
 
+/** An editable element the browser can see. jsdom has no `isContentEditable`, so the attribute check comes too. */
+const EDITABLE_SELECTOR = '[contenteditable=""], [contenteditable="true"], [contenteditable="plaintext-only"]';
+
 function isTypingTarget(target: EventTarget | null): boolean {
-  return (
-    target instanceof HTMLElement &&
-    (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
-  );
+  if (!(target instanceof HTMLElement)) return false;
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return true;
+  return target.isContentEditable || !!target.closest(EDITABLE_SELECTOR);
 }
 
 /**
  * Ctrl/⌘ J, without Shift or Alt (LAB-3302). Not a match:
  * - a held key, an IME composition or an event that something else already handled;
  * - a text field outside the agent panel (the field keeps the key);
- * - an open dialog, except the feedback drawer, which gives the slot to the agent.
+ * - an open dialog that stops the agent (`isBlockingDialogOpen`): the news story modal does not, and the feedback
+ *   drawer gives the slot to the agent.
  */
 export function isAgentShortcut(event: KeyboardEvent, options: { feedbackOpen: boolean }): boolean {
   if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) return false;
@@ -26,7 +29,7 @@ export function isAgentShortcut(event: KeyboardEvent, options: { feedbackOpen: b
   if (event.repeat || event.isComposing || event.defaultPrevented) return false;
   const inPanel = event.target instanceof Element && !!event.target.closest(AGENT_PANEL_SELECTOR);
   if (isTypingTarget(event.target) && !inPanel) return false;
-  if (!options.feedbackOpen && !inPanel && isAnyDialogOpen()) return false;
+  if (!options.feedbackOpen && !inPanel && isBlockingDialogOpen()) return false;
   return true;
 }
 

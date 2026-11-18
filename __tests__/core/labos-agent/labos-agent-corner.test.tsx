@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -64,7 +64,8 @@ import { agentShortcutHint, isAgentShortcut, KEY_HINT_QUERY } from '@/services/l
 import { LabosAgentError } from '@/services/labos-agent/labos-agent.errors';
 import { toChatContext } from '@/services/labos-agent/labos-agent.service';
 import { pageContextFromLocation } from '@/services/labos-agent/labos-agent.page-context';
-import { useLabosAgentStore } from '@/services/labos-agent/store';
+import { chatKey, useLabosAgentStore } from '@/services/labos-agent/store';
+import { isBlockingDialogOpen } from '@/services/labos-agent/labos-agent.dialogs';
 import type { IUserInfo } from '@/types/shared.types';
 
 const answer = {
@@ -481,5 +482,211 @@ describe('LAB-3302: agent corner, Ctrl/⌘ J and context chips', () => {
         expect(toChatContext(null)).toBeUndefined();
       },
     );
+  });
+
+  describe('Oleg review: job drawer, story modal, access flash, guards, page 404 reopen', () => {
+    /** A mock of the story `Modal`: overlay with `data-modal`, a dialog container, the passthrough marker. */
+    const openStoryModal = () => {
+      const overlay = document.createElement('div');
+      overlay.setAttribute('data-modal', '');
+      const dialog = document.createElement('div');
+      dialog.setAttribute('role', 'dialog');
+      dialog.setAttribute('aria-modal', 'true');
+      const marker = document.createElement('span');
+      marker.hidden = true;
+      marker.setAttribute('data-labos-agent-passthrough', '');
+      dialog.appendChild(marker);
+      overlay.appendChild(dialog);
+      act(() => {
+        document.body.appendChild(overlay);
+      });
+      return overlay;
+    };
+    const realMatchMedia = window.matchMedia;
+    const setWide = (wide: boolean) => {
+      window.matchMedia = jest.fn().mockImplementation((query: string) => ({
+        matches: query === '(min-width: 960px)' ? wide : false,
+        media: query,
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+      })) as unknown as typeof window.matchMedia;
+    };
+    afterEach(() => {
+      window.matchMedia = realMatchMedia;
+      document.querySelectorAll('[data-modal], [role="dialog"]').forEach((el) => el.remove());
+    });
+
+    it('S5-R6: the job drawer /jobs?job=<uid> sends that job, not the board', () => {
+      const context = pageContextFromLocation('/jobs', '?job=j-9&q=rust', 'me-1');
+      expect(context).toEqual({ page: 'job', jobUid: 'j-9', label: 'Job post' });
+      expect(toChatContext(context)).toEqual({ page: 'job', jobUid: 'j-9' });
+    });
+
+    it('S5-R6: a broken escape in the path gives no context and does not throw', () => {
+      expect(() => pageContextFromLocation('/members/%E0%A4%A', '', 'me-1')).not.toThrow();
+      expect(pageContextFromLocation('/members/%E0%A4%A', '', 'me-1')).toBeNull();
+      expect(pageContextFromLocation('/teams/t%2F1', '', 'me-1')).toEqual({
+        page: 'team',
+        teamUid: 't/1',
+        label: 'Team page',
+      });
+    });
+
+    it('S5-R3: Ctrl/⌘ J opens the agent over the news story modal, and the panel goes above it', async () => {
+      goTo('/?news=n-1');
+      window.localStorage.setItem('labos-agent', 'on');
+      signIn();
+      renderApp();
+      await screen.findByRole('button', { name: 'Agent' });
+      openStoryModal();
+      expect(isBlockingDialogOpen()).toBe(false);
+
+      expect(ctrlJ()).toBe(false); // preventDefault ran
+      const aside = panel();
+      expect(aside).toBeInTheDocument();
+      expect(aside?.parentElement).toBe(document.body);
+      expect(aside?.className).toMatch(/overModal/);
+      expect(screen.getByText('News story')).toBeInTheDocument();
+    });
+
+    it('S5-R3: a share sheet or any other dialog over the story still stops Ctrl/⌘ J', async () => {
+      window.localStorage.setItem('labos-agent', 'on');
+      signIn();
+      renderApp();
+      await screen.findByRole('button', { name: 'Agent' });
+      const story = openStoryModal();
+      const share = document.createElement('div');
+      share.setAttribute('role', 'dialog');
+      story.querySelector('[role="dialog"]')?.appendChild(share);
+
+      expect(isBlockingDialogOpen()).toBe(true);
+      expect(ctrlJ()).toBe(true);
+      expect(panel()).not.toBeInTheDocument();
+    });
+
+    it('S5-R1: from 960px, the Agent tab portals above the story with no Feedback tab, and opens the agent', async () => {
+      setWide(true);
+      window.localStorage.setItem('labos-agent', 'on');
+      signIn();
+      renderApp();
+      await screen.findByRole('button', { name: 'Agent' });
+      openStoryModal();
+
+      await waitFor(() => expect(document.querySelector('body > [data-feedback-fab]')).not.toBeNull());
+      expect(
+        screen.getByRole('group', { name: 'Agent and feedback' }).closest('[data-feedback-fab]')?.parentElement,
+      ).toBe(document.body);
+      expect(screen.queryByRole('button', { name: 'Give feedback' })).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'Agent' }));
+      expect(panel()).toBeInTheDocument();
+    });
+
+    it('S5-R5: Escape in the panel over the story closes the panel only, not the story', async () => {
+      window.localStorage.setItem('labos-agent', 'on');
+      signIn();
+      renderApp();
+      await screen.findByRole('button', { name: 'Agent' });
+      openStoryModal();
+      // The story `Modal` listens for Escape in the document capture phase.
+      const closeStory = jest.fn();
+      const onStoryKey = (e: KeyboardEvent) => e.key === 'Escape' && closeStory();
+      document.addEventListener('keydown', onStoryKey, true);
+
+      ctrlJ();
+      fireEvent.keyDown(screen.getByRole('textbox', { name: 'Message the agent' }), { key: 'Escape' });
+      expect(panel()).not.toBeInTheDocument();
+      expect(closeStory).not.toHaveBeenCalled();
+      document.removeEventListener('keydown', onStoryKey, true);
+    });
+
+    it('S5-R1: no feedback button flash: neither shows until GET /access answers, then the corner only', async () => {
+      let answer: (v: { enabled: boolean }) => void = () => {};
+      getAccess.mockReturnValue(new Promise((resolve) => (answer = resolve)));
+      window.localStorage.setItem('labos-agent', 'on');
+      signIn();
+      renderApp();
+      await act(async () => {});
+
+      expect(screen.queryByRole('button', { name: 'Give feedback' })).not.toBeInTheDocument();
+      expect(agentTab()).not.toBeInTheDocument();
+
+      await act(async () => answer({ enabled: true }));
+      expect(await screen.findByRole('group', { name: 'Agent and feedback' })).toBeInTheDocument();
+      expect(screen.getAllByRole('button', { name: 'Give feedback' })).toHaveLength(1);
+    });
+
+    it('S5-R2: a member outside the pilot gets the feedback button when GET /access answers no', async () => {
+      let answer: (v: { enabled: boolean }) => void = () => {};
+      getAccess.mockReturnValue(new Promise((resolve) => (answer = resolve)));
+      window.localStorage.setItem('labos-agent', 'on');
+      signIn();
+      renderApp();
+      await act(async () => {});
+      expect(screen.queryByRole('button', { name: 'Give feedback' })).not.toBeInTheDocument();
+
+      await act(async () => answer({ enabled: false }));
+      expect(await screen.findByRole('button', { name: 'Give feedback' })).toBeInTheDocument();
+      expect(agentTab()).not.toBeInTheDocument();
+    });
+
+    it('S5-R3: a contenteditable field on the page keeps Ctrl/⌘ J', () => {
+      const editor = document.createElement('div');
+      editor.setAttribute('contenteditable', 'true');
+      const inner = document.createElement('p');
+      editor.appendChild(inner);
+      document.body.appendChild(editor);
+      const key = new KeyboardEvent('keydown', { key: 'j', code: 'KeyJ', ctrlKey: true, bubbles: true });
+      Object.defineProperty(key, 'target', { value: inner });
+
+      expect(isAgentShortcut(key, { feedbackOpen: false })).toBe(false);
+      editor.remove();
+    });
+
+    it('S5-R3: with the feedback drawer open (a dialog), Ctrl/⌘ J still opens the agent', () => {
+      const drawer = document.createElement('div');
+      drawer.setAttribute('role', 'dialog');
+      document.body.appendChild(drawer);
+      const key = new KeyboardEvent('keydown', { key: 'j', code: 'KeyJ', ctrlKey: true });
+
+      expect(isAgentShortcut(key, { feedbackOpen: true })).toBe(true);
+      expect(isAgentShortcut(key, { feedbackOpen: false })).toBe(false);
+      drawer.remove();
+    });
+
+    it('S5-C29: after a page 404, a reopen has no old text and no chip, so the next send has no context', async () => {
+      goTo('/teams/missing-1');
+      chat.mockRejectedValueOnce(new LabosAgentError(404, 'TEAM_NOT_FOUND', 'Not found.'));
+      window.localStorage.setItem('labos-agent', 'on');
+      signIn();
+      renderApp();
+      fireEvent.click(await screen.findByRole('button', { name: 'Agent' }));
+      let composer = screen.getByRole('textbox', { name: 'Message the agent' }) as HTMLTextAreaElement;
+      fireEvent.change(composer, { target: { value: 'What does this team do?' } });
+      fireEvent.keyDown(composer, { key: 'Enter' });
+      await screen.findByText('The agent cannot read this page. Remove the page chip and ask again.');
+      expect(composer.value).toBe('What does this team do?');
+
+      fireEvent.click(screen.getByRole('button', { name: 'Close agent' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Agent' }));
+      composer = screen.getByRole('textbox', { name: 'Message the agent' }) as HTMLTextAreaElement;
+      expect(composer.value).toBe('');
+      expect(screen.queryByRole('button', { name: 'Stop reading Team page' })).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '+ Read Team page' })).toBeInTheDocument();
+
+      fireEvent.change(composer, { target: { value: 'Try again' } });
+      fireEvent.keyDown(composer, { key: 'Enter' });
+      await screen.findByText('Mock answer text');
+      expect(chat).toHaveBeenCalledTimes(2);
+      expect(chat.mock.calls[1][0].context).toBeUndefined();
+    });
+
+    it('S5-R6: chatKey differs for each member, team and job uid', () => {
+      expect(chatKey({ page: 'member', memberUid: 'm-1' })).not.toBe(chatKey({ page: 'member', memberUid: 'm-2' }));
+      expect(chatKey({ page: 'team', teamUid: 't-1' })).not.toBe(chatKey({ page: 'team', teamUid: 't-2' }));
+      expect(chatKey({ page: 'job', jobUid: 'j-1' })).not.toBe(chatKey({ page: 'job', jobUid: 'j-2' }));
+      expect(chatKey({ page: 'job', jobUid: 'j-1' })).not.toBe(chatKey({ page: 'job' }));
+    });
   });
 });

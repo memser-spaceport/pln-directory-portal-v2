@@ -11,3 +11,4 @@
 - [x] 1.7 `labos-agent` and `feedback` specs, AGENTS.md and CLAUDE.md.
 - [x] 1.8 Key hint only with keys (`useShowsKeyHint`); "⌘J" on a Mac, "Ctrl J" elsewhere.
 - [x] 1.9 Contract change 3 (S5-C25 to S5-C30): `toChatContext` sends `member`, `team`, `job` and `profile` with their ids; the 3 page 404 codes; the mock.
+- [x] 1.10 Oleg review: job drawer `?job=<uid>`; safe URI decode; story modal passthrough (`labos-agent.dialogs.ts`); access state `'unknown'` (no flash); contenteditable and feedback drawer tests; 404 text restored once and chip off on reopen; `chatKey` per uid test.

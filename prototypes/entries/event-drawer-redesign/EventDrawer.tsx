@@ -109,7 +109,7 @@ import { GoingCardCompact, RsvpFooter } from './RsvpFooter';
 import d from './EventDrawer.module.scss';
 
 const SCOPE = 'owner' as const;
-const DRAWER_WIDTH = 560;
+const DRAWER_WIDTH = 640; // 560 → 640 (2026-11-18: "make drawer a bit wider")
 
 export interface EventNotice {
   eventName: string;

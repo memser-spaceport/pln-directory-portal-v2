@@ -349,6 +349,7 @@ export default function EventsPageRedesignPrototype() {
                   className={clsx(s.viewBtn, view === v && s.viewBtnActive)}
                   onClick={() => setView(v)}
                 >
+                  <ViewIcon view={v} />
                   {label}
                 </button>
               ))}
@@ -939,6 +940,43 @@ function PinIcon() {
         strokeLinejoin="round"
       />
       <circle cx="8" cy="6.5" r="1.5" stroke="currentColor" strokeWidth="1.3" />
+    </svg>
+  );
+}
+
+/**
+ * The view switch's glyphs (2026-11-18): drawn at the Filters mark's size and weight (16px, 1.5px
+ * stroke) so the toolbar's icons read as one set; the DS CalendarIcon is a filled, heavier glyph.
+ */
+function ViewIcon({ view }: { view: View }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden className={s.viewIcon}>
+      <g
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      >
+        {view === 'list' && (
+          <>
+            <path d="M6 4h7.5M6 8h7.5M6 12h7.5" />
+            <path d="M2.75 4h.01M2.75 8h.01M2.75 12h.01" strokeWidth="2" />
+          </>
+        )}
+        {view === 'calendar' && (
+          <>
+            <rect x="2" y="3" width="12" height="11" rx="2" />
+            <path d="M2 6.75h12M5.5 1.75v2.5M10.5 1.75v2.5" />
+          </>
+        )}
+        {view === 'map' && (
+          <>
+            <path d="M2 4.25l4-1.5 4 1.5 4-1.5v9l-4 1.5-4-1.5-4 1.5z" />
+            <path d="M6 2.75v9M10 4.25v9" />
+          </>
+        )}
+      </g>
     </svg>
   );
 }

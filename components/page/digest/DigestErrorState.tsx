@@ -8,7 +8,7 @@ import s from './DigestPage.module.scss';
 export function DigestErrorState({ error }: { error: DigestPageError }) {
   const expired = error === 'expired';
   return (
-    <div className={s.page}>
+    <div className={`${s.page} ${s.pageWeb}`}>
       <div className={`${s.email} ${s.state}`} role="alert">
         <h1 className={s.stateTitle}>{expired ? 'This digest link has expired' : 'We couldn’t open this digest'}</h1>
         <p className={s.stateText}>

@@ -238,7 +238,7 @@ When the drawer closes after a member said yes in it, and they are still going, 
 
 The drawer SHALL record these PostHog events, each with `event_uid`:
 
-- `event-drawer-opened`, with `source` (`home`, `member-profile`, `team-profile` or `add-event`);
+- `event-drawer-opened`, with `source` (`home`, `member-profile`, `team-profile`, `add-event` or `digest`);
 - `event-going-marked`, with `source`;
 - `event-not-going-marked`, on "Mark as not going";
 - `event-plans-saved`, with `roles`;

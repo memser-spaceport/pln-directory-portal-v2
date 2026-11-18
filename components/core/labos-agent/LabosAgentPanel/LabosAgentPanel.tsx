@@ -9,7 +9,7 @@ import { CloseIcon } from '@/components/icons/CloseIcon';
 import { useLabosAgentChat } from '@/services/labos-agent/hooks/useLabosAgentChat';
 import { isLabosAgentMock } from '@/services/labos-agent/labos-agent.config';
 import { useLabosAgentStore } from '@/services/labos-agent/store';
-import type { LabosAgentOpenContext } from '@/types/labos-agent.types';
+import type { LabosAgentOpenContext, LabosAgentOpenPage } from '@/types/labos-agent.types';
 
 import { LabosAgentTurn } from '../LabosAgentTurn/LabosAgentTurn';
 
@@ -20,18 +20,33 @@ interface LabosAgentPanelProps {
   onClose: () => void;
 }
 
-const PROMPTS: Record<LabosAgentOpenContext['page'] | 'none', string[]> = {
+const NETWORK_PROMPTS = ['What happened in the network this week?'];
+
+/** S5 pages (member, team, job, profile) go to C1 as `home` for now, so they get the network prompt only. */
+const PROMPTS: Record<LabosAgentOpenPage | 'none', string[]> = {
   'news-story': ['Summarize this story', 'Why does this matter?', 'Which other teams work on this?'],
-  home: ['What happened in the network this week?'],
+  home: NETWORK_PROMPTS,
   intro: [],
-  none: ['What happened in the network this week?'],
+  member: NETWORK_PROMPTS,
+  team: NETWORK_PROMPTS,
+  job: NETWORK_PROMPTS,
+  profile: NETWORK_PROMPTS,
+  none: NETWORK_PROMPTS,
+};
+
+const PAGE_LABELS: Record<LabosAgentOpenPage, string> = {
+  'news-story': 'News story',
+  home: 'Home',
+  intro: 'Intro request',
+  member: 'Member profile',
+  team: 'Team page',
+  job: 'Jobs',
+  profile: 'Your profile',
 };
 
 const contextLabel = (context: LabosAgentOpenContext | null) => {
   if (!context) return null;
-  if (context.label) return context.label;
-  if (context.page === 'intro') return 'Intro request';
-  return context.page === 'news-story' ? 'News story' : 'Home';
+  return context.label || PAGE_LABELS[context.page];
 };
 
 /**
@@ -44,10 +59,14 @@ export function LabosAgentPanel({ context, onClose }: LabosAgentPanelProps) {
     useLabosAgentChat(context);
   const prefill = useLabosAgentStore((st) => st.prefill);
   const clearPrefill = useLabosAgentStore((st) => st.actions.clearPrefill);
+  const readsPage = useLabosAgentStore((st) => st.readsPage);
+  const setReadsPage = useLabosAgentStore((st) => st.actions.setReadsPage);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const threadRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const label = contextLabel(context);
+  /* LAB-3302: the chip ✕ stops the page context. The empty state then talks about the network only. */
+  const page = readsPage ? (context?.page ?? 'none') : 'none';
   /* The panel is client-only, so localStorage is safe to read here. */
   const [mock] = useState(() => isLabosAgentMock());
 
@@ -122,14 +141,14 @@ export function LabosAgentPanel({ context, onClose }: LabosAgentPanelProps) {
           <div className={s.empty}>
             <h2 className={s.hello}>What do you want to know?</h2>
             <p className={s.helloSub}>
-              {context?.page === 'news-story'
+              {page === 'news-story'
                 ? 'I read this story with you and can search LabOS news and the web.'
-                : context?.page === 'intro'
+                : page === 'intro'
                   ? 'I can write a draft of your intro request. You check it and send it.'
                   : 'I can search LabOS news and the web for you.'}
             </p>
             <ul className={s.prompts}>
-              {PROMPTS[context?.page ?? 'none'].map((p) => (
+              {PROMPTS[page].map((p) => (
                 <li key={p}>
                   <button type="button" className={s.prompt} onClick={() => submit(p)}>
                     {p}
@@ -158,20 +177,40 @@ export function LabosAgentPanel({ context, onClose }: LabosAgentPanelProps) {
       </div>
 
       <div className={s.foot}>
-        {label &&
-          (context?.page === 'news-story' ? (
-            <Link
-              href={`/?news=${encodeURIComponent(context.newsUid)}`}
-              className={s.context}
-              title="The agent reads this story. Open the story."
+        {label && readsPage && (
+          <span className={s.contextRow}>
+            {context?.page === 'news-story' ? (
+              <Link
+                href={`/?news=${encodeURIComponent(context.newsUid)}`}
+                className={s.context}
+                title="The agent reads this story. Open the story."
+              >
+                <span className={s.contextText}>{label}</span>
+              </Link>
+            ) : (
+              <span className={s.context} title="The agent reads the page you opened it on">
+                <span className={s.contextText}>{label}</span>
+              </span>
+            )}
+            <button
+              type="button"
+              className={s.contextRemove}
+              aria-label={`Stop reading ${label}`}
+              title="The agent stops reading this page"
+              onClick={() => {
+                setReadsPage(false);
+                inputRef.current?.focus();
+              }}
             >
-              <span className={s.contextText}>{label}</span>
-            </Link>
-          ) : (
-            <span className={s.context} title="The agent reads the page you opened it on">
-              <span className={s.contextText}>{label}</span>
-            </span>
-          ))}
+              <CloseIcon />
+            </button>
+          </span>
+        )}
+        {label && !readsPage && (
+          <button type="button" className={s.contextAdd} onClick={() => setReadsPage(true)}>
+            + Read {label}
+          </button>
+        )}
         <ChatInput
           ref={inputRef}
           className={s.composer}

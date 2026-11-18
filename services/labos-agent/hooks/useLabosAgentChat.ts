@@ -155,7 +155,13 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
       streams.set(key, controller);
       try {
         const body = await getLabosAgentClient().chat(
-          { threadId, chatId: id, message, context: toChatContext(context) },
+          // LAB-3302: after the member removes the page chip, the request has no page context.
+          {
+            threadId,
+            chatId: id,
+            message,
+            context: toChatContext(useLabosAgentStore.getState().readsPage ? context : null),
+          },
           {
             signal: controller.signal,
             onUpdate: (partial) => {

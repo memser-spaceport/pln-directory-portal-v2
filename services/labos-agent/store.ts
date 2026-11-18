@@ -8,6 +8,9 @@ export function chatKey(context: LabosAgentOpenContext | null): string {
   if (!context) return 'none';
   if (context.page === 'news-story') return `news-story:${context.newsUid}`;
   if (context.page === 'intro') return `intro:${context.introTarget.type}:${context.introTarget.uid}`;
+  if (context.page === 'member') return `member:${context.memberUid}`;
+  if (context.page === 'team') return `team:${context.teamUid}`;
+  if (context.page === 'job') return context.jobUid ? `job:${context.jobUid}` : 'job';
   return context.page;
 }
 
@@ -15,6 +18,11 @@ interface LabosAgentState {
   readonly isOpen: boolean;
   /** The page the agent reads. `null`: no page context. */
   readonly context: LabosAgentOpenContext | null;
+  /**
+   * S5 (LAB-3302): `false` after the member removes the page chip. Then C1 sends no `context`. Each `openAgent` sets it
+   * back to `true`.
+   */
+  readonly readsPage: boolean;
   /**
    * The chats of this page visit, by `chatKey`. They outlive the panel, so closing and reopening from the same
    * context restores the chat. A full page load clears them (no saved history in v0).
@@ -36,6 +44,8 @@ interface LabosAgentState {
      * The chat of that context comes back; a context with no chat starts a new one.
      */
     openAgent: (options?: { context?: LabosAgentOpenContext | null; prefill?: string }) => void;
+    /** The chip ✕ (`false`) and "Read this page" (`true`), LAB-3302. */
+    setReadsPage: (readsPage: boolean) => void;
     /** The panel calls this after it puts `prefill` in the composer. */
     clearPrefill: () => void;
     markIntroTargetSent: (key: string) => void;
@@ -50,11 +60,14 @@ interface LabosAgentState {
 export const useLabosAgentStore = create<LabosAgentState>((set) => ({
   isOpen: false,
   context: null,
+  readsPage: true,
   chats: {},
   prefill: null,
   sentIntroTargets: {},
   actions: {
-    openAgent: ({ context = null, prefill } = {}) => set({ isOpen: true, context, prefill: prefill ?? null }),
+    openAgent: ({ context = null, prefill } = {}) =>
+      set({ isOpen: true, context, readsPage: true, prefill: prefill ?? null }),
+    setReadsPage: (readsPage) => set({ readsPage }),
     clearPrefill: () => set({ prefill: null }),
     markIntroTargetSent: (key) => set((state) => ({ sentIntroTargets: { ...state.sentIntroTargets, [key]: true } })),
     closeAgent: () => set({ isOpen: false }),

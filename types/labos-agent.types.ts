@@ -29,7 +29,18 @@ export type LabosAgentOpenContext =
   | { page: 'news-story'; newsUid: string; label?: string }
   | { page: 'home'; label?: string }
   /** S3: `entryPoint` is for the intro events only. The client never sends it. */
-  | { page: 'intro'; introTarget: LabosAgentIntroTarget; label?: string; entryPoint?: LabosAgentIntroEntryPoint };
+  | { page: 'intro'; introTarget: LabosAgentIntroTarget; label?: string; entryPoint?: LabosAgentIntroEntryPoint }
+  /**
+   * S5 (LAB-3302): the page chips of the corner and Ctrl/⌘ J. C1 has no value for these pages yet, so
+   * `toChatContext` sends them as `home` and the uid stays in the browser (open point for Felix).
+   */
+  | { page: 'member'; memberUid: string; label?: string }
+  | { page: 'team'; teamUid: string; label?: string }
+  | { page: 'job'; jobUid?: string; label?: string }
+  | { page: 'profile'; label?: string };
+
+/** Every page an open context can name, the C1 values and the S5 client-only values. */
+export type LabosAgentOpenPage = LabosAgentOpenContext['page'];
 
 export interface LabosAgentChatRequest {
   threadId: string;

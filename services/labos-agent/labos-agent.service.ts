@@ -52,7 +52,11 @@ const PROPOSAL_TOOLS: LabosAgentProposalTool[] = [
 
 const apiUrl = (path: string) => `${process.env.DIRECTORY_API_URL}${path}`;
 
-/** The C1 `context`: only the contract fields. The chip label stays in the browser. */
+/**
+ * The C1 `context`: only the contract fields. The chip label stays in the browser. The S5 pages (member, team, job,
+ * profile) have no C1 value yet, so they go as `home` with no uid (LAB-3302 open point). `null`: the member removed the
+ * page chip, so the request has no `context`.
+ */
 export function toChatContext(context: LabosAgentOpenContext | null | undefined): LabosAgentChatContext | undefined {
   if (!context) return undefined;
   if (context.page === 'news-story') return { page: 'news-story', newsUid: context.newsUid };

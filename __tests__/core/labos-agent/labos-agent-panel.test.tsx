@@ -225,11 +225,11 @@ describe('LAB-3299: action cards', () => {
     await screen.findByText('Update your bio');
   }
 
-  const card = (title: string) => screen.getByRole('region', { name: title });
+  const card = (title: string) => screen.getByRole('article', { name: title });
 
   it('shows one card per edit with old and new values, and saves nothing before Confirm', async () => {
     await askForEdits();
-    expect(screen.getAllByRole('region')).toHaveLength(2);
+    expect(screen.getAllByRole('article')).toHaveLength(2);
     expect(card('Update your bio')).toHaveTextContent('Old bio');
     expect(card('Update your bio')).toHaveTextContent('New bio');
     expect(card('Update the team')).toHaveTextContent('Empty');
@@ -272,7 +272,8 @@ describe('LAB-3299: action cards', () => {
 
     const teamCard = within(card('Update the team'));
     fireEvent.click(teamCard.getByText('Confirm'));
-    expect(await teamCard.findByRole('alert')).toHaveTextContent('You cannot make this change. Nothing was saved.');
+    expect(await teamCard.findByText('You cannot make this change. Nothing was saved.')).toBeInTheDocument();
+    expect(teamCard.getByRole('status')).toHaveTextContent('You cannot make this change. Nothing was saved.');
     expect(teamCard.queryByRole('button')).not.toBeInTheDocument();
   });
 
@@ -303,5 +304,98 @@ describe('LAB-3299: action cards', () => {
     expect(within(card('Update your bio')).queryByRole('button')).not.toBeInTheDocument();
     expect(within(card('Update the team')).getByText('Confirm')).toBeInTheDocument();
     expect(confirmAction).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps one status region mounted, changes its text and moves focus to it after Confirm', async () => {
+    let resolve: (v: unknown) => void = () => {};
+    confirmAction.mockReturnValue(new Promise((r) => (resolve = r)));
+    await askForEdits();
+
+    const bioCard = within(card('Update your bio'));
+    const region = bioCard.getByRole('status');
+    expect(region).toHaveTextContent('');
+    expect(bioCard.getAllByRole('status')).toHaveLength(1);
+
+    fireEvent.click(bioCard.getByText('Confirm'));
+    expect(bioCard.getByRole('status')).toBe(region);
+    await act(async () => resolve({ proposalId: 'ap_bio', status: 'done', summary: 'Your bio is updated.' }));
+
+    expect(bioCard.getByRole('status')).toBe(region);
+    expect(region).toHaveTextContent('Your bio is updated.');
+    expect(region).toHaveFocus();
+  });
+
+  it('moves focus to the result after Cancel too', async () => {
+    confirmAction.mockResolvedValue({ proposalId: 'ap_team', status: 'cancelled', summary: '' });
+    await askForEdits();
+    const teamCard = within(card('Update the team'));
+    fireEvent.click(teamCard.getByText('Cancel'));
+    await teamCard.findByText('Cancelled. Nothing was saved.');
+    expect(teamCard.getByRole('status')).toHaveFocus();
+  });
+
+  it('shows HTML fields as plain text, capped at about 300 characters', async () => {
+    const long = 'word '.repeat(100).trim();
+    chat.mockResolvedValue({
+      ...answer,
+      followUpQuestions: [],
+      proposals: [
+        {
+          ...bio,
+          changes: [
+            {
+              field: 'bio',
+              label: 'Bio',
+              oldValue: '<p>Old <strong>bio</strong> &amp; more</p>',
+              newValue: `<p>${long}</p>`,
+            },
+          ],
+        },
+        {
+          ...team,
+          changes: [{ field: 'shortDescription', label: 'Short', oldValue: '<b>raw</b>', newValue: 'x' }],
+        },
+      ],
+    });
+    await askForEdits();
+
+    const bioCard = card('Update your bio');
+    expect(bioCard).toHaveTextContent('Old bio & more');
+    expect(bioCard.innerHTML).not.toContain('&lt;p&gt;');
+    expect(bioCard.querySelector('strong')).toBeNull();
+    const newValue = (bioCard.textContent ?? '').match(/New value: (word[^→]*…)/)?.[1] ?? '';
+    expect(newValue.endsWith('…')).toBe(true);
+    expect(newValue.length).toBeLessThanOrEqual(301);
+    expect(newValue.length).toBeGreaterThan(280);
+    // A field that is not HTML in the contract shows as it is.
+    expect(card('Update the team')).toHaveTextContent('<b>raw</b>');
+  });
+
+  it('hides Confirm after expiresAt', async () => {
+    chat.mockResolvedValue({
+      ...answer,
+      followUpQuestions: [],
+      proposals: [{ ...bio, expiresAt: new Date(Date.now() - 1000).toISOString() }, team],
+    });
+    await askForEdits();
+
+    const bioCard = within(card('Update your bio'));
+    expect(bioCard.queryByText('Confirm')).not.toBeInTheDocument();
+    expect(bioCard.getByRole('status')).toHaveTextContent(
+      'This change expired. Nothing was saved. Ask the agent again.',
+    );
+    expect(within(card('Update the team')).getByText('Confirm')).toBeInTheDocument();
+  });
+
+  it('hides Confirm when expiresAt passes while the card is open', async () => {
+    chat.mockResolvedValue({
+      ...answer,
+      followUpQuestions: [],
+      proposals: [{ ...bio, expiresAt: new Date(Date.now() + 300).toISOString() }],
+    });
+    await askForEdits();
+    const bioCard = within(card('Update your bio'));
+    expect(bioCard.getByText('Confirm')).toBeInTheDocument();
+    await waitFor(() => expect(bioCard.queryByText('Confirm')).not.toBeInTheDocument(), { timeout: 2000 });
   });
 });

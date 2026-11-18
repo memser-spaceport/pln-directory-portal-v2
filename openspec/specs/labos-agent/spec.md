@@ -76,6 +76,14 @@ When the request fails before the stream starts, or the connection breaks, the t
 
 A finished answer SHALL show one action card for each proposal in the C1 `proposals` list (profile fields, experience add or change, team edit). A card SHALL show the proposal title and, for each change, the label and the old and new values. An empty value SHALL read "Empty". The card SHALL show Confirm and Cancel. Nothing SHALL save before Confirm (D2). Confirm and Cancel SHALL call C2 with only `proposalId` and `decision`. While C2 runs, the buttons SHALL be disabled, so a double press sends one request. A card SHALL be used once: after done, cancelled, a 403 or a final error, it SHALL have no buttons. Card state SHALL live with its turn in the store, so it SHALL survive close and reopen from the same context. The client SHALL drop a proposal that has no id, an unknown tool or no changes.
 
+`decide` SHALL check the card state in the store before it calls C2. It SHALL run only from `pending` or a retryable `error`. Two calls in the same tick SHALL send one request. A call after `done`, `cancelled`, `forbidden` or a final error SHALL do nothing.
+
+The HTML fields (`bio` of `update_my_profile`, `longDescription` of `update_team`, `description` of `add_experience` and `update_experience`) SHALL show as plain text (`htmlToPlainText` in `utils/html`), cut at 300 characters with "…". The card SHALL never render a value as HTML.
+
+After `expiresAt`, a pending card SHALL show no buttons and SHALL show "This change expired. Nothing was saved. Ask the agent again." A timer SHALL close an open card at `expiresAt`.
+
+Accessibility: the card SHALL be an `<article>` named by its title. Each card SHALL keep one `role="status"` region mounted from the first render. Only its text SHALL change (done, cancelled, forbidden, error, expired). When a decision ends, focus SHALL move to that region.
+
 #### Scenario: Confirm saves the edit
 
 - **GIVEN** an answer with a proposal to change the bio
@@ -90,18 +98,33 @@ A finished answer SHALL show one action card for each proposal in the C1 `propos
 
 #### Scenario: Not allowed
 
-- **WHEN** C2 answers 403
+- **WHEN** C2 answers 403 `ACTION_NOT_ALLOWED` (for example, the member's caps changed or the backend cannot read them)
 - **THEN** the card shows "You cannot make this change. Nothing was saved." with no buttons
 
 #### Scenario: Error with Retry
 
 - **WHEN** C2 gives no answer, a 401 or a server error
 - **THEN** the card shows a message and Retry, and Retry sends Confirm again
-- **AND** for 404, 409, 410 and 422 the card shows a message (with the 422 `message`) and no Retry
+- **AND** for 404, 410 and 422 the card shows a message (with the 422 `message`) and no Retry
+
+#### Scenario: The proposal is already closed (409)
+
+- **WHEN** C2 answers 409 `PROPOSAL_CLOSED`
+- **THEN** the card reads the stored `status` from the body
+- **AND** `done` shows the done state with "This change is already saved."
+- **AND** `cancelled` shows "Cancelled. Nothing was saved."
+- **AND** `failed` shows "The change did not go through." with no Retry
+- **AND** no `status`, `pending` or an unknown value shows "This change may already be saved. Check your profile." with no Retry
+
+#### Scenario: The proposal expired
+
+- **GIVEN** a pending card
+- **WHEN** `expiresAt` passes
+- **THEN** Confirm and Cancel go away and the card says that the change expired
 
 ### Requirement: The API sits behind one client with a mock
 
-All agent calls SHALL go through `getLabosAgentClient()`. The live client SHALL call C1, C2 and the access check with `customFetch` (the member's session). The live client SHALL be the default (`LABOS_AGENT_MOCK_BY_DEFAULT = false`). `localStorage['labos-agent-api'] = 'mock'` SHALL select the mock in one browser: scripted answers, no network and no member data. While the mock is on, the panel header SHALL show a "Mock answers" label. The mock SHALL break the connection for a message with "error", stall for "stall", and use web sources for "web". It SHALL propose a profile edit for "edit profile" and a team edit for "edit team". For "forbidden", it SHALL propose a team edit that gets a 403 on Confirm. For "save fails", the first Confirm SHALL get no answer. QA can test each path.
+All agent calls SHALL go through `getLabosAgentClient()`. The live client SHALL call C1, C2 and the access check with `customFetch` (the member's session). The live client SHALL be the default (`LABOS_AGENT_MOCK_BY_DEFAULT = false`). `localStorage['labos-agent-api'] = 'mock'` SHALL select the mock in one browser: scripted answers, no network and no member data. While the mock is on, the panel header SHALL show a "Mock answers" label. The mock SHALL break the connection for a message with "error", stall for "stall", and use web sources for "web". It SHALL propose a profile edit for "edit profile" and a team edit for "edit team". For "forbidden", it SHALL propose a team edit that gets a 403 on Confirm. For "save fails", the first Confirm SHALL get no answer. A second C2 call on a closed proposal SHALL get a 409 `PROPOSAL_CLOSED` with the stored `status`. The mock `bio` SHALL be HTML, like the real field. QA can test each path.
 
 ### Requirement: No agent tracking before S0 is approved
 

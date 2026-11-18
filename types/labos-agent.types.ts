@@ -72,6 +72,21 @@ export interface LabosAgentConfirmResponse {
   result?: unknown;
 }
 
+/**
+ * The stored proposal status in a C2 409 `PROPOSAL_CLOSED` body (backend PR #3741). Absent on an older backend.
+ * `failed`: an earlier Confirm ran and the write failed. The backend can also send `pending`; the client treats
+ * `pending` and any unknown value as absent.
+ */
+export type LabosAgentClosedStatus = 'done' | 'cancelled' | 'failed';
+
+/** A C2 error body. `status` comes only with a 409 `PROPOSAL_CLOSED`, as sent; the client keeps only the known values. */
+export interface LabosAgentConfirmErrorBody {
+  statusCode?: number;
+  code: LabosAgentChatErrorCode;
+  message?: string;
+  status?: LabosAgentClosedStatus | 'pending' | string;
+}
+
 /** The full C1 body after the stream ends. `proposals` holds the S2 action proposals. */
 export interface LabosAgentChatResponse {
   steps: string[];

@@ -8,6 +8,7 @@ import type {
   LabosAgentChatResponse,
   LabosAgentChangeValue,
   LabosAgentClient,
+  LabosAgentClosedStatus,
   LabosAgentConfirmRequest,
   LabosAgentConfirmResponse,
   LabosAgentOpenContext,
@@ -37,6 +38,8 @@ const KNOWN_CODES: LabosAgentChatErrorCode[] = [
   'PROPOSAL_EXPIRED',
   'ACTION_FAILED',
 ];
+
+const CLOSED_STATUSES: LabosAgentClosedStatus[] = ['done', 'cancelled', 'failed'];
 
 const PROPOSAL_TOOLS: LabosAgentProposalTool[] = [
   'update_my_profile',
@@ -144,7 +147,11 @@ async function toError(response: Response): Promise<LabosAgentError> {
   const code = (KNOWN_CODES as string[]).includes(raw) ? (raw as LabosAgentChatErrorCode) : 'UNKNOWN';
   const message = typeof body.message === 'string' ? body.message : response.statusText || 'The agent failed.';
   const retryAfter = typeof body.retryAfterSeconds === 'number' ? body.retryAfterSeconds : undefined;
-  return new LabosAgentError(response.status, code, message, retryAfter);
+  const closedStatus =
+    code === 'PROPOSAL_CLOSED' && (CLOSED_STATUSES as unknown[]).includes(body.status)
+      ? (body.status as LabosAgentClosedStatus)
+      : undefined;
+  return new LabosAgentError(response.status, code, message, retryAfter, closedStatus);
 }
 
 /** C1: `POST /v1/labos-agent/chat`. Streams the chunked JSON body and returns the full body at the end. */

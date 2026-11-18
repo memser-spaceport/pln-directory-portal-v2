@@ -94,6 +94,52 @@ describe('LAB-3299: C2 confirm client', () => {
     );
   });
 
+  it.each(['done', 'cancelled', 'failed'])('reads the stored status %s from a 409 body', async (stored) => {
+    mockedFetch.mockResolvedValue(jsonResponse({ code: 'PROPOSAL_CLOSED', message: 'm', status: stored }, 409));
+    await expect(liveLabosAgentClient.confirmAction({ proposalId: 'ap_1', decision: 'confirm' })).rejects.toMatchObject(
+      { status: 409, code: 'PROPOSAL_CLOSED', closedStatus: stored },
+    );
+  });
+
+  it.each(['pending', 'archived'])('treats a 409 status %s as absent', async (stored) => {
+    mockedFetch.mockResolvedValue(
+      jsonResponse({ statusCode: 409, code: 'PROPOSAL_CLOSED', message: 'm', status: stored }, 409),
+    );
+    const err = await liveLabosAgentClient
+      .confirmAction({ proposalId: 'ap_1', decision: 'confirm' })
+      .catch((e: LabosAgentError) => e);
+    expect(err).toMatchObject({ code: 'PROPOSAL_CLOSED', closedStatus: undefined });
+    expect(cardErrorState(err as LabosAgentError)).toEqual({
+      status: 'error',
+      message: 'This change may already be saved. Check your profile.',
+    });
+  });
+
+  it('shows a C2 403 ACTION_NOT_ALLOWED (caps changed or not read) as forbidden', async () => {
+    mockedFetch.mockResolvedValue(jsonResponse({ statusCode: 403, code: 'ACTION_NOT_ALLOWED', message: 'm' }, 403));
+    const err = await liveLabosAgentClient
+      .confirmAction({ proposalId: 'ap_1', decision: 'confirm' })
+      .catch((e: LabosAgentError) => e);
+    expect(cardErrorState(err as LabosAgentError)).toEqual({
+      status: 'forbidden',
+      message: 'You cannot make this change. Nothing was saved.',
+    });
+  });
+
+  it('keeps no stored status when the 409 body has none or an unknown one', async () => {
+    mockedFetch.mockResolvedValueOnce(jsonResponse({ code: 'PROPOSAL_CLOSED', message: 'm' }, 409));
+    const absent = await liveLabosAgentClient
+      .confirmAction({ proposalId: 'ap_1', decision: 'confirm' })
+      .catch((e: LabosAgentError) => e);
+    expect(absent).toMatchObject({ code: 'PROPOSAL_CLOSED', closedStatus: undefined });
+
+    mockedFetch.mockResolvedValueOnce(jsonResponse({ code: 'PROPOSAL_CLOSED', status: 'pending' }, 409));
+    const unknown = await liveLabosAgentClient
+      .confirmAction({ proposalId: 'ap_1', decision: 'confirm' })
+      .catch((e: LabosAgentError) => e);
+    expect(unknown).toMatchObject({ closedStatus: undefined });
+  });
+
   it('reports no answer as status 0', async () => {
     mockedFetch.mockRejectedValue(new TypeError('network'));
     await expect(liveLabosAgentClient.confirmAction({ proposalId: 'ap_1', decision: 'confirm' })).rejects.toMatchObject(
@@ -118,5 +164,14 @@ describe('LAB-3299: card error states', () => {
     expect(cardErrorState(new LabosAgentError(422, 'ACTION_FAILED', 'Bio is too long')).message).toContain(
       'Bio is too long',
     );
+  });
+
+  it('shows a 409 by its stored status', () => {
+    const closed = (stored?: 'done' | 'cancelled' | 'failed') =>
+      cardErrorState(new LabosAgentError(409, 'PROPOSAL_CLOSED', 'x', undefined, stored));
+    expect(closed('done')).toEqual({ status: 'done', summary: 'This change is already saved.' });
+    expect(closed('cancelled')).toEqual({ status: 'cancelled' });
+    expect(closed('failed')).toEqual({ status: 'error', message: 'The change did not go through.' });
+    expect(closed()).toEqual({ status: 'error', message: 'This change may already be saved. Check your profile.' });
   });
 });

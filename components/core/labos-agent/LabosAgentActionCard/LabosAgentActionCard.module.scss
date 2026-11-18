@@ -76,6 +76,12 @@
   line-height: 20px;
 }
 
+.done:focus:not(:focus-visible),
+.muted:focus:not(:focus-visible),
+.error:focus:not(:focus-visible) {
+  outline: none;
+}
+
 .done {
   color: var(--foreground-neutral-primary, #0a0c11);
 }
@@ -95,6 +101,8 @@
   color: var(--foreground-error-primary, #d21a0e);
 }
 
+/* The status region while the card is open: mounted and empty, out of the layout, so the card has no extra gap. */
+.empty,
 .srOnly {
   position: absolute;
   width: 1px;

@@ -2,6 +2,7 @@ import type {
   LabosAgentChatRequest,
   LabosAgentChatResponse,
   LabosAgentClient,
+  LabosAgentClosedStatus,
   LabosAgentConfirmRequest,
   LabosAgentConfirmResponse,
   LabosAgentProposal,
@@ -22,6 +23,8 @@ import { LabosAgentError, LABOS_AGENT_STALL_MARKER } from './labos-agent.errors'
  * - "edit team": the answer proposes a team edit (one action card).
  * - "forbidden": the answer proposes a team edit, and Confirm gets a 403 `ACTION_NOT_ALLOWED`.
  * - "save fails": the first Confirm gets no answer (Retry shows); the next Confirm saves.
+ *
+ * A second C2 call on a closed proposal gets a 409 `PROPOSAL_CLOSED` with the stored `status`, like the backend.
  */
 
 const STEP_MS = 400;
@@ -58,7 +61,13 @@ export function mockProposals(message: string, chatId: string): LabosAgentPropos
       targetType: 'member',
       targetUid: 'mock-member',
       changes: [
-        { field: 'bio', label: 'Bio', oldValue: 'Mock old bio.', newValue: 'Mock new bio, written by the agent.' },
+        // `bio` is HTML, like the real profile field. The card shows it as plain text.
+        {
+          field: 'bio',
+          label: 'Bio',
+          oldValue: '<p>Mock old bio.</p>',
+          newValue: '<p>Mock new bio, <strong>written</strong> by the agent.</p>',
+        },
         { field: 'skills', label: 'Skills', oldValue: ['Product'], newValue: ['Product', 'AI'] },
       ],
     });
@@ -162,9 +171,19 @@ async function chat(
 /** The mock `fails_` proposals that already failed once. */
 const failedOnce = new Set<string>();
 
+/** The mock proposals that C2 closed, with the stored status. A second C2 call on one gets a 409. */
+const closed = new Map<string, LabosAgentClosedStatus>();
+
 async function confirmAction({ proposalId, decision }: LabosAgentConfirmRequest): Promise<LabosAgentConfirmResponse> {
   await wait(SAVE_MS);
-  if (decision === 'cancel') return { proposalId, status: 'cancelled', summary: 'Nothing changed.' };
+  const stored = closed.get(proposalId);
+  if (stored) {
+    throw new LabosAgentError(409, 'PROPOSAL_CLOSED', 'This proposal is closed.', undefined, stored);
+  }
+  if (decision === 'cancel') {
+    closed.set(proposalId, 'cancelled');
+    return { proposalId, status: 'cancelled', summary: 'Nothing changed.' };
+  }
   if (proposalId.startsWith(`${MOCK_ID}forbidden_`)) {
     throw new LabosAgentError(403, 'ACTION_NOT_ALLOWED', 'You cannot change this team.');
   }
@@ -173,6 +192,7 @@ async function confirmAction({ proposalId, decision }: LabosAgentConfirmRequest)
     throw new LabosAgentError(0, 'STREAM_FAILED', 'The agent did not answer.');
   }
   const team = proposalId.includes('_team_');
+  closed.set(proposalId, 'done');
   return {
     proposalId,
     status: 'done',

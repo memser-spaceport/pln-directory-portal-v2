@@ -1,5 +1,6 @@
 export { linkifyHtml } from './linkifyHtml';
 export { isBlankHtml } from './isBlankHtml';
+export { htmlToPlainText } from './htmlToPlainText';
 export { sanitizeHtml } from './sanitizeHtml';
 export { parseSafeHtml } from './parseSafeHtml';
 export { safeHtmlProps } from './safeHtmlProps';

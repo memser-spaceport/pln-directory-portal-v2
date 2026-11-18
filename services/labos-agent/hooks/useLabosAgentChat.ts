@@ -51,7 +51,18 @@ export function cardErrorState(error: LabosAgentError): LabosAgentCardState {
     case 'PROPOSAL_EXPIRED':
       return { status: 'error', message: 'This change expired. Nothing was saved. Ask the agent again.' };
     case 'PROPOSAL_CLOSED':
-      return { status: 'error', message: 'This change was already confirmed or cancelled.' };
+      // The 409 body carries the stored status (backend PR #3741). An older backend sends none. `pending` and unknown
+      // values arrive here as undefined (`toError`), so they show the "may already be saved" text.
+      switch (error.closedStatus) {
+        case 'done':
+          return { status: 'done', summary: 'This change is already saved.' };
+        case 'cancelled':
+          return { status: 'cancelled' };
+        case 'failed':
+          return { status: 'error', message: 'The change did not go through.' };
+        default:
+          return { status: 'error', message: 'This change may already be saved. Check your profile.' };
+      }
     case 'PROPOSAL_NOT_FOUND':
       return { status: 'error', message: 'The agent cannot find this change. Nothing was saved. Ask the agent again.' };
     case 'ACTION_FAILED':
@@ -190,8 +201,9 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
 
   /**
    * Confirm or Cancel on one action card (C2). Nothing saves before Confirm (D2). A card runs only from `pending` or
-   * from a retryable `error`, so a double press sends one request. A failed Cancel still closes the card: the backend
-   * wrote nothing and the proposal expires.
+   * from a retryable `error`, so a double press sends one request. The guard reads the store, not the render, so two
+   * calls in the same tick also send one request. A failed Cancel still closes the card: the backend wrote nothing and
+   * the proposal expires. A 409 `PROPOSAL_CLOSED` shows the stored status (`cardErrorState`).
    */
   const decide = useCallback(
     async (turnId: string, proposalId: string, decision: LabosAgentDecision) => {
@@ -214,8 +226,11 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
           return;
         }
         const e = err instanceof LabosAgentError ? err : new LabosAgentError(0, 'UNKNOWN', 'The agent did not answer.');
-        setCard(turnId, proposalId, cardErrorState(e));
-        analytics.onAgentErrorShown({ page, code: e.code, status: e.status });
+        const next = cardErrorState(e);
+        setCard(turnId, proposalId, next);
+        if (next.status === 'error' || next.status === 'forbidden') {
+          analytics.onAgentErrorShown({ page, code: e.code, status: e.status });
+        }
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps

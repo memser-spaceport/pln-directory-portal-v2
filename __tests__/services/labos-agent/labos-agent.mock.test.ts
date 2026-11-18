@@ -73,9 +73,10 @@ describe('LAB-3299: mock C2 actions', () => {
   });
 
   it('confirms, cancels and gives a 403 for "forbidden"', async () => {
-    const [p] = mockChatBody({ ...base, message: 'edit profile' }).proposals;
+    const [p] = mockChatBody({ ...base, chatId: 'c-ok', message: 'edit profile' }).proposals;
     await expect(confirm(p.proposalId)).resolves.toMatchObject({ status: 'done' });
-    await expect(confirm(p.proposalId, 'cancel')).resolves.toMatchObject({ status: 'cancelled' });
+    const [c] = mockChatBody({ ...base, chatId: 'c-cancel', message: 'edit profile' }).proposals;
+    await expect(confirm(c.proposalId, 'cancel')).resolves.toMatchObject({ status: 'cancelled' });
 
     const [f] = mockChatBody({ ...base, message: 'forbidden' }).proposals;
     const err = await confirm(f.proposalId);
@@ -87,5 +88,24 @@ describe('LAB-3299: mock C2 actions', () => {
     const [p] = mockChatBody({ ...base, chatId: 'c-fail', message: 'edit profile, save fails' }).proposals;
     await expect(confirm(p.proposalId)).resolves.toMatchObject({ status: 0 });
     await expect(confirm(p.proposalId)).resolves.toMatchObject({ status: 'done' });
+  });
+
+  it('gives a 409 with the stored status on a second call, like the backend', async () => {
+    const [done] = mockChatBody({ ...base, chatId: 'c-409-done', message: 'edit profile' }).proposals;
+    await confirm(done.proposalId);
+    await expect(confirm(done.proposalId)).resolves.toMatchObject({
+      status: 409,
+      code: 'PROPOSAL_CLOSED',
+      closedStatus: 'done',
+    });
+
+    const [cancelled] = mockChatBody({ ...base, chatId: 'c-409-cancel', message: 'edit profile' }).proposals;
+    await confirm(cancelled.proposalId, 'cancel');
+    await expect(confirm(cancelled.proposalId)).resolves.toMatchObject({ closedStatus: 'cancelled' });
+  });
+
+  it('sends bio as HTML, like the real profile field', () => {
+    const [p] = mockChatBody({ ...base, message: 'edit profile' }).proposals;
+    expect(p.changes.find((c) => c.field === 'bio')?.newValue).toMatch(/<p>/);
   });
 });

@@ -18,7 +18,7 @@ import { useGoing } from '../member-events-going/goingStore';
 import { HOME_RAIL_EVENTS, TOTAL_UPCOMING_EVENTS } from '../member-events-going/mocks';
 import going_s from '../member-events-going/MemberEventsGoing.module.scss';
 
-import { EventDrawer, type EventNotice } from './EventDrawer';
+import { EventDrawer, type EventNotice, type RsvpPlacement } from './EventDrawer';
 
 const RAIL_UIDS = HOME_RAIL_EVENTS.map((e) => e.uid);
 
@@ -27,7 +27,7 @@ const RAIL_UIDS = HOME_RAIL_EVENTS.map((e) => e.uid);
  * opening the redesigned drawer instead of the gathering modal. Previous / next
  * in the drawer walk these four rows. "See all" goes to this entry's Events page.
  */
-export function EventsRail({ eventsHref }: { eventsHref: string }) {
+export function EventsRail({ eventsHref, rsvp = 'card' }: { eventsHref: string; rsvp?: RsvpPlacement }) {
   const going = useGoing('owner');
   const [openUid, setOpenUid] = useState<string | null>(null);
   const [notice, setNotice] = useState<EventNotice | null>(null);
@@ -73,6 +73,7 @@ export function EventsRail({ eventsHref }: { eventsHref: string }) {
       </Link>
 
       <EventDrawer
+        rsvp={rsvp}
         eventUid={openUid}
         sequence={RAIL_UIDS}
         onNavigate={setOpenUid}

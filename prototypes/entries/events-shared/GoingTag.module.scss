@@ -1,0 +1,32 @@
+// The Going tag: white pill, filled green check disc, dark 12px label.
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  width: fit-content;
+  height: 22px;
+  padding: 0 8px 0 4px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 999px;
+  background: var(--background-base-white, #ffffff);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  white-space: nowrap;
+}
+
+// On a picture: no border (the photo is the edge), a soft lift so it reads on light images too.
+.onImage {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  border-color: transparent;
+  box-shadow: 0 1px 3px rgba(14, 15, 17, 0.16);
+}
+
+.mark {
+  flex-shrink: 0;
+  color: var(--foreground-success-primary, #0a9952);
+}

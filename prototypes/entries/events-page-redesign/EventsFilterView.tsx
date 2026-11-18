@@ -9,6 +9,7 @@ import { GenericFilterToggle } from '@/components/common/filters/GenericFilterTo
 import { EventsFilterSearch } from './EventsFilterSearch';
 import { countAppliedFilters, useEventsFilterStore } from './eventsFilterStore';
 import { FACETS, facetOptions, type CalEvent } from './mocks';
+import local from './EventsPageRedesignPrototype.module.scss';
 
 interface Props {
   /** Upcoming events: the counts beside each option are over these. */
@@ -16,20 +17,38 @@ interface Props {
   /** How many upcoming events you're going to, shown beside the Going switch. */
   goingCount: number;
   onClose?: () => void;
+  /** Desktop: the rail is closed by default; its header carries the way to close it again. */
+  onHide?: () => void;
 }
 
 /**
  * The left filter rail, built the way Teams and Members build theirs: a FiltersSidePanel
  * ("Filters", applied count, Clear All) holding a title-less search section, then one
  * FilterSection per filter. The filters are the events app's own rail, kept in full:
- * Show featured events and Modes, Access Types, Focus Areas, Gatherings, Hosts. "Going" joins
+ * Show featured events and Modes, Access Types, Focus Areas, Gatherings (kept as City, since IRL
+ * gatherings are being hidden), Hosts. "Going" joins
  * the featured switch, since both are on/off views rather than lists of values.
  */
-export function EventsFilterView({ events, goingCount, onClose }: Props) {
+export function EventsFilterView({ events, goingCount, onClose, onHide }: Props) {
   const { params, clearParams } = useEventsFilterStore();
 
   return (
-    <FiltersSidePanel onClose={onClose} clearParams={clearParams} appliedFiltersCount={countAppliedFilters(params)}>
+    <FiltersSidePanel
+      onClose={onClose}
+      clearParams={clearParams}
+      appliedFiltersCount={countAppliedFilters(params)}
+      actionsSlot={
+        onHide ? (
+          /* The sidebar mark (Linear, Notion) instead of the word "Hide" (2026-11-17). */
+          <button type="button" className={local.hide} onClick={onHide} aria-label="Hide filters" title="Hide filters">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+              <rect x="2" y="3" width="12" height="10" rx="2" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M6 3v10" stroke="currentColor" strokeWidth="1.5" />
+            </svg>
+          </button>
+        ) : undefined
+      }
+    >
       <FilterSection>
         <EventsFilterSearch label="Search events" placeholder="Events, hosts, cities or topics" />
       </FilterSection>

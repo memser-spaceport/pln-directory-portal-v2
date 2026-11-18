@@ -12,7 +12,7 @@
   overflow: hidden;
   border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   border-radius: 12px;
-  background: var(--background-brand-subtle, #e8edff);
+  background: #b9d3ec; // Esri's water, so tiles still loading read as sea
   cursor: grab;
   touch-action: none;
   user-select: none;
@@ -114,6 +114,91 @@
   background: var(--foreground-success-primary, #0a9952);
 }
 
+/* A venue pin (zoomed in): the event's picture in a white ring with a pointer at the venue,
+   Luma's map pin. A count when several events share the venue; a green ring when you're going. */
+.venuePin {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  padding: 3px;
+  transform: translate(-50%, calc(-100% - 7px));
+  border: none;
+  border-radius: 50%;
+  background: var(--background-neutral-primary, #ffffff);
+  box-shadow: 0 2px 8px var(--transparent-dark-8, rgba(14, 15, 17, 0.16));
+  cursor: pointer;
+  transition: transform 0.15s ease;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -6px;
+    width: 10px;
+    height: 10px;
+    transform: translateX(-50%) rotate(45deg);
+    background: inherit;
+    border-radius: 0 0 2px 0;
+  }
+
+  &:hover {
+    z-index: 2;
+    transform: translate(-50%, calc(-100% - 7px)) scale(1.08);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+.venuePhoto {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--background-neutral-subtle, #f1f5f9);
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+// Going: the ring turns green (the one green on the map, like the Going tag's tick).
+.venuePinGoing {
+  background: var(--foreground-success-primary, #0a9952);
+}
+
+// The linked (?event=) or open venue: the brand ring.
+.venuePinActive,
+.venuePinActive:hover {
+  z-index: 3;
+  background: var(--foreground-brand-primary, #1b4dff);
+}
+
+.venueCount {
+  position: absolute;
+  z-index: 2;
+  top: -4px;
+  right: -6px;
+  min-width: 20px;
+  padding: 0 6px;
+  border: 2px solid var(--background-neutral-primary, #ffffff);
+  border-radius: 999px;
+  background: var(--background-brand-default, #1b4dff);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  text-align: center;
+  color: #ffffff;
+}
+
 .controls {
   position: absolute;
   top: 12px;
@@ -149,6 +234,36 @@
     & + button {
       border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
     }
+  }
+}
+
+/* The zoom slider between + and −: vertical, top = zoomed in. Track in the border grey, filled
+   part and thumb in brand, so it reads as one control with the buttons. */
+.zoomSlider {
+  --fill: var(--foreground-brand-primary, #1b4dff);
+  --track: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  display: block;
+  width: 32px;
+  height: 120px;
+  margin: 0;
+  padding: 8px 0;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  writing-mode: vertical-lr;
+  direction: rtl;
+  background: none;
+  accent-color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: -2px;
+  }
+
+  // Phones zoom with the buttons; a 120px slider costs too much of a short map.
+  @include media.mobile-only {
+    display: none;
   }
 }
 
@@ -262,13 +377,6 @@
   color: var(--foreground-neutral-primary, #0a0c11);
 }
 
-.cardGoing {
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 500;
-  color: var(--foreground-success-primary, #0a9952);
-}
-
 .empty {
   position: absolute;
   left: 50%;
@@ -314,19 +422,16 @@
   color: var(--foreground-neutral-primary, #0a0c11);
 }
 
-/* OSM's standard style is busy and colourful: grey it, then .tint turns the grey brand blue. */
-.tiles {
-  filter: grayscale(1) contrast(0.9) brightness(1.05);
-}
-
-.tint {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: var(--background-brand-default, #1b4dff);
-  mix-blend-mode: color;
-}
+/* Esri World Street Map, the Google-Maps-like look, shown in its own colours (the grey filter and slate wash
+   were removed 2026-11-18 for "Google Maps style"). */
 
 .pinCompact {
   padding: 3px;
+}
+
+/* Arriving from a link to one event (?event=): its row is marked, the page's highlight. */
+.cardRowHighlight,
+.cardRowHighlight:hover {
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  box-shadow: inset 0 0 0 1px var(--border-brand-subtle, #aebfff);
 }

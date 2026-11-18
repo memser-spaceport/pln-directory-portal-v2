@@ -1094,3 +1094,28 @@
     flex: 1 0 100%;
   }
 }
+
+/* `scheduleOnCard` (profile-agent-actions): production's Office Hours row —
+   the description, Schedule Meeting on its right; stacked full width on a
+   phone, as production's `primaryButtonWrapper` is below tablet-landscape. */
+.ohLedeRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.ohSchedule.ohSchedule {
+  flex-shrink: 0;
+  cursor: pointer;
+  font-family: inherit;
+
+  @include media.mobile-only {
+    width: 100%;
+  }
+}

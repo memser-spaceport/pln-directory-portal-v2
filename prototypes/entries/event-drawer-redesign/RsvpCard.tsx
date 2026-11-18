@@ -21,7 +21,7 @@ import d from './EventDrawer.module.scss';
  * member-events-going's GatheringModal, so a yes behaves the same in either.
  */
 
-function Facepile({ count }: { count: number }) {
+export function Facepile({ count }: { count: number }) {
   return (
     <span className={d.facepile} aria-hidden>
       {ATTENDEES.slice(0, Math.min(3, count)).map((a) => (

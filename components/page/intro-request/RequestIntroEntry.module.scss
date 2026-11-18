@@ -42,3 +42,8 @@
   letter-spacing: -0.2px;
   white-space: nowrap;
 }
+
+// LAB-3300: "Ask the agent" next to "Request an intro".
+.askAgent {
+  flex-shrink: 0;
+}

@@ -5,6 +5,7 @@ import type {
   LabosAgentClosedStatus,
   LabosAgentConfirmRequest,
   LabosAgentConfirmResponse,
+  LabosAgentDraft,
   LabosAgentProposal,
   LabosAgentStreamOptions,
 } from '@/types/labos-agent.types';
@@ -23,6 +24,12 @@ import { LabosAgentError, LABOS_AGENT_STALL_MARKER } from './labos-agent.errors'
  * - "edit team": the answer proposes a team edit (one action card).
  * - "forbidden": the answer proposes a team edit, and Confirm gets a 403 `ACTION_NOT_ALLOWED`.
  * - "save fails": the first Confirm gets no answer (Retry shows); the next Confirm saves.
+ *
+ * Intro context (S3, `context.page` `intro`):
+ * - Any message gives one intro draft for the context target (contract 8.2).
+ * - "not eligible": the agent refuses, with `drafts: []` (contract 8.3).
+ * - A target uid that starts with `missing`: C1 gets a 404 `INTRO_TARGET_NOT_FOUND` before the stream.
+ * - The draft card's Send calls the real C3 (`POST /v1/intro-requests`). The mock replaces C1 only.
  *
  * A second C2 call on a closed proposal gets a 409 `PROPOSAL_CLOSED` with the stored `status`, like the backend.
  */
@@ -92,7 +99,52 @@ export function mockProposals(message: string, chatId: string): LabosAgentPropos
   return proposals;
 }
 
+/** The mock name of an intro target. The real name comes from the database (contract 8.2). */
+export const MOCK_INTRO_TARGET_NAME = 'Mock Member';
+
+/** The refusal text for a member who cannot request intros (contract 8.3). */
+export const MOCK_INTRO_REFUSAL =
+  'You cannot request intros. Only members of portfolio teams and PL Infra can. This is a mock answer.';
+
+/** The mock intro drafts for a request. None outside the intro context, or for "not eligible". */
+export function mockDrafts(request: LabosAgentChatRequest): LabosAgentDraft[] {
+  if (request.context?.page !== 'intro') return [];
+  if (/not eligible/.test(request.message.toLowerCase())) return [];
+  const { type, uid } = request.context.introTarget;
+  return [
+    {
+      draftId: `dr_mock_${request.chatId}`,
+      kind: 'intro',
+      target: { type, uid, name: MOCK_INTRO_TARGET_NAME },
+      text:
+        'I lead product at a portfolio team. We plan a new data feature and want advice from someone who ' +
+        'built one at scale. This is a mock draft from the agent.',
+      minLength: 20,
+      maxLength: 3500,
+      source: 'agent',
+    },
+  ];
+}
+
+const introBody = (request: LabosAgentChatRequest): LabosAgentChatResponse => {
+  const drafts = mockDrafts(request);
+  return {
+    steps: ['Understanding the question', 'Checking who you can ask', 'Writing the draft'],
+    content:
+      drafts.length > 0
+        ? 'This is a mock answer. Here is a draft. Check it and press Send. Nothing is sent before you press Send.'
+        : MOCK_INTRO_REFUSAL,
+    sources: [],
+    sourceRefs: [],
+    followUpQuestions: [],
+    actions: [],
+    proposals: [],
+    drafts,
+  };
+};
+
 export function mockChatBody(request: LabosAgentChatRequest): LabosAgentChatResponse {
+  if (request.context?.page === 'intro') return introBody(request);
   const q = request.message.toLowerCase();
   const onStory = request.context?.page === 'news-story';
   const newsUid = request.context?.page === 'news-story' ? request.context.newsUid : undefined;
@@ -119,6 +171,7 @@ export function mockChatBody(request: LabosAgentChatRequest): LabosAgentChatResp
       followUpQuestions: [],
       actions: [],
       proposals,
+      drafts: [],
     };
   }
 
@@ -142,6 +195,7 @@ export function mockChatBody(request: LabosAgentChatRequest): LabosAgentChatResp
       : ['What else happened this week?'],
     actions: [],
     proposals: [],
+    drafts: [],
   };
 }
 
@@ -149,6 +203,10 @@ async function chat(
   request: LabosAgentChatRequest,
   { signal, onUpdate }: LabosAgentStreamOptions = {},
 ): Promise<LabosAgentChatResponse> {
+  if (request.context?.page === 'intro' && request.context.introTarget.uid.startsWith('missing')) {
+    await wait(STEP_MS, signal);
+    throw new LabosAgentError(404, 'INTRO_TARGET_NOT_FOUND', 'The intro target was not found.');
+  }
   const full = mockChatBody(request);
   const fail = /error/.test(request.message.toLowerCase());
 

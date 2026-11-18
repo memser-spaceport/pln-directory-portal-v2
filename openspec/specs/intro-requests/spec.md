@@ -145,7 +145,7 @@ When the send fails, the form stays open, shows a clear error, and keeps the tex
 
 ### Requirement: The intro flow sends funnel events
 
-The intro flow sends PostHog events for each funnel step (LAB-3296, spec from LAB-3272). Every event carries `targetType` (`member` or `team`), `entryPoint` (`member-header`, `team-header` or `suggested-tab`) and `source` (`modal`), plus `loggedInUserUid`. No event carries the message text, a name or an email. Text appears only as `textLength`, the length of the trimmed message.
+The intro flow sends PostHog events for each funnel step (LAB-3296, spec from LAB-3272). Every event carries `targetType` (`member` or `team`), `entryPoint` (`member-header`, `team-header` or `suggested-tab`) and `source` (`modal` or `agent`), plus `loggedInUserUid`. No event carries the message text, a name or an email. Text appears only as `textLength`, the length of the trimmed message.
 
 | Event                         | When                                                                    | Extra properties                                                    |
 | ----------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------- |
@@ -155,7 +155,7 @@ The intro flow sends PostHog events for each funnel step (LAB-3296, spec from LA
 | `intro-request-submit-failed` | The send fails.                                                         | `status` (HTTP status; `0` when there is no response), `textLength` |
 | `ask-submitted`               | The send succeeds.                                                      | `type` `intro`, `textLength`                                        |
 
-The member page header uses `entryPoint` `member-header`. The team page header uses `team-header`. `suggested-tab` is reserved for the Suggested tab of team candidates when it shows the control. `source` `agent` comes with the LabOS agent (LAB-3272) and is out of scope here.
+The member page header uses `entryPoint` `member-header`. The team page header uses `team-header`. `suggested-tab` is reserved for the Suggested tab of team candidates when it shows the control. `source` is `modal` for the dialog. The LabOS agent draft card (LAB-3300) sends `intro-request-dialog-opened` when the card shows, `intro-request-dialog-closed` on Cancel, `intro-request-submit-failed` and `ask-submitted`, with `source` `agent` and the `entryPoint` of "Ask the agent". The dialog events do not change. `source` never goes in the request body.
 
 #### Scenario: Control shows
 

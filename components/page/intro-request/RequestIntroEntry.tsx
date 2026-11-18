@@ -9,6 +9,7 @@ import {
   type IntroRequestEventContext,
 } from '@/analytics/intro-requests.analytics';
 import { Button } from '@/components/common/Button';
+import { AskAgentButton } from '@/components/core/labos-agent/AskAgentButton/AskAgentButton';
 import { useCanRequestIntro } from '@/services/intro-requests/hooks/useCanRequestIntro';
 import type { IntroRequestTargetType } from '@/services/intro-requests/intro-requests.service';
 import {
@@ -21,6 +22,9 @@ import {
 } from '@/services/intro-requests/intro-request-entry-registry';
 
 import { RequestIntroDialog } from './RequestIntroDialog';
+
+/** The first message for the agent (contract 8.1). The member can change it before they send. */
+export const introAgentPrefill = (targetName: string) => `Help me write an intro request to ${targetName}.`;
 
 import s from './RequestIntroEntry.module.scss';
 
@@ -95,10 +99,25 @@ export function RequestIntroEntry({ type, targetId, targetName, className, entry
           </span>
         </span>
       ) : (
-        <Button style="fill" variant="primary" size="xs" className={clsx(s.button, className)} onClick={openDialog}>
-          <EnvelopeIcon />
-          Request an intro
-        </Button>
+        <>
+          <Button style="fill" variant="primary" size="xs" className={clsx(s.button, className)} onClick={openDialog}>
+            <EnvelopeIcon />
+            Request an intro
+          </Button>
+          {/* LAB-3300: only for a member who can request intros (above) and who is inside the agent gate (in the button). */}
+          <AskAgentButton
+            className={s.askAgent}
+            label="Ask the agent"
+            entryPoint={`intro-${resolvedEntryPoint}`}
+            context={{
+              page: 'intro',
+              introTarget: { type: targetType, uid: targetId },
+              label: `Intro to ${targetName}`,
+              entryPoint: resolvedEntryPoint,
+            }}
+            prefill={introAgentPrefill(targetName)}
+          />
+        </>
       )}
       {open && (
         <RequestIntroDialog

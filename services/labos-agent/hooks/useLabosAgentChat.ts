@@ -2,17 +2,29 @@
 
 import { useCallback } from 'react';
 
+import { useIntroRequestAnalytics, type IntroRequestEventContext } from '@/analytics/intro-requests.analytics';
 import { useLabosAgentAnalytics } from '@/analytics/labos-agent.analytics';
+import { markIntroRequestSent } from '@/services/intro-requests/intro-request-entry-registry';
+import { createIntroRequest } from '@/services/intro-requests/intro-requests.service';
 import type {
   LabosAgentCardState,
   LabosAgentChatErrorCode,
   LabosAgentDecision,
+  LabosAgentDraft,
+  LabosAgentDraftCardState,
   LabosAgentOpenContext,
   LabosAgentTurn,
   LabosAgentTurnStatus,
 } from '@/types/labos-agent.types';
 import { generateUUID } from '@/utils/common.utils';
 
+import {
+  draftErrorState,
+  draftTargetKey,
+  introErrorStatus,
+  isDraftTargetSent,
+  toIntroRequestBody,
+} from '../labos-agent.drafts';
 import { isStalledAnswer, LabosAgentError } from '../labos-agent.errors';
 import { getLabosAgentClient, toChatContext } from '../labos-agent.service';
 import { chatKey, useLabosAgentStore } from '../store';
@@ -33,6 +45,8 @@ export function errorText(code: LabosAgentChatErrorCode, retryAfterSeconds?: num
       return 'The agent is not on for your account yet.';
     case 'NEWS_NOT_FOUND':
       return 'The agent cannot find this news story.';
+    case 'INTRO_TARGET_NOT_FOUND':
+      return 'The agent cannot find this member or team.';
     case 'RATE_LIMITED':
       return retryAfterSeconds
         ? `You sent many messages. Try again in ${retryAfterSeconds} seconds.`
@@ -79,6 +93,24 @@ export function cardErrorState(error: LabosAgentError): LabosAgentCardState {
 }
 
 /**
+ * The LAB-3296 event properties for a draft card: `source` `agent` (S3-R16). The entry point is the place of
+ * "Ask the agent". A draft comes only for the intro context, so the fallback is the header of the target type.
+ */
+export function draftEventContext(
+  draft: LabosAgentDraft,
+  context: LabosAgentOpenContext | null,
+): IntroRequestEventContext {
+  const targetType = draft.target.type;
+  const entryPoint =
+    context?.page === 'intro' && context.entryPoint
+      ? context.entryPoint
+      : targetType === 'member'
+        ? 'member-header'
+        : 'team-header';
+  return { targetType, entryPoint, source: 'agent' };
+}
+
+/**
  * One chat with the agent, for one context. Turns live in the store (`chats[chatKey(context)]`), so closing the panel
  * keeps the chat and an open stream keeps writing to it. A hard error or a stall marks the turn, and `retry` sends the
  * same message again.
@@ -88,6 +120,7 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
   const turns = useLabosAgentStore((s) => s.chats[key]?.turns ?? NO_TURNS);
   const { updateTurns, resetChat } = useLabosAgentStore((s) => s.actions);
   const analytics = useLabosAgentAnalytics();
+  const introAnalytics = useIntroRequestAnalytics();
   const page = context?.page ?? 'none';
 
   const patch = useCallback(
@@ -110,6 +143,8 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
         followUpQuestions: [],
         proposals: [],
         cards: {},
+        drafts: [],
+        draftCards: {},
         startedAt: Date.now(),
       };
       updateTurns(key, (prev) => (replaceId ? prev.map((t) => (t.id === replaceId ? turn : t)) : [...prev, turn]));
@@ -132,12 +167,15 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
         const stalled = isStalledAnswer(body.content);
         patch(id, { ...body, status: stalled ? 'stalled' : 'done', endedAt: Date.now() });
         if (stalled) analytics.onAgentErrorShown({ page, code: 'STALLED', status: 200 });
-        else
+        else {
           analytics.onAgentAnswerShown({
             page,
             sourceCount: body.sources.length + body.sourceRefs.length,
             durationMs: Date.now() - turn.startedAt,
           });
+          // The draft card is the agent's intro form: one `intro-request-dialog-opened` for each card (LAB-3296).
+          (body.drafts ?? []).forEach((d) => introAnalytics.onDialogOpened(draftEventContext(d, context)));
+        }
       } catch (err) {
         if (controller.signal.aborted) return;
         const e = err instanceof LabosAgentError ? err : new LabosAgentError(0, 'UNKNOWN', 'The agent did not answer.');
@@ -153,7 +191,7 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
     },
     // `analytics` is a stub with new identities each render; the handlers hold no state.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [context, key, page, patch, updateTurns],
+    [context, key, page, patch, updateTurns, introAnalytics.onDialogOpened],
   );
 
   const busy = turns.some((t) => t.status === 'working');
@@ -237,5 +275,90 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
     [key, page, setCard],
   );
 
-  return { turns, busy, send, retry, stop, newChat, decide };
+  const findDraft = useCallback(
+    (turnId: string, draftId: string) => {
+      const turn = useLabosAgentStore.getState().chats[key]?.turns.find((t) => t.id === turnId);
+      const draft = turn?.drafts?.find((d) => d.draftId === draftId);
+      if (!turn || !draft) return null;
+      const card: LabosAgentDraftCardState = turn.draftCards?.[draftId] ?? { status: 'open', text: draft.text };
+      return { draft, card };
+    },
+    [key],
+  );
+
+  const setDraftCard = useCallback(
+    (turnId: string, draftId: string, card: LabosAgentDraftCardState) =>
+      updateTurns(key, (prev) =>
+        prev.map((t) => (t.id === turnId ? { ...t, draftCards: { ...(t.draftCards ?? {}), [draftId]: card } } : t)),
+      ),
+    [key, updateTurns],
+  );
+
+  /** The member edits the draft text. Only an open card or a card with an error takes edits. */
+  const editDraft = useCallback(
+    (turnId: string, draftId: string, text: string) => {
+      const found = findDraft(turnId, draftId);
+      if (!found || !['open', 'error'].includes(found.card.status)) return;
+      setDraftCard(turnId, draftId, { ...found.card, text: text.slice(0, found.draft.maxLength) });
+    },
+    [findDraft, setDraftCard],
+  );
+
+  /**
+   * Send on a draft card (S3-R12, S3-R13): one C3 request with `{ type, targetId, text }`. It runs only from `open`
+   * or `error`, with the trimmed text in the draft limits. The guard reads the store, so two presses in one tick send
+   * one request. After a 200 the card is closed and Send is gone. An error keeps the edited text (contract 8.5).
+   */
+  const sendDraft = useCallback(
+    async (turnId: string, draftId: string) => {
+      const found = findDraft(turnId, draftId);
+      if (!found) return;
+      const { draft, card } = found;
+      if (card.status !== 'open' && card.status !== 'error') return;
+      // One intro request for each target in a page visit, across turns and New chat (C3 has no duplicate check).
+      const { sentIntroTargets, actions } = useLabosAgentStore.getState();
+      if (isDraftTargetSent(draft, sentIntroTargets)) return;
+      const text = card.text.trim();
+      if (text.length < draft.minLength || text.length > draft.maxLength) return;
+
+      const events = draftEventContext(draft, context);
+      setDraftCard(turnId, draftId, { status: 'sending', text: card.text });
+      // Claim the target before the request, so a Send on another card for it in the same tick does nothing.
+      actions.markIntroTargetSent(draftTargetKey(draft));
+      try {
+        await createIntroRequest(toIntroRequestBody(draft, text));
+        setDraftCard(turnId, draftId, { status: 'sent', text: card.text });
+        introAnalytics.onAskSubmitted({ ...events, textLength: text.length });
+        markIntroRequestSent(draftTargetKey(draft));
+      } catch (err) {
+        // The send failed, so the target is free again.
+        useLabosAgentStore.setState((st) => {
+          const next = { ...st.sentIntroTargets };
+          delete next[draftTargetKey(draft)];
+          return { sentIntroTargets: next };
+        });
+        setDraftCard(turnId, draftId, draftErrorState(err, card.text));
+        introAnalytics.onSubmitFailed({ ...events, status: introErrorStatus(err), textLength: text.length });
+      }
+    },
+    [context, findDraft, introAnalytics, setDraftCard],
+  );
+
+  /** Cancel on a draft card (S3-R14): the card closes and no request goes out. */
+  const cancelDraft = useCallback(
+    (turnId: string, draftId: string) => {
+      const found = findDraft(turnId, draftId);
+      if (!found || ['sending', 'sent', 'cancelled'].includes(found.card.status)) return;
+      const textLength = found.card.text.trim().length;
+      setDraftCard(turnId, draftId, { ...found.card, status: 'cancelled' });
+      introAnalytics.onDialogClosed({
+        ...draftEventContext(found.draft, context),
+        hadText: textLength > 0,
+        textLength,
+      });
+    },
+    [context, findDraft, introAnalytics, setDraftCard],
+  );
+
+  return { turns, busy, send, retry, stop, newChat, decide, editDraft, sendDraft, cancelDraft };
 }

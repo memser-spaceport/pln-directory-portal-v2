@@ -9,6 +9,7 @@ import type { LabosAgentTurn as Turn } from '@/services/labos-agent/hooks/useLab
 import type { LabosAgentDecision } from '@/types/labos-agent.types';
 
 import { LabosAgentActionCard } from '../LabosAgentActionCard/LabosAgentActionCard';
+import { LabosAgentDraftCard } from '../LabosAgentDraftCard/LabosAgentDraftCard';
 
 import s from './LabosAgentTurn.module.scss';
 
@@ -20,6 +21,10 @@ interface LabosAgentTurnProps {
   onRetry: (turnId: string) => void;
   /** Confirm or Cancel on one of the turn's action cards (C2). */
   onDecide: (turnId: string, proposalId: string, decision: LabosAgentDecision) => void;
+  /** S3 intro draft cards. Absent: the turn shows no draft cards. */
+  onDraftEdit?: (turnId: string, draftId: string, text: string) => void;
+  onDraftSend?: (turnId: string, draftId: string) => void;
+  onDraftCancel?: (turnId: string, draftId: string) => void;
 }
 
 const domainOf = (url: string) => {
@@ -41,9 +46,19 @@ function Check() {
 /**
  * One answer from the agent (from home-v2-b's AgentPanel turn): the steps while it works, then the streamed Markdown
  * answer, the LabOS items and web pages it used, and its follow-up questions. A hard error or a stall shows a
- * message and Retry. A finished answer shows one action card per proposed edit (S2).
+ * message and Retry. A finished answer shows one action card per proposed edit (S2) and one draft card per intro
+ * draft (S3).
  */
-export function LabosAgentTurn({ turn, busy, onFollowUp, onRetry, onDecide }: LabosAgentTurnProps) {
+export function LabosAgentTurn({
+  turn,
+  busy,
+  onFollowUp,
+  onRetry,
+  onDecide,
+  onDraftEdit,
+  onDraftSend,
+  onDraftCancel,
+}: LabosAgentTurnProps) {
   const [showSteps, setShowSteps] = useState(false);
   const working = turn.status === 'working';
   const thinking = working && !turn.content;
@@ -131,6 +146,21 @@ export function LabosAgentTurn({ turn, busy, onFollowUp, onRetry, onDecide }: La
             proposal={p}
             card={turn.cards[p.proposalId]}
             onDecide={(proposalId, decision) => onDecide(turn.id, proposalId, decision)}
+          />
+        ))}
+
+      {turn.status === 'done' &&
+        onDraftEdit &&
+        onDraftSend &&
+        onDraftCancel &&
+        (turn.drafts ?? []).map((d) => (
+          <LabosAgentDraftCard
+            key={d.draftId}
+            draft={d}
+            card={turn.draftCards?.[d.draftId]}
+            onEdit={(draftId, text) => onDraftEdit(turn.id, draftId, text)}
+            onSend={(draftId) => onDraftSend(turn.id, draftId)}
+            onCancel={(draftId) => onDraftCancel(turn.id, draftId)}
           />
         ))}
 

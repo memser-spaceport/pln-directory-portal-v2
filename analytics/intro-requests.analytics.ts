@@ -6,7 +6,8 @@ import { INTRO_REQUEST_ANALYTICS_EVENTS } from '@/utils/constants';
 
 export type IntroRequestAnalyticsTargetType = 'member' | 'team';
 export type IntroRequestEntryPoint = 'member-header' | 'team-header' | 'suggested-tab';
-export type IntroRequestSource = 'modal';
+/** `modal`: the Request an intro dialog. `agent`: the LabOS agent's intro draft card (LAB-3300). */
+export type IntroRequestSource = 'modal' | 'agent';
 
 /** Shared properties on every intro request event. Never add message text, names or emails. */
 export interface IntroRequestEventContext {

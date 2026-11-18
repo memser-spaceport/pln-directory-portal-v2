@@ -44,6 +44,8 @@ const turn = (cards: LabosAgentTurn['cards'] = {}): LabosAgentTurn => ({
     },
   ],
   cards,
+  drafts: [],
+  draftCards: {},
   startedAt: 0,
 });
 

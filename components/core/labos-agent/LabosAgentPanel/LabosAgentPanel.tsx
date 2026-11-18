@@ -8,6 +8,7 @@ import { AiSearchIcon } from '@/components/icons/AiSearchIcon';
 import { CloseIcon } from '@/components/icons/CloseIcon';
 import { useLabosAgentChat } from '@/services/labos-agent/hooks/useLabosAgentChat';
 import { isLabosAgentMock } from '@/services/labos-agent/labos-agent.config';
+import { useLabosAgentStore } from '@/services/labos-agent/store';
 import type { LabosAgentOpenContext } from '@/types/labos-agent.types';
 
 import { LabosAgentTurn } from '../LabosAgentTurn/LabosAgentTurn';
@@ -22,12 +23,14 @@ interface LabosAgentPanelProps {
 const PROMPTS: Record<LabosAgentOpenContext['page'] | 'none', string[]> = {
   'news-story': ['Summarize this story', 'Why does this matter?', 'Which other teams work on this?'],
   home: ['What happened in the network this week?'],
+  intro: [],
   none: ['What happened in the network this week?'],
 };
 
 const contextLabel = (context: LabosAgentOpenContext | null) => {
   if (!context) return null;
   if (context.label) return context.label;
+  if (context.page === 'intro') return 'Intro request';
   return context.page === 'news-story' ? 'News story' : 'Home';
 };
 
@@ -37,7 +40,10 @@ const contextLabel = (context: LabosAgentOpenContext | null) => {
  * writes. Phones: a full-screen sheet. From 960px: a 480px column over the page's right edge.
  */
 export function LabosAgentPanel({ context, onClose }: LabosAgentPanelProps) {
-  const { turns, busy, send, retry, stop, newChat, decide } = useLabosAgentChat(context);
+  const { turns, busy, send, retry, stop, newChat, decide, editDraft, sendDraft, cancelDraft } =
+    useLabosAgentChat(context);
+  const prefill = useLabosAgentStore((st) => st.prefill);
+  const clearPrefill = useLabosAgentStore((st) => st.actions.clearPrefill);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const threadRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
@@ -48,6 +54,15 @@ export function LabosAgentPanel({ context, onClose }: LabosAgentPanelProps) {
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  /* S3: the caller's first message goes in the composer. The member can change it before they send. */
+  useEffect(() => {
+    if (prefill === null || !inputRef.current) return;
+    inputRef.current.value = prefill;
+    inputRef.current.focus();
+    inputRef.current.setSelectionRange(prefill.length, prefill.length);
+    clearPrefill();
+  }, [prefill, clearPrefill]);
 
   /* Esc closes the panel from anywhere inside it. */
   useEffect(() => {
@@ -107,7 +122,9 @@ export function LabosAgentPanel({ context, onClose }: LabosAgentPanelProps) {
             <p className={s.helloSub}>
               {context?.page === 'news-story'
                 ? 'I read this story with you and can search LabOS news and the web.'
-                : 'I can search LabOS news and the web for you.'}
+                : context?.page === 'intro'
+                  ? 'I can write a draft of your intro request. You check it and send it.'
+                  : 'I can search LabOS news and the web for you.'}
             </p>
             <ul className={s.prompts}>
               {PROMPTS[context?.page ?? 'none'].map((p) => (
@@ -129,6 +146,9 @@ export function LabosAgentPanel({ context, onClose }: LabosAgentPanelProps) {
                 onFollowUp={submit}
                 onRetry={retry}
                 onDecide={(turnId, proposalId, decision) => void decide(turnId, proposalId, decision)}
+                onDraftEdit={editDraft}
+                onDraftSend={(turnId, draftId) => void sendDraft(turnId, draftId)}
+                onDraftCancel={cancelDraft}
               />
             </div>
           ))

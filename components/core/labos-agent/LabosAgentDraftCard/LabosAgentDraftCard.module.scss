@@ -1,0 +1,44 @@
+/* Uses the S2 action card styles (LabosAgentActionCard.module.scss) and adds the text field. */
+@use '../LabosAgentActionCard/LabosAgentActionCard.module';
+
+.label {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.text {
+  width: 100%;
+  min-height: 120px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  resize: vertical;
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-primary, #156ff7);
+    outline-offset: 1px;
+  }
+
+  &:disabled,
+  &:read-only {
+    background: var(--background-neutral-secondary, #f5f7fa);
+  }
+}
+
+.count,
+.hint {
+  margin: -8px 0 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.count {
+  text-align: right;
+}

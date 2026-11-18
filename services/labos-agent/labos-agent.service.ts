@@ -11,6 +11,7 @@ import type {
   LabosAgentClosedStatus,
   LabosAgentConfirmRequest,
   LabosAgentConfirmResponse,
+  LabosAgentDraft,
   LabosAgentOpenContext,
   LabosAgentProposal,
   LabosAgentProposalChange,
@@ -31,6 +32,7 @@ const KNOWN_CODES: LabosAgentChatErrorCode[] = [
   'VALIDATION_ERROR',
   'AGENT_NOT_ENABLED',
   'NEWS_NOT_FOUND',
+  'INTRO_TARGET_NOT_FOUND',
   'RATE_LIMITED',
   'ACTION_NOT_ALLOWED',
   'PROPOSAL_NOT_FOUND',
@@ -54,6 +56,9 @@ const apiUrl = (path: string) => `${process.env.DIRECTORY_API_URL}${path}`;
 export function toChatContext(context: LabosAgentOpenContext | null | undefined): LabosAgentChatContext | undefined {
   if (!context) return undefined;
   if (context.page === 'news-story') return { page: 'news-story', newsUid: context.newsUid };
+  if (context.page === 'intro') {
+    return { page: 'intro', introTarget: { type: context.introTarget.type, uid: context.introTarget.uid } };
+  }
   return { page: 'home' };
 }
 
@@ -121,6 +126,42 @@ export function normalizeProposals(v: unknown): LabosAgentProposal[] {
   });
 }
 
+/** The modal limits (contract 8.2). A draft with no limits or bad limits gets these. */
+export const INTRO_DRAFT_MIN_LENGTH = 20;
+export const INTRO_DRAFT_MAX_LENGTH = 3500;
+
+const positiveInt = (v: unknown): number | null => (typeof v === 'number' && Number.isInteger(v) && v > 0 ? v : null);
+
+/**
+ * Keeps only complete intro drafts (contract 8.2). A half-streamed draft drops out until it is whole. The client
+ * never trusts the limits more than the modal: `minLength` is at least 20 and `maxLength` at most 3500.
+ */
+export function normalizeDrafts(v: unknown): LabosAgentDraft[] {
+  if (!Array.isArray(v)) return [];
+  return v.flatMap((raw): LabosAgentDraft[] => {
+    if (!raw || typeof raw !== 'object') return [];
+    const d = raw as Record<string, unknown>;
+    if (typeof d.draftId !== 'string' || !d.draftId || d.kind !== 'intro' || typeof d.text !== 'string') return [];
+    const t = d.target && typeof d.target === 'object' ? (d.target as Record<string, unknown>) : null;
+    if (!t || (t.type !== 'member' && t.type !== 'team') || typeof t.uid !== 'string' || !t.uid) return [];
+    if (typeof t.name !== 'string' || !t.name) return [];
+    const min = Math.max(positiveInt(d.minLength) ?? INTRO_DRAFT_MIN_LENGTH, INTRO_DRAFT_MIN_LENGTH);
+    const max = Math.min(positiveInt(d.maxLength) ?? INTRO_DRAFT_MAX_LENGTH, INTRO_DRAFT_MAX_LENGTH);
+    if (min > max) return [];
+    return [
+      {
+        draftId: d.draftId,
+        kind: 'intro',
+        target: { type: t.type, uid: t.uid, name: t.name },
+        text: d.text.trim().slice(0, max),
+        minLength: min,
+        maxLength: max,
+        source: 'agent',
+      },
+    ];
+  });
+}
+
 /** Reads a partial or full stream body into the response shape. Unknown or half-written fields drop out. */
 export function normalizeChatBody(value: unknown): LabosAgentChatResponse {
   const body = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
@@ -132,6 +173,7 @@ export function normalizeChatBody(value: unknown): LabosAgentChatResponse {
     followUpQuestions: strings(body.followUpQuestions),
     actions: Array.isArray(body.actions) ? body.actions : [],
     proposals: normalizeProposals(body.proposals),
+    drafts: normalizeDrafts(body.drafts),
   };
 }
 

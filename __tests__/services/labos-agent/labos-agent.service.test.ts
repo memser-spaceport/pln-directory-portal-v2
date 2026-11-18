@@ -6,6 +6,7 @@ import {
   LabosAgentError,
   liveLabosAgentClient,
   normalizeChatBody,
+  normalizeDrafts,
   toChatContext,
   validateChatMessage,
 } from '@/services/labos-agent/labos-agent.service';
@@ -64,6 +65,7 @@ describe('LAB-3298: LabOS agent C1 client', () => {
       followUpQuestions: [],
       actions: [],
       proposals: [],
+      drafts: [],
     });
   });
 
@@ -90,6 +92,7 @@ describe('LAB-3298: LabOS agent C1 client', () => {
   it.each([
     [403, { code: 'AGENT_NOT_ENABLED' }, 'AGENT_NOT_ENABLED'],
     [404, { code: 'NEWS_NOT_FOUND' }, 'NEWS_NOT_FOUND'],
+    [404, { code: 'INTRO_TARGET_NOT_FOUND' }, 'INTRO_TARGET_NOT_FOUND'],
     [400, { code: 'VALIDATION_ERROR' }, 'VALIDATION_ERROR'],
     [500, {}, 'UNKNOWN'],
   ])('maps a %s answer to %s', async (status, body, code) => {
@@ -119,5 +122,55 @@ describe('LAB-3298: LabOS agent C1 client', () => {
 
     mockedFetch.mockResolvedValueOnce(new Response(null, { status: 401 }));
     await expect(liveLabosAgentClient.getAccess()).resolves.toEqual({ enabled: false });
+  });
+});
+
+describe('LAB-3300: intro context and drafts in C1', () => {
+  const draft = {
+    draftId: 'dr_1',
+    kind: 'intro',
+    target: { type: 'team', uid: 't-1', name: 'Acme' },
+    text: '  I lead fundraising at Acme and want advice.  ',
+    minLength: 20,
+    maxLength: 3500,
+    source: 'agent',
+  };
+
+  it('sends page intro with introTarget only (no label, no entry point)', () => {
+    expect(
+      toChatContext({
+        page: 'intro',
+        introTarget: { type: 'member', uid: 'm-1' },
+        label: 'Intro to Ada',
+        entryPoint: 'member-header',
+      }),
+    ).toEqual({ page: 'intro', introTarget: { type: 'member', uid: 'm-1' } });
+  });
+
+  it('keeps a whole draft, trims its text and reads drafts from the body', () => {
+    expect(normalizeDrafts([draft])).toEqual([{ ...draft, text: 'I lead fundraising at Acme and want advice.' }]);
+    expect(normalizeChatBody({ content: 'Hi', drafts: [draft] }).drafts).toHaveLength(1);
+    expect(normalizeChatBody({ content: 'Hi' }).drafts).toEqual([]);
+  });
+
+  it('drops a half-streamed or unknown draft', () => {
+    expect(
+      normalizeDrafts([
+        { ...draft, draftId: '' },
+        { ...draft, kind: 'job-application' },
+        { ...draft, target: { type: 'team', uid: 't-1' } },
+        { ...draft, target: { type: 'project', uid: 'p', name: 'P' } },
+        { draftId: 'dr_2', kind: 'intro' },
+        null,
+      ]),
+    ).toEqual([]);
+  });
+
+  it('never allows limits wider than the modal (20 to 3500)', () => {
+    const [d] = normalizeDrafts([{ ...draft, minLength: 1, maxLength: 9000 }]);
+    expect(d.minLength).toBe(20);
+    expect(d.maxLength).toBe(3500);
+    const [e] = normalizeDrafts([{ ...draft, minLength: undefined, maxLength: 'x' }]);
+    expect([e.minLength, e.maxLength]).toEqual([20, 3500]);
   });
 });

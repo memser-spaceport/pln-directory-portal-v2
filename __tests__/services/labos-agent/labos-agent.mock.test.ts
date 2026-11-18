@@ -1,4 +1,9 @@
-import { mockChatBody, mockLabosAgentClient } from '@/services/labos-agent/labos-agent.mock';
+import {
+  MOCK_INTRO_REFUSAL,
+  MOCK_INTRO_TARGET_NAME,
+  mockChatBody,
+  mockLabosAgentClient,
+} from '@/services/labos-agent/labos-agent.mock';
 import { LabosAgentError } from '@/services/labos-agent/labos-agent.errors';
 import { isStalledAnswer } from '@/services/labos-agent/labos-agent.errors';
 
@@ -107,5 +112,47 @@ describe('LAB-3299: mock C2 actions', () => {
   it('sends bio as HTML, like the real profile field', () => {
     const [p] = mockChatBody({ ...base, message: 'edit profile' }).proposals;
     expect(p.changes.find((c) => c.field === 'bio')?.newValue).toMatch(/<p>/);
+  });
+});
+
+describe('LAB-3300: mock intro drafts', () => {
+  const intro = (uid = 'm-1') => ({
+    threadId: 't',
+    chatId: 'c',
+    context: { page: 'intro' as const, introTarget: { type: 'member' as const, uid } },
+  });
+
+  beforeEach(() => jest.useFakeTimers());
+  afterEach(() => jest.useRealTimers());
+
+  it('gives one intro draft for the context target', () => {
+    const body = mockChatBody({ ...intro(), message: 'Help me write an intro request to Mock Member.' });
+    expect(body.drafts).toHaveLength(1);
+    expect(body.drafts[0]).toMatchObject({
+      kind: 'intro',
+      target: { type: 'member', uid: 'm-1', name: MOCK_INTRO_TARGET_NAME },
+      minLength: 20,
+      maxLength: 3500,
+      source: 'agent',
+    });
+    expect(body.drafts[0].text.length).toBeGreaterThanOrEqual(20);
+    expect(body.proposals).toEqual([]);
+  });
+
+  it('refuses with drafts: [] for "not eligible"', () => {
+    const body = mockChatBody({ ...intro(), message: 'not eligible' });
+    expect(body.drafts).toEqual([]);
+    expect(body.content).toBe(MOCK_INTRO_REFUSAL);
+  });
+
+  it('gives no drafts outside the intro context', () => {
+    expect(mockChatBody({ ...base, message: 'Summarize this story' }).drafts).toEqual([]);
+  });
+
+  it('gives a 404 INTRO_TARGET_NOT_FOUND for a missing target', async () => {
+    const done = mockLabosAgentClient.chat({ ...intro('missing-1'), message: 'Help me' });
+    const check = expect(done).rejects.toMatchObject({ status: 404, code: 'INTRO_TARGET_NOT_FOUND' });
+    await jest.runAllTimersAsync();
+    await check;
   });
 });

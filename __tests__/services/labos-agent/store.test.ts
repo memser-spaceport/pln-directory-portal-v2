@@ -14,6 +14,8 @@ const turn = (id: string): LabosAgentTurn => ({
   sources: [],
   sourceRefs: [],
   followUpQuestions: [],
+  proposals: [],
+  cards: {},
   startedAt: 0,
 });
 

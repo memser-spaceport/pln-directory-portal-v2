@@ -1,4 +1,5 @@
 import { mockChatBody, mockLabosAgentClient } from '@/services/labos-agent/labos-agent.mock';
+import { LabosAgentError } from '@/services/labos-agent/labos-agent.errors';
 import { isStalledAnswer } from '@/services/labos-agent/labos-agent.errors';
 
 const base = { threadId: 't', chatId: 'c', context: { page: 'news-story' as const, newsUid: 'n-1' } };
@@ -48,5 +49,63 @@ describe('LAB-3298: mock C1 client', () => {
 
   it('says yes to the access check', async () => {
     await expect(mockLabosAgentClient.getAccess()).resolves.toEqual({ enabled: true });
+  });
+});
+
+describe('LAB-3299: mock C2 actions', () => {
+  beforeEach(() => jest.useFakeTimers());
+  afterEach(() => jest.useRealTimers());
+
+  const confirm = async (proposalId: string, decision: 'confirm' | 'cancel' = 'confirm') => {
+    const done = mockLabosAgentClient.confirmAction({ proposalId, decision }).catch((e) => e);
+    await jest.runAllTimersAsync();
+    return done;
+  };
+
+  it('proposes one profile edit for "edit profile" and one team edit for "edit team"', () => {
+    const profile = mockChatBody({ ...base, message: 'Please edit profile bio' }).proposals;
+    expect(profile).toHaveLength(1);
+    expect(profile[0]).toMatchObject({ tool: 'update_my_profile', targetType: 'member' });
+    const team = mockChatBody({ ...base, message: 'edit team description' }).proposals;
+    expect(team).toHaveLength(1);
+    expect(team[0]).toMatchObject({ tool: 'update_team', targetType: 'team' });
+    expect(mockChatBody({ ...base, message: 'Summarize' }).proposals).toEqual([]);
+  });
+
+  it('confirms, cancels and gives a 403 for "forbidden"', async () => {
+    const [p] = mockChatBody({ ...base, chatId: 'c-ok', message: 'edit profile' }).proposals;
+    await expect(confirm(p.proposalId)).resolves.toMatchObject({ status: 'done' });
+    const [c] = mockChatBody({ ...base, chatId: 'c-cancel', message: 'edit profile' }).proposals;
+    await expect(confirm(c.proposalId, 'cancel')).resolves.toMatchObject({ status: 'cancelled' });
+
+    const [f] = mockChatBody({ ...base, message: 'forbidden' }).proposals;
+    const err = await confirm(f.proposalId);
+    expect(err).toBeInstanceOf(LabosAgentError);
+    expect(err).toMatchObject({ status: 403, code: 'ACTION_NOT_ALLOWED' });
+  });
+
+  it('fails the first save for "save fails", then saves', async () => {
+    const [p] = mockChatBody({ ...base, chatId: 'c-fail', message: 'edit profile, save fails' }).proposals;
+    await expect(confirm(p.proposalId)).resolves.toMatchObject({ status: 0 });
+    await expect(confirm(p.proposalId)).resolves.toMatchObject({ status: 'done' });
+  });
+
+  it('gives a 409 with the stored status on a second call, like the backend', async () => {
+    const [done] = mockChatBody({ ...base, chatId: 'c-409-done', message: 'edit profile' }).proposals;
+    await confirm(done.proposalId);
+    await expect(confirm(done.proposalId)).resolves.toMatchObject({
+      status: 409,
+      code: 'PROPOSAL_CLOSED',
+      closedStatus: 'done',
+    });
+
+    const [cancelled] = mockChatBody({ ...base, chatId: 'c-409-cancel', message: 'edit profile' }).proposals;
+    await confirm(cancelled.proposalId, 'cancel');
+    await expect(confirm(cancelled.proposalId)).resolves.toMatchObject({ closedStatus: 'cancelled' });
+  });
+
+  it('sends bio as HTML, like the real profile field', () => {
+    const [p] = mockChatBody({ ...base, message: 'edit profile' }).proposals;
+    expect(p.changes.find((c) => c.field === 'bio')?.newValue).toMatch(/<p>/);
   });
 });

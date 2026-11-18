@@ -37,7 +37,7 @@ const contextLabel = (context: LabosAgentOpenContext | null) => {
  * writes. Phones: a full-screen sheet. From 960px: a 480px column over the page's right edge.
  */
 export function LabosAgentPanel({ context, onClose }: LabosAgentPanelProps) {
-  const { turns, busy, send, retry, stop, newChat } = useLabosAgentChat(context);
+  const { turns, busy, send, retry, stop, newChat, decide } = useLabosAgentChat(context);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const threadRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
@@ -123,7 +123,13 @@ export function LabosAgentPanel({ context, onClose }: LabosAgentPanelProps) {
           turns.map((t) => (
             <div key={t.id} className={s.turnPair}>
               <div className={s.userTurn}>{t.message}</div>
-              <LabosAgentTurn turn={t} busy={busy} onFollowUp={submit} onRetry={retry} />
+              <LabosAgentTurn
+                turn={t}
+                busy={busy}
+                onFollowUp={submit}
+                onRetry={retry}
+                onDecide={(turnId, proposalId, decision) => void decide(turnId, proposalId, decision)}
+              />
             </div>
           ))
         )}

@@ -6,8 +6,15 @@ import type {
   LabosAgentChatErrorCode,
   LabosAgentChatRequest,
   LabosAgentChatResponse,
+  LabosAgentChangeValue,
   LabosAgentClient,
+  LabosAgentClosedStatus,
+  LabosAgentConfirmRequest,
+  LabosAgentConfirmResponse,
   LabosAgentOpenContext,
+  LabosAgentProposal,
+  LabosAgentProposalChange,
+  LabosAgentProposalTool,
   LabosAgentSourceRef,
   LabosAgentStreamOptions,
 } from '@/types/labos-agent.types';
@@ -25,6 +32,20 @@ const KNOWN_CODES: LabosAgentChatErrorCode[] = [
   'AGENT_NOT_ENABLED',
   'NEWS_NOT_FOUND',
   'RATE_LIMITED',
+  'ACTION_NOT_ALLOWED',
+  'PROPOSAL_NOT_FOUND',
+  'PROPOSAL_CLOSED',
+  'PROPOSAL_EXPIRED',
+  'ACTION_FAILED',
+];
+
+const CLOSED_STATUSES: LabosAgentClosedStatus[] = ['done', 'cancelled', 'failed'];
+
+const PROPOSAL_TOOLS: LabosAgentProposalTool[] = [
+  'update_my_profile',
+  'add_experience',
+  'update_experience',
+  'update_team',
 ];
 
 const apiUrl = (path: string) => `${process.env.DIRECTORY_API_URL}${path}`;
@@ -56,6 +77,50 @@ const sourceRefs = (v: unknown): LabosAgentSourceRef[] =>
       )
     : [];
 
+const isChangeValue = (v: unknown): v is LabosAgentChangeValue =>
+  v === null ||
+  typeof v === 'string' ||
+  typeof v === 'number' ||
+  typeof v === 'boolean' ||
+  (Array.isArray(v) && v.every((x) => typeof x === 'string'));
+
+const change = (v: unknown): LabosAgentProposalChange | null => {
+  if (!v || typeof v !== 'object') return null;
+  const c = v as Record<string, unknown>;
+  if (typeof c.field !== 'string') return null;
+  return {
+    field: c.field,
+    label: typeof c.label === 'string' && c.label ? c.label : c.field,
+    oldValue: isChangeValue(c.oldValue) ? c.oldValue : null,
+    newValue: isChangeValue(c.newValue) ? c.newValue : null,
+  };
+};
+
+/** Keeps only complete proposals with a known tool. A half-streamed proposal drops out until it is whole. */
+export function normalizeProposals(v: unknown): LabosAgentProposal[] {
+  if (!Array.isArray(v)) return [];
+  return v.flatMap((raw): LabosAgentProposal[] => {
+    if (!raw || typeof raw !== 'object') return [];
+    const p = raw as Record<string, unknown>;
+    if (typeof p.proposalId !== 'string' || !p.proposalId || typeof p.title !== 'string') return [];
+    if (!(PROPOSAL_TOOLS as unknown[]).includes(p.tool)) return [];
+    if (!Array.isArray(p.changes)) return [];
+    const changes = p.changes.map(change).filter((c): c is LabosAgentProposalChange => c !== null);
+    if (changes.length === 0) return [];
+    return [
+      {
+        proposalId: p.proposalId,
+        tool: p.tool as LabosAgentProposalTool,
+        title: p.title,
+        targetType: p.targetType === 'team' ? 'team' : 'member',
+        targetUid: typeof p.targetUid === 'string' ? p.targetUid : undefined,
+        changes,
+        expiresAt: typeof p.expiresAt === 'string' ? p.expiresAt : undefined,
+      },
+    ];
+  });
+}
+
 /** Reads a partial or full stream body into the response shape. Unknown or half-written fields drop out. */
 export function normalizeChatBody(value: unknown): LabosAgentChatResponse {
   const body = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
@@ -66,7 +131,7 @@ export function normalizeChatBody(value: unknown): LabosAgentChatResponse {
     sourceRefs: sourceRefs(body.sourceRefs),
     followUpQuestions: strings(body.followUpQuestions),
     actions: Array.isArray(body.actions) ? body.actions : [],
-    proposals: Array.isArray(body.proposals) ? body.proposals : [],
+    proposals: normalizeProposals(body.proposals),
   };
 }
 
@@ -82,7 +147,11 @@ async function toError(response: Response): Promise<LabosAgentError> {
   const code = (KNOWN_CODES as string[]).includes(raw) ? (raw as LabosAgentChatErrorCode) : 'UNKNOWN';
   const message = typeof body.message === 'string' ? body.message : response.statusText || 'The agent failed.';
   const retryAfter = typeof body.retryAfterSeconds === 'number' ? body.retryAfterSeconds : undefined;
-  return new LabosAgentError(response.status, code, message, retryAfter);
+  const closedStatus =
+    code === 'PROPOSAL_CLOSED' && (CLOSED_STATUSES as unknown[]).includes(body.status)
+      ? (body.status as LabosAgentClosedStatus)
+      : undefined;
+  return new LabosAgentError(response.status, code, message, retryAfter, closedStatus);
 }
 
 /** C1: `POST /v1/labos-agent/chat`. Streams the chunked JSON body and returns the full body at the end. */
@@ -131,6 +200,43 @@ async function chat(
   return normalizeChatBody(full);
 }
 
+/**
+ * C2: `POST /v1/labos-agent/actions/confirm`. Sends only the proposal id and the decision. The backend runs the tool
+ * once, after it checks the member's permissions again.
+ */
+async function confirmAction(request: LabosAgentConfirmRequest): Promise<LabosAgentConfirmResponse> {
+  let response: Response | undefined;
+  try {
+    response = await customFetch(
+      apiUrl(LABOS_AGENT_ENDPOINTS.confirm),
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ proposalId: request.proposalId, decision: request.decision }),
+      },
+      true,
+    );
+  } catch {
+    throw new LabosAgentError(0, 'STREAM_FAILED', 'The agent did not answer.');
+  }
+  if (!response) throw new LabosAgentError(401, 'UNAUTHORIZED', 'Sign in to use the agent.');
+  if (!response.ok) throw await toError(response);
+  let body: Record<string, unknown> = {};
+  try {
+    body = (await response.json()) ?? {};
+  } catch {
+    // An empty or broken body: fall back to the decision.
+  }
+  const status = body.status === 'cancelled' || body.status === 'done' ? body.status : undefined;
+  return {
+    proposalId: typeof body.proposalId === 'string' ? body.proposalId : request.proposalId,
+    status: status ?? (request.decision === 'cancel' ? 'cancelled' : 'done'),
+    tool: (PROPOSAL_TOOLS as unknown[]).includes(body.tool) ? (body.tool as LabosAgentProposalTool) : undefined,
+    summary: typeof body.summary === 'string' ? body.summary : '',
+    result: body.result,
+  };
+}
+
 /** `GET /v1/labos-agent/access`: the backend's pilot gate for the signed-in member. */
 async function getAccess(): Promise<LabosAgentAccess> {
   const response = await customFetch(apiUrl(LABOS_AGENT_ENDPOINTS.access), { method: 'GET' }, true);
@@ -143,7 +249,7 @@ async function getAccess(): Promise<LabosAgentAccess> {
   }
 }
 
-export const liveLabosAgentClient: LabosAgentClient = { chat, getAccess };
+export const liveLabosAgentClient: LabosAgentClient = { chat, getAccess, confirmAction };
 
 /** The client the panel uses: live C1, or the mock when it is selected (see `labos-agent.config.ts`). */
 export function getLabosAgentClient(): LabosAgentClient {

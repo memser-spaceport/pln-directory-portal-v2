@@ -6,6 +6,9 @@ import { useState } from 'react';
 import { Button } from '@/components/common/Button';
 import { Markdown } from '@/components/common/Markdown';
 import type { LabosAgentTurn as Turn } from '@/services/labos-agent/hooks/useLabosAgentChat';
+import type { LabosAgentDecision } from '@/types/labos-agent.types';
+
+import { LabosAgentActionCard } from '../LabosAgentActionCard/LabosAgentActionCard';
 
 import s from './LabosAgentTurn.module.scss';
 
@@ -15,6 +18,8 @@ interface LabosAgentTurnProps {
   busy: boolean;
   onFollowUp: (text: string) => void;
   onRetry: (turnId: string) => void;
+  /** Confirm or Cancel on one of the turn's action cards (C2). */
+  onDecide: (turnId: string, proposalId: string, decision: LabosAgentDecision) => void;
 }
 
 const domainOf = (url: string) => {
@@ -36,9 +41,9 @@ function Check() {
 /**
  * One answer from the agent (from home-v2-b's AgentPanel turn): the steps while it works, then the streamed Markdown
  * answer, the LabOS items and web pages it used, and its follow-up questions. A hard error or a stall shows a
- * message and Retry.
+ * message and Retry. A finished answer shows one action card per proposed edit (S2).
  */
-export function LabosAgentTurn({ turn, busy, onFollowUp, onRetry }: LabosAgentTurnProps) {
+export function LabosAgentTurn({ turn, busy, onFollowUp, onRetry, onDecide }: LabosAgentTurnProps) {
   const [showSteps, setShowSteps] = useState(false);
   const working = turn.status === 'working';
   const thinking = working && !turn.content;
@@ -118,6 +123,16 @@ export function LabosAgentTurn({ turn, busy, onFollowUp, onRetry }: LabosAgentTu
           </ul>
         </div>
       )}
+
+      {turn.status === 'done' &&
+        turn.proposals.map((p) => (
+          <LabosAgentActionCard
+            key={p.proposalId}
+            proposal={p}
+            card={turn.cards[p.proposalId]}
+            onDecide={(proposalId, decision) => onDecide(turn.id, proposalId, decision)}
+          />
+        ))}
 
       {turn.status === 'error' && turn.error && (
         <p className={s.errorText} role="alert">

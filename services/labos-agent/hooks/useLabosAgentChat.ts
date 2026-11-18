@@ -4,7 +4,9 @@ import { useCallback } from 'react';
 
 import { useLabosAgentAnalytics } from '@/analytics/labos-agent.analytics';
 import type {
+  LabosAgentCardState,
   LabosAgentChatErrorCode,
+  LabosAgentDecision,
   LabosAgentOpenContext,
   LabosAgentTurn,
   LabosAgentTurnStatus,
@@ -42,6 +44,40 @@ export function errorText(code: LabosAgentChatErrorCode, retryAfterSeconds?: num
   }
 }
 
+/** The card state after a failed C2 call. Plain words. A 403 says that nothing was saved. */
+export function cardErrorState(error: LabosAgentError): LabosAgentCardState {
+  if (error.status === 403) return { status: 'forbidden', message: 'You cannot make this change. Nothing was saved.' };
+  switch (error.code) {
+    case 'PROPOSAL_EXPIRED':
+      return { status: 'error', message: 'This change expired. Nothing was saved. Ask the agent again.' };
+    case 'PROPOSAL_CLOSED':
+      // The 409 body carries the stored status (backend PR #3741). An older backend sends none. `pending` and unknown
+      // values arrive here as undefined (`toError`), so they show the "may already be saved" text.
+      switch (error.closedStatus) {
+        case 'done':
+          return { status: 'done', summary: 'This change is already saved.' };
+        case 'cancelled':
+          return { status: 'cancelled' };
+        case 'failed':
+          return { status: 'error', message: 'The change did not go through.' };
+        default:
+          return { status: 'error', message: 'This change may already be saved. Check your profile.' };
+      }
+    case 'PROPOSAL_NOT_FOUND':
+      return { status: 'error', message: 'The agent cannot find this change. Nothing was saved. Ask the agent again.' };
+    case 'ACTION_FAILED':
+    case 'VALIDATION_ERROR':
+      return {
+        status: 'error',
+        message: error.message ? `The change was refused: ${error.message}` : 'The change was refused.',
+      };
+    case 'UNAUTHORIZED':
+      return { status: 'error', message: 'Sign in again, then retry.', canRetry: true };
+    default:
+      return { status: 'error', message: 'The change did not go through. Retry.', canRetry: true };
+  }
+}
+
 /**
  * One chat with the agent, for one context. Turns live in the store (`chats[chatKey(context)]`), so closing the panel
  * keeps the chat and an open stream keeps writing to it. A hard error or a stall marks the turn, and `retry` sends the
@@ -72,6 +108,8 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
         sources: [],
         sourceRefs: [],
         followUpQuestions: [],
+        proposals: [],
+        cards: {},
         startedAt: Date.now(),
       };
       updateTurns(key, (prev) => (replaceId ? prev.map((t) => (t.id === replaceId ? turn : t)) : [...prev, turn]));
@@ -153,5 +191,51 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
     resetChat(key);
   }, [key, resetChat]);
 
-  return { turns, busy, send, retry, stop, newChat };
+  const setCard = useCallback(
+    (turnId: string, proposalId: string, card: LabosAgentCardState) =>
+      updateTurns(key, (prev) =>
+        prev.map((t) => (t.id === turnId ? { ...t, cards: { ...t.cards, [proposalId]: card } } : t)),
+      ),
+    [key, updateTurns],
+  );
+
+  /**
+   * Confirm or Cancel on one action card (C2). Nothing saves before Confirm (D2). A card runs only from `pending` or
+   * from a retryable `error`, so a double press sends one request. The guard reads the store, not the render, so two
+   * calls in the same tick also send one request. A failed Cancel still closes the card: the backend wrote nothing and
+   * the proposal expires. A 409 `PROPOSAL_CLOSED` shows the stored status (`cardErrorState`).
+   */
+  const decide = useCallback(
+    async (turnId: string, proposalId: string, decision: LabosAgentDecision) => {
+      const turn = useLabosAgentStore.getState().chats[key]?.turns.find((t) => t.id === turnId);
+      if (!turn || !turn.proposals.some((p) => p.proposalId === proposalId)) return;
+      const card = turn.cards[proposalId];
+      if (card && !(card.status === 'error' && card.canRetry)) return;
+
+      setCard(turnId, proposalId, { status: 'saving', decision });
+      try {
+        const res = await getLabosAgentClient().confirmAction({ proposalId, decision });
+        setCard(
+          turnId,
+          proposalId,
+          res.status === 'cancelled' ? { status: 'cancelled' } : { status: 'done', summary: res.summary },
+        );
+      } catch (err) {
+        if (decision === 'cancel') {
+          setCard(turnId, proposalId, { status: 'cancelled' });
+          return;
+        }
+        const e = err instanceof LabosAgentError ? err : new LabosAgentError(0, 'UNKNOWN', 'The agent did not answer.');
+        const next = cardErrorState(e);
+        setCard(turnId, proposalId, next);
+        if (next.status === 'error' || next.status === 'forbidden') {
+          analytics.onAgentErrorShown({ page, code: e.code, status: e.status });
+        }
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [key, page, setCard],
+  );
+
+  return { turns, busy, send, retry, stop, newChat, decide };
 }

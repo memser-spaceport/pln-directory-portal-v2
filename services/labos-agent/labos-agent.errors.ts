@@ -1,17 +1,26 @@
-import type { LabosAgentChatErrorCode } from '@/types/labos-agent.types';
+import type { LabosAgentChatErrorCode, LabosAgentClosedStatus } from '@/types/labos-agent.types';
 
 /** One typed error for every C1 failure. `status` 0 means no response. */
 export class LabosAgentError extends Error {
   readonly status: number;
   readonly code: LabosAgentChatErrorCode;
   readonly retryAfterSeconds?: number;
+  /** C2 409 `PROPOSAL_CLOSED` only: the stored proposal status. Undefined when the body has none. */
+  readonly closedStatus?: LabosAgentClosedStatus;
 
-  constructor(status: number, code: LabosAgentChatErrorCode, message: string, retryAfterSeconds?: number) {
+  constructor(
+    status: number,
+    code: LabosAgentChatErrorCode,
+    message: string,
+    retryAfterSeconds?: number,
+    closedStatus?: LabosAgentClosedStatus,
+  ) {
     super(message);
     this.name = 'LabosAgentError';
     this.status = status;
     this.code = code;
     this.retryAfterSeconds = retryAfterSeconds;
+    this.closedStatus = closedStatus;
   }
 }
 

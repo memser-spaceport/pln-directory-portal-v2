@@ -851,6 +851,40 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
+// More than one team (LAB-3313): which team the post goes out as, before the modal opens.
+.sendNewsTeams {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.sendNewsTeamList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sendNewsTeam {
+  padding: 4px 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 999px;
+  background: var(--background-base-white, #fff);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--foreground-brand-primary, #1b4dff);
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
 // The forum posts keep their email blocks until "From the forum" (LAB-3293) replaces them; on the open page they
 // line up with the stories' 16px edge instead of the email's 32px inset.
 .pageWeb {

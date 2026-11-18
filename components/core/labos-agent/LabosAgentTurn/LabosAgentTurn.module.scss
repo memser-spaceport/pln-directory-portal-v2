@@ -1,0 +1,210 @@
+/* One agent answer. Styles from home-v2-b's AgentPanel.module.scss (prototype), trimmed to what C1 sends. */
+
+.agentTurn {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.workingLine,
+.workedToggle {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.workedToggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+.caret {
+  width: 12px;
+  height: 12px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner,
+.stepSpinner {
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid var(--border-brand-subtle, #aebfff);
+  border-top-color: var(--foreground-brand-primary, #1b4dff);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 2.4s;
+  }
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 0 5px;
+  padding: 0 0 0 12px;
+  border-left: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.stepActive {
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.stepCheck {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+.text {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  line-height: 22px;
+  overflow-wrap: anywhere;
+}
+
+.sources {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sourcesLabel {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.refs {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 4px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  list-style: none;
+}
+
+.ref {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    background: var(--background-brand-soft-surface, #f2f5ff);
+  }
+
+  &:hover .refTitle {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-primary, #1b4dff);
+    outline-offset: -2px;
+  }
+}
+
+.refTitle {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.refMeta {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.errorText {
+  margin: 0;
+  color: var(--foreground-error-primary, #d21a0e);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.stopped {
+  margin: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.followUps {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.followUp {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: none;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: var(--border-brand-subtle, #aebfff);
+    background: var(--background-brand-soft-surface, #f2f5ff);
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+}

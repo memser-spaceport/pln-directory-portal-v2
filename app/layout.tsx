@@ -37,6 +37,7 @@ import {
   GlobalFeedback,
 } from './ClientDynamics';
 import { ScrollTopOnNavigation } from '@/components/core/ScrollTopOnNavigation';
+import { LabosAgentRoot } from '@/components/core/labos-agent/LabosAgentRoot/LabosAgentRoot';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -106,6 +107,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <AppChromeGate>
                   <MobileBottomNav />
                 </AppChromeGate>
+                <LabosAgentRoot />
                 <Loader />
                 <ToastContainer />
                 <BroadCastChannel />

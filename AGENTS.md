@@ -102,6 +102,15 @@ Interactive mocked UIs live at `/prototypes` when enabled (`PROTOTYPES_ENABLED`;
 
 To add a prototype: create `prototypes/entries/<key>/` (component + `mocks.ts`), register it in `prototypes/registry.ts`, verify `/prototypes` and `/prototypes/<key>`. Full workflow and rules: [prototypes/README.md](prototypes/README.md).
 
+## LabOS agent (LAB-3272)
+
+- Open the agent only through `openAgent({ context })` from `useOpenAgent()` (`services/labos-agent/store.ts`). `components/core/labos-agent/LabosAgentRoot` mounts the one panel in `app/layout.tsx`.
+- `AskAgentButton` and the panel show only when `useLabosAgentAccess()` is true: the local gate, a signed-in member and `GET /v1/labos-agent/access`.
+- The gate is off by default (`LABOS_AGENT_ENABLED_BY_DEFAULT` in `services/labos-agent/constants.ts`). To test in one browser, set `localStorage['labos-agent'] = 'on'`.
+- Chat goes through `getLabosAgentClient()`. It is the mock (`labos-agent.mock.ts`) until C1 is live. Set `localStorage['labos-agent-api'] = 'live'` to call C1. No env vars.
+- Agent events in `analytics/labos-agent.analytics.ts` are stubs. They send nothing until the S0 event spec is approved.
+- Behaviour spec: `openspec/specs/labos-agent/spec.md`.
+
 ## Analytics/Event Tracking Conventions
 
 - **Event names:** kebab-case in format `{domain}-{action}` or `{domain}-{context}-{action}` (e.g., `job-clicked`, `jobs-page-viewed`, `jobs-filters-applied`)

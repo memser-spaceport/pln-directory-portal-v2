@@ -5,6 +5,7 @@ import {
   toEventAccess,
   toEventAttendee,
   toEventDetail,
+  toEventUrl,
   toEventMode,
   toEventTag,
   toMyGatheringPlans,
@@ -230,5 +231,52 @@ describe('event drawer mappers (LAB-3216)', () => {
     });
     expect(toMyGatheringPlans([]).eventUids).toEqual([]);
     expect(toMyGatheringPlans(undefined).eventUids).toEqual([]);
+  });
+
+  describe('LAB-3334: the event link (eventUrl)', () => {
+    const REG = 'https://luma.com/n4ad0k9m';
+    const registration = (name = 'Registration', link: unknown = REG) => ({
+      name,
+      link,
+      description: 'Registration URL',
+    });
+
+    it('LAB-3334 R1: uses websiteUrl when it is a web address, even with a Registration resource', () => {
+      const event = toEventDetail(eventResponse({ websiteUrl: 'https://lu.ma/labweek', resources: [registration()] }));
+      expect(event.eventUrl).toBe('https://lu.ma/labweek');
+      expect(event.websiteUrl).toBe('https://lu.ma/labweek');
+    });
+
+    it('LAB-3334 R2: falls back to the Registration resource when websiteUrl is empty or not a web address', () => {
+      for (const websiteUrl of [null, '', '   ', 'javascript:alert(1)', 'not a url']) {
+        expect(toEventDetail(eventResponse({ websiteUrl, resources: [registration()] })).eventUrl).toBe(REG);
+      }
+    });
+
+    it('LAB-3334 R2: skips other resources and a Registration resource with a bad link', () => {
+      expect(
+        toEventUrl('', [
+          { name: 'Telegram', link: 'https://t.me/x' },
+          registration('Registration', 'javascript:alert(1)'),
+          registration('Registration', 42),
+          registration('Registration', 'https://luma.com/second'),
+        ]),
+      ).toBe('https://luma.com/second');
+    });
+
+    it('LAB-3334 R3: null when neither link is a web address', () => {
+      expect(toEventDetail(eventResponse({ websiteUrl: '', resources: [] })).eventUrl).toBeNull();
+      expect(toEventUrl(null, [registration('Registration', 'ftp://x.test/a')])).toBeNull();
+      expect(toEventUrl('', [registration('Registration', '')])).toBeNull();
+      expect(toEventUrl('', [null, 'x', { link: REG }])).toBeNull();
+      expect(toEventUrl('', undefined)).toBeNull();
+    });
+
+    it('LAB-3334 R4: the name match ignores case and spaces at the ends', () => {
+      for (const name of ['registration', 'REGISTRATION', '  Registration  ', ' rEgIsTrAtIoN']) {
+        expect(toEventUrl('', [registration(name)])).toBe(REG);
+      }
+      expect(toEventUrl('', [registration('Registration link')])).toBeNull();
+    });
   });
 });

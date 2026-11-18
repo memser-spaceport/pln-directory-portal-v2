@@ -59,13 +59,14 @@ function eventLink(url: string | null): { href: string; label: string } | null {
  *
  * LAB-3271: under the date and the address, a row with the event's own page (for example its Luma page), which
  * opens in a new tab. No page, no row. LAB-3333: the row looks like the date row: a chain link icon in the calendar
- * icon's style, then the link text in the date's text style, with no arrow.
+ * icon's style, then the link text in the date's text style, with no arrow. LAB-3334: the row opens `eventUrl`:
+ * `websiteUrl`, or the event's "Registration" resource when `websiteUrl` is not a web address.
  *
  * LAB-3324: when the event has a map link (`locationUrl`), the address and its arrow are one link that opens the
  * map in a new tab, as on the PL events app. Without a map link, the address is plain text with no arrow.
  */
 export function EventSummary({ event, beforeAgenda }: { event: EventDetail; beforeAgenda?: ReactNode }) {
-  const link = eventLink(event.websiteUrl);
+  const link = eventLink(event.eventUrl);
   const mapLink = eventLink(event.locationUrl);
   return (
     <>

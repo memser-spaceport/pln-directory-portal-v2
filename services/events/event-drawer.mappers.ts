@@ -196,6 +196,42 @@ function toResource(raw: unknown): Resource | null {
   };
 }
 
+/** The URL as given (trimmed) when it is an `http` or `https` address, otherwise null. */
+export function httpUrlOrNull(url: unknown): string | null {
+  if (typeof url !== 'string') return null;
+  const value = url.trim();
+  if (!value) return null;
+  try {
+    const { protocol } = new URL(value);
+    return protocol === 'https:' || protocol === 'http:' ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+const REGISTRATION_RESOURCE = 'registration';
+
+/**
+ * LAB-3334: the event's own link. `websiteUrl` comes first. When it is empty or not a web address, the link of the
+ * event-level resource named "Registration" (any case, end spaces ignored) is the fallback. Some synced events (for
+ * example Luma imports) have an empty `websiteUrl` and keep their page there.
+ */
+export function toEventUrl(
+  websiteUrl: string | null | undefined,
+  resources: unknown[] | null | undefined,
+): string | null {
+  const website = httpUrlOrNull(websiteUrl);
+  if (website) return website;
+  for (const raw of Array.isArray(resources) ? resources : []) {
+    if (!raw || typeof raw !== 'object') continue;
+    const r = raw as Record<string, unknown>;
+    if (typeof r.name !== 'string' || r.name.trim().toLowerCase() !== REGISTRATION_RESOURCE) continue;
+    const link = httpUrlOrNull(r.link);
+    if (link) return link;
+  }
+  return null;
+}
+
 function uniqueNames(names: (string | null | undefined)[]): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -236,6 +272,7 @@ export function toEventDetail(raw: EventDetailResponse): EventDetail {
     description: raw.description?.trim() || raw.shortDescription?.trim() || null,
     agenda: toAgendaDays(details?.agenda ?? null, timezone),
     websiteUrl: raw.websiteUrl,
+    eventUrl: toEventUrl(raw.websiteUrl, raw.resources),
     gathering: raw.location
       ? {
           uid: raw.location.uid,

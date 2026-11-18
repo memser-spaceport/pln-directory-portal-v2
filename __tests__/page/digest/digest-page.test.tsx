@@ -35,6 +35,28 @@ jest.mock('@/services/digest/digest.service', () => ({
   saveDigestChoice: (...args: unknown[]) => saveDigestChoice(...args),
 }));
 
+// LAB-3313: the signed-in member's record as `getMemberInfo` returns it: `teamMemberRoles`, no `teams` / `mainTeam`.
+let mockMember: unknown;
+jest.mock('@/services/members/hooks/useMember', () => ({
+  useMember: (uid: string | undefined) => ({ data: uid ? mockMember : undefined, isError: false, refetch: jest.fn() }),
+}));
+const role = (uid: string, name: string, mainTeam = false) => ({
+  teamTitle: name,
+  teamUid: uid,
+  role: 'Engineer',
+  team: { uid, name },
+  mainTeam,
+  teamLead: false,
+});
+const memberWith = (...roles: ReturnType<typeof role>[]) => ({ memberInfo: { uid: 'me', teamMemberRoles: roles } });
+jest.mock('@/services/team-news/hooks/useCreateTeamNewsPost', () => ({
+  useCreateTeamNewsPost: () => ({ mutateAsync: jest.fn(), isPending: false }),
+}));
+jest.mock('@/components/page/team-details/TeamNews/PostNewsModal', () => ({
+  PostNewsModal: ({ open, teamName }: { open: boolean; teamName: string }) =>
+    open ? <div role="dialog" aria-label="Post news">{`Published as ${teamName}`}</div> : null,
+}));
+
 let mockPrefs: { newsTags: string[] } | undefined;
 jest.mock('@/services/members/hooks/useGetMemberPreferences', () => ({
   useGetMemberPreferences: (uid: string | undefined) => ({ data: uid ? mockPrefs : undefined }),
@@ -242,9 +264,11 @@ describe('DigestPage', () => {
     it('sends a signed-out reader to sign-in from Follow and Post your team news, and saves nothing', async () => {
       open('/digest?t=x', data({ isTeamMember: true }));
       await userEvent.click(within(card('b')).getByRole('button', { name: /follow/i }));
+      expect(routerPush).toHaveBeenLastCalledWith('/digest?t=x#login', { scroll: false });
       await userEvent.click(screen.getByRole('button', { name: 'Post your team news →' }));
       expect(routerPush).toHaveBeenCalledTimes(2);
-      expect(routerPush).toHaveBeenLastCalledWith('/digest?t=x#login', { scroll: false });
+      // LAB-3313: back from sign-in, the address carries the post on.
+      expect(routerPush).toHaveBeenLastCalledWith('/digest?t=x&postnews=open#login', { scroll: false });
       expect(followMutate).not.toHaveBeenCalled();
     });
 
@@ -893,5 +917,70 @@ describe('From the forum (LAB-3293)', () => {
       'href',
       'https://web/forum/topics/1/7',
     );
+  });
+});
+
+describe('post your team news (LAB-3313)', () => {
+  const post = () => userEvent.click(screen.getByRole('button', { name: 'Post your team news →' }));
+
+  beforeEach(() => {
+    mockMember = undefined;
+    useCurrentUserStore.setState({ currentUser: { uid: 'me' }, isHydrated: true });
+  });
+  afterEach(() => useCurrentUserStore.setState({ currentUser: null, isHydrated: false }));
+
+  it('opens the Post news modal for a member of one team', async () => {
+    mockMember = memberWith(role('team-1', 'Lattice'));
+    open('/digest?t=x', data({ isTeamMember: true }));
+    expect(screen.queryByRole('dialog', { name: 'Post news' })).toBeNull();
+    await post();
+    expect(screen.getByRole('dialog', { name: 'Post news' })).toHaveTextContent('Published as Lattice');
+    expect(routerPush).not.toHaveBeenCalled();
+  });
+
+  it('asks a member of more than one team which team, main team first, then opens the modal for it', async () => {
+    mockMember = memberWith(role('team-1', 'Lattice'), role('team-2', 'Aave', true));
+    open('/digest?t=x', data({ isTeamMember: true }));
+    await post();
+    expect(screen.queryByRole('dialog', { name: 'Post news' })).toBeNull();
+    const choice = screen.getByRole('group', { name: 'Post as' });
+    expect(
+      within(choice)
+        .getAllByRole('button')
+        .map((b) => b.textContent),
+    ).toEqual(['Aave', 'Lattice']);
+    await userEvent.click(within(choice).getByRole('button', { name: 'Lattice' }));
+    expect(screen.getByRole('dialog', { name: 'Post news' })).toHaveTextContent('Published as Lattice');
+    expect(screen.queryByRole('group', { name: 'Post as' })).toBeNull();
+  });
+
+  it('hides the card from a signed-in member on no team', () => {
+    mockMember = memberWith();
+    open('/digest?t=x', data({ isTeamMember: true }));
+    expect(screen.queryByText('Got news from your team?')).toBeNull();
+  });
+
+  it('acts on the email’s postnews=open once signed in, and drops it from the address', async () => {
+    mockMember = memberWith(role('team-1', 'Lattice'));
+    open('/digest?t=x&link_type=post_news&postnews=open', data({ isTeamMember: true }));
+    await flush();
+    expect(screen.getByRole('dialog', { name: 'Post news' })).toHaveTextContent('Published as Lattice');
+    expect(window.location.search).toBe('?t=x&link_type=post_news');
+  });
+
+  it('brings the team question into view when the email lands a member of more than one team', async () => {
+    mockMember = memberWith(role('team-1', 'Lattice'), role('team-2', 'Aave'));
+    open('/digest?t=x&postnews=open', data({ isTeamMember: true }));
+    await flush();
+    expect(screen.getByRole('group', { name: 'Post as' })).toBeInTheDocument();
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(1);
+  });
+
+  it('sends the email’s postnews=open to sign-in when signed out, and keeps it in the address', async () => {
+    useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
+    open('/digest?t=x&postnews=open', data({ isTeamMember: true }));
+    await flush();
+    expect(routerPush).toHaveBeenCalledWith('/digest?t=x&postnews=open#login', { scroll: false });
+    expect(screen.queryByRole('dialog', { name: 'Post news' })).toBeNull();
   });
 });

@@ -19,6 +19,7 @@ import {
   FILTER_PARAMS,
   countAppliedFilters,
   filterEvents,
+  listDay,
   localIso,
   nearYou,
   readFilters,
@@ -30,12 +31,14 @@ import { usePrefetchEventDetail } from '@/services/events/hooks/useEventDrawerQu
 import { useMyUpcomingEventUids } from '@/services/events/hooks/useMyUpcomingEventUids';
 
 import { AllEventsFilterRail, AppliedChips } from './AllEventsFilters';
+import { EventsCalendar } from './calendar/EventsCalendar';
+import type { CalMode } from './calendar/weeks';
 import { AllEventsHeader } from './AllEventsHeader';
 import { CityBand, CityHeader } from './CityBand';
 import { EventsToolbar, VIEW_LABEL } from './EventsToolbar';
 import { ListView } from './ListView';
 import { AddLocationRow, NearYou } from './NearYou';
-import { EventsError } from './states';
+import { EventsEmpty, EventsError } from './states';
 import type { AllEventsView } from './icons';
 import s from './AllEventsPage.module.scss';
 
@@ -44,10 +47,10 @@ const loadEventDrawer = () => import('@/components/page/events/EventDrawer/Event
 const EventDrawer = dynamic(() => loadEventDrawer().then((m) => m.EventDrawer), { ssr: false });
 
 /**
- * The views this build offers, in switch order. Calendar (LAB-3320) and Map (LAB-3321, only with a Maps key) join
- * here; until then `?view=calendar` and `?view=map` land on the List.
+ * The views this build offers, in switch order. Map (LAB-3321, only with a Maps key) joins here; until then
+ * `?view=map` lands on the List.
  */
-export const AVAILABLE_VIEWS: AllEventsView[] = ['list'];
+export const AVAILABLE_VIEWS: AllEventsView[] = ['list', 'calendar'];
 
 export interface AllEventsPageProps {
   result: AllEventsResult;
@@ -100,6 +103,7 @@ export function AllEventsPage({
 
   const viewParam = params.get('view') as AllEventsView | null;
   const view: AllEventsView = viewParam && AVAILABLE_VIEWS.includes(viewParam) ? viewParam : 'list';
+  const calMode: CalMode = params.get('cal') === 'month' ? 'month' : 'week';
 
   // The open event lives in the address, so a link to an event lands with its drawer open. The linked event stays
   // marked after its drawer closes, until the member opens another one.
@@ -107,6 +111,9 @@ export function AllEventsPage({
   const [touched, setTouched] = useState(false);
   const [keptUid, setKeptUid] = useState<string | null>(null);
   const highlightUid = openUid ?? keptUid;
+  // The event a link landed on, kept for the page's life: the calendar opens on its week, even after its drawer closes.
+  const [landedUid, setLandedUid] = useState<string | null>(null);
+  if (!touched && openUid && openUid !== landedUid) setLandedUid(openUid);
 
   // A filter change made by the member (never the address being read on landing) is recorded once it settles. The
   // store fires on a 300ms timer that can outlive this page, so on leaving it gets a no-op, never `undefined`.
@@ -132,8 +139,9 @@ export function AllEventsPage({
     if (scrolled.current || !openUid || touched) return;
     scrolled.current = true;
     const id = window.setTimeout(() => {
-      document
-        .querySelector(`[data-event-uid="${CSS.escape(openUid)}"]`)
+      // The Week board renders its cards twice (columns, and the phone stack); scroll to the one that shows.
+      Array.from(document.querySelectorAll<HTMLElement>(`[data-event-uid="${CSS.escape(openUid)}"]`))
+        .find((el) => el.offsetParent !== null)
         ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
     }, 300);
     return () => window.clearTimeout(id);
@@ -148,6 +156,14 @@ export function AllEventsPage({
   const plainLanding = filterCount === 0 && view === 'list';
   const near = signedIn && plainLanding ? nearYou(items, memberCity) : null;
   const askLocation = signedIn && plainLanding && memberCity === null && !!viewerUid;
+
+  // The calendar opens on the linked event's day, else the chosen city's first event, else today.
+  const landed = landedUid ? items.find((item) => item.uid === landedUid) : undefined;
+  const anchorIso = landed
+    ? listDay(landed, todayIso)
+    : scopedCity && visible[0]
+      ? listDay(visible[0], todayIso)
+      : todayIso;
 
   const prepare = (uid: string) => {
     void loadEventDrawer();
@@ -187,7 +203,12 @@ export function AllEventsPage({
   const setView = (next: AllEventsView) => {
     if (next === view) return;
     setParam('view', next === 'list' ? undefined : next);
-    analytics.onEventsViewChanged({ view: next });
+    analytics.onEventsViewChanged(next === 'calendar' ? { view: next, mode: calMode } : { view: next });
+  };
+  const setCalMode = (mode: CalMode) => {
+    if (mode === calMode) return;
+    setParam('cal', mode === 'month' ? 'month' : undefined);
+    analytics.onEventsViewChanged({ view: 'calendar', mode });
   };
   const setCity = (city: string | null, from: 'tile' | 'near-you') => {
     setParam('city', city ? encodeFilterValues([city]) : undefined);
@@ -285,15 +306,34 @@ export function AllEventsPage({
 
             <div className={s.layout}>
               <div className={s.main}>
-                <ListView
-                  events={visible}
-                  todayIso={todayIso}
-                  goingUids={goingUids}
-                  highlightUid={highlightUid}
-                  onOpen={open}
-                  onPrepare={prepare}
-                  onClear={clearFilters}
-                />
+                {view === 'calendar' ? (
+                  visible.length === 0 ? (
+                    <EventsEmpty onClear={clearFilters} />
+                  ) : (
+                    <EventsCalendar
+                      key={`${anchorIso}:${scopedCity ?? ''}`}
+                      events={visible}
+                      todayIso={todayIso}
+                      anchorIso={anchorIso}
+                      mode={calMode}
+                      onModeChange={setCalMode}
+                      goingUids={goingUids}
+                      highlightUid={highlightUid}
+                      onOpen={open}
+                      onPrepare={prepare}
+                    />
+                  )
+                ) : (
+                  <ListView
+                    events={visible}
+                    todayIso={todayIso}
+                    goingUids={goingUids}
+                    highlightUid={highlightUid}
+                    onOpen={open}
+                    onPrepare={prepare}
+                    onClear={clearFilters}
+                  />
+                )}
               </div>
             </div>
           </>

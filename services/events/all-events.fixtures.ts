@@ -20,6 +20,7 @@ export function allEventsItem(over: Partial<AllEventsItem> = {}): AllEventsItem 
     access: null,
     hosts: [],
     tags: [],
+    tagColor: null,
     picture: null,
     goingCount: 0,
     faces: [],

@@ -328,3 +328,96 @@ describe('analytics', () => {
     );
   });
 });
+
+/*
+ * LAB-3320: the Calendar view. Today is Sunday 2030-12-01; Lisbon events on Dec 1–4, DAI Summit Dec 3–4, the
+ * Community Call (online) on Dec 5, then one event a day Dec 10–14 (Dubai is hybrid).
+ */
+describe('Calendar', () => {
+  const calendar = () => screen.getByTestId('events-calendar');
+  const label = () => within(calendar()).getByRole('heading', { level: 3 }).textContent;
+  const inGrid = (uid: string) =>
+    calendar().querySelector(`[class*="boardGrid"] [data-event-uid="${uid}"]`) as HTMLElement | null;
+
+  it('is offered next to List, opens on Week, and records the switch with its mode', () => {
+    renderPage();
+    fireEvent.click(screen.getByRole('tab', { name: /Calendar/ }));
+    expect(storeParams().get('view')).toBe('calendar');
+    expect(analytics.onEventsViewChanged).toHaveBeenCalledWith({ view: 'calendar', mode: 'week' });
+    expect(within(calendar()).getByRole('tab', { name: 'Week', selected: true })).toBeInTheDocument();
+    expect(label()).toBe('Nov 25 – Dec 1, 2030');
+    expect(screen.queryByText(/Near you in/)).toBeNull();
+  });
+
+  it('shows an event across days as one card over its days, and one-day events in their day', () => {
+    renderPage({}, '/events/all?view=calendar');
+    fireEvent.click(screen.getByRole('button', { name: 'Next week' }));
+    expect(label()).toBe('Dec 2 – Dec 8, 2030');
+    expect(inGrid('dai')?.style.gridColumn).toBe('2 / 4');
+    expect(within(inGrid('dai') as HTMLElement).getByText(/Dec 3 – 4 · Bangalore/)).toBeInTheDocument();
+    expect(inGrid('lis2')?.parentElement?.style.gridColumn).toBe('1');
+    expect(within(inGrid('call') as HTMLElement).getByText('Online · UTC+0')).toBeInTheDocument();
+    // Phones: the same cards by day, the four busy days only.
+    expect(calendar().querySelectorAll('[class*="stackDay"]')).toHaveLength(4);
+  });
+
+  it('says so for a quiet week, and Today comes back', () => {
+    renderPage({}, '/events/all?view=calendar');
+    fireEvent.click(screen.getByRole('button', { name: 'Next week' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next week' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next week' }));
+    expect(label()).toBe('Dec 16 – Dec 22, 2030');
+    expect(within(calendar()).getByText('Nothing this week.')).toBeInTheDocument();
+    fireEvent.click(within(calendar()).getByRole('button', { name: 'Today' }));
+    expect(label()).toBe('Nov 25 – Dec 1, 2030');
+  });
+
+  it('opens a day number’s week from Month', () => {
+    renderPage({}, '/events/all?view=calendar&cal=month');
+    expect(label()).toBe('December 2030');
+    fireEvent.click(screen.getByRole('button', { name: 'Tuesday, December 10: open the week' }));
+    expect(label()).toBe('Dec 9 – Dec 15, 2030');
+    expect(storeParams().get('cal')).toBeNull();
+    expect(analytics.onEventsViewChanged).toHaveBeenCalledWith({ view: 'calendar', mode: 'week' });
+  });
+
+  it('opens Month on the month of the week in view', () => {
+    renderPage({}, '/events/all?view=calendar');
+    fireEvent.click(screen.getByRole('button', { name: 'Previous week' }));
+    expect(label()).toBe('Nov 18 – Nov 24, 2030');
+    fireEvent.click(screen.getByRole('tab', { name: 'Month' }));
+    expect(label()).toBe('November 2030');
+    expect(storeParams().get('cal')).toBe('month');
+    expect(analytics.onEventsViewChanged).toHaveBeenCalledWith({ view: 'calendar', mode: 'month' });
+    fireEvent.click(screen.getByRole('button', { name: 'Next month' }));
+    expect(label()).toBe('December 2030');
+    expect(calendar().querySelector('[data-event-uid="dubai"]')?.textContent).toBe('9:00 AM Dubai meetup');
+  });
+
+  it('opens a linked event’s week with its card marked and its drawer open', () => {
+    renderPage({}, '/events/all?view=calendar&event=denver');
+    expect(label()).toBe('Dec 9 – Dec 15, 2030');
+    expect(inGrid('denver')?.className).toMatch(/cardHighlight/);
+    expect(screen.getByTestId('event-drawer')).toHaveAttribute('data-uid', 'denver');
+  });
+
+  it('opens the drawer from a card', () => {
+    renderPage({}, '/events/all?view=calendar');
+    fireEvent.click(inGrid('lis1') as HTMLElement);
+    expect(storeParams().get('event')).toBe('lis1');
+    expect(screen.getByTestId('event-drawer')).toHaveAttribute('data-uid', 'lis1');
+  });
+
+  it('keeps the filters, and says when nothing matches', () => {
+    renderPage({}, '/events/all?view=calendar&mode=Virtual');
+    expect(label()).toBe('Dec 2 – Dec 8, 2030');
+    expect(inGrid('call')).not.toBeNull();
+    expect(inGrid('lis2')).toBeNull();
+  });
+
+  it('shows the empty state with no match', () => {
+    renderPage({}, '/events/all?view=calendar&search=zzz');
+    expect(screen.queryByTestId('events-calendar')).toBeNull();
+    expect(screen.getByText('No upcoming events match')).toBeInTheDocument();
+  });
+});

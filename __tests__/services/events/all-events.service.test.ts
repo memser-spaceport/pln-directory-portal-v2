@@ -93,6 +93,16 @@ describe('toAllEventsItem', () => {
     expect(item.faces).toHaveLength(3);
   });
 
+  it('carries the first topic’s colour for the calendar', () => {
+    const base = detail();
+    const tags = [
+      { name: 'AI', color: '#FF8800' },
+      { name: 'Storage', color: '#00AA00' },
+    ];
+    expect(toAllEventsItem(row(), detail({ details: { ...base.details!, tags } })).tagColor).toBe('#FF8800');
+    expect(toAllEventsItem(row(), base).tagColor).toBeNull();
+  });
+
   it('keeps the list fields when the detail call failed', () => {
     const item = toAllEventsItem(row(), null);
     expect(item).toMatchObject({

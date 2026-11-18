@@ -32,6 +32,8 @@ export interface AllEventsItem {
   hosts: string[];
   /** Topic names, empty until the events backfill fills `details` (LAB-3214). */
   tags: string[];
+  /** The first topic's colour from the events app ("#1E88E5"), for the calendar's faint card wash. */
+  tagColor: string | null;
   picture: string | null;
   /** Everyone going. Null when the event hides its attendance (invite-only, signed out). */
   goingCount: number | null;

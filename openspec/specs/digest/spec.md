@@ -124,13 +124,31 @@ Each story's team header SHALL have Follow, which starts from the API's `follows
 
 ### Requirement: End of the issue and side cards
 
-After the stories and forum posts, the page SHALL show "You're all caught up" with a check, "The next digest arrives on <weekday>, <day> <month>." from the API's `nextSendAt` (the line is left out when it is missing), and a "See all network news" link to Home. When the API's `isTeamMember` is true, the page SHALL show the outlined "Got news from your team?" card with "Post your team news →". It SHALL open the Post news modal for the signed-in member's main team, or their only team, or their first team; a signed-out reader goes to sign-in instead, and a member with no team sees "Your profile has no team to post for yet." A link with `postnews=open` SHALL open the modal on load the same way, except on the way back from Google or GitHub sign-in (see Saving topics). From 1100px the side cards SHALL sit in a sticky column on the right; under 1100px they SHALL follow "You're all caught up". The side cards SHALL include "How personalization works": "Stories come from your topics first, then the teams you follow, then the network's top stories."
+After the stories and forum posts, the page SHALL show "You're all caught up" with a check, "The next digest arrives on <weekday>, <day> <month>." from the API's `nextSendAt` (the line is left out when it is missing), and a "See all network news" link to Home. When the API's `isTeamMember` is true, the page SHALL show the outlined "Got news from your team?" card with "Post your team news →", except to a signed-in member whose own record lists no team. For a signed-in member of one team, "Post your team news →" SHALL open the Post news modal for that team. For a member of more than one team it SHALL ask "Post as" with one button per team, main team first, and a press SHALL open the modal for that team. A signed-out reader SHALL go to sign-in, and come back to the page with `postnews=open`. A link with `postnews=open` SHALL do the same as a press once the reader is known (except on the way back from Google or GitHub sign-in, see Saving topics), bringing the "Post as" question into view, and SHALL then be dropped from the address so a reload doesn't repeat it. The teams SHALL come from the signed-in member's own record (`teamMemberRoles`). From 1100px the side cards SHALL sit in a sticky column on the right; under 1100px they SHALL follow "You're all caught up". The side cards SHALL include "How personalization works": "Stories come from your topics first, then the teams you follow, then the network's top stories."
 
 #### Scenario: Not on a team
 
 - **GIVEN** the API returns `isTeamMember: false`
 - **WHEN** the page shows
 - **THEN** "Got news from your team?" is not shown
+
+#### Scenario: Post news for the member's one team
+
+- **GIVEN** a signed-in member of one team, Lattice, and the API returns `isTeamMember: true`
+- **WHEN** they press "Post your team news →"
+- **THEN** the Post news modal opens: "Published as Lattice, to its followers and the network feed."
+
+#### Scenario: Post news as one of several teams
+
+- **GIVEN** a signed-in member of Lattice and Aave, with Aave their main team
+- **WHEN** they press "Post your team news →"
+- **THEN** "Post as" shows Aave, then Lattice, and pressing Lattice opens the Post news modal for Lattice
+
+#### Scenario: Post news from the email, signed out
+
+- **GIVEN** a signed-out reader on a team
+- **WHEN** they open the email's "Post your team news →" (`postnews=open`)
+- **THEN** sign-in opens, and after it the page opens the Post news modal (or "Post as") and drops `postnews` from the address
 
 #### Scenario: Narrow screen
 

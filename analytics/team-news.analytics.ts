@@ -11,6 +11,8 @@ export type FeedItemKind = import('@/components/page/home/TeamNews/utils/mergeFe
 
 export type TeamNewsAnalyticsSource =
   | 'home'
+  // The digest page's "From the forum" popup (LAB-3293): Home's forum post modal over the digest.
+  | 'digest'
   | 'team-profile-rail'
   | 'team-profile-modal'
   | 'news-rail'

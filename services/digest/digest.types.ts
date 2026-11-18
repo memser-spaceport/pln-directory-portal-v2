@@ -49,6 +49,8 @@ export type DigestForumPost = {
   authorAvatarUrl: string | null;
   contentHtml: string;
   url: string;
+  /** Replies to the thread when the page was read (LAB-3293). */
+  replyCount: number;
 };
 
 export type DigestPageData = {

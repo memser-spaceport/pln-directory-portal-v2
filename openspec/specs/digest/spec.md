@@ -7,7 +7,7 @@ The digest reading page `/digest?t=` (LAB-3264): the LabOS digest email opens on
 
 ### Requirement: Digest page
 
-The page `/digest?t=<token>` SHALL show the digest named by the link token to anyone who opens it, signed in or not, with no sign-in prompt. It SHALL show the LabOS top bar on desktop and the bottom bar on mobile. The page SHALL be a plain white page with the stories in a 760px column, with no grey background, white sheet or PL logo. It SHALL start with a dateline ("Weekly digest · 9 November 2026 · 5 stories", "Daily digest" for a daily link), then the greeting "Hi <first name>," as the page title (or "Hi there," without a name) and the intro line, all left-aligned. Then it SHALL show every story in the order the API returns it, each in full, as an open section with a hairline between stories and no card: the team header (logo or initials, the team name linking to the team profile, Follow), the title and summary beside the image, the full text, and a Sources line listing every source with a link that opens in a new tab. The first story is the hero: its title and summary beside a big image, with no background picture. The other stories put the image beside the text, alternating sides. The top story keeps its "Top story" badge. The page SHALL NOT show "Read on <source>", Read more or Show less. Then it SHALL show a "Recent forum posts" section with each post in full and a "Reply in the forum" link. The page SHALL NOT open a story modal. The page SHALL NOT be indexed by search engines. Dates SHALL print the same on the server and in the browser.
+The page `/digest?t=<token>` SHALL show the digest named by the link token to anyone who opens it, signed in or not, with no sign-in prompt. It SHALL show the LabOS top bar on desktop and the bottom bar on mobile. The page SHALL be a plain white page with the stories in a 760px column, with no grey background, white sheet or PL logo. It SHALL start with a dateline ("Weekly digest · 9 November 2026 · 5 stories", "Daily digest" for a daily link), then the greeting "Hi <first name>," as the page title (or "Hi there," without a name) and the intro line, all left-aligned. Then it SHALL show every story in the order the API returns it, each in full, as an open section with a hairline between stories and no card: the team header (logo or initials, the team name linking to the team profile, Follow), the title and summary beside the image, the full text, and a Sources line listing every source with a link that opens in a new tab. The first story is the hero: its title and summary beside a big image, with no background picture. The other stories put the image beside the text, alternating sides. The top story keeps its "Top story" badge. The page SHALL NOT show "Read on <source>", Read more or Show less. Then it SHALL show "From the forum" (see that requirement). The page SHALL NOT open a story modal. The page SHALL NOT be indexed by search engines. Dates SHALL print the same on the server and in the browser.
 
 #### Scenario: Signed-out member
 
@@ -88,6 +88,7 @@ The page SHALL record these PostHog events, and no event SHALL carry the link to
 - `digest-story-read` on a "Read on <source>" click, with `news_id` and `position`.
 - `digest-network-news-clicked` on a More from the network row, with `news_id`, `position` and `domain`.
 - `digest-event-clicked` on an Upcoming events row, with `event_uid`, `position` and `opens` (`drawer` or `calendar`); `digest-events-see-all-clicked`, with `total`.
+- `digest-forum-thread-clicked` on a From the forum row, with `topic_id`, `position` and `opens` (`modal` or `forum`); `digest-forum-open-clicked` on "Open the forum". Likes in the forum modal record Home's forum post like events with source `digest`.
 - `digest-more-clicked` and `digest-less-clicked` on a press, with `news_id`, `position` and `active_after`.
 - `digest-undo-clicked`, with `news_id`, `choice_reverted` and `via` (`undo-button` or `second-press`).
 
@@ -236,3 +237,19 @@ After More from the network and before the forum posts, the page SHALL show "Upc
 - **GIVEN** the event drawer flag is on and the member is signed in
 - **WHEN** they press an event row
 - **THEN** the event drawer opens over the digest page
+
+### Requirement: From the forum
+
+After Upcoming events, the page SHALL show "From the forum" with the subtitle "Top threads from the past week." and one numbered row per item of the page's `forumPosts`, in the order given (the email's order): the number, the title and "N replies" ("1 reply" for one). A row SHALL open Home's forum post modal (the full post, likes, comments) over the page for a signed-in member with forum access whose feed has the thread; otherwise it SHALL link to the thread in the forum. Each row SHALL be the `post-<tid>` anchor, so links from older emails land on it. The section SHALL end with "Open the forum →", linking to the forum. With no forum posts, or when the forum did not answer, the section SHALL NOT show.
+
+#### Scenario: Signed-out reader
+
+- **GIVEN** the reader is signed out
+- **WHEN** they press a thread
+- **THEN** the thread opens in the forum
+
+#### Scenario: Signed-in member with forum access
+
+- **GIVEN** the member is signed in, has forum access and the thread is in their feed
+- **WHEN** they press the thread
+- **THEN** the forum post modal opens over the digest page, where they can like it and comment

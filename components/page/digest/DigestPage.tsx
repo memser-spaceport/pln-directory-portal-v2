@@ -19,7 +19,7 @@ import { useDigestTopics } from '@/services/digest/hooks/useDigestTopics';
 import { feedQueryKeys } from '@/services/feed/constants';
 import type { IFeedCommentCountsResponse } from '@/types/feed.types';
 
-import { DigestForumPost } from './DigestForumPost';
+import { DigestForum } from './DigestForum';
 import { DigestEvents } from './DigestEvents';
 import { DigestHeader } from './DigestHeader';
 import { DigestNetworkNews } from './DigestNetworkNews';
@@ -258,14 +258,7 @@ export function DigestPage({ token, issue, data, isLoggedIn }: Props) {
           {data.forumPosts.length > 0 && (
             <>
               <div className={s.spacer} />
-              <div className={s.dividerRow}>
-                <span className={s.dividerLine} />
-                <h2 className={s.dividerLabel}>Recent forum posts</h2>
-                <span className={s.dividerLine} />
-              </div>
-              {data.forumPosts.map((post) => (
-                <DigestForumPost key={post.tid} post={post} />
-              ))}
+              <DigestForum posts={data.forumPosts} signedIn={signedIn} />
             </>
           )}
 

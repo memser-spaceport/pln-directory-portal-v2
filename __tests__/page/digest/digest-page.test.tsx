@@ -94,6 +94,34 @@ const story = (uid: string, extra: Partial<DigestStory> = {}): DigestStory => ({
   ...extra,
 });
 
+let mockFeedPosts: unknown[] = [];
+let mockForumAccess = true;
+// A disabled query still serves what's cached (a sign-out in the same session), so the mock always answers.
+jest.mock('@/services/feed/hooks/useFeedForumPosts', () => ({
+  useFeedForumPosts: () => ({ data: { items: mockFeedPosts } }),
+}));
+jest.mock('@/services/access-control/hooks/useForumAccess', () => ({
+  useForumAccess: () => ({ hasAccess: mockForumAccess }),
+}));
+jest.mock('@/services/feed/hooks/useFeedComments', () => ({ useFeedForumTopicLike: () => undefined }));
+const likeMutate = jest.fn();
+jest.mock('@/services/feed/hooks/useFeedForumPostLikeToggle', () => ({
+  useFeedForumPostLikeToggle: () => ({ mutate: likeMutate }),
+}));
+jest.mock('@/components/page/home/TeamNews/components/ForumPostModal/ForumPostModal', () => ({
+  ForumPostModal: ({ post, onClose, onLikeToggle }: any) => (
+    <div data-testid="forum-modal">
+      {`${post.title} · ${post.likeCount} likes · ${post.viewerHasLiked ? 'liked' : 'not liked'}`}
+      <button type="button" onClick={() => onLikeToggle(post)}>
+        Like
+      </button>
+      <button type="button" onClick={onClose}>
+        Close
+      </button>
+    </div>
+  ),
+}));
+
 const data = (extra: Partial<DigestPageData> = {}): DigestPageData => ({
   frequency: 'daily',
   sentAt: '2026-11-16T09:00:00.000Z',
@@ -109,6 +137,7 @@ const data = (extra: Partial<DigestPageData> = {}): DigestPageData => ({
       authorAvatarUrl: null,
       contentHtml: '<p>Post body</p>',
       url: 'https://web/forum/topics/1/7',
+      replyCount: 3,
     },
   ],
   forumUnavailable: false,
@@ -158,7 +187,7 @@ describe('DigestPage', () => {
         .getAllByRole('heading', { level: 2 })
         .map((h) => h.textContent)
         .filter((t) => t !== 'How personalization works' && t !== 'Add topics'),
-    ).toEqual(['Story b', 'Story a', 'Recent forum posts']);
+    ).toEqual(['Story b', 'Story a', 'From the forum']);
     expect(within(card('b')).getByText('🔥 Top story')).toBeInTheDocument();
     expect(within(card('a')).queryByText('🔥 Top story')).toBeNull();
     expect(within(card('b')).getByText('Body b')).toBeInTheDocument();
@@ -166,7 +195,6 @@ describe('DigestPage', () => {
     expect(screen.queryByRole('link', { name: /^Read on/ })).toBeNull();
     expect(within(card('b')).getByText(/^Source:/)).toBeInTheDocument();
     expect(within(card('b')).getByRole('link', { name: 'news.example' })).toHaveAttribute('rel', 'noopener noreferrer');
-    expect(screen.getByText('· Developer @Aave')).toBeInTheDocument();
   });
 
   describe('page v2 (LAB-3287)', () => {
@@ -246,19 +274,9 @@ describe('DigestPage', () => {
     expect(screen.queryByRole('status')).toBeNull();
   });
 
-  it('gives forum posts no More / Less buttons', () => {
-    open('/digest?t=x');
-    const post = document.getElementById('post-7') as HTMLElement;
-    expect(within(post).queryByRole('button')).toBeNull();
-    expect(within(post).getByRole('link', { name: 'Reply in the forum' })).toHaveAttribute(
-      'href',
-      'https://web/forum/topics/1/7',
-    );
-  });
-
   it('hides the forum section when the forum did not answer', () => {
     open('/digest?t=x', data({ forumPosts: [], forumUnavailable: true }));
-    expect(screen.queryByText('Recent forum posts')).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'From the forum' })).toBeNull();
     expect(card('b')).toBeInTheDocument();
   });
 
@@ -608,7 +626,7 @@ describe('more from the network (LAB-3291)', () => {
     expect(rows[0].querySelector('img')).toHaveAttribute('src', 'https://img.example/x.png');
     expect(rows[1].querySelector('img')).toBeNull();
     expect(rows[1].querySelector('[aria-hidden] svg')).not.toBeNull();
-    const forum = screen.getByRole('heading', { name: 'Recent forum posts' });
+    const forum = screen.getByRole('heading', { name: 'From the forum' });
     expect(card('a').compareDocumentPosition(section) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(section.compareDocumentPosition(forum) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
@@ -676,7 +694,7 @@ describe('upcoming events (LAB-3292)', () => {
     expect(rows[0].querySelector('img')).toHaveAttribute('src', 'https://logo.example/e1.png');
     expect(rows[1].querySelector('img')).toBeNull();
     expect(within(section()).getByRole('link', { name: 'See all 9 events' })).toHaveAttribute('href', '/events/all');
-    const forum = screen.getByRole('heading', { name: 'Recent forum posts' });
+    const forum = screen.getByRole('heading', { name: 'From the forum' });
     expect(card('a').compareDocumentPosition(section()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(section().compareDocumentPosition(forum) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
@@ -775,5 +793,100 @@ describe('DigestErrorState', () => {
   it('says it could not open any other bad link', () => {
     render(<DigestErrorState error="invalid" />);
     expect(screen.getByRole('heading')).toHaveTextContent('We couldn’t open this digest');
+  });
+});
+
+describe('From the forum (LAB-3293)', () => {
+  const forumPost = (tid: number, title: string, replyCount: number) => ({
+    tid,
+    title,
+    authorName: 'Sam',
+    authorRole: null,
+    authorTeam: null,
+    authorAvatarUrl: null,
+    contentHtml: '<p>x</p>',
+    url: `https://web/forum/topics/1/${tid}`,
+    replyCount,
+  });
+  const threads = [forumPost(7, 'Busy thread', 14), forumPost(8, 'Quiet thread', 1)];
+  const feedPost = (tid: number, title: string) => ({
+    uid: `fp_${tid}`,
+    tid,
+    mainPid: tid * 10,
+    title,
+    body: '',
+    author: { memberUid: 'author', name: 'Sam', role: null, avatarUrl: null },
+    likeCount: 2,
+    viewerHasLiked: false,
+  });
+  const section = () => screen.getByRole('heading', { name: 'From the forum' }).closest('section') as HTMLElement;
+
+  afterEach(() => {
+    mockFeedPosts = [];
+    mockForumAccess = true;
+    // Likes are remembered in the local like store, as on Home.
+    window.localStorage.clear();
+    useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
+  });
+
+  it('numbers the threads with their replies, links them to the forum when signed out, and ends on Open the forum', async () => {
+    mockFeedPosts = [feedPost(7, 'Busy thread'), feedPost(8, 'Quiet thread')];
+    useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
+    open('/digest?t=x', data({ forumPosts: threads }));
+    expect(within(section()).getByText('Top threads from the past week.')).toBeInTheDocument();
+    const rows = within(section()).getAllByRole('listitem');
+    expect(rows.map((row) => row.textContent)).toEqual(['1.Busy thread14 replies', '2.Quiet thread1 reply']);
+    // Older emails link to #post-<tid>: the row is still the anchor.
+    expect(rows[0]).toHaveAttribute('id', 'post-7');
+    const row = within(rows[1]).getByRole('link', { name: /Quiet thread/ });
+    expect(row).toHaveAttribute('href', 'https://web/forum/topics/1/8');
+    row.addEventListener('click', (event) => event.preventDefault());
+    await userEvent.click(row);
+    expect(capture).toHaveBeenCalledWith('digest-forum-thread-clicked', { topic_id: 8, position: 1, opens: 'forum' });
+    expect(within(section()).getByRole('link', { name: 'Open the forum →' })).toHaveAttribute('href', '/forum');
+  });
+
+  it('opens a thread in Home’s forum modal for a signed-in member with forum access, and likes it there', async () => {
+    mockFeedPosts = [feedPost(7, 'Busy thread')];
+    useCurrentUserStore.setState({ currentUser: { uid: 'me' } as any, isHydrated: true });
+    open('/digest?t=x', data({ forumPosts: threads }));
+    // A thread the member's feed doesn't have still links to the forum.
+    expect(within(section()).getByRole('link', { name: /Quiet thread/ })).toBeInTheDocument();
+    await userEvent.click(within(section()).getByRole('button', { name: /Busy thread/ }));
+    expect(capture).toHaveBeenCalledWith(
+      'digest-forum-thread-clicked',
+      expect.objectContaining({ topic_id: 7, position: 0, opens: 'modal' }),
+    );
+    expect(screen.getByTestId('forum-modal')).toHaveTextContent('Busy thread · 2 likes · not liked');
+    await userEvent.click(screen.getByRole('button', { name: 'Like' }));
+    expect(likeMutate).toHaveBeenCalledWith(
+      { post: expect.objectContaining({ uid: 'fp_7', mainPid: 70 }), isLiked: true },
+      expect.anything(),
+    );
+    expect(screen.getByTestId('forum-modal')).toHaveTextContent('Busy thread · 3 likes · liked');
+    await userEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(screen.queryByTestId('forum-modal')).toBeNull();
+  });
+
+  it('rolls the like back when it fails', async () => {
+    likeMutate.mockImplementationOnce((_vars, { onError }) => onError(new Error('nope')));
+    mockFeedPosts = [feedPost(7, 'Busy thread')];
+    useCurrentUserStore.setState({ currentUser: { uid: 'me' } as any, isHydrated: true });
+    open('/digest?t=x', data({ forumPosts: threads }));
+    await userEvent.click(within(section()).getByRole('button', { name: /Busy thread/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Like' }));
+    expect(screen.getByTestId('forum-modal')).toHaveTextContent('Busy thread · 2 likes · not liked');
+  });
+
+  it('links to the forum for a signed-in member without forum access', () => {
+    mockForumAccess = false;
+    mockFeedPosts = [feedPost(7, 'Busy thread')];
+    useCurrentUserStore.setState({ currentUser: { uid: 'me' } as any, isHydrated: true });
+    open('/digest?t=x', data({ forumPosts: threads }));
+    expect(within(section()).queryByRole('button', { name: /Busy thread/ })).toBeNull();
+    expect(within(section()).getByRole('link', { name: /Busy thread/ })).toHaveAttribute(
+      'href',
+      'https://web/forum/topics/1/7',
+    );
   });
 });

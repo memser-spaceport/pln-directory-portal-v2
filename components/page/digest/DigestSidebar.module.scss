@@ -1,0 +1,207 @@
+// The side column's cards: for-you-starter-topics' card (white, subtle border, 16px radius,
+// 16/20 padding), stacked with 12px between, as Perplexity Discover's rail does.
+
+// Wide screens: sticky beside the column. Capped to the viewport so an opened Past issues
+// list scrolls inside the column instead of running under the fold.
+.rail {
+  position: sticky;
+  top: 112px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: calc(100vh - 128px);
+  overflow-y: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+// Under 1100px: the same cards after the end of the issue.
+.inline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0 16px;
+  padding: 24px 0 32px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  @media (min-width: 1100px) {
+    display: none;
+  }
+}
+
+.card {
+  flex-shrink: 0;
+  padding: 16px 20px;
+  background: var(--background-neutral-default, #fff);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 16px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// Title and its line are one unit: 2px between them.
+.cardText {
+  margin: 2px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// Add topics (LAB-3289): News preferences' chip row with the card's own air above it, clamped to three rows of
+// 24px chips (6px gaps) before the script hides the chips past row three. Padded by 4px so a chip's focus ring
+// isn't clipped. Doubled so it outranks that module's own `.chips` whatever the stylesheet order.
+.chips.chips {
+  max-height: calc(3 * 24px + 2 * 6px + 8px);
+  margin: 8px -4px 0;
+  padding: 4px;
+  overflow: hidden;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+// follow-shared/FollowButton.module.scss: the glossy primary, as on Save topics in the prototype.
+.glossy.glossy {
+  border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
+  box-shadow:
+    0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset,
+    0 4px 6px 0 var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset,
+    0 1px 5px 0 var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+}
+
+// Past issues (LAB-3294), from the digest-web prototype: a disclosure title, then the issues on a thin track.
+.disclosure {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+
+  &:hover .chevron {
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+.chevron {
+  flex: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  transition:
+    transform 0.2s ease,
+    color 0.15s ease;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+// The issue list: rows on a thin track, the open issue marked on it.
+.issues {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  border-left: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.issue {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-left: -1px;
+  padding: 8px 0 8px 14px;
+  border-left: 2px solid transparent;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-decoration: none;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+.issueActive,
+.issueActive:hover {
+  border-left-color: var(--foreground-brand-primary, #1b4dff);
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-weight: 500;
+
+  .issueDate {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.issueDate {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.issueLatest {
+  font-weight: 400;
+}
+
+.issueLead {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

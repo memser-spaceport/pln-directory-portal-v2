@@ -17,14 +17,18 @@ export const metadata: Metadata = {
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 
 /**
- * `/digest?t=<link token>` (LAB-3264): one member's digest, from the email, without sign-in. The read changes
- * nothing; a More / Less choice in the link is saved by the client after load.
+ * `/digest?t=<link token>` (LAB-3264): one member's digest, from the email, without sign-in. `&issue=<send time>`
+ * opens one of that member's past issues (LAB-3294). The read changes nothing; a More / Less choice in the link is
+ * saved by the client after load.
  */
 export default async function DigestRoute({ searchParams }: Props) {
-  const { t } = await searchParams;
+  const { t, issue: rawIssue } = await searchParams;
   const token = typeof t === 'string' ? t : undefined;
-  const [result, { isLoggedIn }] = await Promise.all([getDigestPage(token), getCookiesFromHeaders()]);
+  const issue = typeof rawIssue === 'string' && rawIssue ? rawIssue : undefined;
+  const [result, { isLoggedIn }] = await Promise.all([getDigestPage(token, issue), getCookiesFromHeaders()]);
 
   if (result.error || !token) return <DigestErrorState error={result.error ?? 'invalid'} />;
-  return <DigestPage token={token} data={result.data} isLoggedIn={Boolean(isLoggedIn)} />;
+  return (
+    <DigestPage key={issue ?? ''} token={token} issue={issue} data={result.data} isLoggedIn={Boolean(isLoggedIn)} />
+  );
 }

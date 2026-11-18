@@ -6,7 +6,7 @@ import { IUpcomingEvents } from '@/types/irl.types';
 import { UpcomingEvent } from '@/services/events/hooks/useUpcomingEvents';
 
 /** Where the event drawer was opened from. */
-export type EventDrawerSource = 'home' | 'member-profile' | 'team-profile' | 'add-event';
+export type EventDrawerSource = 'home' | 'member-profile' | 'team-profile' | 'add-event' | 'digest';
 
 export const useEventsAnalytics = () => {
   const postHogProps = usePostHog();

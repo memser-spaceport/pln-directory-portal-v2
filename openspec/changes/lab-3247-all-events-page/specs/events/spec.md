@@ -130,13 +130,19 @@ The List view SHALL be the default. It SHALL group events by start day, soonest 
 
 ### Requirement: The Calendar view
 
-The Calendar view SHALL have Week (default) and Month. Week SHALL show one column per day of the week, today marked and past days dimmed. An event that runs several days SHALL be one card across its days. One-day events SHALL stack in their day's column, earliest first, each card showing title, time, and "city · UTC±n" in the event's time zone. On phones the cards SHALL stack by day, and empty days SHALL be skipped. Month SHALL show the month grid with a bar per event per week, today marked. Pressing a day number in Month SHALL open that week in Week. Previous and next controls SHALL move by one week or one month.
+The Calendar view SHALL have Week (default) and Month, kept in the address (`cal=month`). Weeks SHALL start on Monday, and every event SHALL sit on its days in its own time zone. Week SHALL show one column per day of the week, today marked and past days dimmed. An event that runs several days SHALL be one card across its days. One-day events SHALL stack in their day's column, earliest first, each card showing title, its first topic with "+n" for the rest when it has topics, time, and "city · UTC±n" in the event's time zone. A week with no matching event SHALL say "Nothing this week." On phones the cards SHALL stack by day, and empty days SHALL be skipped. Month SHALL show the month grid with a bar per event per week, today marked. Pressing a day number in Month SHALL open that week in Week, and switching to Month SHALL show the month of the week in view. Previous and next controls SHALL move by one week or one month, and "Today" SHALL return to the current week or month. The calendar SHALL open on the linked event's week, else the chosen city's first event, else the first week from today that has an event.
 
 #### Scenario: Day number opens its week
 
 - **GIVEN** the Month view of December
 - **WHEN** the visitor presses 10
 - **THEN** the Week view opens on the week that holds December 10
+
+#### Scenario: Quiet week
+
+- **GIVEN** a week with no matching event
+- **WHEN** the visitor moves to it in Week
+- **THEN** the board says "Nothing this week." and "Next week" still moves on
 
 #### Scenario: Event across days
 

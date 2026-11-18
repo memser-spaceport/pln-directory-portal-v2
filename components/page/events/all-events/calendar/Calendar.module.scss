@@ -1,0 +1,414 @@
+@use 'styles/media';
+
+// The All Events Calendar view (LAB-3320), ported from prototypes/entries/events-page-redesign/EventsCalendar.module.scss
+// (the frame, the Week | Month switch and the Week board) and event-drawer-redesign/EventsCalendarPage.module.scss (the
+// events app's month grid, transcribed). Today is brand blue: the app's green fails AA under white text.
+
+.frame {
+  // The app's grid reads these two (EventsCalendarPage sets them on its own root).
+  // Deviation: the app's #22c55e today disc fails AA under white text; brand blue passes.
+  --app-today: var(--foreground-brand-primary, #1b4dff);
+
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--background-base-white, #ffffff);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  flex-wrap: wrap;
+
+  @include media.mobile-only {
+    padding: 12px;
+    gap: 8px;
+  }
+}
+
+.modes {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+}
+
+.mode {
+  height: 28px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.modeActive {
+  background: var(--background-base-white, #ffffff);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  box-shadow: 0 0 0 1px var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.label {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  @include media.mobile-only {
+    order: 3;
+    width: 100%;
+  }
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+/* ---------- Month ---------- */
+
+.month {
+  // The app's weekday row starts with a top rule; the card's bar already draws one.
+  > :first-child {
+    border-top: none;
+  }
+}
+
+// The day number as a button, inside the app's 24px disc.
+.dayBtn {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+}
+
+.barHighlight {
+  outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+  outline-offset: 1px;
+}
+
+/* ---------- Week (LabWeek 2023 board) ---------- */
+
+.board {
+  padding: 8px;
+}
+
+// Seven equal columns that share whatever width the page gives the calendar (beside the rail
+// that is ~800px, so ~108px a day): cards wrap rather than the board scrolling sideways.
+.boardGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  align-items: start;
+
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.boardStack {
+  display: none;
+
+  @include media.mobile-only {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+.stackDay {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.boardHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.boardHeadToday {
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: var(--background-base-white, #ffffff);
+
+  .boardWeekday {
+    color: inherit;
+  }
+}
+
+.boardHeadPast {
+  opacity: 0.6;
+}
+
+.boardDate {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+
+.boardWeekday {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.boardCol {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+// Shared by the spanning banner and the day cards: a plain bordered card with the topic's faint wash (no coloured left edge, 2026-11-17).
+%cardBase {
+  position: relative;
+  min-width: 0;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  font: inherit;
+  text-align: left;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    box-shadow: 0 1px 2px var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+}
+
+.span {
+  @extend %cardBase;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+}
+
+.spanThumb {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.spanText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.card {
+  @extend %cardBase;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+}
+
+.cardTitle {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+.cardTags {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.cardTag {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.cardTagMore {
+  flex-shrink: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.cardMeta {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.cardHighlight {
+  outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+  outline-offset: 1px;
+}
+
+.boardEmpty {
+  margin: 16px 0 4px;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: center;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* ---------- Month grid (the events app's, from EventsCalendarPage.module.scss) ---------- */
+
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  span {
+    padding-top: 8px;
+    font-size: 11px;
+    text-align: center;
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: min-content;
+  row-gap: 4px;
+  min-height: 154px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  // The day columns' rules, drawn behind the bars.
+  background-image: linear-gradient(
+    to right,
+    var(--border-neutral-subtle, rgba(27, 56, 96, 0.12)) 1px,
+    transparent 1px
+  );
+  background-size: calc(100% / 7) 100%;
+
+  @include media.mobile-only {
+    min-height: 96px;
+  }
+}
+.dayNum {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 4px;
+  font-size: 13px;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+  }
+}
+.dayOther {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+.dayToday span {
+  background: var(--app-today);
+  color: var(--background-base-white, #ffffff);
+  font-weight: 600;
+}
+.monthBar {
+  min-width: 0;
+  margin: 0 2px;
+  padding: 2px 4px;
+  border: none;
+  border-left: 3px solid transparent;
+  border-radius: 2px;
+  font-size: 12px;
+  line-height: 16px;
+  text-align: left;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+
+  &:hover {
+    filter: brightness(0.96);
+    text-decoration: underline;
+  }
+
+  @include media.mobile-only {
+    font-size: 10px;
+    line-height: 14px;
+  }
+}
+.barStart {
+  padding-left: 6px;
+}
+.weekFill {
+  grid-column: 1 / -1;
+  min-height: 1px;
+}

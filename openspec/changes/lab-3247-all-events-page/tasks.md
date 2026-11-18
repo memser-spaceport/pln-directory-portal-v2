@@ -37,10 +37,10 @@ Slices: **A** = LAB-3317 (groups 1–5), **B** = LAB-3320 (group 6), **C** = LAB
 
 ## 6. Calendar view (B)
 
-- [ ] 6.1 `calendar/weeks.ts`: week and month maths in the event's time zone, with multi-day spans clipped to the week. Verify: unit tests for spans across week and month edges.
-- [ ] 6.2 `WeekBoard` (default): day headers (today, past dimmed), span cards on top, day cards by start time, "city · UTC±n", previous and next week; phones stack by day and skip empty days. Verify: tests for the "Event across days" scenario and the phone stacking.
-- [ ] 6.3 `MonthGrid`: per-week bars, today's disc, day number opens Week on that week, previous and next month. Verify: the "Day number opens its week" scenario as a test.
-- [ ] 6.4 `?event=` in Calendar opens the event's week with the card marked. Verify: the "Link to one event in Calendar" scenario as a test.
+- [x] 6.1 `calendar/weeks.ts`: week and month maths in the event's time zone, with multi-day spans clipped to the week. Verify: unit tests for spans across week and month edges.
+- [x] 6.2 `WeekBoard` (default): day headers (today, past dimmed), span cards on top, day cards by start time, "city · UTC±n", previous and next week; phones stack by day and skip empty days. Verify: tests for the "Event across days" scenario and the phone stacking.
+- [x] 6.3 `MonthGrid`: per-week bars, today's disc, day number opens Week on that week, previous and next month. Verify: the "Day number opens its week" scenario as a test.
+- [x] 6.4 `?event=` in Calendar opens the event's week with the card marked. Verify: the "Link to one event in Calendar" scenario as a test.
 
 ## 7. Map view (C)
 

@@ -77,6 +77,8 @@ components/page/events/GoingPill/   (from prototypes/entries/events-shared/Going
 components/page/events/EventImage/  (from events-shared/EventImage, brand fallback)
 ```
 
+The Calendar (LAB-3320) is `calendar/EventsCalendar.tsx` (the frame, Week | Month, Today and previous / next) over `WeekBoard` and `MonthGrid`, with `weeks.ts` holding the date maths on the items' `startDay` / `endDay`, which are already in each event's own time zone, so the calendar only counts ISO days (Monday-first, noon-anchored so daylight saving never shifts a day). Which week or month shows is the calendar's own state; the page keys it on its anchor (the event a link landed on, kept for the page's life, else the scoped city's first event, else today), so a link or a new city reopens it while opening cards does not. The mode is the `cal` param. Each item gains `tagColor` (the first topic's colour) for the cards' faint wash; only a `#rrggbb` value reaches a style.
+
 Copy and layout come from the prototype files the Linear tickets name. Mock-only pieces (review band, `VENUE_COORDS`, sample names) are not ported. Date maths use the event's `timezone` with the repo's existing date helpers. The sticky toolbar reads `--app-header-height`; it only reads that variable and never sets it (it is measured).
 
 ### D7. Google Maps with a small loader and a Map ID

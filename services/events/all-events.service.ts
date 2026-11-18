@@ -63,6 +63,7 @@ export function toAllEventsItem(row: UpcomingEvent, raw: EventDetailResponse | n
     access: detail?.access ?? null,
     hosts: detail?.hosts ?? [],
     tags: detail?.tags.map((t) => t.name) ?? [],
+    tagColor: raw?.details?.tags?.[0]?.color ?? null,
     picture: raw?.banner || raw?.logo || row.logo || null,
     goingCount: hidden ? null : (raw?.goingCount ?? row.goingCount ?? null),
     faces: hidden ? [] : (raw?.faces ?? []).slice(0, 3),

@@ -283,10 +283,12 @@ export function DigestPage({ token, issue, data, isLoggedIn }: Props) {
               <span className={s.dividerLine} />
             </div>
             <div className={s.legal}>
+              <p>You received this email because you are a member of the Protocol Labs network.</p>
+              {/* Signed-in email settings for now. Once LAB-3309's signed-link page (`/digest/email`) is on develop,
+                  both links go there with this page's token, so they work signed out too. */}
               <nav className={s.legalLinks}>
-                <a href="/settings/email" className={s.manageLink}>
-                  Manage preferences
-                </a>
+                <a href="/settings/email">Manage preferences</a>
+                <a href="/settings/email">Unsubscribe</a>
               </nav>
             </div>
           </footer>

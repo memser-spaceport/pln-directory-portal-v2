@@ -253,6 +253,19 @@ describe('DigestPage', () => {
       expect(screen.getAllByText('How personalization works')).toHaveLength(2);
     });
 
+    it('ends with the design’s footer: why they got it, Manage preferences and Unsubscribe (LAB-3314)', () => {
+      open('/digest?t=x');
+      const footer = screen.getByText('The Protocol Labs team').closest('footer') as HTMLElement;
+      expect(
+        within(footer).getByText('You received this email because you are a member of the Protocol Labs network.'),
+      ).toBeInTheDocument();
+      expect(within(footer).getByRole('link', { name: 'Manage preferences' })).toHaveAttribute(
+        'href',
+        '/settings/email',
+      );
+      expect(within(footer).getByRole('link', { name: 'Unsubscribe' })).toHaveAttribute('href', '/settings/email');
+    });
+
     it('shows "Got news from your team?" only to team members', () => {
       const { unmount } = open('/digest?t=x');
       expect(screen.queryByText('Got news from your team?')).toBeNull();

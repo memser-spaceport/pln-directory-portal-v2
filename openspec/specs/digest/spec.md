@@ -156,6 +156,15 @@ After the stories and forum posts, the page SHALL show "You're all caught up" wi
 - **WHEN** the page shows
 - **THEN** there is no side column, and "How personalization works" follows "You're all caught up"
 
+### Requirement: Footer
+
+The page SHALL end with the email's sign-off and footer: "Cheers," and "The Protocol Labs team", then "You received this email because you are a member of the Protocol Labs network." with the links "Manage preferences" and "Unsubscribe". Both links SHALL go to the signed-in email settings (`/settings/email`).
+
+#### Scenario: Footer
+
+- **WHEN** the page shows
+- **THEN** after "Cheers, The Protocol Labs team" it shows "You received this email because you are a member of the Protocol Labs network.", "Manage preferences" and "Unsubscribe"
+
 ### Requirement: Add topics card
 
 The side cards SHALL start with "Add topics": "Tick a topic to get stories about it in your digest.", then the page's suggested topics as News preferences' `#slug` chips, in the API's order, as many as fit three rows, then "See all topics". A chip's order SHALL never change while the page is open. A chip SHALL show as ticked when the reader follows that topic. For a signed-in reader, a press SHALL tick or untick the chip, and "Save topics" SHALL show once a chip differs from the saved topics.

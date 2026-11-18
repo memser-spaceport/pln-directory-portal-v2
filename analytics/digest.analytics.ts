@@ -130,6 +130,16 @@ export function useDigestAnalytics() {
       onEventsSeeAllClicked(params: { total: number }) {
         capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_EVENTS_SEE_ALL_CLICKED, params);
       },
+      onForumThreadClicked(params: { topicId: number; position: number; opens: 'modal' | 'forum' }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_FORUM_THREAD_CLICKED, {
+          topic_id: params.topicId,
+          position: params.position,
+          opens: params.opens,
+        });
+      },
+      onForumOpenClicked() {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_FORUM_OPEN_CLICKED, {});
+      },
       onChoiceClicked(params: { kind: DigestChoice; newsId: string; position: number; activeAfter: boolean }) {
         capture(
           params.kind === 'more'

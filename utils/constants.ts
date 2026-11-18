@@ -2953,6 +2953,8 @@ export const DIGEST_ANALYTICS_EVENTS = {
   ON_DIGEST_NETWORK_NEWS_CLICKED: 'digest-network-news-clicked',
   ON_DIGEST_EVENT_CLICKED: 'digest-event-clicked',
   ON_DIGEST_EVENTS_SEE_ALL_CLICKED: 'digest-events-see-all-clicked',
+  ON_DIGEST_FORUM_THREAD_CLICKED: 'digest-forum-thread-clicked',
+  ON_DIGEST_FORUM_OPEN_CLICKED: 'digest-forum-open-clicked',
   ON_DIGEST_MORE_CLICKED: 'digest-more-clicked',
   ON_DIGEST_LESS_CLICKED: 'digest-less-clicked',
   ON_DIGEST_UNDO_CLICKED: 'digest-undo-clicked',

@@ -636,110 +636,12 @@
   }
 }
 
-/* Forum section */
-
-.dividerRow {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 32px;
-
-  @include mobile-only {
-    padding: 16px 20px;
-  }
-}
+/* Footer rule */
 
 .dividerLine {
   flex: 1;
   height: 1px;
   background: #e2e8f0;
-}
-
-.dividerLabel {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 24px;
-  letter-spacing: -0.4px;
-  color: var(--foreground-neutral-secondary, #455468);
-  white-space: nowrap;
-}
-
-.byline {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 0 32px;
-  font-size: 12px;
-
-  @include mobile-only {
-    padding: 0 20px;
-  }
-}
-
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50px;
-  object-fit: cover;
-  background: #ffd8b4;
-}
-
-.bylineName {
-  margin-right: -8px;
-  font-weight: 600;
-  line-height: 18px;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-secondary, #455468);
-}
-
-.bylineRole {
-  line-height: 1.17;
-  color: #777;
-}
-
-.postBody {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 16px 32px;
-
-  @include mobile-only {
-    padding: 16px 20px;
-  }
-}
-
-.postTitle {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 700;
-  line-height: normal;
-  color: #000;
-}
-
-.postText {
-  margin: 0;
-  font-size: 14px;
-  line-height: 22px;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-secondary, #455468);
-}
-
-.postLink {
-  align-self: flex-start;
-  padding: 4px 0;
-  border: 0;
-  background: none;
-  font: inherit;
-  font-size: 14px;
-  font-weight: 700;
-  color: #000;
-  text-decoration: underline;
-  cursor: pointer;
-
-  &:hover {
-    color: var(--foreground-brand-primary, #1b4dff);
-  }
 }
 
 /* Story team header (web): the feed card's logo + team + Follow (NewsCard .head) */
@@ -836,23 +738,7 @@
   padding: 0 16px;
 }
 
-/* Forum posts: anchor target under the sticky site header */
-
-.post {
-  scroll-margin-top: calc(var(--app-header-height, 0px) + 24px);
-}
-
-.avatarFallback {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--foreground-neutral-secondary, #455468);
-}
-
-// NodeBB and story HTML: keep the post / summary type, contain wide media.
+// Story HTML: keep the summary type, contain wide media.
 .html {
   display: flex;
   flex-direction: column;

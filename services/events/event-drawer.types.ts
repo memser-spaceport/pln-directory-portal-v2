@@ -130,6 +130,12 @@ export interface EventDetail {
   description: string | null;
   agenda: EventAgendaDay[];
   websiteUrl: string | null;
+  /**
+   * LAB-3334: the link that the drawer's link row and "Register" open. It is `websiteUrl` when that is an `http` or
+   * `https` address. Otherwise it is the link of the event's resource named "Registration" (name match ignores case
+   * and end spaces), when that is an `http` or `https` address. Null when neither is.
+   */
+  eventUrl: string | null;
   gathering: EventGathering | null;
   goingCount: number;
   faces: EventPersonResponse[];

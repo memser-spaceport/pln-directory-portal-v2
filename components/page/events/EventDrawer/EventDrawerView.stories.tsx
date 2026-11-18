@@ -133,6 +133,19 @@ export const LongDescriptionWithLink: Story = {
   },
 };
 
+/**
+ * LAB-3334: the event has no `websiteUrl` (as some Luma imports), so the link row and "Register" open its
+ * "Registration" resource.
+ */
+export const RegistrationResourceLink: Story = {
+  args: {
+    raw: eventResponse({
+      websiteUrl: '',
+      resources: [{ name: 'Registration', link: 'https://luma.com/n4ad0k9m', description: 'Registration URL' }],
+    }),
+  },
+};
+
 /** The attendee list above the drawer, "You" first. Try "lighthouse", then "zzz" for the empty search. */
 export const AttendeesList: Story = {
   play: async () => {

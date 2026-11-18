@@ -25,7 +25,7 @@ The page SHALL NOT be indexed and SHALL send no Referer.
 
 ### Requirement: Footer action waits for a press
 
-When the link carries `link_type=unsubscribe`, the page SHALL make "Unsubscribe" its main button. When it carries `link_type=switch_frequency` with `to=weekly` or `to=daily`, the main button SHALL be "Switch to weekly" or "Switch to daily". The page SHALL NOT change anything until the reader presses a button. When the requested state already holds (already off, already weekly), the page SHALL say so instead of offering the button.
+When the link carries `link_type=unsubscribe`, the page SHALL make "Unsubscribe" its main button. When it carries `link_type=switch_frequency` with `to=weekly` or `to=daily`, the main button SHALL be "Switch to weekly" or "Switch to daily". The page SHALL NOT change anything until the reader presses a button. When the requested state already holds, the page SHALL say so instead: an Unsubscribe link with the digest off says "You're already unsubscribed from the digest" and offers "Turn the digest back on"; a Switch link to the frequency the digest already has says "Your digest is already weekly" (or daily) with no button. A Switch link while the digest is off says "The digest is off" and offers "Turn on the weekly digest" (or daily), which turns it on at that frequency. An unknown `link_type` or `to` behaves as Manage.
 
 #### Scenario: A scanner opens the Unsubscribe link
 
@@ -48,11 +48,17 @@ When the link carries `link_type=unsubscribe`, the page SHALL make "Unsubscribe"
 
 - **GIVEN** the digest is already off
 - **WHEN** the Unsubscribe link opens the page
-- **THEN** it says the digest is off and offers to turn it back on
+- **THEN** it says "You're already unsubscribed from the digest" and offers "Turn the digest back on"
+
+#### Scenario: Switch link while the digest is off
+
+- **GIVEN** the digest is off
+- **WHEN** the Switch to weekly link opens the page and the reader presses "Turn on the weekly digest"
+- **THEN** the digest is on and weekly
 
 ### Requirement: Undo and failed saves
 
-After a change, Undo SHALL restore the previous on/off and frequency with one more change call. A failed change SHALL leave the shown settings as they were and say the change couldn't be saved, with a retry.
+After a change, Undo SHALL restore the previous on/off and frequency with one more change call. A failed change SHALL leave the shown settings as they were and say "We couldn't save that." with "Try again", which repeats the same change.
 
 #### Scenario: Undo an unsubscribe
 
@@ -63,11 +69,11 @@ After a change, Undo SHALL restore the previous on/off and frequency with one mo
 #### Scenario: Save fails
 
 - **WHEN** the change call fails
-- **THEN** the page still shows the old settings and "We couldn't save that. Try again."
+- **THEN** the page still shows the old settings and "We couldn't save that." with "Try again"
 
 ### Requirement: Digest email page link that does not work
 
-When the token is missing, malformed, wrongly signed or expired, or the API cannot read the settings, the page SHALL show a short message ("This link has expired" for an expired link, otherwise "We couldn't open your email settings") and a link to `/settings/email` to manage email after sign-in.
+When the token is missing, malformed, wrongly signed or expired, or the API cannot read the settings, the page SHALL show a short message ("This link has expired" for an expired link, otherwise "We couldn't open your email settings") and an "Email preferences" link to `/settings/email` to manage email after sign-in. While the settings load, the page SHALL show its own small skeleton, not the digest's.
 
 #### Scenario: Expired link
 
@@ -82,7 +88,7 @@ The page SHALL record these PostHog events, none carrying the link token:
 - `digest-email-page-viewed`, once per load, with `link_type` (`manage`, `unsubscribe`, `switch_frequency` or `direct`), `enabled`, `frequency` and `is_logged_in`.
 - `digest-email-unsubscribed`, `digest-email-resubscribed` and `digest-email-frequency-changed` (with `frequency`) on a saved change, each with `via` (`main-button` or `controls`).
 - `digest-email-undo-clicked`, with `reverted` (`unsubscribe`, `resubscribe` or `frequency`).
-- `digest-email-save-failed`, with `action`.
+- `digest-email-save-failed`, with `action` (`unsubscribe`, `resubscribe`, `frequency` or `undo`).
 
 #### Scenario: Unsubscribe recorded
 

@@ -6,7 +6,7 @@ import type { LabosAgentClient } from '@/types/labos-agent.types';
 
 const chat = jest.fn();
 const getAccess = jest.fn();
-const client: LabosAgentClient = { chat, confirmAction: jest.fn(), getAccess };
+const client: LabosAgentClient = { chat, confirmAction: jest.fn(), getAccess, searchMentions: jest.fn() };
 
 jest.mock('@/services/labos-agent/labos-agent.service', () => ({
   ...jest.requireActual('@/services/labos-agent/labos-agent.service'),
@@ -15,6 +15,9 @@ jest.mock('@/services/labos-agent/labos-agent.service', () => ({
 
 // jest.setup.js replaces useQuery with a stub; the access check needs the real one.
 jest.mock('@tanstack/react-query', () => jest.requireActual('@tanstack/react-query'));
+
+// LAB-3318: the composer placeholder reads the intro role. Its real queries call the network and sign the test out.
+jest.mock('@/services/intro-requests/hooks/useCanRequestIntro', () => ({ useCanRequestIntro: () => false }));
 
 // Markdown pulls in an ESM-only highlighter that Jest cannot parse.
 jest.mock('@/components/common/Markdown', () => ({

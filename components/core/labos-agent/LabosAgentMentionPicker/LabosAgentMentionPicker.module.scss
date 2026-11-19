@@ -1,0 +1,141 @@
+/* The @mention picker (LAB-3318). From the agent prototype's ContextPicker and the NewsShareMenu popup. It opens
+   above the chips, over the end of the thread. */
+.picker {
+  position: absolute;
+  right: 16px;
+  bottom: 100%;
+  left: 16px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  max-height: min(380px, calc(100dvh - 220px));
+  padding: 6px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: var(--background-neutral-default, #fff);
+  box-shadow: 0 8px 24px var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
+}
+
+.search {
+  flex-shrink: 0;
+  height: 36px;
+  margin-bottom: 4px;
+  padding: 0 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  outline: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+
+  &:focus {
+    border-color: var(--border-brand-primary, #1b4dff);
+  }
+}
+
+.hint {
+  flex-shrink: 0;
+  margin: 4px 8px 6px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.list {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.group {
+  margin: 8px 8px 4px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &[data-active='true'] {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-primary, #1b4dff);
+    outline-offset: -2px;
+  }
+}
+
+.glyph {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  border-radius: 6px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.glyph_member {
+  border-radius: 50%;
+}
+
+.glyph_news {
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.label {
+  overflow: hidden;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  overflow: hidden;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note {
+  margin: 8px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.status {
+  flex-shrink: 0;
+}

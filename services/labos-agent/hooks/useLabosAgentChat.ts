@@ -12,6 +12,7 @@ import type {
   LabosAgentDecision,
   LabosAgentDraft,
   LabosAgentDraftCardState,
+  LabosAgentMentionChip,
   LabosAgentOpenContext,
   LabosAgentTurn,
   LabosAgentTurnStatus,
@@ -25,7 +26,9 @@ import {
   isDraftTargetSent,
   toIntroRequestBody,
 } from '../labos-agent.drafts';
+import { LABOS_AGENT_MENTION_TEXT } from '../constants';
 import { isStalledAnswer, LabosAgentError } from '../labos-agent.errors';
+import { toChatMentions } from '../labos-agent.mentions';
 import { getLabosAgentClient, toChatContext } from '../labos-agent.service';
 import { chatKey, useLabosAgentStore } from '../store';
 
@@ -144,8 +147,16 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
   );
 
   const run = useCallback(
-    async (message: string, replaceId?: string) => {
+    async (message: string, replaceId?: string, chips: LabosAgentMentionChip[] = []) => {
       const id = generateUUID();
+      const before = useLabosAgentStore.getState();
+      const prevTurns = before.chats[key]?.turns ?? NO_TURNS;
+      // LAB-3302: after the member removes the page chip, the request has no page context.
+      const chatContext = toChatContext(before.readsPage ? context : null);
+      const mentions = toChatMentions(chips);
+      // S6-F20: the first turn of the chat reads no page and no item.
+      const first = replaceId ? prevTurns[0]?.id === replaceId : prevTurns.length === 0;
+      const mentionChips = chips.map(({ failed: _failed, ...chip }) => chip);
       const turn: LabosAgentTurn = {
         id,
         message,
@@ -159,6 +170,8 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
         cards: {},
         drafts: [],
         draftCards: {},
+        ...(mentionChips.length > 0 ? { mentions: mentionChips } : {}),
+        ...(first && !chatContext && !mentions ? { readsNothing: true as const } : {}),
         startedAt: Date.now(),
       };
       updateTurns(key, (prev) => (replaceId ? prev.map((t) => (t.id === replaceId ? turn : t)) : [...prev, turn]));
@@ -169,13 +182,8 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
       streams.set(key, controller);
       try {
         const body = await getLabosAgentClient().chat(
-          // LAB-3302: after the member removes the page chip, the request has no page context.
-          {
-            threadId,
-            chatId: id,
-            message,
-            context: toChatContext(useLabosAgentStore.getState().readsPage ? context : null),
-          },
+          // S6-F14: `mentions` in the order of the chips, only when the member picked some.
+          { threadId, chatId: id, message, context: chatContext, ...(mentions ? { mentions } : {}) },
           {
             signal: controller.signal,
             onUpdate: (partial) => {
@@ -199,13 +207,26 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
       } catch (err) {
         if (controller.signal.aborted) return;
         const e = err instanceof LabosAgentError ? err : new LabosAgentError(0, 'UNKNOWN', 'The agent did not answer.');
+        // S6-F17: a 404 for a mention has `mentionIndex` and names its chip. A 404 for `context` has no `mentionIndex`.
+        const mentionFailed = e.mentionIndex !== undefined;
+        const failedChip = mentionFailed ? mentionChips[e.mentionIndex as number] : undefined;
         patch(id, {
           status: 'error',
-          error: { code: e.code, status: e.status, message: errorText(e.code, e.retryAfterSeconds) },
+          error: mentionFailed
+            ? {
+                code: e.code,
+                status: e.status,
+                // An index outside the chips still is a mention 404, not a page 404.
+                message: failedChip
+                  ? LABOS_AGENT_MENTION_TEXT.mentionNotFound(failedChip.label)
+                  : LABOS_AGENT_MENTION_TEXT.mentionNotFoundUnknown,
+                mentionIndex: e.mentionIndex,
+              }
+            : { code: e.code, status: e.status, message: errorText(e.code, e.retryAfterSeconds) },
           endedAt: Date.now(),
         });
-        // S5-C29: the next open of this context starts with the chip off.
-        if (PAGE_NOT_FOUND_CODES.has(e.code)) markPageUnreadable(key);
+        // S5-C29: the next open of this context starts with the chip off. Never for a mention 404: the page is fine.
+        if (!mentionFailed && PAGE_NOT_FOUND_CODES.has(e.code)) markPageUnreadable(key);
         analytics.onAgentErrorShown({ page, code: e.code, status: e.status });
       } finally {
         if (streams.get(key) === controller) streams.delete(key);
@@ -219,10 +240,10 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
   const busy = turns.some((t) => t.status === 'working');
 
   const send = useCallback(
-    (raw: string) => {
+    (raw: string, chips: LabosAgentMentionChip[] = []) => {
       const message = raw.trim();
       if (!message || busy) return false;
-      void run(message.slice(0, 2000));
+      void run(message.slice(0, 2000), undefined, chips);
       return true;
     },
     [busy, run],
@@ -232,7 +253,11 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
     (turnId: string) => {
       const turn = turns.find((t) => t.id === turnId);
       if (!turn || busy) return;
-      void run(turn.message, turnId);
+      // A mention 404 names the chip that failed. Retry without that chip, so the same 404 does not come back.
+      const failedIndex = turn.error?.mentionIndex;
+      const mentions =
+        failedIndex === undefined ? turn.mentions : turn.mentions?.filter((_, index) => index !== failedIndex);
+      void run(turn.message, turnId, mentions);
     },
     [busy, run, turns],
   );
@@ -385,5 +410,21 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
   /** S5-C29: the panel put the text of a failed turn back in the composer. It does that once only. */
   const markTextRestored = useCallback((turnId: string) => patch(turnId, { textRestored: true }), [patch]);
 
-  return { turns, busy, send, retry, stop, newChat, decide, editDraft, sendDraft, cancelDraft, markTextRestored };
+  /** S6-F17: the panel put the chips of a failed turn back in the composer. It does that once only. */
+  const markMentionsRestored = useCallback((turnId: string) => patch(turnId, { mentionsRestored: true }), [patch]);
+
+  return {
+    turns,
+    busy,
+    send,
+    retry,
+    stop,
+    newChat,
+    decide,
+    editDraft,
+    sendDraft,
+    cancelDraft,
+    markTextRestored,
+    markMentionsRestored,
+  };
 }

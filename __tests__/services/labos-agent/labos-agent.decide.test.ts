@@ -8,6 +8,7 @@ const client: LabosAgentClient = {
   chat: jest.fn(),
   confirmAction,
   getAccess: async () => ({ enabled: true }),
+  searchMentions: jest.fn(),
 };
 
 jest.mock('@/services/labos-agent/labos-agent.service', () => ({

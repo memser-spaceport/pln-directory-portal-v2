@@ -48,11 +48,106 @@ export type LabosAgentOpenContext =
 /** Every page an open context can name, the C1 values and the S5 client-only values. */
 export type LabosAgentOpenPage = LabosAgentOpenContext['page'];
 
+/** S6 (LAB-3318, contract 10.3): the pages a member can mention. `job` is the job board. */
+export type LabosAgentMentionPage = 'home' | 'job' | 'profile';
+
+/**
+ * One item in the C1 `mentions` array (contract 10.3). Only `type` and `uid`, or `type` and `page`. The chip label
+ * stays in the browser: the backend rejects an extra key.
+ */
+export type LabosAgentMention =
+  | { type: 'member'; uid: string }
+  | { type: 'team'; uid: string }
+  | { type: 'news'; uid: string }
+  | { type: 'page'; page: LabosAgentMentionPage };
+
 export interface LabosAgentChatRequest {
   threadId: string;
   chatId: string;
   message: string;
   context?: LabosAgentChatContext;
+  /** S6: 1 to 5 items, in the order of the chips. Absent when the member picked none. */
+  mentions?: LabosAgentMention[];
+}
+
+/** The C4 item types (contract 10.2). Pages are a frontend list (10.5). */
+export type LabosAgentMentionSearchType = 'member' | 'team' | 'news';
+
+/** C4 request: `GET /v1/labos-agent/mentions?q=&types=&limit=`. */
+export interface LabosAgentMentionsQuery {
+  /** 0 to 64 characters after trim. Empty gives the default list (10.2.3). */
+  q: string;
+  types?: LabosAgentMentionSearchType[];
+  /** 1 to 10 for each type. The backend default is 5. */
+  limit?: number;
+}
+
+/** C4 member row. No email, phone, handles, Telegram, office hours or bio. */
+export interface LabosAgentMentionMember {
+  type: 'member';
+  uid: string;
+  name: string;
+  imageUrl: string | null;
+  teamName: string | null;
+  role: string | null;
+}
+
+/** C4 team row. `shortDescription` is cut to 140 characters. */
+export interface LabosAgentMentionTeam {
+  type: 'team';
+  uid: string;
+  name: string;
+  logoUrl: string | null;
+  shortDescription: string | null;
+}
+
+/** C4 news row. `eventDate` is ISO. */
+export interface LabosAgentMentionNews {
+  type: 'news';
+  uid: string;
+  title: string;
+  teamUid: string;
+  teamName: string;
+  eventDate: string;
+}
+
+/** C4 response 200. Each key is always present. `q` is the trimmed query of this response. */
+export interface LabosAgentMentionsResponse {
+  q: string;
+  members: LabosAgentMentionMember[];
+  teams: LabosAgentMentionTeam[];
+  news: LabosAgentMentionNews[];
+}
+
+/** The picker groups, in the order of S6-F6. */
+export type LabosAgentPickerGroupKind = 'page' | 'news' | 'team' | 'member';
+
+/**
+ * One row of the @mention picker. `mention` is what C1 gets. A row with `restoresPage` is the current page after the
+ * member removed its chip (contract 10.5): a pick turns the page chip back on and adds no mention.
+ */
+export interface LabosAgentPickerItem {
+  /** The mention key (`member:<uid>`, `page:home`, ...). Unique in the picker. */
+  key: string;
+  kind: LabosAgentPickerGroupKind;
+  /** The full name for the row and the chip. */
+  label: string;
+  /** The second line of the row: team and role, team name, or a page hint. */
+  meta?: string;
+  /** The short text that an `@` pick puts in the message (`@<name> `). */
+  mentionName: string;
+  imageUrl?: string | null;
+  mention?: LabosAgentMention;
+  restoresPage?: true;
+}
+
+/** A mention chip in the composer. `failed`: C1 gave a 404 for this item (S6-F17). */
+export interface LabosAgentMentionChip {
+  key: string;
+  label: string;
+  kind: LabosAgentPickerGroupKind;
+  mention: LabosAgentMention;
+  failed?: true;
 }
 
 export interface LabosAgentSourceRef {
@@ -183,6 +278,11 @@ export interface LabosAgentClient {
   getAccess: () => Promise<LabosAgentAccess>;
   chat: (request: LabosAgentChatRequest, options?: LabosAgentStreamOptions) => Promise<LabosAgentChatResponse>;
   confirmAction: (request: LabosAgentConfirmRequest) => Promise<LabosAgentConfirmResponse>;
+  /** S6: C4, the @mention picker search. */
+  searchMentions: (
+    query: LabosAgentMentionsQuery,
+    options?: { signal?: AbortSignal },
+  ) => Promise<LabosAgentMentionsResponse>;
 }
 
 /**
@@ -239,7 +339,22 @@ export interface LabosAgentTurn {
   drafts: LabosAgentDraft[];
   /** Draft card state by `draftId`. No entry: `open` with the draft text. */
   draftCards: Record<string, LabosAgentDraftCardState>;
-  error?: { code: LabosAgentChatErrorCode; status: number; message: string };
+  error?: {
+    code: LabosAgentChatErrorCode;
+    status: number;
+    message: string;
+    /** S6: C1 gave this 404 for `mentions[mentionIndex]`, not for `context` (contract 10.4). */
+    mentionIndex?: number;
+  };
+  /** S6: the mention chips of this message, in order. Retry sends them again. */
+  mentions?: LabosAgentMentionChip[];
+  /**
+   * S6-F20: the first turn of the chat had no `context` and no `mentions`. The panel shows the fixed no-context line
+   * above its answer.
+   */
+  readsNothing?: true;
+  /** S6-F17: the panel put the chips of this failed turn back in the composer. It does that once only. */
+  mentionsRestored?: true;
   /** S5-C29: the panel put the text of this failed turn back in the composer. It does that once only. */
   textRestored?: boolean;
   startedAt: number;

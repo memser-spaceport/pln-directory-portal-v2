@@ -93,6 +93,9 @@ describe('LAB-3298: LabOS agent C1 client', () => {
     [403, { code: 'AGENT_NOT_ENABLED' }, 'AGENT_NOT_ENABLED'],
     [404, { code: 'NEWS_NOT_FOUND' }, 'NEWS_NOT_FOUND'],
     [404, { code: 'INTRO_TARGET_NOT_FOUND' }, 'INTRO_TARGET_NOT_FOUND'],
+    [404, { code: 'MEMBER_NOT_FOUND' }, 'MEMBER_NOT_FOUND'],
+    [404, { code: 'TEAM_NOT_FOUND' }, 'TEAM_NOT_FOUND'],
+    [404, { code: 'JOB_NOT_FOUND' }, 'JOB_NOT_FOUND'],
     [400, { code: 'VALIDATION_ERROR' }, 'VALIDATION_ERROR'],
     [500, {}, 'UNKNOWN'],
   ])('maps a %s answer to %s', async (status, body, code) => {
@@ -172,5 +175,50 @@ describe('LAB-3300: intro context and drafts in C1', () => {
     expect(d.maxLength).toBe(3500);
     const [e] = normalizeDrafts([{ ...draft, minLength: undefined, maxLength: 'x' }]);
     expect([e.minLength, e.maxLength]).toEqual([20, 3500]);
+  });
+
+  describe('LAB-3302: S5 page context in the C1 body', () => {
+    beforeEach(() => mockedFetch.mockReset());
+
+    it.each([
+      [
+        { page: 'member', memberUid: 'm-2', label: 'Member profile' },
+        { page: 'member', memberUid: 'm-2' },
+      ],
+      [
+        { page: 'team', teamUid: 't-1', label: 'Team page' },
+        { page: 'team', teamUid: 't-1' },
+      ],
+      [
+        { page: 'job', jobUid: 'j-1', label: 'Job post' },
+        { page: 'job', jobUid: 'j-1' },
+      ],
+      [{ page: 'job', label: 'Jobs' }, { page: 'job' }],
+      [{ page: 'profile', label: 'Your profile' }, { page: 'profile' }],
+    ] as const)('S5-C30: the fetch body for %o has only the page and its id', async (open, wire) => {
+      mockedFetch.mockResolvedValue(streamResponse(['{"content":"Hi"}']));
+      await liveLabosAgentClient.chat({ threadId: 't-1', chatId: 'c-1', message: 'Hi', context: toChatContext(open) });
+
+      const sent = JSON.parse(mockedFetch.mock.calls[0][1].body).context;
+      expect(sent).toEqual(wire);
+      expect(sent).not.toHaveProperty('label');
+      expect(sent).not.toHaveProperty('entryPoint');
+    });
+
+    it('S5-C30: an intro context keeps the entry point and the label out of the body', async () => {
+      mockedFetch.mockResolvedValue(streamResponse(['{"content":"Hi"}']));
+      const open = {
+        page: 'intro',
+        introTarget: { type: 'team', uid: 't-1' },
+        label: 'Team page',
+        entryPoint: 'team-header',
+      } as const;
+      await liveLabosAgentClient.chat({ threadId: 't-1', chatId: 'c-1', message: 'Hi', context: toChatContext(open) });
+
+      expect(JSON.parse(mockedFetch.mock.calls[0][1].body).context).toEqual({
+        page: 'intro',
+        introTarget: { type: 'team', uid: 't-1' },
+      });
+    });
   });
 });

@@ -1,0 +1,201 @@
+@use 'styles/media';
+
+/*
+  The feedback button's place and stack (FeedbackFabButton.module.scss): 24px from the right, 72px from the
+  bottom above MobileBottomNav, 24px from tablet-landscape up. z-index 9: above the bottom nav (1), below the
+  panels and modals that cover a floating control.
+*/
+.corner {
+  position: fixed;
+  right: 24px;
+  bottom: 72px;
+  z-index: 9;
+  display: inline-flex;
+
+  @include media.tablet-landscape {
+    bottom: 24px;
+  }
+}
+
+/* A page with its own control in this corner (forum scroll-to-top): one step up, as the feedback button does. */
+:global(body:has([data-floating-corner-control])) .corner {
+  @include media.tablet-landscape {
+    bottom: 72px;
+  }
+}
+
+/* Kept mounted while the slot is open, so a close does not replay the arrival. */
+.cornerHidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* One white pill at the button's 48px height, holding the two tabs (dock prototype). */
+.dock {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 48px;
+  padding: 0 4px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 999px;
+  background: var(--background-neutral-default, #fff);
+  box-shadow: 0 6px 18px var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
+  animation: dockIn 280ms ease-out both;
+}
+
+@keyframes dockIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+  The feedback button's collapse on a 40px tab: no explicit width. The label animates its own max-width and
+  margin, the padding goes to 0, and min-width makes the settled tab a 40px disc.
+*/
+.tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 14px 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+  transition:
+    padding 0.28s ease,
+    background-color 0.15s,
+    color 0.15s;
+
+  > span:first-child,
+  svg {
+    flex-shrink: 0;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+      color: var(--foreground-neutral-primary, #0a0c11);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: -2px;
+  }
+}
+
+/* Feedback keeps the feedback button's brand fill, so members find it where it was. */
+.feedbackTab.feedbackTab {
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(27, 77, 255, 0.3);
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--foreground-brand-primary, #1b4dff);
+      color: #fff;
+    }
+  }
+
+  &:focus-visible {
+    outline-offset: 2px;
+  }
+}
+
+.tabLabel {
+  display: inline-flex;
+  align-items: center;
+  max-width: 160px;
+  margin-left: 8px;
+  overflow: hidden;
+  white-space: nowrap;
+  transition:
+    max-width 0.28s ease,
+    margin-left 0.28s ease,
+    opacity 0.18s ease;
+}
+
+.kbd {
+  margin-left: 6px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.06));
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 14px;
+
+  // A second guard: `useShowsKeyHint` already renders no hint on these screens.
+  @include media.no-fine-pointer {
+    display: none;
+  }
+
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+@mixin expanded-tab {
+  padding: 0 14px 0 10px;
+
+  .tabLabel {
+    max-width: 160px;
+    margin-left: 8px;
+    opacity: 1;
+  }
+}
+
+.dock[data-collapsed='true'] {
+  .tab {
+    padding: 0;
+  }
+
+  .tabLabel {
+    max-width: 0;
+    margin-left: 0;
+    opacity: 0;
+  }
+}
+
+@media (hover: hover) {
+  .dock[data-collapsed='true'] .tab:hover {
+    @include expanded-tab;
+  }
+}
+
+.dock[data-collapsed='true'] .tab:focus-visible {
+  @include expanded-tab;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dock {
+    animation: none;
+  }
+
+  .tab,
+  .tabLabel {
+    transition: none;
+  }
+}
+
+/*
+  LAB-3302: over the news story modal, from tablet-landscape up. The corner portals above the story's overlay
+  (z-index 9999) with the Agent tab only, so it sits on the scrim to the right of the 680px story card.
+*/
+.cornerOverModal {
+  z-index: 10000;
+}

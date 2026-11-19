@@ -3,8 +3,8 @@
  * (`contracts/lab-3272-labos-agent-api.md` in the LabOS Team project files).
  */
 
-/** The pages the agent knows. S3 adds `intro` (contract 8.1). S5 adds more values. */
-export type LabosAgentPage = 'news-story' | 'home' | 'intro';
+/** The pages the agent knows. S3 adds `intro` (contract 8.1). S5 adds `member`, `team`, `job`, `profile` (contract 9.2). */
+export type LabosAgentPage = 'news-story' | 'home' | 'intro' | 'member' | 'team' | 'job' | 'profile';
 
 /** The member or team of an intro draft (contract 8.1). Lower case, as in `proposals`. */
 export interface LabosAgentIntroTarget {
@@ -16,7 +16,13 @@ export interface LabosAgentIntroTarget {
 export type LabosAgentChatContext =
   | { page: 'news-story'; newsUid: string }
   | { page: 'home' }
-  | { page: 'intro'; introTarget: LabosAgentIntroTarget };
+  | { page: 'intro'; introTarget: LabosAgentIntroTarget }
+  /** S5 (contract 9.2): one id for each page, 1 to 64 characters. `job` with no `jobUid` is the job board. */
+  | { page: 'member'; memberUid: string }
+  | { page: 'team'; teamUid: string }
+  | { page: 'job'; jobUid?: string }
+  /** The member's own profile. No id: the backend reads the member from the session. */
+  | { page: 'profile' };
 
 /** Where "Ask the agent" sits for an intro. The same values as the intro request events (LAB-3296). */
 export type LabosAgentIntroEntryPoint = 'member-header' | 'team-header' | 'suggested-tab';
@@ -29,7 +35,18 @@ export type LabosAgentOpenContext =
   | { page: 'news-story'; newsUid: string; label?: string }
   | { page: 'home'; label?: string }
   /** S3: `entryPoint` is for the intro events only. The client never sends it. */
-  | { page: 'intro'; introTarget: LabosAgentIntroTarget; label?: string; entryPoint?: LabosAgentIntroEntryPoint };
+  | { page: 'intro'; introTarget: LabosAgentIntroTarget; label?: string; entryPoint?: LabosAgentIntroEntryPoint }
+  /**
+   * S5 (LAB-3302): the page chips of the corner and Ctrl/⌘ J. `toChatContext` sends the page and its id
+   * (contract 9.2). The label stays in the browser.
+   */
+  | { page: 'member'; memberUid: string; label?: string }
+  | { page: 'team'; teamUid: string; label?: string }
+  | { page: 'job'; jobUid?: string; label?: string }
+  | { page: 'profile'; label?: string };
+
+/** Every page an open context can name, the C1 values and the S5 client-only values. */
+export type LabosAgentOpenPage = LabosAgentOpenContext['page'];
 
 export interface LabosAgentChatRequest {
   threadId: string;
@@ -136,6 +153,10 @@ export type LabosAgentChatErrorCode =
   | 'NEWS_NOT_FOUND'
   /** C1, S3: `context.introTarget` does not exist (contract 8.5). */
   | 'INTRO_TARGET_NOT_FOUND'
+  /** C1, S5: the page of `context` does not exist, or the member cannot see it (contract 9.3). */
+  | 'MEMBER_NOT_FOUND'
+  | 'TEAM_NOT_FOUND'
+  | 'JOB_NOT_FOUND'
   | 'RATE_LIMITED'
   /** C2 only. */
   | 'ACTION_NOT_ALLOWED'
@@ -219,6 +240,8 @@ export interface LabosAgentTurn {
   /** Draft card state by `draftId`. No entry: `open` with the draft text. */
   draftCards: Record<string, LabosAgentDraftCardState>;
   error?: { code: LabosAgentChatErrorCode; status: number; message: string };
+  /** S5-C29: the panel put the text of this failed turn back in the composer. It does that once only. */
+  textRestored?: boolean;
   startedAt: number;
   endedAt?: number;
 }
@@ -227,4 +250,9 @@ export interface LabosAgentTurn {
 export interface LabosAgentChat {
   threadId: string;
   turns: LabosAgentTurn[];
+  /**
+   * S5-C29: C1 gave a page 404 (`MEMBER_NOT_FOUND`, `TEAM_NOT_FOUND`, `JOB_NOT_FOUND`) in this chat. A new open of
+   * this context then starts with the chip off, so a second send does not get the same 404.
+   */
+  pageUnreadable?: true;
 }

@@ -6,6 +6,7 @@ import type {
   LabosAgentConfirmRequest,
   LabosAgentConfirmResponse,
   LabosAgentDraft,
+  LabosAgentPage,
   LabosAgentProposal,
   LabosAgentStreamOptions,
 } from '@/types/labos-agent.types';
@@ -30,6 +31,11 @@ import { LabosAgentError, LABOS_AGENT_STALL_MARKER } from './labos-agent.errors'
  * - "not eligible": the agent refuses, with `drafts: []` (contract 8.3).
  * - A target uid that starts with `missing`: C1 gets a 404 `INTRO_TARGET_NOT_FOUND` before the stream.
  * - The draft card's Send calls the real C3 (`POST /v1/intro-requests`). The mock replaces C1 only.
+ *
+ * Page context (S5, contract 9.2 and 9.3):
+ * - `member`, `team`, `job` and `profile` pages get an answer that names the page.
+ * - A `memberUid`, `teamUid` or `jobUid` that starts with `missing`: C1 gets a 404 `MEMBER_NOT_FOUND`,
+ *   `TEAM_NOT_FOUND` or `JOB_NOT_FOUND` before the stream.
  *
  * A second C2 call on a closed proposal gets a 409 `PROPOSAL_CLOSED` with the stored `status`, like the backend.
  */
@@ -143,23 +149,49 @@ const introBody = (request: LabosAgentChatRequest): LabosAgentChatResponse => {
   };
 };
 
+/** S5: the step and the words for each page that the agent reads (contract 9.4). */
+const PAGE_READS: Partial<Record<LabosAgentPage, { step: string; what: string }>> = {
+  member: { step: 'Reading this member page', what: 'this member page' },
+  team: { step: 'Reading this team page', what: 'this team page' },
+  job: { step: 'Reading the job post', what: 'this job post or the job board' },
+  profile: { step: 'Reading your profile', what: 'your profile' },
+};
+
+/** S5: the 404 that C1 gives for a page uid that starts with `missing` (contract 9.3). */
+function missingPageError(request: LabosAgentChatRequest): LabosAgentError | null {
+  const c = request.context;
+  if (c?.page === 'member' && c.memberUid.startsWith('missing')) {
+    return new LabosAgentError(404, 'MEMBER_NOT_FOUND', 'The member was not found.');
+  }
+  if (c?.page === 'team' && c.teamUid.startsWith('missing')) {
+    return new LabosAgentError(404, 'TEAM_NOT_FOUND', 'The team was not found.');
+  }
+  if (c?.page === 'job' && c.jobUid?.startsWith('missing')) {
+    return new LabosAgentError(404, 'JOB_NOT_FOUND', 'The job opening was not found.');
+  }
+  return null;
+}
+
 export function mockChatBody(request: LabosAgentChatRequest): LabosAgentChatResponse {
   if (request.context?.page === 'intro') return introBody(request);
   const q = request.message.toLowerCase();
   const onStory = request.context?.page === 'news-story';
+  const pageRead = request.context ? PAGE_READS[request.context.page] : undefined;
   const newsUid = request.context?.page === 'news-story' ? request.context.newsUid : undefined;
   const useWeb = /web|latest|internet/.test(q);
 
   const steps = [
     'Understanding the question',
-    onStory ? 'Reading the news story' : 'Searching LabOS news',
+    onStory ? 'Reading the news story' : (pageRead?.step ?? 'Searching LabOS news'),
     ...(useWeb ? ['Searching the web'] : []),
     'Writing the answer',
   ];
 
   const lead = onStory
     ? 'This is a mock answer. The live agent will read this news story and answer your question about it.'
-    : 'This is a mock answer. The live agent will search LabOS news and answer your question.';
+    : pageRead
+      ? `This is a mock answer. The live agent will read ${pageRead.what} and answer your question about it.`
+      : 'This is a mock answer. The live agent will search LabOS news and answer your question.';
 
   const proposals = mockProposals(request.message, request.chatId);
   if (proposals.length > 0) {
@@ -206,6 +238,11 @@ async function chat(
   if (request.context?.page === 'intro' && request.context.introTarget.uid.startsWith('missing')) {
     await wait(STEP_MS, signal);
     throw new LabosAgentError(404, 'INTRO_TARGET_NOT_FOUND', 'The intro target was not found.');
+  }
+  const pageError = missingPageError(request);
+  if (pageError) {
+    await wait(STEP_MS, signal);
+    throw pageError;
   }
   const full = mockChatBody(request);
   const fail = /error/.test(request.message.toLowerCase());

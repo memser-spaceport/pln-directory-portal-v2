@@ -1,15 +1,17 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { clsx } from 'clsx';
 import Link from 'next/link';
 
 import { ChatInput } from '@/components/core/husky/ChatInput';
 import { AiSearchIcon } from '@/components/icons/AiSearchIcon';
 import { CloseIcon } from '@/components/icons/CloseIcon';
-import { useLabosAgentChat } from '@/services/labos-agent/hooks/useLabosAgentChat';
+import { PAGE_NOT_FOUND_CODES, useLabosAgentChat } from '@/services/labos-agent/hooks/useLabosAgentChat';
 import { isLabosAgentMock } from '@/services/labos-agent/labos-agent.config';
+import { keepInteractive } from '@/services/labos-agent/labos-agent.dialogs';
 import { useLabosAgentStore } from '@/services/labos-agent/store';
-import type { LabosAgentOpenContext } from '@/types/labos-agent.types';
+import type { LabosAgentOpenContext, LabosAgentOpenPage } from '@/types/labos-agent.types';
 
 import { LabosAgentTurn } from '../LabosAgentTurn/LabosAgentTurn';
 
@@ -18,20 +20,37 @@ import s from './LabosAgentPanel.module.scss';
 interface LabosAgentPanelProps {
   context: LabosAgentOpenContext | null;
   onClose: () => void;
+  /** LAB-3302: the panel opened over the news story modal. It goes above the story's overlay. */
+  overModal?: boolean;
 }
 
-const PROMPTS: Record<LabosAgentOpenContext['page'] | 'none', string[]> = {
+const NETWORK_PROMPTS = ['What happened in the network this week?'];
+
+/** S5 pages (member, team, job, profile) get the network prompt only. Page prompts wait for a design pass. */
+const PROMPTS: Record<LabosAgentOpenPage | 'none', string[]> = {
   'news-story': ['Summarize this story', 'Why does this matter?', 'Which other teams work on this?'],
-  home: ['What happened in the network this week?'],
+  home: NETWORK_PROMPTS,
   intro: [],
-  none: ['What happened in the network this week?'],
+  member: NETWORK_PROMPTS,
+  team: NETWORK_PROMPTS,
+  job: NETWORK_PROMPTS,
+  profile: NETWORK_PROMPTS,
+  none: NETWORK_PROMPTS,
+};
+
+const PAGE_LABELS: Record<LabosAgentOpenPage, string> = {
+  'news-story': 'News story',
+  home: 'Home',
+  intro: 'Intro request',
+  member: 'Member profile',
+  team: 'Team page',
+  job: 'Jobs',
+  profile: 'Your profile',
 };
 
 const contextLabel = (context: LabosAgentOpenContext | null) => {
   if (!context) return null;
-  if (context.label) return context.label;
-  if (context.page === 'intro') return 'Intro request';
-  return context.page === 'news-story' ? 'News story' : 'Home';
+  return context.label || PAGE_LABELS[context.page];
 };
 
 /**
@@ -39,15 +58,19 @@ const contextLabel = (context: LabosAgentOpenContext | null) => {
  * page it was opened on (`context`), shows its steps, streams its answer and lists its sources. S1: answers only, no
  * writes. Phones: a full-screen sheet. From 960px: a 480px column over the page's right edge.
  */
-export function LabosAgentPanel({ context, onClose }: LabosAgentPanelProps) {
-  const { turns, busy, send, retry, stop, newChat, decide, editDraft, sendDraft, cancelDraft } =
+export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAgentPanelProps) {
+  const { turns, busy, send, retry, stop, newChat, decide, editDraft, sendDraft, cancelDraft, markTextRestored } =
     useLabosAgentChat(context);
   const prefill = useLabosAgentStore((st) => st.prefill);
   const clearPrefill = useLabosAgentStore((st) => st.actions.clearPrefill);
+  const readsPage = useLabosAgentStore((st) => st.readsPage);
+  const setReadsPage = useLabosAgentStore((st) => st.actions.setReadsPage);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const threadRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const label = contextLabel(context);
+  /* LAB-3302: the chip ✕ stops the page context. The empty state then talks about the network only. */
+  const page = readsPage ? (context?.page ?? 'none') : 'none';
   /* The panel is client-only, so localStorage is safe to read here. */
   const [mock] = useState(() => isLabosAgentMock());
 
@@ -66,13 +89,38 @@ export function LabosAgentPanel({ context, onClose }: LabosAgentPanelProps) {
     clearPrefill();
   }, [prefill, clearPrefill]);
 
-  /* Esc closes the panel from anywhere inside it. */
+  /*
+   * S5-C29: C1 cannot read the page of the chip (404 MEMBER_NOT_FOUND, TEAM_NOT_FOUND or JOB_NOT_FOUND). The turn
+   * keeps the member's text, and the text goes back in an empty composer, so the member can remove the chip and send.
+   * Once only: a new open of the panel does not put the text back again (the chip is off then, see `openAgent`).
+   */
+  const lastTurn = turns[turns.length - 1];
+  const pageErrorTurn =
+    lastTurn?.status === 'error' &&
+    lastTurn.error &&
+    !lastTurn.textRestored &&
+    PAGE_NOT_FOUND_CODES.has(lastTurn.error.code)
+      ? lastTurn
+      : null;
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!pageErrorTurn || !input) return;
+    if (!input.value.trim()) input.value = pageErrorTurn.message;
+    markTextRestored(pageErrorTurn.id);
+  }, [pageErrorTurn, markTextRestored]);
+
+  /*
+   * Esc closes the panel from anywhere inside it. Window capture runs before `Modal`'s document capture, so Esc in the
+   * panel over a news story closes the panel only, not the story.
+   */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && panelRef.current?.contains(document.activeElement)) onClose();
+      if (e.key !== 'Escape' || !panelRef.current?.contains(document.activeElement)) return;
+      e.stopImmediatePropagation();
+      onClose();
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
   }, [onClose]);
 
   /* Keep the newest words in view while they arrive. */
@@ -86,7 +134,14 @@ export function LabosAgentPanel({ context, onClose }: LabosAgentPanelProps) {
   };
 
   return (
-    <aside ref={panelRef} className={s.panel} aria-label="Agent">
+    <aside
+      ref={(el) => {
+        panelRef.current = el;
+        if (overModal) keepInteractive(el);
+      }}
+      className={clsx(s.panel, overModal && s.overModal)}
+      aria-label="Agent"
+    >
       <header className={s.head}>
         <span className={s.headTitle}>
           <AiSearchIcon size={18} />
@@ -122,14 +177,14 @@ export function LabosAgentPanel({ context, onClose }: LabosAgentPanelProps) {
           <div className={s.empty}>
             <h2 className={s.hello}>What do you want to know?</h2>
             <p className={s.helloSub}>
-              {context?.page === 'news-story'
+              {page === 'news-story'
                 ? 'I read this story with you and can search LabOS news and the web.'
-                : context?.page === 'intro'
+                : page === 'intro'
                   ? 'I can write a draft of your intro request. You check it and send it.'
                   : 'I can search LabOS news and the web for you.'}
             </p>
             <ul className={s.prompts}>
-              {PROMPTS[context?.page ?? 'none'].map((p) => (
+              {PROMPTS[page].map((p) => (
                 <li key={p}>
                   <button type="button" className={s.prompt} onClick={() => submit(p)}>
                     {p}
@@ -158,20 +213,40 @@ export function LabosAgentPanel({ context, onClose }: LabosAgentPanelProps) {
       </div>
 
       <div className={s.foot}>
-        {label &&
-          (context?.page === 'news-story' ? (
-            <Link
-              href={`/?news=${encodeURIComponent(context.newsUid)}`}
-              className={s.context}
-              title="The agent reads this story. Open the story."
+        {label && readsPage && (
+          <span className={s.contextRow}>
+            {context?.page === 'news-story' ? (
+              <Link
+                href={`/?news=${encodeURIComponent(context.newsUid)}`}
+                className={s.context}
+                title="The agent reads this story. Open the story."
+              >
+                <span className={s.contextText}>{label}</span>
+              </Link>
+            ) : (
+              <span className={s.context} title="The agent reads the page you opened it on">
+                <span className={s.contextText}>{label}</span>
+              </span>
+            )}
+            <button
+              type="button"
+              className={s.contextRemove}
+              aria-label={`Stop reading ${label}`}
+              title="The agent stops reading this page"
+              onClick={() => {
+                setReadsPage(false);
+                inputRef.current?.focus();
+              }}
             >
-              <span className={s.contextText}>{label}</span>
-            </Link>
-          ) : (
-            <span className={s.context} title="The agent reads the page you opened it on">
-              <span className={s.contextText}>{label}</span>
-            </span>
-          ))}
+              <CloseIcon />
+            </button>
+          </span>
+        )}
+        {label && !readsPage && (
+          <button type="button" className={s.contextAdd} onClick={() => setReadsPage(true)}>
+            + Read {label}
+          </button>
+        )}
         <ChatInput
           ref={inputRef}
           className={s.composer}

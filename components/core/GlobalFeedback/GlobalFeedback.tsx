@@ -15,6 +15,8 @@ import { useGetMemberPreferences } from '@/services/members/hooks/useGetMemberPr
 import { useFeedbackShortcuts } from '@/components/page/ai-apps/hooks/useFeedbackShortcuts';
 import { FeedbackFabButton } from '@/components/page/ai-apps/components/FeedbackFabButton';
 import { GiveAiAppFeedbackDialog } from '@/components/page/ai-apps/components/GiveAiAppFeedbackDialog';
+import { LabosAgentCorner } from '@/components/core/labos-agent/LabosAgentCorner/LabosAgentCorner';
+import { useLabosAgentAccessState } from '@/services/labos-agent/hooks/useLabosAgentAccess';
 
 interface Props {
   isLoggedIn?: boolean;
@@ -31,6 +33,10 @@ interface Props {
  * site chrome at all, so they get no button either. A member who hid the button
  * (`showFeedbackButton` preference) keeps the drawer for the (?) menu too. `?`
  * belongs to the page here, so only the open shortcut is taken.
+ *
+ * LAB-3302: for a member with agent access (`useLabosAgentAccess`), the button becomes the agent corner: one pill
+ * with Agent and Feedback tabs, plus Ctrl/⌘ J. The Feedback tab opens this same drawer. Everyone else keeps the
+ * button as it was.
  */
 export function GlobalFeedback({ isLoggedIn }: Props) {
   const pathname = usePathname() ?? '';
@@ -41,10 +47,16 @@ export function GlobalFeedback({ isLoggedIn }: Props) {
   const { data: preferences, isLoading } = useGetMemberPreferences(isLoggedIn ? uid : undefined);
   const setShowFeedbackButton = useSetShowFeedbackButton(uid);
   const [isFormHidden, setIsFormHidden] = useState(false);
+  const agentAccess = useLabosAgentAccessState();
 
   /* Off until the preference loads, so a member who hid the button never sees it flash in. */
   const buttonOn = !isLoading && preferences?.memberPreferences?.showFeedbackButton !== false;
-  const showButton = Boolean(isLoggedIn) && buttonOn && !isAiAppsRoute(pathname) && !isBareRoute(pathname);
+  const hasCorner = Boolean(isLoggedIn) && !isAiAppsRoute(pathname) && !isBareRoute(pathname);
+  const showButton = hasCorner && buttonOn;
+  /* The agent corner waits for the preference too, so its Feedback tab does not flash in. */
+  const showAgentCorner = hasCorner && agentAccess === 'on' && !isLoading;
+  /* LAB-3302: while the agent access is `unknown`, neither shows, so the button does not flash before the corner. */
+  const showFab = showButton && agentAccess === 'off';
 
   const openFrom = useCallback(
     (source: FeedbackButtonSource) => {
@@ -54,6 +66,7 @@ export function GlobalFeedback({ isLoggedIn }: Props) {
     [analytics, pathname, openDrawer],
   );
   const onOpenKey = useCallback(() => openFrom('shortcut'), [openFrom]);
+  const onOpenFloating = useCallback(() => openFrom('floating-button'), [openFrom]);
 
   /* The drawer screenshots this page. Fetch its fonts while idle, before Give feedback. */
   useEffect(() => {
@@ -71,13 +84,17 @@ export function GlobalFeedback({ isLoggedIn }: Props) {
 
   return (
     <>
-      {showButton && (
-        <FeedbackFabButton
-          name="Give feedback"
-          isDrawerOpen={open}
-          isHidden={isFormHidden}
-          onClick={() => openFrom('floating-button')}
+      {showAgentCorner && (
+        <LabosAgentCorner
+          showFeedback={showButton}
+          feedbackOpen={open}
+          feedbackHidden={isFormHidden}
+          onOpenFeedback={onOpenFloating}
+          onCloseFeedback={closeDrawer}
         />
+      )}
+      {showFab && (
+        <FeedbackFabButton name="Give feedback" isDrawerOpen={open} isHidden={isFormHidden} onClick={onOpenFloating} />
       )}
       <GiveAiAppFeedbackDialog
         variant="drawer"

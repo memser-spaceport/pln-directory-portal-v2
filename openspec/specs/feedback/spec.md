@@ -167,3 +167,7 @@ A successful Contact Support submit SHALL record `contact-support-submitted` wit
 #### Scenario: Submit fails
 - **WHEN** the submit request fails
 - **THEN** PostHog gets no `contact-support-submitted`
+
+### Requirement: The agent corner holds the feedback button for pilot members
+
+For a member with agent access, the feedback button SHALL become the Feedback tab of the agent corner (LAB-3302, S5-R2). The tab SHALL open the same drawer, with the same `feedback-button-click` event and `source` `floating-button`. Alt+F, the (?) menu and the hide preference SHALL work as before. Every other member SHALL keep the feedback button with no change. Until the agent access check returns, the page SHALL show no feedback button and no corner, so the button does not flash. An access error SHALL show the feedback button.

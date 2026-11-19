@@ -1,4 +1,4 @@
-import type { LabosAgentPage } from '@/types/labos-agent.types';
+import type { LabosAgentOpenPage } from '@/types/labos-agent.types';
 
 /**
  * LabOS agent events (LAB-3298). STUB: the S0 event spec on LAB-3272 is not approved yet, so these handlers send
@@ -6,7 +6,7 @@ import type { LabosAgentPage } from '@/types/labos-agent.types';
  * message text, names or emails to an event.
  */
 export interface LabosAgentEventContext {
-  page: LabosAgentPage | 'none';
+  page: LabosAgentOpenPage | 'none';
 }
 
 export function useLabosAgentAnalytics() {

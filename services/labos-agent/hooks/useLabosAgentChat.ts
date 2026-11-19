@@ -36,6 +36,16 @@ const NO_TURNS: LabosAgentTurn[] = [];
 /** The open stream of each chat, by `chatKey`. Module scope, so a stream outlives the panel and Stop still works. */
 const streams = new Map<string, AbortController>();
 
+/** S5-C29: C1 cannot read the page of the chip (contract 9.3). The turn keeps the member's text. */
+export const PAGE_NOT_FOUND_TEXT = 'The agent cannot read this page. Remove the page chip and ask again.';
+
+/** The C1 codes for a page that the agent cannot read. */
+export const PAGE_NOT_FOUND_CODES: ReadonlySet<LabosAgentChatErrorCode> = new Set([
+  'MEMBER_NOT_FOUND',
+  'TEAM_NOT_FOUND',
+  'JOB_NOT_FOUND',
+]);
+
 /** The text the panel shows for an error code. Plain words, no codes. */
 export function errorText(code: LabosAgentChatErrorCode, retryAfterSeconds?: number): string {
   switch (code) {
@@ -47,6 +57,10 @@ export function errorText(code: LabosAgentChatErrorCode, retryAfterSeconds?: num
       return 'The agent cannot find this news story.';
     case 'INTRO_TARGET_NOT_FOUND':
       return 'The agent cannot find this member or team.';
+    case 'MEMBER_NOT_FOUND':
+    case 'TEAM_NOT_FOUND':
+    case 'JOB_NOT_FOUND':
+      return PAGE_NOT_FOUND_TEXT;
     case 'RATE_LIMITED':
       return retryAfterSeconds
         ? `You sent many messages. Try again in ${retryAfterSeconds} seconds.`
@@ -118,7 +132,7 @@ export function draftEventContext(
 export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
   const key = chatKey(context);
   const turns = useLabosAgentStore((s) => s.chats[key]?.turns ?? NO_TURNS);
-  const { updateTurns, resetChat } = useLabosAgentStore((s) => s.actions);
+  const { updateTurns, resetChat, markPageUnreadable } = useLabosAgentStore((s) => s.actions);
   const analytics = useLabosAgentAnalytics();
   const introAnalytics = useIntroRequestAnalytics();
   const page = context?.page ?? 'none';
@@ -155,7 +169,13 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
       streams.set(key, controller);
       try {
         const body = await getLabosAgentClient().chat(
-          { threadId, chatId: id, message, context: toChatContext(context) },
+          // LAB-3302: after the member removes the page chip, the request has no page context.
+          {
+            threadId,
+            chatId: id,
+            message,
+            context: toChatContext(useLabosAgentStore.getState().readsPage ? context : null),
+          },
           {
             signal: controller.signal,
             onUpdate: (partial) => {
@@ -184,6 +204,8 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
           error: { code: e.code, status: e.status, message: errorText(e.code, e.retryAfterSeconds) },
           endedAt: Date.now(),
         });
+        // S5-C29: the next open of this context starts with the chip off.
+        if (PAGE_NOT_FOUND_CODES.has(e.code)) markPageUnreadable(key);
         analytics.onAgentErrorShown({ page, code: e.code, status: e.status });
       } finally {
         if (streams.get(key) === controller) streams.delete(key);
@@ -191,7 +213,7 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
     },
     // `analytics` is a stub with new identities each render; the handlers hold no state.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [context, key, page, patch, updateTurns, introAnalytics.onDialogOpened],
+    [context, key, page, patch, updateTurns, markPageUnreadable, introAnalytics.onDialogOpened],
   );
 
   const busy = turns.some((t) => t.status === 'working');
@@ -360,5 +382,8 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
     [context, findDraft, introAnalytics, setDraftCard],
   );
 
-  return { turns, busy, send, retry, stop, newChat, decide, editDraft, sendDraft, cancelDraft };
+  /** S5-C29: the panel put the text of a failed turn back in the composer. It does that once only. */
+  const markTextRestored = useCallback((turnId: string) => patch(turnId, { textRestored: true }), [patch]);
+
+  return { turns, busy, send, retry, stop, newChat, decide, editDraft, sendDraft, cancelDraft, markTextRestored };
 }

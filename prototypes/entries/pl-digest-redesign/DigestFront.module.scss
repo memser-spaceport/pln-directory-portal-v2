@@ -1,0 +1,924 @@
+@import 'styles/media.scss';
+
+/* PL Network Digest — the issue page as a news front.
+   Patterns from Mobbin news apps: NYT web front (lead + double rule),
+   SCMP "My Daily 5" (numbered issue list), Digg / Threads (thumbnail rows),
+   Apple News (run-in briefs), Fey / OKX (big-figure stat).
+   Tokens + fallbacks from prototypes/CLAUDE.md; type on 12/14/16/18/20/24/28. */
+
+$rule: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+$ink: var(--foreground-neutral-primary, #0a0c11);
+$ink-2: var(--foreground-neutral-secondary, #455468);
+$ink-3: var(--foreground-neutral-tertiary, #8897ae);
+$brand: var(--foreground-brand-primary, #1b4dff);
+
+.page {
+  background: var(--background-neutral-default, #ffffff);
+  padding: 0 0 96px;
+}
+
+.inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 32px;
+
+  @include mobile-only {
+    padding: 0 16px;
+  }
+}
+
+/* ---------- Masthead ---------- */
+
+.masthead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 32px 0 16px;
+  border-bottom: 3px double $ink;
+
+  @include mobile-only {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 24px;
+  }
+}
+
+.brand {
+  margin: 0;
+  font-size: 28px;
+  line-height: 36px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  color: $ink;
+
+  @include mobile-only {
+    font-size: 24px;
+    line-height: 32px;
+  }
+}
+
+.edition {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: $ink-2;
+}
+
+.editionNo {
+  color: $brand;
+  font-weight: 600;
+}
+
+.mastShare {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* ---------- Front: lead + In this issue ---------- */
+
+.front {
+  scroll-margin-top: 88px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 32px;
+  padding: 32px 0;
+  border-bottom: 1px solid $rule;
+
+  @include breakpoint-1024 {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 48px;
+  }
+}
+
+.lead {
+  scroll-margin-top: 88px;
+  min-width: 0;
+}
+
+.leadImage {
+  margin-bottom: 20px;
+  aspect-ratio: 2 / 1;
+
+  @include mobile-only {
+    aspect-ratio: 16 / 9;
+  }
+}
+
+.leadTitle {
+  margin: 0 0 12px;
+  font-size: 28px;
+  line-height: 36px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  text-wrap: balance;
+
+  @include mobile-only {
+    font-size: 24px;
+    line-height: 32px;
+  }
+}
+
+.leadDek {
+  margin: 0 0 16px;
+  font-size: 16px;
+  line-height: 26px;
+  color: $ink-2;
+  max-width: 68ch;
+}
+
+.titleLink {
+  color: $ink;
+  text-decoration: none;
+
+  &:hover {
+    color: $brand;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+  }
+}
+
+.kicker {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 16px;
+  color: $ink-2;
+
+}
+
+/* Why it matters / Yes, but: a brand rule on the left, Axios-style lines. */
+.whyBox {
+  margin: 0 0 12px;
+  padding: 4px 0 4px 16px;
+  border-left: 2px solid $brand;
+}
+
+.why {
+  margin: 0 0 8px;
+  font-size: 14px;
+  line-height: 22px;
+  color: $ink;
+  max-width: 65ch;
+
+  .whyBox &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.whyLabel {
+  font-weight: 600;
+
+  &::after {
+    content: ':';
+  }
+}
+
+.body {
+  margin: 0 0 10px;
+  font-size: 14px;
+  line-height: 22px;
+  color: $ink-2;
+  max-width: 65ch;
+}
+
+/* No rule above Sources · Share (user, 2026-11-18): the story's own spacing separates it. */
+.storyFoot {
+  padding-top: 12px;
+}
+
+/* SCMP "My Daily 5": big numerals, team kicker, headline, thumbnail. */
+.frontSide {
+  min-width: 0;
+
+  @include breakpoint-1024 {
+    padding-left: 24px;
+    border-left: 1px solid $rule;
+  }
+}
+
+.toc {
+  @include breakpoint-1024 {
+    position: sticky;
+    top: 88px;
+  }
+}
+
+.tocTitle,
+.tocAlsoTitle {
+  margin: 0 0 4px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: $ink-2;
+}
+
+.tocList {
+  list-style: none;
+  margin: 0 0 24px;
+  padding: 0;
+
+  li + li {
+    border-top: 1px solid $rule;
+  }
+}
+
+.tocItem {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 64px;
+  gap: 12px;
+  align-items: start;
+  padding: 14px 0;
+  color: inherit;
+  text-decoration: none;
+
+  &:hover .tocHeadline {
+    color: $brand;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-default, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.tocNum {
+  font-size: 24px;
+  line-height: 28px;
+  font-weight: 700;
+  color: $brand;
+  font-variant-numeric: tabular-nums;
+}
+
+.tocText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tocTeam {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  color: $ink-2;
+}
+
+.tocHeadline {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: $ink;
+  transition: color 0.15s ease;
+}
+
+.tocThumb {
+  width: 64px;
+  aspect-ratio: 1;
+  border-radius: 6px;
+}
+
+.tocAlso {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tocAlsoLink {
+  display: inline-block;
+  padding: 6px 12px;
+  border: 1px solid $rule;
+  border-radius: 9999px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: $ink-2;
+  text-decoration: none;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: $ink;
+  }
+
+  @include mobile-only {
+    padding: 10px 14px;
+  }
+}
+
+/* ---------- Sections ---------- */
+
+.section {
+  scroll-margin-top: 88px;
+  min-width: 0;
+  padding: 32px 0;
+  border-bottom: 1px solid $rule;
+}
+
+.sectionHead {
+  margin-bottom: 8px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: $ink;
+}
+
+.sectionSub {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: $ink-2;
+}
+
+/* Two sections side by side, a hairline between them (desktop). */
+.band {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  border-bottom: 1px solid $rule;
+
+  > .section {
+    border-bottom: none;
+  }
+
+  > .section + .section {
+    border-top: 1px solid $rule;
+  }
+
+  @include breakpoint-1024 {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+
+    > .section:has(+ .section) {
+      padding-right: 48px;
+    }
+
+    > .section + .section {
+      border-top: none;
+      padding-left: 48px;
+      border-left: 1px solid $rule;
+    }
+
+    /* Forum off: the dates section takes the whole row. */
+    > .section:only-child {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+/* ---------- Story rows (Digg) ---------- */
+
+.row {
+  scroll-margin-top: 88px;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) 240px;
+  gap: 24px;
+  padding: 24px 0;
+
+  & + & {
+    border-top: 1px solid $rule;
+  }
+
+  &:target {
+    animation: rowTarget 1.6s ease-out;
+  }
+
+  @include tablet-portrait-only {
+    grid-template-columns: 32px minmax(0, 1fr) 180px;
+  }
+
+  @include mobile-only {
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: 8px 12px;
+  }
+}
+
+@keyframes rowTarget {
+  from {
+    background: var(--background-brand-subtle, #f2f5ff);
+  }
+  to {
+    background: transparent;
+  }
+}
+
+.rowNum {
+  font-size: 24px;
+  line-height: 28px;
+  font-weight: 700;
+  color: $brand;
+  font-variant-numeric: tabular-nums;
+}
+
+.rowMain {
+  min-width: 0;
+}
+
+.rowTitle {
+  margin: 0 0 8px;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  text-wrap: balance;
+}
+
+.rowImage {
+  aspect-ratio: 4 / 3;
+
+  @include mobile-only {
+    grid-column: 2;
+    grid-row: 1;
+    aspect-ratio: 16 / 9;
+  }
+}
+
+/* On phones the image goes above the text in the same column. */
+@include mobile-only {
+  .row .rowMain {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .row .rowNum {
+    grid-row: 1 / span 2;
+  }
+}
+
+/* ---------- In brief (Apple News) ---------- */
+
+.brief {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+
+.briefItem {
+  scroll-margin-top: 88px;
+  display: flex;
+  gap: 12px;
+  padding: 14px 0;
+
+  & + & {
+    border-top: 1px solid $rule;
+  }
+}
+
+.briefMain {
+  min-width: 0;
+}
+
+.briefLine {
+  margin: 0 0 6px;
+  font-size: 14px;
+  line-height: 22px;
+  color: $ink-2;
+}
+
+.briefTeam {
+  font-weight: 700;
+  color: $ink;
+  text-decoration: none;
+
+  &:hover {
+    color: $brand;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
+.briefMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: $ink-2;
+}
+
+/* ---------- Deal (Fey / OKX big figure) ---------- */
+
+.dealCard {
+  margin-top: 16px;
+  padding: 20px;
+  border: 1px solid $rule;
+  border-radius: 12px;
+  background: var(--background-neutral-subtle, #f7f8fa);
+}
+
+.dealFigure {
+  margin: 0;
+  font-size: 28px;
+  line-height: 36px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  color: $ink;
+  font-variant-numeric: tabular-nums;
+}
+
+.dealWho {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 20px;
+  color: $ink-2;
+}
+
+.note {
+  margin: 12px 0 0;
+  font-size: 12px;
+  line-height: 18px;
+  color: $ink-2;
+}
+
+/* ---------- Press (Threads trending) ---------- */
+
+.press {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: 48px;
+
+  li {
+    border-top: 1px solid $rule;
+  }
+
+  li:first-child {
+    border-top: none;
+  }
+
+  @include tablet-landscape {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    li:nth-child(2) {
+      border-top: none;
+    }
+  }
+}
+
+.pressRow {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 14px 0;
+  color: inherit;
+  text-decoration: none;
+
+  &:hover .pressHeadline {
+    color: $brand;
+  }
+}
+
+.pressMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.pressOutlet {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  color: $ink-2;
+}
+
+.pressHeadline {
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 600;
+  color: $ink;
+  transition: color 0.15s ease;
+}
+
+.pressDate {
+  font-size: 12px;
+  line-height: 16px;
+  color: $ink-3;
+}
+
+.pressThumb {
+  width: 88px;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  flex-shrink: 0;
+
+  @include mobile-only {
+    width: 64px;
+  }
+}
+
+/* ---------- Signals (stat tiles) ---------- */
+
+.tiles {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+
+  @include breakpoint-1024 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 100%;
+  padding: 16px;
+  border: 1px solid $rule;
+  border-radius: 12px;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+}
+
+.tileFigure {
+  font-size: 28px;
+  line-height: 36px;
+  font-weight: 700;
+  color: $brand;
+  font-variant-numeric: tabular-nums;
+}
+
+.tileLabel {
+  font-size: 14px;
+  line-height: 20px;
+  color: $ink-2;
+}
+
+/* ---------- Editor's take ---------- */
+
+.take {
+  padding: 32px;
+  border-radius: 12px;
+  background: var(--background-brand-subtle, #f2f5ff);
+
+  @include mobile-only {
+    padding: 24px 16px;
+  }
+}
+
+/* Text left, image in the column the 68ch text leaves empty (user, 2026-11-18: "add image here").
+   Below 1024 it sits on top of the box, at the side images' phone 16:9. */
+.takeGrid {
+  display: grid;
+  gap: 16px;
+
+  @include breakpoint-1024 {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 40px;
+    align-items: start;
+  }
+}
+
+.takeText {
+  min-width: 0;
+}
+
+.takeImage {
+  @include breakpoint-1024 {
+    order: 2;
+    margin-top: 24px;
+  }
+}
+
+.takeKicker {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: $brand;
+}
+
+.takeTitle {
+  margin: 0 0 16px;
+  max-width: 40ch;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: $ink;
+  text-wrap: balance;
+}
+
+.takeBody {
+  margin: 0 0 12px;
+  max-width: 68ch;
+  font-size: 16px;
+  line-height: 26px;
+  color: $ink;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+/* ---------- Forum + dates ---------- */
+
+.threads {
+  list-style: none;
+  margin: 8px 0 12px;
+  padding: 0;
+
+  li + li {
+    border-top: 1px solid $rule;
+  }
+}
+
+.thread {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px 0;
+  color: inherit;
+  text-decoration: none;
+
+  &:hover .threadTitle {
+    color: $brand;
+  }
+}
+
+.threadNum {
+  font-size: 20px;
+  line-height: 24px;
+  font-weight: 700;
+  color: $ink-3;
+  font-variant-numeric: tabular-nums;
+}
+
+.threadText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.threadTitle {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: $ink;
+  transition: color 0.15s ease;
+}
+
+.threadMeta {
+  font-size: 12px;
+  line-height: 16px;
+  color: $ink-2;
+}
+
+.events {
+  list-style: none;
+  margin: 8px 0 12px;
+  padding: 0;
+}
+
+.event {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 16px;
+  padding: 12px 0;
+
+  & + & {
+    border-top: 1px solid $rule;
+  }
+}
+
+.eventDate {
+  align-self: start;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--background-neutral-subtle, #f7f8fa);
+  border: 1px solid $rule;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  text-align: center;
+  color: $ink;
+  font-variant-numeric: tabular-nums;
+}
+
+.eventText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.eventTitle {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: $ink;
+}
+
+.eventNote {
+  font-size: 12px;
+  line-height: 18px;
+  color: $ink-2;
+}
+
+/* ---------- Closer + your turn ---------- */
+
+.closer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  padding: 24px 0;
+  border-bottom: 1px solid $rule;
+
+  @include tablet-landscape {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 48px;
+  }
+}
+
+.closerItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: $ink;
+}
+
+.closerLabel {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: $ink-2;
+}
+
+.closerMeta {
+  color: $ink-2;
+}
+
+.turn {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  padding-top: 32px;
+
+  @include tablet-landscape {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+.turnCard {
+  padding: 24px;
+  border: 1px solid $rule;
+  border-radius: 12px;
+
+  @include mobile-only {
+    padding: 20px 16px;
+  }
+}
+
+.turnTitle {
+  margin: 0 0 8px;
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 700;
+  color: $ink;
+}
+
+.turnText {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 20px;
+  color: $ink-2;
+}

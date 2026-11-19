@@ -1,0 +1,217 @@
+# Spec Delta
+
+## ADDED Requirements
+
+### Requirement: One Events section on the member profile
+
+With the event drawer flag on, a member profile SHALL show one Events section in place of the IRL contributions block. It holds two groups: what the member is going to, and Contributions (past events). With the flag off, the profile SHALL show the IRL contributions block as today.
+
+#### Scenario: Flag off
+
+- **GIVEN** the build has `NEXT_PUBLIC_SHOW_EVENT_DRAWER` unset and a member with past events
+- **WHEN** anyone opens the member's profile
+- **THEN** the profile shows the IRL contributions block as today
+
+### Requirement: The Events section's title and group labels
+
+When both groups are present, the section SHALL be titled "Events", with the group labels "<First name> is going to" (or "You're going to" for the owner) and "Contributions". When only one group is present, there SHALL be no group labels. The section SHALL then be titled:
+- "Events <First name> is going to" ("Events you are going to" for the owner), or
+- "Past events".
+
+With neither group, the section SHALL be absent.
+
+#### Scenario: Only past events
+
+- **GIVEN** a member with three past events and nothing upcoming
+- **WHEN** another signed-in member opens the profile
+- **THEN** the section is titled "Past events", with no group labels
+
+#### Scenario: Both groups
+
+- **GIVEN** Ana is going to two events and has three past events
+- **WHEN** another signed-in member opens Ana's profile
+- **THEN** the section is titled "Events", with "Ana is going to" above the upcoming cards and "Contributions" above the past cards
+
+### Requirement: Upcoming event cards
+
+Each upcoming event SHALL be a grey card in a two-column grid (one column on mobile). A card shows:
+- a date tile (month, day);
+- the title;
+- the city, or the date range and city for a multi-day event;
+- the member's role (Host, Speaker, Sponsor) when it isn't plain attendance;
+- up to three faces and "N going";
+- "You're going too" when the viewer is also going.
+
+Pressing the card's title SHALL open the event drawer on that event. Upcoming events SHALL be soonest first.
+
+#### Scenario: Viewer going to the same event
+
+- **GIVEN** Ana and the viewer are both going to event A
+- **WHEN** the viewer opens Ana's profile
+- **THEN** event A's card shows "You're going too"
+
+#### Scenario: Card opens the drawer
+
+- **WHEN** a signed-in member presses an upcoming card's title
+- **THEN** the event drawer opens on that event
+
+### Requirement: Past event cards
+
+Each past event SHALL be the same grey card. The date tile shows the month and year, followed by the event name, the city and any role that isn't plain attendance. The city SHALL be the event location's text up to its first comma, and absent when there is none. Past cards SHALL be newest first and SHALL NOT be links.
+
+#### Scenario: Past event with a role
+
+- **GIVEN** a member who spoke at "Founders Forum" in "Lisbon, Portugal" in March 2026
+- **WHEN** anyone opens their profile
+- **THEN** a past card shows "MAR", "2026", "Founders Forum", "Lisbon" and a "Speaker" tag
+
+### Requirement: Long lists show four cards per group
+
+Each group SHALL show at most 4 cards, then "Show all N upcoming events" or "Show all N past events". Pressing it SHALL show the rest of that group in place.
+
+#### Scenario: Seven past events
+
+- **GIVEN** a member with seven past events
+- **WHEN** anyone opens their profile
+- **THEN** four past cards show, then "Show all 7 past events"
+- **AND** pressing it shows all seven
+
+### Requirement: Who sees a member's upcoming events
+
+Upcoming events SHALL be shown to signed-in members only. Signed-out visitors SHALL see past events only. An event the member chose not to show on their profile SHALL be shown only to the member themself. The server HTML SHALL contain no upcoming events.
+
+#### Scenario: Signed-out visitor
+
+- **GIVEN** a member going to two events with three past events
+- **WHEN** a signed-out visitor opens the profile
+- **THEN** the section is titled "Past events" and shows the three past events only
+
+#### Scenario: Hidden event
+
+- **GIVEN** Ana is going to event A and does not show it on her profile
+- **WHEN** another signed-in member opens Ana's profile
+- **THEN** event A is not shown
+
+### Requirement: Where the Events section sits
+
+The Events section SHALL sit under Office Hours when the viewer sees at least one upcoming event, and always for the owner. Otherwise it SHALL sit where the IRL contributions block sits today, after Contributions and before Repositories.
+
+#### Scenario: Member with upcoming plans
+
+- **GIVEN** a member going to one event
+- **WHEN** another signed-in member opens the profile
+- **THEN** the Events section is directly under Office Hours
+
+#### Scenario: Member with past events only
+
+- **GIVEN** a member with past events and nothing upcoming
+- **WHEN** another signed-in member opens the profile
+- **THEN** the Events section sits after Contributions and before Repositories
+
+### Requirement: The owner adds an event from their profile
+
+On their own profile, a member with permission to mark attendance SHALL have "Add event", in the section header when they have upcoming events and in the empty state otherwise. It SHALL open "Add an event you're going to": a list of upcoming events, searchable by event or city, that leaves out the events the owner already goes to (hidden ones too) and says so when none are left. Choosing one SHALL open the event drawer on it.
+
+#### Scenario: Owner adds an event
+
+- **GIVEN** the owner is going to no events
+- **WHEN** they press "Add event", choose event A and press "Yes, I'm going" with "Show on my profile" ticked
+- **THEN** event A appears under their upcoming events
+
+#### Scenario: The list leaves out events the owner already has
+
+- **GIVEN** the owner is going to event A and has hidden event B
+- **WHEN** they open "Add an event you're going to"
+- **THEN** neither A nor B is listed
+
+#### Scenario: Owner with nothing upcoming
+
+- **GIVEN** the owner has no upcoming events
+- **WHEN** they open their profile
+- **THEN** the upcoming group reads "No upcoming events on your profile yet." with an "Add event" button
+
+### Requirement: The owner manages an upcoming event
+
+Each of the owner's upcoming cards SHALL have a ⋯ menu with "Edit details", "Hide from my profile" (or "Show on my profile") and "Remove".
+- "Edit details" SHALL open the drawer on that event at the plans step.
+- Hide and show SHALL change who sees the event without a confirm.
+- "Remove" SHALL ask "Remove <event>?" ("You'll come off the list of people going, and it leaves your profile."). On confirm, it SHALL remove the owner's attendance for that one event and show "Removed <event>."
+
+#### Scenario: Owner hides an event
+
+- **GIVEN** the owner shows event A on their profile
+- **WHEN** they choose "Hide from my profile"
+- **THEN** event A's card shows "Only visible to you"
+- **AND** other members no longer see event A on the profile
+
+#### Scenario: Owner removes an event
+
+- **GIVEN** the owner is going to events A and B
+- **WHEN** they choose "Remove" on A and confirm
+- **THEN** A leaves their profile and its attendee list, and B stays
+
+### Requirement: Owner controls follow the attendance permission
+
+On their own profile, "Add event", "Edit details" and "Remove" SHALL need the permission to mark attendance; "Hide from my profile" and "Show on my profile" SHALL NOT. A failed change from the ⋯ menu SHALL say so in an error toast and leave the card as it was.
+
+#### Scenario: Owner without the permission
+
+- **GIVEN** the owner cannot mark attendance and is going to event A
+- **WHEN** they open the ⋯ menu on A
+- **THEN** it offers only "Hide from my profile"
+- **AND** the section has no "Add event"
+
+#### Scenario: A failed hide
+
+- **GIVEN** the owner shows event A on their profile
+- **WHEN** they choose "Hide from my profile" and the request fails
+- **THEN** an error toast says so
+- **AND** event A's card has no "Only visible to you"
+
+### Requirement: Owner profile analytics
+
+The owner's actions SHALL record these PostHog events:
+- `profile-event-add-clicked`;
+- `event-show-on-profile-toggled`, with `event_uid`, `show_on_profile` and `from` = `profile-menu`;
+- `profile-event-removed`, with `event_uid`.
+
+#### Scenario: Owner hides an event
+
+- **WHEN** the owner chooses "Hide from my profile" on event A
+- **THEN** `event-show-on-profile-toggled` is recorded with A's uid, `show_on_profile` = false and `from` = `profile-menu`
+
+### Requirement: One Events section on the team profile
+
+With the event drawer flag on, a team profile SHALL show an Events section in place of the Contributions tiles. It uses the member profile's titles, group labels, cards and four-card limit, with "<Team> is going to" for the upcoming group. With the flag off, the team profile SHALL show the Contributions tiles as today.
+
+#### Scenario: Team with both groups
+
+- **GIVEN** a team whose members are going to two events, and three past team events
+- **WHEN** a signed-in member opens the team profile
+- **THEN** the section is titled "Events", with "<Team> is going to" and "Contributions"
+
+### Requirement: A team's upcoming events come from its members
+
+A team's upcoming events SHALL be the events its current members are going to and show on their profiles. Each card's foot SHALL read "N from <team>", with up to three of those members' faces. The team's own roles at the event (Host, Speaker, Sponsor) SHALL show after the city. The upcoming group SHALL have no Add event, menu or empty state. It SHALL be shown to signed-in members only.
+
+#### Scenario: Three teammates going
+
+- **GIVEN** three current members of Lighthouse are going to event A and show it on their profiles, and a fourth hides it
+- **WHEN** a signed-in member opens the Lighthouse profile
+- **THEN** event A's card reads "3 from Lighthouse"
+
+#### Scenario: Signed-out visitor on a team profile
+
+- **WHEN** a signed-out visitor opens a team profile
+- **THEN** the Events section shows past events only
+
+### Requirement: Demo Day leads a team's Contributions
+
+A team's Contributions SHALL list Demo Day first when the team took part in one. The Demo Day card has the PL gradient ring and a gradient "Demo Day" pill, and links to that Demo Day's page. The team's other past events SHALL follow, newest first. Plain participation SHALL show no role tag.
+
+#### Scenario: Team that took part in a Demo Day
+
+- **GIVEN** a team that took part in a Demo Day in June 2026, and hosted an event in September 2026
+- **WHEN** anyone opens the team profile
+- **THEN** the first past card is the Demo Day, with the "Demo Day" pill, linking to its Demo Day page
+- **AND** the hosted event follows with a "Host" tag

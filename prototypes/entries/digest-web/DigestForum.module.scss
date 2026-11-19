@@ -1,0 +1,51 @@
+// On top of DigestEvents' row: number, title, reply count on one line (the reference crop).
+.row.row {
+  align-items: baseline;
+  gap: 0;
+  padding: 14px 0;
+}
+
+.num {
+  flex: none;
+  width: 32px;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.title.title {
+  flex: 1;
+  min-width: 0;
+  font-weight: 500;
+}
+
+.replies {
+  flex: none;
+  margin-left: 16px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+  white-space: nowrap;
+}
+
+// The reference has no rule above the link: air, then the link at the content edge.
+.open {
+  display: inline-block;
+  margin: 12px 0 8px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}

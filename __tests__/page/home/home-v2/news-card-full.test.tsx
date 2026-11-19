@@ -146,6 +146,31 @@ describe('NewsCard, full variant', () => {
       expect(thumb.compareDocumentPosition(footer) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
 
+    it('serves the resized copies as a srcset with the thumbnail sizes (LAB-3135)', () => {
+      const image = {
+        width: 1200,
+        height: 675,
+        variants: [
+          { width: 400, url: 'https://s3/n1/400.jpg' },
+          { width: 1200, url: 'https://s3/n1/1200.jpg' },
+        ],
+      };
+      render(<NewsCard variant="full" item={story({ imageUrl: IMAGE, image })} onOpenDetail={jest.fn()} />);
+
+      const img = storyRow().querySelector('img') as HTMLImageElement;
+      expect(img).toHaveAttribute('src', 'https://s3/n1/1200.jpg');
+      expect(img).toHaveAttribute('srcset', 'https://s3/n1/400.jpg 400w, https://s3/n1/1200.jpg 1200w');
+      expect(img).toHaveAttribute('sizes', '(min-width: 640px) 168px, 100vw');
+    });
+
+    it('serves the plain imageUrl when the story has no resized copies yet (LAB-3135)', () => {
+      render(<NewsCard variant="full" item={story({ imageUrl: IMAGE, image: null })} onOpenDetail={jest.fn()} />);
+
+      const img = storyRow().querySelector('img') as HTMLImageElement;
+      expect(img).toHaveAttribute('src', IMAGE);
+      expect(img).not.toHaveAttribute('srcset');
+    });
+
     it('opens the story once when the image is clicked: it is part of the row, not its own control', () => {
       const onOpenDetail = jest.fn();
       render(<NewsCard variant="full" item={story({ imageUrl: IMAGE })} onOpenDetail={onOpenDetail} />);

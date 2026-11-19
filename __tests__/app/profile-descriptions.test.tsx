@@ -31,6 +31,8 @@ jest.mock('@/services/common.service', () => ({ getFocusAreas: jest.fn() }));
 jest.mock('@/services/team-news/team-news.service', () => ({ fetchTeamNewsByTeam: jest.fn() }));
 jest.mock('@/services/follow/follow.service', () => ({ getTeamFollowers: jest.fn() }));
 jest.mock('@/app/actions/jobs.actions', () => ({ getJobsList: jest.fn() }));
+// The team page's Events section (LAB-3219) imports the event drawer, which pulls in `react-calendar` (ESM).
+jest.mock('@/components/page/events/EventDrawer', () => ({ EventDrawer: () => null, eventGoingToastText: () => '' }));
 
 import { generateMetadata as teamMetadata } from '@/app/teams/[id]/page';
 import { generateMetadata as projectMetadata } from '@/app/projects/[id]/page';

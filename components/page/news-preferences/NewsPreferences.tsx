@@ -32,6 +32,7 @@ import toggleCss from '@/components/page/email-preferences/components/Newsletter
 import { FollowButton } from '@/components/ui/FollowButton';
 import { useSettingsAnalytics, type NewsPreferencesArrival } from '@/analytics/settings.analytics';
 import { useGetMemberPreferences } from '@/services/members/hooks/useGetMemberPreferences';
+import { useSetNewsCategoryTags } from '@/services/members/hooks/useSetNewsCategoryTags';
 import { useSetNewsTags } from '@/services/members/hooks/useSetNewsTags';
 import { useNewsTags } from '@/services/team-news/hooks/useNewsTags';
 import { useFollowedTeams } from '@/services/follow/hooks/useFollowedTeams';
@@ -44,8 +45,9 @@ import { toast } from '@/components/core/ToastContainer';
 import { triggerLoader } from '@/utils/common.utils';
 import { CloseIcon, SearchIcon } from '@/components/icons';
 import { HOME_FOR_YOU_HREF } from '@/components/page/home/TeamNews/constants';
+import { EVENT_TYPE_LABEL } from '@/components/page/home/TeamNews/utils/getEventTypeConfig';
 
-import { groupNewsTags } from './newsTagThemes';
+import { groupNewsTags, matchingNewsCategoryTags, type NewsCategoryTag } from './newsTagThemes';
 import s from './NewsPreferences.module.scss';
 
 type Gap = 'teams' | 'tags';
@@ -61,15 +63,18 @@ interface Props {
   initialTags: string[];
   /** True when `initialTags` were starting tags the member never saved. */
   initialTagsSeeded: boolean;
+  /** Server-read category tags, until the client query has its own. */
+  initialCategoryTags?: string[];
 }
 
-export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: Props) {
+export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded, initialCategoryTags = [] }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const analytics = useSettingsAnalytics();
   const { data: preferences } = useGetMemberPreferences(uid);
   const { data: tagGroups, isError: tagListFailed } = useNewsTags();
   const setNewsTags = useSetNewsTags(uid);
+  const setNewsCategoryTags = useSetNewsCategoryTags(uid);
   const { data: followedTeams, isPending: followsPending } = useFollowedTeams(uid);
   const { mutateAsync: toggleFollowRequest } = useFollowTeam();
 
@@ -79,6 +84,8 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
   const [localTags, setLocalTags] = useState<string[] | null>(null);
   const tags: string[] = localTags ?? preferences?.newsTags ?? initialTags;
   const seeded = localTags === null && (preferences ? preferences.newsTagsSeeded : initialTagsSeeded);
+  const [localCategories, setLocalCategories] = useState<string[] | null>(null);
+  const categories: string[] = localCategories ?? preferences?.newsCategoryTags ?? initialCategoryTags;
   // The tags the member had when the page opened stay listed even when the tag
   // list lacks them (no recent news), so removing one can be undone in place.
   const [pinned] = useState<string[]>(() => initialTags);
@@ -151,6 +158,7 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
     return [...new Set([...pinned, ...listed])];
   }, [tagGroups, pinned]);
   const themes = useMemo(() => groupNewsTags(allTags, query), [allTags, query]);
+  const visibleCategories = useMemo(() => matchingNewsCategoryTags(query), [query]);
   const searching = query.trim().length > 0;
 
   // What each theme shows, and how many tags the limit hides. A search shows
@@ -195,9 +203,24 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
 
   const toggleTag = (slug: string) => {
     const on = tags.includes(slug);
-    analytics.onNewsPreferencesTagToggled({ tag: slug, on: !on, from });
+    analytics.onNewsPreferencesTagToggled({ tag: slug, on: !on, from, kind: 'topic' });
     setToggled((current) => new Set(current).add(slug));
     saveTags(on ? tags.filter((t) => t !== slug) : [...tags, slug]);
+  };
+
+  const toggleCategory = (value: NewsCategoryTag) => {
+    const on = categories.includes(value);
+    const next = on ? categories.filter((tag) => tag !== value) : [...categories, value];
+    analytics.onNewsPreferencesTagToggled({ tag: value, on: !on, from, kind: 'category' });
+    setTouched(true);
+    setLocalCategories(next);
+    setNewsCategoryTags(next, {
+      onSuccess: () => setSaved('tags'),
+      onError: () => {
+        setLocalCategories(categories);
+        analytics.onNewsPreferencesSaveFailed({ section: 'tags' });
+      },
+    });
   };
 
   const toggleFollow = async (teamUid: string) => {
@@ -278,6 +301,24 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
     );
   };
 
+  const renderCategoryChip = (value: NewsCategoryTag) => {
+    const on = categories.includes(value);
+    const label = EVENT_TYPE_LABEL[value];
+    return (
+      <button
+        key={value}
+        type="button"
+        className={clsx(s.chip, on && s.chipOn)}
+        aria-pressed={on}
+        title={on ? `Unsubscribe from ${label}` : `Subscribe to ${label}`}
+        onClick={() => toggleCategory(value)}
+      >
+        {on ? <CheckIcon /> : <PlusIcon />}
+        {label}
+      </button>
+    );
+  };
+
   const followingCount = suggesting ? followingHere.size : follows.filter((t) => !unfollowed.has(t.uid)).length;
   const showCount = suggesting ? followingHere.size > 0 : follows.length > 0;
 
@@ -321,75 +362,74 @@ export function NewsPreferences({ uid, from, initialTags, initialTagsSeeded }: P
             {seeded && tags.length > 0 && 'We picked these to get you started. '}
             Pick a few tags. They shape For You and your digest.
           </div>
-          {allTags.length > 0 && (
-            <>
-              <div className={s.search}>
-                <input
-                  ref={searchRef}
-                  type="search"
-                  value={query}
-                  placeholder="Search tags"
-                  aria-label="Search tags"
-                  className={s.searchInput}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onBlur={() => {
-                    if (query.trim()) {
-                      analytics.onNewsPreferencesTagSearched({
-                        query: query.trim(),
-                        matches: themes.reduce((n, theme) => n + theme.slugs.length, 0),
-                      });
-                    }
-                  }}
-                />
-                {/* As in the app's other search fields: the icon gives way to a clear button once there is text. */}
-                {query ? (
-                  <button
-                    type="button"
-                    className={s.searchClear}
-                    aria-label="Clear search"
-                    onClick={() => {
-                      setQuery('');
-                      searchRef.current?.focus();
-                    }}
-                  >
-                    <CloseIcon />
-                  </button>
-                ) : (
-                  <SearchIcon className={s.searchIcon} aria-hidden="true" />
-                )}
-              </div>
-              <div className={s.themes} role="group" aria-label="Topics">
-                {view.map((theme) => {
-                  const open = openThemes.has(theme.title);
-                  const long = !searching && theme.slugs.length > TAGS_PER_THEME + 1;
-                  return (
-                    <div key={theme.title} className={s.theme} role="group" aria-label={theme.title}>
-                      <span className={s.themeTitle} aria-hidden="true">
-                        {theme.title}
-                      </span>
-                      <div className={s.chips}>
-                        {theme.visible.map(renderTagChip)}
-                        {long && (open || theme.hidden > 0) && (
-                          <button
-                            type="button"
-                            className={s.moreLink}
-                            aria-expanded={open}
-                            aria-label={
-                              open ? `Show fewer ${theme.title} tags` : `Show ${theme.hidden} more ${theme.title} tags`
-                            }
-                            onClick={() => toggleTheme(theme.title)}
-                          >
-                            {open ? 'Show less' : `Show ${theme.hidden} more`}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-                {themes.length === 0 && <p className={clsx(s.emptyLine, s.noMatch)}>No tags match “{query.trim()}”.</p>}
-              </div>
-            </>
-          )}
+          <div className={s.search}>
+            <input
+              ref={searchRef}
+              type="search"
+              value={query}
+              placeholder="Search tags"
+              aria-label="Search tags"
+              className={s.searchInput}
+              onChange={(e) => setQuery(e.target.value)}
+              onBlur={() => {
+                if (query.trim()) {
+                  analytics.onNewsPreferencesTagSearched({
+                    query: query.trim(),
+                    matches: themes.reduce((n, theme) => n + theme.slugs.length, 0) + visibleCategories.length,
+                  });
+                }
+              }}
+            />
+            {/* As in the app's other search fields: the icon gives way to a clear button once there is text. */}
+            {query ? (
+              <button
+                type="button"
+                className={s.searchClear}
+                aria-label="Clear search"
+                onClick={() => {
+                  setQuery('');
+                  searchRef.current?.focus();
+                }}
+              >
+                <CloseIcon />
+              </button>
+            ) : (
+              <SearchIcon className={s.searchIcon} aria-hidden="true" />
+            )}
+          </div>
+          <div className={s.themes} role="group" aria-label="Topics">
+            {visibleCategories.length > 0 && <div className={s.chips}>{visibleCategories.map(renderCategoryChip)}</div>}
+            {view.map((theme) => {
+              const open = openThemes.has(theme.title);
+              const long = !searching && theme.slugs.length > TAGS_PER_THEME + 1;
+              return (
+                <div key={theme.title} className={s.theme} role="group" aria-label={theme.title}>
+                  <span className={s.themeTitle} aria-hidden="true">
+                    {theme.title}
+                  </span>
+                  <div className={s.chips}>
+                    {theme.visible.map(renderTagChip)}
+                    {long && (open || theme.hidden > 0) && (
+                      <button
+                        type="button"
+                        className={s.moreLink}
+                        aria-expanded={open}
+                        aria-label={
+                          open ? `Show fewer ${theme.title} tags` : `Show ${theme.hidden} more ${theme.title} tags`
+                        }
+                        onClick={() => toggleTheme(theme.title)}
+                      >
+                        {open ? 'Show less' : `Show ${theme.hidden} more`}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+            {searching && themes.length === 0 && visibleCategories.length === 0 && (
+              <p className={clsx(s.emptyLine, s.noMatch)}>No tags match “{query.trim()}”.</p>
+            )}
+          </div>
           {tagListFailed && (
             <p className={s.emptyLine}>We couldn’t load the list of topics. Your topics are still saved.</p>
           )}

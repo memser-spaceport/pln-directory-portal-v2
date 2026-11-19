@@ -5,6 +5,7 @@ import { isMemberAvailableToConnect, parseMemberLocation } from '@/utils/member.
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { MemberAccessBadges } from '@/components/common/AccessLevelBadges/MemberAccessBadges';
 
 import s from './MemberCard/MemberCard.module.scss';
 import { useSearchParams } from 'next/navigation';
@@ -83,6 +84,7 @@ const MemberGridView = (props: IMemberGridView) => {
           )}
           <div className={s.content}>
             <h3 className={s.primaryText}>{member?.name}</h3>
+            <MemberAccessBadges isJobAspirant={member.isJobAspirant} className={s.accessBadge} />
             <div className={s.positionDetails}>
               <div className={s.secondaryText}>
                 <span className={s.teamName} title={mainTeam?.name}>

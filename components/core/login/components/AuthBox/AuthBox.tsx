@@ -5,7 +5,7 @@ import { Suspense, useEffect, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 
 import useHash from '@/hooks/useHash';
-import { authEvents, privyDemand } from '../../utils';
+import { authEvents, isPrivyOAuthReturn, privyDemand } from '../../utils';
 import { AuthInvalidUser } from '../modals/AuthInvalidUser';
 import { LoginTokenRedeemer } from '../LoginTokenRedeemer';
 
@@ -22,15 +22,6 @@ const PrivyLayer = dynamic(() => import('../PrivyLayer').then((m) => m.PrivyLaye
 const isEagerPrivy = () => process.env.NEXT_PUBLIC_EAGER_PRIVY === 'true';
 
 const getServerDemand = () => false;
-
-/**
- * Google and GitHub sign-in leave the site and come back with these in the address. Privy completes the sign-in from
- * them when it loads, so a page that carries them needs Privy even though the visitor is not signed in yet and the
- * `#login` gate is gone.
- */
-const PRIVY_OAUTH_RETURN = /[?&]privy_oauth_(code|state|provider)=/;
-
-const isPrivyOAuthReturn = () => typeof window !== 'undefined' && PRIVY_OAUTH_RETURN.test(window.location.search);
 
 /**
  * AuthBox - the always-present part of authentication.

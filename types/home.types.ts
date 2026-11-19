@@ -25,6 +25,13 @@ export interface IHomeEvent {
   /** ISO date-time of the last day. */
   endDate: string;
   location: string;
+  /** The event's gathering, so the rail can open the event drawer on it (LAB-3220). Null when the event has none. */
+  locationUid?: string | null;
+  /**
+   * Everyone going to the event (LAB-3271), for "N going" on the rail. `goingCount` on `GET /v1/irl/events/upcoming`.
+   * Absent when the API sends none or `null` (invite-only events); the rail then shows no count.
+   */
+  goingCount?: number;
 }
 
 /** The rail's events section: up to three events and the total for "See all". */

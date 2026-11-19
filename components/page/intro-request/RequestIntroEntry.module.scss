@@ -1,6 +1,44 @@
-.button {
+@use 'styles/mixins';
+
+.button.button.button {
+  @include mixins.glossy-primary-button;
+}
+
+// The line takes the button's exact box: an invisible copy of the button's content sizes the
+// slot, so a send does not shift Follow or Edit in a right-aligned row.
+.sentSlot {
+  display: inline-grid;
+  flex-shrink: 0;
+  height: 34px;
+
+  > * {
+    grid-area: 1 / 1;
+  }
+}
+
+.sizer {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  visibility: hidden;
+}
+
+.sent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
   white-space: nowrap;
 }

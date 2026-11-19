@@ -13,6 +13,8 @@ const PLACEHOLDER =
 
 const createIntroRequest = jest.fn();
 const onAskSubmitted = jest.fn();
+const onSubmitFailed = jest.fn();
+const onDialogClosed = jest.fn();
 
 jest.mock('@/services/intro-requests/intro-requests.service', () => {
   const actual = jest.requireActual('@/services/intro-requests/intro-requests.service');
@@ -23,20 +25,33 @@ jest.mock('@/services/intro-requests/intro-requests.service', () => {
 });
 
 jest.mock('@/analytics/intro-requests.analytics', () => ({
-  useIntroRequestAnalytics: () => ({ onAskSubmitted }),
+  useIntroRequestAnalytics: () => ({ onAskSubmitted, onSubmitFailed, onDialogClosed }),
 }));
 
 describe('RequestIntroDialog', () => {
   const onClose = jest.fn();
+  const onSent = jest.fn();
 
   beforeEach(() => {
     createIntroRequest.mockReset();
     onAskSubmitted.mockReset();
+    onSubmitFailed.mockReset();
+    onDialogClosed.mockReset();
     onClose.mockReset();
+    onSent.mockReset();
   });
 
   it('limits the text to 3500 characters so the message fits in Telegram', () => {
-    render(<RequestIntroDialog type="TEAM" targetId="team-1" targetName="Acme" onClose={onClose} />);
+    render(
+      <RequestIntroDialog
+        type="TEAM"
+        targetId="team-1"
+        targetName="Acme"
+        entryPoint="team-header"
+        onSent={onSent}
+        onClose={onClose}
+      />,
+    );
 
     const field = screen.getByLabelText(FIELD_LABEL);
     expect(field).toHaveAttribute('maxLength', '3500');
@@ -48,7 +63,16 @@ describe('RequestIntroDialog', () => {
   });
 
   it('keeps Send off until the text has 20 characters', () => {
-    render(<RequestIntroDialog type="MEMBER" targetId="member-2" targetName="Ada Lovelace" onClose={onClose} />);
+    render(
+      <RequestIntroDialog
+        type="MEMBER"
+        targetId="member-2"
+        targetName="Ada Lovelace"
+        entryPoint="member-header"
+        onSent={onSent}
+        onClose={onClose}
+      />,
+    );
 
     const field = screen.getByLabelText(FIELD_LABEL);
     expect(field).toHaveAttribute('placeholder', PLACEHOLDER);
@@ -73,7 +97,16 @@ describe('RequestIntroDialog', () => {
 
   it('shows the received message and sends ask-submitted after a successful send', async () => {
     createIntroRequest.mockResolvedValue({ uid: 'req-1' });
-    render(<RequestIntroDialog type="TEAM" targetId="team-9" targetName="Acme" onClose={onClose} />);
+    render(
+      <RequestIntroDialog
+        type="TEAM"
+        targetId="team-9"
+        targetName="Acme"
+        entryPoint="team-header"
+        onSent={onSent}
+        onClose={onClose}
+      />,
+    );
 
     fireEvent.change(screen.getByLabelText(FIELD_LABEL), {
       target: { value: 'We want to talk about events.' },
@@ -86,13 +119,29 @@ describe('RequestIntroDialog', () => {
       targetId: 'team-9',
       text: 'We want to talk about events.',
     });
-    expect(onAskSubmitted).toHaveBeenCalledWith('team');
+    expect(onAskSubmitted).toHaveBeenCalledWith({
+      targetType: 'team',
+      entryPoint: 'team-header',
+      source: 'modal',
+      textLength: 'We want to talk about events.'.length,
+    });
+    expect(onSubmitFailed).not.toHaveBeenCalled();
+    expect(onSent).toHaveBeenCalledTimes(1);
   });
 
   it('shows the error and keeps the text', async () => {
     const { IntroRequestError } = jest.requireActual('@/services/intro-requests/intro-requests.service');
     createIntroRequest.mockRejectedValue(new IntroRequestError(404, 'Team not found'));
-    render(<RequestIntroDialog type="MEMBER" targetId="member-2" targetName="Ada Lovelace" onClose={onClose} />);
+    render(
+      <RequestIntroDialog
+        type="MEMBER"
+        targetId="member-2"
+        targetName="Ada Lovelace"
+        entryPoint="member-header"
+        onSent={onSent}
+        onClose={onClose}
+      />,
+    );
 
     const field = screen.getByLabelText(FIELD_LABEL);
     fireEvent.change(field, { target: { value: 'Please introduce us.' } });
@@ -101,5 +150,134 @@ describe('RequestIntroDialog', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Team not found');
     expect(field).toHaveValue('Please introduce us.');
     await waitFor(() => expect(onAskSubmitted).not.toHaveBeenCalled());
+    expect(onSent).not.toHaveBeenCalled();
+    expect(onSubmitFailed).toHaveBeenCalledWith({
+      targetType: 'member',
+      entryPoint: 'member-header',
+      source: 'modal',
+      status: 404,
+      textLength: 'Please introduce us.'.length,
+    });
+  });
+
+  it('sends intro-request-submit-failed with status 403 and no message text', async () => {
+    const { IntroRequestError } = jest.requireActual('@/services/intro-requests/intro-requests.service');
+    createIntroRequest.mockRejectedValue(new IntroRequestError(403, 'You cannot send an intro request.'));
+    render(
+      <RequestIntroDialog
+        type="TEAM"
+        targetId="team-9"
+        targetName="Acme"
+        entryPoint="team-header"
+        onSent={onSent}
+        onClose={onClose}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText(FIELD_LABEL), { target: { value: '  We want to talk about events.  ' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('You cannot send an intro request.');
+    expect(onSubmitFailed).toHaveBeenCalledTimes(1);
+    const props = onSubmitFailed.mock.calls[0][0];
+    expect(props).toEqual({
+      targetType: 'team',
+      entryPoint: 'team-header',
+      source: 'modal',
+      status: 403,
+      textLength: 'We want to talk about events.'.length,
+    });
+    expect(JSON.stringify(props)).not.toContain('events');
+    expect(onAskSubmitted).not.toHaveBeenCalled();
+  });
+
+  it('sends status 0 when the request fails with no HTTP status', async () => {
+    createIntroRequest.mockRejectedValue(new Error('network'));
+    render(
+      <RequestIntroDialog
+        type="TEAM"
+        targetId="team-9"
+        targetName="Acme"
+        entryPoint="suggested-tab"
+        onSent={onSent}
+        onClose={onClose}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText(FIELD_LABEL), { target: { value: 'We want to talk about events.' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    await screen.findByRole('alert');
+    expect(onSubmitFailed).toHaveBeenCalledWith(expect.objectContaining({ status: 0, entryPoint: 'suggested-tab' }));
+  });
+
+  it('sends intro-request-dialog-closed with hadText and textLength on Cancel', () => {
+    render(
+      <RequestIntroDialog
+        type="TEAM"
+        targetId="team-9"
+        targetName="Acme"
+        entryPoint="team-header"
+        onSent={onSent}
+        onClose={onClose}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText(FIELD_LABEL), { target: { value: ' Hello there ' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(onDialogClosed).toHaveBeenCalledWith({
+      targetType: 'team',
+      entryPoint: 'team-header',
+      source: 'modal',
+      hadText: true,
+      textLength: 'Hello there'.length,
+    });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('sends intro-request-dialog-closed with hadText false on the X button', () => {
+    render(
+      <RequestIntroDialog
+        type="MEMBER"
+        targetId="member-2"
+        targetName="Ada Lovelace"
+        entryPoint="member-header"
+        onSent={onSent}
+        onClose={onClose}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+
+    expect(onDialogClosed).toHaveBeenCalledWith({
+      targetType: 'member',
+      entryPoint: 'member-header',
+      source: 'modal',
+      hadText: false,
+      textLength: 0,
+    });
+  });
+
+  it('does not send intro-request-dialog-closed when the dialog closes after a send', async () => {
+    createIntroRequest.mockResolvedValue({ uid: 'req-1' });
+    render(
+      <RequestIntroDialog
+        type="TEAM"
+        targetId="team-9"
+        targetName="Acme"
+        entryPoint="team-header"
+        onSent={onSent}
+        onClose={onClose}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText(FIELD_LABEL), { target: { value: 'We want to talk about events.' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+    await screen.findByRole('status');
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+
+    expect(onDialogClosed).not.toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

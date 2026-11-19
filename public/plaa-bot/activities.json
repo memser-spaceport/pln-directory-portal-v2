@@ -23,6 +23,12 @@
       "name": "Propose a New Activity for the PLAA",
       "category": "Programs",
       "points_value": 250
+    },
+    {
+      "id": "speak_at_event",
+      "name": "Speak at an Event",
+      "category": "Programs",
+      "points_value": 500
     }
   ]
 }

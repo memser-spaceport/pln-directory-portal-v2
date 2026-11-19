@@ -112,6 +112,9 @@ export type AskAiPlacement = 'header' | 'strip';
  */
 export type AskAiOpens = 'view' | 'tab';
 
+/** A host's own contact press for the header cluster, drawn in each seat. */
+export type ContactAction = (ctx: { hasOfficeHours: boolean; size: 'xs' | 's'; className?: string }) => ReactNode;
+
 /** The AI Search page prototype, with this profile attached (`?about=member`). */
 export function memberAiSearchUrl(question?: string, hasOfficeHours = true): string {
   const params = new URLSearchParams({ about: 'member' });
@@ -149,6 +152,9 @@ export function MemberProfilePage({
   eventsHigh = false,
   contributionsSection,
   suggestions,
+  contactAction,
+  scheduleOnCard = false,
+  reviewBandExtra,
 }: {
   askAi: AskAiPlacement;
   follow?: boolean;
@@ -165,6 +171,12 @@ export function MemberProfilePage({
   contributionsSection?: ReactNode;
   /** "You might be interested in" card: in the rail on desktop, at the end of the page below it. */
   suggestions?: ReactNode;
+  /** Replaces the header's contact press (Schedule Meeting / Request an intro) — `profile-agent-actions`. */
+  contactAction?: ContactAction;
+  /** Schedule Meeting back on the Office Hours card, production's place for it. */
+  scheduleOnCard?: boolean;
+  /** Extra switches appended to this page's own review band. */
+  reviewBandExtra?: ReactNode;
 }) {
   const showInternalCards = reviewBand === undefined;
   // Reusing interactive production components — gate on a mounted flag so SSR ===
@@ -363,6 +375,8 @@ export function MemberProfilePage({
             </div>
           </div>
 
+          {reviewBandExtra}
+
           <div className={s.demoSwitchGroup}>
             <span className={s.demoSwitchLabel}>Team · role · city</span>
             <div className={s.demoSwitchRow}>
@@ -402,6 +416,7 @@ export function MemberProfilePage({
                 onAskAi={() => openAi()}
                 follow={follow ? { following, onToggle: toggleFollow } : undefined}
                 hasOfficeHours={hasOfficeHours}
+                contactAction={contactAction}
                 actionsUnderBio={actionsAt === 'bio'}
                 isAdmin={viewer === 'admin' || isOwner}
                 isOwner={isOwner}
@@ -427,7 +442,7 @@ export function MemberProfilePage({
                   booking link (OfficeHoursDetails returns null). */}
               {hasOfficeHours && (
                 <div id="member-office-hours" className={s.aiAnchor}>
-                  <OfficeHoursCard />
+                  <OfficeHoursCard schedule={scheduleOnCard} />
                 </div>
               )}
               {eventsHigh && eventsSection}
@@ -547,7 +562,9 @@ function ProfileHeaderCard({
   isAdmin = false,
   isOwner = false,
   facts,
+  contactAction,
 }: {
+  contactAction?: ContactAction;
   /** Viewer is a directory admin: production's Edit joins the cluster, last. */
   isAdmin?: boolean;
   /** The member's own page: Edit only, none of a visitor's actions. */
@@ -600,8 +617,9 @@ function ProfileHeaderCard({
         </div>
 
         {/* Tablet up: the name shares a row with the action cluster and the
-            facts line runs under the cluster to the card's edge (`.detailsWide`)
-            — "to the end of the white section", 2026-11-06. */}
+            facts line sits under the name only, wrapping short of the cluster
+            (`.detailsWide`) — "this line should be wrapped", 2026-11-17, which
+            replaces 2026-11-06's "to the end of the white section". */}
         <div className={clsx(h.headerDetails, s.mDetails, s.detailsWide)}>
           <div className={s.factsWrap}>
             <div className={h.specificsHdr}>
@@ -655,6 +673,7 @@ function ProfileHeaderCard({
               onAskAi={onAskAi}
               follow={follow}
               hasOfficeHours={hasOfficeHours}
+              contactAction={contactAction}
               introRequested={introRequested}
               onRequestIntro={onRequestIntro}
               size="xs"
@@ -675,6 +694,7 @@ function ProfileHeaderCard({
               onAskAi={onAskAi}
               follow={follow}
               hasOfficeHours={hasOfficeHours}
+              contactAction={contactAction}
               introRequested={introRequested}
               onRequestIntro={onRequestIntro}
               size="s"
@@ -683,7 +703,7 @@ function ProfileHeaderCard({
           </div>
         )}
 
-        <div className={clsx(h.tags, s.mTags)}>
+        <div className={clsx(h.tags, s.mTags, s.tagsClearPress)}>
           <span className={s.founderTag}>Founder</span>
           {MOCK_MEMBER.openToWork && (
             <div className={h.funds}>
@@ -730,6 +750,7 @@ function ProfileHeaderCard({
               onAskAi={onAskAi}
               follow={follow}
               hasOfficeHours={hasOfficeHours}
+              contactAction={contactAction}
               introRequested={introRequested}
               onRequestIntro={onRequestIntro}
               size={isMobile ? 's' : 'xs'}
@@ -761,7 +782,9 @@ function ProfileActions({
   part = 'all',
   onEdit,
   ownerView = false,
+  contactAction,
 }: {
+  contactAction?: ContactAction;
   /** Admin only: production's EditButton, last in the cluster (the team
       admin row's Edit). On a phone it shares the Ask AI badge's line. */
   onEdit?: () => void;
@@ -818,7 +841,13 @@ function ProfileActions({
           the primary opens a column, as the corner closes a row. */}
       {/* Under the bio the row is left-aligned, so the primary leads there
           too (`.pressFirst`): it opens the row instead of closing it. */}
-      {hasOfficeHours ? (
+      {contactAction ? (
+        contactAction({
+          hasOfficeHours,
+          size,
+          className: phone ? clsx(s.rowPressFull, s.contactFirst) : part === 'presses' ? s.pressFirst : undefined,
+        })
+      ) : hasOfficeHours ? (
         <ScheduleMeetingButton
           size={size}
           className={phone ? clsx(s.rowPressFull, s.contactFirst) : part === 'presses' ? s.pressFirst : undefined}
@@ -923,7 +952,7 @@ function AskAiButton({
  * `mocks.ts`. Open = the member has a booking link; without one there is no
  * card.
  */
-function OfficeHoursCard() {
+function OfficeHoursCard({ schedule = false }: { schedule?: boolean }) {
   /* Production's card (DetailsSection + its header, no badge) with the body
      in the same grey inset container the Contact, Teams and Experience cards
      use ("put them partially on the grey background as the rest of the
@@ -937,7 +966,22 @@ function OfficeHoursCard() {
         <DetailsSectionHeader title="Office Hours" />
         <DetailsSectionGreyContentContainer>
           <div className={s.ohBody}>
-            <p className={s.ohLede}>Short 1:1 calls with {MOCK_MEMBER.name} — no introduction needed.</p>
+            {schedule ? (
+              /* Production's row: the description, Schedule Meeting on its
+                 right (`officeHoursSection` + `primaryButtonWrapper`). */
+              <div className={s.ohLedeRow}>
+                <p className={s.ohLede}>Short 1:1 calls with {MOCK_MEMBER.name} — no introduction needed.</p>
+                <button
+                  type="button"
+                  className={clsx(office.primaryButton, s.ohSchedule)}
+                  onClick={() => window.open(MOCK_MEMBER.officeHours, '_blank', 'noopener')}
+                >
+                  Schedule Meeting
+                </button>
+              </div>
+            ) : (
+              <p className={s.ohLede}>Short 1:1 calls with {MOCK_MEMBER.name} — no introduction needed.</p>
+            )}
             <div className={s.ohFact}>
               <span className={s.ohFactLabel}>Past bookings</span>
               <span className={s.ohFactValue}>{MOCK_MEMBER.scheduleMeetingCount}</span>

@@ -40,6 +40,20 @@ describe('isTeamNewsItemNotification', () => {
     ).toBe(true);
   });
 
+  // LAB-3255: the homepage is the site root now; links built after the move say `/?news=`.
+  it('matches a link to the news item on the site root', () => {
+    expect(
+      isTeamNewsItemNotification(
+        notification({
+          id: 'n1',
+          category: 'TEAM_NEWS',
+          link: 'https://os.pl.xyz/?news=news-1',
+        }),
+        'news-1',
+      ),
+    ).toBe(true);
+  });
+
   it('does not match a network-news broadcast on /home', () => {
     expect(
       isTeamNewsItemNotification(

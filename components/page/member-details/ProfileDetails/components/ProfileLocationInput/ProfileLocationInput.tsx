@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { useFormContext } from 'react-hook-form';
 
 import { IMember } from '@/types/members.types';
@@ -12,8 +13,7 @@ import s from './ProfileLocationInput.module.scss';
 
 const PLAA_PERMISSIONS = [PERMISSIONS.PLAA.PERM_ACCESS, PERMISSIONS.PLAA.PERM_GUEST, PERMISSIONS.PLAA.PERM_MEMBER];
 
-const PLAA_LOCATION_WARNING =
-  'The PLAA program is only available in select locations. You might lose access if you change your location.';
+const PLAA_PAGE_HREF = '/alignment-asset';
 
 interface Props {
   member: IMember;
@@ -41,7 +41,10 @@ export const ProfileLocationInput = ({ member }: Props) => {
       />
       {hasPlaaAccess && (
         <p className={s.warning} role="note">
-          {PLAA_LOCATION_WARNING}
+          <Link href={PLAA_PAGE_HREF} className={s.link}>
+            The PLAA program
+          </Link>{' '}
+          is limited to certain Geo locations. You may lose access to the page if you change your location.
         </p>
       )}
       <p className={s.hint}>

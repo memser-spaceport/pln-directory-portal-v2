@@ -2,14 +2,14 @@
 
 import clsx from 'clsx';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import s from '@/components/page/home/TeamNews/components/NewsCard/NewsCard.module.scss';
 import jobsCss from '@/components/page/jobs/TeamGroupCard/TeamGroupCard.module.scss';
 import { ArrowIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/Icons';
 
 import { FollowToast } from '../follow-shared/FollowToast';
-import agentCss from '../home-v2-b/AgentPanel.module.scss';
+import { useHideAgentWhileOpen } from '../member-events-going/useHideAgentWhileOpen';
 import local from '../home-refactor/HomeRefactorPrototype.module.scss';
 import feed from '../newsfeed/Newsfeed.module.scss';
 import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
@@ -18,7 +18,7 @@ import { useGoing } from '../member-events-going/goingStore';
 import { HOME_RAIL_EVENTS, TOTAL_UPCOMING_EVENTS } from '../member-events-going/mocks';
 import going_s from '../member-events-going/MemberEventsGoing.module.scss';
 
-import { EventDrawer, type EventNotice } from './EventDrawer';
+import { EventDrawer, type EventNotice, type RsvpPlacement } from './EventDrawer';
 
 const RAIL_UIDS = HOME_RAIL_EVENTS.map((e) => e.uid);
 
@@ -27,18 +27,14 @@ const RAIL_UIDS = HOME_RAIL_EVENTS.map((e) => e.uid);
  * opening the redesigned drawer instead of the gathering modal. Previous / next
  * in the drawer walk these four rows. "See all" goes to this entry's Events page.
  */
-export function EventsRail({ eventsHref }: { eventsHref: string }) {
+export function EventsRail({ eventsHref, rsvp = 'card' }: { eventsHref: string; rsvp?: RsvpPlacement }) {
   const going = useGoing('owner');
   const [openUid, setOpenUid] = useState<string | null>(null);
   const [notice, setNotice] = useState<EventNotice | null>(null);
 
   /* Home's floating Agent button sits above every overlay and would cover the
      drawer's pinned Save; it steps aside while an event is open. */
-  useEffect(() => {
-    const fabs = Array.from(document.querySelectorAll<HTMLElement>(`.${agentCss.fab}`));
-    fabs.forEach((el) => (el.style.visibility = openUid ? 'hidden' : ''));
-    return () => fabs.forEach((el) => (el.style.visibility = ''));
-  }, [openUid]);
+  useHideAgentWhileOpen(!!openUid);
 
   const onNotice = (next: EventNotice) => {
     setNotice(next);
@@ -77,6 +73,7 @@ export function EventsRail({ eventsHref }: { eventsHref: string }) {
       </Link>
 
       <EventDrawer
+        rsvp={rsvp}
         eventUid={openUid}
         sequence={RAIL_UIDS}
         onNavigate={setOpenUid}

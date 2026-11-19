@@ -3,6 +3,9 @@
 import { PropsWithChildren, useId, useMemo, useRef } from 'react';
 import clsx from 'clsx';
 
+import type { SectionVisibility } from '../SectionVisibility/types/sectionVisibility';
+
+import { SectionVisibilityContext } from '../SectionVisibility/SectionVisibilityContext';
 import { SectionSlotProvider, useSectionEditLock } from './SectionEditLockContext';
 
 import s from './ProfileSection.module.scss';
@@ -19,7 +22,13 @@ import s from './ProfileSection.module.scss';
  * forward none, and the wrapper is the card's outline in every way that matters
  * to the status bar that watches it.
  */
-export function ProfileSection({ name, className, children }: PropsWithChildren<{ name: string; className?: string }>) {
+interface Props {
+  name: string;
+  className?: string;
+  visibility?: SectionVisibility;
+}
+
+export function ProfileSection({ name, className, visibility, children }: PropsWithChildren<Props>) {
   const lock = useSectionEditLock();
   const id = useId();
   const ref = useRef<HTMLDivElement>(null);
@@ -35,7 +44,7 @@ export function ProfileSection({ name, className, children }: PropsWithChildren<
         inert={muted}
         aria-disabled={muted || undefined}
       >
-        {children}
+        <SectionVisibilityContext.Provider value={visibility ?? null}>{children}</SectionVisibilityContext.Provider>
       </div>
     </SectionSlotProvider>
   );

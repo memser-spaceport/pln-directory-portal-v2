@@ -10,6 +10,7 @@ export interface PointsRecord {
   activityName: string;
   description: string;
   pointsCollectedPerSnapshot: number;
+  siteActivityId: string | null;
 }
 
 export interface SnapshotPointsResponse {

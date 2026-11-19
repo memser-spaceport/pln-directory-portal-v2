@@ -16,7 +16,7 @@ export function useWriteUrl() {
       }
 
       const qs = params.toString();
-      window.history.replaceState(null, '', `${pathname || '/home'}${qs ? `?${qs}` : ''}`);
+      window.history.replaceState(null, '', `${pathname || '/'}${qs ? `?${qs}` : ''}`);
     },
     [pathname],
   );

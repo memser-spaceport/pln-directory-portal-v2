@@ -53,6 +53,7 @@ async function NewsPreferencesPage({ searchParams }: { searchParams: Promise<Rec
             from={from}
             initialTags={newsTags?.newsTags ?? []}
             initialTagsSeeded={newsTags?.newsTagsSeeded ?? false}
+            initialCategoryTags={newsTags?.newsCategoryTags ?? []}
           />
         </div>
       </div>

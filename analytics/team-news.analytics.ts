@@ -11,6 +11,8 @@ export type FeedItemKind = import('@/components/page/home/TeamNews/utils/mergeFe
 
 export type TeamNewsAnalyticsSource =
   | 'home'
+  // The digest page's "From the forum" popup (LAB-3293): Home's forum post modal over the digest.
+  | 'digest'
   | 'team-profile-rail'
   | 'team-profile-modal'
   | 'news-rail'
@@ -31,7 +33,9 @@ export type TeamNewsAnalyticsSource =
   // grounds the listing modals above are split from the rail: the card is three
   // rows, this is the whole archive, and "did the archive earn its slot on a
   // person's page" cannot be asked of traffic pooled with the rows.
-  | 'member-profile-modal';
+  | 'member-profile-modal'
+  // The digest reading page (LAB-3287): Comments and Share on each story.
+  | 'digest';
 
 /**
  * Surfaces that carry the "All network updates" exit — a team-scoped list, with
@@ -251,6 +255,41 @@ export const useTeamNewsAnalytics = () => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FOR_YOU_TUNE_CLICKED, { memberUid });
   };
 
+  /** The Home row that asks a member with no For You inputs to open News preferences (LAB-3080). */
+  const onTeamNewsForYouSetupShown = (memberUid: string) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FOR_YOU_SETUP_SHOWN, { memberUid });
+  };
+
+  const onTeamNewsForYouSetupClicked = (memberUid: string) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FOR_YOU_SETUP_CLICKED, { memberUid });
+  };
+
+  /** The Home tag card (LAB-3250). `source` is where the shown tags come from: interest-profile, ai or team. */
+  const onTeamNewsTagsCardShown = (params: { memberUid: string; source: string; tags: string[] }) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_TAGS_CARD_SHOWN, params);
+  };
+
+  const onTeamNewsTagsCardTagToggled = (params: { memberUid: string; source: string; tag: string; on: boolean }) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_TAGS_CARD_TAG_TOGGLED, params);
+  };
+
+  const onTeamNewsTagsCardApproved = (params: { memberUid: string; source: string; tags: string[] }) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_TAGS_CARD_APPROVED, params);
+  };
+
+  const onTeamNewsTagsCardSaved = (params: {
+    memberUid: string;
+    source: string;
+    tags: string[];
+    removedTags: string[];
+  }) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_TAGS_CARD_SAVED, params);
+  };
+
+  const onTeamNewsTagsCardSeeAllClicked = (params: { memberUid: string; source: string }) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_TAGS_CARD_SEE_ALL_CLICKED, params);
+  };
+
   /** A `#tag` click narrowed the Home feed to that tag (LAB-3010). `itemCount` is the stories it matched. */
   const onTeamNewsTagFilterApplied = (params: { tag: string; via: TeamNewsTagFilterVia; itemCount: number }) => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_TAG_FILTER_APPLIED, params);
@@ -344,7 +383,11 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
-  const onTeamNewsShared = (item: ITeamNewsItem, network: TeamNewsShareNetwork, source: TeamNewsAnalyticsSource) => {
+  const onTeamNewsShared = (
+    item: Pick<ITeamNewsItem, 'uid' | 'teamUid' | 'teamName'>,
+    network: TeamNewsShareNetwork,
+    source: TeamNewsAnalyticsSource,
+  ) => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_SHARED, {
       itemUid: item.uid,
       teamUid: item.teamUid,
@@ -784,6 +827,13 @@ export const useTeamNewsAnalytics = () => {
     onTeamNewsCountChipShown,
     onTeamNewsForYouUpdateProfileClicked,
     onTeamNewsForYouTuneClicked,
+    onTeamNewsForYouSetupShown,
+    onTeamNewsForYouSetupClicked,
+    onTeamNewsTagsCardShown,
+    onTeamNewsTagsCardTagToggled,
+    onTeamNewsTagsCardApproved,
+    onTeamNewsTagsCardSaved,
+    onTeamNewsTagsCardSeeAllClicked,
     onTeamNewsTagFilterApplied,
     onTeamNewsTagFilterCleared,
     onTeamNewsShowMoreClicked,

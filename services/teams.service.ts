@@ -194,6 +194,7 @@ export const getTeam = async (
     // An API without the list yet still has the single location.
     locations: result?.locations ?? (result?.location ? [result.location] : []),
     status: result?.status,
+    accessLevel: result?.accessLevel,
     communityAffiliations: result?.communityAffiliations,
     isFollowed: result.isFollowed,
   };

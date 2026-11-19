@@ -18,3 +18,19 @@ describe('PLAA home page images', () => {
     expect(statSync(join(ROOT, 'public', src)).size).toBeLessThan(1024 * 1024);
   });
 });
+
+describe('PLAA home flywheel image', () => {
+  const flywheel = source.match(/<Image\s+src="\/images\/alignment-assets\/flywheel-[^"]+"[^>]*\/>/);
+
+  it('is rendered with next/image', () => {
+    expect(flywheel).not.toBeNull();
+  });
+
+  it('goes through the image optimizer', () => {
+    expect(flywheel![0]).not.toMatch(/\bunoptimized\b/);
+  });
+
+  it('tells the browser its display size', () => {
+    expect(flywheel![0]).toMatch(/\bsizes="[^"]+"/);
+  });
+});

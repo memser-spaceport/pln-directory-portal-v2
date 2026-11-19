@@ -405,7 +405,7 @@ describe('TeamNewsRail', () => {
     const { unmount } = renderRailWithSummaries();
 
     const link = screen.getByRole('link', { name: /All network updates/i });
-    expect(link).toHaveAttribute('href', '/home');
+    expect(link).toHaveAttribute('href', '/');
     // The ↗ promises "elsewhere", and the profile behind it is worth keeping.
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', expect.stringContaining('noopener'));
@@ -440,7 +440,7 @@ describe('TeamNewsRail', () => {
 
     expect(screen.getByText('No news yet')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Post news' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /All network updates/i })).toHaveAttribute('href', '/home');
+    expect(screen.getByRole('link', { name: /All network updates/i })).toHaveAttribute('href', '/');
   });
 
   it('shows the empty card for a directory admin once the client store is hydrated', () => {

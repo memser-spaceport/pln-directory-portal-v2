@@ -5,6 +5,8 @@ import MemberDetailsPage, { type ServerMemberResult } from '@/components/page/me
 import { JsonLdScript } from '@/components/core/json-ld/JsonLdScript';
 import { buildMemberJsonLd } from '@/services/seo/entity-jsonld';
 import { MemberSignalViewTracker } from '@/components/core/MemberSignalViewTracker';
+import { getMemberEventsPublic } from '@/services/events/profile-events.service';
+import { SHOW_EVENT_DRAWER } from '@/utils/event-drawer';
 
 /** The image behind the signed-out contact-details panel; `ContactDetails.module.scss` paints it. */
 const MEMBER_CONTACT_OVERLAY_IMAGE = '/images/members/contact-details-overlay.png';
@@ -39,14 +41,12 @@ export default async function MemberPage({ params }: PageProps) {
      Named in the HTML instead, so it loads with the first response. */
   preload(MEMBER_CONTACT_OVERLAY_IMAGE, { as: 'image', fetchPriority: 'high' });
 
-  const result = await getMember(
-    id,
-    { with: 'image,skills,location,teamMemberRoles.team' },
-    false,
-    undefined,
-    true,
-    true,
-  );
+  /* The Events section's past events, fetched without a token so the HTML carries no upcoming plans (LAB-3217,
+     design D5). Behind the event drawer flag, like the section. */
+  const [result, serverMemberEvents] = await Promise.all([
+    getMember(id, { with: 'image,skills,location,teamMemberRoles.team' }, false, undefined, true, true),
+    SHOW_EVENT_DRAWER ? getMemberEventsPublic(id) : Promise.resolve(undefined),
+  ]);
   const serverMember: ServerMemberResult | undefined =
     'error' in result || !result.data?.formattedData ? undefined : result;
 
@@ -54,7 +54,7 @@ export default async function MemberPage({ params }: PageProps) {
   return (
     <>
       {serverMember && <JsonLdScript data={buildMemberJsonLd(serverMember.data.formattedData)} />}
-      <MemberDetailsPage memberId={id} serverMember={serverMember} />
+      <MemberDetailsPage memberId={id} serverMember={serverMember} serverMemberEvents={serverMemberEvents} />
     </>
   );
 }

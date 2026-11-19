@@ -15,6 +15,14 @@ jest.mock('@/services/members.service', () => ({ getMember: (...args: unknown[])
 
 jest.mock('@/components/page/member-details/MemberDetailsPage', () => ({ __esModule: true, default: () => null }));
 
+const flag = { on: false };
+jest.mock('@/utils/event-drawer', () => ({
+  get SHOW_EVENT_DRAWER() {
+    return flag.on;
+  },
+}));
+const mockFetch = jest.fn();
+
 import type { ReactElement } from 'react';
 import MemberPage from '@/app/members/[id]/page';
 import MemberDetailsPage from '@/components/page/member-details/MemberDetailsPage';
@@ -32,7 +40,10 @@ const MEMBER = { data: { formattedData: { name: 'Ada' } } };
 
 beforeEach(() => {
   mockGetMember.mockReset();
+  mockFetch.mockReset();
+  global.fetch = mockFetch;
   mockIsLoggedIn = false;
+  flag.on = false;
 });
 
 it('passes the public member to a signed-out visitor', async () => {
@@ -62,4 +73,52 @@ it('carries no structured data when the public member could not be loaded', asyn
 
   expect(detailsProps(page)).toEqual({ memberId: 'member-1', serverMember: undefined });
   expect(jsonLd(page)).toBeUndefined();
+});
+
+describe('the Events section’s past events (LAB-3217, design D5)', () => {
+  const event = (uid: string) => ({ uid, name: uid, startDate: '2026-03-12T00:00:00.000Z', roles: [] });
+
+  it('Signed-out visitor: the server fetches past events without a token, so the HTML has no upcoming events', async () => {
+    flag.on = true;
+    mockGetMember.mockResolvedValue(MEMBER);
+    // Even if the endpoint answered with plans, the server keeps none.
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        upcoming: { total: 1, items: [event('up-1')] },
+        past: { total: 1, items: [event('past-1')] },
+      }),
+    });
+
+    const page = await MemberPage(props);
+
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toMatch(/\/v1\/members\/member-1\/events\?group=past&limit=50$/);
+    expect(init?.headers).toBeUndefined();
+    const { serverMemberEvents } = detailsProps(page);
+    expect(serverMemberEvents.upcoming).toBeNull();
+    expect(serverMemberEvents.past.items.map((e: { uid: string }) => e.uid)).toEqual(['past-1']);
+  });
+
+  it('fetches nothing with the flag off, nor for a signed-in viewer', async () => {
+    mockGetMember.mockResolvedValue(MEMBER);
+    await MemberPage(props);
+
+    flag.on = true;
+    mockIsLoggedIn = true;
+    const page = await MemberPage(props);
+
+    expect(mockFetch).not.toHaveBeenCalled();
+    expect(detailsProps(page)).toEqual({ memberId: 'member-1' });
+  });
+
+  it('passes nothing when the request fails, and the profile still renders', async () => {
+    flag.on = true;
+    mockGetMember.mockResolvedValue(MEMBER);
+    mockFetch.mockRejectedValue(new Error('offline'));
+
+    const page = await MemberPage(props);
+
+    expect(detailsProps(page)).toEqual({ memberId: 'member-1', serverMember: MEMBER, serverMemberEvents: null });
+  });
 });

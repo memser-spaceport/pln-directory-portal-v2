@@ -1,0 +1,119 @@
+/* The attendee list, from the prototype's MemberEventsGoing.module.scss (LAB-3216), fallbacks as written there. */
+
+.backButton {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  color: var(--foreground-neutral-secondary, #455468);
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  cursor: pointer;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.searchWrap {
+  flex-shrink: 0;
+  padding: 16px 24px 8px;
+}
+
+.search {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  background: var(--background-base-white, #ffffff);
+
+  &::placeholder {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+
+  &:focus {
+    border-color: var(--foreground-brand-primary, #1b4dff);
+    outline: none;
+  }
+}
+
+.attendees {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0 24px 24px;
+  overflow-y: auto;
+  list-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.attendee {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+a.attendee:hover .attendeeName {
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.attendeeImg {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  object-fit: cover;
+}
+
+.attendeeText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.attendeeName {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.attendeeMeta {
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attendeeTag {
+  flex-shrink: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.noResults {
+  padding: 16px 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}

@@ -8,7 +8,7 @@ A signed-in member with a current role on a PL Portfolio team, or with the PL In
 
 ### Requirement: Only an eligible member sees Request an intro
 
-A signed-in member sees a "Request an intro" control on another member's page and on a team page when that member has a current role on a PL Portfolio team, or holds the PL Infra policy `pl_infra_team_pl_internal`. A current role has no end date, or an end date that is still today or later. Every other visitor sees no control. A member sees no control on their own profile, or on a team page for a team they currently belong to. The investor drawer and the apply flow do not show the control.
+A signed-in member sees a "Request an intro" control on another member's page and on a team page when that member has a current role on a PL Portfolio team, or holds the PL Infra policy `pl_infra_team_pl_internal`. A current role has no end date, or an end date that is still today or later. Every other visitor sees no control. A member sees no control on their own profile, or on a team page for a team they currently belong to. A directory admin who is eligible sees the control too, before Edit. A member page shows one contact button in the profile header: Schedule Meeting when the member has office hours and the viewer may book them, otherwise "Request an intro". The page never shows both. The Office Hours card has no Schedule Meeting button. Where a page does not offer booking (the Suggested tab of team candidates), the contact button is "Request an intro". A team page always shows "Request an intro" to an eligible member outside the team. The investor drawer and the apply flow do not show the control.
 
 #### Scenario: Portfolio member on another profile
 
@@ -28,15 +28,29 @@ A signed-in member sees a "Request an intro" control on another member's page an
 - **WHEN** they open a member page or a team page
 - **THEN** the page shows no "Request an intro" control
 
+#### Scenario: Member with office hours
+
+- **GIVEN** an eligible signed-in member
+- **WHEN** they open the page of a member who has office hours
+- **THEN** the profile header shows Schedule Meeting in the glossy primary style, on the name's line
+- **AND** the page shows no "Request an intro" control
+- **AND** the Office Hours card shows no Schedule Meeting button
+
+#### Scenario: Viewer who cannot book office hours
+
+- **GIVEN** an eligible signed-in member without access to book office hours
+- **WHEN** they open the page of a member who has office hours
+- **THEN** the profile header shows "Request an intro" and no Schedule Meeting
+
 #### Scenario: Own profile
 
 - **GIVEN** an eligible signed-in member
 - **WHEN** they open their own profile
 - **THEN** the page shows no "Request an intro" control
 
-### Requirement: Request an intro sits beside Follow on a team page
+### Requirement: Request an intro sits on the name's line
 
-On a team page at 640px or wider, "Request an intro" sits to the right of Follow on one row. Edit and Delete, when shown, share that row. Each text action sits in a 34px box so its label centres on the button. The row has no caption under Follow. Below 640px, "Request an intro" is a full-width primary button above Follow, both under the followers, and Follow is full width too. Edit and Delete, when shown, are icon-only in the card's top-right corner. On another member's page, "Request an intro" stays in the profile header. At 640px or wider, it sits at the top right of the header, on the same line as the member's name, and Edit shares that line in a 34px box. The facts line (team, role, city) sits under the name and ends before those actions; when it does not fit, it wraps there, and a wrapped line never starts or ends on a divider. The city on the facts line has no extra right padding. Below 640px on a member page, Edit sits on the right under the facts and "Request an intro" is a full-width primary button below it.
+"Request an intro" and Schedule Meeting share one glossy primary style: 34px high, padding 6px 10px, a 16px icon (an envelope on "Request an intro", a calendar on Schedule Meeting) and a 6px gap. At 640px or wider it sits in one row at the top right of the header, on the same line as the name. The row order is Follow (team pages only), "Request an intro", Edit, then Delete (team admins only). Every item centres on the 34px button. The row has no caption under Follow. The facts line (team, role, city) on a member page sits under the name and the actions and spans the full card width, so it runs under the actions to the card's right edge. When it does not fit, it wraps, and a wrapped line never starts or ends on a divider. The city has no extra right padding. Below 640px on a team page, Edit and Delete are icon-only in the card's top-right corner, and Follow then "Request an intro" are full-width buttons under the followers. Below 640px on a member page, Edit sits on the right under the facts and "Request an intro" is a full-width button below it.
 
 #### Scenario: Team page from 640px
 
@@ -49,22 +63,36 @@ On a team page at 640px or wider, "Request an intro" sits to the right of Follow
 
 - **GIVEN** an eligible member on a team page below 640px wide
 - **WHEN** the page shows Follow and "Request an intro"
-- **THEN** "Request an intro" is a full-width primary button above Follow
-- **AND** Follow is full width
-- **AND** both sit under the followers
+- **THEN** Follow and "Request an intro" are full-width buttons under the followers, Follow first
 
 #### Scenario: Member page from 640px
 
 - **GIVEN** an eligible member on another member's page at least 640px wide
 - **WHEN** the page shows "Request an intro"
 - **THEN** "Request an intro" sits at the top right of the profile header, on the same line as the member's name
-- **AND** Edit, when shown, shares that line and centres on the button
+- **AND** Edit, when shown, follows it and centres on the button
+
+#### Scenario: Long facts line
+
+- **GIVEN** a member page at least 640px wide whose facts line is longer than the space beside the actions
+- **WHEN** the page shows the header
+- **THEN** the facts line sits under the name and the actions and reaches the card's right edge
 
 #### Scenario: Member page below 640px
 
 - **GIVEN** an eligible member on another member's page below 640px wide
 - **WHEN** the page shows "Request an intro"
 - **THEN** "Request an intro" is a full-width primary button in the profile header
+
+### Requirement: A sent request replaces the button
+
+After a successful send, "Request an intro" on that page becomes the line "✓ Intro requested" in the same 34px box, so the row does not move.
+
+#### Scenario: Request sent
+
+- **WHEN** the member sends a request and the API returns `{ uid }`
+- **THEN** the button is replaced by "✓ Intro requested"
+- **AND** the other actions in the row keep their place
 
 ### Requirement: The form sends one required message
 
@@ -90,18 +118,19 @@ On a team page at 640px or wider, "Request an intro" sits to the right of Follow
 
 ### Requirement: A successful send confirms receipt
 
-After `POST /v1/intro-requests` succeeds, the form shows "Your request is received. Someone from the team will reach out." The request body is `{ "type": "MEMBER" | "TEAM", "targetId", "text" }`. The page then sends the PostHog event `ask-submitted` with `type` `intro` and `targetType` `member` or `team`, plus the signed-in member fields used by other events.
+After `POST /v1/intro-requests` succeeds, the form shows "Your request is received. Someone from the team will reach out." The request body is `{ "type": "MEMBER" | "TEAM", "targetId", "text" }`. The page then sends the PostHog event `ask-submitted` with `type` `intro`, the shared intro request properties (`targetType`, `entryPoint`, `source`) and `textLength`. `ask-submitted` does not send `loggedInUserEmail` or `loggedInUserName` (LAB-3296).
 
 #### Scenario: Intro to a member
 
 - **WHEN** the member sends a request from a member page and the API returns `{ uid }`
 - **THEN** the form shows "Your request is received. Someone from the team will reach out."
-- **AND** PostHog receives `ask-submitted` with `type` `intro` and `targetType` `member`
+- **AND** PostHog receives `ask-submitted` with `type` `intro`, `targetType` `member`, `entryPoint` `member-header`, `source` `modal` and `textLength`
 
 #### Scenario: Intro to a team
 
 - **WHEN** the member sends a request from a team page and the API returns `{ uid }`
-- **THEN** PostHog receives `ask-submitted` with `type` `intro` and `targetType` `team`
+- **THEN** PostHog receives `ask-submitted` with `type` `intro`, `targetType` `team`, `entryPoint` `team-header` and `source` `modal`
+- **AND** the event has no email, no name and no message text
 
 ### Requirement: A failed send keeps the message
 
@@ -111,4 +140,51 @@ When the send fails, the form stays open, shows a clear error, and keeps the tex
 
 - **WHEN** the API responds 404
 - **THEN** the form shows the error and the text field still holds the message
+- **AND** PostHog does not receive `ask-submitted`
+- **AND** PostHog receives `intro-request-submit-failed` with `status` `404`
+
+### Requirement: The intro flow sends funnel events
+
+The intro flow sends PostHog events for each funnel step (LAB-3296, spec from LAB-3272). Every event carries `targetType` (`member` or `team`), `entryPoint` (`member-header`, `team-header` or `suggested-tab`) and `source` (`modal`), plus `loggedInUserUid`. No event carries the message text, a name or an email. Text appears only as `textLength`, the length of the trimmed message.
+
+| Event                         | When                                                                    | Extra properties                                                    |
+| ----------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `intro-request-button-shown`  | The "Request an intro" control shows. Once a page view for each target. | none                                                                |
+| `intro-request-dialog-opened` | The member clicks "Request an intro".                                   | none                                                                |
+| `intro-request-dialog-closed` | The form closes with no send (Cancel, the X button or Escape).          | `hadText`, `textLength`                                             |
+| `intro-request-submit-failed` | The send fails.                                                         | `status` (HTTP status; `0` when there is no response), `textLength` |
+| `ask-submitted`               | The send succeeds.                                                      | `type` `intro`, `textLength`                                        |
+
+The member page header uses `entryPoint` `member-header`. The team page header uses `team-header`. `suggested-tab` is reserved for the Suggested tab of team candidates when it shows the control. `source` `agent` comes with the LabOS agent (LAB-3272) and is out of scope here.
+
+#### Scenario: Control shows
+
+- **GIVEN** an eligible member on another member's page
+- **WHEN** the page shows "Request an intro"
+- **THEN** PostHog receives one `intro-request-button-shown` with `targetType` `member`, `entryPoint` `member-header` and `source` `modal`
+- **AND** a re-render of the same page sends no second event
+
+#### Scenario: Page mounts two copies of the control
+
+- **GIVEN** a team page that renders a desktop copy and a mobile copy of "Request an intro" and hides one with CSS
+- **WHEN** the page loads
+- **THEN** PostHog receives one `intro-request-button-shown` for the team
+- **AND** after a send from one copy, every copy shows "✓ Intro requested"
+
+#### Scenario: Form opens
+
+- **WHEN** the member clicks "Request an intro" on a team page
+- **THEN** PostHog receives `intro-request-dialog-opened` with `targetType` `team` and `entryPoint` `team-header`
+
+#### Scenario: Form closes with no send
+
+- **GIVEN** the member typed text in the form
+- **WHEN** they click Cancel
+- **THEN** PostHog receives `intro-request-dialog-closed` with `hadText` `true` and `textLength` equal to the trimmed text length
+- **AND** a close after a successful send does not send `intro-request-dialog-closed`
+
+#### Scenario: Send is forbidden
+
+- **WHEN** the API responds 403
+- **THEN** PostHog receives `intro-request-submit-failed` with `status` `403` and `textLength`
 - **AND** PostHog does not receive `ask-submitted`

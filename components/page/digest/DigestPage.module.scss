@@ -1,0 +1,892 @@
+@import 'styles/media.scss';
+
+// Ported from the digest-web prototype (prototypes/entries/digest-web, LAB-3287; commit 543035513).
+// The skeleton and error state at the end are ours; Polina reviews them.
+// Sizes and the email-only colours (#000 titles, #667085 intro, #e2e8f0 dividers, #777 role,
+// #1c1e23 / #8f98b1 sign-off, the pale-blue card wash) are transcribed from Figma 13282:516.
+// Colours that match a PL token use the token + fallback pair.
+
+.page {
+  min-height: 100vh;
+  padding: 40px 16px 80px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  font-family: Inter, sans-serif;
+
+  @include mobile-only {
+    padding: 0 0 40px;
+  }
+}
+
+.email {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  background: var(--background-neutral-primary, #fff);
+}
+
+.spacer {
+  height: 40px;
+}
+
+/* ---------- Web page only (Mobbin pass, 2026-11-16) ---------- */
+
+// The web page is Perplexity Discover's open column: no cards, the stories sit straight on a
+// white page and hairlines part them. The Email view keeps its own inbox grey and white sheet.
+.pageWeb {
+  background: var(--background-neutral-primary, #fff);
+
+  // No sheet behind the column on the web page: it is the page.
+  .email {
+    max-width: 760px;
+    background: none;
+  }
+
+  // Open stories, one after another: no border, radius or fill; a hairline between them and
+  // air above and below, so each story reads as its own section.
+  .cards {
+    gap: 0;
+    padding: 8px 16px 0;
+  }
+
+  .cardWeb {
+    padding: 32px 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+
+    & + .cardWeb {
+      border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+    }
+
+    @include mobile-only {
+      padding: 24px 0;
+    }
+
+    // The top story belongs to the greeting above it: no hairline separates them, so its
+    // 32px section air only pushed it away (Polina, 2026-11-17). ~56px from the description.
+    &:first-child {
+      padding-top: 8px;
+    }
+  }
+
+  .cardHero {
+    padding-top: 16px;
+  }
+
+  .issueLine {
+    margin: 0 0 8px;
+    padding: 0 16px;
+    text-align: left;
+  }
+
+  .intro {
+    max-width: none;
+    margin: 0;
+    text-align: left;
+  }
+
+  // No logo above it, so the greeting is the page's title: a page heading on the PL scale,
+  // a step above the lead story's 24px title. The Email view keeps Figma's 16px.
+  .greeting {
+    font-size: 32px;
+    line-height: 40px;
+    letter-spacing: -0.6px;
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  .introText {
+    font-size: 16px;
+    line-height: 24px;
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+// The email column, with the side cards beside it on the right from 1100px.
+.webLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 760px);
+  justify-content: center;
+  gap: 48px;
+
+  @media (min-width: 1100px) {
+    grid-template-columns: minmax(0, 760px) 260px;
+  }
+}
+
+.rail {
+  display: none;
+
+  @media (min-width: 1100px) {
+    display: block;
+  }
+}
+
+// "You're all caught up": the end of the issue (Substack, Pinterest).
+.caughtUp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 24px 16px 0;
+  padding: 24px 16px 56px;
+  text-align: center;
+}
+
+.caughtUpMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 8px;
+  border-radius: 50%;
+  background: var(--background-success-subtle, rgba(10, 153, 82, 0.08));
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+.caughtUpTitle {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.caughtUpText {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.caughtUpLink {
+  padding: 6px 12px;
+  border: 1px solid var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-decoration: none;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+// The issue's dateline under the logo (Medium Daily Digest, Substack).
+.issueLine {
+  margin: -4px 0 16px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* "Send us your team news" (standup 2026-11-16): the digest's ask for content, after the
+   issue ends. An outlined block (Polina, 2026-11-17) in the side cards' material (white,
+   subtle border, 16px radius), so the ask is one thing you can see, not a run of text
+   after a hairline. Left-aligned, icon on the left, text beside it (Polina, 2026-11-17). */
+.sendNews {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin: 0 16px 32px;
+  padding: 20px 24px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 16px;
+  text-align: left;
+
+  @include mobile-only {
+    gap: 12px;
+    padding: 16px;
+  }
+}
+
+// 40px brand-soft disc with the brand glyph: the one mark in the block.
+.sendNewsIcon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.sendNewsBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.sendNewsTitle {
+  margin: 0 0 2px;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.sendNewsText {
+  margin: 0 0 12px;
+  max-width: 420px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.sendNewsLink {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// The page is for reading the whole story: titles and body step up the PL scale
+// (Substack, Perplexity). The email keeps Figma's 16px titles and 14px text.
+.cardWeb {
+  .cardTitle {
+    font-size: 20px;
+    line-height: 28px;
+  }
+
+  .cardSummary,
+  .cardBody p {
+    font-size: 16px;
+    line-height: 24px;
+  }
+}
+
+.intro {
+  max-width: 394px;
+  margin: 0 auto;
+  padding: 0 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.greeting {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 34px;
+  letter-spacing: -0.4px;
+  color: #000;
+}
+
+.introText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: #667085;
+}
+
+.introLink {
+  // A button on the page (opens the All topics modal), a link in the email: same look.
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-decoration: underline;
+}
+
+/* Story cards */
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+.card {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+  border-radius: 8px;
+  // White cards on the white email, so a subtle border keeps them apart.
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-neutral-primary, #ffffff);
+  scroll-margin-top: calc(var(--app-header-height, 0px) + 24px);
+
+  @include mobile-only {
+    padding: 20px;
+  }
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+
+  @include mobile-only {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+}
+
+.cardImageLeft .cardTop {
+  flex-direction: row-reverse;
+  align-items: flex-start;
+
+  @include mobile-only {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+}
+
+.cardText {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.topBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background: var(--background-brand-default, #1b4dff);
+  color: var(--foreground-light-primary, #fff);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: normal;
+  color: #000;
+}
+
+.cardSummary,
+.cardBody p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.cardImage {
+  flex: 0 0 216px;
+  height: 148px;
+  overflow: hidden;
+  border-radius: 6.386px;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  @include mobile-only {
+    flex-basis: auto;
+    height: auto;
+    aspect-ratio: 216 / 148;
+  }
+}
+
+.cardImageLeft .cardImage {
+  border-radius: 5.63px;
+}
+
+/* ---------- Web top story (Perplexity Discover, 2026-11-16) ---------- */
+
+// The top story: text beside a big picture (Perplexity Discover's first row), full story below.
+.cardHero {
+  .cardTop {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 24px;
+
+    @include mobile-only {
+      flex-direction: column-reverse;
+    }
+  }
+
+  .cardText {
+    justify-content: center;
+  }
+
+  .cardImage {
+    flex: 0 0 52%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    border-radius: 8px;
+
+    @include mobile-only {
+      flex-basis: auto;
+      aspect-ratio: 16 / 9;
+    }
+  }
+}
+
+.cardWeb.cardHero .cardTitle {
+  font-size: 24px;
+  line-height: 32px;
+}
+
+// "Sources: The Block · CryptoBriefing" under the story, as the news detail lists them.
+.sources {
+  margin: -8px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.sourceLink {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  text-underline-offset: 3px;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration-color: currentColor;
+  }
+}
+
+.cardActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  // "2 Comments" and "Follow <team>" stay on one line each.
+  white-space: nowrap;
+}
+
+// The part the email hides behind Read More. Pulled up so it reads as the summary's next
+// paragraph (12px), not a new block (the card's 20px gap).
+.cardBody {
+  margin-top: -8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  // With Comments added, a long team name can outgrow the row: the actions drop to a
+  // second line instead of running past the card's edge.
+  flex-wrap: wrap;
+  gap: 12px 20px;
+
+  @include mobile-only {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+}
+
+.feedback {
+  display: flex;
+  gap: 8px;
+}
+
+.feedbackBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 6px 10px;
+  border: 1px solid var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  border-radius: 8px;
+  background: var(--background-neutral-primary, #fff);
+  color: var(--foreground-neutral-secondary, #455468);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+// Pressed: the same chip, brand-outlined, so the press reads without a second colour story.
+.feedbackBtnActive {
+  border-color: var(--foreground-brand-primary, #1b4dff);
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  color: var(--foreground-brand-primary, #1b4dff);
+
+  &:hover {
+    background: var(--background-brand-soft-surface, #f2f5ff);
+  }
+
+  img {
+    // Recolour the grey glyph to brand blue.
+    filter: brightness(0) saturate(100%) invert(22%) sepia(98%) saturate(4400%) hue-rotate(228deg) brightness(101%);
+  }
+}
+
+.thumbBox {
+  position: relative;
+  flex: none;
+  width: 14px;
+  height: 14px;
+
+  img {
+    display: block;
+  }
+}
+
+.thumbDown img {
+  position: absolute;
+  inset: 15.63% 6.25% 6.25% 6.25%;
+  width: 87.5%;
+  height: 78.12%;
+  transform: scaleY(-1);
+}
+
+/* Receipt, inside the card that was pressed */
+
+.receipt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  // The cards are white now, so the receipt carries its own surface: production's soft
+  // success pair. Green for More and Less alike — it confirms the save, not the sentiment.
+  border: 1px solid var(--border-success-subtle, rgba(4, 135, 70, 0.32));
+  background: var(--background-success-subtle, rgba(10, 153, 82, 0.08));
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  animation: receiptIn 0.2s ease-out;
+}
+
+.receiptMark {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--foreground-success-primary, #0a9952);
+  color: var(--foreground-light-primary, #fff);
+}
+
+.receiptText {
+  flex: 1;
+  min-width: 0;
+  font-weight: 500;
+}
+
+.receiptUndo {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@keyframes receiptIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/* Footer rule */
+
+.dividerLine {
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+/* Story team header (web): the feed card's logo + team + Follow (NewsCard .head) */
+
+// The name hugs its width so Follow sits right beside it, as on the feed (newsfeed-v0
+// .teamNameTight / .headFollow). Doubled to beat NewsCard's .teamName.
+.teamHeadName.teamHeadName {
+  flex: 0 1 auto;
+  min-width: 0;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.teamHeadFollow {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-left: -6px;
+}
+
+// The header belongs to its story: 8px above the title (or the Top story badge), not the
+// card's 20px gap.
+.teamHead {
+  margin-bottom: -12px;
+}
+
+/* Footer */
+
+.signoff {
+  padding: 16px 16px 0;
+  text-align: center;
+  font-family: Montserrat, Inter, sans-serif;
+  font-size: 15px;
+  line-height: 24px;
+
+  p {
+    margin: 0;
+  }
+}
+
+.signoffStrong {
+  font-weight: 600;
+  color: #1c1e23;
+}
+
+.signoffTeam {
+  margin-top: 4px !important;
+  color: #8f98b1;
+}
+
+.footerDivider {
+  display: flex;
+  padding: 16px 32px;
+}
+
+.legal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 16px 24px;
+  text-align: center;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  p {
+    margin: 0;
+    font-size: 11px;
+  }
+}
+
+.legalLinks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px;
+
+  a {
+    color: inherit;
+    text-decoration: underline;
+  }
+}
+
+/* ---------- Production only (LAB-3264): rich-text body, forum post wrapper, error state, skeleton ---------- */
+
+/* Header (ours) */
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 0 16px;
+}
+
+// Story HTML: keep the summary type, contain wide media.
+.html {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-wrap: anywhere;
+
+  :global(p) {
+    margin: 0;
+  }
+
+  :global(img),
+  :global(video),
+  :global(iframe) {
+    max-width: 100%;
+    height: auto;
+  }
+
+  :global(a) {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  :global(ul),
+  :global(ol) {
+    margin: 0;
+    padding-left: 20px;
+  }
+}
+
+/* Error state (ours) */
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 80px 24px;
+  text-align: center;
+}
+
+.stateTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 28px;
+  color: #000;
+}
+
+.stateText {
+  margin: 0;
+  max-width: 360px;
+  font-size: 14px;
+  line-height: 20px;
+  color: #667085;
+}
+
+.stateLink {
+  margin-top: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: var(--background-brand-default, #1b4dff);
+  color: var(--foreground-light-primary, #fff);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+/* Loading skeleton (ours) */
+
+.skeleton {
+  border-radius: 6px;
+  background: linear-gradient(90deg, #e9eef5 0%, #f4f7fb 50%, #e9eef5 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.skeletonCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 32px 0;
+
+  & + & {
+    border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+// "Got news" when the signed-in member has no team to post for (ours, not in the prototype).
+.sendNewsNote {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// More than one team (LAB-3313): which team the post goes out as, before the modal opens.
+.sendNewsTeams {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.sendNewsTeamList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sendNewsTeam {
+  padding: 4px 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 999px;
+  background: var(--background-base-white, #fff);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--foreground-brand-primary, #1b4dff);
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+// The forum posts keep their email blocks until "From the forum" (LAB-3293) replaces them; on the open page they
+// line up with the stories' 16px edge instead of the email's 32px inset.
+.pageWeb {
+  .dividerRow,
+  .byline,
+  .postBody {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}

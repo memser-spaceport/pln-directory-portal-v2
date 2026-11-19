@@ -49,6 +49,7 @@ export const getMemberListForQuery = async (query: string, currentPage: number, 
       openToWork: member.openToWork || false,
       role: member.role || '',
       hasInactiveEmail: !!member.hasInactiveEmail,
+      isJobAspirant: member.isJobAspirant,
     };
   });
   return {

@@ -31,7 +31,7 @@ import { NewsTabs } from './NewsTabs';
 // Reuse the production feed layout styling 1:1.
 import s from '@/components/page/home/TeamNews/TeamNews.module.scss';
 // Production home-page shell (outer layout + section spacing), reused 1:1.
-import styles from '@/app/home/page.module.css';
+import styles from '@/app/page.module.css';
 
 import { V0FeedCard } from './V0FeedCard';
 import { ForumPostCard } from './ForumPostCard';

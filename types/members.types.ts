@@ -46,6 +46,8 @@ export interface IMemberResponse {
   preferences: {};
   createdAt: string;
   bio?: string;
+  /** Lists only, and only for a directory admin viewer; absent otherwise. */
+  isJobAspirant?: boolean;
 }
 
 export interface IProjectContribution {
@@ -182,6 +184,8 @@ export interface IMember {
     isInvestViaFund: boolean;
   };
   signUpSource?: string;
+  /** Lists only, and only for a directory admin viewer; absent otherwise. */
+  isJobAspirant?: boolean;
   rbac: {
     status: 'PENDING' | 'VERIFIED' | 'APPROVED' | 'REJECTED';
     policies: {

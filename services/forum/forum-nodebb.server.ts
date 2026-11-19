@@ -50,12 +50,6 @@ function readSession(jar: CookieJar): Session {
   };
 }
 
-function configuredForumToken(signedIn: boolean): string | undefined {
-  if (!signedIn) return undefined;
-  const token = process.env.CUSTOM_FORUM_AUTH_TOKEN?.trim();
-  return token || undefined;
-}
-
 async function renewSession(refreshToken: string): Promise<RenewedSession | null> {
   const result = await renewAccessToken(refreshToken);
   const data = result?.data;
@@ -97,7 +91,6 @@ async function callNodebb(input: {
   search: string;
   body?: string;
   impersonateMemberUid: string | null;
-  forumToken?: string;
   memberToken?: string;
   userInfo: IUserInfo | null;
 }): Promise<Response> {
@@ -112,7 +105,6 @@ async function callNodebb(input: {
   return fetch(`${base}${input.path}${input.search}`, {
     method: input.method,
     headers: buildForumUpstreamHeaders({
-      forumToken: input.forumToken,
       memberToken: input.memberToken,
       userInfo: input.userInfo,
       impersonateMemberUid: input.impersonateMemberUid,
@@ -168,8 +160,7 @@ async function impersonationActor(
 }
 
 async function sessionForUpstream(session: Session): Promise<{ session: Session; renewed: RenewedSession | null }> {
-  const signedIn = Boolean(session.authToken || session.refreshToken);
-  if (configuredForumToken(signedIn) || session.authToken || !session.refreshToken) {
+  if (session.authToken || !session.refreshToken) {
     return { session, renewed: null };
   }
 
@@ -195,9 +186,8 @@ export async function proxyForumRequest(request: NextRequest, segments: string[]
   const prepared = await sessionForUpstream(session);
   session = prepared.session;
 
-  const forumToken = configuredForumToken(Boolean(session.authToken || session.refreshToken));
-  const memberToken = forumToken ? undefined : session.authToken;
-  if (write && !forumToken && !memberToken) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const memberToken = session.authToken;
+  if (write && !memberToken) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const impersonateMemberUid = request.headers.get('x-impersonate-member-uid');
   let actor = session.userInfo;
@@ -215,12 +205,11 @@ export async function proxyForumRequest(request: NextRequest, segments: string[]
     search: request.nextUrl.search,
     body,
     impersonateMemberUid,
-    forumToken,
     memberToken,
     userInfo: actor,
   });
 
-  if (!forumToken && upstream.status === 401 && session.refreshToken) {
+  if (upstream.status === 401 && session.refreshToken) {
     const retry = await renewSession(session.refreshToken);
     if (retry) {
       upstream = await callNodebb({
@@ -251,15 +240,13 @@ export async function fetchForumTopic(topicId: string): Promise<Response> {
   let session = readSession(await cookies());
   const prepared = await sessionForUpstream(session);
   session = prepared.session;
-  const forumToken = configuredForumToken(Boolean(session.authToken || session.refreshToken));
 
   return callNodebb({
     method: 'GET',
     path,
     search: '',
     impersonateMemberUid: null,
-    forumToken,
-    memberToken: forumToken ? undefined : session.authToken,
+    memberToken: session.authToken,
     userInfo: session.userInfo,
   });
 }

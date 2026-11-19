@@ -5,7 +5,9 @@ import cloneDeepWith from 'lodash/cloneDeepWith';
 // Invite links sign the member in through these query params. PostHog records page URLs
 // (current, referrer, initial person info, session entry) before the app strips them,
 // so a captured loginToken would be a usable sign-in credential in analytics.
-const LOGIN_URL_PARAMS = ['loginToken', 'prefillEmail'];
+// `t` is the digest page link token (LAB-3264): it acts for its member on /digest, so it is
+// stripped the same way.
+const LOGIN_URL_PARAMS = ['loginToken', 'prefillEmail', 't'];
 
 export function stripLoginParamsFromEvent(event: CaptureResult | null): CaptureResult | null {
   return cloneDeepWith(event, (value) => (isString(value) ? removeLoginParams(value) : undefined));
@@ -19,6 +21,10 @@ function removeLoginParams(text: string): string {
   }
 
   const params = new URLSearchParams(text.slice(queryStart + 1, hashStart));
+  // `t=` is a substring of many params (`format=`, `limit=`): rewrite only a URL that really has one.
+  if (!LOGIN_URL_PARAMS.some((param) => params.has(param))) {
+    return text;
+  }
   LOGIN_URL_PARAMS.forEach((param) => params.delete(param));
   const query = params.toString();
 

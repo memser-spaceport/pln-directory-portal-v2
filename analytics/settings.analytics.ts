@@ -245,7 +245,12 @@ export const useSettingsAnalytics = () => {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_OPENED, { from });
   }
 
-  function onNewsPreferencesTagToggled(params: { tag: string; on: boolean; from: NewsPreferencesArrival }) {
+  function onNewsPreferencesTagToggled(params: {
+    tag: string;
+    on: boolean;
+    from: NewsPreferencesArrival;
+    kind: 'topic' | 'category';
+  }) {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_NEWS_PREFERENCES_TAG_TOGGLED, params);
   }
 

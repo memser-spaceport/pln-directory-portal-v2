@@ -46,9 +46,46 @@ describe('getUpcomingEvents', () => {
     global.fetch = respond([row], { total: '7' });
 
     await expect(getUpcomingEvents({ days: 30, limit: 3 })).resolves.toEqual({
-      events: [{ uid: 'e1', name: 'libp2p Day', startDate: row.startDate, endDate: row.endDate, location: 'Lisbon' }],
+      events: [
+        {
+          uid: 'e1',
+          name: 'libp2p Day',
+          startDate: row.startDate,
+          endDate: row.endDate,
+          location: 'Lisbon',
+          locationUid: null,
+        },
+      ],
       total: 7,
     });
+  });
+
+  it('carries the gathering uid, so a row can open the event drawer (LAB-3220)', async () => {
+    global.fetch = respond([{ ...row, locationUid: 'loc-1' }], { total: '1' });
+
+    const { events } = await getUpcomingEvents({ days: 30, limit: 3 });
+
+    expect(events[0].locationUid).toBe('loc-1');
+  });
+
+  it('carries goingCount when the API sends it, and leaves it out otherwise (LAB-3271)', async () => {
+    global.fetch = respond(
+      [
+        { ...row, goingCount: 4 },
+        { ...row, uid: 'e2' },
+        { ...row, uid: 'e3', goingCount: null },
+      ],
+      {
+        total: '3',
+      },
+    );
+
+    const { events } = await getUpcomingEvents({ days: 30, limit: 3 });
+
+    expect(events[0].goingCount).toBe(4);
+    expect(events[1]).not.toHaveProperty('goingCount');
+    // Invite-only events send null (BE PR #3725): no count.
+    expect(events[2]).not.toHaveProperty('goingCount');
   });
 
   it('falls back to the array length without the header', async () => {

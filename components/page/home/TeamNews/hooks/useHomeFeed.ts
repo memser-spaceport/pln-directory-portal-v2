@@ -13,6 +13,7 @@ import {
 } from '@/analytics/team-news.analytics';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useIsBelowDesktop } from '@/hooks/useIsBelowDesktop';
+import { useFollowedTeamUids } from '@/services/follow/hooks/useFollowedTeamUids';
 import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
 import { useFeedForumTopicLike } from '@/services/feed/hooks/useFeedComments';
 import { useTeamNewsImpressions } from '@/services/team-news/hooks/useTeamNewsImpressions';
@@ -91,6 +92,9 @@ export interface HomeFeedProps {
   /** The member's news tags (LAB-3001); For You also keeps stories sharing one.
    *  Undefined = match on `forYouTeamUids` only. Frozen at mount. */
   forYouTags?: string[];
+  /** Categories the member picked (LAB-3140). Undefined = no category match.
+   *  An empty list also adds nothing. Frozen at mount. */
+  forYouCategories?: string[];
   /** Server-ranked "Popular this week" (GET /v1/team-news/popular), fetched SSR
    * alongside `groups`. Empty → the rail's Popular module hides itself. */
   popularItems?: ITeamNewsPopularItem[];
@@ -145,6 +149,7 @@ export function useHomeFeed(
     allTabExtraItems = [],
     forYouTeamUids = [],
     forYouTags,
+    forYouCategories,
     popularItems = [],
     pageSize = 6,
     deepLinkedItem = null,
@@ -160,10 +165,17 @@ export function useHomeFeed(
   const [initialForYouTags] = useState<ReadonlySet<string> | undefined>(() =>
     forYouTags ? new Set(forYouTags) : undefined,
   );
+  const [initialForYouCategories] = useState<ReadonlySet<string> | undefined>(() =>
+    forYouCategories ? new Set(forYouCategories) : undefined,
+  );
+  // Undefined means the flag is off or the backend did not send tags, so an empty list is unknown.
+  const hasNoNewsTags = initialForYouTags !== undefined && initialForYouTags.size === 0;
   const [selectedCategory, setActiveCategory] = useState<TeamNewsCategoryId>(() => {
     if (isNewsOnly) return ALL_CAT;
     const items = sortAllTabItemsByEventDate(dedupeByUid([...groups.flatMap((g) => g.items), ...allTabExtraItems]));
-    return selectForYouItems(items, initialForYouTeamUids, initialForYouTags).length > 0 ? FOR_YOU_CAT : ALL_CAT;
+    return selectForYouItems(items, initialForYouTeamUids, initialForYouTags, initialForYouCategories).length > 0
+      ? FOR_YOU_CAT
+      : ALL_CAT;
   });
   const [expanded, setExpanded] = useState(false);
   const [query, setQuery] = useState('');
@@ -185,6 +197,11 @@ export function useHomeFeed(
   // Read here rather than beside the rail's suggestions, where it used to sit:
   // the For You jobs query below needs it, and that is above the rail.
   const { currentUser } = useCurrentUserStore();
+  // Real follows, not the teams that happen to have a story in this window.
+  const { followedTeamUids: memberFollowedTeamUids, isSettled: memberFollowsSettled } = useFollowedTeamUids({
+    memberUid: currentUser?.uid,
+    enabled: Boolean(currentUser?.uid) && hasNoNewsTags,
+  });
   // One instance for the whole page: holds every rendered card's dedup/queue
   // state, regardless of tab/category remounts below it (see the hook's own
   // unmount-vs-page-load-scoped comments).
@@ -314,13 +331,13 @@ export function useHomeFeed(
   }, [activeTab, feedItems, feedGroups, upvoteOverlay, viewedUids]);
 
   const forYouItemsForActiveTab = useMemo(
-    () => selectForYouItems(itemsForActiveTab, initialForYouTeamUids, initialForYouTags),
-    [itemsForActiveTab, initialForYouTeamUids, initialForYouTags],
+    () => selectForYouItems(itemsForActiveTab, initialForYouTeamUids, initialForYouTags, initialForYouCategories),
+    [itemsForActiveTab, initialForYouTeamUids, initialForYouTags, initialForYouCategories],
   );
 
   const hasForYouNews = useMemo(
-    () => selectForYouItems(allItems, initialForYouTeamUids, initialForYouTags).length > 0,
-    [allItems, initialForYouTeamUids, initialForYouTags],
+    () => selectForYouItems(allItems, initialForYouTeamUids, initialForYouTags, initialForYouCategories).length > 0,
+    [allItems, initialForYouTeamUids, initialForYouTags, initialForYouCategories],
   );
 
   // Jobs matched to this member — the whole match (two-week window,
@@ -1194,6 +1211,10 @@ export function useHomeFeed(
     feedItems,
     activeTab,
     handleTab,
+    hasNoNewsTags,
+    hasForYouNews,
+    followsAnyTeam: memberFollowedTeamUids.size > 0,
+    followsSettled: memberFollowsSettled,
     categoriesWithCounts,
     categoryOptions,
     streamCategories,

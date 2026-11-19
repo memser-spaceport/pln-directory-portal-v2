@@ -23,7 +23,7 @@
  *     next step through the list the drawer was opened from (the rail's rows,
  *     the calendar's events in date order), so browsing a month doesn't mean
  *     closing and reopening.
- *  2. Who and what: logo tile, mode + access as DS Badges, the title, "Hosted by".
+ *  2. Who and what: thumbnail (mode and access are fact rows below, not Badges, since 2026-11-17), the title, "Hosted by".
  *  3. When and where: the date tile the rail row already wears, then the venue
  *     (a map link) over its city. Same two facts the app showed, without its icons.
  *  4. The ask, in one card, near the top: who's going (facepile, opens the list
@@ -52,13 +52,12 @@
  */
 
 import clsx from 'clsx';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import btn from '@/components/common/Button/Button.module.scss';
-import { Checkbox } from '@/components/common/Checkbox';
 import { Drawer } from '@/components/common/Drawer';
 import { Modal } from '@/components/common/Modal/Modal';
 import { SearchInput } from '@/components/common/filters/SearchInput';
@@ -66,7 +65,6 @@ import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import {
   ArrowBackIcon,
   ArrowUpRightIcon,
-  CalendarBlankIcon,
   CaretLeftIcon,
   CaretRightIcon,
   CheckIcon,
@@ -89,34 +87,21 @@ import type {
 } from '@/components/core/UpdatesPanel/IrlGatheringModal/types';
 import m from '@/components/core/UpdatesPanel/IrlGatheringModal/IrlGatheringModal.module.scss';
 
-import { markGoing, removeGoing, saveGathering, setShowOnProfile, useGoing } from '../member-events-going/goingStore';
+import { markGoing, saveGathering, useGoing } from '../member-events-going/goingStore';
 import { ATTENDEES, MAYA_TEAMS, type EventDetail, type Gathering } from '../member-events-going/mocks';
 
-import {
-  ACCESS_LABEL,
-  MODE_LABEL,
-  dayLine,
-  dayOfMonth,
-  mapsHref,
-  monthShort,
-  regionLine,
-  timeLine,
-  venueOf,
-} from './format';
-import {
-  DETAILS,
-  eventByUid,
-  eventsAppHref,
-  gatheringFor,
-  registerHref,
-  siblingsOf,
-  THUMBS,
-  type CalEvent,
-} from './mocks';
+import { EventImage } from '../events-shared/EventImage';
+import { GoingTag } from '../events-shared/GoingTag';
+import { MUTED_ROLE, ROLE_TAG } from '../member-events-going/roleTags';
+import { AccessIcon, ACCESS_FACT } from './AccessIcon';
+import { dayLine, dayOfMonth, mapsHref, monthShort, regionLine, timeLine, venueOf } from './format';
+import { DETAILS, eventByUid, eventsAppHref, gatheringFor, registerHref, siblingsOf, type CalEvent } from './mocks';
+import { RsvpCard } from './RsvpCard';
+import { GoingCardCompact, RsvpFooter } from './RsvpFooter';
 import d from './EventDrawer.module.scss';
 
 const SCOPE = 'owner' as const;
-const DRAWER_WIDTH = 560;
+const DRAWER_WIDTH = 640; // 560 → 640 (2026-11-18: "make drawer a bit wider")
 
 export interface EventNotice {
   eventName: string;
@@ -125,12 +110,16 @@ export interface EventNotice {
 
 type View = 'event' | 'attendees' | 'plans';
 
+/** Where the RSVP press lives: the card near the top (default), or a pinned footer (?drawer=footer). */
+export type RsvpPlacement = 'card' | 'footer';
+
 export function EventDrawer({
   eventUid,
   sequence,
   onNavigate,
   onClose,
   onNotice,
+  rsvp = 'card',
 }: {
   eventUid: string | null;
   /** The list the drawer was opened from, for previous / next. */
@@ -139,6 +128,7 @@ export function EventDrawer({
   onClose: () => void;
   /** Called on close when the member said yes during this visit. */
   onNotice?: (notice: EventNotice) => void;
+  rsvp?: RsvpPlacement;
 }) {
   /* Keep drawing the last event while the drawer slides out. */
   const [shownUid, setShownUid] = useState(eventUid);
@@ -198,6 +188,7 @@ export function EventDrawer({
             <EventView
               key={event.uid}
               event={event}
+              rsvp={rsvp}
               onOpenAttendees={() => setView('attendees')}
               onOpenPlans={() => setView('plans')}
               onNavigate={onNavigate}
@@ -311,6 +302,7 @@ function Toolbar({
 
 function EventView({
   event,
+  rsvp,
   onOpenAttendees,
   onOpenPlans,
   onNavigate,
@@ -318,6 +310,7 @@ function EventView({
   onUnmarked,
 }: {
   event: CalEvent;
+  rsvp: RsvpPlacement;
   onOpenAttendees: () => void;
   onOpenPlans: () => void;
   onNavigate: (uid: string) => void;
@@ -329,93 +322,198 @@ function EventView({
   const { venue } = venueOf(detail);
   const online = detail.mode === 'Virtual';
 
+  /* "Away" = less than half the card on screen (a proportion, so it holds on tall monitors too).
+     The sticky toolbar covers the top 56px, so it doesn't count as on screen. */
+  const rsvpRef = useRef<HTMLDivElement>(null);
+  const [rsvpAway, setRsvpAway] = useState(false);
+  useEffect(() => {
+    const el = rsvpRef.current;
+    if (!el) return;
+    /* Vertical only: an IntersectionObserver would also read the drawer's slide-in as "away". */
+    let scroller: HTMLElement | null = el.parentElement;
+    while (scroller && !/(auto|scroll)/.test(getComputedStyle(scroller).overflowY)) scroller = scroller.parentElement;
+    const target: HTMLElement | Window = scroller ?? window;
+    const check = () => {
+      const r = el.getBoundingClientRect();
+      const top = scroller ? scroller.getBoundingClientRect().top + 56 : 56;
+      const bottom = scroller ? scroller.getBoundingClientRect().bottom : window.innerHeight;
+      const visible = Math.max(0, Math.min(r.bottom, bottom) - Math.max(r.top, top));
+      setRsvpAway(visible < r.height / 2);
+    };
+    check();
+    target.addEventListener('scroll', check, { passive: true });
+    window.addEventListener('resize', check);
+    return () => {
+      target.removeEventListener('scroll', check);
+      window.removeEventListener('resize', check);
+    };
+  }, []);
+
   return (
-    <div className={d.body}>
-      <section className={d.hero}>
-        <div className={d.badges}>
-          <Badge>{MODE_LABEL[detail.mode]}</Badge>
-          <Badge>{ACCESS_LABEL[detail.access]}</Badge>
-        </div>
-        {/* The event's own picture as a small thumbnail beside the title and hosts
+    <>
+      <div className={d.body}>
+        <section className={d.hero}>
+          {/* No badge row (2026-11-17): mode lives in the place fact, access is its own fact below. */}
+          {/* The event's own picture as a small thumbnail beside the title and hosts
             (2026-11-11). The calendar-glyph tile it replaced was a placeholder; with
             no picture there is no tile and the title starts at the edge. */}
-        <div className={d.titleRow}>
-          {THUMBS[event.uid] && <img className={d.logo} src={THUMBS[event.uid]} alt="" width={56} height={56} />}
-          <div className={d.titleText}>
-            <h2 className={d.title}>{event.name}</h2>
-            <p className={d.hosts}>
-              Hosted by{' '}
-              {detail.hosts.map((host, i) => (
-                <span key={host}>
-                  {i > 0 && (i === detail.hosts.length - 1 ? ' and ' : ', ')}
-                  <a className={d.hostLink} href="/prototypes/team-profile" target="_blank" rel="noreferrer">
-                    {host}
-                  </a>
-                </span>
-              ))}
-            </p>
+          <div className={d.titleRow}>
+            <EventImage uid={event.uid} className={d.logo} />
+            <div className={d.titleText}>
+              <h2 className={d.title}>{event.name}</h2>
+              <p className={d.hosts}>
+                Hosted by{' '}
+                {detail.hosts.map((host, i) => (
+                  <span key={host}>
+                    {i > 0 && (i === detail.hosts.length - 1 ? ' and ' : ', ')}
+                    <a className={d.hostLink} href="/prototypes/team-profile" target="_blank" rel="noreferrer">
+                      {host}
+                    </a>
+                  </span>
+                ))}
+              </p>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <ul className={d.facts}>
-        <li className={d.fact}>
-          <span className={d.dateTile} aria-hidden>
-            <span className={d.dateMonth}>{monthShort(event.startDate)}</span>
-            <span className={d.dateDay}>{dayOfMonth(event.startDate)}</span>
-          </span>
-          <span className={d.factText}>
-            <span className={d.factMain}>{dayLine(event)}</span>
-            <span className={d.factSub}>{timeLine(detail)}</span>
-          </span>
-        </li>
-        <li className={d.fact}>
-          <span className={d.factIcon} aria-hidden>
-            {online ? <GlobeIcon width={20} height={20} /> : <PinIcon />}
-          </span>
-          <span className={d.factText}>
-            {online ? (
-              <span className={d.factMain}>{venue}</span>
-            ) : (
-              <a className={clsx(d.factMain, d.factLink)} href={mapsHref(detail)} target="_blank" rel="noreferrer">
-                {venue}
-                <ArrowUpRightIcon width={14} height={14} />
-              </a>
-            )}
-            <span className={d.factSub}>{online ? 'Link sent after you register' : regionLine(detail)}</span>
-          </span>
-        </li>
-      </ul>
+        <ul className={d.facts}>
+          <li className={d.fact}>
+            <span className={d.dateTile} aria-hidden>
+              <span className={d.dateMonth}>{monthShort(event.startDate)}</span>
+              <span className={d.dateDay}>{dayOfMonth(event.startDate)}</span>
+            </span>
+            <span className={d.factText}>
+              <span className={d.factMain}>{dayLine(event)}</span>
+              <span className={d.factSub}>{timeLine(detail)}</span>
+            </span>
+          </li>
+          <li className={d.fact}>
+            <span className={d.factIcon} aria-hidden>
+              {online ? <GlobeIcon width={20} height={20} /> : <PinIcon />}
+            </span>
+            <span className={d.factText}>
+              {online ? (
+                <span className={d.factMain}>Online</span>
+              ) : (
+                <a className={clsx(d.factMain, d.factLink)} href={mapsHref(detail)} target="_blank" rel="noreferrer">
+                  {venue}
+                  <ArrowUpRightIcon width={14} height={14} />
+                </a>
+              )}
+              <span className={d.factSub}>
+                {online
+                  ? 'Link sent after you register'
+                  : detail.mode === 'Hybrid'
+                    ? `${regionLine(detail)} · Hybrid, also online`
+                    : regionLine(detail)}
+              </span>
+            </span>
+          </li>
+          <li className={d.fact}>
+            <span className={d.factIcon} aria-hidden>
+              <AccessIcon access={detail.access} />
+            </span>
+            <span className={d.factText}>
+              <span className={d.factMain}>{ACCESS_FACT[detail.access].main}</span>
+              {ACCESS_FACT[detail.access].sub && <span className={d.factSub}>{ACCESS_FACT[detail.access].sub}</span>}
+            </span>
+          </li>
+        </ul>
 
-      <RsvpCard
-        event={event}
-        gathering={gathering}
-        onOpenAttendees={onOpenAttendees}
-        onOpenPlans={onOpenPlans}
-        onMarked={onMarked}
-        onUnmarked={onUnmarked}
-      />
-
-      <Section title="About">
-        {detail.description.map((p) => (
-          <p key={p.slice(0, 24)} className={d.paragraph}>
-            {p}
-          </p>
-        ))}
-        {detail.tags.length > 0 && (
-          <div className={d.tags}>
-            {detail.tags.map((tag) => (
-              <Badge key={tag.name} className={d.tag}>
-                {tag.name}
-              </Badge>
-            ))}
+        {rsvp === 'footer' ? (
+          /* Footer version: the body keeps only the follow-ups, and only after a yes (no empty slot before). */
+          <GoingCardCompact event={event} gathering={gathering} onOpenPlans={onOpenPlans} />
+        ) : (
+          <div ref={rsvpRef}>
+            <RsvpCard
+              event={event}
+              gathering={gathering}
+              onOpenAttendees={onOpenAttendees}
+              onOpenPlans={onOpenPlans}
+              onMarked={onMarked}
+              onUnmarked={onUnmarked}
+            />
           </div>
         )}
-      </Section>
 
-      {detail.agenda.length > 0 && <Agenda agenda={detail.agenda} />}
+        <Section title="About">
+          {detail.description.map((p) => (
+            <p key={p.slice(0, 24)} className={d.paragraph}>
+              {p}
+            </p>
+          ))}
+          {detail.tags.length > 0 && (
+            <div className={d.tags}>
+              {detail.tags.map((tag) => (
+                <Badge key={tag.name} className={d.tag}>
+                  {tag.name}
+                </Badge>
+              ))}
+            </div>
+          )}
+        </Section>
 
-      {gathering && <GatheringBlock event={event} gathering={gathering} onNavigate={onNavigate} />}
+        {detail.agenda.length > 0 && <Agenda agenda={detail.agenda} />}
+
+        {gathering && <GatheringBlock event={event} gathering={gathering} onNavigate={onNavigate} />}
+      </div>
+      {rsvp === 'footer' ? (
+        <RsvpFooter event={event} onOpenAttendees={onOpenAttendees} onMarked={onMarked} onUnmarked={onUnmarked} />
+      ) : (
+        rsvpAway && <RsvpBar event={event} onMarked={onMarked} />
+      )}
+    </>
+  );
+}
+
+/**
+ * The ask, pinned (2026-11-16). On a long event (description, agenda, the gathering's other events) the
+ * RSVP card scrolls away and "Yes, I'm going" goes with it. Once less than half the card is on screen,
+ * the same question and the same two presses stand in the drawer's footer, the slot PlansView's
+ * Cancel / Save already use, so the drawer has one bottom bar, not a floating second one. After yes the
+ * bar is the receipt until the card is back in view; the card keeps the follow-ups (consent, plans,
+ * Mark as not going). A yes pressed here takes the card's default, Show on my profile ticked; the card
+ * offers the untick right after.
+ */
+function RsvpBar({ event, onMarked }: { event: CalEvent; onMarked: (onProfile: boolean) => void }) {
+  const going = useGoing(SCOPE);
+  const entry = going[event.uid];
+
+  return (
+    <div className={clsx(d.footer, d.rsvpBar)}>
+      {entry ? (
+        <p className={clsx(d.cardTitle, d.cardTitleGoing, d.rsvpBarText, d.rsvpBarGoing)}>
+          <SuccessCircleIcon width={20} height={20} />
+          You&apos;re going
+        </p>
+      ) : (
+        <p className={d.rsvpBarText}>
+          <span className={d.rsvpBarTitle}>Are you going?</span>
+          <span className={d.rsvpBarMeta}>{event.attendeeCount} members going</span>
+        </p>
+      )}
+      <div className={d.rsvpBarActions}>
+        <a
+          href={registerHref(event.uid)}
+          target="_blank"
+          rel="noreferrer"
+          className={clsx(btn.root, btn.small, btn.border, btn.neutral, d.btn)}
+        >
+          Register
+          <ArrowUpRightIcon width={14} height={14} />
+        </a>
+        {!entry && (
+          <Button
+            size="s"
+            onClick={() => {
+              markGoing(SCOPE, event.uid, true);
+              onMarked(true);
+            }}
+          >
+            Yes, I&apos;m going
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
@@ -429,159 +527,6 @@ function Section({ title, aside, children }: { title: ReactNode; aside?: ReactNo
       </div>
       {children}
     </section>
-  );
-}
-
-/* ---------- The ask ---------- */
-
-function Facepile({ count }: { count: number }) {
-  return (
-    <span className={d.facepile} aria-hidden>
-      {ATTENDEES.slice(0, Math.min(3, count)).map((a) => (
-        <img key={a.uid} src={getDefaultAvatar(a.name)} alt="" width={24} height={24} />
-      ))}
-    </span>
-  );
-}
-
-function RsvpCard({
-  event,
-  gathering,
-  onOpenAttendees,
-  onOpenPlans,
-  onMarked,
-  onUnmarked,
-}: {
-  event: CalEvent;
-  gathering: Gathering | null;
-  onOpenAttendees: () => void;
-  onOpenPlans: () => void;
-  onMarked: (onProfile: boolean) => void;
-  onUnmarked: () => void;
-}) {
-  const going = useGoing(SCOPE);
-  const entry = going[event.uid];
-  const [show, setShow] = useState(entry?.showOnProfile ?? true);
-  const others = event.attendeeCount;
-
-  const register = (
-    <a
-      href={registerHref(event.uid)}
-      target="_blank"
-      rel="noreferrer"
-      className={clsx(btn.root, btn.small, btn.border, btn.neutral, d.btn)}
-    >
-      Register
-      <ArrowUpRightIcon width={14} height={14} />
-    </a>
-  );
-
-  const consent = (
-    <label className={d.consent}>
-      <Checkbox
-        checked={entry ? entry.showOnProfile : show}
-        onChange={(v: boolean) => (entry ? setShowOnProfile(SCOPE, event.uid, v) : setShow(v))}
-        aria-labelledby={`consent-${event.uid}`}
-      />
-      <span className={d.consentText}>
-        <span id={`consent-${event.uid}`} className={d.consentLabel}>
-          Show on my profile
-        </span>
-        <span className={d.consentHint}>Signed-in members see it in your Events.</span>
-      </span>
-    </label>
-  );
-
-  if (!entry) {
-    return (
-      <div className={d.card}>
-        <div className={d.cardHead}>
-          <p className={d.cardTitle}>Are you going?</p>
-          <button type="button" className={d.goingLink} onClick={onOpenAttendees}>
-            <Facepile count={others} />
-            {others} members going
-          </button>
-        </div>
-        {consent}
-        <div className={d.cardActions}>
-          <Button
-            size="s"
-            onClick={() => {
-              markGoing(SCOPE, event.uid, show);
-              onMarked(show);
-            }}
-          >
-            Yes, I&apos;m going
-          </Button>
-          {register}
-        </div>
-      </div>
-    );
-  }
-
-  /*
-   * Going, after Luma's "You're In" card in its event side peek (Mobbin, 2026-11-11):
-   * a neutral card, the state as a plain dark title with one green mark, the
-   * people under it, one row that leads on to the next thing to do ("Get ready
-   * for the event ›" there, "Add your plans" here), and leaving as a quiet
-   * sentence at the foot instead of a third press in the action row. The green
-   * wash went: a tint says "the system is reporting", and nothing else on the
-   * card needed to compete with the plans row.
-   */
-  return (
-    <div className={d.card}>
-      <div className={d.goingTop}>
-        <div className={d.goingText}>
-          <p className={clsx(d.cardTitle, d.cardTitleGoing)}>
-            <SuccessCircleIcon width={20} height={20} />
-            You&apos;re going
-          </p>
-          <button type="button" className={d.goingLink} onClick={onOpenAttendees}>
-            <Facepile count={others} />
-            You and {others} members
-          </button>
-        </div>
-        {register}
-      </div>
-
-      <label className={d.consentInline}>
-        <Checkbox
-          checked={entry.showOnProfile}
-          onChange={(v: boolean) => setShowOnProfile(SCOPE, event.uid, v)}
-          aria-labelledby={`consent-${event.uid}`}
-        />
-        <span id={`consent-${event.uid}`} className={d.consentLabel}>
-          Show on my profile <span className={d.consentQualifier}>· signed-in members see it</span>
-        </span>
-      </label>
-
-      {gathering && (
-        <button type="button" className={d.plansRow} onClick={onOpenPlans}>
-          <span className={d.plansIcon} aria-hidden>
-            <CalendarBlankIcon width={18} height={18} />
-          </span>
-          <span className={d.plansText}>
-            <span className={d.plansTitle}>Add your plans for {gathering.city}</span>
-            <span className={d.plansHint}>Dates, topics and the events you&apos;ll be at</span>
-          </span>
-          <CaretRightIcon width={16} height={16} className={d.plansArrow} />
-        </button>
-      )}
-
-      <p className={d.leaveLine}>
-        Can&apos;t make it?{' '}
-        <button
-          type="button"
-          className={d.notGoing}
-          onClick={() => {
-            removeGoing(SCOPE, event.uid);
-            onUnmarked();
-          }}
-        >
-          Mark as not going
-        </button>
-      </p>
-    </div>
   );
 }
 
@@ -649,14 +594,7 @@ function GatheringBlock({
                     {e.range} · {e.attendeeCount} going
                   </span>
                 </span>
-                {going[e.uid] ? (
-                  <span className={d.goingMark}>
-                    <CheckIcon width={14} height={14} />
-                    Going
-                  </span>
-                ) : (
-                  <CaretRightIcon width={16} height={16} className={d.siblingArrow} />
-                )}
+                {going[e.uid] ? <GoingTag /> : <CaretRightIcon width={16} height={16} className={d.siblingArrow} />}
               </button>
             </li>
           ))}
@@ -703,7 +641,7 @@ function SubHead({ title, onBack }: { title: string; onBack: () => void }) {
   );
 }
 
-function AttendeesView({ event, onBack }: { event: CalEvent; onBack: () => void }) {
+export function AttendeesView({ event, onBack }: { event: CalEvent; onBack: () => void }) {
   const going = useGoing(SCOPE);
   const you = !!going[event.uid];
   const [query, setQuery] = useState('');
@@ -737,7 +675,7 @@ function AttendeesView({ event, onBack }: { event: CalEvent; onBack: () => void 
                   {a.role} · {a.team}
                 </span>
               </span>
-              {a.tag && <Badge variant="brand">{a.tag}</Badge>}
+              {a.tag && <span className={clsx(ROLE_TAG, MUTED_ROLE[a.tag], d.personRole)}>{a.tag}</span>}
             </a>
           </li>
         ))}
@@ -765,7 +703,7 @@ const toEventData = (e: CalEvent): EventData => ({
  * production's PlanningSection + AdditionalDetailsSection, Save pinned under
  * them. Same pickers, same store, so what's saved here is what the profile reads.
  */
-function PlansView({
+export function PlansView({
   event,
   gathering,
   onBack,

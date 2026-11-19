@@ -7,6 +7,8 @@ import { Button } from '@/components/common/Button';
 import { SearchInput } from '@/components/common/filters/SearchInput';
 import { SortDropdown } from '@/components/common/filters/SortDropdown';
 import sortCss from '@/components/common/filters/SortDropdown/SortDropdown.module.scss';
+import { useNewsDefaultTags } from '@/services/team-news/hooks/useNewsDefaultTags';
+import { SHOW_NEWS_PREFERENCES } from '@/utils/news-categories';
 
 import {
   ALL_CAT,
@@ -24,6 +26,9 @@ import { NewsBase } from './components/NewsBase';
 import { NewsRail } from './components/NewsRail';
 import { NewsSearch } from './components/NewsSearch';
 import { ForYouHint } from './components/ForYouHint/ForYouHint';
+import { ForYouSetupPrompt, isForYouSetupVisible } from './components/ForYouSetupPrompt/ForYouSetupPrompt';
+import { NewsTagCard } from './components/NewsTagCard/NewsTagCard';
+import { isTagCardVisible, resolveTagCard } from './components/NewsTagCard/newsTagCard.utils';
 import { TeamNewsTabs } from './components/TeamNewsTabs';
 import { NewsGroupCard } from './components/NewsGroupCard';
 import { ForumPostCard } from './components/ForumPostCard';
@@ -59,6 +64,10 @@ export const TeamNews = (props: HomeFeedProps) => {
     feedItems,
     activeTab,
     handleTab,
+    hasNoNewsTags,
+    hasForYouNews,
+    followsAnyTeam,
+    followsSettled,
     categoriesWithCounts,
     categoryOptions,
     activeCategory,
@@ -101,6 +110,29 @@ export const TeamNews = (props: HomeFeedProps) => {
   } = useHomeFeed(props);
   // This layout filters by one tag at most (LAB-3010); stacking is the new Home's.
   const topicFilter = topicScope[0] ?? '';
+  // The member's default tags, until they answer (LAB-3250). The card stands in for the set-up row and the hint.
+  const tagCard = resolveTagCard(useNewsDefaultTags(currentUser?.uid).data);
+  const tagCardVisible = isTagCardVisible({
+    preferencesOn: SHOW_NEWS_PREFERENCES,
+    signedIn: Boolean(currentUser?.uid),
+    hasCard: tagCard !== null,
+    activeTab,
+    activeCategory,
+    query,
+    hasTopicFilter: Boolean(topicFilter),
+  });
+  const showForYouSetup = isForYouSetupVisible({
+    preferencesOn: SHOW_NEWS_PREFERENCES,
+    signedIn: Boolean(currentUser?.uid),
+    hasNoNewsTags,
+    hasForYouNews,
+    followsAnyTeam,
+    followsSettled,
+    activeTab,
+    activeCategory,
+    query,
+    hasTopicFilter: Boolean(topicFilter),
+  });
 
   // A forum-access member with zero news in the window still gets their posts
   // (they render alone once the posts query lands — accepted pop-in).
@@ -200,7 +232,9 @@ export const TeamNews = (props: HomeFeedProps) => {
             the originating row is gone (deep link to a folded story) — focus must
             land somewhere in the feed, never on <body>. */}
         <div className={s.main} data-news-feed-root tabIndex={-1}>
-          {activeCategory === FOR_YOU_CAT && <ForYouHint memberUid={currentUser?.uid} />}
+          <NewsTagCard memberUid={currentUser?.uid} card={tagCard} visible={tagCardVisible} />
+          {activeCategory === FOR_YOU_CAT && !tagCardVisible && <ForYouHint memberUid={currentUser?.uid} />}
+          <ForYouSetupPrompt memberUid={currentUser?.uid} visible={showForYouSetup && !tagCardVisible} />
           {topStories?.lead && (
             <div className={s.topStories}>
               <TopStoriesBlock
@@ -366,7 +400,7 @@ export const TeamNews = (props: HomeFeedProps) => {
           // Constructed, not left to the body's current-URL fallback: the ?news=
           // param is written with raw history.replaceState, so the round-trip
           // has to name the story explicitly to survive a sign-in.
-          loginHref={`/home?news=${encodeURIComponent(activeNewsItem.uid)}#login`}
+          loginHref={`/?news=${encodeURIComponent(activeNewsItem.uid)}#login`}
           onTagSelect={(tag) => handleTagSelect(tag, 'modal')}
           activeTag={topicFilter || undefined}
         />

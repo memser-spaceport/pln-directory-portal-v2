@@ -52,6 +52,13 @@ export const PL_INFRA_OS_PATH = '/pl-infra-os';
  */
 export const PUBLISHED_AI_APPS_PATH = '/apps';
 
+/**
+ * How long the published list is trusted. Short on purpose: taking an app back
+ * applies to access at once, and the More menu should follow within seconds,
+ * not the 5 minutes other nav data waits.
+ */
+export const PUBLISHED_AI_APPS_STALE_TIME_MS = 30 * 1000;
+
 export const publishedAiAppPath = (uid: string): string => `${PUBLISHED_AI_APPS_PATH}/${encodeURIComponent(uid)}`;
 
 export const AI_APPS_SEARCH_PARAM = 'search';

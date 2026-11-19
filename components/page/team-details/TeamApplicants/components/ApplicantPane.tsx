@@ -124,7 +124,12 @@ export function MemberProfilePane({
   return (
     <div className={s.column}>
       <ProfileSection name="Profile Details">
-        <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+        <ProfileDetails
+          userInfo={userInfo}
+          member={member}
+          isLoggedIn={isLoggedIn}
+          offerBooking={officeHours && !jobAspirant}
+        />
       </ProfileSection>
 
       {section}

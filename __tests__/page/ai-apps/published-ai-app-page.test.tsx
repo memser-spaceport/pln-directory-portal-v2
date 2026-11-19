@@ -13,8 +13,12 @@ jest.mock('@/analytics/ai-apps.analytics', () => ({
 }));
 
 let mockPublished: { apps: PublishedAiApp[]; isLoading: boolean };
+const mockUsePublishedAiApps = jest.fn();
 jest.mock('@/services/ai-apps/hooks/usePublishedAiApps', () => ({
-  usePublishedAiApps: () => mockPublished,
+  usePublishedAiApps: (...args: unknown[]) => {
+    mockUsePublishedAiApps(...args);
+    return mockPublished;
+  },
 }));
 
 // The page must work for a member without `ai_apps.read`: any call into the
@@ -79,6 +83,13 @@ describe('PublishedAiAppPage', () => {
     expect(mockAnalytics.onPublishedAppUnavailable).not.toHaveBeenCalled();
   });
 
+  // The More menu may still list an app taken back a moment ago; the page must not frame it from that cache.
+  it('asks for a fresh published list, not the one the menu cached', () => {
+    renderPage();
+
+    expect(mockUsePublishedAiApps).toHaveBeenCalledWith({ fresh: true });
+  });
+
   describe('an app that is not published to the member', () => {
     it('says so, with a way back to Home rather than to the AI Apps catalog', () => {
       mockPublished = { apps: [playbook], isLoading: false };
@@ -86,7 +97,7 @@ describe('PublishedAiAppPage', () => {
       renderPage('cmsomeoneelse');
 
       expect(screen.getByRole('heading', { name: 'This app is not available to you' })).toBeInTheDocument();
-      expect(screen.getByRole('link', { name: 'Back to home' })).toHaveAttribute('href', '/home');
+      expect(screen.getByRole('link', { name: 'Back to home' })).toHaveAttribute('href', '/');
       expect(document.querySelector('a[href^="/pl-infra"]')).toBeNull();
       expect(frame()).toBeNull();
       expect(mockAnalytics.onPublishedAppUnavailable).toHaveBeenCalledTimes(1);

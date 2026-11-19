@@ -17,6 +17,30 @@ beforeEach(() => {
 });
 
 describe('points proxy route', () => {
+  it.each([401, 429])('preserves actionable upstream status %i', async (status) => {
+    (global.fetch as jest.Mock).mockResolvedValue({ ok: false, status });
+    const res = await getPoints(makeRequest('http://localhost/api/plaa/points'));
+    expect(res.status).toBe(status);
+  });
+
+  it('passes valid retry timing with a rate limit', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      status: 429,
+      headers: new Headers({ 'retry-after': '30' }),
+    });
+    const res = await getPoints(makeRequest('http://localhost/api/plaa/points'));
+    expect(res.status).toBe(429);
+    expect(res.headers.get('retry-after')).toBe('30');
+  });
+
+  it('hides upstream server errors', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({ ok: false, status: 503, statusText: 'internal details' });
+    const res = await getPoints(makeRequest('http://localhost/api/plaa/points'));
+    expect(res.status).toBe(502);
+    expect(await res.json()).toEqual({ error: 'PLAA service is temporarily unavailable' });
+  });
+
   it('proxies to /api/v1/points/me when no snapshot period is given', async () => {
     await getPoints(makeRequest('http://localhost/api/plaa/points'));
 

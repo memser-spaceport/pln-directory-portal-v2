@@ -12,11 +12,13 @@ async function Page({ searchParams }: PageProps) {
   const serverPage = await getServerTeamsPage(params, authToken);
 
   return (
-    <>
-      <TeamsContent userInfo={userInfo} isLoggedIn={Boolean(isLoggedIn)} serverPage={serverPage} />
-      {/* The list shows 50 teams to a crawler; the index links every one (LAB-3093). */}
-      <BrowseAllLink kind="teams" />
-    </>
+    <TeamsContent
+      userInfo={userInfo}
+      isLoggedIn={Boolean(isLoggedIn)}
+      serverPage={serverPage}
+      // The list shows 50 teams to a crawler; the index links every one (LAB-3093).
+      browseLink={<BrowseAllLink kind="teams" />}
+    />
   );
 }
 

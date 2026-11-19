@@ -43,7 +43,9 @@ function appOriginOf(url: string): string | null {
 export function PublishedAiAppPage(props: Props) {
   const { uid, basePath } = props;
 
-  const { apps, isLoading } = usePublishedAiApps();
+  // Fresh, not the menu's cached list: the member may have been taken out of
+  // the audience since the menu loaded.
+  const { apps, isLoading } = usePublishedAiApps({ fresh: true });
   const analytics = useAiAppsAnalytics();
   const trackedUnavailableUid = useRef<string | null>(null);
 

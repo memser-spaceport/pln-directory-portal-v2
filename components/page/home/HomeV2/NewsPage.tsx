@@ -21,7 +21,7 @@ import { useHomeFeed, type HomeFeedProps } from '@/components/page/home/TeamNews
 import { FOR_YOU_CAT } from '@/components/page/home/TeamNews/constants';
 import { matchesTeamNewsQuery } from '@/components/page/home/TeamNews/utils/matchesTeamNewsQuery';
 import tn from '@/components/page/home/TeamNews/TeamNews.module.scss';
-import home from '@/app/home/page.module.css';
+import home from '@/app/page.module.css';
 
 import { FeedFilterBar } from './FeedFilterBar';
 import { JoinNetworkModal } from './JoinNetworkModal';

@@ -23,6 +23,7 @@ interface FormattedTeamListItem {
   industryTags: ITeamResponse['industryTags'];
   asks: ITeamResponse['asks'];
   isFollowed?: boolean;
+  accessLevel?: ITeamResponse['accessLevel'];
 }
 
 // Anonymous requests must never reach the backend with followingOnly set, regardless of what a
@@ -60,6 +61,7 @@ export const getTeamList = async (query: string, currentPage = 1, limit = ITEMS_
     industryTags: team?.industryTags || [],
     asks: team?.asks || [],
     isFollowed: team?.isFollowed,
+    accessLevel: team?.accessLevel,
   }));
   return { data: formattedData, totalItems: result?.total, followingTotal: result?.followingTotal ?? 0 };
 };

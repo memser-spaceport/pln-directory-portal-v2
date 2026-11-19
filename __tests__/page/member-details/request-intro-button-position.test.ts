@@ -107,11 +107,16 @@ describe('Request intro position on a member page', () => {
     expect(actions['grid-column']).toBe('2');
   });
 
-  it('from 640px, the role and location row stays in the first column, before the actions', () => {
+  it('from 640px, the facts row spans the full width, under the actions', () => {
     const info = includeBlock(topLevelBlock(scss, '.headerInfo'), 'tablet-portrait');
     const row = declarations(topLevelBlock(info, '> .roleAndLocation'));
     expect(row['grid-row']).toBe('2');
-    expect(row['grid-column']).toBe('1');
+    expect(row['grid-column']).toBe('1 / -1');
+  });
+
+  it('shows one contact button to a signed-in visitor, never on their own profile', () => {
+    expect(tsx).toMatch(/showContactAction = isLoggedIn && !isOwner && !variant/);
+    expect(tsx).toMatch(/<MemberContactAction/);
   });
 
   it('the role and location row wraps, and a wrapped line hides the divider it starts with', () => {

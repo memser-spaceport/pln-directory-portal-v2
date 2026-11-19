@@ -1,0 +1,293 @@
+@use 'styles/media';
+
+/*
+ * The event's RSVP card (LAB-3225), ported from `prototypes/entries/event-drawer-redesign/EventDrawer.module.scss`
+ * (Polina, 2026-11-12). Token + fallback pairs kept as written there: the fallback is what paints.
+ */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: var(--background-neutral-primary, #ffffff);
+  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.04);
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.cardTitleGoing {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  svg {
+    flex-shrink: 0;
+    color: var(--foreground-success-primary, #0a9952);
+  }
+}
+
+.goingLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration: underline;
+  }
+}
+
+.nobody {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.facepile {
+  display: inline-flex;
+
+  img {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--background-neutral-primary, #ffffff);
+    background: var(--background-neutral-primary, #ffffff);
+    object-fit: cover;
+
+    & + img {
+      margin-left: -6px;
+    }
+  }
+}
+
+.cardActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+
+  @include media.mobile-only {
+    > button,
+    > a {
+      flex: 1 1 auto;
+    }
+  }
+}
+
+/* Register as a link drawn as the DS bordered button. */
+.btn.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  white-space: nowrap;
+  text-decoration: none;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.goingTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.goingText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+
+.plansRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 10px;
+  background: var(--background-neutral-primary, #ffffff);
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--border-brand-subtle, #aebfff);
+    background: var(--background-brand-soft-surface, #f2f5ff);
+
+    .plansTitle,
+    .plansArrow {
+      color: var(--foreground-brand-primary, #1b4dff);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+.plansIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.plansText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.plansTitle {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.plansHint {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.plansArrow {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.leaveLine {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.notGoing {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+}
+
+/* The plans sub-view: its title, and the role chips (LAB-3234). */
+
+.plansHeading {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.roleField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.roleLabel {
+  padding: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.roleHint {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.roleChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.roleChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 999px;
+  background: var(--background-neutral-primary, #ffffff);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--border-brand-subtle, #aebfff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+
+  &[aria-pressed='true'] {
+    border-color: var(--border-brand-primary, #1b4dff);
+    background: var(--background-brand-soft-surface, #f2f5ff);
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}

@@ -8,7 +8,6 @@ import { OfficeHoursView } from '@/components/page/member-details/OfficeHoursDet
 import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
 import s from './OfficeHoursDetails.module.scss';
-import { useValidateOfficeHoursQuery } from '@/services/members/hooks/useValidateOfficeHoursQuery';
 import {
   useBrokenOfficeHoursLinkBookAttemptEventCapture,
   useFixBrokenOfficeHoursLinkEventCapture,
@@ -17,6 +16,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { useOfficeHoursAccess } from '@/services/access-control/hooks/useOfficeHoursAccess';
+
+import { useIsOfficeHoursLinkValid } from '../hooks/useIsOfficeHoursLinkValid';
 
 interface Props {
   member: IMember;
@@ -37,18 +38,7 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
   const showWarningUseCaseA = !member?.officeHours;
   const showWarningUseCaseB = !member?.ohInterest?.length || !member?.ohHelpWith?.length;
   const showIncomplete = !editView && isOwner && (showWarningUseCaseA || showWarningUseCaseB);
-  // The link check answers 403 to anyone but the owner or an admin (LAB-3006): other viewers skip it and can open the link.
-  const canCheckLink = isOwner || isAdmin;
-  const { data: officeHoursValidationOnLoad } = useValidateOfficeHoursQuery(member?.id, isLoggedIn && canCheckLink);
-  const officeHoursValidation = {
-    isValid:
-      !canCheckLink ||
-      (!officeHoursValidationOnLoad
-        ? member.ohStatus === 'OK' || member?.ohStatus === 'NOT_FOUND' || member?.ohStatus === null
-        : officeHoursValidationOnLoad?.ohStatus === 'OK' ||
-          officeHoursValidationOnLoad?.ohStatus === 'NOT_FOUND' ||
-          officeHoursValidationOnLoad?.ohStatus === null),
-  };
+  const isOfficeHoursValid = useIsOfficeHoursLinkValid({ member, userInfo, isLoggedIn });
 
   useMobileNavVisibility(editView);
 
@@ -60,7 +50,7 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
       forcedEditModeRef.current = true;
       setEditView(true);
     }
-  }, [editView, forceEditMode, officeHoursValidationOnLoad]);
+  }, [editView, forceEditMode]);
 
   if (!isLoggedIn) {
     return null;
@@ -78,7 +68,7 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
     <DetailsSection
       editView={editView}
       missingData={showIncomplete}
-      missingDataAlert={officeHoursValidation && !officeHoursValidation.isValid && isOwner && !editView}
+      missingDataAlert={!isOfficeHoursValid && isOwner && !editView}
       classes={{ root: s.root }}
     >
       {editView ? (
@@ -100,7 +90,7 @@ export const OfficeHoursDetails = ({ isLoggedIn, userInfo, member }: Props) => {
           isEditable={isEditable}
           showIncomplete={showIncomplete}
           onEdit={() => setEditView(true)}
-          isOfficeHoursValid={officeHoursValidation?.isValid ?? true}
+          isOfficeHoursValid={isOfficeHoursValid}
         />
       )}
     </DetailsSection>

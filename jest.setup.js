@@ -117,6 +117,7 @@ jest.mock('@tanstack/react-query', () => ({
   }),
   useQueryClient: () => ({
     getQueryData: jest.fn(),
+    prefetchQuery: jest.fn(() => Promise.resolve()),
     getQueriesData: jest.fn(() => []),
     setQueryData: jest.fn(),
     setQueriesData: jest.fn(),

@@ -76,7 +76,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const { userInfo, isLoggedIn, authToken } = await getCookiesFromHeaders();
 
   return (
-    <html>
+    <html lang="en">
       <body className={`${inter.className} layout root`} id="body">
         <Suspense>
           <PostHogPageview />

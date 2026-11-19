@@ -6,7 +6,7 @@ import Error from '../../../../components/core/error';
 import { TeamsToolbar } from '../../../../components/page/teams/TeamsToolbar';
 import { TeamList } from '@/components/page/teams/TeamList';
 import styles from './page.module.css';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { triggerLoader } from '@/utils/common.utils';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { TeamNewsModal } from '@/components/page/team-details/TeamNews';
@@ -26,10 +26,12 @@ interface TeamsContentProps {
   isLoggedIn: boolean;
   /** Page 1 as the server fetched it, so the list is in the server HTML (LAB-2922). */
   serverPage?: ServerTeamsPage;
+  /** The link to the A–Z index, under the list. Passed in because a sibling of this column lands beside it in `<main>`'s flex row (LAB-3184). */
+  browseLink?: ReactNode;
 }
 
 export default function TeamsContent(props: TeamsContentProps) {
-  const { userInfo, isLoggedIn, serverPage } = props;
+  const { userInfo, isLoggedIn, serverPage, browseLink } = props;
 
   const searchParams = useGetTeamsFilterAsObjectFromStore();
   const clearParams = useTeamFilterStore((s) => s.clearParams);
@@ -133,6 +135,7 @@ export default function TeamsContent(props: TeamsContentProps) {
           <EmptyResult onClearAll={clearParams} />
         )}
       </div>
+      {browseLink}
 
       {/* The chip's answer: this team's news, over the grid rather than instead
           of it. `total` is deliberately omitted — the chip counted 7 days and

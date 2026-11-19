@@ -1,0 +1,99 @@
+@use 'styles/media';
+
+// Drawer version "Footer": the RSVP bar pinned to the drawer's bottom edge.
+// Same chrome as EventDrawer's .footer (PlansView's Cancel / Save slot): sticky in the
+// drawer's scroller, so it stays in flow and the body never runs underneath it.
+
+.footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: auto;
+  padding: 12px 24px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  background: var(--background-neutral-primary, #ffffff);
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  @include media.mobile-only {
+    gap: 12px;
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+.who {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.status {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.title {
+  font-size: 14px;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.people {
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Leaving is quiet: text, not a third press beside Register. */
+.leave {
+  padding: 8px 4px;
+  border: none;
+  background: none;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
+/* The card's follow-ups only: no title, the footer already says "You're going". */
+.compact {
+  gap: 12px;
+}
+
+/* Phone: the drawer is the whole screen; the reviewers' comment bubble steps out so it doesn't cover
+   "I'm going" (ai-apps-feedback-drawer does the same for its Send). */
+@include media.mobile-only {
+  :global(body[data-event-rsvp-footer] [data-comment-layer]) {
+    display: none;
+  }
+}

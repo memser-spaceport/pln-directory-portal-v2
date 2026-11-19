@@ -45,6 +45,8 @@ jest.mock('@/components/common/profile/SectionEditLock', () => ({
   useSectionEditLockRegistry: () => ({}),
 }));
 jest.mock('@/components/page/member-details/member-irl-contributions', () => () => null);
+// The Events section's drawer pulls react-calendar (ESM), which jest doesn't transform (LAB-3217).
+jest.mock('@/components/page/events/EventDrawer', () => ({ EventDrawer: () => null, eventGoingToastText: () => '' }));
 jest.mock('@/components/page/member-details/ContactDetails', () => ({ ContactDetails: mockNothing }));
 jest.mock('@/components/page/member-details/JobSearchStatusDetails', () => ({ JobSearchStatusDetails: mockNothing }));
 jest.mock('@/components/page/member-details/ExperienceDetails', () => ({ ExperienceDetails: mockNothing }));

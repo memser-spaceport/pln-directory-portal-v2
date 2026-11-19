@@ -79,6 +79,10 @@
   }
 }
 
+.accessBadge {
+  align-self: flex-start;
+}
+
 .name {
   text-overflow: ellipsis;
   overflow: hidden;

@@ -12,7 +12,18 @@ import e from './EventDetails.module.scss';
  * 180px logo beside them is left out), tags, Host, Description, Agenda. Icons are that app's own SVGs,
  * inlined. Sizes are its measured values; colours are mapped to token pairs.
  */
-export function EventSummary({ name, detail, image }: { name: string; detail: EventDetail; image?: string }) {
+export function EventSummary({
+  name,
+  detail,
+  image,
+  beforeAgenda,
+}: {
+  name: string;
+  detail: EventDetail;
+  image?: string;
+  /** Drawn between Description and Agenda (GatheringModal's "Are you going?" card, 2026-11-12). */
+  beforeAgenda?: ReactNode;
+}) {
   return (
     <>
       <div className={e.head}>
@@ -80,6 +91,8 @@ export function EventSummary({ name, detail, image }: { name: string; detail: Ev
           </p>
         ))}
       </div>
+
+      {beforeAgenda}
 
       {detail.agenda.length > 0 && (
         <div className={e.block}>

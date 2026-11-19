@@ -33,6 +33,3 @@ export const GlobalFeedback = dynamic(() => import('@/components/core/GlobalFeed
 //   () => import('@/components/core/botpress/BotpressWebchat').then((m) => m.BotpressWebchat),
 //   { ssr: false },
 // );
-export const PlaaBot = dynamic(() => import('@/components/core/plaa-bot/PlaaBot').then((m) => m.PlaaBot), {
-  ssr: false,
-});

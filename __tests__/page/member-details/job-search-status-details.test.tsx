@@ -2,7 +2,10 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 
+import { ProfileSection } from '@/components/common/profile/SectionEditLock';
+import { OwnProfileContext } from '@/components/common/profile/SectionVisibility/OwnProfileContext';
 import { JobSearchStatusDetails } from '@/components/page/member-details/JobSearchStatusDetails/JobSearchStatusDetails';
+import { MEMBER_SECTION_VISIBILITY } from '@/components/page/member-details/constants/sectionVisibility';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { toast } from '@/components/core/ToastContainer';
 import { IMember } from '@/types/members.types';
@@ -127,10 +130,17 @@ describe('JobSearchStatusDetails', () => {
     expect(toast.error).toHaveBeenCalledWith("Couldn't save your job search status. Please try again.");
   });
 
-  it('marks the section as visible only to the member', () => {
-    render(<JobSearchStatusDetails member={makeMember(null)} />);
+  it('marks the section as visible only to the member, beside the title', () => {
+    render(
+      <OwnProfileContext.Provider value>
+        <ProfileSection name="Job Search Status" visibility={MEMBER_SECTION_VISIBILITY.jobSearchStatus}>
+          <JobSearchStatusDetails member={makeMember(null)} />
+        </ProfileSection>
+      </OwnProfileContext.Provider>,
+    );
 
-    expect(screen.getByText('Job search status')).toBeInTheDocument();
-    expect(screen.getByText(/Only visible to you/i)).toBeInTheDocument();
+    const title = screen.getByText('Job search status');
+    const badge = screen.getByRole('button', { name: /^Only visible to you/ });
+    expect(title.nextElementSibling).toBe(badge);
   });
 });

@@ -26,7 +26,7 @@ import {
 //
 //   - team news comments → the directory backend (/v1/feed/*)
 //   - forum posts, their votes, and their comments → the forum server route
-//     (`/api/forum/nodebb`), which calls NodeBB with the forum token
+//     (`/api/forum/nodebb`), which calls NodeBB with the member session token
 //
 // The split is the backend's: BE PR #3293 deleted GET /v1/feed/forum-posts and
 // its like route, and re-pointed FeedComment at a hard TeamNewsItem foreign key,

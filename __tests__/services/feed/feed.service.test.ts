@@ -55,12 +55,10 @@ const TOPIC = {
 
 const originalApiUrl = process.env.DIRECTORY_API_URL;
 const originalForumApiUrl = process.env.FORUM_API_URL;
-const originalForumToken = process.env.CUSTOM_FORUM_AUTH_TOKEN;
 
 afterAll(() => {
   process.env.DIRECTORY_API_URL = originalApiUrl;
   process.env.FORUM_API_URL = originalForumApiUrl;
-  process.env.CUSTOM_FORUM_AUTH_TOKEN = originalForumToken;
 });
 
 describe('feed.service', () => {
@@ -69,7 +67,6 @@ describe('feed.service', () => {
   beforeAll(() => {
     process.env.DIRECTORY_API_URL = 'https://api.example.com';
     process.env.FORUM_API_URL = 'https://forum.example.com';
-    process.env.CUSTOM_FORUM_AUTH_TOKEN = 'forum-token';
     global.fetch = fetchMock;
   });
 
@@ -79,7 +76,7 @@ describe('feed.service', () => {
   });
 
   describe('forum posts (NodeBB, no longer proxied by the directory backend)', () => {
-    it('reads forum posts through the server route, without the forum token', async () => {
+    it('reads forum posts through the server route', async () => {
       customFetchMock.mockResolvedValue({ ok: true, json: async () => ({ topics: [] }) });
 
       await getFeedForumPosts();
@@ -89,7 +86,6 @@ describe('feed.service', () => {
         expect.objectContaining({ cache: 'no-store', credentials: 'include' }),
         false,
       );
-      expect(JSON.stringify(customFetchMock.mock.calls[0])).not.toContain('forum-token');
     });
 
     it('asks the browser not to answer from its own cache — the counts here go stale', async () => {

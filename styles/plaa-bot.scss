@@ -1,0 +1,21 @@
+@use 'media';
+
+plaa-bot-launcher {
+  bottom: 72px;
+
+  @include media.tablet-landscape {
+    bottom: 24px;
+  }
+}
+
+body:has([data-feedback-fab]) plaa-bot-launcher {
+  bottom: 132px;
+
+  @include media.tablet-landscape {
+    bottom: 84px;
+  }
+}
+
+body:not(:has([data-plaa-layout])) plaa-bot-launcher {
+  display: none;
+}

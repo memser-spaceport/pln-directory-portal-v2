@@ -37,7 +37,7 @@ import {
   useSectionEditLockRegistry,
 } from '@/components/common/profile/SectionEditLock';
 
-import { PlTeamOnlyPill } from '@/components/page/jobs/PlTeamOnlyPill/PlTeamOnlyPill';
+import { VisibilityPill } from '@/components/common/VisibilityPill';
 import { CvFirstCard } from './CvFirstCard';
 import { pickCvImportHost } from './cvImportHost';
 import { StoredCvSection } from '@/components/common/profile/StoredCv/StoredCvSection';
@@ -373,7 +373,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                     </>
                   }
                 >
-                  <PlTeamOnlyPill />
+                  <VisibilityPill />
                 </DetailsSectionHeader>
                 {/* Not disabled while saving, deliberately. The write is
                     optimistic now, so the dot has already moved and the only

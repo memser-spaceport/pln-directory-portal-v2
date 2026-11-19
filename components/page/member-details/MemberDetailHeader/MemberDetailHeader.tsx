@@ -19,10 +19,13 @@ import { useRecommendationLinkAnalyticsReport } from '@/services/members/hooks/u
 import CustomTooltip from '@/components/ui/Tooltip/Tooltip';
 import { TagsList } from '@/components/common/profile/TagsList';
 import { EditButton } from '@/components/common/profile/EditButton';
+import { MemberAccessBadges } from '@/components/common/AccessLevelBadges/MemberAccessBadges';
+import { SectionVisibilityBadge } from '@/components/common/profile/SectionVisibility/SectionVisibilityBadge';
 
-import { RequestIntroEntry } from '@/components/page/intro-request/RequestIntroEntry';
-
+import { isJobAspirantMember } from '../job-aspirant-profile';
 import { shouldShowInvestorTag } from './utils/shouldShowInvestorTag';
+
+import { MemberContactAction } from './components/MemberContactAction';
 
 import s from './MemberDetailHeader.module.scss';
 
@@ -32,6 +35,7 @@ interface IMemberDetailHeader {
   isLoggedIn: boolean;
   onEdit: () => void;
   variant?: 'investor-drawer' | 'apply-flow';
+  offerBooking: boolean;
 }
 
 export const MemberDetailHeader = (props: IMemberDetailHeader) => {
@@ -44,7 +48,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const isOpenToWork = member?.openToWork;
   const skills = memberSkillTags(member);
   const userInfo = props?.userInfo;
-  const { onEdit, variant } = props;
+  const { onEdit, variant, offerBooking } = props;
 
   const showInvestorTag = shouldShowInvestorTag(member);
   const hasBio = !!member.bio && member.bio.trim() !== '<p><br></p>';
@@ -58,6 +62,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
   mainTeam = !mainTeam && member?.teams.length === 1 ? member.teams[0] : mainTeam;
 
   const isOwner = userInfo?.uid === member.id;
+  const showContactAction = isLoggedIn && !isOwner && !variant;
   const isAdmin = isAdminUser(userInfo);
   const defaultAvatarImage = useDefaultAvatar(member?.name);
   const profile = member?.profile ?? defaultAvatarImage;
@@ -88,6 +93,8 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
           <div className={s.headerInfo}>
             <div className={s.specificsHdr}>
               <CustomTooltip trigger={<h1 className={s.specificsName}>{name}</h1>} content={name} />
+              <MemberAccessBadges state={member.rbac?.status} isJobAspirant={isJobAspirantMember(member)} />
+              <SectionVisibilityBadge className={s.visibilityBadge} />
             </div>
             {/* Each item carries the divider before it, so a wrapped line never starts or ends on one. */}
             <div className={s.roleAndLocation}>
@@ -176,8 +183,13 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
           </div>
 
           <div className={s.headerActions}>
-            {isLoggedIn && !isOwner && !variant && (
-              <RequestIntroEntry type="MEMBER" targetId={member.id} targetName={name} className={s.introButton} />
+            {showContactAction && (
+              <MemberContactAction
+                member={member}
+                userInfo={userInfo}
+                offerBooking={offerBooking}
+                className={s.contactButton}
+              />
             )}
             {isLoggedIn && (isAdmin || isOwner) && (
               <span className={s.editCell}>

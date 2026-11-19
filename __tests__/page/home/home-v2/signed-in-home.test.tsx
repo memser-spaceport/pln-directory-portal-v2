@@ -11,7 +11,13 @@ import type { IDeal } from '@/types/deals.types';
 import type { IFeedForumPost } from '@/types/feed.types';
 import type { IHomeEvents, IHomeRoles } from '@/types/home.types';
 import type { IJobTeamGroup } from '@/types/jobs.types';
-import type { ISuggestedTeam, ITeamNewsGroup, ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
+import type {
+  INewsDefaultTags,
+  ISuggestedTeam,
+  ITeamNewsGroup,
+  ITeamNewsItem,
+  TeamNewsEventType,
+} from '@/types/team-news.types';
 
 // ---- The feed's data hooks (as team-news.test.tsx mocks them) ----
 
@@ -76,6 +82,13 @@ jest.mock('@/services/members/hooks/useGetMemberPreferences', () => ({
   useGetMemberPreferences: () => ({ data: mockMemberNewsTags ? { newsTags: mockMemberNewsTags } : undefined }),
 }));
 
+let mockDefaultTags: INewsDefaultTags | undefined;
+jest.mock('@/services/team-news/hooks/useNewsDefaultTags', () => ({
+  useNewsDefaultTags: () => ({ data: mockDefaultTags }),
+  useApproveNewsDefaultTags: () => ({ mutate: jest.fn(), isPending: false }),
+  useAutosaveNewsDefaultTags: () => ({ mutate: jest.fn() }),
+}));
+
 // ---- The rail ----
 
 let mockDeals: { deals: IDeal[]; total: number } | null = null;
@@ -98,7 +111,7 @@ jest.mock('@/analytics/home.analytics', () => ({ useHomeAnalytics: () => mockHom
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: jest.fn(), replace: jest.fn(), prefetch: jest.fn() }),
-  usePathname: () => '/home',
+  usePathname: () => '/',
   useSearchParams: () => new URLSearchParams(window.location.search),
 }));
 jest.mock('@/utils/formatTimeAgo', () => ({ formatTimeAgo: () => '2d ago' }));
@@ -205,12 +218,18 @@ function renderHome(
     portfolio?: React.ComponentProps<typeof SignedInHome>['portfolio'];
     projectFocusAreaCounts?: Record<string, number> | null;
     forYouTeamUids?: string[];
+    forYouTags?: string[];
   } = {},
 ) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const ui: ReactElement = (
     <SignedInHome
-      feed={{ groups: groupsOf(items), forYouTeamUids: extra.forYouTeamUids ?? [], popularItems: [] }}
+      feed={{
+        groups: groupsOf(items),
+        forYouTeamUids: extra.forYouTeamUids ?? [],
+        forYouTags: extra.forYouTags,
+        popularItems: [],
+      }}
       roles={extra.roles === undefined ? ROLES : extra.roles}
       events={extra.events === undefined ? EVENTS : extra.events}
       portfolio={extra.portfolio ?? []}
@@ -250,9 +269,10 @@ beforeEach(() => {
   mockTopicSlugs = new Set(['ai', 'robotics', 'storage', 'defi']);
   mockShowNewsPreferences = true;
   mockMemberNewsTags = ['storage'];
+  mockDefaultTags = undefined;
   mockDeals = null;
   useCurrentUserStore.setState({ currentUser: { uid: 'user-1' } as never, isHydrated: true });
-  window.history.replaceState(null, '', '/home');
+  window.history.replaceState(null, '', '/');
 });
 
 afterEach(() => {
@@ -272,7 +292,7 @@ describe('Network Updates: the stream', () => {
     expect(screen.queryByText(/View all 2 updates/)).not.toBeInTheDocument();
     expect(screen.queryByRole('tab')).not.toBeInTheDocument();
     expect(screen.queryByRole('region', { name: /Top stories/i })).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'See all news' })).toHaveAttribute('href', '/home?view=news');
+    expect(screen.getByRole('link', { name: 'See all news' })).toHaveAttribute('href', '/?view=news');
   });
 
   it("shows a story's image as its card thumbnail and as the story dialog's header (LAB-3134)", () => {
@@ -307,6 +327,104 @@ describe('Network Updates: the stream', () => {
 
     fireEvent.click(within(pillRow()).getByRole('button', { name: /^Funding/ }));
     expect(line()).toBeInTheDocument();
+  });
+
+  // LAB-3250: a member who has not answered sees their default tags where the For you line is.
+  describe('the tag card', () => {
+    const unapproved: INewsDefaultTags = {
+      tags: [
+        { slug: 'ai', title: 'AI' },
+        { slug: 'storage', title: 'Storage' },
+      ],
+      source: 'ai',
+      approved: false,
+      approvedAt: null,
+      generatedAt: null,
+    };
+    const cardTitle = () => screen.queryByRole('heading', { name: 'We picked these topics for you' });
+    const curatedLine = () => screen.queryByText(/Curated from your profile/);
+    const items = [story('a', 'LAUNCH', { tags: ['storage'] }), story('b', 'FUNDING')];
+
+    it('takes the place of the For you line on All and on For You, and gives it back on another pill', () => {
+      mockDefaultTags = unapproved;
+      renderHome(items, { forYouTags: ['storage'] });
+
+      expect(cardTitle()).toBeInTheDocument();
+      expect(curatedLine()).not.toBeInTheDocument();
+
+      fireEvent.click(within(pillRow()).getByRole('button', { name: /^For You/ }));
+      expect(cardTitle()).toBeInTheDocument();
+      expect(curatedLine()).not.toBeInTheDocument();
+
+      fireEvent.click(within(pillRow()).getByRole('button', { name: /^Funding/ }));
+      expect(cardTitle()).not.toBeInTheDocument();
+      expect(curatedLine()).toBeInTheDocument();
+    });
+
+    it('takes the place of the set-up row for a member with no inputs', () => {
+      mockDefaultTags = { ...unapproved, source: 'team' };
+      renderHome(items, { forYouTags: [], forYouTeamUids: [] });
+
+      expect(cardTitle()).toBeInTheDocument();
+      expect(screen.getByText("Picked from your teams' focus areas.")).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Open News preferences →' })).not.toBeInTheDocument();
+    });
+
+    it.each([
+      ['answered', { ...unapproved, approved: true, approvedAt: '2026-11-12T00:00:00.000Z' }],
+      ['set their own tags', { ...unapproved, source: 'member-set' as const, approved: true }],
+      ['has no default tag', { ...unapproved, tags: [] }],
+    ])('is not shown to a member who %s', (_name, value) => {
+      mockDefaultTags = value;
+      renderHome(items);
+
+      expect(cardTitle()).not.toBeInTheDocument();
+      expect(curatedLine()).toBeInTheDocument();
+    });
+
+    it('is not shown while News preferences is off', () => {
+      mockShowNewsPreferences = false;
+      mockDefaultTags = unapproved;
+      renderHome(items);
+
+      expect(cardTitle()).not.toBeInTheDocument();
+    });
+  });
+
+  it('replaces the For you line with the set-up row when the member has no inputs (LAB-3080)', () => {
+    renderHome([story('a', 'LAUNCH'), story('b', 'FUNDING')], { forYouTags: [], forYouTeamUids: [] });
+
+    const link = screen.getByRole('link', { name: 'Open News preferences →' });
+    expect(link).toHaveAttribute('href', '/settings/news-preferences?from=feed');
+    expect(
+      screen.getByText(/Get news picked for you\. Choose your topics and teams in News preferences\./),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Curated from your profile/)).not.toBeInTheDocument();
+
+    fireEvent.click(within(pillRow()).getByRole('button', { name: /^Funding/ }));
+    expect(screen.queryByRole('link', { name: 'Open News preferences →' })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Curated from your profile/)).not.toBeInTheDocument();
+
+    fireEvent.click(within(pillRow()).getByRole('button', { name: /^All/ }));
+    expect(screen.getByRole('link', { name: 'Open News preferences →' })).toBeInTheDocument();
+  });
+
+  it('shows the set-up row when the member has teams but no For You news, no tags and no follows', () => {
+    renderHome([story('a', 'LAUNCH'), story('b', 'FUNDING')], { forYouTags: [], forYouTeamUids: ['team-missing'] });
+
+    expect(screen.getByRole('link', { name: 'Open News preferences →' })).toHaveAttribute(
+      'href',
+      '/settings/news-preferences?from=feed',
+    );
+    expect(screen.queryByText(/Curated from your profile/)).not.toBeInTheDocument();
+    expect(within(pillRow()).queryByRole('button', { name: /For You/ })).not.toBeInTheDocument();
+  });
+
+  it('keeps the curated line when the member has a tag but no stories this week', () => {
+    renderHome([story('a', 'LAUNCH')], { forYouTags: ['neurotech'], forYouTeamUids: [] });
+
+    expect(screen.getByText(/Curated from your profile, your team, and the teams you follow\./)).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Open News preferences →' })).not.toBeInTheDocument();
   });
 
   it('fetches and injects no hiring, deals or For You job entries', () => {

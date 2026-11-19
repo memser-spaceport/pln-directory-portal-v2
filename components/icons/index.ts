@@ -44,3 +44,4 @@ export * from './ReviewCheckIcon';
 export * from './EnvelopeIcon';
 export * from './ShareIcon';
 export * from './TrashIcon';
+export * from './LockIcon';

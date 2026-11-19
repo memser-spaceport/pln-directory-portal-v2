@@ -19,6 +19,7 @@ import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 import { ExpandableDescription } from '@/components/common/ExpandableDescription';
 import { Tag } from '@/components/ui/Tag';
 import { Badge } from '@/components/common/Badge';
+import { TeamAccessBadge } from '@/components/common/AccessLevelBadges/TeamAccessBadge';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { TagsList } from '@/components/common/profile/TagsList';
 import {
@@ -205,6 +206,7 @@ export const TeamDetails = (props: Props) => {
                   <Badge>Inactive</Badge>
                 </span>
               )}
+              <TeamAccessBadge accessLevel={team.accessLevel} className={s.statusBadge} />
             </div>
             <TeamProfileMeta team={team} />
             <div className={s.tagsContainer}>

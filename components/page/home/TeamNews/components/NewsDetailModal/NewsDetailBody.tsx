@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import { sanitizeHtml } from '@/utils/html';
@@ -8,6 +8,7 @@ import { SafeHtml } from '@/components/ui/SafeHtml';
 
 import { ArrowBackIcon, CloseIcon } from '@/components/icons';
 import { useCurrentUserStore } from '@/services/auth/store';
+import { recordMemberSignal } from '@/services/member-signals/member-signals.service';
 import { FollowButton } from '@/components/ui/FollowButton';
 import type { TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import type { ITeamNewsItem } from '@/types/team-news.types';
@@ -22,7 +23,7 @@ import { NewsShareMenu } from '../NewsShareMenu';
 import { ViewCount } from '../ViewCount/ViewCount';
 import { FeedCommentsThread } from '../FeedCommentsThread/FeedCommentsThread';
 import { NewsTagChips } from '../NewsTagChips';
-import { NewsImage } from '../NewsImage';
+import { getNewsImageSources, NewsImage } from '../NewsImage';
 
 import newsCardStyles from '../NewsCard/NewsCard.module.scss';
 import s from './NewsDetailModal.module.scss';
@@ -93,6 +94,12 @@ export function NewsDetailBody({
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
 
+  // Every shell that opens a story renders this body, so one effect covers a row click, a deep link and the
+  // team and member profile lists. The backend keeps one view per story per day.
+  useEffect(() => {
+    recordMemberSignal({ action: 'view', entityType: 'news-item', entityId: item.uid });
+  }, [item.uid]);
+
   // Move focus into the newly rendered view — Back when the shell drilled in
   // place (the way out of where you just arrived), Close otherwise. A callback
   // ref, not a mount effect: the shared Modal portals its children only after
@@ -137,6 +144,7 @@ export function NewsDetailBody({
 
   const { label: eventTypeLabel, dotClassName: eventTypeDotClassName } = getEventTypeConfig(item.eventType);
   const sources = getNewsSourcesWithPrimaryFallback(item);
+  const imageSources = getNewsImageSources(item.imageUrl, item.image);
   // Rich body from the API where present (older items fall back to the plain
   // summary until re-enriched server-side). Sanitized — never render raw.
   const sanitizedContentHtml = useMemo(() => sanitizeHtml(item.contentHtml, 'teamNews') || null, [item.contentHtml]);
@@ -197,14 +205,20 @@ export function NewsDetailBody({
           <span className={newsCardStyles.time}>{formatTimeAgo(item.eventDate)}</span>
         </div>
 
-        <NewsTagChips tags={item.tags} variant="detail" onSelect={onTagSelect} active={activeTag} />
+        <NewsTagChips
+          tags={item.tags}
+          eventType={item.eventType}
+          variant="detail"
+          onSelect={onTagSelect}
+          active={activeTag}
+        />
 
         <h3 id={TITLE_ID} className={s.title}>
           {item.title}
         </h3>
 
         {/* Where a video would play: under the headline, above the body. */}
-        {showImage && item.imageUrl && <NewsImage src={item.imageUrl} variant="hero" />}
+        {showImage && imageSources && <NewsImage {...imageSources} variant="hero" />}
 
         {sanitizedContentHtml ? (
           <SafeHtml className={s.content} profile="teamNews" html={sanitizedContentHtml} />
@@ -224,7 +238,14 @@ export function NewsDetailBody({
             <div className={s.sources}>
               <span className={s.sourcesLabel}>Source</span>
               {sources.map(({ domain, url }) => (
-                <a key={url} href={url} target="_blank" rel="noopener noreferrer" className={s.sourceLink}>
+                <a
+                  key={url}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={s.sourceLink}
+                  onClick={() => recordMemberSignal({ action: 'view', entityType: 'news-item', entityId: item.uid })}
+                >
                   {domain}
                 </a>
               ))}

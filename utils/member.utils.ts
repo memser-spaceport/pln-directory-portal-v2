@@ -99,6 +99,7 @@ export const parseMemberDetails = (members: IMemberResponse[], teamId: string, i
       location: parsedMember?.location,
       mainTeam,
       openToWork: parsedMember.openToWork || false,
+      isJobAspirant: parsedMember.isJobAspirant,
       // preferences: parsedMember.preferences ?? null,
     };
 

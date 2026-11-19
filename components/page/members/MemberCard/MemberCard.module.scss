@@ -141,6 +141,10 @@
   gap: 8px;
 }
 
+.accessBadge {
+  align-self: center;
+}
+
 .primaryText {
   @include mixins.ellipse-text;
   color: var(--foreground-neutral-primary, #0a0c11);

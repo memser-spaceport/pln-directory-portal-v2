@@ -76,7 +76,9 @@ export function toCityCoords(rows: LocationRow[]): CityCoords {
 
 async function loadCityCoords(): Promise<CityCoords> {
   // Not fetch-cached: the body is past Next's 2 MB fetch-cache entry limit. The small result is cached instead.
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations`, { cache: 'no-store' });
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/irl/locations?pagination=false`, {
+    cache: 'no-store',
+  });
   if (!response.ok) throw new Error(`IRL locations responded with ${response.status}`);
   const body = await response.json();
   return toCityCoords(Array.isArray(body) ? body : []);

@@ -4,6 +4,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 
 import { AllEventsPage } from '@/components/page/events/all-events/AllEventsPage';
 import { EventsMap } from '@/components/page/events/all-events/map/EventsMap';
+import type { GoogleMapsLibs } from '@/components/page/events/all-events/map/google-maps.types';
 import { CITY_ZOOM, WORLD, mapCamera, mapLayout } from '@/components/page/events/all-events/map/pins';
 import { useAllEventsFilterStore } from '@/services/events/all-events-filters.store';
 import { allEventsItem as item } from '@/services/events/all-events.fixtures';
@@ -82,7 +83,8 @@ const mockGoogle = {
 jest.mock('@/components/page/events/all-events/map/loadGoogleMaps', () => ({
   loadGoogleMaps: (key: string) => mockGoogle.load(key),
 }));
-const libs = { Map: FakeMap, AdvancedMarkerElement: FakeMarker, LatLngBounds: FakeBounds };
+/** The fakes stand in for Google's classes; only what the map calls is implemented. */
+const libs = { Map: FakeMap, AdvancedMarkerElement: FakeMarker, LatLngBounds: FakeBounds } as unknown as GoogleMapsLibs;
 
 const DUBAI: [number, number] = [25.2, 55.3];
 const LISBON: [number, number] = [38.72, -9.14];

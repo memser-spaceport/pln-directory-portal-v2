@@ -6,12 +6,13 @@ import type { GoogleMapsLibs } from './google-maps.types';
  * on the first call. A failed load is forgotten, so "Try again" retries.
  */
 
-type ImportLibrary = (name: string) => Promise<Record<string, unknown>>;
+type ImportLibrary = typeof google.maps.importLibrary;
+/** The namespace before Google's script has filled it: the bootstrap's own `importLibrary` and its callback. */
 interface MapsNamespace {
   importLibrary?: ImportLibrary;
   __ib__?: () => void;
 }
-type GoogleWindow = Window & { google?: { maps?: MapsNamespace } };
+type GoogleWindow = { google?: { maps?: MapsNamespace } };
 
 function mapsNamespace(): MapsNamespace {
   const w = window as unknown as GoogleWindow;
@@ -47,23 +48,19 @@ function installBootstrap(key: string) {
     }));
 
   // Until the script has loaded; then Google's own importLibrary replaces this one on the same namespace.
-  maps.importLibrary = (name) => {
+  maps.importLibrary = ((name: string) => {
     libraries.add(name);
     return load().then(() => (mapsNamespace().importLibrary as ImportLibrary)(name));
-  };
+  }) as ImportLibrary;
 }
 
 export async function loadGoogleMaps(key: string): Promise<GoogleMapsLibs> {
   installBootstrap(key);
   const importLibrary = mapsNamespace().importLibrary as ImportLibrary;
   const [maps, marker, core] = await Promise.all([
-    importLibrary('maps'),
-    importLibrary('marker'),
-    importLibrary('core'),
+    importLibrary('maps') as Promise<google.maps.MapsLibrary>,
+    importLibrary('marker') as Promise<google.maps.MarkerLibrary>,
+    importLibrary('core') as Promise<google.maps.CoreLibrary>,
   ]);
-  return {
-    Map: maps.Map,
-    AdvancedMarkerElement: marker.AdvancedMarkerElement,
-    LatLngBounds: core.LatLngBounds,
-  } as GoogleMapsLibs;
+  return { Map: maps.Map, AdvancedMarkerElement: marker.AdvancedMarkerElement, LatLngBounds: core.LatLngBounds };
 }

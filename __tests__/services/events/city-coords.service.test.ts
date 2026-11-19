@@ -58,7 +58,9 @@ describe('getCityCoords', () => {
     );
     global.fetch = fetchMock as unknown as typeof fetch;
     expect(await getCityCoords()).toEqual({ dubai: [25.2, 55.3] });
-    expect(fetchMock).toHaveBeenCalledWith(expect.stringMatching(/\/v1\/irl\/locations$/), { cache: 'no-store' });
+    expect(fetchMock).toHaveBeenCalledWith(expect.stringMatching(/\/v1\/irl\/locations\?pagination=false$/), {
+      cache: 'no-store',
+    });
 
     global.fetch = jest.fn(() => Promise.resolve({ ok: false, status: 500 })) as unknown as typeof fetch;
     await expect(getCityCoords()).rejects.toThrow('500');

@@ -9,7 +9,7 @@ import { useCityCoords } from '@/services/events/hooks/useCityCoords';
 import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_MAP_ID } from '@/utils/events-page';
 
 import { CityPinCard, EventRows } from './CityPinCard';
-import type { AdvancedMarker, GoogleMap, GoogleMapsLibs, MapsEventListener } from './google-maps.types';
+import type { GoogleMapsLibs } from './google-maps.types';
 import { loadGoogleMaps } from './loadGoogleMaps';
 import { WORLD, mapCamera, mapLayout, type CityPin, type MapCamera } from './pins';
 import m from './EventsMap.module.scss';
@@ -28,7 +28,7 @@ const FIT_PADDING = 64;
 
 interface Ready {
   libs: GoogleMapsLibs;
-  map: GoogleMap;
+  map: google.maps.Map;
 }
 
 function applyCamera({ libs, map }: Ready, camera: MapCamera) {
@@ -75,7 +75,7 @@ export function EventsMap({
 
   useEffect(() => {
     let live = true;
-    const listeners: MapsEventListener[] = [];
+    const listeners: google.maps.MapsEventListener[] = [];
     loadGoogleMaps(GOOGLE_MAPS_API_KEY).then(
       (libs) => {
         if (!live || !canvasRef.current) return;
@@ -140,7 +140,7 @@ export function EventsMap({
   });
 
   // Markers follow the pins: new cities get one, cities filtered out lose theirs.
-  const markersRef = useRef(new Map<string, AdvancedMarker>());
+  const markersRef = useRef(new Map<string, google.maps.marker.AdvancedMarkerElement>());
   useEffect(() => {
     if (!ready) return;
     const markers = markersRef.current;

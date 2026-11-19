@@ -31,6 +31,7 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { useLabosAgentChat } from '@/services/labos-agent/hooks/useLabosAgentChat';
 import { openCardsAtClose } from '@/services/labos-agent/hooks/useLabosAgentDockEvents';
 import { normalizeChatBody } from '@/services/labos-agent/labos-agent.service';
+import { distinctSourceCount, sourceRefLink } from '@/services/labos-agent/labos-agent.sources';
 import { useLabosAgentStore } from '@/services/labos-agent/store';
 import type { IUserInfo } from '@/types/shared.types';
 import { LABOS_AGENT_ANALYTICS_EVENTS } from '@/utils/constants';
@@ -101,6 +102,37 @@ describe('LAB-3297: agent event helpers', () => {
     expect(bad).not.toHaveProperty('toolCount');
     expect(bad).not.toHaveProperty('usedWebSearch');
     expect(bad).not.toHaveProperty('sourceCount');
+  });
+
+  it('agent-answer-shown (V0-R4): the fallback sourceCount counts a page once, as the backend does', () => {
+    const web = { type: 'web', title: 'About', externalUrl: 'https://a.example/about/' };
+    const news = { type: 'news', title: 'Story', directoryLink: '/?news=n1' };
+    expect(distinctSourceCount(['https://a.example/about'], [web, { ...web }, news, { ...news }])).toBe(2);
+    expect(
+      distinctSourceCount(
+        [],
+        [
+          { type: 'team', title: 'A team' },
+          { type: 'team', title: 'A team' },
+        ],
+      ),
+    ).toBe(1);
+    expect(distinctSourceCount([], [])).toBe(0);
+  });
+
+  it('agent-source-clicked: sourceRefLink reads directoryLink and externalUrl, and never a bad scheme', () => {
+    expect(sourceRefLink({ type: 'news', title: 'S', directoryLink: '/?news=n1' })).toEqual({
+      href: '/?news=n1',
+      external: false,
+    });
+    expect(sourceRefLink({ type: 'web', title: 'W', externalUrl: 'https://a.example' })).toEqual({
+      href: 'https://a.example',
+      external: true,
+    });
+    // Older body and the mock.
+    expect(sourceRefLink({ type: 'news', title: 'S', uid: 'n 1' }).href).toBe('/?news=n%201');
+    expect(sourceRefLink({ type: 'web', title: 'W', externalUrl: 'javascript:alert(1)' }).href).toBeUndefined();
+    expect(sourceRefLink({ type: 'news', title: 'S', directoryLink: '//evil.example' }).href).toBeUndefined();
   });
 
   it('agent-action-cancelled: openCardsAtClose lists only the cards that still wait', () => {

@@ -11,7 +11,8 @@ LAB-3297 (https://linear.app/protocollabs/issue/LAB-3297), slice S0 of LAB-3272:
 - `useLabosAgentDockEvents` (in `LabosAgentRoot`): `agent-dock-opened`, `agent-dock-closed`, and `agent-action-cancelled` for open cards at the close.
 - `useLabosAgentChat`: message, answer, action and draft events. The intro events with `source: 'agent'` add `conversationId`.
 - `LabosAgentTurn`: `agent-source-clicked`.
-- `normalizeChatBody`: reads the optional C1 `toolCount`, `usedWebSearch` and `sourceCount` (V0-R4).
+- `normalizeChatBody`: reads the optional C1 `toolCount`, `usedWebSearch` and `sourceCount` (V0-R4, backend PR #3754).
+- `labos-agent.sources.ts`: `distinctSourceCount` (the fallback count) and `sourceRefLink`, which reads the C1 `directoryLink` and `externalUrl`.
 
 ## Out of scope
 

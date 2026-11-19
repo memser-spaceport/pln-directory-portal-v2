@@ -233,6 +233,32 @@ describe('LAB-3297: agent events', () => {
     expect(props).not.toHaveProperty('toolCount');
   });
 
+  it('agent-answer-shown (V0-R4): with no C1 count, a page in both lists counts once', async () => {
+    chat.mockResolvedValue(
+      answer({
+        sources: ['https://example.com/acme'],
+        sourceRefs: [{ type: 'web', title: 'Acme page', externalUrl: 'https://example.com/acme/' }],
+      }),
+    );
+    renderApp();
+    await open(newsContext, 'news-story');
+    await send(MESSAGE);
+    expect(one('agent-answer-shown')).toMatchObject({ sourceCount: 1 });
+  });
+
+  it('agent-source-clicked (V0-R1): a C1 ref with directoryLink links to it and counts as labos', async () => {
+    chat.mockResolvedValue(
+      answer({ sources: [], sourceRefs: [{ type: 'news', title: 'Story ref', directoryLink: '/?news=n-2' }] }),
+    );
+    renderApp();
+    await open(newsContext, 'news-story');
+    await send(MESSAGE);
+    const link = screen.getByText('Story ref').closest('a');
+    expect(link).toHaveAttribute('href', '/?news=n-2');
+    fireEvent.click(link as HTMLAnchorElement);
+    expect(one('agent-source-clicked')).toMatchObject({ sourceType: 'labos', position: 1 });
+  });
+
   it('agent-answer-shown (V0-R4): the C1 final chunk counts win when they come', async () => {
     chat.mockResolvedValue(answer({ toolCount: 3, usedWebSearch: true, sourceCount: 5 }));
     renderApp();

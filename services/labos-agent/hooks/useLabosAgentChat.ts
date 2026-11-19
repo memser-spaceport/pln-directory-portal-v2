@@ -34,6 +34,7 @@ import {
 import { LABOS_AGENT_MENTION_TEXT } from '../constants';
 import { isStalledAnswer, LabosAgentError } from '../labos-agent.errors';
 import { toChatMentions } from '../labos-agent.mentions';
+import { distinctSourceCount } from '../labos-agent.sources';
 import { getLabosAgentClient, toChatContext } from '../labos-agent.service';
 import { chatKey, useLabosAgentStore } from '../store';
 
@@ -223,12 +224,12 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
         patch(id, { ...body, status: stalled ? 'stalled' : 'done', endedAt: Date.now() });
         if (stalled) onAnswerFailed(context, { turnIndex, errorType: 'timeout', status: 200 });
         else {
-          // V0-R4: the C1 counts when they come. Else the client counts the sources it shows and omits the rest.
+          // V0-R4: the C1 counts when they come. Else the client counts the distinct sources and omits the rest.
           onAnswerShown(context, {
             turnIndex,
             latencyMs: Date.now() - turn.startedAt,
             answerLength: body.content.length,
-            sourceCount: body.sourceCount ?? body.sources.length + body.sourceRefs.length,
+            sourceCount: body.sourceCount ?? distinctSourceCount(body.sources, body.sourceRefs),
             ...(body.usedWebSearch !== undefined ? { usedWebSearch: body.usedWebSearch } : {}),
             ...(body.toolCount !== undefined ? { toolCount: body.toolCount } : {}),
           });

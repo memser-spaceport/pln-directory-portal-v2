@@ -152,8 +152,14 @@ export interface LabosAgentMentionChip {
 
 export interface LabosAgentSourceRef {
   type: string;
-  uid?: string;
   title: string;
+  /** C1 (backend PR #3754): a LabOS path, for example `/?news=<uid>`. */
+  directoryLink?: string;
+  /** C1 (backend PR #3754): a web page. */
+  externalUrl?: string;
+  /** Older body and the mock: the news uid. */
+  uid?: string;
+  /** Older body and the mock: a web page. */
   url?: string;
 }
 

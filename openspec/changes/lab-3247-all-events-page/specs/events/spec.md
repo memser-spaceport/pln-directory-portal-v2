@@ -36,13 +36,19 @@ The page SHALL open with the title "Events", one line of description, a link "Op
 
 ### Requirement: Near you shows events in the member's city
 
-On a plain landing (List view, no filter, no city scope), a signed-in member whose profile has a city SHALL see "Near you in <city>" with up to 3 upcoming events in that city, soonest first, as picture tiles. If no upcoming event is in that city, the section SHALL NOT show. A signed-in member whose profile has no location SHALL see, in the same place, one row: "See events near you. Add your location to your profile and we'll show what's coming up where you are." and an "Add location" button that opens their profile. Signed-out visitors SHALL see neither.
+On a plain landing (List view, no filter, no city scope), a signed-in member whose profile has a location SHALL see "Near you in <city>" with up to 3 upcoming events in its city, soonest first, as picture tiles. The location's city is used, or its metro area when it has no city (a location may hold only a metro area, region or country). If no upcoming event is in that place, the section SHALL NOT show. A signed-in member whose profile has no location SHALL see, in the same place, one row: "See events near you. Add your location to your profile and we'll show what's coming up where you are." and an "Add location" button that opens their profile. Signed-out visitors SHALL see neither.
 
 #### Scenario: Member in Lisbon
 
 - **GIVEN** a signed-in member whose profile city is Lisbon, and 4 upcoming events in Lisbon
 - **WHEN** they open `/events/all`
 - **THEN** "Near you in Lisbon" shows the 3 soonest Lisbon events
+
+#### Scenario: Member whose location has no city
+
+- **GIVEN** a signed-in member whose profile location is the country "Slovenia", with no city
+- **WHEN** they open the page
+- **THEN** neither Near you nor the Add location row shows
 
 #### Scenario: Member with no location
 

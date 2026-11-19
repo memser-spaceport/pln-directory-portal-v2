@@ -208,15 +208,28 @@ describe('getMemberProfileCity', () => {
     global.fetch = realFetch;
   });
 
-  it('reads the city, null without one, undefined when the call fails', async () => {
-    const respond = (body: unknown, ok = true) =>
-      jest.fn(() => Promise.resolve({ ok, json: () => Promise.resolve(body) })) as unknown as typeof fetch;
+  const respond = (body: unknown, ok = true) =>
+    jest.fn(() => Promise.resolve({ ok, json: () => Promise.resolve(body) })) as unknown as typeof fetch;
 
+  it('reads the city, null without a location, undefined when the call fails', async () => {
     global.fetch = respond({ location: { city: ' Lisbon ' } });
     expect(await getMemberProfileCity('m1', 't')).toBe('Lisbon');
     global.fetch = respond({ location: null });
     expect(await getMemberProfileCity('m1', 't')).toBeNull();
+    global.fetch = respond({ location: { city: null, metroArea: null, region: null, country: null } });
+    expect(await getMemberProfileCity('m1', 't')).toBeNull();
     global.fetch = respond({}, false);
     expect(await getMemberProfileCity('m1', 't')).toBeUndefined();
+  });
+
+  it('falls back to the metro area, region or country when the location has no city', async () => {
+    global.fetch = respond({ location: { city: null, metroArea: 'Kyiv', country: 'Ukraine' } });
+    expect(await getMemberProfileCity('m1', 't')).toBe('Kyiv');
+    global.fetch = respond({
+      location: { city: ' ', metroArea: null, region: 'Pennsylvania', country: 'United States' },
+    });
+    expect(await getMemberProfileCity('m1', 't')).toBe('Pennsylvania');
+    global.fetch = respond({ location: { city: null, metroArea: null, region: null, country: 'Slovenia' } });
+    expect(await getMemberProfileCity('m1', 't')).toBe('Slovenia');
   });
 });

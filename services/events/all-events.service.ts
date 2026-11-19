@@ -132,9 +132,15 @@ export async function getAllEventsPageEvents(): Promise<AllEventsResult> {
   }
 }
 
+/** Most specific first: the location picker can store a metro area, region or country without a city. */
+const PLACE_FIELDS = ['city', 'metroArea', 'region', 'country'] as const;
+
 /**
- * The signed-in member's profile city, for Near you: the trimmed `location.city`, `null` when their profile has none,
- * `undefined` when it couldn't be read (then the page shows neither Near you nor the Add location row).
+ * The signed-in member's profile place, for Near you: the most specific of `location.city`, `metroArea`, `region` and
+ * `country` (about one member in nine has a location with no city, e.g. `{ metroArea: 'Kyiv', country: 'Ukraine' }`).
+ * `null` only when the profile has no location at all (the Add location row); `undefined` when it couldn't be read
+ * (then the page shows neither Near you nor the Add location row). A region or country never matches an event's city,
+ * so it hides Near you without asking a member who has a location to add one.
  */
 export async function getMemberProfileCity(memberUid: string, authToken: string): Promise<string | null | undefined> {
   try {
@@ -144,8 +150,12 @@ export async function getMemberProfileCity(memberUid: string, authToken: string)
     });
     if (!response.ok) return undefined;
     const member = await response.json();
-    const city = member?.location?.city;
-    return typeof city === 'string' && city.trim() ? city.trim() : null;
+    const location = member?.location ?? {};
+    for (const field of PLACE_FIELDS) {
+      const value = location[field];
+      if (typeof value === 'string' && value.trim()) return value.trim();
+    }
+    return null;
   } catch {
     return undefined;
   }

@@ -10,7 +10,7 @@ See proposal.md for why. The constraints that shape the approach, checked on 202
 - **The drawer exists** (`components/page/events/EventDrawer`, flag `NEXT_PUBLIC_SHOW_EVENT_DRAWER`). Each host keeps its own `eventUid` state and renders `<EventDrawer eventUid source onClose />`. Home loads it with `next/dynamic` and prefetches the detail on hover (`usePrefetchEventDetail`).
 - **Filter parts exist.** `createFilterStore` + `FilterStoreUrlSync` (`services/filters`), `FiltersSidePanel`, `FilterSection`, `GenericCheckboxList`, `GenericFilterToggle`, `FilterSearchInput`, `MobileFilterWrapper` (`components/common/filters`). The prototype's rail (`prototypes/entries/events-page-redesign/EventsFilterView.tsx`) already uses them over a mock store with the same `FilterState` shape.
 - **The prototype is on develop**, with mocked data: `events-page-redesign/*`, `events-shared/GoingTag`, `EventImage`, and `event-drawer-redesign/AccessIcon` and `EventDrawer`. Its map is a hand-made slippy map over Esri tiles; production uses Google Maps.
-- **Viewer data.** The member's going events: `getMyUpcomingEventUids(memberUid)` (`GET /v1/members/:uid/events?group=upcoming`). The member's city is `location.city` on the member record.
+- **Viewer data.** The member's going events: `getMyUpcomingEventUids(memberUid)` (`GET /v1/members/:uid/events?group=upcoming`). The member's place is the most specific of `location.city`, `metroArea`, `region` and `country` on the member record (the picker can store a location with no city: about one member in nine on dev).
 
 ## Goals / Non-Goals
 
@@ -56,7 +56,7 @@ A store from `createFilterStore()` (`services/events/all-events-filters.store.ts
 
 ### D5. Viewer data in the browser
 
-The page server component passes whether the viewer is signed in and their uid. Going uids come from a React Query hook over `getMyUpcomingEventUids`, enabled only when signed in (an ungated query would turn the `customFetch` reload into a loop). The member's city is read on the server (`getMemberProfileCity`, `GET /v1/members/:uid` with the viewer's token, uncached) only when signed in, so Near you renders with the page and never flashes in. `null` means the profile has no city (the Add location row); `undefined` means it couldn't be read (neither shows). After "I'm going" in the drawer, the hook's key is invalidated so the Going pill and the going filter update. The event list itself is not viewer-specific, so the shared cache is safe.
+The page server component passes whether the viewer is signed in and their uid. Going uids come from a React Query hook over `getMyUpcomingEventUids`, enabled only when signed in (an ungated query would turn the `customFetch` reload into a loop). The member's city is read on the server (`getMemberProfileCity`, `GET /v1/members/:uid` with the viewer's token, uncached) only when signed in, so Near you renders with the page and never flashes in. `null` means the profile has no location at all (the Add location row); `undefined` means it couldn't be read (neither shows). After "I'm going" in the drawer, the hook's key is invalidated so the Going pill and the going filter update. The event list itself is not viewer-specific, so the shared cache is safe.
 
 ### D6. Components, ported out of the prototype
 

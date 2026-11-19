@@ -11,8 +11,7 @@ export interface SnapshotActivityItem {
   category: string;
   title: string;
   points: number;
-  /** Activity card id (e.g. host-office-hours); null when not from a card, undefined when the API predates the field. */
-  siteActivityId?: string | null;
+  siteActivityId: string | null;
 }
 
 export type SnapshotActivitiesStatus = 'loading' | 'ready' | 'unavailable';
@@ -27,7 +26,6 @@ export interface CurrentSnapshotStatus {
   activitiesCount: number;
   categoriesCount: number;
   activities: SnapshotActivityItem[];
-  /** Whether `activities` reflects the member's real records yet. */
   activitiesStatus: SnapshotActivitiesStatus;
 }
 

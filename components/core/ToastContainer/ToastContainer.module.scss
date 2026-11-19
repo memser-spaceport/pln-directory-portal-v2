@@ -14,8 +14,7 @@
   }
 
   min-width: var(--toast-default-width);
-  // Room for the wide variant below; default toasts stay at --toast-default-width.
-  max-width: min(600px, 100vw);
+  max-width: min(500px, 100vw);
   width: fit-content;
 
   gap: 12px;
@@ -42,15 +41,6 @@
     margin-bottom: 0px;
 
     max-width: 100%;
-
-    @include mobile-only {
-      width: 100%;
-    }
-  }
-
-  // Opt-in wider toast for longer messages: toast(msg, { className: WIDE_TOAST_CLASS }).
-  :global(.Toastify__toast.toast--wide) {
-    width: 600px;
 
     @include mobile-only {
       width: 100%;

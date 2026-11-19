@@ -52,7 +52,6 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
   };
 
   const handleCtaClick = () => {
-    // Confirm CTA: acknowledge with a toast of this snapshot's credits, no navigation.
     if (activity.cta === 'confirm') {
       showConfirmToast(activity);
       return;

@@ -72,7 +72,6 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
   const handleCtaClick = (e: React.MouseEvent, activity: Activity) => {
     e.stopPropagation();
 
-    // Confirm CTA: acknowledge with a toast of this snapshot's credits, no navigation.
     if (activity.cta === 'confirm') {
       showConfirmToast(activity);
       return;

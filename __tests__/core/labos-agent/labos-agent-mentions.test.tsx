@@ -430,6 +430,26 @@ describe('LAB-3318: agent @mentions (S6 frontend)', () => {
       expect(screen.getAllByText(NO_CONTEXT_LINE)).toHaveLength(1);
     });
 
+    it('S6-F20: no line when the first turn failed; the line shows after a successful Retry of that turn (Oleg)', async () => {
+      chat.mockRejectedValueOnce(new LabosAgentError(500, 'UNKNOWN', 'Server error'));
+      const input = await openPanel();
+      type(input, 'Hi');
+      fireEvent.keyDown(input, { key: 'Enter' });
+      const retry = await screen.findByRole('button', { name: 'Retry' });
+      expect(screen.queryByText(NO_CONTEXT_LINE)).toBeNull();
+
+      fireEvent.click(retry);
+      await screen.findByText('Mock answer text');
+      expect(chat).toHaveBeenCalledTimes(2);
+      expect(lastChatRequest().context).toBeUndefined();
+      expect(lastChatRequest().mentions).toBeUndefined();
+      const lines = screen.getAllByText(NO_CONTEXT_LINE);
+      expect(lines).toHaveLength(1);
+      expect(lines[0].compareDocumentPosition(screen.getByText('Mock answer text'))).toBe(
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      );
+    });
+
     it('S6-F20: no line when the first turn has a context', async () => {
       const input = await openPanel({ page: 'home', label: 'Home' });
       type(input, 'Hi');

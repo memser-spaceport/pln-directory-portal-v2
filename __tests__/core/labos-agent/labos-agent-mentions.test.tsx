@@ -430,6 +430,26 @@ describe('LAB-3318: agent @mentions (S6 frontend)', () => {
       expect(screen.getAllByText(NO_CONTEXT_LINE)).toHaveLength(1);
     });
 
+    it('S6-F20: no line when the first turn failed; the line shows after a successful Retry of that turn (Oleg)', async () => {
+      chat.mockRejectedValueOnce(new LabosAgentError(500, 'UNKNOWN', 'Server error'));
+      const input = await openPanel();
+      type(input, 'Hi');
+      fireEvent.keyDown(input, { key: 'Enter' });
+      const retry = await screen.findByRole('button', { name: 'Retry' });
+      expect(screen.queryByText(NO_CONTEXT_LINE)).toBeNull();
+
+      fireEvent.click(retry);
+      await screen.findByText('Mock answer text');
+      expect(chat).toHaveBeenCalledTimes(2);
+      expect(lastChatRequest().context).toBeUndefined();
+      expect(lastChatRequest().mentions).toBeUndefined();
+      const lines = screen.getAllByText(NO_CONTEXT_LINE);
+      expect(lines).toHaveLength(1);
+      expect(lines[0].compareDocumentPosition(screen.getByText('Mock answer text'))).toBe(
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      );
+    });
+
     it('S6-F20: no line when the first turn has a context', async () => {
       const input = await openPanel({ page: 'home', label: 'Home' });
       type(input, 'Hi');
@@ -485,7 +505,7 @@ describe('LAB-3318: agent @mentions (S6 frontend)', () => {
       const input = await openPanel();
       type(input, '@zz');
       const status = screen.getByRole('status');
-      expect(within(status).getByText('Searching')).toBeInTheDocument();
+      expect(within(status).getByText('Searching…')).toBeInTheDocument();
       await waitFor(() => expect(searchMentions).toHaveBeenCalled());
       await act(async () => fail(new LabosAgentError(429, 'UNKNOWN', 'x')));
       expect(within(screen.getByRole('status')).getByText('Search is not available. Try again.')).toBeInTheDocument();
@@ -554,7 +574,7 @@ describe('LAB-3318: agent @mentions (S6 frontend)', () => {
       const input = await openPanel();
       type(input, 'Ask @zzz');
       expect(screen.queryAllByRole('option')).toHaveLength(0);
-      expect(within(screen.getByRole('status')).getByText('Searching')).toBeInTheDocument();
+      expect(within(screen.getByRole('status')).getByText('Searching…')).toBeInTheDocument();
       fireEvent.keyDown(input, { key: 'Enter' });
       expect(chat).not.toHaveBeenCalled();
       expect(input).toHaveValue('Ask @zzz');
@@ -566,6 +586,54 @@ describe('LAB-3318: agent @mentions (S6 frontend)', () => {
       const row = screen.getByRole('group', { name: 'What the agent reads' });
       expect(within(row).getByRole('button', { name: 'Stop reading Home' })).toBeInTheDocument();
       expect(within(row).getByRole('button', { name: 'Add context' })).toBeInTheDocument();
+    });
+  });
+
+  describe('Oleg decisions (#labos-team)', () => {
+    const hintShown = () => screen.queryAllByText(/to add new line/).length > 0;
+
+    it('S6-F19: the Shift + Enter hint hides while the composer is empty and shows with text', async () => {
+      const input = await openPanel();
+      expect(input).toHaveAttribute('placeholder', 'Ask, tell it what to do, or type @ to add context');
+      expect(hintShown()).toBe(false);
+      type(input, 'Hi');
+      expect(hintShown()).toBe(true);
+      type(input, '');
+      expect(hintShown()).toBe(false);
+    });
+
+    it('S6-F19: the hint goes after a send clears the composer, and comes back with a prefill', async () => {
+      const input = await openPanel();
+      type(input, 'Hi');
+      fireEvent.keyDown(input, { key: 'Enter' });
+      await screen.findByText('Mock answer text');
+      expect(input).toHaveValue('');
+      expect(hintShown()).toBe(false);
+
+      act(() => useLabosAgentStore.getState().actions.openAgent({ context: null, prefill: 'Draft an intro' }));
+      await waitFor(() => expect(input).toHaveValue('Draft an intro'));
+      expect(hintShown()).toBe(true);
+      expect(picker()).not.toBeInTheDocument();
+    });
+
+    it('S6-F19: the restored text after a mention 404 shows the hint', async () => {
+      chat.mockRejectedValueOnce(new LabosAgentError(404, 'TEAM_NOT_FOUND', 'Not found', undefined, undefined, 0));
+      const input = await openPanel();
+      type(input, 'Ask @samp');
+      fireEvent.click(await findOption('Teams', /Sample Co/));
+      fireEvent.keyDown(input, { key: 'Enter' });
+      await screen.findByText('The agent cannot read Sample Co. Remove it and ask again.');
+      expect(input).toHaveValue('Ask @Sample Co');
+      expect(hintShown()).toBe(true);
+    });
+
+    it('copy: the picker shows "Searching…" with the ellipsis character while C4 loads', async () => {
+      searchMentions.mockImplementation(() => new Promise(() => undefined));
+      const input = await openPanel();
+      type(input, '@zz');
+      const note = within(screen.getByRole('status')).getByText('Searching…');
+      expect(note.textContent).toBe('Searching\u2026');
+      expect(screen.queryByText('Searching')).toBeNull();
     });
   });
 });

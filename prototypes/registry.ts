@@ -647,6 +647,16 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/home-v2-style-refresh-2/HomeV2ZaroPrototype'),
   },
   {
+    key: 'home-post-news',
+    status: 'ideation',
+    version: 1,
+    title: 'Home — Post news for team leads (LAB-3316)',
+    description:
+      'A small filled "Post news" button at the end of the Network Updates header, for team leads only. One team: the post-news form opens for it. Several teams: the same form with "Post as" on top. Switch the viewer and the state (default, hover, form, posting, posted).',
+    category: 'Newsfeed',
+    load: () => import('./entries/home-post-news/HomePostNewsPrototype'),
+  },
+  {
     // LOCAL VIEWING COPY of PR #3341 (branch polina/lab-2948-…). Edit in C:\PL Network\pln-lab-2948; don't commit on this branch.
     key: 'lab-2948-prototype-a-better-mcp-connect',
     status: 'dev',

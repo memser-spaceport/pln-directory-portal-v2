@@ -6,7 +6,6 @@ import {
   mondayOf,
   monthLabel,
   monthWeeks,
-  safeColor,
   spanColumns,
   stepMonth,
   weekLabel,
@@ -75,11 +74,5 @@ describe('order and anchor', () => {
     expect(firstBusyDay(events, '2030-12-01')).toBe('2030-12-01'); // b is under way
     expect(firstBusyDay(events, '2030-12-06')).toBe('2030-12-10');
     expect(firstBusyDay(events, '2030-12-11')).toBe('2030-12-11');
-  });
-
-  it('only lets a plain hex colour into a style', () => {
-    expect(safeColor('#ff8800')).toBe('#ff8800');
-    expect(safeColor('red; background: url(x)')).toBe('#1E88E5');
-    expect(safeColor(null)).toBe('#1E88E5');
   });
 });

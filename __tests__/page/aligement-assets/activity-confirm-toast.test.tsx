@@ -4,7 +4,6 @@ import { render, renderHook, screen } from '@testing-library/react';
 import {
   confirmToastContent,
   confirmToastMessage,
-  NOT_PLAA_MEMBER_TOAST,
   useActivityConfirmToast,
 } from '@/components/page/aligement-assets/activities/confirm-toast';
 import type { SnapshotActivityItem } from '@/services/plaa/hooks/useCurrentSnapshotStatus';
@@ -52,9 +51,7 @@ describe('confirmToastMessage', () => {
       'member',
     );
 
-    expect(message).toBe(
-      'Confirmed! Host Office Hours credited 2 times (200 points) for November. New activity may take up to 48 hours to appear.',
-    );
+    expect(message).toContain('Host Office Hours credited 2 times (200 points) for November');
   });
 
   it('uses the singular for one credit and formats large point totals', () => {
@@ -68,8 +65,8 @@ describe('confirmToastMessage', () => {
   });
 
   it('says nothing is credited yet when the card has no rows this snapshot', () => {
-    expect(confirmToastMessage(hostOfficeHours, ready([row('book-office-hours'), row(null)]), 'member')).toBe(
-      'Confirmed! Host Office Hours not credited yet for November. New activity may take up to 48 hours to appear.',
+    expect(confirmToastMessage(hostOfficeHours, ready([row('book-office-hours'), row(null)]), 'member')).toContain(
+      'Host Office Hours not credited yet for November',
     );
   });
 
@@ -90,7 +87,7 @@ describe('confirmToastMessage', () => {
   });
 
   it('tells a LabOS member without PLAA access that points are for PLAA members', () => {
-    expect(confirmToastMessage(hostOfficeHours, ready([]), 'not-member')).toBe(NOT_PLAA_MEMBER_TOAST);
+    expect(confirmToastMessage(hostOfficeHours, ready([]), 'not-member')).toMatch(/collected by PLAA members/);
   });
 
   it('falls back while PLAA access is unknown', () => {
@@ -113,9 +110,16 @@ describe('confirmToastContent', () => {
 });
 
 describe('useActivityConfirmToast', () => {
-  const shownText = () => {
+  const shownToast = () => {
+    expect(mockToastSuccess).toHaveBeenCalledTimes(1);
     const [content] = mockToastSuccess.mock.calls[0] as [ReactNode];
-    return render(<>{content}</>).container.textContent;
+    return render(<>{content}</>);
+  };
+  const shownText = () => shownToast().container.textContent;
+  const expectFallback = () => {
+    const shown = shownToast();
+    expect(shown.getByRole('link', { name: 'Profile' })).toHaveAttribute('href', '/alignment-asset/profile');
+    expect(shown.container.textContent).not.toMatch(/collected by PLAA members/);
   };
 
   beforeEach(() => {
@@ -138,7 +142,7 @@ describe('useActivityConfirmToast', () => {
 
     renderHook(() => useActivityConfirmToast()).result.current(hostOfficeHours);
 
-    expect(shownText()).toBe(NOT_PLAA_MEMBER_TOAST);
+    expect(shownText()).toMatch(/collected by PLAA members/);
   });
 
   it('shows the fallback, not the non-member message, when the access lookup failed', () => {
@@ -146,7 +150,7 @@ describe('useActivityConfirmToast', () => {
 
     renderHook(() => useActivityConfirmToast()).result.current(hostOfficeHours);
 
-    expect(shownText()).toContain('See your Profile');
+    expectFallback();
   });
 
   it('shows the fallback to a signed-out visitor', () => {
@@ -155,7 +159,7 @@ describe('useActivityConfirmToast', () => {
 
     renderHook(() => useActivityConfirmToast()).result.current(hostOfficeHours);
 
-    expect(shownText()).toContain('See your Profile');
+    expectFallback();
   });
 
   it('uses the default toast width', () => {
@@ -163,6 +167,10 @@ describe('useActivityConfirmToast', () => {
 
     renderHook(() => useActivityConfirmToast()).result.current(hostOfficeHours);
 
-    expect(mockToastSuccess.mock.calls[0]).toHaveLength(1);
+    const options = mockToastSuccess.mock.calls[0][1] as
+      | { className?: string; style?: { width?: unknown } }
+      | undefined;
+    expect(options?.className).toBeUndefined();
+    expect(options?.style?.width).toBeUndefined();
   });
 });

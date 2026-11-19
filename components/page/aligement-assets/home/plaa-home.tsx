@@ -298,13 +298,12 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
             Employees and members of the PL Network collect PLAA for their contributions to increasing network value.
           </p>
           <div className="ph-flywheel__art">
-            {/* unoptimized: serve the lossless file as-is so the illustration's colors aren't re-encoded */}
             <Image
               src="/images/alignment-assets/flywheel-v3.webp"
               alt="The cycle runs: contribute, collect points, receive PLAA, the network grows, and repeats."
               width={1254}
               height={1254}
-              unoptimized
+              sizes="(max-width: 600px) 80vw, 440px"
             />
           </div>
         </div>

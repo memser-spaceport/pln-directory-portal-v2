@@ -23,7 +23,7 @@ Slices: **A** = LAB-3317 (groups 1–5), **B** = LAB-3320 (group 6), **C** = LAB
 
 - [x] 3.1 Desktop rail on `FiltersSidePanel` (closed by default, close control, Clear All) with search, City, Mode and "Events I'm going to" (signed-in only); a facet with fewer than 2 values is hidden. Verify: tests for open, close, clear and the hidden facet.
 - [x] 3.2 Chips under the toolbar while the rail is closed, each removable. Verify: the "Removing a chip" scenario as a test.
-- [x] 3.3 Phone: `MobileFilterWrapper` sheet on a white bar with the view menu. Verify: check at 375 px in the browser with no horizontal scroll.
+- [x] 3.3 Phone: `MobileFilterWrapper` sheet on the page-grey bar (#f1f5f9, kept over white on 2026-11-19) with the view menu. Verify: check at 375 px in the browser with no horizontal scroll.
 
 ## 4. List view and states (A)
 

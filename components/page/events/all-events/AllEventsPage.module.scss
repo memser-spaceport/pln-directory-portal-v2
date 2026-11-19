@@ -1027,9 +1027,9 @@
   }
 }
 
-/* Phones: production's MobileFilterWrapper paints its sticky bar #f1f5f9, which read as a blue
-   band on this white page ("remove this blue bg", 2026-11-18). White instead; the pills keep their
-   own shadow. The wrapper is display: contents so the bar's sticky still works against the page. */
+/* Phones: production's MobileFilterWrapper sticky bar, on the page's own bluish grey (#f1f5f9), so it reads as part
+   of the page, not a band. Kept grey over the white bar LAB-3317 first asked for (decided 2026-11-19). The wrapper is
+   display: contents so the bar's sticky still works against the page. */
 .mobileBar {
   display: contents;
 

@@ -79,6 +79,7 @@ describe('toAllEventsItem', () => {
       startDay: '2030-12-03',
       endDay: '2030-12-04',
       startTime: '9:00 AM',
+      endTime: '6:00 PM',
       zone: 'UTC+5:30',
       city: 'Bangalore',
       cityKey: 'bangalore',

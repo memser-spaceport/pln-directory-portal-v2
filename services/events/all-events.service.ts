@@ -55,6 +55,7 @@ export function toAllEventsItem(row: UpcomingEvent, raw: EventDetailResponse | n
     startDay: formatInTimeZone(start, timezone, 'yyyy-MM-dd'),
     endDay: formatInTimeZone(end, timezone, 'yyyy-MM-dd'),
     startTime: formatInTimeZone(start, timezone, 'h:mm a'),
+    endTime: formatInTimeZone(end, timezone, 'h:mm a'),
     zone: toZoneLabel(start, timezone),
     city,
     cityKey: city ? city.toLowerCase() : null,

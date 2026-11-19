@@ -114,6 +114,10 @@ function DayHead({
 /** "Online", "Lisbon · also online", "Lisbon": the city, since the cards are narrow. */
 const placeOf = (e: AllEventsItem) => eventPlace(e.mode, e.city)?.text ?? '';
 
+/** "6:00 PM – 9:00 PM" in the event's time zone; the start alone when it ends when it starts. */
+const timeRange = (e: AllEventsItem) =>
+  e.endTime && e.endTime !== e.startTime ? `${e.startTime} – ${e.endTime}` : e.startTime;
+
 /** The first topic's colour as a faint wash over white. */
 const tint = (e: AllEventsItem): CSSProperties => {
   const color = safeColor(e.tagColor);
@@ -168,7 +172,7 @@ function DayCard({ event, ...cards }: CalendarCardProps & { event: AllEventsItem
           {rest.length > 0 && <span className={k.cardTagMore}>+{rest.length}</span>}
         </span>
       )}
-      <span className={k.cardMeta}>{event.startTime}</span>
+      <span className={k.cardMeta}>{timeRange(event)}</span>
       <span className={k.cardMeta}>{[placeOf(event), event.zone].filter(Boolean).join(' · ')}</span>
       {cards.goingUids.has(event.uid) && <GoingPill />}
     </button>

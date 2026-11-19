@@ -130,10 +130,10 @@ describe('LAB-3302: agent corner, Ctrl/⌘ J and context chips', () => {
       getAccess.mockResolvedValue({ enabled: false });
       signIn();
       renderApp();
-      await act(async () => {});
 
+      // Feedback shows only after GET /access answers (no flash), so wait for it.
+      expect(await screen.findByRole('button', { name: 'Give feedback' })).toBeInTheDocument();
       expect(agentTab()).not.toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Give feedback' })).toBeInTheDocument();
     });
 
     it('with the feature gate off, the member keeps the feedback button only', async () => {
@@ -309,7 +309,9 @@ describe('LAB-3302: agent corner, Ctrl/⌘ J and context chips', () => {
 
       getAccess.mockResolvedValue({ enabled: false });
       renderApp();
-      await act(async () => {});
+      // Wait for GET /access to answer no, so the check runs on the settled state.
+      await screen.findByRole('button', { name: 'Give feedback' });
+      expect(agentTab()).not.toBeInTheDocument();
       expect(ctrlJ()).toBe(true);
       expect(panel()).not.toBeInTheDocument();
     });

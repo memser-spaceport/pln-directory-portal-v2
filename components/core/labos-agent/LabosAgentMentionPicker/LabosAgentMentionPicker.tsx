@@ -121,7 +121,7 @@ export function LabosAgentMentionPicker({
       {!limitReached && (
         <div role="status" className={s.status}>
           {status === 'error' && <p className={s.note}>{LABOS_AGENT_MENTION_TEXT.searchFailed}</p>}
-          {status === 'loading' && <p className={s.note}>Searching</p>}
+          {status === 'loading' && <p className={s.note}>{LABOS_AGENT_MENTION_TEXT.searching}</p>}
           {status === 'ready' && empty && <p className={s.note}>Nothing matches &quot;{trimmed}&quot;.</p>}
         </div>
       )}

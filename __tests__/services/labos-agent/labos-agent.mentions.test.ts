@@ -165,6 +165,32 @@ describe('LAB-3318: C1 mentions (S6-F14)', () => {
     expect(new Set(sent.map(mentionKey)).size).toBe(5);
   });
 
+  it('S6-F14: drops a second chip with the same mention key, keeps the first one and the order (Oleg)', () => {
+    const chips = [
+      chip('team:t-1', { type: 'team', uid: 't-1' }, 'Mock Labs'),
+      chip('page:job', { type: 'page', page: 'job' }, 'Jobs'),
+      chip('team:t-1', { type: 'team', uid: 't-1' }, 'Mock Labs'),
+      chip('member:m-1', { type: 'member', uid: 'm-1' }, 'Ada Mock'),
+      // Same mention under another chip key: the mention key decides.
+      chip('page:job:again', { type: 'page', page: 'job' }, 'Jobs'),
+    ];
+    expect(toChatMentions(chips)).toEqual([
+      { type: 'team', uid: 't-1' },
+      { type: 'page', page: 'job' },
+      { type: 'member', uid: 'm-1' },
+    ]);
+    // A member and a team with the same uid are 2 mentions.
+    expect(
+      toChatMentions([
+        chip('team:x-1', { type: 'team', uid: 'x-1' }),
+        chip('member:x-1', { type: 'member', uid: 'x-1' }),
+      ]),
+    ).toEqual([
+      { type: 'team', uid: 'x-1' },
+      { type: 'member', uid: 'x-1' },
+    ]);
+  });
+
   it('S6-F14: the fetch body has `mentions` next to `context`, and no `mentions` key when there are none', async () => {
     mockedFetch.mockResolvedValue(streamResponse('{"content":"ok"}'));
     await liveLabosAgentClient.chat({

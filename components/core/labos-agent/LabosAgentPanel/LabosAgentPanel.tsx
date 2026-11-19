@@ -121,6 +121,20 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
   const [picker, setPicker] = useState<PickerState | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const pickerRef = useRef(picker);
+  // True while code (not the member) sets the composer text, so `readMention` does not open the picker.
+  const quietRef = useRef(false);
+  /*
+   * Code sets the composer text through an `input` event, so `ChatInput` sees it (S6-F19: the "Shift + Enter" hint
+   * shows only with text).
+   */
+  const setComposerText = (el: HTMLTextAreaElement, value: string) => {
+    quietRef.current = true;
+    try {
+      setNativeValue(el, value);
+    } finally {
+      quietRef.current = false;
+    }
+  };
   // S6-F2: the start of an `@` that Esc closed. The picker opens again only for a new `@`.
   const closedAtRef = useRef<number | null>(null);
   const pickerId = useId();
@@ -165,7 +179,7 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
   useEffect(() => {
     if (prefill === null || !inputRef.current) return;
     // A second press of "Ask the agent" keeps the text that the member already typed.
-    if (!inputRef.current.value.trim()) inputRef.current.value = prefill;
+    if (!inputRef.current.value.trim()) setComposerText(inputRef.current, prefill);
     inputRef.current.focus();
     const end = inputRef.current.value.length;
     inputRef.current.setSelectionRange(end, end);
@@ -189,7 +203,7 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
   useEffect(() => {
     const input = inputRef.current;
     if (!pageErrorTurn || !input) return;
-    if (!input.value.trim()) input.value = pageErrorTurn.message;
+    if (!input.value.trim()) setComposerText(input, pageErrorTurn.message);
     markTextRestored(pageErrorTurn.id);
   }, [pageErrorTurn, markTextRestored]);
 
@@ -215,7 +229,7 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
   useEffect(() => {
     if (!mentionErrorTurn) return;
     const input = inputRef.current;
-    if (input && !input.value.trim()) input.value = mentionErrorTurn.message;
+    if (input && !input.value.trim()) setComposerText(input, mentionErrorTurn.message);
     markMentionsRestored(mentionErrorTurn.id);
   }, [mentionErrorTurn, markMentionsRestored]);
 
@@ -248,7 +262,7 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
 
   const submit = (text: string) => {
     if (!send(text, chips)) return;
-    if (inputRef.current) inputRef.current.value = '';
+    if (inputRef.current) setComposerText(inputRef.current, '');
     // S6-F15: the mention chips clear after a send. The page chip stays.
     setChips([]);
     setPicker(null);
@@ -515,7 +529,10 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
           onTextSubmit={() => submit(inputRef.current?.value ?? '')}
           onStopStreaming={stop}
           isLoadingObject={busy}
-          onChange={(e) => readMention(e.currentTarget)}
+          hideHintWhenEmpty
+          onChange={(e) => {
+            if (!quietRef.current) readMention(e.currentTarget);
+          }}
           onKeyDown={(e) => {
             if (pickerKeys(e)) return;
             if (e.key === 'Enter' && !e.shiftKey) {

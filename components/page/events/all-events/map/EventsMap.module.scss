@@ -257,7 +257,8 @@
 
 .row {
   display: grid;
-  grid-template-columns: 88px minmax(0, 1fr) auto;
+  /* The date column fits its longest label ("Dec 31 – Jan 1"), never less than 88px, so a date never wraps. */
+  grid-template-columns: minmax(88px, max-content) minmax(0, 1fr) auto;
   align-items: baseline;
   gap: 8px;
   width: 100%;
@@ -282,6 +283,7 @@
 }
 
 .rowDate {
+  white-space: nowrap;
   font-size: 14px;
   line-height: 20px;
   color: var(--foreground-neutral-secondary, #455468);

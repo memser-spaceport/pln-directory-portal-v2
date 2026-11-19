@@ -60,6 +60,12 @@ export interface AiApp {
   appId: string;
   name: string;
   description: string;
+  /** Admin-set readable path for `/apps/<path>` (LAB-3238). */
+  path?: string | null;
+  /** Admin-uploaded icon shown on the tile and under More (LAB-3238). */
+  iconUrl?: string | null;
+  showInMore?: boolean;
+  hideTopNav?: boolean;
   status: AiAppStatus;
   notes: string | null;
   url: string | null;
@@ -382,6 +388,24 @@ export interface PublishedAiApp {
   name: string;
   description: string | null;
   url: string;
+  /** Admin-set readable path (LAB-3238): the app opens at `/apps/<path>`; the uid link keeps working. */
+  path?: string | null;
+  /** Admin-uploaded icon; the More menu shows the star when it is empty. */
+  iconUrl?: string | null;
+  /** Off = not under More; the member still opens the app by its link. Absent (older API) = on. */
+  showInMore?: boolean;
+  /** Open full page, without the LabOS top navigation. */
+  hideTopNav?: boolean;
+}
+
+/** The `/apps/<segment>` a published app opens at: its readable path when it has one. */
+export function publishedAiAppSegment(app: Pick<PublishedAiApp, 'uid' | 'path'>): string {
+  return app.path || app.uid;
+}
+
+/** Whether `segment` (from `/apps/<segment>`) names the app, by its uid or by its path. */
+export function isPublishedAiAppSegment(app: Pick<PublishedAiApp, 'uid' | 'path'>, segment: string): boolean {
+  return app.uid === segment || (!!app.path && app.path === segment.toLowerCase());
 }
 
 /**

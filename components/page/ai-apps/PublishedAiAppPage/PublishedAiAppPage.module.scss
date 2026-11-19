@@ -6,6 +6,11 @@
   width: 100%;
 }
 
+/* "Hide top navigation": no LabOS header above the app. */
+.rootFullPage {
+  height: 100vh;
+}
+
 .iframe {
   width: 100%;
   flex: 1;

@@ -2,7 +2,11 @@ import { renderHook } from '@testing-library/react';
 import { useQuery } from '@tanstack/react-query';
 
 import { customFetch } from '@/utils/fetch-wrapper';
-import { fetchPublishedAiApps } from '@/services/ai-apps/ai-apps.service';
+import {
+  fetchPublishedAiApps,
+  isPublishedAiAppSegment,
+  publishedAiAppSegment,
+} from '@/services/ai-apps/ai-apps.service';
 import { usePublishedAiApps } from '@/services/ai-apps/hooks/usePublishedAiApps';
 import { useCurrentUserStore } from '@/services/auth/store';
 
@@ -179,5 +183,22 @@ describe('usePublishedAiApps', () => {
     rerender();
 
     expect(result.current.apps).toBe(first);
+  });
+});
+
+describe('published app links (LAB-3238)', () => {
+  it('opens at the readable path when the app has one, else at its uid', () => {
+    expect(publishedAiAppSegment({ uid: 'cm1', path: 'pla' })).toBe('pla');
+    expect(publishedAiAppSegment({ uid: 'cm1', path: null })).toBe('cm1');
+    expect(publishedAiAppSegment({ uid: 'cm1' })).toBe('cm1');
+  });
+
+  it('matches a link by uid or by path, ignoring the path case', () => {
+    const app = { uid: 'cm1', path: 'pla' };
+    expect(isPublishedAiAppSegment(app, 'cm1')).toBe(true);
+    expect(isPublishedAiAppSegment(app, 'pla')).toBe(true);
+    expect(isPublishedAiAppSegment(app, 'PLA')).toBe(true);
+    expect(isPublishedAiAppSegment(app, 'other')).toBe(false);
+    expect(isPublishedAiAppSegment({ uid: 'cm1', path: null }, '')).toBe(false);
   });
 });

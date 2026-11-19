@@ -18,6 +18,8 @@ export interface AllEventsItem {
   endDay: string;
   /** "9:00 AM" in the event's time zone. */
   startTime: string;
+  /** "6:00 PM": when it ends, in the event's time zone. */
+  endTime: string;
   /** "UTC+5:30", "UTC−3", "UTC+0" (a real minus sign, as the prototype prints it). */
   zone: string;
   /** "Lisbon": the gathering's city, title-cased when the source is all lower case. Null for "Others" or none. */

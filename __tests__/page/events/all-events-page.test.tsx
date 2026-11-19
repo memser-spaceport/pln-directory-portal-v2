@@ -357,6 +357,7 @@ describe('Calendar', () => {
     expect(within(inGrid('dai') as HTMLElement).getByText(/Dec 3 – 4 · Bangalore/)).toBeInTheDocument();
     expect(inGrid('lis2')?.parentElement?.style.gridColumn).toBe('1');
     expect(within(inGrid('call') as HTMLElement).getByText('Online · UTC+0')).toBeInTheDocument();
+    expect(within(inGrid('call') as HTMLElement).getByText('9:00 AM – 6:00 PM')).toBeInTheDocument();
     // Phones: the same cards by day, the four busy days only.
     expect(calendar().querySelectorAll('[class*="stackDay"]')).toHaveLength(4);
   });

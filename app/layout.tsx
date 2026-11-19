@@ -21,6 +21,7 @@ import { UserInfoChecker, UserInfoValidator } from '@/components/core/login';
 import { MobileBottomNav } from '@/components/core/MobileBottomNav';
 // DELETE WITH: the `design-canvas/` folder.
 import { AppChromeGate } from './design-canvas/AppChromeGate';
+import { TopNavGate } from '@/components/core/TopNavGate';
 import { DemoDayStats } from '@/components/core/DemoDayStats';
 import { ContactSupport } from '@/components/ContactSupport/ContactSupport';
 import { ContactSupportUrlSync } from '@/components/ContactSupport/ContactSupportUrlSync';
@@ -94,7 +95,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <ContactSupportUrlSync isLoggedIn={isLoggedIn} />
                 {/* DELETE WITH: the `design-canvas/` folder — unwrap both, keep the components. */}
                 <AppChromeGate>
-                  <SiteHeader userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
+                  <TopNavGate>
+                    <SiteHeader userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
+                  </TopNavGate>
                 </AppChromeGate>
                 <AuthBox isLoggedIn={isLoggedIn} />
                 <ContactSupport userInfo={userInfo} />

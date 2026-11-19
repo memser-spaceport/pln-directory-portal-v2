@@ -679,6 +679,10 @@
   position: relative;
   display: block;
   aspect-ratio: 16 / 9;
+  // A box sized by aspect-ratio still grows to fit its content while overflow is visible, so a portrait banner made
+  // the tile (and, through the grid, its whole row) taller than 16:9. Hidden overflow keeps the 16:9 slot; the
+  // picture is cropped by object-fit: cover.
+  overflow: hidden;
   background: var(--background-neutral-subtle, #f1f5f9);
 
   img {

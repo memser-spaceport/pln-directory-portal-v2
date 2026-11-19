@@ -772,7 +772,7 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
           border-radius: var(--radius-2xl);
           overflow: hidden;
           box-shadow: var(--shadow-sm);
-          background: #0c5259;
+          background: var(--color-brand);
           color: #fff;
           padding: clamp(24px, 3vw, 40px);
           container-type: inline-size;

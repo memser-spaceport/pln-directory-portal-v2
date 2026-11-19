@@ -636,4 +636,66 @@ describe('LAB-3318: agent @mentions (S6 frontend)', () => {
       expect(screen.queryByText('Searching')).toBeNull();
     });
   });
+
+  describe('test gaps (Oleg, after #3643)', () => {
+    const hintShown = () => screen.queryAllByText(/to add new line/).length > 0;
+    const PAGE_404_TEXT = 'The agent cannot read this page. Remove the page chip and ask again.';
+
+    /** Sends the text with no change event, so the @ picker never opens before the send. */
+    function sendAsIs(input: HTMLTextAreaElement, text: string) {
+      input.value = text;
+      fireEvent.keyDown(input, { key: 'Enter' });
+    }
+
+    it('(a) a prefill that ends in @name keeps the picker closed', async () => {
+      const input = await openPanel();
+      act(() => useLabosAgentStore.getState().actions.openAgent({ context: null, prefill: 'Introduce me to @ada' }));
+      await waitFor(() => expect(input).toHaveValue('Introduce me to @ada'));
+      expect(picker()).not.toBeInTheDocument();
+      expect(searchMentions).not.toHaveBeenCalled();
+    });
+
+    it('(a) a page-404 restore of text that ends in @name keeps the picker closed', async () => {
+      chat.mockRejectedValueOnce(new LabosAgentError(404, 'TEAM_NOT_FOUND', 'Not found'));
+      const input = await openPanel({ page: 'team', teamUid: 't-x', label: 'Team page' });
+      sendAsIs(input, 'Ask @ada');
+      await screen.findByText(PAGE_404_TEXT);
+      await waitFor(() => expect(input).toHaveValue('Ask @ada'));
+      expect(picker()).not.toBeInTheDocument();
+      expect(searchMentions).not.toHaveBeenCalled();
+    });
+
+    it('(a) a mention-404 restore of text that ends in @name keeps the picker closed', async () => {
+      chat.mockRejectedValueOnce(new LabosAgentError(404, 'TEAM_NOT_FOUND', 'Not found', undefined, undefined, 0));
+      const input = await openPanel();
+      fireEvent.click(screen.getByRole('button', { name: 'Add context' }));
+      fireEvent.click(await findOption('Teams', /Sample Co/));
+      sendAsIs(input, 'Compare with @ada');
+      await screen.findByText('The agent cannot read Sample Co. Remove it and ask again.');
+      await waitFor(() => expect(input).toHaveValue('Compare with @ada'));
+      expect(picker()).not.toBeInTheDocument();
+      expect(searchMentions).toHaveBeenCalledTimes(1);
+    });
+
+    it('(a) after a restore, a new key on the @name opens the picker', async () => {
+      chat.mockRejectedValueOnce(new LabosAgentError(404, 'TEAM_NOT_FOUND', 'Not found'));
+      const input = await openPanel({ page: 'team', teamUid: 't-x', label: 'Team page' });
+      sendAsIs(input, 'Ask @ada');
+      await waitFor(() => expect(input).toHaveValue('Ask @ada'));
+      type(input, 'Ask @adam');
+      expect(picker()).toBeInTheDocument();
+      expect(hint()).toHaveTextContent('Matching "adam"');
+    });
+
+    it('(b) the Shift + Enter hint shows after a page-404 text restore', async () => {
+      chat.mockRejectedValueOnce(new LabosAgentError(404, 'TEAM_NOT_FOUND', 'Not found'));
+      const input = await openPanel({ page: 'team', teamUid: 't-x', label: 'Team page' });
+      type(input, 'Hi');
+      expect(hintShown()).toBe(true);
+      fireEvent.keyDown(input, { key: 'Enter' });
+      await screen.findByText(PAGE_404_TEXT);
+      await waitFor(() => expect(input).toHaveValue('Hi'));
+      expect(hintShown()).toBe(true);
+    });
+  });
 });

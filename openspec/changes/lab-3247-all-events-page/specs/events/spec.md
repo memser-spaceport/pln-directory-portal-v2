@@ -36,7 +36,7 @@ The page SHALL open with the title "Events", one line of description, a link "Op
 
 ### Requirement: Near you shows events in the member's city
 
-On a plain landing (List view, no filter, no city scope), a signed-in member whose profile has a location SHALL see "Near you in <city>" with up to 3 upcoming events in its city, soonest first, as picture tiles. The location's city is used, or its metro area when it has no city (a location may hold only a metro area, region or country). If no upcoming event is in that place, the section SHALL NOT show. A signed-in member whose profile has no location SHALL see, in the same place, one row: "See events near you. Add your location to your profile and we'll show what's coming up where you are." and an "Add location" button that opens their profile. Signed-out visitors SHALL see neither.
+On a plain landing (List view, no filter, no city scope), a signed-in member whose profile has a location SHALL see "Near you in <city>" with up to 3 upcoming events in its city, soonest first, as picture tiles. The location's most specific part is used: its city, else its metro area, region or country (a location may hold no city; a city-state such as Singapore is saved as a country only). If no upcoming event is in that place, the section SHALL NOT show. A signed-in member whose profile has no location SHALL see, in the same place, one row: "See events near you. Add your location to your profile and we'll show what's coming up where you are." and an "Add location" button that opens their profile. Signed-out visitors SHALL see neither.
 
 #### Scenario: Member in Lisbon
 
@@ -49,6 +49,12 @@ On a plain landing (List view, no filter, no city scope), a signed-in member who
 - **GIVEN** a signed-in member whose profile location is the country "Slovenia", with no city
 - **WHEN** they open the page
 - **THEN** neither Near you nor the Add location row shows
+
+#### Scenario: City-state saved as a country
+
+- **GIVEN** a signed-in member whose profile location is the country "Singapore", with no city, and an upcoming event in Singapore
+- **WHEN** they open the page
+- **THEN** the page shows "Near you in Singapore" with that event
 
 #### Scenario: Member with no location
 

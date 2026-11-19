@@ -124,6 +124,12 @@ describe('nearYou', () => {
     item({ uid: `l${n}`, startDate: `2030-12-0${n}T09:00:00Z`, startDay: `2030-12-0${n}` }),
   );
 
+  it('matches a city-state saved as a country (Singapore), and a country with no event city matches nothing', () => {
+    const singapore = item({ uid: 'sg', city: 'Singapore', cityKey: 'singapore' });
+    expect(nearYou([singapore], 'Singapore')?.events.map((e) => e.uid)).toEqual(['sg']);
+    expect(nearYou([singapore], 'Slovenia')).toBeNull();
+  });
+
   it('matches the member city loosely and shows the 3 soonest in-person events', () => {
     for (const memberCity of ['Lisbon', 'lisbon, portugal', ' LISBON ']) {
       const near = nearYou([...lisbonEvents].reverse(), memberCity);

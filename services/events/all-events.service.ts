@@ -139,8 +139,9 @@ const PLACE_FIELDS = ['city', 'metroArea', 'region', 'country'] as const;
  * The signed-in member's profile place, for Near you: the most specific of `location.city`, `metroArea`, `region` and
  * `country` (about one member in nine has a location with no city, e.g. `{ metroArea: 'Kyiv', country: 'Ukraine' }`).
  * `null` only when the profile has no location at all (the Add location row); `undefined` when it couldn't be read
- * (then the page shows neither Near you nor the Add location row). A region or country never matches an event's city,
- * so it hides Near you without asking a member who has a location to add one.
+ * (then the page shows neither Near you nor the Add location row). Near you matches that place against event cities:
+ * a city-state saved as a country ("Singapore") matches; a region or a larger country matches nothing, so Near you
+ * stays hidden without asking a member who has a location to add one.
  */
 export async function getMemberProfileCity(memberUid: string, authToken: string): Promise<string | null | undefined> {
   try {

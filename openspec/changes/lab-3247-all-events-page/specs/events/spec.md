@@ -164,7 +164,7 @@ The Calendar view SHALL have Week (default) and Month, kept in the address (`cal
 
 ### Requirement: The Map view
 
-When a Maps key is configured, the Map view SHALL show a street map with one pin per city that has matching in-person or hybrid events, labelled with the city's count. "Show all" SHALL fit every pin. Pressing a pin with one event SHALL open the drawer. Pressing a pin with several events SHALL show a small card listing them, each opening the drawer. The map SHALL zoom with the mouse wheel or trackpad, the + and − buttons, and, on wider screens, a slider. The page SHALL NOT scroll while the pointer is over the map. Online events SHALL be listed under the map. A pin holding an event the viewer is going to SHALL be marked. Without a Maps key, the view switch SHALL NOT offer Map.
+When a Maps key is configured, the Map view SHALL show a street map with one pin per city that has matching in-person or hybrid events, labelled with the city's count. "Show all" SHALL fit every pin. Pressing a pin with one event SHALL open the drawer. Pressing a pin with several events SHALL show a small card listing them, each opening the drawer. The map SHALL zoom with the mouse wheel or trackpad, the + and − buttons, and, on wider screens, a slider. The page SHALL NOT scroll while the pointer is over the map. Online events SHALL be listed under the map, and so SHALL in-person events whose city has no known position ("Not on the map"), so no matching event is missing from the view. A pin holding an event the viewer is going to SHALL be marked. If the map can't load, it SHALL say so and offer "Try again"; the lists under it still show. Without a Maps key, the view switch SHALL NOT offer Map.
 
 #### Scenario: City pin with several events
 
@@ -172,6 +172,19 @@ When a Maps key is configured, the Map view SHALL show a street map with one pin
 - **WHEN** the visitor presses the Dubai pin
 - **THEN** a card lists the 3 events
 - **AND** pressing one opens its drawer
+
+#### Scenario: Link to one event in Map
+
+- **GIVEN** 3 matching events in Dubai, one of them event A
+- **WHEN** a visitor opens `/events/all?view=map&event=<A's uid>`
+- **THEN** the map is centred on Dubai with its pin marked, and the Dubai card lists the 3 events with A's row marked
+- **AND** the drawer is open on A
+
+#### Scenario: City with no known position
+
+- **GIVEN** a matching in-person event in a city the locations list has no position for
+- **WHEN** the visitor opens the Map view
+- **THEN** the event is listed under the map in "Not on the map"
 
 #### Scenario: No Maps key
 

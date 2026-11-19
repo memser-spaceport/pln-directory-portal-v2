@@ -32,6 +32,7 @@ export const LABOS_AGENT_MENTION_TEXT = {
   placeholderOther: 'Ask, tell it what to do, or type @ to add context',
   noContext: "I'm not reading any page right now. Add one with + or type @ to point me at a story, team or member.",
   mentionNotFound: (label: string) => `The agent cannot read ${label}. Remove it and ask again.`,
+  mentionNotFoundUnknown: 'The agent cannot read one of the items you added. Remove it and ask again.',
 } as const;
 
 /**

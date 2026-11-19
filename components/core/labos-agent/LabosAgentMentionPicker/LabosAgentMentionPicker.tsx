@@ -16,6 +16,11 @@ interface LabosAgentMentionPickerProps {
   query: string;
   groups: LabosAgentPickerGroup[];
   activeKey?: string;
+  /** The listbox id, for `aria-controls` on the composer or the + search field. */
+  listboxId: string;
+  /** Option `i` (in flat order) gets the id `<optionIdPrefix>-<i>`. */
+  optionIdPrefix: string;
+  activeOptionId?: string;
   status: LabosAgentMentionSearchStatus;
   /** S6-F12: 5 mention chips. The picker shows the limit text and no rows. */
   limitReached: boolean;
@@ -36,6 +41,9 @@ export function LabosAgentMentionPicker({
   query,
   groups,
   activeKey,
+  listboxId,
+  optionIdPrefix,
+  activeOptionId,
   status,
   limitReached,
   onQuery,
@@ -51,6 +59,7 @@ export function LabosAgentMentionPicker({
 
   const trimmed = query.trim();
   const empty = groups.length === 0;
+  let position = 0;
 
   return (
     <div className={s.picker} role="dialog" aria-label="Add context">
@@ -64,6 +73,11 @@ export function LabosAgentMentionPicker({
           onChange={(e) => onQuery(e.target.value)}
           onKeyDown={(e) => onKeyDown(e)}
           aria-label="Search what to add"
+          role="combobox"
+          aria-expanded
+          aria-autocomplete="list"
+          aria-controls={limitReached ? undefined : listboxId}
+          aria-activedescendant={activeOptionId}
         />
       )}
       <div className={s.hint} data-testid="labos-agent-picker-hint">
@@ -72,13 +86,14 @@ export function LabosAgentMentionPicker({
       {limitReached ? (
         <p className={s.note}>{LABOS_AGENT_MENTION_TEXT.limitReached}</p>
       ) : (
-        <div ref={listRef} className={s.list} role="listbox" aria-label="Items to add">
+        <div ref={listRef} id={listboxId} className={s.list} role="listbox" aria-label="Items to add">
           {groups.map((g) => (
             <div key={g.kind} role="group" aria-label={PICKER_GROUP_LABELS[g.kind]}>
               <div className={s.group}>{PICKER_GROUP_LABELS[g.kind]}</div>
               {g.items.map((item) => (
                 <button
                   key={item.key}
+                  id={`${optionIdPrefix}-${position++}`}
                   type="button"
                   role="option"
                   aria-selected={activeKey === item.key}
@@ -100,6 +115,11 @@ export function LabosAgentMentionPicker({
               ))}
             </div>
           ))}
+        </div>
+      )}
+      {/* The search notes sit outside the listbox, in a live region, so a screen reader reads them. */}
+      {!limitReached && (
+        <div role="status" className={s.status}>
           {status === 'error' && <p className={s.note}>{LABOS_AGENT_MENTION_TEXT.searchFailed}</p>}
           {status === 'loading' && <p className={s.note}>Searching</p>}
           {status === 'ready' && empty && <p className={s.note}>Nothing matches &quot;{trimmed}&quot;.</p>}

@@ -207,22 +207,26 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
       } catch (err) {
         if (controller.signal.aborted) return;
         const e = err instanceof LabosAgentError ? err : new LabosAgentError(0, 'UNKNOWN', 'The agent did not answer.');
-        // S6-F17: a 404 for a mention names its chip. A 404 for `context` has no `mentionIndex`.
-        const failedChip = e.mentionIndex !== undefined ? mentionChips[e.mentionIndex] : undefined;
+        // S6-F17: a 404 for a mention has `mentionIndex` and names its chip. A 404 for `context` has no `mentionIndex`.
+        const mentionFailed = e.mentionIndex !== undefined;
+        const failedChip = mentionFailed ? mentionChips[e.mentionIndex as number] : undefined;
         patch(id, {
           status: 'error',
-          error: failedChip
+          error: mentionFailed
             ? {
                 code: e.code,
                 status: e.status,
-                message: LABOS_AGENT_MENTION_TEXT.mentionNotFound(failedChip.label),
+                // An index outside the chips still is a mention 404, not a page 404.
+                message: failedChip
+                  ? LABOS_AGENT_MENTION_TEXT.mentionNotFound(failedChip.label)
+                  : LABOS_AGENT_MENTION_TEXT.mentionNotFoundUnknown,
                 mentionIndex: e.mentionIndex,
               }
             : { code: e.code, status: e.status, message: errorText(e.code, e.retryAfterSeconds) },
           endedAt: Date.now(),
         });
-        // S5-C29: the next open of this context starts with the chip off. Not for a mention 404: the page is fine.
-        if (!failedChip && PAGE_NOT_FOUND_CODES.has(e.code)) markPageUnreadable(key);
+        // S5-C29: the next open of this context starts with the chip off. Never for a mention 404: the page is fine.
+        if (!mentionFailed && PAGE_NOT_FOUND_CODES.has(e.code)) markPageUnreadable(key);
         analytics.onAgentErrorShown({ page, code: e.code, status: e.status });
       } finally {
         if (streams.get(key) === controller) streams.delete(key);
@@ -249,7 +253,11 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
     (turnId: string) => {
       const turn = turns.find((t) => t.id === turnId);
       if (!turn || busy) return;
-      void run(turn.message, turnId, turn.mentions);
+      // A mention 404 names the chip that failed. Retry without that chip, so the same 404 does not come back.
+      const failedIndex = turn.error?.mentionIndex;
+      const mentions =
+        failedIndex === undefined ? turn.mentions : turn.mentions?.filter((_, index) => index !== failedIndex);
+      void run(turn.message, turnId, mentions);
     },
     [busy, run, turns],
   );

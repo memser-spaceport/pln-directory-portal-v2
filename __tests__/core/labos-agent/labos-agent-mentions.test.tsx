@@ -129,7 +129,7 @@ describe('LAB-3318: agent @mentions (S6 frontend)', () => {
       expect(add).toHaveAttribute('title', 'Add a page, story, team or member (or type @)');
       fireEvent.click(add);
       expect(picker()).toBeInTheDocument();
-      const search = screen.getByRole('textbox', { name: 'Search what to add' });
+      const search = screen.getByRole('combobox', { name: 'Search what to add' });
       expect(search).toHaveFocus();
       fireEvent.change(search, { target: { value: 'sample' } });
       expect(hint()).toHaveTextContent('Matching "sample"');
@@ -156,11 +156,14 @@ describe('LAB-3318: agent @mentions (S6 frontend)', () => {
       const input = await openPanel();
       type(input, '@mock');
       await screen.findByRole('group', { name: 'Members' });
-      const names = screen.getAllByRole('group').map((g) => g.getAttribute('aria-label'));
-      expect(names).toEqual(['News', 'Teams', 'Members']);
+      const groupNames = () =>
+        within(screen.getByRole('listbox'))
+          .getAllByRole('group')
+          .map((g) => g.getAttribute('aria-label'));
+      expect(groupNames()).toEqual(['News', 'Teams', 'Members']);
       type(input, '@');
       await screen.findByRole('group', { name: 'Teams' });
-      expect(screen.getAllByRole('group').map((g) => g.getAttribute('aria-label'))).toEqual(['Pages', 'News', 'Teams']);
+      expect(groupNames()).toEqual(['Pages', 'News', 'Teams']);
     });
 
     it('S6-F6: an empty group does not show', async () => {
@@ -442,6 +445,127 @@ describe('LAB-3318: agent @mentions (S6 frontend)', () => {
       fireEvent.keyDown(input, { key: 'Enter' });
       await screen.findByText('Mock answer text');
       expect(screen.queryByText(NO_CONTEXT_LINE)).toBeNull();
+    });
+  });
+
+  describe('review fixes (Anna, review 5974557983)', () => {
+    it('Finding 1: in @ mode the composer is a combobox that names the listbox and the active option', async () => {
+      const input = await openPanel();
+      expect(input).not.toHaveAttribute('role');
+      type(input, '@');
+      await screen.findByRole('group', { name: 'Teams' });
+      const listbox = screen.getByRole('listbox', { name: 'Items to add' });
+      expect(input).toHaveAttribute('role', 'combobox');
+      expect(input).toHaveAttribute('aria-expanded', 'true');
+      expect(input).toHaveAttribute('aria-controls', listbox.id);
+      const options = screen.getAllByRole('option');
+      expect(new Set(options.map((o) => o.id)).size).toBe(options.length);
+      expect(input).toHaveAttribute('aria-activedescendant', options[0].id);
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      expect(input).toHaveAttribute('aria-activedescendant', options[1].id);
+      expect(options[1]).toHaveAttribute('aria-selected', 'true');
+      type(input, '@ ');
+      expect(input).not.toHaveAttribute('role');
+    });
+
+    it('Finding 1: the + search field is a combobox too', async () => {
+      await openPanel();
+      fireEvent.click(screen.getByRole('button', { name: 'Add context' }));
+      await screen.findByRole('group', { name: 'Teams' });
+      const search = screen.getByRole('combobox', { name: 'Search what to add' });
+      expect(search).toHaveAttribute('aria-controls', screen.getByRole('listbox').id);
+      expect(search).toHaveAttribute('aria-activedescendant', screen.getAllByRole('option')[0].id);
+      fireEvent.keyDown(search, { key: 'ArrowDown' });
+      expect(search).toHaveAttribute('aria-activedescendant', screen.getAllByRole('option')[1].id);
+    });
+
+    it('Finding 1: the Searching and error notes are in a role="status" region', async () => {
+      let fail: (e: Error) => void = () => undefined;
+      searchMentions.mockImplementationOnce(() => new Promise((_, reject) => (fail = reject)));
+      const input = await openPanel();
+      type(input, '@zz');
+      const status = screen.getByRole('status');
+      expect(within(status).getByText('Searching')).toBeInTheDocument();
+      await waitFor(() => expect(searchMentions).toHaveBeenCalled());
+      await act(async () => fail(new LabosAgentError(429, 'UNKNOWN', 'x')));
+      expect(within(screen.getByRole('status')).getByText('Search is not available. Try again.')).toBeInTheDocument();
+    });
+
+    it('Finding 2: after Esc, more keys on the same @ do not open the picker; a new @ does', async () => {
+      const input = await openPanel();
+      type(input, 'Ask @ad');
+      expect(picker()).toBeInTheDocument();
+      fireEvent.keyDown(input, { key: 'Escape' });
+      expect(picker()).not.toBeInTheDocument();
+      type(input, 'Ask @ada');
+      expect(picker()).not.toBeInTheDocument();
+      type(input, 'Ask @ada and @');
+      expect(picker()).toBeInTheDocument();
+      expect(screen.getByRole('complementary', { name: 'Agent' })).toBeInTheDocument();
+    });
+
+    it('Finding 2: after Esc, a deleted @ and a new @ at the same place open the picker', async () => {
+      const input = await openPanel();
+      type(input, '@ad');
+      fireEvent.keyDown(input, { key: 'Escape' });
+      type(input, '');
+      type(input, '@');
+      expect(picker()).toBeInTheDocument();
+    });
+
+    it('Finding 3: Retry after a mention 404 sends the other chips, not the failed chip', async () => {
+      chat.mockRejectedValueOnce(new LabosAgentError(404, 'TEAM_NOT_FOUND', 'Not found', undefined, undefined, 1));
+      const input = await openPanel();
+      type(input, '@jo');
+      fireEvent.click(option('Pages', /Jobs/));
+      type(input, `${input.value}@samp`);
+      fireEvent.click(await findOption('Teams', /Sample Co/));
+      fireEvent.keyDown(input, { key: 'Enter' });
+      await screen.findByText('The agent cannot read Sample Co. Remove it and ask again.');
+      expect(lastChatRequest().mentions).toEqual([
+        { type: 'page', page: 'job' },
+        { type: 'team', uid: expect.any(String) },
+      ]);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+      await screen.findByText('Mock answer text');
+      expect(chat).toHaveBeenCalledTimes(2);
+      expect(lastChatRequest().mentions).toEqual([{ type: 'page', page: 'job' }]);
+    });
+
+    it('Finding 4: a mention 404 with an index outside the chips never marks the page unreadable', async () => {
+      chat.mockRejectedValueOnce(new LabosAgentError(404, 'TEAM_NOT_FOUND', 'Not found', undefined, undefined, 7));
+      const context = { page: 'team', teamUid: 't-x', label: 'Team page' } as LabosAgentOpenContext;
+      const input = await openPanel(context);
+      type(input, '@samp');
+      fireEvent.click(await findOption('Teams', /Sample Co/));
+      fireEvent.keyDown(input, { key: 'Enter' });
+      expect(
+        await screen.findByText('The agent cannot read one of the items you added. Remove it and ask again.'),
+      ).toBeInTheDocument();
+      expect(screen.queryByText('The agent cannot read this page. Remove the page chip and ask again.')).toBeNull();
+      const chats = useLabosAgentStore.getState().chats;
+      expect(Object.values(chats).some((c) => c.pageUnreadable)).toBe(false);
+      expect(screen.getByRole('button', { name: 'Stop reading Team page' })).toBeInTheDocument();
+    });
+
+    it('Finding 5: Enter does nothing while the @ picker has no row and C4 loads', async () => {
+      searchMentions.mockImplementation(() => new Promise(() => undefined));
+      const input = await openPanel();
+      type(input, 'Ask @zzz');
+      expect(screen.queryAllByRole('option')).toHaveLength(0);
+      expect(within(screen.getByRole('status')).getByText('Searching')).toBeInTheDocument();
+      fireEvent.keyDown(input, { key: 'Enter' });
+      expect(chat).not.toHaveBeenCalled();
+      expect(input).toHaveValue('Ask @zzz');
+      expect(picker()).toBeInTheDocument();
+    });
+
+    it('Finding 6: the chip row is a group named "What the agent reads"', async () => {
+      await openPanel({ page: 'home', label: 'Home' });
+      const row = screen.getByRole('group', { name: 'What the agent reads' });
+      expect(within(row).getByRole('button', { name: 'Stop reading Home' })).toBeInTheDocument();
+      expect(within(row).getByRole('button', { name: 'Add context' })).toBeInTheDocument();
     });
   });
 });

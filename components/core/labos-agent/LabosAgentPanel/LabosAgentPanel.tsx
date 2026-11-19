@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { clsx } from 'clsx';
 import Link from 'next/link';
 
@@ -119,6 +119,10 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
   const [picker, setPicker] = useState<PickerState | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const pickerRef = useRef(picker);
+  // S6-F2: the start of an `@` that Esc closed. The picker opens again only for a new `@`.
+  const closedAtRef = useRef<number | null>(null);
+  const pickerId = useId();
+  const listboxId = `${pickerId}-listbox`;
   useEffect(() => {
     pickerRef.current = picker;
   }, [picker]);
@@ -138,7 +142,10 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
     [picker, limitReached, search.response, chips, pageKey, label, readsPage],
   );
   const flat = groups.flatMap((g) => g.items);
-  const active = flat.length ? flat[Math.min(activeIndex, flat.length - 1)] : undefined;
+  const activePos = flat.length ? Math.min(activeIndex, flat.length - 1) : -1;
+  const active = activePos >= 0 ? flat[activePos] : undefined;
+  // S6-F9: the composer or the + search field keeps the focus, so `aria-activedescendant` names the active row.
+  const activeOptionId = active ? `${pickerId}-option-${activePos}` : undefined;
 
   // S6-F11: a new query or mode moves the highlight back to the first option.
   const pickerKey = picker ? `${picker.mode}:${picker.query}` : null;
@@ -220,6 +227,7 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
       e.stopImmediatePropagation();
       // S6-F9: Esc closes the picker first, then the panel.
       if (pickerRef.current) {
+        if (pickerRef.current.mode === 'at') closedAtRef.current = pickerRef.current.start;
         setPicker(null);
         inputRef.current?.focus();
         return;
@@ -271,13 +279,24 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
   /* S6-F1, S6-F2: `@` at the start or after a space opens the picker. A space or a deleted `@` closes it. */
   const readMention = (el: HTMLTextAreaElement) => {
     const at = readAtQuery(el.value, el.selectionStart ?? el.value.length);
+    // After Esc, the same `@` stays closed. A new `@` (or no `@`) clears the mark.
+    if (at && at.start === closedAtRef.current) return;
+    closedAtRef.current = null;
     if (at) setPicker({ mode: 'at', ...at });
     else if (pickerRef.current?.mode === 'at') setPicker(null);
   };
 
   /* S6-F9: Up, Down, Enter and Tab move and pick in the open picker, from the composer or the + search field. */
   const pickerKeys = (e: React.KeyboardEvent) => {
-    if (!picker || !flat.length) return false;
+    if (!picker) return false;
+    // S6-F9: while C4 loads and the `@` picker has no row, Enter does nothing. It does not send `@<query>`.
+    if (!flat.length) {
+      if (picker.mode === 'at' && search.status === 'loading' && e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        return true;
+      }
+      return false;
+    }
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
       const from = Math.min(activeIndex, flat.length - 1);
@@ -382,6 +401,9 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
             query={picker.query}
             groups={groups}
             activeKey={active?.key}
+            listboxId={listboxId}
+            optionIdPrefix={`${pickerId}-option`}
+            activeOptionId={activeOptionId}
             status={search.status}
             limitReached={limitReached}
             onQuery={(q) => setPicker({ mode: 'plus', query: q, start: 0 })}
@@ -397,7 +419,7 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
             onPick={pick}
           />
         )}
-        <div className={s.chipRow} aria-label="What the agent reads">
+        <div className={s.chipRow} role="group" aria-label="What the agent reads">
           {label && readsPage && (
             <span className={s.contextRow}>
               {context?.page === 'news-story' ? (
@@ -477,6 +499,16 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
             canRequestIntro ? LABOS_AGENT_MENTION_TEXT.placeholderIntro : LABOS_AGENT_MENTION_TEXT.placeholderOther
           }
           aria-label="Message the agent"
+          // S6-F9: in `@` mode the composer controls the picker (ARIA combobox).
+          {...(picker?.mode === 'at'
+            ? {
+                role: 'combobox',
+                'aria-expanded': true,
+                'aria-autocomplete': 'list' as const,
+                'aria-controls': limitReached ? undefined : listboxId,
+                'aria-activedescendant': activeOptionId,
+              }
+            : {})}
           onTextSubmit={() => submit(inputRef.current?.value ?? '')}
           onStopStreaming={stop}
           isLoadingObject={busy}

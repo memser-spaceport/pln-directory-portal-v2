@@ -171,10 +171,10 @@ export function AllEventsPage({
   const scopedCity = filters.city.length === 1 ? filters.city[0] : null;
   const goingCount = signedIn ? items.filter((item) => goingUids.has(item.uid)).length : null;
 
-  // Near you and the Add location row: a plain landing only (the List, nothing filtered), for a signed-in member.
-  const plainLanding = filterCount === 0 && view === 'list';
-  const near = signedIn && plainLanding ? nearYou(items, memberCity) : null;
-  const askLocation = signedIn && plainLanding && memberCity === null && !!viewerUid;
+  // Near you and the Add location row, for a signed-in member: in every view and with any filter (2026-11-19: the
+  // section stays put instead of jumping in and out). Only a chosen city replaces it, with its own header (below).
+  const near = signedIn ? nearYou(items, memberCity) : null;
+  const askLocation = signedIn && memberCity === null && !!viewerUid;
 
   // The calendar opens on the linked event's day, else the chosen city's first event, else today.
   const landed = landedUid ? items.find((item) => item.uid === landedUid) : undefined;

@@ -8,7 +8,10 @@ import { EventTile } from './EventCard';
 import { PinIcon } from './icons';
 import s from './AllEventsPage.module.scss';
 
-/** "Near you in <city>": up to three tiles in the member's profile city, on a plain landing only. */
+/**
+ * "Near you in <city>": up to three tiles in the member's profile city, in every view and filter state (a chosen city
+ * replaces it).
+ */
 export function NearYou({
   city,
   events,

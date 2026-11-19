@@ -2,6 +2,7 @@ import { decodeFilterValues } from '@/services/filters';
 
 import type { AllEventsItem } from './all-events.types';
 import type { EventMode } from './event-drawer.types';
+import { ACCESS_COPY } from './event-facts';
 
 /*
  * The All Events page's pure views over the loaded events (LAB-3247, design D4): filtering, day groups, cities and
@@ -12,43 +13,59 @@ import type { EventMode } from './event-drawer.types';
 export const MODE_LABEL: Record<EventMode, string> = { 'In-Person': 'In person', Virtual: 'Virtual', Hybrid: 'Hybrid' };
 
 /** The params that count as applied filters. `view`, `cal` and `event` are page state, not filters. */
-export const FILTER_PARAMS = ['search', 'going', 'mode', 'city'] as const;
+export const FILTER_PARAMS = ['search', 'going', 'mode', 'access', 'focus', 'city', 'host'] as const;
 export type FilterParam = (typeof FILTER_PARAMS)[number];
 export const isFilterParam = (key: string): key is FilterParam => (FILTER_PARAMS as readonly string[]).includes(key);
 
 /** A filter param's values as analytics records them: the decoded list, `['true']` for going, the search text. */
 export function filterValues(key: FilterParam, value: string | null | undefined): string[] {
-  if (key === 'mode' || key === 'city') return decodeFilterValues(value ?? undefined);
+  if (isFacetKey(key)) return decodeFilterValues(value ?? undefined);
   return value ? [value] : [];
 }
-export type FacetKey = 'mode' | 'city';
 
-export interface AllEventsFilters {
-  search: string;
-  going: boolean;
-  mode: string[];
-  city: string[];
-}
+/**
+ * The rail's lists of values, in the prototype's order. Access, Focus area (the event's tags, as the events app calls
+ * them) and Host come from the event's details, which the events service fills by its details sync; an event without
+ * them simply has no value there.
+ */
+export const FACET_KEYS = ['mode', 'access', 'focus', 'city', 'host'] as const;
+export type FacetKey = (typeof FACET_KEYS)[number];
+const isFacetKey = (key: string): key is FacetKey => (FACET_KEYS as readonly string[]).includes(key);
+
+export type AllEventsFilters = { search: string; going: boolean } & Record<FacetKey, string[]>;
 
 export function readFilters(params: URLSearchParams): AllEventsFilters {
   return {
     search: params.get('search')?.trim() ?? '',
     going: params.get('going') === 'true',
     mode: decodeFilterValues(params.get('mode')),
+    access: decodeFilterValues(params.get('access')),
+    focus: decodeFilterValues(params.get('focus')),
     city: decodeFilterValues(params.get('city')),
+    host: decodeFilterValues(params.get('host')),
   };
 }
 
 /** One per applied value, as the Filters button and the phone pill count them. */
 export function countAppliedFilters(params: URLSearchParams): number {
   const f = readFilters(params);
-  return (f.search ? 1 : 0) + (f.going ? 1 : 0) + f.mode.length + f.city.length;
+  return (f.search ? 1 : 0) + (f.going ? 1 : 0) + FACET_KEYS.reduce((n, key) => n + f[key].length, 0);
 }
 
-/** The labels an event has for a facet. */
+/** The labels an event has for a facet: the words its card and drawer use ("Invite only", "In person"). */
 export function facetValues(item: AllEventsItem, key: FacetKey): string[] {
-  if (key === 'mode') return item.mode ? [MODE_LABEL[item.mode]] : [];
-  return item.city ? [item.city] : [];
+  switch (key) {
+    case 'mode':
+      return item.mode ? [MODE_LABEL[item.mode]] : [];
+    case 'access':
+      return item.access ? [ACCESS_COPY[item.access].main] : [];
+    case 'focus':
+      return item.tags;
+    case 'host':
+      return item.hosts;
+    case 'city':
+      return item.city ? [item.city] : [];
+  }
 }
 
 /** A facet's options with how many events carry each, most first. */
@@ -78,8 +95,7 @@ export function filterEvents(items: AllEventsItem[], f: AllEventsFilters, goingU
     (item) =>
       (!f.going || goingUids.has(item.uid)) &&
       matchesSearch(item, f.search) &&
-      matchesFacet(item, 'mode', f.mode) &&
-      matchesFacet(item, 'city', f.city),
+      FACET_KEYS.every((key) => matchesFacet(item, key, f[key])),
   );
 }
 

@@ -14,6 +14,13 @@ export const MODE_LABEL: Record<EventMode, string> = { 'In-Person': 'In person',
 /** The params that count as applied filters. `view`, `cal` and `event` are page state, not filters. */
 export const FILTER_PARAMS = ['search', 'going', 'mode', 'city'] as const;
 export type FilterParam = (typeof FILTER_PARAMS)[number];
+export const isFilterParam = (key: string): key is FilterParam => (FILTER_PARAMS as readonly string[]).includes(key);
+
+/** A filter param's values as analytics records them: the decoded list, `['true']` for going, the search text. */
+export function filterValues(key: FilterParam, value: string | null | undefined): string[] {
+  if (key === 'mode' || key === 'city') return decodeFilterValues(value ?? undefined);
+  return value ? [value] : [];
+}
 export type FacetKey = 'mode' | 'city';
 
 export interface AllEventsFilters {
@@ -84,7 +91,12 @@ export function localIso(date: Date): string {
 }
 
 /** Noon on that day, so a calendar day never slips across a DST change. */
-const at = (isoDay: string) => new Date(`${isoDay}T12:00:00`);
+/** An ISO day at local noon, so day arithmetic never trips over a daylight-saving change. */
+export const atNoon = (isoDay: string) => new Date(`${isoDay}T12:00:00`);
+
+/** "Dec 3". */
+export const shortDate = (isoDay: string) =>
+  atNoon(isoDay).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
 /** Where an event sits in the list: its first day, or today if it is already under way. */
 export function listDay(item: AllEventsItem, todayIso: string): string {
@@ -111,16 +123,16 @@ export function groupByDay(items: AllEventsItem[], todayIso: string): { day: str
 export function dayOfSpan(item: AllEventsItem, isoDay: string): string {
   if (item.startDay === item.endDay) return '';
   const dayMs = 86_400_000;
-  const total = Math.round((at(item.endDay).getTime() - at(item.startDay).getTime()) / dayMs) + 1;
-  const n = Math.round((at(isoDay).getTime() - at(item.startDay).getTime()) / dayMs) + 1;
+  const total = Math.round((atNoon(item.endDay).getTime() - atNoon(item.startDay).getTime()) / dayMs) + 1;
+  const n = Math.round((atNoon(isoDay).getTime() - atNoon(item.startDay).getTime()) / dayMs) + 1;
   return `Day ${n} of ${total}`;
 }
 
 /** Luma's date column: "Today" / "Tomorrow" / "Dec 3", with the weekday under it. */
 export function dayHeading(isoDay: string, todayIso: string): { label: string; weekday: string } {
-  const d = at(isoDay);
+  const d = atNoon(isoDay);
   const weekday = d.toLocaleDateString('en-US', { weekday: 'long' });
-  const tomorrow = at(todayIso);
+  const tomorrow = atNoon(todayIso);
   tomorrow.setDate(tomorrow.getDate() + 1);
   if (isoDay === todayIso) return { label: 'Today', weekday };
   if (isoDay === localIso(tomorrow)) return { label: 'Tomorrow', weekday };
@@ -129,18 +141,18 @@ export function dayHeading(isoDay: string, todayIso: string): { label: string; w
 
 /** "Dec 1 – 5", "Nov 30 – Dec 2", "Jan 14". */
 export function spanLabel(startDay: string, endDay: string): string {
-  const s = at(startDay);
-  const e = at(endDay);
-  const md = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  if (startDay === endDay) return md(s);
-  if (s.getFullYear() === e.getFullYear() && s.getMonth() === e.getMonth()) return `${md(s)} – ${e.getDate()}`;
-  return `${md(s)} – ${md(e)}`;
+  const s = atNoon(startDay);
+  const e = atNoon(endDay);
+  if (startDay === endDay) return shortDate(startDay);
+  if (s.getFullYear() === e.getFullYear() && s.getMonth() === e.getMonth())
+    return `${shortDate(startDay)} – ${e.getDate()}`;
+  return `${shortDate(startDay)} – ${shortDate(endDay)}`;
 }
 
 /** A Near you tile's when: "Thu, Nov 19 · 6:00 PM"; a multi-day event reads its span ("Tue, Dec 1 – 5"). */
 export function whenLine(item: AllEventsItem, todayIso: string): string {
   const weekdayDate = (iso: string) =>
-    at(iso).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    atNoon(iso).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   if (item.startDay !== item.endDay) {
     if (item.startDay < todayIso) return `Today · ${dayOfSpan(item, todayIso)}`;
     return `${weekdayDate(item.startDay).split(',')[0]}, ${spanLabel(item.startDay, item.endDay)}`;

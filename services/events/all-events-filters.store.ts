@@ -11,4 +11,7 @@ export const ALL_EVENTS_URL_PARAMS = ['search', 'going', 'mode', 'city', 'view',
 export const useAllEventsFilterStore = createFilterStore({
   namespace: 'all-events',
   trackedParams: ALL_EVENTS_URL_PARAMS,
+  // The store's own debounce is one timer for every key, so a view switch or an opened event within 300ms would
+  // swallow a filter change. The page settles each filter key on its own instead (AllEventsPage).
+  analyticsDebounceMs: 0,
 });

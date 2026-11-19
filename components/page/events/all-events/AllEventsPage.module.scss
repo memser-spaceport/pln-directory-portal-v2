@@ -19,7 +19,7 @@
 
   /* The frame pads its content 30px 24px from 1024px; the page brings its own. */
   > section > main {
-    @media (min-width: 1024px) {
+    @include media.breakpoint-1024 {
       padding: 0;
     }
   }
@@ -457,13 +457,13 @@
 }
 
 .toolbarEnd {
-  display: flex;
+  /* Under 1024px the MobileFilterWrapper bar carries both Filters and View. */
+  display: none;
   align-items: center;
   gap: 8px;
 
-  /* Under 1024px the MobileFilterWrapper bar carries both Filters and View. */
-  @media (max-width: 1023px) {
-    display: none;
+  @include media.breakpoint-1024 {
+    display: flex;
   }
 }
 
@@ -1074,7 +1074,12 @@
 .skeletonBlock {
   display: block;
   border-radius: 8px;
-  background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%);
+  background: linear-gradient(
+    90deg,
+    var(--border-neutral-secondary, #e2e8f0) 0%,
+    var(--background-neutral-subtle, #f1f5f9) 50%,
+    var(--border-neutral-secondary, #e2e8f0) 100%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.4s ease-in-out infinite;
 

@@ -5,6 +5,7 @@ import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { EventImage } from '@/components/page/events/EventImage/EventImage';
 import { GoingPill } from '@/components/page/events/GoingPill/GoingPill';
 import { dayOfSpan, whenLine } from '@/services/events/all-events.filters';
+import { ACCESS_COPY, eventPlace } from '@/services/events/event-facts';
 import type { AllEventsItem } from '@/services/events/all-events.types';
 
 import { AccessIcon, PinIcon } from './icons';
@@ -16,18 +17,9 @@ export interface EventPress {
   onPrepare: () => void;
 }
 
-const ACCESS_WORD = { PAID: 'Paid', 'INVITE ONLY': 'Invite only' } as const;
-
-/**
- * Where, with the mode folded in (prototype, 2026-11-18): "Online" with a globe, "<place> · also online" for a hybrid
- * event, else the place. Null when the event has no place and isn't online.
- */
-export function placeText(item: AllEventsItem): string | null {
-  if (item.mode === 'Virtual') return 'Online';
-  const where = item.place ?? item.city;
-  if (item.mode === 'Hybrid') return where ? `${where} · also online` : 'Online';
-  return where;
-}
+/** Where, with the mode folded in: "Online", "<place> · also online", else the place. Null with neither. */
+export const placeText = (item: AllEventsItem): string | null =>
+  eventPlace(item.mode, item.place ?? item.city)?.text ?? null;
 
 function Place({ item, ellipsis }: { item: AllEventsItem; ellipsis?: boolean }) {
   const text = placeText(item);
@@ -67,7 +59,7 @@ function EventFoot({ item, going }: { item: AllEventsItem; going: boolean }) {
         <span className={s.cardAccess}>
           {count > 0 && <span aria-hidden>·</span>}
           <AccessIcon inviteOnly={access === 'INVITE ONLY'} />
-          {ACCESS_WORD[access]}
+          {ACCESS_COPY[access].main}
         </span>
       )}
     </span>

@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 
 import { SafeHtml } from '@/components/ui/SafeHtml';
 import type { EventAccess, EventDetail } from '@/services/events/event-drawer.types';
+import { ACCESS_COPY, eventPlace } from '@/services/events/event-facts';
 
 import e from './EventDrawer.module.scss';
 
@@ -62,8 +63,8 @@ function eventLink(url: string | null): { href: string; label: string } | null {
  */
 export function EventSummary({ event, beforeAgenda }: { event: EventDetail; beforeAgenda?: ReactNode }) {
   const link = eventLink(event.websiteUrl);
-  const place = placeFact(event);
-  const access = event.access ? { kind: event.access, ...ACCESS_FACT[event.access] } : null;
+  const place = eventPlace(event.mode, event.address);
+  const access = event.access ? { kind: event.access, ...ACCESS_COPY[event.access] } : null;
   return (
     <>
       <div className={e.head}>
@@ -183,22 +184,6 @@ function Label({
       <span>{children}</span>
     </div>
   );
-}
-
-/** The access fact as words: what it is, and what it means for the guest (`event-drawer-redesign/AccessIcon.tsx`). */
-const ACCESS_FACT: Record<EventAccess, { main: string; sub: string }> = {
-  'INVITE ONLY': { main: 'Invite only', sub: 'The hosts approve each guest' },
-  PAID: { main: 'Paid', sub: "Tickets on the host's site" },
-  'FREE w/ RSVP': { main: 'Free', sub: 'RSVP to save your spot' },
-};
-
-/** Where the event is: "Online", the address, or the address "· also online" for a hybrid event. */
-function placeFact(event: EventDetail): { text: string; online: boolean } | null {
-  if (event.mode === 'Virtual') return { text: 'Online', online: true };
-  if (event.mode === 'Hybrid') {
-    return event.address ? { text: `${event.address} · also online`, online: false } : { text: 'Online', online: true };
-  }
-  return event.address ? { text: event.address, online: false } : null;
 }
 
 /** Lock for invite only, ticket for paid or free. 1.5px stroke, like the prototype. */

@@ -3,7 +3,8 @@ import type { CSSProperties } from 'react';
 
 import { EventImage } from '@/components/page/events/EventImage/EventImage';
 import { GoingPill } from '@/components/page/events/GoingPill/GoingPill';
-import { spanLabel } from '@/services/events/all-events.filters';
+import { shortDate, spanLabel } from '@/services/events/all-events.filters';
+import { eventPlace } from '@/services/events/event-facts';
 import type { AllEventsItem } from '@/services/events/all-events.types';
 
 import {
@@ -13,7 +14,6 @@ import {
   eventsBetween,
   isMultiDay,
   safeColor,
-  shortDay,
   spanColumns,
   weekDays,
   weekdayName,
@@ -105,15 +105,14 @@ function DayHead({
       className={clsx(k.boardHead, day === todayIso && k.boardHeadToday, day < todayIso && k.boardHeadPast)}
       style={style}
     >
-      <span className={k.boardDate}>{long ? shortDay(day) : dayNumber(day)}</span>
+      <span className={k.boardDate}>{long ? shortDate(day) : dayNumber(day)}</span>
       <span className={k.boardWeekday}>{day === todayIso ? 'Today' : weekdayName(day, long ? 'long' : 'short')}</span>
     </div>
   );
 }
 
-/** "Online", "Lisbon · Hybrid", "Lisbon". */
-const placeOf = (e: AllEventsItem) =>
-  e.mode === 'Virtual' ? 'Online' : [e.city, e.mode === 'Hybrid' ? 'Hybrid' : ''].filter(Boolean).join(' · ');
+/** "Online", "Lisbon · also online", "Lisbon": the city, since the cards are narrow. */
+const placeOf = (e: AllEventsItem) => eventPlace(e.mode, e.city)?.text ?? '';
 
 /** The first topic's colour as a faint wash over white. */
 const tint = (e: AllEventsItem): CSSProperties => {

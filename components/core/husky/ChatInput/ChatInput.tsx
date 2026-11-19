@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { forwardRef, ChangeEvent, ComponentProps } from 'react';
+import { forwardRef, ChangeEvent, ComponentProps, useState } from 'react';
 
 import { isMobileDevice } from '@/utils/common.utils';
 
@@ -13,13 +13,28 @@ export const ChatInput = forwardRef<
     onStopStreaming?: () => void;
     isLimitReached?: boolean;
     onTextSubmit?: () => void;
+    /** Opt-in: hide the "Shift + Enter" hint while the field is empty. Default false, so other users do not change. */
+    hideHintWhenEmpty?: boolean;
   }
 >(
   (
-    { className, isAnswerLoading, isLoadingObject, onStopStreaming, isLimitReached, onTextSubmit, onChange, ...props },
+    {
+      className,
+      isAnswerLoading,
+      isLoadingObject,
+      onStopStreaming,
+      isLimitReached,
+      onTextSubmit,
+      onChange,
+      hideHintWhenEmpty = false,
+      ...props
+    },
     ref,
   ) => {
+    // Only for `hideHintWhenEmpty`. The field is uncontrolled, so each `input` event updates this value.
+    const [empty, setEmpty] = useState(() => !String(props.value ?? props.defaultValue ?? ''));
     const handleInput = (event: ChangeEvent<HTMLTextAreaElement>) => {
+      setEmpty(!event.target.value);
       adjustHeight();
       if (onChange) {
         onChange(event);
@@ -36,7 +51,7 @@ export const ChatInput = forwardRef<
     return (
       <div className={clsx(s.root, className)}>
         <textarea {...props} ref={ref} onChange={handleInput} className={s.input} />
-        {!isMobileDevice() && (
+        {!isMobileDevice() && !(hideHintWhenEmpty && empty) && (
           <div className={s.instruction}>
             <p>
               <span className={s.tag}>Shift</span> +<span className={s.tag}>Enter</span> to add new line

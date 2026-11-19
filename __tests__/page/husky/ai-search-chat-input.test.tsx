@@ -111,4 +111,29 @@ describe('AI Search chat input', () => {
 
     expect(screen.queryByText(/to add new line/)).not.toBeInTheDocument();
   });
+
+  describe('hideHintWhenEmpty (LAB-3318, S6-F19)', () => {
+    const hintShown = () => screen.queryAllByText(/to add new line/).length > 0;
+
+    it('keeps the hint on an empty field by default, so other users do not change', () => {
+      renderInput();
+      expect(hintShown()).toBe(true);
+    });
+
+    it('hides the hint while the field is empty and shows it with text', () => {
+      renderInput({ hideHintWhenEmpty: true });
+      const field = screen.getByPlaceholderText('Ask anything');
+      expect(hintShown()).toBe(false);
+      fireEvent.change(field, { target: { value: 'Hi' } });
+      expect(hintShown()).toBe(true);
+      fireEvent.change(field, { target: { value: '' } });
+      expect(hintShown()).toBe(false);
+    });
+
+    it('does not pass hideHintWhenEmpty to the textarea', () => {
+      renderInput({ hideHintWhenEmpty: true });
+      expect(screen.getByPlaceholderText('Ask anything')).not.toHaveAttribute('hideHintWhenEmpty');
+      expect(screen.getByPlaceholderText('Ask anything')).not.toHaveAttribute('hidehintwhenempty');
+    });
+  });
 });

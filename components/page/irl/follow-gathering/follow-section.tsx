@@ -16,6 +16,7 @@ import PresenceRequestSuccess from './presence-request-success';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { useIrlGoingAccess } from '@/services/access-control/hooks/useIrlGoingAccess';
 import Link from 'next/link';
+import { gatheringScheduleLink } from '@/utils/all-events-link';
 import { IrlGatheringModal } from '@/components/core/UpdatesPanel/IrlGatheringModal';
 import { PushNotification, IrlGatheringMetadata } from '@/types/push-notifications.types';
 import { isAdminUser } from '@/utils/user/isAdminUser';
@@ -73,9 +74,13 @@ const FollowSection = (props: IFollowSectionProps) => {
   const topicsAndReason = props?.topicsAndReason;
   const { canWrite: v2CanWrite } = useIrlGoingAccess();
   const nearestEventDate = props?.nearestEventDate;
-  const scheduleURL =
-    locationEvents?.additionalInfo?.schedule_url ||
-    `${process.env.SCHEDULE_BASE_URL}/calendar?location=${encodeURIComponent(eventLocationSummary.name)}${nearestEventDate ? `&date=${nearestEventDate}` : ''}`;
+  // LAB-3337: the gathering's own schedule wins; else the All Events page scoped to this city when it is on, the events
+  // app's calendar when it is off.
+  const scheduleLink = gatheringScheduleLink(
+    eventLocationSummary.name,
+    `${process.env.SCHEDULE_BASE_URL}/calendar?location=${encodeURIComponent(eventLocationSummary.name)}${nearestEventDate ? `&date=${nearestEventDate}` : ''}`,
+    locationEvents?.additionalInfo?.schedule_url,
+  );
 
   // IRL Gathering Modal state - derived from URL param
   const [isEditMode, setIsEditMode] = useState(false);
@@ -500,8 +505,8 @@ const FollowSection = (props: IFollowSectionProps) => {
 
         <div className="toolbar__actionCn">
           <Link
-            href={scheduleURL}
-            target="_blank"
+            href={scheduleLink.href}
+            {...(scheduleLink.newTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
             className="toolbar__actionCn__scheduleBtn"
             onClick={() => analytics.trackViewScheduleClick(location)}
           >
@@ -518,13 +523,16 @@ const FollowSection = (props: IFollowSectionProps) => {
                 ({totalEvents > 1 ? `${totalEvents} events` : `${totalEvents} event`})
               </span>
             )}
-            <img
-              className="toolbar__actionCn__scheduleBtn__arrowIcon"
-              src="/icons/arrow-blue.svg"
-              alt="arrow icon"
-              width={10}
-              height={10}
-            />
+            {/* The "leaves LabOS" arrow, only when the schedule opens elsewhere. */}
+            {scheduleLink.newTab && (
+              <img
+                className="toolbar__actionCn__scheduleBtn__arrowIcon"
+                src="/icons/arrow-blue.svg"
+                alt="arrow icon"
+                width={10}
+                height={10}
+              />
+            )}
           </Link>
 
           <div className="toolbar__actionCn__buttons">

@@ -1,6 +1,7 @@
 import { unstable_cache } from 'next/cache';
 import { formatInTimeZone } from 'date-fns-tz';
 
+import { toDisplayCity } from './all-events.filters';
 import { toEventDetail } from './event-drawer.mappers';
 import type { EventDetailResponse } from './event-drawer.types';
 import type { UpcomingEvent } from './hooks/useUpcomingEvents';
@@ -21,12 +22,8 @@ const DETAIL_CONCURRENCY = 6;
 const MANY_EVENTS = 60;
 export const ALL_EVENTS_CACHE_TAG = 'all-events';
 
-/** "Lisbon, Portugal" → "Lisbon"; "new york" → "New York"; "Others" (the events app's catch-all) → null. */
-export function toDisplayCity(raw: string | null | undefined): string | null {
-  const head = (raw ?? '').split(',')[0]?.trim() ?? '';
-  if (!head || head.toLowerCase() === 'others') return null;
-  return head === head.toLowerCase() ? head.replace(/(^|[\s-])(\p{L})/gu, (m) => m.toUpperCase()) : head;
-}
+/** Lives in the client-safe filters module (the IRL page's links use it too); re-exported for existing callers. */
+export { toDisplayCity };
 
 /** "+05:30" → "UTC+5:30", "-03:00" → "UTC−3", "+00:00" → "UTC+0". */
 export function toZoneLabel(date: Date, timezone: string): string {

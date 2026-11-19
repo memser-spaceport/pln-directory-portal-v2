@@ -8,6 +8,7 @@ import { IAnalyticsGuestLocation, IGuest, IGuestDetails } from '@/types/irl.type
 import { useRouter } from 'next/navigation';
 import { triggerLoader } from '@/utils/common.utils';
 import { filterUpcomingGatherings } from '@/utils/irl.utils';
+import { gatheringScheduleLink } from '@/utils/all-events-link';
 
 interface IGuestList {
   userInfo: IUserInfo;
@@ -44,7 +45,11 @@ const GuestList = (props: IGuestList) => {
   const analytics = useIrlAnalytics();
   const router = useRouter();
 
-  const scheduleURL = `${process.env.SCHEDULE_BASE_URL}/calendar?location=${encodeURIComponent(location?.name)}`;
+  // LAB-3337: the All Events page scoped to this city when it is on; the events app's calendar otherwise.
+  const scheduleLink = gatheringScheduleLink(
+    location?.name,
+    `${process.env.SCHEDULE_BASE_URL}/calendar?location=${encodeURIComponent(location?.name)}`,
+  );
 
   const onchangeSelectionStatus = (uid: string) => {
     setSelectedGuests((prevSelectedIds: string[]) => {
@@ -118,8 +123,8 @@ const GuestList = (props: IGuestList) => {
           <img width={182} height={118} src="/images/irl/attendees.svg" alt="attendees empty" />
           <div className="guestList__empty__current__text">
           <a
-            href={scheduleURL}
-            target="_blank"
+            href={scheduleLink.href}
+            {...(scheduleLink.newTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
             className="guestList__empty__current__text__link"
             onClick={() => analytics.trackViewScheduleClick(location)}
           >

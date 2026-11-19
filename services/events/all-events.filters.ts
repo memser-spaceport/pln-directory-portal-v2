@@ -194,6 +194,16 @@ export function topCities(items: AllEventsItem[]): CitySummary[] {
   );
 }
 
+/**
+ * The city the All Events page shows for a gathering name, and filters on:
+ * "Lisbon, Portugal" → "Lisbon"; "new york" → "New York"; "Others" (the events app's catch-all) → null.
+ */
+export function toDisplayCity(raw: string | null | undefined): string | null {
+  const head = (raw ?? '').split(',')[0]?.trim() ?? '';
+  if (!head || head.toLowerCase() === 'others') return null;
+  return head === head.toLowerCase() ? head.replace(/(^|[\s-])(\p{L})/gu, (m) => m.toUpperCase()) : head;
+}
+
 /** "Lisbon", "lisbon, portugal" and " LISBON " all mean the same city. */
 export function cityKeyOf(text: string | null | undefined): string | null {
   const head = (text ?? '').split(',')[0]?.trim().toLowerCase();

@@ -32,6 +32,7 @@ import type { AllEventsItem, AllEventsResult } from '@/services/events/all-event
 import { EventsQueryKeys } from '@/services/events/constants';
 import { usePrefetchEventDetail } from '@/services/events/hooks/useEventDrawerQueries';
 import { useMyUpcomingEventUids } from '@/services/events/hooks/useMyUpcomingEventUids';
+import { HAS_EVENTS_MAP } from '@/utils/events-page';
 
 import { AllEventsFilterRail, AppliedChips } from './AllEventsFilters';
 import { EventsCalendar } from './calendar/EventsCalendar';
@@ -40,6 +41,7 @@ import { AllEventsHeader } from './AllEventsHeader';
 import { CityBand, CityHeader } from './CityBand';
 import { EventsToolbar, VIEW_LABEL } from './EventsToolbar';
 import { ListView } from './ListView';
+import { EventsMap } from './map/EventsMap';
 import { AddLocationRow, NearYou } from './NearYou';
 import { EventsEmpty, EventsError } from './states';
 import type { AllEventsView } from './icons';
@@ -49,11 +51,8 @@ import s from './AllEventsPage.module.scss';
 const loadEventDrawer = () => import('@/components/page/events/EventDrawer/EventDrawer');
 const EventDrawer = dynamic(() => loadEventDrawer().then((m) => m.EventDrawer), { ssr: false });
 
-/**
- * The views this build offers, in switch order. Map (LAB-3321, only with a Maps key) joins here; until then
- * `?view=map` lands on the List.
- */
-export const AVAILABLE_VIEWS: AllEventsView[] = ['list', 'calendar'];
+/** The views this build offers, in switch order. Map only with a Maps key (LAB-3321); without one `?view=map` opens the List. */
+export const AVAILABLE_VIEWS: AllEventsView[] = HAS_EVENTS_MAP ? ['list', 'calendar', 'map'] : ['list', 'calendar'];
 
 export interface AllEventsPageProps {
   result: AllEventsResult;
@@ -331,7 +330,19 @@ export function AllEventsPage({
 
             <div className={s.layout}>
               <div className={s.main}>
-                {view === 'calendar' ? (
+                {view === 'map' ? (
+                  visible.length === 0 ? (
+                    <EventsEmpty onClear={clearFilters} />
+                  ) : (
+                    <EventsMap
+                      events={visible}
+                      goingUids={goingUids}
+                      highlightUid={highlightUid}
+                      onOpen={open}
+                      onPrepare={prepare}
+                    />
+                  )
+                ) : view === 'calendar' ? (
                   visible.length === 0 ? (
                     <EventsEmpty onClear={clearFilters} />
                   ) : (

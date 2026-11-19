@@ -44,10 +44,10 @@ Slices: **A** = LAB-3317 (groups 1–5), **B** = LAB-3320 (group 6), **C** = LAB
 
 ## 7. Map view (C)
 
-- [ ] 7.1 `services/events/city-coords.service.ts` + `GET /api/events/city-coords` per design D3 (parse the degree strings, fixes table, drop "Others", `unstable_cache` one day). Verify: unit tests for the parser with `"15.8700° N"`, `"77.5946° E"`, a south or west value and the Berlin fix.
-- [ ] 7.2 `map/loadGoogleMaps.ts` (bootstrap once, `importLibrary`); no key → the view switch hides Map and `?view=map` falls back to List. Verify: tests for the no-key scenario.
-- [ ] 7.3 `EventsMap`: city pins with counts (`AdvancedMarkerElement`), going ring, selected ring, "Show all" `fitBounds`, + / − and the slider (hidden on phones), `gestureHandling: 'greedy'`, `CityPinCard` for shared pins, online list below. Verify: on the feature env with a key, every upcoming city has a pin at the right place; wheel zoom doesn't scroll the page.
-- [ ] 7.4 `?event=` in Map centres the event's city and marks its pin. Verify: by hand on the feature env, plus a unit test of the centre and zoom choice.
+- [x] 7.1 `services/events/city-coords.service.ts` + `GET /api/events/city-coords` per design D3 (parse the degree strings, fixes table, drop "Others", `unstable_cache` one day). Verify: unit tests for the parser with `"15.8700° N"`, `"77.5946° E"`, a south or west value and the Berlin fix.
+- [x] 7.2 `map/loadGoogleMaps.ts` (bootstrap once, `importLibrary`); no key → the view switch hides Map and `?view=map` falls back to List. Verify: tests for the no-key scenario.
+- [ ] 7.3 `EventsMap`: city pins with counts (`AdvancedMarkerElement`), going ring, selected ring, "Show all" `fitBounds`, + / − and the slider (hidden on phones), `gestureHandling: 'greedy'`, `CityPinCard` for shared pins, online list below. Verify: on the feature env with a key, every upcoming city has a pin at the right place; wheel zoom doesn't scroll the page. (Built and unit-tested with a fake Google Maps; the env check waits for the key in the env build.)
+- [ ] 7.4 `?event=` in Map centres the event's city and marks its pin. Verify: by hand on the feature env, plus a unit test of the centre and zoom choice. (Unit test done; the env check waits for the key.)
 
 ## 8. Drawer (D)
 

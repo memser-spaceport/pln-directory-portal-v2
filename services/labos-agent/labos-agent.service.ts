@@ -197,8 +197,14 @@ export function normalizeChatBody(value: unknown): LabosAgentChatResponse {
     actions: Array.isArray(body.actions) ? body.actions : [],
     proposals: normalizeProposals(body.proposals),
     drafts: normalizeDrafts(body.drafts),
+    // LAB-3297 V0-R4: only valid values. A missing or bad value drops out.
+    ...(isCount(body.toolCount) ? { toolCount: body.toolCount } : {}),
+    ...(typeof body.usedWebSearch === 'boolean' ? { usedWebSearch: body.usedWebSearch } : {}),
+    ...(isCount(body.sourceCount) ? { sourceCount: body.sourceCount } : {}),
   };
 }
+
+const isCount = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v >= 0;
 
 async function toError(response: Response): Promise<LabosAgentError> {
   if (response.status === 401) return new LabosAgentError(401, 'UNAUTHORIZED', 'Sign in to use the agent.');

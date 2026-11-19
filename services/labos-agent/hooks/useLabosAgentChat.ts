@@ -3,7 +3,12 @@
 import { useCallback } from 'react';
 
 import { useIntroRequestAnalytics, type IntroRequestEventContext } from '@/analytics/intro-requests.analytics';
-import { useLabosAgentAnalytics } from '@/analytics/labos-agent.analytics';
+import {
+  agentActionType,
+  agentErrorType,
+  currentConversationId,
+  useLabosAgentAnalytics,
+} from '@/analytics/labos-agent.analytics';
 import { markIntroRequestSent } from '@/services/intro-requests/intro-request-entry-registry';
 import { createIntroRequest } from '@/services/intro-requests/intro-requests.service';
 import type {
@@ -112,6 +117,7 @@ export function cardErrorState(error: LabosAgentError): LabosAgentCardState {
 /**
  * The LAB-3296 event properties for a draft card: `source` `agent` (S3-R16). The entry point is the place of
  * "Ask the agent". A draft comes only for the intro context, so the fallback is the header of the target type.
+ * LAB-3297 V0-R2: `conversationId` is the UUID of the agent dock session, as on `agent-dock-opened`.
  */
 export function draftEventContext(
   draft: LabosAgentDraft,
@@ -124,8 +130,12 @@ export function draftEventContext(
       : targetType === 'member'
         ? 'member-header'
         : 'team-header';
-  return { targetType, entryPoint, source: 'agent' };
+  const conversationId = currentConversationId();
+  return { targetType, entryPoint, source: 'agent', ...(conversationId ? { conversationId } : {}) };
 }
+
+/** LAB-3297: the member changed the draft text before Send or Cancel. */
+const isDraftEdited = (draft: LabosAgentDraft, text: string) => text.trim() !== draft.text.trim();
 
 /**
  * One chat with the agent, for one context. Turns live in the store (`chats[chatKey(context)]`), so closing the panel
@@ -135,10 +145,17 @@ export function draftEventContext(
 export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
   const key = chatKey(context);
   const turns = useLabosAgentStore((s) => s.chats[key]?.turns ?? NO_TURNS);
-  const { updateTurns, resetChat, markPageUnreadable } = useLabosAgentStore((s) => s.actions);
-  const analytics = useLabosAgentAnalytics();
-  const introAnalytics = useIntroRequestAnalytics();
-  const page = context?.page ?? 'none';
+  const { updateTurns, resetChat, markPageUnreadable, countSession } = useLabosAgentStore((s) => s.actions);
+  const {
+    onMessageSent,
+    onAnswerShown,
+    onAnswerFailed,
+    onActionProposed,
+    onActionConfirmed,
+    onActionCancelled,
+    onActionFailed,
+  } = useLabosAgentAnalytics();
+  const { onDialogOpened, onDialogClosed, onAskSubmitted, onSubmitFailed } = useIntroRequestAnalytics();
 
   const patch = useCallback(
     (id: string, next: Partial<LabosAgentTurn>) =>
@@ -156,6 +173,9 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
       const mentions = toChatMentions(chips);
       // S6-F20: the first turn of the chat reads no page and no item.
       const first = replaceId ? prevTurns[0]?.id === replaceId : prevTurns.length === 0;
+      // LAB-3297: 1 is the first turn of the chat. A retry keeps the place of the turn it replaces.
+      const replacedAt = replaceId ? prevTurns.findIndex((t) => t.id === replaceId) : -1;
+      const turnIndex = replacedAt >= 0 ? replacedAt + 1 : prevTurns.length + 1;
       const mentionChips = chips.map(({ failed: _failed, ...chip }) => chip);
       const turn: LabosAgentTurn = {
         id,
@@ -176,7 +196,14 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
       };
       updateTurns(key, (prev) => (replaceId ? prev.map((t) => (t.id === replaceId ? turn : t)) : [...prev, turn]));
       const threadId = useLabosAgentStore.getState().chats[key].threadId;
-      analytics.onAgentMessageSent({ page, textLength: message.length, isRetry: !!replaceId });
+      countSession('turnCount');
+      onMessageSent(context, {
+        messageLength: message.length,
+        turnIndex,
+        isRetry: !!replaceId,
+        contextAttached: !!chatContext,
+        mentionCount: mentions?.length ?? 0,
+      });
 
       const controller = new AbortController();
       streams.set(key, controller);
@@ -194,15 +221,36 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
         if (controller.signal.aborted) return;
         const stalled = isStalledAnswer(body.content);
         patch(id, { ...body, status: stalled ? 'stalled' : 'done', endedAt: Date.now() });
-        if (stalled) analytics.onAgentErrorShown({ page, code: 'STALLED', status: 200 });
+        if (stalled) onAnswerFailed(context, { turnIndex, errorType: 'timeout', status: 200 });
         else {
-          analytics.onAgentAnswerShown({
-            page,
-            sourceCount: body.sources.length + body.sourceRefs.length,
-            durationMs: Date.now() - turn.startedAt,
+          // V0-R4: the C1 counts when they come. Else the client counts the sources it shows and omits the rest.
+          onAnswerShown(context, {
+            turnIndex,
+            latencyMs: Date.now() - turn.startedAt,
+            answerLength: body.content.length,
+            sourceCount: body.sourceCount ?? body.sources.length + body.sourceRefs.length,
+            ...(body.usedWebSearch !== undefined ? { usedWebSearch: body.usedWebSearch } : {}),
+            ...(body.toolCount !== undefined ? { toolCount: body.toolCount } : {}),
           });
+          const drafts = body.drafts ?? [];
+          body.proposals.forEach((p) =>
+            onActionProposed(context, {
+              actionType: agentActionType(p.tool),
+              fieldCount: p.changes.length,
+              draftLength: 0,
+            }),
+          );
+          drafts.forEach((d) =>
+            onActionProposed(context, {
+              actionType: 'intro-draft',
+              fieldCount: 1,
+              draftLength: d.text.length,
+            }),
+          );
+          if (body.proposals.length + drafts.length > 0)
+            countSession('actionCount', body.proposals.length + drafts.length);
           // The draft card is the agent's intro form: one `intro-request-dialog-opened` for each card (LAB-3296).
-          (body.drafts ?? []).forEach((d) => introAnalytics.onDialogOpened(draftEventContext(d, context)));
+          drafts.forEach((d) => onDialogOpened(draftEventContext(d, context)));
         }
       } catch (err) {
         if (controller.signal.aborted) return;
@@ -227,14 +275,28 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
         });
         // S5-C29: the next open of this context starts with the chip off. Never for a mention 404: the page is fine.
         if (!mentionFailed && PAGE_NOT_FOUND_CODES.has(e.code)) markPageUnreadable(key);
-        analytics.onAgentErrorShown({ page, code: e.code, status: e.status });
+        onAnswerFailed(context, {
+          turnIndex,
+          errorType: agentErrorType({ status: e.status, code: e.code }),
+          status: e.status,
+        });
       } finally {
         if (streams.get(key) === controller) streams.delete(key);
       }
     },
-    // `analytics` is a stub with new identities each render; the handlers hold no state.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [context, key, page, patch, updateTurns, markPageUnreadable, introAnalytics.onDialogOpened],
+    [
+      context,
+      key,
+      patch,
+      updateTurns,
+      markPageUnreadable,
+      countSession,
+      onMessageSent,
+      onAnswerShown,
+      onAnswerFailed,
+      onActionProposed,
+      onDialogOpened,
+    ],
   );
 
   const busy = turns.some((t) => t.status === 'working');
@@ -296,8 +358,13 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
       if (!turn || !turn.proposals.some((p) => p.proposalId === proposalId)) return;
       const card = turn.cards[proposalId];
       if (card && !(card.status === 'error' && card.canRetry)) return;
+      const proposal = turn.proposals.find((p) => p.proposalId === proposalId);
+      const actionType = agentActionType(proposal?.tool ?? 'update_my_profile');
+      const fieldCount = proposal?.changes.length ?? 0;
 
       setCard(turnId, proposalId, { status: 'saving', decision });
+      // LAB-3297: Cancel counts at the press. The card closes even when the C2 call fails.
+      if (decision === 'cancel') onActionCancelled(context, { actionType, edited: false });
       try {
         const res = await getLabosAgentClient().confirmAction({ proposalId, decision });
         setCard(
@@ -305,6 +372,11 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
           proposalId,
           res.status === 'cancelled' ? { status: 'cancelled' } : { status: 'done', summary: res.summary },
         );
+        if (decision === 'confirm' && res.status === 'done') {
+          countSession('confirmedCount');
+          // v0 action cards have no edit, so `edited` is always false.
+          onActionConfirmed(context, { actionType, fieldCount, edited: false, draftLength: 0 });
+        }
       } catch (err) {
         if (decision === 'cancel') {
           setCard(turnId, proposalId, { status: 'cancelled' });
@@ -314,12 +386,11 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
         const next = cardErrorState(e);
         setCard(turnId, proposalId, next);
         if (next.status === 'error' || next.status === 'forbidden') {
-          analytics.onAgentErrorShown({ page, code: e.code, status: e.status });
+          onActionFailed(context, { actionType, status: e.status });
         }
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [key, page, setCard],
+    [context, key, setCard, countSession, onActionCancelled, onActionConfirmed, onActionFailed],
   );
 
   const findDraft = useCallback(
@@ -375,7 +446,14 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
       try {
         await createIntroRequest(toIntroRequestBody(draft, text));
         setDraftCard(turnId, draftId, { status: 'sent', text: card.text });
-        introAnalytics.onAskSubmitted({ ...events, textLength: text.length });
+        onAskSubmitted({ ...events, textLength: text.length });
+        countSession('confirmedCount');
+        onActionConfirmed(context, {
+          actionType: 'intro-draft',
+          fieldCount: 1,
+          edited: isDraftEdited(draft, text),
+          draftLength: text.length,
+        });
         markIntroRequestSent(draftTargetKey(draft));
       } catch (err) {
         // The send failed, so the target is free again.
@@ -385,10 +463,12 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
           return { sentIntroTargets: next };
         });
         setDraftCard(turnId, draftId, draftErrorState(err, card.text));
-        introAnalytics.onSubmitFailed({ ...events, status: introErrorStatus(err), textLength: text.length });
+        const status = introErrorStatus(err);
+        onSubmitFailed({ ...events, status, textLength: text.length });
+        onActionFailed(context, { actionType: 'intro-draft', status });
       }
     },
-    [context, findDraft, introAnalytics, setDraftCard],
+    [context, findDraft, setDraftCard, countSession, onAskSubmitted, onSubmitFailed, onActionConfirmed, onActionFailed],
   );
 
   /** Cancel on a draft card (S3-R14): the card closes and no request goes out. */
@@ -398,13 +478,17 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
       if (!found || ['sending', 'sent', 'cancelled'].includes(found.card.status)) return;
       const textLength = found.card.text.trim().length;
       setDraftCard(turnId, draftId, { ...found.card, status: 'cancelled' });
-      introAnalytics.onDialogClosed({
+      onDialogClosed({
         ...draftEventContext(found.draft, context),
         hadText: textLength > 0,
         textLength,
       });
+      onActionCancelled(context, {
+        actionType: 'intro-draft',
+        edited: isDraftEdited(found.draft, found.card.text),
+      });
     },
-    [context, findDraft, introAnalytics, setDraftCard],
+    [context, findDraft, setDraftCard, onDialogClosed, onActionCancelled],
   );
 
   /** S5-C29: the panel put the text of a failed turn back in the composer. It does that once only. */

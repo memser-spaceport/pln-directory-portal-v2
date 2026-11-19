@@ -14,6 +14,8 @@ export interface IntroRequestEventContext {
   targetType: IntroRequestAnalyticsTargetType;
   entryPoint: IntroRequestEntryPoint;
   source: IntroRequestSource;
+  /** LAB-3297 V0-R2: with `source: 'agent'` only. The UUID of the agent dock session, as on `agent-dock-opened`. */
+  conversationId?: string;
 }
 
 export interface IntroRequestDialogClosedProps extends IntroRequestEventContext {

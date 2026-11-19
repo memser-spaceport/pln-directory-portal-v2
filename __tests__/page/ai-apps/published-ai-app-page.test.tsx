@@ -2,7 +2,6 @@ import '@testing-library/jest-dom';
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 
 import { PublishedAiAppPage } from '@/components/page/ai-apps/PublishedAiAppPage';
-import { useTopNavStore } from '@/components/core/TopNavGate';
 import type { PublishedAiApp } from '@/services/ai-apps/ai-apps.service';
 
 const mockAnalytics = {
@@ -77,7 +76,6 @@ describe('PublishedAiAppPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPermissions = { permsSet: new Set(), isLoading: false };
-    useTopNavStore.setState({ hidden: false });
     mockPathname = BASE_PATH;
     mockPublished = { apps: [playbook], isLoading: false };
     window.history.replaceState(null, '', BASE_PATH);
@@ -261,19 +259,14 @@ describe('PublishedAiAppPage', () => {
       expect(frame()).not.toBeNull();
     });
 
-    it('turns the LabOS top navigation off while a full-page app is open, and back on when it closes', () => {
+    it('fills the whole page for an app that hides the LabOS top navigation', () => {
       mockPublished = { apps: [pla], isLoading: false };
-      const { unmount } = renderPage('pla');
-      expect(useTopNavStore.getState().hidden).toBe(true);
+      renderPage('pla');
       expect(document.querySelector('[class*="rootFullPage"]')).not.toBeNull();
-
-      unmount();
-      expect(useTopNavStore.getState().hidden).toBe(false);
     });
 
-    it('keeps the top navigation for an app that does not hide it', () => {
+    it('leaves room for the header for an app that keeps it', () => {
       renderPage();
-      expect(useTopNavStore.getState().hidden).toBe(false);
       expect(document.querySelector('[class*="rootFullPage"]')).toBeNull();
     });
 

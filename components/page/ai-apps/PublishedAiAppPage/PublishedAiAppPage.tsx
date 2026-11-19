@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
-import { useTopNavStore } from '@/components/core/TopNavGate';
 import { fetchAiApp, isPublishedAiAppSegment, PublishedAiApp } from '@/services/ai-apps/ai-apps.service';
 import { usePublishedAiApps } from '@/services/ai-apps/hooks/usePublishedAiApps';
 import { usePermissions } from '@/services/rbac/hooks/usePermissions';
@@ -141,15 +140,8 @@ function PublishedAiAppFrame(props: FrameProps) {
   const [initialPath] = useState(() => (pathname.startsWith(`${basePath}/`) ? pathname.slice(basePath.length) : null));
   const [initialSearch] = useState(() => (typeof window === 'undefined' ? '' : window.location.search));
   const [appPageTitle, setAppPageTitle] = useState<string | null>(null);
-  const setTopNavHidden = useTopNavStore((state) => state.setHidden);
+  // "Hide top navigation" (LAB-3238): TopNavGate leaves the LabOS header out; the app fills the whole page.
   const fullPage = !!app.hideTopNav;
-
-  // "Hide top navigation" (LAB-3238): the app runs full page while it is open.
-  useEffect(() => {
-    if (!fullPage) return;
-    setTopNavHidden(true);
-    return () => setTopNavHidden(false);
-  }, [fullPage, setTopNavHidden]);
 
   // Reserved and denylisted query keys never reach the iframe (resolveAppPath).
   const frameSrc = useMemo(() => {

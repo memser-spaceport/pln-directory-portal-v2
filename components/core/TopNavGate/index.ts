@@ -1,1 +1,1 @@
-export { TopNavGate, useTopNavStore } from './TopNavGate';
+export { TopNavGate, publishedAppSegmentOf } from './TopNavGate';

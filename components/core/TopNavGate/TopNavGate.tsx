@@ -1,25 +1,34 @@
 'use client';
 
-import { create } from 'zustand';
+import { usePathname } from 'next/navigation';
 
-interface TopNavState {
-  /** True while a page asks to run full page, without the LabOS top navigation. */
-  hidden: boolean;
-  setHidden: (hidden: boolean) => void;
+import { isPublishedAiAppSegment } from '@/services/ai-apps/ai-apps.service';
+import { usePublishedAiApps } from '@/services/ai-apps/hooks/usePublishedAiApps';
+import { PUBLISHED_AI_APPS_PATH } from '@/services/ai-apps/constants';
+
+/** The `<segment>` of `/apps/<segment>/…`, or null on any other route. */
+export function publishedAppSegmentOf(pathname: string | null): string | null {
+  const prefix = `${PUBLISHED_AI_APPS_PATH}/`;
+  if (!pathname?.startsWith(prefix)) return null;
+  const segment = pathname.slice(prefix.length).split('/')[0];
+  return segment ? decodeURIComponent(segment) : null;
 }
 
 /**
- * Lets a page turn off the LabOS top navigation for as long as it is mounted. Used by an AI App an admin set to
- * "hide top navigation" (LAB-3238); every other route keeps the header.
+ * Renders the LabOS top navigation, except on an AI App an admin set to "hide top navigation" (LAB-3238). The
+ * decision is made here, from the route and the published list, rather than by the app page after it mounts: on
+ * `/apps/…` the header is not rendered at all until the list says the app keeps it, so a full-page app never
+ * shows the header first (LAB-3335). Every other route renders it straight away.
  */
-export const useTopNavStore = create<TopNavState>((set) => ({
-  hidden: false,
-  setHidden: (hidden) => set({ hidden }),
-}));
-
-/** Renders the top navigation unless the current page turned it off. */
 export function TopNavGate({ children }: { children: React.ReactNode }) {
-  const hidden = useTopNavStore((state) => state.hidden);
-  if (hidden) return null;
+  const pathname = usePathname();
+  const { apps, isLoading } = usePublishedAiApps();
+  const segment = publishedAppSegmentOf(pathname);
+
+  if (segment) {
+    if (isLoading) return null;
+    const app = apps.find((item) => isPublishedAiAppSegment(item, segment));
+    if (app?.hideTopNav) return null;
+  }
   return <>{children}</>;
 }

@@ -155,7 +155,7 @@ The intro flow sends PostHog events for each funnel step (LAB-3296, spec from LA
 | `intro-request-submit-failed` | The send fails.                                                         | `status` (HTTP status; `0` when there is no response), `textLength` |
 | `ask-submitted`               | The send succeeds.                                                      | `type` `intro`, `textLength`                                        |
 
-The member page header uses `entryPoint` `member-header`. The team page header uses `team-header`. `suggested-tab` is reserved for the Suggested tab of team candidates when it shows the control. `source` is `modal` for the dialog. The LabOS agent draft card (LAB-3300) sends `intro-request-dialog-opened` when the card shows, `intro-request-dialog-closed` on Cancel, `intro-request-submit-failed` and `ask-submitted`, with `source` `agent` and the `entryPoint` of "Ask the agent". The dialog events do not change. `source` never goes in the request body.
+The member page header uses `entryPoint` `member-header`. The team page header uses `team-header`. `suggested-tab` is reserved for the Suggested tab of team candidates when it shows the control. `source` is `modal` for the dialog. The LabOS agent draft card (LAB-3300) sends `intro-request-dialog-opened` when the card shows, `intro-request-dialog-closed` on Cancel, `intro-request-submit-failed` and `ask-submitted`, with `source` `agent` and the `entryPoint` of "Ask the agent". They also carry `conversationId`, the UUID of the agent dock session, as on `agent-dock-opened` (LAB-3297 V0-R2). The dialog events do not change. `source` never goes in the request body.
 
 #### Scenario: Control shows
 

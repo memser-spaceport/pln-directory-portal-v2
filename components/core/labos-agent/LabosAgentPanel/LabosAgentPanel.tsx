@@ -4,6 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { clsx } from 'clsx';
 import Link from 'next/link';
 
+import { useLabosAgentAnalytics } from '@/analytics/labos-agent.analytics';
 import { ChatInput } from '@/components/core/husky/ChatInput';
 import { AiSearchIcon } from '@/components/icons/AiSearchIcon';
 import { CloseIcon } from '@/components/icons/CloseIcon';
@@ -99,6 +100,7 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
     markTextRestored,
     markMentionsRestored,
   } = useLabosAgentChat(context);
+  const { onSourceClicked } = useLabosAgentAnalytics();
   const prefill = useLabosAgentStore((st) => st.prefill);
   const clearPrefill = useLabosAgentStore((st) => st.actions.clearPrefill);
   const readsPage = useLabosAgentStore((st) => st.readsPage);
@@ -402,6 +404,7 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
                 onDraftEdit={editDraft}
                 onDraftSend={(turnId, draftId) => void sendDraft(turnId, draftId)}
                 onDraftCancel={cancelDraft}
+                onSourceClick={(sourceType, position) => onSourceClicked(context, { sourceType, position })}
               />
             </div>
           ))

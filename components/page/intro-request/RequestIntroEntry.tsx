@@ -108,7 +108,6 @@ export function RequestIntroEntry({ type, targetId, targetName, className, entry
           <AskAgentButton
             className={s.askAgent}
             label="Ask the agent"
-            entryPoint={`intro-${resolvedEntryPoint}`}
             context={{
               page: 'intro',
               introTarget: { type: targetType, uid: targetId },

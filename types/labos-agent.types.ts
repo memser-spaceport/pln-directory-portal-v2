@@ -152,8 +152,14 @@ export interface LabosAgentMentionChip {
 
 export interface LabosAgentSourceRef {
   type: string;
-  uid?: string;
   title: string;
+  /** C1 (backend PR #3754): a LabOS path, for example `/?news=<uid>`. */
+  directoryLink?: string;
+  /** C1 (backend PR #3754): a web page. */
+  externalUrl?: string;
+  /** Older body and the mock: the news uid. */
+  uid?: string;
+  /** Older body and the mock: a web page. */
   url?: string;
 }
 
@@ -239,6 +245,13 @@ export interface LabosAgentChatResponse {
   actions: unknown[];
   proposals: LabosAgentProposal[];
   drafts: LabosAgentDraft[];
+  /**
+   * LAB-3297 V0-R4: optional counts in the C1 final chunk, for the `agent-answer-shown` event only. Absent when the
+   * backend does not send them. The panel shows none of them.
+   */
+  toolCount?: number;
+  usedWebSearch?: boolean;
+  sourceCount?: number;
 }
 
 export type LabosAgentChatErrorCode =
@@ -359,6 +372,29 @@ export interface LabosAgentTurn {
   textRestored?: boolean;
   startedAt: number;
   endedAt?: number;
+}
+
+/** LAB-3297: where the member opened the agent. `job-apply` comes with S4 (not in v0). */
+export type LabosAgentEntryPoint = 'news-story' | 'intro-entry' | 'job-apply' | 'corner' | 'shortcut';
+
+/**
+ * LAB-3297: one dock session, from the open of the panel to its close. For the agent events only. `conversationId`
+ * is a random UUID made in the browser. It is not a server ID and holds no member data.
+ */
+export interface LabosAgentSession {
+  conversationId: string;
+  entryPoint: LabosAgentEntryPoint;
+  /** The context of the open. A new context while the panel is open starts a new session. */
+  context: LabosAgentOpenContext | null;
+  /** The page chip was on at the open. */
+  contextAttached: boolean;
+  openedAt: number;
+  /** Messages sent in this session, retries included. */
+  turnCount: number;
+  /** Action cards and draft cards that showed in this session. */
+  actionCount: number;
+  /** Cards that the member confirmed or sent in this session. */
+  confirmedCount: number;
 }
 
 /** One chat: the C1 `threadId` and its turns. The store keeps one per context. */

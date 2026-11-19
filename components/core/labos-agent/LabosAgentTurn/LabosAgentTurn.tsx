@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { Button } from '@/components/common/Button';
 import { Markdown } from '@/components/common/Markdown';
 import type { LabosAgentTurn as Turn } from '@/services/labos-agent/hooks/useLabosAgentChat';
+import { sourceRefLink } from '@/services/labos-agent/labos-agent.sources';
 import type { LabosAgentDecision } from '@/types/labos-agent.types';
 
 import { LabosAgentActionCard } from '../LabosAgentActionCard/LabosAgentActionCard';
@@ -25,6 +26,8 @@ interface LabosAgentTurnProps {
   onDraftEdit?: (turnId: string, draftId: string, text: string) => void;
   onDraftSend?: (turnId: string, draftId: string) => void;
   onDraftCancel?: (turnId: string, draftId: string) => void;
+  /** LAB-3297: the member opened a source. `position` 1 is the first source in the list. */
+  onSourceClick?: (sourceType: 'labos' | 'web', position: number) => void;
 }
 
 const domainOf = (url: string) => {
@@ -58,6 +61,7 @@ export function LabosAgentTurn({
   onDraftEdit,
   onDraftSend,
   onDraftCancel,
+  onSourceClick,
 }: LabosAgentTurnProps) {
   const [showSteps, setShowSteps] = useState(false);
   const working = turn.status === 'working';
@@ -117,19 +121,30 @@ export function LabosAgentTurn({
           <span className={s.sourcesLabel}>Sources</span>
           <ul className={s.refs}>
             {turn.sourceRefs.map((ref, i) => {
-              const href = ref.type === 'news' && ref.uid ? `/?news=${encodeURIComponent(ref.uid)}` : ref.url;
+              const { href, external } = sourceRefLink(ref);
               return (
-                <li key={`ref-${ref.uid ?? i}`}>
-                  <a href={href} className={s.ref}>
+                <li key={`ref-${i}`}>
+                  <a
+                    href={href}
+                    {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                    className={s.ref}
+                    onClick={() => onSourceClick?.(ref.type === 'web' ? 'web' : 'labos', i + 1)}
+                  >
                     <span className={s.refTitle}>{ref.title}</span>
                     <span className={s.refMeta}>{ref.type === 'news' ? 'LabOS news' : ref.type}</span>
                   </a>
                 </li>
               );
             })}
-            {turn.sources.map((url) => (
+            {turn.sources.map((url, j) => (
               <li key={url}>
-                <a href={url} target="_blank" rel="noopener noreferrer" className={s.ref}>
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={s.ref}
+                  onClick={() => onSourceClick?.('web', turn.sourceRefs.length + j + 1)}
+                >
                   <span className={s.refTitle}>{domainOf(url)}</span>
                   <span className={s.refMeta}>Web</span>
                 </a>

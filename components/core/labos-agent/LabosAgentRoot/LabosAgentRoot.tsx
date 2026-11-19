@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 
 import { isPassthroughModalOpen } from '@/services/labos-agent/labos-agent.dialogs';
 import { useLabosAgentAccess } from '@/services/labos-agent/hooks/useLabosAgentAccess';
+import { useLabosAgentDockEvents } from '@/services/labos-agent/hooks/useLabosAgentDockEvents';
 import { chatKey, useLabosAgentStore } from '@/services/labos-agent/store';
 
 import { LabosAgentPanel } from '../LabosAgentPanel/LabosAgentPanel';
@@ -16,6 +17,8 @@ import { LabosAgentPanel } from '../LabosAgentPanel/LabosAgentPanel';
  *
  * LAB-3302: the panel portals to `<body>`. When it opens over the news story modal (`isPassthroughModalOpen`), it goes
  * above the story (`overModal`) and stays out of the story's `inert` background.
+ *
+ * LAB-3297: the dock events (`agent-dock-opened`, `agent-dock-closed`) fire here, for every way to open the panel.
  */
 export function LabosAgentRoot() {
   const enabled = useLabosAgentAccess();
@@ -25,6 +28,7 @@ export function LabosAgentRoot() {
 
   // Read once for each open: a story that opens later stays above the panel, as any page content does.
   const overModal = useMemo(() => isOpen && isPassthroughModalOpen(), [isOpen]);
+  useLabosAgentDockEvents(!!enabled && isOpen);
 
   if (!enabled || !isOpen) return null;
   return createPortal(

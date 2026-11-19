@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import { clsx } from 'clsx';
 
-import { useLabosAgentAnalytics } from '@/analytics/labos-agent.analytics';
 import { AiSearchIcon } from '@/components/icons/AiSearchIcon';
 import { CommentIcon } from '@/components/icons';
 import { useIntroCollapse } from '@/components/page/ai-apps/components/FeedbackFabButton/hooks/useIntroCollapse';
@@ -68,7 +67,6 @@ export function LabosAgentCorner({
   const isOpen = useLabosAgentStore((st) => st.isOpen);
   const { openAgent, closeAgent } = useLabosAgentStore((st) => st.actions);
   const uid = useCurrentUserStore((st) => st.currentUser?.uid);
-  const analytics = useLabosAgentAnalytics();
   const shortcuts = useShortcutLabels();
   const showsKeyHint = useShowsKeyHint();
   /*
@@ -88,12 +86,10 @@ export function LabosAgentCorner({
     (entryPoint: 'corner' | 'shortcut') => {
       const context = currentPageContext(uid);
       onCloseFeedback();
-      openAgent({ context });
+      // LAB-3297: `LabosAgentRoot` sends `agent-dock-opened` with this entry point.
+      openAgent({ context, entryPoint });
       openedHere.current = true;
-      analytics.onAgentOpened({ page: context?.page ?? 'none', entryPoint });
     },
-    // `analytics` is a stub with new identities each render; the handlers hold no state.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [uid, onCloseFeedback, openAgent],
   );
 

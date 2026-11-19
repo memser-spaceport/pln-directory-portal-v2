@@ -94,7 +94,13 @@ const answer = (drafts: LabosAgentDraft[] = [draft()]) => ({
 const ok = (body: unknown = { uid: 'ir-1' }) => ({ ok: true, status: 200, json: async () => body });
 const fail = (status: number, body: unknown = {}) => ({ ok: false, status, json: async () => body });
 
-const eventContext = { targetType: 'member', entryPoint: 'member-header', source: 'agent' };
+// LAB-3297 V0-R2: the intro events with `source: 'agent'` carry the `conversationId` of the dock session.
+const eventContext = {
+  targetType: 'member',
+  entryPoint: 'member-header',
+  source: 'agent',
+  conversationId: expect.stringMatching(/^[0-9a-f-]{36}$/),
+};
 
 async function openWithDraft(drafts?: LabosAgentDraft[]) {
   chat.mockResolvedValue(answer(drafts));

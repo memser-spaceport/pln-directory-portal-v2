@@ -3,10 +3,9 @@
 import clsx from 'clsx';
 
 import { AiSearchIcon } from '@/components/icons/AiSearchIcon';
-import { useLabosAgentAnalytics } from '@/analytics/labos-agent.analytics';
 import { useLabosAgentAccess } from '@/services/labos-agent/hooks/useLabosAgentAccess';
 import { useOpenAgent } from '@/services/labos-agent/store';
-import type { LabosAgentOpenContext } from '@/types/labos-agent.types';
+import type { LabosAgentEntryPoint, LabosAgentOpenContext } from '@/types/labos-agent.types';
 
 import s from './AskAgentButton.module.scss';
 
@@ -15,8 +14,8 @@ interface AskAgentButtonProps {
   label?: string;
   /** The first message in the composer (S3). The member can change it before they send. */
   prefill?: string;
-  /** For the agent events. Defaults to the news story follow-up. */
-  entryPoint?: string;
+  /** For the agent events (LAB-3297). Default: `intro-entry` for an intro context, else `news-story`. */
+  entryPoint?: LabosAgentEntryPoint;
   /** Runs after the panel opens, for example to close the modal the button sits in. */
   onOpened?: () => void;
   className?: string;
@@ -27,13 +26,12 @@ export function AskAgentButton({
   context,
   label = 'Ask a follow-up',
   prefill,
-  entryPoint = 'news-follow-up',
+  entryPoint,
   onOpened,
   className,
 }: AskAgentButtonProps) {
   const enabled = useLabosAgentAccess();
   const openAgent = useOpenAgent();
-  const { onAgentOpened } = useLabosAgentAnalytics();
 
   if (!enabled) return null;
 
@@ -42,8 +40,11 @@ export function AskAgentButton({
       type="button"
       className={clsx(s.root, className)}
       onClick={() => {
-        openAgent({ context, prefill });
-        onAgentOpened({ page: context.page, entryPoint });
+        openAgent({
+          context,
+          prefill,
+          entryPoint: entryPoint ?? (context.page === 'intro' ? 'intro-entry' : 'news-story'),
+        });
         onOpened?.();
       }}
     >

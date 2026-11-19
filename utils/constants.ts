@@ -829,6 +829,20 @@ export const INTRO_REQUEST_ANALYTICS_EVENTS = {
   ASK_SUBMITTED: 'ask-submitted',
 };
 
+/** LabOS agent v0 events (LAB-3297, Dana's S0 spec with the v0 addendum). Lengths, counts and enums only. */
+export const LABOS_AGENT_ANALYTICS_EVENTS = {
+  DOCK_OPENED: 'agent-dock-opened',
+  DOCK_CLOSED: 'agent-dock-closed',
+  MESSAGE_SENT: 'agent-message-sent',
+  ANSWER_SHOWN: 'agent-answer-shown',
+  ANSWER_FAILED: 'agent-answer-failed',
+  SOURCE_CLICKED: 'agent-source-clicked',
+  ACTION_PROPOSED: 'agent-action-proposed',
+  ACTION_CONFIRMED: 'agent-action-confirmed',
+  ACTION_CANCELLED: 'agent-action-cancelled',
+  ACTION_FAILED: 'agent-action-failed',
+};
+
 export const AFFINITY_ANALYTICS_EVENTS = {
   RELATIONSHIP_REFRESH_CLICKED: 'affinity-relationship-refresh-clicked',
   RELATIONSHIP_REFRESH_SUCCEEDED: 'affinity-relationship-refresh-succeeded',

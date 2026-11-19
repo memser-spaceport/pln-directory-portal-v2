@@ -30,8 +30,8 @@ The drawer SHALL open on one event and show, top to bottom:
 1. A Back bar.
 2. "EVENT DETAILS".
 3. The event's picture when it has one, title, and date line.
-4. A place row: the address with its region for an in-person event, "Online" for an online event, and the address with "also online" for a hybrid event (LAB-3283).
-5. The event's own page (for example its Luma page) when it has one, as a link under the place row (LAB-3271). The link SHALL open in a new tab. It SHALL show the address without `https://`. An event without a page, or whose page is not an `http` or `https` address, SHALL have no link row.
+4. A place row: the address with its region for an in-person event, "Online" for an online event, and the address with "also online" for a hybrid event (LAB-3283). When the event has a map link (the events service's `location_url`) and an address, the place text and its arrow SHALL be one link that opens the map in a new tab, as on the PL events app (LAB-3324). An event without a map link, or whose map link is not an `http` or `https` address, SHALL show the place as plain text with no arrow. "Online" SHALL never link to a map.
+5. The event's own page (for example its Luma page) when it has one, as a link under the place row (LAB-3271). The link SHALL open in a new tab. It SHALL show the address without `https://`. The row SHALL look like the date row (LAB-3333): a link icon in the calendar icon's size, stroke and colour, then the link text in the date's font size, weight, colour and spacing, with no arrow. The page SHALL be the event's `websiteUrl`. When `websiteUrl` is empty or not an `http` or `https` address, the page SHALL be the link of the event's resource named "Registration" (any case, end spaces ignored), and "Register" SHALL open the same page (LAB-3334). An event without a page, or whose page is not an `http` or `https` address, SHALL have no link row and no "Register".
 6. An access row when the access is known, with an icon and two lines: "Invite only / The hosts approve each guest", "Paid / Tickets on the host's site" or "Free / RSVP to save your spot" (LAB-3283). Mode and access SHALL NOT show as badges.
 7. Tags, Host, Description and Agenda.
 
@@ -49,6 +49,19 @@ A block whose data is empty SHALL be left out rather than shown empty. On a narr
 - **GIVEN** event B without a page
 - **WHEN** a viewer opens event B
 - **THEN** the drawer shows no link row
+
+#### Scenario: Event with a map link
+
+- **GIVEN** event C with the map link `https://www.google.com/maps/search/?api=1&query=Lisbon`
+- **WHEN** a viewer opens event C
+- **THEN** the address and its arrow are one link to that map
+- **AND** pressing it opens the map in a new tab
+
+#### Scenario: Event without a map link
+
+- **GIVEN** event D without a map link
+- **WHEN** a viewer opens event D
+- **THEN** the drawer shows the address as plain text with no arrow
 
 #### Scenario: Event with agenda and tags
 

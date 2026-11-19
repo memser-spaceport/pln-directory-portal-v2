@@ -376,7 +376,7 @@ function EventFlow({
                       going={going}
                       canMarkGoing={canMarkGoing}
                       city={gathering?.city ?? null}
-                      registerUrl={event.websiteUrl}
+                      registerUrl={event.eventUrl}
                       saving={saving}
                       onOpenAttendees={openAttendees}
                       onNotGoing={handleNotGoing}

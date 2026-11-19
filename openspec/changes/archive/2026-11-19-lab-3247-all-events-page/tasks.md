@@ -46,8 +46,8 @@ Slices: **A** = LAB-3317 (groups 1–5), **B** = LAB-3320 (group 6), **C** = LAB
 
 - [x] 7.1 `services/events/city-coords.service.ts` + `GET /api/events/city-coords` per design D3 (parse the degree strings, fixes table, drop "Others", `unstable_cache` one day). Verify: unit tests for the parser with `"15.8700° N"`, `"77.5946° E"`, a south or west value and the Berlin fix.
 - [x] 7.2 `map/loadGoogleMaps.ts` (bootstrap once, `importLibrary`); no key → the view switch hides Map and `?view=map` falls back to List. Verify: tests for the no-key scenario.
-- [ ] 7.3 `EventsMap`: city pins with counts (`AdvancedMarkerElement`), going ring, selected ring, "Show all" `fitBounds`, + / − and the slider (hidden on phones), `gestureHandling: 'greedy'`, `CityPinCard` for shared pins, online list below. Verify: on the feature env with a key, every upcoming city has a pin at the right place; wheel zoom doesn't scroll the page. (Built and unit-tested with a fake Google Maps; the env check waits for the key in the env build.)
-- [ ] 7.4 `?event=` in Map centres the event's city and marks its pin. Verify: by hand on the feature env, plus a unit test of the centre and zoom choice. (Unit test done; the env check waits for the key.)
+- [x] 7.3 `EventsMap`: city pins with counts (`AdvancedMarkerElement`), going ring, selected ring, "Show all" `fitBounds`, + / − and the slider (hidden on phones), `gestureHandling: 'greedy'`, `CityPinCard` for shared pins, online list below. Verify: on the feature env with a key, every upcoming city has a pin at the right place; wheel zoom doesn't scroll the page. (Checked 2026-11-19 on localhost and the feature env with the key: the Singapore pin at Singapore, wheel zooms the map and the page stays, the pin opens the drawer, no Google console errors. Dev has no other city with coordinates and an upcoming event; the fixes table and multi-city fit are unit-tested.)
+- [x] 7.4 `?event=` in Map centres the event's city and marks its pin. Verify: by hand on the feature env, plus a unit test of the centre and zoom choice. (Unit test done; on the env a pressed pin sets `event=` and the pin is marked.)
 
 ## 8. Drawer (D)
 
@@ -57,8 +57,8 @@ Slices: **A** = LAB-3317 (groups 1–5), **B** = LAB-3320 (group 6), **C** = LAB
 
 ## 9. Close each slice
 
-- [ ] 9.1 `npm run lint`, `npx tsc --noEmit`, `npm run test` and `npm run prettier:check` pass on each slice PR. Verify: the command output in the PR.
-- [ ] 9.2 `npx -y @fission-ai/openspec@1.14.1 validate lab-3247-all-events-page --json` passes. Verify: `"valid": true`.
+- [x] 9.1 `npm run lint`, `npx tsc --noEmit`, `npm run test` and `npm run prettier:check` pass on each slice PR. Verify: the command output in the PR.
+- [x] 9.2 `npx -y @fission-ai/openspec@1.14.1 validate lab-3247-all-events-page --json` passes. Verify: `"valid": true`.
 
 ## Workflow follow-up
 

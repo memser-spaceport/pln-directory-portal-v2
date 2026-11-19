@@ -889,6 +889,17 @@ export const ALL_EVENTS_ANALYTICS = {
   ON_EVENTS_CITY_SELECTED: 'events-city-selected',
 };
 
+/** Submitting and managing events in LabOS: the submit form, the edit page and My Submissions. */
+export const EVENTS_SUBMIT_ANALYTICS = {
+  ON_EVENTS_SUBMIT_FORM_OPENED: 'events-submit-form-opened',
+  ON_EVENTS_SUBMIT_FORM_SUBMITTED: 'events-submit-form-submitted',
+  ON_EVENTS_SUBMIT_FORM_FAILED: 'events-submit-form-failed',
+  ON_EVENTS_LUMA_IMPORTED: 'events-luma-imported',
+  ON_EVENTS_MY_SUBMISSIONS_OPENED: 'events-my-submissions-opened',
+  ON_EVENTS_EVENT_EDITED: 'events-event-edited',
+  ON_EVENTS_EVENT_DELETED: 'events-event-deleted',
+};
+
 export const EVENTS_ANALYTICS = {
   EVENTS_PAGE_IRL_CARD_CLICKED: 'events-page-irl-card-clicked',
   EVENTS_PAGE_EVENT_CARD_CLICKED: 'events-page-event-card-clicked',

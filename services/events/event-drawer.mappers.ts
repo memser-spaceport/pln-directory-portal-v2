@@ -237,6 +237,7 @@ export function toEventDetail(raw: EventDetailResponse): EventDetail {
     timezone,
     mode: toEventMode(details?.format, raw.type),
     access: toEventAccess(details?.accessOption, details?.accessType, raw.type),
+    status: raw.status ?? null,
     allDay,
     dateLine: formatEventDateLine(raw.startDate, raw.endDate, timezone, allDay),
     address: raw.location?.location?.trim() || null,

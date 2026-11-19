@@ -259,6 +259,24 @@ describe('LAB-3297: agent events', () => {
     expect(one('agent-source-clicked')).toMatchObject({ sourceType: 'labos', position: 1 });
   });
 
+  it('agent-source-clicked (V0-R1): a C1 ref with externalUrl opens in a new tab', async () => {
+    chat.mockResolvedValue(
+      answer({
+        sources: [],
+        sourceRefs: [{ type: 'web', title: 'Acme site', externalUrl: 'https://example.com/acme' }],
+      }),
+    );
+    renderApp();
+    await open(newsContext, 'news-story');
+    await send(MESSAGE);
+    const link = screen.getByText('Acme site').closest('a');
+    expect(link).toHaveAttribute('href', 'https://example.com/acme');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link?.getAttribute('rel')).toEqual(expect.stringContaining('noopener'));
+    fireEvent.click(link as HTMLAnchorElement);
+    expect(one('agent-source-clicked')).toMatchObject({ sourceType: 'web', position: 1 });
+  });
+
   it('agent-answer-shown (V0-R4): the C1 final chunk counts win when they come', async () => {
     chat.mockResolvedValue(answer({ toolCount: 3, usedWebSearch: true, sourceCount: 5 }));
     renderApp();
@@ -448,6 +466,19 @@ describe('LAB-3297: agent events', () => {
         edited: true,
         draftLength: edited.length,
       });
+    });
+
+    it('agent-action-cancelled (V0-R1): a sent draft does not count as cancelled when the dock closes', async () => {
+      customFetch.mockResolvedValue({ ok: true, status: 200, json: async () => ({ uid: 'ir-1' }) });
+      renderApp();
+      await open(introContext, 'intro-entry');
+      await send('Help me write an intro request.', 'Here is a draft.');
+      await act(async () => fireEvent.click(within(card()).getByRole('button', { name: 'Send' })));
+      expect(one('agent-action-confirmed')).toMatchObject({ actionType: 'intro-draft' });
+      close();
+
+      expect(events('agent-action-cancelled')).toHaveLength(0);
+      expect(one('agent-dock-closed')).toMatchObject({ actionCount: 1, confirmedCount: 1 });
     });
 
     it('agent-action-failed (V0-R1): a failed Send sends the C3 status', async () => {

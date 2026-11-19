@@ -6,6 +6,8 @@ import type {
   LabosAgentConfirmRequest,
   LabosAgentConfirmResponse,
   LabosAgentDraft,
+  LabosAgentMentionsQuery,
+  LabosAgentMentionsResponse,
   LabosAgentPage,
   LabosAgentProposal,
   LabosAgentStreamOptions,
@@ -36,6 +38,12 @@ import { LabosAgentError, LABOS_AGENT_STALL_MARKER } from './labos-agent.errors'
  * - `member`, `team`, `job` and `profile` pages get an answer that names the page.
  * - A `memberUid`, `teamUid` or `jobUid` that starts with `missing`: C1 gets a 404 `MEMBER_NOT_FOUND`,
  *   `TEAM_NOT_FOUND` or `JOB_NOT_FOUND` before the stream.
+ *
+ * @mentions (S6, contract 10.2 to 10.4):
+ * - C4 searches a fixed list of mock members, teams and news (`MOCK_MENTIONS`). No real member data.
+ * - The query "unavailable" gives a 503, so the picker shows its error text.
+ * - A mention uid that starts with `missing` gives a C1 404 with `mentionIndex` before the stream.
+ * - The answer names each mention, in order.
  *
  * A second C2 call on a closed proposal gets a 409 `PROPOSAL_CLOSED` with the stored `status`, like the backend.
  */
@@ -172,6 +180,81 @@ function missingPageError(request: LabosAgentChatRequest): LabosAgentError | nul
   return null;
 }
 
+/** S6: mock C4 rows. Mock names only, no real member data (S6-F22). */
+export const MOCK_MENTIONS: Omit<LabosAgentMentionsResponse, 'q'> = {
+  members: [
+    {
+      type: 'member',
+      uid: 'mock-member-ada',
+      name: 'Ada Mock',
+      imageUrl: null,
+      teamName: 'Mock Labs',
+      role: 'Founder',
+    },
+    { type: 'member', uid: 'mock-member-ben', name: 'Ben Sample', imageUrl: null, teamName: 'Sample Co', role: 'CTO' },
+    { type: 'member', uid: 'missing-member', name: 'Missing Mock Member', imageUrl: null, teamName: null, role: null },
+  ],
+  teams: [
+    { type: 'team', uid: 'mock-team-labs', name: 'Mock Labs', logoUrl: null, shortDescription: 'A mock team.' },
+    { type: 'team', uid: 'mock-team-sample', name: 'Sample Co', logoUrl: null, shortDescription: 'Another mock team.' },
+  ],
+  news: [
+    {
+      type: 'news',
+      uid: 'mock-news-seed',
+      title: 'Mock Labs raises a mock seed round',
+      teamUid: 'mock-team-labs',
+      teamName: 'Mock Labs',
+      eventDate: '2026-11-12T00:00:00.000Z',
+    },
+    {
+      type: 'news',
+      uid: 'mock-news-launch',
+      title: 'Sample Co ships a mock launch',
+      teamUid: 'mock-team-sample',
+      teamName: 'Sample Co',
+      eventDate: '2026-11-10T00:00:00.000Z',
+    },
+  ],
+};
+
+/** S6: mock C4 (contract 10.2). The empty query gives no members, the teams and the newest news (10.2.3). */
+export function mockMentions({ q: raw, types, limit = 5 }: LabosAgentMentionsQuery): LabosAgentMentionsResponse {
+  const q = raw.trim();
+  const want = (type: 'member' | 'team' | 'news') => !types || types.includes(type);
+  const has = (...values: (string | null)[]) => values.some((v) => !!v && v.toLowerCase().includes(q.toLowerCase()));
+  return {
+    q,
+    members: want('member') && q ? MOCK_MENTIONS.members.filter((m) => has(m.name, m.teamName)).slice(0, limit) : [],
+    teams: want('team') ? MOCK_MENTIONS.teams.filter((t) => !q || has(t.name)).slice(0, limit) : [],
+    news: want('news') ? MOCK_MENTIONS.news.filter((n) => !q || has(n.title, n.teamName)).slice(0, limit) : [],
+  };
+}
+
+const MENTION_NOT_FOUND = { member: 'MEMBER_NOT_FOUND', team: 'TEAM_NOT_FOUND', news: 'NEWS_NOT_FOUND' } as const;
+
+/** S6: the 404 that C1 gives for the first mention uid that starts with `missing` (contract 10.4). */
+function missingMentionError(request: LabosAgentChatRequest): LabosAgentError | null {
+  const index = (request.mentions ?? []).findIndex((m) => m.type !== 'page' && m.uid.startsWith('missing'));
+  if (index < 0) return null;
+  const mention = request.mentions![index];
+  if (mention.type === 'page') return null;
+  return new LabosAgentError(
+    404,
+    MENTION_NOT_FOUND[mention.type],
+    `Not found: ${mention.uid}`,
+    undefined,
+    undefined,
+    index,
+  );
+}
+
+/** S6: the words for the mentions of a message, in order. */
+const mentionWords = (request: LabosAgentChatRequest): string =>
+  (request.mentions ?? [])
+    .map((m, i) => `${i + 1}. ${m.type === 'page' ? `the ${m.page} page` : `${m.type} ${m.uid}`}`)
+    .join('\n');
+
 export function mockChatBody(request: LabosAgentChatRequest): LabosAgentChatResponse {
   if (request.context?.page === 'intro') return introBody(request);
   const q = request.message.toLowerCase();
@@ -180,8 +263,10 @@ export function mockChatBody(request: LabosAgentChatRequest): LabosAgentChatResp
   const newsUid = request.context?.page === 'news-story' ? request.context.newsUid : undefined;
   const useWeb = /web|latest|internet/.test(q);
 
+  const mentioned = mentionWords(request);
   const steps = [
     'Understanding the question',
+    ...(mentioned ? ['Reading the items you added'] : []),
     onStory ? 'Reading the news story' : (pageRead?.step ?? 'Searching LabOS news'),
     ...(useWeb ? ['Searching the web'] : []),
     'Writing the answer',
@@ -212,6 +297,7 @@ export function mockChatBody(request: LabosAgentChatRequest): LabosAgentChatResp
     '',
     `You asked: "${request.message.trim()}"`,
     '',
+    ...(mentioned ? ['The live agent will also read the items you added:', mentioned, ''] : []),
     useWeb
       ? 'LabOS has no data on this, so the live agent will search the web and list the pages it used below.'
       : '- The answer will cite the LabOS stories it used.\n- When LabOS has no data, the agent will search the web.',
@@ -239,7 +325,7 @@ async function chat(
     await wait(STEP_MS, signal);
     throw new LabosAgentError(404, 'INTRO_TARGET_NOT_FOUND', 'The intro target was not found.');
   }
-  const pageError = missingPageError(request);
+  const pageError = missingPageError(request) ?? missingMentionError(request);
   if (pageError) {
     await wait(STEP_MS, signal);
     throw pageError;
@@ -299,8 +385,18 @@ async function confirmAction({ proposalId, decision }: LabosAgentConfirmRequest)
   };
 }
 
+async function searchMentions(
+  query: LabosAgentMentionsQuery,
+  { signal }: { signal?: AbortSignal } = {},
+): Promise<LabosAgentMentionsResponse> {
+  await wait(TICK_MS * 5, signal);
+  if (/unavailable/i.test(query.q)) throw new LabosAgentError(503, 'UNKNOWN', 'Search is not available.');
+  return mockMentions(query);
+}
+
 export const mockLabosAgentClient: LabosAgentClient = {
   chat,
   getAccess: async () => ({ enabled: true }),
   confirmAction,
+  searchMentions,
 };

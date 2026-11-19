@@ -287,3 +287,67 @@ a.context {
   font-size: 14px;
   line-height: 20px;
 }
+
+/* LAB-3318: the page chip, the mention chips and the + button in one row. The picker opens above the row. */
+.foot {
+  position: relative;
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.mentionChip .contextText {
+  max-width: 200px;
+}
+
+/* S6-F17: C1 cannot read this item. */
+.mentionChipFailed .context {
+  border-color: var(--border-danger-primary, #dc2626);
+  color: var(--foreground-danger-primary, #b91c1c);
+}
+
+.mentionAdd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px dashed var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  border-radius: 6px;
+  background: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+
+  &[aria-expanded='true'] {
+    border-color: var(--border-brand-primary, #1b4dff);
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+}
+
+/* S6-F20: the fixed no-context line above the first answer. Not part of the answer. */
+.noContext {
+  margin: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 13px;
+  line-height: 18px;
+}

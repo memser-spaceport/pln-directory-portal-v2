@@ -12,6 +12,11 @@ import type {
   LabosAgentConfirmRequest,
   LabosAgentConfirmResponse,
   LabosAgentDraft,
+  LabosAgentMentionMember,
+  LabosAgentMentionNews,
+  LabosAgentMentionsQuery,
+  LabosAgentMentionsResponse,
+  LabosAgentMentionTeam,
   LabosAgentOpenContext,
   LabosAgentProposal,
   LabosAgentProposalChange,
@@ -211,7 +216,12 @@ async function toError(response: Response): Promise<LabosAgentError> {
     code === 'PROPOSAL_CLOSED' && (CLOSED_STATUSES as unknown[]).includes(body.status)
       ? (body.status as LabosAgentClosedStatus)
       : undefined;
-  return new LabosAgentError(response.status, code, message, retryAfter, closedStatus);
+  // S6 (contract 10.4): a 404 for a mention names its index. A 404 for `context` has none.
+  const mentionIndex =
+    response.status === 404 && Number.isInteger(body.mentionIndex) && (body.mentionIndex as number) >= 0
+      ? (body.mentionIndex as number)
+      : undefined;
+  return new LabosAgentError(response.status, code, message, retryAfter, closedStatus, mentionIndex);
 }
 
 /** C1: `POST /v1/labos-agent/chat`. Streams the chunked JSON body and returns the full body at the end. */
@@ -219,7 +229,13 @@ async function chat(
   request: LabosAgentChatRequest,
   { signal, onUpdate }: LabosAgentStreamOptions = {},
 ): Promise<LabosAgentChatResponse> {
-  const body: LabosAgentChatRequest = { ...request, message: validateChatMessage(request.message) };
+  const { mentions, ...rest } = request;
+  // S6-F14: no `mentions` key when the member picked none, so the S1 to S5 bodies do not change.
+  const body: LabosAgentChatRequest = {
+    ...rest,
+    message: validateChatMessage(request.message),
+    ...(mentions && mentions.length > 0 ? { mentions } : {}),
+  };
 
   let response: Response | undefined;
   try {
@@ -297,6 +313,77 @@ async function confirmAction(request: LabosAgentConfirmRequest): Promise<LabosAg
   };
 }
 
+const str = (v: unknown): string | null => (typeof v === 'string' && v.length > 0 ? v : null);
+const rows = (v: unknown): Record<string, unknown>[] =>
+  Array.isArray(v) ? v.filter((x): x is Record<string, unknown> => !!x && typeof x === 'object') : [];
+
+/** Reads a C4 body into the response shape (contract 10.2). A row with no `uid` or no name drops out. */
+export function normalizeMentionsBody(value: unknown, fallbackQuery: string): LabosAgentMentionsResponse {
+  const body = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+  return {
+    q: typeof body.q === 'string' ? body.q : fallbackQuery,
+    members: rows(body.members).flatMap((m): LabosAgentMentionMember[] => {
+      const uid = str(m.uid);
+      const name = str(m.name);
+      if (!uid || !name) return [];
+      return [{ type: 'member', uid, name, imageUrl: str(m.imageUrl), teamName: str(m.teamName), role: str(m.role) }];
+    }),
+    teams: rows(body.teams).flatMap((t): LabosAgentMentionTeam[] => {
+      const uid = str(t.uid);
+      const name = str(t.name);
+      if (!uid || !name) return [];
+      return [{ type: 'team', uid, name, logoUrl: str(t.logoUrl), shortDescription: str(t.shortDescription) }];
+    }),
+    news: rows(body.news).flatMap((n): LabosAgentMentionNews[] => {
+      const uid = str(n.uid);
+      const title = str(n.title);
+      if (!uid || !title) return [];
+      return [
+        {
+          type: 'news',
+          uid,
+          title,
+          teamUid: str(n.teamUid) ?? '',
+          teamName: str(n.teamName) ?? '',
+          eventDate: str(n.eventDate) ?? '',
+        },
+      ];
+    }),
+  };
+}
+
+/**
+ * C4 (S6, contract 10.2): `GET /v1/labos-agent/mentions`. The picker search for members, teams and news. `q` goes
+ * trimmed. Every failure is a `LabosAgentError`; the picker shows one text for all of them (S6-F16).
+ */
+async function searchMentions(
+  query: LabosAgentMentionsQuery,
+  { signal }: { signal?: AbortSignal } = {},
+): Promise<LabosAgentMentionsResponse> {
+  const q = query.q.trim();
+  const params = new URLSearchParams({ q });
+  if (query.types && query.types.length > 0) params.set('types', query.types.join(','));
+  if (query.limit !== undefined) params.set('limit', String(query.limit));
+  let response: Response | undefined;
+  try {
+    response = await customFetch(
+      apiUrl(`${LABOS_AGENT_ENDPOINTS.mentions}?${params.toString()}`),
+      { method: 'GET', signal },
+      true,
+    );
+  } catch (error) {
+    if (signal?.aborted) throw error;
+    throw new LabosAgentError(0, 'STREAM_FAILED', 'Search did not answer.');
+  }
+  if (!response) throw new LabosAgentError(401, 'UNAUTHORIZED', 'Sign in to use the agent.');
+  if (!response.ok) throw await toError(response);
+  try {
+    return normalizeMentionsBody(await response.json(), q);
+  } catch {
+    throw new LabosAgentError(response.status, 'UNKNOWN', 'Search sent an answer the page cannot read.');
+  }
+}
+
 /** `GET /v1/labos-agent/access`: the backend's pilot gate for the signed-in member. */
 async function getAccess(): Promise<LabosAgentAccess> {
   const response = await customFetch(apiUrl(LABOS_AGENT_ENDPOINTS.access), { method: 'GET' }, true);
@@ -309,7 +396,7 @@ async function getAccess(): Promise<LabosAgentAccess> {
   }
 }
 
-export const liveLabosAgentClient: LabosAgentClient = { chat, getAccess, confirmAction };
+export const liveLabosAgentClient: LabosAgentClient = { chat, getAccess, confirmAction, searchMentions };
 
 /** The client the panel uses: live C1, or the mock when it is selected (see `labos-agent.config.ts`). */
 export function getLabosAgentClient(): LabosAgentClient {

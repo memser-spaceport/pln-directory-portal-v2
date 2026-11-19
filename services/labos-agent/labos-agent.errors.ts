@@ -7,6 +7,8 @@ export class LabosAgentError extends Error {
   readonly retryAfterSeconds?: number;
   /** C2 409 `PROPOSAL_CLOSED` only: the stored proposal status. Undefined when the body has none. */
   readonly closedStatus?: LabosAgentClosedStatus;
+  /** C1 404 only (S6, contract 10.4): the 0-based index of the failed item in `mentions`. Absent for `context`. */
+  readonly mentionIndex?: number;
 
   constructor(
     status: number,
@@ -14,6 +16,7 @@ export class LabosAgentError extends Error {
     message: string,
     retryAfterSeconds?: number,
     closedStatus?: LabosAgentClosedStatus,
+    mentionIndex?: number,
   ) {
     super(message);
     this.name = 'LabosAgentError';
@@ -21,6 +24,7 @@ export class LabosAgentError extends Error {
     this.code = code;
     this.retryAfterSeconds = retryAfterSeconds;
     this.closedStatus = closedStatus;
+    this.mentionIndex = mentionIndex;
   }
 }
 

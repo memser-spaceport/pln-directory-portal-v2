@@ -524,4 +524,150 @@ describe('EventDrawerView (LAB-3216)', () => {
       expect(screen.queryByRole('button', { name: "Yes, I'm going" })).not.toBeInTheDocument();
     });
   });
+
+  describe('LAB-3324: the location arrow opens the map', () => {
+    const MAP = 'https://www.google.com/maps/search/?api=1&query=Lisbon';
+    const withMap = (locationUrl: string | null | undefined) => {
+      const base = eventResponse();
+      return eventResponse({ details: { ...base.details!, locationUrl } });
+    };
+
+    it('LAB-3324 R1: with a location link, the address and its arrow open the map in a new tab', () => {
+      render(<Harness raw={withMap(MAP)} />);
+      const link = screen.getByRole('link', { name: 'Lisbon, Portugal' });
+      expect(link).toHaveAttribute('href', MAP);
+      expect(link).toHaveAttribute('target', '_blank');
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+      // The arrow is inside the same link, so a press on it opens the map too.
+      expect(link.querySelector('svg')).not.toBeNull();
+    });
+
+    it('LAB-3324 R2: without a location link, the address is plain text with no arrow', () => {
+      for (const locationUrl of [undefined, null, '', 'javascript:alert(1)']) {
+        const { unmount } = render(<Harness raw={withMap(locationUrl)} />);
+        const address = screen.getByText('Lisbon, Portugal');
+        expect(address.closest('a')).toBeNull();
+        expect(screen.queryByRole('link', { name: 'Lisbon, Portugal' })).not.toBeInTheDocument();
+        // No arrow beside the address: its row holds only the pin.
+        expect((address.closest('.factRow') as HTMLElement).querySelectorAll('svg')).toHaveLength(1);
+        unmount();
+      }
+    });
+
+    // LAB-3283 + LAB-3324: the place row keeps its mode wording, and only a place with an address links to the map.
+    const withMode = (format: 'HYBRID' | 'VIRTUAL') => {
+      const base = eventResponse();
+      return eventResponse({ type: format, details: { ...base.details!, format, locationUrl: MAP } });
+    };
+
+    it('a hybrid event links "<address> · also online" to the map', () => {
+      render(<Harness raw={withMode('HYBRID')} />);
+      expect(screen.getByRole('link', { name: 'Lisbon, Portugal · also online' })).toHaveAttribute('href', MAP);
+    });
+
+    it('an online event never links to a map, even with a location link', () => {
+      render(<Harness raw={withMode('VIRTUAL')} />);
+      expect(screen.getByText('Online').closest('a')).toBeNull();
+      expect(screen.queryByRole('link', { name: /Online/ })).not.toBeInTheDocument();
+    });
+  });
+
+  describe('LAB-3333: the event link row looks like the date row', () => {
+    const URL_ = 'https://lu.ma/labweek-lisbon';
+
+    it('LAB-3333 R1: shows the link row directly under the address', () => {
+      render(<Harness raw={eventResponse({ websiteUrl: URL_ })} />);
+      const row = screen.getByTestId('event-link-row');
+      const addressRow = screen.getByText('Lisbon, Portugal').closest('.factRow') as HTMLElement;
+      expect(addressRow.nextElementSibling).toBe(row);
+    });
+
+    it('LAB-3333 R2, R3: a link icon in the calendar style, then the text in the date style, with no arrow', () => {
+      render(<Harness raw={eventResponse({ websiteUrl: URL_ })} />);
+      const row = screen.getByTestId('event-link-row');
+      const icon = within(row).getByTestId('event-link-icon');
+      const dateRow = row.parentElement!.querySelector('.factRow') as HTMLElement;
+      const calendar = dateRow.querySelector('svg')!;
+      for (const attr of ['width', 'height', 'viewBox', 'class']) {
+        expect(icon.getAttribute(attr)).toBe(calendar.getAttribute(attr));
+      }
+      expect(icon.querySelector('path')!.getAttribute('stroke-width')).toBe(
+        calendar.querySelector('path')!.getAttribute('stroke-width'),
+      );
+      const text = within(row).getByText('lu.ma/labweek-lisbon');
+      expect(text).toHaveClass('fact');
+      expect(text.className).toBe(dateRow.querySelector('span')!.className);
+      // Only the icon: no trailing arrow inside the link.
+      expect(row.querySelectorAll('svg')).toHaveLength(1);
+      expect(screen.getByRole('link', { name: 'lu.ma/labweek-lisbon' }).querySelector('svg')).toBeNull();
+    });
+
+    it('LAB-3333 R4: the link opens the event page in a new tab', () => {
+      render(<Harness raw={eventResponse({ websiteUrl: URL_ })} />);
+      const link = within(screen.getByTestId('event-link-row')).getByRole('link');
+      expect(link).toHaveAttribute('href', URL_);
+      expect(link).toHaveAttribute('target', '_blank');
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    });
+
+    it('LAB-3333 R5: no link, no row', () => {
+      for (const websiteUrl of [null, '', 'javascript:alert(1)']) {
+        const { unmount } = render(<Harness raw={eventResponse({ websiteUrl })} />);
+        expect(screen.queryByTestId('event-link-row')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('event-link-icon')).not.toBeInTheDocument();
+        unmount();
+      }
+    });
+  });
+
+  describe('LAB-3334: websiteUrl first, the Registration resource as fallback', () => {
+    const SITE = 'https://lu.ma/labweek-lisbon';
+    const REG = 'https://luma.com/n4ad0k9m';
+    const resources = [{ name: 'Registration', link: REG, description: 'Registration URL' }];
+    const register = () => within(screen.getByTestId('rsvp-card')).queryByRole('link', { name: 'Register' });
+
+    it('LAB-3334 R1: the link row and Register use websiteUrl when it is a web address', () => {
+      render(<Harness raw={eventResponse({ websiteUrl: SITE, resources })} />);
+      const link = within(screen.getByTestId('event-link-row')).getByRole('link');
+      expect(link).toHaveAttribute('href', SITE);
+      expect(register()).toHaveAttribute('href', SITE);
+    });
+
+    it('LAB-3334 R2: the link row and Register use the Registration link, in a new tab, when websiteUrl is not valid', () => {
+      for (const websiteUrl of [null, '', 'javascript:alert(1)']) {
+        const { unmount } = render(<Harness raw={eventResponse({ websiteUrl, resources })} />);
+        const link = within(screen.getByTestId('event-link-row')).getByRole('link', { name: 'luma.com/n4ad0k9m' });
+        expect(link).toHaveAttribute('href', REG);
+        expect(link).toHaveAttribute('target', '_blank');
+        expect(register()).toHaveAttribute('href', REG);
+        expect(register()).toHaveAttribute('target', '_blank');
+        unmount();
+      }
+    });
+
+    it('LAB-3334 R3: no link row and no Register when neither link is valid', () => {
+      for (const websiteUrl of [null, '', 'javascript:alert(1)']) {
+        const bad = [{ name: 'Registration', link: 'javascript:alert(2)', description: null }];
+        const { unmount } = render(<Harness raw={eventResponse({ websiteUrl, resources: bad })} />);
+        expect(screen.queryByTestId('event-link-row')).not.toBeInTheDocument();
+        expect(register()).not.toBeInTheDocument();
+        unmount();
+      }
+    });
+
+    it('LAB-3334 R4: the name match ignores case and spaces at the ends', () => {
+      render(<Harness raw={eventResponse({ websiteUrl: '', resources: [{ name: '  REGISTRATION ', link: REG }] })} />);
+      expect(within(screen.getByTestId('event-link-row')).getByRole('link')).toHaveAttribute('href', REG);
+      expect(register()).toHaveAttribute('href', REG);
+    });
+
+    it('keeps the LAB-3324 address map link', () => {
+      const base = eventResponse();
+      const map = 'https://www.google.com/maps/search/?api=1&query=Lisbon';
+      render(
+        <Harness raw={eventResponse({ websiteUrl: '', resources, details: { ...base.details!, locationUrl: map } })} />,
+      );
+      expect(screen.getByRole('link', { name: 'Lisbon, Portugal' })).toHaveAttribute('href', map);
+    });
+  });
 });

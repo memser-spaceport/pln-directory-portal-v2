@@ -324,7 +324,7 @@ The page SHALL open with the title "Events", one line of description, a link "Op
 
 ### Requirement: Near you shows events in the member's city
 
-On a plain landing (List view, no filter, no city scope), a signed-in member whose profile has a location SHALL see "Near you in <city>" with up to 3 upcoming events in its city, soonest first, as picture tiles. The location's most specific part is used: its city, else its metro area, region or country (a location may hold no city; a city-state such as Singapore is saved as a country only). If no upcoming event is in that place, the section SHALL NOT show. A signed-in member whose profile has no location SHALL see, in the same place, one row: "See events near you. Add your location to your profile and we'll show what's coming up where you are." and an "Add location" button that opens their profile. Signed-out visitors SHALL see neither.
+In every view (List, Calendar, Map) and with any filter applied, unless a city is chosen (the city header takes its place), a signed-in member whose profile has a location SHALL see "Near you in <city>" with up to 3 upcoming events in its city, soonest first, as picture tiles. The location's most specific part is used: its city, else its metro area, region or country (a location may hold no city; a city-state such as Singapore is saved as a country only). If no upcoming event is in that place, the section SHALL NOT show. A signed-in member whose profile has no location SHALL see, in the same place, one row: "See events near you. Add your location to your profile and we'll show what's coming up where you are." and an "Add location" button that opens their profile. Signed-out visitors SHALL see neither.
 
 #### Scenario: Member in Lisbon
 
@@ -351,11 +351,17 @@ On a plain landing (List view, no filter, no city scope), a signed-in member who
 - **THEN** the page shows "See events near you." with "Add location"
 - **AND** pressing "Add location" opens their profile
 
-#### Scenario: Filters hide Near you
+#### Scenario: Near you stays across views and filters
 
 - **GIVEN** a signed-in member in Lisbon with upcoming Lisbon events
-- **WHEN** they apply any filter or switch to Calendar
-- **THEN** Near you is not shown
+- **WHEN** they apply a filter or switch to Calendar or Map
+- **THEN** "Near you in Lisbon" still shows, with the same events
+
+#### Scenario: A chosen city replaces Near you
+
+- **GIVEN** a signed-in member in Lisbon
+- **WHEN** they choose Dubai in Browse by city
+- **THEN** the Dubai city header shows and Near you does not
 
 #### Scenario: Signed out
 
@@ -381,7 +387,7 @@ The page SHALL show "Browse by city" with the 5 cities that have the most upcomi
 
 ### Requirement: The Coming up toolbar and filters
 
-A "Coming up" toolbar SHALL show the number of events that match, a Filters button and the view switch List · Calendar · Map, offering only the views this build has (no switch while there is one). On desktop and tablet it SHALL stay in view under the navbar while the events scroll. The filter rail SHALL be closed by default. The Filters button SHALL open it and show the number of applied filters. The rail SHALL have a control that closes it and "Clear All". While the rail is closed, each applied filter SHALL show as a removable chip under the toolbar. The filters SHALL be: search (event name, host, city or topic), City, Mode (In person, Virtual, Hybrid) and "Events I'm going to" (signed-in members only). A Mode or City filter with fewer than 2 values in the loaded events SHALL NOT show, unless it is applied. Filters and the view SHALL be kept in the page address, so a copied link reopens the same view and filters, and switching view SHALL keep the filters. On phones the filters SHALL open as a bottom sheet from a Filters button.
+A "Coming up" toolbar SHALL show the number of events that match, a Filters button and the view switch List · Calendar · Map, offering only the views this build has (no switch while there is one). On desktop and tablet it SHALL stay in view under the navbar while the events scroll. The filter rail SHALL be closed by default. The Filters button SHALL open it and show the number of applied filters. The rail SHALL have a control that closes it and "Clear All". While the rail is closed, each applied filter SHALL show as a removable chip under the toolbar. The filters SHALL be, in this order: search (event name, host, city or topic), "Events I'm going to" (signed-in members only), Mode (In person, Virtual, Hybrid), Access type (Free, Paid, Invite only: the words the cards and the drawer use), Focus area (the event's tags), City and Host (any of the event's hosts). Focus area and Host SHALL have a search box. Values within one filter SHALL match any (OR); different filters SHALL all apply (AND). A filter list with fewer than 2 values in the loaded events SHALL NOT show, unless it is applied; so Access type, Focus area and Host stay hidden while the events carry no details. A Featured filter SHALL NOT show until the events data says which events are featured. Filters and the view SHALL be kept in the page address, so a copied link reopens the same view and filters, and switching view SHALL keep the filters. On phones the filters SHALL open as a bottom sheet from a Filters button.
 
 #### Scenario: Filter survives a view switch
 
@@ -394,6 +400,18 @@ A "Coming up" toolbar SHALL show the number of events that match, a Filters butt
 - **GIVEN** the rail is closed with the chips "Hybrid", "Dubai" and "Lisbon"
 - **WHEN** the visitor removes "Dubai"
 - **THEN** the hybrid events in Lisbon show, and the Filters button reads 2
+
+#### Scenario: Filter by host
+
+- **GIVEN** upcoming events hosted by Protocol Labs and by Filecoin Foundation
+- **WHEN** the visitor picks Host "Protocol Labs"
+- **THEN** only the events Protocol Labs hosts or co-hosts show, with a "Protocol Labs" chip
+
+#### Scenario: No details yet
+
+- **GIVEN** upcoming events whose access, tags and hosts are all empty
+- **WHEN** the visitor opens the rail
+- **THEN** it shows no Access type, Focus area or Host section
 
 #### Scenario: Events I'm going to
 

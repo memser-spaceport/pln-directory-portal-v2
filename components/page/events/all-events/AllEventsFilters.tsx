@@ -10,17 +10,32 @@ import { GenericCheckboxList } from '@/components/common/filters/GenericCheckbox
 import { GenericFilterToggle } from '@/components/common/filters/GenericFilterToggle';
 import { createFilterGetter } from '@/services/teams/utils/createFilterGetter';
 import { decodeFilterValues, encodeFilterValues } from '@/services/filters';
-import { countAppliedFilters, facetOptions, readFilters, type FacetKey } from '@/services/events/all-events.filters';
+import {
+  countAppliedFilters,
+  FACET_KEYS,
+  facetOptions,
+  readFilters,
+  type FacetKey,
+} from '@/services/events/all-events.filters';
 import { useAllEventsFilterStore } from '@/services/events/all-events-filters.store';
 import type { AllEventsItem } from '@/services/events/all-events.types';
 
 import { SidebarIcon } from './icons';
 import s from './AllEventsPage.module.scss';
 
-const FACETS: { key: FacetKey; title: string }[] = [
-  { key: 'mode', title: 'Mode' },
-  { key: 'city', title: 'City' },
-];
+/** The prototype's rail: Focus area and Host can hold many values, so they get a search box and show 5 at first. */
+const FACETS: Record<FacetKey, { title: string; label?: string; placeholder?: string; searchable?: boolean }> = {
+  mode: { title: 'Mode' },
+  access: { title: 'Access type' },
+  focus: {
+    title: 'Focus area',
+    label: 'Search or select a focus area',
+    placeholder: 'E.g. AI',
+    searchable: true,
+  },
+  city: { title: 'City' },
+  host: { title: 'Host', label: 'Search or select a host', placeholder: 'E.g. Protocol Labs', searchable: true },
+};
 
 interface RailProps {
   /** Every upcoming event: the counts beside each option are over these. */
@@ -39,9 +54,10 @@ interface RailProps {
 
 /**
  * The left rail, built as Teams and Members build theirs: a FiltersSidePanel ("Filters", applied count, Clear All)
- * with a title-less search, then one section per filter. Phase 1 has the filters the data can answer: search, "Events
- * I'm going to", Mode and City. A facet with fewer than two values in the events is left out, unless it is applied.
- * Host, Access, Focus area and Featured come back when events carry them (phase 2, LAB-3281).
+ * with a title-less search, then one section per filter: search, "Events I'm going to", Mode, Access type, Focus area,
+ * City and Host. A facet with fewer than two values in the events is left out, unless it is applied: before the events
+ * service has synced the events' details, Access, Focus area and Host have none and stay hidden. Featured waits for
+ * the backend to send it (phase 2, LAB-3281).
  */
 export function AllEventsFilterRail({ events, goingCount, onClose, onHide, onClear, onCityPicked }: RailProps) {
   const { params } = useAllEventsFilterStore();
@@ -78,17 +94,21 @@ export function AllEventsFilterRail({ events, goingCount, onClose, onHide, onCle
         </FilterSection>
       )}
 
-      {FACETS.map(({ key, title }) => {
+      {FACET_KEYS.map((key) => {
         const options = facetOptions(events, key);
         if (options.length < 2 && !applied[key].length) return null;
+        const { title, label, placeholder, searchable } = FACETS[key];
         return (
           <FilterSection key={key} title={title}>
             <GenericCheckboxList
+              label={label}
               paramKey={key}
-              hideSearch
+              placeholder={placeholder}
+              hideSearch={!searchable}
               filterStore={useAllEventsFilterStore}
               useGetDataHook={createFilterGetter(options)}
-              defaultItemsToShow={10}
+              defaultItemsToShow={searchable ? 5 : 10}
+              collapsible={searchable}
               onChange={key === 'city' ? (_, values) => values.length === 1 && onCityPicked?.(values[0]) : undefined}
             />
           </FilterSection>
@@ -111,8 +131,10 @@ export function appliedChips(params: URLSearchParams, scopedCity: string | null)
   const chips: Chip[] = [];
   if (f.search) chips.push({ key: 'search', label: `“${f.search}”` });
   if (f.going) chips.push({ key: 'going', label: "Events I'm going to" });
-  f.mode.forEach((value) => chips.push({ key: 'mode', value, label: value }));
-  if (!scopedCity) f.city.forEach((value) => chips.push({ key: 'city', value, label: value }));
+  FACET_KEYS.forEach((key) => {
+    if (key === 'city' && scopedCity) return;
+    f[key].forEach((value) => chips.push({ key, value, label: value }));
+  });
   return chips;
 }
 

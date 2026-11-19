@@ -49,8 +49,47 @@ describe('filterEvents', () => {
     expect(run('mode=Hybrid&city=Lisbon')).toEqual([]);
   });
 
+  describe('Access type, Focus area and Host (from the event details)', () => {
+    const paid = item({ uid: 'paid', access: 'PAID', hosts: ['Filecoin Foundation', 'Protocol Labs'], tags: ['AI'] });
+    const invite = item({ uid: 'inv', access: 'INVITE ONLY', hosts: ['Protocol Labs'], tags: ['Storage', 'AI'] });
+    const bare = item({ uid: 'bare' });
+    const many = [paid, invite, bare];
+    const pick = (q: string) => filterEvents(many, readFilters(params(q)), new Set()).map((e) => e.uid);
+
+    it('filters by access, in the words the cards use', () => {
+      expect(pick('access=Paid')).toEqual(['paid']);
+      expect(pick('access=Paid|Invite only')).toEqual(['paid', 'inv']);
+    });
+
+    it('filters by focus area (the tags) and by any of the hosts, case-insensitively', () => {
+      expect(pick('focus=storage')).toEqual(['inv']);
+      expect(pick('focus=AI')).toEqual(['paid', 'inv']);
+      expect(pick('host=Filecoin Foundation')).toEqual(['paid']);
+      expect(pick('host=protocol labs&access=Invite only')).toEqual(['inv']);
+    });
+
+    it('never matches an event without details once one of them is applied', () => {
+      expect(pick('host=Protocol Labs')).not.toContain('bare');
+      expect(pick('')).toContain('bare');
+    });
+
+    it('lists their options with counts; an event without details adds none', () => {
+      expect(facetOptions(many, 'access').map((o) => o.value)).toEqual(['Invite only', 'Paid']);
+      expect(facetOptions(many, 'focus')).toEqual([
+        { value: 'AI', count: 2, disabled: false },
+        { value: 'Storage', count: 1, disabled: false },
+      ]);
+      expect(facetOptions(many, 'host').map((o) => [o.value, o.count])).toEqual([
+        ['Protocol Labs', 2],
+        ['Filecoin Foundation', 1],
+      ]);
+      expect(facetOptions([bare], 'access')).toEqual([]);
+    });
+  });
+
   it('counts each applied value, never the view, calendar mode or open event', () => {
     expect(countAppliedFilters(params('search=x&going=true&mode=Virtual|Hybrid&city=Dubai'))).toBe(5);
+    expect(countAppliedFilters(params('access=Paid&focus=AI|Storage&host=Protocol Labs'))).toBe(4);
     expect(countAppliedFilters(params('view=calendar&cal=month&event=e1'))).toBe(0);
   });
 

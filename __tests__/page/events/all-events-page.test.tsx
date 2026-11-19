@@ -198,8 +198,19 @@ describe('Near you', () => {
     expect(screen.getByRole('link', { name: 'Add location' })).toHaveAttribute('href', '/members/m1');
   });
 
-  it('steps aside once a filter is applied', () => {
-    renderPage(signedIn('Lisbon'), '/events/all?mode=Virtual');
+  it('stays in every view and with any filter; only a chosen city takes its place', () => {
+    const { unmount } = renderPage(signedIn('Lisbon'), '/events/all?mode=Virtual');
+    expect(screen.getByRole('region', { name: 'Near you in Lisbon' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: /Calendar/ }));
+    expect(screen.getByRole('region', { name: 'Near you in Lisbon' })).toBeInTheDocument();
+    unmount();
+
+    renderPage(signedIn(null), '/events/all?view=calendar&search=summit');
+    expect(screen.getByText('See events near you.')).toBeInTheDocument();
+  });
+
+  it('gives way to the city header when a city is chosen', () => {
+    renderPage(signedIn('Lisbon'), '/events/all?city=Dubai');
     expect(screen.queryByText(/Near you in/)).toBeNull();
   });
 
@@ -250,6 +261,35 @@ describe('filters', () => {
     expect(within(rail).queryByText('Mode')).toBeNull();
     expect(within(rail).getByText('City')).toBeInTheDocument();
     expect(within(rail).queryByText("Events I'm going to")).toBeNull();
+  });
+
+  it('offers Access type, Focus area and Host once the events carry them, and hides them before', () => {
+    const detailed = [
+      item({ uid: 'a', access: 'PAID', hosts: ['Protocol Labs'], tags: ['AI'] }),
+      item({ uid: 'b', city: 'Dubai', access: 'INVITE ONLY', hosts: ['Filecoin Foundation'], tags: ['Storage'] }),
+    ];
+    const { unmount } = renderPage({ result: { ok: true, items: detailed } });
+    fireEvent.click(filtersDoor());
+    let rail = document.getElementById('events-filters') as HTMLElement;
+    const titles = ['Access type', 'Focus area', 'City', 'Host'];
+    titles.forEach((title) => expect(within(rail).getByText(title)).toBeInTheDocument());
+    // The prototype's order: Mode, Access type, Focus area, City, Host.
+    const text = rail.textContent ?? '';
+    expect(titles.map((t) => text.indexOf(t))).toEqual([...titles.map((t) => text.indexOf(t))].sort((x, y) => x - y));
+    unmount();
+
+    renderPage();
+    fireEvent.click(filtersDoor());
+    rail = document.getElementById('events-filters') as HTMLElement;
+    ['Access type', 'Focus area'].forEach((title) => expect(within(rail).queryByText(title)).toBeNull());
+  });
+
+  it('narrows the events by host and shows it as a chip', () => {
+    renderPage({}, '/events/all?host=Protocol Labs');
+    expect(toolbarCount()).toBe('1 event');
+    expect(screen.getByText('DAI Summit')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Remove filter Protocol Labs' }));
+    expect(storeParams().get('host')).toBeNull();
   });
 
   it('removes one chip and the count follows', () => {

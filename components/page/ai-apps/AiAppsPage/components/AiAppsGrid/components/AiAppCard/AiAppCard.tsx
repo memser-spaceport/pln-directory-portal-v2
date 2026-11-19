@@ -7,7 +7,14 @@ import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { DocumentIcon, EyeIcon, UsersThreeIcon } from '@/components/icons';
 import { Button } from '@/components/common/Button';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
-import { AiApp, aiAppStatusLabel, aiAppTarget, deployFailureKind, hasPrd, isPrivateAiApp } from '@/services/ai-apps/ai-apps.service';
+import {
+  AiApp,
+  aiAppStatusLabel,
+  aiAppTarget,
+  deployFailureKind,
+  hasPrd,
+  isPrivateAiApp,
+} from '@/services/ai-apps/ai-apps.service';
 import { formatAiAppDate, formatCount } from '@/utils/ai-apps.utils';
 import { DetailsItem } from '@/components/core/UpdatesPanel/NotificationItem/components/NotificationFooter/components/DetailsItem';
 import nf from '@/components/core/UpdatesPanel/NotificationItem/components/NotificationFooter/NotificationFooter.module.scss';
@@ -84,6 +91,10 @@ export function AiAppCard(props: Props) {
     <>
       {/* Reserve room for the ⋯ menu so long names ellipsize instead of sliding under it. */}
       <div className={clsx(s.nameRow, { [s.nameRowMenu]: showManageMenu })}>
+        {app.iconUrl && (
+          // An admin-uploaded icon (LAB-3238); apps without one keep the plain title row.
+          <img className={s.appIcon} src={app.iconUrl} alt="" width={24} height={24} />
+        )}
         <h3 className={s.name}>{app.name}</h3>
         {isDraft && <span className={s.draftBadge}>Draft</span>}
         {isDeploying && <span className={s.deployingBadge}>Deploying</span>}

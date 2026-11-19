@@ -16,9 +16,18 @@ const mockReplace = jest.fn();
 const mockAccessDenied = jest.fn();
 const mockPermissions = jest.fn(() => ({ permissions: [] as string[], isLoading: false, isError: false }));
 
+let mockPathname = '/pl-infra/ai-apps';
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ replace: mockReplace, push: jest.fn(), prefetch: jest.fn(), refresh: jest.fn() }),
-  usePathname: () => '/pl-infra/ai-apps',
+  usePathname: () => mockPathname,
+}));
+
+let mockPublished: { apps: Array<{ uid: string; path?: string | null }>; isLoading: boolean } = {
+  apps: [],
+  isLoading: false,
+};
+jest.mock('@/services/ai-apps/hooks/usePublishedAiApps', () => ({
+  usePublishedAiApps: () => mockPublished,
 }));
 
 jest.mock('@/services/rbac/hooks/usePermissions', () => ({
@@ -48,6 +57,8 @@ const page = () => screen.queryByText('AI Apps page');
 beforeEach(() => {
   jest.clearAllMocks();
   mockPermissions.mockReturnValue(GRANTED);
+  mockPathname = '/pl-infra/ai-apps';
+  mockPublished = { apps: [], isLoading: false };
 });
 
 describe('AiAppsAccessGuard — the gate', () => {
@@ -154,5 +165,62 @@ describe('AiAppsAccessGuard — staying mounted through a refetch', () => {
     renderGuard();
 
     expect(page()).not.toBeInTheDocument();
+  });
+});
+
+// LAB-3336: a catalog link shared with a member the app is published to.
+describe('AiAppsAccessGuard — a catalog link to an app published to the member', () => {
+  const renderAppPage = (segment = 'cmhello1') =>
+    render(<AiAppsAccessGuard publishedAppSegment={segment}>{children}</AiAppsAccessGuard>);
+
+  beforeEach(() => mockPermissions.mockReturnValue(DENIED));
+
+  it('opens the app at its published path instead of sending the member Home', () => {
+    mockPathname = '/pl-infra/ai-apps/cmhello1';
+    mockPublished = { apps: [{ uid: 'cmhello1', path: 'hello' }], isLoading: false };
+
+    renderAppPage();
+
+    expect(mockReplace).toHaveBeenCalledWith('/apps/hello');
+    expect(mockAccessDenied).not.toHaveBeenCalled();
+    expect(page()).toBeNull();
+  });
+
+  it('keeps the subpage, and uses the uid when the app has no path', () => {
+    mockPathname = '/pl-infra/ai-apps/cmhello1/reports/q3';
+    mockPublished = { apps: [{ uid: 'cmhello1', path: null }], isLoading: false };
+
+    renderAppPage();
+
+    expect(mockReplace).toHaveBeenCalledWith('/apps/cmhello1/reports/q3');
+  });
+
+  it('waits for the published list before deciding', () => {
+    mockPathname = '/pl-infra/ai-apps/cmhello1';
+    mockPublished = { apps: [], isLoading: true };
+
+    renderAppPage();
+
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  it('still sends a member Home when the app is not published to them', () => {
+    mockPathname = '/pl-infra/ai-apps/cmother';
+    mockPublished = { apps: [{ uid: 'cmhello1', path: 'hello' }], isLoading: false };
+
+    renderAppPage('cmother');
+
+    expect(mockReplace).toHaveBeenCalledWith('/');
+    expect(mockAccessDenied).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the catalog page to a PL Infra member as before', () => {
+    mockPermissions.mockReturnValue(GRANTED);
+    mockPublished = { apps: [{ uid: 'cmhello1', path: 'hello' }], isLoading: false };
+
+    renderAppPage();
+
+    expect(page()).toBeInTheDocument();
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 });

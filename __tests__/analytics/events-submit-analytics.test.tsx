@@ -4,7 +4,7 @@ import { useEventsAnalytics } from '@/analytics/events.analytics';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { EVENTS_SUBMIT_ANALYTICS } from '@/utils/constants';
 
-/* The submit form, edit page and My Submissions events: seven names, and no email or event text in any of them. */
+/* The submit form, edit page and My Submissions events: six names, and no email or event text in any of them. */
 
 const capture = jest.fn();
 jest.mock('posthog-js/react', () => ({ usePostHog: () => ({ capture }) }));
@@ -19,35 +19,32 @@ beforeEach(() => {
 function fireAll() {
   const { result } = renderHook(() => useEventsAnalytics());
   result.current.onEventsSubmitFormOpened();
-  result.current.onEventsSubmitFormSubmitted({ result: 'approved', signedIn: true });
+  result.current.onEventsSubmitFormSubmitted({ result: 'approved' });
   result.current.onEventsSubmitFormFailed({ status: 429 });
-  result.current.onEventsLumaImported();
   result.current.onEventsMySubmissionsOpened();
   result.current.onEventsEventEdited({ eventUid: 'e1', action: 'updated' });
   result.current.onEventsEventDeleted({ eventUid: 'e1', from: 'my-submissions' });
 }
 
 describe('events submit analytics', () => {
-  it('sends the seven events by name', () => {
+  it('sends the six events by name', () => {
     fireAll();
     expect(capture.mock.calls.map(([name]) => name)).toEqual([
       'events-submit-form-opened',
       'events-submit-form-submitted',
       'events-submit-form-failed',
-      'events-luma-imported',
       'events-my-submissions-opened',
       'events-event-edited',
       'events-event-deleted',
     ]);
-    expect(Object.values(EVENTS_SUBMIT_ANALYTICS)).toHaveLength(7);
+    expect(Object.values(EVENTS_SUBMIT_ANALYTICS)).toHaveLength(6);
   });
 
-  it('sends a published submission with result approved and signed in true', () => {
+  it('sends a published submission with result approved', () => {
     const { result } = renderHook(() => useEventsAnalytics());
-    result.current.onEventsSubmitFormSubmitted({ result: 'approved', signedIn: true });
+    result.current.onEventsSubmitFormSubmitted({ result: 'approved' });
     expect(capture).toHaveBeenCalledWith('events-submit-form-submitted', {
       result: 'approved',
-      signed_in: true,
       loggedInUserUid: 'm1',
       is_authenticated: true,
     });
@@ -73,13 +70,11 @@ describe('events submit analytics', () => {
     });
   });
 
-  it('marks a signed-out visitor', () => {
+  it('marks an event sent with no viewer', () => {
     useCurrentUserStore.setState({ currentUser: null } as never);
     const { result } = renderHook(() => useEventsAnalytics());
-    result.current.onEventsSubmitFormSubmitted({ result: 'submitted', signedIn: false });
-    expect(capture).toHaveBeenCalledWith('events-submit-form-submitted', {
-      result: 'submitted',
-      signed_in: false,
+    result.current.onEventsSubmitFormOpened();
+    expect(capture).toHaveBeenCalledWith('events-submit-form-opened', {
       loggedInUserUid: null,
       is_authenticated: false,
     });

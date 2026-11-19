@@ -102,7 +102,7 @@ describe('DescriptionSection: description', () => {
 describe('DescriptionSection: agenda box', () => {
   it('stores the parsed sessions and shows them by day', async () => {
     parse.mockResolvedValue({ sessions: [session], message: null });
-    const { form } = renderSection(<DescriptionSection />, { values: dates, signedIn: false });
+    const { form } = renderSection(<DescriptionSection />, { values: dates });
 
     openBoxWith(TEXT);
     fireEvent.click(screen.getByRole('button', { name: 'Add' }));
@@ -111,15 +111,12 @@ describe('DescriptionSection: agenda box', () => {
     expect(screen.getByText('10:00 AM – 10:30 AM • Opening Ceremony')).toBeInTheDocument();
     expect(screen.getByText('Welcome note and event kickoff')).toBeInTheDocument();
     expect(screen.queryByPlaceholderText(AGENDA_PLACEHOLDER)).not.toBeInTheDocument();
-    expect(parse).toHaveBeenCalledWith(
-      {
-        text: TEXT,
-        startDate: '2026-01-28T09:00:00.000Z',
-        endDate: '2026-01-28T18:00:00.000Z',
-        timezone: 'Europe/Lisbon',
-      },
-      false,
-    );
+    expect(parse).toHaveBeenCalledWith({
+      text: TEXT,
+      startDate: '2026-01-28T09:00:00.000Z',
+      endDate: '2026-01-28T18:00:00.000Z',
+      timezone: 'Europe/Lisbon',
+    });
     expect(form.current.getValues('agenda')).toEqual({ sessions: [session], agendaSummary: TEXT });
   });
 

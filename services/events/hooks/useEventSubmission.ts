@@ -36,7 +36,7 @@ export async function refreshAfterEventWrite(queryClient: Pick<QueryClient, 'inv
 export function useSubmitEvent() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ body, withAuth }: { body: SubmitEventBody; withAuth: boolean }) => submitEvent(body, withAuth),
+    mutationFn: (body: SubmitEventBody) => submitEvent(body),
     onSuccess: () => refreshAfterEventWrite(queryClient),
   });
 }
@@ -86,11 +86,11 @@ export function useEventForEdit(eventUid: string) {
  * Venue suggestions for the text a person typed. The caller debounces `query`; the key holds it, so an answer for an
  * older text is never shown for a newer one.
  */
-export function usePlaceSuggestions(query: string, withAuth: boolean) {
+export function usePlaceSuggestions(query: string) {
   const text = query.trim();
   return useQuery({
     queryKey: [EventsQueryKeys.EVENT_PLACES, text],
-    queryFn: () => searchPlaces(text, withAuth),
+    queryFn: () => searchPlaces(text),
     enabled: text.length > 0,
     placeholderData: keepPreviousData,
     staleTime: 60_000,

@@ -218,13 +218,13 @@ describe('FormatSection: venue', () => {
     expect(screen.queryByPlaceholderText('8th Floor, 2nd Building, etc.')).not.toBeInTheDocument();
   });
 
-  it('searches 300 ms after the last key, with the sign-in state, and lists at most 5 suggestions', async () => {
+  it('searches 300 ms after the last key, and lists at most 5 suggestions', async () => {
     const many: PlaceSuggestion[] = Array.from({ length: 7 }, (_, i) => ({
       text: `Place ${i + 1}`,
       placeId: `p${i + 1}`,
     }));
     search.mockResolvedValue(many);
-    renderSection(<FormatSection />, { signedIn: false });
+    renderSection(<FormatSection />);
 
     type('Pla');
     await settle(299);
@@ -233,7 +233,7 @@ describe('FormatSection: venue', () => {
     await settle(1);
     await settle();
     expect(search).toHaveBeenCalledTimes(1);
-    expect(search).toHaveBeenCalledWith('Pla', false);
+    expect(search).toHaveBeenCalledWith('Pla');
     expect(options()).toEqual(['Place 1', 'Place 2', 'Place 3', 'Place 4', 'Place 5']);
     expect(venueInput()).toHaveAttribute('aria-expanded', 'true');
   });
@@ -300,14 +300,13 @@ describe('FormatSection: venue', () => {
         endTime: '18:00',
         agenda,
       },
-      signedIn: false,
     });
 
     await typeAndWait('Shibuya');
     fireEvent.click(screen.getByRole('option', { name: 'Shibuya, Tokyo' }));
     await settle();
 
-    expect(resolve).toHaveBeenCalledWith({ placeId: 'tokyo-1' }, false);
+    expect(resolve).toHaveBeenCalledWith({ placeId: 'tokyo-1' });
     const values = form.current.getValues();
     expect(values.venue).toBe(TOKYO.address);
     expect(values.place).toEqual({
@@ -378,7 +377,7 @@ describe('FormatSection: venue', () => {
     fireEvent.keyDown(input, { key: 'Enter' });
     await settle();
 
-    expect(resolve).toHaveBeenCalledWith({ placeId: 'p1' }, true);
+    expect(resolve).toHaveBeenCalledWith({ placeId: 'p1' });
     expect(form.current.getValues('venue')).toBe(LISBON.address);
     expect(form.current.getValues('place')?.city).toBe('Lisbon');
   });
@@ -392,7 +391,7 @@ describe('FormatSection: venue', () => {
     fireEvent.keyDown(venueInput(), { key: 'Enter' });
     await settle();
 
-    expect(resolve).toHaveBeenCalledWith({ address: 'Avenida da Liberdade' }, true);
+    expect(resolve).toHaveBeenCalledWith({ address: 'Avenida da Liberdade' });
     expect(form.current.getValues('venue')).toBe(LISBON.address);
     expect(form.current.getValues('timezone')).toBe('Europe/Lisbon');
     expect(screen.getByPlaceholderText('8th Floor, 2nd Building, etc.')).toBeInTheDocument();

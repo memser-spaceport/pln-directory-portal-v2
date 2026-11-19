@@ -12,7 +12,6 @@ import type { EventFormValues } from '@/services/events/event-submission.types';
 jest.unmock('@tanstack/react-query');
 jest.mock('react-calendar', () => ({ __esModule: true, default: () => <div data-testid="calendar" /> }));
 jest.mock('@/components/form/FormEditor', () => ({ FormEditor: () => <div data-testid="editor" /> }));
-jest.mock('@/analytics/events.analytics', () => ({ useEventsAnalytics: () => ({ onEventsLumaImported: jest.fn() }) }));
 
 const scrollIntoView = jest.fn();
 beforeAll(() => {
@@ -34,7 +33,6 @@ function open(props: Partial<EventFormProps> & { values?: Partial<EventFormValue
       <EventForm
         ref={ref}
         variant="submit"
-        signedIn
         initialValues={eventFormValues(values)}
         onSend={onSend}
         onInvalid={onInvalid}
@@ -69,6 +67,7 @@ describe('sections', () => {
     expect(screen.queryByText('Website Link')).toBeNull();
     expect(screen.queryByText('Social Handles')).toBeNull();
     expect(screen.queryByPlaceholderText('Enter your email')).toBeNull();
+    expect(screen.queryByText(/Luma/)).toBeNull();
   });
 
   it('adds Website Link and Social Handles on the edit page', () => {
@@ -76,11 +75,6 @@ describe('sections', () => {
     expect(sections()).toHaveLength(10);
     expect(screen.getByText('Website Link')).toBeInTheDocument();
     expect(screen.getByText('Social Handles')).toBeInTheDocument();
-  });
-
-  it('asks a signed-out visitor for a contact email', () => {
-    open({ signedIn: false });
-    expect(screen.getByPlaceholderText('Enter your email')).toBeInTheDocument();
   });
 
   it('starts with "Free/Rsvp", "In Person" and the first tag', () => {
@@ -155,13 +149,6 @@ describe('Submit Event checks', () => {
     const { run, onSend } = open({ values: { ...filled, agenda, description: '<p>Hi</p>' } });
     await run('submit');
     expect(screen.getByText(/"Afterparty" is on Jan 29, but your event ends Jan 28/)).toBeInTheDocument();
-    expect(onSend).not.toHaveBeenCalled();
-  });
-
-  it('needs a valid contact email from a signed-out visitor', async () => {
-    const { run, onSend } = open({ signedIn: false, values: filled });
-    await run('submit');
-    expect(screen.getByText('Enter a valid email')).toBeInTheDocument();
     expect(onSend).not.toHaveBeenCalled();
   });
 

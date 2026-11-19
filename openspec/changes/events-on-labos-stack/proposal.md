@@ -10,11 +10,11 @@ The rule for this change: **the UX stays the same, the look becomes LabOS.** The
 
 ## What Changes
 
-- **Submit form in LabOS.** `/events/submit` is the old "Submit Event" form: access option, registration link with import from Luma, logo, name, format with venue search, map and meeting link, dates and time zone, rich-text description with agenda, tags, host and co-hosts, "Save as draft", "Submit Event", "Clear form" and "Preview". It sends `POST /v1/irl/events`.
+- **Submit form in LabOS.** `/events/submit` is the old "Submit Event" form: access option, registration link, logo, name, format with venue search, map and meeting link, dates and time zone, rich-text description with agenda, tags, host and co-hosts, "Save as draft", "Submit Event", "Clear form" and "Preview". It sends `POST /v1/irl/events`.
 - **Edit page.** `/events/edit/<uid>` is the old edit page: it opens read-only, "Edit" unlocks it, it adds Website Link and Social Handles, and it has "Save as draft", "Submit" or "Save Changes", and "Delete Event".
 - **My Submissions.** `/events/mine` is the old "My Submissions" tab: status per event (Draft, Submitted, Approved, Rejected), search, Upcoming / Past, month groups, Modify / View / Delete.
 - **Differences from the old portal, all decided by the Goal:**
-  - Signed-out people can submit, with a contact email. The old portal needed a sign-in by email code. They get no drafts and no My Submissions.
+  - Sign-in is the LabOS sign-in. The old portal had its own sign-in by email code. A signed-out visitor is asked to sign in and returns to the form.
   - The backend decides the status: a member with forum access is "Approved" at once, everyone else is "Submitted". The form shows the status it gets.
   - Saving an approved event keeps it approved.
 - **The event drawer links to the edit page** for the submitter and a directory admin, and shows the status of an event that is not approved to them only.
@@ -37,8 +37,8 @@ None. All behaviour belongs to the existing `events` capability.
 
 - **Routes:** new `/events/submit`, `/events/edit/[uid]`, `/events/mine`.
 - **Code:** `services/events/` (submit, draft, edit, delete, mine, lookups, list loader), `components/page/events/` (form sections, edit page, My Submissions, drawer link, header), `components/page/irl/events/irl-events.tsx`, `components/page/events/schedule-section/` (deleted with the iframe), `utils/irl-submit-url.ts` (deleted), `next.config.mjs` env list, `.env.example`, `analytics/events.analytics.ts`, `utils/constants.ts`.
-- **Dependencies:** a rich-text editor (the old portal uses Tiptap) and a time zone list, only if the repo has no equivalent; design D3 decides.
-- **Backend it depends on:** submit, draft, edit, delete, mine and the status on the event read (LAB-3325); the list endpoint (LAB-3281); the form lookups for venues, agenda parsing and Luma import (LAB-3343).
+- **Dependencies:** none. The repo's editor covers the old toolbar (design D3), and the time zone list comes from the browser.
+- **Backend it depends on:** submit, draft, edit, delete, mine and the status on the event read (LAB-3325); the list endpoint (LAB-3281); the form lookups for venues and agenda parsing (LAB-3343).
 - **Design:** no new design is needed for the form, the edit page and My Submissions; they follow the old portal's UX with LabOS components. Polina reviews before prod. LAB-3280 stays for anything she wants to change later.
 - **Order:** this change builds on `lab-3247` once it is in `develop`. The removal step ships only after the backend cutover (LAB-3327).
 
@@ -50,7 +50,8 @@ Not moved from the old portal, because they are admin tools and the Goal moves a
 - The admin "Event Contributors" tab of the form (members and teams as hosts, speakers, sponsors, attendees).
 - IRL gathering and location management, Switch IRL gathering, gathering resources.
 - Users management (admins and the event-creator whitelist). Forum access replaces the whitelist.
-- Luma batch import (`/events/luma-import`). The one-event "Fetch from Luma" in the form is kept.
+- Luma import: the batch import (`/events/luma-import`) and the one-event "Fetch from Luma" in the form. A later option, by the scope decision of 2026-11-19.
+- Submissions from people with no LabOS account. They ask the events curator, who adds the event for them.
 - The portal's own sign-in (email code, "Continue with LabOS").
 
 Also out of scope:

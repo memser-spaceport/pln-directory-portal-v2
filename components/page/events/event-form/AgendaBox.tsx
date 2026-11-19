@@ -10,7 +10,6 @@ import type { EventBodyAgenda, EventFormValues } from '@/services/events/event-s
 
 import { AgendaFormatCard } from './AgendaFormatCard';
 import { EventFormDialog } from './EventFormDialog';
-import { useEventFormContext } from './EventFormContext';
 import f from './EventForm.module.scss';
 import s from './AgendaBox.module.scss';
 
@@ -36,7 +35,6 @@ function agendaText(agenda: EventBodyAgenda | null, timezone: string): string {
  */
 export function AgendaBox({ onClose }: { onClose: () => void }) {
   const { getValues, setValue, clearErrors } = useFormContext<EventFormValues>();
-  const { signedIn } = useEventFormContext();
   const [text, setText] = useState(() => agendaText(getValues('agenda'), getValues('timezone')));
   const [message, setMessage] = useState<string | null>(null);
   const [reading, setReading] = useState(false);
@@ -63,10 +61,12 @@ export function AgendaBox({ onClose }: { onClose: () => void }) {
     setMessage(null);
     setReading(true);
     try {
-      const parsed = await parseAgenda(
-        { text, startDate: instants.start, endDate: instants.end, timezone: values.timezone },
-        signedIn,
-      );
+      const parsed = await parseAgenda({
+        text,
+        startDate: instants.start,
+        endDate: instants.end,
+        timezone: values.timezone,
+      });
       if (closed.current) return;
       if (!parsed.sessions.length) {
         setMessage(parsed.message || NO_TIMES);

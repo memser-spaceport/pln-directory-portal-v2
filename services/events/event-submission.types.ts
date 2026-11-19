@@ -50,6 +50,8 @@ export interface EventBodyFields {
   startDate: string;
   endDate: string;
   timezone: string;
+  /** The form makes timed events only. All-day events come from partner apps. */
+  allDay: boolean;
   format: EventFormat;
   accessOption: EventAccessOption;
   tags: string[];
@@ -66,10 +68,9 @@ export interface EventBodyFields {
   logoUid?: string | null;
 }
 
-/** `POST /v1/irl/events`. `draft: true` stores a draft; `contactEmail` is for a signed-out submitter. */
+/** `POST /v1/irl/events`, for a signed-in member. `draft: true` stores a draft. */
 export interface SubmitEventBody extends EventBodyFields {
   draft?: boolean;
-  contactEmail?: string;
 }
 
 /** `PATCH /v1/irl/events/:uid`. `submit: true` sends a draft for publishing. An edit never changes the status. */
@@ -122,23 +123,6 @@ export interface ParsedAgenda {
   message: string | null;
 }
 
-/** `GET /v1/irl/events/import/luma`: a Luma event, ready for the form. */
-export interface LumaEvent {
-  name?: string | null;
-  logoUrl?: string | null;
-  startDate?: string | null;
-  endDate?: string | null;
-  timezone?: string | null;
-  format?: EventFormat | null;
-  accessOption?: EventAccessOption | null;
-  description?: string | null;
-  agenda?: EventBodyAgenda | null;
-  tags?: string[] | null;
-  hostName?: string | null;
-  meetingUrl?: string | null;
-  address?: (EventBodyAddress & { locationUrl?: string | null }) | null;
-}
-
 /** An event as the edit page loads it: the event read, with the status and every field the form fills. */
 export interface EditableEvent {
   uid: string;
@@ -173,7 +157,7 @@ export interface EventFormPlace {
   locationUrl: string | null;
 }
 
-/** The logo in the form: a new file (uploaded when the form is sent), a stored image, or an address from Luma. */
+/** The logo in the form: a new file (uploaded when the form is sent), or the event's stored image. */
 export type EventFormLogo =
   | { kind: 'file'; file: File; previewUrl: string }
   | { kind: 'stored'; uid: string | null; url: string }
@@ -208,8 +192,6 @@ export interface EventFormValues {
   /** Edit page only. */
   websiteUrl: string;
   socialHandles: EventFormSocialHandle[];
-  /** Signed-out submitters only. */
-  contactEmail: string;
 }
 
 /** Messages by field. `coHosts` and `socialHandles` carry one entry per row. */
@@ -224,7 +206,6 @@ export interface EventFormErrors {
   websiteUrl?: string;
   socialHandles?: (string | undefined)[];
   agenda?: string;
-  contactEmail?: string;
 }
 
 export type EventFormMode = 'submit' | 'draft';

@@ -26,7 +26,7 @@ const optionId = (index: number) => `event-venue-suggestion-${index}`;
  */
 export function VenueField() {
   const { watch, getValues, setValue, clearErrors } = useFormContext<EventFormValues>();
-  const { signedIn, busy } = useEventFormContext();
+  const { busy } = useEventFormContext();
   const venue = watch('venue') ?? '';
 
   // The text the suggestions are asked for: the typed text, once typing has paused.
@@ -39,7 +39,7 @@ export function VenueField() {
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
-  const { data, isPlaceholderData } = usePlaceSuggestions(query, signedIn);
+  const { data, isPlaceholderData } = usePlaceSuggestions(query);
   // Only the answer for the text in the field is listed, never one for an earlier text.
   const current = query !== '' && query === venue.trim() && !isPlaceholderData;
   const suggestions = current ? (data ?? []).slice(0, MAX_SUGGESTIONS) : [];
@@ -95,7 +95,7 @@ export function VenueField() {
     setActive(-1);
     let resolved: ResolvedPlace | null;
     try {
-      resolved = await resolvePlace(place, signedIn);
+      resolved = await resolvePlace(place);
     } catch {
       return;
     }

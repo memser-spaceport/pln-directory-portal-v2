@@ -13,7 +13,6 @@ import type {
   EventFormSocialHandle,
   EventFormValues,
   EventStatus,
-  LumaEvent,
 } from './event-submission.types';
 
 /*
@@ -120,7 +119,6 @@ export function defaultEventFormValues(timezone: string): EventFormValues {
     coHosts: [],
     websiteUrl: '',
     socialHandles: [],
-    contactEmail: '',
   };
 }
 
@@ -293,16 +291,6 @@ export function toHttpUrl(url: string): string | null {
   return /^https?:\/\//i.test(value) ? value : `https://${value}`;
 }
 
-/** True for a `luma.com` or `lu.ma` address, with or without a scheme or "www.". */
-export function isLumaUrl(url: string): boolean {
-  try {
-    const host = new URL(toHttpUrl(url) ?? '').hostname.toLowerCase().replace(/^www\./, '');
-    return host === 'luma.com' || host === 'lu.ma';
-  } catch {
-    return false;
-  }
-}
-
 /** A handle that is not a web address becomes the platform's profile address: "@plabs" on Twitter → x.com/plabs. */
 export function normalizeSocialHandle(platform: string, handle: string): string {
   const value = handle.trim();
@@ -374,20 +362,11 @@ export function descriptionText(html: string): string {
     .trim();
 }
 
-export interface EventFormCheckOptions {
-  /** Signed out: the contact email is required. */
-  signedIn: boolean;
-}
-
 /**
  * The form's checks. "Submit Event", "Submit" and "Save Changes" run them all. "Save as draft" needs only the name,
  * the dates and the time zone, and still checks what is filled in: links, emails, social handles and the agenda.
  */
-export function checkEventForm(
-  values: EventFormValues,
-  mode: EventFormMode,
-  { signedIn }: EventFormCheckOptions,
-): EventFormErrors {
+export function checkEventForm(values: EventFormValues, mode: EventFormMode): EventFormErrors {
   const errors: EventFormErrors = {};
   const submit = mode === 'submit';
 
@@ -424,8 +403,6 @@ export function checkEventForm(
     if (!errors.agenda) delete errors.agenda;
   }
 
-  if (!signedIn && !isValidEmail(values.contactEmail)) errors.contactEmail = EVENT_FORM_TEXT.emailInvalid;
-
   return errors;
 }
 
@@ -451,6 +428,7 @@ export function toEventBody(values: EventFormValues, logoUid: string | null): Ev
     startDate: toInstant(values.startDay, values.startTime, values.timezone),
     endDate: toInstant(values.endDay, values.endTime, values.timezone),
     timezone: values.timezone,
+    allDay: false,
     format: values.format,
     accessOption: values.accessOption,
     tags: values.tags,
@@ -475,48 +453,5 @@ export function toEventBody(values: EventFormValues, logoUid: string | null): Ev
         }
       : null,
     logoUid,
-  };
-}
-
-/* ---------- Luma → form ---------- */
-
-/**
- * The form filled from a Luma event: every section the import knows. A value Luma does not have keeps what the form
- * holds. The registration link stays the Luma link. The logo is set by the caller, which has to fetch the picture.
- */
-export function applyLumaEvent(values: EventFormValues, luma: LumaEvent): EventFormValues {
-  const timezone = luma.timezone ? safeTimezone(luma.timezone) : values.timezone;
-  const start = luma.startDate ? fromInstant(luma.startDate, timezone) : null;
-  const end = luma.endDate ? fromInstant(luma.endDate, timezone) : null;
-  const address = luma.address;
-  const hasPlace = !!address && (address.latitude != null || !!address.city);
-
-  return {
-    ...values,
-    name: luma.name?.trim().slice(0, EVENT_NAME_MAX) || values.name,
-    timezone,
-    startDay: start?.day || values.startDay,
-    startTime: start?.time || values.startTime,
-    endDay: end?.day || values.endDay,
-    endTime: end?.time || values.endTime,
-    format: luma.format ?? values.format,
-    accessOption: luma.accessOption ?? values.accessOption,
-    venue: address?.address?.trim() || values.venue,
-    place: hasPlace
-      ? {
-          city: address?.city ?? null,
-          state: address?.state ?? null,
-          country: address?.country ?? null,
-          latitude: address?.latitude ?? null,
-          longitude: address?.longitude ?? null,
-          locationUrl: address?.locationUrl ?? null,
-        }
-      : values.place,
-    instruction: address?.locationInstructions?.trim() || values.instruction,
-    meetingUrl: luma.meetingUrl?.trim() || values.meetingUrl,
-    description: luma.description?.trim() ? luma.description : values.description,
-    agenda: luma.agenda?.sessions?.length ? luma.agenda : values.agenda,
-    tags: luma.tags?.length ? Array.from(new Set(luma.tags)) : values.tags,
-    hostName: luma.hostName?.trim() || values.hostName,
   };
 }

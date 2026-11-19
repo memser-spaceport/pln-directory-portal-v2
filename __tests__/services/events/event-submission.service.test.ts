@@ -3,7 +3,6 @@ import {
   EventRequestError,
   getEventForEdit,
   getMyEvents,
-  importFromLuma,
   parseAgenda,
   resolvePlace,
   searchPlaces,
@@ -32,6 +31,7 @@ const body: SubmitEventBody = {
   startDate: '2030-12-03T09:00:00.000Z',
   endDate: '2030-12-03T18:00:00.000Z',
   timezone: 'Europe/Lisbon',
+  allDay: false,
   format: 'IN_PERSON',
   accessOption: 'OPEN',
   tags: ['Workshop'],
@@ -49,7 +49,7 @@ beforeEach(() => {
 describe('submitEvent', () => {
   it.each(['APPROVED', 'PENDING'] as const)('returns the uid and the status the backend gave: %s', async (status) => {
     mockFetch.mockReturnValue(answer(201, { uid: 'e1', status }));
-    await expect(submitEvent(body, true)).resolves.toEqual({ uid: 'e1', status });
+    await expect(submitEvent(body)).resolves.toEqual({ uid: 'e1', status });
     const [url, init, withAuth] = mockFetch.mock.calls[0];
     expect(url).toBe('https://api.test/v1/irl/events');
     expect(init.method).toBe('POST');
@@ -59,40 +59,36 @@ describe('submitEvent', () => {
 
   it('sends a draft and returns DRAFT', async () => {
     mockFetch.mockReturnValue(answer(201, { uid: 'e2', status: 'DRAFT' }));
-    await expect(submitEvent({ ...body, draft: true }, true)).resolves.toEqual({ uid: 'e2', status: 'DRAFT' });
+    await expect(submitEvent({ ...body, draft: true })).resolves.toEqual({ uid: 'e2', status: 'DRAFT' });
     expect(JSON.parse(mockFetch.mock.calls[0][1].body).draft).toBe(true);
   });
 
-  it('sends a signed-out submission without a token', async () => {
-    mockFetch.mockReturnValue(answer(201, { uid: 'e3', status: 'PENDING' }));
-    await submitEvent({ ...body, contactEmail: 'ann@example.com' }, false);
-    expect(mockFetch.mock.calls[0][2]).toBe(false);
-  });
-
   it('throws the status and the API message for a 400', async () => {
-    mockFetch.mockReturnValue(answer(400, { message: ['hostName is required'] }));
-    await expect(submitEvent(body, true)).rejects.toMatchObject({
+    mockFetch.mockReturnValue(
+      answer(400, { message: 'tags: at least one tag is required; hostName: hostName is required' }),
+    );
+    await expect(submitEvent(body)).rejects.toMatchObject({
       name: 'EventRequestError',
       status: 400,
-      message: 'hostName is required',
+      message: 'tags: at least one tag is required; hostName: hostName is required',
     });
   });
 
   it('throws 429 for too many submissions', async () => {
     mockFetch.mockReturnValue(answer(429, { message: 'ThrottlerException: Too Many Requests' }));
-    await expect(submitEvent(body, false)).rejects.toMatchObject({ status: 429 });
+    await expect(submitEvent(body)).rejects.toMatchObject({ status: 429 });
   });
 
   it('throws with no status when the network fails', async () => {
     mockFetch.mockRejectedValue(new TypeError('Failed to fetch'));
-    const error = await submitEvent(body, true).catch((e) => e);
+    const error = await submitEvent(body).catch((e) => e);
     expect(error).toBeInstanceOf(EventRequestError);
     expect(error.status).toBeNull();
   });
 
   it('throws with no status when the session ended before the call', async () => {
     mockFetch.mockResolvedValue(undefined);
-    await expect(submitEvent(body, true)).rejects.toMatchObject({ status: null });
+    await expect(submitEvent(body)).rejects.toMatchObject({ status: null });
   });
 });
 
@@ -148,27 +144,27 @@ describe('getMyEvents and getEventForEdit', () => {
 
 describe('lookups', () => {
   it('asks nothing for an empty venue text', async () => {
-    await expect(searchPlaces('   ', false)).resolves.toEqual([]);
+    await expect(searchPlaces('   ')).resolves.toEqual([]);
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
   it('returns venue suggestions that have a text and a place id', async () => {
     mockFetch.mockReturnValue(answer(200, [{ text: 'Avenida da Liberdade, Lisbon', placeId: 'p1' }, { text: 'x' }]));
-    await expect(searchPlaces('Avenida da Liberdade', false)).resolves.toEqual([
+    await expect(searchPlaces('Avenida da Liberdade')).resolves.toEqual([
       { text: 'Avenida da Liberdade, Lisbon', placeId: 'p1' },
     ]);
     expect(mockFetch.mock.calls[0][0]).toBe('https://api.test/v1/irl/events/places?query=Avenida%20da%20Liberdade');
-    expect(mockFetch.mock.calls[0][2]).toBe(false);
+    expect(mockFetch.mock.calls[0][2]).toBe(true);
   });
 
   it('resolves a place by id or by text, and returns null for no match', async () => {
     const place = { address: 'Shibuya', city: 'Tokyo', timezone: 'Asia/Tokyo' };
     mockFetch.mockReturnValueOnce(answer(200, place));
-    await expect(resolvePlace({ placeId: 'p1' }, true)).resolves.toEqual(place);
+    await expect(resolvePlace({ placeId: 'p1' })).resolves.toEqual(place);
     expect(mockFetch.mock.calls[0][0]).toBe('https://api.test/v1/irl/events/places/resolve?placeId=p1');
 
     mockFetch.mockReturnValueOnce(answer(404, {}));
-    await expect(resolvePlace({ address: 'zzzz qqqq' }, true)).resolves.toBeNull();
+    await expect(resolvePlace({ address: 'zzzz qqqq' })).resolves.toBeNull();
     expect(mockFetch.mock.calls[1][0]).toBe('https://api.test/v1/irl/events/places/resolve?address=zzzz+qqqq');
   });
 
@@ -184,7 +180,7 @@ describe('lookups', () => {
       }),
     );
     const input = { text: 'x', startDate: 's', endDate: 'e', timezone: 'Europe/Lisbon' };
-    await expect(parseAgenda(input, false)).resolves.toEqual({
+    await expect(parseAgenda(input)).resolves.toEqual({
       sessions: [
         {
           name: 'Opening',
@@ -206,21 +202,10 @@ describe('lookups', () => {
     expect(JSON.parse(mockFetch.mock.calls[0][1].body)).toEqual(input);
   });
 
-  it('throws 503 when the agenda parser is down', async () => {
+  it('throws 401 when the session is gone, and 503 when the agenda parser is down', async () => {
     mockFetch.mockReturnValue(answer(503, {}));
-    await expect(parseAgenda({ text: 'x', startDate: 's', endDate: 'e', timezone: 'UTC' }, true)).rejects.toMatchObject(
-      { status: 503 },
-    );
-  });
-
-  it('imports a Luma event and throws the reason for one it cannot read', async () => {
-    mockFetch.mockReturnValueOnce(answer(200, { name: 'Luma Night' }));
-    await expect(importFromLuma('https://lu.ma/abc', true)).resolves.toEqual({ name: 'Luma Night' });
-    expect(mockFetch.mock.calls[0][0]).toBe('https://api.test/v1/irl/events/import/luma?url=https%3A%2F%2Flu.ma%2Fabc');
-    mockFetch.mockReturnValueOnce(answer(404, { message: 'This Luma event is private' }));
-    await expect(importFromLuma('https://lu.ma/private', true)).rejects.toMatchObject({
-      status: 404,
-      message: 'This Luma event is private',
+    await expect(parseAgenda({ text: 'x', startDate: 's', endDate: 'e', timezone: 'UTC' })).rejects.toMatchObject({
+      status: 503,
     });
   });
 });

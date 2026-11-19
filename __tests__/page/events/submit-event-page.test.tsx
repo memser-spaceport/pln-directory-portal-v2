@@ -7,7 +7,7 @@ import { defaultEventFormValues } from '@/services/events/event-form';
 import { EventRequestError } from '@/services/events/event-submission.service';
 import type { EventFormValues } from '@/services/events/event-submission.types';
 
-/* `/events/submit`: both variants, the send flow with every outcome, Clear form and Preview. */
+/* `/events/submit`: the member's form and the sign-in state, the send flow with every outcome, Clear form and Preview. */
 
 const push = jest.fn();
 jest.mock('next/navigation', () => ({ useRouter: () => ({ push }) }));
@@ -41,7 +41,7 @@ jest.mock('@/services/events/event-submission.service', () => ({
 let typed: EventFormValues;
 const resets: EventFormValues[] = [];
 jest.mock('@/components/page/events/event-form/EventForm', () => ({
-  EventForm: function FakeEventForm({ ref, onSend, renderActions, signedIn }: EventFormProps) {
+  EventForm: function FakeEventForm({ ref, onSend, renderActions }: EventFormProps) {
     const [busy, setBusy] = React.useState(false);
     const running = React.useRef(false);
     useImperativeHandle(
@@ -64,11 +64,7 @@ jest.mock('@/components/page/events/event-form/EventForm', () => ({
         },
       }),
     );
-    return (
-      <div data-testid="event-form" data-signed-in={String(signedIn)}>
-        {renderActions({ busy })}
-      </div>
-    );
+    return <div data-testid="event-form">{renderActions({ busy })}</div>;
   },
 }));
 
@@ -104,12 +100,15 @@ describe('variants', () => {
     expect(analytics.onEventsSubmitFormOpened).toHaveBeenCalledTimes(1);
   });
 
-  it('shows a signed-out visitor "Sign in" and "Submit Event" only', () => {
+  it('asks a signed-out visitor to sign in, with no form', () => {
     render(<SubmitEventPage signedIn={false} />);
-    expect(screen.queryByRole('button', { name: 'Save as draft' })).toBeNull();
-    expect(screen.getByRole('button', { name: 'Submit Event' })).toBeInTheDocument();
+    expect(screen.getByText('Sign in to submit an event.')).toBeInTheDocument();
+    expect(screen.queryByTestId('event-form')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Submit Event' })).toBeNull();
+    expect(analytics.onEventsSubmitFormOpened).not.toHaveBeenCalled();
     press('Sign in');
     expect(goToLogin).toHaveBeenCalled();
+    expect(mutateAsync).not.toHaveBeenCalled();
   });
 });
 
@@ -120,13 +119,17 @@ describe('send flow', () => {
     press('Submit Event');
     await waitFor(() => expect(push).toHaveBeenCalledWith('/events/edit/e%201'));
     expect(mutateAsync).toHaveBeenCalledTimes(1);
-    const { body, withAuth } = mutateAsync.mock.calls[0][0];
-    expect(withAuth).toBe(true);
-    expect(body).toMatchObject({ name: 'Lisbon Meetup', startDate: '2030-01-28T09:00:00.000Z', logoUid: null });
+    const body = mutateAsync.mock.calls[0][0];
+    expect(body).toMatchObject({
+      name: 'Lisbon Meetup',
+      startDate: '2030-01-28T09:00:00.000Z',
+      allDay: false,
+      logoUid: null,
+    });
     expect(body).not.toHaveProperty('draft');
     expect(body).not.toHaveProperty('contactEmail');
     expect(toast.success).toHaveBeenCalledWith('Event Created Successfully');
-    expect(analytics.onEventsSubmitFormSubmitted).toHaveBeenCalledWith({ result: 'approved', signedIn: true });
+    expect(analytics.onEventsSubmitFormSubmitted).toHaveBeenCalledWith({ result: 'approved' });
   });
 
   it('reports a held submission as submitted', async () => {
@@ -134,7 +137,7 @@ describe('send flow', () => {
     render(<SubmitEventPage signedIn />);
     press('Submit Event');
     await waitFor(() => expect(push).toHaveBeenCalledWith('/events/edit/e2'));
-    expect(analytics.onEventsSubmitFormSubmitted).toHaveBeenCalledWith({ result: 'submitted', signedIn: true });
+    expect(analytics.onEventsSubmitFormSubmitted).toHaveBeenCalledWith({ result: 'submitted' });
   });
 
   it('saves a draft, says "Draft Event Created Successfully" and opens the edit page', async () => {
@@ -142,9 +145,9 @@ describe('send flow', () => {
     render(<SubmitEventPage signedIn />);
     press('Save as draft');
     await waitFor(() => expect(push).toHaveBeenCalledWith('/events/edit/e3'));
-    expect(mutateAsync.mock.calls[0][0].body.draft).toBe(true);
+    expect(mutateAsync.mock.calls[0][0].draft).toBe(true);
     expect(toast.success).toHaveBeenCalledWith('Draft Event Created Successfully');
-    expect(analytics.onEventsSubmitFormSubmitted).toHaveBeenCalledWith({ result: 'draft', signedIn: true });
+    expect(analytics.onEventsSubmitFormSubmitted).toHaveBeenCalledWith({ result: 'draft' });
   });
 
   it('uploads the logo when the form is sent and sends its id', async () => {
@@ -157,24 +160,7 @@ describe('send flow', () => {
     press('Submit Event');
     await waitFor(() => expect(mutateAsync).toHaveBeenCalled());
     expect(uploadEventLogo).toHaveBeenCalledWith(file);
-    expect(mutateAsync.mock.calls[0][0].body.logoUid).toBe('img-1');
-  });
-
-  it('shows a signed-out visitor that the event was received, with "Submit another event"', async () => {
-    typed = values({ contactEmail: ' ann@example.com ' });
-    mutateAsync.mockResolvedValue({ uid: 'e5', status: 'PENDING' });
-    render(<SubmitEventPage signedIn={false} />);
-    press('Submit Event');
-    expect(await screen.findByText('We received your event')).toBeInTheDocument();
-    expect(screen.getByText(/waits for approval/)).toBeInTheDocument();
-    expect(screen.queryByTestId('event-form')).toBeNull();
-    const { body, withAuth } = mutateAsync.mock.calls[0][0];
-    expect(withAuth).toBe(false);
-    expect(body.contactEmail).toBe('ann@example.com');
-    expect(push).not.toHaveBeenCalled();
-    expect(analytics.onEventsSubmitFormSubmitted).toHaveBeenCalledWith({ result: 'submitted', signedIn: false });
-    press('Submit another event');
-    expect(screen.getByTestId('event-form')).toBeInTheDocument();
+    expect(mutateAsync.mock.calls[0][0].logoUid).toBe('img-1');
   });
 
   it('keeps the form and says "Something went wrong please try again." when the request fails', async () => {
@@ -197,9 +183,8 @@ describe('send flow', () => {
   });
 
   it('says to try again later for too many submissions', async () => {
-    typed = values({ contactEmail: 'ann@example.com' });
     mutateAsync.mockRejectedValue(new EventRequestError(429, 'Too Many Requests'));
-    render(<SubmitEventPage signedIn={false} />);
+    render(<SubmitEventPage signedIn />);
     press('Submit Event');
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Too many submissions. Please try again later.'));
     expect(screen.getByTestId('event-form')).toBeInTheDocument();

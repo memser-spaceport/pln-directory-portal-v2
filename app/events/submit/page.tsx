@@ -5,7 +5,7 @@ import { SubmitEventPage } from '@/components/page/events/event-submit/SubmitEve
 import { EVENTS_LOCAL_SUBMIT } from '@/utils/events-submit';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 
-/** The submit form, open to signed-in members and signed-out visitors. Not found while the rollout flag is off. */
+/** The submit form, for signed-in members; a signed-out visitor is asked to sign in. Not found with the flag off. */
 export default async function Page() {
   if (!EVENTS_LOCAL_SUBMIT) notFound();
   const { userInfo, authToken } = await getCookiesFromHeaders();

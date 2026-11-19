@@ -33,9 +33,7 @@ export function renderSection(ui: ReactElement, { values, ...context }: RenderSe
     return (
       <QueryClientProvider client={queryClient}>
         <FormProvider {...methods}>
-          <EventFormProvider value={{ variant: 'submit', signedIn: true, busy: false, ...context }}>
-            {ui}
-          </EventFormProvider>
+          <EventFormProvider value={{ variant: 'submit', busy: false, ...context }}>{ui}</EventFormProvider>
         </FormProvider>
       </QueryClientProvider>
     );

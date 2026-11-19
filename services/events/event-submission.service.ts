@@ -4,7 +4,6 @@ import type { EventDetailResponse } from './event-drawer.types';
 import type {
   EventAgendaSession,
   EventWriteResult,
-  LumaEvent,
   MyEventResponse,
   ParsedAgenda,
   PlaceSuggestion,
@@ -16,9 +15,9 @@ import type {
 /*
  * The calls behind the submit form, the edit page and My Submissions, against the routes under `/v1/irl/events`.
  *
- * A signed-in call goes through `customFetch` with the token. A signed-out visitor can submit and use the form's
- * lookups too, so those calls take `withAuth` and go without a token when it is false. Every failure throws an
- * `EventRequestError` that carries the status, so the form can tell "too many submissions" (429) from the rest.
+ * Every route needs a signed-in member, so every call goes through `customFetch` with the token; callers gate them on
+ * a current user. Every failure throws an `EventRequestError` that carries the status, so the form can tell "too many
+ * submissions" (429) from the rest.
  */
 
 const api = () => process.env.DIRECTORY_API_URL;
@@ -47,10 +46,10 @@ async function messageOf(response: Response, fallback: string): Promise<string> 
 }
 
 /** One request; the parsed body on success, an `EventRequestError` otherwise (also when the network fails). */
-async function request<T>(path: string, init: RequestInit, withAuth: boolean, fallback: string): Promise<T> {
+async function request<T>(path: string, init: RequestInit, fallback: string): Promise<T> {
   let response: Response | undefined;
   try {
-    response = await customFetch(`${api()}${path}`, { cache: 'no-store', ...init }, withAuth);
+    response = await customFetch(`${api()}${path}`, { cache: 'no-store', ...init }, true);
   } catch {
     throw new EventRequestError(null, fallback);
   }
@@ -67,11 +66,10 @@ async function request<T>(path: string, init: RequestInit, withAuth: boolean, fa
 const eventPath = (uid: string) => `/v1/irl/events/${encodeURIComponent(uid)}`;
 
 /** `POST /v1/irl/events`: 201 with the event and the status the backend gave it (`APPROVED`, `PENDING`, `DRAFT`). */
-export function submitEvent(body: SubmitEventBody, withAuth: boolean): Promise<EventWriteResult> {
+export function submitEvent(body: SubmitEventBody): Promise<EventWriteResult> {
   return request<EventWriteResult>(
     '/v1/irl/events',
     { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify(body) },
-    withAuth,
     'Failed to submit the event',
   );
 }
@@ -81,14 +79,13 @@ export function updateEvent(uid: string, body: UpdateEventBody): Promise<EventWr
   return request<EventWriteResult>(
     eventPath(uid),
     { method: 'PATCH', headers: JSON_HEADERS, body: JSON.stringify(body) },
-    true,
     'Failed to update the event',
   );
 }
 
 /** `DELETE /v1/irl/events/:uid`. */
 export async function deleteEvent(uid: string): Promise<void> {
-  await request<unknown>(eventPath(uid), { method: 'DELETE' }, true, 'Failed to delete the event');
+  await request<unknown>(eventPath(uid), { method: 'DELETE' }, 'Failed to delete the event');
 }
 
 /** `GET /v1/irl/events/mine`: the member's own events of every status, newest first. */
@@ -96,7 +93,6 @@ export async function getMyEvents(): Promise<MyEventResponse[]> {
   const body = await request<MyEventResponse[] | { items?: MyEventResponse[] }>(
     '/v1/irl/events/mine',
     { method: 'GET' },
-    true,
     'Failed to load your events',
   );
   if (Array.isArray(body)) return body;
@@ -109,7 +105,7 @@ export async function getMyEvents(): Promise<MyEventResponse[]> {
  */
 export async function getEventForEdit(uid: string): Promise<EventDetailResponse | null> {
   try {
-    return await request<EventDetailResponse>(eventPath(uid), { method: 'GET' }, true, 'Failed to load the event');
+    return await request<EventDetailResponse>(eventPath(uid), { method: 'GET' }, 'Failed to load the event');
   } catch (error) {
     if (error instanceof EventRequestError && error.status === 404) return null;
     throw error;
@@ -117,13 +113,12 @@ export async function getEventForEdit(uid: string): Promise<EventDetailResponse 
 }
 
 /** `GET /v1/irl/events/places?query=`: up to 5 venue suggestions. An empty query asks nothing. */
-export async function searchPlaces(query: string, withAuth: boolean): Promise<PlaceSuggestion[]> {
+export async function searchPlaces(query: string): Promise<PlaceSuggestion[]> {
   const text = query.trim();
   if (!text) return [];
   const body = await request<PlaceSuggestion[] | { items?: PlaceSuggestion[] }>(
     `/v1/irl/events/places?query=${encodeURIComponent(text)}`,
     { method: 'GET' },
-    withAuth,
     'Failed to look up places',
   );
   const items = Array.isArray(body) ? body : (body?.items ?? []);
@@ -131,16 +126,12 @@ export async function searchPlaces(query: string, withAuth: boolean): Promise<Pl
 }
 
 /** `GET /v1/irl/events/places/resolve`: a place by its id, or by the text a person typed. `null` for no match. */
-export async function resolvePlace(
-  place: { placeId: string } | { address: string },
-  withAuth: boolean,
-): Promise<ResolvedPlace | null> {
+export async function resolvePlace(place: { placeId: string } | { address: string }): Promise<ResolvedPlace | null> {
   const params = new URLSearchParams(place);
   try {
     return await request<ResolvedPlace>(
       `/v1/irl/events/places/resolve?${params.toString()}`,
       { method: 'GET' },
-      withAuth,
       'Failed to resolve the place',
     );
   } catch (error) {
@@ -153,14 +144,15 @@ export async function resolvePlace(
 type RawSession = Partial<EventAgendaSession> & { startDate?: string; endDate?: string };
 
 /** `POST /v1/irl/events/agenda/parse`: agenda text as sessions, or a message that says what is missing. */
-export async function parseAgenda(
-  input: { text: string; startDate: string; endDate: string; timezone: string },
-  withAuth: boolean,
-): Promise<ParsedAgenda> {
+export async function parseAgenda(input: {
+  text: string;
+  startDate: string;
+  endDate: string;
+  timezone: string;
+}): Promise<ParsedAgenda> {
   const body = await request<{ sessions?: RawSession[]; message?: string | null }>(
     '/v1/irl/events/agenda/parse',
     { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify(input) },
-    withAuth,
     'Failed to read the agenda',
   );
   const sessions = (body?.sessions ?? []).flatMap((session) => {
@@ -178,16 +170,6 @@ export async function parseAgenda(
     ];
   });
   return { sessions, message: body?.message?.trim() || null };
-}
-
-/** `GET /v1/irl/events/import/luma?url=`: a Luma event, ready for the form. Nothing is stored. */
-export function importFromLuma(url: string, withAuth: boolean): Promise<LumaEvent> {
-  return request<LumaEvent>(
-    `/v1/irl/events/import/luma?url=${encodeURIComponent(url)}`,
-    { method: 'GET' },
-    withAuth,
-    'Failed to import from Luma',
-  );
 }
 
 /** `POST /v1/images`: the logo, uploaded when the form is sent. Returns the stored image's uid. */

@@ -1,6 +1,5 @@
 import {
   agendaIssue,
-  applyLumaEvent,
   checkEventForm,
   defaultEventFormValues,
   EVENT_FORM_TEXT,
@@ -8,7 +7,6 @@ import {
   fromInstant,
   groupAgendaByDay,
   isEndTimeDisabled,
-  isLumaUrl,
   isStartTimeDisabled,
   moveAgendaToTimezone,
   normalizeSocialHandle,
@@ -177,15 +175,6 @@ describe('agenda', () => {
 });
 
 describe('links and social handles', () => {
-  it('detects Luma links', () => {
-    expect(isLumaUrl('https://lu.ma/abc')).toBe(true);
-    expect(isLumaUrl('luma.com/abc')).toBe(true);
-    expect(isLumaUrl('https://www.luma.com/abc')).toBe(true);
-    expect(isLumaUrl('https://example.com/event')).toBe(false);
-    expect(isLumaUrl('https://notlu.ma/abc')).toBe(false);
-    expect(isLumaUrl('')).toBe(false);
-  });
-
   it.each([
     ['twitter', '@plabs', 'https://x.com/plabs'],
     ['discord', 'plabs', 'https://discord.com/users/plabs'],
@@ -210,8 +199,8 @@ describe('links and social handles', () => {
 });
 
 describe('checkEventForm', () => {
-  const check = (over: Partial<EventFormValues>, mode: 'submit' | 'draft' = 'submit', signedIn = true) =>
-    checkEventForm(valid(over), mode, { signedIn });
+  const check = (over: Partial<EventFormValues>, mode: 'submit' | 'draft' = 'submit') =>
+    checkEventForm(valid(over), mode);
 
   it('passes a valid form, also with no venue and no description', () => {
     expect(check({})).toEqual({});
@@ -280,12 +269,6 @@ describe('checkEventForm', () => {
     expect(check({ agenda, endDay: '' }).agenda).toBe('Please set your event start date, end date, and timezone first');
   });
 
-  it('needs a valid contact email from a signed-out visitor only', () => {
-    expect(check({}, 'submit', false).contactEmail).toBe('Enter a valid email');
-    expect(check({ contactEmail: 'ann@example.com' }, 'submit', false)).toEqual({});
-    expect(check({ contactEmail: '' }, 'submit', true)).toEqual({});
-  });
-
   it('lets a draft through with a name, dates and a time zone only', () => {
     expect(check({ tags: [], hostName: '' }, 'draft')).toEqual({});
   });
@@ -333,6 +316,7 @@ describe('toEventBody', () => {
       startDate: '2030-01-28T09:00:00.000Z',
       endDate: '2030-01-28T18:00:00.000Z',
       timezone: 'Europe/Lisbon',
+      allDay: false,
       format: 'IN_PERSON',
       accessOption: 'PAID',
       tags: ['Workshop', 'Demo Day'],
@@ -404,49 +388,5 @@ describe('toEventBody', () => {
       null,
     );
     expect(body.contactInfos).toEqual({ twitter: ['https://x.com/plabs', 'https://x.com/ipfs'] });
-  });
-});
-
-describe('applyLumaEvent', () => {
-  it('fills every section the import knows and keeps the rest', () => {
-    const before = valid({ registrationUrl: 'https://lu.ma/abc', hostEmail: 'keep@pl.xyz' });
-    const after = applyLumaEvent(before, {
-      name: 'Luma Night',
-      startDate: '2030-06-01T09:00:00.000Z',
-      endDate: '2030-06-01T12:00:00.000Z',
-      timezone: 'Asia/Tokyo',
-      format: 'HYBRID',
-      accessOption: 'INVITE',
-      description: '<p>Hi</p>',
-      agenda: { sessions: [session('Opening', '2030-06-01T09:00:00.000Z', '2030-06-01T09:30:00.000Z')] },
-      tags: ['Social Event', 'Social Event'],
-      hostName: 'Luma Host',
-      meetingUrl: 'https://meet.x/y',
-      address: { address: 'Shibuya', city: 'Tokyo', country: 'Japan', latitude: 35.6, longitude: 139.7 },
-    });
-    expect(after).toMatchObject({
-      name: 'Luma Night',
-      timezone: 'Asia/Tokyo',
-      startDay: '2030-06-01',
-      startTime: '18:00',
-      endDay: '2030-06-01',
-      endTime: '21:00',
-      format: 'HYBRID',
-      accessOption: 'INVITE',
-      description: '<p>Hi</p>',
-      tags: ['Social Event'],
-      hostName: 'Luma Host',
-      meetingUrl: 'https://meet.x/y',
-      venue: 'Shibuya',
-      place: { city: 'Tokyo', country: 'Japan', latitude: 35.6, longitude: 139.7 },
-      registrationUrl: 'https://lu.ma/abc',
-      hostEmail: 'keep@pl.xyz',
-    });
-    expect(after.agenda?.sessions).toHaveLength(1);
-  });
-
-  it('changes nothing for an empty import', () => {
-    const before = valid();
-    expect(applyLumaEvent(before, {})).toEqual(before);
   });
 });

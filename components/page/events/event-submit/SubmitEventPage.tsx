@@ -20,13 +20,12 @@ import { eventEditPath } from '@/utils/events-submit';
 
 import { ConfirmDialog } from './ConfirmDialog';
 import { EventPreviewDialog } from './EventPreviewDialog';
-import { SubmissionReceived } from './SubmissionReceived';
 import s from './SubmitEventPage.module.scss';
 
 /**
- * `/events/submit`: the "Submit Event" form for signed-in members and signed-out visitors. A signed-out visitor adds
- * a contact email, has "Sign in" and no "Save as draft". The backend decides the status; the page shows what it got:
- * a member goes to the event's edit page, a signed-out visitor sees that the event was received.
+ * `/events/submit`: the "Submit Event" form, for signed-in members. A signed-out visitor is asked to sign in and
+ * comes back to this page. The backend decides the status; after a submit the member goes to the event's edit page,
+ * which shows it.
  */
 export function SubmitEventPage({ signedIn }: { signedIn: boolean }) {
   const router = useRouter();
@@ -39,13 +38,12 @@ export function SubmitEventPage({ signedIn }: { signedIn: boolean }) {
   const [formKey, setFormKey] = useState(0);
   const [clearing, setClearing] = useState(false);
   const [preview, setPreview] = useState<EventDetail | null>(null);
-  const [received, setReceived] = useState(false);
 
   const opened = useRef(false);
   useEffect(() => {
     setInitialValues(defaultEventFormValues(browserTimezone()));
     setFormKey((key) => key + 1);
-    if (opened.current) return;
+    if (!signedIn || opened.current) return;
     opened.current = true;
     analytics.onEventsSubmitFormOpened();
     // Once, when the form opens.
@@ -56,19 +54,8 @@ export function SubmitEventPage({ signedIn }: { signedIn: boolean }) {
     const draft = mode === 'draft';
     try {
       const body = await buildEventBody(values);
-      const result = await submit.mutateAsync({
-        body: {
-          ...body,
-          ...(draft ? { draft: true } : {}),
-          ...(signedIn ? {} : { contactEmail: values.contactEmail.trim() }),
-        },
-        withAuth: signedIn,
-      });
-      analytics.onEventsSubmitFormSubmitted({ result: resultOfStatus(result.status), signedIn });
-      if (!signedIn) {
-        setReceived(true);
-        return;
-      }
+      const result = await submit.mutateAsync(draft ? { ...body, draft: true } : body);
+      analytics.onEventsSubmitFormSubmitted({ result: resultOfStatus(result.status) });
       toast.success(draft ? EVENT_FORM_TEXT.draftCreated : EVENT_FORM_TEXT.created);
       router.push(eventEditPath(result.uid));
     } catch (error) {
@@ -81,11 +68,6 @@ export function SubmitEventPage({ signedIn }: { signedIn: boolean }) {
     form.current?.reset(defaultEventFormValues(browserTimezone()));
     setClearing(false);
     toast.success(EVENT_FORM_TEXT.cleared);
-  };
-
-  const startAnother = () => {
-    setReceived(false);
-    setFormKey((key) => key + 1);
   };
 
   const header = useMemo(
@@ -112,73 +94,64 @@ export function SubmitEventPage({ signedIn }: { signedIn: boolean }) {
   return (
     <div className={s.page}>
       {header}
-      {received ? (
-        <SubmissionReceived onAnother={startAnother} />
-      ) : (
-        <>
-          {!signedIn && (
-            <p className={s.signIn}>
-              You are submitting as a guest. Your event will wait for approval.{' '}
-              <button type="button" className={s.signInLink} onClick={() => goToLogin()}>
-                Sign in
-              </button>{' '}
-              to save drafts and manage your events.
-            </p>
+      {signedIn ? (
+        <EventForm
+          key={formKey}
+          ref={form}
+          variant="submit"
+          initialValues={initialValues}
+          onSend={onSend}
+          renderActions={({ busy }) => (
+            <>
+              <Button
+                type="button"
+                style="link"
+                variant="neutral"
+                size="s"
+                disabled={busy}
+                onClick={() => setClearing(true)}
+              >
+                Clear form
+              </Button>
+              <Button
+                type="button"
+                style="border"
+                variant="neutral"
+                size="s"
+                disabled={busy}
+                onClick={() => form.current && setPreview(toPreviewEvent(form.current.getValues()))}
+              >
+                Preview
+              </Button>
+              <Button
+                type="button"
+                style="border"
+                variant="primary"
+                size="s"
+                disabled={busy}
+                onClick={() => form.current?.run('draft')}
+              >
+                Save as draft
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                size="s"
+                disabled={busy}
+                onClick={() => form.current?.run('submit')}
+              >
+                Submit Event
+              </Button>
+            </>
           )}
-          <EventForm
-            key={formKey}
-            ref={form}
-            variant="submit"
-            signedIn={signedIn}
-            initialValues={initialValues}
-            onSend={onSend}
-            renderActions={({ busy }) => (
-              <>
-                <Button
-                  type="button"
-                  style="link"
-                  variant="neutral"
-                  size="s"
-                  disabled={busy}
-                  onClick={() => setClearing(true)}
-                >
-                  Clear form
-                </Button>
-                <Button
-                  type="button"
-                  style="border"
-                  variant="neutral"
-                  size="s"
-                  disabled={busy}
-                  onClick={() => form.current && setPreview(toPreviewEvent(form.current.getValues()))}
-                >
-                  Preview
-                </Button>
-                {signedIn && (
-                  <Button
-                    type="button"
-                    style="border"
-                    variant="primary"
-                    size="s"
-                    disabled={busy}
-                    onClick={() => form.current?.run('draft')}
-                  >
-                    Save as draft
-                  </Button>
-                )}
-                <Button
-                  type="button"
-                  variant="primary"
-                  size="s"
-                  disabled={busy}
-                  onClick={() => form.current?.run('submit')}
-                >
-                  Submit Event
-                </Button>
-              </>
-            )}
-          />
-        </>
+        />
+      ) : (
+        <div className={s.signIn}>
+          <p className={s.signInText}>Sign in to submit an event.</p>
+          <Button type="button" variant="primary" size="s" onClick={() => goToLogin()}>
+            Sign in
+          </Button>
+        </div>
       )}
 
       <ConfirmDialog

@@ -55,30 +55,6 @@
 }
 
 .signIn {
-  margin: 0;
-  padding: 12px 16px;
-  border-radius: 8px;
-  background: var(--background-neutral-subtle, #f1f5f9);
-  font-size: 14px;
-  line-height: 20px;
-  color: var(--foreground-neutral-secondary, #455468);
-}
-
-.signInLink {
-  padding: 0;
-  border: none;
-  background: none;
-  font: inherit;
-  font-weight: 500;
-  color: var(--foreground-brand-primary, #1b4dff);
-  cursor: pointer;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
-.received {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -89,17 +65,9 @@
   background: var(--background-base-white, #ffffff);
 }
 
-.receivedTitle {
+.signInText {
   margin: 0;
-  font-size: 18px;
+  font-size: 16px;
   line-height: 24px;
-  font-weight: 600;
   color: var(--foreground-neutral-primary, #0a0c11);
-}
-
-.receivedText {
-  margin: 0;
-  font-size: 14px;
-  line-height: 20px;
-  color: var(--foreground-neutral-secondary, #455468);
 }

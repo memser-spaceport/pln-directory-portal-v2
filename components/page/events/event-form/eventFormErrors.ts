@@ -23,7 +23,6 @@ export function toFieldErrors(errors: EventFormErrors): [Name, string][] {
   });
   add('websiteUrl', errors.websiteUrl);
   errors.socialHandles?.forEach((message, index) => add(`socialHandles.${index}.handle`, message));
-  add('contactEmail', errors.contactEmail);
   return out;
 }
 

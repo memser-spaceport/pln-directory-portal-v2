@@ -52,20 +52,15 @@ export const useEventsAnalytics = () => {
   }
 
   /** `result`: what the backend made of it. `submitted` waits for approval. */
-  function onEventsSubmitFormSubmitted(params: { result: 'approved' | 'submitted' | 'draft'; signedIn: boolean }) {
+  function onEventsSubmitFormSubmitted(params: { result: 'approved' | 'submitted' | 'draft' }) {
     captureSubmitEvent(EVENTS_SUBMIT_ANALYTICS.ON_EVENTS_SUBMIT_FORM_SUBMITTED, {
       result: params.result,
-      signed_in: params.signedIn,
     });
   }
 
   /** `status`: the HTTP status, null when the request never got an answer. */
   function onEventsSubmitFormFailed(params: { status: number | null }) {
     captureSubmitEvent(EVENTS_SUBMIT_ANALYTICS.ON_EVENTS_SUBMIT_FORM_FAILED, { status: params.status });
-  }
-
-  function onEventsLumaImported() {
-    captureSubmitEvent(EVENTS_SUBMIT_ANALYTICS.ON_EVENTS_LUMA_IMPORTED, {});
   }
 
   function onEventsMySubmissionsOpened() {
@@ -279,7 +274,6 @@ export const useEventsAnalytics = () => {
     onEventsSubmitFormOpened,
     onEventsSubmitFormSubmitted,
     onEventsSubmitFormFailed,
-    onEventsLumaImported,
     onEventsMySubmissionsOpened,
     onEventsEventEdited,
     onEventsEventDeleted,

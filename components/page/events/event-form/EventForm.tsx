@@ -7,7 +7,6 @@ import { checkEventForm, hasEventFormErrors } from '@/services/events/event-form
 import type { EventFormMode, EventFormValues } from '@/services/events/event-submission.types';
 
 import { AccessSection } from './AccessSection';
-import { ContactEmailSection } from './ContactEmailSection';
 import { DatesSection } from './DatesSection';
 import { DescriptionSection } from './DescriptionSection';
 import { EventFormProvider } from './EventFormContext';
@@ -32,7 +31,6 @@ export interface EventFormHandle {
 
 export interface EventFormProps {
   variant: 'submit' | 'edit';
-  signedIn: boolean;
   initialValues: EventFormValues;
   /** Sends the checked values. It may throw; the form keeps everything typed either way. */
   onSend: (values: EventFormValues, mode: EventFormMode) => Promise<void>;
@@ -56,7 +54,7 @@ function swallowEnter(event: KeyboardEvent<HTMLFormElement>) {
  * from LabOS form parts. It holds the values, runs the checks, shows each message under its field and scrolls to the
  * first one. The page decides the buttons and what sending means.
  */
-export function EventForm({ variant, signedIn, initialValues, onSend, onInvalid, renderActions, ref }: EventFormProps) {
+export function EventForm({ variant, initialValues, onSend, onInvalid, renderActions, ref }: EventFormProps) {
   const methods = useForm<EventFormValues>({ defaultValues: initialValues, shouldUnregister: false });
   const formRef = useRef<HTMLFormElement>(null);
   const running = useRef(false);
@@ -73,7 +71,7 @@ export function EventForm({ variant, signedIn, initialValues, onSend, onInvalid,
     // A second press while the first is in flight sends nothing.
     if (running.current) return;
     const values = methods.getValues();
-    const errors = checkEventForm(values, mode, { signedIn });
+    const errors = checkEventForm(values, mode);
     showEventFormErrors(errors, methods.setError, methods.clearErrors);
     if (hasEventFormErrors(errors)) {
       onInvalid?.();
@@ -98,7 +96,7 @@ export function EventForm({ variant, signedIn, initialValues, onSend, onInvalid,
 
   return (
     <FormProvider {...methods}>
-      <EventFormProvider value={{ variant, signedIn, busy }}>
+      <EventFormProvider value={{ variant, busy }}>
         <form
           ref={formRef}
           className={s.form}
@@ -107,7 +105,6 @@ export function EventForm({ variant, signedIn, initialValues, onSend, onInvalid,
           onKeyDown={swallowEnter}
           aria-busy={busy}
         >
-          {!signedIn && <ContactEmailSection />}
           <AccessSection />
           <RegistrationSection />
           <ProfileSection />

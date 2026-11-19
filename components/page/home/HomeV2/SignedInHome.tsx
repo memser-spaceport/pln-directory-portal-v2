@@ -1,10 +1,11 @@
 'use client';
 
 import clsx from 'clsx';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import type { IHomeEvents, IHomeRoles } from '@/types/home.types';
+import type { ITeamNewsItem } from '@/types/team-news.types';
 import type { PortfolioTeam } from '@/components/page/explore-pl-network/data/portfolio';
 import { useHomeFeed, type HomeFeedProps } from '@/components/page/home/TeamNews/hooks/useHomeFeed';
 import { SHOW_POPULAR_THIS_WEEK } from '@/components/page/home/TeamNews/constants';
@@ -13,6 +14,7 @@ import home from '@/app/page.module.css';
 
 import { DealsSection } from './DealsSection';
 import { FocusAreaCards } from './FocusAreaCards';
+import { HomePostNews } from './HomePostNews';
 import { HomeRail } from './HomeRail';
 import { NetworkOverview } from './NetworkOverview';
 import { NetworkUpdates } from './NetworkUpdates';
@@ -52,7 +54,17 @@ export function SignedInHome({
   teamFocusAreaCounts?: Record<string, number> | null;
 }) {
   const analytics = useHomeAnalytics();
-  const feed = useHomeFeed(feedProps, {
+  // Stories a lead posted from the header (LAB-3342): newest first, on top of the page's feed until the next load.
+  const [posted, setPosted] = useState<ITeamNewsItem[]>([]);
+  const handlePosted = useCallback((item: ITeamNewsItem) => setPosted((prev) => [item, ...prev]), []);
+  const streamProps = useMemo<HomeFeedProps>(
+    () =>
+      posted.length === 0
+        ? feedProps
+        : { ...feedProps, allTabExtraItems: [...posted, ...(feedProps.allTabExtraItems ?? [])] },
+    [feedProps, posted],
+  );
+  const feed = useHomeFeed(streamProps, {
     layout: 'stream',
     onTagScopeChange: (tags, action) => analytics.onFeedTagScopeChanged({ tags, action }),
   });
@@ -78,7 +90,13 @@ export function SignedInHome({
     <div className={home.home}>
       <div className={clsx(home.home__cn, s.memberPage)}>
         <div className={s.newsRow}>
-          <NetworkUpdates feed={feed} fillTo={railRef} fillKey={fillKey} forYouTags={feedProps.forYouTags} />
+          <NetworkUpdates
+            feed={feed}
+            fillTo={railRef}
+            fillKey={fillKey}
+            forYouTags={feedProps.forYouTags}
+            headerAction={<HomePostNews existing={feed.allItems} onPosted={handlePosted} />}
+          />
 
           {/* One full sidebar: every rail module is a section of a single card, divided by hairlines. */}
           <HomeRail railRef={assignRail} roles={roles} events={events} signedIn>

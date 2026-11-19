@@ -63,6 +63,7 @@ describe('PostNewsModal', () => {
 
     await waitFor(() =>
       expect(onPublish).toHaveBeenCalledWith({
+        teamUid: 'team-1',
         title: 'New launch',
         body: '',
         url: 'https://example.com/new',

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 
 import type { ITeamNewsItem } from '@/types/team-news.types';
@@ -9,6 +9,7 @@ import { Button } from '@/components/common/Button';
 import { CloseIcon } from '@/components/icons';
 import { FormField } from '@/components/form/FormField';
 import { FormEditor } from '@/components/form/FormEditor/FormEditor';
+import { FormSelect } from '@/components/form/FormSelect';
 import { useFormDraft } from '@/hooks/useFormDraft';
 import { DraftSaveStatus } from '@/components/page/gantry/ideas/SubmitIdeaModal/DraftSaveStatus';
 import { DiscardDraftDialog } from '@/components/page/gantry/ideas/DiscardDraftDialog';
@@ -18,6 +19,7 @@ import { findNewsByUrl, htmlToPlainText, isSafeHttpUrl } from '@/services/team-n
 import dealModalStyles from '@/components/page/deals/SubmitDealModal/SubmitDealModal.module.scss';
 import ideaModalStyles from '@/components/page/gantry/ideas/SubmitIdeaModal/SubmitIdeaModal.module.scss';
 import ideaFieldStyles from '@/components/page/gantry/shared/IdeaFormFields.module.scss';
+import local from './PostNewsModal.module.scss';
 
 export interface PostNewsFormData {
   title: string;
@@ -26,9 +28,30 @@ export interface PostNewsFormData {
 }
 
 export interface PostNewsSubmission {
+  /** The team the post goes to: `teamUid`, or the "Post as" choice. */
+  teamUid: string;
   title: string;
   body: string;
   url: string;
+}
+
+/** One team in "Post as" (LAB-3342). */
+export interface PostNewsTeamChoice {
+  uid: string;
+  name: string;
+  logoUrl?: string | null;
+}
+
+type TeamOption = { value: string; label: string };
+
+/** A "Post as" row: the team logo, then the name. The same row in the list and in the chosen value. */
+function TeamOptionRow({ logoUrl, label }: { logoUrl?: string | null; label: ReactNode }) {
+  return (
+    <span className={local.teamOption}>
+      {logoUrl ? <img className={local.teamLogo} src={logoUrl} alt="" /> : null}
+      <span className={local.teamOptionName}>{label}</span>
+    </span>
+  );
 }
 
 export const BODY_MAX_LENGTH = 2000;
@@ -54,9 +77,50 @@ interface Props {
   existing: ITeamNewsItem[];
   onPublish: (post: PostNewsSubmission) => void | Promise<void>;
   isPublishing?: boolean;
+  /**
+   * The teams the poster may post as (LAB-3342). With more than one, "Post as" shows on top of the form (the LAB-3202
+   * pattern) and starts on `teamUid`. One or none: the form is for `teamUid`, as before.
+   */
+  teamChoices?: PostNewsTeamChoice[];
 }
 
-export function PostNewsModal({ open, onClose, teamUid, teamName, existing, onPublish, isPublishing = false }: Props) {
+export function PostNewsModal({
+  open,
+  onClose,
+  teamUid,
+  teamName,
+  existing,
+  onPublish,
+  isPublishing = false,
+  teamChoices = [],
+}: Props) {
+  const several = teamChoices.length > 1;
+  const teamOptions: TeamOption[] = useMemo(
+    () => teamChoices.map((c) => ({ value: c.uid, label: c.name })),
+    [teamChoices],
+  );
+  const optionFor = useCallback(
+    (uid: string) => teamOptions.find((o) => o.value === uid) ?? teamOptions[0] ?? null,
+    [teamOptions],
+  );
+  const logoOf = (uid: string) => teamChoices.find((c) => c.uid === uid)?.logoUrl;
+
+  // The team is not part of the draft: it is where the post goes. A change of team keeps the text.
+  const teamMethods = useForm<{ postAs: TeamOption | null }>({
+    defaultValues: { postAs: several ? optionFor(teamUid) : null },
+  });
+  const pickedOption = useWatch({ control: teamMethods.control, name: 'postAs' });
+  useEffect(() => {
+    if (open && several) teamMethods.reset({ postAs: optionFor(teamUid) });
+    // Opens on `teamUid` each time; a choice made while open stays until the form closes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, several, teamUid]);
+  const target = several
+    ? (teamChoices.find((c) => c.uid === pickedOption?.value) ?? null)
+    : { uid: teamUid, name: teamName };
+  const targetUid = target?.uid ?? '';
+  const targetName = target?.name ?? '';
+
   const [discardOpen, setDiscardOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const saveTimer = useRef<number | null>(null);
@@ -79,7 +143,8 @@ export function PostNewsModal({ open, onClose, teamUid, teamName, existing, onPu
   const bodyTooLong = bodyLength > BODY_MAX_LENGTH;
 
   const { clearDraft } = useFormDraft<PostNewsFormData, PostNewsFormData>({
-    storageKey: `team-news-post:${teamUid}`,
+    // "Post as": one draft for all the poster's teams, so a change of team never swaps the text out.
+    storageKey: several ? 'team-news-post:lead-teams' : `team-news-post:${teamUid}`,
     enabled: open,
     methods,
     getDefaults,
@@ -115,11 +180,12 @@ export function PostNewsModal({ open, onClose, teamUid, teamName, existing, onPu
     (value: string) => {
       if (!value?.trim()) return 'Required';
       if (!isSafeHttpUrl(value)) return 'Enter the full link, starting with https://';
-      const hit = findNewsByUrl(existing, value);
-      if (hit) return `Already in ${teamName} news: "${hit.title}" (${formatWhen(hit.eventDate)})`;
+      // "Post as": `existing` may hold every team's news, and only the chosen team's can be a duplicate.
+      const hit = findNewsByUrl(several ? existing.filter((item) => item.teamUid === targetUid) : existing, value);
+      if (hit) return `Already in ${targetName} news: "${hit.title}" (${formatWhen(hit.eventDate)})`;
       return true;
     },
-    [existing, teamName],
+    [existing, several, targetUid, targetName],
   );
 
   const handleDiscard = () => {
@@ -130,9 +196,17 @@ export function PostNewsModal({ open, onClose, teamUid, teamName, existing, onPu
     onClose();
   };
 
+  // The duplicate check depends on the team: check the link again for a new choice.
+  const { trigger, getValues } = methods;
+  useEffect(() => {
+    if (several && getValues('url')?.trim()) void trigger('url');
+  }, [several, targetUid, trigger, getValues]);
+
   const onSubmit = async (data: PostNewsFormData) => {
+    if (!targetUid) return;
     try {
       await onPublish({
+        teamUid: targetUid,
         title: data.title.trim(),
         body: hasRichTextContent(data.body) ? data.body : '',
         url: data.url.trim(),
@@ -160,7 +234,7 @@ export function PostNewsModal({ open, onClose, teamUid, teamName, existing, onPu
                 <DraftSaveStatus status={saveStatus} />
               </div>
               <p className={dealModalStyles.subtitle}>
-                Published as {teamName}, to its followers and the network feed.
+                Published as {targetName}, to its followers and the network feed.
               </p>
             </div>
             <button type="button" className={dealModalStyles.closeButton} onClick={onClose} aria-label="Close">
@@ -169,6 +243,24 @@ export function PostNewsModal({ open, onClose, teamUid, teamName, existing, onPu
           </div>
 
           <div className={dealModalStyles.content}>
+            {several && (
+              <FormProvider {...teamMethods}>
+                <div className={local.postAsField}>
+                  <FormSelect
+                    name="postAs"
+                    label="Post as"
+                    placeholder="Select a team"
+                    isRequired
+                    disabled={isPublishing}
+                    options={teamOptions}
+                    renderOption={({ option, label }) => <TeamOptionRow logoUrl={logoOf(option.value)} label={label} />}
+                    formatOptionLabel={(option) => (
+                      <TeamOptionRow logoUrl={logoOf(option.value)} label={option.label} />
+                    )}
+                  />
+                </div>
+              </FormProvider>
+            )}
             <FormProvider {...methods}>
               <div className={dealModalStyles.form}>
                 <div className={ideaFieldStyles.titleField}>
@@ -212,16 +304,17 @@ export function PostNewsModal({ open, onClose, teamUid, teamName, existing, onPu
           </div>
 
           <div className={dealModalStyles.footer}>
-            {hasDraft && (
+            {hasDraft && !isPublishing && (
               <button type="button" className={ideaModalStyles.discardDraftLink} onClick={() => setDiscardOpen(true)}>
                 Discard draft
               </button>
             )}
-            <Button style="border" variant="neutral" onClick={onClose}>
+            {/* While the post is sent, Cancel is off too: the post can't be called back (LAB-3342). */}
+            <Button style="border" variant="neutral" onClick={onClose} disabled={isPublishing}>
               Cancel
             </Button>
-            <Button onClick={handleSubmit(onSubmit)} disabled={!isValid || bodyTooLong || isPublishing}>
-              Post
+            <Button onClick={handleSubmit(onSubmit)} disabled={!targetUid || !isValid || bodyTooLong || isPublishing}>
+              {isPublishing ? 'Posting…' : 'Post'}
             </Button>
           </div>
         </div>

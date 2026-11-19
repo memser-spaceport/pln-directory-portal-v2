@@ -232,6 +232,44 @@ Under the focus-area cards, the signed-in Home SHALL show a full-width white ban
 - **WHEN** they scroll past "Browse by focus area"
 - **THEN** they see the portfolio map, the PL entities and the investor logos, in that order
 
+### Requirement: Post news from the Home for team leads
+
+On the signed-in Home, a team lead SHALL see "Post news" at the end of the Network Updates header, after the search icon (LAB-3342, design LAB-3316). A team lead is a member whose `leadingTeams` in the client user info is not empty. The button SHALL be the team page's `PostNewsButton`, 30px high on desktop, with no one-time "New" tip. Under 640px, it SHALL be at the end of the title row, 32px high, and scroll with the page. There SHALL be no floating button.
+
+A member who leads no team, an admin who leads no team and a signed-out visitor SHALL see no button and no empty gap. The header then keeps only the search.
+
+The press SHALL open the team page's `PostNewsModal`:
+
+- Lead of one team: the form is for that team.
+- Lead of several teams: "Post as" is on top of the form (the LAB-3202 pattern). It starts on the lead's main team, else the first lead team. The options and the chosen value show the team logo.
+
+While the post is sent, Post SHALL read "Posting…" and Cancel SHALL be off. After success, the form SHALL close, a toast SHALL say "Posted as <team>. It’s on the network feed now.", and the new story SHALL be first in the stream until the next page load. On failure, the form SHALL stay open with the text. A duplicate link SHALL show on the Link field. Any other failure SHALL show the service's message in an error toast.
+
+#### Scenario: A lead of one team posts
+
+- **GIVEN** a member who leads one team, on the signed-in Home
+- **WHEN** they press "Post news", fill the form and press Post
+- **THEN** the form shows "Posting…" with Cancel off, then closes
+- **AND** a toast confirms, and the new story is first in the stream
+
+#### Scenario: A lead of several teams
+
+- **GIVEN** a member who leads two teams, one of them their main team
+- **WHEN** they press "Post news"
+- **THEN** the form shows "Post as" on the main team, with each team's logo
+- **AND** the post goes to the team they choose
+
+#### Scenario: Not a lead
+
+- **GIVEN** a signed-in member or admin who leads no team
+- **WHEN** they open the Home
+- **THEN** the Network Updates header shows only the search, with no gap
+
+#### Scenario: The post fails
+
+- **WHEN** the publish call fails
+- **THEN** the form stays open with the text, and the error shows
+
 ### Requirement: One stream of news and forum posts
 
 Network Updates SHALL be one stream of the last 14 days' news stories and, for members with forum access, forum posts, each shown in full. There SHALL be no All / News / Forum or focus-area tabs. A member without forum access SHALL see news only. Hiring roll-ups, deals and For You job entries SHALL NOT be in the stream; roles and deals are in the rail.

@@ -41,6 +41,16 @@
   display: none;
 }
 
+// LAB-3318 (S6-F19), `hideHintWhenEmpty` only: `data-hint` follows the value. The `.root` prefix makes these rules
+// stronger than the `:placeholder-shown` rules above, so the old rule does not hide the hint when there is text.
+.root .input + .instruction[data-hint='hidden'] {
+  display: none;
+}
+
+.root .input + .instruction[data-hint='shown'] {
+  display: flex;
+}
+
 .tag {
   background: #f1f5f9;
   padding: 2px 6px;

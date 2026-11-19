@@ -51,8 +51,13 @@ export const ChatInput = forwardRef<
     return (
       <div className={clsx(s.root, className)}>
         <textarea {...props} ref={ref} onChange={handleInput} className={s.input} />
-        {!isMobileDevice() && !(hideHintWhenEmpty && empty) && (
-          <div className={s.instruction}>
+        {!isMobileDevice() && (
+          <div
+            className={s.instruction}
+            // `hideHintWhenEmpty`: the value decides (hidden when empty, shown with text). Without it, no attribute,
+            // and the old `:placeholder-shown` rules apply (shown when empty, hidden with text).
+            data-hint={hideHintWhenEmpty ? (empty ? 'hidden' : 'shown') : undefined}
+          >
             <p>
               <span className={s.tag}>Shift</span> +<span className={s.tag}>Enter</span> to add new line
             </p>

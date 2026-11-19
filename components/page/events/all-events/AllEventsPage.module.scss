@@ -1037,7 +1037,7 @@
     background: var(--background-neutral-subtle, #f1f5f9); // the page's own grey, so the sticky bar is not a band
   }
 
-  // On white, the pills' faint shadow no longer draws an edge: give them the card border.
+  // The pills get the card border, so they keep a clear edge on the bar.
   > div button {
     border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   }

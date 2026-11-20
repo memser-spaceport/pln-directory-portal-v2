@@ -2,7 +2,9 @@
 
 import { useEffect, useRef } from 'react';
 
+import { SearchInput } from '@/components/common/filters/SearchInput';
 import { ArrowBackIcon } from '@/components/icons';
+import { EventRoleTag } from '@/components/page/events/EventCards';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import type { EventAttendee } from '@/services/events/event-drawer.types';
 
@@ -15,7 +17,7 @@ export interface EventAttendeesState {
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   fetchNextPage: () => void;
-  /** What the member typed; the host debounces it into the query. */
+  /** What the member searches for; the search box waits until they stop typing. */
   search: string;
   onSearchChange: (search: string) => void;
 }
@@ -34,12 +36,14 @@ export function SubHead({ title, onBack }: { title: string; onBack: () => void }
 }
 
 /**
- * "N going to <event>", inside the drawer (LAB-3361, the prototype's `AttendeesView`): "Back to event", the title, a
- * search by name or team, then a row per member (photo, name, role · team, a Host / Speaker / Sponsor tag) that opens
- * their profile in a new tab. It replaces the body and keeps the toolbar; Escape returns to the event.
+ * "N going to <event>", inside the drawer (LAB-3361, the prototype's `AttendeesView`): "Back to event", the title, the
+ * shared search box, then a row per member (photo, name, role · team, the profile's muted Host / Speaker / Sponsor
+ * tags) that opens their profile in a new tab. The viewer's own row reads "You" and is not a link. It replaces the body
+ * and keeps the toolbar; Escape returns to the event.
  *
  * Ours, not in the prototype: rows come from the strict list, 20 at a time as the drawer scrolls to the last one; the
- * viewer's own row (first, from the BE) reads "You" and is not a link.
+ * placeholder says "name or team", what the BE searches (the prototype's says "name, role or team"); a member with
+ * several roles gets a tag for each.
  */
 export function AttendeesView({
   eventName,
@@ -79,14 +83,10 @@ export function AttendeesView({
   return (
     <div className={e.body}>
       <SubHead title={`${total} going to ${eventName}`} onBack={onBack} />
-      <input
-        className={e.searchInput}
-        type="search"
-        value={search}
-        onChange={(ev) => onSearchChange(ev.target.value)}
-        placeholder="Search by name or team"
-        aria-label="Search people going"
-      />
+      <label className={e.search}>
+        <span className={e.srOnly}>Search people going</span>
+        <SearchInput value={search} onChange={onSearchChange} placeholder="Search by name or team" />
+      </label>
       <ul className={e.people} data-testid="event-attendees">
         {rows.map((a) => {
           const isViewer = !!viewerUid && a.memberUid === viewerUid;
@@ -96,9 +96,15 @@ export function AttendeesView({
               <img className={e.personImg} src={a.image || getDefaultAvatar(a.name)} alt="" />
               <span className={e.personText}>
                 <span className={e.personName}>{isViewer ? 'You' : a.name}</span>
-                {!isViewer && meta && <span className={e.personMeta}>{meta}</span>}
+                {meta && <span className={e.personMeta}>{meta}</span>}
               </span>
-              {a.roles.length > 0 && <span className={e.personRoleTag}>{a.roles.join(' · ')}</span>}
+              {a.roles.length > 0 && (
+                <span className={e.personRole}>
+                  {a.roles.map((role) => (
+                    <EventRoleTag key={role} role={role} />
+                  ))}
+                </span>
+              )}
             </>
           );
           return (
@@ -117,7 +123,7 @@ export function AttendeesView({
         {isError && rows.length === 0 && <li className={e.empty}>We couldn&apos;t load who is going.</li>}
         {!isLoading && !isError && rows.length === 0 && (
           <li className={e.empty}>
-            {searching ? 'Nobody going matches that search.' : 'Nobody has said they are going yet.'}
+            {searching ? `Nobody going matches “${search.trim()}”.` : 'Nobody has said they are going yet.'}
           </li>
         )}
         {isFetchingNextPage && <li className={e.empty}>Loading…</li>}

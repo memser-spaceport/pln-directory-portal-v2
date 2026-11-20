@@ -164,9 +164,9 @@ N SHALL count the members going to this event only. Members who said they are go
 
 ### Requirement: The attendee list is for one event and searchable
 
-The count SHALL open the list of that event's attendees inside the drawer, in place of the event, under the toolbar (LAB-3361): "Back to event", then the title "N going to <event>". It SHALL show the viewer first as "You" when they are going. Each other row SHALL show the member's photo, name, role and team, with a Host, Speaker or Sponsor tag when they have that role at this event. A row SHALL open that member's profile in a new tab.
+The count SHALL open the list of that event's attendees inside the drawer, in place of the event, under the toolbar (LAB-3361): "Back to event", then the title "N going to <event>". It SHALL show the viewer first as "You", with their role and team, when they are going; that row is not a link. Each other row SHALL show the member's photo, name, role and team, and a tag for each role they have at this event (Host violet, Speaker green, Sponsor blue, as on the profile's events). A row SHALL open that member's profile in a new tab.
 
-A search box SHALL filter by name or team. With no match, the list SHALL say "Nobody going matches that search."
+The shared search box SHALL filter by name or team once the member stops typing, or at once on Enter. With no match, the list SHALL say "Nobody going matches “<what they typed>”."
 
 #### Scenario: Searching the list
 

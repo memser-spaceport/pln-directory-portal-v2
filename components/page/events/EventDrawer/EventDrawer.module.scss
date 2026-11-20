@@ -576,38 +576,23 @@
   }
 }
 
-/* Who's going: the row's role tags (Host, Speaker, Sponsor), the search, and "Loading…" under the rows. */
-.personRoleTag {
-  flex-shrink: 0;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 500;
-  color: var(--foreground-neutral-secondary, #455468);
-  background: var(--background-neutral-subtle, #f1f5f9);
+/* Who's going: a member with several roles gets a tag for each; the search box's label is for screen readers. */
+.personRole {
+  display: flex;
+  gap: 4px;
 }
 
-.searchInput {
-  width: 100%;
-  height: 40px;
-  padding: 0 12px;
-  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-  border-radius: 8px;
-  font: inherit;
-  font-size: 14px;
-  color: var(--foreground-neutral-primary, #0a0c11);
-  background: var(--background-neutral-primary, #ffffff);
+.search {
+  display: block;
+}
 
-  &::placeholder {
-    color: var(--foreground-neutral-tertiary, #8897ae);
-  }
-
-  &:focus {
-    outline: none;
-    border-color: var(--border-brand-subtle, #aebfff);
-    box-shadow: 0 0 0 3px var(--background-brand-soft-surface, #f2f5ff);
-  }
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .moreSentinel {

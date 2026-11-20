@@ -173,11 +173,9 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
       // LAB-3302: after the member removes the page chip, the request has no page context.
       const chatContext = toChatContext(before.readsPage ? context : null);
       const mentions = toChatMentions(chips);
-      // LAB-3362 (C4-R7): the newest waiting intro card goes with the message. A retry leaves out the turn it replaces.
-      const introDraft = currentIntroDraft(
-        prevTurns.filter((t) => t.id !== replaceId),
-        before.sentIntroTargets,
-      );
+      // LAB-3362 (C4-R7): the newest waiting intro card goes with the message. Only `done` turns count, so a retry of
+      // an `error` or `stalled` turn never sends a card of that turn.
+      const introDraft = currentIntroDraft(prevTurns, before.sentIntroTargets);
       // S6-F20: the first turn of the chat reads no page and no item.
       const first = replaceId ? prevTurns[0]?.id === replaceId : prevTurns.length === 0;
       // LAB-3297: 1 is the first turn of the chat. A retry keeps the place of the turn it replaces.

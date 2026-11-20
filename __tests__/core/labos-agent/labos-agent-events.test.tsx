@@ -642,6 +642,27 @@ describe('LAB-3297: agent events', () => {
       expect(lastBody()).not.toHaveProperty('introDraft');
     });
 
+    it('C4-R7: Retry of a stalled turn sends the card of the last done turn, never a draft of the stalled turn', async () => {
+      const STALLED_DRAFT = 'A stalled draft that the member never saw on the screen.';
+      renderApp();
+      await open(introContext, 'intro-entry');
+      await send('Help me write an intro request.', 'Here is a draft.');
+      chat.mockResolvedValue({
+        ...introAnswer,
+        content: 'Part. The answer was cut short because the AI provider stopped responding.',
+        drafts: [{ ...draft, draftId: 'dr_stalled', text: STALLED_DRAFT }],
+      });
+      await send('make it shorter', /cut short/);
+      expect(lastBody().introDraft).toEqual({ target: { type: 'member', uid: MEMBER_UID }, text: DRAFT_TEXT });
+
+      chat.mockResolvedValue(plainAnswer);
+      await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Retry' })));
+      await screen.findAllByText(ANSWER);
+      expect(chat).toHaveBeenCalledTimes(3);
+      expect(lastBody().message).toBe('make it shorter');
+      expect(lastBody().introDraft).toEqual({ target: { type: 'member', uid: MEMBER_UID }, text: DRAFT_TEXT });
+    });
+
     it('agent-message-sent (V0-R8): with a card open, "make it shorter" sends messageLength 15 and no draft text', async () => {
       renderApp();
       await open(introContext, 'intro-entry');

@@ -251,6 +251,23 @@ describe('LAB-3297: agent event helpers', () => {
     expect(currentIntroDraft([], {})).toBeUndefined();
   });
 
+  it('LAB-3362, V0-R6: a turn that is not done shows no cards, so openCards and currentIntroDraft skip it', () => {
+    const done = draftTurn([draftOf('dr_1', 'm-1')], {});
+    const notDone = (['working', 'stalled', 'stopped', 'error'] as const).map(
+      (status, i) =>
+        ({
+          ...turnWith([prop(`ap_${status}`)], {}),
+          id: `t-${status}`,
+          status,
+          drafts: [draftOf(`dr_${status}`, `m-${i + 2}`)],
+        }) as Parameters<typeof openCards>[0][number],
+    );
+    expect(currentIntroDraft([done, ...notDone], {})?.target.uid).toBe('m-1');
+    expect(currentIntroDraft(notDone, {})).toBeUndefined();
+    expect(openCards(notDone, {})).toEqual([]);
+    expect(openCards([done, ...notDone], {}).map((c) => c.key)).toEqual(['dr_1']);
+  });
+
   it('LAB-3362: currentIntroDraft is absent when the text is empty after trim, and stops at 3500 characters', () => {
     expect(
       currentIntroDraft([draftTurn([draftOf('dr_1', 'm-1')], { dr_1: { status: 'open', text: '   ' } })], {}),

@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Button } from '@/components/common/Button';
 import { Markdown } from '@/components/common/Markdown';
 import type { LabosAgentTurn as Turn } from '@/services/labos-agent/hooks/useLabosAgentChat';
-import { sourceRefLink } from '@/services/labos-agent/labos-agent.sources';
+import { sourceRefKind, sourceRefLink } from '@/services/labos-agent/labos-agent.sources';
 import type { LabosAgentDecision } from '@/types/labos-agent.types';
 
 import { LabosAgentActionCard } from '../LabosAgentActionCard/LabosAgentActionCard';
@@ -128,7 +128,7 @@ export function LabosAgentTurn({
                     href={href}
                     {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                     className={s.ref}
-                    onClick={() => onSourceClick?.(ref.type === 'web' ? 'web' : 'labos', i + 1)}
+                    onClick={() => onSourceClick?.(sourceRefKind(ref), i + 1)}
                   >
                     <span className={s.refTitle}>{ref.title}</span>
                     <span className={s.refMeta}>{ref.type === 'news' ? 'LabOS news' : ref.type}</span>

@@ -263,6 +263,13 @@ The agent SHALL send the 10 v0 events of the LAB-3297 spec (V0-R1) through `useL
 - **WHEN** the member opens the agent and closes it with no message
 - **THEN** one `agent-dock-closed` goes out with `turnCount` 0
 
+#### Scenario: A click on an external ref (V0-R7)
+
+- **GIVEN** an answer has a C1 ref of type `external` (or `web`)
+- **WHEN** the member clicks the ref
+- **THEN** `agent-source-clicked` goes out with `sourceType` `web`
+- **AND** a ref of any other type (`news`, `team`, `project`, `member`) sends `sourceType` `labos`
+
 ### Requirement: The member adds context with @ or the + button
 
 `@` at the start of the input or after a space SHALL open the mention picker (S6-F1). The text after `@` up to a space SHALL be the query, up to 30 characters. A space, Esc or a deleted `@` SHALL close the `@` picker (S6-F2). The + button next to the input SHALL open the same picker with its own search field. Its tooltip SHALL be "Add a page, story, team or member (or type @)" (S6-F3). The hint line SHALL be "Mention a page, story, team or member" for an empty query (S6-F4) and "Matching "<query>"" while the member types (S6-F5). The picker SHALL show the groups in this order: Pages, News, Teams, Members. An empty group SHALL not show (S6-F6). The Pages group SHALL have Home, Jobs and Your profile, and the current page only after the member removed its chip (S6-F7). The picker SHALL hide the items that already have a chip (S6-F11). Up, Down, Enter and Tab SHALL move and pick. Esc SHALL close the picker first, then the panel (S6-F9). After Esc, the same `@` SHALL not open the picker again; a new `@` SHALL open it. While C4 loads and the `@` picker has no row, Enter SHALL do nothing. In `@` mode the composer, and in + mode the search field, SHALL be an ARIA combobox with `aria-expanded`, `aria-controls` (the listbox) and `aria-activedescendant` (the active option id). The search notes SHALL be in a `role="status"` region. The chip row SHALL be a `group` named "What the agent reads".

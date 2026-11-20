@@ -272,8 +272,9 @@ describe('LAB-3297: agent events', () => {
     renderApp();
     await open(newsContext, 'news-story');
     await send(MESSAGE);
-    const link = screen.getByText('Acme site').closest('a');
-    expect(link).toHaveAttribute('href', 'https://example.com/acme');
+    // D8: a web ref keeps a real page title, but the test finds the link by its href, so labels do not matter.
+    const link = document.querySelector<HTMLAnchorElement>('a[href="https://example.com/acme"]');
+    expect(link).toHaveTextContent('Acme site');
     expect(link).toHaveAttribute('target', '_blank');
     expect(link?.getAttribute('rel')).toEqual(expect.stringContaining('noopener'));
     fireEvent.click(link as HTMLAnchorElement);

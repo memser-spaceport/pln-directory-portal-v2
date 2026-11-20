@@ -12,6 +12,8 @@ export { INTRO_REQUEST_RECEIVED_MESSAGE as DRAFT_SENT_MESSAGE } from '@/services
 /** On a 401, `customFetch` signs the member out and reloads the page, so the chat and the text are gone. */
 export const DRAFT_SIGN_IN_MESSAGE = 'Your session ended. Sign in again, then ask the agent for a new draft.';
 export const DRAFT_ALREADY_SENT_MESSAGE = 'Intro already requested';
+/** LAB-3362: an older waiting card after a newer draft for the same target came in a later turn. */
+export const DRAFT_REPLACED_MESSAGE = 'Replaced by a newer draft';
 export const DRAFT_RATE_LIMITED_MESSAGE = 'Try again in a moment.';
 export const DRAFT_SEND_FAILED_MESSAGE = 'The request could not be sent. Try again.';
 

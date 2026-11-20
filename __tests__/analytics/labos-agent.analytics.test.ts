@@ -29,7 +29,7 @@ import {
 } from '@/analytics/labos-agent.analytics';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useLabosAgentChat } from '@/services/labos-agent/hooks/useLabosAgentChat';
-import { currentIntroDraft, openCards } from '@/services/labos-agent/labos-agent.open-cards';
+import { currentIntroDraft, openCards, replacedDraftIds } from '@/services/labos-agent/labos-agent.open-cards';
 import { normalizeChatBody } from '@/services/labos-agent/labos-agent.service';
 import { distinctSourceCount, sourceRefKind, sourceRefLink } from '@/services/labos-agent/labos-agent.sources';
 import { useLabosAgentStore } from '@/services/labos-agent/store';
@@ -266,6 +266,27 @@ describe('LAB-3297: agent event helpers', () => {
     expect(currentIntroDraft(notDone, {})).toBeUndefined();
     expect(openCards(notDone, {})).toEqual([]);
     expect(openCards([done, ...notDone], {}).map((c) => c.key)).toEqual(['dr_1']);
+  });
+
+  it('LAB-3362 (V0-R9): a draft in a later done turn replaces older waiting cards for the same target only', () => {
+    const turns = [
+      { ...draftTurn([draftOf('dr_1', 'm-1'), draftOf('dr_x', 'm-9')], {}), id: 't-1' },
+      { ...draftTurn([draftOf('dr_sent', 'm-1')], { dr_sent: { status: 'sent', text: 'x' } }), id: 't-2' },
+      { ...draftTurn([draftOf('dr_2', 'm-1'), draftOf('dr_2b', 'm-1')], {}), id: 't-3' },
+      { ...draftTurn([draftOf('dr_3', 'm-1')], {}), id: 't-4' },
+      { ...draftTurn([draftOf('dr_stalled', 'm-1')], {}), id: 't-5', status: 'stalled' },
+    ] as Parameters<typeof openCards>[0];
+    // dr_x has another target; dr_sent keeps its state; the stalled turn shows no card, so it replaces nothing.
+    expect([...replacedDraftIds(turns)].sort()).toEqual(['dr_1', 'dr_2', 'dr_2b']);
+    expect(openCards(turns, {}).map((c) => c.key)).toEqual(['dr_x', 'dr_3']);
+    expect(currentIntroDraft(turns, {})?.text).toBe('A draft text that is long enough.');
+    expect(currentIntroDraft(turns.slice(0, 1), {})?.target.uid).toBe('m-9');
+  });
+
+  it('LAB-3362: two drafts for one target in the same turn do not replace each other', () => {
+    const turns = [draftTurn([draftOf('dr_1', 'm-1'), draftOf('dr_2', 'm-1')], {})];
+    expect(replacedDraftIds(turns).size).toBe(0);
+    expect(openCards(turns, {}).map((c) => c.key)).toEqual(['dr_1', 'dr_2']);
   });
 
   it('LAB-3362: currentIntroDraft is absent when the text is empty after trim, and stops at 3500 characters', () => {

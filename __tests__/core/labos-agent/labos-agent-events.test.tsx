@@ -681,6 +681,58 @@ describe('LAB-3297: agent events', () => {
       expect(all).not.toContain(DRAFT_TEXT);
     });
 
+    // LAB-3362 (Oleg's recheck): each revision gives a new card for the same target. Older waiting cards are replaced.
+    const REV_1 = 'I lead fundraising at Acme. We raise a seed round. A shorter text.';
+    const REV_2 = 'I lead fundraising at Acme and want seed round advice.';
+    async function twoRevisions() {
+      renderApp();
+      await open(introContext, 'intro-entry');
+      await send('Help me write an intro request.', 'Here is a draft.');
+      chat.mockResolvedValue({ ...introAnswer, drafts: [{ ...draft, draftId: 'dr_2', text: REV_1 }] });
+      await send('make it shorter', /Here is a draft/);
+      chat.mockResolvedValue({ ...introAnswer, drafts: [{ ...draft, draftId: 'dr_3', text: REV_2 }] });
+      await send('shorter again', /Here is a draft/);
+      return screen.getAllByRole('article', { name: `Intro request to ${MEMBER_NAME}` });
+    }
+
+    it('LAB-3362: after 2 revisions only the newest card has Send; older cards show "Replaced by a newer draft"', async () => {
+      const cards = await twoRevisions();
+      expect(cards).toHaveLength(3);
+      cards.slice(0, 2).forEach((c) => {
+        expect(within(c).getByText('Replaced by a newer draft')).toBeInTheDocument();
+        expect(within(c).queryByRole('button', { name: 'Send' })).not.toBeInTheDocument();
+        expect(within(c).queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument();
+        expect(within(c).queryByLabelText('Your request. Edit it before you send.')).not.toBeInTheDocument();
+      });
+      expect(within(cards[2]).getByRole('button', { name: 'Send' })).toBeInTheDocument();
+      expect(within(cards[2]).getByLabelText('Your request. Edit it before you send.')).toHaveValue(REV_2);
+      // A new proposed event for each revision (V0-R9), and no cancel for a replaced card.
+      expect(events('agent-action-proposed')).toHaveLength(3);
+      expect(events('agent-action-cancelled')).toHaveLength(0);
+    });
+
+    it('LAB-3362 (C4-R7): after 2 revisions, the next message sends the newest card as introDraft', async () => {
+      await twoRevisions();
+      chat.mockResolvedValue(plainAnswer);
+      await send('Thanks');
+      expect(lastBody().introDraft).toEqual({ target: { type: 'member', uid: MEMBER_UID }, text: REV_2 });
+    });
+
+    it('agent-action-cancelled (V0-R9): 2 revisions, then Cancel on the newest card sends exactly 1 event', async () => {
+      const cards = await twoRevisions();
+      fireEvent.click(within(cards[2]).getByRole('button', { name: 'Cancel' }));
+      close();
+
+      expect(one('agent-action-cancelled')).toMatchObject({ actionType: 'intro-draft', edited: false });
+    });
+
+    it('agent-action-cancelled (V0-R9): 2 revisions, then New chat sends exactly 1 event', async () => {
+      await twoRevisions();
+      fireEvent.click(screen.getByRole('button', { name: 'New chat' }));
+
+      expect(one('agent-action-cancelled')).toMatchObject({ actionType: 'intro-draft', edited: false });
+    });
+
     it('agent-action-cancelled (V0-R6): New chat with an "Intro already requested" card sends 0 events', async () => {
       const key = introRequestTargetKey('MEMBER', MEMBER_UID);
       const release = retainIntroRequestTarget(key);

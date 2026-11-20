@@ -15,6 +15,7 @@ import { PAGE_NOT_FOUND_CODES, useLabosAgentChat } from '@/services/labos-agent/
 import { useLabosAgentMentionSearch } from '@/services/labos-agent/hooks/useLabosAgentMentionSearch';
 import { isLabosAgentMock } from '@/services/labos-agent/labos-agent.config';
 import { keepInteractive } from '@/services/labos-agent/labos-agent.dialogs';
+import { replacedDraftIds } from '@/services/labos-agent/labos-agent.open-cards';
 import {
   contextMentionKey,
   pickerGroups,
@@ -102,6 +103,7 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
     markMentionsRestored,
   } = useLabosAgentChat(context);
   const { onSourceClicked } = useLabosAgentAnalytics();
+  const replacedDrafts = useMemo(() => replacedDraftIds(turns), [turns]);
   const prefill = useLabosAgentStore((st) => st.prefill);
   const clearPrefill = useLabosAgentStore((st) => st.actions.clearPrefill);
   const readsPage = useLabosAgentStore((st) => st.readsPage);
@@ -407,6 +409,7 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
                 onDraftEdit={editDraft}
                 onDraftSend={(turnId, draftId) => void sendDraft(turnId, draftId)}
                 onDraftCancel={cancelDraft}
+                replacedDrafts={replacedDrafts}
                 onSourceClick={(sourceType, position) => onSourceClicked(context, { sourceType, position })}
               />
             </div>

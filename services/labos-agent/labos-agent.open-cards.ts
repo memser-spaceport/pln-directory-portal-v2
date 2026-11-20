@@ -1,5 +1,5 @@
 import { agentActionType, type AgentActionCancelledProps } from '@/analytics/labos-agent.analytics';
-import type { LabosAgentTurn } from '@/types/labos-agent.types';
+import type { LabosAgentChatIntroDraft, LabosAgentTurn } from '@/types/labos-agent.types';
 
 import { isDraftTargetSent } from './labos-agent.drafts';
 
@@ -7,6 +7,20 @@ import { isDraftTargetSent } from './labos-agent.drafts';
 const isExpired = (expiresAt?: string) => {
   const at = expiresAt ? Date.parse(expiresAt) : NaN;
   return Number.isFinite(at) && Date.now() >= at;
+};
+
+/** The C1 limit of `introDraft.text` (contract 11.1). The same value as the card limit, `INTRO_DRAFT_MAX_LENGTH`. */
+const INTRO_DRAFT_TEXT_MAX = 3500;
+
+/** A draft card waits with no state, `open` or `error`, and only when its target has no intro yet. */
+const isDraftWaiting = (
+  turn: LabosAgentTurn,
+  draft: NonNullable<LabosAgentTurn['drafts']>[number],
+  sentIntroTargets: Record<string, true>,
+) => {
+  const card = turn.draftCards?.[draft.draftId];
+  const open = !card || card.status === 'open' || card.status === 'error';
+  return open && !isDraftTargetSent(draft, sentIntroTargets);
 };
 
 /** One card that still waits for the member: its key (`proposalId` or `draftId`) and its cancel properties. */
@@ -31,11 +45,7 @@ export function openCards(turns: LabosAgentTurn[], sentIntroTargets: Record<stri
       })
       .map((p) => ({ key: p.proposalId, props: { actionType: agentActionType(p.tool), edited: false } })),
     ...(turn.drafts ?? [])
-      .filter((d) => {
-        const card = turn.draftCards?.[d.draftId];
-        const open = !card || card.status === 'open' || card.status === 'error';
-        return open && !isDraftTargetSent(d, sentIntroTargets);
-      })
+      .filter((d) => isDraftWaiting(turn, d, sentIntroTargets))
       .map((d) => {
         const text = turn.draftCards?.[d.draftId]?.text ?? d.text;
         return {
@@ -44,4 +54,28 @@ export function openCards(turns: LabosAgentTurn[], sentIntroTargets: Record<stri
         };
       }),
   ]);
+}
+
+/**
+ * LAB-3362 (contract change 4, section 11): the `introDraft` of the next C1 message. It is the newest intro card that
+ * still waits (the `openCards` rule), with the current card text and the member's edits. It is absent when no card
+ * waits, or when the text is empty after trim. The text stops at 3500 characters (the C1 limit). The text goes only
+ * into the C1 body: never into an event or a log.
+ */
+export function currentIntroDraft(
+  turns: LabosAgentTurn[],
+  sentIntroTargets: Record<string, true>,
+): LabosAgentChatIntroDraft | undefined {
+  for (let t = turns.length - 1; t >= 0; t -= 1) {
+    const turn = turns[t];
+    const drafts = turn.drafts ?? [];
+    for (let d = drafts.length - 1; d >= 0; d -= 1) {
+      const draft = drafts[d];
+      if (!isDraftWaiting(turn, draft, sentIntroTargets)) continue;
+      const text = (turn.draftCards?.[draft.draftId]?.text ?? draft.text).trim().slice(0, INTRO_DRAFT_TEXT_MAX);
+      if (!text) return undefined;
+      return { target: { type: draft.target.type, uid: draft.target.uid }, text };
+    }
+  }
+  return undefined;
 }

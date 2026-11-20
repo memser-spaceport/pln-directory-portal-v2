@@ -213,6 +213,18 @@ describe('LAB-3318: C1 mentions (S6-F14)', () => {
     expect(JSON.parse(mockedFetch.mock.calls[1][1].body)).toEqual({ threadId: 't', chatId: 'c', message: 'Hi' });
   });
 
+  it('LAB-3362: the fetch body has a top-level `introDraft` when the hook passes one', async () => {
+    mockedFetch.mockResolvedValue(streamResponse('{"content":"ok"}'));
+    const introDraft = { target: { type: 'member' as const, uid: 'm-1' }, text: 'A short intro.' };
+    await liveLabosAgentClient.chat({ threadId: 't', chatId: 'c', message: 'make it shorter', introDraft });
+    expect(JSON.parse(mockedFetch.mock.calls[0][1].body)).toEqual({
+      threadId: 't',
+      chatId: 'c',
+      message: 'make it shorter',
+      introDraft,
+    });
+  });
+
   it('S6-F17: a C1 404 for a mention keeps `mentionIndex`; a 404 for context has none', async () => {
     mockedFetch.mockResolvedValue(
       jsonResponse({ statusCode: 404, code: 'TEAM_NOT_FOUND', message: 'Team not found', mentionIndex: 1 }, 404),

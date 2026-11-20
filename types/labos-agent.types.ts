@@ -68,6 +68,14 @@ export interface LabosAgentChatRequest {
   context?: LabosAgentChatContext;
   /** S6: 1 to 5 items, in the order of the chips. Absent when the member picked none. */
   mentions?: LabosAgentMention[];
+  /** LAB-3362 (contract 11.1): the newest waiting intro card. Absent when no card waits. */
+  introDraft?: LabosAgentChatIntroDraft;
+}
+
+/** LAB-3362 (contract 11.1): the target of a waiting intro card and its current text (1 to 3500 characters). */
+export interface LabosAgentChatIntroDraft {
+  target: LabosAgentIntroTarget;
+  text: string;
 }
 
 /** The C4 item types (contract 10.2). Pages are a frontend list (10.5). */

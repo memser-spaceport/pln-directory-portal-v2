@@ -29,7 +29,7 @@ import {
 } from '@/analytics/labos-agent.analytics';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useLabosAgentChat } from '@/services/labos-agent/hooks/useLabosAgentChat';
-import { openCards } from '@/services/labos-agent/labos-agent.open-cards';
+import { currentIntroDraft, openCards } from '@/services/labos-agent/labos-agent.open-cards';
 import { normalizeChatBody } from '@/services/labos-agent/labos-agent.service';
 import { distinctSourceCount, sourceRefKind, sourceRefLink } from '@/services/labos-agent/labos-agent.sources';
 import { useLabosAgentStore } from '@/services/labos-agent/store';
@@ -212,6 +212,51 @@ describe('LAB-3297: agent event helpers', () => {
       {},
     );
     expect(cards.map((c) => c.key)).toEqual(['retry']);
+  });
+
+  const draftOf = (draftId: string, uid: string, text = 'A draft text that is long enough.') => ({
+    draftId,
+    kind: 'intro',
+    target: { type: 'member', uid, name: 'Ada Lovelace' },
+    text,
+    minLength: 20,
+    maxLength: 3500,
+    source: 'agent',
+  });
+  const draftTurn = (drafts: object[], draftCards: object) =>
+    ({ ...turnWith([], {}), drafts, draftCards }) as Parameters<typeof currentIntroDraft>[0][number];
+
+  it('LAB-3362: currentIntroDraft is the newest waiting card, with its edited text, and no name', () => {
+    const turns = [
+      draftTurn([draftOf('dr_1', 'm-1')], {}),
+      draftTurn([draftOf('dr_2', 'm-2'), draftOf('dr_3', 'm-3')], {
+        dr_2: { status: 'open', text: 'Edit two' },
+        dr_3: { status: 'error', text: '  Edit three  ', message: 'Retry.' },
+      }),
+    ];
+    expect(currentIntroDraft(turns, {})).toEqual({ target: { type: 'member', uid: 'm-3' }, text: 'Edit three' });
+  });
+
+  it('LAB-3362: currentIntroDraft skips sent, cancelled and sending cards, and a target with an intro', () => {
+    const turns = [
+      draftTurn([draftOf('dr_1', 'm-1'), draftOf('dr_2', 'm-2')], {}),
+      draftTurn([draftOf('dr_3', 'm-3'), draftOf('dr_4', 'm-4'), draftOf('dr_5', 'm-5')], {
+        dr_3: { status: 'sent', text: 'x' },
+        dr_4: { status: 'cancelled', text: 'x' },
+        dr_5: { status: 'sending', text: 'x' },
+      }),
+    ];
+    expect(currentIntroDraft(turns, { 'MEMBER:m-2': true })?.target.uid).toBe('m-1');
+    expect(currentIntroDraft(turns, { 'MEMBER:m-1': true, 'MEMBER:m-2': true })).toBeUndefined();
+    expect(currentIntroDraft([], {})).toBeUndefined();
+  });
+
+  it('LAB-3362: currentIntroDraft is absent when the text is empty after trim, and stops at 3500 characters', () => {
+    expect(
+      currentIntroDraft([draftTurn([draftOf('dr_1', 'm-1')], { dr_1: { status: 'open', text: '   ' } })], {}),
+    ).toBe(undefined);
+    const long = currentIntroDraft([draftTurn([draftOf('dr_1', 'm-1', 'a'.repeat(4000))], {})], {});
+    expect(long?.text).toHaveLength(3500);
   });
 
   it('agent-action-cancelled (V0-R6): a pending action card past its expiresAt does not wait', () => {

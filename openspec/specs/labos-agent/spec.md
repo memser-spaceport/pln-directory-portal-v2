@@ -186,6 +186,16 @@ The card SHALL show the C3 errors and keep the edited text (S3-R15):
 
 A C1 answer with `drafts: []` (a refusal) SHALL show the answer and no card. Accessibility (as the S2 action card): the card SHALL be an `<article>` named by its title, with one `role="status"` region mounted from the first render. After a send ends or a Cancel, focus SHALL move to that region.
 
+While an intro card waits (the `openCards` rule: not sent, not cancelled, no intro for its target yet), each C1 message SHALL carry a top-level `introDraft: { target: { type, uid }, text }` for the newest waiting card (contract change 4, section 11, LAB-3362). `text` SHALL be the current card text with the member's edits, trimmed, at most 3500 characters. The client SHALL send no `introDraft` when no card waits or when the text is empty after trim. After Send or Cancel, the next message SHALL carry no `introDraft` (C4-R7). The draft text SHALL never go into an event or a log (C4-R8); `agent-message-sent` keeps `messageLength` of the message only (V0-R8).
+
+#### Scenario: Ask the agent to change a waiting draft
+
+- **GIVEN** an intro card that waits, and the member edited its text
+- **WHEN** the member sends "make it shorter"
+- **THEN** the C1 body has `introDraft` with the card target and the edited, trimmed text
+- **AND** `agent-message-sent` has `messageLength` 15 and no draft text
+- **AND** after Send or Cancel on the card, the next C1 body has no `introDraft`
+
 #### Scenario: Edit and send
 
 - **GIVEN** an answer with an intro draft

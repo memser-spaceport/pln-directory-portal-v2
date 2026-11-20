@@ -34,7 +34,7 @@ import {
 import { LABOS_AGENT_MENTION_TEXT } from '../constants';
 import { isStalledAnswer, LabosAgentError } from '../labos-agent.errors';
 import { toChatMentions } from '../labos-agent.mentions';
-import { openCards } from '../labos-agent.open-cards';
+import { currentIntroDraft, openCards } from '../labos-agent.open-cards';
 import { distinctSourceCount } from '../labos-agent.sources';
 import { getLabosAgentClient, toChatContext } from '../labos-agent.service';
 import { chatKey, useLabosAgentStore } from '../store';
@@ -173,6 +173,11 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
       // LAB-3302: after the member removes the page chip, the request has no page context.
       const chatContext = toChatContext(before.readsPage ? context : null);
       const mentions = toChatMentions(chips);
+      // LAB-3362 (C4-R7): the newest waiting intro card goes with the message. A retry leaves out the turn it replaces.
+      const introDraft = currentIntroDraft(
+        prevTurns.filter((t) => t.id !== replaceId),
+        before.sentIntroTargets,
+      );
       // S6-F20: the first turn of the chat reads no page and no item.
       const first = replaceId ? prevTurns[0]?.id === replaceId : prevTurns.length === 0;
       // LAB-3297: 1 is the first turn of the chat. A retry keeps the place of the turn it replaces.
@@ -212,7 +217,15 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
       try {
         const body = await getLabosAgentClient().chat(
           // S6-F14: `mentions` in the order of the chips, only when the member picked some.
-          { threadId, chatId: id, message, context: chatContext, ...(mentions ? { mentions } : {}) },
+          // LAB-3362: `introDraft` only while an intro card waits. Its text never goes into an event or a log.
+          {
+            threadId,
+            chatId: id,
+            message,
+            context: chatContext,
+            ...(mentions ? { mentions } : {}),
+            ...(introDraft ? { introDraft } : {}),
+          },
           {
             signal: controller.signal,
             onUpdate: (partial) => {

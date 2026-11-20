@@ -63,6 +63,8 @@ export default function ItemDetailContainer({ id }: { id: string }) {
       <ItemDetail
         item={item}
         comments={commentsQuery.data?.items ?? []}
+        onLoadMoreComments={commentsQuery.hasMore ? commentsQuery.loadMore : undefined}
+        loadingMoreComments={commentsQuery.isLoadingMore}
         isAdmin={me?.is_admin ?? false}
         currentMemberUid={currentMemberUid}
         commentPending={addComment.isPending}

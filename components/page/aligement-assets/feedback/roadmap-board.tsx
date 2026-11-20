@@ -15,7 +15,7 @@ import MoveToMenu from './move-to-menu';
 import { lastMoveLine } from './feedback.utils';
 
 const MOBILE_BREAKPOINT = 768;
-const PAGE_SIZE = 20;
+export const ROADMAP_PAGE_SIZE = 20;
 
 const COLUMN_SUBTITLE: Partial<Record<RoadmapColumn, string>> = {
   completed: 'Last 90 days',
@@ -72,7 +72,7 @@ export default function RoadmapBoard({
       <div className={`fb-board__columns ${isNarrow ? 'fb-board__columns--single' : ''}`}>
         {visibleColumns.map((status) => {
           const all: FeedbackItem[] = roadmap[status] ?? [];
-          const limit = shown[status] ?? PAGE_SIZE;
+          const limit = shown[status] ?? ROADMAP_PAGE_SIZE;
           const items = all.slice(0, limit);
 
           return (
@@ -126,7 +126,7 @@ export default function RoadmapBoard({
                 <button
                   type="button"
                   className="fb-btn fb-btn--ghost fb-btn--sm"
-                  onClick={() => setShown((current) => ({ ...current, [status]: limit + PAGE_SIZE }))}
+                  onClick={() => setShown((current) => ({ ...current, [status]: limit + ROADMAP_PAGE_SIZE }))}
                 >
                   Show more
                 </button>

@@ -74,6 +74,15 @@ export function EmptyState({ message, action }: { message: string; action?: Reac
   );
 }
 
+export function LoadMore({ onLoadMore, loading }: { onLoadMore?: () => void; loading?: boolean }) {
+  if (!onLoadMore) return null;
+  return (
+    <button type="button" className="fb-btn fb-btn--ghost fb-btn--sm" onClick={onLoadMore} disabled={loading}>
+      {loading ? 'Loading…' : 'Load more'}
+    </button>
+  );
+}
+
 export function LoadingRows({ rows = 4 }: { rows?: number }) {
   return (
     <div className="fb-skeletons" aria-busy="true" aria-live="polite" data-testid="fb-loading">

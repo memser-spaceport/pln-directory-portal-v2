@@ -1,6 +1,7 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { InfiniteData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from '@/components/core/ToastContainer';
 import { feedbackApi } from './feedback.api';
 import {
   CreateFeedbackInput,
@@ -23,16 +24,40 @@ export const FeedbackQueryKeys = {
 
 const VIEWER_SPECIFIC = { staleTime: 0, gcTime: 0, refetchOnWindowFocus: false } as const;
 
+// The API returns at most 50 cards per column. The board shows 20 and reveals
+// the rest with Show more, so it has to ask for more than it first shows.
+const ROADMAP_PER_COLUMN = 50;
+
+type Page<T> = { items: T[]; next_cursor: string | null };
+type ListPages = InfiniteData<FeedbackListResponse, string | undefined>;
+
+function usePaged<T>(queryKey: unknown[], fetchPage: (cursor?: string) => Promise<Page<T>>, enabled = true) {
+  const query = useInfiniteQuery({
+    queryKey,
+    queryFn: ({ pageParam }) => fetchPage(pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last.next_cursor ?? undefined,
+    enabled,
+    ...VIEWER_SPECIFIC,
+  });
+
+  return {
+    data: query.data ? { items: query.data.pages.flatMap((page) => page.items) } : undefined,
+    isLoading: query.isLoading,
+    isError: query.isError,
+    refetch: query.refetch,
+    hasMore: query.hasNextPage,
+    isLoadingMore: query.isFetchingNextPage,
+    loadMore: () => void query.fetchNextPage(),
+  };
+}
+
 export function useFeedbackMe() {
   return useQuery({ queryKey: [FeedbackQueryKeys.ME], queryFn: feedbackApi.me, ...VIEWER_SPECIFIC, retry: 1 });
 }
 
 export function useFeedbackList(params: FeedbackListParams) {
-  return useQuery({
-    queryKey: [FeedbackQueryKeys.LIST, params],
-    queryFn: () => feedbackApi.list(params),
-    ...VIEWER_SPECIFIC,
-  });
+  return usePaged([FeedbackQueryKeys.LIST, params], (cursor) => feedbackApi.list({ ...params, cursor }));
 }
 
 export function useFeedbackItem(id: string | undefined) {
@@ -44,7 +69,7 @@ export function useFeedbackItem(id: string | undefined) {
   });
 }
 
-export function useFeedbackRoadmap(perColumn = 20) {
+export function useFeedbackRoadmap(perColumn = ROADMAP_PER_COLUMN) {
   return useQuery({
     queryKey: [FeedbackQueryKeys.ROADMAP, perColumn],
     queryFn: () => feedbackApi.roadmap(perColumn),
@@ -53,21 +78,15 @@ export function useFeedbackRoadmap(perColumn = 20) {
 }
 
 export function useFeedbackTriage(enabled: boolean) {
-  return useQuery({
-    queryKey: [FeedbackQueryKeys.TRIAGE],
-    queryFn: () => feedbackApi.triage(),
-    enabled,
-    ...VIEWER_SPECIFIC,
-  });
+  return usePaged([FeedbackQueryKeys.TRIAGE], (cursor) => feedbackApi.triage(cursor), enabled);
 }
 
 export function useFeedbackComments(id: string | undefined) {
-  return useQuery({
-    queryKey: [FeedbackQueryKeys.COMMENTS, id],
-    queryFn: () => feedbackApi.comments(id as string),
-    enabled: Boolean(id),
-    ...VIEWER_SPECIFIC,
-  });
+  return usePaged(
+    [FeedbackQueryKeys.COMMENTS, id],
+    (cursor) => feedbackApi.comments(id as string, cursor),
+    Boolean(id),
+  );
 }
 
 function useInvalidateBoard() {
@@ -84,7 +103,10 @@ export function useCreateFeedback() {
   const invalidate = useInvalidateBoard();
   return useMutation({
     mutationFn: (input: CreateFeedbackInput) => feedbackApi.create(input),
-    onSuccess: () => invalidate(),
+    onSuccess: () => {
+      toast.success('Feedback submitted. Thank you.');
+      invalidate();
+    },
   });
 }
 
@@ -101,7 +123,7 @@ export function useVote() {
       await queryClient.cancelQueries({ queryKey: [FeedbackQueryKeys.ITEM, id] });
       await queryClient.cancelQueries({ queryKey: [FeedbackQueryKeys.ME] });
 
-      const previousLists = queryClient.getQueriesData<FeedbackListResponse>({ queryKey: [FeedbackQueryKeys.LIST] });
+      const previousLists = queryClient.getQueriesData<ListPages>({ queryKey: [FeedbackQueryKeys.LIST] });
       const previousItem = queryClient.getQueryData<FeedbackItem>([FeedbackQueryKeys.ITEM, id]);
       const previousMe = queryClient.getQueryData<FeedbackMe>([FeedbackQueryKeys.ME]);
       const delta = voted ? -1 : 1;
@@ -122,15 +144,16 @@ export function useVote() {
       const patch = (item: FeedbackItem): FeedbackItem =>
         item.id === id ? { ...item, has_voted: !voted, vote_count: item.vote_count + delta } : item;
 
-      queryClient.setQueriesData<FeedbackListResponse>({ queryKey: [FeedbackQueryKeys.LIST] }, (old) =>
-        old ? { ...old, items: old.items.map(patch) } : old,
+      queryClient.setQueriesData<ListPages>({ queryKey: [FeedbackQueryKeys.LIST] }, (old) =>
+        old ? { ...old, pages: old.pages.map((page) => ({ ...page, items: page.items.map(patch) })) } : old,
       );
       queryClient.setQueryData<FeedbackItem>([FeedbackQueryKeys.ITEM, id], (old) => (old ? patch(old) : old));
 
       return { previousLists, previousItem, previousMe, id };
     },
 
-    onError: (_error, _variables, context) => {
+    onError: (error, _variables, context) => {
+      toast.error(error instanceof Error && error.message ? error.message : 'Your vote was not saved. Try again.');
       context?.previousLists?.forEach(([key, data]) => queryClient.setQueryData(key, data));
       if (context?.previousItem) {
         queryClient.setQueryData([FeedbackQueryKeys.ITEM, context.id], context.previousItem);

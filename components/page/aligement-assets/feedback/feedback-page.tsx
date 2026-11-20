@@ -250,6 +250,8 @@ export default function FeedbackPage() {
               onMove={handleMove}
               onRetryLinear={(id) => retryLinear.mutate(id)}
               retryingId={retryLinear.isPending ? retryLinear.variables : undefined}
+              onLoadMore={triageQuery.hasMore ? triageQuery.loadMore : undefined}
+              loadingMore={triageQuery.isLoadingMore}
             />
           )
         ) : listQuery.isLoading ? (
@@ -262,6 +264,8 @@ export default function FeedbackPage() {
             onVote={handleVote}
             votesRemaining={voteBudget?.remaining}
             showPrivateMarker={tab === 'mine'}
+            onLoadMore={listQuery.hasMore ? listQuery.loadMore : undefined}
+            loadingMore={listQuery.isLoadingMore}
             emptyMessage={
               tab === 'mine' ? "You haven't submitted anything yet." : 'No ideas yet. Be the first to suggest one.'
             }

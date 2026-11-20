@@ -116,6 +116,18 @@ describe('AC-T6.5 member display', () => {
 });
 
 describe('AC-T6.6 comments', () => {
+  it('offers the rest of a long thread only while there is more to load', () => {
+    const onLoadMoreComments = jest.fn();
+    renderDetail({ comments: [comment()], onLoadMoreComments });
+    fireEvent.click(screen.getByRole('button', { name: 'Load more' }));
+    expect(onLoadMoreComments).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows no Load more on a thread that is already complete', () => {
+    renderDetail({ comments: [comment()] });
+    expect(screen.queryByRole('button', { name: 'Load more' })).not.toBeInTheDocument();
+  });
+
   it('posts a comment and clears the composer', () => {
     const handlers = renderDetail();
     fireEvent.change(screen.getByLabelText('Add a comment'), { target: { value: 'Good idea' } });
@@ -206,6 +218,18 @@ describe('AC-T7.4 admin controls are not rendered for members', () => {
 });
 
 describe('ideas list rows', () => {
+  it('offers Load more only while there is more to load', () => {
+    const onLoadMore = jest.fn();
+    const { rerender } = render(
+      <IdeasList items={[item()]} onVote={jest.fn()} emptyMessage="none" onLoadMore={onLoadMore} />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Load more' }));
+    expect(onLoadMore).toHaveBeenCalledTimes(1);
+
+    rerender(<IdeasList items={[item()]} onVote={jest.fn()} emptyMessage="none" />);
+    expect(screen.queryByRole('button', { name: 'Load more' })).not.toBeInTheDocument();
+  });
+
   it('links each row to its item and keeps voting off the link', () => {
     const onVote = jest.fn();
     render(<IdeasList items={[item({ id: 'row-1', title: 'Row one' })]} onVote={onVote} emptyMessage="none" />);

@@ -149,6 +149,18 @@ describe('AC-T7.7 narrow viewport', () => {
 describe('AC-T7.5 triage Linear state', () => {
   const triageHandlers = () => ({ onMove: jest.fn(), onRetryLinear: jest.fn() });
 
+  it('offers Load more only while the queue has more to load', () => {
+    const onLoadMore = jest.fn();
+    const { rerender } = render(
+      <TriageList items={[item({ id: 't1' })]} {...triageHandlers()} onLoadMore={onLoadMore} />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Load more' }));
+    expect(onLoadMore).toHaveBeenCalledTimes(1);
+
+    rerender(<TriageList items={[item({ id: 't1' })]} {...triageHandlers()} />);
+    expect(screen.queryByRole('button', { name: 'Load more' })).not.toBeInTheDocument();
+  });
+
   it('links the identifier once the issue exists', () => {
     const handlers = triageHandlers();
     render(

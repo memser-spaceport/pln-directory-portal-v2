@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { FeedbackComment, FeedbackItem, FeedbackStatus, STATUS_LABELS } from '@/services/plaa/feedback/feedback.types';
 import MemberDisplay from './member-display';
 import MoveToMenu from './move-to-menu';
-import { StatusBadge, TypeBadge, VoteButton } from './feedback-bits';
+import { LoadMore, StatusBadge, TypeBadge, VoteButton } from './feedback-bits';
 import { formatDate, relativeAge } from './feedback.utils';
 
 const COMMENT_MAX = 2000;
@@ -23,6 +23,8 @@ export default function ItemDetail({
   onRetryLinear,
   commentPending,
   votesRemaining,
+  onLoadMoreComments,
+  loadingMoreComments,
 }: {
   item: FeedbackItem;
   comments: FeedbackComment[];
@@ -36,6 +38,8 @@ export default function ItemDetail({
   onRetryLinear: () => void;
   commentPending?: boolean;
   votesRemaining?: number;
+  onLoadMoreComments?: () => void;
+  loadingMoreComments?: boolean;
 }) {
   const [draft, setDraft] = useState('');
 
@@ -181,6 +185,7 @@ export default function ItemDetail({
             </li>
           ))}
         </ul>
+        <LoadMore onLoadMore={onLoadMoreComments} loading={loadingMoreComments} />
 
         {item.status === 'duplicate' ? (
           <p className="fb-help">This item was merged. Add your comment on the canonical item instead.</p>

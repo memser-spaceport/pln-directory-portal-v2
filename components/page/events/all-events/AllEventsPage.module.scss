@@ -456,6 +456,23 @@
   white-space: nowrap;
 }
 
+/* Share / embed (LAB-3352) and, from 1024px, Filters and the view switch. */
+.toolbarActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Share / embed: with `filtersBtn`, the same bordered control, shown at every width (the phone bar has no room). */
+.shareBtn {
+  white-space: nowrap;
+}
+
+/* The embed (LAB-3352): no site header above, so the sticky toolbar sits at the top of the frame. */
+.embed {
+  --app-header-height: 0px;
+}
+
 .toolbarEnd {
   /* Under 1024px the MobileFilterWrapper bar carries both Filters and View. */
   display: none;

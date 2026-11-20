@@ -17,6 +17,25 @@ export const FILTER_PARAMS = ['search', 'going', 'mode', 'access', 'focus', 'cit
 export type FilterParam = (typeof FILTER_PARAMS)[number];
 export const isFilterParam = (key: string): key is FilterParam => (FILTER_PARAMS as readonly string[]).includes(key);
 
+/** The embed page's address (LAB-3352). */
+export const EVENTS_EMBED_PATH = '/events/embed';
+
+/**
+ * What an embed link carries (LAB-3352): the view, the calendar mode and every filter but "Events I'm going to", which
+ * needs a signed-in member. Never the open event. In the page's own order, so a copied link reads like the address.
+ */
+export const EMBED_PARAMS = ['view', 'cal', ...FILTER_PARAMS.filter((key) => key !== 'going')] as const;
+
+/** The query of the embed link for the page's address, without a leading `?`; empty for the plain List. */
+export function embedQuery(params: URLSearchParams): string {
+  const next = new URLSearchParams();
+  EMBED_PARAMS.forEach((key) => {
+    const value = params.get(key);
+    if (value) next.set(key, value);
+  });
+  return next.toString();
+}
+
 /** A filter param's values as analytics records them: the decoded list, `['true']` for going, the search text. */
 export function filterValues(key: FilterParam, value: string | null | undefined): string[] {
   if (isFacetKey(key)) return decodeFilterValues(value ?? undefined);

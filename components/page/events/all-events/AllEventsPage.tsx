@@ -1,5 +1,6 @@
 'use client';
 
+import clsx from 'clsx';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -16,9 +17,11 @@ import { eventGoingToastText } from '@/components/page/events/EventDrawer/toast'
 import { encodeFilterValues } from '@/services/filters';
 import { useAllEventsFilterStore } from '@/services/events/all-events-filters.store';
 import {
+  EVENTS_EMBED_PATH,
   FILTER_PARAMS,
   type FilterParam,
   countAppliedFilters,
+  embedQuery,
   filterEvents,
   filterValues,
   isFilterParam,
@@ -64,7 +67,16 @@ export interface AllEventsPageProps {
   serverTodayIso: string;
   submitHref: string;
   eventsAppHref: string;
+  /**
+   * The embed (LAB-3352, `/events/embed`), framed by another site: the toolbar and the view only. No page header
+   * (Submit an event, the events app), no Share / embed, no member parts, no drawer: an event opens on LabOS in a new
+   * tab, since a framed page often can't use the LabOS sign-in.
+   */
+  embed?: boolean;
 }
+
+/** Where an event opens from the embed: the All Events page with its drawer, in a new tab. */
+export const embedEventHref = (uid: string) => `/events/all?event=${encodeURIComponent(uid)}`;
 
 const noopSubscribe = () => () => {};
 /** How long a filter must stay still before its change is recorded (the store's former debounce). */
@@ -84,6 +96,7 @@ export function AllEventsPage({
   serverTodayIso,
   submitHref,
   eventsAppHref,
+  embed = false,
 }: AllEventsPageProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -185,10 +198,15 @@ export function AllEventsPage({
       : todayIso;
 
   const prepare = (uid: string) => {
+    if (embed) return;
     void loadEventDrawer();
     prefetchEvent(uid);
   };
   const open = (uid: string) => {
+    if (embed) {
+      window.open(embedEventHref(uid), '_blank', 'noopener,noreferrer');
+      return;
+    }
     setTouched(true);
     setKeptUid(null);
     setParam('event', uid);
@@ -247,17 +265,55 @@ export function AllEventsPage({
     });
   };
 
+  // Copies the embed link for this view and its filters (LAB-3352). The clipboard can be blocked (an insecure page,
+  // a denied permission): then the toast says so instead.
+  const shareEmbed = async () => {
+    const query = embedQuery(params);
+    const link = `${window.location.origin}${EVENTS_EMBED_PATH}${query ? `?${query}` : ''}`;
+    try {
+      await navigator.clipboard.writeText(link);
+    } catch {
+      toast.error('Could not copy the link');
+      return;
+    }
+    toast.success('Link copied');
+    analytics.onEventsEmbedLinkCopied({ view, filters_count: countAppliedFilters(new URLSearchParams(query)) });
+  };
+
+  // One load of the embed, with the host of the site that framed it (its origin comes as the Referer).
+  const viewed = useRef(false);
+  useEffect(() => {
+    if (!embed || viewed.current) return;
+    viewed.current = true;
+    let referrerHost: string | null = null;
+    try {
+      referrerHost = document.referrer ? new URL(document.referrer).host : null;
+    } catch {
+      referrerHost = null;
+    }
+    // From the address: the store only takes it in after the first render.
+    const opened = new URLSearchParams(window.location.search).get('view') as AllEventsView | null;
+    analytics.onEventsEmbedViewed({
+      view: opened && AVAILABLE_VIEWS.includes(opened) ? opened : 'list',
+      referrer_host: referrerHost,
+    });
+    // Once per load.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const viewOptions = AVAILABLE_VIEWS.map((v) => ({ value: v, label: VIEW_LABEL[v] }));
 
   const content = (
     <div className={s.page}>
       <div className={s.container}>
-        <AllEventsHeader
-          submitHref={submitHref}
-          eventsAppHref={eventsAppHref}
-          onSubmitClick={() => analytics.onSubmitEventButtonClicked()}
-          onEventsAppClick={() => analytics.onGoToEventsButtonClicked()}
-        />
+        {!embed && (
+          <AllEventsHeader
+            submitHref={submitHref}
+            eventsAppHref={eventsAppHref}
+            onSubmitClick={() => analytics.onSubmitEventButtonClicked()}
+            onEventsAppClick={() => analytics.onGoToEventsButtonClicked()}
+          />
+        )}
 
         {!result.ok ? (
           <div className={s.layout}>
@@ -301,6 +357,7 @@ export function AllEventsPage({
               views={AVAILABLE_VIEWS}
               view={view}
               onViewChange={setView}
+              onShare={embed ? undefined : () => void shareEmbed()}
             />
 
             {/* Phones and tablets: the directory's Filters pill and bottom sheet (it hides itself from 1024px). */}
@@ -381,7 +438,7 @@ export function AllEventsPage({
   return (
     <>
       <FilterStoreUrlSync store={useAllEventsFilterStore} strategy="history" />
-      <div className={s.shell}>
+      <div className={clsx(s.shell, embed && s.embed)}>
         <DashboardPagesLayout
           filters={
             railOpen && result.ok ? (
@@ -399,12 +456,14 @@ export function AllEventsPage({
           content={content}
         />
       </div>
-      <EventDrawer
-        eventUid={openUid}
-        source="all-events"
-        onClose={closeDrawer}
-        onGoing={openUid ? onGoing(openUid) : undefined}
-      />
+      {!embed && (
+        <EventDrawer
+          eventUid={openUid}
+          source="all-events"
+          onClose={closeDrawer}
+          onGoing={openUid ? onGoing(openUid) : undefined}
+        />
+      )}
     </>
   );
 }

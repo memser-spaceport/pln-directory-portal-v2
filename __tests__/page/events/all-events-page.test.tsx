@@ -42,6 +42,8 @@ const analytics = {
   onEventsCitySelected: jest.fn(),
   onSubmitEventButtonClicked: jest.fn(),
   onGoToEventsButtonClicked: jest.fn(),
+  onEventsEmbedLinkCopied: jest.fn(),
+  onEventsEmbedViewed: jest.fn(),
 };
 jest.mock('@/analytics/events.analytics', () => ({ useEventsAnalytics: () => analytics }));
 
@@ -57,7 +59,8 @@ jest.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({ setQueryData: jest.fn() }),
 }));
 jest.mock('@/services/events/hooks/useEventDrawerQueries', () => ({ usePrefetchEventDetail: () => jest.fn() }));
-jest.mock('@/components/core/ToastContainer', () => ({ toast: { success: jest.fn() } }));
+jest.mock('@/components/core/ToastContainer', () => ({ toast: { success: jest.fn(), error: jest.fn() } }));
+const { toast } = jest.requireMock('@/components/core/ToastContainer');
 
 const CITIES = ['Lisbon', 'Dubai', 'Paris', 'Berlin', 'Tokyo', 'Denver', 'Bangalore'];
 
@@ -503,5 +506,105 @@ describe('review fixes', () => {
     expect(within(screen.getByTestId('events-calendar')).getByRole('heading', { level: 3 }).textContent).toBe(
       'Nov 25 – Dec 1, 2030',
     );
+  });
+});
+
+describe('Share / embed (LAB-3352)', () => {
+  const writeText = jest.fn();
+  beforeEach(() => {
+    writeText.mockReset().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+  });
+  const share = () => screen.getByRole('button', { name: 'Share / embed' });
+  const copied = () => new URL(writeText.mock.calls[0][0]);
+
+  it('copies the embed link with the view and filters, never going or the open event', async () => {
+    renderPage(
+      { signedIn: true, viewerUid: 'm1', memberCity: 'Lisbon' },
+      '/events/all?view=calendar&cal=month&mode=Virtual&going=true&event=dai&search=call&utm_source=x',
+    );
+    await act(async () => fireEvent.click(share()));
+    expect(copied().origin + copied().pathname).toBe(`${window.location.origin}/events/embed`);
+    expect([...copied().searchParams]).toEqual([
+      ['view', 'calendar'],
+      ['cal', 'month'],
+      ['search', 'call'],
+      ['mode', 'Virtual'],
+    ]);
+    expect(toast.success).toHaveBeenCalledWith('Link copied');
+    expect(analytics.onEventsEmbedLinkCopied).toHaveBeenCalledWith({ view: 'calendar', filters_count: 2 });
+  });
+
+  it('copies the bare embed address for the plain List', async () => {
+    renderPage();
+    await act(async () => fireEvent.click(share()));
+    expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/events/embed`);
+  });
+
+  it('says so when the clipboard is blocked, and records nothing', async () => {
+    writeText.mockRejectedValue(new Error('denied'));
+    renderPage();
+    await act(async () => fireEvent.click(share()));
+    expect(toast.error).toHaveBeenCalledWith('Could not copy the link');
+    expect(toast.success).not.toHaveBeenCalled();
+    expect(analytics.onEventsEmbedLinkCopied).not.toHaveBeenCalled();
+  });
+});
+
+describe('the embed (LAB-3352)', () => {
+  const open = jest.fn();
+  beforeEach(() => {
+    open.mockReset();
+    window.open = open as unknown as typeof window.open;
+  });
+
+  it('shows the toolbar and the view without the page header, Submit an event or Share / embed', () => {
+    renderPage({ embed: true }, '/events/embed');
+    expect(screen.queryByRole('heading', { level: 1, name: 'Events' })).toBeNull();
+    expect(screen.queryByRole('link', { name: /Submit an event/ })).toBeNull();
+    expect(screen.queryByRole('link', { name: /Open PL Events/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Share / embed' })).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Coming up' })).toBeInTheDocument();
+    expect(toolbarCount()).toBe('11 events');
+  });
+
+  it('applies the filters and the view from its address', () => {
+    renderPage({ embed: true }, '/events/embed?view=calendar&mode=Virtual');
+    expect(toolbarCount()).toBe('1 event');
+    expect(screen.getByRole('tab', { name: /Calendar/ })).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('opens an event on LabOS in a new tab, with no drawer and nothing in its own address', () => {
+    renderPage({ embed: true }, '/events/embed');
+    fireEvent.click(card('DAI Summit'));
+    expect(open).toHaveBeenCalledWith('/events/all?event=dai', '_blank', 'noopener,noreferrer');
+    expect(storeParams().get('event')).toBeNull();
+    expect(screen.queryByTestId('event-drawer')).toBeNull();
+  });
+
+  it('never opens the drawer, even from an `?event=` in its address', () => {
+    renderPage({ embed: true }, '/events/embed?event=dai');
+    expect(screen.queryByTestId('event-drawer')).toBeNull();
+  });
+
+  it('shows the empty state when nothing matches, and the error state when the events fail', () => {
+    const { unmount } = renderPage({ embed: true }, '/events/embed?search=nothing-matches');
+    expect(screen.getByText('No upcoming events match')).toBeInTheDocument();
+    unmount();
+    renderPage({ embed: true, result: { ok: false } }, '/events/embed');
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();
+  });
+
+  it('records one view, with the host of the framing site', () => {
+    Object.defineProperty(document, 'referrer', { configurable: true, value: 'https://www.plrd.org/' });
+    renderPage({ embed: true }, '/events/embed?view=calendar');
+    expect(analytics.onEventsEmbedViewed).toHaveBeenCalledTimes(1);
+    expect(analytics.onEventsEmbedViewed).toHaveBeenCalledWith({ view: 'calendar', referrer_host: 'www.plrd.org' });
+    Object.defineProperty(document, 'referrer', { configurable: true, value: '' });
+  });
+
+  it('records no embed view on the page itself', () => {
+    renderPage();
+    expect(analytics.onEventsEmbedViewed).not.toHaveBeenCalled();
   });
 });

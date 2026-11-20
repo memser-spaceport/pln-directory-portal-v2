@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 
+import { ShareIcon } from '@/components/icons/ShareIcon';
 import FilterCount from '@/components/ui/filter-count';
 
 import { SlidersIcon, ViewIcon, type AllEventsView } from './icons';
@@ -10,7 +11,7 @@ export const VIEW_LABEL: Record<AllEventsView, string> = { list: 'List', calenda
 /**
  * "Coming up": the count, the rail's door with the applied count, and the view switch. Sticky under the site header on
  * desktop; under 1024px the phone bar (MobileFilterWrapper) carries Filters and the view instead. The switch only
- * shows when more than one view is available.
+ * shows when more than one view is available. Share / embed (LAB-3352) shows at every width, when `onShare` is given.
  */
 export function EventsToolbar({
   city,
@@ -21,6 +22,7 @@ export function EventsToolbar({
   views,
   view,
   onViewChange,
+  onShare,
 }: {
   city: string | null;
   count: number;
@@ -30,6 +32,8 @@ export function EventsToolbar({
   views: AllEventsView[];
   view: AllEventsView;
   onViewChange: (view: AllEventsView) => void;
+  /** Copies the embed link for this view and its filters; absent in the embed itself. */
+  onShare?: () => void;
 }) {
   return (
     <div className={s.toolbar}>
@@ -39,35 +43,43 @@ export function EventsToolbar({
           {count} {count === 1 ? 'event' : 'events'}
         </span>
       </div>
-      <div className={s.toolbarEnd}>
-        <button
-          type="button"
-          className={clsx(s.filtersBtn, railOpen && s.filtersBtnOpen)}
-          aria-pressed={railOpen}
-          aria-controls="events-filters"
-          onClick={onToggleRail}
-        >
-          <SlidersIcon />
-          Filters
-          {filterCount > 0 && <FilterCount count={filterCount} />}
-        </button>
-        {views.length > 1 && (
-          <div className={s.viewSwitch} role="tablist" aria-label="View">
-            {views.map((v) => (
-              <button
-                key={v}
-                type="button"
-                role="tab"
-                aria-selected={view === v}
-                className={clsx(s.viewBtn, view === v && s.viewBtnActive)}
-                onClick={() => onViewChange(v)}
-              >
-                <ViewIcon view={v} />
-                {VIEW_LABEL[v]}
-              </button>
-            ))}
-          </div>
+      <div className={s.toolbarActions}>
+        {onShare && (
+          <button type="button" className={clsx(s.filtersBtn, s.shareBtn)} onClick={onShare}>
+            <ShareIcon aria-hidden />
+            Share / embed
+          </button>
         )}
+        <div className={s.toolbarEnd}>
+          <button
+            type="button"
+            className={clsx(s.filtersBtn, railOpen && s.filtersBtnOpen)}
+            aria-pressed={railOpen}
+            aria-controls="events-filters"
+            onClick={onToggleRail}
+          >
+            <SlidersIcon />
+            Filters
+            {filterCount > 0 && <FilterCount count={filterCount} />}
+          </button>
+          {views.length > 1 && (
+            <div className={s.viewSwitch} role="tablist" aria-label="View">
+              {views.map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  role="tab"
+                  aria-selected={view === v}
+                  className={clsx(s.viewBtn, view === v && s.viewBtnActive)}
+                  onClick={() => onViewChange(v)}
+                >
+                  <ViewIcon view={v} />
+                  {VIEW_LABEL[v]}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

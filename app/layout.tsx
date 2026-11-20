@@ -21,6 +21,7 @@ import { UserInfoChecker, UserInfoValidator } from '@/components/core/login';
 import { MobileBottomNav } from '@/components/core/MobileBottomNav';
 // DELETE WITH: the `design-canvas/` folder.
 import { AppChromeGate } from './design-canvas/AppChromeGate';
+import { EmbedChromeGate } from '@/components/core/EmbedChromeGate';
 import { DemoDayStats } from '@/components/core/DemoDayStats';
 import { ContactSupport } from '@/components/ContactSupport/ContactSupport';
 import { ContactSupportUrlSync } from '@/components/ContactSupport/ContactSupportUrlSync';
@@ -93,23 +94,32 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <PostHogIdentifier />
                 <ContactSupportUrlSync isLoggedIn={isLoggedIn} />
                 {/* DELETE WITH: the `design-canvas/` folder — unwrap both, keep the components. */}
-                <AppChromeGate>
-                  <SiteHeader userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
-                </AppChromeGate>
+                {/* The events embed (LAB-3352) is framed by other sites: none of the site's chrome on it. */}
+                <EmbedChromeGate>
+                  <AppChromeGate>
+                    <SiteHeader userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
+                  </AppChromeGate>
+                </EmbedChromeGate>
                 <AuthBox isLoggedIn={isLoggedIn} />
-                <ContactSupport userInfo={userInfo} />
-                <AppChromeGate>
-                  <GlobalFeedback isLoggedIn={isLoggedIn} />
-                </AppChromeGate>
+                <EmbedChromeGate>
+                  <ContactSupport userInfo={userInfo} />
+                  <AppChromeGate>
+                    <GlobalFeedback isLoggedIn={isLoggedIn} />
+                  </AppChromeGate>
+                </EmbedChromeGate>
                 <DemoDayStats />
                 <main className="layout__main">{children}</main>
-                <AppChromeGate>
-                  <MobileBottomNav />
-                </AppChromeGate>
+                <EmbedChromeGate>
+                  <AppChromeGate>
+                    <MobileBottomNav />
+                  </AppChromeGate>
+                </EmbedChromeGate>
                 <Loader />
                 <ToastContainer />
                 <BroadCastChannel />
-                <RatingContainer userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
+                <EmbedChromeGate>
+                  <RatingContainer userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
+                </EmbedChromeGate>
                 <MemberRegisterDialog />
                 {/* <OnboardingFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} /> */}
                 <LoginFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />

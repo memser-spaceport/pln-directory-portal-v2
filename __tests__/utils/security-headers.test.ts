@@ -23,6 +23,37 @@ describe('security headers', () => {
     });
   });
 
+  it.each(['/events', '/events/all', '/events/embedded', '/events/embeds/x', '/x/events/embed'])(
+    'keep SAMEORIGIN framing on %s, which only looks like the embed',
+    (pathname) => {
+      expect(headersFor(pathname)).toMatchObject({
+        'X-Frame-Options': 'SAMEORIGIN',
+        'Content-Security-Policy': "frame-ancestors 'self'",
+      });
+    },
+  );
+
+  it.each(['/events/embed', '/events/embed/'])(
+    'let only plrd.org and its subdomains frame the events embed on %s (LAB-3352)',
+    (pathname) => {
+      expect(headersFor(pathname)).toEqual({
+        'X-Content-Type-Options': 'nosniff',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
+        'Content-Security-Policy': "frame-ancestors 'self' https://plrd.org https://*.plrd.org",
+        'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
+      });
+    },
+  );
+
+  it('sends one Content-Security-Policy per path, so no stricter one is merged in', () => {
+    for (const pathname of ['/home', '/events/embed']) {
+      const csp = securityHeaders()
+        .filter(({ source }) => getPathMatch(source)(pathname))
+        .flatMap(({ headers }) => headers.filter(({ key }) => key === 'Content-Security-Policy'));
+      expect(csp).toHaveLength(1);
+    }
+  });
+
   it('leave screen capture, clipboard and fullscreen alone, and set no other CSP directive', () => {
     const { 'Permissions-Policy': permissions, 'Content-Security-Policy': csp } = headersFor('/home');
     expect(permissions).not.toMatch(/display-capture|clipboard|fullscreen/);

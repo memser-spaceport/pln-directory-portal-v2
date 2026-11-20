@@ -884,6 +884,9 @@ export const EVENT_DRAWER_ANALYTICS = {
 
 /** The native All Events page (LAB-3247). Fired on a member's own change, never on landing from a link. */
 export const ALL_EVENTS_ANALYTICS = {
+  // LAB-3352: the Share / embed link, and loads of the embed page.
+  ON_EVENTS_EMBED_LINK_COPIED: 'events-embed-link-copied',
+  ON_EVENTS_EMBED_VIEWED: 'events-embed-viewed',
   ON_EVENTS_VIEW_CHANGED: 'events-view-changed',
   ON_EVENTS_FILTERS_APPLIED: 'events-filters-applied',
   ON_EVENTS_CITY_SELECTED: 'events-city-selected',

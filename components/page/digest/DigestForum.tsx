@@ -3,10 +3,12 @@
 import clsx from 'clsx';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import { useEffect, useRef } from 'react';
 
 import { useDigestAnalytics } from '@/analytics/digest.analytics';
 import type { DigestForumPost } from '@/services/digest/digest.types';
 
+import { leavePage } from './leavePage';
 import { useDigestForumModal } from './useDigestForumModal';
 
 import ev from './DigestEvents.module.scss';
@@ -23,6 +25,10 @@ type Props = {
   posts: DigestForumPost[];
   /** Undefined until the auth store hydrates. */
   signedIn: boolean | undefined;
+  /** Signed out: a thread press goes to sign-in instead (LAB-3348). */
+  onSignIn: (tid: number) => void;
+  /** Back from sign-in (`?post=<tid>`): the thread to open once, in the modal or else in the forum. */
+  openOnLoad: number | null;
 };
 
 const replies = (count: number) => `${count} ${count === 1 ? 'reply' : 'replies'}`;
@@ -34,9 +40,23 @@ const replies = (count: number) => `${count} ${count === 1 ? 'reply' : 'replies'
  * or for a thread the member's feed doesn't have, it links to the thread in the forum. Each row keeps `post-<tid>`,
  * so links from older emails still land on it.
  */
-export function DigestForum({ posts, signedIn }: Props) {
+export function DigestForum({ posts, signedIn, onSignIn, openOnLoad }: Props) {
   const analytics = useDigestAnalytics();
   const modal = useDigestForumModal(signedIn);
+  const opened = useRef(false);
+
+  // Back from a sign-in a thread press started: open that thread once the modal's data is known. The modal when the
+  // member's feed has it, otherwise the thread in the forum, as a press would.
+  useEffect(() => {
+    if (opened.current || openOnLoad === null || !modal.settled) return;
+    const position = posts.findIndex((post) => post.tid === openOnLoad);
+    if (position < 0) return;
+    opened.current = true;
+    const feedPost = modal.feedPostFor(openOnLoad);
+    analytics.onForumThreadClicked({ topicId: openOnLoad, position, opens: feedPost ? 'modal' : 'forum' });
+    if (feedPost) modal.open(feedPost);
+    else leavePage(posts[position].url);
+  }, [openOnLoad, modal, posts, analytics]);
 
   return (
     <section className={ev.section} aria-labelledby="digest-forum-title">
@@ -59,7 +79,20 @@ export function DigestForum({ posts, signedIn }: Props) {
           );
           return (
             <li key={post.tid} id={`post-${post.tid}`} className={s.item}>
-              {feedPost ? (
+              {signedIn === false ? (
+                // Signed out: sign in first (LAB-3348); the thread opens after it. Until the auth store hydrates the
+                // row stays a link, so it works before scripts run.
+                <button
+                  type="button"
+                  className={clsx(ev.row, s.row)}
+                  onClick={() => {
+                    analytics.onForumSignInPrompted({ topicId: post.tid, position });
+                    onSignIn(post.tid);
+                  }}
+                >
+                  {content}
+                </button>
+              ) : feedPost ? (
                 <button
                   type="button"
                   className={clsx(ev.row, s.row)}

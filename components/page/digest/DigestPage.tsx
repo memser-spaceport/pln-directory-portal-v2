@@ -27,10 +27,16 @@ import { DigestNetworkNews } from './DigestNetworkNews';
 import { DigestCaughtUp } from './DigestIssueEnd';
 import { DigestPostNews } from './DigestPostNews';
 import { DigestSidebar } from './DigestSidebar';
+import { DigestTopicsSection } from './DigestTopicsSection';
 import { DigestStoryCard } from './DigestStoryCard';
 import { DigestTopicsModal } from './DigestTopicsModal';
 
+import sb from './DigestSidebar.module.scss';
 import s from './DigestPage.module.scss';
+
+/** What a signed-out press asks for, carried through sign-in in the address (see `goToLogin`). */
+const SIGN_IN_INTENTS = ['topics', 'topic', 'postnews', 'post'] as const;
+type SignInIntent = (typeof SIGN_IN_INTENTS)[number];
 
 type Props = {
   /** The link token, passed from the server page. Only sent in choice request bodies. */
@@ -68,19 +74,22 @@ export function DigestPage({ token, issue, data, isLoggedIn }: Props) {
   const signedIn = isHydrated ? Boolean(currentUser) : undefined;
   // What the reader asked for before sign-in comes back in the address: `topics=open` (also the email's Change
   // topics) opens the modal, `topic=<slug>` ticks that chip in Add topics, `postnews=open` (also the email's "Post
-  // your team news →") posts team news. Read once, on load.
+  // your team news →") posts team news, `post=<tid>` opens that forum thread. Read once, on load.
   const [topicsOpen, setTopicsOpen] = useState(() => searchParams.get('topics') === 'open');
   const [pickOnReturn] = useState(() => searchParams.get('topic'));
   const [postOnLoad] = useState(() => searchParams.get('postnews') === 'open');
+  // `post=<tid>`: a forum thread pressed before sign-in (LAB-3348), opened on the way back.
+  const [threadOnReturn] = useState(() => {
+    const tid = Number(searchParams.get('post'));
+    return Number.isInteger(tid) && tid > 0 ? tid : null;
+  });
 
   // Back to this page after sign-in: the link token stays in the address, plus `extra` to pick up where they were.
   const goToLogin = useCallback(
-    (extra?: { key: 'topics' | 'topic' | 'postnews'; value: string }) => {
+    (extra?: { key: SignInIntent; value: string }) => {
       const url = new URL(window.location.href);
       if (extra) {
-        url.searchParams.delete('topics');
-        url.searchParams.delete('topic');
-        url.searchParams.delete('postnews');
+        SIGN_IN_INTENTS.forEach((key) => url.searchParams.delete(key));
         url.searchParams.set(extra.key, extra.value);
       }
       router.push(`${url.pathname}${url.search}#login`, { scroll: false });
@@ -90,6 +99,7 @@ export function DigestPage({ token, issue, data, isLoggedIn }: Props) {
   const signIn = useCallback(() => goToLogin(), [goToLogin]);
   // "Post your team news →" signed out: back from sign-in, `postnews=open` posts (LAB-3313).
   const signInToPost = useCallback(() => goToLogin({ key: 'postnews', value: 'open' }), [goToLogin]);
+  const signInToThread = useCallback((tid: number) => goToLogin({ key: 'post', value: String(tid) }), [goToLogin]);
   const signInForTopics = useCallback(
     (via: DigestTopicsVia, extra: { key: 'topics' | 'topic'; value: string }) => {
       analytics.onTopicsSignInPrompted({ via });
@@ -117,9 +127,8 @@ export function DigestPage({ token, issue, data, isLoggedIn }: Props) {
     }
     // Signed in: the intent is applied, so a reload doesn't repeat it. `null` state: see the __NA trap.
     const url = new URL(window.location.href);
-    const intents = ['topics', 'topic', 'postnews'];
-    if (!intents.some((key) => url.searchParams.has(key))) return;
-    intents.forEach((key) => url.searchParams.delete(key));
+    if (!SIGN_IN_INTENTS.some((key) => url.searchParams.has(key))) return;
+    SIGN_IN_INTENTS.forEach((key) => url.searchParams.delete(key));
     window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
     // Once the auth state is known; the address is read from the window, not from searchParams.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -228,6 +237,11 @@ export function DigestPage({ token, issue, data, isLoggedIn }: Props) {
             onChangeTopics={() => openTopics('change-topics')}
           />
 
+          {/* Under 1100px the topics section comes right after the header; from 1100px it opens the side column. */}
+          <div className={sb.top}>
+            <DigestTopicsSection variant="top" topics={topicsCard} />
+          </div>
+
           <div className={s.spacer} />
 
           <div className={s.cards}>
@@ -274,13 +288,18 @@ export function DigestPage({ token, issue, data, isLoggedIn }: Props) {
           {data.forumPosts.length > 0 && (
             <>
               <div className={s.spacer} />
-              <DigestForum posts={data.forumPosts} signedIn={signedIn} />
+              <DigestForum
+                posts={data.forumPosts}
+                signedIn={signedIn}
+                onSignIn={signInToThread}
+                openOnLoad={threadOnReturn}
+              />
             </>
           )}
 
           <DigestCaughtUp nextSendAt={data.nextSendAt} />
 
-          {/* Under 1100px there's no room beside the column: the side cards close the page instead. */}
+          {/* Under 1100px there's no room beside the column: Past issues closes the page instead. */}
           <DigestSidebar variant="inline" topics={topicsCard} issues={issuesCard} />
 
           {data.isTeamMember && <DigestPostNews openOnLoad={postOnLoad} onSignIn={signInToPost} />}

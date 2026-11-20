@@ -117,10 +117,13 @@ const story = (uid: string, extra: Partial<DigestStory> = {}): DigestStory => ({
 });
 
 let mockFeedPosts: unknown[] = [];
+let mockFeedLoading = false;
 let mockForumAccess = true;
 // A disabled query still serves what's cached (a sign-out in the same session), so the mock always answers.
+jest.mock('@/components/page/digest/leavePage', () => ({ leavePage: jest.fn() }));
+const { leavePage } = jest.requireMock('@/components/page/digest/leavePage');
 jest.mock('@/services/feed/hooks/useFeedForumPosts', () => ({
-  useFeedForumPosts: () => ({ data: { items: mockFeedPosts } }),
+  useFeedForumPosts: () => ({ data: mockFeedLoading ? undefined : { items: mockFeedPosts } }),
 }));
 jest.mock('@/services/access-control/hooks/useForumAccess', () => ({
   useForumAccess: () => ({ hasAccess: mockForumAccess }),
@@ -537,8 +540,9 @@ describe('DigestPage', () => {
 });
 
 describe('topics (LAB-3289)', () => {
-  // The rail and the inline column both render the card (CSS shows one): act on the first.
-  const topicsCard = () => screen.getAllByRole('group', { name: 'Topics to add' })[0];
+  // The rail and the section after the header both render the card (CSS shows one): act on the first.
+  const topicsCard = () => screen.getAllByRole('group', { name: 'Suggested topics' })[0];
+  const ownTopics = () => screen.queryAllByRole('group', { name: 'Your topics' })[0] ?? null;
   const chip = (slug: string) => within(topicsCard()).getByRole('button', { name: `#${slug}` });
   const signIn = () => useCurrentUserStore.setState({ currentUser: { uid: 'me' } as any, isHydrated: true });
   const saveSucceeds = () =>
@@ -573,6 +577,70 @@ describe('topics (LAB-3289)', () => {
       'digest-topics-saved',
       expect.objectContaining({ surface: 'card', added: 1, removed: 0, total: 2 }),
     );
+  });
+
+  describe('topics section (LAB-3348)', () => {
+    it('shows the member’s own topics as ticked chips above the suggestions, and unticks one to save', async () => {
+      signIn();
+      mockPrefs = { newsTags: ['ai', 'web3'] };
+      saveSucceeds();
+      open('/digest?t=x');
+      const own = ownTopics() as HTMLElement;
+      expect(
+        within(own)
+          .getAllByRole('button')
+          .map((b) => b.textContent),
+      ).toEqual(['#ai', '#web3']);
+      expect(within(own).getByRole('button', { name: '#ai' })).toHaveAttribute('aria-pressed', 'true');
+      // "Your topics" comes before "Suggested topics" in the card.
+      const labels = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent);
+      expect(labels.slice(0, 2)).toEqual(['Your topics', 'Suggested topics']);
+
+      await userEvent.click(within(own).getByRole('button', { name: '#ai' }));
+      await userEvent.click(screen.getAllByRole('button', { name: 'Save topics' })[0]);
+      expect(setNewsTags).toHaveBeenCalledWith(['web3'], expect.anything());
+    });
+
+    it('says "N selected" instead of chips once the member has more than five topics', () => {
+      signIn();
+      mockPrefs = { newsTags: ['ai', 'web3', 'llms', 'zk', 'dao', 'nft', 'rwa', 'gaming'] };
+      open('/digest?t=x');
+      expect(screen.getAllByText('8 selected').length).toBeGreaterThan(0);
+      expect(ownTopics()).toBeNull();
+      expect(
+        within(topicsCard())
+          .getAllByRole('button')
+          .map((b) => b.textContent),
+      ).toEqual(['#defi', '#desci']);
+    });
+
+    it('shows a signed-out reader only the suggestions, never the link member’s topics', () => {
+      useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
+      open('/digest?t=x');
+      expect(screen.queryByText('Your topics')).toBeNull();
+      expect(screen.queryByText(/selected$/)).toBeNull();
+      expect(topicsCard()).toBeInTheDocument();
+    });
+
+    it('drops the "Suggested topics" label when there is nothing to suggest', () => {
+      signIn();
+      mockPrefs = { newsTags: ['ai'] };
+      open('/digest?t=x', data({ topics: { followed: [{ slug: 'ai', title: 'AI' }], suggested: [] } }));
+      expect(screen.queryByText('Suggested topics')).toBeNull();
+      expect(within(ownTopics() as HTMLElement).getByRole('button', { name: '#ai' })).toBeInTheDocument();
+    });
+
+    it('opens with "How personalization works" above Add topics, before the stories, with no "Picked for you" line', () => {
+      signIn();
+      mockPrefs = { newsTags: ['ai'] };
+      open('/digest?t=x');
+      expect(screen.queryByText(/Picked for you/)).toBeNull();
+      expect(screen.getByRole('button', { name: 'Change topics' })).toBeInTheDocument();
+      const h2 = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
+      // The section after the header (shown under 1100px) comes first, then the stories; the rail repeats it.
+      expect(h2.slice(0, 3)).toEqual(['How personalization works', 'Add topics', 'Story b']);
+      expect(h2.filter((t) => t === 'How personalization works')).toHaveLength(2);
+    });
   });
 
   it('keeps the picks when the save fails', async () => {
@@ -899,14 +967,14 @@ describe('From the forum (LAB-3293)', () => {
 
   afterEach(() => {
     mockFeedPosts = [];
+    mockFeedLoading = false;
     mockForumAccess = true;
     // Likes are remembered in the local like store, as on Home.
     window.localStorage.clear();
     useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
   });
 
-  it('numbers the threads with their replies, links them to the forum when signed out, and ends on Open the forum', async () => {
-    mockFeedPosts = [feedPost(7, 'Busy thread'), feedPost(8, 'Quiet thread')];
+  it('numbers the threads with their replies, and ends on Open the forum', () => {
     useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
     open('/digest?t=x', data({ forumPosts: threads }));
     expect(within(section()).getByText('Top threads from the past week.')).toBeInTheDocument();
@@ -914,12 +982,80 @@ describe('From the forum (LAB-3293)', () => {
     expect(rows.map((row) => row.textContent)).toEqual(['1.Busy thread14 replies', '2.Quiet thread1 reply']);
     // Older emails link to #post-<tid>: the row is still the anchor.
     expect(rows[0]).toHaveAttribute('id', 'post-7');
-    const row = within(rows[1]).getByRole('link', { name: /Quiet thread/ });
-    expect(row).toHaveAttribute('href', 'https://web/forum/topics/1/8');
-    row.addEventListener('click', (event) => event.preventDefault());
-    await userEvent.click(row);
-    expect(capture).toHaveBeenCalledWith('digest-forum-thread-clicked', { topic_id: 8, position: 1, opens: 'forum' });
     expect(within(section()).getByRole('link', { name: 'Open the forum →' })).toHaveAttribute('href', '/forum');
+  });
+
+  it('asks a signed-out reader to sign in from a thread, and opens nothing (LAB-3348)', async () => {
+    useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
+    open('/digest?t=x', data({ forumPosts: threads }));
+    expect(within(section()).queryByRole('link', { name: /Quiet thread/ })).toBeNull();
+    await userEvent.click(within(section()).getByRole('button', { name: /Quiet thread/ }));
+    expect(routerPush).toHaveBeenLastCalledWith('/digest?t=x&post=8#login', { scroll: false });
+    expect(capture).toHaveBeenCalledWith('digest-sign-in-prompted', { via: 'forum-post', topic_id: 8, position: 1 });
+    expect(capture).not.toHaveBeenCalledWith('digest-forum-thread-clicked', expect.anything());
+    expect(leavePage).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('forum-modal')).toBeNull();
+  });
+
+  it('keeps a thread a link to the forum until the reader is known', () => {
+    useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
+    open('/digest?t=x', data({ forumPosts: threads }));
+    expect(within(section()).getByRole('link', { name: /Quiet thread/ })).toHaveAttribute(
+      'href',
+      'https://web/forum/topics/1/8',
+    );
+  });
+
+  it('back from sign-in, opens the thread they pressed in the modal, once, and clears it from the address', async () => {
+    mockFeedPosts = [feedPost(7, 'Busy thread')];
+    useCurrentUserStore.setState({ currentUser: { uid: 'me' } as any, isHydrated: true });
+    open('/digest?t=x&post=7', data({ forumPosts: threads }));
+    await flush();
+    expect(screen.getByTestId('forum-modal')).toHaveTextContent('Busy thread');
+    expect(capture).toHaveBeenCalledTimes(2);
+    expect(capture).toHaveBeenCalledWith(
+      'digest-forum-thread-clicked',
+      expect.objectContaining({ topic_id: 7, position: 0, opens: 'modal' }),
+    );
+    expect(window.location.search).toBe('?t=x');
+    await userEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(screen.queryByTestId('forum-modal')).toBeNull();
+    expect(leavePage).not.toHaveBeenCalled();
+  });
+
+  it('back from sign-in, sends them to the forum for a thread the modal can’t show', async () => {
+    mockFeedPosts = [feedPost(7, 'Busy thread')];
+    useCurrentUserStore.setState({ currentUser: { uid: 'me' } as any, isHydrated: true });
+    open('/digest?t=x&post=8', data({ forumPosts: threads }));
+    await flush();
+    expect(leavePage).toHaveBeenCalledTimes(1);
+    expect(leavePage).toHaveBeenCalledWith('https://web/forum/topics/1/8');
+    expect(screen.queryByTestId('forum-modal')).toBeNull();
+  });
+
+  it('back from sign-in, waits for the feed before choosing the modal or the forum', async () => {
+    mockFeedPosts = [feedPost(7, 'Busy thread')];
+    mockFeedLoading = true;
+    useCurrentUserStore.setState({ currentUser: { uid: 'me' } as any, isHydrated: true });
+    const page = data({ forumPosts: threads });
+    const { rerender } = open('/digest?t=x&post=7', page);
+    await flush();
+    expect(leavePage).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('forum-modal')).toBeNull();
+    mockFeedLoading = false;
+    rerender(<DigestPage token={TOKEN} data={page} isLoggedIn={false} />);
+    await flush();
+    expect(screen.getByTestId('forum-modal')).toHaveTextContent('Busy thread');
+    expect(leavePage).not.toHaveBeenCalled();
+  });
+
+  it('opens nothing for a thread the page doesn’t list', async () => {
+    mockFeedPosts = [feedPost(7, 'Busy thread')];
+    useCurrentUserStore.setState({ currentUser: { uid: 'me' } as any, isHydrated: true });
+    open('/digest?t=x&post=99', data({ forumPosts: threads }));
+    await flush();
+    expect(leavePage).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('forum-modal')).toBeNull();
   });
 
   it('opens a thread in Home’s forum modal for a signed-in member with forum access, and likes it there', async () => {

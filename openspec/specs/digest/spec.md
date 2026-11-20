@@ -8,7 +8,7 @@ The digest reading page `/digest?t=` (LAB-3264): the LabOS digest email opens on
 
 ### Requirement: Digest page
 
-The page `/digest?t=<token>` SHALL show the digest named by the link token to anyone who opens it, signed in or not, with no sign-in prompt. It SHALL show the LabOS top bar on desktop and the bottom bar on mobile. The page SHALL be a plain white page with the stories in a 760px column, with no grey background, white sheet or PL logo. It SHALL start with a dateline ("Weekly digest · 9 November 2026 · 5 stories", "Daily digest" for a daily link), then the greeting "Hi <first name>," as the page title (or "Hi there," without a name) and the intro line, all left-aligned. Then it SHALL show every story in the order the API returns it, each in full, as an open section with a hairline between stories and no card: the team header (logo or initials, the team name linking to the team profile, Follow), the title and summary beside the image, the full text, and a Sources line listing every source with a link that opens in a new tab. The first story is the hero: its title and summary beside a big image, with no background picture. The other stories put the image beside the text, alternating sides. The top story keeps its "Top story" badge. The page SHALL NOT show "Read on <source>", Read more or Show less. Then it SHALL show "From the forum" (see that requirement). The page SHALL NOT open a story modal. The page SHALL NOT be indexed by search engines. Dates SHALL print the same on the server and in the browser.
+The page `/digest?t=<token>` SHALL show the digest named by the link token to anyone who opens it, signed in or not, with no sign-in prompt. It SHALL show the LabOS top bar on desktop and the bottom bar on mobile. The page SHALL be a plain white page with the stories in a 760px column, with no grey background, white sheet or PL logo. It SHALL start with a dateline ("Weekly digest · 9 November 2026 · 5 stories", "Daily digest" for a daily link), then the greeting "Hi <first name>," as the page title (or "Hi there," without a name) and a "Change topics" link under it, all left-aligned, with no "Picked for you…" line (LAB-3348). Under 1100px the topics section (see "End of the issue and side cards") SHALL follow the header. Then it SHALL show every story in the order the API returns it, each in full, as an open section with a hairline between stories and no card: the team header (logo or initials, the team name linking to the team profile, Follow), the title and summary beside the image, the full text, and a Sources line listing every source with a link that opens in a new tab. The first story is the hero: its title and summary beside a big image, with no background picture. The other stories put the image beside the text, alternating sides. The top story keeps its "Top story" badge. The page SHALL NOT show "Read on <source>", Read more or Show less. Then it SHALL show "From the forum" (see that requirement). The page SHALL NOT open a story modal. The page SHALL NOT be indexed by search engines. Dates SHALL print the same on the server and in the browser.
 
 #### Scenario: Signed-out member
 
@@ -125,7 +125,7 @@ Each story's team header SHALL have Follow, which starts from the API's `follows
 
 ### Requirement: End of the issue and side cards
 
-After the stories and forum posts, the page SHALL show "You're all caught up" with a check, "The next digest arrives on <weekday>, <day> <month>." from the API's `nextSendAt` (the line is left out when it is missing), and a "See all network news" link to Home. When the API's `isTeamMember` is true, the page SHALL show the outlined "Got news from your team?" card with "Post your team news →", except to a signed-in member whose own record lists no team. For a signed-in member of one team, "Post your team news →" SHALL open the Post news modal for that team. For a member of more than one team it SHALL ask "Post as" with one button per team, main team first, and a press SHALL open the modal for that team. A signed-out reader SHALL go to sign-in, and come back to the page with `postnews=open`. A link with `postnews=open` SHALL do the same as a press once the reader is known (except on the way back from Google or GitHub sign-in, see Saving topics), bringing the "Post as" question into view, and SHALL then be dropped from the address so a reload doesn't repeat it. The teams SHALL come from the signed-in member's own record (`teamMemberRoles`). From 1100px the side cards SHALL sit in a sticky column on the right; under 1100px they SHALL follow "You're all caught up". The side cards SHALL include "How personalization works": "Stories come from your topics first, then the teams you follow, then the network's top stories."
+After the stories and forum posts, the page SHALL show "You're all caught up" with a check, "The next digest arrives on <weekday>, <day> <month>." from the API's `nextSendAt` (the line is left out when it is missing), and a "See all network news" link to Home. When the API's `isTeamMember` is true, the page SHALL show the outlined "Got news from your team?" card with "Post your team news →", except to a signed-in member whose own record lists no team. For a signed-in member of one team, "Post your team news →" SHALL open the Post news modal for that team. For a member of more than one team it SHALL ask "Post as" with one button per team, main team first, and a press SHALL open the modal for that team. A signed-out reader SHALL go to sign-in, and come back to the page with `postnews=open`. A link with `postnews=open` SHALL do the same as a press once the reader is known (except on the way back from Google or GitHub sign-in, see Saving topics), bringing the "Post as" question into view, and SHALL then be dropped from the address so a reload doesn't repeat it. The teams SHALL come from the signed-in member's own record (`teamMemberRoles`). The topics section SHALL be "How personalization works" ("Stories come from your topics first, then the teams you follow, then the network's top stories."), then the Add topics card (LAB-3348). From 1100px the side cards SHALL sit in a sticky column on the right: the topics section, then Past issues. Under 1100px the topics section SHALL follow the page header, before the stories, and Past issues SHALL follow "You're all caught up".
 
 #### Scenario: Not on a team
 
@@ -155,7 +155,7 @@ After the stories and forum posts, the page SHALL show "You're all caught up" wi
 
 - **GIVEN** a 390px wide screen
 - **WHEN** the page shows
-- **THEN** there is no side column, and "How personalization works" follows "You're all caught up"
+- **THEN** there is no side column, "How personalization works" and Add topics follow the header before the first story, and Past issues follows "You're all caught up"
 
 ### Requirement: Footer
 
@@ -174,7 +174,7 @@ The page SHALL end with the email's sign-off and footer: "Cheers," and "The Prot
 
 ### Requirement: Add topics card
 
-The side cards SHALL start with "Add topics": "Tick a topic to get stories about it in your digest.", then the page's suggested topics as News preferences' `#slug` chips, in the API's order, as many as fit three rows, then "See all topics". A chip's order SHALL never change while the page is open. A chip SHALL show as ticked when the reader follows that topic. For a signed-in reader, a press SHALL tick or untick the chip, and "Save topics" SHALL show once a chip differs from the saved topics.
+The topics section SHALL end with "Add topics": "Tick a topic to get stories about it in your digest.", then, for a signed-in reader with topics, "Your topics": their topics as ticked `#slug` chips when they have up to 5, else "N selected" (N = how many). Then "Suggested topics": the page's suggested topics as News preferences' `#slug` chips, in the API's order, as many as fit three rows; with no suggestion the label is left out. Then "See all topics". A signed-out reader SHALL see no "Your topics", only the suggestions. A suggestion ticked and saved during the visit SHALL stay in Suggested topics, ticked, and not show twice. A chip's order SHALL never change while the page is open. A chip SHALL show as ticked when the reader follows that topic. For a signed-in reader, a press SHALL tick or untick the chip, and "Save topics" SHALL show once a chip differs from the saved topics.
 
 #### Scenario: Save from the card
 
@@ -186,11 +186,23 @@ The side cards SHALL start with "Add topics": "Tick a topic to get stories about
 
 - **GIVEN** the page suggests no topics
 - **WHEN** the page shows
-- **THEN** the card has no chips, and See all topics still opens the topics modal
+- **THEN** the card has no "Suggested topics" label or chips, and See all topics still opens the topics modal
+
+#### Scenario: Many topics
+
+- **GIVEN** a signed-in member with 8 topics
+- **WHEN** the page shows
+- **THEN** "Your topics" says "8 selected" and the suggestions follow under "Suggested topics"
+
+#### Scenario: Untick one of your topics
+
+- **GIVEN** a signed-in member with topics `ai` and `web3`
+- **WHEN** they untick `#ai` under Your topics and press Save topics
+- **THEN** their News preferences tags become `web3`
 
 ### Requirement: Topics modal
 
-"See all topics" in the card and "Change topics" after the intro line SHALL open the topics modal: "Your topics · N" (N = topics ticked in the modal), "Ticked topics shape your digest and For You on Home.", a search, and every News preferences tag in its themes as chips, followed ones ticked. Followed tags the tag list lacks SHALL still show, so they can be unticked. Picks SHALL be a draft until Save topics, which is enabled only when the draft differs. Cancel, ✕ and Esc SHALL close it and drop the draft. A link with `topics=open` SHALL open it on load.
+"See all topics" in the card and "Change topics" under the greeting SHALL open the topics modal: "Your topics · N" (N = topics ticked in the modal), "Ticked topics shape your digest and For You on Home.", a search, and every News preferences tag in its themes as chips, followed ones ticked. Followed tags the tag list lacks SHALL still show, so they can be unticked. Picks SHALL be a draft until Save topics, which is enabled only when the draft differs. Cancel, ✕ and Esc SHALL close it and drop the draft. A link with `topics=open` SHALL open it on load.
 
 #### Scenario: Cancel
 
@@ -222,7 +234,7 @@ Topics SHALL save only as the signed-in member's News preferences tags (the full
 
 ### Requirement: Topics events
 
-The page SHALL record `digest-topics-saved` with `surface` (`card` or `modal`), `added`, `removed` and `total`; `digest-topics-modal-opened` with `via` (`see-all` or `change-topics`); and `digest-topics-sign-in-prompted` with `via` (`chip`, `see-all`, `change-topics` or `email`). None SHALL carry the link token.
+The page SHALL record `digest-topics-saved` with `surface` (`card` or `modal`), `added`, `removed` and `total`; `digest-topics-modal-opened` with `via` (`see-all` or `change-topics`); and `digest-topics-sign-in-prompted` with `via` (`chip`, `see-all`, `change-topics` or `email`). A forum thread press that asks for sign-in SHALL record `digest-sign-in-prompted` (see "From the forum"). None SHALL carry the link token.
 
 #### Scenario: Saved from the modal
 
@@ -280,13 +292,13 @@ After More from the network and before the forum posts, the page SHALL show "Upc
 
 ### Requirement: From the forum
 
-After Upcoming events, the page SHALL show "From the forum" with the subtitle "Top threads from the past week." and one numbered row per item of the page's `forumPosts`, in the order given (the email's order): the number, the title and "N replies" ("1 reply" for one). A row SHALL open Home's forum post modal (the full post, likes, comments) over the page for a signed-in member with forum access whose feed has the thread; otherwise it SHALL link to the thread in the forum. Each row SHALL be the `post-<tid>` anchor, so links from older emails land on it. The section SHALL end with "Open the forum →", linking to the forum. With no forum posts, or when the forum did not answer, the section SHALL NOT show.
+After Upcoming events, the page SHALL show "From the forum" with the subtitle "Top threads from the past week." and one numbered row per item of the page's `forumPosts`, in the order given (the email's order): the number, the title and "N replies" ("1 reply" for one). A row SHALL open Home's forum post modal (the full post, likes, comments) over the page for a signed-in member with forum access whose feed has the thread; otherwise it SHALL link to the thread in the forum. For a signed-out reader a row SHALL open the sign-in dialog instead and open nothing, recording `digest-sign-in-prompted` with `via: forum-post`, `topic_id` and `position` (LAB-3348); back from sign-in (`post=<tid>` in the address), the page SHALL open that thread once, in the modal or else in the forum, as soon as it knows which, and remove `post` from the address. Until the reader is known a row SHALL stay a link to the forum. Each row SHALL be the `post-<tid>` anchor, so links from older emails land on it. The section SHALL end with "Open the forum →", linking to the forum. With no forum posts, or when the forum did not answer, the section SHALL NOT show.
 
 #### Scenario: Signed-out reader
 
 - **GIVEN** the reader is signed out
 - **WHEN** they press a thread
-- **THEN** the thread opens in the forum
+- **THEN** the sign-in dialog opens and the thread does not open; after sign-in the thread opens in the modal, or in the forum when the modal can't show it
 
 #### Scenario: Signed-in member with forum access
 

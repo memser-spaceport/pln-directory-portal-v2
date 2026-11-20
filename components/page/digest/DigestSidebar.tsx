@@ -1,12 +1,14 @@
 import { DigestPastIssuesCard, type DigestPastIssuesCardProps } from './DigestPastIssuesCard';
-import { DigestTopicsCard, type DigestTopicsCardProps } from './DigestTopicsCard';
+import { DigestTopicsSection } from './DigestTopicsSection';
+import type { DigestTopicsCardProps } from './DigestTopicsCard';
 
 import s from './DigestSidebar.module.scss';
 
 /**
- * The page's side cards (LAB-3287, the digest-web prototype's DigestSidebar): Add topics (LAB-3289), then How
- * personalization works, then Past issues (LAB-3294). From 1100px a sticky column on the right (`rail`); under that
- * the same cards follow the end of the issue (`inline`).
+ * The page's side cards (LAB-3287, the digest-web prototype's DigestSidebar). From 1100px a sticky column on the
+ * right (`rail`): the topics section (How personalization works, then Add topics; LAB-3348), then Past issues
+ * (LAB-3294). Under 1100px the topics section sits after the header (`DigestTopicsSection` `top`), so the cards
+ * after the end of the issue (`inline`) are Past issues only, and nothing when there is no Past issues card.
  */
 export function DigestSidebar({
   variant,
@@ -17,18 +19,18 @@ export function DigestSidebar({
   topics: DigestTopicsCardProps;
   issues: DigestPastIssuesCardProps;
 }) {
+  if (variant === 'inline') {
+    if (issues.issues.length < 2) return null;
+    return (
+      <div className={s.inline}>
+        <DigestPastIssuesCard listId="past-inline" {...issues} />
+      </div>
+    );
+  }
   return (
-    <div className={variant === 'rail' ? s.rail : s.inline}>
-      <DigestTopicsCard headingId={`topics-${variant}`} {...topics} />
-      <section className={s.card} aria-labelledby={`how-${variant}`}>
-        <h2 id={`how-${variant}`} className={s.cardTitle}>
-          How personalization works
-        </h2>
-        <p className={s.cardText}>
-          Stories come from your topics first, then the teams you follow, then the network’s top stories.
-        </p>
-      </section>
-      <DigestPastIssuesCard listId={`past-${variant}`} {...issues} />
+    <div className={s.rail}>
+      <DigestTopicsSection variant="rail" topics={topics} />
+      <DigestPastIssuesCard listId="past-rail" {...issues} />
     </div>
   );
 }

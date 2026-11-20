@@ -13,11 +13,11 @@ import { ACCESS_COPY } from './event-facts';
 export const MODE_LABEL: Record<EventMode, string> = { 'In-Person': 'In person', Virtual: 'Virtual', Hybrid: 'Hybrid' };
 
 /** The params that count as applied filters. `view`, `cal` and `event` are page state, not filters. */
-export const FILTER_PARAMS = ['search', 'going', 'mode', 'access', 'focus', 'city', 'host'] as const;
+export const FILTER_PARAMS = ['search', 'going', 'featured', 'mode', 'access', 'focus', 'city', 'host'] as const;
 export type FilterParam = (typeof FILTER_PARAMS)[number];
 export const isFilterParam = (key: string): key is FilterParam => (FILTER_PARAMS as readonly string[]).includes(key);
 
-/** A filter param's values as analytics records them: the decoded list, `['true']` for going, the search text. */
+/** A filter param's values as analytics records them: the decoded list, `['true']` for a toggle, the search text. */
 export function filterValues(key: FilterParam, value: string | null | undefined): string[] {
   if (isFacetKey(key)) return decodeFilterValues(value ?? undefined);
   return value ? [value] : [];
@@ -32,12 +32,13 @@ export const FACET_KEYS = ['mode', 'access', 'focus', 'city', 'host'] as const;
 export type FacetKey = (typeof FACET_KEYS)[number];
 const isFacetKey = (key: string): key is FacetKey => (FACET_KEYS as readonly string[]).includes(key);
 
-export type AllEventsFilters = { search: string; going: boolean } & Record<FacetKey, string[]>;
+export type AllEventsFilters = { search: string; going: boolean; featured: boolean } & Record<FacetKey, string[]>;
 
 export function readFilters(params: URLSearchParams): AllEventsFilters {
   return {
     search: params.get('search')?.trim() ?? '',
     going: params.get('going') === 'true',
+    featured: params.get('featured') === 'true',
     mode: decodeFilterValues(params.get('mode')),
     access: decodeFilterValues(params.get('access')),
     focus: decodeFilterValues(params.get('focus')),
@@ -49,7 +50,9 @@ export function readFilters(params: URLSearchParams): AllEventsFilters {
 /** One per applied value, as the Filters button and the phone pill count them. */
 export function countAppliedFilters(params: URLSearchParams): number {
   const f = readFilters(params);
-  return (f.search ? 1 : 0) + (f.going ? 1 : 0) + FACET_KEYS.reduce((n, key) => n + f[key].length, 0);
+  return (
+    (f.search ? 1 : 0) + (f.going ? 1 : 0) + (f.featured ? 1 : 0) + FACET_KEYS.reduce((n, key) => n + f[key].length, 0)
+  );
 }
 
 /** The labels an event has for a facet: the words its card and drawer use ("Invite only", "In person"). */
@@ -94,6 +97,7 @@ export function filterEvents(items: AllEventsItem[], f: AllEventsFilters, goingU
   return items.filter(
     (item) =>
       (!f.going || goingUids.has(item.uid)) &&
+      (!f.featured || item.featured) &&
       matchesSearch(item, f.search) &&
       FACET_KEYS.every((key) => matchesFacet(item, key, f[key])),
   );
@@ -165,7 +169,17 @@ export function spanLabel(startDay: string, endDay: string): string {
   return `${shortDate(startDay)} – ${shortDate(endDay)}`;
 }
 
-/** A Near you tile's when: "Thu, Nov 19 · 6:00 PM"; a multi-day event reads its span ("Tue, Dec 1 – 5"). */
+/** A card's start in the event's time zone: "9:00 AM UTC+5:30". Empty for an all-day event. */
+export const startLabel = (item: AllEventsItem) => [item.startTime, item.zone].filter(Boolean).join(' ');
+
+/** "6:00 PM – 9:00 PM" in the event's time zone; the start alone when it ends when it starts. Empty when all-day. */
+export const timeRange = (item: AllEventsItem) =>
+  item.endTime && item.endTime !== item.startTime ? `${item.startTime} – ${item.endTime}` : item.startTime;
+
+/**
+ * A Near you tile's when: "Thu, Nov 19 · 6:00 PM"; a multi-day event reads its span ("Tue, Dec 1 – 5"); an all-day
+ * event reads its day with no time.
+ */
 export function whenLine(item: AllEventsItem, todayIso: string): string {
   const weekdayDate = (iso: string) =>
     atNoon(iso).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
@@ -173,7 +187,9 @@ export function whenLine(item: AllEventsItem, todayIso: string): string {
     if (item.startDay < todayIso) return `Today · ${dayOfSpan(item, todayIso)}`;
     return `${weekdayDate(item.startDay).split(',')[0]}, ${spanLabel(item.startDay, item.endDay)}`;
   }
-  return [item.startDay === todayIso ? 'Today' : weekdayDate(item.startDay), item.startTime].join(' · ');
+  return [item.startDay === todayIso ? 'Today' : weekdayDate(item.startDay), item.startTime]
+    .filter(Boolean)
+    .join(' · ');
 }
 
 /* ---------- Cities ---------- */
@@ -186,7 +202,7 @@ export interface CitySummary {
   eventCount: number;
   startDay: string;
   endDay: string;
-  /** "UTC+0", from the city's first event. */
+  /** "UTC+0", from the city's first event that has a time. Empty when every event there is all-day. */
   zone: string;
 }
 
@@ -203,7 +219,7 @@ export function topCities(items: AllEventsItem[]): CitySummary[] {
       eventCount: list.length,
       startDay: first.startDay,
       endDay: list.reduce((m, e) => (e.endDay > m ? e.endDay : m), first.endDay),
-      zone: first.zone,
+      zone: list.find((e) => e.zone)?.zone ?? '',
     };
   }).sort(
     (a, b) => b.eventCount - a.eventCount || a.startDay.localeCompare(b.startDay) || a.city.localeCompare(b.city),

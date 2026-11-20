@@ -550,25 +550,26 @@ The drawer's previous and next SHALL step through the events the page shows unde
 - **THEN** the Week view opens on the week of January 12 with that card marked
 - **AND** the drawer is open on that event
 
-### Requirement: Share / embed copies a link to the view
+### Requirement: Embed copies a link to the view
 
-The "Coming up" toolbar on `/events/all` SHALL show a "Share / embed" button in every view and at every width (LAB-3352). A press SHALL copy one link, `<origin>/events/embed`, with the active `view`, `cal` and each applied filter of search, Mode, Access type, Focus area, City and Host, under the page address's own keys. The link SHALL NOT carry "Events I'm going to" (`going`), the open event (`event`) or any other parameter. After the copy a toast SHALL say "Link copied"; when the browser refuses the clipboard it SHALL say "Could not copy the link" and record nothing.
+The "Coming up" toolbar on `/events/all` SHALL show an "Embed" button with a `</>` glyph, styled like the Filters button, after the List / Calendar / Map switch, in every view and at every width (LAB-3352). The embed dialog (preview and iframe code) is a follow-up. A press SHALL copy one link, `<origin>/events/embed`, with the active `view`, `cal` and each applied filter of search, Mode, Access type, Focus area, City and Host, under the page address's own keys. The link SHALL NOT carry "Events I'm going to" (`going`), the open event (`event`) or any other parameter. After the copy a toast SHALL say "Link copied"; when the browser refuses the clipboard it SHALL say "Could not copy the link" and record nothing.
 
 #### Scenario: Share the map of online events
 
 - **GIVEN** a visitor on `/events/all?view=map&mode=Virtual&going=true`
-- **WHEN** they press Share / embed
+- **WHEN** they press Embed
 - **THEN** the clipboard holds `<origin>/events/embed?view=map&mode=Virtual` and "Link copied" shows
 
 ### Requirement: The embed shows one view for other sites
 
-`/events/embed` SHALL show the All Events "Coming up" toolbar (with Filters and the view switch) and the view and filters in its address, for anyone, signed in or not, with no member data: no Near you, no Add location, no "Events I'm going to", no Going marks (LAB-3352). It SHALL NOT show the site header, the mobile bottom bar, the feedback button, contact support, the rating prompts, the page header ("Submit an event", the events app link) or Share / embed. Pressing an event SHALL open `/events/all?event=<uid>` in a new tab; the embed SHALL NOT open the drawer, also not for `event` in its own address. With no match it SHALL show the page's empty state, and when the events fail to load the page's error state. It SHALL be served only while the native page flag is on (else not found), and SHALL NOT be indexed. Any https site (and LabOS itself) may frame it (see the runtime platform's security headers).
+`/events/embed` SHALL show only the view and filters in its address, on the page's grey, for anyone, signed in or not, with no member data: no Near you, no Add location, no "Events I'm going to", no Going marks (LAB-3352). Under the view it SHALL show the link "All events on PL Directory ↗", which opens `/events/all` with the same view and filters (not the open event) in a new tab. It SHALL NOT show the site header, the mobile bottom bar, the feedback button, contact support, the rating prompts, the page header ("Submit an event", the events app link), Browse by city, the city header, the "Coming up" toolbar (count, Filters, the view switch, Embed), the filters or the applied-filter chips (Polina's design, 2026-11-20): the person embedding it chose the view and filters. Pressing an event SHALL open `/events/all?event=<uid>` in a new tab; the embed SHALL NOT open the drawer, also not for `event` in its own address. With no match it SHALL show the page's empty state, and when the events fail to load the page's error state. It SHALL be served only while the native page flag is on (else not found), and SHALL NOT be indexed. Any https site (and LabOS itself) may frame it (see the runtime platform's security headers).
 
 #### Scenario: plrd.org frames online events
 
 - **GIVEN** a plrd.org page with an iframe on `/events/embed?view=map&mode=Virtual`
 - **WHEN** the page loads
-- **THEN** the iframe shows the map with only online events, without the LabOS header or "Submit an event"
+- **THEN** the iframe shows the map with only online events, without the LabOS header, "Submit an event" or the toolbar
+- **AND** under the map, "All events on PL Directory ↗" links to `/events/all?view=map&mode=Virtual`
 - **WHEN** the reader presses an event
 - **THEN** that event opens on LabOS in a new tab, with its drawer open
 
@@ -590,7 +591,7 @@ The page SHALL record these PostHog events:
 - `events-view-changed` with `view` (`list`, `calendar` or `map`) and, for the calendar, `mode` (`week` or `month`);
 - `events-filters-applied` with the filter `key` (`search`, `going`, `mode` or `city`) and its `values`, for every filter change whichever control made it (the rail, a chip, a city tile, "Clear all"), once that filter has been still for 300ms; "Clear all" records each filter it empties, with no values;
 - `events-city-selected` with `city` and `from` (`tile`, `filter` or `near-you`), in addition, whenever a single city is chosen.
-- `events-embed-link-copied` with `view` and `filters_count`, when Share / embed copies the link (LAB-3352);
+- `events-embed-link-copied` with `view` and `filters_count`, when Embed copies the link (LAB-3352);
 - `events-embed-viewed` with the `view` it opened on and `referrer_host` (the framing site's host, or null), once per load of `/events/embed`.
 
 No filter event SHALL be recorded for filters read from the address on landing, and a later change to another param (the view, the open event) SHALL NOT cancel a pending filter event.

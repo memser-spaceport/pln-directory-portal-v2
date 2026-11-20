@@ -8,6 +8,7 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'reac
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useEventsAnalytics } from '@/analytics/events.analytics';
+import { ArrowUpRightIcon } from '@/components/icons';
 import { FilterStoreUrlSync } from '@/components/common/filters/FilterStoreUrlSync';
 import { MobileFilterWrapper } from '@/components/common/filters/MobileFilterWrapper';
 import { toast } from '@/components/core/ToastContainer';
@@ -37,6 +38,7 @@ import type { AllEventsItem, AllEventsResult } from '@/services/events/all-event
 import { EventsQueryKeys } from '@/services/events/constants';
 import { usePrefetchEventDetail } from '@/services/events/hooks/useEventDrawerQueries';
 import { useMyUpcomingEventUids } from '@/services/events/hooks/useMyUpcomingEventUids';
+import { EVENTS_LIST_PATH } from '@/utils/constants';
 import { HAS_EVENTS_MAP } from '@/utils/events-page';
 
 import { AllEventsFilterRail, AppliedChips } from './AllEventsFilters';
@@ -70,9 +72,9 @@ export interface AllEventsPageProps {
   submitHref: string;
   eventsAppHref: string;
   /**
-   * The embed (LAB-3352, `/events/embed`), framed by another site: the toolbar and the view only. No page header
-   * (Submit an event, the events app), no Share / embed, no member parts, no drawer: an event opens on LabOS in a new
-   * tab, since a framed page often can't use the LabOS sign-in.
+   * The embed (LAB-3352, `/events/embed`), framed by another site: the view only, with the filters from its address,
+   * and "All events on PL Directory ↗" under it. No page header, Near you, Browse by city, toolbar, filters, member
+   * parts or drawer: an event opens on LabOS in a new tab.
    */
   embed?: boolean;
 }
@@ -323,17 +325,58 @@ export function AllEventsPage({
 
   const viewOptions = AVAILABLE_VIEWS.map((v) => ({ value: v, label: VIEW_LABEL[v] }));
 
+  // The view itself: the page puts it under its toolbar, the embed shows it alone.
+  const viewBody =
+    view === 'map' ? (
+      visible.length === 0 ? (
+        <EventsEmpty onClear={clearFilters} />
+      ) : (
+        <EventsMap
+          events={visible}
+          goingUids={goingUids}
+          highlightUid={highlightUid}
+          onOpen={open}
+          onPrepare={prepare}
+        />
+      )
+    ) : view === 'calendar' ? (
+      visible.length === 0 ? (
+        <EventsEmpty onClear={clearFilters} />
+      ) : (
+        <EventsCalendar
+          key={`${anchorIso}:${scopedCity ?? ''}`}
+          events={visible}
+          todayIso={todayIso}
+          anchorIso={anchorIso}
+          mode={calMode}
+          onModeChange={setCalMode}
+          goingUids={goingUids}
+          highlightUid={highlightUid}
+          onOpen={open}
+          onPrepare={prepare}
+        />
+      )
+    ) : (
+      <ListView
+        events={visible}
+        todayIso={todayIso}
+        goingUids={goingUids}
+        highlightUid={highlightUid}
+        onOpen={open}
+        onPrepare={prepare}
+        onClear={clearFilters}
+      />
+    );
+
   const content = (
     <div className={s.page}>
       <div className={s.container}>
-        {!embed && (
-          <AllEventsHeader
-            submitHref={submitHref}
-            eventsAppHref={eventsAppHref}
-            onSubmitClick={() => analytics.onSubmitEventButtonClicked()}
-            onEventsAppClick={() => analytics.onGoToEventsButtonClicked()}
-          />
-        )}
+        <AllEventsHeader
+          submitHref={submitHref}
+          eventsAppHref={eventsAppHref}
+          onSubmitClick={() => analytics.onSubmitEventButtonClicked()}
+          onEventsAppClick={() => analytics.onGoToEventsButtonClicked()}
+        />
 
         {!result.ok ? (
           <div className={s.layout}>
@@ -377,7 +420,7 @@ export function AllEventsPage({
               views={AVAILABLE_VIEWS}
               view={view}
               onViewChange={setView}
-              onShare={embed ? undefined : () => void shareEmbed()}
+              onShare={() => void shareEmbed()}
             />
 
             {/* Phones and tablets: the directory's Filters pill and bottom sheet (it hides itself from 1024px). */}
@@ -406,48 +449,7 @@ export function AllEventsPage({
             <AppliedChips scopedCity={scopedCity} railOpen={railOpen} onClear={clearFilters} />
 
             <div className={s.layout}>
-              <div className={s.main}>
-                {view === 'map' ? (
-                  visible.length === 0 ? (
-                    <EventsEmpty onClear={clearFilters} />
-                  ) : (
-                    <EventsMap
-                      events={visible}
-                      goingUids={goingUids}
-                      highlightUid={highlightUid}
-                      onOpen={open}
-                      onPrepare={prepare}
-                    />
-                  )
-                ) : view === 'calendar' ? (
-                  visible.length === 0 ? (
-                    <EventsEmpty onClear={clearFilters} />
-                  ) : (
-                    <EventsCalendar
-                      key={`${anchorIso}:${scopedCity ?? ''}`}
-                      events={visible}
-                      todayIso={todayIso}
-                      anchorIso={anchorIso}
-                      mode={calMode}
-                      onModeChange={setCalMode}
-                      goingUids={goingUids}
-                      highlightUid={highlightUid}
-                      onOpen={open}
-                      onPrepare={prepare}
-                    />
-                  )
-                ) : (
-                  <ListView
-                    events={visible}
-                    todayIso={todayIso}
-                    goingUids={goingUids}
-                    highlightUid={highlightUid}
-                    onOpen={open}
-                    onPrepare={prepare}
-                    onClear={clearFilters}
-                  />
-                )}
-              </div>
+              <div className={s.main}>{viewBody}</div>
             </div>
           </>
         )}
@@ -455,10 +457,33 @@ export function AllEventsPage({
     </div>
   );
 
+  // The embed (LAB-3352, Polina's design): the view alone, then "All events on PL Directory ↗" to the same view and
+  // filters on the full page, in a new tab. No header, Near you, Browse by city, toolbar, filters or drawer: the person
+  // embedding it chose the view and filters, and an event opens LabOS in a new tab.
+  if (embed) {
+    const query = embedQuery(params);
+    return (
+      <>
+        <FilterStoreUrlSync store={useAllEventsFilterStore} strategy="history" />
+        <div className={s.embedPage}>
+          {result.ok ? viewBody : <EventsError onRetry={() => router.refresh()} />}
+          <a
+            className={clsx(s.textLink, s.embedFoot)}
+            href={`${EVENTS_LIST_PATH}${query ? `?${query}` : ''}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            All events on PL Directory <ArrowUpRightIcon width={14} height={14} />
+          </a>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <FilterStoreUrlSync store={useAllEventsFilterStore} strategy="history" />
-      <div className={clsx(s.shell, embed && s.embed)}>
+      <div className={s.shell}>
         <DashboardPagesLayout
           filters={
             railOpen && result.ok ? (
@@ -476,16 +501,14 @@ export function AllEventsPage({
           content={content}
         />
       </div>
-      {!embed && (
-        <EventDrawer
-          eventUid={openUid}
-          source="all-events"
-          onClose={closeDrawer}
-          onGoing={openUid ? onGoing(openUid) : undefined}
-          sequence={sequence}
-          onNavigate={open}
-        />
-      )}
+      <EventDrawer
+        eventUid={openUid}
+        source="all-events"
+        onClose={closeDrawer}
+        onGoing={openUid ? onGoing(openUid) : undefined}
+        sequence={sequence}
+        onNavigate={open}
+      />
     </>
   );
 }

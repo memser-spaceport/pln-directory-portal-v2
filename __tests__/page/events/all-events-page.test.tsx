@@ -559,13 +559,13 @@ describe('review fixes', () => {
   });
 });
 
-describe('Share / embed (LAB-3352)', () => {
+describe('Embed (LAB-3352)', () => {
   const writeText = jest.fn();
   beforeEach(() => {
     writeText.mockReset().mockResolvedValue(undefined);
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
   });
-  const share = () => screen.getByRole('button', { name: 'Share / embed' });
+  const share = () => screen.getByRole('button', { name: 'Embed' });
   const copied = () => new URL(writeText.mock.calls[0][0]);
 
   it('copies the embed link with the view and filters, never going or the open event', async () => {
@@ -583,6 +583,12 @@ describe('Share / embed (LAB-3352)', () => {
     ]);
     expect(toast.success).toHaveBeenCalledWith('Link copied');
     expect(analytics.onEventsEmbedLinkCopied).toHaveBeenCalledWith({ view: 'calendar', filters_count: 2 });
+  });
+
+  it('sits after the List / Calendar / Map switch (Polina, 2026-11-20)', () => {
+    renderPage();
+    const tablist = screen.getByRole('tablist', { name: 'View' });
+    expect(tablist.compareDocumentPosition(share()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('copies the bare embed address for the plain List', async () => {
@@ -608,20 +614,40 @@ describe('the embed (LAB-3352)', () => {
     window.open = open as unknown as typeof window.open;
   });
 
-  it('shows the toolbar and the view without the page header, Submit an event or Share / embed', () => {
-    renderPage({ embed: true }, '/events/embed');
+  it('shows the view alone: no page header, Near you, Browse by city, toolbar or filters (Polina, 2026-11-20)', () => {
+    renderPage({ embed: true, signedIn: true, viewerUid: 'm1', memberCity: 'Lisbon' }, '/events/embed');
     expect(screen.queryByRole('heading', { level: 1, name: 'Events' })).toBeNull();
     expect(screen.queryByRole('link', { name: /Submit an event/ })).toBeNull();
     expect(screen.queryByRole('link', { name: /Open PL Events/ })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Share / embed' })).toBeNull();
-    expect(screen.getByRole('heading', { name: 'Coming up' })).toBeInTheDocument();
-    expect(toolbarCount()).toBe('11 events');
+    expect(screen.queryByRole('region', { name: /Near you/ })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Browse by city' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: /^Coming up/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Embed' })).toBeNull();
+    expect(screen.queryByRole('tab', { name: /Calendar/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Filters/ })).toBeNull();
+    expect(card('DAI Summit')).toBeInTheDocument();
   });
 
   it('applies the filters and the view from its address', () => {
+    const { unmount } = renderPage({ embed: true }, '/events/embed?mode=Virtual');
+    expect(card('Community Call')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /DAI Summit/ })).toBeNull();
+    unmount();
     renderPage({ embed: true }, '/events/embed?view=calendar&mode=Virtual');
-    expect(toolbarCount()).toBe('1 event');
-    expect(screen.getByRole('tab', { name: /Calendar/ })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByTestId('events-calendar')).toBeInTheDocument();
+  });
+
+  it('links to the same view and filters on the full page, in a new tab', () => {
+    renderPage({ embed: true }, '/events/embed?view=calendar&cal=month&mode=Virtual&event=dai');
+    const link = screen.getByRole('link', { name: /All events on PL Directory/ });
+    expect(link).toHaveAttribute('href', '/events/all?view=calendar&cal=month&mode=Virtual');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('links to the plain full page from the plain embed', () => {
+    renderPage({ embed: true }, '/events/embed');
+    expect(screen.getByRole('link', { name: /All events on PL Directory/ })).toHaveAttribute('href', '/events/all');
   });
 
   it('opens an event on LabOS in a new tab, with no drawer and nothing in its own address', () => {

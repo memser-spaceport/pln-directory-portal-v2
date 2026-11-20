@@ -1,0 +1,71 @@
+@use 'styles/media';
+
+/* LAB-3272. Only the layout the imported production and prototype styles do not cover. */
+
+/* The app's page grey (jobs filter rail, #f1f5f9). */
+.root {
+  min-height: 100vh;
+  background: var(--background-neutral-subtle, #f1f5f9);
+}
+
+/* Prototype chrome (the state switcher), in the page's column. */
+/* `.page` comes from JobOpeningView; nothing changes in it. */
+.chrome {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 16px 16px 0;
+}
+
+/* With the agent docked (480px, Agent V0's width), the page moves left so the job stays readable beside it.
+   Below 1200 the panel overlays the page, as it does on Home. */
+.pushed {
+  @include media.desktop {
+    margin-left: max(16px, calc((100vw - 480px - 760px) / 2));
+    margin-right: auto;
+  }
+}
+
+/* A phone's card footer: the action pair fills the row (lesson 36). */
+.cardActions {
+  @include media.mobile-only {
+    > * {
+      flex: 1;
+      justify-content: center;
+      text-align: center;
+    }
+  }
+}
+
+/* An earlier draft: read-only, quieter, three lines. */
+.oldDraft {
+  gap: 6px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* The gap rows: field name and its current state on one line. */
+.gapRow {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.gapValue {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* "Open their site" is a link wearing the DS button classes (as the job row's Apply anchor does); DS Button
+   is inline-block, so centre the label. */
+.linkLike {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}

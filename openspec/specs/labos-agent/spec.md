@@ -62,6 +62,17 @@ The panel SHALL be a right-hand column (480px from 960px wide, a full-screen she
 - **WHEN** the answer used web search
 - **THEN** the turn lists each web page by its domain under "Sources", and each opens in a new tab
 
+### Requirement: A LabOS source opens in the same tab and keeps the chat
+
+A source ref with a LabOS link SHALL open with the client router (`router.push`), not a full page load, so the chat in the store stays (LAB-3298, D1). A LabOS link is a relative `directoryLink`, or a full URL on the app's own origin; the panel SHALL use its path, query and hash. A `/home` path SHALL become `/` (`/home?news=<uid>` becomes `/?news=<uid>`), so the link skips the 308 redirect. A Ctrl, Cmd, Shift or Alt click SHALL keep the browser default. A web link SHALL open in a new tab.
+
+#### Scenario: Open a news source from the panel
+
+- **GIVEN** an answer lists a news ref with `directoryLink` `/?news=<uid>`
+- **WHEN** the member clicks it
+- **THEN** the app goes to `/?news=<uid>` with no page load
+- **AND** the chat and its turns stay in the panel
+
 ### Requirement: A failed or stalled answer offers Retry
 
 When the request fails before the stream starts, or the connection breaks, the turn SHALL show a plain message for the error code (`AGENT_NOT_ENABLED`, `NEWS_NOT_FOUND`, `RATE_LIMITED` with `retryAfterSeconds`, 401, other) and a Retry button. When the answer ends with the backend's stalled notice, the turn SHALL show Retry and no follow-ups. Retry SHALL send the same message again in place of the failed turn.

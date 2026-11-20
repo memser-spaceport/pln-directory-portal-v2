@@ -1,7 +1,8 @@
 'use client';
 
 import clsx from 'clsx';
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { type MouseEvent, useState } from 'react';
 
 import { Button } from '@/components/common/Button';
 import { Markdown } from '@/components/common/Markdown';
@@ -38,6 +39,9 @@ const domainOf = (url: string) => {
   }
 };
 
+/** A plain left click, with no key that asks the browser for a new tab or window. */
+const isPlainClick = (e: MouseEvent) => e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
+
 function Check() {
   return (
     <svg viewBox="0 0 16 16" fill="none" aria-hidden className={s.stepCheck}>
@@ -64,6 +68,7 @@ export function LabosAgentTurn({
   onSourceClick,
 }: LabosAgentTurnProps) {
   const [showSteps, setShowSteps] = useState(false);
+  const router = useRouter();
   const working = turn.status === 'working';
   const thinking = working && !turn.content;
   const seconds = turn.endedAt ? Math.max(1, Math.round((turn.endedAt - turn.startedAt) / 1000)) : 0;
@@ -129,7 +134,14 @@ export function LabosAgentTurn({
                     href={href}
                     {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                     className={s.ref}
-                    onClick={() => onSourceClick?.(sourceRefKind(ref), i + 1)}
+                    onClick={(e) => {
+                      onSourceClick?.(sourceRefKind(ref), i + 1);
+                      // D1: a LabOS link opens with the client router, so the page does not reload and the chat stays.
+                      if (href && !external && isPlainClick(e)) {
+                        e.preventDefault();
+                        router.push(href);
+                      }
+                    }}
                   >
                     <span className={s.refTitle}>{label.title}</span>
                     <span className={s.refMeta}>{label.meta}</span>

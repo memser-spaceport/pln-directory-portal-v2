@@ -891,6 +891,8 @@ export const ALL_EVENTS_ANALYTICS = {
   // LAB-3352: the Embed link, and loads of the embed page.
   ON_EVENTS_EMBED_LINK_COPIED: 'events-embed-link-copied',
   ON_EVENTS_EMBED_VIEWED: 'events-embed-viewed',
+  // LAB-3365: Copy code in the Embed dialog.
+  ON_EVENTS_EMBED_CODE_COPIED: 'events-embed-code-copied',
   ON_EVENTS_VIEW_CHANGED: 'events-view-changed',
   ON_EVENTS_FILTERS_APPLIED: 'events-filters-applied',
   ON_EVENTS_CITY_SELECTED: 'events-city-selected',

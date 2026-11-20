@@ -41,11 +41,12 @@ import { useMyUpcomingEventUids } from '@/services/events/hooks/useMyUpcomingEve
 import { EVENTS_LIST_PATH } from '@/utils/constants';
 import { HAS_EVENTS_MAP } from '@/utils/events-page';
 
-import { AllEventsFilterRail, AppliedChips } from './AllEventsFilters';
+import { AllEventsFilterRail, AppliedChips, appliedChips } from './AllEventsFilters';
 import { EventsCalendar } from './calendar/EventsCalendar';
 import type { CalMode } from './calendar/weeks';
 import { AllEventsHeader } from './AllEventsHeader';
 import { CityBand, CityHeader } from './CityBand';
+import { EmbedModal, embedFrameTitle, embedScopeLine } from './EmbedModal';
 import { EventsToolbar, VIEW_LABEL } from './EventsToolbar';
 import { ListView } from './ListView';
 import { EventsMap } from './map/EventsMap';
@@ -77,6 +78,15 @@ export interface AllEventsPageProps {
    * parts or drawer: an event opens on LabOS in a new tab.
    */
   embed?: boolean;
+}
+
+/** Same-origin frames can read their parent's address; another site's frame throws. */
+function framedByLabOs(): boolean {
+  try {
+    return window.parent !== window && window.parent.location.origin === window.location.origin;
+  } catch {
+    return false;
+  }
 }
 
 /** Where an event opens from the embed: the All Events page with its drawer, in a new tab. */
@@ -287,19 +297,24 @@ export function AllEventsPage({
     });
   };
 
-  // Copies the embed link for this view and its filters (LAB-3352). The clipboard can be blocked (an insecure page,
-  // a denied permission): then the toast says so instead.
-  const shareEmbed = async () => {
-    const query = embedQuery(params);
-    const link = `${window.location.origin}${EVENTS_EMBED_PATH}${query ? `?${query}` : ''}`;
-    try {
-      await navigator.clipboard.writeText(link);
-    } catch {
-      toast.error('Could not copy the link');
-      return;
-    }
-    toast.success('Link copied');
-    analytics.onEventsEmbedLinkCopied({ view, filters_count: countAppliedFilters(new URLSearchParams(query)) });
+  // Embed (LAB-3365): the dialog with a preview, the iframe code, Copy link and Copy code. It embeds what the page
+  // shows: the view, the calendar mode in use (also when the address has none) and the filters the link carries.
+  const [embedOpen, setEmbedOpen] = useState(false);
+  const embedParams = new URLSearchParams(params);
+  if (view === 'list') embedParams.delete('view');
+  else embedParams.set('view', view);
+  if (view === 'calendar') embedParams.set('cal', calMode);
+  else embedParams.delete('cal');
+  const embedLinkQuery = embedQuery(embedParams);
+  const embedPath = `${EVENTS_EMBED_PATH}${embedLinkQuery ? `?${embedLinkQuery}` : ''}`;
+  // Every applied value but "Events I'm going to", which the link does not carry; a scoped city counts too.
+  const embedLabels = appliedChips(embedParams, null)
+    .filter((chip) => chip.key !== 'going')
+    .map((chip) => chip.label);
+  const onEmbedCopied = (what: 'link' | 'code') => {
+    const props = { view, filters_count: countAppliedFilters(new URLSearchParams(embedLinkQuery)) };
+    if (what === 'code') analytics.onEventsEmbedCodeCopied(props);
+    else analytics.onEventsEmbedLinkCopied(props);
   };
 
   // One load of the embed, with the host of the site that framed it (its origin comes as the Referer).
@@ -307,6 +322,8 @@ export function AllEventsPage({
   useEffect(() => {
     if (!embed || viewed.current) return;
     viewed.current = true;
+    // The Embed dialog's preview is LabOS framing itself, not a site showing the embed.
+    if (framedByLabOs()) return;
     let referrerHost: string | null = null;
     try {
       referrerHost = document.referrer ? new URL(document.referrer).host : null;
@@ -420,7 +437,7 @@ export function AllEventsPage({
               views={AVAILABLE_VIEWS}
               view={view}
               onViewChange={setView}
-              onShare={() => void shareEmbed()}
+              onShare={() => setEmbedOpen(true)}
             />
 
             {/* Phones and tablets: the directory's Filters pill and bottom sheet (it hides itself from 1024px). */}
@@ -508,6 +525,15 @@ export function AllEventsPage({
         onGoing={openUid ? onGoing(openUid) : undefined}
         sequence={sequence}
         onNavigate={open}
+      />
+      <EmbedModal
+        isOpen={embedOpen}
+        onClose={() => setEmbedOpen(false)}
+        link={typeof window === 'undefined' ? embedPath : `${window.location.origin}${embedPath}`}
+        previewSrc={embedPath}
+        scope={embedScopeLine(view, calMode, embedLabels)}
+        frameTitle={embedFrameTitle(embedLabels)}
+        onCopied={onEmbedCopied}
       />
     </>
   );

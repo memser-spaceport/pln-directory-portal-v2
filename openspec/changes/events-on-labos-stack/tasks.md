@@ -4,7 +4,7 @@ Groups map to the Tasks under LAB-3278: group 1 = LAB-3339, groups 2 and 3 = LAB
 
 ## 1. All Events page on the list endpoint, all-day display
 
-- [ ] 1.1 Call `GET /v1/irl/events` on the dev API and check each item has: uid, name, dates, `allDay`, time zone, format, access, tags, featured, picture, host names, city, going count and up to 3 faces; record any missing field on LAB-3281 before coding
+- [x] 1.1 Call `GET /v1/irl/events` on the dev API and check each item has: uid, name, dates, `allDay`, time zone, format, access, tags, featured, picture, host names, city, going count and up to 3 faces; record any missing field on LAB-3281 before coding
 - [x] 1.2 Replace the per-event calls in `services/events/all-events.service.ts` with the paged list call, mapped to the same `AllEventsItem`; verify with `__tests__/services/events/all-events.service.test.ts` (two pages, empty list, failed request)
 - [x] 1.3 Add `allDay`, `featured` and the access and topic values to `AllEventsItem` and the fixtures; verify `tsc` passes with no change in the view components' props
 - [x] 1.4 Add the Featured filter to `all-events.filters.ts`, the filters store and the rail, next to Access type, Focus area and Host (on the page since `lab-3247`); verify with `all-events.filters.test.ts` (each filter, fewer-than-2 rule, URL round trip)

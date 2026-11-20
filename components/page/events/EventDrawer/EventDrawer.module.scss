@@ -15,6 +15,10 @@
   position: sticky;
   top: 0;
   z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   padding: 12px 30px 10px 31px;
   background: var(--background-base-white, #ffffff);
 
@@ -407,4 +411,32 @@
   to {
     background-position: -100% 0;
   }
+}
+
+.edit {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.statusLine {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
 }

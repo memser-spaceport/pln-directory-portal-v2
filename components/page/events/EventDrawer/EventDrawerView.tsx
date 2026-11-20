@@ -1,6 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
+import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
@@ -9,18 +10,17 @@ import { Drawer } from '@/components/common/Drawer';
 import { Modal } from '@/components/common/Modal/Modal';
 import { AdditionalDetailsSection } from '@/components/core/UpdatesPanel/IrlGatheringModal/components/AdditionalDetailsSection';
 import { DatePickerView } from '@/components/core/UpdatesPanel/IrlGatheringModal/components/DatePickerView';
-import { GatheringDetails } from '@/components/core/UpdatesPanel/IrlGatheringModal/components/GatheringDetails';
 import { PlanningSection } from '@/components/core/UpdatesPanel/IrlGatheringModal/components/PlanningSection';
 import { TopicsPickerView } from '@/components/core/UpdatesPanel/IrlGatheringModal/components/TopicsPickerView';
-import { buildEventsLink } from '@/components/core/UpdatesPanel/IrlGatheringModal/helpers';
 import { useIrlGatheringModal } from '@/components/core/UpdatesPanel/IrlGatheringModal/hooks/useIrlGatheringModal';
 import m from '@/components/core/UpdatesPanel/IrlGatheringModal/IrlGatheringModal.module.scss';
 import type { IrlGatheringFormData } from '@/components/core/UpdatesPanel/IrlGatheringModal/types';
 import type { EventDetail, EventRoleName, MyGatheringPlans } from '@/services/events/event-drawer.types';
+import { EVENT_STATUS_LABEL } from '@/services/events/event-form';
 import type { ITeam } from '@/types/teams.types';
 
 import { AttendeesModal, type EventAttendeesState } from './AttendeesModal';
-import { BackIcon, EventSummary, Label, PinLabelIcon } from './EventSummary';
+import { BackIcon, EventSummary } from './EventSummary';
 import e from './EventDrawer.module.scss';
 import { RsvpCard } from './RsvpCard';
 import r from './RsvpCard.module.scss';
@@ -47,6 +47,8 @@ export interface EventGoingNotice {
 export interface EventDrawerViewProps {
   status: EventDrawerStatus;
   event: EventDetail | null;
+  /** The event's edit page, for its submitter and a directory admin. Nobody else gets the "Edit" link. */
+  editHref?: string;
   /** Signed in with `irlg.going.write` (or admin) and the event belongs to a gathering. */
   canMarkGoing: boolean;
   viewerUid: string | null;
@@ -146,7 +148,7 @@ function DrawerStates({ status, onClose, onRetry }: Pick<EventDrawerViewProps, '
         </div>
       ) : (
         <div className={e.state} aria-busy="true" aria-label="Loading the event">
-          {/* Shaped like the panel it becomes (kicker, title, date, place, tags, Host, gathering), so a slow load
+          {/* Shaped like the panel it becomes (kicker, title, date, place, tags, Host), so a slow load
                 reads as loading rather than as an empty drawer. */}
           <div className={e.skeleton}>
             <span className={e.kicker}>EVENT DETAILS</span>
@@ -196,6 +198,7 @@ function EventFlow({
   attendees,
   initialStep = 'event',
   saving,
+  editHref,
   onClose,
   onAttendeesOpen,
   onYes,
@@ -206,6 +209,8 @@ function EventFlow({
   drawerCloseRef,
 }: EventDrawerViewProps & { event: EventDetail; drawerCloseRef: MutableRefObject<() => void> }) {
   const gathering = event.gathering;
+  // An event that is not approved shows its status to its submitter and a directory admin, and has no "I'm going".
+  const unpublishedStatus = event.status && event.status !== 'APPROVED' ? event.status : null;
   const wasGoing = !!event.viewer;
   const [going, setGoing] = useState(wasGoing);
   const [justMarked, setJustMarked] = useState(false);
@@ -364,43 +369,41 @@ function EventFlow({
               <BackIcon />
               <span>{step === 'plans' ? 'Back to event' : 'Back'}</span>
             </button>
+            {step === 'event' && editHref && (
+              <Link href={editHref} className={e.edit}>
+                Edit
+              </Link>
+            )}
           </div>
 
           <div className={e.body}>
             {step === 'event' && (
               <>
+                {unpublishedStatus && (
+                  <p className={e.statusLine} role="status">
+                    Status: <strong>{EVENT_STATUS_LABEL[unpublishedStatus]}</strong>. Only you and directory admins see
+                    this event.
+                  </p>
+                )}
                 <EventSummary
                   event={event}
                   beforeAgenda={
-                    <RsvpCard
-                      count={count}
-                      faces={event.faces}
-                      going={going}
-                      canMarkGoing={canMarkGoing}
-                      city={gathering?.city ?? null}
-                      registerUrl={event.eventUrl}
-                      saving={saving}
-                      onOpenAttendees={openAttendees}
-                      onNotGoing={handleNotGoing}
-                      onOpenPlans={openPlans}
-                    />
+                    unpublishedStatus ? undefined : (
+                      <RsvpCard
+                        count={count}
+                        faces={event.faces}
+                        going={going}
+                        canMarkGoing={canMarkGoing}
+                        city={gathering?.city ?? null}
+                        registerUrl={event.eventUrl}
+                        saving={saving}
+                        onOpenAttendees={openAttendees}
+                        onNotGoing={handleNotGoing}
+                        onOpenPlans={openPlans}
+                      />
+                    )
                   }
                 />
-
-                {gathering && (
-                  <div className={e.block}>
-                    <Label icon={<PinLabelIcon />}>{city} gathering</Label>
-                    <div className={e.gatheringLinks}>
-                      <GatheringDetails
-                        dateRange={event.dateLine}
-                        location={city}
-                        eventsLink={buildEventsLink(gathering.location, event.startDate)}
-                        eventsCount={gathering.events.length}
-                        resources={gathering.resources}
-                      />
-                    </div>
-                  </div>
-                )}
               </>
             )}
 
@@ -447,7 +450,7 @@ function EventFlow({
 
           {/* LAB-3271: "Yes, I'm going" sits in the sticky footer, so a long description never hides it. Signed out,
                 it starts the sign-in flow. Once going, the card answers in place and the footer goes away. */}
-          {step === 'event' && (canMarkGoing ? !going : !!onSignIn) && (
+          {step === 'event' && !unpublishedStatus && (canMarkGoing ? !going : !!onSignIn) && (
             <div key="event" className={e.footer}>
               <Button
                 type="button"

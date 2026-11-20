@@ -12,6 +12,7 @@ import useClickedOutside from '@/hooks/useClickedOutside';
 import IrlLocationPopupView from './irl-location-popupView';
 import IrlSeeMoreLocationCard from './irl-see-more-location-card';
 import PlEventCard from './pl-button-card';
+import { allEventsLink } from '@/utils/all-events-link';
 
 interface IrlLocation {
   locationDetails: ILocationDetails[];
@@ -39,6 +40,8 @@ const IrlLocation = (props: IrlLocation) => {
     }
   };
 
+  // LAB-3337: "View All Events" opens the All Events page when it is on; the events app otherwise.
+  const allEvents = allEventsLink(process.env.NEXT_PUBLIC_PL_EVENTS_URL ?? '');
   const onViewPlEventsClick = () => {
     analytics.trackViewPLEventsClick();
   };
@@ -184,9 +187,8 @@ const IrlLocation = (props: IrlLocation) => {
         </div>
 
         <a
-          href={process.env.NEXT_PUBLIC_PL_EVENTS_URL}
-          target="_blank"
-          rel="noopener noreferrer"
+          href={allEvents.href}
+          {...(allEvents.newTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
           onClick={onViewPlEventsClick}
           className="root__irl__event__card"
         >

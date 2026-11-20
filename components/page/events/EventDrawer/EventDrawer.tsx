@@ -5,6 +5,9 @@ import { useQuery } from '@tanstack/react-query';
 
 import { formatDateForApi } from '@/components/core/UpdatesPanel/IrlGatheringModal/helpers';
 import { useLoginRedirect } from '@/components/core/login/utils/loginRedirect';
+import { useMyEvents } from '@/services/events/hooks/useEventSubmission';
+import { EVENTS_LOCAL_SUBMIT, eventEditPath } from '@/utils/events-submit';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 import { toast } from '@/components/core/ToastContainer';
 import { useEventsAnalytics, type EventDrawerSource } from '@/analytics/events.analytics';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -63,6 +66,11 @@ function EventDrawerContainer({
   const viewerUid = currentUser?.uid ?? null;
   const analytics = useEventsAnalytics();
   const goToLogin = useLoginRedirect();
+
+  // "Edit" is for the member who submitted the event and for a directory admin.
+  const isAdmin = isAdminUser(currentUser);
+  const mine = useMyEvents(EVENTS_LOCAL_SUBMIT && !!viewerUid && !isAdmin);
+  const canEdit = EVENTS_LOCAL_SUBMIT && !!viewerUid && (isAdmin || !!mine.data?.some((item) => item.uid === eventUid));
 
   const detailQuery = useEventDetail(eventUid);
   const event = useMemo(() => (detailQuery.data ? toEventDetail(detailQuery.data) : null), [detailQuery.data]);
@@ -220,6 +228,7 @@ function EventDrawerContainer({
     <EventDrawerView
       status={status}
       event={event}
+      editHref={canEdit ? eventEditPath(eventUid) : undefined}
       canMarkGoing={canMarkGoing}
       viewerUid={viewerUid}
       plans={plans}

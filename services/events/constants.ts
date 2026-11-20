@@ -12,4 +12,12 @@ export enum EventsQueryKeys {
   TEAM_EVENTS = 'TEAM_EVENTS',
   /** The viewer's own upcoming event uids, for Home's "Going" marks (LAB-3220): `[MY_UPCOMING_EVENT_UIDS, viewerUid]`. */
   MY_UPCOMING_EVENT_UIDS = 'MY_UPCOMING_EVENT_UIDS',
+  /** City positions for the All Events Map (LAB-3321): `[CITY_COORDS]`, the same for everyone. */
+  CITY_COORDS = 'CITY_COORDS',
+  /** The signed-in member's own submissions (My Submissions, the drawer's "Edit"): `[MY_EVENTS, viewerUid]`. */
+  MY_EVENTS = 'MY_EVENTS',
+  /** One event for the edit page, read with the member's token: `[EVENT_FOR_EDIT, eventUid, viewerUid]`. */
+  EVENT_FOR_EDIT = 'EVENT_FOR_EDIT',
+  /** Venue suggestions for the submit form: `[EVENT_PLACES, query]`. */
+  EVENT_PLACES = 'EVENT_PLACES',
 }

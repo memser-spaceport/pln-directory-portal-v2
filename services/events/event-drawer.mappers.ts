@@ -1,5 +1,6 @@
 import { formatInTimeZone } from 'date-fns-tz';
 
+import { formatEventDateLine, safeTimezone } from './event-dates';
 import type { EventRole, EventRoleSelection, Resource } from '@/components/core/UpdatesPanel/IrlGatheringModal/types';
 import type {
   EventAccess,
@@ -22,7 +23,7 @@ import type {
  * normalised tolerantly here and left out when it can't be read.
  */
 
-const FALLBACK_TIMEZONE = 'UTC';
+export { formatEventDateLine };
 
 /** The PL events app's fixed tag colours (icon, background). */
 const DEFAULT_TAGS: Record<string, [string, string]> = {
@@ -103,37 +104,9 @@ export function toEventAccess(
   return normalizeKey(type) === 'INVITE ONLY' ? 'INVITE ONLY' : null;
 }
 
-function safeTimezone(timezone: string | null | undefined): string {
-  if (!timezone) return FALLBACK_TIMEZONE;
-  try {
-    formatInTimeZone(new Date(0), timezone, 'xxx');
-    return timezone;
-  } catch {
-    return FALLBACK_TIMEZONE;
-  }
-}
-
 function isValidDate(value: unknown): value is string | number {
   if (typeof value !== 'string' && typeof value !== 'number') return false;
   return !Number.isNaN(new Date(value).getTime());
-}
-
-/** "-05:00" → "-5:00", "+00:00" → "+0:00", as the events app prints it. */
-function utcOffset(date: Date, timezone: string): string {
-  const raw = formatInTimeZone(date, timezone, 'xxx');
-  const match = /^([+-])0?(\d{1,2}):(\d{2})$/.exec(raw);
-  return match ? `${match[1]}${match[2]}:${match[3]}` : raw;
-}
-
-/** "19th Nov 2026, 18:00 - 19th Nov 2026, 21:00 (UTC -5:00)". */
-export function formatEventDateLine(startDate: string, endDate: string, timezone: string): string {
-  if (!isValidDate(startDate)) return '';
-  const tz = safeTimezone(timezone);
-  const start = new Date(startDate);
-  const pattern = 'do MMM yyyy, HH:mm';
-  const startText = formatInTimeZone(start, tz, pattern);
-  const endText = isValidDate(endDate) ? ` - ${formatInTimeZone(new Date(endDate), tz, pattern)}` : '';
-  return `${startText}${endText} (UTC ${utcOffset(start, tz)})`;
 }
 
 interface AgendaSession {
@@ -250,7 +223,8 @@ function cityOf(location: string): string {
 
 export function toEventDetail(raw: EventDetailResponse): EventDetail {
   const details = raw.details;
-  const timezone = safeTimezone(raw.location?.timezone);
+  const timezone = safeTimezone(raw.timezone || raw.location?.timezone);
+  const allDay = raw.allDay === true;
   const partyHosts = uniqueNames([details?.host?.name, ...(details?.coHosts ?? []).map((h) => h.name)]);
   const hosts = partyHosts.length ? partyHosts : uniqueNames((raw.hosts ?? []).map((h) => h.name));
   const tags = uniqueNames((details?.tags ?? []).map((t) => t.name)).map(toEventTag);
@@ -263,7 +237,9 @@ export function toEventDetail(raw: EventDetailResponse): EventDetail {
     timezone,
     mode: toEventMode(details?.format, raw.type),
     access: toEventAccess(details?.accessOption, details?.accessType, raw.type),
-    dateLine: formatEventDateLine(raw.startDate, raw.endDate, timezone),
+    status: raw.status ?? null,
+    allDay,
+    dateLine: formatEventDateLine(raw.startDate, raw.endDate, timezone, allDay),
     address: raw.location?.location?.trim() || null,
     locationUrl: details?.locationUrl?.trim() || null,
     image: raw.logo || raw.banner || null,

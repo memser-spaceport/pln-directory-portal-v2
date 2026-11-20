@@ -57,12 +57,15 @@ describe('EventDrawerView (LAB-3216)', () => {
     it('Event with agenda and tags', () => {
       render(<Harness />);
       expect(screen.getByText('EVENT DETAILS')).toBeInTheDocument();
-      expect(screen.getByText('In-Person')).toBeInTheDocument();
-      expect(screen.getByText('FREE w/ RSVP')).toBeInTheDocument();
       expect(screen.getByRole('heading', { name: 'LabWeek Lisbon' })).toBeInTheDocument();
-      // The gathering block repeats it in a row the CSS hides (.gatheringLinks).
-      expect(screen.getAllByText('1st Dec 2030, 09:00 - 5th Dec 2030, 18:00 (UTC +0:00)')[0]).toHaveClass('fact');
+      expect(screen.getByText('1st Dec 2030, 09:00 - 5th Dec 2030, 18:00 (UTC +0:00)')).toHaveClass('fact');
       expect(screen.getByText('Lisbon, Portugal')).toBeInTheDocument();
+      // LAB-3283: access is a fact row, and neither mode nor access is a badge.
+      const access = screen.getByTestId('event-access');
+      expect(within(access).getByText('Free')).toBeInTheDocument();
+      expect(within(access).getByText('RSVP to save your spot')).toBeInTheDocument();
+      expect(screen.queryByText('In-Person')).not.toBeInTheDocument();
+      expect(screen.queryByText('FREE w/ RSVP')).not.toBeInTheDocument();
       const tags = screen.getByTestId('event-tags');
       expect(within(tags).getByText('Conference')).toBeInTheDocument();
       expect(within(tags).getByText('AI')).toBeInTheDocument();
@@ -72,7 +75,48 @@ describe('EventDrawerView (LAB-3216)', () => {
       expect(screen.getByText('Agenda')).toBeInTheDocument();
       expect(screen.getByText('Day 1 - 1st Dec Sun')).toBeInTheDocument();
       expect(screen.getByText('Day 2 - 2nd Dec Mon')).toBeInTheDocument();
-      expect(screen.getByText('Lisbon gathering')).toBeInTheDocument();
+    });
+
+    it('No gathering links (LAB-3283)', () => {
+      render(<Harness />);
+      expect(screen.queryByText('Lisbon gathering')).not.toBeInTheDocument();
+      expect(screen.queryByText('Telegram')).not.toBeInTheDocument();
+      expect(screen.queryByText('Shared notes')).not.toBeInTheDocument();
+      expect(screen.queryByText(/View all events/)).not.toBeInTheDocument();
+      // The gathering still drives the going card and the plans.
+      expect(screen.getByRole('button', { name: /Yes, I.m going/ })).toBeInTheDocument();
+    });
+
+    it('Hybrid event', () => {
+      render(
+        <Harness raw={eventResponse({ type: 'HYBRID', details: { ...eventResponse().details!, format: 'HYBRID' } })} />,
+      );
+      expect(screen.getByText('Lisbon, Portugal · also online')).toBeInTheDocument();
+    });
+
+    it('Online event', () => {
+      render(
+        <Harness
+          raw={eventResponse({ type: 'VIRTUAL', details: { ...eventResponse().details!, format: 'VIRTUAL' } })}
+        />,
+      );
+      expect(screen.getByText('Online')).toBeInTheDocument();
+      expect(screen.queryByText('Lisbon, Portugal')).not.toBeInTheDocument();
+    });
+
+    it('Invite-only event', () => {
+      render(
+        <Harness raw={eventResponse({ details: { ...eventResponse().details!, accessOption: 'Invite only' } })} />,
+      );
+      const access = screen.getByTestId('event-access');
+      expect(within(access).getByText('Invite only')).toBeInTheDocument();
+      expect(within(access).getByText('The hosts approve each guest')).toBeInTheDocument();
+    });
+
+    it('Paid event', () => {
+      render(<Harness raw={eventResponse({ details: { ...eventResponse().details!, accessOption: 'PAID' } })} />);
+      expect(within(screen.getByTestId('event-access')).getByText('Paid')).toBeInTheDocument();
+      expect(screen.getByText("Tickets on the host's site")).toBeInTheDocument();
     });
 
     it('Event without agenda or tags', () => {
@@ -81,7 +125,7 @@ describe('EventDrawerView (LAB-3216)', () => {
       expect(screen.queryByTestId('event-tags')).not.toBeInTheDocument();
       expect(screen.queryByText('Host')).not.toBeInTheDocument();
       expect(screen.queryByText('Description')).not.toBeInTheDocument();
-      expect(screen.queryByText('FREE w/ RSVP')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('event-access')).not.toBeInTheDocument();
       expect(screen.getByRole('heading', { name: 'LabWeek Lisbon' })).toBeInTheDocument();
       expect(screen.getByText('40 members going')).toBeInTheDocument();
     });
@@ -508,6 +552,23 @@ describe('EventDrawerView (LAB-3216)', () => {
         expect((address.closest('.factRow') as HTMLElement).querySelectorAll('svg')).toHaveLength(1);
         unmount();
       }
+    });
+
+    // LAB-3283 + LAB-3324: the place row keeps its mode wording, and only a place with an address links to the map.
+    const withMode = (format: 'HYBRID' | 'VIRTUAL') => {
+      const base = eventResponse();
+      return eventResponse({ type: format, details: { ...base.details!, format, locationUrl: MAP } });
+    };
+
+    it('a hybrid event links "<address> · also online" to the map', () => {
+      render(<Harness raw={withMode('HYBRID')} />);
+      expect(screen.getByRole('link', { name: 'Lisbon, Portugal · also online' })).toHaveAttribute('href', MAP);
+    });
+
+    it('an online event never links to a map, even with a location link', () => {
+      render(<Harness raw={withMode('VIRTUAL')} />);
+      expect(screen.getByText('Online').closest('a')).toBeNull();
+      expect(screen.queryByRole('link', { name: /Online/ })).not.toBeInTheDocument();
     });
   });
 

@@ -1,0 +1,344 @@
+@use 'styles/media';
+
+/* The All Events Map (LAB-3321), ported from prototypes/entries/events-page-redesign/EventsMap.module.scss: the frame,
+   the city pins, the controls, the city card and the lists under the map. Google draws the map itself in .canvas. */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.frame {
+  position: relative;
+  height: 560px;
+  overflow: hidden;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+
+  @include media.mobile-only {
+    height: 440px;
+  }
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+}
+
+/* A city pin: its name and how many events, on a white pill with a pointer underneath. Google anchors the marker's
+   content at its bottom centre, so the bottom margin puts the pointer's tip on the city. */
+.pin {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  padding: 4px 6px 4px 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 999px;
+  background: var(--background-neutral-primary, #ffffff);
+  box-shadow: 0 2px 8px var(--transparent-dark-8, rgba(14, 15, 17, 0.12));
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  cursor: pointer;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -6px;
+    width: 8px;
+    height: 8px;
+    transform: translateX(-50%) rotate(45deg);
+    border-right: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+    border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+    background: inherit;
+  }
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+
+  // Phones: at world zoom the cities sit a few dozen pixels apart, so the pin shows its count only; the title and the
+  // card name the city.
+  @include media.mobile-only {
+    padding: 3px;
+  }
+}
+
+.pinName {
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+// The open city, or the city of the event a link landed on.
+.pinActive,
+.pinActive:hover {
+  border-color: var(--foreground-neutral-primary, #0a0c11);
+  background: var(--foreground-neutral-primary, #0a0c11);
+  color: var(--background-neutral-primary, #ffffff);
+
+  .pinCount {
+    background: var(--background-neutral-primary, #ffffff);
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.pinCount {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--background-brand-default, #1b4dff);
+  font-size: 12px;
+  line-height: 20px;
+  font-weight: 600;
+  text-align: center;
+  color: #ffffff;
+}
+
+/* You're going to something in this city: a green dot on the pin's corner. */
+.pinGoing {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--background-neutral-primary, #ffffff);
+  border-radius: 50%;
+  background: var(--foreground-success-primary, #0a9952);
+}
+
+.controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-neutral-primary, #ffffff);
+  box-shadow: 0 1px 2px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+
+  button {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: none;
+    font: inherit;
+    font-size: 18px;
+    line-height: 1;
+    color: var(--foreground-neutral-primary, #0a0c11);
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    }
+
+    &:disabled {
+      color: var(--foreground-neutral-tertiary, #8897ae);
+      cursor: default;
+    }
+
+    & + button {
+      border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+    }
+  }
+}
+
+/* The zoom slider between + and −: vertical, top = zoomed in. */
+.zoomSlider {
+  display: block;
+  width: 32px;
+  height: 120px;
+  margin: 0;
+  padding: 8px 0;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  writing-mode: vertical-lr;
+  direction: rtl;
+  background: none;
+  accent-color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: -2px;
+  }
+
+  // Phones zoom with the buttons and pinch; a 120px slider costs too much of a short map.
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.fitBtn {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-neutral-primary, #ffffff);
+  box-shadow: 0 1px 2px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+}
+
+/* A city's events, docked bottom-left (full width on phones). */
+.card {
+  position: absolute;
+  left: 12px;
+  bottom: 28px;
+  z-index: 4;
+  width: 320px;
+  max-height: calc(100% - 72px);
+  overflow-y: auto;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: var(--background-neutral-primary, #ffffff);
+  box-shadow: 0 8px 24px var(--transparent-dark-8, rgba(14, 15, 17, 0.12));
+
+  @include media.mobile-only {
+    right: 12px;
+    width: auto;
+  }
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 12px 8px 16px;
+}
+
+.cardTitle {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.cardClose {
+  display: inline-flex;
+  padding: 4px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+.rows {
+  margin: 0;
+  padding: 0 4px 8px;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  /* The date column fits its longest label ("Dec 31 – Jan 1"), never less than 88px, so a date never wraps. */
+  grid-template-columns: minmax(88px, max-content) minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+/* The event a link landed on (?event=): the page's highlight. */
+.rowHighlight,
+.rowHighlight:hover {
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  box-shadow: inset 0 0 0 1px var(--border-brand-subtle, #aebfff);
+}
+
+.rowDate {
+  white-space: nowrap;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.rowName {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* Loading, failed, or no pin for these filters: one line in the middle of the map. */
+.status {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 8px 12px;
+  transform: translate(-50%, -50%);
+  border-radius: 8px;
+  background: var(--background-neutral-primary, #ffffff);
+  box-shadow: 0 1px 2px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  font-size: 14px;
+  line-height: 20px;
+  white-space: nowrap;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.retry {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+}
+
+/* Online events, and in-person ones whose city has no position: white cards under the map. */
+.list {
+  padding-top: 4px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: var(--background-neutral-primary, #ffffff);
+}
+
+.listTitle {
+  margin: 0;
+  padding: 12px 16px 8px;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}

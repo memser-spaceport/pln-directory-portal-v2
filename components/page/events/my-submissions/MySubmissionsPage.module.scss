@@ -1,0 +1,57 @@
+@use 'styles/media';
+
+.page {
+  width: 100%;
+  min-height: 100vh;
+  padding: 32px 0 80px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  @include media.mobile-only {
+    padding: 20px 0 96px;
+  }
+}
+
+.container {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 24px;
+
+  @include media.mobile-only {
+    padding: 0 16px;
+  }
+}
+
+// BackButton hides itself and pads for a subheader bar below 960px; here it is an inline control at every width.
+.back.back {
+  display: flex;
+  height: auto;
+  padding: 0 0 12px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.title {
+  margin: 0;
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 600;
+
+  @include media.mobile-only {
+    font-size: 24px;
+    line-height: 32px;
+  }
+}
+
+.submit.submit {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  text-decoration: none;
+}

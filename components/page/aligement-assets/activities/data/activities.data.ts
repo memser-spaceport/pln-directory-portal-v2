@@ -366,7 +366,7 @@ export const activitiesData: ActivitiesData = {
       popupContent: {
         title: 'List Your Deal on LabOS',
         overview:
-          'Share a deal on a recurring product or service from your PL network team or company on LabOS Deals. Once three other members mark your deal as used, you collect 500 points.',
+          'List a deal on a recurring product or service from your PL network team or company on LabOS Deals. Once three other members mark your deal as used, you collect 500 points.',
         networkBenefits: `Gives PL-funded teams discounts on the tools and expertise they need, and puts members' organizations in front of founders across the network.`,
         rules: [
           `Submit the deal on LabOS Deals using **List Your Product** on behalf of your network team. Individual or freelance offers don't qualify.`,

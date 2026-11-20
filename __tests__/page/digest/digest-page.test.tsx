@@ -30,9 +30,9 @@ jest.mock('@/components/core/ToastContainer', () => ({
 }));
 const { toast } = jest.requireMock('@/components/core/ToastContainer');
 
-const saveDigestChoice = jest.fn();
+const saveIssueChoice = jest.fn();
 jest.mock('@/services/digest/digest.service', () => ({
-  saveDigestChoice: (...args: unknown[]) => saveDigestChoice(...args),
+  saveDigestIssueChoice: (...args: unknown[]) => saveIssueChoice(...args),
 }));
 
 // LAB-3313: the signed-in member's record as `getMemberInfo` returns it: `teamMemberRoles`, no `teams` / `mainTeam`.
@@ -92,6 +92,7 @@ jest.mock('@/components/page/events/EventDrawer/EventDrawer', () => ({
 }));
 
 const TOKEN = 'v1.secret-token-body.sig';
+const ISSUE = 'iss-1';
 
 const story = (uid: string, extra: Partial<DigestStory> = {}): DigestStory => ({
   uid,
@@ -175,16 +176,16 @@ const data = (extra: Partial<DigestPageData> = {}): DigestPageData => ({
       { slug: 'desci', title: 'DeSci' },
     ],
   },
-  issues: [{ sentAt: '2026-11-16T09:00:00.000Z', frequency: 'daily', title: 'Story b', isLinkIssue: true }],
+  issues: [{ uid: ISSUE, sentAt: '2026-11-16T09:00:00.000Z', frequency: 'daily', title: 'Story b', isLinkIssue: true }],
   networkNews: [],
   events: { items: [], total: 0 },
   ...extra,
 });
 
-const open = (url: string, page = data(), strict = false, issue?: string) => {
+const open = (url: string, page = data(), strict = false, issueUid = ISSUE) => {
   window.history.replaceState(null, '', url);
   searchParams = new URLSearchParams(window.location.search);
-  const ui = <DigestPage token={TOKEN} issue={issue} data={page} isLoggedIn={false} />;
+  const ui = <DigestPage key={issueUid} issueUid={issueUid} data={page} isLoggedIn={false} />;
   return render(strict ? <StrictMode>{ui}</StrictMode> : ui);
 };
 
@@ -195,7 +196,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockPrefs = undefined;
   Element.prototype.scrollIntoView = jest.fn();
-  saveDigestChoice.mockImplementation(async (_t, newsItemUid, choice) => ({
+  saveIssueChoice.mockImplementation(async (_t, newsItemUid, choice) => ({
     newsItemUid,
     choice: choice === 'none' ? null : choice,
     changed: true,
@@ -262,7 +263,7 @@ describe('DigestPage', () => {
       expect(
         within(footer).getByText('You received this email because you are a member of the Protocol Labs network.'),
       ).toBeInTheDocument();
-      // The digest email page with this page's token, so both work signed out (LAB-3309).
+      // The email settings, behind sign-in (LAB-3351): no token, so a forwarded page can't change the sender's.
       const query = (name: string) => {
         const url = new URL(within(footer).getByRole('link', { name }).getAttribute('href') as string, 'http://x');
         return [
@@ -272,8 +273,8 @@ describe('DigestPage', () => {
           url.searchParams.get('utm_source'),
         ];
       };
-      expect(query('Manage preferences')).toEqual(['/digest/email', TOKEN, 'manage', 'digest_page_manage_link']);
-      expect(query('Unsubscribe')).toEqual(['/digest/email', TOKEN, 'unsubscribe', 'digest_page_unsubscribe_link']);
+      expect(query('Manage preferences')).toEqual(['/settings/email', null, 'manage', 'digest_page_manage_link']);
+      expect(query('Unsubscribe')).toEqual(['/settings/email', null, 'unsubscribe', 'digest_page_unsubscribe_link']);
     });
 
     it('shows "Got news from your team?" only to team members', () => {
@@ -287,11 +288,11 @@ describe('DigestPage', () => {
     it('sends a signed-out reader to sign-in from Follow and Post your team news, and saves nothing', async () => {
       open('/digest?t=x', data({ isTeamMember: true }));
       await userEvent.click(within(card('b')).getByRole('button', { name: /follow/i }));
-      expect(routerPush).toHaveBeenLastCalledWith('/digest?t=x#login', { scroll: false });
+      expect(routerPush).toHaveBeenLastCalledWith('/digest?issue=iss-1#login', { scroll: false });
       await userEvent.click(screen.getByRole('button', { name: 'Post your team news →' }));
       expect(routerPush).toHaveBeenCalledTimes(2);
       // LAB-3313: back from sign-in, the address carries the post on.
-      expect(routerPush).toHaveBeenLastCalledWith('/digest?t=x&postnews=open#login', { scroll: false });
+      expect(routerPush).toHaveBeenLastCalledWith('/digest?issue=iss-1&postnews=open#login', { scroll: false });
       expect(followMutate).not.toHaveBeenCalled();
     });
 
@@ -302,7 +303,7 @@ describe('DigestPage', () => {
     it("sends a signed-out reader from the email's Post your team news link to sign-in, but not on the way back from Google", async () => {
       const { unmount } = open('/digest?t=x&postnews=open', data({ isTeamMember: true }));
       await flush();
-      expect(routerPush).toHaveBeenLastCalledWith('/digest?t=x&postnews=open#login', { scroll: false });
+      expect(routerPush).toHaveBeenLastCalledWith('/digest?issue=iss-1&postnews=open#login', { scroll: false });
       unmount();
       routerPush.mockClear();
 
@@ -347,7 +348,7 @@ describe('DigestPage', () => {
     open('/digest?t=x&link_type=read_more#story-a');
     expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(1);
     expect((Element.prototype.scrollIntoView as jest.Mock).mock.contexts[0]).toBe(card('a'));
-    expect(saveDigestChoice).not.toHaveBeenCalled();
+    expect(saveIssueChoice).not.toHaveBeenCalled();
     expect(screen.queryByRole('status')).toBeNull();
   });
 
@@ -357,25 +358,28 @@ describe('DigestPage', () => {
   });
 
   describe('choice from the email', () => {
+    beforeEach(() => useCurrentUserStore.setState({ currentUser: { uid: 'me' } as any, isHydrated: true }));
+    afterEach(() => useCurrentUserStore.setState({ currentUser: null, isHydrated: false }));
+
     it('saves Less once under Strict Mode, confirms at the top of the card, and drops it from the address', async () => {
       open('/digest?t=x&link_type=less&position=1&story=b&choice=less#story-b', data(), true);
       expect(within(card('b')).getByRole('button', { name: 'Less like this' })).toHaveAttribute('aria-pressed', 'true');
       await flush();
 
-      expect(saveDigestChoice).toHaveBeenCalledTimes(1);
-      expect(saveDigestChoice).toHaveBeenCalledWith(TOKEN, 'b', 'less', undefined);
+      expect(saveIssueChoice).toHaveBeenCalledTimes(1);
+      expect(saveIssueChoice).toHaveBeenCalledWith(ISSUE, 'b', 'less');
       const receipt = within(card('b')).getByRole('status');
       expect(receipt).toHaveTextContent('You’ll get fewer stories like this');
       // At the top of the card: before the title.
       expect(receipt.compareDocumentPosition(within(card('b')).getByText('Story b'))).toBe(
         Node.DOCUMENT_POSITION_FOLLOWING,
       );
-      expect(window.location.search).toBe('?t=x&link_type=less&position=1');
+      expect(window.location.search).toBe('?issue=iss-1&link_type=less&position=1');
       expect(window.location.hash).toBe('#story-b');
     });
 
     it('rolls back, shows an error toast and keeps the address when the save fails', async () => {
-      saveDigestChoice.mockRejectedValueOnce(new Error('down'));
+      saveIssueChoice.mockRejectedValueOnce(new Error('down'));
       open('/digest?t=x&story=b&choice=more');
       await flush();
       expect(within(card('b')).getByRole('button', { name: 'More like this' })).toHaveAttribute(
@@ -390,16 +394,19 @@ describe('DigestPage', () => {
     it('ignores a story that is not on the page', async () => {
       open('/digest?t=x&story=zzz&choice=more');
       await flush();
-      expect(saveDigestChoice).not.toHaveBeenCalled();
+      expect(saveIssueChoice).not.toHaveBeenCalled();
     });
   });
 
   describe('presses on the page', () => {
+    beforeEach(() => useCurrentUserStore.setState({ currentUser: { uid: 'me' } as any, isHydrated: true }));
+    afterEach(() => useCurrentUserStore.setState({ currentUser: null, isHydrated: false }));
+
     it('More confirms under the buttons', async () => {
       open('/digest?t=x');
       await userEvent.click(within(card('b')).getByRole('button', { name: 'More like this' }));
       await flush();
-      expect(saveDigestChoice).toHaveBeenCalledWith(TOKEN, 'b', 'more', undefined);
+      expect(saveIssueChoice).toHaveBeenCalledWith(ISSUE, 'b', 'more');
       const receipt = within(card('b')).getByRole('status');
       expect(receipt).toHaveTextContent('You’ll get more stories like this');
       expect(within(card('b')).getByRole('button', { name: 'More like this' }).compareDocumentPosition(receipt)).toBe(
@@ -411,7 +418,7 @@ describe('DigestPage', () => {
       open('/digest?t=x');
       await userEvent.click(within(card('a')).getByRole('button', { name: 'More like this' }));
       await flush();
-      expect(saveDigestChoice).toHaveBeenCalledWith(TOKEN, 'a', 'none', undefined);
+      expect(saveIssueChoice).toHaveBeenCalledWith(ISSUE, 'a', 'none');
       expect(within(card('a')).getByRole('button', { name: 'More like this' })).toHaveAttribute(
         'aria-pressed',
         'false',
@@ -425,7 +432,7 @@ describe('DigestPage', () => {
       await flush();
       await userEvent.click(within(card('b')).getByRole('button', { name: 'Undo' }));
       await flush();
-      expect(saveDigestChoice).toHaveBeenLastCalledWith(TOKEN, 'b', 'none', undefined);
+      expect(saveIssueChoice).toHaveBeenLastCalledWith(ISSUE, 'b', 'none');
       expect(within(card('b')).queryByRole('status')).toBeNull();
       expect(toast.success).toHaveBeenCalledTimes(1);
     });
@@ -434,12 +441,12 @@ describe('DigestPage', () => {
       open('/digest?t=x');
       await userEvent.click(within(card('a')).getByRole('button', { name: 'Less like this' }));
       await flush();
-      expect(saveDigestChoice).toHaveBeenCalledWith(TOKEN, 'a', 'less', undefined);
+      expect(saveIssueChoice).toHaveBeenCalledWith(ISSUE, 'a', 'less');
       expect(within(card('a')).getByRole('button', { name: 'Less like this' })).toHaveAttribute('aria-pressed', 'true');
     });
 
     it('a failed press keeps the last saved state and shows an error toast', async () => {
-      saveDigestChoice.mockRejectedValueOnce(new Error('down'));
+      saveIssueChoice.mockRejectedValueOnce(new Error('down'));
       open('/digest?t=x');
       await userEvent.click(within(card('a')).getByRole('button', { name: 'Less like this' }));
       await flush();
@@ -449,7 +456,7 @@ describe('DigestPage', () => {
 
     it('applies only the latest of two overlapping presses', async () => {
       const pending: Array<(value: unknown) => void> = [];
-      saveDigestChoice.mockImplementation(
+      saveIssueChoice.mockImplementation(
         (_t, newsItemUid, choice) =>
           new Promise((resolve) =>
             pending.push(() => resolve({ newsItemUid, choice: choice === 'none' ? null : choice, changed: true })),
@@ -520,6 +527,7 @@ describe('DigestPage', () => {
     });
 
     it('records presses and undo with their properties', async () => {
+      useCurrentUserStore.setState({ currentUser: { uid: 'me' } as any, isHydrated: true });
       open('/digest?t=x');
       await userEvent.click(within(card('b')).getByRole('button', { name: 'Less like this' }));
       await flush();
@@ -535,6 +543,7 @@ describe('DigestPage', () => {
         ],
       ]);
       expect(events()[0][1]).toMatchObject({ from: 'direct' });
+      useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
     });
   });
 });
@@ -660,9 +669,9 @@ describe('topics (LAB-3289)', () => {
     useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
     open('/digest?t=x');
     await userEvent.click(chip('defi'));
-    expect(routerPush).toHaveBeenLastCalledWith('/digest?t=x&topic=defi#login', { scroll: false });
+    expect(routerPush).toHaveBeenLastCalledWith('/digest?issue=iss-1&topic=defi#login', { scroll: false });
     await userEvent.click(screen.getByRole('button', { name: 'Change topics' }));
-    expect(routerPush).toHaveBeenLastCalledWith('/digest?t=x&topics=open#login', { scroll: false });
+    expect(routerPush).toHaveBeenLastCalledWith('/digest?issue=iss-1&topics=open#login', { scroll: false });
     expect(capture).toHaveBeenCalledWith('digest-topics-sign-in-prompted', expect.objectContaining({ via: 'chip' }));
     expect(setNewsTags).not.toHaveBeenCalled();
     expect(screen.queryByRole('dialog')).toBeNull();
@@ -675,7 +684,7 @@ describe('topics (LAB-3289)', () => {
     await flush();
     expect(chip('desci')).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getAllByRole('button', { name: 'Save topics' }).length).toBeGreaterThan(0);
-    expect(window.location.search).toBe('?t=x');
+    expect(window.location.search).toBe('?issue=iss-1');
   });
 
   it('opens the modal from the email link, and saves the ticked topics', async () => {
@@ -720,7 +729,7 @@ describe('topics (LAB-3289)', () => {
     useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
     open('/digest?t=x&topics=open');
     await flush();
-    expect(routerPush).toHaveBeenLastCalledWith('/digest?t=x&topics=open#login', { scroll: false });
+    expect(routerPush).toHaveBeenLastCalledWith('/digest?issue=iss-1&topics=open#login', { scroll: false });
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
@@ -869,7 +878,13 @@ describe('upcoming events (LAB-3292)', () => {
 });
 
 describe('past issues (LAB-3294)', () => {
-  const issue = (sentAt: string, title: string | null, isLinkIssue = false) => ({
+  const issue = (
+    sentAt: string,
+    title: string | null,
+    isLinkIssue = false,
+    uid: string | null = `iss-${sentAt.slice(8, 10)}`,
+  ) => ({
+    uid,
     sentAt,
     frequency: 'daily' as const,
     title,
@@ -890,7 +905,7 @@ describe('past issues (LAB-3294)', () => {
 
   it('starts collapsed on the latest issue, then lists every issue with its date, Latest and top story', async () => {
     const latest = data({ sentAt: '2026-11-18T09:00:00.000Z', issues: three });
-    open('/digest?t=x', latest, false, '2026-11-18T09:00:00.000Z');
+    open('/digest?issue=iss-18', latest, false, 'iss-18');
     expect(toggle()).toHaveAttribute('aria-expanded', 'false');
     expect(rail()).not.toBeInTheDocument();
 
@@ -904,26 +919,135 @@ describe('past issues (LAB-3294)', () => {
     expect(rows[0]).toHaveAttribute('aria-current', 'page');
   });
 
-  it('opens on an older issue, marks it, and links each issue from the same link', () => {
-    open('/digest?t=x', data({ issues: three }));
+  it('opens on an older issue, marks it, and links each issue by its id, with no token (LAB-3351)', () => {
+    open(`/digest?t=${TOKEN}`, data({ issues: three }), false, 'iss-16');
     expect(toggle()).toHaveAttribute('aria-expanded', 'true');
     const rows = within(rail()!).getAllByRole('link');
-    const t = encodeURIComponent(TOKEN);
     expect(rows.map((row) => row.getAttribute('href'))).toEqual([
-      `?t=${t}&issue=2026-11-18T09%3A00%3A00.000Z`,
-      `?t=${t}`,
-      `?t=${t}&issue=2026-11-12T09%3A00%3A00.000Z`,
+      '/digest?issue=iss-18',
+      '/digest?issue=iss-16',
+      '/digest?issue=iss-12',
     ]);
     expect(rows[1]).toHaveAttribute('aria-current', 'page');
     expect(rows[0]).not.toHaveAttribute('aria-current');
   });
 
-  it('sends More on a past issue with that issue', async () => {
+  it('lists an issue with no id without a link (LAB-3351)', () => {
+    const issues = [three[0], issue('2026-11-16T09:00:00.000Z', 'Story b', true, null)];
+    open('/digest?t=x', data({ issues }));
+    const rows = within(rail()!).getAllByRole('listitem');
+    expect(within(rows[0]).getByRole('link')).toHaveAttribute('href', '/digest?issue=iss-18');
+    expect(within(rows[1]).queryByRole('link')).toBeNull();
+    expect(rows[1]).toHaveTextContent('16 November 2026Story b');
+  });
+
+  it('saves More on a past issue against that issue (LAB-3351)', async () => {
+    useCurrentUserStore.setState({ currentUser: { uid: 'me' } as any, isHydrated: true });
     const past = data({ sentAt: '2026-11-12T09:00:00.000Z', issues: three });
-    open('/digest?t=x', past, false, '2026-11-12T09:00:00.000Z');
+    open('/digest?issue=iss-12', past, false, 'iss-12');
     await userEvent.click(within(card('b')).getByRole('button', { name: 'More like this' }));
     await flush();
-    expect(saveDigestChoice).toHaveBeenCalledWith(TOKEN, 'b', 'more', '2026-11-12T09:00:00.000Z');
+    expect(saveIssueChoice).toHaveBeenCalledWith('iss-12', 'b', 'more');
+    useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
+  });
+});
+
+describe('the page without the link token (LAB-3351)', () => {
+  const OAUTH_RETURN = 'privy_oauth_state=s&privy_oauth_provider=google&privy_oauth_code=c';
+  const signedOut = () => useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
+  const signedIn = () => useCurrentUserStore.setState({ currentUser: { uid: 'me' } as any, isHydrated: true });
+  const prompts = () => capture.mock.calls.filter(([name]) => name === 'digest-sign-in-prompted').map(([, p]) => p);
+  afterEach(() => useCurrentUserStore.setState({ currentUser: null, isHydrated: false }));
+
+  it('swaps the token in the address for the issue id, keeping every other parameter and the anchor', () => {
+    open(`/digest?t=${TOKEN}&utm_source=digest_email_read_more_link&link_type=read_more&position=2#story-b`);
+    expect(window.location.search).toBe(
+      '?issue=iss-1&utm_source=digest_email_read_more_link&link_type=read_more&position=2',
+    );
+    expect(window.location.hash).toBe('#story-b');
+  });
+
+  it('drops a send-time issue from an older Past issues link', () => {
+    open(`/digest?t=${TOKEN}&issue=2026-11-12T09%3A00%3A00.000Z`);
+    expect(window.location.search).toBe('?issue=iss-1');
+  });
+
+  it('leaves an address that already names the issue alone', () => {
+    const replace = jest.spyOn(window.history, 'replaceState');
+    open('/digest?issue=iss-1&utm_source=x');
+    expect(replace).toHaveBeenCalledTimes(1); // the test's own `open`
+    replace.mockRestore();
+  });
+
+  it('sends a signed-out More to sign-in with the choice in the address, and saves nothing', async () => {
+    signedOut();
+    open(`/digest?t=${TOKEN}`);
+    await userEvent.click(within(card('b')).getByRole('button', { name: 'More like this' }));
+    await flush();
+    expect(routerPush).toHaveBeenLastCalledWith('/digest?issue=iss-1&story=b&choice=more#login', { scroll: false });
+    expect(saveIssueChoice).not.toHaveBeenCalled();
+    expect(within(card('b')).getByRole('button', { name: 'More like this' })).toHaveAttribute('aria-pressed', 'false');
+    expect(within(card('b')).queryByRole('status')).toBeNull();
+    expect(prompts()).toEqual([{ via: 'more', news_id: 'b' }]);
+    expect(capture.mock.calls.map(([name]) => name)).not.toContain('digest-more-clicked');
+  });
+
+  it('records Less signed out with via less', async () => {
+    signedOut();
+    open('/digest?issue=iss-1');
+    await userEvent.click(within(card('b')).getByRole('button', { name: 'Less like this' }));
+    expect(prompts()).toEqual([{ via: 'less', news_id: 'b' }]);
+  });
+
+  it('does nothing on a press before the sign-in state is known', async () => {
+    useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
+    open('/digest?issue=iss-1');
+    await userEvent.click(within(card('b')).getByRole('button', { name: 'More like this' }));
+    await flush();
+    expect(routerPush).not.toHaveBeenCalled();
+    expect(saveIssueChoice).not.toHaveBeenCalled();
+  });
+
+  it('asks a signed-out reader of an email More / Less link to sign in once, and saves after it', async () => {
+    signedOut();
+    open('/digest?issue=iss-1&story=b&choice=less', data(), true);
+    await flush();
+    expect(routerPush).toHaveBeenCalledTimes(1);
+    expect(routerPush).toHaveBeenLastCalledWith('/digest?issue=iss-1&story=b&choice=less#login', { scroll: false });
+    expect(prompts()).toEqual([{ via: 'email-choice', news_id: 'b' }]);
+    expect(saveIssueChoice).not.toHaveBeenCalled();
+
+    // Sign-in finishes without a reload: the choice is saved once, for the reader, and leaves the address.
+    act(() => signedIn());
+    await flush();
+    expect(saveIssueChoice).toHaveBeenCalledTimes(1);
+    expect(saveIssueChoice).toHaveBeenCalledWith('iss-1', 'b', 'less');
+    expect(within(card('b')).getByRole('status')).toHaveTextContent('You’ll get fewer stories like this');
+    expect(window.location.search).toBe('?issue=iss-1');
+  });
+
+  it('starts no sign-in while a Google or GitHub sign-in is returning, and saves once it has', async () => {
+    signedOut();
+    open(`/digest?issue=iss-1&story=b&choice=more&${OAUTH_RETURN}`);
+    await flush();
+    expect(routerPush).not.toHaveBeenCalled();
+    expect(saveIssueChoice).not.toHaveBeenCalled();
+    act(() => signedIn());
+    await flush();
+    expect(saveIssueChoice).toHaveBeenCalledTimes(1);
+  });
+
+  it('never sends or shows the token after the swap', async () => {
+    signedIn();
+    open(`/digest?t=${TOKEN}&link_type=more&story=a&choice=less`);
+    await flush();
+    await userEvent.click(within(card('b')).getByRole('button', { name: 'More like this' }));
+    await flush();
+    expect(saveIssueChoice).toHaveBeenCalledTimes(2);
+    expect(JSON.stringify(saveIssueChoice.mock.calls)).not.toContain(TOKEN);
+    expect(JSON.stringify(capture.mock.calls)).not.toContain(TOKEN);
+    expect(document.body.innerHTML).not.toContain(TOKEN);
+    expect(window.location.href).not.toContain(TOKEN);
   });
 });
 
@@ -990,7 +1114,7 @@ describe('From the forum (LAB-3293)', () => {
     open('/digest?t=x', data({ forumPosts: threads }));
     expect(within(section()).queryByRole('link', { name: /Quiet thread/ })).toBeNull();
     await userEvent.click(within(section()).getByRole('button', { name: /Quiet thread/ }));
-    expect(routerPush).toHaveBeenLastCalledWith('/digest?t=x&post=8#login', { scroll: false });
+    expect(routerPush).toHaveBeenLastCalledWith('/digest?issue=iss-1&post=8#login', { scroll: false });
     expect(capture).toHaveBeenCalledWith('digest-sign-in-prompted', { via: 'forum-post', topic_id: 8, position: 1 });
     expect(capture).not.toHaveBeenCalledWith('digest-forum-thread-clicked', expect.anything());
     expect(leavePage).not.toHaveBeenCalled();
@@ -1017,7 +1141,7 @@ describe('From the forum (LAB-3293)', () => {
       'digest-forum-thread-clicked',
       expect.objectContaining({ topic_id: 7, position: 0, opens: 'modal' }),
     );
-    expect(window.location.search).toBe('?t=x');
+    expect(window.location.search).toBe('?issue=iss-1');
     await userEvent.click(screen.getByRole('button', { name: 'Close' }));
     expect(screen.queryByTestId('forum-modal')).toBeNull();
     expect(leavePage).not.toHaveBeenCalled();
@@ -1043,7 +1167,7 @@ describe('From the forum (LAB-3293)', () => {
     expect(leavePage).not.toHaveBeenCalled();
     expect(screen.queryByTestId('forum-modal')).toBeNull();
     mockFeedLoading = false;
-    rerender(<DigestPage token={TOKEN} data={page} isLoggedIn={false} />);
+    rerender(<DigestPage key={ISSUE} issueUid={ISSUE} data={page} isLoggedIn={false} />);
     await flush();
     expect(screen.getByTestId('forum-modal')).toHaveTextContent('Busy thread');
     expect(leavePage).not.toHaveBeenCalled();
@@ -1148,7 +1272,7 @@ describe('post your team news (LAB-3313)', () => {
     open('/digest?t=x&link_type=post_news&postnews=open', data({ isTeamMember: true }));
     await flush();
     expect(screen.getByRole('dialog', { name: 'Post news' })).toHaveTextContent('Published as Lattice');
-    expect(window.location.search).toBe('?t=x&link_type=post_news');
+    expect(window.location.search).toBe('?issue=iss-1&link_type=post_news');
   });
 
   it('brings the team question into view when the email lands a member of more than one team', async () => {
@@ -1163,7 +1287,7 @@ describe('post your team news (LAB-3313)', () => {
     useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
     open('/digest?t=x&postnews=open', data({ isTeamMember: true }));
     await flush();
-    expect(routerPush).toHaveBeenCalledWith('/digest?t=x&postnews=open#login', { scroll: false });
+    expect(routerPush).toHaveBeenCalledWith('/digest?issue=iss-1&postnews=open#login', { scroll: false });
     expect(screen.queryByRole('dialog', { name: 'Post news' })).toBeNull();
   });
 });

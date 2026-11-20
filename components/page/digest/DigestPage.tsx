@@ -2,7 +2,7 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import {
   DIGEST_LINK_TYPES,
@@ -39,10 +39,8 @@ const SIGN_IN_INTENTS = ['topics', 'topic', 'postnews', 'post'] as const;
 type SignInIntent = (typeof SIGN_IN_INTENTS)[number];
 
 type Props = {
-  /** The link token, passed from the server page. Only sent in choice request bodies. */
-  token: string;
-  /** The past issue on show (`?issue=`, LAB-3294); undefined for the link's own issue. */
-  issue?: string;
+  /** The issue on show (LAB-3351): its key in the address and in choice saves. */
+  issueUid: string;
   data: DigestPageData;
   isLoggedIn: boolean;
 };
@@ -50,20 +48,23 @@ type Props = {
 const asChoice = (value: string | null): DigestChoice | null => (value === 'more' || value === 'less' ? value : null);
 
 /**
- * One member's digest (LAB-3264; v2 open layout LAB-3287), ported from the digest-web prototype. Opened from the
- * email; the link token decides whose digest it is. A More / Less link's choice is saved here, after the page loads in
- * the browser, so a link scanner that fetches the page changes nothing. Follow, Comments and posting news act for the
- * signed-in member and send a signed-out reader to sign-in.
+ * A footer link to the email settings (LAB-3351): `/settings/email`, which asks a signed-out reader to sign in, so a
+ * forwarded page never changes the sender's settings. The email keeps its own signed links to `/digest/email`.
  */
-/** A footer link to the digest email page for this page's token. */
-function emailSettingsHref(token: string, linkType: 'manage' | 'unsubscribe') {
-  const params = new URLSearchParams({ t: token, utm_source: `digest_page_${linkType}_link`, link_type: linkType });
-  return `/digest/email?${params.toString()}`;
+function emailSettingsHref(linkType: 'manage' | 'unsubscribe') {
+  const params = new URLSearchParams({ utm_source: `digest_page_${linkType}_link`, link_type: linkType });
+  return `/settings/email?${params.toString()}`;
 }
 
-export function DigestPage({ token, issue, data, isLoggedIn }: Props) {
+/**
+ * One digest issue (LAB-3264; v2 open layout LAB-3287; by issue id LAB-3351), ported from the digest-web prototype.
+ * Anyone can read it; the reader's own data comes with their session. More / Less, Follow, Comments, topics and
+ * posting news act for the signed-in member and send a signed-out reader to sign-in. A More / Less link's choice is
+ * saved here, after the page loads in the browser, so a link scanner that fetches the page changes nothing.
+ */
+export function DigestPage({ issueUid, data, isLoggedIn }: Props) {
   const searchParams = useSearchParams();
-  const { choices, receipts, press, undo, land } = useDigestChoices(token, data.stories, issue);
+  const { choices, receipts, press, undo, land } = useDigestChoices(issueUid, data.stories);
   const analytics = useDigestAnalytics();
   const started = useRef(false);
   const router = useRouter();
@@ -84,17 +85,42 @@ export function DigestPage({ token, issue, data, isLoggedIn }: Props) {
     return Number.isInteger(tid) && tid > 0 ? tid : null;
   });
 
-  // Back to this page after sign-in: the link token stays in the address, plus `extra` to pick up where they were.
+  // An email link's address carries the link token: swap it for the issue id (LAB-3351), keeping every other
+  // parameter and the `#story-` / `#post-` anchor, so a copied address never acts for the link's member. A layout
+  // effect, so it runs before every effect that reads the address or sends the reader to sign-in from it (the page's
+  // own and its children's). `null` state: see the __NA trap.
+  useLayoutEffect(() => {
+    const address = new URL(window.location.href);
+    if (!address.searchParams.has('t') && address.searchParams.get('issue') === issueUid) return;
+    const rest = [...address.searchParams].filter(([key]) => key !== 't' && key !== 'issue');
+    const search = new URLSearchParams([['issue', issueUid], ...rest]).toString();
+    window.history.replaceState(null, '', `${address.pathname}?${search}${address.hash}`);
+  }, [issueUid]);
+
+  // Back to this page after sign-in: the issue stays in the address, plus `extra` to pick up where they were. A More /
+  // Less press comes back as `story` + `choice`, the same pair an older email's More / Less link carries.
   const goToLogin = useCallback(
-    (extra?: { key: SignInIntent; value: string }) => {
+    (extra?: { key: SignInIntent; value: string } | { story: string; choice: DigestChoice }) => {
       const url = new URL(window.location.href);
       if (extra) {
-        SIGN_IN_INTENTS.forEach((key) => url.searchParams.delete(key));
-        url.searchParams.set(extra.key, extra.value);
+        [...SIGN_IN_INTENTS, 'story', 'choice'].forEach((key) => url.searchParams.delete(key));
+        if ('story' in extra) {
+          url.searchParams.set('story', extra.story);
+          url.searchParams.set('choice', extra.choice);
+        } else {
+          url.searchParams.set(extra.key, extra.value);
+        }
       }
       router.push(`${url.pathname}${url.search}#login`, { scroll: false });
     },
     [router],
+  );
+  const signInToChoose = useCallback(
+    (story: string, choice: DigestChoice, via: DigestChoice | 'email-choice') => {
+      analytics.onChoiceSignInPrompted({ via, newsId: story });
+      goToLogin({ story, choice });
+    },
+    [analytics, goToLogin],
   );
   const signIn = useCallback(() => goToLogin(), [goToLogin]);
   // "Post your team news →" signed out: back from sign-in, `postnews=open` posts (LAB-3313).
@@ -144,12 +170,11 @@ export function DigestPage({ token, issue, data, isLoggedIn }: Props) {
     onOpenAll: () => openTopics('see-all'),
     onSignIn: (slug: string) => signInForTopics('chip', { key: 'topic', value: slug }),
   };
-  // Past issues open from this same link: the link's own issue without `issue`, any other with its send time.
+  // Past issues open by id (LAB-3351); an issue the backend never recorded has none, so no link.
   const issuesCard = {
     issues: data.issues,
     current: data.sentAt,
-    hrefFor: (row: DigestIssue) =>
-      `?t=${encodeURIComponent(token)}${row.isLinkIssue ? '' : `&issue=${encodeURIComponent(row.sentAt)}`}`,
+    hrefFor: (row: DigestIssue) => (row.uid ? `/digest?issue=${encodeURIComponent(row.uid)}` : null),
   };
 
   useEffect(() => {
@@ -195,21 +220,43 @@ export function DigestPage({ token, issue, data, isLoggedIn }: Props) {
       behavior: 'instant',
     });
 
-    if (landing) {
-      void land(landedStory, landedChoice).then((ok) => {
-        if (!ok) return;
-        // Drop the choice from the address so a reload doesn't save again. `null` state: see the __NA trap.
-        const url = new URL(window.location.href);
-        url.searchParams.delete('story');
-        url.searchParams.delete('choice');
-        window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
-      });
-    }
     // Runs once for the landing only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // `story` + `choice` in the address: an older email's More / Less link, or a press made before sign-in. Saved for the
+  // signed-in reader once the auth state is known; a signed-out reader is asked to sign in once, and never while a
+  // Google or GitHub sign-in is returning (LAB-3308), which would throw that sign-in away.
+  // `prompted` still saves once signed in: sign-in may finish without a reload.
+  const landed = useRef<'prompted' | 'saved' | null>(null);
+  useEffect(() => {
+    if (signedIn === undefined || landed.current === 'saved') return;
+    const story = searchParams.get('story');
+    const choice = asChoice(searchParams.get('choice'));
+    if (!story || !choice || !data.stories.some((item) => item.uid === story)) return;
+    if (!signedIn) {
+      if (landed.current) return;
+      landed.current = 'prompted';
+      if (!isPrivyOAuthReturn()) signInToChoose(story, choice, 'email-choice');
+      return;
+    }
+    landed.current = 'saved';
+    void land(story, choice).then((ok) => {
+      if (!ok) return;
+      // Drop the choice from the address so a reload doesn't save again. `null` state: see the __NA trap.
+      const url = new URL(window.location.href);
+      url.searchParams.delete('story');
+      url.searchParams.delete('choice');
+      window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+    });
+    // Once the auth state is known; the landing pair is read once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signedIn]);
+
   const onPress = (uid: string, position: number, kind: DigestChoice) => {
+    // Signed out (LAB-3351): nothing is saved or shown pressed; back from sign-in the choice is saved for the reader.
+    if (signedIn === undefined) return;
+    if (!signedIn) return signInToChoose(uid, kind, kind);
     const previous = choices[uid];
     const next = press(uid, kind);
     if (previous === kind) {
@@ -314,11 +361,11 @@ export function DigestPage({ token, issue, data, isLoggedIn }: Props) {
             </div>
             <div className={s.legal}>
               <p>You received this email because you are a member of the Protocol Labs network.</p>
-              {/* The digest email page (LAB-3309) with this page's token, so both work signed out, like the email's own
-                  footer. Their own utm_source tells these clicks from the email's. */}
+              {/* The email settings (LAB-3351): sign-in first, so a forwarded page can't change the sender's. Their own
+                  utm_source tells these clicks from the email's. */}
               <nav className={s.legalLinks}>
-                <a href={emailSettingsHref(token, 'manage')}>Manage preferences</a>
-                <a href={emailSettingsHref(token, 'unsubscribe')}>Unsubscribe</a>
+                <a href={emailSettingsHref('manage')}>Manage preferences</a>
+                <a href={emailSettingsHref('unsubscribe')}>Unsubscribe</a>
               </nav>
             </div>
           </footer>

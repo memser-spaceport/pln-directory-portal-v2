@@ -164,6 +164,10 @@ export function useDigestAnalytics() {
       onTopicsSignInPrompted(params: { via: DigestTopicsVia }) {
         capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_TOPICS_SIGN_IN_PROMPTED, params);
       },
+      /** LAB-3351: a signed-out More / Less, on the page or from an older email's More / Less link. */
+      onChoiceSignInPrompted(params: { via: DigestChoice | 'email-choice'; newsId: string }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_SIGN_IN_PROMPTED, { via: params.via, news_id: params.newsId });
+      },
       onForumSignInPrompted(params: { topicId: number; position: number }) {
         capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_SIGN_IN_PROMPTED, {
           via: 'forum-post',

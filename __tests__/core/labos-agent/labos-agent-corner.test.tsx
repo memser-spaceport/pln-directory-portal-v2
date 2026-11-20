@@ -27,6 +27,8 @@ jest.mock('@/components/common/Markdown', () => ({
 let mockPathname = '/members/m-2';
 jest.mock('next/navigation', () => ({
   usePathname: () => mockPathname,
+  // LAB-3298 D1: a LabOS source opens with router.push.
+  useRouter: () => ({ push: jest.fn(), replace: jest.fn(), prefetch: jest.fn() }),
 }));
 
 const mockCapture = jest.fn();

@@ -6,12 +6,26 @@ const isDirectoryPath = (v: unknown): v is string => typeof v === 'string' && v.
 /** An `http` or `https` URL. Other schemes (`javascript:`, `data:`) never become a link. */
 const isWebUrl = (v: unknown): v is string => typeof v === 'string' && /^https?:\/\//i.test(v.trim());
 
+/** The path, query and hash of an `http(s)` URL on the app's own origin. `null` for another origin or no URL. */
+export function ownOriginPath(v: unknown): string | null {
+  if (!isWebUrl(v) || typeof window === 'undefined') return null;
+  try {
+    const url = new URL(v.trim());
+    return url.origin === window.location.origin ? `${url.pathname}${url.search}${url.hash}` : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * The link of a C1 source ref. The backend sends `directoryLink` (a LabOS path) or `externalUrl` (backend PR #3754).
  * An older body or the mock sends `uid` for news or `url`; they stay as a fallback. `external` opens a new tab.
  */
 export function sourceRefLink(ref: LabosAgentSourceRef): { href?: string; external: boolean } {
   if (isDirectoryPath(ref.directoryLink)) return { href: ref.directoryLink, external: false };
+  // LAB-3298 (D1): a full URL on the app's own origin is a LabOS path, so the panel opens it in the same tab.
+  const ownPath = ownOriginPath(ref.directoryLink) ?? ownOriginPath(ref.externalUrl);
+  if (ownPath) return { href: ownPath, external: false };
   if (isWebUrl(ref.externalUrl)) return { href: ref.externalUrl.trim(), external: true };
   if (ref.type === 'news' && ref.uid) return { href: `/?news=${encodeURIComponent(ref.uid)}`, external: false };
   if (isWebUrl(ref.url)) return { href: ref.url.trim(), external: true };

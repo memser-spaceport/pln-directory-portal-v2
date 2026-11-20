@@ -134,6 +134,20 @@ describe('AI Search chat input', () => {
       expect(hint()).toHaveAttribute('data-hint', 'hidden');
     });
 
+    it('with the prop: the hint is a line under the field, outside the field box; without it, inside as before', () => {
+      renderInput({ hideHintWhenEmpty: true });
+      const field = screen.getByPlaceholderText('Ask anything');
+      const box = field.parentElement as HTMLElement;
+      expect(box).not.toContainElement(hint());
+      expect(box.nextElementSibling).toBe(hint());
+    });
+
+    it('without the prop: the hint stays in the field box, after the textarea', () => {
+      renderInput();
+      const field = screen.getByPlaceholderText('Ask anything');
+      expect(field.nextElementSibling).toBe(hint());
+    });
+
     it('with the prop and a default value: data-hint starts as "shown"', () => {
       renderInput({ hideHintWhenEmpty: true, defaultValue: 'Hello' });
       expect(hint()).toHaveAttribute('data-hint', 'shown');

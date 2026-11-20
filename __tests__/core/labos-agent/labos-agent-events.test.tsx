@@ -607,6 +607,80 @@ describe('LAB-3297: agent events', () => {
       expect(one('agent-action-confirmed')).toMatchObject({ actionType: 'intro-draft' });
     });
 
+    // LAB-3362 (contract change 4): the newest waiting intro card goes with each C1 message.
+    const EDITED = `${DRAFT_TEXT} I am free on Tuesdays.`;
+    const plainAnswer = answer({ sources: [], sourceRefs: [] });
+    const lastBody = () => chat.mock.calls[chat.mock.calls.length - 1][0];
+
+    it('C4-R7: a message while the card waits sends introDraft with the edited text; after Send, the next has none', async () => {
+      customFetch.mockResolvedValue({ ok: true, status: 200, json: async () => ({ uid: 'ir-1' }) });
+      renderApp();
+      await open(introContext, 'intro-entry');
+      await send('Help me write an intro request.', 'Here is a draft.');
+      expect(chat.mock.calls[0][0]).not.toHaveProperty('introDraft');
+
+      fireEvent.change(field(), { target: { value: `  ${EDITED}  ` } });
+      chat.mockResolvedValue(plainAnswer);
+      await send('make it shorter');
+      expect(lastBody().introDraft).toEqual({ target: { type: 'member', uid: MEMBER_UID }, text: EDITED });
+
+      await act(async () => fireEvent.click(within(card()).getByRole('button', { name: 'Send' })));
+      expect(customFetch).toHaveBeenCalledTimes(1);
+      await send('Thanks');
+      expect(chat).toHaveBeenCalledTimes(3);
+      expect(lastBody()).not.toHaveProperty('introDraft');
+    });
+
+    it('C4-R7: after Cancel, the next message sends no introDraft', async () => {
+      renderApp();
+      await open(introContext, 'intro-entry');
+      await send('Help me write an intro request.', 'Here is a draft.');
+      fireEvent.click(within(card()).getByRole('button', { name: 'Cancel' }));
+      chat.mockResolvedValue(plainAnswer);
+      await send('make it shorter');
+      expect(chat).toHaveBeenCalledTimes(2);
+      expect(lastBody()).not.toHaveProperty('introDraft');
+    });
+
+    it('C4-R7: Retry of a stalled turn sends the card of the last done turn, never a draft of the stalled turn', async () => {
+      const STALLED_DRAFT = 'A stalled draft that the member never saw on the screen.';
+      renderApp();
+      await open(introContext, 'intro-entry');
+      await send('Help me write an intro request.', 'Here is a draft.');
+      chat.mockResolvedValue({
+        ...introAnswer,
+        content: 'Part. The answer was cut short because the AI provider stopped responding.',
+        drafts: [{ ...draft, draftId: 'dr_stalled', text: STALLED_DRAFT }],
+      });
+      await send('make it shorter', /cut short/);
+      expect(lastBody().introDraft).toEqual({ target: { type: 'member', uid: MEMBER_UID }, text: DRAFT_TEXT });
+
+      chat.mockResolvedValue(plainAnswer);
+      await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Retry' })));
+      await screen.findAllByText(ANSWER);
+      expect(chat).toHaveBeenCalledTimes(3);
+      expect(lastBody().message).toBe('make it shorter');
+      expect(lastBody().introDraft).toEqual({ target: { type: 'member', uid: MEMBER_UID }, text: DRAFT_TEXT });
+    });
+
+    it('agent-message-sent (V0-R8): with a card open, "make it shorter" sends messageLength 15 and no draft text', async () => {
+      renderApp();
+      await open(introContext, 'intro-entry');
+      await send('Help me write an intro request.', 'Here is a draft.');
+      fireEvent.change(field(), { target: { value: EDITED } });
+      chat.mockResolvedValue(plainAnswer);
+      await send('make it shorter');
+
+      expect(lastBody().introDraft.text).toBe(EDITED);
+      const sent = events('agent-message-sent');
+      expect(sent).toHaveLength(2);
+      expect(sent[1]).toMatchObject({ messageLength: 15, turnIndex: 2 });
+      // C4-R8 and contract 11.4: no event has the draft text or the edit.
+      const all = JSON.stringify(capture.mock.calls);
+      expect(all).not.toContain('I am free on Tuesdays.');
+      expect(all).not.toContain(DRAFT_TEXT);
+    });
+
     it('agent-action-cancelled (V0-R6): New chat with an "Intro already requested" card sends 0 events', async () => {
       const key = introRequestTargetKey('MEMBER', MEMBER_UID);
       const release = retainIntroRequestTarget(key);

@@ -29,7 +29,7 @@ import {
 } from '@/analytics/labos-agent.analytics';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useLabosAgentChat } from '@/services/labos-agent/hooks/useLabosAgentChat';
-import { openCardsAtClose } from '@/services/labos-agent/hooks/useLabosAgentDockEvents';
+import { openCards } from '@/services/labos-agent/labos-agent.open-cards';
 import { normalizeChatBody } from '@/services/labos-agent/labos-agent.service';
 import { distinctSourceCount, sourceRefLink } from '@/services/labos-agent/labos-agent.sources';
 import { useLabosAgentStore } from '@/services/labos-agent/store';
@@ -135,7 +135,7 @@ describe('LAB-3297: agent event helpers', () => {
     expect(sourceRefLink({ type: 'news', title: 'S', directoryLink: '//evil.example' }).href).toBeUndefined();
   });
 
-  it('agent-action-cancelled: openCardsAtClose lists only the cards that still wait', () => {
+  it('agent-action-cancelled (V0-R6): openCards lists only the cards that still wait', () => {
     const base = {
       id: 't',
       message: 'm',
@@ -154,7 +154,7 @@ describe('LAB-3297: agent event helpers', () => {
       targetType: 'team' as const,
       changes: [],
     });
-    const cards = openCardsAtClose(
+    const cards = openCards(
       [
         {
           ...base,

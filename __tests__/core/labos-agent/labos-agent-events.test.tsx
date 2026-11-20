@@ -47,7 +47,6 @@ jest.mock('@/components/common/Markdown', () => ({
 
 import { LabosAgentRoot } from '@/components/core/labos-agent/LabosAgentRoot/LabosAgentRoot';
 import { useCurrentUserStore } from '@/services/auth/store';
-import { resetDockEventsForTest } from '@/services/labos-agent/hooks/useLabosAgentDockEvents';
 import {
   introRequestTargetKey,
   markIntroRequestSent,
@@ -142,7 +141,6 @@ describe('LAB-3297: agent events', () => {
     chat.mockReset();
     confirmAction.mockReset();
     customFetch.mockReset();
-    resetDockEventsForTest();
     window.localStorage.clear();
     window.localStorage.setItem('labos-agent', 'on');
     useLabosAgentStore.setState({
@@ -376,7 +374,7 @@ describe('LAB-3297: agent events', () => {
     expect(events('agent-action-confirmed')).toHaveLength(0);
   });
 
-  it('agent-action-cancelled (V0-R1): a close with an open card sends one event, once', async () => {
+  it('agent-action-cancelled (V0-R6): a close with an open card sends no event', async () => {
     chat.mockResolvedValue(answer({ proposals: [bio] }));
     renderApp();
     await open(null, 'corner');
@@ -385,7 +383,47 @@ describe('LAB-3297: agent events', () => {
     await open(null, 'corner');
     close();
 
+    expect(events('agent-action-cancelled')).toHaveLength(0);
+    expect(events('agent-dock-closed')).toHaveLength(2);
+  });
+
+  it('agent-action-cancelled (V0-R6): close, reopen, then Cancel on an action card sends exactly 1 event', async () => {
+    chat.mockResolvedValue(answer({ proposals: [bio] }));
+    confirmAction.mockResolvedValue({ proposalId: 'ap_bio', status: 'cancelled', summary: '' });
+    renderApp();
+    await open(null, 'corner');
+    await send(MESSAGE);
+    close();
+    await open(null, 'corner');
+    fireEvent.click(screen.getByText('Cancel'));
+    await screen.findByText('Cancelled. Nothing was saved.');
+    close();
+
     expect(one('agent-action-cancelled')).toMatchObject({ actionType: 'profile-field', edited: false });
+  });
+
+  it('agent-action-cancelled (V0-R6): New chat discards an open card and sends 1 event for it', async () => {
+    chat.mockResolvedValue(answer({ proposals: [bio] }));
+    renderApp();
+    await open(null, 'corner');
+    await send(MESSAGE);
+    fireEvent.click(screen.getByRole('button', { name: 'New chat' }));
+    close();
+
+    expect(one('agent-action-cancelled')).toMatchObject({ actionType: 'profile-field', edited: false });
+  });
+
+  it('agent-action-cancelled (V0-R6): New chat after Confirm sends no event', async () => {
+    chat.mockResolvedValue(answer({ proposals: [bio] }));
+    confirmAction.mockResolvedValue({ proposalId: 'ap_bio', status: 'done', summary: 'Your bio is updated.' });
+    renderApp();
+    await open(null, 'corner');
+    await send(MESSAGE);
+    fireEvent.click(screen.getByText('Confirm'));
+    await screen.findByText('Your bio is updated.');
+    fireEvent.click(screen.getByRole('button', { name: 'New chat' }));
+
+    expect(events('agent-action-cancelled')).toHaveLength(0);
   });
 
   it('agent-action-failed (V0-R1): a 403 on Confirm sends status 403', async () => {
@@ -514,6 +552,49 @@ describe('LAB-3297: agent events', () => {
 
         expect(events('agent-action-cancelled')).toHaveLength(0);
         expect(one('agent-dock-closed')).toMatchObject({ actionCount: 1, confirmedCount: 0 });
+      } finally {
+        release();
+      }
+    });
+
+    it('agent-action-cancelled (V0-R6): close, reopen, then Cancel on a draft card sends exactly 1 event', async () => {
+      renderApp();
+      await open(introContext, 'intro-entry');
+      await send('Help me write an intro request.', 'Here is a draft.');
+      close();
+      await open(introContext, 'intro-entry');
+      fireEvent.click(within(card()).getByRole('button', { name: 'Cancel' }));
+      close();
+
+      expect(one('agent-action-cancelled')).toMatchObject({ actionType: 'intro-draft', edited: false });
+    });
+
+    it('agent-action-cancelled (V0-R6): close, reopen, then Send on a draft card sends 0 events', async () => {
+      customFetch.mockResolvedValue({ ok: true, status: 200, json: async () => ({ uid: 'ir-1' }) });
+      renderApp();
+      await open(introContext, 'intro-entry');
+      await send('Help me write an intro request.', 'Here is a draft.');
+      close();
+      await open(introContext, 'intro-entry');
+      await act(async () => fireEvent.click(within(card()).getByRole('button', { name: 'Send' })));
+      close();
+
+      expect(events('agent-action-cancelled')).toHaveLength(0);
+      expect(one('agent-action-confirmed')).toMatchObject({ actionType: 'intro-draft' });
+    });
+
+    it('agent-action-cancelled (V0-R6): New chat with an "Intro already requested" card sends 0 events', async () => {
+      const key = introRequestTargetKey('MEMBER', MEMBER_UID);
+      const release = retainIntroRequestTarget(key);
+      markIntroRequestSent(key);
+      try {
+        renderApp();
+        await open(introContext, 'intro-entry');
+        await send('Help me write an intro request.', 'Here is a draft.');
+        expect(within(card()).getByText('Intro already requested')).toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: 'New chat' }));
+
+        expect(events('agent-action-cancelled')).toHaveLength(0);
       } finally {
         release();
       }

@@ -352,17 +352,19 @@ export const activitiesData: ActivitiesData = {
         links: [{ text: 'Kudos feature', url: '/alignment-asset/kudos' }],
       },
     },
+
+    // ─── Recurring ────────────────────────────────────────────────────────────
     {
-      id: 'share-a-deal-on-labos',
+      id: 'list-your-deal-on-labos',
       category: 'Projects',
-      activity: 'Share a Deal on LabOS',
+      activity: 'List Your Deal on LabOS',
       networkValue: `List your organization's recurring deal on LabOS, and collect 500 points once three other members use it`,
       points: '500',
-      frequency: 'Repeatable',
+      frequency: 'Recurring',
       verificationType: 'Auto',
       cta: 'submit',
       popupContent: {
-        title: 'Share a Deal on LabOS',
+        title: 'List Your Deal on LabOS',
         overview:
           'Share a deal on a recurring product or service from your PL network team or company on LabOS Deals. Once three other members mark your deal as used, you collect 500 points.',
         networkBenefits: `Gives PL-funded teams discounts on the tools and expertise they need, and puts members' organizations in front of founders across the network.`,
@@ -379,8 +381,6 @@ export const activitiesData: ActivitiesData = {
         disclaimer: `Deals are offered by listing teams, not Protocol Labs, and approval isn't an endorsement. Points have no cash value and aren't an investment. Protocol Labs may change or end this activity, remove deals or adjust points at any time.`,
       },
     },
-
-    // ─── Recurring ────────────────────────────────────────────────────────────
     {
       id: 'share-project-update',
       category: 'Projects',

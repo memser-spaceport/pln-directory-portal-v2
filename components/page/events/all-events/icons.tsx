@@ -94,3 +94,19 @@ export function AccessIcon({ inviteOnly, size = 14 }: { inviteOnly: boolean; siz
     </svg>
   );
 }
+
+/** "</>" for Embed, at the toolbar set's size and weight (16px, 1.5px stroke), as the prototype draws it. */
+export function EmbedIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path
+        d="M5.5 4.5 2 8l3.5 3.5M10.5 4.5 14 8l-3.5 3.5M9 3l-2 10"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
+}

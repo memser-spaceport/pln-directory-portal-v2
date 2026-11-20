@@ -456,21 +456,34 @@
   white-space: nowrap;
 }
 
-/* Share / embed (LAB-3352) and, from 1024px, Filters and the view switch. */
+/* Embed (LAB-3352) and, from 1024px, Filters and the view switch. */
 .toolbarActions {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-/* Share / embed: with `filtersBtn`, the same bordered control, shown at every width (the phone bar has no room). */
+/* Embed: with `filtersBtn`, the same bordered control, shown at every width (the phone bar has no room). */
 .shareBtn {
   white-space: nowrap;
 }
 
-/* The embed (LAB-3352): no site header above, so the sticky toolbar sits at the top of the frame. */
-.embed {
+/* The embed (LAB-3352, the prototype's `?embed=1`): the view alone on the page's grey, then a link to the full page.
+   No site header or toolbar above it, so the List's sticky dates stick at the top of the frame. */
+.embedPage {
   --app-header-height: 0px;
+  min-height: 100vh;
+  padding: 16px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  .dayHeading {
+    top: 16px;
+  }
+}
+
+.embedFoot {
+  margin-top: 16px;
 }
 
 .toolbarEnd {

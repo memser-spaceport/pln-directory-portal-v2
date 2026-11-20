@@ -1,9 +1,8 @@
 import clsx from 'clsx';
 
-import { ShareIcon } from '@/components/icons/ShareIcon';
 import FilterCount from '@/components/ui/filter-count';
 
-import { SlidersIcon, ViewIcon, type AllEventsView } from './icons';
+import { EmbedIcon, SlidersIcon, ViewIcon, type AllEventsView } from './icons';
 import s from './AllEventsPage.module.scss';
 
 export const VIEW_LABEL: Record<AllEventsView, string> = { list: 'List', calendar: 'Calendar', map: 'Map' };
@@ -11,7 +10,7 @@ export const VIEW_LABEL: Record<AllEventsView, string> = { list: 'List', calenda
 /**
  * "Coming up": the count, the rail's door with the applied count, and the view switch. Sticky under the site header on
  * desktop; under 1024px the phone bar (MobileFilterWrapper) carries Filters and the view instead. The switch only
- * shows when more than one view is available. Share / embed (LAB-3352) shows at every width, when `onShare` is given.
+ * shows when more than one view is available. Embed (LAB-3352) shows at every width, when `onShare` is given.
  */
 export function EventsToolbar({
   city,
@@ -44,12 +43,6 @@ export function EventsToolbar({
         </span>
       </div>
       <div className={s.toolbarActions}>
-        {onShare && (
-          <button type="button" className={clsx(s.filtersBtn, s.shareBtn)} onClick={onShare}>
-            <ShareIcon aria-hidden />
-            Share / embed
-          </button>
-        )}
         <div className={s.toolbarEnd}>
           <button
             type="button"
@@ -80,6 +73,13 @@ export function EventsToolbar({
             </div>
           )}
         </div>
+        {/* After the view switch, as in Polina's design: it embeds what the view and filters show. */}
+        {onShare && (
+          <button type="button" className={clsx(s.filtersBtn, s.shareBtn)} onClick={onShare}>
+            <EmbedIcon />
+            Embed
+          </button>
+        )}
       </div>
     </div>
   );

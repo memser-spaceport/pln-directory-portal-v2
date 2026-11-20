@@ -178,7 +178,7 @@ export const useEventsAnalytics = () => {
     captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_VIEW_CHANGED, params);
   }
 
-  /** All Events: the Share / embed link was copied (LAB-3352). */
+  /** All Events: the Embed link was copied (LAB-3352). */
   function onEventsEmbedLinkCopied(params: { view: 'list' | 'calendar' | 'map'; filters_count: number }) {
     captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_EMBED_LINK_COPIED, params);
   }

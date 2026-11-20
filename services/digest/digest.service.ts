@@ -1,3 +1,5 @@
+import { customFetch } from '@/utils/fetch-wrapper';
+
 import type {
   DigestChoice,
   DigestChoiceResponse,
@@ -12,24 +14,50 @@ import type {
 const apiUrl = (path: string) => `${process.env.DIRECTORY_API_URL}/v1/labos-digest/${path}`;
 
 /**
- * Reads one member's digest from its email link (LAB-3264), or with `issue` (a send time) one of that member's past
- * issues (LAB-3294). Called from the server page: no auth header, no cache. Reading changes nothing on the backend, so
- * a link scanner that fetches the page is safe.
+ * Swaps a digest email link for the id of its issue (LAB-3351). With `issue` (a send time from an older Past issues
+ * link) it is that past issue of the link's member. Called from the server page: no auth header, no cache. Saves
+ * nothing, so a link scanner that fetches the page is safe.
  */
-export async function getDigestPage(token: string | undefined, issue?: string): Promise<DigestPageResult> {
-  if (!token) return { error: 'invalid' };
+export async function exchangeDigestLink(
+  token: string,
+  issue?: string,
+): Promise<{ issueUid: string; error?: never } | { issueUid?: never; error: DigestPageError }> {
   try {
-    const response = await fetch(apiUrl('page'), {
+    const response = await fetch(apiUrl('exchange'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(issue ? { token, issue } : { token }),
       cache: 'no-store',
     });
-    if (response.ok) return { data: withPageDefaults(await response.json()) };
-    if (response.status === 401) {
+    if (response.ok) {
       const body = await response.json().catch(() => null);
-      return { error: body?.reason === 'expired' ? 'expired' : 'invalid' };
+      return typeof body?.issueUid === 'string' && body.issueUid
+        ? { issueUid: body.issueUid }
+        : { error: 'unavailable' };
     }
+    return { error: await linkReadError(response) };
+  } catch {
+    return { error: 'unavailable' };
+  }
+}
+
+/**
+ * Reads one digest issue by id (LAB-3351), for anyone. With the reader's session (`authToken`, from the server page's
+ * cookies) it carries their own name, choices, follows, topics and Past issues; without, none of that. No cache: the
+ * answer depends on who reads it.
+ */
+export async function getDigestIssuePage(issueUid: string, authToken?: string): Promise<DigestPageResult> {
+  try {
+    const response = await fetch(apiUrl('issue-page'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      },
+      body: JSON.stringify({ issueUid }),
+      cache: 'no-store',
+    });
+    if (response.ok) return { data: withPageDefaults(await response.json()) };
     if (response.status === 400 || response.status === 404) return { error: 'invalid' };
     return { error: 'unavailable' };
   } catch {
@@ -38,21 +66,24 @@ export async function getDigestPage(token: string | undefined, issue?: string): 
 }
 
 /**
- * Saves More or Less on one story, or undoes it (`none`). `issue` names the past issue the story is in (LAB-3294).
- * Throws when the save fails.
+ * Saves More or Less on one story of the issue for the signed-in member, or undoes it (`none`) (LAB-3351). Sent with
+ * the member's session through `customFetch` (token refresh, retry on 401). Throws when the save fails.
  */
-export async function saveDigestChoice(
-  token: string,
+export async function saveDigestIssueChoice(
+  issueUid: string,
   newsItemUid: string,
   choice: DigestChoice | 'none',
-  issue?: string,
 ): Promise<DigestChoiceResponse> {
-  const response = await fetch(apiUrl('choices'), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(issue ? { token, newsItemUid, choice, issue } : { token, newsItemUid, choice }),
-  });
-  if (!response.ok) throw new Error(`Digest choice failed (${response.status})`);
+  const response = await customFetch(
+    apiUrl('issue-choices'),
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ issueUid, newsItemUid, choice }),
+    },
+    true,
+  );
+  if (!response?.ok) throw new Error(`Digest choice failed (${response?.status ?? 'no response'})`);
   return response.json();
 }
 
@@ -91,7 +122,7 @@ async function linkReadError(response: Response): Promise<DigestPageError> {
 
 /**
  * Reads the link member's digest email, on or off and daily or weekly (LAB-3312). Called from the server page, like
- * `getDigestPage`: no auth header, no cache, and the read changes nothing, so a link scanner is safe.
+ * `exchangeDigestLink`: no auth header, no cache, and the read changes nothing, so a link scanner is safe.
  */
 export async function getDigestEmailSettings(token: string | undefined): Promise<DigestEmailSettingsResult> {
   if (!token) return { error: 'invalid' };

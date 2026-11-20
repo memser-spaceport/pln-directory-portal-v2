@@ -43,11 +43,16 @@ export type DigestStory = {
 export type DigestForumPost = {
   tid: number;
   title: string;
-  authorName: string;
+  /**
+   * LAB-3351: true for a reader who may not read the forum (signed out, or no forum access). A locked post has its
+   * title, reply count and URL only: author fields and `contentHtml` are null. Absent from an older backend: unlocked.
+   */
+  locked?: boolean;
+  authorName: string | null;
   authorRole: string | null;
   authorTeam: string | null;
   authorAvatarUrl: string | null;
-  contentHtml: string;
+  contentHtml: string | null;
   url: string;
   /** Replies to the thread when the page was read (LAB-3293). */
   replyCount: number;
@@ -104,13 +109,15 @@ export type DigestNetworkNews = {
   teamName: string;
 };
 
-/** One row of Past issues (LAB-3294). `sentAt` is also the issue's key in the address (`?issue=`). */
+/** One row of Past issues (LAB-3294). */
 export type DigestIssue = {
+  /** The issue's id, its key in the address (`?issue=`, LAB-3351); null for an issue that was never recorded. */
+  uid: string | null;
   sentAt: string;
   frequency: DigestFrequency;
   /** The issue's top story title, else its first story's; null when that story is gone. */
   title: string | null;
-  /** The link's own issue: opened without `issue`. */
+  /** The issue on the page. */
   isLinkIssue: boolean;
 };
 

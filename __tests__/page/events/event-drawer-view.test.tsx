@@ -50,6 +50,13 @@ function Harness(props: Partial<EventDrawerViewProps> & { raw?: EventDetailRespo
   );
 }
 
+/** Types into who's going's search and presses Enter, which searches at once instead of after the pause. */
+const searchPeople = (value: string) => {
+  const input = screen.getByLabelText('Search people going');
+  fireEvent.change(input, { target: { value } });
+  fireEvent.keyUp(input, { key: 'Enter' });
+};
+
 const drawerIsOpen = () => screen.queryByTestId('event-drawer-toolbar') !== null;
 /** The toolbar's close (the not-found and error states have a second Close in their body). */
 const toolbarClose = () => within(screen.getByTestId('event-drawer-toolbar')).getByRole('button', { name: 'Close' });
@@ -244,13 +251,17 @@ describe('EventDrawerView (LAB-3216)', () => {
 
       const list = screen.getByTestId('event-attendees');
       expect(screen.getByRole('heading', { name: '40 going to LabWeek Lisbon' })).toBeInTheDocument();
-      expect(within(list).getAllByRole('listitem')[0]).toHaveTextContent('You');
+      const you = within(list).getAllByRole('listitem')[0];
+      expect(you).toHaveTextContent('You');
+      expect(you).toHaveTextContent('Founder · Atlas');
+      expect(within(you).queryByRole('link')).not.toBeInTheDocument();
       const ana = within(list).getByText('Ana Silva').closest('a');
       expect(ana).toHaveAttribute('href', '/members/m-1');
       expect(ana).toHaveAttribute('target', '_blank');
-      expect(within(list).getByText('Host')).toBeInTheDocument();
+      // The profile's muted role tags (LAB-3361), one per role.
+      expect(within(list).getByText('Host')).toHaveClass('roleTag', 'roleTagHost');
 
-      fireEvent.change(screen.getByLabelText('Search people going'), { target: { value: 'lighthouse' } });
+      searchPeople('lighthouse');
       expect(
         within(list)
           .getAllByRole('link')
@@ -261,8 +272,8 @@ describe('EventDrawerView (LAB-3216)', () => {
         expect.stringContaining('Chen Wei'),
       ]);
 
-      fireEvent.change(screen.getByLabelText('Search people going'), { target: { value: 'nobody-here' } });
-      expect(within(list).getByText('Nobody going matches that search.')).toBeInTheDocument();
+      searchPeople('nobody-here');
+      expect(within(list).getByText('Nobody going matches “nobody-here”.')).toBeInTheDocument();
 
       // LAB-3361: the list replaces the event inside the drawer; "Back to event" returns to it.
       expect(screen.queryByRole('heading', { name: 'LabWeek Lisbon' })).not.toBeInTheDocument();
@@ -270,6 +281,16 @@ describe('EventDrawerView (LAB-3216)', () => {
       await waitFor(() => expect(screen.queryByTestId('event-attendees')).not.toBeInTheDocument());
       expect(screen.getByRole('heading', { name: 'LabWeek Lisbon' })).toBeInTheDocument();
       expect(drawerIsOpen()).toBe(true);
+    });
+
+    it('searches once the member stops typing', async () => {
+      render(<Harness />);
+      fireEvent.click(screen.getByRole('button', { name: '40 members going' }));
+      const list = screen.getByTestId('event-attendees');
+      const before = within(list).getAllByRole('link').length;
+      fireEvent.change(screen.getByLabelText('Search people going'), { target: { value: 'lighthouse' } });
+      expect(within(list).getAllByRole('link')).toHaveLength(before);
+      await waitFor(() => expect(within(list).getAllByRole('link')).toHaveLength(3), { timeout: 2000 });
     });
 
     it('Escape on the list returns to the event, a second Escape closes the drawer', () => {

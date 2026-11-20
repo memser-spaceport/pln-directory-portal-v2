@@ -7,7 +7,6 @@ import { formatDateForApi } from '@/components/core/UpdatesPanel/IrlGatheringMod
 import { useLoginRedirect } from '@/components/core/login/utils/loginRedirect';
 import { toast } from '@/components/core/ToastContainer';
 import { useEventsAnalytics, type EventDrawerSource } from '@/analytics/events.analytics';
-import { useDebounce } from '@/hooks/useDebounce';
 import { useIrlGoingAccess } from '@/services/access-control/hooks/useIrlGoingAccess';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { EMPTY_PLANS, toEventDetail } from '@/services/events/event-drawer.mappers';
@@ -128,11 +127,11 @@ function EventDrawerContainer({
 
   const [attendeesOpen, setAttendeesOpen] = useState(false);
   const [search, setSearch] = useState('');
-  const debouncedSearch = useDebounce(search, 300);
-  const attendeesQuery = useEventAttendees({ locationUid, eventUid, search: debouncedSearch, enabled: attendeesOpen });
+  // The search box (the shared SearchInput) waits until the member stops typing, so `search` is already debounced.
+  const attendeesQuery = useEventAttendees({ locationUid, eventUid, search, enabled: attendeesOpen });
   const attendees: EventAttendeesState = {
     rows: attendeesQuery.data?.pages.flatMap((p) => p.rows) ?? [],
-    isLoading: attendeesQuery.isLoading || search !== debouncedSearch,
+    isLoading: attendeesQuery.isLoading,
     isError: attendeesQuery.isError,
     hasNextPage: !!attendeesQuery.hasNextPage,
     isFetchingNextPage: attendeesQuery.isFetchingNextPage,

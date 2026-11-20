@@ -21,12 +21,14 @@ const FRAME_HEADERS = [
 ];
 
 /**
- * The one page other sites may frame (LAB-3352): the All Events embed, for the plrd.org focus area pages that framed
- * the old events calendar. Only those sites, and no `X-Frame-Options`, which can't list a site and would override the
- * CSP in older browsers. Every other page keeps `SAMEORIGIN`.
+ * The one page other sites may frame (LAB-3352): the All Events embed, which replaces the old events calendar on the
+ * plrd.org focus area pages. Any https site may frame it (Vova, 2026-11-20): it is always the signed-out view, with
+ * nothing to press that changes anything (an event opens LabOS in a new tab), and shows only what `/events/all` shows
+ * anyone. Plain-http sites may not. No `X-Frame-Options`, which can't allow other sites and would override the CSP in
+ * older browsers. Every other page keeps `SAMEORIGIN`.
  */
 const EMBED_PATH = '/events/embed';
-const EMBED_FRAME_ANCESTORS = ["'self'", 'https://plrd.org', 'https://*.plrd.org'];
+const EMBED_FRAME_ANCESTORS = ["'self'", 'https:'];
 const EMBED_FRAME_HEADERS = [
   { key: 'Content-Security-Policy', value: `frame-ancestors ${EMBED_FRAME_ANCESTORS.join(' ')}` },
 ];

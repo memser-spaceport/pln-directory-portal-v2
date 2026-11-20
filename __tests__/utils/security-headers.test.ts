@@ -34,12 +34,12 @@ describe('security headers', () => {
   );
 
   it.each(['/events/embed', '/events/embed/'])(
-    'let only plrd.org and its subdomains frame the events embed on %s (LAB-3352)',
+    'let any https site frame the events embed on %s (LAB-3352)',
     (pathname) => {
       expect(headersFor(pathname)).toEqual({
         'X-Content-Type-Options': 'nosniff',
         'Referrer-Policy': 'strict-origin-when-cross-origin',
-        'Content-Security-Policy': "frame-ancestors 'self' https://plrd.org https://*.plrd.org",
+        'Content-Security-Policy': "frame-ancestors 'self' https:",
         'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
       });
     },

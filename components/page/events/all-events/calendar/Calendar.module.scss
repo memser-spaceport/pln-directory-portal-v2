@@ -193,6 +193,22 @@
   opacity: 0.6;
 }
 
+// A day before today, in Week and Month (LAB-3353): a light wash behind the day's header or number and its events,
+// translucent so the day rules still show.
+.pastDay {
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  pointer-events: none;
+}
+
+// Month: down through the week's bottom padding, to its rule.
+.week > .pastDay {
+  margin-bottom: -8px;
+}
+
+.dayPast {
+  opacity: 0.6;
+}
+
 .boardDate {
   font-size: 16px;
   line-height: 24px;
@@ -307,6 +323,13 @@
   font-size: 12px;
   line-height: 16px;
   color: var(--foreground-neutral-secondary, #455468);
+}
+
+// Faces and "N going" under the meta lines (LAB-3353); they wrap onto two lines in a narrow day column.
+.cardGoing {
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin-top: 2px;
 }
 
 .cardHighlight {

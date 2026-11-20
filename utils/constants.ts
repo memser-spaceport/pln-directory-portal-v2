@@ -876,6 +876,10 @@ export const EVENT_DRAWER_ANALYTICS = {
   ON_EVENT_NOT_GOING_MARKED: 'event-not-going-marked',
   ON_EVENT_PLANS_SAVED: 'event-plans-saved',
   ON_EVENT_ATTENDEES_OPENED: 'event-attendees-opened',
+  // LAB-3361: the drawer's toolbar.
+  ON_EVENT_LINK_COPIED: 'event-drawer-link-copied',
+  ON_EVENT_EVENTS_APP_OPENED: 'event-drawer-events-app-opened',
+  ON_EVENT_DRAWER_STEPPED: 'event-drawer-stepped',
   /** The owner's "Add event" on their profile (LAB-3218). */
   ON_PROFILE_EVENT_ADD_CLICKED: 'profile-event-add-clicked',
   /** The owner removed an event from the ⋯ menu on their profile (LAB-3218). */

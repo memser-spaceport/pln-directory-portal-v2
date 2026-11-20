@@ -25,15 +25,17 @@ The event drawer SHALL be available only when the build flag `NEXT_PUBLIC_SHOW_E
 
 ### Requirement: The drawer shows one event as the events app draws it
 
-The drawer SHALL open on one event and show, top to bottom:
+The drawer SHALL follow the redesigned drawer prototype (LAB-3361, `prototypes/entries/event-drawer-redesign`): 640px wide, the full width on a narrow screen. It SHALL open on one event and show, top to bottom:
 
-1. A Back bar.
-2. "EVENT DETAILS".
-3. The event's picture when it has one, title, and date line.
-4. A place row: the address with its region for an in-person event, "Online" for an online event, and the address with "also online" for a hybrid event (LAB-3283). When the event has a map link (the events service's `location_url`) and an address, the place text and its arrow SHALL be one link that opens the map in a new tab, as on the PL events app (LAB-3324). An event without a map link, or whose map link is not an `http` or `https` address, SHALL show the place as plain text with no arrow. "Online" SHALL never link to a map.
-5. The event's own page (for example its Luma page) when it has one, as a link under the place row (LAB-3271). The link SHALL open in a new tab. It SHALL show the address without `https://`. The row SHALL look like the date row (LAB-3333): a link icon in the calendar icon's size, stroke and colour, then the link text in the date's font size, weight, colour and spacing, with no arrow. The page SHALL be the event's `websiteUrl`. When `websiteUrl` is empty or not an `http` or `https` address, the page SHALL be the link of the event's resource named "Registration" (any case, end spaces ignored), and "Register" SHALL open the same page (LAB-3334). An event without a page, or whose page is not an `http` or `https` address, SHALL have no link row and no "Register".
+1. A toolbar that stays at the top while the drawer scrolls (LAB-3361). On the left: "Copy link", which copies `/events/all?event=<uid>` on the current site and reads "Copied" for two seconds (only its icon on a phone); and "Open in PL Events", which opens the event in the PL events app (`<PL events app>/calendar#<the event's events-app id>`) in a new tab, left out when the event has no events-app id. On the right: previous and next, when the page that opened the drawer passes a list of more than one event (see the All Events requirement); then Close.
+2. The event's picture as a 56px thumbnail when it has one, beside the title and "Hosted by <hosts>" ("A and B", "A, B and C"). Hosts are names, not links.
+3. A date row: a tile with the month and day, then the day ("Thursday, November 19", or "Tue, Dec 1 – Sat, Dec 5" for an event across days) and the time with its zone ("6:00 PM – 9:00 PM · UTC−5"), all in the event's own time zone. When the dates can't be read, the row SHALL show the events app's date line instead.
+4. A place row with a pin tile: the address for an in-person event; "Online" with "Link sent after you register" for an online event; the address with "Hybrid, also online" under it for a hybrid event (LAB-3283). When the event has a map link (the events service's `location_url`) and an address, the place text and its arrow SHALL be one link that opens the map in a new tab, as on the PL events app (LAB-3324). An event without a map link, or whose map link is not an `http` or `https` address, SHALL show the place as plain text with no arrow. "Online" SHALL never link to a map.
+5. The event's own page (for example its Luma page) when it has one, as a link under the place row (LAB-3271). The link SHALL open in a new tab. It SHALL show the address without `https://`. The row SHALL look like the other fact rows (LAB-3333, LAB-3361): a link icon in a tile like the place row's, then the link text styled like the day line, with no arrow. The page SHALL be the event's `websiteUrl`. When `websiteUrl` is empty or not an `http` or `https` address, the page SHALL be the link of the event's resource named "Registration" (any case, end spaces ignored), and "Register" SHALL open the same page (LAB-3334). An event without a page, or whose page is not an `http` or `https` address, SHALL have no link row and no "Register".
 6. An access row when the access is known, with an icon and two lines: "Invite only / The hosts approve each guest", "Paid / Tickets on the host's site" or "Free / RSVP to save your spot" (LAB-3283). Mode and access SHALL NOT show as badges.
-7. Tags, Host, Description and Agenda.
+7. The going card (see below).
+8. "About": the description, then the tags as neutral badges.
+9. "Agenda": a row per session with its time beside its title and description, under a day title ("Tue, 1st Dec") when the agenda spans several days.
 
 A block whose data is empty SHALL be left out rather than shown empty. On a narrow screen the drawer SHALL take the full width.
 
@@ -67,14 +69,14 @@ A block whose data is empty SHALL be left out rather than shown empty. On a narr
 
 - **GIVEN** an upcoming in-person, free-with-RSVP event with two tags, one host, a description and a two-day agenda
 - **WHEN** a member opens it
-- **THEN** the drawer shows "EVENT DETAILS", the title, the date line, the address, "Free" with "RSVP to save your spot", both tags, the host, the description and both agenda days
+- **THEN** the drawer shows the title, "Hosted by" the host, the date tile with the days and the time, the address, "Free" with "RSVP to save your spot", the description with both tags under it, and both agenda days
 - **AND** no mode or access badge
 
 #### Scenario: Hybrid event
 
 - **GIVEN** a hybrid event in Lisbon
 - **WHEN** a viewer opens it
-- **THEN** the place row reads the Lisbon address with "also online"
+- **THEN** the place row reads the Lisbon address with "Hybrid, also online" under it
 
 #### Scenario: Access unknown
 
@@ -88,6 +90,18 @@ A block whose data is empty SHALL be left out rather than shown empty. On a narr
 - **WHEN** a member opens it
 - **THEN** the drawer shows no Agenda block and no tags row
 - **AND** the rest of the event shows as usual
+
+#### Scenario: The event in the PL events app
+
+- **GIVEN** event A whose events-app id is `abc`
+- **WHEN** a viewer opens event A and presses "Open in PL Events"
+- **THEN** the PL events app opens on `/calendar#abc` in a new tab
+
+#### Scenario: Copying the link
+
+- **WHEN** a viewer opens event A and presses "Copy link"
+- **THEN** `/events/all?event=<A's uid>` on the current site is on the clipboard
+- **AND** the button reads "Copied" for two seconds
 
 #### Scenario: Event no longer available
 
@@ -103,13 +117,13 @@ A block whose data is empty SHALL be left out rather than shown empty. On a narr
 
 ### Requirement: The drawer never opens empty
 
-While the event loads, the drawer SHALL keep the Back bar and the "EVENT DETAILS" line, with placeholders in the panel's shape. Pointing at or focusing a Home rail row or a profile event card that opens the drawer SHALL start loading that event.
+While the event loads, the drawer SHALL show the toolbar with Close, and placeholders shaped like the event (thumbnail and title, three fact rows, the going card). Pointing at or focusing a Home rail row or a profile event card that opens the drawer SHALL start loading that event.
 
 #### Scenario: The event is still loading
 
 - **GIVEN** a member opens an event that has not loaded yet
 - **WHEN** the drawer appears
-- **THEN** it shows the Back bar, "EVENT DETAILS" and loading placeholders, not an empty panel
+- **THEN** it shows the toolbar and loading placeholders, not an empty panel
 
 #### Scenario: The event loads before the press
 
@@ -119,7 +133,7 @@ While the event loads, the drawer SHALL keep the Back bar and the "EVENT DETAILS
 
 ### Requirement: The drawer shows the gathering and the event's attendees
 
-The drawer SHALL show a going card before the agenda (LAB-3225) with up to three faces and "N members going" ("1 member going" for one). When the event has its own page, the card SHALL have "Register", which opens that page in a new tab. The drawer SHALL NOT show the event's gathering: no "<city> gathering" label, no gathering schedule link, no gathering resources (such as Telegram or shared notes) and no gathering event count (LAB-3283). The gathering stays behind the going card and the plans, which still save to it.
+The drawer SHALL show a going card right after the fact rows, before About and the agenda (LAB-3225, LAB-3361), with up to three faces and "N members going" ("1 member going" for one). When the event has its own page, the card SHALL have "Register", which opens that page in a new tab. The drawer SHALL NOT show the event's gathering: no "<city> gathering" label, no gathering schedule link, no gathering resources (such as Telegram or shared notes) and no gathering event count (LAB-3283). The gathering stays behind the going card and the plans, which still save to it.
 
 N SHALL count the members going to this event only. Members who said they are going to the gathering as a whole without naming an event SHALL NOT count.
 
@@ -150,20 +164,20 @@ N SHALL count the members going to this event only. Members who said they are go
 
 ### Requirement: The attendee list is for one event and searchable
 
-The count SHALL open the list of that event's attendees above the drawer, titled "N going to <event>". It SHALL show the viewer first as "You" when they are going. Each other row SHALL show the member's photo, name, role and team, with a Host, Speaker or Sponsor tag when they have that role at this event. A row SHALL open that member's profile in a new tab.
+The count SHALL open the list of that event's attendees inside the drawer, in place of the event, under the toolbar (LAB-3361): "Back to event", then the title "N going to <event>". It SHALL show the viewer first as "You", with their role and team, when they are going; that row is not a link. Each other row SHALL show the member's photo, name, role and team, and a tag for each role they have at this event (Host violet, Speaker green, Sponsor blue, as on the profile's events). A row SHALL open that member's profile in a new tab.
 
-A search box SHALL filter by name or team. With no match, the list SHALL say "Nobody going matches that search."
+The shared search box SHALL filter by name or team once the member stops typing, or at once on Enter. With no match, the list SHALL say "Nobody going matches “<what they typed>”."
 
 #### Scenario: Searching the list
 
 - **GIVEN** an event with 40 attendees, three of them on the team "Lighthouse"
 - **WHEN** the member opens "40 members going" and types "lighthouse"
 - **THEN** the list shows those three members
-- **AND** closing the list returns to the drawer
+- **AND** "Back to event" returns to the event
 
 ### Requirement: A member says they are going to this event
 
-The drawer SHALL be about one event (LAB-3234). A signed-in member with permission to mark attendance SHALL see the going card ask "Are you going?", and "Yes, I'm going" in the drawer's footer. The footer SHALL stay at the bottom of the drawer on desktop and phone while the event scrolls, so a long description never hides the press (LAB-3271). Once the member is going, the footer SHALL go away. "Yes, I'm going" SHALL save attendance for this one event only and leave the member's other events unchanged. The card SHALL then read "You're going" in place, with "You and N members" (or "You're the first one going"), "Add your plans for <city>" and "Can't make it? Mark as not going". "Mark as not going" SHALL remove this event only.
+The drawer SHALL be about one event (LAB-3234). A signed-in member with permission to mark attendance SHALL see the going card ask "Are you going?" with "Yes, I'm going" and, when the event has its own page, "Register" (LAB-3361). Once less than half of the card is on screen, a bar SHALL stay at the bottom of the drawer with the same question, the count, "Register" and "Yes, I'm going", so a long description never hides the press (LAB-3271, LAB-3361); once the member is going, the bar reads "You're going" with "Register". The bar SHALL NOT show while the card is in view or on a sub-view. "Yes, I'm going" SHALL save attendance for this one event only and leave the member's other events unchanged. The card SHALL then read "You're going" in place, with "You and N members" (or "You're the first one going"), "Add your plans for <city>" and "Can't make it? Mark as not going". "Mark as not going" SHALL remove this event only.
 
 Going SHALL always be visible to signed-in members: there is no "Show on my profile" choice.
 
@@ -171,14 +185,15 @@ Going SHALL always be visible to signed-in members: there is no "Show on my prof
 
 - **GIVEN** a member with attendance permission who is not going to "Lisbon Founders Day"
 - **WHEN** they open it
-- **THEN** the going card asks "Are you going?" with "Yes, I'm going"
+- **THEN** the going card asks "Are you going?" with "Yes, I'm going" and "Register"
 - **AND** there is no "No" button and no "Show on my profile" checkbox
 
 #### Scenario: "Yes, I'm going" stays in view
 
 - **GIVEN** a member with attendance permission who is not going to event A, which has a long description
-- **WHEN** they open event A on desktop or on a phone and scroll the description
-- **THEN** "Yes, I'm going" stays visible at the bottom of the drawer
+- **WHEN** they open event A on desktop or on a phone and scroll until the going card is mostly out of view
+- **THEN** a bar at the bottom of the drawer asks "Are you going?" with "Yes, I'm going"
+- **AND** scrolling back to the card removes the bar
 
 #### Scenario: Going
 
@@ -210,7 +225,7 @@ Going SHALL always be visible to signed-in members: there is no "Show on my prof
 
 ### Requirement: Members who cannot mark attendance see the event only
 
-A signed-in member without permission to mark attendance SHALL see the event, the gathering links and the attendees in a "Who's going" card, and SHALL NOT see the question or any button that saves.
+A signed-in member without permission to mark attendance SHALL see the event and the attendees in a "Who's going" card, and SHALL NOT see the question, the bottom bar or any button that saves.
 
 #### Scenario: Member without attendance permission
 
@@ -221,7 +236,7 @@ A signed-in member without permission to mark attendance SHALL see the event, th
 
 ### Requirement: Signed-out visitors see the event and are asked to sign in
 
-A signed-out visitor SHALL be able to open the drawer from Home (LAB-3271). The drawer SHALL show the event, the gathering links and a "Who's going" card, and "Yes, I'm going" in the sticky footer. "Yes, I'm going" and the people count SHALL close the drawer and open the sign-in modal on the same page. Nothing SHALL save.
+A signed-out visitor SHALL be able to open the drawer from Home (LAB-3271). The drawer SHALL show the event, and the going card SHALL ask "Are you going?" with "Yes, I'm going" as for a member (LAB-3361), with the same bottom bar. "Yes, I'm going" and the people count SHALL close the drawer and open the sign-in modal on the same page. Nothing SHALL save.
 
 #### Scenario: Signed out
 
@@ -251,7 +266,7 @@ Save SHALL change the role of this event only. The dates, topics and details are
 
 ### Requirement: Escape and the backdrop close the top layer first
 
-While a picker or the attendee list is open above the drawer, Escape and a click on the backdrop SHALL close only that layer and return to the drawer. In "Add your plans" they SHALL return to the event. Otherwise they SHALL close the drawer.
+While a picker is open above the drawer, Escape and a click on the backdrop SHALL close only the picker. On the attendee list or in "Add your plans" they SHALL return to the event. Otherwise they SHALL close the drawer.
 
 #### Scenario: Escape in the date picker
 
@@ -261,7 +276,7 @@ While a picker or the attendee list is open above the drawer, Escape and a click
 
 ### Requirement: The drawer confirms what was saved
 
-When the drawer closes after a member said yes in it, and they are still going, the page that opened it SHALL show the toast "<event> is on your profile." The opening page SHALL then show the member as going.
+When the drawer closes, or steps to another event with previous or next, after a member said yes in it, and they are still going, the page that opened it SHALL show the toast "<event> is on your profile." The opening page SHALL then show the member as going.
 
 #### Scenario: Toast after a yes
 
@@ -277,7 +292,10 @@ The drawer SHALL record these PostHog events, each with `event_uid`:
 - `event-going-marked`, with `source`;
 - `event-not-going-marked`, on "Mark as not going";
 - `event-plans-saved`, with `roles`;
-- `event-attendees-opened`.
+- `event-attendees-opened`;
+- `event-drawer-link-copied`, on "Copy link" (LAB-3361);
+- `event-drawer-events-app-opened`, on "Open in PL Events" (LAB-3361);
+- `event-drawer-stepped`, on previous or next, with `direction` (`previous` or `next`) and `source`; its `event_uid` is the event it moved to (LAB-3361).
 
 #### Scenario: Going from Home
 
@@ -448,7 +466,7 @@ The List view SHALL be the default. It SHALL group events by start day, soonest 
 
 ### Requirement: The Calendar view
 
-The Calendar view SHALL have Week (default) and Month, kept in the address (`cal=month`). Weeks SHALL start on Monday, and every event SHALL sit on its days in its own time zone. Week SHALL show one column per day of the week, today marked and past days dimmed. An event that runs several days SHALL be one card across its days. One-day events SHALL stack in their day's column, earliest first, each card showing title, its first topic with "+n" for the rest when it has topics, its start and end time ("6:00 PM – 9:00 PM"), and the place and zone in the event's time zone ("Lisbon · UTC+0", "Lisbon · also online · UTC+0", "Online · UTC+0"). A week with no matching event SHALL say "Nothing this week." On phones the cards SHALL stack by day, and empty days SHALL be skipped. Month SHALL show the month grid with a bar per event per week, today marked. Pressing a day number in Month SHALL open that week in Week, and switching to Month SHALL show the month of the week in view. Previous and next controls SHALL move by one week or one month, and "Today" SHALL return to the current week or month. The calendar SHALL open on the linked event's week, else the chosen city's first event, else the first week from today that has an event.
+The Calendar view SHALL have Week and Month. Month SHALL be the default on screens 960px wide and wider, and Week below 960px (LAB-3353). A mode the visitor picks SHALL be kept in the address (`cal=week` or `cal=month`) and SHALL win over the screen width. Weeks SHALL start on Monday, and every event SHALL sit on its days in its own time zone. In Week and in Month, every day before today SHALL be greyed, today marked. Week SHALL show one column per day of the week. An event that runs several days SHALL be one card across its days. One-day events SHALL stack in their day's column, earliest first, each card showing title, its first topic with "+n" for the rest when it has topics, its start and end time ("6:00 PM – 9:00 PM"), and the place and zone in the event's time zone ("Lisbon · UTC+0", "Lisbon · also online · UTC+0", "Online · UTC+0"). A Week card SHALL show up to 3 faces and "N going" when the event shows attendance and someone is going. A week with no matching event SHALL say "Nothing this week." On phones the cards SHALL stack by day, and empty days SHALL be skipped. Month SHALL show the month grid with a bar per event per week. Pressing a day number in Month SHALL open that week in Week, and switching to Month SHALL show the month of the week in view. Previous and next controls SHALL move by one week or one month, and "Today" SHALL return to the current week or month. The calendar SHALL open on the linked event's week, else the chosen city's first event, else today's week or month, even when that week or month has no event.
 
 #### Scenario: Day number opens its week
 
@@ -468,22 +486,35 @@ The Calendar view SHALL have Week (default) and Month, kept in the address (`cal
 - **WHEN** the visitor opens that week
 - **THEN** the event shows as one card spanning Monday to Wednesday
 
+#### Scenario: Default mode by screen width
+
+- **GIVEN** a visitor opens `/events/all?view=calendar` with no `cal`
+- **WHEN** the screen is 1280px wide
+- **THEN** Month opens on the current month
+- **AND** on a 390px phone, Week opens on the current week
+
+#### Scenario: Opens on today
+
+- **GIVEN** today is Friday November 20 and the next matching event is on December 3
+- **WHEN** the visitor opens the Calendar view
+- **THEN** it shows November (or the week of November 16), with November 16–19 greyed
+
 ### Requirement: The Map view
 
-When a Maps key is configured, the Map view SHALL show a street map with one pin per city that has matching in-person or hybrid events, labelled with the city's count. "Show all" SHALL fit every pin. Pressing a pin with one event SHALL open the drawer. Pressing a pin with several events SHALL show a small card listing them, each opening the drawer. The map SHALL zoom with the mouse wheel or trackpad, the + and − buttons, and, on wider screens, a slider. The page SHALL NOT scroll while the pointer is over the map. Online events SHALL be listed under the map, and so SHALL in-person events whose city has no known position ("Not on the map"), so no matching event is missing from the view. A pin holding an event the viewer is going to SHALL be marked. If the map can't load, it SHALL say so and offer "Try again"; the lists under it still show. Without a Maps key, the view switch SHALL NOT offer Map.
+When a Maps key is configured, the Map view SHALL show a street map. Zoomed out (below zoom 9), it SHALL show one pin per city that has matching in-person or hybrid events, labelled with the city's count; pressing a city pin SHALL zoom the map into that city (LAB-3353). From zoom 9 in, every matching in-person or hybrid event SHALL have its own round pin with its picture (or the event placeholder), and a city's event pins SHALL sit around the city's point without covering one another. Pressing an event pin SHALL open its drawer. An event pin SHALL have a green ring when the viewer is going and a brand ring when it is the linked or opened event, drawn on top. "Show all" SHALL fit every city. The map SHALL zoom with the mouse wheel or trackpad, the + and − buttons, and, on wider screens, a slider. The page SHALL NOT scroll while the pointer is over the map. Online events SHALL be listed under the map, and so SHALL in-person events whose city has no known position ("Not on the map"), so no matching event is missing from the view; each row SHALL show up to 3 faces and "N going" like a Week card. A city pin holding an event the viewer is going to SHALL be marked. If the map can't load, it SHALL say so and offer "Try again"; the lists under it still show. Without a Maps key, the view switch SHALL NOT offer Map.
 
 #### Scenario: City pin with several events
 
-- **GIVEN** 3 matching events in Dubai
+- **GIVEN** 3 matching events in Dubai, and the map zoomed out
 - **WHEN** the visitor presses the Dubai pin
-- **THEN** a card lists the 3 events
+- **THEN** the map zooms into Dubai, and the 3 events show as 3 picture pins around it
 - **AND** pressing one opens its drawer
 
 #### Scenario: Link to one event in Map
 
 - **GIVEN** 3 matching events in Dubai, one of them event A
 - **WHEN** a visitor opens `/events/all?view=map&event=<A's uid>`
-- **THEN** the map is centred on Dubai with its pin marked, and the Dubai card lists the 3 events with A's row marked
+- **THEN** the map is zoomed into Dubai on its 3 event pins, with A's pin in the brand ring
 - **AND** the drawer is open on A
 
 #### Scenario: City with no known position
@@ -501,7 +532,16 @@ When a Maps key is configured, the Map view SHALL show a street map with one pin
 
 ### Requirement: Every event opens the drawer, and a link opens one event
 
-Pressing an event in any view or in Near you SHALL open the event drawer for that event. Opening `/events/all?event=<uid>` SHALL open the page with that event's drawer open and the event marked in the active view: its list card, its calendar card on its own week, or its map pin centred. Closing the drawer SHALL remove `event` from the address. An unknown uid SHALL open the drawer's "no longer available" state.
+Pressing an event in any view or in Near you SHALL open the event drawer for that event. Opening `/events/all?event=<uid>` SHALL open the page with that event's drawer open and the event marked in the active view: its list card, its calendar card on its own week, or its event pin, with the map zoomed into its city. Closing the drawer SHALL remove `event` from the address. An unknown uid SHALL open the drawer's "no longer available" state.
+
+The drawer's previous and next SHALL step through the events the page shows under the current filters, in the List's order (by list day, then start time), whichever view is open (LAB-3361). Stepping SHALL replace the event in the open drawer and the `event` in the address, without closing and reopening the drawer. Previous SHALL be disabled on the first event and next on the last. Other pages that open the drawer SHALL show no previous or next.
+
+#### Scenario: Next event
+
+- **GIVEN** the List shows events A, B and C in that order
+- **WHEN** a visitor opens B and presses next
+- **THEN** the drawer shows C and the address has `event=<C's uid>`
+- **AND** previous then shows B again
 
 #### Scenario: Link to one event in Calendar
 
@@ -534,7 +574,7 @@ The "Coming up" toolbar on `/events/all` SHALL show a "Share / embed" button in 
 
 ### Requirement: One Going mark on the page
 
-On the All Events page, an event the signed-in viewer is going to SHALL carry one "Going" pill: a green pill with a white tick and the word "Going", on its List card, Near you tile and Week card. A Month bar is too small for the pill and SHALL carry no going mark; the "Events I'm going to" filter lists those events. No other going mark (badge or tick) SHALL appear on the page.
+On the All Events page, an event the signed-in viewer is going to SHALL carry one "Going" pill: a green pill with a white tick and the word "Going", on its List card, Near you tile, Week card and map row. A Month bar is too small for the pill and SHALL carry no going mark; the "Events I'm going to" filter lists those events. On the map, the city pin is marked and the event pin has a green ring instead. No other going mark (badge or tick) SHALL appear on the page.
 
 #### Scenario: Going event in the list
 

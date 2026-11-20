@@ -1,293 +1,482 @@
-/*
- * The PL events app's detail panel, ported from prototypes/entries/member-events-going/EventDetails.module.scss
- * (LAB-3216). Sizes are its measured values; every `var(--token, fallback)` pair is kept as written there, because
- * the fallback is what paints when the DS tokens are absent.
- */
+@use 'styles/media';
 
-/* The drawer is the scroller; the form fills it so the bars can stick. */
+/* The event drawer (LAB-3361): Polina's `prototypes/entries/event-drawer-redesign/EventDrawer.module.scss` (her
+   1032bf25d, 2026-11-18), copied as it is. Left out: the "Show on my profile" consent (LAB-3234) and the gathering
+   section (LAB-3283). The going card's own styles are in RsvpCard.module.scss. Added at the end: the link row, the
+   who's-going search and paging, and the loading, missing and failed states. */
+
 .root {
   display: flex;
   flex-direction: column;
+  // Not in the prototype: the shared Drawer is a flex column, so without this the root shrinks to the drawer's height
+  // and the sticky toolbar and footer scroll away with a long event.
+  flex-shrink: 0;
   min-height: 100%;
+  color: var(--foreground-neutral-primary, #0a0c11);
 }
 
-.backBar {
+/* ---------- Toolbar ---------- */
+
+.toolbar {
   position: sticky;
   top: 0;
   z-index: 2;
-  padding: 12px 30px 10px 31px;
-  background: var(--background-base-white, #ffffff);
-
-  @media (max-width: 639px) {
-    padding: 12px 16px 10px;
-  }
-}
-
-.back {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0;
-  border: 0;
-  background: none;
-  font-size: 16px;
-  line-height: 20px;
-  color: var(--foreground-neutral-primary, #0a0c11);
-  cursor: pointer;
-
-  &:hover {
-    color: var(--foreground-brand-primary, #1b4dff);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
-    outline-offset: 2px;
-  }
-}
-
-.body {
   display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 15px;
-  padding: 13px 30px 32px 31px;
-
-  @media (max-width: 639px) {
-    padding: 13px 16px 32px;
-  }
-}
-
-.head {
-  display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 18px;
-}
+  padding: 12px 24px;
+  background: var(--background-neutral-primary, #ffffff);
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 
-.kicker {
-  font-size: 16px;
-  line-height: 20px;
-  color: var(--foreground-neutral-primary, #0a0c11);
-}
-
-.hero {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-}
-
-/* The event's picture, small: it identifies the event, the title still leads. */
-.thumb {
-  flex-shrink: 0;
-  width: 64px;
-  height: 64px;
-  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-  border-radius: 8px;
-  object-fit: cover;
-  background: var(--background-neutral-secondary, #f8fafc);
-
-  @media (max-width: 639px) {
-    width: 48px;
-    height: 48px;
+  @include media.mobile-only {
+    padding: 12px 16px;
   }
 }
 
-.heroText {
+.toolbarGroup {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-width: 0;
-}
-
-.title {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 26px;
-  color: var(--foreground-neutral-primary, #0a0c11);
-}
-
-.factRow {
-  display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
-}
-
-.factIcon {
-  flex-shrink: 0;
-  color: var(--foreground-neutral-secondary, #455468);
-}
-
-.pinIcon {
-  flex-shrink: 0;
-  margin-top: 1px;
-  color: var(--foreground-neutral-primary, #0a0c11);
-}
-
-.fact {
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 16px;
-  color: var(--foreground-neutral-secondary, #455468);
-}
-
-/* LAB-3283: the access fact's second line, what it means for the guest. */
-.factStack {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
   min-width: 0;
 }
 
-.factSub {
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 16px;
-  color: var(--foreground-neutral-secondary, #455468);
+.toolbarRule {
+  width: 1px;
+  height: 20px;
+  margin: 0 4px;
+  background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 }
 
-.linkIcon {
-  vertical-align: -2px;
-}
-
-/* LAB-3271: the event's own page, beside the date and the address. Long links wrap instead of widening the drawer. */
-.eventLink {
-  min-width: 0;
-  overflow-wrap: anywhere;
-  color: var(--foreground-neutral-secondary, #455468);
-  text-decoration: none;
-
-  &:hover .fact,
-  &:focus-visible .fact {
-    text-decoration: underline;
-  }
-}
-
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-/* Background tint and the hash square's colour come from the tag itself (12% and solid). */
-.tag {
-  display: inline-flex;
-  align-items: stretch;
-  height: 23px;
-  overflow: hidden;
-  border-radius: 4px;
-}
-
-.tagHash {
+// DS Button is inline-block, so an svg child rides the baseline and `gap` is ignored.
+.btn.btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 21px;
-}
-
-.tagName {
-  padding: 0 8px 0 4px;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 23px;
-  color: var(--foreground-neutral-primary, #0a0c11);
-}
-
-.block {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.label,
-.labelMedium {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 20px;
-  color: var(--foreground-neutral-primary, #0a0c11);
+  gap: 6px;
+  min-width: 0;
+  white-space: nowrap;
+  text-decoration: none;
 
   svg {
     flex-shrink: 0;
   }
 }
 
-.labelMedium {
+.btnLabelWide {
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-subtle, #aebfff);
+    outline-offset: 1px;
+  }
+}
+
+/* ---------- Body ---------- */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px 24px 40px;
+
+  @include media.mobile-only {
+    padding: 20px 16px 32px;
+  }
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+/* The event's picture, small: it identifies the event, the title still leads. */
+.logo {
+  display: block;
+  width: 56px;
+  height: 56px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  object-fit: cover;
+  background: var(--background-neutral-secondary, #f8fafc);
+  flex-shrink: 0;
+}
+
+/* Thumbnail beside the title + hosts: 56px is the two lines' height (32 + 20 + 4). */
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.titleText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  text-wrap: balance;
+}
+
+// Close under the title (titleText's 4px gap): it qualifies it.
+.hosts {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// A host's name: the prototype's host link, without the link (no team page for an event host).
+.hostName {
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-weight: 500;
 }
 
-.hosts {
+.hostLink {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-weight: 500;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration: underline;
+  }
+}
+
+/* ---------- When and where ---------- */
+
+.facts {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+// The rail row's date tile (home-refactor .dateTile), one step larger beside a two-line fact.
+.dateTile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-neutral-primary, #ffffff);
+}
+
+.dateTileSmall {
+  width: 40px;
+  height: 40px;
+}
+
+.dateMonth {
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.dateDay {
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.factIcon {
+  @extend .dateTile;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.factText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.factMain {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.factLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  text-decoration: none;
+
+  svg {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration: underline;
+
+    svg {
+      color: currentColor;
+    }
+  }
+}
+
+.factSub {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* ---------- Sections ---------- */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
 }
 
-.hostChip {
-  padding: 4px 10px;
-  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-  border-radius: 5px;
-  font-size: 14px;
-  font-weight: 500;
+.sectionTitle {
+  margin: 0;
+  font-size: 16px;
   line-height: 24px;
-  color: var(--foreground-neutral-primary, #0a0c11);
-  background: var(--background-neutral-subtle, #f1f5f9);
+  font-weight: 600;
 }
 
 .paragraph {
   margin: 0;
   font-size: 14px;
-  line-height: 20px;
-  color: var(--foreground-neutral-primary, #0a0c11);
+  line-height: 22px;
+  color: var(--foreground-neutral-secondary, #455468);
 }
 
-.agenda {
+.tags {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 13px;
-  border-radius: 8px;
-  background: var(--background-neutral-subtle, #f1f5f9);
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
 }
+
+.tag.tag {
+  font-size: 12px;
+  line-height: 16px;
+  padding: 2px 8px;
+}
+
+/* ---------- Agenda ---------- */
 
 .agendaDay {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
-.agendaDayLabel {
+.agendaDayTitle {
+  margin: 0;
   font-size: 12px;
-  font-weight: 700;
-  line-height: 20px;
-  color: var(--foreground-neutral-primary, #0a0c11);
+  line-height: 16px;
+  font-weight: 600;
+  color: var(--foreground-neutral-tertiary, #8897ae);
 }
 
-.agendaItem {
+.agendaList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.agendaRow {
+  display: grid;
+  grid-template-columns: 148px 1fr;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  @include media.mobile-only {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+
+.agendaTime {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-variant-numeric: tabular-nums;
+}
+
+.agendaText {
   display: flex;
   flex-direction: column;
-  padding: 8px 10px;
-  border-radius: 4px;
-  background: var(--background-base-white, #ffffff);
 }
 
-.agendaHead {
+.agendaTitle {
   font-size: 14px;
-  font-weight: 500;
   line-height: 20px;
-  color: var(--foreground-neutral-secondary, #455468);
+  font-weight: 500;
 }
 
 .agendaAbout {
   font-size: 14px;
   line-height: 20px;
-  color: var(--foreground-neutral-tertiary, #8897ae);
+  color: var(--foreground-neutral-secondary, #455468);
 }
 
-/* Our additions below the transcribed panel. */
+/* ---------- Sub-views ---------- */
+
+.subHead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.subTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+.people {
+  display: flex;
+  flex-direction: column;
+  margin: -8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 8px;
+  margin: 0 -8px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+.personImg {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.personText {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.personName {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+.personMeta {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty {
+  padding: 24px 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  text-align: center;
+}
 
 .footer {
   position: sticky;
@@ -296,40 +485,140 @@
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  padding: 12px 30px 16px 31px;
+  margin-top: auto;
+  padding: 12px 24px;
+  background: var(--background-neutral-primary, #ffffff);
   border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-  background: var(--background-base-white, #ffffff);
 
-  @media (max-width: 639px) {
-    padding: 12px 16px 16px;
+  @include media.mobile-only {
+    padding: 12px 16px;
 
-    .footerBtn.footerBtn {
+    > button {
       flex: 1;
     }
   }
 }
 
-/* Not in the prototype: what the drawer shows while loading, on a failed load and for a deleted event. */
+/* The RSVP card's ask, pinned in the footer while the card is scrolled away. */
+.rsvpBar {
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
 
+.rsvpBarText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  margin: 0;
+}
+
+// Going: tick beside the words, as in the card (the stacked column above is for the two-line ask).
+.rsvpBarGoing {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.rsvpBarTitle {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.rsvpBarMeta {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.rsvpBarActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Who's going: the role takes the profile's muted role tag (member-events-going/roleTags.ts),
+   kept from shrinking at the row's end. */
+.personRole {
+  flex-shrink: 0;
+}
+
+/* ---------- Ours, not in the prototype ---------- */
+
+/* The event's own page, a fact like the date and the place (LAB-3271, LAB-3333). */
+.factLinkText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A description from the events sync may be HTML with its own paragraphs and lists. */
+.paragraph {
+  p,
+  ul,
+  ol {
+    margin: 0;
+  }
+
+  p + p,
+  p + ul,
+  p + ol,
+  ul + p,
+  ol + p {
+    margin-top: 12px;
+  }
+
+  a {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+/* Who's going: a member with several roles gets a tag for each; the search box's label is for screen readers. */
+.personRole {
+  display: flex;
+  gap: 4px;
+}
+
+.search {
+  display: block;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.moreSentinel {
+  height: 1px;
+}
+
+/* What the drawer shows while loading, on a failed load and for a deleted event. */
 .state {
   display: flex;
   flex: 1;
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;
-  padding: 13px 30px 32px 31px;
+  padding: 24px 24px 40px;
 
-  @media (max-width: 639px) {
-    padding: 13px 16px 32px;
+  @include media.mobile-only {
+    padding: 20px 16px 32px;
   }
 }
 
 .stateTitle {
   margin: 0;
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 26px;
-  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
 }
 
 .stateText {
@@ -344,15 +633,30 @@
   gap: 8px;
 }
 
+/* Shaped like the event it becomes: thumbnail and title, three facts, the going card. */
 .skeleton {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 24px;
   width: 100%;
+}
+
+.skeletonRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.skeletonLines {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .skeletonBlock {
   display: block;
+  flex-shrink: 0;
   border-radius: 6px;
   background: linear-gradient(90deg, #eef2f7 25%, #dfe5ee 50%, #eef2f7 75%);
   background-size: 200% 100%;
@@ -363,41 +667,32 @@
   }
 }
 
+.skeletonThumb {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+}
+
+.skeletonTile {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+}
+
 .skeletonTitle {
   width: 72%;
   height: 28px;
 }
 
-.skeletonFact {
-  width: 58%;
+.skeletonLine {
+  width: 44%;
   height: 16px;
 }
 
-.skeletonPlace {
-  width: 34%;
-  height: 16px;
-}
-
-.skeletonChips {
-  display: flex;
-  gap: 8px;
-}
-
-.skeletonChip {
-  width: 120px;
-  height: 24px;
-}
-
-.skeletonLabel {
-  width: 64px;
-  height: 16px;
-  margin-top: 6px;
-}
-
-.skeletonPanel {
+.skeletonCard {
   width: 100%;
   height: 120px;
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 @keyframes shimmer {

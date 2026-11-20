@@ -221,6 +221,29 @@ export const useEventsAnalytics = () => {
     captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_ATTENDEES_OPENED, { event_uid: params.eventUid });
   }
 
+  /** LAB-3361: the drawer's Copy link (the `/events/all?event=<uid>` address). */
+  function onEventLinkCopied(params: { eventUid: string }) {
+    captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_LINK_COPIED, { event_uid: params.eventUid });
+  }
+
+  /** LAB-3361: the drawer's "Open in PL Events". */
+  function onEventEventsAppOpened(params: { eventUid: string }) {
+    captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_EVENTS_APP_OPENED, { event_uid: params.eventUid });
+  }
+
+  /** LAB-3361: previous / next in the drawer's toolbar; `eventUid` is the event it moved to. */
+  function onEventDrawerStepped(params: {
+    eventUid: string;
+    direction: 'previous' | 'next';
+    source: EventDrawerSource;
+  }) {
+    captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_DRAWER_STEPPED, {
+      event_uid: params.eventUid,
+      direction: params.direction,
+      source: params.source,
+    });
+  }
+
   /** `from`: the section header (the owner has upcoming events) or the empty state. */
   function onProfileEventAddClicked(params: { from: 'header' | 'empty-state' }) {
     captureEvent(EVENT_DRAWER_ANALYTICS.ON_PROFILE_EVENT_ADD_CLICKED, { from: params.from });
@@ -241,6 +264,9 @@ export const useEventsAnalytics = () => {
     onEventNotGoingMarked,
     onEventPlansSaved,
     onEventAttendeesOpened,
+    onEventLinkCopied,
+    onEventEventsAppOpened,
+    onEventDrawerStepped,
     onProfileEventAddClicked,
     onProfileEventRemoved,
     onIrlLocationClicked,

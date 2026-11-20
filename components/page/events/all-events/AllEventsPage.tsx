@@ -15,6 +15,7 @@ import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/Dashb
 import type { EventGoingNotice } from '@/components/page/events/EventDrawer/EventDrawerView';
 import { eventGoingToastText } from '@/components/page/events/EventDrawer/toast';
 import { encodeFilterValues } from '@/services/filters';
+import { useIsBelowTabletLandscape } from '@/hooks/useIsBelowTabletLandscape';
 import { useAllEventsFilterStore } from '@/services/events/all-events-filters.store';
 import {
   EVENTS_EMBED_PATH,
@@ -25,6 +26,7 @@ import {
   filterEvents,
   filterValues,
   isFilterParam,
+  groupByDay,
   listDay,
   localIso,
   nearYou,
@@ -120,7 +122,11 @@ export function AllEventsPage({
 
   const viewParam = params.get('view') as AllEventsView | null;
   const view: AllEventsView = viewParam && AVAILABLE_VIEWS.includes(viewParam) ? viewParam : 'list';
-  const calMode: CalMode = params.get('cal') === 'month' ? 'month' : 'week';
+  // Month from 960px, Week below (LAB-3353; seven Month columns are too narrow under 960). `cal` in the address wins.
+  // The server and the first render take Month; a phone switches to Week once mounted.
+  const belowMonthWidth = useIsBelowTabletLandscape();
+  const calParam = params.get('cal');
+  const calMode: CalMode = calParam === 'month' || calParam === 'week' ? calParam : belowMonthWidth ? 'week' : 'month';
 
   // The open event lives in the address, so a link to an event lands with its drawer open. The linked event stays
   // marked after its drawer closes, until the member opens another one.
@@ -211,6 +217,20 @@ export function AllEventsPage({
     setKeptUid(null);
     setParam('event', uid);
   };
+  // LAB-3361: the drawer's previous / next walk the events on show in the List's order (by list day, then start, so
+  // an event under way counts from today); the neighbours load ahead.
+  const sequence = useMemo(
+    () => groupByDay(visible, todayIso).flatMap((day) => day.events.map((item) => item.uid)),
+    [visible, todayIso],
+  );
+  useEffect(() => {
+    // The embed never opens the drawer, so it loads no neighbours either.
+    if (embed || !openUid) return;
+    const at = sequence.indexOf(openUid);
+    if (at < 0) return;
+    [sequence[at - 1], sequence[at + 1]].forEach((uid) => uid && prefetchEvent(uid));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [embed, openUid, sequence]);
   const closeDrawer = () => {
     if (!touched) setKeptUid(openUid);
     setTouched(true);
@@ -244,7 +264,7 @@ export function AllEventsPage({
   };
   const setCalMode = (mode: CalMode) => {
     if (mode === calMode) return;
-    setParam('cal', mode === 'month' ? 'month' : undefined);
+    setParam('cal', mode);
     analytics.onEventsViewChanged({ view: 'calendar', mode });
   };
   const setCity = (city: string | null, from: 'tile' | 'near-you') => {
@@ -462,6 +482,8 @@ export function AllEventsPage({
           source="all-events"
           onClose={closeDrawer}
           onGoing={openUid ? onGoing(openUid) : undefined}
+          sequence={sequence}
+          onNavigate={open}
         />
       )}
     </>

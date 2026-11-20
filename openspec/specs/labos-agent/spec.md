@@ -133,7 +133,7 @@ Accessibility: the card SHALL be an `<article>` named by its title. Each card SH
 
 ### Requirement: Sources show readable labels
 
-Under "Sources", each C1 ref SHALL show a readable label for its type: "LabOS news", "Team", "Project", "Member" or "Web" (types `news`, `team`, `project`, `member`, and `external` or `web`). An unknown type SHALL show with a capital first letter. The panel SHALL never show the raw type. A web ref SHALL show the domain of its link (with no `www.`) as its title, not the raw URL. A web ref with no valid link SHALL keep its title (LAB-3298, D8).
+Under "Sources", each C1 ref SHALL show a readable label for its type: "LabOS news", "Team", "Project", "Member" or "Web" (types `news`, `team`, `project`, `member`, and `external` or `web`). An unknown type SHALL show with a capital first letter. The panel SHALL never show the raw type. A web ref SHALL keep a real page title (`searchWeb` refs carry one). When the title of a web ref is empty or is a URL (`external` refs carry the URL), the ref SHALL show the domain of its link (with no `www.`) as its title, not the raw URL. A web ref with no valid link SHALL keep its title (LAB-3298, D8).
 
 #### Scenario: A team ref and an external ref
 

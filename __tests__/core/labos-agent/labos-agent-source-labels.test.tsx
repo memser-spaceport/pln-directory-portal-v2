@@ -11,7 +11,7 @@ jest.mock('@/components/common/Markdown', () => ({
 import { LabosAgentTurn } from '@/components/core/labos-agent/LabosAgentTurn/LabosAgentTurn';
 import { sourceRefLabel } from '@/services/labos-agent/labos-agent.sources';
 
-/** LAB-3298 (D8, Oleg's QA): readable labels under "Sources", and the domain as the title of a web ref. */
+/** LAB-3298 (D8, Oleg's QA): readable labels under "Sources", and the domain as the title of a web ref with an empty or URL title. */
 const turn = (sourceRefs: LabosAgentSourceRef[]): Turn => ({
   id: 't-1',
   message: 'Who works on this?',
@@ -69,6 +69,30 @@ describe('LAB-3298 D8: source labels', () => {
     expect(link).toHaveTextContent('textile.ioWeb');
     expect(screen.queryByText('https://www.textile.io/blog/post?x=1')).not.toBeInTheDocument();
     expect(screen.queryByText('external')).not.toBeInTheDocument();
+  });
+
+  it('keeps the real page title of a web ref from searchWeb, and shows the domain only for an empty or URL title', () => {
+    const url = 'https://www.textile.io/blog/post';
+    expect(sourceRefLabel({ type: 'web', title: 'Textile raises a seed round', externalUrl: url })).toEqual({
+      title: 'Textile raises a seed round',
+      meta: 'Web',
+    });
+    expect(sourceRefLabel({ type: 'web', title: '', externalUrl: url })).toEqual({ title: 'textile.io', meta: 'Web' });
+    expect(sourceRefLabel({ type: 'web', title: '  ', externalUrl: url })).toEqual({
+      title: 'textile.io',
+      meta: 'Web',
+    });
+    expect(sourceRefLabel({ type: 'web', title: 'www.textile.io/blog', externalUrl: url })).toEqual({
+      title: 'textile.io',
+      meta: 'Web',
+    });
+    expect(sourceRefLabel({ type: 'external', title: 'http://textile.io', externalUrl: url })).toEqual({
+      title: 'textile.io',
+      meta: 'Web',
+    });
+    renderTurn([{ type: 'web', title: 'Textile raises a seed round', externalUrl: url }]);
+    expect(screen.getByText('Textile raises a seed round').closest('a')).toHaveAttribute('href', url);
+    expect(screen.queryByText('textile.io')).not.toBeInTheDocument();
   });
 
   it('sourceRefLabel: a web ref with no valid link keeps its title; an unknown type gets a capital letter', () => {

@@ -64,13 +64,20 @@ const hostOf = (url: string): string | null => {
 
 /**
  * LAB-3298 (D8): the title and the label of a C1 ref under "Sources". A LabOS type shows as a word ("Team"), never
- * the raw type. A web ref (`external` or `web`) shows its domain as the title and "Web" as the label, like the web
- * sources of the answer.
+ * the raw type. A web ref (`external` or `web`) shows "Web" as the label. It keeps a real page title (`searchWeb` refs
+ * carry one). Only when the title is empty or is a URL (`external` refs carry the URL) does it show the domain.
  */
 export function sourceRefLabel(ref: LabosAgentSourceRef): { title: string; meta: string } {
   const type = ref.type.trim().toLowerCase();
   const meta = REF_TYPE_LABELS[type] ?? (type ? type.charAt(0).toUpperCase() + type.slice(1) : 'LabOS');
   if (meta !== 'Web') return { title: ref.title, meta };
   const { href, external } = sourceRefLink(ref);
+  if (!titleIsUrl(ref.title)) return { title: ref.title, meta };
   return { title: (external && href && hostOf(href)) || ref.title, meta };
 }
+
+/** True when a ref title is empty or is a URL (`https://…`, `http://…` or `www.…`, with no spaces). */
+const titleIsUrl = (title: string | undefined) => {
+  const t = (title ?? '').trim();
+  return !t || /^(https?:\/\/|www\.)\S*$/i.test(t);
+};

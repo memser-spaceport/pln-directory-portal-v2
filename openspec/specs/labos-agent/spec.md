@@ -72,6 +72,15 @@ When the request fails before the stream starts, or the connection breaks, the t
 - **WHEN** the member presses Retry
 - **THEN** the agent sends the same message again and the error message goes away
 
+### Requirement: Each source shows once
+
+As a guard next to the backend fix, `normalizeChatBody` SHALL drop a web source (`sources`) when a C1 ref already points to the same page (LAB-3298, D2). The compare SHALL use the ref `externalUrl`, `directoryLink` and `url`; a relative link reads against the app origin; `www.`, a trailing slash and the hash do not count; the query counts. A web source on the app's own origin SHALL drop out, and a web source that comes twice SHALL show once. The order SHALL stay.
+
+#### Scenario: A team ref and its website
+
+- **GIVEN** C1 sends a team ref "Textile" with `externalUrl` `https://www.textile.io` and the web source `https://textile.io/`
+- **THEN** "Sources" lists the team ref only
+
 ### Requirement: Each proposed edit shows an action card
 
 A finished answer SHALL show one action card for each proposal in the C1 `proposals` list (profile fields, experience add or change, team edit). A card SHALL show the proposal title and, for each change, the label and the old and new values. An empty value SHALL read "Empty". The card SHALL show Confirm and Cancel. Nothing SHALL save before Confirm (D2). Confirm and Cancel SHALL call C2 with only `proposalId` and `decision`. While C2 runs, the buttons SHALL be disabled, so a double press sends one request. A card SHALL be used once: after done, cancelled, a 403 or a final error, it SHALL have no buttons. Card state SHALL live with its turn in the store, so it SHALL survive close and reopen from the same context. The client SHALL drop a proposal that has no id, an unknown tool or no changes.

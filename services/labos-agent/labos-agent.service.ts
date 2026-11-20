@@ -30,6 +30,7 @@ import { LABOS_AGENT_ENDPOINTS, LABOS_AGENT_MESSAGE_MAX } from './constants';
 import { isLabosAgentMock } from './labos-agent.config';
 import { LabosAgentError } from './labos-agent.errors';
 import { mockLabosAgentClient } from './labos-agent.mock';
+import { visibleWebSources } from './labos-agent.source-dedupe';
 
 export { LabosAgentError } from './labos-agent.errors';
 
@@ -188,11 +189,13 @@ export function normalizeDrafts(v: unknown): LabosAgentDraft[] {
 /** Reads a partial or full stream body into the response shape. Unknown or half-written fields drop out. */
 export function normalizeChatBody(value: unknown): LabosAgentChatResponse {
   const body = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+  const refs = sourceRefs(body.sourceRefs);
   return {
     steps: strings(body.steps),
     content: typeof body.content === 'string' ? body.content : '',
-    sources: strings(body.sources),
-    sourceRefs: sourceRefs(body.sourceRefs),
+    // LAB-3298 (D2): a page that a ref already lists, or a page on the app's own origin, shows once.
+    sources: visibleWebSources(strings(body.sources), refs),
+    sourceRefs: refs,
     followUpQuestions: strings(body.followUpQuestions),
     actions: Array.isArray(body.actions) ? body.actions : [],
     proposals: normalizeProposals(body.proposals),

@@ -415,6 +415,33 @@ describe('LAB-3318: agent @mentions (S6 frontend)', () => {
       expect(input).toHaveAttribute('placeholder', 'Ask, tell it what to do, or type @ to add context');
     });
 
+    describe('D7: the placeholder at a narrow width', () => {
+      const realWidth = window.innerWidth;
+      const setWidth = (width: number) =>
+        Object.defineProperty(window, 'innerWidth', { configurable: true, writable: true, value: width });
+      afterEach(() => setWidth(realWidth));
+
+      it('D7: at 390px both roles get the short placeholder', async () => {
+        setWidth(390);
+        canRequestIntro.mockReturnValue(true);
+        const input = await openPanel();
+        expect(input).toHaveAttribute('placeholder', 'Ask, or type @ to add context');
+      });
+
+      it('D7: at 390px a member who cannot request intros gets the short placeholder', async () => {
+        setWidth(390);
+        const input = await openPanel();
+        expect(input).toHaveAttribute('placeholder', 'Ask, or type @ to add context');
+      });
+
+      it('D7: at 1440px the role placeholders stay (S6-F18, S6-F19)', async () => {
+        setWidth(1440);
+        canRequestIntro.mockReturnValue(true);
+        const input = await openPanel();
+        expect(input).toHaveAttribute('placeholder', 'Ask, request an intro, or type @ to add context');
+      });
+    });
+
     it('S6-F20: a first turn with no context and no mentions shows the line above the answer; later turns do not', async () => {
       const input = await openPanel();
       type(input, 'Hi');

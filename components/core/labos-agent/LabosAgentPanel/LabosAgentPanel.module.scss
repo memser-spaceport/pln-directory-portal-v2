@@ -288,6 +288,17 @@ a.context {
   line-height: 20px;
 }
 
+/* D7 (LAB-3318): the placeholder keeps one line, and the empty field shows no scrollbar. */
+.composer.composer textarea::placeholder {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.composer.composer textarea:placeholder-shown {
+  overflow-y: hidden;
+}
+
 /* LAB-3318: the page chip, the mention chips and the + button in one row. The picker opens above the row. */
 .foot {
   position: relative;

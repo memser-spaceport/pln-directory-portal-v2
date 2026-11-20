@@ -334,7 +334,8 @@ describe('LAB-3297: agent events', () => {
     renderApp();
     await open(newsContext, 'news-story');
     await send(MESSAGE);
-    fireEvent.click(screen.getByText('Acme site').closest('a') as HTMLAnchorElement);
+    // Find the web ref by its href: D8 (LAB-3298) shows its domain as the title.
+    fireEvent.click(document.querySelector('a[href="https://example.com/acme"]') as HTMLAnchorElement);
     fireEvent.click(screen.getByText('Acme team').closest('a') as HTMLAnchorElement);
 
     const clicks = events('agent-source-clicked');

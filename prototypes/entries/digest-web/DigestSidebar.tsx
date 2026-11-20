@@ -23,13 +23,14 @@ export interface PastIssue {
  * The web page's side column, modelled on Perplexity Discover's right rail (Mobbin): small
  * white cards, each with one job.
  *
- * 1. Add topics: "Make it yours". Topics the reader doesn't follow yet, as News preferences'
- *    own control chips (digest-topics `.chip`/`.chipOn`, the same ones the For You starter card
- *    uses). Followed topics aren't shown (Polina, 2026-11-17). Save topics appears once a chip
- *    changes; See all topics opens the All topics modal (`AllTopicsModal`), where unfollowing
- *    happens too.
- * 2. How personalization works: Perplexity's "How Discover works". One card, title plus the
- *    pick order (Vova's backend order), which the greeting line doesn't say.
+ * 1. How personalization works: Perplexity's "How Discover works". One card, title plus the
+ *    pick order (Vova's backend order). First, so the explanation comes before the ask, and it's
+ *    the page's only explanation: the web intro line was dropped (manager, 2026-11-20).
+ * 2. Suggested topics (was "Add topics", renamed 2026-11-20): topics the reader doesn't follow
+ *    yet, as News preferences' own control chips (digest-topics `.chip`/`.chipOn`, the same ones
+ *    the For You starter card uses). Followed topics aren't shown (Polina, 2026-11-17). Save
+ *    topics appears once a chip changes; See all topics opens the All topics modal
+ *    (`AllTopicsModal`), where unfollowing happens too.
  * 3. Past issues: collapsed by default, so the cards above stay in view.
  *
  * From 1100px it's a sticky column on the right; under that the same cards follow the end of
@@ -57,12 +58,6 @@ export function DigestSidebar({
 }) {
   return (
     <div className={variant === 'rail' ? s.rail : s.inline}>
-      <TopicsCard
-        key={subscribed.join()}
-        subscribed={subscribed}
-        onSave={onSaveTopics}
-        onOpenAll={onOpenAllTopics}
-      />
       <section className={s.card} aria-labelledby={`how-${variant}`}>
         <h2 id={`how-${variant}`} className={s.cardTitle}>
           How personalization works
@@ -71,6 +66,12 @@ export function DigestSidebar({
           Stories come from your topics first, then the teams you follow, then the network’s top stories.
         </p>
       </section>
+      <TopicsCard
+        key={subscribed.join()}
+        subscribed={subscribed}
+        onSave={onSaveTopics}
+        onOpenAll={onOpenAllTopics}
+      />
       <PastIssuesCard
         id={`past-${variant}`}
         current={currentIssue}
@@ -114,7 +115,7 @@ function TopicsCard({
   return (
     <section className={s.card} aria-labelledby="digest-topics-title">
       <h2 id="digest-topics-title" className={s.cardTitle}>
-        Add topics
+        Suggested topics
       </h2>
       <p className={s.cardText}>Tick a topic to get stories about it in your digest.</p>
       <div className={clsx(dt.chips, s.chips)} role="group" aria-label="Topics to add">

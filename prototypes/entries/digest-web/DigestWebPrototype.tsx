@@ -199,20 +199,20 @@ export default function DigestWebPrototype() {
 
             <header className={s.intro}>
               <h1 className={s.greeting}>Hi {DIGEST_ISSUE.greetingName},</h1>
-              <p className={s.introText}>
-                {DIGEST_ISSUE.intro}{' '}
-                {/* Opens the All topics modal, so the issue stays where it was (Anuj: "new tab or
-                    modal"). In the email it's a link that lands on this page with the modal open. */}
-                {isEmail ? (
+              {/* Web (manager, 2026-11-20): the How personalization works card explains the picks,
+                  so the line under the greeting only says what the digest is. The email has no
+                  side column, so it keeps one line in the card's words plus Change topics, a link
+                  that lands on this page with the All topics modal open. */}
+              {isEmail ? (
+                <p className={s.introText}>
+                  {DIGEST_ISSUE.intro}{' '}
                   <a href="?topics=open" className={s.introLink}>
                     Change topics
                   </a>
-                ) : (
-                  <button type="button" className={s.introLink} onClick={() => setTopicsOpen(true)}>
-                    Change topics
-                  </button>
-                )}
-              </p>
+                </p>
+              ) : (
+                <p className={s.introText}>{DIGEST_ISSUE.description}</p>
+              )}
             </header>
 
             {!isEmail && topicsOpen && (

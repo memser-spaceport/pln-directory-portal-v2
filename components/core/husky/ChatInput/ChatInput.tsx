@@ -48,16 +48,18 @@ export const ChatInput = forwardRef<
       }
     };
 
-    return (
+    const showsHint = !isMobileDevice();
+    const hintText = (
+      <p>
+        <span className={s.tag}>Shift</span> +<span className={s.tag}>Enter</span> to add new line
+      </p>
+    );
+
+    const box = (
       <div className={clsx(s.root, className)}>
         <textarea {...props} ref={ref} onChange={handleInput} className={s.input} />
-        {!isMobileDevice() && !(hideHintWhenEmpty && empty) && (
-          <div className={s.instruction}>
-            <p>
-              <span className={s.tag}>Shift</span> +<span className={s.tag}>Enter</span> to add new line
-            </p>
-          </div>
-        )}
+        {/* Without `hideHintWhenEmpty`: the old hint over the field (`:placeholder-shown` rules), no change. */}
+        {showsHint && !hideHintWhenEmpty && <div className={s.instruction}>{hintText}</div>}
 
         <div className={s.action}>
           {isAnswerLoading ? (
@@ -102,6 +104,19 @@ export const ChatInput = forwardRef<
             </button>
           )}
         </div>
+      </div>
+    );
+
+    if (!hideHintWhenEmpty) return box;
+    // LAB-3318 (S6-F19): a static line under the field, so it never covers the text. `data-hint` follows the value.
+    return (
+      <div className={s.withHintBelow}>
+        {box}
+        {showsHint && (
+          <div className={s.hintBelow} data-hint={empty ? 'hidden' : 'shown'}>
+            {hintText}
+          </div>
+        )}
       </div>
     );
   },

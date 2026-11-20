@@ -113,21 +113,50 @@ describe('AI Search chat input', () => {
   });
 
   describe('hideHintWhenEmpty (LAB-3318, S6-F19)', () => {
-    const hintShown = () => screen.queryAllByText(/to add new line/).length > 0;
+    // jsdom does not apply CSS. The `data-hint` attribute drives the SCSS rules, so the tests check the attribute.
+    const hint = () => screen.getByText(/to add new line/).closest('div') as HTMLElement;
 
-    it('keeps the hint on an empty field by default, so other users do not change', () => {
+    it('without the prop: no data-hint, so the old :placeholder-shown rules stay (shown when empty, hidden with text)', () => {
       renderInput();
-      expect(hintShown()).toBe(true);
+      const field = screen.getByPlaceholderText('Ask anything');
+      expect(hint()).not.toHaveAttribute('data-hint');
+      fireEvent.change(field, { target: { value: 'Hi' } });
+      expect(hint()).not.toHaveAttribute('data-hint');
     });
 
-    it('hides the hint while the field is empty and shows it with text', () => {
+    it('with the prop: data-hint is "hidden" when the field is empty and "shown" with text', () => {
       renderInput({ hideHintWhenEmpty: true });
       const field = screen.getByPlaceholderText('Ask anything');
-      expect(hintShown()).toBe(false);
+      expect(hint()).toHaveAttribute('data-hint', 'hidden');
       fireEvent.change(field, { target: { value: 'Hi' } });
-      expect(hintShown()).toBe(true);
+      expect(hint()).toHaveAttribute('data-hint', 'shown');
       fireEvent.change(field, { target: { value: '' } });
-      expect(hintShown()).toBe(false);
+      expect(hint()).toHaveAttribute('data-hint', 'hidden');
+    });
+
+    it('with the prop: the hint is a line under the field, outside the field box; without it, inside as before', () => {
+      renderInput({ hideHintWhenEmpty: true });
+      const field = screen.getByPlaceholderText('Ask anything');
+      const box = field.parentElement as HTMLElement;
+      expect(box).not.toContainElement(hint());
+      expect(box.nextElementSibling).toBe(hint());
+    });
+
+    it('without the prop: the hint stays in the field box, after the textarea', () => {
+      renderInput();
+      const field = screen.getByPlaceholderText('Ask anything');
+      expect(field.nextElementSibling).toBe(hint());
+    });
+
+    it('with the prop and a default value: data-hint starts as "shown"', () => {
+      renderInput({ hideHintWhenEmpty: true, defaultValue: 'Hello' });
+      expect(hint()).toHaveAttribute('data-hint', 'shown');
+    });
+
+    it('with the prop on a mobile device: no hint', () => {
+      isMobileDevice.mockReturnValue(true);
+      renderInput({ hideHintWhenEmpty: true });
+      expect(screen.queryByText(/to add new line/)).not.toBeInTheDocument();
     });
 
     it('does not pass hideHintWhenEmpty to the textarea', () => {

@@ -590,7 +590,12 @@ describe('LAB-3318: agent @mentions (S6 frontend)', () => {
   });
 
   describe('Oleg decisions (#labos-team)', () => {
-    const hintShown = () => screen.queryAllByText(/to add new line/).length > 0;
+    // jsdom does not apply CSS: `data-hint` drives the SCSS rules (`ChatInput.module.scss`).
+    const hintShown = () =>
+      screen
+        .getByText(/to add new line/)
+        .closest('div')
+        ?.getAttribute('data-hint') === 'shown';
 
     it('S6-F19: the Shift + Enter hint hides while the composer is empty and shows with text', async () => {
       const input = await openPanel();
@@ -638,7 +643,12 @@ describe('LAB-3318: agent @mentions (S6 frontend)', () => {
   });
 
   describe('test gaps (Oleg, after #3643)', () => {
-    const hintShown = () => screen.queryAllByText(/to add new line/).length > 0;
+    // jsdom does not apply CSS: `data-hint` drives the SCSS rules (`ChatInput.module.scss`).
+    const hintShown = () =>
+      screen
+        .getByText(/to add new line/)
+        .closest('div')
+        ?.getAttribute('data-hint') === 'shown';
     const PAGE_404_TEXT = 'The agent cannot read this page. Remove the page chip and ask again.';
 
     /** Sends the text with no change event, so the @ picker never opens before the send. */

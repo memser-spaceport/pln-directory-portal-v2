@@ -31,6 +31,7 @@
   font-size: 12px;
   color: rgba(100, 116, 139, 1);
   white-space: nowrap;
+  pointer-events: none;
 }
 
 .input:placeholder-shown + .instruction {
@@ -39,6 +40,31 @@
 
 .input:not(:placeholder-shown) + .instruction {
   display: none;
+}
+
+// LAB-3318 (S6-F19), `hideHintWhenEmpty` only: the hint is a static line under the field, not over it.
+.withHintBelow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.hintBelow {
+  padding: 0 2px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+  pointer-events: none;
+
+  p {
+    margin: 0;
+  }
+}
+
+// Hidden keeps the line height, so the composer does not move when the first key comes.
+.hintBelow[data-hint='hidden'] {
+  visibility: hidden;
 }
 
 .tag {

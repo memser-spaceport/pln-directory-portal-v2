@@ -35,3 +35,35 @@ export function distinctSourceCount(sources: string[], sourceRefs: LabosAgentSou
   for (const url of sources) if (url.trim()) keys.add(linkKey(url));
   return keys.size;
 }
+
+/** The label under "Sources" for each C1 ref type. An unknown type shows with a capital first letter. */
+const REF_TYPE_LABELS: Record<string, string> = {
+  news: 'LabOS news',
+  team: 'Team',
+  project: 'Project',
+  member: 'Member',
+  external: 'Web',
+  web: 'Web',
+};
+
+/** The host of a URL with no `www.`, or `null` when it is not a URL. */
+const hostOf = (url: string): string | null => {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '') || null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * LAB-3298 (D8): the title and the label of a C1 ref under "Sources". A LabOS type shows as a word ("Team"), never
+ * the raw type. A web ref (`external` or `web`) shows its domain as the title and "Web" as the label, like the web
+ * sources of the answer.
+ */
+export function sourceRefLabel(ref: LabosAgentSourceRef): { title: string; meta: string } {
+  const type = ref.type.trim().toLowerCase();
+  const meta = REF_TYPE_LABELS[type] ?? (type ? type.charAt(0).toUpperCase() + type.slice(1) : 'LabOS');
+  if (meta !== 'Web') return { title: ref.title, meta };
+  const { href, external } = sourceRefLink(ref);
+  return { title: (external && href && hostOf(href)) || ref.title, meta };
+}

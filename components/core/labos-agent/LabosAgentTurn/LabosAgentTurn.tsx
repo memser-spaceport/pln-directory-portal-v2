@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Button } from '@/components/common/Button';
 import { Markdown } from '@/components/common/Markdown';
 import type { LabosAgentTurn as Turn } from '@/services/labos-agent/hooks/useLabosAgentChat';
-import { sourceRefLink } from '@/services/labos-agent/labos-agent.sources';
+import { sourceRefLabel, sourceRefLink } from '@/services/labos-agent/labos-agent.sources';
 import type { LabosAgentDecision } from '@/types/labos-agent.types';
 
 import { LabosAgentActionCard } from '../LabosAgentActionCard/LabosAgentActionCard';
@@ -122,6 +122,7 @@ export function LabosAgentTurn({
           <ul className={s.refs}>
             {turn.sourceRefs.map((ref, i) => {
               const { href, external } = sourceRefLink(ref);
+              const label = sourceRefLabel(ref);
               return (
                 <li key={`ref-${i}`}>
                   <a
@@ -130,8 +131,8 @@ export function LabosAgentTurn({
                     className={s.ref}
                     onClick={() => onSourceClick?.(ref.type === 'web' ? 'web' : 'labos', i + 1)}
                   >
-                    <span className={s.refTitle}>{ref.title}</span>
-                    <span className={s.refMeta}>{ref.type === 'news' ? 'LabOS news' : ref.type}</span>
+                    <span className={s.refTitle}>{label.title}</span>
+                    <span className={s.refMeta}>{label.meta}</span>
                   </a>
                 </li>
               );

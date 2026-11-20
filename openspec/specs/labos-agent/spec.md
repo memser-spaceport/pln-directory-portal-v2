@@ -122,6 +122,16 @@ Accessibility: the card SHALL be an `<article>` named by its title. Each card SH
 - **WHEN** `expiresAt` passes
 - **THEN** Confirm and Cancel go away and the card says that the change expired
 
+### Requirement: Sources show readable labels
+
+Under "Sources", each C1 ref SHALL show a readable label for its type: "LabOS news", "Team", "Project", "Member" or "Web" (types `news`, `team`, `project`, `member`, and `external` or `web`). An unknown type SHALL show with a capital first letter. The panel SHALL never show the raw type. A web ref SHALL show the domain of its link (with no `www.`) as its title, not the raw URL. A web ref with no valid link SHALL keep its title (LAB-3298, D8).
+
+#### Scenario: A team ref and an external ref
+
+- **GIVEN** an answer has a `team` ref "Textile" and an `external` ref to `https://www.textile.io/blog`
+- **THEN** the team ref shows "Textile" with the label "Team"
+- **AND** the external ref shows "textile.io" with the label "Web"
+
 ### Requirement: Eligible members can ask the agent for an intro draft
 
 Next to "Request an intro" (`RequestIntroEntry`), the page SHALL show "Ask the agent" only when `useCanRequestIntro()` is true and the member passes the agent gate (`useLabosAgentAccess()`) (S3-R10). A press SHALL call `openAgent({ context, prefill })` with `context` `{ page: 'intro', introTarget: { type, uid }, label: 'Intro to <name>', entryPoint }`. `type` SHALL be lower case (`member` or `team`). The composer SHALL hold the first message "Help me write an intro request to <name>." The member SHALL be able to change it before they send. The C1 `context` SHALL be `{ page: 'intro', introTarget: { type, uid } }` only. `label` and `entryPoint` SHALL never go to the API. The store SHALL keep one chat for each intro target (`chatKey` `intro:<type>:<uid>`). A C1 404 `INTRO_TARGET_NOT_FOUND` SHALL show "The agent cannot find this member or team." with Retry and no card.

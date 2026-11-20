@@ -6,6 +6,7 @@ import Link from 'next/link';
 
 import { useLabosAgentAnalytics } from '@/analytics/labos-agent.analytics';
 import { ChatInput } from '@/components/core/husky/ChatInput';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { AiSearchIcon } from '@/components/icons/AiSearchIcon';
 import { CloseIcon } from '@/components/icons/CloseIcon';
 import { useCanRequestIntro } from '@/services/intro-requests/hooks/useCanRequestIntro';
@@ -115,6 +116,8 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
   const [mock] = useState(() => isLabosAgentMock());
   /* S6-F18, S6-F19: the placeholder by role. */
   const canRequestIntro = useCanRequestIntro();
+  /* D7: the long placeholder wraps in the 1-row composer below 768px, so a short one shows there. */
+  const narrow = useIsMobile();
 
   /* S6 @mentions: the chips of the next message and the open picker. */
   const [chips, setChips] = useState<LabosAgentMentionChip[]>([]);
@@ -513,7 +516,11 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
           rows={1}
           maxLength={2000}
           placeholder={
-            canRequestIntro ? LABOS_AGENT_MENTION_TEXT.placeholderIntro : LABOS_AGENT_MENTION_TEXT.placeholderOther
+            narrow
+              ? LABOS_AGENT_MENTION_TEXT.placeholderNarrow
+              : canRequestIntro
+                ? LABOS_AGENT_MENTION_TEXT.placeholderIntro
+                : LABOS_AGENT_MENTION_TEXT.placeholderOther
           }
           aria-label="Message the agent"
           // S6-F9: in `@` mode the composer controls the picker (ARIA combobox).

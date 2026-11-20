@@ -18,6 +18,13 @@ export function sourceRefLink(ref: LabosAgentSourceRef): { href?: string; extern
   return { external: false };
 }
 
+/** The ref types that are a web page, not a LabOS item. The backend sends `external`; an older body sends `web`. */
+const WEB_REF_TYPES = new Set(['external', 'web']);
+
+/** LAB-3297 V0-R7: the `sourceType` of `agent-source-clicked` for a C1 ref. Type `external` (or `web`) is `web`. */
+export const sourceRefKind = (ref: LabosAgentSourceRef): 'labos' | 'web' =>
+  WEB_REF_TYPES.has(ref.type.trim().toLowerCase()) ? 'web' : 'labos';
+
 /** One key for a link: trimmed, with no trailing slash. The same rule as the backend `answerCounts`. */
 const linkKey = (url: string) => url.trim().replace(/\/+$/, '');
 

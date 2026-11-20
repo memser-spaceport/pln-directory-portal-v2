@@ -322,6 +322,29 @@ describe('LAB-3297: agent events', () => {
     expect(events('agent-answer-shown')).toHaveLength(0);
   });
 
+  it('agent-source-clicked (V0-R7): a C1 ref of type external sends sourceType web', async () => {
+    chat.mockResolvedValue(
+      answer({
+        sources: [],
+        sourceRefs: [
+          { type: 'external', title: 'Acme site', externalUrl: 'https://example.com/acme' },
+          { type: 'team', title: 'Acme team', directoryLink: '/teams/t-1' },
+        ],
+      }),
+    );
+    renderApp();
+    await open(newsContext, 'news-story');
+    await send(MESSAGE);
+    // Find the web ref by its href: D8 (LAB-3298) shows its domain as the title.
+    fireEvent.click(document.querySelector('a[href="https://example.com/acme"]') as HTMLAnchorElement);
+    fireEvent.click(screen.getByText('Acme team').closest('a') as HTMLAnchorElement);
+
+    const clicks = events('agent-source-clicked');
+    expect(clicks).toHaveLength(2);
+    expect(clicks[0]).toMatchObject({ sourceType: 'web', position: 1 });
+    expect(clicks[1]).toMatchObject({ sourceType: 'labos', position: 2 });
+  });
+
   it('agent-source-clicked (V0-R1): the first source has position 1, the web source position 2', async () => {
     renderApp();
     await open(newsContext, 'news-story');

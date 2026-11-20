@@ -72,6 +72,15 @@ When the request fails before the stream starts, or the connection breaks, the t
 - **WHEN** the member presses Retry
 - **THEN** the agent sends the same message again and the error message goes away
 
+### Requirement: Each source shows once
+
+As a guard next to the backend fix, `normalizeChatBody` SHALL drop a web source (`sources`) when a C1 ref already points to the same page (LAB-3298, D2). The compare SHALL use the ref `externalUrl`, `directoryLink` and `url`; a relative link reads against the app origin; `www.`, a trailing slash and the hash do not count; the query counts. A web source on the app's own origin SHALL drop out, and a web source that comes twice SHALL show once. The order SHALL stay.
+
+#### Scenario: A team ref and its website
+
+- **GIVEN** C1 sends a team ref "Textile" with `externalUrl` `https://www.textile.io` and the web source `https://textile.io/`
+- **THEN** "Sources" lists the team ref only
+
 ### Requirement: Each proposed edit shows an action card
 
 A finished answer SHALL show one action card for each proposal in the C1 `proposals` list (profile fields, experience add or change, team edit). A card SHALL show the proposal title and, for each change, the label and the old and new values. An empty value SHALL read "Empty". The card SHALL show Confirm and Cancel. Nothing SHALL save before Confirm (D2). Confirm and Cancel SHALL call C2 with only `proposalId` and `decision`. While C2 runs, the buttons SHALL be disabled, so a double press sends one request. A card SHALL be used once: after done, cancelled, a 403 or a final error, it SHALL have no buttons. Card state SHALL live with its turn in the store, so it SHALL survive close and reopen from the same context. The client SHALL drop a proposal that has no id, an unknown tool or no changes.
@@ -273,6 +282,13 @@ The agent SHALL send the 10 v0 events of the LAB-3297 spec (V0-R1) through `useL
 - **WHEN** the member opens the agent and closes it with no message
 - **THEN** one `agent-dock-closed` goes out with `turnCount` 0
 
+#### Scenario: A click on an external ref (V0-R7)
+
+- **GIVEN** an answer has a C1 ref of type `external` (or `web`)
+- **WHEN** the member clicks the ref
+- **THEN** `agent-source-clicked` goes out with `sourceType` `web`
+- **AND** a ref of any other type (`news`, `team`, `project`, `member`) sends `sourceType` `labos`
+
 ### Requirement: The member adds context with @ or the + button
 
 `@` at the start of the input or after a space SHALL open the mention picker (S6-F1). The text after `@` up to a space SHALL be the query, up to 30 characters. A space, Esc or a deleted `@` SHALL close the `@` picker (S6-F2). The + button next to the input SHALL open the same picker with its own search field. Its tooltip SHALL be "Add a page, story, team or member (or type @)" (S6-F3). The hint line SHALL be "Mention a page, story, team or member" for an empty query (S6-F4) and "Matching "<query>"" while the member types (S6-F5). The picker SHALL show the groups in this order: Pages, News, Teams, Members. An empty group SHALL not show (S6-F6). The Pages group SHALL have Home, Jobs and Your profile, and the current page only after the member removed its chip (S6-F7). The picker SHALL hide the items that already have a chip (S6-F11). Up, Down, Enter and Tab SHALL move and pick. Esc SHALL close the picker first, then the panel (S6-F9). After Esc, the same `@` SHALL not open the picker again; a new `@` SHALL open it. While C4 loads and the `@` picker has no row, Enter SHALL do nothing. In `@` mode the composer, and in + mode the search field, SHALL be an ARIA combobox with `aria-expanded`, `aria-controls` (the listbox) and `aria-activedescendant` (the active option id). The search notes SHALL be in a `role="status"` region. The chip row SHALL be a `group` named "What the agent reads".
@@ -293,7 +309,7 @@ An `@` pick SHALL put `@<name> ` in the message in the place of `@<query>` and a
 
 ### Requirement: The placeholder and the no-context line
 
-The placeholder SHALL be "Ask, request an intro, or type @ to add context" when `useCanRequestIntro()` is true (S6-F18), and "Ask, tell it what to do, or type @ to add context" for other members (S6-F19). The "Shift + Enter" hint SHALL hide while the composer is empty and show when it has text (`ChatInput` `hideHintWhenEmpty`, opt-in; other `ChatInput` users keep the hint). While C4 loads, the picker SHALL show "Searching…" (U+2026). When the first turn of a chat had no `context` and no `mentions`, the panel SHALL show the fixed line "I'm not reading any page right now. Add one with + or type @ to point me at a story, team or member." above the first answer, outside its `content` (S6-F20). The line SHALL not show when that turn failed.
+The placeholder SHALL be "Ask, request an intro, or type @ to add context" when `useCanRequestIntro()` is true (S6-F18), and "Ask, tell it what to do, or type @ to add context" for other members (S6-F19). Below 768px wide, the placeholder SHALL be "Ask, or type @ to add context" for all members, so the empty composer keeps one line at 390px. The placeholder SHALL not wrap, and the empty composer SHALL show no scrollbar (D7). The "Shift + Enter" hint SHALL hide while the composer is empty and show when it has text (`ChatInput` `hideHintWhenEmpty`, opt-in; other `ChatInput` users keep the hint). While C4 loads, the picker SHALL show "Searching…" (U+2026). When the first turn of a chat had no `context` and no `mentions`, the panel SHALL show the fixed line "I'm not reading any page right now. Add one with + or type @ to point me at a story, team or member." above the first answer, outside its `content` (S6-F20). The line SHALL not show when that turn failed.
 
 ### Requirement: The mock answers C4
 

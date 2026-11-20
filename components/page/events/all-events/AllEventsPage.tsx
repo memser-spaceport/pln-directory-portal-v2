@@ -45,6 +45,8 @@ import { EventsMap } from './map/EventsMap';
 import { AddLocationRow, NearYou } from './NearYou';
 import { EventsEmpty, EventsError } from './states';
 import type { AllEventsView } from './icons';
+import { EVENTS_MINE_PATH } from '@/utils/events-submit';
+
 import s from './AllEventsPage.module.scss';
 
 /** Loaded on the first press (or the hover before it), so the page doesn't ship the drawer to everyone up front. */
@@ -63,6 +65,8 @@ export interface AllEventsPageProps {
   /** The server's day, so the first render matches the HTML; the browser's own day replaces it after hydration. */
   serverTodayIso: string;
   submitHref: string;
+  /** "Submit an event" opens the LabOS form (same tab), and a signed-in member gets "My Submissions". */
+  submitInApp?: boolean;
   eventsAppHref: string;
 }
 
@@ -83,6 +87,7 @@ export function AllEventsPage({
   memberCity,
   serverTodayIso,
   submitHref,
+  submitInApp = false,
   eventsAppHref,
 }: AllEventsPageProps) {
   const router = useRouter();
@@ -254,6 +259,8 @@ export function AllEventsPage({
       <div className={s.container}>
         <AllEventsHeader
           submitHref={submitHref}
+          submitInApp={submitInApp}
+          mySubmissionsHref={submitInApp && signedIn ? EVENTS_MINE_PATH : undefined}
           eventsAppHref={eventsAppHref}
           onSubmitClick={() => analytics.onSubmitEventButtonClicked()}
           onEventsAppClick={() => analytics.onGoToEventsButtonClicked()}

@@ -1,0 +1,48 @@
+@use 'styles/media';
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* The platform, the handle and the remove control on one line; on a phone the platform takes its own line. */
+.fields {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+
+  @include media.mobile-only {
+    flex-wrap: wrap;
+  }
+}
+
+.platform {
+  flex: 0 0 180px;
+
+  @include media.mobile-only {
+    flex: 1 0 100%;
+  }
+}
+
+.handle {
+  flex: 1;
+  min-width: 0;
+}

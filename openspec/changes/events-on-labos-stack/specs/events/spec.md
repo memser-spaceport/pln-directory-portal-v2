@@ -2,21 +2,22 @@
 
 ## ADDED Requirements
 
-### Requirement: Anyone can open the submit form
+### Requirement: A signed-in member can open the submit form
 
-`/events/submit` SHALL show the form "Submit Event" to signed-in members and to signed-out visitors. A signed-out visitor SHALL also see a required contact email and a "Sign in" link that returns to the form, and SHALL NOT see "Save as draft". The page SHALL have a back control to `/events/all`.
+`/events/submit` SHALL show the form "Submit Event" to a signed-in member, with "Save as draft" and "Submit Event". A signed-out visitor SHALL be asked to sign in and SHALL return to the form after. The page SHALL have a back control to `/events/all`.
 
 #### Scenario: A signed-in member opens the form
 
 - **GIVEN** a signed-in member
 - **WHEN** they open `/events/submit`
-- **THEN** the form shows with "Save as draft" and "Submit Event" and no contact email field
+- **THEN** the form shows with "Save as draft" and "Submit Event"
 
 #### Scenario: A signed-out visitor opens the form
 
 - **GIVEN** a signed-out visitor
 - **WHEN** they open `/events/submit`
-- **THEN** the form shows a required contact email, a "Sign in" link and "Submit Event" only
+- **THEN** the page asks them to sign in and shows no form
+- **AND** after sign-in they are on `/events/submit`
 
 ### Requirement: The form keeps the old portal's sections and order
 
@@ -185,27 +186,15 @@ The host section SHALL have a host name ("Enter Host Name") and an optional host
 - **WHEN** the visitor adds two co-host rows
 - **THEN** the title reads "Host (3)"
 
-### Requirement: Registration link with import from Luma
+### Requirement: Registration link
 
-The registration link ("Enter Registration Link") SHALL be optional. When it is a `luma.com` or `lu.ma` address, the form SHALL show "Luma Link Detected! Submit faster with auto-import" and "Fetch from Luma". Fetching SHALL show "Importing From Luma..." and then fill the form from the Luma event. After it, the strip SHALL read "Details in this form were imported from the above Luma link" with "Fetch Again". A failed fetch SHALL show a message and change nothing.
+The registration link ("Enter Registration Link") SHALL be optional. A link typed with no "https://" SHALL be accepted. The form SHALL NOT import an event from Luma or any other site.
 
-#### Scenario: A Luma link
+#### Scenario: A link with no scheme
 
-- **GIVEN** the registration link `https://lu.ma/abc`
-- **WHEN** the visitor presses "Fetch from Luma"
-- **THEN** the name, logo, dates, time zone, format, location, access, description, agenda, tags and host are filled from the Luma event
-- **AND** the strip offers "Fetch Again"
-
-#### Scenario: A private Luma event
-
-- **GIVEN** a Luma link the import cannot read
-- **WHEN** the visitor presses "Fetch from Luma"
-- **THEN** a message says the event could not be imported and the form is unchanged
-
-#### Scenario: Another site
-
-- **GIVEN** the registration link `https://example.com/event`
-- **THEN** no Luma strip shows
+- **GIVEN** the registration link `lu.ma/abc`
+- **WHEN** the member submits a valid form
+- **THEN** the event is sent with `https://lu.ma/abc`
 
 ### Requirement: Website link and social handles on the edit page
 
@@ -225,7 +214,7 @@ The edit page SHALL also show "Website Link" ("Enter Website Link") and "Social 
 
 ### Requirement: Submit Event checks the form
 
-"Submit Event" SHALL send nothing while a check fails, SHALL show each message under its field and SHALL scroll to the first one. The checks SHALL be: "Event name required"; "Start date and end date is required"; "Time zone is required"; "At least one tag is required"; "Enter a valid host name"; "Co-host name is required"; "Enter a valid email" for a co-host or contact email; "Enter a valid registration link"; "Enter a valid website link"; and the social handle and agenda checks.
+"Submit Event" SHALL send nothing while a check fails, SHALL show each message under its field and SHALL scroll to the first one. The checks SHALL be: "Event name required"; "Start date and end date is required"; "Time zone is required"; "At least one tag is required"; "Enter a valid host name"; "Co-host name is required"; "Enter a valid email" for a co-host; "Enter a valid registration link"; "Enter a valid website link"; and the social handle and agenda checks.
 
 #### Scenario: No tag
 
@@ -247,7 +236,7 @@ The edit page SHALL also show "Website Link" ("Enter Website Link") and "Social 
 
 ### Requirement: Save as draft
 
-"Save as draft" SHALL be offered to signed-in members. It SHALL need only the event name, the start and end and the time zone; filled social handles and an agenda SHALL still be checked. On success it SHALL say "Draft Event Created Successfully" and open the event's edit page. A draft SHALL be visible to its submitter only.
+"Save as draft" SHALL need only the event name, the start and end and the time zone; filled social handles and an agenda SHALL still be checked. On success it SHALL say "Draft Event Created Successfully" and open the event's edit page. A draft SHALL be visible to its submitter only.
 
 #### Scenario: A draft with no tag and no host
 
@@ -279,7 +268,7 @@ The edit page SHALL also show "Website Link" ("Enter Website Link") and "Social 
 
 ### Requirement: After Submit Event
 
-A sent form SHALL be sent once; the button SHALL be disabled while the request runs. For a signed-in member, success SHALL say "Event Created Successfully" and open the event's edit page, which shows the event's status: "Approved" when the backend published it, "Submitted" when it waits for approval. A signed-out visitor SHALL see, in place of the form, that the event was received and waits for approval, with "Submit another event". The page SHALL NOT decide the status itself.
+A sent form SHALL be sent once; the button SHALL be disabled while the request runs. Success SHALL say "Event Created Successfully" and open the event's edit page, which shows the event's status: "Approved" when the backend published it, "Submitted" when it waits for approval. The page SHALL NOT decide the status itself.
 
 #### Scenario: A member with forum access submits
 
@@ -292,12 +281,6 @@ A sent form SHALL be sent once; the button SHALL be disabled while the request r
 - **GIVEN** a signed-in member whose submission the backend holds
 - **WHEN** they submit a valid form
 - **THEN** the edit page of the new event opens with the status "Submitted"
-
-#### Scenario: A signed-out visitor submits
-
-- **GIVEN** a signed-out visitor with a valid form and a contact email
-- **WHEN** they submit
-- **THEN** the page says the event was received and waits for approval
 
 #### Scenario: Double press
 
@@ -317,7 +300,7 @@ When the logo upload or the event request fails, the form SHALL keep everything 
 
 #### Scenario: Too many submissions
 
-- **GIVEN** a signed-out visitor over the hourly limit
+- **GIVEN** a member over the submission limit
 - **WHEN** they submit a valid form
 - **THEN** the form keeps its values and says to try again later
 
@@ -463,13 +446,13 @@ For an all-day event, every card, the calendar, My Submissions and the drawer SH
 
 ### Requirement: Submit and My Submissions analytics
 
-The page SHALL send `events-submit-form-opened`; `events-submit-form-submitted` with the result (`approved`, `submitted` or `draft`) and whether the visitor is signed in; `events-submit-form-failed` with the status code; `events-luma-imported`; `events-my-submissions-opened`; `events-event-edited`; and `events-event-deleted`. No event SHALL carry an email or the event's text.
+The page SHALL send `events-submit-form-opened`; `events-submit-form-submitted` with the result (`approved`, `submitted` or `draft`); `events-submit-form-failed` with the status code; `events-my-submissions-opened`; `events-event-edited`; and `events-event-deleted`. No event SHALL carry an email or the event's text.
 
 #### Scenario: A published submission
 
 - **GIVEN** a signed-in member
 - **WHEN** their submission is published
-- **THEN** `events-submit-form-submitted` is sent with result `approved` and signed in `true`
+- **THEN** `events-submit-form-submitted` is sent with result `approved`
 
 ## RENAMED Requirements
 
@@ -508,7 +491,7 @@ The page SHALL send `events-submit-form-opened`; `events-submit-form-submitted` 
 
 ### Requirement: The page header
 
-The page SHALL open with the title "Events", one line of description, "My Submissions" for a signed-in member, and "Submit an event". "Submit an event" SHALL open `/events/submit` in the same tab, for signed-in members and signed-out visitors. "My Submissions" SHALL open `/events/mine`. The header SHALL have no link to the events app.
+The page SHALL open with the title "Events", one line of description, "My Submissions" for a signed-in member, and "Submit an event". "Submit an event" SHALL open `/events/submit` in the same tab; a signed-out visitor is asked to sign in there. "My Submissions" SHALL open `/events/mine`. The header SHALL have no link to the events app.
 
 #### Scenario: Submit an event
 

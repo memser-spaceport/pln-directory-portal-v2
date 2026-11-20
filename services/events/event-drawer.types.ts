@@ -1,5 +1,7 @@
 import type { EventRoleSelection, Resource } from '@/components/core/UpdatesPanel/IrlGatheringModal/types';
 
+import type { EventStatus } from './event-submission.types';
+
 /**
  * The event drawer's wire and view types (LAB-3216).
  *
@@ -48,6 +50,8 @@ export interface EventDetailResponse {
   type: string | null;
   startDate: string;
   endDate: string;
+  /** The approval status, sent to the event's submitter and a directory admin. Absent for other viewers. */
+  status?: EventStatus;
   /** True when the dates carry no time of day. Absent on an API that has no all-day events. */
   allDay?: boolean;
   /** The event's own IANA time zone. Absent or null: the gathering's time zone is used. */
@@ -118,6 +122,8 @@ export interface EventDetail {
   startDate: string;
   endDate: string;
   timezone: string;
+  /** The approval status, when the backend sent it: only the submitter and a directory admin get one. */
+  status: EventStatus | null;
   /** The dates carry no time of day: the drawer shows the days only. */
   allDay: boolean;
   /** Hidden when unknown. */

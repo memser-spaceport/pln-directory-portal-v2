@@ -14,7 +14,7 @@ Groups map to the Tasks under LAB-3278: group 1 = LAB-3339, groups 2 and 3 = LAB
 ## 2. Submit form
 
 - [x] 2.1 Add `NEXT_PUBLIC_EVENTS_LOCAL_SUBMIT` to `.env.example` and a `utils/` constant; verify the three routes answer not found with the flag off
-- [x] 2.2 Add to `services/events/`: `submitEvent` (with `draft`), `updateEvent` (with `submit`), `deleteEvent`, `getMyEvents`, `searchPlaces`, `resolvePlace`, `parseAgenda`, `importFromLuma`, with types from the backend contract and TanStack Query hooks; verify with service tests for 201 `APPROVED`, 201 `PENDING`, 201 `DRAFT`, 400, 429 and a network error
+- [x] 2.2 Add to `services/events/`: `submitEvent` (with `draft`), `updateEvent` (with `submit`), `deleteEvent`, `getMyEvents`, `searchPlaces`, `resolvePlace`, `parseAgenda`, with types from the backend contract and TanStack Query hooks; verify with service tests for 201 `APPROVED`, 201 `PENDING`, 201 `DRAFT`, 400, 429 and a network error
 - [x] 2.3 Decide the editor (design D3): check `components/form/FormEditor` against the old toolbar and the `/Agenda` command; record the choice and, if a dependency is added, the reason in the PR
 - [x] 2.4 Build the form shell `EventForm` with the section order of the old form, the Enter rule and the scroll to the first error; verify with a component test for the order and for Enter in a single-line field
 - [x] 2.5 Build the access option, logo and name sections (limits and messages from the spec); verify with tests for a 6 MB file, a non-square file, replace, delete and a 150-character name
@@ -23,16 +23,16 @@ Groups map to the Tasks under LAB-3278: group 1 = LAB-3339, groups 2 and 3 = LAB
 - [x] 2.8 Add the wall-clock-to-instant mapping and its reverse (design D5); verify with unit tests in two time zones and across a daylight-saving change
 - [x] 2.9 Build the description editor and the agenda box (hint, sample card, text area, parsed view by day, "Add/Edit", "Remove all" with its question) and the agenda checks; verify with tests for a parsed agenda, each parse message, a session outside the event, and a time zone change that keeps clock times
 - [x] 2.10 Build the tags section and the host and co-hosts section; verify with tests for the default chip, a custom tag, a duplicate custom tag, and the "Host (N)" count
-- [x] 2.11 Build the registration link with the Luma strip and the import that fills every section; verify with tests for a `lu.ma` link, another site, a filled form after import, and each failure message
+- [x] 2.11 Build the registration link (optional; a link with no scheme is accepted); verify with tests for a link with no scheme and for "Enter a valid registration link"
 - [x] 2.12 Add the form checks with the texts from the spec for "Submit Event" and for "Save as draft"; verify with one test per message and a test that a draft needs only name, dates and time zone
 - [x] 2.13 Add "Clear form" with its question and toast, and "Preview" on the drawer's view component; verify with tests for cancel, confirm, and Preview from a half-filled form
-- [x] 2.14 Add `app/events/submit/page.tsx` with the signed-out variant (contact email, "Sign in" that returns, no "Save as draft"); verify both variants render on the server
-- [x] 2.15 Add the send flow: logo upload at send time, one request, disabled button, the toasts "Event Created Successfully" and "Draft Event Created Successfully", the redirect to the edit page, the signed-out received state, the failure toast and the 429 message, and the `all-events` revalidation; verify with a test per outcome and one for a double press
+- [x] 2.14 Add `app/events/submit/page.tsx`; a signed-out visitor is asked to sign in and returns to the page; verify the member's form and the sign-in state
+- [x] 2.15 Add the send flow: logo upload at send time, one request, disabled button, the toasts "Event Created Successfully" and "Draft Event Created Successfully", the redirect to the edit page, the failure toast and the 429 message, and the `all-events` revalidation; verify with a test per outcome and one for a double press
 - [x] 2.16 Point "Submit an event" in `AllEventsHeader` and `irl-events.tsx` at `/events/submit` when the flag is on; verify the old link is used with the flag off
 
 ## 3. Analytics
 
-- [x] 3.1 Add the seven event names to `utils/constants.ts` and functions to `analytics/events.analytics.ts`; verify with a test that no property holds an email or event text
+- [x] 3.1 Add the six event names to `utils/constants.ts` and functions to `analytics/events.analytics.ts`; verify with a test that no property holds an email or event text
 
 ## 4. Edit page, My Submissions, drawer link
 
@@ -46,7 +46,7 @@ Groups map to the Tasks under LAB-3278: group 1 = LAB-3339, groups 2 and 3 = LAB
 ## 5. Check on the feature env
 
 - [ ] 5.1 Deploy `lab-3278` (API and v2) to the feature env with `EVENTS_LOCAL_SUBMIT_ENABLED=true` and `NEXT_PUBLIC_EVENTS_LOCAL_SUBMIT=true`; verify a forum member's event is "Approved" and shows on the All Events page
-- [ ] 5.2 Verify a member without forum access gets "Submitted", a signed-out visitor gets the received state, and neither event is on the All Events page
+- [ ] 5.2 Verify a member without forum access gets "Submitted" and the event is not on the All Events page; verify a signed-out visitor is asked to sign in on `/events/submit` and returns to it
 - [ ] 5.3 Verify a draft, its edit, its submit and its delete; verify another member sees no "Edit" and cannot open the edit address
 - [ ] 5.4 Open the dev portal (`submitv2.events.dev.os.pl.xyz`) next to the feature env and compare the submit form, the edit page and My Submissions section by section: fields, order, rules and texts; record each difference that is not in design D7
 - [ ] 5.5 Verify the three pages at 375 px and with the keyboard only; ask Polina for a review

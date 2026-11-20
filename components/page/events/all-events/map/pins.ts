@@ -60,6 +60,44 @@ export function mapLayout(items: AllEventsItem[], coords: CityCoords): MapLayout
 
 /** How close a single city shows: its streets and neighbourhoods. */
 export const CITY_ZOOM = 11;
+
+/**
+ * From this zoom up, a city's pin splits into one picture pin per event (LAB-3353; the prototype's `DETAIL_Z`). Below
+ * it, one pin per city with its count.
+ */
+export const EVENT_PIN_ZOOM = 9;
+
+export interface EventPin {
+  event: AllEventsItem;
+  position: LatLngLiteral;
+  /** Where the pin sits, in pixels from its city's point. */
+  offset: { x: number; y: number };
+}
+
+/** The spiral's step: 48px pins stay at least 52px apart, centre to centre (LAB-3353). */
+const SPREAD_PX = 34;
+const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+
+/**
+ * The offsets of a city's `n` event pins around its point: a lone event on it, several on a sunflower spiral. The events
+ * carry no venue position yet, so the pins are spread in pixels, not degrees: none covers another at any zoom
+ * (Polina, 2026-11-20: "slightly apart around the city point is fine").
+ */
+export function spreadOffsets(n: number): Array<{ x: number; y: number }> {
+  if (n === 1) return [{ x: 0, y: 0 }];
+  return Array.from({ length: n }, (_, i) => {
+    const r = SPREAD_PX * Math.sqrt(i + 0.5);
+    const a = i * GOLDEN_ANGLE;
+    return { x: Math.round(r * Math.cos(a)), y: Math.round(r * Math.sin(a)) };
+  });
+}
+
+/** One pin per in-person or hybrid event, around its city's point, soonest event nearest the middle. */
+export const eventPins = (pins: CityPin[]): EventPin[] =>
+  pins.flatMap((pin) => {
+    const offsets = spreadOffsets(pin.events.length);
+    return pin.events.map((event, i) => ({ event, position: pin.position, offset: offsets[i] }));
+  });
 /** The whole world, when no pin shows. */
 export const WORLD: { center: LatLngLiteral; zoom: number } = { center: { lat: 20, lng: 0 }, zoom: 2 };
 

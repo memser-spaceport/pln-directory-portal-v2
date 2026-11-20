@@ -379,18 +379,18 @@ describe('Calendar', () => {
   const inGrid = (uid: string) =>
     calendar().querySelector(`[class*="boardGrid"] [data-event-uid="${uid}"]`) as HTMLElement | null;
 
-  it('is offered next to List, opens on Week, and records the switch with its mode', () => {
+  it('is offered next to List, opens on Month from 960px, and records the switch with its mode', () => {
     renderPage();
     fireEvent.click(screen.getByRole('tab', { name: /Calendar/ }));
     expect(storeParams().get('view')).toBe('calendar');
-    expect(analytics.onEventsViewChanged).toHaveBeenCalledWith({ view: 'calendar', mode: 'week' });
-    expect(within(calendar()).getByRole('tab', { name: 'Week', selected: true })).toBeInTheDocument();
-    expect(label()).toBe('Nov 25 – Dec 1, 2030');
+    expect(analytics.onEventsViewChanged).toHaveBeenCalledWith({ view: 'calendar', mode: 'month' });
+    expect(within(calendar()).getByRole('tab', { name: 'Month', selected: true })).toBeInTheDocument();
+    expect(label()).toBe('December 2030');
     expect(screen.queryByText(/Near you in/)).toBeNull();
   });
 
   it('shows an event across days as one card over its days, and one-day events in their day', () => {
-    renderPage({}, '/events/all?view=calendar');
+    renderPage({}, '/events/all?view=calendar&cal=week');
     fireEvent.click(screen.getByRole('button', { name: 'Next week' }));
     expect(label()).toBe('Dec 2 – Dec 8, 2030');
     expect(inGrid('dai')?.style.gridColumn).toBe('2 / 4');
@@ -403,7 +403,7 @@ describe('Calendar', () => {
   });
 
   it('says so for a quiet week, and Today comes back', () => {
-    renderPage({}, '/events/all?view=calendar');
+    renderPage({}, '/events/all?view=calendar&cal=week');
     fireEvent.click(screen.getByRole('button', { name: 'Next week' }));
     fireEvent.click(screen.getByRole('button', { name: 'Next week' }));
     fireEvent.click(screen.getByRole('button', { name: 'Next week' }));
@@ -418,12 +418,12 @@ describe('Calendar', () => {
     expect(label()).toBe('December 2030');
     fireEvent.click(screen.getByRole('button', { name: 'Tuesday, December 10: open the week' }));
     expect(label()).toBe('Dec 9 – Dec 15, 2030');
-    expect(storeParams().get('cal')).toBeNull();
+    expect(storeParams().get('cal')).toBe('week');
     expect(analytics.onEventsViewChanged).toHaveBeenCalledWith({ view: 'calendar', mode: 'week' });
   });
 
   it('opens Month on the month of the week in view', () => {
-    renderPage({}, '/events/all?view=calendar');
+    renderPage({}, '/events/all?view=calendar&cal=week');
     fireEvent.click(screen.getByRole('button', { name: 'Previous week' }));
     expect(label()).toBe('Nov 18 – Nov 24, 2030');
     fireEvent.click(screen.getByRole('tab', { name: 'Month' }));
@@ -436,21 +436,25 @@ describe('Calendar', () => {
   });
 
   it('opens a linked event’s week with its card marked and its drawer open', () => {
-    renderPage({}, '/events/all?view=calendar&event=denver');
+    renderPage({}, '/events/all?view=calendar&cal=week&event=denver');
     expect(label()).toBe('Dec 9 – Dec 15, 2030');
     expect(inGrid('denver')?.className).toMatch(/cardHighlight/);
     expect(screen.getByTestId('event-drawer')).toHaveAttribute('data-uid', 'denver');
   });
 
   it('opens the drawer from a card', () => {
-    renderPage({}, '/events/all?view=calendar');
+    renderPage({}, '/events/all?view=calendar&cal=week');
     fireEvent.click(inGrid('lis1') as HTMLElement);
     expect(storeParams().get('event')).toBe('lis1');
     expect(screen.getByTestId('event-drawer')).toHaveAttribute('data-uid', 'lis1');
   });
 
   it('keeps the filters, and says when nothing matches', () => {
-    renderPage({}, '/events/all?view=calendar&mode=Virtual');
+    renderPage({}, '/events/all?view=calendar&cal=week&mode=Virtual');
+    // Today's week, although its only online event is next week (LAB-3353: no jump to the first busy week).
+    expect(label()).toBe('Nov 25 – Dec 1, 2030');
+    expect(within(calendar()).getByText('Nothing this week.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Next week' }));
     expect(label()).toBe('Dec 2 – Dec 8, 2030');
     expect(inGrid('call')).not.toBeNull();
     expect(inGrid('lis2')).toBeNull();
@@ -497,11 +501,104 @@ describe('review fixes', () => {
   });
 
   it('hands an unknown linked event to the drawer and marks nothing', () => {
-    const { container } = renderPage({}, '/events/all?view=calendar&event=gone');
+    const { container } = renderPage({}, '/events/all?view=calendar&cal=week&event=gone');
     expect(screen.getByTestId('event-drawer')).toHaveAttribute('data-uid', 'gone');
     expect(container.querySelector('[class*="ighlight"]')).toBeNull();
     expect(within(screen.getByTestId('events-calendar')).getByRole('heading', { level: 3 }).textContent).toBe(
       'Nov 25 – Dec 1, 2030',
     );
+  });
+});
+
+describe('Calendar defaults, past days and faces (LAB-3353)', () => {
+  const calendar = () => screen.getByTestId('events-calendar');
+  const label = () => within(calendar()).getByRole('heading', { level: 3 }).textContent;
+  const width = window.innerWidth;
+  const setWidth = (px: number) => Object.defineProperty(window, 'innerWidth', { configurable: true, value: px });
+  afterEach(() => setWidth(width));
+
+  it('opens Week under 960px', () => {
+    setWidth(959);
+    renderPage({}, '/events/all?view=calendar');
+    expect(within(calendar()).getByRole('tab', { name: 'Week', selected: true })).toBeInTheDocument();
+    expect(label()).toBe('Nov 25 – Dec 1, 2030');
+  });
+
+  it('opens Month from 960px', () => {
+    setWidth(960);
+    renderPage({}, '/events/all?view=calendar');
+    expect(within(calendar()).getByRole('tab', { name: 'Month', selected: true })).toBeInTheDocument();
+  });
+
+  it('lets `cal` in the address win over the width, and writes the switch both ways', () => {
+    renderPage({}, '/events/all?view=calendar&cal=week');
+    expect(within(calendar()).getByRole('tab', { name: 'Week', selected: true })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'Month' }));
+    expect(storeParams().get('cal')).toBe('month');
+    fireEvent.click(screen.getByRole('tab', { name: 'Week' }));
+    expect(storeParams().get('cal')).toBe('week');
+  });
+
+  it('opens on a phone in Month when the address says so', () => {
+    setWidth(400);
+    renderPage({}, '/events/all?view=calendar&cal=month');
+    expect(label()).toBe('December 2030');
+  });
+
+  it('opens at today’s month and week, even when the next event is months away', () => {
+    const later = [item({ uid: 'feb', name: 'February meetup', startDay: '2031-02-12', endDay: '2031-02-12' })];
+    const { unmount } = renderPage({ result: { ok: true, items: later } }, '/events/all?view=calendar');
+    expect(label()).toBe('December 2030');
+    unmount();
+    renderPage({ result: { ok: true, items: later } }, '/events/all?view=calendar&cal=week');
+    expect(label()).toBe('Nov 25 – Dec 1, 2030');
+    expect(within(calendar()).getByText('Nothing this week.')).toBeInTheDocument();
+  });
+
+  it('greys the days before today in Month and in Week, and only those', () => {
+    // Today is Sunday, December 1: Monday 25 to Saturday 30 November are past.
+    const past = ['2030-11-25', '2030-11-26', '2030-11-27', '2030-11-28', '2030-11-29', '2030-11-30'];
+    const { unmount } = renderPage({}, '/events/all?view=calendar');
+    const marked = () =>
+      Array.from(calendar().querySelectorAll('[data-past-day]')).map((el) => el.getAttribute('data-past-day'));
+    expect(marked()).toEqual(past);
+    const dayNumbers = Array.from(calendar().querySelectorAll('[class*="dayNum"]'));
+    expect(dayNumbers.filter((el) => /dayPast/.test(el.className))).toHaveLength(6);
+    expect(dayNumbers.find((el) => /dayToday/.test(el.className))?.className).not.toMatch(/dayPast/);
+    unmount();
+    renderPage({}, '/events/all?view=calendar&cal=week');
+    expect(marked()).toEqual(past);
+    fireEvent.click(screen.getByRole('button', { name: 'Next week' }));
+    expect(marked()).toEqual([]);
+  });
+
+  it('shows the faces and "N going" on Week cards, and nothing at 0 or with attendance hidden', () => {
+    const faces = [
+      { uid: 'f1', name: 'Ann', image: null },
+      { uid: 'f2', name: 'Bo', image: 'https://img.example/bo.png' },
+      { uid: 'f3', name: 'Cy', image: null },
+    ];
+    const events = [
+      item({ uid: 'five', name: 'Five going', startDay: '2030-12-03', endDay: '2030-12-03', goingCount: 5, faces }),
+      item({
+        uid: 'span',
+        name: 'Two days',
+        startDay: '2030-12-04',
+        endDay: '2030-12-05',
+        goingCount: 2,
+        faces: faces.slice(0, 2),
+      }),
+      item({ uid: 'none', name: 'Nobody yet', startDay: '2030-12-03', endDay: '2030-12-03', goingCount: 0 }),
+      item({ uid: 'hidden', name: 'Invite only', startDay: '2030-12-03', endDay: '2030-12-03', goingCount: null }),
+    ];
+    renderPage({ result: { ok: true, items: events } }, '/events/all?view=calendar&cal=week');
+    fireEvent.click(screen.getByRole('button', { name: 'Next week' }));
+    const card = (uid: string) =>
+      calendar().querySelector(`[class*="boardGrid"] [data-event-uid="${uid}"]`) as HTMLElement;
+    expect(within(card('five')).getByText('5 going')).toBeInTheDocument();
+    expect(card('five').querySelectorAll('img')).toHaveLength(3);
+    expect(within(card('span')).getByText('2 going')).toBeInTheDocument();
+    expect(card('none').textContent).not.toMatch(/going/);
+    expect(card('hidden').textContent).not.toMatch(/going/);
   });
 });

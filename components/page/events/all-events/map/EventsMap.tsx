@@ -1,24 +1,38 @@
 'use client';
 
 import clsx from 'clsx';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 
+import { EventImage } from '@/components/page/events/EventImage/EventImage';
+import { spanLabel } from '@/services/events/all-events.filters';
 import type { AllEventsItem } from '@/services/events/all-events.types';
 import { useCityCoords } from '@/services/events/hooks/useCityCoords';
 import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_MAP_ID } from '@/utils/events-page';
 
-import { CityPinCard, EventRows } from './CityPinCard';
+import { EventRows } from './EventRows';
 import type { GoogleMapsLibs } from './google-maps.types';
 import { loadGoogleMaps } from './loadGoogleMaps';
-import { WORLD, mapCamera, mapLayout, type CityPin, type MapCamera } from './pins';
+import {
+  CITY_ZOOM,
+  EVENT_PIN_ZOOM,
+  WORLD,
+  eventPins,
+  mapCamera,
+  mapLayout,
+  type CityPin,
+  type EventPin,
+  type MapCamera,
+} from './pins';
 import m from './EventsMap.module.scss';
 
 /*
- * The All Events Map (LAB-3321, design D7): Google Maps with one pin per city that has in-person or hybrid events,
- * labelled with its count. A pin with one event opens the drawer; with several, a card lists them. Zoom with the wheel
- * or trackpad (`gestureHandling: 'greedy'`, so the page doesn't scroll under the pointer), + / − and, on wider screens,
- * the slider. Online events, and in-person ones whose city has no position, are listed under the map.
+ * The All Events Map (LAB-3321, design D7; LAB-3353): Google Maps with, zoomed out, one pin per city that has
+ * in-person or hybrid events, labelled with its count. A city pin zooms into its city; from `EVENT_PIN_ZOOM` up each
+ * event has its own round pin with its picture (green ring: you're going; brand ring: the linked or last opened
+ * event), and pressing one opens its drawer. Zoom with the wheel or trackpad (`gestureHandling: 'greedy'`, so the page
+ * doesn't scroll under the pointer), + / − and, on wider screens, the slider. Online events, and in-person ones whose
+ * city has no position, are listed under the map.
  */
 
 const MIN_ZOOM = 2;
@@ -44,8 +58,15 @@ function applyCamera({ libs, map }: Ready, camera: MapCamera) {
 
 const pinTitle = (pin: CityPin, going: boolean) => {
   const n = pin.events.length;
-  return `${pin.city}: ${n} ${n === 1 ? 'event' : 'events'}${going ? ", you're going" : ''}`;
+  return `${pin.city}: ${n} ${n === 1 ? 'event' : 'events'}${going ? ", you're going" : ''}. Zoom in to the events`;
 };
+
+const eventPinTitle = ({ event }: EventPin, going: boolean) =>
+  `${event.name}, ${spanLabel(event.startDay, event.endDay)}${going ? ", you're going" : ''}`;
+
+/** A marker per city (`city:<key>`) and per event (`event:<uid>`); the zoom decides which set is on the map. */
+const cityKey = (key: string) => `city:${key}`;
+const eventKey = (uid: string) => `event:${uid}`;
 
 export function EventsMap({
   events,
@@ -63,6 +84,7 @@ export function EventsMap({
 }) {
   const coords = useCityCoords();
   const { pins, online, unplaced } = useMemo(() => mapLayout(events, coords.data ?? {}), [events, coords.data]);
+  const perEvent = useMemo(() => eventPins(pins), [pins]);
 
   // Google's map, made once the script has loaded (in its promise, never in render).
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -70,8 +92,7 @@ export function EventsMap({
   const [loadFailed, setLoadFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [zoom, setZoom] = useState(WORLD.zoom);
-  // `undefined` until the member picks: then a link to an event in a city with several events opens that city's card.
-  const [picked, setPicked] = useState<string | null | undefined>(undefined);
+  const detail = zoom >= EVENT_PIN_ZOOM;
 
   useEffect(() => {
     let live = true;
@@ -89,10 +110,7 @@ export function EventsMap({
           gestureHandling: 'greedy',
           clickableIcons: false,
         });
-        listeners.push(
-          map.addListener('zoom_changed', () => setZoom(map.getZoom() ?? WORLD.zoom)),
-          map.addListener('click', () => setPicked(null)),
-        );
+        listeners.push(map.addListener('zoom_changed', () => setZoom(map.getZoom() ?? WORLD.zoom)));
         setReady({ libs, map });
       },
       () => {
@@ -120,17 +138,17 @@ export function EventsMap({
   );
 
   const linkedPin = highlightUid ? pins.find((p) => p.events.some((e) => e.uid === highlightUid)) : undefined;
-  const openKey = picked === undefined ? (linkedPin && linkedPin.events.length > 1 ? linkedPin.key : null) : picked;
-  const openPin = pins.find((p) => p.key === openKey) ?? null;
 
+  // A city pin zooms into its city, where its events have their own pins; an event pin opens the drawer.
   const press = (key: string) => {
-    const pin = pins.find((p) => p.key === key);
-    if (!pin) return;
-    if (pin.events.length === 1) {
-      onOpen(pin.events[0].uid);
+    if (key.startsWith('event:')) {
+      onOpen(key.slice('event:'.length));
       return;
     }
-    setPicked(openKey === key ? null : key);
+    const pin = pins.find((p) => cityKey(p.key) === key);
+    if (!pin || !ready) return;
+    ready.map.setCenter(pin.position);
+    ready.map.setZoom(Math.max(CITY_ZOOM, ready.map.getZoom() ?? CITY_ZOOM));
   };
   const pressRef = useRef(press);
   const highlightRef = useRef(highlightUid);
@@ -139,38 +157,39 @@ export function EventsMap({
     highlightRef.current = highlightUid;
   });
 
-  // Markers follow the pins: new cities get one, cities filtered out lose theirs.
+  // Markers follow the pins: new cities and events get one, those filtered out lose theirs. Only the set for the
+  // current zoom is on the map.
   const markersRef = useRef(new Map<string, google.maps.marker.AdvancedMarkerElement>());
   useEffect(() => {
     if (!ready) return;
     const markers = markersRef.current;
-    const keep = new Set(pins.map((p) => p.key));
+    const wanted = new Map<string, { position: google.maps.LatLngLiteral; title: string; shown: boolean }>();
+    for (const pin of pins) {
+      const going = pin.events.some((e) => goingUids.has(e.uid));
+      wanted.set(cityKey(pin.key), { position: pin.position, title: pinTitle(pin, going), shown: !detail });
+    }
+    for (const pin of perEvent) {
+      const title = eventPinTitle(pin, goingUids.has(pin.event.uid));
+      wanted.set(eventKey(pin.event.uid), { position: pin.position, title, shown: detail });
+    }
     markers.forEach((marker, key) => {
-      if (keep.has(key)) return;
+      if (wanted.has(key)) return;
       marker.map = null;
       markers.delete(key);
     });
-    for (const pin of pins) {
-      const title = pinTitle(
-        pin,
-        pin.events.some((e) => goingUids.has(e.uid)),
-      );
-      const existing = markers.get(pin.key);
-      if (existing) {
-        existing.title = title;
-        continue;
+    wanted.forEach(({ position, title, shown }, key) => {
+      let marker = markers.get(key);
+      if (!marker) {
+        marker = new ready.libs.AdvancedMarkerElement({ position, content: hostFor(key), title, gmpClickable: true });
+        marker.addEventListener('gmp-click', () => pressRef.current(key));
+        markers.set(key, marker);
       }
-      const marker = new ready.libs.AdvancedMarkerElement({
-        map: ready.map,
-        position: pin.position,
-        content: hostFor(pin.key),
-        title,
-        gmpClickable: true,
-      });
-      marker.addEventListener('gmp-click', () => pressRef.current(pin.key));
-      markers.set(pin.key, marker);
-    }
-  }, [ready, pins, goingUids, hostFor]);
+      marker.title = title;
+      marker.zIndex = key === eventKey(highlightUid ?? '') ? 1 : null;
+      const map = shown ? ready.map : null;
+      if (marker.map !== map) marker.map = map;
+    });
+  }, [ready, pins, perEvent, goingUids, hostFor, detail, highlightUid]);
   useEffect(() => {
     const markers = markersRef.current;
     return () => markers.forEach((marker) => (marker.map = null));
@@ -190,7 +209,6 @@ export function EventsMap({
 
   const showAll = () => {
     if (ready) applyCamera(ready, mapCamera(pins));
-    setPicked(null);
   };
   const zoomTo = (next: number) => ready?.map.setZoom(Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, next)));
   const retry = () => {
@@ -209,9 +227,10 @@ export function EventsMap({
 
         {ready &&
           !coords.isPending &&
+          !detail &&
           pins.map((pin) => {
             const going = pin.events.some((e) => goingUids.has(e.uid));
-            const active = pin.key === openKey || pin === linkedPin;
+            const active = pin === linkedPin;
             return createPortal(
               <span
                 className={clsx(m.pin, active && m.pinActive)}
@@ -223,8 +242,32 @@ export function EventsMap({
                 <span className={m.pinCount}>{pin.events.length}</span>
                 {going && <span className={m.pinGoing} aria-hidden />}
               </span>,
-              hostFor(pin.key),
-              pin.key,
+              hostFor(cityKey(pin.key)),
+              cityKey(pin.key),
+            );
+          })}
+
+        {ready &&
+          !coords.isPending &&
+          detail &&
+          perEvent.map(({ event, offset }) => {
+            const going = goingUids.has(event.uid);
+            const active = event.uid === highlightUid;
+            return createPortal(
+              <span
+                className={clsx(m.eventPin, going && m.eventPinGoing, active && m.eventPinActive)}
+                style={{ '--dx': `${offset.x}px`, '--dy': `${offset.y}px` } as CSSProperties}
+                data-event-pin={event.uid}
+                data-active={active || undefined}
+                data-going={going || undefined}
+                onPointerEnter={() => onPrepare(event.uid)}
+              >
+                <span className={m.eventPhoto}>
+                  <EventImage src={event.picture} className={m.eventFill} />
+                </span>
+              </span>,
+              hostFor(eventKey(event.uid)),
+              eventKey(event.uid),
             );
           })}
 
@@ -254,17 +297,6 @@ export function EventsMap({
               </button>
             )}
           </>
-        )}
-
-        {openPin && (
-          <CityPinCard
-            pin={openPin}
-            goingUids={goingUids}
-            highlightUid={highlightUid}
-            onOpen={onOpen}
-            onPrepare={onPrepare}
-            onClose={() => setPicked(null)}
-          />
         )}
 
         {loading && <p className={m.status}>Loading the map…</p>}

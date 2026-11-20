@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react';
 
 import { EventImage } from '@/components/page/events/EventImage/EventImage';
 import { GoingPill } from '@/components/page/events/GoingPill/GoingPill';
+import { GoingFaces } from '@/components/page/events/all-events/GoingFaces';
 import { shortDate, spanLabel } from '@/services/events/all-events.filters';
 import { eventPlace } from '@/services/events/event-facts';
 import type { AllEventsItem } from '@/services/events/all-events.types';
@@ -47,6 +48,19 @@ export function WeekBoard({
   return (
     <div className={k.board}>
       <div className={k.boardGrid}>
+        {/* Days before today, greyed behind their header and cards (LAB-3353). */}
+        {days.map(
+          (d, i) =>
+            d < todayIso && (
+              <span
+                key={`past-${d}`}
+                className={k.pastDay}
+                data-past-day={d}
+                style={{ gridColumn: i + 1, gridRow: `1 / span ${spanning.length + 2}` }}
+                aria-hidden
+              />
+            ),
+        )}
         {days.map((d, i) => (
           <DayHead key={d} day={d} todayIso={todayIso} style={{ gridColumn: i + 1, gridRow: 1 }} />
         ))}
@@ -148,6 +162,7 @@ function SpanCard({ event, style, ...cards }: CalendarCardProps & { event: AllEv
         <span className={k.cardMeta}>
           {[spanLabel(event.startDay, event.endDay), placeOf(event)].filter(Boolean).join(' · ')}
         </span>
+        <GoingFaces item={event} className={k.cardGoing} />
       </span>
       {cards.goingUids.has(event.uid) && <GoingPill />}
     </button>
@@ -174,6 +189,7 @@ function DayCard({ event, ...cards }: CalendarCardProps & { event: AllEventsItem
       )}
       <span className={k.cardMeta}>{timeRange(event)}</span>
       <span className={k.cardMeta}>{[placeOf(event), event.zone].filter(Boolean).join(' · ')}</span>
+      <GoingFaces item={event} className={k.cardGoing} />
       {cards.goingUids.has(event.uid) && <GoingPill />}
     </button>
   );

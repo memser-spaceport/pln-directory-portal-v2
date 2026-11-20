@@ -14,6 +14,7 @@ import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/Dashb
 import type { EventGoingNotice } from '@/components/page/events/EventDrawer/EventDrawerView';
 import { eventGoingToastText } from '@/components/page/events/EventDrawer/toast';
 import { encodeFilterValues } from '@/services/filters';
+import { useIsBelowTabletLandscape } from '@/hooks/useIsBelowTabletLandscape';
 import { useAllEventsFilterStore } from '@/services/events/all-events-filters.store';
 import {
   FILTER_PARAMS,
@@ -107,7 +108,11 @@ export function AllEventsPage({
 
   const viewParam = params.get('view') as AllEventsView | null;
   const view: AllEventsView = viewParam && AVAILABLE_VIEWS.includes(viewParam) ? viewParam : 'list';
-  const calMode: CalMode = params.get('cal') === 'month' ? 'month' : 'week';
+  // Month from 960px, Week below (LAB-3353; seven Month columns are too narrow under 960). `cal` in the address wins.
+  // The server and the first render take Month; a phone switches to Week once mounted.
+  const belowMonthWidth = useIsBelowTabletLandscape();
+  const calParam = params.get('cal');
+  const calMode: CalMode = calParam === 'month' || calParam === 'week' ? calParam : belowMonthWidth ? 'week' : 'month';
 
   // The open event lives in the address, so a link to an event lands with its drawer open. The linked event stays
   // marked after its drawer closes, until the member opens another one.
@@ -226,7 +231,7 @@ export function AllEventsPage({
   };
   const setCalMode = (mode: CalMode) => {
     if (mode === calMode) return;
-    setParam('cal', mode === 'month' ? 'month' : undefined);
+    setParam('cal', mode);
     analytics.onEventsViewChanged({ view: 'calendar', mode });
   };
   const setCity = (city: string | null, from: 'tile' | 'near-you') => {

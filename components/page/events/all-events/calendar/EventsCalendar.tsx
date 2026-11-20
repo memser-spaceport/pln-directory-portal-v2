@@ -9,17 +9,7 @@ import type { AllEventsItem } from '@/services/events/all-events.types';
 
 import { MonthGrid } from './MonthGrid';
 import { WeekBoard } from './WeekBoard';
-import {
-  addDays,
-  firstBusyDay,
-  mondayOf,
-  monthLabel,
-  monthOf,
-  stepMonth,
-  weekLabel,
-  type CalMode,
-  type MonthRef,
-} from './weeks';
+import { addDays, mondayOf, monthLabel, monthOf, stepMonth, weekLabel, type CalMode, type MonthRef } from './weeks';
 import k from './Calendar.module.scss';
 
 export interface EventsCalendarProps {
@@ -36,8 +26,8 @@ export interface EventsCalendarProps {
 }
 
 /**
- * The All Events Calendar view (LAB-3320): Week (the LabWeek 2023 schedule board, the default) and Month (the events
- * app's grid), in one card with Today and previous / next. The page keys it on its anchor, so a linked event or a new
+ * The All Events Calendar view (LAB-3320): Week (the LabWeek 2023 schedule board) and Month (the events app's grid;
+ * the default from 960px, LAB-3353), in one card with Today and previous / next. Days before today are greyed. The page keys it on its anchor, so a linked event or a new
  * city opens it afresh; which week or month is showing is the calendar's own state.
  */
 export function EventsCalendar({
@@ -51,8 +41,9 @@ export function EventsCalendar({
   onOpen,
   onPrepare,
 }: EventsCalendarProps) {
-  const [day, setDay] = useState(() => firstBusyDay(events, anchorIso));
-  const [month, setMonth] = useState<MonthRef>(() => monthOf(firstBusyDay(events, anchorIso)));
+  // On the anchor itself, also when its week or month is quiet (LAB-3353: the calendar opens at today).
+  const [day, setDay] = useState(anchorIso);
+  const [month, setMonth] = useState<MonthRef>(() => monthOf(anchorIso));
 
   const goToday = () => {
     setDay(todayIso);

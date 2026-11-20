@@ -771,6 +771,14 @@
   }
 }
 
+// The faces and "N going" as one unit, so a narrow card wraps them together (LAB-3353).
+.goingFaces {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 // TeamFollowBlock's facepile, at 20px.
 .facepile {
   display: inline-flex;

@@ -448,7 +448,7 @@ The List view SHALL be the default. It SHALL group events by start day, soonest 
 
 ### Requirement: The Calendar view
 
-The Calendar view SHALL have Week (default) and Month, kept in the address (`cal=month`). Weeks SHALL start on Monday, and every event SHALL sit on its days in its own time zone. Week SHALL show one column per day of the week, today marked and past days dimmed. An event that runs several days SHALL be one card across its days. One-day events SHALL stack in their day's column, earliest first, each card showing title, its first topic with "+n" for the rest when it has topics, its start and end time ("6:00 PM – 9:00 PM"), and the place and zone in the event's time zone ("Lisbon · UTC+0", "Lisbon · also online · UTC+0", "Online · UTC+0"). A week with no matching event SHALL say "Nothing this week." On phones the cards SHALL stack by day, and empty days SHALL be skipped. Month SHALL show the month grid with a bar per event per week, today marked. Pressing a day number in Month SHALL open that week in Week, and switching to Month SHALL show the month of the week in view. Previous and next controls SHALL move by one week or one month, and "Today" SHALL return to the current week or month. The calendar SHALL open on the linked event's week, else the chosen city's first event, else the first week from today that has an event.
+The Calendar view SHALL have Week and Month. Month SHALL be the default on screens 960px wide and wider, and Week below 960px (LAB-3353). A mode the visitor picks SHALL be kept in the address (`cal=week` or `cal=month`) and SHALL win over the screen width. Weeks SHALL start on Monday, and every event SHALL sit on its days in its own time zone. In Week and in Month, every day before today SHALL be greyed, today marked. Week SHALL show one column per day of the week. An event that runs several days SHALL be one card across its days. One-day events SHALL stack in their day's column, earliest first, each card showing title, its first topic with "+n" for the rest when it has topics, its start and end time ("6:00 PM – 9:00 PM"), and the place and zone in the event's time zone ("Lisbon · UTC+0", "Lisbon · also online · UTC+0", "Online · UTC+0"). A Week card SHALL show up to 3 faces and "N going" when the event shows attendance and someone is going. A week with no matching event SHALL say "Nothing this week." On phones the cards SHALL stack by day, and empty days SHALL be skipped. Month SHALL show the month grid with a bar per event per week. Pressing a day number in Month SHALL open that week in Week, and switching to Month SHALL show the month of the week in view. Previous and next controls SHALL move by one week or one month, and "Today" SHALL return to the current week or month. The calendar SHALL open on the linked event's week, else the chosen city's first event, else today's week or month, even when that week or month has no event.
 
 #### Scenario: Day number opens its week
 
@@ -468,22 +468,35 @@ The Calendar view SHALL have Week (default) and Month, kept in the address (`cal
 - **WHEN** the visitor opens that week
 - **THEN** the event shows as one card spanning Monday to Wednesday
 
+#### Scenario: Default mode by screen width
+
+- **GIVEN** a visitor opens `/events/all?view=calendar` with no `cal`
+- **WHEN** the screen is 1280px wide
+- **THEN** Month opens on the current month
+- **AND** on a 390px phone, Week opens on the current week
+
+#### Scenario: Opens on today
+
+- **GIVEN** today is Friday November 20 and the next matching event is on December 3
+- **WHEN** the visitor opens the Calendar view
+- **THEN** it shows November (or the week of November 16), with November 16–19 greyed
+
 ### Requirement: The Map view
 
-When a Maps key is configured, the Map view SHALL show a street map with one pin per city that has matching in-person or hybrid events, labelled with the city's count. "Show all" SHALL fit every pin. Pressing a pin with one event SHALL open the drawer. Pressing a pin with several events SHALL show a small card listing them, each opening the drawer. The map SHALL zoom with the mouse wheel or trackpad, the + and − buttons, and, on wider screens, a slider. The page SHALL NOT scroll while the pointer is over the map. Online events SHALL be listed under the map, and so SHALL in-person events whose city has no known position ("Not on the map"), so no matching event is missing from the view. A pin holding an event the viewer is going to SHALL be marked. If the map can't load, it SHALL say so and offer "Try again"; the lists under it still show. Without a Maps key, the view switch SHALL NOT offer Map.
+When a Maps key is configured, the Map view SHALL show a street map. Zoomed out (below zoom 9), it SHALL show one pin per city that has matching in-person or hybrid events, labelled with the city's count; pressing a city pin SHALL zoom the map into that city (LAB-3353). From zoom 9 in, every matching in-person or hybrid event SHALL have its own round pin with its picture (or the event placeholder), and a city's event pins SHALL sit around the city's point without covering one another. Pressing an event pin SHALL open its drawer. An event pin SHALL have a green ring when the viewer is going and a brand ring when it is the linked or opened event, drawn on top. "Show all" SHALL fit every city. The map SHALL zoom with the mouse wheel or trackpad, the + and − buttons, and, on wider screens, a slider. The page SHALL NOT scroll while the pointer is over the map. Online events SHALL be listed under the map, and so SHALL in-person events whose city has no known position ("Not on the map"), so no matching event is missing from the view; each row SHALL show up to 3 faces and "N going" like a Week card. A city pin holding an event the viewer is going to SHALL be marked. If the map can't load, it SHALL say so and offer "Try again"; the lists under it still show. Without a Maps key, the view switch SHALL NOT offer Map.
 
 #### Scenario: City pin with several events
 
-- **GIVEN** 3 matching events in Dubai
+- **GIVEN** 3 matching events in Dubai, and the map zoomed out
 - **WHEN** the visitor presses the Dubai pin
-- **THEN** a card lists the 3 events
+- **THEN** the map zooms into Dubai, and the 3 events show as 3 picture pins around it
 - **AND** pressing one opens its drawer
 
 #### Scenario: Link to one event in Map
 
 - **GIVEN** 3 matching events in Dubai, one of them event A
 - **WHEN** a visitor opens `/events/all?view=map&event=<A's uid>`
-- **THEN** the map is centred on Dubai with its pin marked, and the Dubai card lists the 3 events with A's row marked
+- **THEN** the map is zoomed into Dubai on its 3 event pins, with A's pin in the brand ring
 - **AND** the drawer is open on A
 
 #### Scenario: City with no known position
@@ -501,7 +514,7 @@ When a Maps key is configured, the Map view SHALL show a street map with one pin
 
 ### Requirement: Every event opens the drawer, and a link opens one event
 
-Pressing an event in any view or in Near you SHALL open the event drawer for that event. Opening `/events/all?event=<uid>` SHALL open the page with that event's drawer open and the event marked in the active view: its list card, its calendar card on its own week, or its map pin centred. Closing the drawer SHALL remove `event` from the address. An unknown uid SHALL open the drawer's "no longer available" state.
+Pressing an event in any view or in Near you SHALL open the event drawer for that event. Opening `/events/all?event=<uid>` SHALL open the page with that event's drawer open and the event marked in the active view: its list card, its calendar card on its own week, or its event pin, with the map zoomed into its city. Closing the drawer SHALL remove `event` from the address. An unknown uid SHALL open the drawer's "no longer available" state.
 
 #### Scenario: Link to one event in Calendar
 
@@ -512,7 +525,7 @@ Pressing an event in any view or in Near you SHALL open the event drawer for tha
 
 ### Requirement: One Going mark on the page
 
-On the All Events page, an event the signed-in viewer is going to SHALL carry one "Going" pill: a green pill with a white tick and the word "Going", on its List card, Near you tile and Week card. A Month bar is too small for the pill and SHALL carry no going mark; the "Events I'm going to" filter lists those events. No other going mark (badge or tick) SHALL appear on the page.
+On the All Events page, an event the signed-in viewer is going to SHALL carry one "Going" pill: a green pill with a white tick and the word "Going", on its List card, Near you tile, Week card and map row. A Month bar is too small for the pill and SHALL carry no going mark; the "Events I'm going to" filter lists those events. On the map, the city pin is marked and the event pin has a green ring instead. No other going mark (badge or tick) SHALL appear on the page.
 
 #### Scenario: Going event in the list
 

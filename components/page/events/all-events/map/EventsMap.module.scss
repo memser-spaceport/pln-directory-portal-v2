@@ -1,7 +1,7 @@
 @use 'styles/media';
 
 /* The All Events Map (LAB-3321), ported from prototypes/entries/events-page-redesign/EventsMap.module.scss: the frame,
-   the city pins, the controls, the city card and the lists under the map. Google draws the map itself in .canvas. */
+   the city pins, the event pins (LAB-3353), the controls and the lists under the map. Google draws the map itself in .canvas. */
 
 .root {
   display: flex;
@@ -77,7 +77,7 @@
   }
 }
 
-// The open city, or the city of the event a link landed on.
+// The city of the event a link landed on.
 .pinActive,
 .pinActive:hover {
   border-color: var(--foreground-neutral-primary, #0a0c11);
@@ -200,53 +200,66 @@
   }
 }
 
-/* A city's events, docked bottom-left (full width on phones). */
-.card {
-  position: absolute;
-  left: 12px;
-  bottom: 28px;
-  z-index: 4;
-  width: 320px;
-  max-height: calc(100% - 72px);
-  overflow-y: auto;
-  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-  border-radius: 12px;
+/* An event's pin (LAB-3353, the prototype's venue pin): its picture in a white ring with a pointer underneath, Luma's
+   map pin. Google anchors the content at its bottom centre; `--dx` / `--dy` move a city's pins apart around its point
+   (no venue positions yet). Green ring: you're going; brand ring: the linked or last opened event. */
+.eventPin {
+  position: relative;
+  display: block;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 7px;
+  padding: 3px;
+  border-radius: 50%;
   background: var(--background-neutral-primary, #ffffff);
-  box-shadow: 0 8px 24px var(--transparent-dark-8, rgba(14, 15, 17, 0.12));
-
-  @include media.mobile-only {
-    right: 12px;
-    width: auto;
-  }
-}
-
-.cardHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 12px 12px 8px 16px;
-}
-
-.cardTitle {
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 600;
-  color: var(--foreground-neutral-primary, #0a0c11);
-}
-
-.cardClose {
-  display: inline-flex;
-  padding: 4px;
-  border: none;
-  border-radius: 6px;
-  background: none;
-  color: var(--foreground-neutral-secondary, #455468);
+  box-shadow: 0 2px 8px var(--transparent-dark-8, rgba(14, 15, 17, 0.16));
   cursor: pointer;
+  transform: translate(var(--dx, 0px), var(--dy, 0px));
+  transition: transform 0.15s ease;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -6px;
+    width: 10px;
+    height: 10px;
+    transform: translateX(-50%) rotate(45deg);
+    background: inherit;
+    border-radius: 0 0 2px 0;
+  }
 
   &:hover {
-    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    transform: translate(var(--dx, 0px), var(--dy, 0px)) scale(1.08);
   }
+}
+
+.eventPhoto {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--background-neutral-subtle, #f1f5f9);
+}
+
+// The picture or its placeholder, filling the round slot.
+.eventFill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.eventPinGoing {
+  background: var(--foreground-success-primary, #0a9952);
+}
+
+.eventPinActive,
+.eventPinActive:hover {
+  background: var(--foreground-brand-primary, #1b4dff);
 }
 
 .rows {
@@ -287,6 +300,13 @@
   font-size: 14px;
   line-height: 20px;
   color: var(--foreground-neutral-secondary, #455468);
+}
+
+// Faces, "N going" and the Going pill, at the row's end (LAB-3353).
+.rowEnd {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .rowName {

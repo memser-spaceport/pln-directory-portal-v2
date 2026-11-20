@@ -135,6 +135,24 @@ describe('Request intro position on a member page', () => {
     expect(tsx.match(/s\.metaItem/g)?.length).toBeGreaterThanOrEqual(4);
   });
 
+  it('below 640px, the name block can shrink, so a long team name truncates inside the viewport', () => {
+    for (const selector of ['.headerDetails', '.headerInfo']) {
+      const narrow = declarations(includeBlock(topLevelBlock(scss, selector), 'mobile-only'));
+      expect(narrow['min-width']).toBe('0');
+      expect(narrow['max-width']).toBe('100%');
+    }
+  });
+
+  it('a truncated team name keeps its cap inside the tooltip wrapper', () => {
+    // CustomTooltip wraps a truncated trigger in a div, which becomes the flex item.
+    expect(tsx).toMatch(
+      /<CustomTooltip\s+classes=\{\{\s*trigger:\s*s\.teamsTrigger\s*\}\}\s+trigger=\{\s*<p className=\{s\.teamsName\}>/,
+    );
+    const trigger = declarations(topLevelBlock(scss, '.teamsTrigger'));
+    expect(trigger['min-width']).toBe('0');
+    expect(trigger['max-width']).toBe('100%');
+  });
+
   it('the actions stay at the top right and share the button centre', () => {
     const actions = declarations(topLevelBlock(scss, '.headerActions'));
     expect(actions['margin-left']).toBe('auto');

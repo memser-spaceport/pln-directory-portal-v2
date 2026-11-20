@@ -102,6 +102,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
                 {member?.teams?.length > 0 ? (
                   <div className={clsx(s.metaItem, s.teams)}>
                     <CustomTooltip
+                      classes={{ trigger: s.teamsTrigger }}
                       trigger={
                         <p className={s.teamsName}>
                           <Link href={`/teams/${mainTeam?.id}`} target="_blank" className={s.teamLink}>

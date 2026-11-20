@@ -88,6 +88,12 @@
   grid-column: span 4 / span 4;
   margin-bottom: 16px;
 
+  // Below 640px a long team name must truncate instead of widening the row past the viewport.
+  @include media.mobile-only {
+    min-width: 0;
+    max-width: 100%;
+  }
+
   // From 640px the actions sit at the top right, on the name's line. The facts row below spans
   // both columns, so it runs under the actions to the card's right edge.
   @include media.tablet-portrait {
@@ -100,6 +106,11 @@
 }
 
 .headerInfo {
+  @include media.mobile-only {
+    min-width: 0;
+    max-width: 100%;
+  }
+
   @include media.tablet-portrait {
     display: contents;
 
@@ -235,6 +246,13 @@
   letter-spacing: 0px;
   text-align: center;
   padding-right: 4px;
+}
+
+// When the team name truncates, CustomTooltip wraps it in a div that becomes the flex item; keep the
+// cap on that div so the name still shrinks and "+N" stays inside the row.
+.teamsTrigger {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .location {

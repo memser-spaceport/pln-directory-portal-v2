@@ -81,6 +81,9 @@ describe('GlobalFeedback', () => {
     mockPreferences = { memberPreferences: { showFeedbackButton: true } };
     mockPreferencesLoading = false;
     jest.clearAllMocks();
+    // LAB-3344: the agent gate is on by default. This suite tests the feedback button alone, so it turns the gate off.
+    // The corner suite (labos-agent-corner.test.tsx) covers the agent.
+    window.localStorage.setItem('labos-agent', 'off');
     act(() => useFeedbackDrawerStore.getState().actions.closeDrawer());
   });
 

@@ -18,7 +18,7 @@ const readGate = () => (!isLabosAgentGateOn() ? 'off' : isLabosAgentMock() ? 'on
 
 /**
  * Can this visitor see the agent? Three checks, all must pass:
- * 1. The local feature gate (off by default until D1).
+ * 1. The local feature gate (on by default since D1, LAB-3344; `localStorage['labos-agent'] = 'off'` turns it off).
  * 2. A signed-in member. Signed-out visitors never see it.
  * 3. The backend pilot gate, `GET /v1/labos-agent/access` (the mock says yes).
  */

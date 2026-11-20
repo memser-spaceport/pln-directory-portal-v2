@@ -120,6 +120,26 @@ describe('LAB-3302: agent corner, Ctrl/⌘ J and context chips', () => {
   });
 
   describe('S5-R1: who sees the corner (AC1, AC3)', () => {
+    it('LAB-3344: with no localStorage value, a member that GET /access allows sees the corner', async () => {
+      signIn();
+      renderApp();
+
+      expect(await screen.findByRole('group', { name: 'Agent and feedback' })).toBeInTheDocument();
+      expect(getAccess).toHaveBeenCalled();
+      expect(agentTab()).toBeInTheDocument();
+    });
+
+    it('LAB-3344: with no localStorage value, a member that GET /access refuses sees no agent', async () => {
+      getAccess.mockResolvedValue({ enabled: false });
+      signIn();
+      renderApp();
+
+      expect(await screen.findByRole('button', { name: 'Give feedback' })).toBeInTheDocument();
+      expect(getAccess).toHaveBeenCalled();
+      expect(agentTab()).not.toBeInTheDocument();
+      expect(screen.queryByRole('group', { name: 'Agent and feedback' })).not.toBeInTheDocument();
+    });
+
     it('a pilot member sees one corner with the Agent and Feedback tabs, and no second feedback button', async () => {
       window.localStorage.setItem('labos-agent', 'on');
       signIn();
@@ -141,7 +161,8 @@ describe('LAB-3302: agent corner, Ctrl/⌘ J and context chips', () => {
       expect(agentTab()).not.toBeInTheDocument();
     });
 
-    it('with the feature gate off, the member keeps the feedback button only', async () => {
+    it("with the feature gate off (localStorage['labos-agent'] = 'off'), the member keeps the feedback button only", async () => {
+      window.localStorage.setItem('labos-agent', 'off');
       signIn();
       renderApp();
       await act(async () => {});

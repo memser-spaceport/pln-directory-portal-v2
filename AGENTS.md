@@ -107,7 +107,7 @@ To add a prototype: create `prototypes/entries/<key>/` (component + `mocks.ts`),
 - Open the agent only through `openAgent({ context })` from `useOpenAgent()` (`services/labos-agent/store.ts`). `LabosAgentRoot` mounts the one panel, client-only, through `app/ClientDynamics.tsx`.
 - The store keeps one chat per context (`chatKey`), so closing the panel keeps the chat. Do not keep turns in component state.
 - `AskAgentButton` and the panel show only when `useLabosAgentAccess()` is true: the local gate, a signed-in member and `GET /v1/labos-agent/access`.
-- The gate is off by default (`LABOS_AGENT_ENABLED_BY_DEFAULT` in `services/labos-agent/constants.ts`). To test in one browser, set `localStorage['labos-agent'] = 'on'`.
+- The local gate is on by default (`LABOS_AGENT_ENABLED_BY_DEFAULT` in `services/labos-agent/constants.ts`, LAB-3344). `GET /v1/labos-agent/access` decides for each member. To hide the agent in one browser, set `localStorage['labos-agent'] = 'off'`. Tests that need the gate off set `'off'`.
 - Chat goes through `getLabosAgentClient()`. It calls C1 by default. Set `localStorage['labos-agent-api'] = 'mock'` to use the mock (`labos-agent.mock.ts`); the panel then shows "Mock answers". No env vars.
 - Action cards (S2): each C1 proposal shows a `LabosAgentActionCard`. Only Confirm calls C2 (`confirmAction`) to save; never save from the chat. Card state lives in `turn.cards` in the store. Mock words: "edit profile", "edit team", "forbidden" (403), "save fails" (Retry). A second C2 call on one mock proposal gets a 409 with the stored `status`.
 - Keep the guard in `decide` (`useLabosAgentChat.ts`). It reads the store, so two calls in one tick send one C2 request. `labos-agent.decide.test.ts` fails without it.

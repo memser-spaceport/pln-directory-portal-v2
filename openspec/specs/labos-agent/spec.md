@@ -8,7 +8,7 @@ The LabOS agent (LAB-3272) is an in-app chat for signed-in members. It reads the
 
 ### Requirement: Only a member inside the gate sees the agent
 
-The agent and every control that opens it SHALL show only when three checks pass: the local feature gate is on, the visitor is a signed-in member, and `GET /v1/labos-agent/access` returns `{ "enabled": true }`. The local gate SHALL be off by default until decision D1 (who sees the agent). `localStorage['labos-agent'] = 'on'` SHALL turn the local gate on in that browser. A visitor who fails a check SHALL see no control (absent, not disabled). The server render and the first client render SHALL show no agent.
+The agent and every control that opens it SHALL show only when three checks pass: the local feature gate is on, the visitor is a signed-in member, and `GET /v1/labos-agent/access` returns `{ "enabled": true }`. The local gate SHALL be on by default (D1 option A landed, LAB-3344), so `GET /v1/labos-agent/access` (staff and the pilot policy) decides for each member. `localStorage['labos-agent'] = 'off'` SHALL turn the local gate off in that browser. Any other value SHALL keep the gate on. A visitor who fails a check SHALL see no control (absent, not disabled). The server render and the first client render SHALL show no agent.
 
 #### Scenario: Gate off
 

@@ -70,7 +70,8 @@ describe('LAB-3298: agent panel and Ask a follow-up', () => {
     useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
   });
 
-  it('shows no button while the feature gate is off', async () => {
+  it("shows no button while the feature gate is off (localStorage['labos-agent'] = 'off')", async () => {
+    window.localStorage.setItem('labos-agent', 'off');
     signIn();
     renderApp();
     await act(async () => {});

@@ -27,6 +27,9 @@ const mockHome = {
   onFocusAreaClicked: jest.fn(),
   onSeeAllClicked: jest.fn(),
 };
+// The Home post-news button reads team logos; keep next/server out of jsdom.
+jest.mock('@/services/teams.service', () => ({ getTeam: jest.fn() }));
+
 jest.mock('@/analytics/home.analytics', () => ({ useHomeAnalytics: () => mockHome }));
 const mockAuth: Record<string, jest.Mock> = {};
 jest.mock('@/analytics/auth.analytics', () => ({

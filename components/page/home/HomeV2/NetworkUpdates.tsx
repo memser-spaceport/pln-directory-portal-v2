@@ -2,7 +2,7 @@
 
 import clsx from 'clsx';
 import Link from 'next/link';
-import { Fragment, useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react';
+import { Fragment, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react';
 
 import { useHomeAnalytics } from '@/analytics/home.analytics';
 import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
@@ -77,6 +77,7 @@ export function NetworkUpdates({
   fillTo,
   fillKey = '',
   forYouTags,
+  headerAction,
 }: {
   feed: HomeFeed;
   /** The rail beside the stream: the cut lands where it ends. */
@@ -85,6 +86,8 @@ export function NetworkUpdates({
   fillKey?: string;
   /** The member's news tags as the page arrived with them (For You's), until their preferences load. */
   forYouTags?: string[];
+  /** After the search icon at the header's end: team leads' "Post news" (LAB-3342). Null leaves no gap. */
+  headerAction?: ReactNode;
 }) {
   const {
     allItems,
@@ -198,7 +201,7 @@ export function NetworkUpdates({
         <h2 id="home-week-title" className={nb.title}>
           Network Updates
         </h2>
-        <span className={s.weekHeadActions}>
+        <span className={clsx(s.weekHeadActions, headerAction && s.weekHeadActionsPair)}>
           {/* Production's header search (NewsSearch: the icon opens the field inline; desktop only). */}
           <NewsSearch
             open={searchOpen}
@@ -208,6 +211,7 @@ export function NetworkUpdates({
             onBlur={handleFieldBlur}
             fieldRef={desktopFieldRef}
           />
+          {headerAction}
         </span>
       </div>
       {/* Production Home's line under its news title: NewsBase's copy and `.sub`. */}

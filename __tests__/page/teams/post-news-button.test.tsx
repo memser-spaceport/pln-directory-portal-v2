@@ -74,4 +74,21 @@ describe('PostNewsButton', () => {
 
     expect(mockCalloutKey).toHaveBeenCalledWith('team_news_post_tip');
   });
+
+  // LAB-3342: Home shows the same button with no "New" tip, and its press leaves the team page's tip alone.
+  it('with showTip off, shows no tip and does not dismiss it on press', async () => {
+    const onPost = jest.fn();
+    render(<PostNewsButton teamName="Protocol Labs" onPost={onPost} showTip={false} className="homeSize" />);
+
+    expect(screen.queryByRole('button', { name: 'Got it' })).not.toBeInTheDocument();
+    const button = screen.getByRole('button', { name: 'Post news' });
+    expect(button).toHaveClass('postAction', 'homeSize');
+
+    await act(async () => {
+      fireEvent.click(button);
+    });
+
+    expect(onPost).toHaveBeenCalled();
+    expect(mockDismiss).not.toHaveBeenCalled();
+  });
 });

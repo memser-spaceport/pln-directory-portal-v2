@@ -505,7 +505,7 @@ With `NEXT_PUBLIC_SHOW_HOME_V2` on, Home's news cards SHALL show their tags as `
 
 ### Requirement: Posting an update is recorded
 
-Opening the composer on a team page or a member page SHALL record `team-news-create-clicked` with the team uid, team name and source. A successful publish SHALL record `team-news-create-post-submitted` with the same fields. A failed publish SHALL record neither submit event. The event SHALL NOT include the post title, body or URL.
+Opening the composer on a team page, a member page or the signed-in Home SHALL record `team-news-create-clicked` with the team uid, team name and source. A successful publish SHALL record `team-news-create-post-submitted` with the same fields. A failed publish SHALL record neither submit event. The event SHALL NOT include the post title, body or URL.
 
 #### Scenario: Publish from the team page
 
@@ -517,7 +517,25 @@ Opening the composer on a team page or a member page SHALL record `team-news-cre
 - **WHEN** a member opens the composer on their member page and the post succeeds
 - **THEN** PostHog gets both events with source `member-profile`
 
+#### Scenario: Publish from the Home
+
+- **WHEN** a team lead presses "Post news" on the signed-in Home and the post succeeds (LAB-3342)
+- **THEN** PostHog gets both events with source `home`, with the team the post went to on the submit event
+
 #### Scenario: Publish fails
 
 - **WHEN** the create request fails
 - **THEN** PostHog gets `team-news-create-clicked` and no `team-news-create-post-submitted`
+
+### Requirement: The post-news form
+
+`PostNewsModal` SHALL take an optional list of teams (`teamChoices`). With more than one, it SHALL show "Post as" above the headline, start on `teamUid`, show each team's logo in the options and the chosen value, and keep one draft across the teams. The duplicate-link check SHALL then use only the chosen team's news. The submission SHALL carry the target `teamUid`. With one team or none, the form SHALL be as before.
+
+While `isPublishing`, Post SHALL read "Posting…". Post and Cancel SHALL be off, and "Discard draft" SHALL be hidden. This applies on every page that uses the form.
+
+`PostNewsButton` SHALL take `showTip` (default on) for the one-time "New" tip. With it off, the tip SHALL NOT show, and a press SHALL NOT dismiss it.
+
+#### Scenario: Sending
+
+- **WHEN** a member presses Post and the call is in flight
+- **THEN** the button reads "Posting…" and Cancel is off

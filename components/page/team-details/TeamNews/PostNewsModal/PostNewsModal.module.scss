@@ -83,3 +83,31 @@
   animation: newsPostedWash 1.5s ease-out;
   border-radius: 8px;
 }
+
+// "Post as" (LAB-3342): above the headline, as in the LAB-3316 prototype.
+.postAsField {
+  margin-bottom: 24px;
+}
+
+// A "Post as" row: 20px logo, 8px gap, the name. The same row in the list and in the chosen value.
+.teamOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.teamLogo {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.teamOptionName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -34,6 +34,7 @@ import {
 import { LABOS_AGENT_MENTION_TEXT } from '../constants';
 import { isStalledAnswer, LabosAgentError } from '../labos-agent.errors';
 import { toChatMentions } from '../labos-agent.mentions';
+import { openCards } from '../labos-agent.open-cards';
 import { distinctSourceCount } from '../labos-agent.sources';
 import { getLabosAgentClient, toChatContext } from '../labos-agent.service';
 import { chatKey, useLabosAgentStore } from '../store';
@@ -333,11 +334,14 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
     );
   }, [key, updateTurns]);
 
+  /** New chat discards the cards that still wait: each one sends one `agent-action-cancelled` (V0-R6). */
   const newChat = useCallback(() => {
     streams.get(key)?.abort();
     streams.delete(key);
+    const { chats, sentIntroTargets } = useLabosAgentStore.getState();
+    openCards(chats[key]?.turns ?? [], sentIntroTargets).forEach((card) => onActionCancelled(context, card.props));
     resetChat(key);
-  }, [key, resetChat]);
+  }, [key, context, resetChat, onActionCancelled]);
 
   const setCard = useCallback(
     (turnId: string, proposalId: string, card: LabosAgentCardState) =>

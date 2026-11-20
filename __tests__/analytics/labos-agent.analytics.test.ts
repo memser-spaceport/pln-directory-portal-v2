@@ -29,7 +29,7 @@ import {
 } from '@/analytics/labos-agent.analytics';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useLabosAgentChat } from '@/services/labos-agent/hooks/useLabosAgentChat';
-import { openCardsAtClose } from '@/services/labos-agent/hooks/useLabosAgentDockEvents';
+import { openCards } from '@/services/labos-agent/labos-agent.open-cards';
 import { normalizeChatBody } from '@/services/labos-agent/labos-agent.service';
 import { distinctSourceCount, sourceRefKind, sourceRefLink } from '@/services/labos-agent/labos-agent.sources';
 import { useLabosAgentStore } from '@/services/labos-agent/store';
@@ -142,7 +142,7 @@ describe('LAB-3297: agent event helpers', () => {
     expect(sourceRefLink({ type: 'news', title: 'S', directoryLink: '//evil.example' }).href).toBeUndefined();
   });
 
-  it('agent-action-cancelled: openCardsAtClose lists only the cards that still wait', () => {
+  it('agent-action-cancelled (V0-R6): openCards lists only the cards that still wait', () => {
     const base = {
       id: 't',
       message: 'm',
@@ -161,7 +161,7 @@ describe('LAB-3297: agent event helpers', () => {
       targetType: 'team' as const,
       changes: [],
     });
-    const cards = openCardsAtClose(
+    const cards = openCards(
       [
         {
           ...base,
@@ -174,6 +174,58 @@ describe('LAB-3297: agent event helpers', () => {
       {},
     );
     expect(cards).toEqual([{ key: 'open', props: { actionType: 'team-field', edited: false } }]);
+  });
+
+  const turnWith = (proposals: object[], cards: object) =>
+    ({
+      id: 't',
+      message: 'm',
+      status: 'done',
+      steps: [],
+      content: '',
+      sources: [],
+      sourceRefs: [],
+      followUpQuestions: [],
+      startedAt: 0,
+      proposals,
+      cards,
+      drafts: [],
+      draftCards: {},
+    }) as unknown as Parameters<typeof openCards>[0][number];
+  const prop = (proposalId: string, expiresAt?: string) => ({
+    proposalId,
+    tool: 'update_team',
+    title: 'T',
+    targetType: 'team',
+    changes: [],
+    ...(expiresAt ? { expiresAt } : {}),
+  });
+
+  it('agent-action-cancelled (V0-R6): an action card in error with Retry waits, an error with no Retry does not', () => {
+    const cards = openCards(
+      [
+        turnWith([prop('retry'), prop('final')], {
+          retry: { status: 'error', message: 'Retry.', canRetry: true },
+          final: { status: 'error', message: 'Expired.' },
+        }),
+      ],
+      {},
+    );
+    expect(cards.map((c) => c.key)).toEqual(['retry']);
+  });
+
+  it('agent-action-cancelled (V0-R6): a pending action card past its expiresAt does not wait', () => {
+    const past = new Date(Date.now() - 60_000).toISOString();
+    const future = new Date(Date.now() + 60_000).toISOString();
+    const cards = openCards(
+      [
+        turnWith([prop('expired', past), prop('expiredPending', past), prop('live', future)], {
+          expiredPending: { status: 'pending' },
+        }),
+      ],
+      {},
+    );
+    expect(cards.map((c) => c.key)).toEqual(['live']);
   });
 });
 

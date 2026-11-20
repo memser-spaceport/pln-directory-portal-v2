@@ -120,6 +120,7 @@ export function EventDrawer({
   onClose,
   onNotice,
   rsvp = 'card',
+  openOn = 'event',
 }: {
   eventUid: string | null;
   /** The list the drawer was opened from, for previous / next. */
@@ -129,6 +130,9 @@ export function EventDrawer({
   /** Called on close when the member said yes during this visit. */
   onNotice?: (notice: EventNotice) => void;
   rsvp?: RsvpPlacement;
+  /** Which view a newly opened event lands on: its overview, or straight on who's going
+   *  (events-page-redesign's "N going" on a card, 2026-11-20). Back still returns to the overview. */
+  openOn?: 'event' | 'attendees';
 }) {
   /* Keep drawing the last event while the drawer slides out. */
   const [shownUid, setShownUid] = useState(eventUid);
@@ -147,10 +151,11 @@ export function EventDrawer({
     return () => window.removeEventListener('resize', fit);
   }, []);
 
-  /* A new event opens on its overview. */
+  /* A new event opens on its overview (or on who's going, when the caller asked). */
   useEffect(() => {
-    setView('event');
+    setView(openOn);
     setOverlayOpen(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventUid]);
 
   const event = shownUid ? eventByUid(shownUid) : null;

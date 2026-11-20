@@ -16,7 +16,7 @@ jest.mock('@/components/common/Markdown', () => ({
 }));
 
 import { LabosAgentTurn } from '@/components/core/labos-agent/LabosAgentTurn/LabosAgentTurn';
-import { ownOriginPath, sourceRefLink } from '@/services/labos-agent/labos-agent.sources';
+import { homeToRoot, ownOriginPath, sourceRefLink } from '@/services/labos-agent/labos-agent.sources';
 
 /**
  * LAB-3298 (D1, Oleg's QA): a LabOS source opens with the client router. A full page load lost the chat. A web
@@ -88,10 +88,30 @@ describe('LAB-3298 D1: LabOS source links keep the chat', () => {
 
   it('a web ref keeps the browser default: a new tab, no router.push', () => {
     renderTurn([{ type: 'web', title: 'Acme', externalUrl: 'https://example.com/acme' }]);
-    expect(screen.getByText('Acme').closest('a')).toHaveAttribute('target', '_blank');
+    // D8 can change the title of a web ref, so the test finds the link by its href.
+    const link = document.querySelector<HTMLAnchorElement>('a[href="https://example.com/acme"]') as HTMLAnchorElement;
+    expect(link).toHaveAttribute('target', '_blank');
 
-    expect(click('Acme')).toBe(false);
+    expect(fireEvent.click(link, { button: 0 })).toBe(true);
     expect(push).not.toHaveBeenCalled();
+  });
+
+  it('a /home?news= link becomes /?news=, so it skips the 308 redirect', () => {
+    renderTurn([
+      { type: 'news', title: 'A story', directoryLink: '/home?news=n-1' },
+      { type: 'news', title: 'Another story', externalUrl: `${window.location.origin}/home?news=n-2#top` },
+    ]);
+    expect(screen.getByText('A story').closest('a')).toHaveAttribute('href', '/?news=n-1');
+    expect(screen.getByText('Another story').closest('a')).toHaveAttribute('href', '/?news=n-2#top');
+    expect(click('A story')).toBe(true);
+    expect(push).toHaveBeenCalledWith('/?news=n-1');
+
+    expect(homeToRoot('/home')).toBe('/');
+    expect(homeToRoot('/home/')).toBe('/');
+    expect(homeToRoot('/home#x')).toBe('/#x');
+    expect(homeToRoot('/homepage?x=1')).toBe('/homepage?x=1');
+    expect(homeToRoot('/home/news')).toBe('/home/news');
+    expect(homeToRoot('/teams/home?x=1')).toBe('/teams/home?x=1');
   });
 
   it('Ctrl, Cmd or Shift click on a LabOS ref keeps the browser default', () => {

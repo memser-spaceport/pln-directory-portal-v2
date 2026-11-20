@@ -64,7 +64,7 @@ The panel SHALL be a right-hand column (480px from 960px wide, a full-screen she
 
 ### Requirement: A LabOS source opens in the same tab and keeps the chat
 
-A source ref with a LabOS link SHALL open with the client router (`router.push`), not a full page load, so the chat in the store stays (LAB-3298, D1). A LabOS link is a relative `directoryLink`, or a full URL on the app's own origin; the panel SHALL use its path, query and hash. A Ctrl, Cmd, Shift or Alt click SHALL keep the browser default. A web link SHALL open in a new tab.
+A source ref with a LabOS link SHALL open with the client router (`router.push`), not a full page load, so the chat in the store stays (LAB-3298, D1). A LabOS link is a relative `directoryLink`, or a full URL on the app's own origin; the panel SHALL use its path, query and hash. A `/home` path SHALL become `/` (`/home?news=<uid>` becomes `/?news=<uid>`), so the link skips the 308 redirect. A Ctrl, Cmd, Shift or Alt click SHALL keep the browser default. A web link SHALL open in a new tab.
 
 #### Scenario: Open a news source from the panel
 

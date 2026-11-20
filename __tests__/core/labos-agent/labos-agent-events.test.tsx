@@ -48,6 +48,11 @@ jest.mock('@/components/common/Markdown', () => ({
 import { LabosAgentRoot } from '@/components/core/labos-agent/LabosAgentRoot/LabosAgentRoot';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { resetDockEventsForTest } from '@/services/labos-agent/hooks/useLabosAgentDockEvents';
+import {
+  introRequestTargetKey,
+  markIntroRequestSent,
+  retainIntroRequestTarget,
+} from '@/services/intro-requests/intro-request-entry-registry';
 import { useLabosAgentStore } from '@/services/labos-agent/store';
 import type { IUserInfo } from '@/types/shared.types';
 
@@ -479,6 +484,39 @@ describe('LAB-3297: agent events', () => {
 
       expect(events('agent-action-cancelled')).toHaveLength(0);
       expect(one('agent-dock-closed')).toMatchObject({ actionCount: 1, confirmedCount: 1 });
+    });
+
+    it('agent-action-cancelled (V0-R1): an "Intro already requested" card after an agent send is not cancelled at a close', async () => {
+      chat.mockResolvedValue({ ...introAnswer, drafts: [draft, { ...draft, draftId: 'dr_2' }] });
+      customFetch.mockResolvedValue({ ok: true, status: 200, json: async () => ({ uid: 'ir-1' }) });
+      renderApp();
+      await open(introContext, 'intro-entry');
+      await send('Help me write an intro request.', 'Here is a draft.');
+      const [first, second] = screen.getAllByRole('article', { name: `Intro request to ${MEMBER_NAME}` });
+      await act(async () => fireEvent.click(within(first).getByRole('button', { name: 'Send' })));
+      expect(within(second).getByText('Intro already requested')).toBeInTheDocument();
+      close();
+
+      expect(events('agent-action-cancelled')).toHaveLength(0);
+      expect(one('agent-dock-closed')).toMatchObject({ actionCount: 2, confirmedCount: 1 });
+    });
+
+    it('agent-action-cancelled (V0-R1): an "Intro already requested" card from the page state is not cancelled at a close', async () => {
+      const key = introRequestTargetKey('MEMBER', MEMBER_UID);
+      const release = retainIntroRequestTarget(key);
+      markIntroRequestSent(key);
+      try {
+        renderApp();
+        await open(introContext, 'intro-entry');
+        await send('Help me write an intro request.', 'Here is a draft.');
+        expect(within(card()).getByText('Intro already requested')).toBeInTheDocument();
+        close();
+
+        expect(events('agent-action-cancelled')).toHaveLength(0);
+        expect(one('agent-dock-closed')).toMatchObject({ actionCount: 1, confirmedCount: 0 });
+      } finally {
+        release();
+      }
     });
 
     it('agent-action-failed (V0-R1): a failed Send sends the C3 status', async () => {

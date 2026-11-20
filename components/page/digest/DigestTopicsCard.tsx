@@ -11,6 +11,8 @@ import { CheckIcon, PlusIcon } from './DigestTopicIcons';
 import s from './DigestSidebar.module.scss';
 
 const MAX_ROWS = 3;
+/** Up to this many of the reader's own topics show as chips; more show as "N selected" (LAB-3348). */
+export const MAX_OWN_CHIPS = 5;
 
 export type DigestTopicsCardProps = {
   followed: string[];
@@ -28,9 +30,10 @@ export type DigestTopicsCardProps = {
 type Props = DigestTopicsCardProps & { headingId: string };
 
 /**
- * "Add topics" (LAB-3289, the digest-web prototype's TopicsCard): topics the reader doesn't follow yet as News
- * preferences' own chips, in the page's weight order, as many as fill three rows. Save topics appears once a chip
- * differs from what's saved; a failed save keeps the picks. Unfollowing lives in the modal ("See all topics").
+ * "Add topics" (LAB-3289, the digest-web prototype's TopicsCard). LAB-3348: "Your topics" first, the reader's own
+ * topics as ticked chips (up to MAX_OWN_CHIPS, else "N selected"), so the card never looks empty to a reader who has
+ * topics; then "Suggested topics", the topics they don't follow yet in the page's weight order, as many as fill three
+ * rows. Save topics appears once a chip differs from what's saved; a failed save keeps the picks.
  */
 export function DigestTopicsCard({
   headingId,
@@ -50,6 +53,10 @@ export function DigestTopicsCard({
   const ticked = (slug: string) => draft[slug] ?? saved.has(slug);
   const changed = Object.entries(draft).some(([slug, on]) => on !== saved.has(slug));
   const chipsRef = useRef<HTMLDivElement>(null);
+  // Signed out the page knows no topics of the reader's, so only the suggestions show. A suggestion saved during the
+  // visit stays where it was, ticked, so "Your topics" leaves out what the suggestions already show.
+  const mine = signedIn ? followed : [];
+  const own = mine.filter((slug) => !suggested.includes(slug));
 
   // Three rows of chips, whatever the card's width: hide the chips that wrap past row three (hidden, not just
   // clipped, so keyboard focus never lands on one you can't see). CSS clamps the same height before this runs.
@@ -77,6 +84,22 @@ export function DigestTopicsCard({
     setDraft((prev) => ({ ...prev, [slug]: !ticked(slug) }));
   };
 
+  const chipButton = (slug: string) => {
+    const on = ticked(slug);
+    return (
+      <button
+        key={slug}
+        type="button"
+        className={clsx(np.chip, on && np.chipOn)}
+        aria-pressed={on}
+        title={on ? `Remove #${slug}` : `Add #${slug}`}
+        onClick={() => press(slug)}
+      >
+        {on ? <CheckIcon /> : <PlusIcon />}#{slug}
+      </button>
+    );
+  };
+
   const save = async () => {
     const next = [
       ...followed.filter((slug) => draft[slug] !== false),
@@ -94,25 +117,35 @@ export function DigestTopicsCard({
         Add topics
       </h2>
       <p className={s.cardText}>Tick a topic to get stories about it in your digest.</p>
+      {(mine.length > MAX_OWN_CHIPS || own.length > 0) && (
+        <>
+          <h3 id={`${headingId}-own`} className={s.cardLabel}>
+            Your topics
+          </h3>
+          {mine.length > MAX_OWN_CHIPS ? (
+            <p className={s.cardText}>{mine.length} selected</p>
+          ) : (
+            <div className={clsx(np.chips, s.chips)} role="group" aria-labelledby={`${headingId}-own`}>
+              {own.map((slug) => chipButton(slug))}
+            </div>
+          )}
+        </>
+      )}
       {suggested.length > 0 && (
-        <div ref={chipsRef} className={clsx(np.chips, s.chips)} role="group" aria-label="Topics to add">
-          {/* Fixed order: a chip never moves when it's ticked or unticked (News preferences' rule). */}
-          {suggested.map((slug) => {
-            const on = ticked(slug);
-            return (
-              <button
-                key={slug}
-                type="button"
-                className={clsx(np.chip, on && np.chipOn)}
-                aria-pressed={on}
-                title={on ? `Remove #${slug}` : `Add #${slug}`}
-                onClick={() => press(slug)}
-              >
-                {on ? <CheckIcon /> : <PlusIcon />}#{slug}
-              </button>
-            );
-          })}
-        </div>
+        <>
+          <h3 id={`${headingId}-suggested`} className={s.cardLabel}>
+            Suggested topics
+          </h3>
+          <div
+            ref={chipsRef}
+            className={clsx(np.chips, s.chips)}
+            role="group"
+            aria-labelledby={`${headingId}-suggested`}
+          >
+            {/* Fixed order: a chip never moves when it's ticked or unticked (News preferences' rule). */}
+            {suggested.map((slug) => chipButton(slug))}
+          </div>
+        </>
       )}
       <div className={s.actions}>
         {changed && signedIn && (

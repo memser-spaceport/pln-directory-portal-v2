@@ -164,6 +164,13 @@ export function useDigestAnalytics() {
       onTopicsSignInPrompted(params: { via: DigestTopicsVia }) {
         capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_TOPICS_SIGN_IN_PROMPTED, params);
       },
+      onForumSignInPrompted(params: { topicId: number; position: number }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_SIGN_IN_PROMPTED, {
+          via: 'forum-post',
+          topic_id: params.topicId,
+          position: params.position,
+        });
+      },
     }),
     [capture],
   );

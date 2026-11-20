@@ -32,6 +32,19 @@
   }
 }
 
+// Under 1100px: the topics section right after the page header (LAB-3348, LAB-3346 R5), so a reader on a phone
+// sees it before the stories. From 1100px the side column has it instead.
+.top {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 20px 16px 0;
+
+  @media (min-width: 1100px) {
+    display: none;
+  }
+}
+
 .card {
   flex-shrink: 0;
   padding: 16px 20px;
@@ -54,6 +67,15 @@
   margin: 2px 0 0;
   font-size: 14px;
   line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// "Your topics" / "Suggested topics" (LAB-3348): a small label above each chip row, with the card's air above it.
+.cardLabel {
+  margin: 12px 0 0;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
   color: var(--foreground-neutral-secondary, #455468);
 }
 

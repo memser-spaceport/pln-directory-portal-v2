@@ -40,7 +40,7 @@ type Props = {
 
 /**
  * The page's header (LAB-3287): the dateline ("Weekly digest · 9 November 2026 · 5 stories"), then the greeting as the
- * page title and the intro line. Left-aligned, with no logo: the LabOS navigation already says where you are.
+ * page title and the Change topics link. Left-aligned, with no logo: the LabOS navigation already says where you are.
  */
 export function DigestHeader({ frequency, sentAt, storyCount, firstName, onChangeTopics }: Props) {
   const date = formatDigestDate(sentAt, 'date');
@@ -52,18 +52,15 @@ export function DigestHeader({ frequency, sentAt, storyCount, firstName, onChang
       </p>
       <div className={s.intro}>
         <h1 className={s.greeting}>Hi {firstName || 'there'},</h1>
-        <p className={s.introText}>
-          Picked for you from subscribed tags and the teams you follow.
-          {onChangeTopics && (
-            <>
-              {' '}
-              {/* Opens the topics modal, so the issue stays where it was. The email's link lands with ?topics=open. */}
-              <button type="button" className={s.introLink} onClick={onChangeTopics}>
-                Change topics
-              </button>
-            </>
-          )}
-        </p>
+        {/* LAB-3348 (LAB-3346 R2): no "Picked for you…" line; "How personalization works" explains it instead. */}
+        {onChangeTopics && (
+          <p className={s.introText}>
+            {/* Opens the topics modal, so the issue stays where it was. The email's link lands with ?topics=open. */}
+            <button type="button" className={s.introLink} onClick={onChangeTopics}>
+              Change topics
+            </button>
+          </p>
+        )}
       </div>
     </header>
   );

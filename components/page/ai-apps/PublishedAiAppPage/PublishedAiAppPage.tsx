@@ -1,12 +1,15 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import clsx from 'clsx';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
-import { PublishedAiApp } from '@/services/ai-apps/ai-apps.service';
+import { fetchAiApp, isPublishedAiAppSegment, PublishedAiApp } from '@/services/ai-apps/ai-apps.service';
 import { usePublishedAiApps } from '@/services/ai-apps/hooks/usePublishedAiApps';
+import { usePermissions } from '@/services/rbac/hooks/usePermissions';
+import { canViewAiApps } from '@/services/rbac/utils/aiApps/canViewAiApps';
 import { PAGE_ROUTES } from '@/utils/constants';
 
 import {
@@ -36,22 +39,58 @@ function appOriginOf(url: string): string | null {
 
 /**
  * An AI App published to members outside PL Infra (LAB-3200), opened from the
- * More menu. The published list is the only access check on this page: the
- * member has no `ai_apps.read`, so nothing here may call the AI Apps catalog
- * API, and the app's own sidecar signs the member in inside the frame.
+ * More menu or a link: `/apps/<uid>` or the admin-set `/apps/<path>` (LAB-3238).
+ * The published list is the access check on this page: an audience member has
+ * no `ai_apps.read`, so only a PL Infra member outside the audience ever reaches
+ * the AI Apps catalog API here, to be sent to the app's catalog page. The app's
+ * own sidecar signs the member in inside the frame.
  */
 export function PublishedAiAppPage(props: Props) {
-  const { uid, basePath } = props;
+  const { uid: segment, basePath } = props;
 
   // Fresh, not the menu's cached list: the member may have been taken out of
   // the audience since the menu loaded.
   const { apps, isLoading } = usePublishedAiApps({ fresh: true });
+  const { permsSet, isLoading: isPermissionsLoading } = usePermissions();
+  const router = useRouter();
   const analytics = useAiAppsAnalytics();
   const trackedUnavailableUid = useRef<string | null>(null);
 
-  const app = apps.find((item) => item.uid === uid) ?? null;
+  const app = apps.find((item) => isPublishedAiAppSegment(item, segment)) ?? null;
   const appOrigin = app ? appOriginOf(app.url) : null;
-  const isUnavailable = !isLoading && (!app || !appOrigin);
+  const notPublishedToMember = !isLoading && (!app || !appOrigin);
+  const canOpenCatalog = !isPermissionsLoading && canViewAiApps(permsSet);
+
+  // A PL Infra member following a shared link to an app outside their audience
+  // opens it from the catalog instead (the path resolves there too).
+  const shouldCheckCatalog = notPublishedToMember && canOpenCatalog;
+  const [catalogResult, setCatalogResult] = useState<{ segment: string; uid: string | null } | null>(null);
+
+  useEffect(() => {
+    if (!shouldCheckCatalog) return;
+    let cancelled = false;
+    fetchAiApp(segment).then(
+      ({ app: catalogApp }) => {
+        if (!cancelled) setCatalogResult({ segment, uid: catalogApp?.uid ?? null });
+      },
+      () => {
+        if (!cancelled) setCatalogResult({ segment, uid: null });
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [shouldCheckCatalog, segment]);
+
+  // undefined until the catalog answered for this link; null when it does not know it.
+  const catalogUid = catalogResult?.segment === segment ? catalogResult.uid : undefined;
+
+  useEffect(() => {
+    if (catalogUid) router.replace(`/pl-infra/ai-apps/${encodeURIComponent(catalogUid)}`);
+  }, [catalogUid, router]);
+
+  const isUnavailable = notPublishedToMember && !isPermissionsLoading && (!canOpenCatalog || catalogUid === null);
+  const uid = app?.uid ?? segment;
 
   useEffect(() => {
     if (!isUnavailable || trackedUnavailableUid.current === uid) return;
@@ -63,7 +102,7 @@ export function PublishedAiAppPage(props: Props) {
     return <PublishedAiAppFrame app={app} appOrigin={appOrigin} basePath={basePath} />;
   }
 
-  if (isLoading) {
+  if (!isUnavailable) {
     return <div className={s.state}>Loading app…</div>;
   }
 
@@ -101,6 +140,8 @@ function PublishedAiAppFrame(props: FrameProps) {
   const [initialPath] = useState(() => (pathname.startsWith(`${basePath}/`) ? pathname.slice(basePath.length) : null));
   const [initialSearch] = useState(() => (typeof window === 'undefined' ? '' : window.location.search));
   const [appPageTitle, setAppPageTitle] = useState<string | null>(null);
+  // "Hide top navigation" (LAB-3238): TopNavGate leaves the LabOS header out; the app fills the whole page.
+  const fullPage = !!app.hideTopNav;
 
   // Reserved and denylisted query keys never reach the iframe (resolveAppPath).
   const frameSrc = useMemo(() => {
@@ -146,7 +187,7 @@ function PublishedAiAppFrame(props: FrameProps) {
   }, [appOrigin, basePath]);
 
   return (
-    <div className={s.root}>
+    <div className={clsx(s.root, { [s.rootFullPage]: fullPage })}>
       <iframe ref={iframeRef} className={s.iframe} src={frameSrc} title={app.name} allow="fullscreen" />
     </div>
   );

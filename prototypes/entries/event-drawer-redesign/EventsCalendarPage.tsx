@@ -33,7 +33,7 @@ import { startTime } from './format';
 import { CAL_EVENTS, DETAILS, eventByUid, gatheringFor, type CalEvent } from './mocks';
 import c from './EventsCalendarPage.module.scss';
 
-export type DrawerVersion = 'redesign' | 'current';
+export type DrawerVersion = 'redesign' | 'footer' | 'current';
 
 type Mode = 'All' | 'In-Person' | 'Virtual' | 'Hybrid';
 
@@ -238,8 +238,9 @@ export function EventsCalendarPage({
         </div>
       </div>
 
-      {drawer === 'redesign' ? (
+      {drawer !== 'current' ? (
         <EventDrawer
+          rsvp={drawer === 'footer' ? 'footer' : 'card'}
           eventUid={openUid}
           sequence={sequence}
           onNavigate={setOpenUid}

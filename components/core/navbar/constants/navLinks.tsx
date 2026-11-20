@@ -20,7 +20,7 @@ import {
 } from '../components/icons';
 import { MagicSparklesIcon } from '@/components/icons';
 import { PL_INFRA_OS_PATH, publishedAiAppPath } from '@/services/ai-apps/constants';
-import type { PublishedAiApp } from '@/services/ai-apps/ai-apps.service';
+import { publishedAiAppSegment, type PublishedAiApp } from '@/services/ai-apps/ai-apps.service';
 
 export const INVESTOR_DB_LINK: ISubItem = {
   icon: <AnalyticsIcon />,
@@ -151,13 +151,20 @@ export const AI_APPS_LINK: ISubItem = {
 
 /**
  * A More entry for an AI App published to the member (LAB-3200). It opens the
- * embedded app itself — these members have no AI Apps catalog to land on.
+ * embedded app itself — these members have no AI Apps catalog to land on. An
+ * app shown without the LabOS top navigation opens in a new tab, so LabOS stays
+ * open behind it and closing the tab is the way back (LAB-3238).
  */
 export const publishedAiAppLink = (app: PublishedAiApp): ISubItem => ({
-  icon: <StarFourIcon />,
-  href: publishedAiAppPath(app.uid),
+  icon: app.iconUrl ? (
+    <img src={app.iconUrl} alt="" width={20} height={20} style={{ borderRadius: 4, objectFit: 'cover' }} />
+  ) : (
+    <StarFourIcon />
+  ),
+  href: publishedAiAppPath(publishedAiAppSegment(app)),
   title: app.name,
   description: app.description ?? undefined,
+  external: !!app.hideTopNav,
 });
 
 export const AGENT_SESSIONS_LINK: ISubItem = {

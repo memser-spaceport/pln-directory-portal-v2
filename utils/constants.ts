@@ -2974,7 +2974,22 @@ export const EXPLORE_PL_NETWORK_ANALYTICS = {
 export const DIGEST_ANALYTICS_EVENTS = {
   ON_DIGEST_PAGE_VIEWED: 'digest-page-viewed',
   ON_DIGEST_STORY_READ: 'digest-story-read',
+  ON_DIGEST_NETWORK_NEWS_CLICKED: 'digest-network-news-clicked',
+  ON_DIGEST_EVENT_CLICKED: 'digest-event-clicked',
+  ON_DIGEST_EVENTS_SEE_ALL_CLICKED: 'digest-events-see-all-clicked',
+  ON_DIGEST_FORUM_THREAD_CLICKED: 'digest-forum-thread-clicked',
+  ON_DIGEST_FORUM_OPEN_CLICKED: 'digest-forum-open-clicked',
   ON_DIGEST_MORE_CLICKED: 'digest-more-clicked',
   ON_DIGEST_LESS_CLICKED: 'digest-less-clicked',
   ON_DIGEST_UNDO_CLICKED: 'digest-undo-clicked',
+  ON_DIGEST_TOPICS_SAVED: 'digest-topics-saved',
+  ON_DIGEST_TOPICS_MODAL_OPENED: 'digest-topics-modal-opened',
+  ON_DIGEST_TOPICS_SIGN_IN_PROMPTED: 'digest-topics-sign-in-prompted',
+  // LAB-3312: the digest email page (/digest/email), opened from the email footer.
+  ON_DIGEST_EMAIL_PAGE_VIEWED: 'digest-email-page-viewed',
+  ON_DIGEST_EMAIL_UNSUBSCRIBED: 'digest-email-unsubscribed',
+  ON_DIGEST_EMAIL_RESUBSCRIBED: 'digest-email-resubscribed',
+  ON_DIGEST_EMAIL_FREQUENCY_CHANGED: 'digest-email-frequency-changed',
+  ON_DIGEST_EMAIL_UNDO_CLICKED: 'digest-email-undo-clicked',
+  ON_DIGEST_EMAIL_SAVE_FAILED: 'digest-email-save-failed',
 };

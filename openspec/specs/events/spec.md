@@ -29,8 +29,8 @@ The drawer SHALL open on one event and show, top to bottom:
 
 1. A Back bar.
 2. "EVENT DETAILS" with the event's mode and access.
-3. The event's picture when it has one, title, date line, and address with its region.
-4. The event's own page (for example its Luma page) when it has one, as a link under the date and the address (LAB-3271). The link SHALL open in a new tab. It SHALL show the address without `https://`. An event without a page, or whose page is not an `http` or `https` address, SHALL have no link row.
+3. The event's picture when it has one, title, date line, and address with its region. When the event has a map link (the events service's `location_url`), the address and its arrow SHALL be one link that opens the map in a new tab, as on the PL events app (LAB-3324). An event without a map link, or whose map link is not an `http` or `https` address, SHALL show the address as plain text with no arrow.
+4. The event's own page (for example its Luma page) when it has one, as a link under the date and the address (LAB-3271). The link SHALL open in a new tab. It SHALL show the address without `https://`. The row SHALL look like the date row (LAB-3333): a link icon in the calendar icon's size, stroke and colour, then the link text in the date's font size, weight, colour and spacing, with no arrow. The page SHALL be the event's `websiteUrl`. When `websiteUrl` is empty or not an `http` or `https` address, the page SHALL be the link of the event's resource named "Registration" (any case, end spaces ignored), and "Register" SHALL open the same page (LAB-3334). An event without a page, or whose page is not an `http` or `https` address, SHALL have no link row and no "Register".
 5. Tags, Host, Description and Agenda.
 
 A block whose data is empty SHALL be left out rather than shown empty. On a narrow screen the drawer SHALL take the full width.
@@ -47,6 +47,19 @@ A block whose data is empty SHALL be left out rather than shown empty. On a narr
 - **GIVEN** event B without a page
 - **WHEN** a viewer opens event B
 - **THEN** the drawer shows no link row
+
+#### Scenario: Event with a map link
+
+- **GIVEN** event C with the map link `https://www.google.com/maps/search/?api=1&query=Lisbon`
+- **WHEN** a viewer opens event C
+- **THEN** the address and its arrow are one link to that map
+- **AND** pressing it opens the map in a new tab
+
+#### Scenario: Event without a map link
+
+- **GIVEN** event D without a map link
+- **WHEN** a viewer opens event D
+- **THEN** the drawer shows the address as plain text with no arrow
 
 #### Scenario: Event with agenda and tags
 
@@ -238,7 +251,7 @@ When the drawer closes after a member said yes in it, and they are still going, 
 
 The drawer SHALL record these PostHog events, each with `event_uid`:
 
-- `event-drawer-opened`, with `source` (`home`, `member-profile`, `team-profile` or `add-event`);
+- `event-drawer-opened`, with `source` (`home`, `member-profile`, `team-profile`, `add-event` or `digest`);
 - `event-going-marked`, with `source`;
 - `event-not-going-marked`, on "Mark as not going";
 - `event-plans-saved`, with `roles`;

@@ -3,11 +3,11 @@ import s from './DigestPage.module.scss';
 /** Shown while the digest loads. */
 export function DigestSkeleton() {
   return (
-    <div className={s.page} aria-busy="true" aria-label="Loading your digest">
+    <div className={`${s.page} ${s.pageWeb}`} aria-busy="true" aria-label="Loading your digest">
       <div className={s.email}>
         <div className={s.header}>
-          <span className={s.skeleton} style={{ width: 200, height: 24 }} />
-          <span className={s.skeleton} style={{ width: 160, height: 16 }} />
+          <span className={s.skeleton} style={{ width: 240, height: 16 }} />
+          <span className={s.skeleton} style={{ width: 200, height: 32 }} />
         </div>
         <div className={s.spacer} />
         <div className={s.cards}>

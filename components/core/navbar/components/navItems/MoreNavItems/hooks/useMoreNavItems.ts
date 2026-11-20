@@ -32,7 +32,8 @@ export function useMoreNavItems() {
       ...(hasFounderGuidesAccess ? [FOUNDER_GUIDES_LINK] : []),
       ...eventLinks,
       ...(hasPlaaAccess ? [PLAA_LINK] : []),
-      ...publishedApps.map(publishedAiAppLink),
+      // Only apps the admin shows under More; the rest open by their link (LAB-3238).
+      ...publishedApps.filter((app) => app.showInMore !== false).map(publishedAiAppLink),
     ],
     [hasFounderGuidesAccess, hasPlaaAccess, eventLinks, publishedApps],
   );

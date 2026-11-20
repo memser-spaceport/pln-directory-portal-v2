@@ -5,9 +5,29 @@ import { DIGEST_ANALYTICS_EVENTS, FORUM_ANALYTICS_EVENTS } from '@/utils/constan
 import type { DigestChoice, DigestFrequency } from '@/services/digest/digest.types';
 
 /** How the email opened the page; `direct` for a link without a known `link_type`. */
-export type DigestPageFrom = 'email-more' | 'email-less' | 'email-story' | 'email-post' | 'view-in-browser' | 'direct';
+export type DigestPageFrom =
+  | 'email-more'
+  | 'email-less'
+  | 'email-story'
+  | 'email-post'
+  | 'email-post-news'
+  | 'email-change-topics'
+  | 'view-in-browser'
+  | 'direct';
 
-export type DigestLinkType = 'story' | 'read_more' | 'more' | 'less' | 'view_in_browser' | 'post';
+/** Where a topics action started (LAB-3289). */
+export type DigestTopicsVia = 'chip' | 'see-all' | 'change-topics' | 'email';
+
+/** `post_news` and `change_topics` (LAB-3290): the email's "Post your team news →" and "Change topics". */
+export type DigestLinkType =
+  | 'story'
+  | 'read_more'
+  | 'more'
+  | 'less'
+  | 'view_in_browser'
+  | 'post'
+  | 'post_news'
+  | 'change_topics';
 
 export const DIGEST_LINK_TYPES: readonly DigestLinkType[] = [
   'story',
@@ -16,6 +36,8 @@ export const DIGEST_LINK_TYPES: readonly DigestLinkType[] = [
   'less',
   'view_in_browser',
   'post',
+  'post_news',
+  'change_topics',
 ];
 
 export function digestPageFrom(linkType: string | null): DigestPageFrom {
@@ -29,6 +51,10 @@ export function digestPageFrom(linkType: string | null): DigestPageFrom {
       return 'email-story';
     case 'post':
       return 'email-post';
+    case 'post_news':
+      return 'email-post-news';
+    case 'change_topics':
+      return 'email-change-topics';
     case 'view_in_browser':
       return 'view-in-browser';
     default:
@@ -87,6 +113,33 @@ export function useDigestAnalytics() {
       onStoryRead(params: { newsId: string; position: number }) {
         capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_STORY_READ, { news_id: params.newsId, position: params.position });
       },
+      onNetworkNewsClicked(params: { newsId: string; position: number; domain: string | null }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_NETWORK_NEWS_CLICKED, {
+          news_id: params.newsId,
+          position: params.position,
+          domain: params.domain,
+        });
+      },
+      onEventClicked(params: { eventUid: string; position: number; opens: 'drawer' | 'calendar' }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_EVENT_CLICKED, {
+          event_uid: params.eventUid,
+          position: params.position,
+          opens: params.opens,
+        });
+      },
+      onEventsSeeAllClicked(params: { total: number }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_EVENTS_SEE_ALL_CLICKED, params);
+      },
+      onForumThreadClicked(params: { topicId: number; position: number; opens: 'modal' | 'forum' }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_FORUM_THREAD_CLICKED, {
+          topic_id: params.topicId,
+          position: params.position,
+          opens: params.opens,
+        });
+      },
+      onForumOpenClicked() {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_FORUM_OPEN_CLICKED, {});
+      },
       onChoiceClicked(params: { kind: DigestChoice; newsId: string; position: number; activeAfter: boolean }) {
         capture(
           params.kind === 'more'
@@ -101,6 +154,75 @@ export function useDigestAnalytics() {
           choice_reverted: params.choiceReverted,
           via: params.via,
         });
+      },
+      onTopicsSaved(params: { surface: 'card' | 'modal'; added: number; removed: number; total: number }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_TOPICS_SAVED, params);
+      },
+      onTopicsModalOpened(params: { via: Exclude<DigestTopicsVia, 'chip'> }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_TOPICS_MODAL_OPENED, params);
+      },
+      onTopicsSignInPrompted(params: { via: DigestTopicsVia }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_TOPICS_SIGN_IN_PROMPTED, params);
+      },
+    }),
+    [capture],
+  );
+}
+
+/** How the email footer opened `/digest/email` (LAB-3312); `direct` for a link without a known `link_type`. */
+export type DigestEmailLinkType = 'manage' | 'unsubscribe' | 'switch_frequency' | 'direct';
+
+export type DigestEmailAction = 'unsubscribe' | 'resubscribe' | 'frequency';
+
+export function digestEmailLinkType(linkType: string | null): DigestEmailLinkType {
+  return linkType === 'manage' || linkType === 'unsubscribe' || linkType === 'switch_frequency' ? linkType : 'direct';
+}
+
+/** Digest email page events (LAB-3312). Built from plain values: the link token never reaches an event. */
+export function useDigestEmailAnalytics() {
+  const posthog = usePostHog();
+
+  const capture = useCallback(
+    (name: string, params: Record<string, unknown>) => {
+      try {
+        const user = useCurrentUserStore.getState().currentUser;
+        posthog?.capture?.(name, { ...params, loggedInUserUid: user?.uid, loggedInUserEmail: user?.email });
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    [posthog],
+  );
+
+  return useMemo(
+    () => ({
+      onPageViewed(params: {
+        linkType: DigestEmailLinkType;
+        enabled: boolean;
+        frequency: DigestFrequency;
+        isLoggedIn: boolean;
+      }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_EMAIL_PAGE_VIEWED, {
+          link_type: params.linkType,
+          enabled: params.enabled,
+          frequency: params.frequency,
+          is_logged_in: params.isLoggedIn,
+        });
+      },
+      onChanged(params: { action: DigestEmailAction; frequency: DigestFrequency; via: 'main-button' | 'controls' }) {
+        const name =
+          params.action === 'unsubscribe'
+            ? DIGEST_ANALYTICS_EVENTS.ON_DIGEST_EMAIL_UNSUBSCRIBED
+            : params.action === 'resubscribe'
+              ? DIGEST_ANALYTICS_EVENTS.ON_DIGEST_EMAIL_RESUBSCRIBED
+              : DIGEST_ANALYTICS_EVENTS.ON_DIGEST_EMAIL_FREQUENCY_CHANGED;
+        capture(name, { via: params.via, ...(params.action === 'frequency' ? { frequency: params.frequency } : {}) });
+      },
+      onUndoClicked(params: { reverted: DigestEmailAction }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_EMAIL_UNDO_CLICKED, { reverted: params.reverted });
+      },
+      onSaveFailed(params: { action: DigestEmailAction | 'undo' }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_EMAIL_SAVE_FAILED, { action: params.action });
       },
     }),
     [capture],

@@ -1,8 +1,8 @@
 'use client';
 
+import clsx from 'clsx';
 import { useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-
 
 import { Button } from '@/components/common/Button';
 import { Drawer } from '@/components/common/Drawer';
@@ -38,9 +38,9 @@ import {
   toEventData,
   type GoingEvent,
 } from './mocks';
+import { MUTED_ROLE, ROLE_TAG } from './roleTags';
 import s from './MemberEventsGoing.module.scss';
 import { RsvpCard } from '../event-drawer-redesign/RsvpCard';
-
 
 /** What opened the modal: one event, or the owner's "Add event" list. */
 export type GatheringTarget = { kind: 'event'; eventUid: string } | { kind: 'pick' };
@@ -349,7 +349,14 @@ function EventFlow({
                 Cancel and Save both return to the event (the redesigned drawer's PlansView). */}
             {step === 2 && (
               <div key="details" className={e.footer}>
-                <Button type="button" style="border" variant="neutral" size="s" className={e.footerBtn} onClick={backToEvent}>
+                <Button
+                  type="button"
+                  style="border"
+                  variant="neutral"
+                  size="s"
+                  className={e.footerBtn}
+                  onClick={backToEvent}
+                >
                   Cancel
                 </Button>
                 <Button type="submit" size="s" className={e.footerBtn}>
@@ -448,7 +455,7 @@ function AttendeesView({
                     {a.role} · {a.team}
                   </span>
                 </span>
-                {a.tag && <span className={s.attendeeTag}>{a.tag}</span>}
+                {a.tag && <span className={clsx(ROLE_TAG, MUTED_ROLE[a.tag], s.attendeeTag)}>{a.tag}</span>}
               </a>
             </li>
           ))}

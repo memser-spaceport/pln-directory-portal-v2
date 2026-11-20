@@ -11,6 +11,8 @@ export type FeedItemKind = import('@/components/page/home/TeamNews/utils/mergeFe
 
 export type TeamNewsAnalyticsSource =
   | 'home'
+  // The digest page's "From the forum" popup (LAB-3293): Home's forum post modal over the digest.
+  | 'digest'
   | 'team-profile-rail'
   | 'team-profile-modal'
   | 'news-rail'
@@ -31,7 +33,9 @@ export type TeamNewsAnalyticsSource =
   // grounds the listing modals above are split from the rail: the card is three
   // rows, this is the whole archive, and "did the archive earn its slot on a
   // person's page" cannot be asked of traffic pooled with the rows.
-  | 'member-profile-modal';
+  | 'member-profile-modal'
+  // The digest reading page (LAB-3287): Comments and Share on each story.
+  | 'digest';
 
 /**
  * Surfaces that carry the "All network updates" exit — a team-scoped list, with
@@ -379,7 +383,11 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
-  const onTeamNewsShared = (item: ITeamNewsItem, network: TeamNewsShareNetwork, source: TeamNewsAnalyticsSource) => {
+  const onTeamNewsShared = (
+    item: Pick<ITeamNewsItem, 'uid' | 'teamUid' | 'teamName'>,
+    network: TeamNewsShareNetwork,
+    source: TeamNewsAnalyticsSource,
+  ) => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_SHARED, {
       itemUid: item.uid,
       teamUid: item.teamUid,

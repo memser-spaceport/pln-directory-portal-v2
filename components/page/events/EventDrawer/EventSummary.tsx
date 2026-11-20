@@ -29,7 +29,10 @@ function Description({ text }: { text: string }) {
   );
 }
 
-/** The event's own page (LAB-3271), when it is a web address. Shown without the scheme, e.g. "lu.ma/abc". */
+/**
+ * A web address the drawer may open in a new tab: the event's own page (LAB-3271), shown without the scheme, e.g.
+ * "lu.ma/abc", and the venue's map link (LAB-3324). Anything that is not `http` or `https` gives null.
+ */
 function eventLink(url: string | null): { href: string; label: string } | null {
   if (!url) return null;
   try {
@@ -55,10 +58,16 @@ function eventLink(url: string | null): { href: string; label: string } | null {
  * prototype puts it.
  *
  * LAB-3271: under the date and the address, a row with the event's own page (for example its Luma page), which
- * opens in a new tab. No page, no row.
+ * opens in a new tab. No page, no row. LAB-3333: the row looks like the date row: a chain link icon in the calendar
+ * icon's style, then the link text in the date's text style, with no arrow. LAB-3334: the row opens `eventUrl`:
+ * `websiteUrl`, or the event's "Registration" resource when `websiteUrl` is not a web address.
+ *
+ * LAB-3324: when the event has a map link (`locationUrl`), the address and its arrow are one link that opens the
+ * map in a new tab, as on the PL events app. Without a map link, the address is plain text with no arrow.
  */
 export function EventSummary({ event, beforeAgenda }: { event: EventDetail; beforeAgenda?: ReactNode }) {
-  const link = eventLink(event.websiteUrl);
+  const link = eventLink(event.eventUrl);
+  const mapLink = eventLink(event.locationUrl);
   return (
     <>
       <div className={e.head}>
@@ -90,17 +99,21 @@ export function EventSummary({ event, beforeAgenda }: { event: EventDetail; befo
             <div className={e.factRow}>
               <LocationIcon />
               <span className={e.place}>
-                <span className={e.fact}>
-                  {event.address} <LinkIcon />
-                </span>
+                {mapLink ? (
+                  <a className={e.eventLink} href={mapLink.href} target="_blank" rel="noopener noreferrer">
+                    <span className={e.fact}>{event.address}</span> <LinkIcon />
+                  </a>
+                ) : (
+                  <span className={e.fact}>{event.address}</span>
+                )}
               </span>
             </div>
           )}
           {link && (
-            <div className={e.factRow}>
-              <GlobeIcon />
+            <div className={e.factRow} data-testid="event-link-row">
+              <ChainIcon />
               <a className={e.eventLink} href={link.href} target="_blank" rel="noopener noreferrer">
-                <span className={e.fact}>{link.label}</span> <LinkIcon />
+                <span className={e.fact}>{link.label}</span>
               </a>
             </div>
           )}
@@ -294,13 +307,32 @@ const LocationIcon = () => (
   </svg>
 );
 
-const GlobeIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true" className={e.factIcon}>
-    <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3" />
+/**
+ * LAB-3333: the event link row's icon. A chain link in the calendar icon's style: 15px, 16-unit viewBox, 1.3 stroke
+ * in `currentColor`, coloured by `.factIcon`.
+ */
+const ChainIcon = () => (
+  <svg
+    width="15"
+    height="15"
+    viewBox="0 0 16 16"
+    fill="none"
+    aria-hidden="true"
+    className={e.factIcon}
+    data-testid="event-link-icon"
+  >
     <path
-      d="M1.5 8H14.5M8 1.5C9.7 3.3 10.6 5.6 10.6 8C10.6 10.4 9.7 12.7 8 14.5C6.3 12.7 5.4 10.4 5.4 8C5.4 5.6 6.3 3.3 8 1.5Z"
+      d="M6.667 8.667a3.333 3.333 0 0 0 5.027.36l2-2a3.333 3.333 0 0 0-4.714-4.714l-1.146 1.14"
       stroke="currentColor"
       strokeWidth="1.3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M9.333 7.333a3.333 3.333 0 0 0-5.027-.36l-2 2a3.333 3.333 0 0 0 4.714 4.714l1.14-1.14"
+      stroke="currentColor"
+      strokeWidth="1.3"
+      strokeLinecap="round"
       strokeLinejoin="round"
     />
   </svg>

@@ -1,4 +1,9 @@
-import { getDigestPage, saveDigestChoice } from '@/services/digest/digest.service';
+import {
+  getDigestEmailSettings,
+  getDigestPage,
+  saveDigestChoice,
+  saveDigestEmailSettings,
+} from '@/services/digest/digest.service';
 
 /** LAB-3264: the digest page API client. */
 describe('digest.service', () => {
@@ -11,12 +16,37 @@ describe('digest.service', () => {
 
   it('posts the token in the body, uncached, and returns the page', async () => {
     respond(200, { frequency: 'daily', stories: [] });
-    await expect(getDigestPage('tok')).resolves.toEqual({ data: { frequency: 'daily', stories: [] } });
+    await expect(getDigestPage('tok')).resolves.toEqual({
+      data: {
+        frequency: 'daily',
+        stories: [],
+        isTeamMember: false,
+        nextSendAt: null,
+        topics: { followed: [], suggested: [] },
+        issues: [],
+        networkNews: [],
+        events: { items: [], total: 0 },
+      },
+    });
     expect(global.fetch).toHaveBeenCalledWith('https://api/v1/labos-digest/page', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token: 'tok' }),
       cache: 'no-store',
+    });
+  });
+
+  it('fills the page v2 fields when the backend does not send them yet (LAB-3287)', async () => {
+    respond(200, {
+      frequency: 'weekly',
+      stories: [{ uid: 'a', sourceUrl: 'https://news.example/a', sourceDomain: 'news.example' }],
+    });
+    const result = await getDigestPage('tok');
+    expect(result.data?.stories[0]).toMatchObject({
+      teamLogoUrl: null,
+      followsTeam: false,
+      commentCount: 0,
+      sources: [{ url: 'https://news.example/a', domain: 'news.example' }],
     });
   });
 
@@ -29,6 +59,19 @@ describe('digest.service', () => {
   ])('maps %s %j to %s', async (status, body, error) => {
     respond(status, body);
     await expect(getDigestPage('tok')).resolves.toEqual({ error });
+  });
+
+  it('sends a past issue key with the read and with a choice (LAB-3294)', async () => {
+    respond(200, { frequency: 'daily', stories: [] });
+    await getDigestPage('tok', '2026-11-12T09:00:00.000Z');
+    expect((global.fetch as jest.Mock).mock.calls[0][1].body).toBe(
+      JSON.stringify({ token: 'tok', issue: '2026-11-12T09:00:00.000Z' }),
+    );
+    respond(200, { newsItemUid: 'n1', choice: 'more', changed: true });
+    await saveDigestChoice('tok', 'n1', 'more', '2026-11-12T09:00:00.000Z');
+    expect((global.fetch as jest.Mock).mock.calls[0][1].body).toBe(
+      JSON.stringify({ token: 'tok', newsItemUid: 'n1', choice: 'more', issue: '2026-11-12T09:00:00.000Z' }),
+    );
   });
 
   it('is invalid without a token, and calls nothing', async () => {
@@ -56,5 +99,56 @@ describe('digest.service', () => {
     );
     respond(500);
     await expect(saveDigestChoice('tok', 'n1', 'none')).rejects.toThrow();
+  });
+
+  describe('digest email settings (LAB-3312)', () => {
+    it('reads on the server with the token in the body, uncached', async () => {
+      respond(200, { firstName: 'Ada', enabled: true, frequency: 'weekly' });
+      await expect(getDigestEmailSettings('tok')).resolves.toEqual({
+        data: { firstName: 'Ada', enabled: true, frequency: 'weekly' },
+      });
+      expect(global.fetch).toHaveBeenCalledWith('https://api/v1/labos-digest/email-settings/read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: 'tok' }),
+        cache: 'no-store',
+      });
+    });
+
+    it.each([
+      [401, { reason: 'expired' }, 'expired'],
+      [401, { reason: 'signature' }, 'invalid'],
+      [404, {}, 'invalid'],
+      [503, {}, 'unavailable'],
+    ])('maps %s %j to %s', async (status, body, error) => {
+      respond(status, body);
+      await expect(getDigestEmailSettings('tok')).resolves.toEqual({ error });
+    });
+
+    it('is invalid without a token and unavailable when the API does not answer', async () => {
+      respond(200, {});
+      await expect(getDigestEmailSettings(undefined)).resolves.toEqual({ error: 'invalid' });
+      expect(global.fetch).not.toHaveBeenCalled();
+      global.fetch = jest.fn(async () => {
+        throw new Error('down');
+      }) as any;
+      await expect(getDigestEmailSettings('tok')).resolves.toEqual({ error: 'unavailable' });
+    });
+
+    it('saves only the given change and throws on a failed save', async () => {
+      respond(200, { firstName: 'Ada', enabled: false, frequency: 'daily' });
+      await expect(saveDigestEmailSettings('tok', { enabled: false })).resolves.toEqual({
+        firstName: 'Ada',
+        enabled: false,
+        frequency: 'daily',
+      });
+      expect(global.fetch).toHaveBeenCalledWith('https://api/v1/labos-digest/email-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: 'tok', enabled: false }),
+      });
+      respond(500);
+      await expect(saveDigestEmailSettings('tok', { frequency: 'weekly' })).rejects.toThrow();
+    });
   });
 });

@@ -23,7 +23,7 @@
  *     next step through the list the drawer was opened from (the rail's rows,
  *     the calendar's events in date order), so browsing a month doesn't mean
  *     closing and reopening.
- *  2. Who and what: logo tile, mode + access as DS Badges, the title, "Hosted by".
+ *  2. Who and what: thumbnail (mode and access are fact rows below, not Badges, since 2026-11-17), the title, "Hosted by".
  *  3. When and where: the date tile the rail row already wears, then the venue
  *     (a map link) over its city. Same two facts the app showed, without its icons.
  *  4. The ask, in one card, near the top: who's going (facepile, opens the list
@@ -90,32 +90,18 @@ import m from '@/components/core/UpdatesPanel/IrlGatheringModal/IrlGatheringModa
 import { markGoing, saveGathering, useGoing } from '../member-events-going/goingStore';
 import { ATTENDEES, MAYA_TEAMS, type EventDetail, type Gathering } from '../member-events-going/mocks';
 
-import {
-  ACCESS_LABEL,
-  MODE_LABEL,
-  dayLine,
-  dayOfMonth,
-  mapsHref,
-  monthShort,
-  regionLine,
-  timeLine,
-  venueOf,
-} from './format';
-import {
-  DETAILS,
-  eventByUid,
-  eventsAppHref,
-  gatheringFor,
-  registerHref,
-  siblingsOf,
-  THUMBS,
-  type CalEvent,
-} from './mocks';
+import { EventImage } from '../events-shared/EventImage';
+import { GoingTag } from '../events-shared/GoingTag';
+import { MUTED_ROLE, ROLE_TAG } from '../member-events-going/roleTags';
+import { AccessIcon, ACCESS_FACT } from './AccessIcon';
+import { dayLine, dayOfMonth, mapsHref, monthShort, regionLine, timeLine, venueOf } from './format';
+import { DETAILS, eventByUid, eventsAppHref, gatheringFor, registerHref, siblingsOf, type CalEvent } from './mocks';
 import { RsvpCard } from './RsvpCard';
+import { GoingCardCompact, RsvpFooter } from './RsvpFooter';
 import d from './EventDrawer.module.scss';
 
 const SCOPE = 'owner' as const;
-const DRAWER_WIDTH = 560;
+const DRAWER_WIDTH = 640; // 560 → 640 (2026-11-18: "make drawer a bit wider")
 
 export interface EventNotice {
   eventName: string;
@@ -124,12 +110,16 @@ export interface EventNotice {
 
 type View = 'event' | 'attendees' | 'plans';
 
+/** Where the RSVP press lives: the card near the top (default), or a pinned footer (?drawer=footer). */
+export type RsvpPlacement = 'card' | 'footer';
+
 export function EventDrawer({
   eventUid,
   sequence,
   onNavigate,
   onClose,
   onNotice,
+  rsvp = 'card',
 }: {
   eventUid: string | null;
   /** The list the drawer was opened from, for previous / next. */
@@ -138,6 +128,7 @@ export function EventDrawer({
   onClose: () => void;
   /** Called on close when the member said yes during this visit. */
   onNotice?: (notice: EventNotice) => void;
+  rsvp?: RsvpPlacement;
 }) {
   /* Keep drawing the last event while the drawer slides out. */
   const [shownUid, setShownUid] = useState(eventUid);
@@ -197,6 +188,7 @@ export function EventDrawer({
             <EventView
               key={event.uid}
               event={event}
+              rsvp={rsvp}
               onOpenAttendees={() => setView('attendees')}
               onOpenPlans={() => setView('plans')}
               onNavigate={onNavigate}
@@ -310,6 +302,7 @@ function Toolbar({
 
 function EventView({
   event,
+  rsvp,
   onOpenAttendees,
   onOpenPlans,
   onNavigate,
@@ -317,6 +310,7 @@ function EventView({
   onUnmarked,
 }: {
   event: CalEvent;
+  rsvp: RsvpPlacement;
   onOpenAttendees: () => void;
   onOpenPlans: () => void;
   onNavigate: (uid: string) => void;
@@ -359,15 +353,12 @@ function EventView({
     <>
       <div className={d.body}>
         <section className={d.hero}>
-          <div className={d.badges}>
-            <Badge>{MODE_LABEL[detail.mode]}</Badge>
-            <Badge>{ACCESS_LABEL[detail.access]}</Badge>
-          </div>
+          {/* No badge row (2026-11-17): mode lives in the place fact, access is its own fact below. */}
           {/* The event's own picture as a small thumbnail beside the title and hosts
             (2026-11-11). The calendar-glyph tile it replaced was a placeholder; with
             no picture there is no tile and the title starts at the edge. */}
           <div className={d.titleRow}>
-            {THUMBS[event.uid] && <img className={d.logo} src={THUMBS[event.uid]} alt="" width={56} height={56} />}
+            <EventImage uid={event.uid} className={d.logo} />
             <div className={d.titleText}>
               <h2 className={d.title}>{event.name}</h2>
               <p className={d.hosts}>
@@ -402,28 +393,48 @@ function EventView({
             </span>
             <span className={d.factText}>
               {online ? (
-                <span className={d.factMain}>{venue}</span>
+                <span className={d.factMain}>Online</span>
               ) : (
                 <a className={clsx(d.factMain, d.factLink)} href={mapsHref(detail)} target="_blank" rel="noreferrer">
                   {venue}
                   <ArrowUpRightIcon width={14} height={14} />
                 </a>
               )}
-              <span className={d.factSub}>{online ? 'Link sent after you register' : regionLine(detail)}</span>
+              <span className={d.factSub}>
+                {online
+                  ? 'Link sent after you register'
+                  : detail.mode === 'Hybrid'
+                    ? `${regionLine(detail)} · Hybrid, also online`
+                    : regionLine(detail)}
+              </span>
+            </span>
+          </li>
+          <li className={d.fact}>
+            <span className={d.factIcon} aria-hidden>
+              <AccessIcon access={detail.access} />
+            </span>
+            <span className={d.factText}>
+              <span className={d.factMain}>{ACCESS_FACT[detail.access].main}</span>
+              {ACCESS_FACT[detail.access].sub && <span className={d.factSub}>{ACCESS_FACT[detail.access].sub}</span>}
             </span>
           </li>
         </ul>
 
-        <div ref={rsvpRef}>
-          <RsvpCard
-            event={event}
-            gathering={gathering}
-            onOpenAttendees={onOpenAttendees}
-            onOpenPlans={onOpenPlans}
-            onMarked={onMarked}
-            onUnmarked={onUnmarked}
-          />
-        </div>
+        {rsvp === 'footer' ? (
+          /* Footer version: the body keeps only the follow-ups, and only after a yes (no empty slot before). */
+          <GoingCardCompact event={event} gathering={gathering} onOpenPlans={onOpenPlans} />
+        ) : (
+          <div ref={rsvpRef}>
+            <RsvpCard
+              event={event}
+              gathering={gathering}
+              onOpenAttendees={onOpenAttendees}
+              onOpenPlans={onOpenPlans}
+              onMarked={onMarked}
+              onUnmarked={onUnmarked}
+            />
+          </div>
+        )}
 
         <Section title="About">
           {detail.description.map((p) => (
@@ -446,7 +457,11 @@ function EventView({
 
         {gathering && <GatheringBlock event={event} gathering={gathering} onNavigate={onNavigate} />}
       </div>
-      {rsvpAway && <RsvpBar event={event} onMarked={onMarked} />}
+      {rsvp === 'footer' ? (
+        <RsvpFooter event={event} onOpenAttendees={onOpenAttendees} onMarked={onMarked} onUnmarked={onUnmarked} />
+      ) : (
+        rsvpAway && <RsvpBar event={event} onMarked={onMarked} />
+      )}
     </>
   );
 }
@@ -467,7 +482,7 @@ function RsvpBar({ event, onMarked }: { event: CalEvent; onMarked: (onProfile: b
   return (
     <div className={clsx(d.footer, d.rsvpBar)}>
       {entry ? (
-        <p className={clsx(d.cardTitle, d.cardTitleGoing, d.rsvpBarText)}>
+        <p className={clsx(d.cardTitle, d.cardTitleGoing, d.rsvpBarText, d.rsvpBarGoing)}>
           <SuccessCircleIcon width={20} height={20} />
           You&apos;re going
         </p>
@@ -579,14 +594,7 @@ function GatheringBlock({
                     {e.range} · {e.attendeeCount} going
                   </span>
                 </span>
-                {going[e.uid] ? (
-                  <span className={d.goingMark}>
-                    <CheckIcon width={14} height={14} />
-                    Going
-                  </span>
-                ) : (
-                  <CaretRightIcon width={16} height={16} className={d.siblingArrow} />
-                )}
+                {going[e.uid] ? <GoingTag /> : <CaretRightIcon width={16} height={16} className={d.siblingArrow} />}
               </button>
             </li>
           ))}
@@ -667,7 +675,7 @@ export function AttendeesView({ event, onBack }: { event: CalEvent; onBack: () =
                   {a.role} · {a.team}
                 </span>
               </span>
-              {a.tag && <Badge variant="brand">{a.tag}</Badge>}
+              {a.tag && <span className={clsx(ROLE_TAG, MUTED_ROLE[a.tag], d.personRole)}>{a.tag}</span>}
             </a>
           </li>
         ))}

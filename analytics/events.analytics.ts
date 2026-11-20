@@ -178,6 +178,16 @@ export const useEventsAnalytics = () => {
     captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_VIEW_CHANGED, params);
   }
 
+  /** All Events: the Share / embed link was copied (LAB-3352). */
+  function onEventsEmbedLinkCopied(params: { view: 'list' | 'calendar' | 'map'; filters_count: number }) {
+    captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_EMBED_LINK_COPIED, params);
+  }
+
+  /** The embed page loaded, with the host of the page that framed it (null opened directly). */
+  function onEventsEmbedViewed(params: { view: 'list' | 'calendar' | 'map'; referrer_host: string | null }) {
+    captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_EMBED_VIEWED, params);
+  }
+
   /** All Events: one filter changed, with every value it now holds (empty when it was cleared). */
   function onEventsFiltersApplied(params: { key: FilterParam; values: string[] }) {
     captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_FILTERS_APPLIED, params);
@@ -246,6 +256,8 @@ export const useEventsAnalytics = () => {
   return {
     onEventDrawerOpened,
     onEventsViewChanged,
+    onEventsEmbedLinkCopied,
+    onEventsEmbedViewed,
     onEventsFiltersApplied,
     onEventsCitySelected,
     onEventGoingMarked,

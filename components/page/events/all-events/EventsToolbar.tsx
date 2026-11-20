@@ -31,7 +31,7 @@ export function EventsToolbar({
   views: AllEventsView[];
   view: AllEventsView;
   onViewChange: (view: AllEventsView) => void;
-  /** Copies the embed link for this view and its filters; absent in the embed itself. */
+  /** Opens the Embed dialog for this view and its filters (LAB-3365); absent in the embed itself. */
   onShare?: () => void;
 }) {
   return (

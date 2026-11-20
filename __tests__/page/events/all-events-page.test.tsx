@@ -63,6 +63,7 @@ const analytics = {
   onSubmitEventButtonClicked: jest.fn(),
   onGoToEventsButtonClicked: jest.fn(),
   onEventsEmbedLinkCopied: jest.fn(),
+  onEventsEmbedCodeCopied: jest.fn(),
   onEventsEmbedViewed: jest.fn(),
 };
 jest.mock('@/analytics/events.analytics', () => ({ useEventsAnalytics: () => analytics }));
@@ -559,51 +560,139 @@ describe('review fixes', () => {
   });
 });
 
-describe('Embed (LAB-3352)', () => {
+describe('Embed dialog (LAB-3352, LAB-3365)', () => {
   const writeText = jest.fn();
   beforeEach(() => {
     writeText.mockReset().mockResolvedValue(undefined);
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
   });
-  const share = () => screen.getByRole('button', { name: 'Embed' });
-  const copied = () => new URL(writeText.mock.calls[0][0]);
+  const embedBtn = () => screen.getByRole('button', { name: 'Embed' });
+  const dialog = () => screen.getByRole('dialog', { name: 'Embed these events' });
+  const openDialog = () => {
+    fireEvent.click(embedBtn());
+    return dialog();
+  };
+  const preview = () => dialog().querySelector('iframe') as HTMLIFrameElement;
+  const code = () => within(dialog()).getByLabelText('Embed code').textContent ?? '';
+  const press = (name: string) => act(async () => fireEvent.click(within(dialog()).getByRole('button', { name })));
+  const copiedUrl = () => new URL(writeText.mock.calls[0][0]);
+
+  it('sits after the List / Calendar / Map switch (Polina, 2026-11-20)', () => {
+    renderPage();
+    const tablist = screen.getByRole('tablist', { name: 'View' });
+    expect(tablist.compareDocumentPosition(embedBtn()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('opens the dialog instead of copying', () => {
+    renderPage();
+    expect(openDialog()).toBeInTheDocument();
+    expect(writeText).not.toHaveBeenCalled();
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  it('names the view and filters, previews them and titles the code with them', () => {
+    renderPage({}, '/events/all?view=calendar&cal=month&city=Lisbon');
+    openDialog();
+    expect(within(dialog()).getByText('Month calendar · Lisbon')).toBeInTheDocument();
+    expect(preview()).toHaveAttribute('src', '/events/embed?view=calendar&cal=month&city=Lisbon');
+    expect(preview()).toHaveAttribute('title', 'Preview: Protocol Labs events: Lisbon');
+    expect(code()).toBe(
+      `<iframe src="${window.location.origin}/events/embed?view=calendar&amp;cal=month&amp;city=Lisbon" width="100%" height="640" style="border: 1px solid #e2e8f0; border-radius: 12px;" title="Protocol Labs events: Lisbon" loading="lazy"></iframe>`,
+    );
+    expect(within(dialog()).getByText(/New events that match appear on their own/)).toBeInTheDocument();
+  });
+
+  it('says "All upcoming events" with no filter, and copies the plain code', async () => {
+    renderPage();
+    openDialog();
+    expect(within(dialog()).getByText('List view · All upcoming events')).toBeInTheDocument();
+    await press('Copy code');
+    expect(writeText).toHaveBeenCalledWith(
+      `<iframe src="${window.location.origin}/events/embed" width="100%" height="640" style="border: 1px solid #e2e8f0; border-radius: 12px;" title="Protocol Labs events" loading="lazy"></iframe>`,
+    );
+    expect(within(dialog()).getByRole('button', { name: 'Code copied' })).toBeInTheDocument();
+    expect(analytics.onEventsEmbedCodeCopied).toHaveBeenCalledWith({ view: 'list', filters_count: 0 });
+    expect(analytics.onEventsEmbedLinkCopied).not.toHaveBeenCalled();
+    act(() => jest.advanceTimersByTime(2000));
+    expect(within(dialog()).getByRole('button', { name: 'Copy code' })).toBeInTheDocument();
+  });
 
   it('copies the embed link with the view and filters, never going or the open event', async () => {
     renderPage(
       { signedIn: true, viewerUid: 'm1', memberCity: 'Lisbon' },
       '/events/all?view=calendar&cal=month&mode=Virtual&going=true&event=dai&search=call&utm_source=x',
     );
-    await act(async () => fireEvent.click(share()));
-    expect(copied().origin + copied().pathname).toBe(`${window.location.origin}/events/embed`);
-    expect([...copied().searchParams]).toEqual([
+    openDialog();
+    expect(within(dialog()).getByText('Month calendar · “call” · Virtual')).toBeInTheDocument();
+    await press('Copy link');
+    expect(copiedUrl().origin + copiedUrl().pathname).toBe(`${window.location.origin}/events/embed`);
+    expect([...copiedUrl().searchParams]).toEqual([
       ['view', 'calendar'],
       ['cal', 'month'],
       ['search', 'call'],
       ['mode', 'Virtual'],
     ]);
-    expect(toast.success).toHaveBeenCalledWith('Link copied');
+    expect(within(dialog()).getByRole('button', { name: 'Link copied' })).toBeInTheDocument();
+    expect(within(dialog()).getByRole('button', { name: 'Copy code' })).toBeInTheDocument();
+    expect(toast.success).not.toHaveBeenCalled();
     expect(analytics.onEventsEmbedLinkCopied).toHaveBeenCalledWith({ view: 'calendar', filters_count: 2 });
   });
 
-  it('sits after the List / Calendar / Map switch (Polina, 2026-11-20)', () => {
-    renderPage();
-    const tablist = screen.getByRole('tablist', { name: 'View' });
-    expect(tablist.compareDocumentPosition(share()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  it('embeds the calendar mode on show when the address has none', () => {
+    renderPage({}, '/events/all?view=calendar');
+    openDialog();
+    expect(within(dialog()).getByText('Month calendar · All upcoming events')).toBeInTheDocument();
+    expect(preview()).toHaveAttribute('src', '/events/embed?view=calendar&cal=month');
   });
 
-  it('copies the bare embed address for the plain List', async () => {
-    renderPage();
-    await act(async () => fireEvent.click(share()));
-    expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/events/embed`);
+  it('escapes the search text in the code', () => {
+    renderPage({}, `/events/all?search=${encodeURIComponent('a"<b')}`);
+    openDialog();
+    expect(code()).toContain('title="Protocol Labs events: “a&quot;&lt;b”"');
+    expect(code()).not.toContain('<b');
   });
 
-  it('says so when the clipboard is blocked, and records nothing', async () => {
+  it('starts the 2 seconds again on a second press', async () => {
+    renderPage();
+    openDialog();
+    await press('Copy link');
+    act(() => jest.advanceTimersByTime(1500));
+    await press('Link copied');
+    act(() => jest.advanceTimersByTime(1500));
+    expect(within(dialog()).getByRole('button', { name: 'Link copied' })).toBeInTheDocument();
+    act(() => jest.advanceTimersByTime(500));
+    expect(within(dialog()).getByRole('button', { name: 'Copy link' })).toBeInTheDocument();
+  });
+
+  it('says so when the clipboard is blocked, keeps the labels and records nothing', async () => {
     writeText.mockRejectedValue(new Error('denied'));
     renderPage();
-    await act(async () => fireEvent.click(share()));
+    openDialog();
+    await press('Copy link');
     expect(toast.error).toHaveBeenCalledWith('Could not copy the link');
-    expect(toast.success).not.toHaveBeenCalled();
+    await press('Copy code');
+    expect(toast.error).toHaveBeenCalledWith('Could not copy the code');
+    expect(within(dialog()).getByRole('button', { name: 'Copy link' })).toBeInTheDocument();
+    expect(within(dialog()).getByRole('button', { name: 'Copy code' })).toBeInTheDocument();
     expect(analytics.onEventsEmbedLinkCopied).not.toHaveBeenCalled();
+    expect(analytics.onEventsEmbedCodeCopied).not.toHaveBeenCalled();
+  });
+
+  it('closes on Escape and on Close, gives focus back to Embed and keeps the view', () => {
+    renderPage({}, '/events/all?view=calendar&cal=week');
+    embedBtn().focus();
+    openDialog();
+    expect(within(dialog()).getByRole('button', { name: 'Close' })).toHaveFocus();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    act(() => jest.advanceTimersByTime(300));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(embedBtn()).toHaveFocus();
+    openDialog();
+    fireEvent.click(within(dialog()).getByRole('button', { name: 'Close' }));
+    act(() => jest.advanceTimersByTime(300));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(storeParams().get('view')).toBe('calendar');
+    expect(storeParams().get('cal')).toBe('week');
   });
 });
 
@@ -680,6 +769,17 @@ describe('the embed (LAB-3352)', () => {
     expect(analytics.onEventsEmbedViewed).toHaveBeenCalledTimes(1);
     expect(analytics.onEventsEmbedViewed).toHaveBeenCalledWith({ view: 'calendar', referrer_host: 'www.plrd.org' });
     Object.defineProperty(document, 'referrer', { configurable: true, value: '' });
+  });
+
+  it("records no view for the Embed dialog's preview, which LabOS frames itself (LAB-3365)", () => {
+    const parent = Object.getOwnPropertyDescriptor(window, 'parent');
+    Object.defineProperty(window, 'parent', {
+      configurable: true,
+      value: { location: { origin: window.location.origin } },
+    });
+    renderPage({ embed: true }, '/events/embed');
+    expect(analytics.onEventsEmbedViewed).not.toHaveBeenCalled();
+    if (parent) Object.defineProperty(window, 'parent', parent);
   });
 
   it('records no embed view on the page itself', () => {

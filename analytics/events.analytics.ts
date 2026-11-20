@@ -178,9 +178,14 @@ export const useEventsAnalytics = () => {
     captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_VIEW_CHANGED, params);
   }
 
-  /** All Events: the Embed link was copied (LAB-3352). */
+  /** All Events: Copy link in the Embed dialog put the embed link on the clipboard (LAB-3352, LAB-3365). */
   function onEventsEmbedLinkCopied(params: { view: 'list' | 'calendar' | 'map'; filters_count: number }) {
     captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_EMBED_LINK_COPIED, params);
+  }
+
+  /** All Events: Copy code in the Embed dialog put the iframe code on the clipboard (LAB-3365). */
+  function onEventsEmbedCodeCopied(params: { view: 'list' | 'calendar' | 'map'; filters_count: number }) {
+    captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_EMBED_CODE_COPIED, params);
   }
 
   /** The embed page loaded, with the host of the page that framed it (null opened directly). */
@@ -257,6 +262,7 @@ export const useEventsAnalytics = () => {
     onEventDrawerOpened,
     onEventsViewChanged,
     onEventsEmbedLinkCopied,
+    onEventsEmbedCodeCopied,
     onEventsEmbedViewed,
     onEventsFiltersApplied,
     onEventsCitySelected,

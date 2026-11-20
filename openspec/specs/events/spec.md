@@ -550,15 +550,31 @@ The drawer's previous and next SHALL step through the events the page shows unde
 - **THEN** the Week view opens on the week of January 12 with that card marked
 - **AND** the drawer is open on that event
 
-### Requirement: Embed copies a link to the view
+### Requirement: Embed opens a dialog with the link and the code
 
-The "Coming up" toolbar on `/events/all` SHALL show an "Embed" button with a `</>` glyph, styled like the Filters button, after the List / Calendar / Map switch, in every view and at every width (LAB-3352). The embed dialog (preview and iframe code) is a follow-up. A press SHALL copy one link, `<origin>/events/embed`, with the active `view`, `cal` and each applied filter of search, Mode, Access type, Focus area, City and Host, under the page address's own keys. The link SHALL NOT carry "Events I'm going to" (`going`), the open event (`event`) or any other parameter. After the copy a toast SHALL say "Link copied"; when the browser refuses the clipboard it SHALL say "Could not copy the link" and record nothing.
+The "Coming up" toolbar on `/events/all` SHALL show an "Embed" button with a `</>` glyph, styled like the Filters button, after the List / Calendar / Map switch, in every view and at every width (LAB-3352). A press SHALL open the dialog "Embed these events" in the standard modal shell (LAB-3365, Polina's design on LAB-3352) and copy nothing. It embeds what the page shows, one link `<origin>/events/embed` with the active `view`, the calendar mode on show as `cal` (also when the address has none) and each applied filter of search, Mode, Access type, Focus area, City and Host, under the page address's own keys. The link SHALL NOT carry "Events I'm going to" (`going`), the open event (`event`) or any other parameter.
 
-#### Scenario: Share the map of online events
+The dialog SHALL show:
+
+- under the title, what the embed shows: "List view", "Week calendar", "Month calendar" or "Map view", then each applied filter's chip label (the search text in curly quotes), joined by " · ", or "All upcoming events" with none;
+- a live preview: `/events/embed` with that query, 320px high, loaded only while the dialog is open;
+- "Embed code": one line, `<iframe src="<link>" width="100%" height="640" style="border: 1px solid #e2e8f0; border-radius: 12px;" title="<title>" loading="lazy"></iframe>`, whose title is "Protocol Labs events: " and the filter labels joined by " · ", or "Protocol Labs events" with none; `&`, `"` and `<` escaped; with the line "New events that match appear on their own. Change height to fit your page.";
+- Copy link (a text button, left) and Copy code (primary, right). Each copies its text and reads "Link copied" / "Code copied" for 2 seconds; a second press starts the 2 seconds again. When the browser refuses the clipboard, a toast SHALL say "Could not copy the link" / "Could not copy the code", the button SHALL keep its label and nothing SHALL be recorded.
+
+Escape, Close and the backdrop SHALL close the dialog, focus SHALL go back to the Embed button, and the page SHALL keep its view and filters.
+
+#### Scenario: Embed the month calendar of Lisbon
+
+- **GIVEN** a visitor on `/events/all?view=calendar&cal=month&city=Lisbon`
+- **WHEN** they press Embed
+- **THEN** the dialog reads "Month calendar · Lisbon" and previews `/events/embed?view=calendar&cal=month&city=Lisbon`
+- **AND** its code has that link and `title="Protocol Labs events: Lisbon"`
+
+#### Scenario: Copy the link to the map of online events
 
 - **GIVEN** a visitor on `/events/all?view=map&mode=Virtual&going=true`
-- **WHEN** they press Embed
-- **THEN** the clipboard holds `<origin>/events/embed?view=map&mode=Virtual` and "Link copied" shows
+- **WHEN** they press Embed, then Copy link
+- **THEN** the clipboard holds `<origin>/events/embed?view=map&mode=Virtual` and the button reads "Link copied" for 2 seconds
 
 ### Requirement: The embed shows one view for other sites
 
@@ -591,8 +607,9 @@ The page SHALL record these PostHog events:
 - `events-view-changed` with `view` (`list`, `calendar` or `map`) and, for the calendar, `mode` (`week` or `month`);
 - `events-filters-applied` with the filter `key` (`search`, `going`, `mode` or `city`) and its `values`, for every filter change whichever control made it (the rail, a chip, a city tile, "Clear all"), once that filter has been still for 300ms; "Clear all" records each filter it empties, with no values;
 - `events-city-selected` with `city` and `from` (`tile`, `filter` or `near-you`), in addition, whenever a single city is chosen.
-- `events-embed-link-copied` with `view` and `filters_count`, when Embed copies the link (LAB-3352);
-- `events-embed-viewed` with the `view` it opened on and `referrer_host` (the framing site's host, or null), once per load of `/events/embed`.
+- `events-embed-link-copied` with `view` and `filters_count` (the applied values the link carries), when Copy link in the Embed dialog copies the link (LAB-3352, LAB-3365);
+- `events-embed-code-copied` with `view` and `filters_count`, when Copy code copies the iframe code (LAB-3365);
+- `events-embed-viewed` with the `view` it opened on and `referrer_host` (the framing site's host, or null), once per load of `/events/embed`, but not for the Embed dialog's preview, where LabOS frames itself (LAB-3365).
 
 No filter event SHALL be recorded for filters read from the address on landing, and a later change to another param (the view, the open event) SHALL NOT cancel a pending filter event.
 

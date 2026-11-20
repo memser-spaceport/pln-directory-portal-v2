@@ -19,16 +19,36 @@ jest.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(window.location.search),
 }));
 
-type DrawerProps = { eventUid: string | null; source: string; onClose: () => void };
+type DrawerProps = {
+  eventUid: string | null;
+  source: string;
+  onClose: () => void;
+  sequence?: string[];
+  onNavigate?: (uid: string) => void;
+};
 jest.mock(
   'next/dynamic',
   () => () =>
     function EventDrawerStandIn(props: DrawerProps) {
       if (!props.eventUid) return null;
       return (
-        <div data-testid="event-drawer" data-uid={props.eventUid} data-source={props.source}>
+        <div
+          data-testid="event-drawer"
+          data-uid={props.eventUid}
+          data-source={props.source}
+          data-sequence={(props.sequence ?? []).join(',')}
+        >
           <button type="button" onClick={props.onClose}>
             Close drawer
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const seq = props.sequence ?? [];
+              props.onNavigate?.(seq[seq.indexOf(props.eventUid as string) + 1]);
+            }}
+          >
+            Next event
           </button>
         </div>
       );
@@ -348,6 +368,29 @@ describe('the drawer', () => {
     fireEvent.click(card('Community Call'));
     expect(storeParams().get('event')).toBe('call');
     expect(card('DAI Summit').className).not.toMatch(/highlight/);
+  });
+
+  it('LAB-3361: hands the drawer the events on show, in order, and next opens the following one', () => {
+    renderPage({}, '/events/all?event=dai');
+    const drawer = () => screen.getByTestId('event-drawer');
+    const sequence = drawer().getAttribute('data-sequence')!.split(',');
+    const shown = Array.from(document.querySelectorAll<HTMLElement>('[data-event-uid]'))
+      .map((el) => el.dataset.eventUid as string)
+      .filter((uid, i, all) => all.indexOf(uid) === i);
+    expect(sequence.join(' ')).toBe(shown.join(' '));
+    const next = sequence[sequence.indexOf('dai') + 1];
+    fireEvent.click(screen.getByRole('button', { name: 'Next event' }));
+    expect(storeParams().get('event')).toBe(next);
+    expect(drawer()).toHaveAttribute('data-uid', next);
+  });
+
+  it('LAB-3361: the list narrows with the filters', () => {
+    renderPage({}, '/events/all?event=dai&mode=Virtual');
+    const sequence = screen.getByTestId('event-drawer').getAttribute('data-sequence')!.split(',');
+    const shown = Array.from(document.querySelectorAll<HTMLElement>('[data-event-uid]')).map(
+      (el) => el.dataset.eventUid,
+    );
+    expect(new Set(sequence)).toEqual(new Set(shown));
   });
 });
 

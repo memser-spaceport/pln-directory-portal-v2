@@ -19,7 +19,7 @@ import { MembersQueryKeys } from '@/services/members/constants';
 import type { ITeam } from '@/types/teams.types';
 import { SHOW_EVENT_DRAWER } from '@/utils/event-drawer';
 
-import type { EventAttendeesState } from './AttendeesModal';
+import type { EventAttendeesState } from './AttendeesView';
 import {
   EventDrawerView,
   type EventDrawerStatus,
@@ -38,6 +38,13 @@ export interface EventDrawerProps {
   onClose: () => void;
   /** The drawer closed after the member said they are going. The host shows "<event> is on your profile." (D8). */
   onGoing?: (notice: EventGoingNotice) => void;
+  /**
+   * LAB-3361: the uids of the list the drawer was opened from, in its order. With more than one, and `onNavigate`,
+   * the toolbar steps through them with previous / next.
+   */
+  sequence?: string[];
+  /** Previous / next pressed: open that event (the host sets `eventUid` to it). */
+  onNavigate?: (uid: string) => void;
 }
 
 /**
@@ -48,8 +55,25 @@ export interface EventDrawerProps {
  * Each host keeps its own `eventUid` state and renders `<EventDrawer eventUid={uid} … />` (design D2).
  */
 export function EventDrawer(props: EventDrawerProps) {
+  // The event previous / next stepped to: its drawer replaces the last one in place instead of sliding in again.
+  const [steppedTo, setSteppedTo] = useState<string | null>(null);
   if (!SHOW_EVENT_DRAWER || !props.eventUid) return null;
-  return <EventDrawerContainer key={props.eventUid} {...props} eventUid={props.eventUid} />;
+  const { onNavigate } = props;
+  return (
+    <EventDrawerContainer
+      key={props.eventUid}
+      {...props}
+      eventUid={props.eventUid}
+      animateIn={steppedTo !== props.eventUid}
+      onNavigate={
+        onNavigate &&
+        ((uid: string) => {
+          setSteppedTo(uid);
+          onNavigate(uid);
+        })
+      }
+    />
+  );
 }
 
 function EventDrawerContainer({
@@ -58,7 +82,10 @@ function EventDrawerContainer({
   initialStep,
   onClose,
   onGoing,
-}: EventDrawerProps & { eventUid: string }) {
+  sequence,
+  onNavigate,
+  animateIn,
+}: EventDrawerProps & { eventUid: string; animateIn: boolean }) {
   const { currentUser } = useCurrentUserStore();
   const viewerUid = currentUser?.uid ?? null;
   const analytics = useEventsAnalytics();
@@ -238,6 +265,17 @@ function EventDrawerContainer({
       onSave={onSave}
       onGoing={onGoing}
       onSignIn={onSignIn}
+      sequence={sequence}
+      animateIn={animateIn}
+      onNavigate={
+        onNavigate &&
+        ((uid, direction) => {
+          analytics.onEventDrawerStepped({ eventUid: uid, direction, source });
+          onNavigate(uid);
+        })
+      }
+      onLinkCopied={() => analytics.onEventLinkCopied({ eventUid })}
+      onEventsAppOpened={() => analytics.onEventEventsAppOpened({ eventUid })}
     />
   );
 }

@@ -23,6 +23,7 @@ import {
   filterEvents,
   filterValues,
   isFilterParam,
+  groupByDay,
   listDay,
   localIso,
   nearYou,
@@ -198,6 +199,19 @@ export function AllEventsPage({
     setKeptUid(null);
     setParam('event', uid);
   };
+  // LAB-3361: the drawer's previous / next walk the events on show in the List's order (by list day, then start, so
+  // an event under way counts from today); the neighbours load ahead.
+  const sequence = useMemo(
+    () => groupByDay(visible, todayIso).flatMap((day) => day.events.map((item) => item.uid)),
+    [visible, todayIso],
+  );
+  useEffect(() => {
+    if (!openUid) return;
+    const at = sequence.indexOf(openUid);
+    if (at < 0) return;
+    [sequence[at - 1], sequence[at + 1]].forEach((uid) => uid && prefetchEvent(uid));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openUid, sequence]);
   const closeDrawer = () => {
     if (!touched) setKeptUid(openUid);
     setTouched(true);
@@ -409,6 +423,8 @@ export function AllEventsPage({
         source="all-events"
         onClose={closeDrawer}
         onGoing={openUid ? onGoing(openUid) : undefined}
+        sequence={sequence}
+        onNavigate={open}
       />
     </>
   );

@@ -30,6 +30,8 @@ export const LABOS_AGENT_MENTION_TEXT = {
   limitReached: `You can add up to 5 items.`,
   placeholderIntro: 'Ask, request an intro, or type @ to add context',
   placeholderOther: 'Ask, tell it what to do, or type @ to add context',
+  /** LAB-3318 (D7): below 768px wide, for all members, so the empty composer keeps one line at 390px. */
+  placeholderNarrow: 'Ask, or type @ to add context',
   noContext: "I'm not reading any page right now. Add one with + or type @ to point me at a story, team or member.",
   mentionNotFound: (label: string) => `The agent cannot read ${label}. Remove it and ask again.`,
   /** Oleg, #labos-team: with the ellipsis character (U+2026). */

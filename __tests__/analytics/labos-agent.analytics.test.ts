@@ -31,7 +31,7 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { useLabosAgentChat } from '@/services/labos-agent/hooks/useLabosAgentChat';
 import { openCardsAtClose } from '@/services/labos-agent/hooks/useLabosAgentDockEvents';
 import { normalizeChatBody } from '@/services/labos-agent/labos-agent.service';
-import { distinctSourceCount, sourceRefLink } from '@/services/labos-agent/labos-agent.sources';
+import { distinctSourceCount, sourceRefKind, sourceRefLink } from '@/services/labos-agent/labos-agent.sources';
 import { useLabosAgentStore } from '@/services/labos-agent/store';
 import type { IUserInfo } from '@/types/shared.types';
 import { LABOS_AGENT_ANALYTICS_EVENTS } from '@/utils/constants';
@@ -118,6 +118,13 @@ describe('LAB-3297: agent event helpers', () => {
       ),
     ).toBe(1);
     expect(distinctSourceCount([], [])).toBe(0);
+  });
+
+  it('agent-source-clicked (V0-R7): sourceRefKind maps type external and web to web, other types to labos', () => {
+    expect(sourceRefKind({ type: 'external', title: 'W' })).toBe('web');
+    expect(sourceRefKind({ type: 'web', title: 'W' })).toBe('web');
+    expect(sourceRefKind({ type: 'External', title: 'W' })).toBe('web');
+    ['news', 'team', 'project', 'member'].forEach((type) => expect(sourceRefKind({ type, title: 'L' })).toBe('labos'));
   });
 
   it('agent-source-clicked: sourceRefLink reads directoryLink and externalUrl, and never a bad scheme', () => {

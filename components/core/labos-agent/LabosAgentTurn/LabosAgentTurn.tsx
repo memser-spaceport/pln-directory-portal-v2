@@ -7,7 +7,7 @@ import { type MouseEvent, useState } from 'react';
 import { Button } from '@/components/common/Button';
 import { Markdown } from '@/components/common/Markdown';
 import type { LabosAgentTurn as Turn } from '@/services/labos-agent/hooks/useLabosAgentChat';
-import { sourceRefLink } from '@/services/labos-agent/labos-agent.sources';
+import { sourceRefKind, sourceRefLink } from '@/services/labos-agent/labos-agent.sources';
 import type { LabosAgentDecision } from '@/types/labos-agent.types';
 
 import { LabosAgentActionCard } from '../LabosAgentActionCard/LabosAgentActionCard';
@@ -134,7 +134,7 @@ export function LabosAgentTurn({
                     {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                     className={s.ref}
                     onClick={(e) => {
-                      onSourceClick?.(ref.type === 'web' ? 'web' : 'labos', i + 1);
+                      onSourceClick?.(sourceRefKind(ref), i + 1);
                       // D1: a LabOS link opens with the client router, so the page does not reload and the chat stays.
                       if (href && !external && isPlainClick(e)) {
                         e.preventDefault();

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { Activity } from '../types';
 import { isInfraOnlyActivity } from '../data';
-import { ACTIVITY_FORM_URL } from '@/constants/plaa';
+import { activitySubmitUrl } from '../submit-url';
 import { useActivityConfirmToast } from '../confirm-toast';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { openPlaaBotForActivity } from '@/components/core/plaa-bot/plaa-bot.utils';
@@ -89,13 +89,7 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
       return;
     }
 
-    // Submit CTA: open the submission form. Priority: ctaLink > submissionLink > ACTIVITY_FORM_URL
-    const url =
-      activity.popupContent.ctaLink ||
-      (!activity.hasFormLink && activity.popupContent.submissionLink
-        ? activity.popupContent.submissionLink.url
-        : null) ||
-      ACTIVITY_FORM_URL;
+    const url = activitySubmitUrl(activity);
 
     onActivitiesFormLinkClicked(analyticsParams, url);
 

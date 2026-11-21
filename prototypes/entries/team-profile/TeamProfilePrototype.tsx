@@ -127,6 +127,25 @@ const NEWS_PREVIEW_COUNT = 3;
  * `contactPress` — a host (profile-agent-actions) draws its own press where
  * Request an intro stands, in every seat; `className` is the seat's.
  */
+/**
+ * Where the visitor's Follow and Request an intro stand (review band
+ * "Actions"; member-profile's `ActionsAt`, with About for Bio). 2026-11-19
+ * added the last three after a manager's note that a header press with no
+ * context means nothing to a newcomer:
+ *   sections    Request an intro inside Contact Details, under a line saying
+ *               the PL team makes it; Ask AI and Follow stay in the header.
+ *   badges      Follow + Request an intro as a row under the badges.
+ *   badges-bio  the same row, and About leaves the header for its own card.
+ */
+type ActionsAt = 'header' | 'bio' | 'sections' | 'badges' | 'badges-bio';
+const ACTIONS_AT_OPTIONS: [ActionsAt, string][] = [
+  ['header', 'In header'],
+  ['bio', 'Under About'],
+  ['sections', 'In sections'],
+  ['badges', 'Under badges'],
+  ['badges-bio', 'Under badges + About section'],
+];
+
 export default function TeamProfilePrototype({
   newsCallout = true,
   demoBarExtra,
@@ -174,7 +193,7 @@ export default function TeamProfilePrototype({
   const [view, setView] = useState<TeamPostRole>(initialView);
   /* Visitor seat: Follow and Request an intro in the header cluster (the Sep
      28 decision, default) or as a row under About, to compare. */
-  const [actionsAt, setActionsAt] = useState<'header' | 'bio'>('header');
+  const [actionsAt, setActionsAt] = useState<ActionsAt>('header');
   const isTeamView = view !== 'public';
   // Demo-only: with one mock team, flipping status is the only way to see the
   // inactive treatment at all. It lives in the demo bar with the view switch,
@@ -805,12 +824,7 @@ export default function TeamProfilePrototype({
           <div className={local.demoGroup}>
             <span className={local.demoLabel}>Actions</span>
             <div className={local.demoSwitch}>
-              {(
-                [
-                  ['header', 'In header'],
-                  ['bio', 'Under bio'],
-                ] as const
-              ).map(([value, label]) => (
+              {ACTIONS_AT_OPTIONS.map(([value, label]) => (
                 <button
                   key={value}
                   type="button"
@@ -956,6 +970,15 @@ export default function TeamProfilePrototype({
                   team={team}
                   facts={MOCK_TEAM_FACTS}
                   status={status}
+                  aboutApart={!isTeamView && actionsAt === 'badges-bio'}
+                  afterBadges={
+                    !isTeamView && (actionsAt === 'badges' || actionsAt === 'badges-bio') ? (
+                      <div className={`${local.bioActions} ${local.badgeActions}`}>
+                        {visitorIntro}
+                        {visitorFollow}
+                      </div>
+                    ) : undefined
+                  }
                   afterAbout={
                     !isTeamView && actionsAt === 'bio' ? (
                       <div className={local.bioActions}>
@@ -982,6 +1005,8 @@ export default function TeamProfilePrototype({
                               {visitorIntro}
                             </>
                           )}
+                          {/* "In sections": Follow stays; the intro is in Contact Details. */}
+                          {actionsAt === 'sections' && visitorFollow}
                           {/* Phone: Ask AI beside Follow as the member page's
                               outlined badge ("Use the same badge for team
                               profile as well"): the same object in every seat
@@ -1060,7 +1085,20 @@ export default function TeamProfilePrototype({
 
               {/* Contact */}
               <div className={shell.teamDetail__container__contact}>
-                <TeamContactView team={team} />
+                <TeamContactView
+                  team={team}
+                  footer={
+                    !isTeamView && actionsAt === 'sections' ? (
+                      <div className={local.contactIntro}>
+                        <p className={local.contactIntroText}>
+                          Don&apos;t know anyone at {team.name ?? 'this team'}? The PL team can introduce you to the
+                          right person.
+                        </p>
+                        {visitorIntro}
+                      </div>
+                    ) : undefined
+                  }
+                />
               </div>
 
               {/* Membership source + community affiliations — import-safe production view. */}

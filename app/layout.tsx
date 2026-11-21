@@ -22,6 +22,7 @@ import { MobileBottomNav } from '@/components/core/MobileBottomNav';
 // DELETE WITH: the `design-canvas/` folder.
 import { AppChromeGate } from './design-canvas/AppChromeGate';
 import { EmbedChromeGate } from '@/components/core/EmbedChromeGate';
+import { TopNavGate } from '@/components/core/TopNavGate';
 import { DemoDayStats } from '@/components/core/DemoDayStats';
 import { ContactSupport } from '@/components/ContactSupport/ContactSupport';
 import { ContactSupportUrlSync } from '@/components/ContactSupport/ContactSupportUrlSync';
@@ -97,7 +98,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 {/* The events embed (LAB-3352) is framed by other sites: none of the site's chrome on it. */}
                 <EmbedChromeGate>
                   <AppChromeGate>
-                    <SiteHeader userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
+                    <TopNavGate>
+                      <SiteHeader userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
+                    </TopNavGate>
                   </AppChromeGate>
                 </EmbedChromeGate>
                 <AuthBox isLoggedIn={isLoggedIn} />

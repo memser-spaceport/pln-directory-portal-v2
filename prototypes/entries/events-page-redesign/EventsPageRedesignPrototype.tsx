@@ -103,6 +103,8 @@ import {
 } from './mocks';
 import { EventsCalendar, type CalMode } from './EventsCalendar';
 import { EventsFilterView } from './EventsFilterView';
+import { EmbedModal } from './EmbedModal';
+import bannerStyles from '@/prototypes/components/PrototypeBanner/PrototypeBanner.module.scss';
 import { CITY_COORDS, EventsMap } from './EventsMap';
 import {
   COUNTED_PARAMS,
@@ -129,9 +131,17 @@ const VIEW_OPTIONS: { value: View; label: string }[] = [
 const SUBMIT_HREF = getSubmitEventUrl('https://irl.os.pl.xyz/events');
 const EVENTS_APP_HREF = 'https://events.plnetwork.io/calendar';
 
+type OpenOn = 'event' | 'attendees';
+type OpenEvent = (uid: string, from: CalEvent[], on?: OpenOn) => void;
+
 export default function EventsPageRedesignPrototype() {
   const [today, setToday] = useState<Date | null>(null);
-  useEffect(() => setToday(new Date()), []);
+  // Desktop and tablet-landscape open the calendar on Month; phones on Week (7 columns don't fit).
+  const [wide, setWide] = useState(false);
+  useEffect(() => {
+    setWide(window.matchMedia('(min-width: 960px)').matches);
+    setToday(new Date());
+  }, []);
 
   const router = useRouter();
   const pathname = usePathname();
@@ -149,8 +159,14 @@ export default function EventsPageRedesignPrototype() {
   // List is the default (old ?view=tiles links land on it too).
   const view: View = viewParam === 'calendar' || viewParam === 'map' ? viewParam : 'list';
   const setView = (next: View) => setUrl({ view: next === 'list' ? null : next });
-  const calMode: CalMode = searchParams.get('cal') === 'month' ? 'month' : 'week';
-  const setCalMode = (next: CalMode) => setUrl({ cal: next === 'week' ? null : 'month' });
+  // Month is the default on desktop (2026-11-20), Week on phones; `?cal=` overrides either way.
+  const calParam = searchParams.get('cal');
+  const calMode: CalMode = calParam === 'month' || calParam === 'week' ? calParam : wide ? 'month' : 'week';
+  const setCalMode = (next: CalMode) => setUrl({ cal: next });
+  // `?embed=1`: the view alone, for an iframe on another site (the Embed button builds the link).
+  const embed = searchParams.get('embed') === '1';
+  const [embedOpen, setEmbedOpen] = useState(false);
+  const [drawerOn, setDrawerOn] = useState<OpenOn>('event');
   const railOpen = searchParams.get('filters') === 'open';
   const setRailOpen = (open: boolean) => setUrl({ filters: open ? 'open' : null });
 
@@ -227,9 +243,20 @@ export default function EventsPageRedesignPrototype() {
     return () => window.clearTimeout(id);
   }, [today, landedUid]);
 
+  // In an embed the prototype banner is the host page's business, not the embedding site's.
+  useEffect(() => {
+    if (!embed) return;
+    const el = document.querySelector<HTMLElement>(`.${CSS.escape(bannerStyles.banner)}`);
+    if (el) el.style.display = 'none';
+    return () => {
+      if (el) el.style.display = '';
+    };
+  }, [embed]);
+
   if (!today) return <div className={s.mountShell} />;
 
-  const open = (uid: string, from: CalEvent[]) => {
+  const open: OpenEvent = (uid, from, on = 'event') => {
+    setDrawerOn(on);
     setSequence(from.map((e) => e.uid));
     if (uid !== landedUid) setTouched(true);
     setUrl({ event: uid });
@@ -262,7 +289,89 @@ export default function EventsPageRedesignPrototype() {
   const landed = landedUid ? eventByUid(landedUid) : null;
   const anchorIso = landed?.startDate ?? (city && upcoming[0] ? listDay(upcoming[0], todayIso) : todayIso);
 
-  const chips = appliedChips(params, city);
+  // Calendar and Map lead with the view itself (Eventbrite, Airtable, Tripadvisor): Near you and
+  // Browse by city / the city header are List-only, and a chosen city becomes a removable chip.
+  const showTopBands = view === 'list';
+  const chips = appliedChips(params, showTopBands ? city : null);
+
+  // The embed link: this view and every applied filter, without the page around it.
+  const embedQuery = () => {
+    const p = new URLSearchParams();
+    if (view !== 'list') p.set('view', view);
+    if (view === 'calendar') p.set('cal', calMode);
+    COUNTED_PARAMS.forEach((key) => {
+      const value = params.get(key);
+      if (value) p.set(key, value);
+    });
+    return p;
+  };
+  const pageHref = () => {
+    const q = embedQuery().toString();
+    return `${window.location.origin}${pathname}${q ? `?${q}` : ''}`;
+  };
+  const embedSrc = () => {
+    const p = embedQuery();
+    p.set('embed', '1');
+    return `${window.location.origin}${pathname}?${p.toString()}`;
+  };
+  const viewLabel = VIEW_OPTIONS.find((o) => o.value === view)!.label;
+  const embedFilters = appliedChips(params, null).map((c) => c.label);
+  const embedScope = [
+    view === 'calendar' ? `${calMode === 'month' ? 'Month' : 'Week'} calendar` : `${viewLabel} view`,
+    ...embedFilters,
+  ];
+  const embedScopeLine =
+    embedScope.length > 1 ? `${embedScope.join(' · ')}` : `${embedScope[0]} · All upcoming events`;
+
+  const drawer = (
+    <EventDrawer
+      eventUid={openUid}
+      sequence={drawerSequence}
+      onNavigate={(uid) => setUrl({ event: uid })}
+      onClose={closeDrawer}
+      onNotice={onNotice}
+      openOn={drawerOn}
+    />
+  );
+
+  const viewBody =
+    view === 'list' ? (
+      <ListView
+        events={upcoming}
+        todayIso={todayIso}
+        goingUids={goingUids}
+        highlightUid={highlightUid}
+        onOpen={open}
+        onClear={clearParams}
+      />
+    ) : view === 'map' ? (
+      <EventsMap events={upcoming} goingUids={goingUids} onOpen={open} highlightUid={highlightUid} />
+    ) : (
+      <EventsCalendar
+        key={`${anchorIso}:${city ?? ''}`}
+        events={visible}
+        todayIso={todayIso}
+        anchorIso={anchorIso}
+        mode={calMode}
+        onModeChange={setCalMode}
+        goingUids={goingUids}
+        highlightUid={highlightUid}
+        city={city}
+        onOpen={open}
+      />
+    );
+
+  if (embed) {
+    return (
+      <div className={s.embed}>
+        {viewBody}
+        <a href={pageHref()} target="_blank" rel="noreferrer" className={clsx(s.textLink, s.embedFoot)}>
+          All events on PL Directory <ArrowUpRightIcon width={14} height={14} />
+        </a>
+        {drawer}
+      </div>
+    );
+  }
   const removeChip = (chip: Chip) => {
     if (chip.value === undefined) setParam(chip.key, undefined);
     else {
@@ -270,6 +379,31 @@ export default function EventsPageRedesignPrototype() {
       setParam(chip.key, rest.length ? encodeMulti(rest) : undefined);
     }
   };
+
+  // List view's own top: a city header when scoped, else Near you / Add location and Browse by
+  // city, then a heading that hands over to the dated list (it now sits under the bands, not the toolbar).
+  const hasDiscovery = !!nearYou || askLocation || cities.length > 0;
+  const listBands = !showTopBands ? null : city ? (
+    <div className={s.listBands}>
+      <CityHeader city={city} summary={citySummary} events={upcoming} onBack={() => setCity(null)} />
+    </div>
+  ) : hasDiscovery ? (
+    <div className={s.listBands}>
+      {nearYou && (
+        <NearYou
+          city={memberCity!}
+          events={nearYou}
+          todayIso={todayIso}
+          goingUids={goingUids}
+          onOpen={open}
+          onSeeAll={() => setCity(memberCity)}
+        />
+      )}
+      {askLocation && <AddLocation />}
+      {cities.length > 0 && <CityBand cities={cities} selected={filters.city} onPick={setCity} />}
+      <h3 className={clsx(s.sectionTitle, s.listHeading)}>{filterCount ? 'Matching events' : 'All upcoming'}</h3>
+    </div>
+  ) : null;
 
   const content = (
     <div className={s.page}>
@@ -300,25 +434,9 @@ export default function EventsPageRedesignPrototype() {
           </div>
         </header>
 
-        {city ? (
-          <CityHeader city={city} summary={citySummary} events={upcoming} onBack={() => setCity(null)} />
-        ) : (
-          <>
-            {nearYou && (
-              <NearYou
-                city={memberCity!}
-                events={nearYou}
-                todayIso={todayIso}
-                goingUids={goingUids}
-                onOpen={open}
-                onSeeAll={() => setCity(memberCity)}
-              />
-            )}
-            {askLocation && <AddLocation />}
-            {cities.length > 0 && <CityBand cities={cities} selected={filters.city} onPick={setCity} />}
-          </>
-        )}
-
+        {/* The toolbar sits right under the header (2026-11-20): the city bands below it belong to
+            List view, so switching views changes only what is under the switch and the switch never
+            moves under the pointer (it used to sit below the bands and jump ~490px up). */}
         <div className={s.toolbar}>
           <div className={s.toolbarStart}>
             <h2 className={s.toolbarTitle}>{city ? `Coming up in ${city}` : 'Coming up'}</h2>
@@ -354,6 +472,11 @@ export default function EventsPageRedesignPrototype() {
                 </button>
               ))}
             </div>
+            {/* Embeds what you're looking at: this view with these filters (Luma's calendar embed). */}
+            <button type="button" className={s.filtersBtn} onClick={() => setEmbedOpen(true)}>
+              <EmbedGlyph />
+              Embed
+            </button>
           </div>
         </div>
 
@@ -398,31 +521,8 @@ export default function EventsPageRedesignPrototype() {
 
         <div className={s.layout}>
           <div className={s.main}>
-            {view === 'list' ? (
-              <ListView
-                events={upcoming}
-                todayIso={todayIso}
-                goingUids={goingUids}
-                highlightUid={highlightUid}
-                onOpen={open}
-                onClear={clearParams}
-              />
-            ) : view === 'map' ? (
-              <EventsMap events={upcoming} goingUids={goingUids} onOpen={open} highlightUid={highlightUid} />
-            ) : (
-              <EventsCalendar
-                key={`${anchorIso}:${city ?? ''}`}
-                events={visible}
-                todayIso={todayIso}
-                anchorIso={anchorIso}
-                mode={calMode}
-                onModeChange={setCalMode}
-                goingUids={goingUids}
-                highlightUid={highlightUid}
-                city={city}
-                onOpen={open}
-              />
-            )}
+            {listBands}
+            {viewBody}
           </div>
           {/* The Your plans rail was removed 2026-11-17; your events are the Going filter and your profile. */}
         </div>
@@ -483,13 +583,11 @@ export default function EventsPageRedesignPrototype() {
         />
       </main>
 
-      <EventDrawer
-        eventUid={openUid}
-        sequence={drawerSequence}
-        onNavigate={(uid) => setUrl({ event: uid })}
-        onClose={closeDrawer}
-        onNotice={onNotice}
-      />
+      {drawer}
+
+      {embedOpen && (
+        <EmbedModal isOpen onClose={() => setEmbedOpen(false)} src={embedSrc()} scope={embedScopeLine} filterLabels={embedFilters} />
+      )}
 
       {notice && (
         <FollowToast>
@@ -657,7 +755,7 @@ function NearYou({
   events: CalEvent[];
   todayIso: string;
   goingUids: Set<string>;
-  onOpen: (uid: string, from: CalEvent[]) => void;
+  onOpen: OpenEvent;
   onSeeAll: () => void;
 }) {
   return (
@@ -682,6 +780,7 @@ function NearYou({
               going={goingUids.has(e.uid)}
               highlighted={false}
               onOpen={() => onOpen(e.uid, events)}
+              onOpenPeople={() => onOpen(e.uid, events, 'attendees')}
             />
           ))}
         </div>
@@ -736,12 +835,14 @@ function EventTile({
   going,
   highlighted,
   onOpen,
+  onOpenPeople,
 }: {
   event: CalEvent;
   todayIso: string;
   going: boolean;
   highlighted: boolean;
   onOpen: () => void;
+  onOpenPeople: () => void;
 }) {
   const detail = DETAILS[event.uid];
   const { venue } = venueOf(detail);
@@ -765,7 +866,7 @@ function EventTile({
           {online ? <GlobeIcon width={14} height={14} className={s.pin} /> : <PinIcon />}
           <span className={s.ellipsis}>{placeText(event, venue)}</span>
         </span>
-        <EventFoot event={event} going={false} />
+        <EventFoot event={event} going={false} onOpenPeople={onOpenPeople} />
       </span>
     </button>
   );
@@ -784,18 +885,44 @@ function placeText(event: CalEvent, venue: string) {
  * a glyph + word in the meta ink (Eventbrite's "Free", Luma's "Approval required"), because a
  * grey chip read as a tag, the same lineage as the topic tags.
  */
-function EventFoot({ event, going }: { event: CalEvent; going: boolean }) {
+function EventFoot({
+  event,
+  going,
+  onOpenPeople,
+}: {
+  event: CalEvent;
+  going: boolean;
+  /** Facepile + "N going" open the drawer on who's going (2026-11-20, Luma's "N Going"). */
+  onOpenPeople: () => void;
+}) {
   const detail = DETAILS[event.uid];
   const seed = (event.attendeeCount * 3) % 40;
+  // The card is itself a button, so this is a role="button" span rather than a nested <button>.
+  const press = (e: React.SyntheticEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    onOpenPeople();
+  };
   return (
     <span className={s.cardFoot}>
       {going && <GoingTag />}
-      <span className={s.facepile} aria-hidden>
-        {ATTENDEES.slice(seed, seed + 3).map((a) => (
-          <img key={a.uid} src={getDefaultAvatar(a.name)} alt="" width={20} height={20} />
-        ))}
+      <span
+        role="button"
+        tabIndex={0}
+        className={s.goingLink}
+        aria-label={`See who's going: ${event.attendeeCount} people`}
+        onClick={press}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') press(e);
+        }}
+      >
+        <span className={s.facepile} aria-hidden>
+          {ATTENDEES.slice(seed, seed + 3).map((a) => (
+            <img key={a.uid} src={getDefaultAvatar(a.name)} alt="" width={20} height={20} />
+          ))}
+        </span>
+        <span className={s.cardCount}>{event.attendeeCount} going</span>
       </span>
-      <span className={s.cardCount}>{event.attendeeCount} going</span>
       {detail.access !== 'FREE w/ RSVP' && (
         <span className={s.cardAccess}>
           <span aria-hidden>·</span>
@@ -833,7 +960,7 @@ function ListView({
   todayIso: string;
   goingUids: Set<string>;
   highlightUid: string | null;
-  onOpen: (uid: string, from: CalEvent[]) => void;
+  onOpen: OpenEvent;
   onClear: () => void;
 }) {
   if (!events.length) return <Empty onClear={onClear} />;
@@ -866,6 +993,7 @@ function ListView({
                     going={goingUids.has(e.uid)}
                     highlighted={e.uid === highlightUid}
                     onOpen={() => onOpen(e.uid, events)}
+                    onOpenPeople={() => onOpen(e.uid, events, 'attendees')}
                   />
                 </li>
               ))}
@@ -883,12 +1011,14 @@ function EventCard({
   going,
   highlighted,
   onOpen,
+  onOpenPeople,
 }: {
   event: CalEvent;
   day: string;
   going: boolean;
   highlighted: boolean;
   onOpen: () => void;
+  onOpenPeople: () => void;
 }) {
   const detail = DETAILS[event.uid];
   const { venue } = venueOf(detail);
@@ -919,7 +1049,7 @@ function EventCard({
           {online ? <GlobeIcon width={14} height={14} className={s.pin} /> : <PinIcon />}
           {placeText(event, venue)}
         </span>
-        <EventFoot event={event} going={going} />
+        <EventFoot event={event} going={going} onOpenPeople={onOpenPeople} />
       </span>
       <EventImage uid={event.uid} className={s.thumb} />
     </button>
@@ -927,6 +1057,22 @@ function EventCard({
 }
 
 /* ---------- Small parts ---------- */
+
+/** "</>" at the toolbar set's size and weight (16px, 1.5px stroke), like ViewIcon and the Filters mark. */
+function EmbedGlyph() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path
+        d="M5.5 4.5 2 8l3.5 3.5M10.5 4.5 14 8l-3.5 3.5M9 3l-2 10"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
+}
 
 function PinIcon() {
   return (

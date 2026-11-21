@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react';
+import { render, renderHook } from '@testing-library/react';
 
 import { useGetPlInfraNavItems } from '@/components/core/navbar/components/navItems/PLInfraNavItems/hook/useGetPlInfraNavItems';
 import { useMoreNavItems } from '@/components/core/navbar/components/navItems/MoreNavItems/hooks/useMoreNavItems';
@@ -291,6 +291,44 @@ describe('useMoreNavItems', () => {
       mockPublishedApps.mockReturnValue([playbook]);
 
       expect(titlesOf(plInfra())).toEqual([]);
+    });
+
+    // LAB-3238: the admin decides whether an app shows under More, its path and its icon.
+    it('leaves out apps the admin hid from More', () => {
+      mockPublishedApps.mockReturnValue([
+        { ...playbook, showInMore: false },
+        { ...playbook, uid: 'cmatlas2', name: 'Atlas', showInMore: true },
+      ]);
+
+      expect(titlesOf(more())).toEqual(['Deals', ...EVENTS, 'Atlas']);
+    });
+
+    it('links to the readable path when the app has one', () => {
+      mockPublishedApps.mockReturnValue([{ ...playbook, path: 'playbook' }]);
+
+      expect(more().find((entry) => entry.title === 'PLaybook')?.href).toBe('/apps/playbook');
+    });
+
+    it('opens an app without the LabOS top navigation in a new tab, and the rest in place', () => {
+      mockPublishedApps.mockReturnValue([
+        { ...playbook, hideTopNav: true },
+        { ...playbook, uid: 'cmatlas2', name: 'Atlas', hideTopNav: false },
+      ]);
+
+      const items = more();
+      expect(items.find((entry) => entry.title === 'PLaybook')?.external).toBe(true);
+      expect(items.find((entry) => entry.title === 'Atlas')?.external).toBe(false);
+    });
+
+    it('shows the uploaded icon, and the star without one', () => {
+      mockPublishedApps.mockReturnValue([{ ...playbook, iconUrl: 'https://cdn.example.test/p.png' }]);
+      const { container } = render(<>{more().find((entry) => entry.title === 'PLaybook')?.icon}</>);
+      expect(container.querySelector('img')?.getAttribute('src')).toBe('https://cdn.example.test/p.png');
+
+      mockPublishedApps.mockReturnValue([playbook]);
+      const star = render(<>{more().find((entry) => entry.title === 'PLaybook')?.icon}</>);
+      expect(star.container.querySelector('img')).toBeNull();
+      expect(star.container.querySelector('svg')).not.toBeNull();
     });
   });
 });

@@ -27,6 +27,8 @@ interface LabosAgentTurnProps {
   onDraftEdit?: (turnId: string, draftId: string, text: string) => void;
   onDraftSend?: (turnId: string, draftId: string) => void;
   onDraftCancel?: (turnId: string, draftId: string) => void;
+  /** LAB-3362: the draft cards that a newer draft replaced (`replacedDraftIds`). */
+  replacedDrafts?: ReadonlySet<string>;
   /** LAB-3297: the member opened a source. `position` 1 is the first source in the list. */
   onSourceClick?: (sourceType: 'labos' | 'web', position: number) => void;
 }
@@ -65,6 +67,7 @@ export function LabosAgentTurn({
   onDraftEdit,
   onDraftSend,
   onDraftCancel,
+  replacedDrafts,
   onSourceClick,
 }: LabosAgentTurnProps) {
   const [showSteps, setShowSteps] = useState(false);
@@ -186,6 +189,7 @@ export function LabosAgentTurn({
             key={d.draftId}
             draft={d}
             card={turn.draftCards?.[d.draftId]}
+            replaced={!!replacedDrafts?.has(d.draftId)}
             onEdit={(draftId, text) => onDraftEdit(turn.id, draftId, text)}
             onSend={(draftId) => onDraftSend(turn.id, draftId)}
             onCancel={(draftId) => onDraftCancel(turn.id, draftId)}

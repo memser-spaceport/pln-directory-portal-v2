@@ -9,6 +9,7 @@ import {
 } from '@/services/intro-requests/intro-request-entry-registry';
 import {
   DRAFT_ALREADY_SENT_MESSAGE,
+  DRAFT_REPLACED_MESSAGE,
   DRAFT_SENT_MESSAGE,
   draftTargetKey,
 } from '@/services/labos-agent/labos-agent.drafts';
@@ -21,6 +22,8 @@ interface LabosAgentDraftCardProps {
   draft: LabosAgentDraft;
   /** No state: `open` with the draft text. */
   card?: LabosAgentDraftCardState;
+  /** LAB-3362: a newer draft for the same target came in a later turn (`replacedDraftIds`). */
+  replaced?: boolean;
   onEdit: (draftId: string, text: string) => void;
   onSend: (draftId: string) => void;
   onCancel: (draftId: string) => void;
@@ -28,8 +31,9 @@ interface LabosAgentDraftCardProps {
 
 const SHORT_TEXT = 'Add a bit more detail so we can find the right person.';
 
-function resultText(card: LabosAgentDraftCardState, alreadySent: boolean): string {
+function resultText(card: LabosAgentDraftCardState, alreadySent: boolean, replaced: boolean): string {
   if (alreadySent) return DRAFT_ALREADY_SENT_MESSAGE;
+  if (replaced) return DRAFT_REPLACED_MESSAGE;
   switch (card.status) {
     case 'sent':
       return DRAFT_SENT_MESSAGE;
@@ -53,7 +57,14 @@ function resultText(card: LabosAgentDraftCardState, alreadySent: boolean): strin
  * a11y (as the S2 action card): an `<article>` named by its title. One `role="status"` region stays mounted from the
  * first render and only its text changes. When a send ends or the member cancels, focus moves to that region.
  */
-export function LabosAgentDraftCard({ draft, card, onEdit, onSend, onCancel }: LabosAgentDraftCardProps) {
+export function LabosAgentDraftCard({
+  draft,
+  card,
+  replaced: replacedProp = false,
+  onEdit,
+  onSend,
+  onCancel,
+}: LabosAgentDraftCardProps) {
   const state: LabosAgentDraftCardState = card ?? { status: 'open', text: draft.text };
   const targetKey = draftTargetKey(draft);
   const sentByAgent = useLabosAgentStore((st) => !!st.sentIntroTargets[targetKey]);
@@ -69,7 +80,9 @@ export function LabosAgentDraftCard({ draft, card, onEdit, onSend, onCancel }: L
     state.status !== 'sending' &&
     state.status !== 'sent' &&
     state.status !== 'cancelled';
-  const closed = state.status === 'sent' || state.status === 'cancelled' || alreadySent;
+  // LAB-3362: an older card that a newer draft replaced has no field, no Send and no Cancel.
+  const replaced = replacedProp && !alreadySent && (state.status === 'open' || state.status === 'error');
+  const closed = state.status === 'sent' || state.status === 'cancelled' || alreadySent || replaced;
   const editable = state.status === 'open' || state.status === 'error';
   const trimmed = state.text.trim().length;
   const tooShort = trimmed < draft.minLength;
@@ -78,7 +91,7 @@ export function LabosAgentDraftCard({ draft, card, onEdit, onSend, onCancel }: L
   const canSend = editable && !tooShort && trimmed <= draft.maxLength;
   const id = `labos-agent-draft-${draft.draftId}`;
   const fieldId = `${id}-text`;
-  const result = resultText(state, alreadySent);
+  const result = resultText(state, alreadySent, replaced);
   const resultId = `${id}-result`;
   const describedBy = [`${id}-count`, showShort ? `${id}-short` : '', hasError ? resultId : '']
     .filter(Boolean)
@@ -94,15 +107,16 @@ export function LabosAgentDraftCard({ draft, card, onEdit, onSend, onCancel }: L
     prevStatus.current = state.status;
   }, [state.status]);
 
-  const resultClass = alreadySent
-    ? s.muted
-    : state.status === 'sent'
-      ? s.done
-      : state.status === 'forbidden' || state.status === 'error'
-        ? s.error
-        : result
-          ? s.muted
-          : s.empty;
+  const resultClass =
+    alreadySent || replaced
+      ? s.muted
+      : state.status === 'sent'
+        ? s.done
+        : state.status === 'forbidden' || state.status === 'error'
+          ? s.error
+          : result
+            ? s.muted
+            : s.empty;
 
   return (
     <article className={s.card} aria-labelledby={id} aria-busy={sending}>

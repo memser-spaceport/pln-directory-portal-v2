@@ -80,6 +80,16 @@ describe('activity submit CTA', () => {
       );
     });
 
+    it('opens the activity CTA link instead of the form', () => {
+      openBot.mockReturnValue(false);
+      const linked = { ...activity, popupContent: { ...activity.popupContent, ctaLink: '/somewhere' } };
+      render(<ActivityTable activities={[linked]} onRowClick={jest.fn()} />);
+
+      fireEvent.click(screen.getAllByRole('button', { name: 'Submit' })[0]);
+
+      expect(windowOpen).toHaveBeenCalledWith('/somewhere', '_blank', 'noopener,noreferrer');
+    });
+
     it('never asks the bot for a confirm activity', () => {
       render(<ActivityTable activities={[{ ...activity, cta: 'confirm' }]} onRowClick={jest.fn()} />);
 
@@ -117,6 +127,16 @@ describe('activity submit CTA', () => {
 
       expect(windowOpen).toHaveBeenCalledWith(ACTIVITY_FORM_URL, '_blank', 'noopener,noreferrer');
       expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('opens the activity CTA link instead of the form', () => {
+      openBot.mockReturnValue(false);
+      const linked = { ...activity, popupContent: { ...activity.popupContent, ctaLink: '/somewhere' } };
+      render(<ActivityDetailModal isOpen activity={linked} onClose={jest.fn()} />);
+
+      fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+
+      expect(windowOpen).toHaveBeenCalledWith('/somewhere', '_blank', 'noopener,noreferrer');
     });
   });
 });

@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * The Calendar view, two modes in one card (Week | Month, Week the default since 2026-11-17), not two top-level views.
+ * The Calendar view, two modes in one card (Week | Month; Month the default on desktop since 2026-11-20, Week on phones), not two top-level views.
  *
  * MONTH — the events app's month grid, brought back (Nov 16 standup: "bring back the previous
  * calendar look"). Transcribed from event-drawer-redesign/EventsCalendarPage, which transcribed
@@ -13,7 +13,10 @@
  *   - today's disc is PL brand blue, not the app's #22c55e: white 600 text on that green is
  *     2.3:1, on brand blue it is 7:1 (AA);
  *   - a bar you are going to carries a check and 600 weight (the Going filter lists the same events);
- *   - a day number opens that day's week in Week.
+ *   - a day number opens that day's week in Week;
+ *   - the grid is the viewport's height (2026-11-20): the card is 100dvh minus the navbar, the
+ *     weeks share it evenly, and a week with more bars than fit shows "+n more this week", which
+ *     opens that week in Week. Switching to Month scrolls the card to the top of the screen.
  *
  * WEEK — the LabWeek 2023 schedule board, from the user's screenshot (2026-11-17), replacing the
  * hour-grid "Schedule" guessed before the real layout was seen: a header cell per day, events that
@@ -25,7 +28,7 @@
  */
 
 import clsx from 'clsx';
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 
 import { Button } from '@/components/common/Button';
 import { CaretLeftIcon, CaretRightIcon, CheckIcon } from '@/components/icons';
@@ -120,8 +123,19 @@ export function EventsCalendar({
           addDays(weekStart, 6),
         ).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
 
+  // Month fills the viewport, so switching to it brings the whole card on screen.
+  // Compared with the previous mode, not a "first run" flag: dev Strict Mode runs effects twice.
+  const frameRef = useRef<HTMLDivElement>(null);
+  const prevMode = useRef(mode);
+  useEffect(() => {
+    if (prevMode.current !== mode && mode === 'month') {
+      frameRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    prevMode.current = mode;
+  }, [mode]);
+
   return (
-    <div className={k.frame}>
+    <div ref={frameRef} className={clsx(k.frame, mode === 'month' && k.frameFit)}>
       <div className={k.bar}>
         <div className={k.modes} role="tablist" aria-label="Calendar mode">
           {(['week', 'month'] as CalMode[]).map((m) => (
@@ -211,9 +225,10 @@ function MonthGrid({
   const first = iso(new Date(year, month, 1));
   const last = iso(new Date(year, month + 1, 0));
   const inMonth = events.filter((e) => e.endDate >= first && e.startDate <= last);
+  const [gridRef, capacity] = useBarCapacity(weeks.length);
 
   return (
-    <div className={k.month}>
+    <div ref={gridRef} className={k.month} style={{ '--weeks': weeks.length } as CSSProperties}>
       <div className={c.weekdays}>
         {WEEKDAYS.map((w) => (
           <span key={w}>{w}</span>
@@ -222,7 +237,11 @@ function MonthGrid({
       {weeks.map((week) => {
         const from = iso(week[0]);
         const to = iso(week[6]);
-        const bars = events.filter((ev) => ev.startDate <= to && ev.endDate >= from);
+        const all = events.filter((ev) => ev.startDate <= to && ev.endDate >= from);
+        // The grid is the viewport's height, so a busy week shows what fits and a "+n more" row.
+        const overflow = capacity !== null && all.length > capacity;
+        const bars = overflow ? all.slice(0, Math.max(capacity - 1, 0)) : all;
+        const hidden = all.length - bars.length;
         return (
           <div key={from} className={c.week}>
             {week.map((date, i) => {
@@ -258,13 +277,53 @@ function MonthGrid({
                 onOpen={() => onOpen(ev.uid, inMonth)}
               />
             ))}
+            {hidden > 0 && (
+              <button
+                type="button"
+                className={k.more}
+                style={{ gridRow: bars.length + 2 }}
+                onClick={() => onOpenDay(from)}
+              >
+                +{hidden} more this week
+              </button>
+            )}
             {/* Keeps short weeks the app's height. */}
-            <span className={c.weekFill} style={{ gridRow: bars.length + 2 }} aria-hidden />
+            <span className={c.weekFill} style={{ gridRow: bars.length + (hidden > 0 ? 3 : 2) }} aria-hidden />
           </div>
         );
       })}
     </div>
   );
+}
+
+/**
+ * How many bar rows fit in one week row once the month grid is stretched to the viewport.
+ * The week row's fixed parts come from EventsCalendarPage.module.scss: the day number (8 + 24 + 4),
+ * the week's 8px bottom padding and 1px rule, the 1px fill row; each bar is 16px text + 4px padding
+ * (14px text on phones) with a 4px row gap.
+ */
+function useBarCapacity(weekCount: number) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [bars, setBars] = useState<number | null>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => {
+      const head = (el.firstElementChild as HTMLElement | null)?.offsetHeight ?? 0;
+      const weekH = (el.clientHeight - head) / weekCount;
+      const phone = window.matchMedia('(max-width: 639px)').matches;
+      const row = (phone ? 18 : 20) + 4;
+      const fixed = 36 + 8 + 1 + 1 + 4;
+      setBars(Math.max(1, Math.floor((weekH - fixed) / row)));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [weekCount]);
+
+  return [ref, bars] as const;
 }
 
 /** EventsCalendarPage's EventBar, transcribed (it is not exported there). */

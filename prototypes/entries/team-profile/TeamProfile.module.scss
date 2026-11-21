@@ -1377,7 +1377,6 @@
         content: '·';
       }
     }
-
   }
 
   /* Every width: the location takes a line of its own, with its divider gone.
@@ -1844,5 +1843,59 @@
     .followersWithAction > button:not(.introPress) {
       order: 2;
     }
+  }
+}
+
+/* Review band "Under badges": the row in `afterBadges`, inside the name/tags
+   column so it starts where the badges start. The slot carries the space
+   above; the doubled class beats `.bioActions`' margin. */
+.badgeActions.badgeActions {
+  margin-top: 0;
+}
+
+.afterBadgesSlot {
+  margin-top: 16px;
+
+  /* Phone: the column dissolves into the logo grid; the row runs full width
+     under the tags, as the tags do. */
+  @include media.mobile-only {
+    grid-column: 1 / -1;
+  }
+}
+
+/* "In sections": Request an intro inside Contact Details, under the links,
+   with the line that says who makes it. */
+.contactIntro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 16px;
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+}
+
+.contactIntroText {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* Phone: the review band's five-way Actions switch is wider than the screen,
+   so its options wrap inside the group instead of pushing the page sideways. */
+@include media.mobile-only {
+  .demoGroup {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .demoSwitch {
+    flex-wrap: wrap;
+    border-radius: 20px;
   }
 }

@@ -380,3 +380,12 @@
   line-height: 16px;
   color: #64748b;
 }
+
+/* Admin-uploaded app icon before the name (LAB-3238). */
+.appIcon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  object-fit: cover;
+}

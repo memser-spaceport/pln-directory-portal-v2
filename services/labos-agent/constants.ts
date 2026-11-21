@@ -40,10 +40,11 @@ export const LABOS_AGENT_MENTION_TEXT = {
 } as const;
 
 /**
- * The feature gate. Off until decision D1 (who sees the agent) is made. Flip this to `true` in code when D1 lands;
- * the backend gate (`GET /v1/labos-agent/access`) still decides for each member.
+ * The local feature gate. On since D1 landed (LAB-3344, option A: staff and the pilot list). The backend gate
+ * (`GET /v1/labos-agent/access`, the `labos_agent_pilot` policy) still decides for each member.
+ * `localStorage['labos-agent'] = 'off'` turns it off in one browser.
  */
-export const LABOS_AGENT_ENABLED_BY_DEFAULT = false;
+export const LABOS_AGENT_ENABLED_BY_DEFAULT = true;
 
 /** The panel talks to the live C1 endpoint. `true` makes the mock the default again. */
 export const LABOS_AGENT_MOCK_BY_DEFAULT = false;

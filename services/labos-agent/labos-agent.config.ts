@@ -14,9 +14,14 @@ function readStorage(key: string): string | null {
   }
 }
 
-/** The local feature gate: the code default, or `localStorage['labos-agent'] = 'on'` in this browser. */
+/**
+ * The local feature gate: the code default (on, LAB-3344). In this browser, `localStorage['labos-agent'] = 'off'`
+ * turns it off and `'on'` turns it on. Any other value keeps the default.
+ */
 export function isLabosAgentGateOn(): boolean {
-  return LABOS_AGENT_ENABLED_BY_DEFAULT || readStorage(LABOS_AGENT_GATE_STORAGE_KEY) === 'on';
+  const value = readStorage(LABOS_AGENT_GATE_STORAGE_KEY);
+  if (value === 'off') return false;
+  return LABOS_AGENT_ENABLED_BY_DEFAULT || value === 'on';
 }
 
 /** The live C1 client unless `localStorage['labos-agent-api'] = 'mock'` (or the code default says mock). */

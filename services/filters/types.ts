@@ -45,7 +45,7 @@ export interface FilterStoreConfig {
   onFilterChange?: (key: string, value: string | undefined, allParams: URLSearchParams) => void;
 
   /**
-   * Debounce time in milliseconds for analytics callback
+   * Debounce time in milliseconds for analytics callback. 0 reports every change at once.
    * @default 300
    */
   analyticsDebounceMs?: number;

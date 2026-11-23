@@ -2,6 +2,7 @@
 
 import clsx from 'clsx';
 
+import { Button } from '@/components/common/Button';
 import btn from '@/components/common/Button/Button.module.scss';
 import { ArrowUpRightIcon, CalendarBlankIcon, CaretRightIcon, SuccessCircleIcon } from '@/components/icons';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
@@ -15,13 +16,17 @@ export interface RsvpCardProps {
   faces: EventPersonResponse[];
   /** The viewer is going (saved, or just marked in this drawer). */
   going: boolean;
-  /** Signed in with the attendance permission: the card asks. Otherwise it only says who is going. */
-  canMarkGoing: boolean;
+  /**
+   * The card asks "Are you going?": signed in with the attendance permission, or signed out (where "Yes, I'm going"
+   * starts sign-in, LAB-3271). Otherwise it only says who is going.
+   */
+  asks: boolean;
   /** The gathering's city, for "Add your plans for <city>". */
   city: string | null;
   /** The event's own page, for Register. Left out when unknown. */
   registerUrl: string | null;
   saving: boolean;
+  onYes: () => void;
   onOpenAttendees: () => void;
   onNotGoing: () => void;
   onOpenPlans: () => void;
@@ -42,20 +47,24 @@ function Facepile({ faces }: { faces: EventPersonResponse[] }) {
 
 /**
  * The event's "Are you going?" card (LAB-3225, LAB-3234), ported from Polina's `event-drawer-redesign/RsvpCard`
- * (2026-11-12), which both drawer prototypes share. It answers in place: "Are you going?" → "You're going", with
- * "Add your plans for <city>" and "Mark as not going".
+ * (her a0a712c8a, 2026-11-18), which both drawer prototypes share. It sits right after the facts and answers in place:
+ * "Are you going?" with "Yes, I'm going" and Register → "You're going", with "Add your plans for <city>" and
+ * "Mark as not going". LAB-3361: "Yes, I'm going" is back in the card, as in the prototype; when the card scrolls
+ * away, the drawer pins the same question at its foot (`RsvpBar`).
  *
- * Deviation from the prototype, by the Nov 12 standup (LAB-3234): no "Show on my profile". Going is always visible
- * to signed-in members. Since LAB-3271, "Yes, I'm going" is in the drawer's sticky footer, not in this card.
+ * Deviations from the prototype: no "Show on my profile", going is always visible to signed-in members (LAB-3234,
+ * Nov 12 standup); the plans row says "Your role, dates and topics", since the plans sub-view edits this event's role
+ * and has no events picker (LAB-3234).
  */
 export function RsvpCard({
   count,
   faces,
   going,
-  canMarkGoing,
+  asks,
   city,
   registerUrl,
   saving,
+  onYes,
   onOpenAttendees,
   onNotGoing,
   onOpenPlans,
@@ -84,7 +93,7 @@ export function RsvpCard({
       <span className={r.nobody}>Nobody has said they are going yet.</span>
     );
 
-  if (!canMarkGoing) {
+  if (!asks) {
     return (
       <div className={r.card} data-testid="rsvp-card">
         <div className={r.cardHead}>
@@ -103,8 +112,12 @@ export function RsvpCard({
           <p className={r.cardTitle}>Are you going?</p>
           {people}
         </div>
-        {/* "Yes, I'm going" is in the drawer's sticky footer (LAB-3271). */}
-        {register && <div className={r.cardActions}>{register}</div>}
+        <div className={r.cardActions}>
+          <Button type="button" size="s" onClick={onYes} disabled={saving}>
+            Yes, I&apos;m going
+          </Button>
+          {register}
+        </div>
       </div>
     );
   }

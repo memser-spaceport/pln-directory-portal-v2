@@ -876,10 +876,26 @@ export const EVENT_DRAWER_ANALYTICS = {
   ON_EVENT_NOT_GOING_MARKED: 'event-not-going-marked',
   ON_EVENT_PLANS_SAVED: 'event-plans-saved',
   ON_EVENT_ATTENDEES_OPENED: 'event-attendees-opened',
+  // LAB-3361: the drawer's toolbar.
+  ON_EVENT_LINK_COPIED: 'event-drawer-link-copied',
+  ON_EVENT_EVENTS_APP_OPENED: 'event-drawer-events-app-opened',
+  ON_EVENT_DRAWER_STEPPED: 'event-drawer-stepped',
   /** The owner's "Add event" on their profile (LAB-3218). */
   ON_PROFILE_EVENT_ADD_CLICKED: 'profile-event-add-clicked',
   /** The owner removed an event from the ⋯ menu on their profile (LAB-3218). */
   ON_PROFILE_EVENT_REMOVED: 'profile-event-removed',
+};
+
+/** The native All Events page (LAB-3247). Fired on a member's own change, never on landing from a link. */
+export const ALL_EVENTS_ANALYTICS = {
+  // LAB-3352: the Embed link, and loads of the embed page.
+  ON_EVENTS_EMBED_LINK_COPIED: 'events-embed-link-copied',
+  ON_EVENTS_EMBED_VIEWED: 'events-embed-viewed',
+  // LAB-3365: Copy code in the Embed dialog.
+  ON_EVENTS_EMBED_CODE_COPIED: 'events-embed-code-copied',
+  ON_EVENTS_VIEW_CHANGED: 'events-view-changed',
+  ON_EVENTS_FILTERS_APPLIED: 'events-filters-applied',
+  ON_EVENTS_CITY_SELECTED: 'events-city-selected',
 };
 
 export const EVENTS_ANALYTICS = {

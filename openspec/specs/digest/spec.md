@@ -125,7 +125,7 @@ Each story's team header SHALL have Follow, which starts from the API's `follows
 
 ### Requirement: End of the issue and side cards
 
-After the stories and forum posts, the page SHALL show "You're all caught up" with a check, "The next digest arrives on <weekday>, <day> <month>." from the API's `nextSendAt` (the line is left out when it is missing), and a "See all network news" link to Home. When the API's `isTeamMember` is true, the page SHALL show the outlined "Got news from your team?" card with "Post your team news →" to a signed-in member, except one whose own record lists no team. It SHALL NOT show to a signed-out reader, whose team is unknown (LAB-3347). For a signed-in member of one team, "Post your team news →" SHALL open the Post news modal for that team. For a member of more than one team it SHALL ask "Post as" with one button per team, main team first, and a press SHALL open the modal for that team. A link with `postnews=open` landing signed out SHALL go to sign-in and come back to the page with `postnews=open`. A link with `postnews=open` SHALL do the same as a press once the reader is signed in (except on the way back from Google or GitHub sign-in, see Saving topics), bringing the "Post as" question into view, and SHALL then be dropped from the address so a reload doesn't repeat it. The teams SHALL come from the signed-in member's own record (`teamMemberRoles`). The topics section SHALL be "How personalization works" ("Stories come from your topics first, then the teams you follow, then the network's top stories."), then the Add topics card (LAB-3348). For a signed-out reader (known from the server before the page hydrates) "How personalization works" SHALL instead say "You're seeing the network's top stories. Signed in, your digest leads with your topics, then the teams you follow." and end with "Sign in to personalize", which opens the sign-in prompt (LAB-3347). From 1100px the side cards SHALL sit in a sticky column on the right: the topics section, then Past issues. Under 1100px the topics section SHALL follow the page header, before the stories, and Past issues SHALL follow "You're all caught up".
+After the stories and forum posts, the page SHALL show "You're all caught up" with a check, "The next digest arrives on <weekday>, <day> <month>." from the API's `nextSendAt` (the line is left out when it is missing), and a "See all network news" link to Home. When the API's `isTeamMember` is true, the page SHALL show the outlined "Got news from your team?" card with "Post your team news →" to a signed-in member, except one whose own record lists no team. It SHALL NOT show to a signed-out reader, whose team is unknown (LAB-3347). For a signed-in member of one team, "Post your team news →" SHALL open the Post news modal for that team. For a member of more than one team it SHALL ask "Post as" with one button per team, main team first, and a press SHALL open the modal for that team. A link with `postnews=open` landing signed out SHALL go to sign-in and come back to the page with `postnews=open`. A link with `postnews=open` SHALL do the same as a press once the reader is signed in (except on the way back from Google or GitHub sign-in, see Saving topics), bringing the "Post as" question into view, and SHALL then be dropped from the address so a reload doesn't repeat it. The teams SHALL come from the signed-in member's own record (`teamMemberRoles`). The topics section SHALL be "How personalization works" ("Stories come from your topics first, then the teams you follow, then the network's top stories."), then the Suggested topics card (LAB-3348). For a signed-out reader (known from the server before the page hydrates) "How personalization works" SHALL instead say "You're seeing the network's top stories. Signed in, your digest leads with your topics, then the teams you follow." and end with "Sign in to personalize", which opens the sign-in prompt (LAB-3347). From 1100px the side cards SHALL sit in a sticky column on the right: the topics section, then Past issues. Under 1100px the topics section SHALL follow the page header, before the stories, and Past issues SHALL follow "You're all caught up".
 
 #### Scenario: Not on a team
 
@@ -155,7 +155,7 @@ After the stories and forum posts, the page SHALL show "You're all caught up" wi
 
 - **GIVEN** a 390px wide screen
 - **WHEN** the page shows
-- **THEN** there is no side column, "How personalization works" and Add topics follow the header before the first story, and Past issues follows "You're all caught up"
+- **THEN** there is no side column, "How personalization works" and Suggested topics follow the header before the first story, and Past issues follows "You're all caught up"
 
 ### Requirement: Footer
 
@@ -172,9 +172,9 @@ The page SHALL end with the email's sign-off and footer: "Cheers," and "The Prot
 - **WHEN** they press "Unsubscribe" in the footer
 - **THEN** `/digest/email?t=<token>&link_type=unsubscribe` opens with the Unsubscribe button, and nothing changes until they press it
 
-### Requirement: Add topics card
+### Requirement: Suggested topics card
 
-The topics section SHALL end with "Add topics": "Tick a topic to get stories about it in your digest.", then, for a signed-in reader with topics, "Your topics": their topics as ticked `#slug` chips when they have up to 5, else "N selected" (N = how many). Then "Suggested topics": the page's suggested topics as News preferences' `#slug` chips, in the API's order, as many as fit three rows; with no suggestion the label is left out. Then "See all topics". A signed-out reader SHALL see no "Your topics", only the suggestions. A suggestion ticked and saved during the visit SHALL stay in Suggested topics, ticked, and not show twice. A chip's order SHALL never change while the page is open. A chip SHALL show as ticked when the reader follows that topic. For a signed-in reader, a press SHALL tick or untick the chip, and "Save topics" SHALL show once a chip differs from the saved topics.
+The topics section SHALL end with "Suggested topics" (renamed from "Add topics" in Polina's 2026-11-20 prototype): "Tick a topic to get stories about it in your digest.", then the page's suggested topics (topics the reader doesn't follow yet) as News preferences' `#slug` chips, in the API's order, as many as fit three rows, then "See all topics". The card SHALL NOT list the topics the reader follows; unfollowing is in the topics modal. A suggestion ticked and saved during the visit SHALL stay in place, ticked. A chip's order SHALL never change while the page is open. For a signed-in reader, a press SHALL tick or untick the chip, and "Save topics" SHALL show once a chip differs from the saved topics. Signed out, the chips SHALL show unticked and Save topics SHALL never show.
 
 #### Scenario: Save from the card
 
@@ -182,23 +182,17 @@ The topics section SHALL end with "Add topics": "Tick a topic to get stories abo
 - **WHEN** they tick `#defi` and press Save topics
 - **THEN** their News preferences tags become `ai` and `defi`, and the toast "Topics saved. Your next digest uses them." shows
 
+#### Scenario: Followed topics are left out
+
+- **GIVEN** a signed-in member who follows `ai` and `web3`, and the page suggests `defi` and `desci`
+- **WHEN** the page shows
+- **THEN** the card shows `#defi` and `#desci` unticked, and neither `#ai` nor `#web3`
+
 #### Scenario: Nothing to suggest
 
 - **GIVEN** the page suggests no topics
 - **WHEN** the page shows
-- **THEN** the card has no "Suggested topics" label or chips, and See all topics still opens the topics modal
-
-#### Scenario: Many topics
-
-- **GIVEN** a signed-in member with 8 topics
-- **WHEN** the page shows
-- **THEN** "Your topics" says "8 selected" and the suggestions follow under "Suggested topics"
-
-#### Scenario: Untick one of your topics
-
-- **GIVEN** a signed-in member with topics `ai` and `web3`
-- **WHEN** they untick `#ai` under Your topics and press Save topics
-- **THEN** their News preferences tags become `web3`
+- **THEN** the card has its title and line but no chips, and See all topics still opens the topics modal
 
 ### Requirement: Topics modal
 

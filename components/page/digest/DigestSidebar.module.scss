@@ -70,16 +70,7 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
-// "Your topics" / "Suggested topics" (LAB-3348): a small label above each chip row, with the card's air above it.
-.cardLabel {
-  margin: 12px 0 0;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 16px;
-  color: var(--foreground-neutral-secondary, #455468);
-}
-
-// Add topics (LAB-3289): News preferences' chip row with the card's own air above it, clamped to three rows of
+// Suggested topics (LAB-3289): News preferences' chip row with the card's own air above it, clamped to three rows of
 // 24px chips (6px gaps) before the script hides the chips past row three. Padded by 4px so a chip's focus ring
 // isn't clipped. Doubled so it outranks that module's own `.chips` whatever the stylesheet order.
 .chips.chips {

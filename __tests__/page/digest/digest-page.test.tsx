@@ -221,7 +221,7 @@ describe('DigestPage', () => {
       screen
         .getAllByRole('heading', { level: 2 })
         .map((h) => h.textContent)
-        .filter((t) => t !== 'How personalization works' && t !== 'Add topics'),
+        .filter((t) => t !== 'How personalization works' && t !== 'Suggested topics'),
     ).toEqual(['Story b', 'Story a', 'From the forum']);
     expect(within(card('b')).getByText('🔥 Top story')).toBeInTheDocument();
     expect(within(card('a')).queryByText('🔥 Top story')).toBeNull();
@@ -665,8 +665,7 @@ describe('DigestPage', () => {
 
 describe('topics (LAB-3289)', () => {
   // The rail and the section after the header both render the card (CSS shows one): act on the first.
-  const topicsCard = () => screen.getAllByRole('group', { name: 'Suggested topics' })[0];
-  const ownTopics = () => screen.queryAllByRole('group', { name: 'Your topics' })[0] ?? null;
+  const topicsCard = () => screen.getAllByRole('group', { name: 'Topics to add' })[0];
   const chip = (slug: string) => within(topicsCard()).getByRole('button', { name: `#${slug}` });
   const signIn = () => useCurrentUserStore.setState({ currentUser: { uid: 'me' } as any, isHydrated: true });
   const saveSucceeds = () =>
@@ -704,57 +703,44 @@ describe('topics (LAB-3289)', () => {
   });
 
   describe('topics section (LAB-3348)', () => {
-    it('shows the member’s own topics as ticked chips above the suggestions, and unticks one to save', async () => {
+    it('titles the card "Suggested topics" and leaves out the topics the member follows (prototype, 2026-11-20)', () => {
       signIn();
-      mockPrefs = { newsTags: ['ai', 'web3'] };
-      saveSucceeds();
+      mockPrefs = { newsTags: ['ai', 'web3', 'defi'] };
       open('/digest?t=x');
-      const own = ownTopics() as HTMLElement;
-      expect(
-        within(own)
-          .getAllByRole('button')
-          .map((b) => b.textContent),
-      ).toEqual(['#ai', '#web3']);
-      expect(within(own).getByRole('button', { name: '#ai' })).toHaveAttribute('aria-pressed', 'true');
-      // "Your topics" comes before "Suggested topics" in the card.
-      const labels = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent);
-      expect(labels.slice(0, 2)).toEqual(['Your topics', 'Suggested topics']);
-
-      await userEvent.click(within(own).getByRole('button', { name: '#ai' }));
-      await userEvent.click(screen.getAllByRole('button', { name: 'Save topics' })[0]);
-      expect(setNewsTags).toHaveBeenCalledWith(['web3'], expect.anything());
-    });
-
-    it('says "N selected" instead of chips once the member has more than five topics', () => {
-      signIn();
-      mockPrefs = { newsTags: ['ai', 'web3', 'llms', 'zk', 'dao', 'nft', 'rwa', 'gaming'] };
-      open('/digest?t=x');
-      expect(screen.getAllByText('8 selected').length).toBeGreaterThan(0);
-      expect(ownTopics()).toBeNull();
+      expect(screen.getAllByRole('heading', { level: 2, name: 'Suggested topics' })).toHaveLength(2);
+      expect(screen.queryByText('Add topics')).toBeNull();
+      expect(screen.queryByText('Your topics')).toBeNull();
+      expect(screen.getAllByText('Tick a topic to get stories about it in your digest.')).toHaveLength(2);
+      // A suggestion the member already follows (saved earlier) stays in place, ticked; their other topics aren't shown.
       expect(
         within(topicsCard())
           .getAllByRole('button')
-          .map((b) => b.textContent),
-      ).toEqual(['#defi', '#desci']);
+          .map((b) => `${b.textContent} ${b.getAttribute('aria-pressed')}`),
+      ).toEqual(['#defi true', '#desci false']);
+      expect(screen.queryByRole('button', { name: '#ai' })).toBeNull();
     });
 
-    it('shows a signed-out reader only the suggestions, never the link member’s topics', () => {
+    it('shows a signed-out reader the suggestions unticked, with no Save topics', () => {
       useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
       open('/digest?t=x');
-      expect(screen.queryByText('Your topics')).toBeNull();
-      expect(screen.queryByText(/selected$/)).toBeNull();
-      expect(topicsCard()).toBeInTheDocument();
+      expect(
+        within(topicsCard())
+          .getAllByRole('button')
+          .map((b) => b.getAttribute('aria-pressed')),
+      ).toEqual(['false', 'false']);
+      expect(screen.queryByRole('button', { name: 'Save topics' })).toBeNull();
     });
 
-    it('drops the "Suggested topics" label when there is nothing to suggest', () => {
+    it('keeps the card, with See all topics, when there is nothing to suggest', () => {
       signIn();
       mockPrefs = { newsTags: ['ai'] };
       open('/digest?t=x', data({ topics: { followed: [{ slug: 'ai', title: 'AI' }], suggested: [] } }));
-      expect(screen.queryByText('Suggested topics')).toBeNull();
-      expect(within(ownTopics() as HTMLElement).getByRole('button', { name: '#ai' })).toBeInTheDocument();
+      expect(screen.getAllByRole('heading', { level: 2, name: 'Suggested topics' }).length).toBeGreaterThan(0);
+      expect(screen.queryByRole('group', { name: 'Topics to add' })).toBeNull();
+      expect(screen.getAllByRole('button', { name: 'See all topics' }).length).toBeGreaterThan(0);
     });
 
-    it('opens with "How personalization works" above Add topics, before the stories, under a line on what the digest is', () => {
+    it('opens with "How personalization works" above Suggested topics, before the stories, under a line on what the digest is', () => {
       signIn();
       mockPrefs = { newsTags: ['ai'] };
       open('/digest?t=x');
@@ -765,7 +751,7 @@ describe('topics (LAB-3289)', () => {
       expect(screen.queryByRole('button', { name: 'Change topics' })).toBeNull();
       const h2 = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
       // The section after the header (shown under 1100px) comes first, then the stories; the rail repeats it.
-      expect(h2.slice(0, 3)).toEqual(['How personalization works', 'Add topics', 'Story b']);
+      expect(h2.slice(0, 3)).toEqual(['How personalization works', 'Suggested topics', 'Story b']);
       expect(h2.filter((t) => t === 'How personalization works')).toHaveLength(2);
     });
   });

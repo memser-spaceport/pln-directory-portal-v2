@@ -718,6 +718,51 @@ describe('LAB-3297: agent events', () => {
       expect(lastBody().introDraft).toEqual({ target: { type: 'member', uid: MEMBER_UID }, text: REV_2 });
     });
 
+    it('LAB-3362 (C4-R7): 2 revisions, then Cancel on the newest card: the next message has no introDraft', async () => {
+      const cards = await twoRevisions();
+      fireEvent.click(within(cards[2]).getByRole('button', { name: 'Cancel' }));
+      chat.mockResolvedValue(plainAnswer);
+      await send('Thanks');
+
+      expect(lastBody()).not.toHaveProperty('introDraft');
+    });
+
+    it('LAB-3362: an older card in error is replaced and has no Send and no Cancel', async () => {
+      customFetch.mockResolvedValue({ ok: false, status: 422, json: async () => ({}) });
+      renderApp();
+      await open(introContext, 'intro-entry');
+      await send('Help me write an intro request.', 'Here is a draft.');
+      await act(async () => fireEvent.click(within(card()).getByRole('button', { name: 'Send' })));
+      expect(within(card()).getByText('The request could not be sent. Try again.')).toBeInTheDocument();
+      chat.mockResolvedValue({ ...introAnswer, drafts: [{ ...draft, draftId: 'dr_2', text: REV_1 }] });
+      await send('make it shorter', /Here is a draft/);
+
+      const [older, newest] = screen.getAllByRole('article', { name: `Intro request to ${MEMBER_NAME}` });
+      expect(within(older).getByText('Replaced by a newer draft')).toBeInTheDocument();
+      expect(within(older).queryByRole('button', { name: 'Send' })).not.toBeInTheDocument();
+      expect(within(older).queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument();
+      expect(within(newest).getByRole('button', { name: 'Send' })).toBeInTheDocument();
+      expect(within(newest).getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+      expect(events('agent-action-cancelled')).toHaveLength(0);
+    });
+
+    it('LAB-3362: after Send on the newest card, older cards show "Intro already requested", not "Replaced"', async () => {
+      customFetch.mockResolvedValue({ ok: true, status: 200, json: async () => ({ uid: 'ir-1' }) });
+      const cards = await twoRevisions();
+      await act(async () => fireEvent.click(within(cards[2]).getByRole('button', { name: 'Send' })));
+
+      expect(one('agent-action-confirmed')).toMatchObject({ actionType: 'intro-draft' });
+      cards.slice(0, 2).forEach((c) => {
+        expect(within(c).getByText('Intro already requested')).toBeInTheDocument();
+        expect(within(c).queryByText('Replaced by a newer draft')).not.toBeInTheDocument();
+        expect(within(c).queryByRole('button', { name: 'Send' })).not.toBeInTheDocument();
+      });
+      expect(
+        within(cards[2]).getByText('Your request is received. Someone from the team will reach out.'),
+      ).toBeInTheDocument();
+      expect(events('agent-action-cancelled')).toHaveLength(0);
+    });
+
     it('agent-action-cancelled (V0-R9): 2 revisions, then Cancel on the newest card sends exactly 1 event', async () => {
       const cards = await twoRevisions();
       fireEvent.click(within(cards[2]).getByRole('button', { name: 'Cancel' }));

@@ -1,3 +1,4 @@
+import { upstreamError } from '@/app/api/plaa/_errors';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -9,7 +10,7 @@ export async function GET(request: NextRequest) {
 
     const baseUrl = process.env.PLAA_API_URL;
     if (!baseUrl) {
-      return NextResponse.json({ error: 'PLAA_API_URL is not configured' }, { status: 500 });
+      return NextResponse.json({ error: 'PLAA service is temporarily unavailable' }, { status: 500 });
     }
 
     const res = await fetch(`${baseUrl}/api/v1/profile-balance/redemptions/me`, {
@@ -20,12 +21,8 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    if (res.status === 403) {
-      return NextResponse.json(null, { status: res.status });
-    }
-
     if (!res.ok) {
-      return NextResponse.json({ error: `PLAA API request failed: ${res.status}` }, { status: res.status });
+      return upstreamError(res.status, res.headers?.get('retry-after'));
     }
 
     const data = await res.json();

@@ -106,7 +106,7 @@ export const getAllRoundStats = async (
   authToken?: string,
 ): Promise<{
   data?: RoundStatsResponse[];
-  error?: { message: string };
+  error?: { message: string; status?: number; retryAfter?: string | null };
 }> => {
   try {
     const response = await fetch(`${process.env.PLAA_API_URL}/api/v1/rounds/all/rounds`, {
@@ -116,7 +116,13 @@ export const getAllRoundStats = async (
     });
 
     if (!response.ok) {
-      return { error: { message: `API responded with ${response.status}: ${response.statusText}` } };
+      return {
+        error: {
+          message: `API responded with ${response.status}: ${response.statusText}`,
+          status: response.status,
+          retryAfter: response.headers?.get('retry-after'),
+        },
+      };
     }
 
     const data: RoundStatsResponse[] = await response.json();

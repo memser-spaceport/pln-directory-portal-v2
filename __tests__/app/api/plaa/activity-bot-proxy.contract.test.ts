@@ -71,6 +71,13 @@ beforeEach(() => {
 });
 
 describe('activity bot proxy route', () => {
+  it('hides upstream server details', async () => {
+    mockUpstream({ bot: { status: 500, body: { message: 'private server detail' } } });
+    const res = await postTurn(makeRequest());
+    expect(res.status).toBe(502);
+    expect(await res.json()).toEqual({ error: 'PLAA service is temporarily unavailable' });
+  });
+
   it('returns 503 and calls nothing when the bot is not configured', async () => {
     delete process.env.PLAA_BOT_WEBHOOK_URL;
 

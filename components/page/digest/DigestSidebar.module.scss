@@ -32,6 +32,19 @@
   }
 }
 
+// Under 1100px: the topics section right after the page header (LAB-3348, LAB-3346 R5), so a reader on a phone
+// sees it before the stories. From 1100px the side column has it instead.
+.top {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 20px 16px 0;
+
+  @media (min-width: 1100px) {
+    display: none;
+  }
+}
+
 .card {
   flex-shrink: 0;
   padding: 16px 20px;
@@ -57,7 +70,7 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
-// Add topics (LAB-3289): News preferences' chip row with the card's own air above it, clamped to three rows of
+// Suggested topics (LAB-3289): News preferences' chip row with the card's own air above it, clamped to three rows of
 // 24px chips (6px gaps) before the script hides the chips past row three. Padded by 4px so a chip's focus ring
 // isn't clipped. Doubled so it outranks that module's own `.chips` whatever the stylesheet order.
 .chips.chips {

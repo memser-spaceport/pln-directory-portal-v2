@@ -15,7 +15,8 @@ export type DigestPastIssuesCardProps = {
   issues: DigestIssue[];
   /** The send time of the issue on show. */
   current: string;
-  hrefFor: (issue: DigestIssue) => string;
+  /** Null for an issue with no id to open it by: its row shows without a link. */
+  hrefFor: (issue: DigestIssue) => string | null;
 };
 
 type Props = DigestPastIssuesCardProps & { listId: string };
@@ -50,10 +51,12 @@ export function DigestPastIssuesCard({ listId, issues, current, hrefFor }: Props
         <ol id={listId} className={s.issues}>
           {issues.map((issue) => {
             const active = sameInstant(issue.sentAt, current);
+            // No href, no link: an issue with no id lists without one.
+            const href = hrefFor(issue);
             return (
               <li key={issue.sentAt}>
                 <a
-                  href={hrefFor(issue)}
+                  href={href ?? undefined}
                   className={clsx(s.issue, active && s.issueActive)}
                   aria-current={active ? 'page' : undefined}
                 >

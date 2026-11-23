@@ -16,7 +16,18 @@ export type DigestPageFrom =
   | 'direct';
 
 /** Where a topics action started (LAB-3289). */
-export type DigestTopicsVia = 'chip' | 'see-all' | 'change-topics' | 'email';
+export type DigestTopicsVia = 'chip' | 'see-all' | 'email';
+
+/** LAB-3347: the other signed-out presses that open the sign-in prompt. */
+export type DigestSignInVia = 'follow' | 'comments' | 'forum-open' | 'personalize';
+
+/** LAB-3347: which press opened the sign-in prompt, as its `digest-sign-in-prompt-answered` event names it. */
+export type DigestSignInPromptPress =
+  | DigestSignInVia
+  | DigestChoice
+  | 'email-choice'
+  | 'forum-post'
+  | `topics-${DigestTopicsVia}`;
 
 /** `post_news` and `change_topics` (LAB-3290): the email's "Post your team news →" and "Change topics". */
 export type DigestLinkType =
@@ -163,6 +174,29 @@ export function useDigestAnalytics() {
       },
       onTopicsSignInPrompted(params: { via: DigestTopicsVia }) {
         capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_TOPICS_SIGN_IN_PROMPTED, params);
+      },
+      /** LAB-3351: a signed-out More / Less, on the page or from an older email's More / Less link. */
+      onChoiceSignInPrompted(params: { via: DigestChoice | 'email-choice'; newsId: string }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_SIGN_IN_PROMPTED, { via: params.via, news_id: params.newsId });
+      },
+      /** LAB-3347: Follow, Comments, Open the forum or Sign in to personalize, signed out. */
+      onSignInPrompted(params: { via: DigestSignInVia; teamUid?: string; newsId?: string }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_SIGN_IN_PROMPTED, {
+          via: params.via,
+          ...(params.teamUid ? { team_uid: params.teamUid } : {}),
+          ...(params.newsId ? { news_id: params.newsId } : {}),
+        });
+      },
+      /** LAB-3347: what the reader did with the sign-in prompt. */
+      onSignInPromptAnswered(params: { press: DigestSignInPromptPress; action: 'sign-in' | 'sign-up' | 'close' }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_SIGN_IN_PROMPT_ANSWERED, params);
+      },
+      onForumSignInPrompted(params: { topicId: number; position: number }) {
+        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_SIGN_IN_PROMPTED, {
+          via: 'forum-post',
+          topic_id: params.topicId,
+          position: params.position,
+        });
       },
     }),
     [capture],

@@ -2971,6 +2971,11 @@ export const DIGEST_ANALYTICS_EVENTS = {
   ON_DIGEST_TOPICS_SAVED: 'digest-topics-saved',
   ON_DIGEST_TOPICS_MODAL_OPENED: 'digest-topics-modal-opened',
   ON_DIGEST_TOPICS_SIGN_IN_PROMPTED: 'digest-topics-sign-in-prompted',
+  // A signed-out press that needs sign-in: a forum thread (LAB-3348), More / Less (LAB-3351), Follow, Comments, Open
+  // the forum, Sign in to personalize (LAB-3347).
+  ON_DIGEST_SIGN_IN_PROMPTED: 'digest-sign-in-prompted',
+  // LAB-3347: the reader's answer to the sign-in prompt: sign-in, sign-up or close.
+  ON_DIGEST_SIGN_IN_PROMPT_ANSWERED: 'digest-sign-in-prompt-answered',
   // LAB-3312: the digest email page (/digest/email), opened from the email footer.
   ON_DIGEST_EMAIL_PAGE_VIEWED: 'digest-email-page-viewed',
   ON_DIGEST_EMAIL_UNSUBSCRIBED: 'digest-email-unsubscribed',

@@ -35,7 +35,6 @@ const config: Config = {
     '<rootDir>/pl-design-system/',
     '<rootDir>/prototypes/',
     '<rootDir>/design-canvas/',
-    // Shared fixtures live beside the suites that use them; they hold no tests.
     '/__fixtures__/',
   ],
   silent: true,

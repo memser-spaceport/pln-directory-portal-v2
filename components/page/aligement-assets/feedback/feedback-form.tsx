@@ -315,7 +315,7 @@ export default function FeedbackForm({
             </p>
           )}
 
-          <p className="fb-guidelines" data-pending-legal-review="true">
+          <p className="fb-guidelines">
             Posts are visible to PLAA members. Screenshots and bug reports are visible only to you and the PLAA team.
           </p>
 

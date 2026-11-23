@@ -35,7 +35,6 @@ export function VoteButton({
   item: FeedbackItem;
   onToggle: () => void;
   pending?: boolean;
-  /** Undefined until the budget loads; the cap is not enforced then. */
   votesRemaining?: number;
 }) {
   const votable = canVote(item.status);

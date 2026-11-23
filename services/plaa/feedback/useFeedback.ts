@@ -24,9 +24,7 @@ export const FeedbackQueryKeys = {
 
 const VIEWER_SPECIFIC = { staleTime: 0, gcTime: 0, refetchOnWindowFocus: false } as const;
 
-// The API returns at most 50 cards per column. The board shows 20 and reveals
-// the rest with Show more, so it has to ask for more than it first shows.
-const ROADMAP_PER_COLUMN = 50;
+const ROADMAP_API_MAX_PER_COLUMN = 50;
 
 type Page<T> = { items: T[]; next_cursor: string | null };
 type ListPages = InfiniteData<FeedbackListResponse, string | undefined>;
@@ -69,7 +67,7 @@ export function useFeedbackItem(id: string | undefined) {
   });
 }
 
-export function useFeedbackRoadmap(perColumn = ROADMAP_PER_COLUMN) {
+export function useFeedbackRoadmap(perColumn = ROADMAP_API_MAX_PER_COLUMN) {
   return useQuery({
     queryKey: [FeedbackQueryKeys.ROADMAP, perColumn],
     queryFn: () => feedbackApi.roadmap(perColumn),

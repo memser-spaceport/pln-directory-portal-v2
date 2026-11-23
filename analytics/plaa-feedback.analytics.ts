@@ -1,16 +1,6 @@
 import { usePostHog } from 'posthog-js/react';
 import { useCurrentUserStore } from '@/services/auth/store';
 
-/**
- * PLAA Feedback Board analytics (§10).
- *
- * Separate from `feedback.analytics.ts`, which belongs to the Directory-wide
- * support widget. Same word, different product surface.
- *
- * Properties are exactly the ones listed in the PRD. No titles, bodies, item
- * ids or extra identifiers: the stream needs to know what members ask for, not
- * which item it was.
- */
 export const PLAA_FEEDBACK_EVENTS = {
   BOARD_VIEWED: 'feedback_board_viewed',
   FORM_OPENED: 'feedback_form_opened',

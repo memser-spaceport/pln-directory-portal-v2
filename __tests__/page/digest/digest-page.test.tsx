@@ -1224,6 +1224,13 @@ describe('From the forum (LAB-3293)', () => {
     useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
   });
 
+  it('shows no reply count for a thread without replies', () => {
+    useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
+    open('/digest?t=x', data({ forumPosts: [forumPost(9, 'New thread', 0)] }));
+    expect(within(section()).getByRole('listitem').textContent).toBe('1.New thread');
+    expect(within(section()).queryByText(/replies|reply/)).toBeNull();
+  });
+
   it('numbers the threads with their replies, and ends on Open the forum', () => {
     useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
     open('/digest?t=x', data({ forumPosts: threads }));

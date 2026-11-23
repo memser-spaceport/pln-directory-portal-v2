@@ -122,13 +122,25 @@ export function AllEventsPage({
     () => serverTodayIso,
   );
 
-  const items = result.ok ? result.items : EMPTY_ITEMS;
   const { params, setParam, setAllParams } = useAllEventsFilterStore();
   const filters = useMemo(() => readFilters(params), [params]);
   const filterCount = countAppliedFilters(params);
 
   const { data: goingData } = useMyUpcomingEventUids(signedIn);
   const goingUids = useMemo(() => new Set(Array.isArray(goingData) ? goingData : []), [goingData]);
+
+  // The list and its going counts are one cached copy for everyone (five minutes), so a member's own "Yes, I'm going"
+  // or "Not going" here would not show on the cards. Each count moves by the viewer's change since the page loaded.
+  const [goingAtLoad, setGoingAtLoad] = useState<Set<string> | null>(null);
+  if (goingAtLoad === null && Array.isArray(goingData)) setGoingAtLoad(new Set(goingData));
+  const items = useMemo(() => {
+    const loaded = result.ok ? result.items : EMPTY_ITEMS;
+    if (!goingAtLoad) return loaded;
+    return loaded.map((item) => {
+      const delta = (goingUids.has(item.uid) ? 1 : 0) - (goingAtLoad.has(item.uid) ? 1 : 0);
+      return delta && item.goingCount !== null ? { ...item, goingCount: Math.max(0, item.goingCount + delta) } : item;
+    });
+  }, [result, goingUids, goingAtLoad]);
 
   const [railOpen, setRailOpen] = useState(false);
 
@@ -202,10 +214,13 @@ export function AllEventsPage({
   const scopedCity = filters.city.length === 1 ? filters.city[0] : null;
   const goingCount = signedIn ? items.filter((item) => goingUids.has(item.uid)).length : null;
 
-  // Near you and the Add location row, for a signed-in member: in every view and with any filter (2026-11-19: the
-  // section stays put instead of jumping in and out). Only a chosen city replaces it, with its own header (below).
-  const near = signedIn ? nearYou(items, memberCity) : null;
-  const askLocation = signedIn && memberCity === null && !!viewerUid;
+  // List view's own top (Polina's prototype, 2026-11-20; LAB-3374, LAB-3375): Calendar and Map lead with the view
+  // itself. In List, a chosen city shows its header; otherwise Near you or the Add location row, for a signed-in member
+  // on the plain landing (nothing filtered), then Browse by city and the dated list's heading.
+  const listTop = view === 'list';
+  const plainLanding = listTop && filterCount === 0;
+  const near = signedIn && plainLanding ? nearYou(items, memberCity) : null;
+  const askLocation = signedIn && plainLanding && memberCity === null && !!viewerUid;
 
   // The calendar opens on the linked event's day, else the chosen city's first event, else today.
   const landed = landedUid ? items.find((item) => item.uid === landedUid) : undefined;
@@ -385,6 +400,36 @@ export function AllEventsPage({
       />
     );
 
+  const listBands = !listTop ? null : scopedCity ? (
+    <div className={s.listBands}>
+      <CityHeader
+        city={scopedCity}
+        summary={visibleCities.find((c) => c.city.toLowerCase() === scopedCity.toLowerCase())}
+        eventCount={visible.length}
+        onBack={() => setCity(null, 'tile')}
+      />
+    </div>
+  ) : near || askLocation || cities.length > 0 ? (
+    <div className={s.listBands}>
+      {near && (
+        <NearYou
+          city={near.city}
+          events={near.events}
+          todayIso={todayIso}
+          goingUids={goingUids}
+          onOpen={open}
+          onPrepare={prepare}
+          onSeeAll={() => setCity(near.city, 'near-you')}
+        />
+      )}
+      {askLocation && <AddLocationRow profileHref={`/members/${viewerUid}`} />}
+      {cities.length > 0 && (
+        <CityBand cities={cities} selected={filters.city} onPick={(city) => setCity(city, 'tile')} />
+      )}
+      <h3 className={clsx(s.sectionTitle, s.listHeading)}>{filterCount ? 'Matching events' : 'All upcoming'}</h3>
+    </div>
+  ) : null;
+
   const content = (
     <div className={s.page}>
       <div className={s.container}>
@@ -401,33 +446,8 @@ export function AllEventsPage({
           </div>
         ) : (
           <>
-            {scopedCity ? (
-              <CityHeader
-                city={scopedCity}
-                summary={visibleCities.find((c) => c.city.toLowerCase() === scopedCity.toLowerCase())}
-                eventCount={visible.length}
-                onBack={() => setCity(null, 'tile')}
-              />
-            ) : (
-              <>
-                {near && (
-                  <NearYou
-                    city={near.city}
-                    events={near.events}
-                    todayIso={todayIso}
-                    goingUids={goingUids}
-                    onOpen={open}
-                    onPrepare={prepare}
-                    onSeeAll={() => setCity(near.city, 'near-you')}
-                  />
-                )}
-                {askLocation && <AddLocationRow profileHref={`/members/${viewerUid}`} />}
-                {cities.length > 0 && (
-                  <CityBand cities={cities} selected={filters.city} onPick={(city) => setCity(city, 'tile')} />
-                )}
-              </>
-            )}
-
+            {/* The toolbar sits right under the header (Polina, 2026-11-20): the city bands belong to List view, so a view
+                switch changes only what is under it and the switch never moves under the pointer. */}
             <EventsToolbar
               city={scopedCity}
               count={visible.length}
@@ -463,10 +483,14 @@ export function AllEventsPage({
               </div>
             </div>
 
-            <AppliedChips scopedCity={scopedCity} railOpen={railOpen} onClear={clearFilters} />
+            {/* A chosen city is a chip in Calendar and Map, where List's city header doesn't show. */}
+            <AppliedChips scopedCity={listTop ? scopedCity : null} railOpen={railOpen} onClear={clearFilters} />
 
             <div className={s.layout}>
-              <div className={s.main}>{viewBody}</div>
+              <div className={s.main}>
+                {listBands}
+                {viewBody}
+              </div>
             </div>
           </>
         )}

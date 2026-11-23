@@ -139,14 +139,23 @@ describe('EventDrawer (LAB-3216)', () => {
     expect(screen.getByText('Are you going?')).toBeInTheDocument();
   });
 
-  it('signed out: "Yes, I\'m going" closes the drawer and starts sign-in, and saves nothing (LAB-3271)', async () => {
+  it('signed out: "Yes, I\'m going" starts sign-in with the drawer still open, and saves nothing (LAB-3368)', async () => {
     useCurrentUserStore.setState({ currentUser: null as never });
     const onClose = jest.fn();
     render(<EventDrawer eventUid="labweek-lisbon" source="home" onClose={onClose} />);
     await click(yes());
-    expect(onClose).toHaveBeenCalled();
     expect(goToLogin).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
     expect(markGoing.mutateAsync).not.toHaveBeenCalled();
+  });
+
+  it('signed out: the going count starts sign-in too, with the drawer still open (LAB-3371)', async () => {
+    useCurrentUserStore.setState({ currentUser: null as never });
+    const onClose = jest.fn();
+    render(<EventDrawer eventUid="labweek-lisbon" source="home" onClose={onClose} />);
+    await click(await screen.findByRole('button', { name: '40 members going' }));
+    expect(goToLogin).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   it('Member without attendance permission', () => {

@@ -236,13 +236,13 @@ A signed-in member without permission to mark attendance SHALL see the event and
 
 ### Requirement: Signed-out visitors see the event and are asked to sign in
 
-A signed-out visitor SHALL be able to open the drawer from Home (LAB-3271). The drawer SHALL show the event, and the going card SHALL ask "Are you going?" with "Yes, I'm going" as for a member (LAB-3361), with the same bottom bar. "Yes, I'm going" and the people count SHALL close the drawer and open the sign-in modal on the same page. Nothing SHALL save.
+A signed-out visitor SHALL be able to open the drawer from Home (LAB-3271). The drawer SHALL show the event, and the going card SHALL ask "Are you going?" with "Yes, I'm going" as for a member (LAB-3361), with the same bottom bar. "Yes, I'm going" and the people count SHALL open the sign-in modal over the drawer, which stays open, so a visitor who signs in is back on the same event (LAB-3368, LAB-3371). Nothing SHALL save.
 
 #### Scenario: Signed out
 
 - **GIVEN** a signed-out visitor on Home with the event drawer flag on
 - **WHEN** they open event A and press "Yes, I'm going"
-- **THEN** the drawer closes and the sign-in modal opens
+- **THEN** the sign-in modal opens over the drawer, and the drawer stays on the event
 - **AND** no attendance is saved
 
 ### Requirement: The member adds their plans for the event
@@ -322,7 +322,7 @@ When the build flag `NEXT_PUBLIC_SHOW_EVENTS_PAGE_V2` is `true`, `/events/all` S
 
 - **GIVEN** the build has `NEXT_PUBLIC_SHOW_EVENTS_PAGE_V2=true`
 - **WHEN** a visitor opens `/events/all`
-- **THEN** the page shows the header, Browse by city, the Coming up toolbar and the List view
+- **THEN** the page shows the header, the Coming up toolbar, Browse by city and the List view
 - **AND** no iframe loads
 
 #### Scenario: Past events are not listed
@@ -342,7 +342,7 @@ The page SHALL open with the title "Events", one line of description, a link "Op
 
 ### Requirement: Near you shows events in the member's city
 
-In every view (List, Calendar, Map) and with any filter applied, unless a city is chosen (the city header takes its place), a signed-in member whose profile has a location SHALL see "Near you in <city>" with up to 3 upcoming events in its city, soonest first, as picture tiles. The location's most specific part is used: its city, else its metro area, region or country (a location may hold no city; a city-state such as Singapore is saved as a country only). If no upcoming event is in that place, the section SHALL NOT show. A signed-in member whose profile has no location SHALL see, in the same place, one row: "See events near you. Add your location to your profile and we'll show what's coming up where you are." and an "Add location" button that opens their profile. Signed-out visitors SHALL see neither.
+In List view with no filter applied (Polina's design, 2026-11-20; LAB-3375), a signed-in member whose profile has a location SHALL see "Near you in <city>" with up to 3 upcoming events in its city, soonest first, as picture tiles. The location's most specific part is used: its city, else its metro area, region or country (a location may hold no city; a city-state such as Singapore is saved as a country only). If no upcoming event is in that place, the section SHALL NOT show. A signed-in member whose profile has no location SHALL see, in the same place, one row: "See events near you. Add your location to your profile and we'll show what's coming up where you are." and an "Add location" button that opens their profile. Signed-out visitors SHALL see neither.
 
 #### Scenario: Member in Lisbon
 
@@ -369,11 +369,11 @@ In every view (List, Calendar, Map) and with any filter applied, unless a city i
 - **THEN** the page shows "See events near you." with "Add location"
 - **AND** pressing "Add location" opens their profile
 
-#### Scenario: Near you stays across views and filters
+#### Scenario: Near you belongs to the plain List
 
 - **GIVEN** a signed-in member in Lisbon with upcoming Lisbon events
 - **WHEN** they apply a filter or switch to Calendar or Map
-- **THEN** "Near you in Lisbon" still shows, with the same events
+- **THEN** neither "Near you in Lisbon" nor the Add location row shows
 
 #### Scenario: A chosen city replaces Near you
 
@@ -388,7 +388,7 @@ In every view (List, Calendar, Map) and with any filter applied, unless a city i
 
 ### Requirement: Browse by city scopes the page to one city
 
-The page SHALL show "Browse by city" with the 5 cities that have the most upcoming events, each with its name and count. When there are more cities, "All N cities" SHALL show the rest in place, and "Show fewer" SHALL hide them again. Choosing a city SHALL scope the page to it: a city header with "← All cities", the city's name, its event count, its date range and its time zone, and every view showing only that city's events. The city tile and the City filter SHALL be the same selection. The word "Gatherings" SHALL NOT appear on the page.
+List view SHALL show "Browse by city" under the toolbar with the 5 cities that have the most upcoming events, each with its name and count. When there are more cities, "All N cities" SHALL show the rest in place, and "Show fewer" SHALL hide them again. Choosing a city SHALL scope the page to it: in List, a city header with "← All cities", the city's name, its event count, its date range and its time zone, in place of Near you and Browse by city; every view SHALL show only that city's events. Under the List's bands, the dated list SHALL have the heading "All upcoming", or "Matching events" while a filter is applied. Calendar and Map SHALL show neither Near you, Browse by city nor the city header (LAB-3375): a chosen city SHALL show there as a removable chip. The city tile and the City filter SHALL be the same selection. The word "Gatherings" SHALL NOT appear on the page.
 
 #### Scenario: Choosing a city
 
@@ -405,11 +405,11 @@ The page SHALL show "Browse by city" with the 5 cities that have the most upcomi
 
 ### Requirement: The Coming up toolbar and filters
 
-A "Coming up" toolbar SHALL show the number of events that match, a Filters button and the view switch List · Calendar · Map, offering only the views this build has (no switch while there is one). On desktop and tablet it SHALL stay in view under the navbar while the events scroll. The filter rail SHALL be closed by default. The Filters button SHALL open it and show the number of applied filters. The rail SHALL have a control that closes it and "Clear All". While the rail is closed, each applied filter SHALL show as a removable chip under the toolbar. The filters SHALL be, in this order: search (event name, host, city or topic), "Events I'm going to" (signed-in members only), Mode (In person, Virtual, Hybrid), Access type (Free, Paid, Invite only: the words the cards and the drawer use), Focus area (the event's tags), City and Host (any of the event's hosts). Focus area and Host SHALL have a search box. Values within one filter SHALL match any (OR); different filters SHALL all apply (AND). A filter list with fewer than 2 values in the loaded events SHALL NOT show, unless it is applied; so Access type, Focus area and Host stay hidden while the events carry no details. A Featured filter SHALL NOT show until the events data says which events are featured. Filters and the view SHALL be kept in the page address, so a copied link reopens the same view and filters, and switching view SHALL keep the filters. On phones the filters SHALL open as a bottom sheet from a Filters button.
+A "Coming up" toolbar, right under the page header (Polina's design, 2026-11-20; LAB-3374), SHALL show the number of events that match, a Filters button and the view switch List · Calendar · Map, offering only the views this build has (no switch while there is one). On desktop and tablet it SHALL stay in view under the navbar while the events scroll. The filter rail SHALL be closed by default. The Filters button SHALL open it and show the number of applied filters. The rail SHALL have a control that closes it and "Clear All". While the rail is closed, each applied filter SHALL show as a removable chip under the toolbar. The filters SHALL be, in this order: search (event name, host, city or topic), "Events I'm going to" (signed-in members only), Mode (In person, Online, Hybrid; LAB-3370), Access type (Free, Paid, Invite only: the words the cards and the drawer use), Focus area (the event's tags), City and Host (any of the event's hosts). Focus area and Host SHALL have a search box. Values within one filter SHALL match any (OR); different filters SHALL all apply (AND). A filter list with fewer than 2 values in the loaded events SHALL NOT show, unless it is applied; so Access type, Focus area and Host stay hidden while the events carry no details. A Featured filter SHALL NOT show until the events data says which events are featured. Filters and the view SHALL be kept in the page address, so a copied link reopens the same view and filters, and switching view SHALL keep the filters. On phones the filters SHALL open as a bottom sheet from a Filters button.
 
 #### Scenario: Filter survives a view switch
 
-- **GIVEN** the Mode filter set to Virtual
+- **GIVEN** the Mode filter set to Online
 - **WHEN** the visitor switches from List to Calendar
 - **THEN** the calendar shows only online events and the Mode chip stays
 
@@ -572,9 +572,9 @@ Escape, Close and the backdrop SHALL close the dialog, focus SHALL go back to th
 
 #### Scenario: Copy the link to the map of online events
 
-- **GIVEN** a visitor on `/events/all?view=map&mode=Virtual&going=true`
+- **GIVEN** a visitor on `/events/all?view=map&mode=Online&going=true`
 - **WHEN** they press Embed, then Copy link
-- **THEN** the clipboard holds `<origin>/events/embed?view=map&mode=Virtual` and the button reads "Link copied" for 2 seconds
+- **THEN** the clipboard holds `<origin>/events/embed?view=map&mode=Online` and the button reads "Link copied" for 2 seconds
 
 ### Requirement: The embed shows one view for other sites
 
@@ -582,16 +582,16 @@ Escape, Close and the backdrop SHALL close the dialog, focus SHALL go back to th
 
 #### Scenario: plrd.org frames online events
 
-- **GIVEN** a plrd.org page with an iframe on `/events/embed?view=map&mode=Virtual`
+- **GIVEN** a plrd.org page with an iframe on `/events/embed?view=map&mode=Online`
 - **WHEN** the page loads
 - **THEN** the iframe shows the map with only online events, without the LabOS header, "Submit an event" or the toolbar
-- **AND** under the map, "All events on PL Directory ↗" links to `/events/all?view=map&mode=Virtual`
+- **AND** under the map, "All events on PL Directory ↗" links to `/events/all?view=map&mode=Online`
 - **WHEN** the reader presses an event
 - **THEN** that event opens on LabOS in a new tab, with its drawer open
 
 ### Requirement: One Going mark on the page
 
-On the All Events page, an event the signed-in viewer is going to SHALL carry one "Going" pill: a green pill with a white tick and the word "Going", on its List card, Near you tile, Week card and map row. A Month bar is too small for the pill and SHALL carry no going mark; the "Events I'm going to" filter lists those events. On the map, the city pin is marked and the event pin has a green ring instead. No other going mark (badge or tick) SHALL appear on the page.
+On the All Events page, an event the signed-in viewer is going to SHALL carry one "Going" pill: a green pill with a white tick and the word "Going", on its List card, Near you tile, Week card and map row. A Month bar is too small for the pill and SHALL carry no going mark; the "Events I'm going to" filter lists those events. On the map, the city pin is marked and the event pin has a green ring instead. No other going mark (badge or tick) SHALL appear on the page. When the viewer says they are going, or no longer going, the event's "N going" on the page SHALL move by one at once, though the page's list of events is cached.
 
 #### Scenario: Going event in the list
 

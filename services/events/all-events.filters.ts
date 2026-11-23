@@ -9,8 +9,11 @@ import { ACCESS_COPY } from './event-facts';
  * Near you. Everything happens in the browser over one array, so a filter never makes a request.
  */
 
-/** The rail's Mode labels (the prototype's), which are also what the `mode` param stores. */
-export const MODE_LABEL: Record<EventMode, string> = { 'In-Person': 'In person', Virtual: 'Virtual', Hybrid: 'Hybrid' };
+/**
+ * The rail's Mode labels, which are also what the `mode` param stores. An online event is "Online", the word its card
+ * and drawer use (LAB-3370; the events service calls it Virtual).
+ */
+export const MODE_LABEL: Record<EventMode, string> = { 'In-Person': 'In person', Virtual: 'Online', Hybrid: 'Hybrid' };
 
 /** The params that count as applied filters. `view`, `cal` and `event` are page state, not filters. */
 export const FILTER_PARAMS = ['search', 'going', 'mode', 'access', 'focus', 'city', 'host'] as const;

@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 
 import ItemDetail from '@/components/page/aligement-assets/feedback/item-detail';
 import IdeasList from '@/components/page/aligement-assets/feedback/ideas-list';
@@ -23,7 +23,7 @@ function renderDetail(props: Partial<React.ComponentProps<typeof ItemDetail>> = 
   return handlers;
 }
 
-describe('AC-T6.3 voting', () => {
+describe('voting', () => {
   it('reflects vote state through aria-pressed', () => {
     const { rerender } = render(
       <ItemDetail
@@ -72,7 +72,7 @@ describe('AC-T6.3 voting', () => {
   });
 });
 
-describe('AC-T6.4 status timeline', () => {
+describe('status timeline', () => {
   it('lists every move with its note', () => {
     renderDetail({
       item: item({
@@ -100,7 +100,7 @@ describe('AC-T6.4 status timeline', () => {
   });
 });
 
-describe('AC-T6.5 member display', () => {
+describe('member display', () => {
   it('shows the author by name on the detail and in the list', () => {
     renderDetail();
     expect(screen.getByText('Ada Lovelace')).toBeInTheDocument();
@@ -115,7 +115,7 @@ describe('AC-T6.5 member display', () => {
   });
 });
 
-describe('AC-T6.6 comments', () => {
+describe('comments', () => {
   it('offers the rest of a long thread only while there is more to load', () => {
     const onLoadMoreComments = jest.fn();
     renderDetail({ comments: [comment()], onLoadMoreComments });
@@ -169,7 +169,7 @@ describe('AC-T6.6 comments', () => {
   });
 });
 
-describe('AC-T6.7 screenshots are never shown', () => {
+describe('screenshots are never shown', () => {
   it('reports the count and renders no image', () => {
     const { container } = render(
       <ItemDetail
@@ -194,7 +194,7 @@ describe('AC-T6.7 screenshots are never shown', () => {
   });
 });
 
-describe('AC-T6.8 duplicate banner', () => {
+describe('duplicate banner', () => {
   it('links to the canonical item', () => {
     renderDetail({ item: item({ status: 'duplicate', duplicate_of: { id: 'canon-id', title: 'The real one' } }) });
     const link = screen.getByRole('link', { name: 'The real one' });
@@ -202,7 +202,7 @@ describe('AC-T6.8 duplicate banner', () => {
   });
 });
 
-describe('AC-T7.4 admin controls are not rendered for members', () => {
+describe('admin controls are not rendered for members', () => {
   it('hides the admin panel and Linear state from a non-admin', () => {
     renderDetail({ item: item({ linear_status: 'failed' }) });
     expect(screen.queryByLabelText('Admin controls')).not.toBeInTheDocument();
@@ -214,6 +214,26 @@ describe('AC-T7.4 admin controls are not rendered for members', () => {
     renderDetail({ isAdmin: true, item: item({ linear_status: 'failed' }) });
     expect(screen.getByLabelText('Admin controls')).toBeInTheDocument();
     expect(screen.getByTestId('fb-detail-moveto')).toBeInTheDocument();
+  });
+
+  it('offers an admin Retry while the tracker issue does not exist yet', () => {
+    const { onRetryLinear } = renderDetail({ isAdmin: true, item: item({ linear_status: 'failed' }) });
+    fireEvent.click(within(screen.getByLabelText('Admin controls')).getByRole('button', { name: /retry/i }));
+    expect(onRetryLinear).toHaveBeenCalledTimes(1);
+  });
+
+  it('links an admin to the tracker issue once it exists, with no Retry', () => {
+    renderDetail({
+      isAdmin: true,
+      item: item({
+        linear_status: 'created',
+        linear_issue_identifier: 'ISSUE-150',
+        linear_issue_url: 'https://tracker.example/issue/150',
+      }),
+    });
+    const panel = within(screen.getByLabelText('Admin controls'));
+    expect(panel.getByRole('link', { name: 'ISSUE-150' })).toHaveAttribute('href', 'https://tracker.example/issue/150');
+    expect(panel.queryByRole('button', { name: /retry/i })).not.toBeInTheDocument();
   });
 });
 
@@ -239,7 +259,7 @@ describe('ideas list rows', () => {
     expect(onVote).toHaveBeenCalledTimes(1);
   });
 
-  it('AC-T6.1: shows the empty state with its action', () => {
+  it('shows the empty state with its action', () => {
     render(
       <IdeasList
         items={[]}
@@ -252,7 +272,7 @@ describe('ideas list rows', () => {
     expect(screen.getByRole('button', { name: 'Give feedback' })).toBeInTheDocument();
   });
 
-  it('AC-T7.6: marks a private bug in My submissions', () => {
+  it('marks a private bug in My submissions', () => {
     render(
       <IdeasList
         items={[item({ id: 'bug-1', type: 'bug', is_public: false })]}

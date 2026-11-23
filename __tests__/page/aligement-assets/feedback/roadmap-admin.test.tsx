@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 
 import RoadmapBoard from '@/components/page/aligement-assets/feedback/roadmap-board';
 import TriageList from '@/components/page/aligement-assets/feedback/triage-list';
@@ -41,7 +41,7 @@ function renderBoard(props: Partial<React.ComponentProps<typeof RoadmapBoard>> =
   return { onMove, onVote };
 }
 
-describe('AC-T7.1 four columns', () => {
+describe('four columns', () => {
   it('renders every roadmap column', () => {
     renderBoard();
     for (const label of ['Under Review', 'To Do', 'In Progress', 'Completed']) {
@@ -61,14 +61,37 @@ describe('AC-T7.1 four columns', () => {
   });
 });
 
-describe('AC-T7.2 completed window', () => {
-  it('labels the Completed column as the last 90 days', () => {
-    renderBoard();
-    expect(screen.getByRole('region', { name: 'Completed' })).toHaveTextContent('Last 90 days');
+describe('a long column', () => {
+  const cards = (count: number) =>
+    Array.from({ length: count }, (_, index) => item({ id: `card-${index}`, title: `Card ${index}` }));
+  const underReview = () => within(screen.getByRole('region', { name: 'Under Review' }));
+
+  it('shows 20 cards, then the rest on Show more', () => {
+    renderBoard({ roadmap: { ...emptyRoadmap, under_review: cards(23) } });
+    expect(underReview().getAllByRole('listitem')).toHaveLength(20);
+
+    fireEvent.click(underReview().getByRole('button', { name: 'Show more' }));
+
+    expect(underReview().getAllByRole('listitem')).toHaveLength(23);
+    expect(underReview().queryByRole('button', { name: 'Show more' })).not.toBeInTheDocument();
+  });
+
+  it('offers no Show more for a column that already shows everything', () => {
+    renderBoard({ roadmap: { ...emptyRoadmap, under_review: cards(20) } });
+    expect(underReview().getAllByRole('listitem')).toHaveLength(20);
+    expect(underReview().queryByRole('button', { name: 'Show more' })).not.toBeInTheDocument();
   });
 });
 
-describe('AC-T7.3 admin Move to', () => {
+describe('completed window', () => {
+  it('tells the member that the Completed column covers 90 days, and says so on no other column', () => {
+    renderBoard();
+    expect(screen.getByRole('region', { name: 'Completed' })).toHaveTextContent(/90 days/i);
+    expect(screen.getByRole('region', { name: 'In Progress' })).not.toHaveTextContent(/90 days/i);
+  });
+});
+
+describe('admin Move to', () => {
   it('is absent for a member and present for an admin', () => {
     const { unmount } = render(
       <RoadmapBoard roadmap={roadmap} isAdmin={false} onVote={jest.fn()} onMove={jest.fn()} />,
@@ -124,7 +147,7 @@ describe('AC-T7.3 admin Move to', () => {
   });
 });
 
-describe('AC-T7.7 narrow viewport', () => {
+describe('narrow viewport', () => {
   it('renders columns as tabs under 768px', () => {
     mockViewport(true);
     renderBoard();
@@ -146,7 +169,7 @@ describe('AC-T7.7 narrow viewport', () => {
   });
 });
 
-describe('AC-T7.5 triage Linear state', () => {
+describe('triage Linear state', () => {
   const triageHandlers = () => ({ onMove: jest.fn(), onRetryLinear: jest.fn() });
 
   it('offers Load more only while the queue has more to load', () => {
@@ -169,16 +192,16 @@ describe('AC-T7.5 triage Linear state', () => {
           item({
             id: 't1',
             linear_status: 'created',
-            linear_issue_identifier: 'PLAA-150',
-            linear_issue_url: 'https://linear.app/x/issue/PLAA-150',
+            linear_issue_identifier: 'ISSUE-150',
+            linear_issue_url: 'https://tracker.example/issue/150',
           }),
         ]}
         {...handlers}
       />,
     );
     const link = screen.getByTestId('fb-linear-t1');
-    expect(link).toHaveAttribute('href', 'https://linear.app/x/issue/PLAA-150');
-    expect(link).toHaveTextContent('PLAA-150');
+    expect(link).toHaveAttribute('href', 'https://tracker.example/issue/150');
+    expect(link).toHaveTextContent('ISSUE-150');
     expect(screen.queryByTestId('fb-linear-retry-t1')).not.toBeInTheDocument();
   });
 

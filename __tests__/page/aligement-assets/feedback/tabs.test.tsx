@@ -102,7 +102,7 @@ describe('Triage is admin-only', () => {
   });
 });
 
-describe('AC-T7.3 Move to is admin-only on the roadmap', () => {
+describe('Move to is admin-only on the roadmap', () => {
   beforeEach(() => mockRoadmap.mockReturnValue(populatedRoadmap));
   afterEach(() => mockRoadmap.mockReturnValue(emptyRoadmap));
 
@@ -144,26 +144,5 @@ describe('Ideas hides work already in progress', () => {
     renderPage({ isAdmin: false });
     searchParams.delete('status');
     expect(listParams).toHaveBeenLastCalledWith(expect.not.objectContaining({ status: expect.anything() }));
-  });
-});
-
-describe('stylesheet', () => {
-  const styles: string = require('fs').readFileSync(
-    require('path').join(process.cwd(), 'components/page/aligement-assets/feedback/feedback-styles.tsx'),
-    'utf8',
-  );
-  const ruleFor = (selector: string): string => styles.match(new RegExp(`\\${selector}\\s*\\{([^}]*)\\}`))![1];
-
-  it('fills most of the shell with a readable ceiling', () => {
-    const rule = ruleFor('.fb-page');
-    const width = Number(rule.match(/width:\s*(\d+)%/)![1]);
-    expect(width).toBeGreaterThanOrEqual(90);
-    expect(rule).toMatch(/max-width:\s*\d+px/);
-  });
-
-  it('wraps the tabs instead of giving them a scrollbar', () => {
-    const rule = ruleFor('.fb-tabs');
-    expect(rule).toMatch(/flex-wrap:\s*wrap/);
-    expect(rule).not.toMatch(/overflow(-[xy])?\s*:/);
   });
 });

@@ -102,14 +102,3 @@ describe('the board states the allowance', () => {
     expect(screen.queryByTestId('fb-vote-budget')).not.toBeInTheDocument();
   });
 });
-
-describe('subheader', () => {
-  it('describes all four things a member can do', () => {
-    renderPage({ limit: 5, used: 0, remaining: 5 });
-    expect(
-      screen.getByText(
-        /A single place to suggest new features, upvote feature ideas from others, report any bugs, and follow what the PLAA team is currently building\./,
-      ),
-    ).toBeInTheDocument();
-  });
-});

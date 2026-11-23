@@ -98,7 +98,7 @@ function setup(seed: FeedbackItem) {
 
 afterEach(() => jest.resetAllMocks());
 
-describe('AC-T4.2 optimistic vote', () => {
+describe('optimistic vote', () => {
   it('updates the list and the item before the request resolves', async () => {
     let release: (value: unknown) => void = () => undefined;
     (feedbackApi.addVote as jest.Mock).mockReturnValue(new Promise((resolve) => (release = resolve)));
@@ -190,7 +190,7 @@ describe('AC-T4.2 optimistic vote', () => {
   });
 });
 
-describe('F-3 lists load a page at a time', () => {
+describe('lists load a page at a time', () => {
   const page = (id: string, next: string | null) => ({ items: [baseItem({ id })], next_cursor: next });
 
   type PagedHook = () => { data?: { items: { id: string }[] }; hasMore: boolean; loadMore: () => void };
@@ -231,7 +231,7 @@ describe('F-3 lists load a page at a time', () => {
   });
 });
 
-describe('AC-T5.5 submission receipt', () => {
+describe('submission receipt', () => {
   it('confirms a submission that was saved', async () => {
     (feedbackApi.create as jest.Mock).mockResolvedValue(baseItem());
     const { result } = renderHook(() => useCreateFeedback(), { wrapper: newClient().wrapper });

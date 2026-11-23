@@ -29,7 +29,7 @@ function fillValid() {
   });
 }
 
-describe('AC-T5.1 modal behaviour', () => {
+describe('modal behaviour', () => {
   it('opens with focus on the type selector', () => {
     renderForm();
     expect(typeButton(/New feature/)).toHaveFocus();
@@ -64,7 +64,7 @@ describe('AC-T5.1 modal behaviour', () => {
   });
 });
 
-describe('AC-T5.2 required fields', () => {
+describe('required fields', () => {
   it('blocks submit until title and description pass', () => {
     const { onSubmit } = renderForm();
     expect(submitButton()).toBeDisabled();
@@ -94,7 +94,7 @@ describe('AC-T5.2 required fields', () => {
   });
 });
 
-describe('AC-T5.3 bug variant', () => {
+describe('bug variant', () => {
   it('swaps the description label and shows the privacy note', () => {
     renderForm();
     expect(screen.queryByTestId('fb-bug-privacy-note')).not.toBeInTheDocument();
@@ -129,7 +129,7 @@ describe('AC-T5.3 bug variant', () => {
   });
 });
 
-describe('AC-T5.4 screenshot rules', () => {
+describe('screenshot rules', () => {
   const fileInput = () => screen.getByLabelText(/Screenshot/) as HTMLInputElement;
 
   it('rejects a file over 5 MB and attaches nothing', async () => {
@@ -167,7 +167,7 @@ describe('AC-T5.4 screenshot rules', () => {
   });
 });
 
-describe('AC-T5.6 link validation', () => {
+describe('link validation', () => {
   it('rejects a link that is not https', () => {
     renderForm();
     fillValid();
@@ -186,13 +186,19 @@ describe('AC-T5.6 link validation', () => {
   });
 });
 
-describe('AC-T5.C compliance', () => {
-  it('renders the posting guidelines marked pending Legal review', () => {
+describe('compliance', () => {
+  it('tells the member who will see a post, and who will see a screenshot or a bug report', () => {
     const { container } = render(<FeedbackForm onClose={jest.fn()} onSubmit={jest.fn()} isSubmitting={false} />);
-    const guidelines = container.querySelector('[data-pending-legal-review="true"]');
-    expect(guidelines).toBeInTheDocument();
-    expect(guidelines).toHaveTextContent(/visible to PLAA members/i);
-    expect(guidelines).toHaveTextContent(/only to you and the PLAA team/i);
+    expect(container).toHaveTextContent(/visible to PLAA members/i);
+    expect(container).toHaveTextContent(/only to you and the PLAA team/i);
+  });
+
+  it('ships no data attributes besides its test handles', () => {
+    const { container } = render(<FeedbackForm onClose={jest.fn()} onSubmit={jest.fn()} isSubmitting={false} />);
+    const dataAttributes = [...container.querySelectorAll('*')]
+      .flatMap((element) => element.getAttributeNames())
+      .filter((name) => name.startsWith('data-') && name !== 'data-testid');
+    expect(dataAttributes).toEqual([]);
   });
 
   it('uses no banned vocabulary anywhere in the form', () => {
@@ -212,9 +218,8 @@ describe('AC-T5.C compliance', () => {
   it('points the description field at the warning, so a screen reader hears it', () => {
     renderForm();
     const description = screen.getByLabelText(/Describe the new feature/);
-    const describedBy = description.getAttribute('aria-describedby') ?? '';
 
-    expect(describedBy.split(/\s+/)).toContain('fb-privacy-warning');
+    expect(description).toHaveAccessibleDescription(/personal or private/i);
   });
 });
 

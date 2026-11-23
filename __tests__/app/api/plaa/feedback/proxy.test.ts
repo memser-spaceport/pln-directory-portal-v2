@@ -92,7 +92,7 @@ describe('auth and configuration', () => {
   });
 });
 
-describe('AC-T4.1 responses pass through unchanged', () => {
+describe('responses pass through unchanged', () => {
   it('returns 404 for a private item', async () => {
     upstreamReplies({ error: 'Feedback item not found' }, { status: 404 });
     const response = await GET(
@@ -131,7 +131,7 @@ describe('AC-T4.1 responses pass through unchanged', () => {
   });
 });
 
-describe('AC-T4.3 viewer-specific responses are never shared', () => {
+describe('viewer-specific responses are never shared', () => {
   it.each([['me'], ['triage'], ['items']])('marks /%s private and no-store', async (segment) => {
     upstreamReplies({ ok: true });
     const response = await GET(
@@ -148,7 +148,7 @@ describe('AC-T4.3 viewer-specific responses are never shared', () => {
   });
 });
 
-describe('AC-T4.4 multipart passes through', () => {
+describe('multipart passes through', () => {
   it('keeps the browser’s Content-Type boundary and the body bytes', async () => {
     upstreamReplies({ id: 'new' }, { status: 201 });
     const boundary = 'multipart/form-data; boundary=----abc123';
@@ -169,6 +169,24 @@ describe('AC-T4.4 multipart passes through', () => {
 });
 
 describe('path and query handling', () => {
+  it('sends no body with a read, and sends the body of a write', async () => {
+    upstreamReplies({ items: [] });
+    await GET(makeRequest('http://portal/api/plaa/feedback/items', { headers: AUTH }), context(['items']));
+    expect(fetchCall()[1].body).toBeUndefined();
+
+    (global.fetch as jest.Mock).mockClear();
+    upstreamReplies({ id: 'c1' });
+    await POST(
+      makeRequest('http://portal/api/plaa/feedback/items/i1/comments', {
+        method: 'POST',
+        headers: { ...AUTH, 'content-type': 'application/json' },
+        body: JSON.stringify({ body: 'A comment.' }),
+      }),
+      context(['items', 'i1', 'comments']),
+    );
+    expect(new TextDecoder().decode(fetchCall()[1].body)).toBe(JSON.stringify({ body: 'A comment.' }));
+  });
+
   it('builds the upstream path from the catch-all segments', async () => {
     upstreamReplies({ items: [] });
     await GET(

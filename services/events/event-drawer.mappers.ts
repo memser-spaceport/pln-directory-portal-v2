@@ -248,6 +248,7 @@ export function toEventDetail(raw: EventDetailResponse): EventDetail {
     description: raw.description?.trim() || raw.shortDescription?.trim() || null,
     agenda: toAgendaDays(details?.agenda ?? null, timezone),
     websiteUrl: raw.websiteUrl,
+    externalId: raw.externalId || null,
     eventUrl: toEventUrl(raw.websiteUrl, raw.resources),
     gathering: raw.location
       ? {

@@ -1,7 +1,6 @@
 import {
   addDays,
   byStart,
-  firstBusyDay,
   minutesOf,
   mondayOf,
   monthLabel,
@@ -64,15 +63,5 @@ describe('order and anchor', () => {
     const early = item({ uid: 'early', startTime: '9:00 AM' });
     const nextDay = item({ uid: 'next', startDay: '2030-12-04', startTime: '7:00 AM' });
     expect([nextDay, late, early].sort(byStart).map((e) => e.uid)).toEqual(['early', 'late', 'next']);
-  });
-
-  it('opens on the first day with an event from the anchor, or the anchor', () => {
-    const events = [
-      item({ uid: 'a', startDay: '2030-12-10', endDay: '2030-12-10' }),
-      item({ uid: 'b', startDay: '2030-11-28', endDay: '2030-12-05' }),
-    ];
-    expect(firstBusyDay(events, '2030-12-01')).toBe('2030-12-01'); // b is under way
-    expect(firstBusyDay(events, '2030-12-06')).toBe('2030-12-10');
-    expect(firstBusyDay(events, '2030-12-11')).toBe('2030-12-11');
   });
 });

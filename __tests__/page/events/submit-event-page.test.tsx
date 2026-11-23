@@ -234,7 +234,8 @@ describe('Clear form and Preview', () => {
     render(<SubmitEventPage signedIn />);
     press('Preview');
     expect(await screen.findByRole('heading', { name: 'Lisbon Meetup' })).toBeInTheDocument();
-    expect(screen.getByText('28th Jan 2030, 09:00 - 28th Jan 2030, 18:00 (UTC +0:00)')).toBeInTheDocument();
+    expect(screen.getByText('Monday, January 28')).toBeInTheDocument();
+    expect(screen.getByText('9:00 AM – 6:00 PM · UTC+0')).toBeInTheDocument();
     press('Back');
     await waitFor(() => expect(screen.queryByRole('heading', { name: 'Lisbon Meetup' })).toBeNull());
     expect(screen.getByTestId('event-form')).toBeInTheDocument();

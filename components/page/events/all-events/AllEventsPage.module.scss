@@ -456,6 +456,36 @@
   white-space: nowrap;
 }
 
+/* Embed (LAB-3352) and, from 1024px, Filters and the view switch. */
+.toolbarActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Embed: with `filtersBtn`, the same bordered control, shown at every width (the phone bar has no room). */
+.shareBtn {
+  white-space: nowrap;
+}
+
+/* The embed (LAB-3352, the prototype's `?embed=1`): the view alone on the page's grey, then a link to the full page.
+   No site header or toolbar above it, so the List's sticky dates stick at the top of the frame. */
+.embedPage {
+  --app-header-height: 0px;
+  min-height: 100vh;
+  padding: 16px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  .dayHeading {
+    top: 16px;
+  }
+}
+
+.embedFoot {
+  margin-top: 16px;
+}
+
 .toolbarEnd {
   /* Under 1024px the MobileFilterWrapper bar carries both Filters and View. */
   display: none;
@@ -769,6 +799,14 @@
   > span:first-child {
     margin-right: 4px;
   }
+}
+
+// The faces and "N going" as one unit, so a narrow card wraps them together (LAB-3353).
+.goingFaces {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
 // TeamFollowBlock's facepile, at 20px.
@@ -1138,4 +1176,15 @@
   color: inherit;
   font-weight: 500;
   text-decoration: underline;
+}
+
+// List view's bands (Near you, Browse by city, the city header) sit under the toolbar (Polina, 2026-11-20): the
+// layout's 24px is the gap above the first one.
+.listBands > :first-child {
+  margin-top: 0;
+}
+
+// "All upcoming" / "Matching events": the dated list's own heading, a section title like the bands'.
+.listHeading.listHeading {
+  margin: 32px 0 12px;
 }

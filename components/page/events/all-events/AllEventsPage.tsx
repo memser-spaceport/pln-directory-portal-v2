@@ -1,5 +1,6 @@
 'use client';
 
+import clsx from 'clsx';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -7,6 +8,7 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'reac
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useEventsAnalytics } from '@/analytics/events.analytics';
+import { ArrowUpRightIcon } from '@/components/icons';
 import { FilterStoreUrlSync } from '@/components/common/filters/FilterStoreUrlSync';
 import { MobileFilterWrapper } from '@/components/common/filters/MobileFilterWrapper';
 import { toast } from '@/components/core/ToastContainer';
@@ -14,14 +16,18 @@ import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/Dashb
 import type { EventGoingNotice } from '@/components/page/events/EventDrawer/EventDrawerView';
 import { eventGoingToastText } from '@/components/page/events/EventDrawer/toast';
 import { encodeFilterValues } from '@/services/filters';
+import { useIsBelowTabletLandscape } from '@/hooks/useIsBelowTabletLandscape';
 import { useAllEventsFilterStore } from '@/services/events/all-events-filters.store';
 import {
+  EVENTS_EMBED_PATH,
   FILTER_PARAMS,
   type FilterParam,
   countAppliedFilters,
+  embedQuery,
   filterEvents,
   filterValues,
   isFilterParam,
+  groupByDay,
   listDay,
   localIso,
   nearYou,
@@ -32,13 +38,15 @@ import type { AllEventsItem, AllEventsResult } from '@/services/events/all-event
 import { EventsQueryKeys } from '@/services/events/constants';
 import { usePrefetchEventDetail } from '@/services/events/hooks/useEventDrawerQueries';
 import { useMyUpcomingEventUids } from '@/services/events/hooks/useMyUpcomingEventUids';
+import { EVENTS_LIST_PATH } from '@/utils/constants';
 import { HAS_EVENTS_MAP } from '@/utils/events-page';
 
-import { AllEventsFilterRail, AppliedChips } from './AllEventsFilters';
+import { AllEventsFilterRail, AppliedChips, appliedChips } from './AllEventsFilters';
 import { EventsCalendar } from './calendar/EventsCalendar';
 import type { CalMode } from './calendar/weeks';
 import { AllEventsHeader } from './AllEventsHeader';
 import { CityBand, CityHeader } from './CityBand';
+import { EmbedModal, embedFrameTitle, embedScopeLine } from './EmbedModal';
 import { EventsToolbar, VIEW_LABEL } from './EventsToolbar';
 import { ListView } from './ListView';
 import { EventsMap } from './map/EventsMap';
@@ -68,7 +76,25 @@ export interface AllEventsPageProps {
   /** "Submit an event" opens the LabOS form (same tab), and a signed-in member gets "My Submissions". */
   submitInApp?: boolean;
   eventsAppHref: string;
+  /**
+   * The embed (LAB-3352, `/events/embed`), framed by another site: the view only, with the filters from its address,
+   * and "All events on PL Directory ↗" under it. No page header, Near you, Browse by city, toolbar, filters, member
+   * parts or drawer: an event opens on LabOS in a new tab.
+   */
+  embed?: boolean;
 }
+
+/** Same-origin frames can read their parent's address; another site's frame throws. */
+function framedByLabOs(): boolean {
+  try {
+    return window.parent !== window && window.parent.location.origin === window.location.origin;
+  } catch {
+    return false;
+  }
+}
+
+/** Where an event opens from the embed: the All Events page with its drawer, in a new tab. */
+export const embedEventHref = (uid: string) => `/events/all?event=${encodeURIComponent(uid)}`;
 
 const noopSubscribe = () => () => {};
 /** How long a filter must stay still before its change is recorded (the store's former debounce). */
@@ -89,6 +115,7 @@ export function AllEventsPage({
   submitHref,
   submitInApp = false,
   eventsAppHref,
+  embed = false,
 }: AllEventsPageProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -100,7 +127,6 @@ export function AllEventsPage({
     () => serverTodayIso,
   );
 
-  const items = result.ok ? result.items : EMPTY_ITEMS;
   const { params, setParam, setAllParams } = useAllEventsFilterStore();
   const filters = useMemo(() => readFilters(params), [params]);
   const filterCount = countAppliedFilters(params);
@@ -108,11 +134,28 @@ export function AllEventsPage({
   const { data: goingData } = useMyUpcomingEventUids(signedIn);
   const goingUids = useMemo(() => new Set(Array.isArray(goingData) ? goingData : []), [goingData]);
 
+  // The list and its going counts are one cached copy for everyone (five minutes), so a member's own "Yes, I'm going"
+  // or "Not going" here would not show on the cards. Each count moves by the viewer's change since the page loaded.
+  const [goingAtLoad, setGoingAtLoad] = useState<Set<string> | null>(null);
+  if (goingAtLoad === null && Array.isArray(goingData)) setGoingAtLoad(new Set(goingData));
+  const items = useMemo(() => {
+    const loaded = result.ok ? result.items : EMPTY_ITEMS;
+    if (!goingAtLoad) return loaded;
+    return loaded.map((item) => {
+      const delta = (goingUids.has(item.uid) ? 1 : 0) - (goingAtLoad.has(item.uid) ? 1 : 0);
+      return delta && item.goingCount !== null ? { ...item, goingCount: Math.max(0, item.goingCount + delta) } : item;
+    });
+  }, [result, goingUids, goingAtLoad]);
+
   const [railOpen, setRailOpen] = useState(false);
 
   const viewParam = params.get('view') as AllEventsView | null;
   const view: AllEventsView = viewParam && AVAILABLE_VIEWS.includes(viewParam) ? viewParam : 'list';
-  const calMode: CalMode = params.get('cal') === 'month' ? 'month' : 'week';
+  // Month from 960px, Week below (LAB-3353; seven Month columns are too narrow under 960). `cal` in the address wins.
+  // The server and the first render take Month; a phone switches to Week once mounted.
+  const belowMonthWidth = useIsBelowTabletLandscape();
+  const calParam = params.get('cal');
+  const calMode: CalMode = calParam === 'month' || calParam === 'week' ? calParam : belowMonthWidth ? 'week' : 'month';
 
   // The open event lives in the address, so a link to an event lands with its drawer open. The linked event stays
   // marked after its drawer closes, until the member opens another one.
@@ -176,10 +219,13 @@ export function AllEventsPage({
   const scopedCity = filters.city.length === 1 ? filters.city[0] : null;
   const goingCount = signedIn ? items.filter((item) => goingUids.has(item.uid)).length : null;
 
-  // Near you and the Add location row, for a signed-in member: in every view and with any filter (2026-11-19: the
-  // section stays put instead of jumping in and out). Only a chosen city replaces it, with its own header (below).
-  const near = signedIn ? nearYou(items, memberCity) : null;
-  const askLocation = signedIn && memberCity === null && !!viewerUid;
+  // List view's own top (Polina's prototype, 2026-11-20; LAB-3374, LAB-3375): Calendar and Map lead with the view
+  // itself. In List, a chosen city shows its header; otherwise Near you or the Add location row, for a signed-in member
+  // on the plain landing (nothing filtered), then Browse by city and the dated list's heading.
+  const listTop = view === 'list';
+  const plainLanding = listTop && filterCount === 0;
+  const near = signedIn && plainLanding ? nearYou(items, memberCity) : null;
+  const askLocation = signedIn && plainLanding && memberCity === null && !!viewerUid;
 
   // The calendar opens on the linked event's day, else the chosen city's first event, else today.
   const landed = landedUid ? items.find((item) => item.uid === landedUid) : undefined;
@@ -190,14 +236,33 @@ export function AllEventsPage({
       : todayIso;
 
   const prepare = (uid: string) => {
+    if (embed) return;
     void loadEventDrawer();
     prefetchEvent(uid);
   };
   const open = (uid: string) => {
+    if (embed) {
+      window.open(embedEventHref(uid), '_blank', 'noopener,noreferrer');
+      return;
+    }
     setTouched(true);
     setKeptUid(null);
     setParam('event', uid);
   };
+  // LAB-3361: the drawer's previous / next walk the events on show in the List's order (by list day, then start, so
+  // an event under way counts from today); the neighbours load ahead.
+  const sequence = useMemo(
+    () => groupByDay(visible, todayIso).flatMap((day) => day.events.map((item) => item.uid)),
+    [visible, todayIso],
+  );
+  useEffect(() => {
+    // The embed never opens the drawer, so it loads no neighbours either.
+    if (embed || !openUid) return;
+    const at = sequence.indexOf(openUid);
+    if (at < 0) return;
+    [sequence[at - 1], sequence[at + 1]].forEach((uid) => uid && prefetchEvent(uid));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [embed, openUid, sequence]);
   const closeDrawer = () => {
     if (!touched) setKeptUid(openUid);
     setTouched(true);
@@ -231,7 +296,7 @@ export function AllEventsPage({
   };
   const setCalMode = (mode: CalMode) => {
     if (mode === calMode) return;
-    setParam('cal', mode === 'month' ? 'month' : undefined);
+    setParam('cal', mode);
     analytics.onEventsViewChanged({ view: 'calendar', mode });
   };
   const setCity = (city: string | null, from: 'tile' | 'near-you') => {
@@ -252,7 +317,123 @@ export function AllEventsPage({
     });
   };
 
+  // Embed (LAB-3365): the dialog with a preview, the iframe code, Copy link and Copy code. It embeds what the page
+  // shows: the view, the calendar mode in use (also when the address has none) and the filters the link carries.
+  const [embedOpen, setEmbedOpen] = useState(false);
+  const embedParams = new URLSearchParams(params);
+  if (view === 'list') embedParams.delete('view');
+  else embedParams.set('view', view);
+  if (view === 'calendar') embedParams.set('cal', calMode);
+  else embedParams.delete('cal');
+  const embedLinkQuery = embedQuery(embedParams);
+  const embedPath = `${EVENTS_EMBED_PATH}${embedLinkQuery ? `?${embedLinkQuery}` : ''}`;
+  // Every applied value but "Events I'm going to", which the link does not carry; a scoped city counts too.
+  const embedLabels = appliedChips(embedParams, null)
+    .filter((chip) => chip.key !== 'going')
+    .map((chip) => chip.label);
+  const onEmbedCopied = (what: 'link' | 'code') => {
+    const props = { view, filters_count: countAppliedFilters(new URLSearchParams(embedLinkQuery)) };
+    if (what === 'code') analytics.onEventsEmbedCodeCopied(props);
+    else analytics.onEventsEmbedLinkCopied(props);
+  };
+
+  // One load of the embed, with the host of the site that framed it (its origin comes as the Referer).
+  const viewed = useRef(false);
+  useEffect(() => {
+    if (!embed || viewed.current) return;
+    viewed.current = true;
+    // The Embed dialog's preview is LabOS framing itself, not a site showing the embed.
+    if (framedByLabOs()) return;
+    let referrerHost: string | null = null;
+    try {
+      referrerHost = document.referrer ? new URL(document.referrer).host : null;
+    } catch {
+      referrerHost = null;
+    }
+    // From the address: the store only takes it in after the first render.
+    const opened = new URLSearchParams(window.location.search).get('view') as AllEventsView | null;
+    analytics.onEventsEmbedViewed({
+      view: opened && AVAILABLE_VIEWS.includes(opened) ? opened : 'list',
+      referrer_host: referrerHost,
+    });
+    // Once per load.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const viewOptions = AVAILABLE_VIEWS.map((v) => ({ value: v, label: VIEW_LABEL[v] }));
+
+  // The view itself: the page puts it under its toolbar, the embed shows it alone.
+  const viewBody =
+    view === 'map' ? (
+      visible.length === 0 ? (
+        <EventsEmpty onClear={clearFilters} />
+      ) : (
+        <EventsMap
+          events={visible}
+          goingUids={goingUids}
+          highlightUid={highlightUid}
+          onOpen={open}
+          onPrepare={prepare}
+        />
+      )
+    ) : view === 'calendar' ? (
+      visible.length === 0 ? (
+        <EventsEmpty onClear={clearFilters} />
+      ) : (
+        <EventsCalendar
+          key={`${anchorIso}:${scopedCity ?? ''}`}
+          events={visible}
+          todayIso={todayIso}
+          anchorIso={anchorIso}
+          mode={calMode}
+          onModeChange={setCalMode}
+          goingUids={goingUids}
+          highlightUid={highlightUid}
+          onOpen={open}
+          onPrepare={prepare}
+        />
+      )
+    ) : (
+      <ListView
+        events={visible}
+        todayIso={todayIso}
+        goingUids={goingUids}
+        highlightUid={highlightUid}
+        onOpen={open}
+        onPrepare={prepare}
+        onClear={clearFilters}
+      />
+    );
+
+  const listBands = !listTop ? null : scopedCity ? (
+    <div className={s.listBands}>
+      <CityHeader
+        city={scopedCity}
+        summary={visibleCities.find((c) => c.city.toLowerCase() === scopedCity.toLowerCase())}
+        eventCount={visible.length}
+        onBack={() => setCity(null, 'tile')}
+      />
+    </div>
+  ) : near || askLocation || cities.length > 0 ? (
+    <div className={s.listBands}>
+      {near && (
+        <NearYou
+          city={near.city}
+          events={near.events}
+          todayIso={todayIso}
+          goingUids={goingUids}
+          onOpen={open}
+          onPrepare={prepare}
+          onSeeAll={() => setCity(near.city, 'near-you')}
+        />
+      )}
+      {askLocation && <AddLocationRow profileHref={`/members/${viewerUid}`} />}
+      {cities.length > 0 && (
+        <CityBand cities={cities} selected={filters.city} onPick={(city) => setCity(city, 'tile')} />
+      )}
+      <h3 className={clsx(s.sectionTitle, s.listHeading)}>{filterCount ? 'Matching events' : 'All upcoming'}</h3>
+    </div>
+  ) : null;
 
   const content = (
     <div className={s.page}>
@@ -272,33 +453,8 @@ export function AllEventsPage({
           </div>
         ) : (
           <>
-            {scopedCity ? (
-              <CityHeader
-                city={scopedCity}
-                summary={visibleCities.find((c) => c.city.toLowerCase() === scopedCity.toLowerCase())}
-                eventCount={visible.length}
-                onBack={() => setCity(null, 'tile')}
-              />
-            ) : (
-              <>
-                {near && (
-                  <NearYou
-                    city={near.city}
-                    events={near.events}
-                    todayIso={todayIso}
-                    goingUids={goingUids}
-                    onOpen={open}
-                    onPrepare={prepare}
-                    onSeeAll={() => setCity(near.city, 'near-you')}
-                  />
-                )}
-                {askLocation && <AddLocationRow profileHref={`/members/${viewerUid}`} />}
-                {cities.length > 0 && (
-                  <CityBand cities={cities} selected={filters.city} onPick={(city) => setCity(city, 'tile')} />
-                )}
-              </>
-            )}
-
+            {/* The toolbar sits right under the header (Polina, 2026-11-20): the city bands belong to List view, so a view
+                switch changes only what is under it and the switch never moves under the pointer. */}
             <EventsToolbar
               city={scopedCity}
               count={visible.length}
@@ -308,6 +464,7 @@ export function AllEventsPage({
               views={AVAILABLE_VIEWS}
               view={view}
               onViewChange={setView}
+              onShare={() => setEmbedOpen(true)}
             />
 
             {/* Phones and tablets: the directory's Filters pill and bottom sheet (it hides itself from 1024px). */}
@@ -333,50 +490,13 @@ export function AllEventsPage({
               </div>
             </div>
 
-            <AppliedChips scopedCity={scopedCity} railOpen={railOpen} onClear={clearFilters} />
+            {/* A chosen city is a chip in Calendar and Map, where List's city header doesn't show. */}
+            <AppliedChips scopedCity={listTop ? scopedCity : null} railOpen={railOpen} onClear={clearFilters} />
 
             <div className={s.layout}>
               <div className={s.main}>
-                {view === 'map' ? (
-                  visible.length === 0 ? (
-                    <EventsEmpty onClear={clearFilters} />
-                  ) : (
-                    <EventsMap
-                      events={visible}
-                      goingUids={goingUids}
-                      highlightUid={highlightUid}
-                      onOpen={open}
-                      onPrepare={prepare}
-                    />
-                  )
-                ) : view === 'calendar' ? (
-                  visible.length === 0 ? (
-                    <EventsEmpty onClear={clearFilters} />
-                  ) : (
-                    <EventsCalendar
-                      key={`${anchorIso}:${scopedCity ?? ''}`}
-                      events={visible}
-                      todayIso={todayIso}
-                      anchorIso={anchorIso}
-                      mode={calMode}
-                      onModeChange={setCalMode}
-                      goingUids={goingUids}
-                      highlightUid={highlightUid}
-                      onOpen={open}
-                      onPrepare={prepare}
-                    />
-                  )
-                ) : (
-                  <ListView
-                    events={visible}
-                    todayIso={todayIso}
-                    goingUids={goingUids}
-                    highlightUid={highlightUid}
-                    onOpen={open}
-                    onPrepare={prepare}
-                    onClear={clearFilters}
-                  />
-                )}
+                {listBands}
+                {viewBody}
               </div>
             </div>
           </>
@@ -384,6 +504,29 @@ export function AllEventsPage({
       </div>
     </div>
   );
+
+  // The embed (LAB-3352, Polina's design): the view alone, then "All events on PL Directory ↗" to the same view and
+  // filters on the full page, in a new tab. No header, Near you, Browse by city, toolbar, filters or drawer: the person
+  // embedding it chose the view and filters, and an event opens LabOS in a new tab.
+  if (embed) {
+    const query = embedQuery(params);
+    return (
+      <>
+        <FilterStoreUrlSync store={useAllEventsFilterStore} strategy="history" />
+        <div className={s.embedPage}>
+          {result.ok ? viewBody : <EventsError onRetry={() => router.refresh()} />}
+          <a
+            className={clsx(s.textLink, s.embedFoot)}
+            href={`${EVENTS_LIST_PATH}${query ? `?${query}` : ''}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            All events on PL Directory <ArrowUpRightIcon width={14} height={14} />
+          </a>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -411,6 +554,17 @@ export function AllEventsPage({
         source="all-events"
         onClose={closeDrawer}
         onGoing={openUid ? onGoing(openUid) : undefined}
+        sequence={sequence}
+        onNavigate={open}
+      />
+      <EmbedModal
+        isOpen={embedOpen}
+        onClose={() => setEmbedOpen(false)}
+        link={typeof window === 'undefined' ? embedPath : `${window.location.origin}${embedPath}`}
+        previewSrc={embedPath}
+        scope={embedScopeLine(view, calMode, embedLabels)}
+        frameTitle={embedFrameTitle(embedLabels)}
+        onCopied={onEmbedCopied}
       />
     </>
   );

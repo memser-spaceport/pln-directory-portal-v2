@@ -77,15 +77,6 @@ export const byStart = (a: AllEventsItem, b: AllEventsItem) =>
   minutesOf(a.startTime) - minutesOf(b.startTime) ||
   a.name.localeCompare(b.name);
 
-/**
- * The day the Week board opens on: the anchor, or the first day from there that has an event on it, so a landing on
- * a quiet week moves to the next busy one. The anchor itself when nothing is coming.
- */
-export function firstBusyDay(items: AllEventsItem[], anchor: string): string {
-  const days = items.filter((e) => e.endDay >= anchor).map((e) => (e.startDay < anchor ? anchor : e.startDay));
-  return days.sort()[0] ?? anchor;
-}
-
 /** "Dec 1 – Dec 7, 2030". */
 export const weekLabel = (monday: string) =>
   `${shortDate(monday)} – ${at(addDays(monday, 6)).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;

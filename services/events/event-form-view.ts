@@ -150,6 +150,7 @@ export function toPreviewEvent(values: EventFormValues, uid = 'preview'): EventD
 
   return {
     uid,
+    externalId: null,
     name: values.name.trim() || 'Untitled event',
     startDate: instants?.start ?? '',
     endDate: instants?.end ?? '',

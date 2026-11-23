@@ -8,6 +8,7 @@ import { dayOfSpan, startLabel, whenLine } from '@/services/events/all-events.fi
 import { ACCESS_COPY, eventPlace } from '@/services/events/event-facts';
 import type { AllEventsItem } from '@/services/events/all-events.types';
 
+import { GoingFaces } from './GoingFaces';
 import { AccessIcon, PinIcon } from './icons';
 import s from './AllEventsPage.module.scss';
 
@@ -43,18 +44,7 @@ function EventFoot({ item, going }: { item: AllEventsItem; going: boolean }) {
   return (
     <span className={s.cardFoot}>
       {going && <GoingPill />}
-      {count > 0 && (
-        <>
-          {item.faces.length > 0 && (
-            <span className={s.facepile} aria-hidden>
-              {item.faces.map((face) => (
-                <img key={face.uid} src={face.image || getDefaultAvatar(face.name)} alt="" width={20} height={20} />
-              ))}
-            </span>
-          )}
-          <span className={s.cardCount}>{count} going</span>
-        </>
-      )}
+      <GoingFaces item={item} />
       {access && (
         <span className={s.cardAccess}>
           {count > 0 && <span aria-hidden>·</span>}

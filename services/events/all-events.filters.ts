@@ -9,13 +9,35 @@ import { ACCESS_COPY } from './event-facts';
  * Near you. Everything happens in the browser over one array, so a filter never makes a request.
  */
 
-/** The rail's Mode labels (the prototype's), which are also what the `mode` param stores. */
-export const MODE_LABEL: Record<EventMode, string> = { 'In-Person': 'In person', Virtual: 'Virtual', Hybrid: 'Hybrid' };
+/**
+ * The rail's Mode labels, which are also what the `mode` param stores. An online event is "Online", the word its card
+ * and drawer use (LAB-3370; the events service calls it Virtual).
+ */
+export const MODE_LABEL: Record<EventMode, string> = { 'In-Person': 'In person', Virtual: 'Online', Hybrid: 'Hybrid' };
 
 /** The params that count as applied filters. `view`, `cal` and `event` are page state, not filters. */
 export const FILTER_PARAMS = ['search', 'going', 'featured', 'mode', 'access', 'focus', 'city', 'host'] as const;
 export type FilterParam = (typeof FILTER_PARAMS)[number];
 export const isFilterParam = (key: string): key is FilterParam => (FILTER_PARAMS as readonly string[]).includes(key);
+
+/** The embed page's address (LAB-3352). */
+export const EVENTS_EMBED_PATH = '/events/embed';
+
+/**
+ * What an embed link carries (LAB-3352): the view, the calendar mode and every filter but "Events I'm going to", which
+ * needs a signed-in member. Never the open event. In the page's own order, so a copied link reads like the address.
+ */
+export const EMBED_PARAMS = ['view', 'cal', ...FILTER_PARAMS.filter((key) => key !== 'going')] as const;
+
+/** The query of the embed link for the page's address, without a leading `?`; empty for the plain List. */
+export function embedQuery(params: URLSearchParams): string {
+  const next = new URLSearchParams();
+  EMBED_PARAMS.forEach((key) => {
+    const value = params.get(key);
+    if (value) next.set(key, value);
+  });
+  return next.toString();
+}
 
 /** A filter param's values as analytics records them: the decoded list, `['true']` for a toggle, the search text. */
 export function filterValues(key: FilterParam, value: string | null | undefined): string[] {

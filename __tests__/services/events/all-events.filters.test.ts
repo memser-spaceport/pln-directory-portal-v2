@@ -36,8 +36,8 @@ describe('filterEvents', () => {
   });
 
   it('filters by mode, OR within the filter', () => {
-    expect(run('mode=Virtual')).toEqual(['onl']);
-    expect(run('mode=Virtual|Hybrid')).toEqual(['onl', 'hyb']);
+    expect(run('mode=Online')).toEqual(['onl']);
+    expect(run('mode=Online|Hybrid')).toEqual(['onl', 'hyb']);
   });
 
   it('filters by city, case-insensitively', () => {
@@ -115,7 +115,7 @@ describe('filterEvents', () => {
   });
 
   it('counts each applied value, never the view, calendar mode or open event', () => {
-    expect(countAppliedFilters(params('search=x&going=true&mode=Virtual|Hybrid&city=Dubai'))).toBe(5);
+    expect(countAppliedFilters(params('search=x&going=true&mode=Online|Hybrid&city=Dubai'))).toBe(5);
     expect(countAppliedFilters(params('access=Paid&focus=AI|Storage&host=Protocol Labs'))).toBe(4);
     expect(countAppliedFilters(params('view=calendar&cal=month&event=e1'))).toBe(0);
   });
@@ -125,7 +125,7 @@ describe('filterEvents', () => {
       { value: 'Lisbon', count: 2, disabled: false },
       { value: 'Dubai', count: 1, disabled: false },
     ]);
-    expect(facetOptions([lisbon, online], 'mode').map((o) => o.value)).toEqual(['In person', 'Virtual']);
+    expect(facetOptions([lisbon, online], 'mode').map((o) => o.value)).toEqual(['In person', 'Online']);
   });
 });
 

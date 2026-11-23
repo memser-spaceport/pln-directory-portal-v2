@@ -53,6 +53,7 @@ import { FollowToast } from '../follow-shared/FollowToast';
 import { AiSearchView, type AiSearchRequest } from '../ai-search/AiSearchView';
 import { AiSearchIcon } from '@/prototypes/components/AiSearchIcon/AiSearchIcon';
 import { AskAboutStrip } from '../member-ask-ai/AskAboutStrip';
+import { useTagsThatFit } from '../team-profile/TeamDetailsView';
 import { buildMemberAiScope } from './aiSearchScope';
 import s from './MemberProfile.module.scss';
 import {
@@ -113,6 +114,26 @@ export type AskAiPlacement = 'header' | 'strip';
 export type AskAiOpens = 'view' | 'tab';
 
 /** A host's own contact press for the header cluster, drawn in each seat. */
+/**
+ * Where Follow and the contact press stand (review band "Actions"). Header and
+ * Under bio were the first two; 2026-11-19 adds three after a manager's note
+ * that a bare "Schedule Meeting" in the header means nothing without the Office
+ * Hours card's context:
+ *   sections    each press inside the section that explains it: Schedule
+ *               Meeting on Office Hours, Request an intro in Contact Details.
+ *               Ask AI and Follow stay in the header.
+ *   badges      Follow + the contact press as a row under the badges.
+ *   badges-bio  the same row, and the bio leaves the header for its own card.
+ */
+export type ActionsAt = 'header' | 'bio' | 'sections' | 'badges' | 'badges-bio';
+export const ACTIONS_AT_OPTIONS: [ActionsAt, string][] = [
+  ['header', 'In header'],
+  ['bio', 'Under bio'],
+  ['sections', 'In sections'],
+  ['badges', 'Under badges'],
+  ['badges-bio', 'Under badges + Bio section'],
+];
+
 export type ContactAction = (ctx: { hasOfficeHours: boolean; size: 'xs' | 's'; className?: string }) => ReactNode;
 
 /** The AI Search page prototype, with this profile attached (`?about=member`). */
@@ -190,7 +211,7 @@ export function MemberProfilePage({
   const [hasOfficeHours, setHasOfficeHours] = useState(true);
   /* Where Follow and the contact press stand: the header cluster (the Sep 28
      decision, default) or a row under the bio, to compare. */
-  const [actionsAt, setActionsAt] = useState<'header' | 'bio'>('header');
+  const [actionsAt, setActionsAt] = useState<ActionsAt>('header');
   /* Who is looking. Admin (a directory admin, not this member) keeps every
      visitor action and gains production's Edit at the end of the cluster —
      the team profile's admin row, on a person (2026-11-06). */
@@ -336,12 +357,7 @@ export function MemberProfilePage({
           <div className={s.demoSwitchGroup}>
             <span className={s.demoSwitchLabel}>Actions</span>
             <div className={s.demoSwitchRow}>
-              {(
-                [
-                  ['header', 'In header'],
-                  ['bio', 'Under bio'],
-                ] as const
-              ).map(([value, label]) => (
+              {ACTIONS_AT_OPTIONS.map(([value, label]) => (
                 <button
                   key={value}
                   type="button"
@@ -417,7 +433,7 @@ export function MemberProfilePage({
                 follow={follow ? { following, onToggle: toggleFollow } : undefined}
                 hasOfficeHours={hasOfficeHours}
                 contactAction={contactAction}
-                actionsUnderBio={actionsAt === 'bio'}
+                actionsAt={actionsAt}
                 isAdmin={viewer === 'admin' || isOwner}
                 isOwner={isOwner}
                 facts={factsLength === 'long' ? LONG_FACTS : undefined}
@@ -442,11 +458,29 @@ export function MemberProfilePage({
                   booking link (OfficeHoursDetails returns null). */}
               {hasOfficeHours && (
                 <div id="member-office-hours" className={s.aiAnchor}>
-                  <OfficeHoursCard schedule={scheduleOnCard} />
+                  <OfficeHoursCard schedule={scheduleOnCard || actionsAt === 'sections'} />
                 </div>
               )}
               {eventsHigh && eventsSection}
-              <ContactCard />
+              {/* "In sections" without office hours: the intro sits in Contact
+                  Details, under a line saying who makes it. */}
+              <ContactCard
+                intro={
+                  actionsAt === 'sections' && !hasOfficeHours && !isOwner ? (
+                    <ContactIntroRow
+                      subject={MOCK_MEMBER.name.split(' ')[0]}
+                      press={
+                        <RequestIntroButton
+                          requested={intro.requested(MOCK_MEMBER.id)}
+                          onClick={() => intro.request({ uid: MOCK_MEMBER.id, name: MOCK_MEMBER.name, kind: 'member' })}
+                          name={MOCK_MEMBER.name}
+                          size="xs"
+                        />
+                      }
+                    />
+                  ) : null
+                }
+              />
               {/* Production's slot for this section: after Contact details,
                   before Teams. Reproduced so the rail card is judged against a
                   profile of the length this page actually has. */}
@@ -558,7 +592,7 @@ function ProfileHeaderCard({
   askAbout,
   follow,
   hasOfficeHours,
-  actionsUnderBio,
+  actionsAt,
   isAdmin = false,
   isOwner = false,
   facts,
@@ -571,8 +605,8 @@ function ProfileHeaderCard({
   isOwner?: boolean;
   /** Overrides the mock's team / role / city (the review band's "Long"). */
   facts?: { team: string; role: string; location: string };
-  /** Review band "Actions": Follow + the contact press under the bio instead of the header. */
-  actionsUnderBio: boolean;
+  /** Review band "Actions": where Follow and the contact press stand (see `ActionsAt`). */
+  actionsAt: ActionsAt;
   introRequested: boolean;
   onRequestIntro: () => void;
   /** Without a booking link there is no Schedule Meeting; the intro stands alone. */
@@ -585,6 +619,23 @@ function ProfileHeaderCard({
   askAbout?: ReactNode;
 }) {
   const isMobile = useIsMobile();
+  /* What stays in the header: everything; everything but the contact press
+     (it went to its section); or Ask AI alone (the presses are in a row). */
+  const headerPart: 'all' | 'noContact' | 'askAi' =
+    actionsAt === 'header' ? 'all' : actionsAt === 'sections' ? 'noContact' : 'askAi';
+  const actionsUnderBio = actionsAt === 'bio';
+  const underBadges = actionsAt === 'badges' || actionsAt === 'badges-bio';
+  const bioApart = actionsAt === 'badges-bio';
+  /* The role badges, then the skills. In the "Under badges" states the line
+     shows `tagsFit.shown` of them in that order and the rest go to "+n". */
+  const roles = [
+    'Founder',
+    ...(MOCK_MEMBER.openToWork ? ['Open to Collaborate'] : []),
+    ...(MOCK_MEMBER.teamLead ? ['Team lead'] : []),
+  ];
+  const tagsFit = useTagsThatFit(roles.length + MOCK_MEMBER.skills.length);
+  const shownRoles = underBadges ? roles.slice(0, tagsFit.shown) : roles;
+  const hiddenRoles = underBadges ? roles.slice(tagsFit.shown) : [];
   const teamName = facts?.team ?? MOCK_MEMBER.teams[0].name;
   const roleLabel = facts?.role ?? MOCK_MEMBER.role;
   const locationLabel = facts?.location ?? MOCK_MEMBER.locationLabel;
@@ -597,68 +648,69 @@ function ProfileHeaderCard({
       }
     : undefined;
   return (
-    <div className={clsx(profile.root, s.card)}>
-      {editToast && <FollowToast>Production opens the profile edit form here.</FollowToast>}
-      {/* Phone: Edit goes to the card's top-right corner, icon-only, level
+    <>
+      <div className={clsx(profile.root, s.card)}>
+        {editToast && <FollowToast>Production opens the profile edit form here.</FollowToast>}
+        {/* Phone: Edit goes to the card's top-right corner, icon-only, level
           with the name ("Put edit on top in the mobile view") — the team
           profile's phone corner for Edit / Delete. */}
-      {onEdit && (
-        <span className={s.mEditCorner}>
-          <EditButton onClick={onEdit} />
-        </span>
-      )}
-      {/* Phone (the mock's layout): a 72px picture beside the name with role,
+        {onEdit && (
+          <span className={s.mEditCorner}>
+            <EditButton onClick={onEdit} />
+          </span>
+        )}
+        {/* Phone (the mock's layout): a 72px picture beside the name with role,
           team and city stacked under it; the intro as a full-width row; the
           tags; a hairline; the bio. The `m*` classes are the phone overrides
           on production's header grid — see MemberProfile.module.scss. */}
-      <div className={clsx(h.header, s.mHeader)}>
-        <div className={h.headerProfile}>
-          <img className={clsx(h.headerProfileImg, s.mAvatar)} src={MOCK_MEMBER.profile} alt={MOCK_MEMBER.name} />
-        </div>
+        <div className={clsx(h.header, s.mHeader)}>
+          <div className={h.headerProfile}>
+            <img className={clsx(h.headerProfileImg, s.mAvatar)} src={MOCK_MEMBER.profile} alt={MOCK_MEMBER.name} />
+          </div>
 
-        {/* Tablet up: the name shares a row with the action cluster and the
+          {/* Tablet up: the name shares a row with the action cluster and the
             facts line sits under the name only, wrapping short of the cluster
             (`.detailsWide`) — "this line should be wrapped", 2026-11-17, which
             replaces 2026-11-06's "to the end of the white section". */}
-        <div className={clsx(h.headerDetails, s.mDetails, s.detailsWide)}>
-          <div className={s.factsWrap}>
-            <div className={h.specificsHdr}>
-              <CustomTooltip
-                trigger={<h1 className={clsx(h.specificsName, s.mName)}>{MOCK_MEMBER.name}</h1>}
-                content={MOCK_MEMBER.name}
-              />
-            </div>
-            {/* Production's current markup (MemberDetailHeader, 2026-11): a
+          <div className={clsx(h.headerDetails, s.mDetails, s.detailsWide)}>
+            <div className={s.factsWrap}>
+              <div className={h.specificsHdr}>
+                <CustomTooltip
+                  trigger={<h1 className={clsx(h.specificsName, s.mName)}>{MOCK_MEMBER.name}</h1>}
+                  content={MOCK_MEMBER.name}
+                />
+              </div>
+              {/* Production's current markup (MemberDetailHeader, 2026-11): a
                 wrapping list whose items each draw the divider before them, so
                 a wrapped line never starts or ends on one. The old
                 `.divider` / `.desktopOnly` classes are gone from production. */}
-            <div className={clsx(h.roleAndLocation, s.factsFull)}>
-              <div className={clsx(h.metaList, s.mRole)}>
-                <div className={clsx(h.metaItem, h.teams)}>
-                  <p className={h.teamsName} title={teamName}>
-                    {teamName}
-                  </p>
-                  {MOCK_MEMBER.teams.length > 1 && (
-                    <button onClick={(e) => e.preventDefault()} className={h.moreTeamsButton}>
-                      +{MOCK_MEMBER.teams.length - 1}
-                    </button>
-                  )}
-                </div>
-                {/* Phone stacks these and puts the role first: it is the headline
+              <div className={clsx(h.roleAndLocation, s.factsFull)}>
+                <div className={clsx(h.metaList, s.mRole)}>
+                  <div className={clsx(h.metaItem, h.teams)}>
+                    <p className={h.teamsName} title={teamName}>
+                      {teamName}
+                    </p>
+                    {MOCK_MEMBER.teams.length > 1 && (
+                      <button onClick={(e) => e.preventDefault()} className={h.moreTeamsButton}>
+                        +{MOCK_MEMBER.teams.length - 1}
+                      </button>
+                    )}
+                  </div>
+                  {/* Phone stacks these and puts the role first: it is the headline
                     fact about a person, the team is where they do it. */}
-                <div className={clsx(h.metaItem, s.mRoleFirst)}>
-                  <p className={h.role}>{roleLabel}</p>
-                </div>
-                <div className={h.metaItem}>
-                  <div className={h.location}>
-                    <LocationIcon />
-                    <p className={h.locationName}>{locationLabel}</p>
+                  <div className={clsx(h.metaItem, s.mRoleFirst)}>
+                    <p className={h.role}>{roleLabel}</p>
+                  </div>
+                  <div className={h.metaItem}>
+                    <div className={h.location}>
+                      <LocationIcon />
+                      <p className={h.locationName}>{locationLabel}</p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-          {/* THE HEADER ACTION CLUSTER — every action on this person in one
+            {/* THE HEADER ACTION CLUSTER — every action on this person in one
               place, LinkedIn-style (design standup 2026-09-28). Production's
               header keeps its one action here, as `.headerDetails`' second
               child (Edit, for the owner); the team profile keeps Ask AI and
@@ -668,71 +720,109 @@ function ProfileHeaderCard({
               keeps the corner (lesson 25). Never Schedule Meeting and Request
               an intro together: office hours → Schedule Meeting; none → the
               intro, as the glossy primary. */}
-          <div className={clsx(s.headerActions, s.fromTablet)}>
-            <ProfileActions
-              onAskAi={onAskAi}
-              follow={follow}
-              hasOfficeHours={hasOfficeHours}
-              contactAction={contactAction}
-              introRequested={introRequested}
-              onRequestIntro={onRequestIntro}
-              size="xs"
-              part={actionsUnderBio ? 'askAi' : 'all'}
-              onEdit={onEdit}
-              ownerView={isOwner}
-            />
+            <div className={clsx(s.headerActions, s.fromTablet)}>
+              <ProfileActions
+                onAskAi={onAskAi}
+                follow={follow}
+                hasOfficeHours={hasOfficeHours}
+                contactAction={contactAction}
+                introRequested={introRequested}
+                onRequestIntro={onRequestIntro}
+                size="xs"
+                part={headerPart}
+                onEdit={onEdit}
+                ownerView={isOwner}
+              />
+            </div>
           </div>
-        </div>
 
-        {/* Phone: the same cluster, on its own lines between the facts and the
+          {/* Phone: the same cluster, on its own lines between the facts and the
             tags — a control beside a 20px name has nowhere to stand at 390px.
             The Ask AI badge first at its own width, then the presses full
             width (the team profile's phone header, same order). */}
-        {!isOwner && (
-          <div className={s.introMobileRow}>
-            <ProfileActions
-              onAskAi={onAskAi}
-              follow={follow}
-              hasOfficeHours={hasOfficeHours}
-              contactAction={contactAction}
-              introRequested={introRequested}
-              onRequestIntro={onRequestIntro}
-              size="s"
-              part={actionsUnderBio ? 'askAi' : 'all'}
+          {!isOwner && (
+            <div className={s.introMobileRow}>
+              <ProfileActions
+                onAskAi={onAskAi}
+                follow={follow}
+                hasOfficeHours={hasOfficeHours}
+                contactAction={contactAction}
+                introRequested={introRequested}
+                onRequestIntro={onRequestIntro}
+                size="s"
+                part={headerPart}
+              />
+            </div>
+          )}
+
+          {/* The tags wrap short of the corner press only while it is there. */}
+          {/* "Under badges" states: the tags start at the card's left edge
+              (under the avatar, not the name) and keep to one line. What
+              doesn't fit folds into TagsList's "+n" (measured, the team
+              header's `useTagsThatFit`): skills first, then the role badges
+              from the end, so on a phone the "+n" never falls off the line. */}
+          <div
+            ref={underBadges ? tagsFit.ref : undefined}
+            className={clsx(
+              h.tags,
+              s.mTags,
+              actionsAt === 'header' && s.tagsClearPress,
+              underBadges && clsx(s.fullRow, s.tagsOneLine),
+            )}
+          >
+            {shownRoles.map((role) =>
+              role === 'Founder' ? (
+                <span key={role} className={s.founderTag}>
+                  {role}
+                </span>
+              ) : (
+                <div key={role} className={h.funds}>
+                  <span className={h.fundsLabel}>{role}</span>
+                </div>
+              ),
+            )}
+            {/* Phone shows two skills and "+n" (the teams list's own phone count);
+              five 80px-capped chips would be three lines of cut words. */}
+            <TagsList
+              tags={[...hiddenRoles, ...MOCK_MEMBER.skills.map((sk) => sk.title)].map((title) => ({ title }))}
+              tagsToShow={underBadges ? Math.max(0, tagsFit.shown - roles.length) : isMobile ? 2 : 5}
+              classes={{
+                tag: clsx(s.skillTag, underBadges && s.skillTagFull),
+                root: underBadges ? s.tagsNoWrap : undefined,
+              }}
             />
           </div>
-        )}
 
-        <div className={clsx(h.tags, s.mTags, s.tagsClearPress)}>
-          <span className={s.founderTag}>Founder</span>
-          {MOCK_MEMBER.openToWork && (
-            <div className={h.funds}>
-              <span className={h.fundsLabel}>Open to Collaborate</span>
+          {/* Review band "Under badges": Follow and the contact press as a row
+              under the tags, ahead of the bio (or closing the card when the
+              bio has a card of its own). It takes production's `.tags` grid
+              placement, so it starts where the badges start at every width.
+              Ask AI stays in the header corner. */}
+          {underBadges && !isOwner && (
+            <div className={clsx(h.tags, s.fullRow, s.bioActions, s.badgeActions, bioApart && s.badgeActionsLast)}>
+              <ProfileActions
+                onAskAi={onAskAi}
+                follow={follow}
+                hasOfficeHours={hasOfficeHours}
+                contactAction={contactAction}
+                introRequested={introRequested}
+                onRequestIntro={onRequestIntro}
+                size={isMobile ? 's' : 'xs'}
+                part="presses"
+              />
             </div>
           )}
-          {MOCK_MEMBER.teamLead && (
-            <div className={h.funds}>
-              <span className={h.fundsLabel}>Team lead</span>
-            </div>
-          )}
-          {/* Phone shows two skills and "+n" (the teams list's own phone count);
-              five 80px-capped chips would be three lines of cut words. */}
-          <TagsList
-            tags={MOCK_MEMBER.skills.map((sk) => ({ title: sk.title }))}
-            tagsToShow={isMobile ? 2 : 5}
-            classes={{ tag: s.skillTag }}
-          />
         </div>
-      </div>
 
-      <div className={clsx(profile.bioContainer, s.mBio, s.bioCloser)}>
-        <div className={s.bioLabel}>Bio</div>
-        {/* The description in the grey inset every other section's content
+        {!bioApart && (
+          <div className={clsx(profile.bioContainer, s.mBio, s.bioCloser)}>
+            <div className={s.bioLabel}>Bio</div>
+            {/* The description in the grey inset every other section's content
             sits in ("Bio description should be in grey box"). */}
-        <DetailsSectionGreyContentContainer>
-          <div className={s.bio}>{MOCK_MEMBER.bio}</div>
-        </DetailsSectionGreyContentContainer>
-        {/* The row of presses under the bio and its one-line intro note
+            <DetailsSectionGreyContentContainer>
+              <div className={s.bio}>{MOCK_MEMBER.bio}</div>
+            </DetailsSectionGreyContentContainer>
+            {/* The row of presses under the bio and its one-line intro note
             ("Request an intro — the PL team makes the introduction.") went
             into the header cluster above (2026-09-28). The note did not come
             with it: a header cluster carries no captions (LinkedIn's doesn't,
@@ -741,26 +831,39 @@ function ProfileHeaderCard({
             makes the intro — is the modal's first sentence, one press away
             and before anything is sent. The strip entries keep the question
             chips here, as content. */}
-        {/* Review band "Actions → Under bio": Follow and the contact press
+            {/* Review band "Actions → Under bio": Follow and the contact press
             come back here as a row under the bio (Ask AI stays in the
             header), to compare against the header cluster. */}
-        {actionsUnderBio && (
-          <div className={s.bioActions}>
-            <ProfileActions
-              onAskAi={onAskAi}
-              follow={follow}
-              hasOfficeHours={hasOfficeHours}
-              contactAction={contactAction}
-              introRequested={introRequested}
-              onRequestIntro={onRequestIntro}
-              size={isMobile ? 's' : 'xs'}
-              part="presses"
-            />
+            {actionsUnderBio && (
+              <div className={s.bioActions}>
+                <ProfileActions
+                  onAskAi={onAskAi}
+                  follow={follow}
+                  hasOfficeHours={hasOfficeHours}
+                  contactAction={contactAction}
+                  introRequested={introRequested}
+                  onRequestIntro={onRequestIntro}
+                  size={isMobile ? 's' : 'xs'}
+                  part="presses"
+                />
+              </div>
+            )}
+            {askAbout}
           </div>
         )}
-        {askAbout}
       </div>
-    </div>
+      {bioApart && (
+        /* "Bio section": the bio leaves the header for a card of its own,
+         titled like every other section, so the header ends on its actions. */
+        <DetailsSection classes={{ root: s.card }}>
+          <DetailsSectionHeader title="Bio" />
+          <DetailsSectionGreyContentContainer>
+            <div className={s.bio}>{MOCK_MEMBER.bio}</div>
+          </DetailsSectionGreyContentContainer>
+          {askAbout}
+        </DetailsSection>
+      )}
+    </>
   );
 }
 
@@ -796,10 +899,10 @@ function ProfileActions({
   introRequested: boolean;
   onRequestIntro: () => void;
   size: 'xs' | 's';
-  /** The review band's "Under bio" state splits the cluster: Ask AI stays
-      in the header (`askAi`), Follow and the contact press go under the bio
-      (`presses`). */
-  part?: 'all' | 'askAi' | 'presses';
+  /** The review band's "Actions" states split the cluster: Ask AI stays
+      in the header (`askAi`) while Follow and the contact press go to a row
+      (`presses`); "In sections" keeps all but the contact press (`noContact`). */
+  part?: 'all' | 'askAi' | 'presses' | 'noContact';
 }) {
   const phone = size === 's';
   /* Phone: a bordered button at the presses' height, left of the contact
@@ -827,7 +930,7 @@ function ProfileActions({
     );
   return (
     <>
-      {part === 'all' && askAi}
+      {(part === 'all' || part === 'noContact') && askAi}
       {follow && (
         <FollowPill
           following={follow.following}
@@ -841,7 +944,7 @@ function ProfileActions({
           the primary opens a column, as the corner closes a row. */}
       {/* Under the bio the row is left-aligned, so the primary leads there
           too (`.pressFirst`): it opens the row instead of closing it. */}
-      {contactAction ? (
+      {part === 'noContact' ? null : contactAction ? (
         contactAction({
           hasOfficeHours,
           size,
@@ -863,8 +966,21 @@ function ProfileActions({
       )}
       {/* Edit closes the header row, after the contact press — the team
           admin's Ask AI · Follow · contact · Edit order. */}
-      {part === 'all' && !phone && edit}
+      {(part === 'all' || part === 'noContact') && !phone && edit}
     </>
+  );
+}
+
+/**
+ * "In sections", no office hours: the intro inside Contact Details, under a
+ * line that says what it is — the context a bare header press lacked.
+ */
+function ContactIntroRow({ subject, press }: { subject: string; press: ReactNode }) {
+  return (
+    <div className={s.contactIntro}>
+      <p className={s.contactIntroText}>Don&apos;t know {subject}? The PL team can introduce you.</p>
+      {press}
+    </div>
   );
 }
 
@@ -1016,7 +1132,7 @@ function OfficeHoursCard({ schedule = false }: { schedule?: boolean }) {
 }
 
 /* ---------- Contact details (copy-simplified, unlocked viewer state) ---------- */
-function ContactCard() {
+function ContactCard({ intro }: { intro?: ReactNode }) {
   return (
     <DetailsSection classes={{ root: s.card }}>
       {/* Anchor target for the Activity section's owner note — the Bluesky
@@ -1048,6 +1164,7 @@ function ContactCard() {
             </div>
           </div>
         </div>
+        {intro}
       </div>
     </DetailsSection>
   );

@@ -36,11 +36,34 @@ export function MonthGrid({
         const monday = days[0];
         const bars = eventsBetween(events, monday, days[6]).sort(byStart);
         return (
-          <div key={monday} className={k.week}>
+          <div
+            key={monday}
+            className={k.week}
+            // The fill row takes the week's spare height, so a past day's grey reaches its bottom (LAB-3353).
+            style={{ gridTemplateRows: `repeat(${bars.length + 1}, min-content) 1fr` }}
+          >
+            {/* Days before today, greyed behind their number and bars (LAB-3353). */}
+            {days.map(
+              (d, i) =>
+                d < todayIso && (
+                  <span
+                    key={`past-${d}`}
+                    className={k.pastDay}
+                    data-past-day={d}
+                    style={{ gridColumn: i + 1, gridRow: `1 / span ${bars.length + 2}` }}
+                    aria-hidden
+                  />
+                ),
+            )}
             {days.map((d, i) => (
               <span
                 key={d}
-                className={clsx(k.dayNum, !inMonth(d) && k.dayOther, d === todayIso && k.dayToday)}
+                className={clsx(
+                  k.dayNum,
+                  !inMonth(d) && k.dayOther,
+                  d === todayIso && k.dayToday,
+                  d < todayIso && k.dayPast,
+                )}
                 style={{ gridColumn: i + 1, gridRow: 1 }}
               >
                 <span>

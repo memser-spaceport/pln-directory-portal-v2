@@ -203,6 +203,42 @@ describe('header and List', () => {
     expect(within(card('Dubai meetup')).getByText('Dubai · also online')).toBeInTheDocument();
   });
 
+  it('moves a card’s count when the viewer says they are going or not, though the list is cached', () => {
+    going.uids = [];
+    const props = { ...signedIn('Berlin'), result: { ok: true as const, items: sample() } };
+    const { rerender } = render(
+      <AllEventsPage
+        {...props}
+        serverTodayIso="2030-12-01"
+        submitHref="https://irl.example/submit"
+        eventsAppHref="https://events.example/calendar"
+      />,
+    );
+    expect(within(card('DAI Summit')).getByText('3 going')).toBeInTheDocument();
+
+    going.uids = ['dai'];
+    rerender(
+      <AllEventsPage
+        {...props}
+        serverTodayIso="2030-12-01"
+        submitHref="https://irl.example/submit"
+        eventsAppHref="https://events.example/calendar"
+      />,
+    );
+    expect(within(card('DAI Summit')).getByText('4 going')).toBeInTheDocument();
+
+    going.uids = [];
+    rerender(
+      <AllEventsPage
+        {...props}
+        serverTodayIso="2030-12-01"
+        submitHref="https://irl.example/submit"
+        eventsAppHref="https://events.example/calendar"
+      />,
+    );
+    expect(within(card('DAI Summit')).getByText('3 going')).toBeInTheDocument();
+  });
+
   it('marks an event the viewer is going to with the Going pill, and only that one', () => {
     going.uids = ['dai'];
     renderPage(signedIn('Berlin'));
@@ -225,15 +261,36 @@ describe('Near you', () => {
     expect(screen.getByRole('link', { name: 'Add location' })).toHaveAttribute('href', '/members/m1');
   });
 
-  it('stays in every view and with any filter; only a chosen city takes its place', () => {
-    const { unmount } = renderPage(signedIn('Lisbon'), '/events/all?mode=Virtual');
+  it('shows on the plain List only: not in Calendar or Map, not with a filter (Polina, 2026-11-20; LAB-3375)', () => {
+    const { unmount } = renderPage(signedIn('Lisbon'));
     expect(screen.getByRole('region', { name: 'Near you in Lisbon' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'All upcoming' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('tab', { name: /Calendar/ }));
-    expect(screen.getByRole('region', { name: 'Near you in Lisbon' })).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Near you in Lisbon' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Browse by city' })).toBeNull();
     unmount();
 
-    renderPage(signedIn(null), '/events/all?view=calendar&search=summit');
-    expect(screen.getByText('See events near you.')).toBeInTheDocument();
+    const filtered = renderPage(signedIn('Lisbon'), '/events/all?mode=Online');
+    expect(screen.queryByRole('region', { name: 'Near you in Lisbon' })).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Browse by city' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Matching events' })).toBeInTheDocument();
+    filtered.unmount();
+
+    renderPage(signedIn(null), '/events/all?view=calendar');
+    expect(screen.queryByText('See events near you.')).toBeNull();
+  });
+
+  it('puts the Coming up toolbar above the List bands (LAB-3374)', () => {
+    renderPage(signedIn('Lisbon'));
+    const toolbar = screen.getByRole('heading', { name: 'Coming up' });
+    const near = screen.getByRole('region', { name: 'Near you in Lisbon' });
+    expect(toolbar.compareDocumentPosition(near) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('shows a chosen city as a chip in Calendar, where the city header does not show', () => {
+    renderPage(signedIn('Lisbon'), '/events/all?view=calendar&city=Dubai');
+    expect(screen.queryByRole('heading', { name: 'Dubai' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Remove filter Dubai' })).toBeInTheDocument();
   });
 
   it('gives way to the city header when a city is chosen', () => {
@@ -343,9 +400,9 @@ describe('filters', () => {
   });
 
   it('restores the view and filters from a copied link', () => {
-    renderPage({}, '/events/all?view=calendar&mode=Virtual');
+    renderPage({}, '/events/all?view=calendar&mode=Online');
     expect(storeParams().get('view')).toBe('calendar');
-    expect(storeParams().get('mode')).toBe('Virtual');
+    expect(storeParams().get('mode')).toBe('Online');
     expect(toolbarCount()).toBe('1 event');
   });
 });
@@ -392,7 +449,7 @@ describe('the drawer', () => {
   });
 
   it('LAB-3361: the list narrows with the filters', () => {
-    renderPage({}, '/events/all?event=dai&mode=Virtual');
+    renderPage({}, '/events/all?event=dai&mode=Online');
     const sequence = screen.getByTestId('event-drawer').getAttribute('data-sequence')!.split(',');
     const shown = Array.from(document.querySelectorAll<HTMLElement>('[data-event-uid]')).map(
       (el) => el.dataset.eventUid,
@@ -403,7 +460,7 @@ describe('the drawer', () => {
 
 describe('analytics', () => {
   it('records nothing on landing from a filtered link', () => {
-    renderPage({}, '/events/all?mode=Virtual&city=Dubai');
+    renderPage({}, '/events/all?mode=Online&city=Dubai');
     act(() => jest.advanceTimersByTime(1000));
     expect(analytics.onEventsFiltersApplied).not.toHaveBeenCalled();
     expect(analytics.onEventsCitySelected).not.toHaveBeenCalled();
@@ -500,7 +557,7 @@ describe('Calendar', () => {
   });
 
   it('keeps the filters, and says when nothing matches', () => {
-    renderPage({}, '/events/all?view=calendar&cal=week&mode=Virtual');
+    renderPage({}, '/events/all?view=calendar&cal=week&mode=Online');
     // Today's week, although its only online event is next week (LAB-3353: no jump to the first busy week).
     expect(label()).toBe('Nov 25 – Dec 1, 2030');
     expect(within(calendar()).getByText('Nothing this week.')).toBeInTheDocument();
@@ -620,17 +677,17 @@ describe('Embed dialog (LAB-3352, LAB-3365)', () => {
   it('copies the embed link with the view and filters, never going or the open event', async () => {
     renderPage(
       { signedIn: true, viewerUid: 'm1', memberCity: 'Lisbon' },
-      '/events/all?view=calendar&cal=month&mode=Virtual&going=true&event=dai&search=call&utm_source=x',
+      '/events/all?view=calendar&cal=month&mode=Online&going=true&event=dai&search=call&utm_source=x',
     );
     openDialog();
-    expect(within(dialog()).getByText('Month calendar · “call” · Virtual')).toBeInTheDocument();
+    expect(within(dialog()).getByText('Month calendar · “call” · Online')).toBeInTheDocument();
     await press('Copy link');
     expect(copiedUrl().origin + copiedUrl().pathname).toBe(`${window.location.origin}/events/embed`);
     expect([...copiedUrl().searchParams]).toEqual([
       ['view', 'calendar'],
       ['cal', 'month'],
       ['search', 'call'],
-      ['mode', 'Virtual'],
+      ['mode', 'Online'],
     ]);
     expect(within(dialog()).getByRole('button', { name: 'Link copied' })).toBeInTheDocument();
     expect(within(dialog()).getByRole('button', { name: 'Copy code' })).toBeInTheDocument();
@@ -718,18 +775,18 @@ describe('the embed (LAB-3352)', () => {
   });
 
   it('applies the filters and the view from its address', () => {
-    const { unmount } = renderPage({ embed: true }, '/events/embed?mode=Virtual');
+    const { unmount } = renderPage({ embed: true }, '/events/embed?mode=Online');
     expect(card('Community Call')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /DAI Summit/ })).toBeNull();
     unmount();
-    renderPage({ embed: true }, '/events/embed?view=calendar&mode=Virtual');
+    renderPage({ embed: true }, '/events/embed?view=calendar&mode=Online');
     expect(screen.getByTestId('events-calendar')).toBeInTheDocument();
   });
 
   it('links to the same view and filters on the full page, in a new tab', () => {
-    renderPage({ embed: true }, '/events/embed?view=calendar&cal=month&mode=Virtual&event=dai');
+    renderPage({ embed: true }, '/events/embed?view=calendar&cal=month&mode=Online&event=dai');
     const link = screen.getByRole('link', { name: /All events on PL Directory/ });
-    expect(link).toHaveAttribute('href', '/events/all?view=calendar&cal=month&mode=Virtual');
+    expect(link).toHaveAttribute('href', '/events/all?view=calendar&cal=month&mode=Online');
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
   });

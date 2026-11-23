@@ -1177,3 +1177,14 @@
   font-weight: 500;
   text-decoration: underline;
 }
+
+// List view's bands (Near you, Browse by city, the city header) sit under the toolbar (Polina, 2026-11-20): the
+// layout's 24px is the gap above the first one.
+.listBands > :first-child {
+  margin-top: 0;
+}
+
+// "All upcoming" / "Matching events": the dated list's own heading, a section title like the bands'.
+.listHeading.listHeading {
+  margin: 32px 0 12px;
+}

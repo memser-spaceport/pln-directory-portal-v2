@@ -234,13 +234,10 @@ function EventDrawerContainer({
     return true;
   };
 
-  // LAB-3271: signed out, "Yes, I'm going" closes the drawer and opens the sign-in modal on this page.
-  const onSignIn = viewerUid
-    ? undefined
-    : () => {
-        onClose();
-        goToLogin();
-      };
+  // Signed out, "Yes, I'm going" and the going count open the sign-in modal over the drawer, which stays open (LAB-3368,
+  // LAB-3371), so a member who signs in is back on the same event. It used to close the drawer first (LAB-3271), but
+  // on the All Events page the close rewrites the address and Next dropped the `#login` push, so no sign-in opened.
+  const onSignIn = viewerUid ? undefined : () => goToLogin();
 
   return (
     <EventDrawerView

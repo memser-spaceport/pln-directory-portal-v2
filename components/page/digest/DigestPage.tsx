@@ -84,7 +84,7 @@ export function DigestPage({ issueUid, data, isLoggedIn }: Props) {
   const topics = useDigestTopics(data.topics);
   const signedIn = isHydrated ? Boolean(currentUser) : undefined;
   // What the reader asked for before sign-in comes back in the address: `topics=open` (also the email's Change
-  // topics) opens the modal, `topic=<slug>` ticks that chip in Add topics, `postnews=open` (also the email's "Post
+  // topics) opens the modal, `topic=<slug>` ticks that chip in Suggested topics, `postnews=open` (also the email's "Post
   // your team news →") posts team news, `post=<tid>` opens that forum thread. Read once, on load.
   const [topicsOpen, setTopicsOpen] = useState(() => searchParams.get('topics') === 'open');
   const [pickOnReturn] = useState(() => searchParams.get('topic'));

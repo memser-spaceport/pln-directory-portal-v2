@@ -10,8 +10,8 @@ export type DigestPersonalizeProps = {
 };
 
 /**
- * The topics section (LAB-3348, LAB-3346 R1): "How personalization works" first, as the explainer of Add topics,
- * then the Add topics card. From 1100px it opens the side column; under that it sits right after the page header
+ * The topics section (LAB-3348, LAB-3346 R1): "How personalization works" first, as the explainer of Suggested
+ * topics, then the Suggested topics card. From 1100px it opens the side column; under that it sits right after the page header
  * (`top`), so a reader on a phone sees it before the stories. Signed out (LAB-3347) the explainer says what this reader
  * sees instead, since the signed-in sentence would be false for them, and ends with Sign in to personalize.
  */

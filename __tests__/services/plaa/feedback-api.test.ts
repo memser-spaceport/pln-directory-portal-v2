@@ -70,4 +70,14 @@ describe('the feedback API client', () => {
     expect(plain.searchParams.has('cursor')).toBe(false);
     expect(plain.searchParams.has('mine')).toBe(false);
   });
+
+  it("sends an author's edit as a PATCH to that item, with a null for a field they emptied", async () => {
+    answer(200, { id: 'item-1' });
+    await feedbackApi.update('item-1', { title: 'A better title', importance: null });
+
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(new URL(url, 'http://portal').pathname).toMatch(/\/items\/item-1$/);
+    expect(init.method).toBe('PATCH');
+    expect(JSON.parse(init.body)).toEqual({ title: 'A better title', importance: null });
+  });
 });

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { FeedbackStatus } from '@/services/plaa/feedback/feedback.types';
@@ -13,9 +14,11 @@ import {
   useFeedbackMe,
   useHideComment,
   useRetryLinear,
+  useUpdateFeedback,
   useVote,
 } from '@/services/plaa/feedback/useFeedback';
 import { usePlaaFeedbackAnalytics } from '@/analytics/plaa-feedback.analytics';
+import FeedbackForm from './feedback-form';
 import ItemDetail from './item-detail';
 import FeedbackStyles from './feedback-styles';
 import { ErrorState, LoadingRows } from './feedback-bits';
@@ -35,6 +38,8 @@ export default function ItemDetailContainer({ id }: { id: string }) {
   const changeStatus = useChangeStatus();
   const retryLinear = useRetryLinear();
   const adminUpdate = useAdminUpdate();
+  const update = useUpdateFeedback();
+  const [editing, setEditing] = useState(false);
 
   if (itemQuery.isLoading) {
     return (
@@ -86,8 +91,33 @@ export default function ItemDetailContainer({ id }: { id: string }) {
           analytics.onStatusChanged(item.status, toStatus, Boolean(note));
         }}
         onRetryLinear={() => retryLinear.mutate(item.id)}
-        onAdminUpdate={(update) => adminUpdate.mutate({ id: item.id, ...update })}
+        onAdminUpdate={(change) => adminUpdate.mutate({ id: item.id, ...change })}
+        onEdit={() => {
+          update.reset();
+          setEditing(true);
+        }}
       />
+
+      {editing && (
+        <FeedbackForm
+          editing={item}
+          onClose={() => setEditing(false)}
+          isSubmitting={update.isPending}
+          submitError={update.error}
+          onSubmit={(values) =>
+            update.mutate(
+              {
+                id: item.id,
+                title: values.title,
+                description: values.description,
+                importance: values.importance ?? null,
+                link_url: values.link_url ?? null,
+              },
+              { onSuccess: () => setEditing(false) },
+            )
+          }
+        />
+      )}
 
       <FeedbackStyles />
     </div>

@@ -11,9 +11,11 @@ import {
   useAdminUpdate,
   useCreateFeedback,
   useFeedbackComments,
+  useFeedbackItem,
   useFeedbackList,
   useFeedbackRoadmap,
   useFeedbackTriage,
+  useUpdateFeedback,
   useVote,
 } from '@/services/plaa/feedback/useFeedback';
 import { feedbackApi } from '@/services/plaa/feedback/feedback.api';
@@ -31,6 +33,8 @@ jest.mock('@/services/plaa/feedback/feedback.api', () => ({
     roadmap: jest.fn(),
     create: jest.fn(),
     adminUpdate: jest.fn(),
+    update: jest.fn(),
+    item: jest.fn(),
   },
 }));
 
@@ -280,5 +284,24 @@ describe('an admin change', () => {
     });
 
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith('This action is for admins only.'));
+  });
+});
+
+describe("an author's edit", () => {
+  it('sends the edit for that item, then asks for the item again so the page shows the saved version', async () => {
+    (feedbackApi.update as jest.Mock).mockResolvedValue(baseItem({ title: 'A better title' }));
+    (feedbackApi.item as jest.Mock)
+      .mockResolvedValueOnce(baseItem({ title: 'The first title' }))
+      .mockResolvedValue(baseItem({ title: 'A better title' }));
+    const { wrapper } = newClient();
+    const { result } = renderHook(() => ({ edit: useUpdateFeedback(), shown: useFeedbackItem(ITEM_ID) }), { wrapper });
+    await waitFor(() => expect(result.current.shown.data?.title).toBe('The first title'));
+
+    act(() => {
+      result.current.edit.mutate({ id: ITEM_ID, title: 'A better title', importance: null });
+    });
+
+    await waitFor(() => expect(result.current.shown.data?.title).toBe('A better title'));
+    expect(feedbackApi.update).toHaveBeenCalledWith(ITEM_ID, { title: 'A better title', importance: null });
   });
 });

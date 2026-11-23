@@ -29,13 +29,23 @@ export interface FeedbackFormValues {
   screenshots: File[];
 }
 
+export interface FeedbackFormEditing {
+  type: FeedbackType;
+  title: string;
+  description: string;
+  importance: string | null;
+  link_url: string | null;
+}
+
 export default function FeedbackForm({
   onClose,
   onSubmit,
   isSubmitting,
   submitError,
   sourcePath,
+  editing,
 }: {
+  editing?: FeedbackFormEditing;
   onClose: () => void;
   onSubmit: (values: FeedbackFormValues) => void;
   isSubmitting: boolean;
@@ -45,18 +55,30 @@ export default function FeedbackForm({
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
   const typeGroupRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
 
-  const [type, setType] = useState<FeedbackType>('feature');
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [importance, setImportance] = useState('');
-  const [linkUrl, setLinkUrl] = useState('');
+  const initial = {
+    title: editing?.title ?? '',
+    description: editing?.description ?? '',
+    importance: editing?.importance ?? '',
+    linkUrl: editing?.link_url ?? '',
+  };
+  const [type, setType] = useState<FeedbackType>(editing?.type ?? 'feature');
+  const [title, setTitle] = useState(initial.title);
+  const [description, setDescription] = useState(initial.description);
+  const [importance, setImportance] = useState(initial.importance);
+  const [linkUrl, setLinkUrl] = useState(initial.linkUrl);
   const [screenshots, setScreenshots] = useState<File[]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
   const [showErrors, setShowErrors] = useState(false);
   const [confirmingDiscard, setConfirmingDiscard] = useState(false);
 
-  const isDirty = Boolean(title || description || importance || linkUrl || screenshots.length);
+  const isDirty =
+    title !== initial.title ||
+    description !== initial.description ||
+    importance !== initial.importance ||
+    linkUrl !== initial.linkUrl ||
+    screenshots.length > 0;
 
   const errors = {
     title:
@@ -77,7 +99,7 @@ export default function FeedbackForm({
     const opener = document.activeElement as HTMLElement | null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    typeGroupRef.current?.querySelector<HTMLButtonElement>('button')?.focus();
+    (typeGroupRef.current?.querySelector<HTMLElement>('button') ?? titleRef.current)?.focus();
 
     return () => {
       document.body.style.overflow = previousOverflow;
@@ -159,6 +181,7 @@ export default function FeedbackForm({
   }
 
   const rateLimited = submitError instanceof FeedbackApiError && submitError.status === 429;
+  const refused = submitError instanceof FeedbackApiError && submitError.status === 403 ? submitError.message : null;
 
   return (
     <div className="fb-modal__backdrop" onMouseDown={requestClose}>
@@ -172,7 +195,7 @@ export default function FeedbackForm({
       >
         <header className="fb-modal__head">
           <h2 id={titleId} className="fb-modal__title">
-            Give feedback
+            {editing ? 'Edit your feedback' : 'Give feedback'}
           </h2>
           <button type="button" className="fb-modal__close" onClick={requestClose} aria-label="Close">
             ×
@@ -180,26 +203,29 @@ export default function FeedbackForm({
         </header>
 
         <form className="fb-form" onSubmit={handleSubmit} noValidate>
-          <fieldset className="fb-field">
-            <legend className="fb-label">Type</legend>
-            <div className="fb-segmented" role="group" aria-label="Feedback type" ref={typeGroupRef}>
-              {TYPES.map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  className={`fb-segmented__btn ${type === option ? 'fb-segmented__btn--active' : ''}`}
-                  aria-pressed={type === option}
-                  onClick={() => setType(option)}
-                >
-                  {TYPE_LABELS[option]}
-                </button>
-              ))}
-            </div>
-          </fieldset>
+          {!editing && (
+            <fieldset className="fb-field">
+              <legend className="fb-label">Type</legend>
+              <div className="fb-segmented" role="group" aria-label="Feedback type" ref={typeGroupRef}>
+                {TYPES.map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    className={`fb-segmented__btn ${type === option ? 'fb-segmented__btn--active' : ''}`}
+                    aria-pressed={type === option}
+                    onClick={() => setType(option)}
+                  >
+                    {TYPE_LABELS[option]}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+          )}
 
           <label className="fb-field">
             <span className="fb-label">Title</span>
             <input
+              ref={titleRef}
               className="fb-input"
               value={title}
               maxLength={TITLE_MAX}
@@ -238,49 +264,51 @@ export default function FeedbackForm({
             </span>
           </label>
 
-          <div className="fb-field">
-            {/* htmlFor, not a wrapping label: a wrapped file input re-opens the picker on any click in the block. */}
-            <label className="fb-label" htmlFor="fb-screenshot-input">
-              Screenshot
-            </label>
-            <input
-              id="fb-screenshot-input"
-              type="file"
-              className="fb-file"
-              accept="image/png,image/jpeg,image/webp"
-              multiple
-              onChange={(event) => {
-                void handleFiles(event.target.files);
-                event.target.value = '';
-              }}
-              aria-describedby="fb-file-help"
-            />
-            <span className="fb-help" id="fb-file-help">
-              Screenshots go to the PLAA team only.
-            </span>
-            {screenshots.length > 0 && (
-              <ul className="fb-files">
-                {screenshots.map((file, index) => (
-                  <li key={`${file.name}-${index}`} className="fb-files__row">
-                    <span className="fb-files__name">{file.name}</span>
-                    <button
-                      type="button"
-                      className="fb-files__remove"
-                      onClick={() => setScreenshots((current) => current.filter((_, i) => i !== index))}
-                      aria-label={`Remove ${file.name}`}
-                    >
-                      Remove
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-            {fileError && (
-              <span className="fb-error" role="alert">
-                {fileError}
+          {!editing && (
+            <div className="fb-field">
+              {/* htmlFor, not a wrapping label: a wrapped file input re-opens the picker on any click in the block. */}
+              <label className="fb-label" htmlFor="fb-screenshot-input">
+                Screenshot
+              </label>
+              <input
+                id="fb-screenshot-input"
+                type="file"
+                className="fb-file"
+                accept="image/png,image/jpeg,image/webp"
+                multiple
+                onChange={(event) => {
+                  void handleFiles(event.target.files);
+                  event.target.value = '';
+                }}
+                aria-describedby="fb-file-help"
+              />
+              <span className="fb-help" id="fb-file-help">
+                Screenshots go to the PLAA team only.
               </span>
-            )}
-          </div>
+              {screenshots.length > 0 && (
+                <ul className="fb-files">
+                  {screenshots.map((file, index) => (
+                    <li key={`${file.name}-${index}`} className="fb-files__row">
+                      <span className="fb-files__name">{file.name}</span>
+                      <button
+                        type="button"
+                        className="fb-files__remove"
+                        onClick={() => setScreenshots((current) => current.filter((_, i) => i !== index))}
+                        aria-label={`Remove ${file.name}`}
+                      >
+                        Remove
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {fileError && (
+                <span className="fb-error" role="alert">
+                  {fileError}
+                </span>
+              )}
+            </div>
+          )}
 
           <label className="fb-field">
             <span className="fb-label">Link (optional)</span>
@@ -323,7 +351,7 @@ export default function FeedbackForm({
             <p className="fb-error fb-error--block" role="alert">
               {rateLimited
                 ? "You've hit today's submission limit. Try again tomorrow."
-                : 'Something went wrong sending that. Try again.'}
+                : (refused ?? 'Something went wrong sending that. Try again.')}
             </p>
           )}
 
@@ -332,7 +360,7 @@ export default function FeedbackForm({
               Cancel
             </button>
             <button type="submit" className="fb-btn fb-btn--primary" disabled={!isValid || isSubmitting}>
-              {isSubmitting ? 'Sending…' : 'Submit'}
+              {editing ? (isSubmitting ? 'Saving…' : 'Save') : isSubmitting ? 'Sending…' : 'Submit'}
             </button>
           </div>
         </form>

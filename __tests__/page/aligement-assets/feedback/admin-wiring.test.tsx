@@ -40,6 +40,7 @@ jest.mock('@/services/plaa/feedback/useFeedback', () => {
     useDeleteComment: idle,
     useHideComment: idle,
     useAdminUpdate: () => ({ mutate: mockAdminUpdate, isPending: false }),
+    useUpdateFeedback: () => ({ mutate: jest.fn(), isPending: false, error: null, reset: jest.fn() }),
   };
 });
 

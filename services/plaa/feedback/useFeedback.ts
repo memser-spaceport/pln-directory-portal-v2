@@ -108,6 +108,23 @@ export function useCreateFeedback() {
   });
 }
 
+export function useUpdateFeedback() {
+  const invalidate = useInvalidateBoard();
+  return useMutation({
+    mutationFn: ({
+      id,
+      ...body
+    }: {
+      id: string;
+      title?: string;
+      description?: string;
+      importance?: string | null;
+      link_url?: string | null;
+    }) => feedbackApi.update(id, body),
+    onSuccess: (_data, variables) => invalidate(variables.id),
+  });
+}
+
 export function useVote() {
   const queryClient = useQueryClient();
   const invalidate = useInvalidateBoard();

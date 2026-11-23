@@ -30,6 +30,7 @@ jest.mock('@/services/plaa/feedback/useFeedback', () => {
     useChangeStatus: idle,
     useRetryLinear: idle,
     useAdminUpdate: idle,
+    useUpdateFeedback: () => ({ mutate: jest.fn(), isPending: false, error: null, reset: jest.fn() }),
   };
 });
 

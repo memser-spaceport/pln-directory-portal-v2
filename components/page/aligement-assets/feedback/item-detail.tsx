@@ -23,6 +23,7 @@ export default function ItemDetail({
   onMove,
   onRetryLinear,
   onAdminUpdate,
+  onEdit,
   commentPending,
   votesRemaining,
   onLoadMoreComments,
@@ -39,12 +40,14 @@ export default function ItemDetail({
   onMove: (toStatus: FeedbackStatus, note?: string, duplicateOfId?: string) => void;
   onRetryLinear: () => void;
   onAdminUpdate: (update: AdminUpdate) => void;
+  onEdit?: () => void;
   commentPending?: boolean;
   votesRemaining?: number;
   onLoadMoreComments?: () => void;
   loadingMoreComments?: boolean;
 }) {
   const [draft, setDraft] = useState('');
+  const canEdit = item.author.member_uid === currentMemberUid && item.status === 'under_review';
 
   const sinceLine =
     item.status === 'in_progress' || item.status === 'completed'
@@ -70,6 +73,11 @@ export default function ItemDetail({
           <MemberDisplay author={item.author} size="sm" />
           <span className="fb-detail__date">{relativeAge(item.created_at)}</span>
           {sinceLine && <span className="fb-detail__since">{sinceLine}</span>}
+          {canEdit && onEdit && (
+            <button type="button" className="fb-linkbtn" onClick={onEdit}>
+              Edit
+            </button>
+          )}
         </div>
       </header>
 

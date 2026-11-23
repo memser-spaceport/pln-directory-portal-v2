@@ -76,6 +76,16 @@ export const feedbackApi = {
     return request<FeedbackItem>('/items', { method: 'POST', body: form });
   },
 
+  update: (
+    id: string,
+    body: { title?: string; description?: string; importance?: string | null; link_url?: string | null },
+  ) =>
+    request<FeedbackItem>(`/items/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }),
+
   addVote: (id: string) => request<VoteResponse>(`/items/${id}/vote`, { method: 'PUT' }),
 
   removeVote: (id: string) => request<VoteResponse>(`/items/${id}/vote`, { method: 'DELETE' }),

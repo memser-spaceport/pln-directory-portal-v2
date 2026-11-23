@@ -1,6 +1,6 @@
 /** @jest-environment node */
 import { NextRequest } from 'next/server';
-import { DELETE, GET, POST, PUT } from '@/app/api/plaa/feedback/[...path]/route';
+import { DELETE, GET, PATCH, POST, PUT } from '@/app/api/plaa/feedback/[...path]/route';
 
 const UPSTREAM = 'https://plaa.test';
 
@@ -169,6 +169,22 @@ describe('multipart passes through', () => {
 });
 
 describe('path and query handling', () => {
+  it('forwards an edit as a PATCH, with its body', async () => {
+    upstreamReplies({ id: 'i1' });
+    await PATCH(
+      makeRequest('http://portal/api/plaa/feedback/items/i1', {
+        method: 'PATCH',
+        headers: { ...AUTH, 'content-type': 'application/json' },
+        body: JSON.stringify({ title: 'A better title', importance: null }),
+      }),
+      context(['items', 'i1']),
+    );
+    const [url, init] = fetchCall();
+    expect(url).toBe(`${UPSTREAM}/api/v1/feedback/items/i1`);
+    expect(init.method).toBe('PATCH');
+    expect(JSON.parse(new TextDecoder().decode(init.body))).toEqual({ title: 'A better title', importance: null });
+  });
+
   it('sends no body with a read, and sends the body of a write', async () => {
     upstreamReplies({ items: [] });
     await GET(makeRequest('http://portal/api/plaa/feedback/items', { headers: AUTH }), context(['items']));

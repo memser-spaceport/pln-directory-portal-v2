@@ -109,13 +109,13 @@ Every URL that PostHog records SHALL have the token parameter removed.
 
 ### Requirement: Follow, Comments and Share on a story
 
-Each story's team header SHALL have Follow, which starts from the API's `followsTeam` for the link's member. A press SHALL follow or unfollow the team for the signed-in member, update every story of that team on the page, and revert if the save fails. Each story's actions row SHALL have More like this and Less like this, then Comments (the feed's button, with the API's comment count) and Share (the feed's share menu, sharing the story's Home link, never the digest link). Comments SHALL open the feed's comment thread under the story. A signed-out reader who presses Follow, or signs in from the comment thread, SHALL go to sign-in and come back to the same digest link.
+Each story's team header SHALL have Follow, which starts from the API's `followsTeam` for the reader. A press SHALL follow or unfollow the team for the signed-in member, update every story of that team on the page, and revert if the save fails. Each story's actions row SHALL have More like this and Less like this, then Comments (the feed's button, with the API's comment count) and Share (the feed's share menu, sharing the story's Home link, never the digest link). Comments SHALL open the feed's comment thread under the story. A signed-out press on Follow or Comments SHALL open the sign-in prompt (LAB-3347; see "Sign-in prompt"); back from sign-in the team is followed, or the story's thread opens and comes into view.
 
 #### Scenario: Follow when signed out
 
 - **GIVEN** a signed-out reader on a valid link
 - **WHEN** they press Follow on a story
-- **THEN** sign-in opens and no follow is saved
+- **THEN** "Sign in to follow <team>" opens and no follow is saved
 
 #### Scenario: Two stories from one team
 
@@ -125,7 +125,7 @@ Each story's team header SHALL have Follow, which starts from the API's `follows
 
 ### Requirement: End of the issue and side cards
 
-After the stories and forum posts, the page SHALL show "You're all caught up" with a check, "The next digest arrives on <weekday>, <day> <month>." from the API's `nextSendAt` (the line is left out when it is missing), and a "See all network news" link to Home. When the API's `isTeamMember` is true, the page SHALL show the outlined "Got news from your team?" card with "Post your team news →", except to a signed-in member whose own record lists no team. For a signed-in member of one team, "Post your team news →" SHALL open the Post news modal for that team. For a member of more than one team it SHALL ask "Post as" with one button per team, main team first, and a press SHALL open the modal for that team. A signed-out reader SHALL go to sign-in, and come back to the page with `postnews=open`. A link with `postnews=open` SHALL do the same as a press once the reader is known (except on the way back from Google or GitHub sign-in, see Saving topics), bringing the "Post as" question into view, and SHALL then be dropped from the address so a reload doesn't repeat it. The teams SHALL come from the signed-in member's own record (`teamMemberRoles`). The topics section SHALL be "How personalization works" ("Stories come from your topics first, then the teams you follow, then the network's top stories."), then the Add topics card (LAB-3348). From 1100px the side cards SHALL sit in a sticky column on the right: the topics section, then Past issues. Under 1100px the topics section SHALL follow the page header, before the stories, and Past issues SHALL follow "You're all caught up".
+After the stories and forum posts, the page SHALL show "You're all caught up" with a check, "The next digest arrives on <weekday>, <day> <month>." from the API's `nextSendAt` (the line is left out when it is missing), and a "See all network news" link to Home. When the API's `isTeamMember` is true, the page SHALL show the outlined "Got news from your team?" card with "Post your team news →" to a signed-in member, except one whose own record lists no team. It SHALL NOT show to a signed-out reader, whose team is unknown (LAB-3347). For a signed-in member of one team, "Post your team news →" SHALL open the Post news modal for that team. For a member of more than one team it SHALL ask "Post as" with one button per team, main team first, and a press SHALL open the modal for that team. A link with `postnews=open` landing signed out SHALL go to sign-in and come back to the page with `postnews=open`. A link with `postnews=open` SHALL do the same as a press once the reader is signed in (except on the way back from Google or GitHub sign-in, see Saving topics), bringing the "Post as" question into view, and SHALL then be dropped from the address so a reload doesn't repeat it. The teams SHALL come from the signed-in member's own record (`teamMemberRoles`). The topics section SHALL be "How personalization works" ("Stories come from your topics first, then the teams you follow, then the network's top stories."), then the Add topics card (LAB-3348). For a signed-out reader (known from the server before the page hydrates) "How personalization works" SHALL instead say "You're seeing the network's top stories. Signed in, your digest leads with your topics, then the teams you follow." and end with "Sign in to personalize", which opens the sign-in prompt (LAB-3347). From 1100px the side cards SHALL sit in a sticky column on the right: the topics section, then Past issues. Under 1100px the topics section SHALL follow the page header, before the stories, and Past issues SHALL follow "You're all caught up".
 
 #### Scenario: Not on a team
 
@@ -147,7 +147,7 @@ After the stories and forum posts, the page SHALL show "You're all caught up" wi
 
 #### Scenario: Post news from the email, signed out
 
-- **GIVEN** a signed-out reader on a team
+- **GIVEN** a signed-out reader on a team, who sees no "Got news from your team?" card
 - **WHEN** they open the email's "Post your team news →" (`postnews=open`)
 - **THEN** sign-in opens, and after it the page opens the Post news modal (or "Post as") and drops `postnews` from the address
 
@@ -212,13 +212,13 @@ The topics section SHALL end with "Add topics": "Tick a topic to get stories abo
 
 ### Requirement: Saving topics
 
-Topics SHALL save only as the signed-in member's News preferences tags (the full list), through the same save as News preferences, never through the link. Before sign-in the page SHALL show the link member's topics; signed in, the member's own saved tags. A failed save SHALL keep the reader's picks in the card or the modal, show an error toast, and leave the saved topics unchanged. A signed-out reader who presses a chip or "See all topics" SHALL go to sign-in, and come back to the same digest with the modal open, or with that chip ticked and Save topics showing. A signed-out reader who opens a `topics=open` link SHALL go to sign-in first. Google and GitHub sign-in come back to the same address with `privy_oauth_*` added, still signed out while the sign-in finishes: the page SHALL NOT start another sign-in then, for `topics=open` or `postnews=open`, because starting one throws away the sign-in that is finishing. Once applied, `topics` and `topic` SHALL be removed from the address.
+Topics SHALL save only as the signed-in member's News preferences tags (the full list), through the same save as News preferences, never through the link. Before sign-in the page SHALL show the link member's topics; signed in, the member's own saved tags. A failed save SHALL keep the reader's picks in the card or the modal, show an error toast, and leave the saved topics unchanged. A signed-out reader who presses a chip or "See all topics" SHALL get the sign-in prompt (LAB-3347), and after sign-in come back to the same digest with the modal open, or with that chip ticked and Save topics showing. A signed-out reader who opens a `topics=open` link SHALL get the same prompt first. Google and GitHub sign-in come back to the same address with `privy_oauth_*` added, still signed out while the sign-in finishes: the page SHALL NOT start another sign-in then, for `topics=open` or `postnews=open`, because starting one throws away the sign-in that is finishing. Once applied, `topics` and `topic` SHALL be removed from the address.
 
 #### Scenario: Chip before sign-in
 
 - **GIVEN** a signed-out reader
 - **WHEN** they press `#defi`
-- **THEN** sign-in opens, nothing is saved, and after sign-in the page shows `#defi` ticked with Save topics
+- **THEN** "Sign in to add #defi" opens, nothing is saved, and after Sign in there the page shows `#defi` ticked with Save topics
 
 #### Scenario: Back from Google sign-in
 
@@ -234,7 +234,7 @@ Topics SHALL save only as the signed-in member's News preferences tags (the full
 
 ### Requirement: Topics events
 
-The page SHALL record `digest-topics-saved` with `surface` (`card` or `modal`), `added`, `removed` and `total`; `digest-topics-modal-opened` with `via` `see-all`; and `digest-topics-sign-in-prompted` with `via` (`chip`, `see-all` or `email`). A forum thread press that asks for sign-in SHALL record `digest-sign-in-prompted` (see "From the forum"). None SHALL carry the link token.
+The page SHALL record `digest-topics-saved` with `surface` (`card` or `modal`), `added`, `removed` and `total`; `digest-topics-modal-opened` with `via` `see-all`; and `digest-topics-sign-in-prompted` with `via` (`chip`, `see-all` or `email`). A forum thread press that asks for sign-in SHALL record `digest-sign-in-prompted` (see "From the forum"). The reader's answer to the sign-in prompt records `digest-sign-in-prompt-answered` (see "Digest page events"). None SHALL carry the link token.
 
 #### Scenario: Saved from the modal
 
@@ -292,13 +292,13 @@ After More from the network and before the forum posts, the page SHALL show "Upc
 
 ### Requirement: From the forum
 
-After Upcoming events, the page SHALL show "From the forum" with the subtitle "Top threads from the past week." and one numbered row per item of the page's `forumPosts`, in the order given (the email's order): the number, the title and "N replies" ("1 reply" for one). A row SHALL open Home's forum post modal (the full post, likes, comments) over the page for a signed-in member with forum access whose feed has the thread; otherwise it SHALL link to the thread in the forum. For a signed-out reader a row SHALL open the sign-in dialog instead and open nothing, recording `digest-sign-in-prompted` with `via: forum-post`, `topic_id` and `position` (LAB-3348); back from sign-in (`post=<tid>` in the address), the page SHALL open that thread once, in the modal or else in the forum, as soon as it knows which, and remove `post` from the address. Until the reader is known a row SHALL stay a link to the forum. Each row SHALL be the `post-<tid>` anchor, so links from older emails land on it. The section SHALL end with "Open the forum →", linking to the forum. With no forum posts, or when the forum did not answer, the section SHALL NOT show.
+After Upcoming events, the page SHALL show "From the forum" with the subtitle "Top threads from the past week." and one numbered row per item of the page's `forumPosts`, in the order given (the email's order): the number, the title and "N replies" ("1 reply" for one). A row SHALL open Home's forum post modal (the full post, likes, comments) over the page for a signed-in member with forum access whose feed has the thread; otherwise it SHALL link to the thread in the forum. For a signed-out reader a row SHALL open the sign-in prompt ("Sign in to read this thread", LAB-3347) instead and open nothing, recording `digest-sign-in-prompted` with `via: forum-post`, `topic_id` and `position` (LAB-3348); back from sign-in (`post=<tid>` in the address), the page SHALL open that thread once, in the modal or else in the forum, as soon as it knows which, and remove `post` from the address. Until the reader is known a row SHALL stay a link to the forum. Each row SHALL be the `post-<tid>` anchor, so links from older emails land on it. The section SHALL end with "Open the forum →", linking to the forum; signed out it SHALL open the sign-in prompt ("Sign in to open the forum") and go on to the forum after sign-in, recording `digest-sign-in-prompted` with `via: forum-open` instead of `digest-forum-open-clicked`. With no forum posts, or when the forum did not answer, the section SHALL NOT show.
 
 #### Scenario: Signed-out reader
 
 - **GIVEN** the reader is signed out
 - **WHEN** they press a thread
-- **THEN** the sign-in dialog opens and the thread does not open; after sign-in the thread opens in the modal, or in the forum when the modal can't show it
+- **THEN** "Sign in to read this thread" opens and the thread does not open; after Sign in there the thread opens in the modal, or in the forum when the modal can't show it
 
 #### Scenario: Signed-in member with forum access
 

@@ -1,5 +1,5 @@
 import { DigestPastIssuesCard, type DigestPastIssuesCardProps } from './DigestPastIssuesCard';
-import { DigestTopicsSection } from './DigestTopicsSection';
+import { DigestTopicsSection, type DigestPersonalizeProps } from './DigestTopicsSection';
 import type { DigestTopicsCardProps } from './DigestTopicsCard';
 
 import s from './DigestSidebar.module.scss';
@@ -13,10 +13,12 @@ import s from './DigestSidebar.module.scss';
 export function DigestSidebar({
   variant,
   topics,
+  personalize,
   issues,
 }: {
   variant: 'rail' | 'inline';
   topics: DigestTopicsCardProps;
+  personalize: DigestPersonalizeProps;
   issues: DigestPastIssuesCardProps;
 }) {
   if (variant === 'inline') {
@@ -29,7 +31,7 @@ export function DigestSidebar({
   }
   return (
     <div className={s.rail}>
-      <DigestTopicsSection variant="rail" topics={topics} />
+      <DigestTopicsSection variant="rail" topics={topics} personalize={personalize} />
       <DigestPastIssuesCard listId="past-rail" {...issues} />
     </div>
   );

@@ -9,6 +9,7 @@ import {
   digestPageFrom,
   useDigestAnalytics,
   type DigestLinkType,
+  type DigestSignInPromptPress,
   type DigestTopicsVia,
 } from '@/analytics/digest.analytics';
 import { isPrivyOAuthReturn } from '@/components/core/login/utils/privyOAuthReturn';
@@ -27,6 +28,7 @@ import { DigestNetworkNews } from './DigestNetworkNews';
 import { DigestCaughtUp } from './DigestIssueEnd';
 import { DigestPostNews } from './DigestPostNews';
 import { DigestSidebar } from './DigestSidebar';
+import { DigestSignInPrompt, type DigestSignInAsk } from './DigestSignInPrompt';
 import { DigestTopicsSection } from './DigestTopicsSection';
 import { DigestStoryCard } from './DigestStoryCard';
 import { DigestTopicsModal } from './DigestTopicsModal';
@@ -34,9 +36,17 @@ import { DigestTopicsModal } from './DigestTopicsModal';
 import sb from './DigestSidebar.module.scss';
 import s from './DigestPage.module.scss';
 
-/** What a signed-out press asks for, carried through sign-in in the address (see `goToLogin`). */
-const SIGN_IN_INTENTS = ['topics', 'topic', 'postnews', 'post'] as const;
+/** What a signed-out press asks for, carried through sign-in in the address (see `addressWith`). */
+const SIGN_IN_INTENTS = ['topics', 'topic', 'postnews', 'post', 'follow', 'comments'] as const;
 type SignInIntent = (typeof SIGN_IN_INTENTS)[number];
+type Intent = { key: SignInIntent; value: string } | { story: string; choice: DigestChoice };
+
+/** The sign-in prompt on show (LAB-3347): its words, the press that opened it, and where sign-in comes back to. */
+type OpenPrompt = { ask: DigestSignInAsk; press: DigestSignInPromptPress; returnTo: string };
+
+// Polina's prompt copy (LAB-3347, 2026-11-20): the title names the press, the line says why it needs an account.
+const FORUM_LINE = 'Forum threads are open to Protocol Labs network members.';
+const TOPICS_LINE = 'Your topics decide which stories your digest leads with.';
 
 type Props = {
   /** The issue on show (LAB-3351): its key in the address and in choice saves. */
@@ -84,6 +94,11 @@ export function DigestPage({ issueUid, data, isLoggedIn }: Props) {
     const tid = Number(searchParams.get('post'));
     return Number.isInteger(tid) && tid > 0 ? tid : null;
   });
+  // `follow=<team uid>` and `comments=<story uid>` (LAB-3347): Follow and Comments pressed before sign-in.
+  const [followOnReturn] = useState(() => searchParams.get('follow'));
+  const [commentsOnReturn] = useState(() => searchParams.get('comments'));
+  const followed = useRef(false);
+  const [prompt, setPrompt] = useState<OpenPrompt | null>(null);
 
   // An email link's address carries the link token: swap it for the issue id (LAB-3351), keeping every other
   // parameter and the `#story-` / `#post-` anchor, so a copied address never acts for the link's member. A layout
@@ -99,40 +114,86 @@ export function DigestPage({ issueUid, data, isLoggedIn }: Props) {
 
   // Back to this page after sign-in: the issue stays in the address, plus `extra` to pick up where they were. A More /
   // Less press comes back as `story` + `choice`, the same pair an older email's More / Less link carries.
-  const goToLogin = useCallback(
-    (extra?: { key: SignInIntent; value: string } | { story: string; choice: DigestChoice }) => {
-      const url = new URL(window.location.href);
-      if (extra) {
-        [...SIGN_IN_INTENTS, 'story', 'choice'].forEach((key) => url.searchParams.delete(key));
-        if ('story' in extra) {
-          url.searchParams.set('story', extra.story);
-          url.searchParams.set('choice', extra.choice);
-        } else {
-          url.searchParams.set(extra.key, extra.value);
-        }
+  const addressWith = (extra?: Intent) => {
+    const url = new URL(window.location.href);
+    if (extra) {
+      [...SIGN_IN_INTENTS, 'story', 'choice'].forEach((key) => url.searchParams.delete(key));
+      if ('story' in extra) {
+        url.searchParams.set('story', extra.story);
+        url.searchParams.set('choice', extra.choice);
+      } else {
+        url.searchParams.set(extra.key, extra.value);
       }
-      router.push(`${url.pathname}${url.search}#login`, { scroll: false });
-    },
-    [router],
-  );
-  const signInToChoose = useCallback(
-    (story: string, choice: DigestChoice, via: DigestChoice | 'email-choice') => {
-      analytics.onChoiceSignInPrompted({ via, newsId: story });
-      goToLogin({ story, choice });
-    },
-    [analytics, goToLogin],
-  );
-  const signIn = useCallback(() => goToLogin(), [goToLogin]);
-  // "Post your team news →" signed out: back from sign-in, `postnews=open` posts (LAB-3313).
-  const signInToPost = useCallback(() => goToLogin({ key: 'postnews', value: 'open' }), [goToLogin]);
-  const signInToThread = useCallback((tid: number) => goToLogin({ key: 'post', value: String(tid) }), [goToLogin]);
-  const signInForTopics = useCallback(
-    (via: DigestTopicsVia, extra: { key: 'topics' | 'topic'; value: string }) => {
-      analytics.onTopicsSignInPrompted({ via });
-      goToLogin(extra);
-    },
-    [analytics, goToLogin],
-  );
+    }
+    return `${url.pathname}${url.search}`;
+  };
+  const goToLogin = useCallback((returnTo: string) => router.push(`${returnTo}#login`, { scroll: false }), [router]);
+  // A signed-out press (LAB-3347): the sign-in prompt names it and says why; Sign in or Sign up there finishes it.
+  const ask = (press: DigestSignInPromptPress, words: DigestSignInAsk, extra?: Intent, returnTo = addressWith(extra)) =>
+    setPrompt({ ask: words, press, returnTo });
+
+  const signInToChoose = (story: string, choice: DigestChoice, via: DigestChoice | 'email-choice') => {
+    analytics.onChoiceSignInPrompted({ via, newsId: story });
+    ask(
+      via,
+      {
+        title: `Sign in to get ${choice === 'more' ? 'more' : 'fewer'} stories like this`,
+        line: 'Your choice shapes which stories lead your next digest.',
+      },
+      { story, choice },
+    );
+  };
+  // The comments thread's own sign-in (a signed-in session that lapsed): straight to the login, as on Home.
+  const signIn = useCallback(() => goToLogin(addressWith()), [goToLogin]);
+  const signInToFollow = (teamUid: string, teamName: string) => {
+    analytics.onSignInPrompted({ via: 'follow', teamUid });
+    ask(
+      'follow',
+      { title: `Sign in to follow ${teamName}`, line: 'Their news comes first in your feed and your digest.' },
+      { key: 'follow', value: teamUid },
+    );
+  };
+  const signInForComments = (storyUid: string) => {
+    analytics.onSignInPrompted({ via: 'comments', newsId: storyUid });
+    ask(
+      'comments',
+      { title: 'Sign in to read and add comments', line: 'Comments on network stories are open to members.' },
+      { key: 'comments', value: storyUid },
+    );
+  };
+  // DigestForum records `digest-sign-in-prompted` for a thread itself.
+  const signInToThread = (tid: number) =>
+    ask('forum-post', { title: 'Sign in to read this thread', line: FORUM_LINE }, { key: 'post', value: String(tid) });
+  const signInToOpenForum = () => {
+    analytics.onSignInPrompted({ via: 'forum-open' });
+    ask('forum-open', { title: 'Sign in to open the forum', line: FORUM_LINE }, undefined, '/forum');
+  };
+  const signInToPersonalize = () => {
+    analytics.onSignInPrompted({ via: 'personalize' });
+    ask('personalize', {
+      title: 'Sign in to personalize your digest',
+      line: 'Pick topics and follow teams, and your digest leads with them.',
+    });
+  };
+  const signInForTopics = (via: DigestTopicsVia, extra: { key: 'topics' | 'topic'; value: string }) => {
+    analytics.onTopicsSignInPrompted({ via });
+    ask(
+      `topics-${via}`,
+      {
+        title: extra.key === 'topic' ? `Sign in to add #${extra.value}` : 'Sign in to choose your topics',
+        line: TOPICS_LINE,
+      },
+      extra,
+    );
+  };
+  const answerPrompt = (action: 'sign-in' | 'sign-up' | 'close') => {
+    if (!prompt) return;
+    analytics.onSignInPromptAnswered({ press: prompt.press, action });
+    setPrompt(null);
+    if (action === 'sign-in') goToLogin(prompt.returnTo);
+    // The navbar's Sign up: the sign-up flow comes back to `returnTo`, so the press still finishes.
+    if (action === 'sign-up') router.push(`/sign-up?returnTo=${encodeURIComponent(prompt.returnTo)}`);
+  };
   const openAllTopics = () => {
     if (signedIn === undefined) return;
     if (!signedIn) return signInForTopics('see-all', { key: 'topics', value: 'open' });
@@ -143,14 +204,23 @@ export function DigestPage({ issueUid, data, isLoggedIn }: Props) {
   useEffect(() => {
     if (signedIn === undefined) return;
     if (!signedIn) {
-      // The email's Change topics lands signed out: sign in first, then the address opens the modal. Not on the way
-      // back from Google or GitHub, which still carries `topics=open`: starting a sign-in again would throw away the
-      // one that is finishing (LAB-3308).
-      if (searchParams.get('topics') === 'open' && !isPrivyOAuthReturn()) {
-        signInForTopics('email', { key: 'topics', value: 'open' });
-      }
+      // An email link lands signed out: sign in first, then the address does what it asked. Not on the way back from
+      // Google or GitHub, which still carries it: starting a sign-in again would throw away the one that is finishing
+      // (LAB-3308). Change topics asks with the prompt (LAB-3347); "Post your team news →" goes straight to the login,
+      // since the card it would act on is hidden from a signed-out reader.
+      if (isPrivyOAuthReturn()) return;
+      if (searchParams.get('topics') === 'open') signInForTopics('email', { key: 'topics', value: 'open' });
+      else if (postOnLoad) goToLogin(addressWith());
       return;
     }
+    // Back from a sign-in that Follow started (LAB-3347): follow that team, once.
+    const followStory = data.stories.find((story) => story.teamUid === followOnReturn);
+    if (followStory && !followed.current) {
+      followed.current = true;
+      follows.follow(followStory.teamUid, followStory.teamName);
+    }
+    // Back from a sign-in that Comments started: the story's thread opens (DigestStoryCard); bring it into view.
+    if (commentsOnReturn) document.getElementById(`story-${commentsOnReturn}`)?.scrollIntoView({ block: 'start' });
     // Signed in: the intent is applied, so a reload doesn't repeat it. `null` state: see the __NA trap.
     const url = new URL(window.location.href);
     if (!SIGN_IN_INTENTS.some((key) => url.searchParams.has(key))) return;
@@ -169,6 +239,11 @@ export function DigestPage({ issueUid, data, isLoggedIn }: Props) {
     onSave: (next: string[]) => topics.save(next, 'card'),
     onOpenAll: openAllTopics,
     onSignIn: (slug: string) => signInForTopics('chip', { key: 'topic', value: slug }),
+  };
+  // Signed out, the explainer says what this reader sees; the server knows that before the auth store hydrates.
+  const personalize = {
+    signedOut: signedIn === false || (signedIn === undefined && !isLoggedIn),
+    onSignIn: signInToPersonalize,
   };
   // Past issues open by id (LAB-3351); an issue the backend never recorded has none, so no link.
   const issuesCard = {
@@ -285,7 +360,7 @@ export function DigestPage({ issueUid, data, isLoggedIn }: Props) {
 
           {/* Under 1100px the topics section comes right after the header; from 1100px it opens the side column. */}
           <div className={sb.top}>
-            <DigestTopicsSection variant="top" topics={topicsCard} />
+            <DigestTopicsSection variant="top" topics={topicsCard} personalize={personalize} />
           </div>
 
           <div className={s.spacer} />
@@ -304,10 +379,15 @@ export function DigestPage({ issueUid, data, isLoggedIn }: Props) {
                 following={follows.isFollowing(story.teamUid)}
                 onFollow={
                   isHydrated
-                    ? () => (currentUser ? follows.toggle(story.teamUid, story.teamName) : signIn())
+                    ? () =>
+                        currentUser
+                          ? follows.toggle(story.teamUid, story.teamName)
+                          : signInToFollow(story.teamUid, story.teamName)
                     : undefined
                 }
                 onSignIn={signIn}
+                onCommentsSignIn={signedIn === false ? () => signInForComments(story.uid) : undefined}
+                openComments={signedIn === true && commentsOnReturn === story.uid}
               />
             ))}
           </div>
@@ -338,6 +418,7 @@ export function DigestPage({ issueUid, data, isLoggedIn }: Props) {
                 posts={data.forumPosts}
                 signedIn={signedIn}
                 onSignIn={signInToThread}
+                onOpenSignIn={signInToOpenForum}
                 openOnLoad={threadOnReturn}
               />
             </>
@@ -346,9 +427,10 @@ export function DigestPage({ issueUid, data, isLoggedIn }: Props) {
           <DigestCaughtUp nextSendAt={data.nextSendAt} />
 
           {/* Under 1100px there's no room beside the column: Past issues closes the page instead. */}
-          <DigestSidebar variant="inline" topics={topicsCard} issues={issuesCard} />
+          <DigestSidebar variant="inline" topics={topicsCard} personalize={personalize} issues={issuesCard} />
 
-          {data.isTeamMember && <DigestPostNews openOnLoad={postOnLoad} onSignIn={signInToPost} />}
+          {/* For team members only, so hidden from a signed-out reader, whose team is unknown (LAB-3347). */}
+          {data.isTeamMember && signedIn !== false && <DigestPostNews openOnLoad={postOnLoad} onSignIn={signIn} />}
 
           <footer>
             <div className={s.signoff}>
@@ -372,9 +454,18 @@ export function DigestPage({ issueUid, data, isLoggedIn }: Props) {
 
         {/* 1100px and up: the side cards as a sticky column on the right. */}
         <aside className={s.rail}>
-          <DigestSidebar variant="rail" topics={topicsCard} issues={issuesCard} />
+          <DigestSidebar variant="rail" topics={topicsCard} personalize={personalize} issues={issuesCard} />
         </aside>
       </div>
+
+      {prompt && (
+        <DigestSignInPrompt
+          ask={prompt.ask}
+          onSignIn={() => answerPrompt('sign-in')}
+          onSignUp={() => answerPrompt('sign-up')}
+          onClose={() => answerPrompt('close')}
+        />
+      )}
 
       {topicsOpen && signedIn && topics.canSave && (
         <DigestTopicsModal

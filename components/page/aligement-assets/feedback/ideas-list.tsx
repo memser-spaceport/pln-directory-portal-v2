@@ -44,6 +44,7 @@ export default function IdeasList({
                 <TypeBadge type={item.type} />
                 <StatusBadge status={item.status} />
                 {showPrivateMarker && !item.is_public && <span className="fb-badge fb-badge--muted">Private</span>}
+                {item.removed_at && <span className="fb-badge fb-badge--muted">Removed</span>}
                 <MemberDisplay author={item.author} size="sm" />
                 <span className="fb-row__age">{relativeAge(item.created_at)}</span>
               </div>

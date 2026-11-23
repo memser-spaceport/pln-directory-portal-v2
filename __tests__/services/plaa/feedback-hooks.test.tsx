@@ -8,6 +8,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import type { InfiniteData } from '@tanstack/react-query';
 import {
   FeedbackQueryKeys,
+  useAdminUpdate,
   useCreateFeedback,
   useFeedbackComments,
   useFeedbackList,
@@ -29,6 +30,7 @@ jest.mock('@/services/plaa/feedback/feedback.api', () => ({
     comments: jest.fn(),
     roadmap: jest.fn(),
     create: jest.fn(),
+    adminUpdate: jest.fn(),
   },
 }));
 
@@ -253,5 +255,30 @@ describe('submission receipt', () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(toast.success).not.toHaveBeenCalled();
+  });
+});
+
+describe('an admin change', () => {
+  it('sends the change for that item', async () => {
+    (feedbackApi.adminUpdate as jest.Mock).mockResolvedValue(baseItem());
+    const { result } = renderHook(() => useAdminUpdate(), { wrapper: newClient().wrapper });
+
+    act(() => {
+      result.current.mutate({ id: ITEM_ID, removed: true });
+    });
+
+    await waitFor(() => expect(feedbackApi.adminUpdate).toHaveBeenCalledWith(ITEM_ID, { removed: true }));
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it('tells the admin why a change was not saved', async () => {
+    (feedbackApi.adminUpdate as jest.Mock).mockRejectedValue(new Error('This action is for admins only.'));
+    const { result } = renderHook(() => useAdminUpdate(), { wrapper: newClient().wrapper });
+
+    act(() => {
+      result.current.mutate({ id: ITEM_ID, removed: true });
+    });
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('This action is for admins only.'));
   });
 });

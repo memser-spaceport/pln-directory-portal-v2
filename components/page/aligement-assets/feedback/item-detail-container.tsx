@@ -5,6 +5,7 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { FeedbackStatus } from '@/services/plaa/feedback/feedback.types';
 import {
   useAddComment,
+  useAdminUpdate,
   useChangeStatus,
   useDeleteComment,
   useFeedbackComments,
@@ -33,6 +34,7 @@ export default function ItemDetailContainer({ id }: { id: string }) {
   const hideComment = useHideComment(id);
   const changeStatus = useChangeStatus();
   const retryLinear = useRetryLinear();
+  const adminUpdate = useAdminUpdate();
 
   if (itemQuery.isLoading) {
     return (
@@ -84,6 +86,7 @@ export default function ItemDetailContainer({ id }: { id: string }) {
           analytics.onStatusChanged(item.status, toStatus, Boolean(note));
         }}
         onRetryLinear={() => retryLinear.mutate(item.id)}
+        onAdminUpdate={(update) => adminUpdate.mutate({ id: item.id, ...update })}
       />
 
       <FeedbackStyles />

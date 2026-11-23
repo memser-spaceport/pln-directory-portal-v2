@@ -170,7 +170,7 @@ describe('narrow viewport', () => {
 });
 
 describe('triage Linear state', () => {
-  const triageHandlers = () => ({ onMove: jest.fn(), onRetryLinear: jest.fn() });
+  const triageHandlers = () => ({ onMove: jest.fn(), onRetryLinear: jest.fn(), onAdminUpdate: jest.fn() });
 
   it('offers Load more only while the queue has more to load', () => {
     const onLoadMore = jest.fn();

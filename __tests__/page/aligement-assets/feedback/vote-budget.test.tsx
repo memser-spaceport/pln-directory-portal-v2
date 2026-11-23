@@ -29,6 +29,7 @@ jest.mock('@/services/plaa/feedback/useFeedback', () => ({
   useCreateFeedback: () => ({ mutate: jest.fn(), isPending: false, error: null }),
   useChangeStatus: () => ({ mutate: jest.fn() }),
   useRetryLinear: () => ({ mutate: jest.fn(), isPending: false, variables: undefined }),
+  useAdminUpdate: () => ({ mutate: jest.fn(), isPending: false }),
 }));
 
 jest.mock('@/analytics/plaa-feedback.analytics', () => ({

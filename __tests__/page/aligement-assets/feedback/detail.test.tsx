@@ -18,6 +18,7 @@ function renderDetail(props: Partial<React.ComponentProps<typeof ItemDetail>> = 
     onHideComment: jest.fn(),
     onMove: jest.fn(),
     onRetryLinear: jest.fn(),
+    onAdminUpdate: jest.fn(),
   };
   render(<ItemDetail item={item()} comments={[]} isAdmin={false} {...handlers} {...props} />);
   return handlers;
@@ -36,6 +37,7 @@ describe('voting', () => {
         onHideComment={jest.fn()}
         onMove={jest.fn()}
         onRetryLinear={jest.fn()}
+        onAdminUpdate={jest.fn()}
       />,
     );
     const button = screen.getByRole('button', { name: /^Vote for/ });
@@ -52,6 +54,7 @@ describe('voting', () => {
         onHideComment={jest.fn()}
         onMove={jest.fn()}
         onRetryLinear={jest.fn()}
+        onAdminUpdate={jest.fn()}
       />,
     );
     expect(screen.getByRole('button', { name: /^Remove your vote/ })).toHaveAttribute('aria-pressed', 'true');
@@ -182,6 +185,7 @@ describe('screenshots are never shown', () => {
         onHideComment={jest.fn()}
         onMove={jest.fn()}
         onRetryLinear={jest.fn()}
+        onAdminUpdate={jest.fn()}
       />,
     );
     expect(screen.getByText(/2 screenshots sent to the PLAA team/)).toBeInTheDocument();
@@ -238,6 +242,25 @@ describe('admin controls are not rendered for members', () => {
 });
 
 describe('ideas list rows', () => {
+  it('marks an item that was removed, which only an admin is ever sent', () => {
+    render(
+      <IdeasList
+        items={[
+          item({ id: 'gone', title: 'Removed one', removed_at: '2026-11-01T00:00:00.000Z' }),
+          item({ id: 'here', title: 'Still here' }),
+        ]}
+        onVote={jest.fn()}
+        emptyMessage="none"
+      />,
+    );
+    expect(
+      within(screen.getByText('Removed one').closest('li') as HTMLElement).getByText('Removed'),
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByText('Still here').closest('li') as HTMLElement).queryByText('Removed'),
+    ).not.toBeInTheDocument();
+  });
+
   it('offers Load more only while there is more to load', () => {
     const onLoadMore = jest.fn();
     const { rerender } = render(

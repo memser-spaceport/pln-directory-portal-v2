@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { FeedbackItem, FeedbackStatus } from '@/services/plaa/feedback/feedback.types';
 import { EmptyState, LoadMore, StatusBadge, TypeBadge } from './feedback-bits';
+import AdminActions, { AdminUpdate } from './admin-actions';
 import MoveToMenu from './move-to-menu';
 import { relativeAge } from './feedback.utils';
 
@@ -10,6 +11,7 @@ export default function TriageList({
   items,
   onMove,
   onRetryLinear,
+  onAdminUpdate,
   retryingId,
   onLoadMore,
   loadingMore,
@@ -17,6 +19,7 @@ export default function TriageList({
   items: FeedbackItem[];
   onMove: (id: string, toStatus: FeedbackStatus, note?: string, duplicateOfId?: string) => void;
   onRetryLinear: (id: string) => void;
+  onAdminUpdate: (id: string, update: AdminUpdate) => void;
   retryingId?: string;
   onLoadMore?: () => void;
   loadingMore?: boolean;
@@ -74,6 +77,7 @@ export default function TriageList({
               idPrefix={`fb-triage-${item.id}`}
               onMove={(toStatus, note, duplicateOfId) => onMove(item.id, toStatus, note, duplicateOfId)}
             />
+            <AdminActions item={item} onUpdate={(update) => onAdminUpdate(item.id, update)} />
           </li>
         ))}
       </ul>

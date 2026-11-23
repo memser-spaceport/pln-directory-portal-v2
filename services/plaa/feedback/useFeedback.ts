@@ -231,6 +231,8 @@ export function useAdminUpdate() {
       removed?: boolean;
     }) => feedbackApi.adminUpdate(id, body),
     onSuccess: (_data, variables) => invalidate(variables.id),
+    onError: (error) =>
+      toast.error(error instanceof Error && error.message ? error.message : 'That change was not saved. Try again.'),
   });
 }
 

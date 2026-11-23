@@ -29,6 +29,7 @@ jest.mock('@/services/plaa/feedback/useFeedback', () => {
     useHideComment: idle,
     useChangeStatus: idle,
     useRetryLinear: idle,
+    useAdminUpdate: idle,
   };
 });
 

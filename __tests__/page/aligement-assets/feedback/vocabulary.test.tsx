@@ -18,6 +18,7 @@ const noop = jest.fn();
 describe('PLAA vocabulary', () => {
   it('keeps the banned verb out of everything the board shows or reads aloud, in every status', () => {
     const cards = STATUSES.map((status) => item({ id: `card-${status}`, status, linear_status: 'failed' }));
+    const removed = item({ id: 'removed', removed_at: '2026-11-01T00:00:00.000Z' });
 
     const { container } = render(
       <>
@@ -29,7 +30,9 @@ describe('PLAA vocabulary', () => {
           onVote={noop}
           onMove={noop}
         />
-        <TriageList items={cards} onMove={noop} onRetryLinear={noop} />
+        <TriageList items={[removed]} onMove={noop} onRetryLinear={noop} onAdminUpdate={noop} />
+        <IdeasList items={[removed]} onVote={noop} emptyMessage="" />
+        <TriageList items={cards} onMove={noop} onRetryLinear={noop} onAdminUpdate={noop} />
         {cards.map((card) => (
           <ItemDetail
             key={card.id}
@@ -42,6 +45,7 @@ describe('PLAA vocabulary', () => {
             onHideComment={noop}
             onMove={noop}
             onRetryLinear={noop}
+            onAdminUpdate={noop}
           />
         ))}
       </>,

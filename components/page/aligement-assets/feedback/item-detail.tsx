@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { FeedbackComment, FeedbackItem, FeedbackStatus, STATUS_LABELS } from '@/services/plaa/feedback/feedback.types';
 import MemberDisplay from './member-display';
+import AdminActions, { AdminUpdate } from './admin-actions';
 import MoveToMenu from './move-to-menu';
 import { LoadMore, StatusBadge, TypeBadge, VoteButton } from './feedback-bits';
 import { formatDate, relativeAge } from './feedback.utils';
@@ -21,6 +22,7 @@ export default function ItemDetail({
   onHideComment,
   onMove,
   onRetryLinear,
+  onAdminUpdate,
   commentPending,
   votesRemaining,
   onLoadMoreComments,
@@ -36,6 +38,7 @@ export default function ItemDetail({
   onHideComment: (commentId: string, hidden: boolean) => void;
   onMove: (toStatus: FeedbackStatus, note?: string, duplicateOfId?: string) => void;
   onRetryLinear: () => void;
+  onAdminUpdate: (update: AdminUpdate) => void;
   commentPending?: boolean;
   votesRemaining?: number;
   onLoadMoreComments?: () => void;
@@ -135,6 +138,7 @@ export default function ItemDetail({
               </span>
             )}
           </div>
+          <AdminActions item={item} onUpdate={onAdminUpdate} />
         </section>
       )}
 

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useEffectEvent, useMemo, useState } from 'react
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { FeedbackItem, FeedbackStatus, FeedbackType } from '@/services/plaa/feedback/feedback.types';
 import {
+  useAdminUpdate,
   useChangeStatus,
   useCreateFeedback,
   useFeedbackList,
@@ -87,6 +88,7 @@ export default function FeedbackPage() {
   const create = useCreateFeedback();
   const changeStatus = useChangeStatus();
   const retryLinear = useRetryLinear();
+  const adminUpdate = useAdminUpdate();
 
   const handleVote = (item: FeedbackItem) => {
     analytics[item.has_voted ? 'onUnvoted' : 'onVoted'](item.type, item.status);
@@ -249,6 +251,7 @@ export default function FeedbackPage() {
               items={triageQuery.data?.items ?? []}
               onMove={handleMove}
               onRetryLinear={(id) => retryLinear.mutate(id)}
+              onAdminUpdate={(id, update) => adminUpdate.mutate({ id, ...update })}
               retryingId={retryLinear.isPending ? retryLinear.variables : undefined}
               onLoadMore={triageQuery.hasMore ? triageQuery.loadMore : undefined}
               loadingMore={triageQuery.isLoadingMore}

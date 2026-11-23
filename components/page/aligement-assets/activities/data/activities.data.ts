@@ -355,6 +355,33 @@ export const activitiesData: ActivitiesData = {
 
     // ─── Recurring ────────────────────────────────────────────────────────────
     {
+      id: 'list-your-deal-on-labos',
+      category: 'Projects',
+      activity: 'List Your Deal on LabOS',
+      networkValue: `List your organization's recurring deal on LabOS, and collect 500 points once three other members use it`,
+      points: '500',
+      frequency: 'Recurring',
+      verificationType: 'Auto',
+      cta: 'submit',
+      popupContent: {
+        title: 'List Your Deal on LabOS',
+        overview:
+          'List a deal on a recurring product or service from your PL network team or company on LabOS Deals. Once three other members mark your deal as used, you collect 500 points.',
+        networkBenefits: `Gives PL-funded teams discounts on the tools and expertise they need, and puts members' organizations in front of founders across the network.`,
+        rules: [
+          `Submit the deal on LabOS Deals using **List Your Product** on behalf of your network team. Individual or freelance offers don't qualify.`,
+          `The deal must be for a recurring product or service that gives other members a real benefit, such as a software subscription, consulting, audits or advisory work. It must be an exclusive, ongoing offer that isn't publicly available, not a one-time, limited-time or event offer.`,
+          'It must be worth $100 or more on an annual basis or include at least one month free. It must be open to all PL-network teams, with simple redemption through a code or link.',
+          `Legal services, capital raising or fundraising services, and broker-dealer services don't qualify.`,
+          'The PL team reviews each deal before it goes live. Only approved deals qualify.',
+          `You collect 500 points, once per deal, after three other members click **Mark as Using** on your live deal. Any LabOS member counts, whether or not they take part in PLAA. A click that is later undone doesn't count.`,
+        ],
+        ctaLink: '/deals',
+        links: [{ text: 'LabOS Deals', url: '/deals' }],
+        disclaimer: `Deals are offered by listing teams, not Protocol Labs, and approval isn't an endorsement. Points have no cash value and aren't an investment. Protocol Labs may change or end this activity, remove deals or adjust points at any time.`,
+      },
+    },
+    {
       id: 'share-project-update',
       category: 'Projects',
       activity: 'Share a Project Update with the Network',

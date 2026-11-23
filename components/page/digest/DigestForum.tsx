@@ -25,8 +25,10 @@ type Props = {
   posts: DigestForumPost[];
   /** Undefined until the auth store hydrates. */
   signedIn: boolean | undefined;
-  /** Signed out: a thread press goes to sign-in instead (LAB-3348). */
+  /** Signed out: a thread press asks the reader to sign in instead (LAB-3348, LAB-3347). */
   onSignIn: (tid: number) => void;
+  /** Signed out: Open the forum asks the reader to sign in first (LAB-3347). */
+  onOpenSignIn: () => void;
   /** Back from sign-in (`?post=<tid>`): the thread to open once, in the modal or else in the forum. */
   openOnLoad: number | null;
 };
@@ -40,7 +42,7 @@ const replies = (count: number) => `${count} ${count === 1 ? 'reply' : 'replies'
  * or for a thread the member's feed doesn't have, it links to the thread in the forum. Each row keeps `post-<tid>`,
  * so links from older emails still land on it.
  */
-export function DigestForum({ posts, signedIn, onSignIn, openOnLoad }: Props) {
+export function DigestForum({ posts, signedIn, onSignIn, onOpenSignIn, openOnLoad }: Props) {
   const analytics = useDigestAnalytics();
   const modal = useDigestForumModal(signedIn);
   const opened = useRef(false);
@@ -118,7 +120,18 @@ export function DigestForum({ posts, signedIn, onSignIn, openOnLoad }: Props) {
         })}
       </ol>
 
-      <Link href="/forum" className={s.open} onClick={() => analytics.onForumOpenClicked()}>
+      <Link
+        href="/forum"
+        className={s.open}
+        onClick={(event) => {
+          // Signed out (LAB-3347): the prompt first; Sign in there goes on to the forum.
+          if (signedIn === false) {
+            event.preventDefault();
+            return onOpenSignIn();
+          }
+          analytics.onForumOpenClicked();
+        }}
+      >
         Open the forum →
       </Link>
 

@@ -8,7 +8,7 @@
 
 - The page address becomes `/digest?issue=<issue id>`. It reads the issue signed in or signed out; the reader's own data (name, topics, choices, follows, past issues) shows only when signed in.
 - An email link `/digest?t=<token>[&issue=<send time>]` still works: the server swaps the token for the issue id, and the browser address changes to `?issue=<id>` at once, keeping every other parameter and the `#story-` / `#post-` anchor.
-- More / Less needs sign-in. A signed-out press opens the sign-in dialog and saves nothing; back from sign-in, the press is saved once for the signed-in member.
+- More / Less needs sign-in. A signed-out press opens the sign-in prompt (LAB-3347: a dialog that names the press, with Sign up and Sign in) and saves nothing; back from sign-in, the press is saved once for the signed-in member.
 - An old email More / Less link (`choice=` + `story=`) saves for the signed-in member; signed out it asks for sign-in first, then saves. (New emails have no More / Less: LAB-3357.)
 - The footer's "Manage preferences" and "Unsubscribe" open `/settings/email`. Past issues link to `?issue=<id>`.
 - A new event `digest-sign-in-prompted` when a press asks for sign-in.

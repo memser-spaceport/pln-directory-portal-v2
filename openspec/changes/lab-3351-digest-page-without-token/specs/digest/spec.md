@@ -34,13 +34,48 @@ The page SHALL show the reader's own data only when the reader is signed in: the
 
 ### Requirement: More and Less ask a signed-out reader to sign in
 
-A signed-out press on More like this or Less like this SHALL open the sign-in dialog, save nothing and leave the button not pressed. The page SHALL record `digest-sign-in-prompted` with `via` (`more` or `less`; `email-choice` for an email link) and `news_id`. Back from sign-in, the page SHALL save that choice once for the signed-in member, show it pressed with its confirmation and Undo, and remove the intent from the address.
+A signed-out press on More like this or Less like this SHALL open the sign-in prompt (see "Sign-in prompt"), save nothing and leave the button not pressed. The page SHALL record `digest-sign-in-prompted` with `via` (`more` or `less`; `email-choice` for an email link) and `news_id`. Back from sign-in, the page SHALL save that choice once for the signed-in member, show it pressed with its confirmation and Undo, and remove the intent from the address.
 
 #### Scenario: Press More signed out
 
 - **GIVEN** a signed-out reader on `/digest?issue=<id>`
 - **WHEN** they press More on story 2
-- **THEN** the sign-in dialog opens, nothing is saved, and after sign-in More is saved once on story 2 for them and shown pressed with "You'll get more stories like this"
+- **THEN** "Sign in to get more stories like this" opens, nothing is saved, and after Sign in there More is saved once on story 2 for them and shown pressed with "You'll get more stories like this"
+
+### Requirement: Sign-in prompt
+
+Every press that needs an account SHALL open one sign-in prompt instead of the login (LAB-3347): a small dialog in the house modal shell with a title that names the press, one line that says why it needs an account, a close button, and a footer with "Sign up" (bordered) then "Sign in" (filled). Sign in SHALL open the login and come back to the page with the press in the address; Sign up SHALL open `/sign-up` with that address as `returnTo`; close SHALL cancel the press. Nothing SHALL be saved before sign-in, and signing in SHALL finish the press, so the reader never presses twice. The presses, their words and what happens after sign-in:
+
+| Press                  | Title                                         | Line                                                           | After sign-in                              |
+| ---------------------- | --------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------ |
+| More / Less like this  | Sign in to get more (fewer) stories like this | Your choice shapes which stories lead your next digest.        | The choice is saved, with its confirmation |
+| A forum thread         | Sign in to read this thread                   | Forum threads are open to Protocol Labs network members.       | The thread opens                           |
+| Open the forum →       | Sign in to open the forum                     | Forum threads are open to Protocol Labs network members.       | The forum opens                            |
+| A topic chip           | Sign in to add #<topic>                       | Your topics decide which stories your digest leads with.       | The chip is ticked, with Save topics       |
+| See all topics         | Sign in to choose your topics                 | Your topics decide which stories your digest leads with.       | The topics modal opens                     |
+| Sign in to personalize | Sign in to personalize your digest            | Pick topics and follow teams, and your digest leads with them. | The page, signed in                        |
+| Follow                 | Sign in to follow <team>                      | Their news comes first in your feed and your digest.           | The team is followed                       |
+| Comments               | Sign in to read and add comments              | Comments on network stories are open to members.               | The story's thread opens                   |
+
+An email link that lands signed out with `choice` + `story` or with `topics=open` SHALL open the same prompt as the press (scrolling to the story for a choice), except on the way back from Google or GitHub sign-in. The email's `postnews=open` SHALL go straight to the login, since "Got news from your team?" is hidden from a signed-out reader. Back from sign-in, `follow` and `comments` SHALL be removed from the address once applied, and Follow SHALL always follow (never unfollow) the team.
+
+#### Scenario: Follow signed out
+
+- **GIVEN** a signed-out reader
+- **WHEN** they press Follow on a story from Lattice
+- **THEN** "Sign in to follow Lattice" opens with Sign up and Sign in, and nothing is followed; after Sign in there, Lattice is followed
+
+#### Scenario: Sign up from the prompt
+
+- **GIVEN** a signed-out reader pressed More on story 2
+- **WHEN** they press Sign up in the prompt
+- **THEN** `/sign-up` opens with `returnTo` set to the digest address with `story` and `choice`
+
+#### Scenario: Close the prompt
+
+- **GIVEN** the prompt is open for a press
+- **WHEN** the reader closes it
+- **THEN** nothing is saved and nothing else opens
 
 ## MODIFIED Requirements
 
@@ -68,7 +103,7 @@ The page `/digest?issue=<issue id>` SHALL show that digest issue to anyone who o
 
 ### Requirement: Choice from the email
 
-A link with `choice=more` or `choice=less` and `story=<uid>` (from emails sent before More / Less left the email) SHALL, for a signed-in reader, save that choice once per page load for that reader, in the browser after the page loads, never during the server render. While it saves, the button SHALL show as pressed. After the save, the top of that story's card SHALL show "You'll get more stories like this" or "You'll get fewer stories like this" with an Undo button. After the save, the page SHALL remove `choice` and `story` from the address, so a reload does not save again. If the save fails, the button SHALL NOT stay pressed, no confirmation SHALL show, an error toast SHALL show, and `choice` and `story` stay in the address so a reload tries again. For a signed-out reader the page SHALL open the sign-in dialog once and save nothing; back from sign-in, the choice is saved as above. It SHALL NOT start a sign-in while a Google or GitHub sign-in is returning.
+A link with `choice=more` or `choice=less` and `story=<uid>` (from emails sent before More / Less left the email) SHALL, for a signed-in reader, save that choice once per page load for that reader, in the browser after the page loads, never during the server render. While it saves, the button SHALL show as pressed. After the save, the top of that story's card SHALL show "You'll get more stories like this" or "You'll get fewer stories like this" with an Undo button. After the save, the page SHALL remove `choice` and `story` from the address, so a reload does not save again. If the save fails, the button SHALL NOT stay pressed, no confirmation SHALL show, an error toast SHALL show, and `choice` and `story` stay in the address so a reload tries again. For a signed-out reader the page SHALL open the sign-in prompt for that press once (see "Sign-in prompt") and save nothing; back from sign-in, the choice is saved as above. It SHALL NOT start a sign-in while a Google or GitHub sign-in is returning.
 
 #### Scenario: Less from the email
 
@@ -86,7 +121,7 @@ A link with `choice=more` or `choice=less` and `story=<uid>` (from emails sent b
 
 - **GIVEN** a signed-out reader opens a link with `story=<uid>&choice=less`
 - **WHEN** the page loads
-- **THEN** the sign-in dialog opens and nothing is saved; after sign-in Less is saved once for them
+- **THEN** the page scrolls to the story, "Sign in to get fewer stories like this" opens and nothing is saved; after Sign in there Less is saved once for them
 
 ### Requirement: More and Less on the page
 
@@ -132,7 +167,8 @@ The page SHALL record these PostHog events, and no event SHALL carry the link to
 - `digest-forum-thread-clicked` on a From the forum row, with `topic_id`, `position` and `opens` (`modal` or `forum`); `digest-forum-open-clicked` on "Open the forum". Likes in the forum modal record Home's forum post like events with source `digest`.
 - `digest-more-clicked` and `digest-less-clicked` on a press, with `news_id`, `position` and `active_after`.
 - `digest-undo-clicked`, with `news_id`, `choice_reverted` and `via` (`undo-button` or `second-press`).
-- `digest-sign-in-prompted` when a press asks a signed-out reader to sign in, with `via` (`more`, `less` or `email-choice`) and `news_id`.
+- `digest-sign-in-prompted` when a press opens the sign-in prompt, with `via`: `more`, `less` or `email-choice` with `news_id`; `forum-post` with `topic_id` and `position`; `follow` with `team_uid`; `comments` with `news_id`; `forum-open`; `personalize`. Topic presses record `digest-topics-sign-in-prompted` (see "Topics events").
+- `digest-sign-in-prompt-answered` when the reader answers the prompt, with `press` (the `via` above, or `topics-chip`, `topics-see-all`, `topics-email`) and `action` (`sign-in`, `sign-up` or `close`) (LAB-3347).
 
 Every URL that PostHog records SHALL have the token parameter removed.
 

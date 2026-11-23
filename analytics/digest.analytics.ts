@@ -16,7 +16,7 @@ export type DigestPageFrom =
   | 'direct';
 
 /** Where a topics action started (LAB-3289). */
-export type DigestTopicsVia = 'chip' | 'see-all' | 'change-topics' | 'email';
+export type DigestTopicsVia = 'chip' | 'see-all' | 'email';
 
 /** `post_news` and `change_topics` (LAB-3290): the email's "Post your team news →" and "Change topics". */
 export type DigestLinkType =

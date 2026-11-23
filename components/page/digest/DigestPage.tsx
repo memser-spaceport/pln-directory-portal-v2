@@ -133,10 +133,10 @@ export function DigestPage({ issueUid, data, isLoggedIn }: Props) {
     },
     [analytics, goToLogin],
   );
-  const openTopics = (via: 'see-all' | 'change-topics') => {
+  const openAllTopics = () => {
     if (signedIn === undefined) return;
-    if (!signedIn) return signInForTopics(via, { key: 'topics', value: 'open' });
-    analytics.onTopicsModalOpened({ via });
+    if (!signedIn) return signInForTopics('see-all', { key: 'topics', value: 'open' });
+    analytics.onTopicsModalOpened({ via: 'see-all' });
     setTopicsOpen(true);
   };
 
@@ -167,7 +167,7 @@ export function DigestPage({ issueUid, data, isLoggedIn }: Props) {
     signedIn,
     initialPick: pickOnReturn,
     onSave: (next: string[]) => topics.save(next, 'card'),
-    onOpenAll: () => openTopics('see-all'),
+    onOpenAll: openAllTopics,
     onSignIn: (slug: string) => signInForTopics('chip', { key: 'topic', value: slug }),
   };
   // Past issues open by id (LAB-3351); an issue the backend never recorded has none, so no link.
@@ -281,7 +281,6 @@ export function DigestPage({ issueUid, data, isLoggedIn }: Props) {
             sentAt={data.sentAt}
             storyCount={data.stories.length}
             firstName={data.firstName}
-            onChangeTopics={() => openTopics('change-topics')}
           />
 
           {/* Under 1100px the topics section comes right after the header; from 1100px it opens the side column. */}

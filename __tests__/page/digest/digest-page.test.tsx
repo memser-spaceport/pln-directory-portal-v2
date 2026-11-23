@@ -639,12 +639,15 @@ describe('topics (LAB-3289)', () => {
       expect(within(ownTopics() as HTMLElement).getByRole('button', { name: '#ai' })).toBeInTheDocument();
     });
 
-    it('opens with "How personalization works" above Add topics, before the stories, with no "Picked for you" line', () => {
+    it('opens with "How personalization works" above Add topics, before the stories, under a line on what the digest is', () => {
       signIn();
       mockPrefs = { newsTags: ['ai'] };
       open('/digest?t=x');
+      expect(
+        screen.getByText('The week’s top stories from across the Protocol Labs network, in one place.'),
+      ).toBeInTheDocument();
       expect(screen.queryByText(/Picked for you/)).toBeNull();
-      expect(screen.getByRole('button', { name: 'Change topics' })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Change topics' })).toBeNull();
       const h2 = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
       // The section after the header (shown under 1100px) comes first, then the stories; the rail repeats it.
       expect(h2.slice(0, 3)).toEqual(['How personalization works', 'Add topics', 'Story b']);
@@ -670,7 +673,7 @@ describe('topics (LAB-3289)', () => {
     open('/digest?t=x');
     await userEvent.click(chip('defi'));
     expect(routerPush).toHaveBeenLastCalledWith('/digest?issue=iss-1&topic=defi#login', { scroll: false });
-    await userEvent.click(screen.getByRole('button', { name: 'Change topics' }));
+    await userEvent.click(screen.getAllByRole('button', { name: 'See all topics' })[0]);
     expect(routerPush).toHaveBeenLastCalledWith('/digest?issue=iss-1&topics=open#login', { scroll: false });
     expect(capture).toHaveBeenCalledWith('digest-topics-sign-in-prompted', expect.objectContaining({ via: 'chip' }));
     expect(setNewsTags).not.toHaveBeenCalled();
@@ -712,17 +715,14 @@ describe('topics (LAB-3289)', () => {
     signIn();
     mockPrefs = { newsTags: ['ai'] };
     open('/digest?t=x');
-    await userEvent.click(screen.getByRole('button', { name: 'Change topics' }));
+    await userEvent.click(screen.getAllByRole('button', { name: 'See all topics' })[0]);
     const dialog = screen.getByRole('dialog');
     await userEvent.click(within(dialog).getByRole('button', { name: '#desci' }));
     await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
     await flush();
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(setNewsTags).not.toHaveBeenCalled();
-    expect(capture).toHaveBeenCalledWith(
-      'digest-topics-modal-opened',
-      expect.objectContaining({ via: 'change-topics' }),
-    );
+    expect(capture).toHaveBeenCalledWith('digest-topics-modal-opened', expect.objectContaining({ via: 'see-all' }));
   });
 
   it('sends a signed-out reader from the email link to sign-in first', async () => {

@@ -1,11 +1,13 @@
 import type { NextResponse } from 'next/server';
 
 /**
- * Whether LabOS still shares `authToken` with deployed AI Apps on COOKIE_DOMAIN (LAB-2695). On until every app's
- * auth gate issues its own sessions; `AI_APPS_SHARE_AUTH_TOKEN=false` makes `authToken` host-only too.
+ * Whether LabOS shares `authToken` with deployed AI Apps on COOKIE_DOMAIN (LAB-2695). Off unless
+ * `AI_APPS_SHARE_AUTH_TOKEN=true`: `authToken` is a script-readable directory API bearer token, and on COOKIE_DOMAIN
+ * every app on a sibling subdomain (its page scripts and its server) receives it. Apps sign members in through their
+ * own auth gate (`/pl-infra/ai-apps/authorize`) instead.
  */
 export const shareAuthTokenWithApps = () =>
-  (process.env.AI_APPS_SHARE_AUTH_TOKEN ?? 'true').trim().toLowerCase() !== 'false';
+  (process.env.AI_APPS_SHARE_AUTH_TOKEN ?? '').trim().toLowerCase() === 'true';
 
 /**
  * LabOS session cookies kept host-only on LabOS's own origin. Deployed AI Apps run on sibling subdomains of

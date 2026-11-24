@@ -83,7 +83,14 @@ beforeEach(() => {
 
 const ALL_SESSION_COOKIES = ['authToken', 'refreshToken', 'sessionExpiresAt', 'sessionScope', 'userInfo'];
 
-describe('proxy: host-only refreshToken/userInfo', () => {
+describe('proxy: host-only refreshToken/userInfo (authToken shared, AI_APPS_SHARE_AUTH_TOKEN=true)', () => {
+  beforeEach(() => {
+    process.env.AI_APPS_SHARE_AUTH_TOKEN = 'true';
+  });
+  afterEach(() => {
+    delete process.env.AI_APPS_SHARE_AUTH_TOKEN;
+  });
+
   it('moves a valid session’s refreshToken/userInfo off the shared domain once, keeping the member signed in', async () => {
     mockedCheck.mockResolvedValue({ active: true });
 

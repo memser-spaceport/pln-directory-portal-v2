@@ -74,6 +74,7 @@ describe('sessionCookieAttributes', () => {
   });
 
   it('puts authToken on COOKIE_DOMAIN while sharing is on, host-only once it is off', () => {
+    process.env.AI_APPS_SHARE_AUTH_TOKEN = 'true';
     expect(sessionCookieAttributes('authToken', req()).domain).toBe(DOMAIN);
     process.env.AI_APPS_SHARE_AUTH_TOKEN = 'false';
     expect(sessionCookieAttributes('authToken', req()).domain).toBeUndefined();
@@ -110,6 +111,7 @@ describe('setSessionCookies', () => {
     expect(cookies.filter((c) => c.value === '').map((c) => [c.name, c.attrs.domain])).toEqual([
       ['refreshToken', DOMAIN],
       ['userInfo', DOMAIN],
+      ['authToken', DOMAIN],
     ]);
   });
 

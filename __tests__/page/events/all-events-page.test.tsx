@@ -426,25 +426,35 @@ describe('filters', () => {
     expect(within(rail).queryByText("Events I'm going to")).toBeNull();
   });
 
-  it('offers Access type, Focus area and Host once the events carry them, and hides them before', () => {
+  it('offers Access type, Focus area, Topic and Host once the events carry them, and hides them before', () => {
     const detailed = [
-      item({ uid: 'a', access: 'PAID', hosts: ['Protocol Labs'], tags: ['AI'] }),
-      item({ uid: 'b', city: 'Dubai', access: 'INVITE ONLY', hosts: ['Filecoin Foundation'], tags: ['Storage'] }),
+      item({ uid: 'a', access: 'PAID', hosts: ['Protocol Labs'], focusAreas: ['FA3'], tags: ['AI'] }),
+      item({
+        uid: 'b',
+        city: 'Dubai',
+        access: 'INVITE ONLY',
+        hosts: ['Filecoin Foundation'],
+        focusAreas: ['FA4'],
+        tags: ['Storage'],
+      }),
     ];
     const { unmount } = renderPage({ result: { ok: true, items: detailed } });
     fireEvent.click(filtersDoor());
     let rail = document.getElementById('events-filters') as HTMLElement;
-    const titles = ['Access type', 'Focus area', 'City', 'Host'];
+    const titles = ['Access type', 'Focus area', 'Topic', 'City', 'Host'];
     titles.forEach((title) => expect(within(rail).getByText(title)).toBeInTheDocument());
-    // The prototype's order: Mode, Access type, Focus area, City, Host.
+    // The prototype's order: Mode, Access type, Focus area, City, Host; Topic after Focus area (LAB-3404).
     const text = rail.textContent ?? '';
     expect(titles.map((t) => text.indexOf(t))).toEqual([...titles.map((t) => text.indexOf(t))].sort((x, y) => x - y));
+    // LAB-3404: names, never codes.
+    expect(within(rail).getByText('AI & Robotics')).toBeInTheDocument();
+    expect(text).not.toMatch(/FA\d/);
     unmount();
 
     renderPage();
     fireEvent.click(filtersDoor());
     rail = document.getElementById('events-filters') as HTMLElement;
-    ['Access type', 'Focus area'].forEach((title) => expect(within(rail).queryByText(title)).toBeNull());
+    ['Access type', 'Focus area', 'Topic'].forEach((title) => expect(within(rail).queryByText(title)).toBeNull());
   });
 
   it('narrows the events by host and shows it as a chip', () => {
@@ -453,6 +463,20 @@ describe('filters', () => {
     expect(screen.getByText('DAI Summit')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Remove filter Protocol Labs' }));
     expect(storeParams().get('host')).toBeNull();
+  });
+
+  it('a focus area chip shows the name and the link keeps the code (LAB-3404)', () => {
+    renderPage({}, '/events/all?focus=FA4');
+    fireEvent.click(screen.getByRole('button', { name: 'Remove filter Neurotech' }));
+    expect(storeParams().get('focus')).toBeNull();
+  });
+
+  it('an applied focus area no event has still shows its name in the rail (LAB-3404)', () => {
+    renderPage({}, '/events/all?focus=FA2');
+    fireEvent.click(filtersDoor());
+    const rail = document.getElementById('events-filters') as HTMLElement;
+    expect(within(rail).getByText('Economies & Governance')).toBeInTheDocument();
+    expect(rail.textContent).not.toMatch(/FA\d/);
   });
 
   it('removes one chip and the count follows', () => {

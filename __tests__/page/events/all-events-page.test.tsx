@@ -273,6 +273,23 @@ describe('Near you', () => {
     expect(tiles).toEqual(['lis1', 'lis2', 'lis3']);
   });
 
+  it('carries what the List card does, for the phone layout: the host, and one Going pill in the foot', () => {
+    going.uids = ['dai'];
+    renderPage(signedIn('Bangalore'));
+    const tile = screen
+      .getByRole('region', { name: 'Near you in Bangalore' })
+      .querySelector('[data-event-uid="dai"]') as HTMLElement;
+    expect(within(tile).getByText('By Protocol Labs')).toBeInTheDocument();
+    expect(within(tile).getAllByText('Going')).toHaveLength(1);
+    expect(within(tile).getByText('Going').parentElement).toContainElement(within(tile).getByText('3 going'));
+  });
+
+  it('has no host line for an event with no host', () => {
+    renderPage(signedIn('Lisbon'));
+    const near = screen.getByRole('region', { name: 'Near you in Lisbon' });
+    expect(within(near).queryByText(/^By\b/)).toBeNull();
+  });
+
   it('asks a member with no location to add one, in the location dialog (LAB-3394)', () => {
     renderPage(signedIn(null));
     expect(screen.getByText('See events near you.')).toBeInTheDocument();

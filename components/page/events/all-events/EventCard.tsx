@@ -33,17 +33,33 @@ function Place({ item, ellipsis }: { item: AllEventsItem; ellipsis?: boolean }) 
   );
 }
 
+/** Who hosts: up to two faces, then "By <hosts>". */
+function Hosts({ item, ellipsis }: { item: AllEventsItem; ellipsis?: boolean }) {
+  const text = `By ${item.hosts.join(' & ')}`;
+  return (
+    <>
+      <span className={s.hostFaces} aria-hidden>
+        {item.hosts.slice(0, 2).map((host) => (
+          <img key={host} src={getDefaultAvatar(host)} alt="" width={16} height={16} />
+        ))}
+      </span>
+      {ellipsis ? <span className={s.ellipsis}>{text}</span> : text}
+    </>
+  );
+}
+
 /**
  * The Going pill, the faces and count when the event shows attendance, then how you get in when it isn't the usual
- * free RSVP: a glyph and a word in the meta ink, not a badge (prototype, 2026-11-17).
+ * free RSVP: a glyph and a word in the meta ink, not a badge (prototype, 2026-11-17). On a tile the pill leaves the
+ * foot for the picture, except on phones (`.tilePill`).
  */
-function EventFoot({ item, going }: { item: AllEventsItem; going: boolean }) {
+function EventFoot({ item, going, onTile }: { item: AllEventsItem; going: boolean; onTile?: boolean }) {
   const count = item.goingCount ?? 0;
   const access = item.access && item.access !== 'FREE w/ RSVP' ? item.access : null;
   if (!going && count === 0 && !access) return null;
   return (
     <span className={s.cardFoot}>
-      {going && <GoingPill />}
+      {going && <GoingPill onImage={onTile} className={onTile ? s.tilePill : undefined} />}
       <GoingFaces item={item} />
       {access && (
         <span className={s.cardAccess}>
@@ -80,12 +96,7 @@ export function EventCard({
         <span className={s.cardTitle}>{item.name}</span>
         {item.hosts.length > 0 && (
           <span className={s.cardMeta}>
-            <span className={s.hostFaces} aria-hidden>
-              {item.hosts.slice(0, 2).map((host) => (
-                <img key={host} src={getDefaultAvatar(host)} alt="" width={16} height={16} />
-              ))}
-            </span>
-            By {item.hosts.join(' & ')}
+            <Hosts item={item} />
           </span>
         )}
         {placeText(item) && (
@@ -100,7 +111,10 @@ export function EventCard({
   );
 }
 
-/** A Near you tile (Luma / Partiful grid): the picture on top, the Going pill floating on it. */
+/**
+ * A Near you tile (Luma / Partiful grid): the picture on top, the Going pill floating on it. On phones it is the List
+ * card instead (Polina, 2026-11-24): the picture on the right, the host, the pill in the foot.
+ */
 export function EventTile({
   item,
   todayIso,
@@ -119,17 +133,21 @@ export function EventTile({
     >
       <span className={s.tileImage}>
         <EventImage src={item.picture} className={s.tileFill} />
-        {going && <GoingPill onImage />}
       </span>
       <span className={s.tileBody}>
         <span className={s.tileWhen}>{whenLine(item, todayIso)}</span>
         <span className={s.tileTitle}>{item.name}</span>
+        {item.hosts.length > 0 && (
+          <span className={clsx(s.tileMeta, s.tileHost)}>
+            <Hosts item={item} ellipsis />
+          </span>
+        )}
         {placeText(item) && (
           <span className={s.tileMeta}>
             <Place item={item} ellipsis />
           </span>
         )}
-        <EventFoot item={item} going={false} />
+        <EventFoot item={item} going={going} onTile />
       </span>
     </button>
   );

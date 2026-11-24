@@ -442,9 +442,21 @@ export function useJobApplyFlow({ viewer, verdict, refreshVerdict, source }: Job
     [analytics, applyBase, applyRejected, verdict, viewer, viewStep],
   );
 
+  /** LAB-3382: back from `/sign-up`, a guest gets Apply's guest step again, with no second click event. */
+  const onResumeGuestSignUp = useCallback(
+    (target: JobDetailTarget) => {
+      if (viewer !== 'logged-out') return;
+      const at: ApplyFlowStepId = shouldApplyGoExternal({ viewer, verdict, team: target.team }) ? 'review' : 'profile';
+      dispatch({ type: 'OPEN_FLOW', target, at });
+      viewStep(at, target);
+    },
+    [verdict, viewer, viewStep],
+  );
+
   return {
     state,
     onApply,
+    onResumeGuestSignUp,
     onViewJob,
     goToStep,
     setCoverLetter,

@@ -7,10 +7,15 @@ import type { IUserInfo } from '@/types/shared.types';
 import type { IJobTeamGroup } from '@/types/jobs.types';
 import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
 import {
+  APPLY_SIGN_IN_PARAM,
+  APPLY_SIGN_UP_PARAM,
   PENDING_APPLY_PARAM,
   PENDING_INTEREST_PARAM,
+  stripApplySignInMarkersFromUrl,
   stripResumeParamsFromUrl,
 } from '@/services/jobs/job-apply-resume';
+import { authEvents, readInvalidEmailPayload } from '@/components/core/login/utils/authEvents';
+import { jobOpeningPath } from '@/services/jobs/job-detail-link';
 import { useToggleJobInterest } from '@/services/jobs/hooks/useJobInterests';
 import { JobApplyFlowController } from '@/components/page/jobs/JobApplyFlowController/JobApplyFlowController';
 import type { RowApplyProps } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/ReferRoleRow';
@@ -220,6 +225,43 @@ export function useJobApplySurface({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, isLoggedIn, viewer.viewer, viewer.memberUid, isLoading, groups]);
+
+  // AuthBox can restore the old query once. Remove the marker again until the next sign-in.
+  const markerHandled = useRef(false);
+  const signInDismissed = useRef(false);
+  useEffect(() => {
+    if (!enabled || markerHandled.current) return;
+    const uid = searchParams.get(APPLY_SIGN_UP_PARAM);
+    if (
+      isLoggedIn ? !uid && !searchParams.has(APPLY_SIGN_IN_PARAM) : !uid || viewer.viewer !== 'logged-out' || isLoading
+    )
+      return;
+    markerHandled.current = true;
+    stripApplySignInMarkersFromUrl();
+    if (isLoggedIn || source !== 'job-board' || window.location.pathname !== jobOpeningPath(uid ?? '')) return;
+    const group = groups.find((g) => g.roles.some((r) => r.uid === uid));
+    const role = group?.roles.find((r) => r.uid === uid);
+    if (group && role)
+      flow.onResumeGuestSignUp({ role, teamId: group.team.uid, teamName: group.team.name, team: group.team });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, isLoggedIn, viewer.viewer, isLoading, groups]);
+  useEffect(() => {
+    if (!enabled) return;
+    const dismiss = () => {
+      signInDismissed.current = true;
+      stripApplySignInMarkersFromUrl();
+    };
+    const offs = [
+      authEvents.on('auth:login-error', dismiss),
+      authEvents.on('auth:invalid-email', (p) => readInvalidEmailPayload(p).code !== 'email_not_found' && dismiss()),
+    ];
+    return () => offs.forEach((off) => off());
+  }, [enabled]);
+  useEffect(() => {
+    if (!signInDismissed.current) return;
+    if (window.location.hash === '#login') signInDismissed.current = false;
+    else if (searchParams.has(APPLY_SIGN_IN_PARAM)) stripApplySignInMarkersFromUrl();
+  }, [searchParams]);
 
   const controller = enabled ? (
     <JobApplyFlowController flow={flow} viewer={viewer} isLoggedIn={isLoggedIn} userInfo={userInfo} source={source} />

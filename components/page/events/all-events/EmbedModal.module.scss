@@ -42,6 +42,27 @@
   user-select: all;
 }
 
+// Where an event's details open (LAB-3392): the shared checkbox, its label and the helper line under it.
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.optionText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.optionLabel {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
 // Copy link: the quieter of the two copies, a text action left of the primary.
 .linkBtn {
   padding: 0;

@@ -185,7 +185,41 @@
   }
 }
 
-// No location: one white row (the city tiles' card), pin + sentence + the press.
+// "Near you in Lisbon · Change" (LAB-3394): the heading and a quiet text button beside it; "All Lisbon events" stays
+// the section's one link on the right.
+.nearTitle {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  column-gap: 8px;
+  min-width: 0;
+}
+
+.changeLocation {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+// No location, or no event in it: one white row (the city tiles' card), pin + sentence + the press.
 .askLocation {
   display: flex;
   align-items: center;
@@ -1062,9 +1096,44 @@
       display: none;
     }
 
+    // Compact on phones (LAB-3391, Vova on Nov 24): the picture shrinks to an 80px square beside the text, so Near you
+    // takes about a third of its height and Browse by city stays in view under it.
     > .tile {
-      flex: 0 0 80%;
+      flex: 0 0 85%;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
       scroll-snap-align: start;
+    }
+
+    .tileImage {
+      flex: 0 0 80px;
+      width: 80px;
+      height: 80px;
+      aspect-ratio: auto;
+      border-radius: 8px;
+
+      // The Going pill sits closer to the corner of the small square.
+      > * + * {
+        top: 4px;
+        left: 4px;
+      }
+    }
+
+    .tileBody {
+      gap: 2px;
+      padding: 0;
+    }
+
+    .tileWhen {
+      font-size: 12px;
+      line-height: 16px;
+    }
+
+    .tileTitle {
+      font-size: 14px;
+      line-height: 20px;
     }
   }
 }

@@ -307,6 +307,7 @@
     margin: 0 -16px;
     padding: 0 16px 4px;
     scroll-snap-type: x mandatory;
+    scroll-padding-inline: 16px; // keeps the first tile at the row's inset (see .nearTiles)
     scrollbar-width: none;
 
     &::-webkit-scrollbar {
@@ -712,6 +713,7 @@
 }
 
 .tile {
+  position: relative; // for the Going pill
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -1093,17 +1095,18 @@
     margin: 0 -16px;
     padding: 0 16px 4px;
     scroll-snap-type: x mandatory;
+    scroll-padding-inline: 16px; // else the snap eats the row's inset and the first card touches the screen edge
     scrollbar-width: none;
 
     &::-webkit-scrollbar {
       display: none;
     }
 
-    // Compact on phones (LAB-3391, Vova on Nov 24): the picture shrinks to an 80px square beside the text, so Near you
-    // takes about a third of its height and Browse by city stays in view under it.
+    // The List card on phones (Polina, 2026-11-24): the same sizes as `.card`, the picture on the right. Short enough
+    // that Browse by city stays in view under it (LAB-3391); so the host and place keep to one line, the title to two.
     > .tile {
       flex: 0 0 85%;
-      flex-direction: row;
+      flex-direction: row-reverse;
       align-items: flex-start;
       gap: 12px;
       padding: 12px;
@@ -1111,17 +1114,11 @@
     }
 
     .tileImage {
-      flex: 0 0 80px;
-      width: 80px;
-      height: 80px;
+      flex: 0 0 64px;
+      width: 64px;
+      height: 64px;
       aspect-ratio: auto;
       border-radius: 8px;
-
-      // The Going pill sits closer to the corner of the small square.
-      > * + * {
-        top: 4px;
-        left: 4px;
-      }
     }
 
     .tileBody {
@@ -1129,15 +1126,40 @@
       padding: 0;
     }
 
-    .tileWhen {
-      font-size: 12px;
-      line-height: 16px;
-    }
-
     .tileTitle {
-      font-size: 14px;
-      line-height: 20px;
+      margin-bottom: 4px;
+      font-size: 18px;
     }
+  }
+}
+
+// The host line is the phone card's; a tile has none.
+.tileHost {
+  display: none;
+
+  @include media.mobile-only {
+    display: flex;
+  }
+
+  .hostFaces {
+    margin-top: 0;
+  }
+}
+
+// The Going pill floats on a tile's picture (GoingPill's `onImage`); the phone card has it in the foot.
+.tile .tilePill {
+  @include media.mobile-only {
+    position: static;
+    box-shadow: none;
+  }
+}
+
+// With the pill on the picture, a foot that holds nothing else takes no room.
+.tile .cardFoot:has(> .tilePill:only-child) {
+  display: contents;
+
+  @include media.mobile-only {
+    display: flex;
   }
 }
 

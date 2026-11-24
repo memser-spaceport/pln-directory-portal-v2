@@ -1188,3 +1188,11 @@
 .listHeading.listHeading {
   margin: 32px 0 12px;
 }
+
+/* Browse by city (CityBand): tablets and up only (LAB-3391). On a phone a city is picked in Filters, so the list starts
+   sooner. Hidden in CSS, not in JS, so the server's HTML already matches and nothing jumps after hydration. */
+.cityBand {
+  @include media.mobile-only {
+    display: none;
+  }
+}

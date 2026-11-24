@@ -23,7 +23,10 @@ function CityThumb({ large }: { large?: boolean }) {
   );
 }
 
-/** "Browse by city": the five cities with the most upcoming events; past five, the header opens the rest in place. */
+/**
+ * "Browse by city": the five cities with the most upcoming events; past five, the header opens the rest in place.
+ * Not on phones (LAB-3391, Anuj on Nov 24): there the City filter in Filters is the way to pick a city.
+ */
 export function CityBand({
   cities,
   selected,
@@ -37,7 +40,7 @@ export function CityBand({
   const more = cities.length > MAIN_CITY_COUNT;
   const shown = showAll ? cities : cities.slice(0, MAIN_CITY_COUNT);
   return (
-    <section className={s.section} aria-labelledby="cities-title">
+    <section className={clsx(s.section, s.cityBand)} aria-labelledby="cities-title" data-testid="city-band">
       <div className={s.sectionHead}>
         <h2 id="cities-title" className={s.sectionTitle}>
           Browse by city

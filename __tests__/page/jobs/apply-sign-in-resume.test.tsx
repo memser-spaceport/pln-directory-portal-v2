@@ -81,6 +81,16 @@ it.each([
   expect(search()).toBe('');
 });
 
+it('drops the sign-in marker again when a later navigation restores it for a member', () => {
+  at('/jobs/openings/role1?applySignIn=role1&x=1#login');
+  const { rerender } = surface(true);
+  expect(search()).toBe('?x=1');
+  at('/jobs/openings/role1?applySignIn=role1&x=1');
+  rerender();
+  expect(search()).toBe('?x=1');
+  expect(mockFlow.onResumeGuestSignUp).not.toHaveBeenCalled();
+});
+
 it('drops both markers after a sign-in and does not resume', () => {
   at('/jobs/openings/role1?applySignUp=role1&applySignIn=role1&x=1');
   surface(true);

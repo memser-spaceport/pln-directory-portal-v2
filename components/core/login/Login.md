@@ -223,10 +223,12 @@ const saveTokens = async (response: TokenResponse, user: User) => {
 
 ### Step 8: Complete Login
 
-Show success toast and reload page.
+On `/jobs` or the matching `/jobs/openings/<uid>`, remove `applySignIn` before you call `clearPrivyParams` (LAB-3382).
+`clearPrivyParams` copies the query into the next URL. Then show the success toast and refresh the page.
 
 ```typescript
 const loginUser = async (output) => {
+  stripApplySignInAfterSignIn();
   clearPrivyParams();
   showLoginSuccess();
   router.refresh();

@@ -170,6 +170,14 @@ export function stripApplySignInMarkersFromUrl(): void {
 
 export const stripApplySignInParamFromUrl = (): void => stripParamsFromUrl([APPLY_SIGN_IN_PARAM]);
 
+/** After a completed sign-in, removes `applySignIn` only on `/jobs` or the role page that the marker names. */
+export function stripApplySignInAfterSignIn(): void {
+  if (typeof window === 'undefined') return;
+  const uid = new URLSearchParams(window.location.search).get(APPLY_SIGN_IN_PARAM);
+  const { pathname } = window.location;
+  if (uid && (pathname === '/jobs' || pathname === jobOpeningPath(uid))) stripApplySignInParamFromUrl();
+}
+
 function stripParamsFromUrl(carried: string[]): void {
   if (typeof window === 'undefined') return;
   try {

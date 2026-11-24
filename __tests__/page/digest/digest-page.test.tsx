@@ -121,8 +121,6 @@ let mockFeedPosts: unknown[] = [];
 let mockFeedLoading = false;
 let mockForumAccess = true;
 // A disabled query still serves what's cached (a sign-out in the same session), so the mock always answers.
-jest.mock('@/components/page/digest/leavePage', () => ({ leavePage: jest.fn() }));
-const { leavePage } = jest.requireMock('@/components/page/digest/leavePage');
 jest.mock('@/services/feed/hooks/useFeedForumPosts', () => ({
   useFeedForumPosts: () => ({ data: mockFeedLoading ? undefined : { items: mockFeedPosts } }),
 }));
@@ -198,7 +196,7 @@ const card = (uid: string) => document.getElementById(`story-${uid}`) as HTMLEle
 const flush = () => act(async () => {});
 /** LAB-3347: the sign-in prompt a signed-out press opens, named by its title. */
 const signInPrompt = () => screen.getByRole('dialog', { name: /^Sign in to/ });
-const answerPrompt = (name: 'Sign in' | 'Sign up' | 'Close') =>
+const answerPrompt = (name: 'Sign in' | 'Close') =>
   userEvent.click(within(signInPrompt()).getByRole('button', { name }));
 
 beforeEach(() => {
@@ -360,15 +358,15 @@ describe('DigestPage', () => {
       expect(window.location.search).toBe('?issue=iss-1');
     });
 
-    it('sends Sign up to the sign-up flow with the press in returnTo, and Close cancels the press (LAB-3347)', async () => {
+    it('offers Sign in only, with no Sign up (LAB-3348 AC4), and Close cancels the press', async () => {
       open('/digest?t=x');
       await userEvent.click(within(card('b')).getByRole('button', { name: 'More like this' }));
-      await answerPrompt('Sign up');
-      expect(routerPush).toHaveBeenLastCalledWith(
-        `/sign-up?returnTo=${encodeURIComponent('/digest?issue=iss-1&story=b&choice=more')}`,
-      );
-      expect(capture).toHaveBeenCalledWith('digest-sign-in-prompt-answered', { press: 'more', action: 'sign-up' });
-      routerPush.mockClear();
+      expect(within(signInPrompt()).getAllByRole('button')).toHaveLength(2);
+      expect(within(signInPrompt()).getByRole('button', { name: 'Close' })).toBeInTheDocument();
+      expect(within(signInPrompt()).getByRole('button', { name: 'Sign in' })).toBeInTheDocument();
+      expect(within(signInPrompt()).queryByText(/sign up/i)).toBeNull();
+      await answerPrompt('Close');
+      expect(capture).toHaveBeenCalledWith('digest-sign-in-prompt-answered', { press: 'more', action: 'close' });
 
       await userEvent.click(within(card('b')).getByRole('button', { name: 'Less like this' }));
       await answerPrompt('Close');
@@ -1190,7 +1188,7 @@ describe('DigestErrorState', () => {
   });
 });
 
-describe('From the forum (LAB-3293)', () => {
+describe('From the forum (LAB-3293; members with forum access only, LAB-3355)', () => {
   const forumPost = (tid: number, title: string, replyCount: number) => ({
     tid,
     title,
@@ -1224,53 +1222,46 @@ describe('From the forum (LAB-3293)', () => {
     useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
   });
 
+  const signInAsMember = () => useCurrentUserStore.setState({ currentUser: { uid: 'me' } as any, isHydrated: true });
+  const forumGone = () => {
+    expect(screen.queryByRole('heading', { name: 'From the forum' })).toBeNull();
+    expect(screen.queryByText(/Busy thread|Quiet thread/)).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Open the forum →' })).toBeNull();
+  };
+
   it('shows no reply count for a thread without replies', () => {
-    useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
+    signInAsMember();
     open('/digest?t=x', data({ forumPosts: [forumPost(9, 'New thread', 0)] }));
     expect(within(section()).getByRole('listitem').textContent).toBe('1.New thread');
     expect(within(section()).queryByText(/replies|reply/)).toBeNull();
   });
 
-  it('numbers the threads with their replies, and ends on Open the forum', () => {
-    useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
+  it('numbers the threads with their replies, and ends on Open the forum', async () => {
+    signInAsMember();
     open('/digest?t=x', data({ forumPosts: threads }));
     expect(within(section()).getByText('Top threads from the past week.')).toBeInTheDocument();
     const rows = within(section()).getAllByRole('listitem');
     expect(rows.map((row) => row.textContent)).toEqual(['1.Busy thread14 replies', '2.Quiet thread1 reply']);
     // Older emails link to #post-<tid>: the row is still the anchor.
     expect(rows[0]).toHaveAttribute('id', 'post-7');
-    expect(within(section()).getByRole('link', { name: 'Open the forum →' })).toHaveAttribute('href', '/forum');
+    const forum = within(section()).getByRole('link', { name: 'Open the forum →' });
+    expect(forum).toHaveAttribute('href', '/forum');
+    await userEvent.click(forum);
+    expect(capture).toHaveBeenCalledWith('digest-forum-open-clicked', expect.anything());
   });
 
-  it('asks a signed-out reader to sign in from a thread, and opens nothing (LAB-3348)', async () => {
+  it('shows no forum section to a signed-out reader, even when the page data has posts', () => {
     useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
-    open('/digest?t=x', data({ forumPosts: threads }));
-    expect(within(section()).queryByRole('link', { name: /Quiet thread/ })).toBeNull();
-    await userEvent.click(within(section()).getByRole('button', { name: /Quiet thread/ }));
-    expect(signInPrompt()).toHaveAccessibleName('Sign in to read this thread');
-    expect(
-      within(signInPrompt()).getByText('Forum threads are open to Protocol Labs network members.'),
-    ).toBeInTheDocument();
-    await answerPrompt('Sign in');
-    expect(routerPush).toHaveBeenLastCalledWith('/digest?issue=iss-1&post=8#login', { scroll: false });
-    expect(capture).toHaveBeenCalledWith('digest-sign-in-prompted', { via: 'forum-post', topic_id: 8, position: 1 });
-    expect(capture).not.toHaveBeenCalledWith('digest-forum-thread-clicked', expect.anything());
-    expect(leavePage).not.toHaveBeenCalled();
-    expect(screen.queryByTestId('forum-modal')).toBeNull();
+    open('/digest?t=x#post-8', data({ forumPosts: threads }));
+    forumGone();
+    // No forum sign-in prompt either: nothing on the page asks for one.
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 
-  it('asks a signed-out reader to sign in from Open the forum, then goes on to the forum (LAB-3347)', async () => {
-    useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
-    open('/digest?t=x', data({ forumPosts: threads }));
-    await userEvent.click(within(section()).getByRole('link', { name: 'Open the forum →' }));
-    expect(signInPrompt()).toHaveAccessibleName('Sign in to open the forum');
-    expect(capture).not.toHaveBeenCalledWith('digest-forum-open-clicked', expect.anything());
-    expect(capture).toHaveBeenCalledWith('digest-sign-in-prompted', { via: 'forum-open' });
-    await answerPrompt('Sign up');
-    expect(routerPush).toHaveBeenLastCalledWith(`/sign-up?returnTo=${encodeURIComponent('/forum')}`);
-    await userEvent.click(within(section()).getByRole('link', { name: 'Open the forum →' }));
-    await answerPrompt('Sign in');
-    expect(routerPush).toHaveBeenLastCalledWith('/forum#login', { scroll: false });
+  it('shows no forum section for posts an older backend sent locked', () => {
+    signInAsMember();
+    open('/digest?t=x', data({ forumPosts: threads.map((post) => ({ ...post, locked: true })) }));
+    forumGone();
   });
 
   it('keeps a thread a link to the forum until the reader is known', () => {
@@ -1280,58 +1271,6 @@ describe('From the forum (LAB-3293)', () => {
       'href',
       'https://web/forum/topics/1/8',
     );
-  });
-
-  it('back from sign-in, opens the thread they pressed in the modal, once, and clears it from the address', async () => {
-    mockFeedPosts = [feedPost(7, 'Busy thread')];
-    useCurrentUserStore.setState({ currentUser: { uid: 'me' } as any, isHydrated: true });
-    open('/digest?t=x&post=7', data({ forumPosts: threads }));
-    await flush();
-    expect(screen.getByTestId('forum-modal')).toHaveTextContent('Busy thread');
-    expect(capture).toHaveBeenCalledTimes(2);
-    expect(capture).toHaveBeenCalledWith(
-      'digest-forum-thread-clicked',
-      expect.objectContaining({ topic_id: 7, position: 0, opens: 'modal' }),
-    );
-    expect(window.location.search).toBe('?issue=iss-1');
-    await userEvent.click(screen.getByRole('button', { name: 'Close' }));
-    expect(screen.queryByTestId('forum-modal')).toBeNull();
-    expect(leavePage).not.toHaveBeenCalled();
-  });
-
-  it('back from sign-in, sends them to the forum for a thread the modal can’t show', async () => {
-    mockFeedPosts = [feedPost(7, 'Busy thread')];
-    useCurrentUserStore.setState({ currentUser: { uid: 'me' } as any, isHydrated: true });
-    open('/digest?t=x&post=8', data({ forumPosts: threads }));
-    await flush();
-    expect(leavePage).toHaveBeenCalledTimes(1);
-    expect(leavePage).toHaveBeenCalledWith('https://web/forum/topics/1/8');
-    expect(screen.queryByTestId('forum-modal')).toBeNull();
-  });
-
-  it('back from sign-in, waits for the feed before choosing the modal or the forum', async () => {
-    mockFeedPosts = [feedPost(7, 'Busy thread')];
-    mockFeedLoading = true;
-    useCurrentUserStore.setState({ currentUser: { uid: 'me' } as any, isHydrated: true });
-    const page = data({ forumPosts: threads });
-    const { rerender } = open('/digest?t=x&post=7', page);
-    await flush();
-    expect(leavePage).not.toHaveBeenCalled();
-    expect(screen.queryByTestId('forum-modal')).toBeNull();
-    mockFeedLoading = false;
-    rerender(<DigestPage key={ISSUE} issueUid={ISSUE} data={page} isLoggedIn={false} />);
-    await flush();
-    expect(screen.getByTestId('forum-modal')).toHaveTextContent('Busy thread');
-    expect(leavePage).not.toHaveBeenCalled();
-  });
-
-  it('opens nothing for a thread the page doesn’t list', async () => {
-    mockFeedPosts = [feedPost(7, 'Busy thread')];
-    useCurrentUserStore.setState({ currentUser: { uid: 'me' } as any, isHydrated: true });
-    open('/digest?t=x&post=99', data({ forumPosts: threads }));
-    await flush();
-    expect(leavePage).not.toHaveBeenCalled();
-    expect(screen.queryByTestId('forum-modal')).toBeNull();
   });
 
   it('opens a thread in Home’s forum modal for a signed-in member with forum access, and likes it there', async () => {

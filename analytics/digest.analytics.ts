@@ -19,15 +19,10 @@ export type DigestPageFrom =
 export type DigestTopicsVia = 'chip' | 'see-all' | 'email';
 
 /** LAB-3347: the other signed-out presses that open the sign-in prompt. */
-export type DigestSignInVia = 'follow' | 'comments' | 'forum-open' | 'personalize';
+export type DigestSignInVia = 'follow' | 'comments' | 'personalize';
 
 /** LAB-3347: which press opened the sign-in prompt, as its `digest-sign-in-prompt-answered` event names it. */
-export type DigestSignInPromptPress =
-  | DigestSignInVia
-  | DigestChoice
-  | 'email-choice'
-  | 'forum-post'
-  | `topics-${DigestTopicsVia}`;
+export type DigestSignInPromptPress = DigestSignInVia | DigestChoice | 'email-choice' | `topics-${DigestTopicsVia}`;
 
 /** `post_news` and `change_topics` (LAB-3290): the email's "Post your team news →" and "Change topics". */
 export type DigestLinkType =
@@ -188,15 +183,8 @@ export function useDigestAnalytics() {
         });
       },
       /** LAB-3347: what the reader did with the sign-in prompt. */
-      onSignInPromptAnswered(params: { press: DigestSignInPromptPress; action: 'sign-in' | 'sign-up' | 'close' }) {
+      onSignInPromptAnswered(params: { press: DigestSignInPromptPress; action: 'sign-in' | 'close' }) {
         capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_SIGN_IN_PROMPT_ANSWERED, params);
-      },
-      onForumSignInPrompted(params: { topicId: number; position: number }) {
-        capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_SIGN_IN_PROMPTED, {
-          via: 'forum-post',
-          topic_id: params.topicId,
-          position: params.position,
-        });
       },
     }),
     [capture],

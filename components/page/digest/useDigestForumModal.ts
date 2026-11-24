@@ -21,8 +21,8 @@ import { setStoredForumPostLike } from '@/utils/forumPostLikeStorage';
  */
 export function useDigestForumModal(signedIn: boolean | undefined) {
   const { currentUser } = useCurrentUserStore();
-  const { hasAccess, isLoading: accessLoading } = useForumAccess();
-  const { data, isError } = useFeedForumPosts({ enabled: signedIn === true });
+  const { hasAccess } = useForumAccess();
+  const { data } = useFeedForumPosts({ enabled: signedIn === true });
   const analytics = useTeamNewsAnalytics();
   const { mutate: likeMutate } = useFeedForumPostLikeToggle();
 
@@ -75,11 +75,6 @@ export function useDigestForumModal(signedIn: boolean | undefined) {
   );
 
   return {
-    /**
-     * Signed in, and it's known which threads open in the modal (forum access read, and the feed loaded or failed).
-     * Until then `feedPostFor` can't tell a thread missing from the feed from a feed still loading.
-     */
-    settled: signedIn === true && !accessLoading && (!hasAccess || data !== undefined || isError),
     /** The thread's feed post when it can open in the modal, else undefined (the row links to the forum). */
     feedPostFor: (tid: number) => byTid.get(tid),
     open: (post: IFeedForumPost) => setOpenUid(post.uid),

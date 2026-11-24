@@ -37,7 +37,7 @@ import sb from './DigestSidebar.module.scss';
 import s from './DigestPage.module.scss';
 
 /** What a signed-out press asks for, carried through sign-in in the address (see `addressWith`). */
-const SIGN_IN_INTENTS = ['topics', 'topic', 'postnews', 'post', 'follow', 'comments'] as const;
+const SIGN_IN_INTENTS = ['topics', 'topic', 'postnews', 'follow', 'comments'] as const;
 type SignInIntent = (typeof SIGN_IN_INTENTS)[number];
 type Intent = { key: SignInIntent; value: string } | { story: string; choice: DigestChoice };
 
@@ -45,7 +45,6 @@ type Intent = { key: SignInIntent; value: string } | { story: string; choice: Di
 type OpenPrompt = { ask: DigestSignInAsk; press: DigestSignInPromptPress; returnTo: string };
 
 // Polina's prompt copy (LAB-3347, 2026-11-20): the title names the press, the line says why it needs an account.
-const FORUM_LINE = 'Forum threads are open to Protocol Labs network members.';
 const TOPICS_LINE = 'Your topics decide which stories your digest leads with.';
 
 type Props = {
@@ -85,15 +84,10 @@ export function DigestPage({ issueUid, data, isLoggedIn }: Props) {
   const signedIn = isHydrated ? Boolean(currentUser) : undefined;
   // What the reader asked for before sign-in comes back in the address: `topics=open` (also the email's Change
   // topics) opens the modal, `topic=<slug>` ticks that chip in Suggested topics, `postnews=open` (also the email's "Post
-  // your team news →") posts team news, `post=<tid>` opens that forum thread. Read once, on load.
+  // your team news →") posts team news. Read once, on load.
   const [topicsOpen, setTopicsOpen] = useState(() => searchParams.get('topics') === 'open');
   const [pickOnReturn] = useState(() => searchParams.get('topic'));
   const [postOnLoad] = useState(() => searchParams.get('postnews') === 'open');
-  // `post=<tid>`: a forum thread pressed before sign-in (LAB-3348), opened on the way back.
-  const [threadOnReturn] = useState(() => {
-    const tid = Number(searchParams.get('post'));
-    return Number.isInteger(tid) && tid > 0 ? tid : null;
-  });
   // `follow=<team uid>` and `comments=<story uid>` (LAB-3347): Follow and Comments pressed before sign-in.
   const [followOnReturn] = useState(() => searchParams.get('follow'));
   const [commentsOnReturn] = useState(() => searchParams.get('comments'));
@@ -128,7 +122,7 @@ export function DigestPage({ issueUid, data, isLoggedIn }: Props) {
     return `${url.pathname}${url.search}`;
   };
   const goToLogin = useCallback((returnTo: string) => router.push(`${returnTo}#login`, { scroll: false }), [router]);
-  // A signed-out press (LAB-3347): the sign-in prompt names it and says why; Sign in or Sign up there finishes it.
+  // A signed-out press (LAB-3347): the sign-in prompt names it and says why; Sign in there finishes it.
   const ask = (press: DigestSignInPromptPress, words: DigestSignInAsk, extra?: Intent, returnTo = addressWith(extra)) =>
     setPrompt({ ask: words, press, returnTo });
 
@@ -161,13 +155,6 @@ export function DigestPage({ issueUid, data, isLoggedIn }: Props) {
       { key: 'comments', value: storyUid },
     );
   };
-  // DigestForum records `digest-sign-in-prompted` for a thread itself.
-  const signInToThread = (tid: number) =>
-    ask('forum-post', { title: 'Sign in to read this thread', line: FORUM_LINE }, { key: 'post', value: String(tid) });
-  const signInToOpenForum = () => {
-    analytics.onSignInPrompted({ via: 'forum-open' });
-    ask('forum-open', { title: 'Sign in to open the forum', line: FORUM_LINE }, undefined, '/forum');
-  };
   const signInToPersonalize = () => {
     analytics.onSignInPrompted({ via: 'personalize' });
     ask('personalize', {
@@ -186,13 +173,11 @@ export function DigestPage({ issueUid, data, isLoggedIn }: Props) {
       extra,
     );
   };
-  const answerPrompt = (action: 'sign-in' | 'sign-up' | 'close') => {
+  const answerPrompt = (action: 'sign-in' | 'close') => {
     if (!prompt) return;
     analytics.onSignInPromptAnswered({ press: prompt.press, action });
     setPrompt(null);
     if (action === 'sign-in') goToLogin(prompt.returnTo);
-    // The navbar's Sign up: the sign-up flow comes back to `returnTo`, so the press still finishes.
-    if (action === 'sign-up') router.push(`/sign-up?returnTo=${encodeURIComponent(prompt.returnTo)}`);
   };
   const openAllTopics = () => {
     if (signedIn === undefined) return;
@@ -245,6 +230,9 @@ export function DigestPage({ issueUid, data, isLoggedIn }: Props) {
     signedOut: signedIn === false || (signedIn === undefined && !isLoggedIn),
     onSignIn: signInToPersonalize,
   };
+  // From the forum (LAB-3355): only for a signed-in member with forum access. The backend sends posts to no one else;
+  // a locked post (an older backend's) or a session that has ended in this browser shows no section either.
+  const forumPosts = signedIn === false ? [] : data.forumPosts.filter((post) => !post.locked);
   // Past issues open by id (LAB-3351); an issue the backend never recorded has none, so no link.
   const issuesCard = {
     issues: data.issues,
@@ -411,16 +399,10 @@ export function DigestPage({ issueUid, data, isLoggedIn }: Props) {
             </>
           )}
 
-          {data.forumPosts.length > 0 && (
+          {forumPosts.length > 0 && (
             <>
               <div className={s.spacer} />
-              <DigestForum
-                posts={data.forumPosts}
-                signedIn={signedIn}
-                onSignIn={signInToThread}
-                onOpenSignIn={signInToOpenForum}
-                openOnLoad={threadOnReturn}
-              />
+              <DigestForum posts={forumPosts} signedIn={signedIn} />
             </>
           )}
 
@@ -462,7 +444,6 @@ export function DigestPage({ issueUid, data, isLoggedIn }: Props) {
         <DigestSignInPrompt
           ask={prompt.ask}
           onSignIn={() => answerPrompt('sign-in')}
-          onSignUp={() => answerPrompt('sign-up')}
           onClose={() => answerPrompt('close')}
         />
       )}

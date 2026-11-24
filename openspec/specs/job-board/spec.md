@@ -132,6 +132,18 @@ Apply SHALL leave the site for the team's own posting when the team does not tak
 - **WHEN** the visitor presses Apply
 - **THEN** the role's own apply link (the team's posting) opens, not the in-app apply flow
 
+### Requirement: Sign in after Apply keeps the Job Aspirant sign-up
+
+Sign in from Apply SHALL carry the role in `applySignIn`. The sign-up route SHALL accept only a canonical `/jobs` or a matching `/jobs/openings/<uid>` return path. With in-app Apply on, it SHALL route a guest to `/jobs/openings/<uid>?applySignUp=<uid>`. For an in-app role, that page SHALL open the Job Board sign-up modal (`JobSignUpModal`: LinkedIn profile and Job search status) for that role, without a second Apply click or a data write. For an external-only role, it SHALL open the review step, as before. Submit SHALL resume the same role with `applyTo`, and the modal's Sign in SHALL carry `applySignIn` again. All other visitors SHALL see the general wizard.
+
+Standard sign-in SHALL use the general wizard when there is no Apply marker. Apply sign-in SHALL clear the marker on success or failure, except for "Email not found". In that dialog, Sign up and Try another email SHALL keep the marker. The X button, Escape and a backdrop click SHALL remove only `applySignIn`.
+
+#### Scenario: New email after Sign in from Apply
+
+- **GIVEN** a guest who pressed Apply on a Protocol Labs role, on the board or a shared role link
+- **WHEN** Sign in finds no account and the guest presses Sign up
+- **THEN** the role page opens the Job Board sign-up modal for that role
+
 ### Requirement: Suggestions response with or without contact and criteria fields
 
 The Suggested tab SHALL load when the suggestions response carries `contactedAt` per person, a role-level `criteria` list and a role-level `criteriaPrompt` (string or null), and SHALL also load when it carries none of them. Any other field the page does not know SHALL still fail the read.

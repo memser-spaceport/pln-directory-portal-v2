@@ -1,3 +1,5 @@
+import { jobOpeningPath } from '@/services/jobs/job-detail-link';
+
 /**
  * The role someone pressed Apply on, carried across the Privy round trip.
  *
@@ -65,6 +67,12 @@ export const PENDING_INTEREST_PARAM = 'interestIn';
  */
 const PREFILL_EMAIL_PARAM = 'prefillEmail';
 
+export const APPLY_SIGN_IN_PARAM = 'applySignIn';
+export const APPLY_SIGN_UP_PARAM = 'applySignUp';
+const UID = '[A-Za-z0-9_-]{1,64}';
+const UID_PATTERN = new RegExp(`^${UID}$`);
+const OPENING_PATTERN = new RegExp(`^/jobs/openings/(${UID})$`);
+
 const toSearch = (params: URLSearchParams): string => {
   const next = params.toString();
   return next ? `?${next}` : '';
@@ -121,6 +129,28 @@ export function withPendingInterest(search: string, roleUid: string | undefined)
   return toSearch(params);
 }
 
+export function withApplySignIn(search: string, roleUid: string | undefined): string {
+  const params = new URLSearchParams(search);
+  if (roleUid) params.set(APPLY_SIGN_IN_PARAM, roleUid);
+  else params.delete(APPLY_SIGN_IN_PARAM);
+  return toSearch(params);
+}
+
+/** Build the role page from a valid Apply return path. Copy only the role UID. */
+export function applySignUpReturnPath(returnTo: string | null): string | null {
+  if (!returnTo?.startsWith('/') || /[\\#]/.test(returnTo)) return null;
+  let url: URL;
+  try {
+    url = new URL(returnTo, 'http://local.invalid');
+  } catch {
+    return null;
+  }
+  if (url.origin !== 'http://local.invalid' || returnTo.split('?')[0] !== url.pathname) return null;
+  const uid = url.searchParams.get(APPLY_SIGN_IN_PARAM) ?? '';
+  const fromBoard = url.pathname === '/jobs' || OPENING_PATTERN.exec(url.pathname)?.[1] === uid;
+  return UID_PATTERN.test(uid) && fromBoard ? `${jobOpeningPath(uid)}?${APPLY_SIGN_UP_PARAM}=${uid}` : null;
+}
+
 /**
  * Drop the resume parameters from the address bar once they have been acted
  * on, without a navigation — a one-time instruction must not replay on every
@@ -131,10 +161,19 @@ export function withPendingInterest(search: string, roleUid: string | undefined)
  * before this runs, so leaving it behind only publishes an address.
  */
 export function stripResumeParamsFromUrl(): void {
+  stripParamsFromUrl([PENDING_APPLY_PARAM, PENDING_INTEREST_PARAM, PREFILL_EMAIL_PARAM]);
+}
+
+export function stripApplySignInMarkersFromUrl(): void {
+  stripParamsFromUrl([APPLY_SIGN_IN_PARAM, APPLY_SIGN_UP_PARAM]);
+}
+
+export const stripApplySignInParamFromUrl = (): void => stripParamsFromUrl([APPLY_SIGN_IN_PARAM]);
+
+function stripParamsFromUrl(carried: string[]): void {
   if (typeof window === 'undefined') return;
   try {
     const url = new URL(window.location.href);
-    const carried = [PENDING_APPLY_PARAM, PENDING_INTEREST_PARAM, PREFILL_EMAIL_PARAM];
     if (!carried.some((param) => url.searchParams.has(param))) return;
     carried.forEach((param) => url.searchParams.delete(param));
     const search = url.searchParams.toString();

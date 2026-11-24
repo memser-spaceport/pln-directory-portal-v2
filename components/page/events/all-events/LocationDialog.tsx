@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
@@ -47,8 +47,9 @@ export function LocationDialog({
   onSaved: (from: LocationDialogFrom) => void;
 }) {
   const router = useRouter();
-  const { data: memberData } = useMember(viewerUid);
+  const { data: memberData, isFetching, isError } = useMember(viewerUid);
   const memberInfo = memberData && !('isError' in memberData) ? memberData.memberInfo : undefined;
+  const loadFailed = !isFetching && (isError || (!!memberData && 'isError' in memberData));
   const { mutateAsync, isPending } = useUpdateMember();
   const { permsSet } = usePermissions();
   const plaa = PLAA_CODES.some((code) => permsSet.has(code));
@@ -59,16 +60,23 @@ export function LocationDialog({
     ? { city: picked.city ?? '', state: picked.metroArea ?? '', country: picked.country ?? '' }
     : { city: saved?.city ?? '', state: saved?.region ?? '', country: saved?.country ?? '' };
 
-  // Focus moves into the dialog on open and back to what opened it on close.
-  const closeBtn = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    const returnTo = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    closeBtn.current?.focus();
-    return () => returnTo?.focus();
-  }, []);
+  // The save replaces the whole profile record, so it waits for a fresh one: a cached copy could undo a newer edit.
+  const canSave = !!picked && !!memberInfo && !isFetching && !isPending;
+
+  // Focus moves into the dialog on open and back to what opened it on close. Modal renders its content one pass after
+  // it mounts, so Close takes focus when it attaches (an effect here would run before it exists). On close, Modal's own
+  // cleanup, which ends the page's `inert`, runs after this one, and an inert element cannot take focus: hence the wait.
+  const [returnTo] = useState(() => (typeof document === 'undefined' ? null : document.activeElement));
+  const focusOnAttach = useCallback((node: HTMLButtonElement | null) => node?.focus(), []);
+  useEffect(
+    () => () => {
+      queueMicrotask(() => returnTo instanceof HTMLElement && returnTo.focus());
+    },
+    [returnTo],
+  );
 
   const save = async () => {
-    if (!picked || !memberInfo) return;
+    if (!canSave) return;
     const res = await mutateAsync({
       uid: memberInfo.uid,
       payload: {
@@ -103,7 +111,7 @@ export function LocationDialog({
             </h2>
             <p className={m.subtitle}>We&apos;ll show upcoming events near you.</p>
           </div>
-          <button ref={closeBtn} type="button" className={m.closeButton} onClick={onClose} aria-label="Close">
+          <button ref={focusOnAttach} type="button" className={m.closeButton} onClick={onClose} aria-label="Close">
             <CloseIcon width={20} height={20} color="#0a0c11" />
           </button>
         </div>
@@ -117,6 +125,11 @@ export function LocationDialog({
               resolvedCountry={shown.country}
             />
             <span className={m.helperText}>This also updates the location on your profile.</span>
+            {loadFailed && (
+              <span className={m.helperText} role="alert">
+                Could not load your profile. Close this and try again.
+              </span>
+            )}
           </div>
           {plaa && (
             <p className={l.warning} role="note">
@@ -132,7 +145,7 @@ export function LocationDialog({
             <Button style="border" variant="neutral" size="s" onClick={onClose}>
               Cancel
             </Button>
-            <Button style="fill" variant="primary" size="s" onClick={() => void save()} disabled={!picked || isPending}>
+            <Button style="fill" variant="primary" size="s" onClick={() => void save()} disabled={!canSave}>
               {isPending ? 'Saving…' : 'Save'}
             </Button>
           </div>

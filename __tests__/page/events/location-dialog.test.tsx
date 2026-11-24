@@ -20,7 +20,11 @@ const memberInfo = {
   teamMemberRoles: [],
   skills: [],
 };
-const member: { data: unknown } = { data: { memberInfo } };
+const member: { data: unknown; isFetching: boolean; isError: boolean } = {
+  data: { memberInfo },
+  isFetching: false,
+  isError: false,
+};
 jest.mock('@/services/members/hooks/useMember', () => ({ useMember: () => member }));
 
 const mutateAsync = jest.fn();
@@ -77,6 +81,8 @@ function renderDialog() {
 beforeEach(() => {
   jest.clearAllMocks();
   member.data = { memberInfo };
+  member.isFetching = false;
+  member.isError = false;
   perms.codes = [];
 });
 
@@ -130,10 +136,37 @@ describe('LocationDialog (LAB-3394)', () => {
 
   it('cannot save before the profile has loaded', () => {
     member.data = undefined;
+    member.isFetching = true;
     renderDialog();
     fireEvent.click(screen.getByRole('button', { name: 'Pick Berlin' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-    expect(mutateAsync).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('waits for a fresh profile instead of saving a cached one over newer edits', () => {
+    member.isFetching = true;
+    renderDialog();
+    fireEvent.click(screen.getByRole('button', { name: 'Pick Berlin' }));
+    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+  });
+
+  it('says so when the profile could not be loaded', () => {
+    member.data = { isError: true };
+    renderDialog();
+    fireEvent.click(screen.getByRole('button', { name: 'Pick Berlin' }));
+    expect(screen.getByRole('alert')).toHaveTextContent('Could not load your profile.');
+    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+  });
+
+  it('moves focus to Close on open, and back to what opened it on close', async () => {
+    const opener = document.createElement('button');
+    document.body.appendChild(opener);
+    opener.focus();
+    const { unmount } = render(<LocationDialog viewerUid="m1" from="add" onClose={jest.fn()} onSaved={jest.fn()} />);
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus();
+    unmount();
+    await waitFor(() => expect(opener).toHaveFocus());
+    opener.remove();
   });
 
   it('warns a PLAA member, as the profile field does', () => {

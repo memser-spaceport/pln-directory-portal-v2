@@ -1,7 +1,11 @@
 import { act, render, renderHook } from '@testing-library/react';
 
 jest.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams(window.location.search) }));
-const mockAnalytics = { onJobApplyClicked: jest.fn(), onJobApplyStepViewed: jest.fn() };
+const mockAnalytics = {
+  onJobApplyClicked: jest.fn(),
+  onJobApplyStepViewed: jest.fn(),
+  onJobApplySignUpSubmitted: jest.fn(),
+};
 jest.mock('@/analytics/jobs.analytics', () => ({ useJobsAnalytics: () => mockAnalytics }));
 const mockViewer = { viewer: 'logged-out', verdict: 'pending' };
 jest.mock('@/components/page/jobs/hooks/useJobBoardViewer', () => ({ useJobBoardViewer: () => mockViewer }));
@@ -13,18 +17,23 @@ jest.mock('@/services/jobs/hooks/useJobInterests', () => ({
 }));
 const mockGoToLogin = jest.fn();
 jest.mock('@/components/core/login/utils', () => ({ useLoginRedirect: () => mockGoToLogin }));
-const mockDrawerProps: { onSignIn?: () => void }[] = [];
-jest.mock('next/dynamic', () => () => (props: { onSignIn?: () => void }) => {
+type DynamicProps = { onSignIn?: () => void; onSignUp?: (d: object) => Promise<unknown>; role?: unknown };
+const mockDrawerProps: DynamicProps[] = [];
+jest.mock('next/dynamic', () => () => (props: DynamicProps) => {
   mockDrawerProps.push(props);
   return null;
 });
-jest.mock('@tanstack/react-query', () => ({ useQuery: () => ({}), useMutation: () => ({}) }));
+jest.mock('@tanstack/react-query', () => ({
+  useQuery: () => ({}),
+  useMutation: () => ({ mutateAsync: async () => ({}) }),
+}));
 jest.mock('@/services/auth/store', () => ({ useCurrentUserStore: () => ({}) }));
 jest.mock('@/services/jobs/hooks/useJobApplications', () => ({ useRoleApplication: () => undefined }));
 jest.mock('@/services/follow/hooks/useFollowedTeamUids', () => ({ useRememberTeamFollowed: () => jest.fn() }));
 jest.mock('@/analytics/follow.analytics', () => ({ useFollowAnalytics: () => ({}) }));
 
 import { useJobApplySurface } from '@/components/page/jobs/hooks/useJobApplySurface';
+import { useJobApplyFlow } from '@/components/page/jobs/hooks/useJobApplyFlow';
 import { JobApplyFlowController } from '@/components/page/jobs/JobApplyFlowController/JobApplyFlowController';
 import { authEvents } from '@/components/core/login/utils/authEvents';
 import type { JobSurface } from '@/analytics/jobs.analytics';
@@ -102,8 +111,31 @@ describe('Sign in from the controller', () => {
     return mockGoToLogin.mock.calls[0][0].returnTo as string;
   };
 
-  it('carries the role from the Job Board Apply flow', () => {
-    expect(signIn({ step: 'flow', target, at: 'profile' })).toBe('/jobs?applySignIn=role1&a=1');
+  it.each([
+    { step: 'flow', target, at: 'profile' },
+    { step: 'sign-up', target },
+  ])('carries the role from Job Board Apply in $step', (state) => {
+    expect(signIn(state)).toBe('/jobs?applySignIn=role1&a=1');
+  });
+
+  it('sends the role sign-up modal back to the same role after submit', async () => {
+    at('/jobs/openings/role1');
+    const flow = { state: { step: 'sign-up', target }, closeSignUp: jest.fn() } as never;
+    const viewer = { viewer: 'logged-out', verdict: 'pending' } as never;
+    render(
+      <JobApplyFlowController flow={flow} viewer={viewer} isLoggedIn={false} userInfo={undefined} source="job-board" />,
+    );
+    const modal = mockDrawerProps.at(-1)!;
+    expect(modal.role).toBe(role);
+    await act(async () => {
+      await modal.onSignUp!({ name: 'A', email: 'a@example.com', linkedin: 'abc', jobSearchStatus: 'open' });
+    });
+    expect(mockAnalytics.onJobApplySignUpSubmitted).toHaveBeenCalledWith(
+      expect.objectContaining({ job_id: 'role1', trigger: 'detail' }),
+    );
+    expect(mockGoToLogin.mock.calls[0][0].returnTo).toBe(
+      '/jobs/openings/role1?prefillEmail=a%40example.com&applyTo=role1',
+    );
   });
 
   it.each([
@@ -111,5 +143,26 @@ describe('Sign in from the controller', () => {
     [{ step: 'flow', target, at: 'profile' }, 'team-profile'],
   ] as const)('clears it for the role-less modal or another surface', (state, source) => {
     expect(signIn(state, source)).toBe('/jobs?a=1');
+  });
+});
+
+describe('onResumeGuestSignUp', () => {
+  const resume = (team: IJobTeam, viewer: 'logged-out' | 'profile-ready' = 'logged-out') => {
+    const { result } = renderHook(() =>
+      useJobApplyFlow({ viewer, verdict: 'pending', refreshVerdict: async () => 'pending', source: 'job-board' }),
+    );
+    act(() => result.current.onResumeGuestSignUp({ ...target, teamId: team.uid, team }));
+    return result.current.state;
+  };
+
+  it('opens the Job Board sign-up modal for an in-app role', () => {
+    expect(resume(PL)).toEqual({ step: 'sign-up', target });
+    expect(mockAnalytics.onJobApplyClicked).not.toHaveBeenCalled();
+  });
+
+  it('keeps the review step for an external role and does nothing for a member', () => {
+    const OTHER = { uid: 't2', name: 'Other Team', inAppApplyAvailable: false } as unknown as IJobTeam;
+    expect(resume(OTHER)).toMatchObject({ step: 'flow', at: 'review' });
+    expect(resume(PL, 'profile-ready')).toEqual({ step: 'idle' });
   });
 });

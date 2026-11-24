@@ -144,10 +144,8 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
    * failed request leaves nothing behind.
    */
   const handleSignUp = async (details: JobSignUpDetails): Promise<JobSignUpResult> => {
-    /* Two doors reach this now: the modal (`sign-up`, role-less) and the flow's
-       step 2 (`flow`, always carrying a role). Reading the target from whichever
-       is open keeps one handler — and one place where the analytics for a
-       sign-up are fired — rather than a second copy that could drift. */
+    /* The modal can carry a role after an Apply return. Both forms use this
+       handler so the account request and the return route stay the same. */
     const target = state.step === 'sign-up' ? state.target : state.step === 'flow' ? state.target : null;
     const analyticsBase = {
       job_id: target?.role.uid ?? null,
@@ -186,11 +184,8 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
 
     analytics.onJobApplySignUpSubmitted({
       ...analyticsBase,
-      /* Three doors, three values, all of them already in `JobApplyTrigger`.
-         `detail` is the flow's own step 2 — the pane reached by pressing Apply
-         on a job — and it is the path that matters most now, so it must not be
-         counted as a row press. */
-      trigger: state.step === 'flow' ? 'detail' : target ? 'row' : 'banner',
+      // LAB-3382: both Apply paths use `detail`, including the return modal.
+      trigger: target ? 'detail' : 'banner',
       has_team_email: false,
     });
     flow.closeSignUp({ completed: true });
@@ -212,8 +207,9 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
    * URL by an abandoned sign-up, so a stale one can't resume here.
    */
   const handleModalSignIn = () => {
-    // LAB-3382: only Sign in inside the Job Board Apply flow carries the role.
-    const applySignInUid = state.step === 'flow' && source === 'job-board' ? state.target.role.uid : undefined;
+    // LAB-3382: only Sign in from Job Board Apply (the flow or the role's sign-up modal) carries the role.
+    const applyTarget = state.step === 'flow' || state.step === 'sign-up' ? state.target : null;
+    const applySignInUid = source === 'job-board' ? applyTarget?.role.uid : undefined;
     flow.closeSignUp();
     pushLogin({ applySignInUid });
   };

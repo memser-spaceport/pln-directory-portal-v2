@@ -333,7 +333,7 @@ When the build flag `NEXT_PUBLIC_SHOW_EVENTS_PAGE_V2` is `true`, `/events/all` S
 
 ### Requirement: The page header
 
-The page SHALL open with the title "Events", one line of description, a link "Open PL Events" to the events app (new tab), and "Submit an event". "Submit an event" SHALL lead where the production submit link leads today.
+The page SHALL open with the title "Events", one line of description, a link "Open PL Events" to the events app (new tab), and "Submit an event". On phones (below 640px) "Submit an event" SHALL sit on the right of the title's row, and "Open PL Events" SHALL be an inline link at the end of the description, shown once (Polina, 2026-11-24). "Submit an event" SHALL lead where the production submit link leads today.
 
 #### Scenario: Submit an event
 

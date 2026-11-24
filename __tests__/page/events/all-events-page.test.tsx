@@ -313,16 +313,6 @@ describe('Near you', () => {
 });
 
 describe('Browse by city', () => {
-  it('is left to Filters on phones: the band hides below 640px (LAB-3391, Anuj on Nov 24)', () => {
-    renderPage();
-    expect(screen.getByTestId('city-band')).toHaveClass('cityBand');
-    // jsdom applies no SCSS, so the rule itself is read: `.cityBand` is display: none inside `mobile-only`.
-    const scss = jest
-      .requireActual<typeof import('fs')>('fs')
-      .readFileSync(`${process.cwd()}/components/page/events/all-events/AllEventsPage.module.scss`, 'utf8');
-    expect(scss).toMatch(/\.cityBand\s*\{\s*@include media\.mobile-only\s*\{\s*display:\s*none;/);
-  });
-
   it('opens every city in place, scopes the page to one and leaves it again', () => {
     renderPage();
     fireEvent.click(screen.getByRole('button', { name: 'All 7 cities' }));

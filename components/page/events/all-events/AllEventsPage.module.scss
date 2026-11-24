@@ -1062,9 +1062,44 @@
       display: none;
     }
 
+    // Compact on phones (LAB-3391, Vova on Nov 24): the picture shrinks to an 80px square beside the text, so Near you
+    // takes about a third of its height and Browse by city stays in view under it.
     > .tile {
-      flex: 0 0 80%;
+      flex: 0 0 85%;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
       scroll-snap-align: start;
+    }
+
+    .tileImage {
+      flex: 0 0 80px;
+      width: 80px;
+      height: 80px;
+      aspect-ratio: auto;
+      border-radius: 8px;
+
+      // The Going pill sits closer to the corner of the small square.
+      > * + * {
+        top: 4px;
+        left: 4px;
+      }
+    }
+
+    .tileBody {
+      gap: 2px;
+      padding: 0;
+    }
+
+    .tileWhen {
+      font-size: 12px;
+      line-height: 16px;
+    }
+
+    .tileTitle {
+      font-size: 14px;
+      line-height: 20px;
     }
   }
 }
@@ -1187,12 +1222,4 @@
 // "All upcoming" / "Matching events": the dated list's own heading, a section title like the bands'.
 .listHeading.listHeading {
   margin: 32px 0 12px;
-}
-
-/* Browse by city (CityBand): tablets and up only (LAB-3391). On a phone a city is picked in Filters, so the list starts
-   sooner. Hidden in CSS, not in JS, so the server's HTML already matches and nothing jumps after hydration. */
-.cityBand {
-  @include media.mobile-only {
-    display: none;
-  }
 }

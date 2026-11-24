@@ -147,8 +147,10 @@ Standard sign-in SHALL use the general wizard when there is no Apply marker. App
 #### Scenario: Existing account after Sign in from Apply
 
 - **GIVEN** a guest who pressed Apply and chose Sign in with an existing account
-- **WHEN** the sign-in succeeds and a later navigation puts `applySignIn` back in the URL
-- **THEN** the page removes `applySignIn` again, keeps the other query values and opens no drawer
+- **WHEN** LabOS confirms the sign-in
+- **THEN** the success callback removes `applySignIn` before it copies the query for navigation
+- **AND** the page keeps the other Job Board query values and opens no drawer
+- **AND** the user does not need to reload the page
 
 ### Requirement: Suggestions response with or without contact and criteria fields
 

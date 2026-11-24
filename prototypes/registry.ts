@@ -19,6 +19,16 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/template/TemplatePrototype'),
   },
   {
+    key: 'lab-3386-invite',
+    status: 'ideation',
+    version: 1,
+    title: 'LAB-3386 Invite someone to LabOS',
+    description:
+      'Three doors, one destination. The avatar menu has "Invite someone to LabOS". A members search that finds nobody adds "Can\u2019t find them? They may not be on LabOS yet. Invite them." (populated results get no CTA). Team leads and admins get "Invite a teammate" beside "Add New" in the team profile Members header, on the same isTeamLeaderOrAdmin gate. Each opens Settings \u2192 Invite: a personal mock sign-up link, "Copy invite link", a Copied state and a fallback that selects the link when the clipboard is blocked. Mock data only.',
+    category: 'Cross-product',
+    load: () => import('./entries/lab-3386-invite/InvitePrototype'),
+  },
+  {
     key: 'gantry-priority-support',
     status: 'progress',
     version: 1,

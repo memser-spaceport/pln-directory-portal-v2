@@ -1,0 +1,64 @@
+'use client';
+
+import Image from 'next/image';
+
+import type { IMember } from '@/types/members.types';
+
+import { DetailsSection, DetailsSectionHeader, HeaderActionBtn } from '@/components/common/profile/DetailsSection';
+// The production leaf card: no store, analytics or data.
+import { TeamMembersViewCard } from '@/components/page/team-details/TeamMembers/components/TeamMembersView/components/TeamMembersViewCard';
+import tmv from '@/components/page/team-details/TeamMembers/components/TeamMembersView/TeamMembersView.module.scss';
+
+import { canManageTeamMembers, userInfoFor } from './invite';
+import { MOCK_TEAM, MOCK_TEAM_MEMBERS, type Viewer } from './mocks';
+import s from './InvitePrototype.module.scss';
+
+/**
+ * COPY-SIMPLIFY of production's team profile Members section
+ * (components/page/team-details/TeamMembers/components/TeamMembersView/TeamMembersView.tsx).
+ * Production shows "Add New" and the per-card edit only when
+ * `isTeamLeaderOrAdmin(userInfo, team.id)` is true. Leads and admins already
+ * manage members here, so "Invite a teammate" goes in the same header slot,
+ * on the same gate, as the same HeaderActionBtn (lessons 2, 27).
+ * Add New adds someone already on LabOS; Invite a teammate is for someone who
+ * is not. A plain member sees neither.
+ */
+export function TeamMembersSection({ viewer, onInvite }: { viewer: Viewer; onInvite: () => void }) {
+  const hasEditAccess = canManageTeamMembers(userInfoFor(viewer), MOCK_TEAM.id);
+  const members = MOCK_TEAM_MEMBERS as unknown as IMember[];
+
+  return (
+    <div className={s.teamPage}>
+      <h1 className={s.teamName}>{MOCK_TEAM.name}</h1>
+      <DetailsSection>
+        <DetailsSectionHeader title={`Members (${members.length})`}>
+          {hasEditAccess && (
+            <div className={s.headerActions} data-testid="team-actions">
+              <HeaderActionBtn onClick={() => {}}>
+                <Image loading="lazy" alt="add" src="/icons/add-blue.svg" height={16} width={16} />
+                Add New
+              </HeaderActionBtn>
+              <HeaderActionBtn onClick={onInvite}>
+                <Image loading="lazy" alt="" src="/icons/add-user-blue.svg" height={16} width={17} />
+                Invite a teammate
+              </HeaderActionBtn>
+            </div>
+          )}
+        </DetailsSectionHeader>
+        <div className={tmv.membersList}>
+          {members.map((member, index) => (
+            <TeamMembersViewCard
+              key={member.id}
+              member={member}
+              teamId={MOCK_TEAM.id}
+              showBorder={index < members.length - 1}
+              hasEditAccess={hasEditAccess}
+              onClick={() => {}}
+              onEdit={() => {}}
+            />
+          ))}
+        </div>
+      </DetailsSection>
+    </div>
+  );
+}

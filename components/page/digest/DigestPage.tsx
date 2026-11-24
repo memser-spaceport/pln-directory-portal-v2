@@ -122,7 +122,7 @@ export function DigestPage({ issueUid, data, isLoggedIn }: Props) {
     return `${url.pathname}${url.search}`;
   };
   const goToLogin = useCallback((returnTo: string) => router.push(`${returnTo}#login`, { scroll: false }), [router]);
-  // A signed-out press (LAB-3347): the sign-in prompt names it and says why; Sign in or Sign up there finishes it.
+  // A signed-out press (LAB-3347): the sign-in prompt names it and says why; Sign in there finishes it.
   const ask = (press: DigestSignInPromptPress, words: DigestSignInAsk, extra?: Intent, returnTo = addressWith(extra)) =>
     setPrompt({ ask: words, press, returnTo });
 
@@ -173,13 +173,11 @@ export function DigestPage({ issueUid, data, isLoggedIn }: Props) {
       extra,
     );
   };
-  const answerPrompt = (action: 'sign-in' | 'sign-up' | 'close') => {
+  const answerPrompt = (action: 'sign-in' | 'close') => {
     if (!prompt) return;
     analytics.onSignInPromptAnswered({ press: prompt.press, action });
     setPrompt(null);
     if (action === 'sign-in') goToLogin(prompt.returnTo);
-    // The navbar's Sign up: the sign-up flow comes back to `returnTo`, so the press still finishes.
-    if (action === 'sign-up') router.push(`/sign-up?returnTo=${encodeURIComponent(prompt.returnTo)}`);
   };
   const openAllTopics = () => {
     if (signedIn === undefined) return;
@@ -446,7 +444,6 @@ export function DigestPage({ issueUid, data, isLoggedIn }: Props) {
         <DigestSignInPrompt
           ask={prompt.ask}
           onSignIn={() => answerPrompt('sign-in')}
-          onSignUp={() => answerPrompt('sign-up')}
           onClose={() => answerPrompt('close')}
         />
       )}

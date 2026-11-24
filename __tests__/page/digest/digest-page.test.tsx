@@ -196,7 +196,7 @@ const card = (uid: string) => document.getElementById(`story-${uid}`) as HTMLEle
 const flush = () => act(async () => {});
 /** LAB-3347: the sign-in prompt a signed-out press opens, named by its title. */
 const signInPrompt = () => screen.getByRole('dialog', { name: /^Sign in to/ });
-const answerPrompt = (name: 'Sign in' | 'Sign up' | 'Close') =>
+const answerPrompt = (name: 'Sign in' | 'Close') =>
   userEvent.click(within(signInPrompt()).getByRole('button', { name }));
 
 beforeEach(() => {
@@ -358,15 +358,15 @@ describe('DigestPage', () => {
       expect(window.location.search).toBe('?issue=iss-1');
     });
 
-    it('sends Sign up to the sign-up flow with the press in returnTo, and Close cancels the press (LAB-3347)', async () => {
+    it('offers Sign in only, with no Sign up (LAB-3348 AC4), and Close cancels the press', async () => {
       open('/digest?t=x');
       await userEvent.click(within(card('b')).getByRole('button', { name: 'More like this' }));
-      await answerPrompt('Sign up');
-      expect(routerPush).toHaveBeenLastCalledWith(
-        `/sign-up?returnTo=${encodeURIComponent('/digest?issue=iss-1&story=b&choice=more')}`,
-      );
-      expect(capture).toHaveBeenCalledWith('digest-sign-in-prompt-answered', { press: 'more', action: 'sign-up' });
-      routerPush.mockClear();
+      expect(within(signInPrompt()).getAllByRole('button')).toHaveLength(2);
+      expect(within(signInPrompt()).getByRole('button', { name: 'Close' })).toBeInTheDocument();
+      expect(within(signInPrompt()).getByRole('button', { name: 'Sign in' })).toBeInTheDocument();
+      expect(within(signInPrompt()).queryByText(/sign up/i)).toBeNull();
+      await answerPrompt('Close');
+      expect(capture).toHaveBeenCalledWith('digest-sign-in-prompt-answered', { press: 'more', action: 'close' });
 
       await userEvent.click(within(card('b')).getByRole('button', { name: 'Less like this' }));
       await answerPrompt('Close');

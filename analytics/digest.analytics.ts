@@ -183,7 +183,7 @@ export function useDigestAnalytics() {
         });
       },
       /** LAB-3347: what the reader did with the sign-in prompt. */
-      onSignInPromptAnswered(params: { press: DigestSignInPromptPress; action: 'sign-in' | 'sign-up' | 'close' }) {
+      onSignInPromptAnswered(params: { press: DigestSignInPromptPress; action: 'sign-in' | 'close' }) {
         capture(DIGEST_ANALYTICS_EVENTS.ON_DIGEST_SIGN_IN_PROMPT_ANSWERED, params);
       },
     }),

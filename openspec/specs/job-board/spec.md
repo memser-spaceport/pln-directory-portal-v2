@@ -136,7 +136,7 @@ Apply SHALL leave the site for the team's own posting when the team does not tak
 
 Sign in from Apply SHALL carry the role in `applySignIn`. The sign-up route SHALL accept only a canonical `/jobs` or a matching `/jobs/openings/<uid>` return path. With in-app Apply on, it SHALL route a guest to `/jobs/openings/<uid>?applySignUp=<uid>`. That page SHALL open the existing Apply step without a second Apply click or a data write. All other visitors SHALL see the general wizard.
 
-Standard sign-in SHALL use the general wizard when there is no Apply marker. Apply sign-in SHALL clear the marker on success or failure, except for "Email not found". In that dialog, Sign up and Try another email SHALL keep the marker. The X button SHALL remove only `applySignIn`.
+Standard sign-in SHALL use the general wizard when there is no Apply marker. Apply sign-in SHALL clear the marker on success or failure, except for "Email not found". In that dialog, Sign up and Try another email SHALL keep the marker. The X button, Escape and a backdrop click SHALL remove only `applySignIn`.
 
 #### Scenario: New email after Sign in from Apply
 

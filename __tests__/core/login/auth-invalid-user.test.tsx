@@ -205,11 +205,15 @@ describe('AuthInvalidUser', () => {
       expect(mockRouter.push).not.toHaveBeenCalled();
     });
 
-    it('keeps the marker on Escape', async () => {
+    it.each([
+      ['Escape', () => fireEvent.keyDown(document, { key: 'Escape' })],
+      ['backdrop click', () => fireEvent.click(document.querySelector('[data-modal]')!)],
+    ])('removes only the marker on %s', async (_, dismiss) => {
       await openDialog();
-      fireEvent.keyDown(document, { key: 'Escape' });
+      dismiss();
       await waitFor(() => expect(screen.queryByText(NEW_TITLE)).not.toBeInTheDocument());
-      expect(window.location.search).toBe('?tab=all&applySignIn=role-1');
+      expect(window.location.search + window.location.hash).toBe('?tab=all#login');
+      expect(mockRouter.push).not.toHaveBeenCalled();
     });
 
     it.each(['Sign up', 'Try another email'])('keeps the marker on %s', async (name) => {

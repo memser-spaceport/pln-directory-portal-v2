@@ -14,7 +14,6 @@ interface ModalBaseProps {
   footer?: ReactNode;
   open: boolean;
   onClose?: () => void;
-  onCloseButtonClick?: () => void;
   cancel?: {
     onClick: () => void;
   };
@@ -39,7 +38,7 @@ export function ModalBase(props: PropsWithChildren<ModalBaseProps>) {
     <Modal isOpen={open} onClose={onClose} className={classes?.modal?.className}>
       <div className={clsx(s.root, className)}>
         {onClose && (
-          <button className={s.close} onClick={props.onCloseButtonClick ?? onClose} type="button">
+          <button className={s.close} onClick={onClose} type="button">
             <CloseIcon width={16} height={16} color="#455468" />
           </button>
         )}

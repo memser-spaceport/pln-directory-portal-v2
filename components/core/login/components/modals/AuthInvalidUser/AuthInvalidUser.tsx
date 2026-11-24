@@ -35,8 +35,8 @@ interface ModalContent {
   reason: string;
   /** ✕ in the corner instead of a Cancel button. */
   closeButton?: boolean;
-  /** Runs before the ✕ closes the dialog. */
-  onCloseButtonClick?: () => void;
+  /** Replaces the close for the ✕, Escape and backdrop click. */
+  onDismiss?: () => void;
   submit?: {
     label: ReactNode;
     onClick: () => void;
@@ -214,7 +214,7 @@ export function AuthInvalidUser() {
             description: <EmailNotFoundDescription email={email} />,
             reason: 'email_not_found',
             closeButton: true,
-            onCloseButtonClick: () => {
+            onDismiss: () => {
               stripApplySignInParamFromUrl();
               handleModalClose();
             },
@@ -278,8 +278,7 @@ export function AuthInvalidUser() {
       title={content.title}
       titleIcon={<WarningCircleIcon />}
       description={content.description}
-      onClose={content.closeButton ? handleModalClose : undefined}
-      onCloseButtonClick={content.onCloseButtonClick}
+      onClose={content.closeButton ? (content.onDismiss ?? handleModalClose) : undefined}
       cancel={content.closeButton ? undefined : { onClick: content.onCancel ?? handleModalClose }}
       submit={
         content.submit

@@ -846,6 +846,16 @@ describe('EventDrawerView (LAB-3216)', () => {
       expect(screen.queryByTestId('rsvp-bar')).not.toBeInTheDocument();
     });
 
+    it('in the embed, offers "RSVP on LabOS" in a new tab instead of "Yes" (LAB-3392)', () => {
+      placeCard(900);
+      const href = '/events/all?event=labweek-lisbon';
+      render(<Harness canMarkGoing={false} viewerUid={null} plans={null} rsvpHref={href} />);
+      const bar = screen.getByTestId('rsvp-bar');
+      expect(within(bar).getByText('Are you going?')).toBeInTheDocument();
+      expect(within(bar).queryByRole('button', { name: "Yes, I'm going" })).toBeNull();
+      expect(within(bar).getByRole('link', { name: /RSVP on LabOS/ })).toHaveAttribute('href', href);
+    });
+
     it('never shows for a member who cannot say they are going', () => {
       placeCard(900);
       render(<Harness canMarkGoing={false} plans={null} />);

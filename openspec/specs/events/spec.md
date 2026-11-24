@@ -288,7 +288,7 @@ When the drawer closes, or steps to another event with previous or next, after a
 
 The drawer SHALL record these PostHog events, each with `event_uid`:
 
-- `event-drawer-opened`, with `source` (`home`, `member-profile`, `team-profile`, `add-event`, `digest` or `all-events`);
+- `event-drawer-opened`, with `source` (`home`, `member-profile`, `team-profile`, `add-event`, `digest`, `all-events` or `embed`);
 - `event-going-marked`, with `source`;
 - `event-not-going-marked`, on "Mark as not going";
 - `event-plans-saved`, with `roles`;
@@ -552,13 +552,14 @@ The drawer's previous and next SHALL step through the events the page shows unde
 
 ### Requirement: Embed opens a dialog with the link and the code
 
-The "Coming up" toolbar on `/events/all` SHALL show an "Embed" button with a `</>` glyph, styled like the Filters button, after the List / Calendar / Map switch, in every view and at every width (LAB-3352). A press SHALL open the dialog "Embed these events" in the standard modal shell (LAB-3365, Polina's design on LAB-3352) and copy nothing. It embeds what the page shows, one link `<origin>/events/embed` with the active `view`, the calendar mode on show as `cal` (also when the address has none) and each applied filter of search, Mode, Access type, Focus area, City and Host, under the page address's own keys. The link SHALL NOT carry "Events I'm going to" (`going`), the open event (`event`) or any other parameter.
+The "Coming up" toolbar on `/events/all` SHALL show an "Embed" button with a `</>` glyph, styled like the Filters button, after the List / Calendar / Map switch, in every view and at every width (LAB-3352). A press SHALL open the dialog "Embed these events" in the standard modal shell (LAB-3365, Polina's design on LAB-3352) and copy nothing. It embeds what the page shows, one link `<origin>/events/embed` with the active `view`, the calendar mode on show as `cal` (also when the address has none) and each applied filter of search, Mode, Access type, Focus area, City and Host, under the page address's own keys. The link SHALL NOT carry "Events I'm going to" (`going`), the open event (`event`) or any other parameter, except `details=labos` when the host ticks "Open event details on LabOS" (LAB-3392).
 
 The dialog SHALL show:
 
 - under the title, what the embed shows: "List view", "Week calendar", "Month calendar" or "Map view", then each applied filter's chip label (the search text in curly quotes), joined by " · ", or "All upcoming events" with none;
 - a live preview: `/events/embed` with that query, 320px high, loaded only while the dialog is open;
-- "Embed code": one line, `<iframe src="<link>" width="100%" height="640" style="border: 1px solid #e2e8f0; border-radius: 12px;" title="<title>" loading="lazy"></iframe>`, whose title is "Protocol Labs events: " and the filter labels joined by " · ", or "Protocol Labs events" with none; `&`, `"` and `<` escaped; with the line "New events that match appear on their own. Change height to fit your page.";
+- "Embed code": one line, `<iframe src="<link>" width="100%" height="640" style="border: 1px solid #e2e8f0; border-radius: 12px;" title="<title>" allow="clipboard-write" loading="lazy"></iframe>`, whose title is "Protocol Labs events: " and the filter labels joined by " · ", or "Protocol Labs events" with none; `&`, `"` and `<` escaped; with the line "New events that match appear on their own. Change height to fit your page.";
+- the checkbox "Open event details on LabOS", unticked whenever the dialog opens, with the line "In a new tab. Otherwise they open inside the embed, with a link to RSVP on LabOS." Ticked, the preview, the code and the copied link SHALL end with `details=labos` (LAB-3392);
 - Copy link (a text button, left) and Copy code (primary, right). Each copies its text and reads "Link copied" / "Code copied" for 2 seconds; a second press starts the 2 seconds again. When the browser refuses the clipboard, a toast SHALL say "Could not copy the link" / "Could not copy the code", the button SHALL keep its label and nothing SHALL be recorded.
 
 Escape, Close and the backdrop SHALL close the dialog, focus SHALL go back to the Embed button, and the page SHALL keep its view and filters.
@@ -578,7 +579,7 @@ Escape, Close and the backdrop SHALL close the dialog, focus SHALL go back to th
 
 ### Requirement: The embed shows one view for other sites
 
-`/events/embed` SHALL show only the view and filters in its address, on the page's grey, for anyone, signed in or not, with no member data: no Near you, no Add location, no "Events I'm going to", no Going marks (LAB-3352). Under the view it SHALL show the link "All events on PL Directory ↗", which opens `/events/all` with the same view and filters (not the open event) in a new tab. It SHALL NOT show the site header, the mobile bottom bar, the feedback button, contact support, the rating prompts, the page header ("Submit an event", the events app link), Browse by city, the city header, the "Coming up" toolbar (count, Filters, the view switch, Embed), the filters or the applied-filter chips (Polina's design, 2026-11-20): the person embedding it chose the view and filters. Pressing an event SHALL open `/events/all?event=<uid>` in a new tab; the embed SHALL NOT open the drawer, also not for `event` in its own address. With no match it SHALL show the page's empty state, and when the events fail to load the page's error state. It SHALL be served only while the native page flag is on (else not found), and SHALL NOT be indexed. Any https site (and LabOS itself) may frame it (see the runtime platform's security headers).
+`/events/embed` SHALL show only the view and filters in its address, on the page's grey, for anyone, signed in or not, with no member data: no Near you, no Add location, no "Events I'm going to", no Going marks (LAB-3352). Under the view it SHALL show the link "All events on PL Directory ↗", which opens `/events/all` with the same view and filters (not the open event) in a new tab. It SHALL NOT show the site header, the mobile bottom bar, the feedback button, contact support, the rating prompts, the page header ("Submit an event", the events app link), Browse by city, the city header, the "Coming up" toolbar (count, Filters, the view switch, Embed), the filters or the applied-filter chips (Polina's design, 2026-11-20): the person embedding it chose the view and filters. Pressing an event SHALL open its drawer inside the embed (LAB-3392): the same drawer as the page, with previous / next through the events on show, read signed out whoever is signed in. In the embed the drawer SHALL NOT ask to sign in or offer "Yes, I'm going": its card and pinned bar SHALL offer "RSVP on LabOS ↗", which opens `/events/all?event=<uid>` in a new tab, and "N members going" SHALL be text that opens nothing. Opening, stepping and closing the drawer SHALL leave the embed's address and the framing page's history alone, and closing it SHALL leave the view and filters as they were. With `details=labos` in its address, pressing an event SHALL instead open `/events/all?event=<uid>` in a new tab, with no drawer. The embed SHALL NOT open a drawer for `event` in its own address. With no match it SHALL show the page's empty state, and when the events fail to load the page's error state. It SHALL be served only while the native page flag is on (else not found), and SHALL NOT be indexed. Any https site (and LabOS itself) may frame it (see the runtime platform's security headers).
 
 #### Scenario: plrd.org frames online events
 
@@ -587,7 +588,15 @@ Escape, Close and the backdrop SHALL close the dialog, focus SHALL go back to th
 - **THEN** the iframe shows the map with only online events, without the LabOS header, "Submit an event" or the toolbar
 - **AND** under the map, "All events on PL Directory ↗" links to `/events/all?view=map&mode=Online`
 - **WHEN** the reader presses an event
-- **THEN** that event opens on LabOS in a new tab, with its drawer open
+- **THEN** its drawer opens inside the iframe, with "RSVP on LabOS ↗" in place of "Yes, I'm going"
+- **WHEN** they close it
+- **THEN** the iframe still shows the map with only online events
+
+#### Scenario: A host sends events to LabOS
+
+- **GIVEN** an iframe on `/events/embed?view=calendar&details=labos`
+- **WHEN** the reader presses an event
+- **THEN** that event opens on LabOS in a new tab, with its drawer open, and the embed opens no drawer
 
 ### Requirement: One Going mark on the page
 
@@ -603,13 +612,13 @@ On the All Events page, an event the signed-in viewer is going to SHALL carry on
 
 The page SHALL record these PostHog events:
 
-- `event-drawer-opened` with `source` = `all-events` when the drawer opens from the page;
+- `event-drawer-opened` with `source` = `all-events` when the drawer opens from the page, and `embed` when it opens inside `/events/embed` (LAB-3392);
 - `events-view-changed` with `view` (`list`, `calendar` or `map`) and, for the calendar, `mode` (`week` or `month`);
 - `events-filters-applied` with the filter `key` (`search`, `going`, `mode` or `city`) and its `values`, for every filter change whichever control made it (the rail, a chip, a city tile, "Clear all"), once that filter has been still for 300ms; "Clear all" records each filter it empties, with no values;
 - `events-city-selected` with `city` and `from` (`tile`, `filter` or `near-you`), in addition, whenever a single city is chosen.
-- `events-embed-link-copied` with `view` and `filters_count` (the applied values the link carries), when Copy link in the Embed dialog copies the link (LAB-3352, LAB-3365);
-- `events-embed-code-copied` with `view` and `filters_count`, when Copy code copies the iframe code (LAB-3365);
-- `events-embed-viewed` with the `view` it opened on and `referrer_host` (the framing site's host, or null), once per load of `/events/embed`, but not for the Embed dialog's preview, where LabOS frames itself (LAB-3365).
+- `events-embed-link-copied` with `view`, `filters_count` (the applied values the link carries) and `details` (`embed`, or `labos` when ticked, LAB-3392), when Copy link in the Embed dialog copies the link (LAB-3352, LAB-3365);
+- `events-embed-code-copied` with `view`, `filters_count` and `details`, when Copy code copies the iframe code (LAB-3365);
+- `events-embed-viewed` with the `view` it opened on, `referrer_host` (the framing site's host, or null) and `details` (`embed` or `labos`), once per load of `/events/embed`, but not for the Embed dialog's preview, where LabOS frames itself (LAB-3365).
 
 No filter event SHALL be recorded for filters read from the address on landing, and a later change to another param (the view, the open event) SHALL NOT cancel a pending filter event.
 

@@ -29,6 +29,22 @@ export const EVENTS_EMBED_PATH = '/events/embed';
  */
 export const EMBED_PARAMS = ['view', 'cal', ...FILTER_PARAMS.filter((key) => key !== 'going')] as const;
 
+/**
+ * The embed link's one choice that isn't the page's state (LAB-3392): with `details=labos` an event opens on LabOS in
+ * a new tab; without it, its details open in the embed's own drawer.
+ */
+export const EMBED_DETAILS_PARAM = 'details';
+export const EMBED_DETAILS_ON_LABOS = 'labos';
+
+/** The embed link with the host's choice to open events on LabOS (LAB-3392); unchanged for the default. */
+export function withEmbedDetails(link: string, onLabOs: boolean): string {
+  if (!onLabOs) return link;
+  return `${link}${link.includes('?') ? '&' : '?'}${EMBED_DETAILS_PARAM}=${EMBED_DETAILS_ON_LABOS}`;
+}
+
+/** An event on the All Events page, its drawer open: where the embed sends a reader to LabOS. */
+export const allEventsEventHref = (uid: string) => `/events/all?event=${encodeURIComponent(uid)}`;
+
 /** The query of the embed link for the page's address, without a leading `?`; empty for the plain List. */
 export function embedQuery(params: URLSearchParams): string {
   const next = new URLSearchParams();

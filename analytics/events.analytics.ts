@@ -12,7 +12,17 @@ import { UpcomingEvent } from '@/services/events/hooks/useUpcomingEvents';
 import type { FilterParam } from '@/services/events/all-events.filters';
 
 /** Where the event drawer was opened from. */
-export type EventDrawerSource = 'home' | 'member-profile' | 'team-profile' | 'add-event' | 'digest' | 'all-events';
+export type EventDrawerSource =
+  | 'home'
+  | 'member-profile'
+  | 'team-profile'
+  | 'add-event'
+  | 'digest'
+  | 'all-events'
+  | 'embed';
+
+/** Where the embed opens an event's details (LAB-3392): its own drawer, or LabOS in a new tab. */
+export type EmbedDetails = 'embed' | 'labos';
 
 export const useEventsAnalytics = () => {
   const postHogProps = usePostHog();
@@ -179,17 +189,29 @@ export const useEventsAnalytics = () => {
   }
 
   /** All Events: Copy link in the Embed dialog put the embed link on the clipboard (LAB-3352, LAB-3365). */
-  function onEventsEmbedLinkCopied(params: { view: 'list' | 'calendar' | 'map'; filters_count: number }) {
+  function onEventsEmbedLinkCopied(params: {
+    view: 'list' | 'calendar' | 'map';
+    filters_count: number;
+    details: EmbedDetails;
+  }) {
     captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_EMBED_LINK_COPIED, params);
   }
 
   /** All Events: Copy code in the Embed dialog put the iframe code on the clipboard (LAB-3365). */
-  function onEventsEmbedCodeCopied(params: { view: 'list' | 'calendar' | 'map'; filters_count: number }) {
+  function onEventsEmbedCodeCopied(params: {
+    view: 'list' | 'calendar' | 'map';
+    filters_count: number;
+    details: EmbedDetails;
+  }) {
     captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_EMBED_CODE_COPIED, params);
   }
 
   /** The embed page loaded, with the host of the page that framed it (null opened directly). */
-  function onEventsEmbedViewed(params: { view: 'list' | 'calendar' | 'map'; referrer_host: string | null }) {
+  function onEventsEmbedViewed(params: {
+    view: 'list' | 'calendar' | 'map';
+    referrer_host: string | null;
+    details: EmbedDetails;
+  }) {
     captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_EMBED_VIEWED, params);
   }
 

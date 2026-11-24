@@ -369,9 +369,12 @@
   }
 }
 
+// On the page's own grey, which the small tile's background would vanish into: a white tile, as the cards.
 .cityThumbLarge {
   width: 64px;
   height: 64px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-neutral-primary, #ffffff);
 }
 
 .cityText {
@@ -396,9 +399,9 @@
   white-space: nowrap;
 }
 
-/* A city chosen: the band becomes where you are and the way back. */
+/* A city chosen: the band becomes where you are and the way back. The dated list follows it with no heading between. */
 .cityHeader {
-  margin-top: 24px;
+  margin: 24px 0;
 }
 
 .back {

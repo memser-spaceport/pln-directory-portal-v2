@@ -223,10 +223,12 @@ const saveTokens = async (response: TokenResponse, user: User) => {
 
 ### Step 8: Complete Login
 
-Show success toast and reload page.
+On `/jobs` or the matching `/jobs/openings/<uid>`, remove `applySignIn` before you call `clearPrivyParams` (LAB-3382).
+`clearPrivyParams` copies the query into the next URL. Then show the success toast and refresh the page.
 
 ```typescript
 const loginUser = async (output) => {
+  stripApplySignInAfterSignIn();
   clearPrivyParams();
   showLoginSuccess();
   router.refresh();
@@ -647,7 +649,7 @@ const isLoggedIn = authStatus.isLoggedIn();
 |------|-------------|--------------|
 | `unexpected_error` | Server error (500/401) | "Unexpected error occurred" |
 | `rejected_access_level` | Access denied (403) | "Access denied" with registration link |
-| `email_not_found` | No member for the email (404) | "This email isn't in the directory yet", naming the email; Sign up or Try another email |
+| `email_not_found` | No member for the email (404) | "This email isn't in the directory yet", naming the email; Sign up or Try another email. The ✕, Escape and a backdrop click remove only the Job Board `applySignIn` marker (LAB-3382) |
 | `linked_to_another_user` | Email already linked | Opens LinkAccountModal |
 | `exited_link_flow` | User cancelled email linking | Cleans up and shows error |
 | `invalid_credentials` | Invalid auth credentials | Cleans up and shows error |

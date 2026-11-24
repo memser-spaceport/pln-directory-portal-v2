@@ -27,6 +27,7 @@ import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState
 import s from './AuthInvalidUser.module.scss';
 import { clearAllAuthCookies } from '@/utils/third-party.helper';
 import { broadcastLogout } from '@/components/core/login/components/BroadcastChannel';
+import { stripApplySignInParamFromUrl } from '@/services/jobs/job-apply-resume';
 
 interface ModalContent {
   title: string;
@@ -34,6 +35,8 @@ interface ModalContent {
   reason: string;
   /** ✕ in the corner instead of a Cancel button. */
   closeButton?: boolean;
+  /** Replaces the close for the ✕, Escape and backdrop click. */
+  onDismiss?: () => void;
   submit?: {
     label: ReactNode;
     onClick: () => void;
@@ -211,6 +214,10 @@ export function AuthInvalidUser() {
             description: <EmailNotFoundDescription email={email} />,
             reason: 'email_not_found',
             closeButton: true,
+            onDismiss: () => {
+              stripApplySignInParamFromUrl();
+              handleModalClose();
+            },
             submit: {
               label: 'Sign up',
               onClick: () => {
@@ -271,7 +278,7 @@ export function AuthInvalidUser() {
       title={content.title}
       titleIcon={<WarningCircleIcon />}
       description={content.description}
-      onClose={content.closeButton ? handleModalClose : undefined}
+      onClose={content.closeButton ? (content.onDismiss ?? handleModalClose) : undefined}
       cancel={content.closeButton ? undefined : { onClick: content.onCancel ?? handleModalClose }}
       submit={
         content.submit

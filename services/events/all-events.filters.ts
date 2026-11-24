@@ -3,6 +3,7 @@ import { decodeFilterValues } from '@/services/filters';
 import type { AllEventsItem } from './all-events.types';
 import type { EventMode } from './event-drawer.types';
 import { ACCESS_COPY } from './event-facts';
+import { focusAreaName } from './focus-areas';
 
 /*
  * The All Events page's pure views over the loaded events (LAB-3247, design D4): filtering, day groups, cities and
@@ -16,7 +17,7 @@ import { ACCESS_COPY } from './event-facts';
 export const MODE_LABEL: Record<EventMode, string> = { 'In-Person': 'In person', Virtual: 'Online', Hybrid: 'Hybrid' };
 
 /** The params that count as applied filters. `view`, `cal` and `event` are page state, not filters. */
-export const FILTER_PARAMS = ['search', 'going', 'mode', 'access', 'focus', 'city', 'host'] as const;
+export const FILTER_PARAMS = ['search', 'going', 'mode', 'access', 'focus', 'topic', 'city', 'host'] as const;
 export type FilterParam = (typeof FILTER_PARAMS)[number];
 export const isFilterParam = (key: string): key is FilterParam => (FILTER_PARAMS as readonly string[]).includes(key);
 
@@ -62,11 +63,11 @@ export function filterValues(key: FilterParam, value: string | null | undefined)
 }
 
 /**
- * The rail's lists of values, in the prototype's order. Access, Focus area (the event's tags, as the events app calls
- * them) and Host come from the event's details, which the events service fills by its details sync; an event without
+ * The rail's lists of values, in the prototype's order. Focus area holds the events portal's focus area codes and Topic
+ * every other tag (LAB-3404). Access, Focus area, Topic and Host come from the event's details, which the events service fills by its details sync; an event without
  * them simply has no value there.
  */
-export const FACET_KEYS = ['mode', 'access', 'focus', 'city', 'host'] as const;
+export const FACET_KEYS = ['mode', 'access', 'focus', 'topic', 'city', 'host'] as const;
 export type FacetKey = (typeof FACET_KEYS)[number];
 const isFacetKey = (key: string): key is FacetKey => (FACET_KEYS as readonly string[]).includes(key);
 
@@ -79,6 +80,7 @@ export function readFilters(params: URLSearchParams): AllEventsFilters {
     mode: decodeFilterValues(params.get('mode')),
     access: decodeFilterValues(params.get('access')),
     focus: decodeFilterValues(params.get('focus')),
+    topic: decodeFilterValues(params.get('topic')),
     city: decodeFilterValues(params.get('city')),
     host: decodeFilterValues(params.get('host')),
   };
@@ -90,7 +92,10 @@ export function countAppliedFilters(params: URLSearchParams): number {
   return (f.search ? 1 : 0) + (f.going ? 1 : 0) + FACET_KEYS.reduce((n, key) => n + f[key].length, 0);
 }
 
-/** The labels an event has for a facet: the words its card and drawer use ("Invite only", "In person"). */
+/**
+ * The values an event has for a facet: the words its card and drawer use ("Invite only", "In person"), except that a
+ * focus area is its code. `facetLabel` gives what a reader sees.
+ */
 export function facetValues(item: AllEventsItem, key: FacetKey): string[] {
   switch (key) {
     case 'mode':
@@ -98,6 +103,8 @@ export function facetValues(item: AllEventsItem, key: FacetKey): string[] {
     case 'access':
       return item.access ? [ACCESS_COPY[item.access].main] : [];
     case 'focus':
+      return item.focusAreas;
+    case 'topic':
       return item.tags;
     case 'host':
       return item.hosts;
@@ -106,19 +113,24 @@ export function facetValues(item: AllEventsItem, key: FacetKey): string[] {
   }
 }
 
+/** What a reader sees for a facet's value: a focus area's name for its code (LAB-3404), any other value as it is. */
+export const facetLabel = (key: FacetKey, value: string) => (key === 'focus' ? focusAreaName(value) : value);
+
 /** A facet's options with how many events carry each, most first. */
 export function facetOptions(items: AllEventsItem[], key: FacetKey) {
   const counts = new Map<string, number>();
   items.forEach((item) => facetValues(item, key).forEach((v) => counts.set(v, (counts.get(v) ?? 0) + 1)));
   return Array.from(counts, ([value, count]) => ({ value, count, disabled: false })).sort(
-    (a, b) => b.count - a.count || a.value.localeCompare(b.value),
+    (a, b) => b.count - a.count || facetLabel(key, a.value).localeCompare(facetLabel(key, b.value)),
   );
 }
 
 function matchesSearch(item: AllEventsItem, search: string): boolean {
   const q = search.trim().toLowerCase();
   if (!q) return true;
-  return [item.name, item.city ?? '', ...item.hosts, ...item.tags].some((v) => v.toLowerCase().includes(q));
+  return [item.name, item.city ?? '', ...item.hosts, ...item.focusAreas.map(focusAreaName), ...item.tags].some((v) =>
+    v.toLowerCase().includes(q),
+  );
 }
 
 function matchesFacet(item: AllEventsItem, key: FacetKey, selected: string[]): boolean {

@@ -3,6 +3,7 @@ import { formatInTimeZone } from 'date-fns-tz';
 
 import { toDisplayCity } from './all-events.filters';
 import { toEventDetail } from './event-drawer.mappers';
+import { toFocusAreaCode } from './focus-areas';
 import type { EventDetailResponse } from './event-drawer.types';
 import type { UpcomingEvent } from './hooks/useUpcomingEvents';
 import type { AllEventsItem, AllEventsResult } from './all-events.types';
@@ -60,16 +61,18 @@ export function toAllEventsItem(row: UpcomingEvent, raw: EventDetailResponse | n
     mode: detail?.mode ?? null,
     access: detail?.access ?? null,
     hosts: detail?.hosts ?? [],
+    focusAreas: detail?.focusAreas ?? [],
     tags: detail?.tags.map((t) => t.name) ?? [],
-    tagColor: raw?.details?.tags?.[0]?.color ?? null,
+    tagColor: raw?.details?.tags?.find((t) => !toFocusAreaCode(t.name))?.color ?? null,
     picture: raw?.banner || raw?.logo || row.logo || null,
     goingCount: hidden ? null : (raw?.goingCount ?? row.goingCount ?? null),
     faces: hidden ? [] : (raw?.faces ?? []).slice(0, 3),
   };
 }
 
+/** `ongoing` adds the events in progress (LAB-3403); an older backend ignores it and sends only those not started. */
 async function fetchUpcomingRows(): Promise<UpcomingEvent[]> {
-  const response = await fetch(`${api()}/v1/irl/events/upcoming`, { cache: 'no-store' });
+  const response = await fetch(`${api()}/v1/irl/events/upcoming?ongoing=true`, { cache: 'no-store' });
   if (!response.ok) throw new Error(`Upcoming events responded with ${response.status}`);
   const body = await response.json();
   return Array.isArray(body) ? body : [];
@@ -107,7 +110,7 @@ async function loadAllEvents(): Promise<AllEventsItem[]> {
   return rows.map((row, i) => toAllEventsItem(row, details[i]));
 }
 
-const loadAllEventsCached = unstable_cache(loadAllEvents, ['all-events-page'], {
+const loadAllEventsCached = unstable_cache(loadAllEvents, ['all-events-page', 'focus-areas'], {
   revalidate: 300,
   tags: [ALL_EVENTS_CACHE_TAG],
 });

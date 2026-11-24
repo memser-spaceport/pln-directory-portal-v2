@@ -12,6 +12,7 @@ import {
   PENDING_APPLY_PARAM,
   PENDING_INTEREST_PARAM,
   stripApplySignInMarkersFromUrl,
+  stripApplySignInParamFromUrl,
   stripResumeParamsFromUrl,
 } from '@/services/jobs/job-apply-resume';
 import { authEvents, readInvalidEmailPayload } from '@/components/core/login/utils/authEvents';
@@ -257,6 +258,10 @@ export function useJobApplySurface({
     ];
     return () => offs.forEach((off) => off());
   }, [enabled]);
+  // A member never needs the marker. A navigation that started before the strip can put it back, so strip it again.
+  useEffect(() => {
+    if (enabled && isLoggedIn && searchParams.has(APPLY_SIGN_IN_PARAM)) stripApplySignInParamFromUrl();
+  }, [enabled, isLoggedIn, searchParams]);
   useEffect(() => {
     if (!signInDismissed.current) return;
     if (window.location.hash === '#login') signInDismissed.current = false;

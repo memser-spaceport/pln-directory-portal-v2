@@ -144,6 +144,12 @@ Standard sign-in SHALL use the general wizard when there is no Apply marker. App
 - **WHEN** Sign in finds no account and the guest presses Sign up
 - **THEN** the role page opens the Job Board sign-up modal for that role
 
+#### Scenario: Existing account after Sign in from Apply
+
+- **GIVEN** a guest who pressed Apply and chose Sign in with an existing account
+- **WHEN** the sign-in succeeds and a later navigation puts `applySignIn` back in the URL
+- **THEN** the page removes `applySignIn` again, keeps the other query values and opens no drawer
+
 ### Requirement: Suggestions response with or without contact and criteria fields
 
 The Suggested tab SHALL load when the suggestions response carries `contactedAt` per person, a role-level `criteria` list and a role-level `criteriaPrompt` (string or null), and SHALL also load when it carries none of them. Any other field the page does not know SHALL still fail the read.

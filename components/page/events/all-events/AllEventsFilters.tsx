@@ -13,6 +13,7 @@ import { decodeFilterValues, encodeFilterValues } from '@/services/filters';
 import {
   countAppliedFilters,
   FACET_KEYS,
+  facetLabel,
   facetOptions,
   readFilters,
   type FacetKey,
@@ -23,16 +24,12 @@ import type { AllEventsItem } from '@/services/events/all-events.types';
 import { SidebarIcon } from './icons';
 import s from './AllEventsPage.module.scss';
 
-/** The prototype's rail: Focus area and Host can hold many values, so they get a search box and show 5 at first. */
+/** Topic and Host can hold many values, so they get a search box and show 5 at first; there are 4 focus areas. */
 const FACETS: Record<FacetKey, { title: string; label?: string; placeholder?: string; searchable?: boolean }> = {
   mode: { title: 'Mode' },
   access: { title: 'Access type' },
-  focus: {
-    title: 'Focus area',
-    label: 'Search or select a focus area',
-    placeholder: 'E.g. AI',
-    searchable: true,
-  },
+  focus: { title: 'Focus area' },
+  topic: { title: 'Topic', label: 'Search or select a topic', placeholder: 'E.g. AI', searchable: true },
   city: { title: 'City' },
   host: { title: 'Host', label: 'Search or select a host', placeholder: 'E.g. Protocol Labs', searchable: true },
 };
@@ -55,8 +52,8 @@ interface RailProps {
 /**
  * The left rail, built as Teams and Members build theirs: a FiltersSidePanel ("Filters", applied count, Clear All)
  * with a title-less search, then one section per filter: search, "Events I'm going to", Mode, Access type, Focus area,
- * City and Host. A facet with fewer than two values in the events is left out, unless it is applied: before the events
- * service has synced the events' details, Access, Focus area and Host have none and stay hidden. Featured waits for
+ * Topic, City and Host. A facet with fewer than two values in the events is left out, unless it is applied: before the events
+ * service has synced the events' details, Access, Focus area, Topic and Host have none and stay hidden. Featured waits for
  * the backend to send it (phase 2, LAB-3281).
  */
 export function AllEventsFilterRail({ events, goingCount, onClose, onHide, onClear, onCityPicked }: RailProps) {
@@ -97,6 +94,9 @@ export function AllEventsFilterRail({ events, goingCount, onClose, onHide, onCle
       {FACET_KEYS.map((key) => {
         const options = facetOptions(events, key);
         if (options.length < 2 && !applied[key].length) return null;
+        // An applied value that no event has any more still shows ticked; here so a focus area shows its name, not its code.
+        const gone = applied[key].filter((value) => !options.some((o) => o.value === value));
+        const listed = [...options, ...gone.map((value) => ({ value, disabled: false }))];
         const { title, label, placeholder, searchable } = FACETS[key];
         return (
           <FilterSection key={key} title={title}>
@@ -106,7 +106,7 @@ export function AllEventsFilterRail({ events, goingCount, onClose, onHide, onCle
               placeholder={placeholder}
               hideSearch={!searchable}
               filterStore={useAllEventsFilterStore}
-              useGetDataHook={createFilterGetter(options)}
+              useGetDataHook={createFilterGetter(listed, { formatLabel: (o) => facetLabel(key, o.value) })}
               defaultItemsToShow={searchable ? 5 : 10}
               collapsible={searchable}
               onChange={key === 'city' ? (_, values) => values.length === 1 && onCityPicked?.(values[0]) : undefined}
@@ -133,7 +133,7 @@ export function appliedChips(params: URLSearchParams, scopedCity: string | null)
   if (f.going) chips.push({ key: 'going', label: "Events I'm going to" });
   FACET_KEYS.forEach((key) => {
     if (key === 'city' && scopedCity) return;
-    f[key].forEach((value) => chips.push({ key, value, label: value }));
+    f[key].forEach((value) => chips.push({ key, value, label: facetLabel(key, value) }));
   });
   return chips;
 }

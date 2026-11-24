@@ -20,6 +20,7 @@ export function allEventsItem(over: Partial<AllEventsItem> = {}): AllEventsItem 
     mode: 'In-Person',
     access: null,
     hosts: [],
+    focusAreas: [],
     tags: [],
     tagColor: null,
     picture: null,

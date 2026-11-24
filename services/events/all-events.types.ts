@@ -11,7 +11,7 @@ export interface AllEventsItem {
   /** ISO instants, as the API sends them. */
   startDate: string;
   endDate: string;
-  /** The gathering's IANA time zone ("UTC" when unknown), the one the drawer prints times in. */
+  /** The event's own IANA time zone, else its gathering's, else "UTC": the one the drawer prints times in. */
   timezone: string;
   /** "2026-12-03": the first and last day in the event's own time zone. */
   startDay: string;
@@ -32,7 +32,9 @@ export interface AllEventsItem {
   access: EventAccess | null;
   /** Hosts by name, from the events app's host and co-hosts, else the members marked Host. */
   hosts: string[];
-  /** Topic names, empty until the events backfill fills `details` (LAB-3214). */
+  /** The codes of the event's focus areas, e.g. "FA4" (LAB-3404). */
+  focusAreas: string[];
+  /** Topic names: the tags that are not focus areas. Empty until the events sync fills `details` (LAB-3214). */
   tags: string[];
   /** The first topic's colour from the events app ("#1E88E5"), for the calendar's faint card wash. */
   tagColor: string | null;

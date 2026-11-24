@@ -2,6 +2,8 @@ import {
   countAppliedFilters,
   dayHeading,
   dayOfSpan,
+  embedQuery,
+  facetLabel,
   facetOptions,
   filterEvents,
   groupByDay,
@@ -49,9 +51,21 @@ describe('filterEvents', () => {
     expect(run('mode=Hybrid&city=Lisbon')).toEqual([]);
   });
 
-  describe('Access type, Focus area and Host (from the event details)', () => {
-    const paid = item({ uid: 'paid', access: 'PAID', hosts: ['Filecoin Foundation', 'Protocol Labs'], tags: ['AI'] });
-    const invite = item({ uid: 'inv', access: 'INVITE ONLY', hosts: ['Protocol Labs'], tags: ['Storage', 'AI'] });
+  describe('Access type, Focus area, Topic and Host (from the event details)', () => {
+    const paid = item({
+      uid: 'paid',
+      access: 'PAID',
+      hosts: ['Filecoin Foundation', 'Protocol Labs'],
+      focusAreas: ['FA4'],
+      tags: ['AI'],
+    });
+    const invite = item({
+      uid: 'inv',
+      access: 'INVITE ONLY',
+      hosts: ['Protocol Labs'],
+      focusAreas: ['FA3', 'FA4'],
+      tags: ['Storage', 'AI'],
+    });
     const bare = item({ uid: 'bare' });
     const many = [paid, invite, bare];
     const pick = (q: string) => filterEvents(many, readFilters(params(q)), new Set()).map((e) => e.uid);
@@ -61,9 +75,28 @@ describe('filterEvents', () => {
       expect(pick('access=Paid|Invite only')).toEqual(['paid', 'inv']);
     });
 
-    it('filters by focus area (the tags) and by any of the hosts, case-insensitively', () => {
-      expect(pick('focus=storage')).toEqual(['inv']);
-      expect(pick('focus=AI')).toEqual(['paid', 'inv']);
+    it('filters by focus area code and by topic, apart (LAB-3404)', () => {
+      expect(pick('focus=FA3')).toEqual(['inv']);
+      expect(pick('focus=FA3|FA4')).toEqual(['paid', 'inv']);
+      expect(pick('topic=storage')).toEqual(['inv']);
+      expect(pick('focus=FA4&topic=Storage')).toEqual(['inv']);
+      expect(pick('focus=AI')).toEqual([]);
+      expect(pick('topic=FA4')).toEqual([]);
+    });
+
+    it('finds an event by its focus area name, never by the code (LAB-3404)', () => {
+      expect(pick('search=robotics')).toEqual(['inv']);
+      expect(pick('search=Neurotech')).toEqual(['paid', 'inv']);
+      expect(pick('search=FA4')).toEqual([]);
+    });
+
+    it('keeps the code in the link and shows the name (LAB-3404)', () => {
+      expect(facetLabel('focus', 'FA4')).toBe('Neurotech');
+      expect(facetLabel('topic', 'AI')).toBe('AI');
+      expect(embedQuery(params('view=map&focus=FA4&topic=AI&going=true'))).toBe('view=map&focus=FA4&topic=AI');
+    });
+
+    it('filters by any of the hosts, case-insensitively', () => {
       expect(pick('host=Filecoin Foundation')).toEqual(['paid']);
       expect(pick('host=protocol labs&access=Invite only')).toEqual(['inv']);
     });
@@ -76,6 +109,10 @@ describe('filterEvents', () => {
     it('lists their options with counts; an event without details adds none', () => {
       expect(facetOptions(many, 'access').map((o) => o.value)).toEqual(['Invite only', 'Paid']);
       expect(facetOptions(many, 'focus')).toEqual([
+        { value: 'FA4', count: 2, disabled: false },
+        { value: 'FA3', count: 1, disabled: false },
+      ]);
+      expect(facetOptions(many, 'topic')).toEqual([
         { value: 'AI', count: 2, disabled: false },
         { value: 'Storage', count: 1, disabled: false },
       ]);
@@ -89,7 +126,7 @@ describe('filterEvents', () => {
 
   it('counts each applied value, never the view, calendar mode or open event', () => {
     expect(countAppliedFilters(params('search=x&going=true&mode=Online|Hybrid&city=Dubai'))).toBe(5);
-    expect(countAppliedFilters(params('access=Paid&focus=AI|Storage&host=Protocol Labs'))).toBe(4);
+    expect(countAppliedFilters(params('access=Paid&focus=FA3|FA4&topic=AI&host=Protocol Labs'))).toBe(5);
     expect(countAppliedFilters(params('view=calendar&cal=month&event=e1'))).toBe(0);
   });
 

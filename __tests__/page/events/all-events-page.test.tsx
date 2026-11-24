@@ -322,6 +322,9 @@ describe('Near you', () => {
     expect(screen.queryByText(/Near you in/)).toBeNull();
     expect(screen.queryByText('See events near you.')).toBeNull();
     expect(screen.getByText('No upcoming events near Reykjavik.')).toBeInTheDocument();
+    // Two wordings, one shown at a time (CSS): phones have no Browse by city to point at (LAB-3391).
+    expect(screen.getByText('Browse other cities below, or change your location.')).toHaveClass('fromTablet');
+    expect(screen.getByText('Choose another city in Filters, or change your location.')).toHaveClass('onPhones');
     fireEvent.click(screen.getByRole('button', { name: 'Change location' }));
     expect(screen.getByRole('dialog', { name: 'Your location' })).toHaveAttribute('data-from', 'no-events');
   });
@@ -378,6 +381,11 @@ describe('Near you', () => {
 });
 
 describe('Browse by city', () => {
+  it('carries the class that hides it on phones, where a city is chosen in Filters (LAB-3391)', () => {
+    renderPage();
+    expect(screen.getByRole('region', { name: 'Browse by city' })).toHaveClass('citySection');
+  });
+
   it('opens every city in place, scopes the page to one and leaves it again', () => {
     renderPage();
     fireEvent.click(screen.getByRole('button', { name: 'All 7 cities' }));

@@ -62,6 +62,17 @@
   }
 }
 
+// The embed's going count (LAB-3392): the same line as `goingLink`, but nothing to press.
+.goingCount {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
 .nobody {
   font-size: 14px;
   line-height: 20px;

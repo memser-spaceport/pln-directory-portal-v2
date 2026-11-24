@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
-import { isPrivyOAuthReturn } from '@/components/core/login/utils/privyOAuthReturn';
 import { toast } from '@/components/core/ToastContainer';
 import { PostNewsModal } from '@/components/page/team-details/TeamNews/PostNewsModal';
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -23,9 +22,10 @@ export type DigestPostTeam = { uid: string; name: string };
 
 /**
  * "Got news from your team?" with its Post news modal (LAB-3287; LAB-3313). Posting needs the signed-in member and
- * their team: a signed-out reader goes to sign-in first. One team opens the modal for it; more than one asks which
- * team first; a member on no team doesn't get the card. A `postnews=open` landing does what a press does, once the
- * member's teams have loaded.
+ * their team, so the page shows it to signed-in team members only (LAB-3347); the email's `postnews=open` landing
+ * signed out is the page's to send to sign-in. One team opens the modal for it; more than one asks which team first;
+ * a member on no team doesn't get the card. A `postnews=open` landing does what a press does, once the member's teams
+ * have loaded.
  */
 export function DigestPostNews({ openOnLoad, onSignIn }: Props) {
   const { currentUser, isHydrated } = useCurrentUserStore();
@@ -40,12 +40,6 @@ export function DigestPostNews({ openOnLoad, onSignIn }: Props) {
   const team = teams?.length === 1 ? teams[0] : chosen;
   const choosing = requested && !chosen && (teams?.length ?? 0) > 1;
   const createPost = useCreateTeamNewsPost(team?.uid ?? '');
-
-  // The email link lands signed out: sign in first, then the address (still `?postnews=open`) acts again. Not on the
-  // way back from Google or GitHub: starting a sign-in again would throw away the one that is finishing (LAB-3308).
-  useEffect(() => {
-    if (openOnLoad && isHydrated && !currentUser && !isPrivyOAuthReturn()) onSignIn();
-  }, [openOnLoad, isHydrated, currentUser, onSignIn]);
 
   // Landed from the email with more than one team: the question is at the end of the page, so bring it into view.
   const scrolled = useRef(false);

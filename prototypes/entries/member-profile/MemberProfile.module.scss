@@ -1119,3 +1119,81 @@
     width: 100%;
   }
 }
+
+/* Review band "Under badges": the row sits in the header grid on production's
+   `.tags` placement, so its top rule and padding go (doubled class beats the
+   breakpoint rules); the bio keeps its own spacing below. */
+.badgeActions.badgeActions {
+  border-top: 0;
+  padding: 0;
+  margin-top: 16px;
+  margin-bottom: 24px;
+  flex-wrap: nowrap;
+}
+
+/* "Bio section": nothing follows the row in the header card. */
+.badgeActionsLast.badgeActionsLast {
+  margin-bottom: 0;
+}
+
+/* "In sections": the intro inside Contact Details, a hairline under the
+   links, the line that says what it is on the left and the press on its right. */
+.contactIntro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+}
+
+.contactIntroText {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* "Under badges" states: the tags and the actions row start at the card's
+   left edge (under the avatar). Below 1024px production already spans them
+   across (`span 5`); from 1024px it moves them to `grid-column: 2 / auto`
+   under the name, so this undoes that there only (same media query). */
+@media (min-width: 1024px) {
+  .fullRow.fullRow {
+    grid-column: 1 / -1;
+  }
+}
+
+/* …and the tags keep to one line: nothing wraps or shrinks, the overflow is
+   measured and the skills that don't fit fold into "+n". */
+.tagsOneLine.tagsOneLine {
+  flex-wrap: nowrap;
+  overflow: hidden;
+  min-width: 0;
+
+  > * {
+    flex-shrink: 0;
+  }
+}
+
+.tagsNoWrap.tagsNoWrap {
+  flex-wrap: nowrap;
+
+  > * {
+    flex-shrink: 0;
+  }
+}
+
+/* "Under badges": whole skill names, never "Distribut…". The DS Tag caps a
+   chip at 80px (150px from 1024px); on one measured line it's better to show
+   fewer whole words and fold the rest into "+n". */
+.skillTagFull.skillTagFull {
+  max-width: none;
+}

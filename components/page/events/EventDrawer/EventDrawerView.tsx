@@ -1,28 +1,39 @@
 'use client';
 
 import clsx from 'clsx';
-import { useCallback, useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MutableRefObject,
+  type RefObject,
+} from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { Button } from '@/components/common/Button';
+import btn from '@/components/common/Button/Button.module.scss';
 import { Drawer } from '@/components/common/Drawer';
+import { ArrowUpRightIcon, SuccessCircleIcon } from '@/components/icons';
 import { Modal } from '@/components/common/Modal/Modal';
 import { AdditionalDetailsSection } from '@/components/core/UpdatesPanel/IrlGatheringModal/components/AdditionalDetailsSection';
 import { DatePickerView } from '@/components/core/UpdatesPanel/IrlGatheringModal/components/DatePickerView';
-import { GatheringDetails } from '@/components/core/UpdatesPanel/IrlGatheringModal/components/GatheringDetails';
 import { PlanningSection } from '@/components/core/UpdatesPanel/IrlGatheringModal/components/PlanningSection';
 import { TopicsPickerView } from '@/components/core/UpdatesPanel/IrlGatheringModal/components/TopicsPickerView';
-import { buildEventsLink } from '@/components/core/UpdatesPanel/IrlGatheringModal/helpers';
 import { useIrlGatheringModal } from '@/components/core/UpdatesPanel/IrlGatheringModal/hooks/useIrlGatheringModal';
 import m from '@/components/core/UpdatesPanel/IrlGatheringModal/IrlGatheringModal.module.scss';
 import type { IrlGatheringFormData } from '@/components/core/UpdatesPanel/IrlGatheringModal/types';
 import type { EventDetail, EventRoleName, MyGatheringPlans } from '@/services/events/event-drawer.types';
+import { eventsAppEventHref } from '@/services/events/event-when';
 import type { ITeam } from '@/types/teams.types';
 
-import { AttendeesModal, type EventAttendeesState } from './AttendeesModal';
-import { BackIcon, EventSummary, Label, PinLabelIcon } from './EventSummary';
+import { AttendeesView, SubHead, type EventAttendeesState } from './AttendeesView';
+import { DrawerToolbar } from './DrawerToolbar';
+import { EventSummary } from './EventSummary';
 import e from './EventDrawer.module.scss';
-import { RsvpCard } from './RsvpCard';
+import { RsvpCard, RsvpLink } from './RsvpCard';
 import r from './RsvpCard.module.scss';
 
 export type EventDrawerStatus = 'loading' | 'error' | 'not-found' | 'ready';
@@ -73,22 +84,42 @@ export interface EventDrawerViewProps {
    * Leave it out for a signed-in viewer.
    */
   onSignIn?: () => void;
+  /**
+   * The embed (LAB-3392), framed by another site: going happens on LabOS, so the card and its pinned bar offer
+   * "RSVP on LabOS ↗" to this address in a new tab, and the going count opens nothing. Leave out everywhere else.
+   */
+  rsvpHref?: string;
+  /** The list the drawer was opened from, in its order, for previous / next (LAB-3361). Leave out for none. */
+  sequence?: string[];
+  /** Previous / next pressed: the host opens that event. */
+  onNavigate?: (uid: string, direction: 'previous' | 'next') => void;
+  /** Show the drawer in place, without its entrance: the host stepped from one event to the next. */
+  animateIn?: boolean;
+  onLinkCopied?: () => void;
+  onEventsAppOpened?: () => void;
 }
 
-/** The prototype's drawer width; full width on narrow screens. */
 const NOOP = () => {};
+const NO_SEQUENCE: string[] = [];
+
+/** The prototype's drawer width (560 → 640 on 2026-11-18); full width on narrow screens. */
+const DRAWER_WIDTH = 640;
 
 function drawerWidth() {
-  return typeof window === 'undefined' ? 778 : Math.min(778, window.innerWidth);
+  return typeof window === 'undefined' ? DRAWER_WIDTH : Math.min(DRAWER_WIDTH, window.innerWidth);
 }
+
+const members = (n: number) => `${n} ${n === 1 ? 'member' : 'members'}`;
 
 /**
  * The event drawer, presentational (LAB-3216): everything comes in as props, so Storybook needs no providers.
  * `EventDrawer` is the container that wires the hooks.
  */
 export function EventDrawerView(props: EventDrawerViewProps) {
-  const { status, event, canMarkGoing, plans, onClose, onRetry } = props;
+  const { status, event, canMarkGoing, plans, onClose, onRetry, animateIn = true } = props;
   const ready = status === 'ready' && !!event && (!canMarkGoing || !!plans);
+  // The drawer's scroller: the going card's "away" check reads it, and a sub-view starts at its top.
+  const scrollerRef = useRef<HTMLDivElement>(null);
 
   // One drawer for every state. Swapping the loading panel for the event must not mount a second drawer, or its
   // slide-in plays again. What Escape and the backdrop do depends on the state, so the flow registers its own handler.
@@ -99,9 +130,16 @@ export function EventDrawerView(props: EventDrawerViewProps) {
   const handleDrawerClose = useCallback(() => closeRef.current(), []);
 
   return (
-    <Drawer isOpen onClose={handleDrawerClose} width={drawerWidth()}>
+    <Drawer isOpen onClose={handleDrawerClose} width={drawerWidth()} containerRef={scrollerRef} animateIn={animateIn}>
       {ready && event ? (
-        <EventFlow key={event.uid} {...props} event={event} plans={plans} drawerCloseRef={closeRef} />
+        <EventFlow
+          key={event.uid}
+          {...props}
+          event={event}
+          plans={plans}
+          drawerCloseRef={closeRef}
+          scrollerRef={scrollerRef}
+        />
       ) : (
         <DrawerStates status={status} onClose={onClose} onRetry={onRetry} />
       )}
@@ -109,16 +147,19 @@ export function EventDrawerView(props: EventDrawerViewProps) {
   );
 }
 
-/** Loading, missing and failed: the drawer's body before an event can show. */
+/** Loading, missing and failed: the drawer's body before an event can show, under a toolbar with Close only. */
 function DrawerStates({ status, onClose, onRetry }: Pick<EventDrawerViewProps, 'status' | 'onClose' | 'onRetry'>) {
   return (
     <div className={e.root}>
-      <div className={e.backBar}>
-        <button type="button" className={e.back} onClick={onClose}>
-          <BackIcon />
-          <span>Back</span>
-        </button>
-      </div>
+      <DrawerToolbar
+        eventUid={null}
+        eventsAppHref={null}
+        prev={null}
+        next={null}
+        showStepper={false}
+        onNavigate={NOOP}
+        onClose={onClose}
+      />
       {status === 'not-found' ? (
         <div className={e.state} role="status">
           <h2 className={e.stateTitle}>This event is no longer available</h2>
@@ -146,19 +187,23 @@ function DrawerStates({ status, onClose, onRetry }: Pick<EventDrawerViewProps, '
         </div>
       ) : (
         <div className={e.state} aria-busy="true" aria-label="Loading the event">
-          {/* Shaped like the panel it becomes (kicker, title, date, place, tags, Host, gathering), so a slow load
-                reads as loading rather than as an empty drawer. */}
-          <div className={e.skeleton}>
-            <span className={e.kicker}>EVENT DETAILS</span>
-            <span className={clsx(e.skeletonBlock, e.skeletonTitle)} />
-            <span className={clsx(e.skeletonBlock, e.skeletonFact)} />
-            <span className={clsx(e.skeletonBlock, e.skeletonPlace)} />
-            <span className={e.skeletonChips}>
-              <span className={clsx(e.skeletonBlock, e.skeletonChip)} />
-              <span className={clsx(e.skeletonBlock, e.skeletonChip)} />
-            </span>
-            <span className={clsx(e.skeletonBlock, e.skeletonLabel)} />
-            <span className={clsx(e.skeletonBlock, e.skeletonPanel)} />
+          {/* Shaped like the event it becomes (thumbnail and title, the facts, the going card), so a slow load reads
+              as loading rather than as an empty drawer. */}
+          <div className={e.skeleton} data-testid="event-drawer-skeleton">
+            <div className={e.skeletonRow}>
+              <span className={clsx(e.skeletonBlock, e.skeletonThumb)} />
+              <span className={e.skeletonLines}>
+                <span className={clsx(e.skeletonBlock, e.skeletonTitle)} />
+                <span className={clsx(e.skeletonBlock, e.skeletonLine)} />
+              </span>
+            </div>
+            {[0, 1, 2].map((i) => (
+              <div key={i} className={e.skeletonRow}>
+                <span className={clsx(e.skeletonBlock, e.skeletonTile)} />
+                <span className={clsx(e.skeletonBlock, e.skeletonLine)} />
+              </div>
+            ))}
+            <span className={clsx(e.skeletonBlock, e.skeletonCard)} />
           </div>
         </div>
       )}
@@ -181,11 +226,15 @@ function rolesFor(event: EventDetail, plans: MyGatheringPlans | null): EventRole
   return ROLE_OPTIONS.filter((role) => roles.includes(role));
 }
 
+type View = 'event' | 'attendees' | 'plans';
+
 /**
- * One event per drawer (LAB-3234, the Nov 12 standup). The going card answers in place ("Are you going?" →
- * "You're going"); "Add your plans" opens a sub-view for this event's role, the stay and topics, whose Back, Cancel
- * and Save all return to the event (Polina's 2026-11-12 prototype). There is no event picker and no "Show on my
- * profile": going is always visible to signed-in members. The "is on your profile" toast waits for the drawer to close.
+ * One event per drawer (LAB-3234, the Nov 12 standup), drawn as Polina's redesigned drawer (LAB-3361): the toolbar,
+ * the event, and the going card right after the facts. The card answers in place ("Are you going?" → "You're going").
+ * Two sub-views replace the body and keep the toolbar: who's going, and "Add your plans" (this event's role, the stay
+ * and topics, with Cancel / Save pinned). Back, Cancel and Save all return to the event. There is no event picker and
+ * no "Show on my profile": going is always visible to signed-in members. The "is on your profile" toast waits for the
+ * drawer to close.
  */
 function EventFlow({
   event,
@@ -203,16 +252,23 @@ function EventFlow({
   onSave,
   onGoing,
   onSignIn,
+  rsvpHref,
+  sequence = NO_SEQUENCE,
+  onNavigate,
+  onLinkCopied,
+  onEventsAppOpened,
   drawerCloseRef,
-}: EventDrawerViewProps & { event: EventDetail; drawerCloseRef: MutableRefObject<() => void> }) {
+  scrollerRef,
+}: EventDrawerViewProps & {
+  event: EventDetail;
+  drawerCloseRef: MutableRefObject<() => void>;
+  scrollerRef: RefObject<HTMLDivElement | null>;
+}) {
   const gathering = event.gathering;
   const wasGoing = !!event.viewer;
   const [going, setGoing] = useState(wasGoing);
   const [justMarked, setJustMarked] = useState(false);
-  const [step, setStep] = useState<EventDrawerStep>(
-    canMarkGoing && wasGoing && initialStep === 'plans' ? 'plans' : 'event',
-  );
-  const [showAttendees, setShowAttendees] = useState(false);
+  const [view, setView] = useState<View>(canMarkGoing && wasGoing && initialStep === 'plans' ? 'plans' : 'event');
   const [roles, setRoles] = useState<EventRoleName[]>(() => rolesFor(event, plans));
 
   const formDefaults = (): IrlGatheringFormData => ({
@@ -233,7 +289,7 @@ function EventFlow({
   const picker = useIrlGatheringModal({
     initialDateRange,
     initialTopics: plans?.topics,
-    isOpen: step === 'plans',
+    isOpen: view === 'plans',
   });
 
   const city = gathering?.city ?? '';
@@ -258,13 +314,26 @@ function EventFlow({
     onClose();
     if (justMarked && going) onGoing?.({ eventName: event.name });
   };
+  // Stepping to another event leaves this one like a close does, so "<event> is on your profile." still shows.
+  const step = (uid: string, direction: 'previous' | 'next') => {
+    onNavigate?.(uid, direction);
+    if (justMarked && going) onGoing?.({ eventName: event.name });
+  };
 
+  // A sub-view, and the event again, start at the top of the drawer.
+  const show = (next: View) => {
+    if (next !== 'event') resetCardAway();
+    setView(next);
+  };
+  useLayoutEffect(() => {
+    scrollerRef.current?.scrollTo?.({ top: 0 });
+  }, [view, scrollerRef]);
   const openPlans = () => {
     methods.reset(formDefaults());
     setRoles(rolesFor(event, plans));
-    setStep('plans');
+    show('plans');
   };
-  const backToEvent = () => setStep('event');
+  const backToEvent = () => show('event');
 
   const handleYes = async () => {
     if (saving) return;
@@ -302,9 +371,21 @@ function EventFlow({
       onSignIn();
       return;
     }
-    setShowAttendees(true);
+    show('attendees');
     onAttendeesOpen?.();
   };
+
+  // Signed out, "Yes, I'm going" starts sign-in (LAB-3271); in the embed it is a link to LabOS (LAB-3392).
+  const asks = canMarkGoing || !!onSignIn || !!rsvpHref;
+  const pressYes = canMarkGoing ? handleYes : (onSignIn ?? NOOP);
+
+  const index = sequence.indexOf(event.uid);
+  const prev = index > 0 ? sequence[index - 1] : null;
+  const next = index >= 0 && index < sequence.length - 1 ? sequence[index + 1] : null;
+
+  // The pinned bar stands in for the going card once less than half of it is on screen (the prototype's RsvpBar).
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [cardAway, resetCardAway] = useAwayFromView(cardRef, scrollerRef, view === 'event' && asks);
 
   const renderOverlay = () => {
     if (picker.currentView === 'datePicker') {
@@ -335,146 +416,156 @@ function EventFlow({
       );
     }
 
-    if (showAttendees) {
-      return (
-        <AttendeesModal
-          eventName={event.name}
-          total={count}
-          viewerUid={viewerUid}
-          attendees={attendees}
-          onBack={() => setShowAttendees(false)}
-        />
-      );
-    }
     return null;
   };
   const overlay = renderOverlay();
 
-  // Escape and the backdrop: a picker or the people list first (design D7), then the plans sub-view, then the drawer.
+  // Escape and the backdrop: a picker first (design D7), then a sub-view (who's going, the plans), then the drawer.
   useEffect(() => {
-    drawerCloseRef.current = overlay ? NOOP : step === 'plans' ? backToEvent : close;
+    drawerCloseRef.current = overlay ? NOOP : view !== 'event' ? backToEvent : close;
   });
+
+  const register = event.eventUrl ? (
+    <a
+      href={event.eventUrl}
+      target="_blank"
+      rel="noreferrer"
+      className={clsx(btn.root, btn.small, btn.border, btn.neutral, r.btn)}
+    >
+      Register
+      <ArrowUpRightIcon width={14} height={14} />
+    </a>
+  ) : null;
 
   return (
     <>
       <FormProvider {...methods}>
         <form onSubmit={handleSave} className={e.root} onKeyDown={(ev) => ev.key === 'Enter' && ev.preventDefault()}>
-          <div className={e.backBar}>
-            <button type="button" className={e.back} onClick={step === 'plans' ? backToEvent : close}>
-              <BackIcon />
-              <span>{step === 'plans' ? 'Back to event' : 'Back'}</span>
-            </button>
-          </div>
+          <DrawerToolbar
+            eventUid={event.uid}
+            eventsAppHref={eventsAppEventHref(event.externalId)}
+            prev={prev}
+            next={next}
+            showStepper={view === 'event' && !!onNavigate && index >= 0 && sequence.length > 1}
+            onNavigate={step}
+            onClose={close}
+            onCopied={onLinkCopied}
+            onEventsAppOpened={onEventsAppOpened}
+          />
 
-          <div className={e.body}>
-            {step === 'event' && (
-              <>
-                <EventSummary
-                  event={event}
-                  beforeAgenda={
+          {view === 'event' && (
+            <div className={e.body}>
+              <EventSummary
+                event={event}
+                card={
+                  <div ref={cardRef}>
                     <RsvpCard
                       count={count}
                       faces={event.faces}
                       going={going}
-                      canMarkGoing={canMarkGoing}
+                      asks={asks}
                       city={gathering?.city ?? null}
                       registerUrl={event.eventUrl}
                       saving={saving}
+                      rsvpHref={rsvpHref}
+                      onYes={pressYes}
                       onOpenAttendees={openAttendees}
                       onNotGoing={handleNotGoing}
                       onOpenPlans={openPlans}
                     />
-                  }
-                />
-
-                {gathering && (
-                  <div className={e.block}>
-                    <Label icon={<PinLabelIcon />}>{city} gathering</Label>
-                    <div className={e.gatheringLinks}>
-                      <GatheringDetails
-                        dateRange={event.dateLine}
-                        location={city}
-                        eventsLink={buildEventsLink(gathering.location, event.startDate)}
-                        eventsCount={gathering.events.length}
-                        resources={gathering.resources}
-                      />
-                    </div>
                   </div>
-                )}
-              </>
-            )}
+                }
+              />
+            </div>
+          )}
 
-            {step === 'plans' && (
-              <>
-                <h2 className={r.plansHeading}>{city ? `Your plans for ${city}` : 'Your plans'}</h2>
-                <fieldset className={r.roleField}>
-                  <legend className={r.roleLabel}>Your role at {event.name}</legend>
-                  <span className={r.roleHint}>Leave empty if you&apos;re attending.</span>
-                  <div className={r.roleChips}>
-                    {ROLE_OPTIONS.map((role) => (
-                      <button
-                        key={role}
-                        type="button"
-                        className={r.roleChip}
-                        aria-pressed={roles.includes(role)}
-                        onClick={() => toggleRole(role)}
-                      >
-                        {role}
-                      </button>
-                    ))}
-                  </div>
-                </fieldset>
-                <PlanningSection
-                  planningQuestion={planningQuestion}
-                  selectedDateRange={picker.selectedDateRange}
-                  selectedTopics={picker.selectedTopics}
-                  selectedEvents={[]}
-                  events={[]}
-                  onDateInputClick={picker.handleOpenDatePicker}
-                  onTopicsInputClick={picker.handleOpenTopicsPicker}
-                  onEventsInputClick={NOOP}
-                  isLoggedIn
-                />
-                <AdditionalDetailsSection
-                  teams={teams}
-                  telegramHandle={plans?.telegramId || member.telegramHandle}
-                  officeHours={plans?.officeHours || member.officeHours}
-                  defaultExpanded={false}
-                />
-              </>
-            )}
-          </div>
+          {view === 'attendees' && (
+            <AttendeesView
+              eventName={event.name}
+              total={count}
+              viewerUid={viewerUid}
+              attendees={attendees}
+              onBack={backToEvent}
+            />
+          )}
 
-          {/* LAB-3271: "Yes, I'm going" sits in the sticky footer, so a long description never hides it. Signed out,
-                it starts the sign-in flow. Once going, the card answers in place and the footer goes away. */}
-          {step === 'event' && (canMarkGoing ? !going : !!onSignIn) && (
-            <div key="event" className={e.footer}>
-              <Button
-                type="button"
-                size="s"
-                className={e.footerBtn}
-                onClick={canMarkGoing ? handleYes : onSignIn}
-                disabled={saving}
-              >
-                Yes, I&apos;m going
-              </Button>
+          {view === 'plans' && (
+            <div className={e.body}>
+              <SubHead title={city ? `Your plans for ${city}` : 'Your plans'} onBack={backToEvent} />
+              <fieldset className={r.roleField}>
+                <legend className={r.roleLabel}>Your role at {event.name}</legend>
+                <span className={r.roleHint}>Leave empty if you&apos;re attending.</span>
+                <div className={r.roleChips}>
+                  {ROLE_OPTIONS.map((role) => (
+                    <button
+                      key={role}
+                      type="button"
+                      className={r.roleChip}
+                      aria-pressed={roles.includes(role)}
+                      onClick={() => toggleRole(role)}
+                    >
+                      {role}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+              <PlanningSection
+                planningQuestion={planningQuestion}
+                selectedDateRange={picker.selectedDateRange}
+                selectedTopics={picker.selectedTopics}
+                selectedEvents={[]}
+                events={[]}
+                onDateInputClick={picker.handleOpenDatePicker}
+                onTopicsInputClick={picker.handleOpenTopicsPicker}
+                onEventsInputClick={NOOP}
+                isLoggedIn
+              />
+              <AdditionalDetailsSection
+                teams={teams}
+                telegramHandle={plans?.telegramId || member.telegramHandle}
+                officeHours={plans?.officeHours || member.officeHours}
+                defaultExpanded={false}
+              />
+            </div>
+          )}
+
+          {/* The going card's ask, pinned while the card is scrolled away (the prototype's RsvpBar, 2026-11-16). */}
+          {view === 'event' && asks && cardAway && (
+            <div key="rsvp-bar" className={clsx(e.footer, e.rsvpBar)} data-testid="rsvp-bar">
+              {going ? (
+                <p className={clsx(r.cardTitle, r.cardTitleGoing, e.rsvpBarText, e.rsvpBarGoing)}>
+                  <SuccessCircleIcon width={20} height={20} />
+                  You&apos;re going
+                </p>
+              ) : (
+                <p className={e.rsvpBarText}>
+                  <span className={e.rsvpBarTitle}>Are you going?</span>
+                  <span className={e.rsvpBarMeta}>
+                    {count > 0 ? `${members(count)} going` : 'Nobody has said they are going yet.'}
+                  </span>
+                </p>
+              )}
+              <div className={e.rsvpBarActions}>
+                {register}
+                {!going &&
+                  (rsvpHref ? (
+                    <RsvpLink href={rsvpHref} />
+                  ) : (
+                    <Button type="button" size="s" onClick={pressYes} disabled={saving}>
+                      Yes, I&apos;m going
+                    </Button>
+                  ))}
+              </div>
             </div>
           )}
 
           {/* Cancel and Save return to the event. */}
-          {step === 'plans' && (
+          {view === 'plans' && (
             <div key="plans" className={e.footer}>
-              <Button
-                type="button"
-                style="border"
-                variant="neutral"
-                size="s"
-                className={e.footerBtn}
-                onClick={backToEvent}
-              >
+              <Button type="button" style="border" variant="neutral" size="s" onClick={backToEvent}>
                 Cancel
               </Button>
-              <Button type="submit" size="s" className={e.footerBtn} disabled={saving}>
+              <Button type="submit" size="s" disabled={saving}>
                 Save
               </Button>
             </div>
@@ -484,4 +575,37 @@ function EventFlow({
       {overlay}
     </>
   );
+}
+
+/**
+ * Whether less than half of `target` is on screen in the drawer's scroller, the sticky toolbar's 56px not counting
+ * (the prototype's check, vertical only: an IntersectionObserver would also read the drawer's slide-in as "away").
+ */
+function useAwayFromView(
+  target: RefObject<HTMLElement | null>,
+  scroller: RefObject<HTMLElement | null>,
+  enabled: boolean,
+): [away: boolean, reset: () => void] {
+  const [away, setAway] = useState(false);
+  // A plain effect: the drawer's animated container attaches its ref after a child's layout effects have run.
+  useEffect(() => {
+    const el = target.current;
+    const box = scroller.current;
+    if (!enabled || !el || !box) return;
+    const check = () => {
+      const r = el.getBoundingClientRect();
+      const b = box.getBoundingClientRect();
+      const visible = Math.max(0, Math.min(r.bottom, b.bottom) - Math.max(r.top, b.top + 56));
+      setAway(r.height > 0 && visible < r.height / 2);
+    };
+    check();
+    box.addEventListener('scroll', check, { passive: true });
+    window.addEventListener('resize', check);
+    return () => {
+      box.removeEventListener('scroll', check);
+      window.removeEventListener('resize', check);
+    };
+  }, [target, scroller, enabled]);
+  // `reset` is for leaving the event, so coming back never flashes the bar from where the member had scrolled.
+  return [enabled && away, () => setAway(false)];
 }

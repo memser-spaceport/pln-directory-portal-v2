@@ -110,7 +110,7 @@ Every read (`GET`, `HEAD`) the frontend server makes to the origin of `DIRECTORY
 
 ### Requirement: Every response carries the security headers
 
-Every response SHALL carry `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: SAMEORIGIN`, `Content-Security-Policy: frame-ancestors 'self'` and `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()`, and no `X-Powered-By`. The pages SHALL have one viewport tag, `width=device-width, initial-scale=1`, with no zoom limit (LAB-3094).
+Every response SHALL carry `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: SAMEORIGIN`, `Content-Security-Policy: frame-ancestors 'self'` and `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()`, and no `X-Powered-By`. One page is the exception (LAB-3352): `/events/embed`, which other sites frame, SHALL carry `Content-Security-Policy: frame-ancestors 'self' https:` (any https site, not plain http) and no `X-Frame-Options` (it can't allow other sites); a path that only starts like it (`/events/embedded`) keeps the rule. The pages SHALL have one viewport tag, `width=device-width, initial-scale=1`, with no zoom limit (LAB-3094).
 
 #### Scenario: Home page response
 
@@ -121,6 +121,13 @@ Every response SHALL carry `X-Content-Type-Options: nosniff`, `Referrer-Policy: 
 #### Scenario: Another site frames a page
 
 - **WHEN** a page on another origin puts a directory page in an iframe
+- **THEN** the browser refuses to show it
+
+#### Scenario: Another site frames the events embed
+
+- **WHEN** a page on `https://www.plrd.org`, or any other https site, puts `/events/embed` in an iframe
+- **THEN** the browser shows it
+- **WHEN** a page on a plain-http site does the same
 - **THEN** the browser refuses to show it
 
 ### Requirement: Images load in step with what the visitor sees

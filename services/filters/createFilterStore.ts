@@ -29,6 +29,12 @@ export function createFilterStore(config: FilterStoreConfig) {
   const callAnalyticsDebounced = (key: string, value: string | undefined, params: URLSearchParams) => {
     if (!analyticsCallback) return;
 
+    // 0 means no debounce: report every change at once (a page that settles changes itself, per key).
+    if (debounceMs <= 0) {
+      analyticsCallback(key, value, params);
+      return;
+    }
+
     if (analyticsDebounceTimer) {
       clearTimeout(analyticsDebounceTimer);
     }

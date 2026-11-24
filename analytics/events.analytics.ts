@@ -1,12 +1,28 @@
 import { IAnalyticsUserInfo } from '@/types/shared.types';
-import { EVENT_DRAWER_ANALYTICS, EVENTS_ANALYTICS, HOME_ANALYTICS_EVENTS } from '@/utils/constants';
+import {
+  ALL_EVENTS_ANALYTICS,
+  EVENT_DRAWER_ANALYTICS,
+  EVENTS_ANALYTICS,
+  HOME_ANALYTICS_EVENTS,
+} from '@/utils/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { usePostHog } from 'posthog-js/react';
 import { IUpcomingEvents } from '@/types/irl.types';
 import { UpcomingEvent } from '@/services/events/hooks/useUpcomingEvents';
+import type { FilterParam } from '@/services/events/all-events.filters';
 
 /** Where the event drawer was opened from. */
-export type EventDrawerSource = 'home' | 'member-profile' | 'team-profile' | 'add-event' | 'digest';
+export type EventDrawerSource =
+  | 'home'
+  | 'member-profile'
+  | 'team-profile'
+  | 'add-event'
+  | 'digest'
+  | 'all-events'
+  | 'embed';
+
+/** Where the embed opens an event's details (LAB-3392): its own drawer, or LabOS in a new tab. */
+export type EmbedDetails = 'embed' | 'labos';
 
 export const useEventsAnalytics = () => {
   const postHogProps = usePostHog();
@@ -167,6 +183,57 @@ export const useEventsAnalytics = () => {
     captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_DRAWER_OPENED, { event_uid: params.eventUid, source: params.source });
   }
 
+  /** All Events (LAB-3247): the member switched view; `mode` only for the calendar. */
+  function onEventsViewChanged(params: { view: 'list' | 'calendar' | 'map'; mode?: 'week' | 'month' }) {
+    captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_VIEW_CHANGED, params);
+  }
+
+  /** All Events: Copy link in the Embed dialog put the embed link on the clipboard (LAB-3352, LAB-3365). */
+  function onEventsEmbedLinkCopied(params: {
+    view: 'list' | 'calendar' | 'map';
+    filters_count: number;
+    details: EmbedDetails;
+  }) {
+    captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_EMBED_LINK_COPIED, params);
+  }
+
+  /** All Events: Copy code in the Embed dialog put the iframe code on the clipboard (LAB-3365). */
+  function onEventsEmbedCodeCopied(params: {
+    view: 'list' | 'calendar' | 'map';
+    filters_count: number;
+    details: EmbedDetails;
+  }) {
+    captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_EMBED_CODE_COPIED, params);
+  }
+
+  /** The embed page loaded, with the host of the page that framed it (null opened directly). */
+  function onEventsEmbedViewed(params: {
+    view: 'list' | 'calendar' | 'map';
+    referrer_host: string | null;
+    details: EmbedDetails;
+  }) {
+    captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_EMBED_VIEWED, params);
+  }
+
+  /** All Events: one filter changed, with every value it now holds (empty when it was cleared). */
+  function onEventsFiltersApplied(params: { key: FilterParam; values: string[] }) {
+    captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_FILTERS_APPLIED, params);
+  }
+
+  /** All Events: a city chosen from a Browse by city tile or Near you's "All <city> events". */
+  function onEventsCitySelected(params: { city: string; from: 'tile' | 'filter' | 'near-you' }) {
+    captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_CITY_SELECTED, params);
+  }
+
+  /** All Events (LAB-3394): the location dialog opened from Near you's rows, and a location saved there. */
+  function onEventsLocationDialogOpened(params: { from: 'add' | 'change' | 'no-events' }) {
+    captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_LOCATION_DIALOG_OPENED, params);
+  }
+
+  function onEventsLocationSaved(params: { from: 'add' | 'change' | 'no-events' }) {
+    captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_LOCATION_SAVED, params);
+  }
+
   function onEventGoingMarked(params: { eventUid: string; source: EventDrawerSource }) {
     captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_GOING_MARKED, {
       event_uid: params.eventUid,
@@ -190,6 +257,29 @@ export const useEventsAnalytics = () => {
     captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_ATTENDEES_OPENED, { event_uid: params.eventUid });
   }
 
+  /** LAB-3361: the drawer's Copy link (the `/events/all?event=<uid>` address). */
+  function onEventLinkCopied(params: { eventUid: string }) {
+    captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_LINK_COPIED, { event_uid: params.eventUid });
+  }
+
+  /** LAB-3361: the drawer's "Open in PL Events". */
+  function onEventEventsAppOpened(params: { eventUid: string }) {
+    captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_EVENTS_APP_OPENED, { event_uid: params.eventUid });
+  }
+
+  /** LAB-3361: previous / next in the drawer's toolbar; `eventUid` is the event it moved to. */
+  function onEventDrawerStepped(params: {
+    eventUid: string;
+    direction: 'previous' | 'next';
+    source: EventDrawerSource;
+  }) {
+    captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_DRAWER_STEPPED, {
+      event_uid: params.eventUid,
+      direction: params.direction,
+      source: params.source,
+    });
+  }
+
   /** `from`: the section header (the owner has upcoming events) or the empty state. */
   function onProfileEventAddClicked(params: { from: 'header' | 'empty-state' }) {
     captureEvent(EVENT_DRAWER_ANALYTICS.ON_PROFILE_EVENT_ADD_CLICKED, { from: params.from });
@@ -201,10 +291,21 @@ export const useEventsAnalytics = () => {
 
   return {
     onEventDrawerOpened,
+    onEventsViewChanged,
+    onEventsEmbedLinkCopied,
+    onEventsEmbedCodeCopied,
+    onEventsEmbedViewed,
+    onEventsFiltersApplied,
+    onEventsCitySelected,
+    onEventsLocationDialogOpened,
+    onEventsLocationSaved,
     onEventGoingMarked,
     onEventNotGoingMarked,
     onEventPlansSaved,
     onEventAttendeesOpened,
+    onEventLinkCopied,
+    onEventEventsAppOpened,
+    onEventDrawerStepped,
     onProfileEventAddClicked,
     onProfileEventRemoved,
     onIrlLocationClicked,

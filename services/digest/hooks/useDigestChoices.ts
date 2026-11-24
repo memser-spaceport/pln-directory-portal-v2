@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from 'react';
 
 import { toast } from '@/components/core/ToastContainer';
-import { saveDigestChoice } from '@/services/digest/digest.service';
+import { saveDigestIssueChoice } from '@/services/digest/digest.service';
 import type { DigestChoice, DigestStory } from '@/services/digest/digest.types';
 
 /** Where a story's confirmation shows: `top` for the email landing, `under` the buttons for a press on the page. */
@@ -20,9 +20,9 @@ type ChoiceMap = Record<string, DigestChoice | null>;
  * save goes back to the last saved state with an error toast. When presses overlap on one story, only the
  * latest request's answer is applied.
  *
- * The token is held in a closure only: never stored, never put in a query key or an event.
+ * LAB-3351: saves by issue id for the signed-in member; the page sends a signed-out press to sign-in instead.
  */
-export function useDigestChoices(token: string, stories: DigestStory[], issue?: string) {
+export function useDigestChoices(issueUid: string, stories: DigestStory[]) {
   const [choices, setChoices] = useState<ChoiceMap>(() =>
     Object.fromEntries(stories.map((story) => [story.uid, story.choice])),
   );
@@ -37,7 +37,7 @@ export function useDigestChoices(token: string, stories: DigestStory[], issue?: 
       setChoices((current) => ({ ...current, [uid]: next }));
       setReceipts(({ [uid]: _dropped, ...rest }) => rest);
       try {
-        const response = await saveDigestChoice(token, uid, next ?? 'none', issue);
+        const response = await saveDigestIssueChoice(issueUid, uid, next ?? 'none');
         if (latest.current[uid] !== request) return false;
         saved.current[uid] = response.choice;
         setChoices((current) => ({ ...current, [uid]: response.choice }));
@@ -51,7 +51,7 @@ export function useDigestChoices(token: string, stories: DigestStory[], issue?: 
         return false;
       }
     },
-    [token, issue],
+    [issueUid],
   );
 
   /** A press on a button. Pressing the active one undoes it. Returns the choice after the press. */

@@ -23,6 +23,11 @@ export interface DrawerProps {
    */
   containerRef?: React.Ref<HTMLDivElement>;
   closeOnOverlayClick?: boolean;
+  /**
+   * Fade and slide in on open (default). `false` shows it in place: for a drawer that replaces one already open, such
+   * as the event drawer's previous / next (LAB-3361), so the step doesn't replay the entrance.
+   */
+  animateIn?: boolean;
 }
 
 export function Drawer(props: PropsWithChildren<DrawerProps>) {
@@ -35,6 +40,7 @@ export function Drawer(props: PropsWithChildren<DrawerProps>) {
     noBlur,
     containerRef,
     closeOnOverlayClick = true,
+    animateIn = true,
   } = props;
   const [mounted, setMounted] = useState(false);
 
@@ -67,7 +73,7 @@ export function Drawer(props: PropsWithChildren<DrawerProps>) {
             [s.noBlur]: noBlur,
           })}
           onClick={handleOverlayClick}
-          initial={{ opacity: 0 }}
+          initial={animateIn ? { opacity: 0 } : false}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
@@ -76,7 +82,7 @@ export function Drawer(props: PropsWithChildren<DrawerProps>) {
             ref={containerRef}
             className={`${s.container} ${fullScreen ? s.fullScreen : ''}`}
             style={fullScreen ? undefined : { width }}
-            initial={fullScreen ? { opacity: 0 } : { x: '100%' }}
+            initial={animateIn ? (fullScreen ? { opacity: 0 } : { x: '100%' }) : false}
             animate={fullScreen ? { opacity: 1 } : { x: 0 }}
             exit={fullScreen ? { opacity: 0 } : { x: '100%' }}
             transition={{ duration: 0.3, ease: 'easeOut' }}

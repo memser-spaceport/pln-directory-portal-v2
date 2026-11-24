@@ -19,13 +19,25 @@ function eventDetailQuery(eventUid: string | null | undefined, viewerUid: string
   };
 }
 
+interface ViewerOptions {
+  /**
+   * Read the event signed out, whoever is signed in: the embed (LAB-3392), which another site frames and which shows
+   * nothing of the reader's own. Its own cache entry, so it never shows a member's copy.
+   */
+  anonymous?: boolean;
+}
+
+function useViewerUid(anonymous: boolean): string | null {
+  const { currentUser } = useCurrentUserStore();
+  return anonymous ? null : (currentUser?.uid ?? null);
+}
+
 /**
  * One event for the drawer. Raw response; the drawer maps it (the jest `useQuery` mock ignores `select`).
  * `data` is `null` for a missing or deleted event. A 4xx other than 404 is not retried.
  */
-export function useEventDetail(eventUid: string | null | undefined) {
-  const { currentUser } = useCurrentUserStore();
-  const viewerUid = currentUser?.uid ?? null;
+export function useEventDetail(eventUid: string | null | undefined, { anonymous = false }: ViewerOptions = {}) {
+  const viewerUid = useViewerUid(anonymous);
 
   return useQuery({ ...eventDetailQuery(eventUid, viewerUid), enabled: !!eventUid });
 }
@@ -37,10 +49,9 @@ const PREFETCH_STALE_MS = 30_000;
  * Starts loading an event when the member points at or focuses a row that opens the drawer, so the drawer usually
  * opens filled instead of on its skeleton. Same query key as `useEventDetail`; a cached event isn't fetched again.
  */
-export function usePrefetchEventDetail() {
+export function usePrefetchEventDetail({ anonymous = false }: ViewerOptions = {}) {
   const queryClient = useQueryClient();
-  const { currentUser } = useCurrentUserStore();
-  const viewerUid = currentUser?.uid ?? null;
+  const viewerUid = useViewerUid(anonymous);
 
   return (eventUid: string) => {
     void queryClient.prefetchQuery({ ...eventDetailQuery(eventUid, viewerUid), staleTime: PREFETCH_STALE_MS });

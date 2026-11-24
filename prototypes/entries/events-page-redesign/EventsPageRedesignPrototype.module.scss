@@ -631,6 +631,18 @@
   min-width: 0;
 }
 
+// List view's bands, now under the toolbar: the layout's 24px is the gap above the first one.
+.listBands {
+  > :first-child {
+    margin-top: 0;
+  }
+}
+
+// "All upcoming" / "Matching events": the dated list's own heading, a section title like the bands'.
+.listHeading.listHeading {
+  margin: 32px 0 12px;
+}
+
 /* Arriving from a link to one event (?event=): its tile / row is marked. */
 .highlight.highlight {
   border-color: var(--foreground-brand-primary, #1b4dff);
@@ -757,6 +769,40 @@
   font-size: 12px;
   line-height: 16px;
   color: var(--foreground-neutral-secondary, #455468);
+}
+
+// Facepile + "N going" as one press (2026-11-20): opens the drawer on who's going. The whole
+// pair is the hit area; the count turns brand + underline on hover, the control lineage's hover.
+.goingLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: -2px -4px;
+  padding: 2px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+
+  &:hover .cardCount {
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+}
+
+/* ---------- Embed (?embed=1): the view alone, in someone else's iframe ---------- */
+
+.embed {
+  min-height: 100vh;
+  padding: 16px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+}
+
+.embedFoot {
+  margin-top: 16px;
 }
 
 // Access as meta text, same ink and size as the count it follows (not a Badge, 2026-11-17).

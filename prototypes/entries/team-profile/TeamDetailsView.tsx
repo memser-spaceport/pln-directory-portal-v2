@@ -10,7 +10,7 @@ import { Tag } from '@/components/ui/Tag';
 import { Badge } from '@/components/common/Badge/Badge';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { TagsList } from '@/components/common/profile/TagsList';
-import { DetailsSection } from '@/components/common/profile/DetailsSection';
+import { DetailsSection, DetailsSectionHeader } from '@/components/common/profile/DetailsSection';
 import { Divider } from '@/components/common/profile/Divider';
 import { ExpandableDescription } from '@/components/common/ExpandableDescription';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
@@ -48,6 +48,12 @@ interface Props {
   beforeAbout?: ReactNode;
   /** Slot rendered under the About section (team-profile's "Actions → Under bio" state). */
   afterAbout?: ReactNode;
+  /** Slot under the badges row, in the name/tags column (team-profile's
+   *  "Actions → Under badges" states), so it starts where the badges start. */
+  afterBadges?: ReactNode;
+  /** About leaves the header card for a section of its own (team-profile's
+   *  "Actions → Under badges + About section" state). */
+  aboutApart?: boolean;
   /** Hide the stage / fund / industry badges row (test the no-badges team). */
   hideBadges?: boolean;
   /** Founding year, headcount and place — the facts line under the team name.
@@ -74,6 +80,8 @@ export function TeamDetailsView({
   headerAction,
   beforeAbout,
   afterAbout,
+  afterBadges,
+  aboutApart = false,
   hideBadges,
   facts,
   status = 'active',
@@ -131,31 +139,38 @@ export function TeamDetailsView({
   const about = team?.longDescription ?? '';
   const hasAbout = !!about && about.trim() !== '<p><br></p>';
 
+  const aboutBody = (
+    <ExpandableDescription>
+      <div className={s.aboutContent} dangerouslySetInnerHTML={{ __html: about }} />
+    </ExpandableDescription>
+  );
+
   return (
-    <DetailsSection classes={{ root: local.mainCardTight }}>
-      <div className={`${s.profile} ${local.profileRow}`}>
-        <div className={`${s.logoTagsContainer} ${local.logoTagsGrow}`}>
-          <Image
-            alt="profile"
-            loading="eager"
-            height={72}
-            width={72}
-            layout="intrinsic"
-            priority={true}
-            className={`${s.teamLogo} ${local.logoCell}`}
-            src={logo}
-          />
-          {/* Phone: this column dissolves (`display: contents`) into a grid on
+    <>
+      <DetailsSection classes={{ root: local.mainCardTight }}>
+        <div className={`${s.profile} ${local.profileRow}`}>
+          <div className={`${s.logoTagsContainer} ${local.logoTagsGrow}`}>
+            <Image
+              alt="profile"
+              loading="eager"
+              height={72}
+              width={72}
+              layout="intrinsic"
+              priority={true}
+              className={`${s.teamLogo} ${local.logoCell}`}
+              src={logo}
+            />
+            {/* Phone: this column dissolves (`display: contents`) into a grid on
               its parent, so the name and facts sit beside the logo while the
               tag row runs full width under both — see `.logoTagsGrow`. */}
-          <div className={`${s.nameTagContainer} ${local.nameTagCol}`}>
-            <div className={`${s.nameAndActions} ${local.nameRowWrap}`}>
-              <Tooltip
-                asChild
-                trigger={<h1 className={`${s.teamName} ${local.teamNameMobile}`}>{teamName}</h1>}
-                content={teamName}
-              />
-              {/* Status renders ONLY when the team is inactive, and it sits by the
+            <div className={`${s.nameTagContainer} ${local.nameTagCol}`}>
+              <div className={`${s.nameAndActions} ${local.nameRowWrap}`}>
+                <Tooltip
+                  asChild
+                  trigger={<h1 className={`${s.teamName} ${local.teamNameMobile}`}>{teamName}</h1>}
+                  content={teamName}
+                />
+                {/* Status renders ONLY when the team is inactive, and it sits by the
                   name rather than in the facts line below — because it isn't a
                   fact of the same kind. Founded / size / location describe a team
                   that exists; "inactive" qualifies whether the rest of the page
@@ -164,124 +179,134 @@ export function TeamDetailsView({
                   on every operating team is a word that never varies — it costs
                   a chip's worth of attention to say nothing. Active is the
                   unmarked default; its absence is the signal. */}
-              {/* No tooltip on it: `Badge` is a label chip, and the DS's label
+                {/* No tooltip on it: `Badge` is a label chip, and the DS's label
                   chips carry no hover state anywhere — hanging one off this pill
                   would make an inert caption behave like a control. The word is
                   the whole message. (It also has to be a direct flex child here:
                   `Tooltip` wraps its trigger in its own mob/web divs, which
                   swallowed the mobile line break below.) */}
-              {status === 'inactive' && (
-                <span className={local.statusBadge}>
-                  <Badge className={local.statusChip}>Inactive</Badge>
-                </span>
-              )}
-              {demoDayParticipation && isNameEmblem && (
-                <EmblemBadge
-                  participation={demoDayParticipation}
-                  short={demoDayShort}
-                  className={emblemClass}
-                  mode={emblemMode}
-                />
-              )}
-            </div>
-            {/* Facts first, classification second: founded / size / location
+                {status === 'inactive' && (
+                  <span className={local.statusBadge}>
+                    <Badge className={local.statusChip}>Inactive</Badge>
+                  </span>
+                )}
+                {demoDayParticipation && isNameEmblem && (
+                  <EmblemBadge
+                    participation={demoDayParticipation}
+                    short={demoDayShort}
+                    className={emblemClass}
+                    mode={emblemMode}
+                  />
+                )}
+              </div>
+              {/* Facts first, classification second: founded / size / location
                 describe the company, the row below sorts it into buckets. Both
                 rows are peers in production's `.tagsContainer` column (12px
                 gap), so this adds a line rather than a new region. */}
-            {factItems.length > 0 && (
-              <div className={`${mh.roleAndLocation} ${local.factsRow}`}>
-                {factItems.map((item, i) => (
-                  <Fragment key={i}>
-                    {i > 0 && <span className={`${mh.divider} ${local.factDivider}`} />}
-                    {item}
-                  </Fragment>
-                ))}
-              </div>
-            )}
-            {!hideBadges && (
-              <div className={`${s.tagsContainer} ${local.tagsBlock}`}>
-                <div ref={tagsFit.ref} className={`${s.tags2} ${local.tagsOneLine}`}>
-                  {/* Deviation from production: the row never wraps (production
+              {factItems.length > 0 && (
+                <div className={`${mh.roleAndLocation} ${local.factsRow}`}>
+                  {factItems.map((item, i) => (
+                    <Fragment key={i}>
+                      {i > 0 && <span className={`${mh.divider} ${local.factDivider}`} />}
+                      {item}
+                    </Fragment>
+                  ))}
+                </div>
+              )}
+              {!hideBadges && (
+                <div className={`${s.tagsContainer} ${local.tagsBlock}`}>
+                  <div ref={tagsFit.ref} className={`${s.tags2} ${local.tagsOneLine}`}>
+                    {/* Deviation from production: the row never wraps (production
                       wraps, leaving a divider hanging at the end of the first
                       line). Badges, a divider, then the industry tags that fit. */}
-                  {[
-                    team?.fundingStage?.title && (
-                      <Fragment key="stage">
-                        <div className={`${s.fundingStage} ${local.fromTablet}`}>Stage: {team.fundingStage.title}</div>
-                        {/* Phone: the stage joins the chip row as a chip — the DS
+                    {[
+                      team?.fundingStage?.title && (
+                        <Fragment key="stage">
+                          <div className={`${s.fundingStage} ${local.fromTablet}`}>
+                            Stage: {team.fundingStage.title}
+                          </div>
+                          {/* Phone: the stage joins the chip row as a chip — the DS
                             `Tag` in the fund tag's own tint — rather than a
                             square grey label standing among round pills. */}
-                        <Tag
-                          value={`Stage: ${team.fundingStage.title}`}
-                          className={`${s.iTag} ${local.mobileOnly} ${local.stageTag}`}
+                          <Tag
+                            value={`Stage: ${team.fundingStage.title}`}
+                            className={`${s.iTag} ${local.mobileOnly} ${local.stageTag}`}
+                          />
+                        </Fragment>
+                      ),
+                      team?.isFund && (
+                        <Tag key="fund" value="Investment Fund" className={`${s.iTag} ${local.tagFullMobile}`} />
+                      ),
+                      demoDayParticipation && demoDayPlacement === 'tags-chip' && (
+                        <DemoDayLinkBadge
+                          key="demoday"
+                          participation={demoDayParticipation}
+                          className={local.demoDayChip}
                         />
-                      </Fragment>
-                    ),
-                    team?.isFund && (
-                      <Tag key="fund" value="Investment Fund" className={`${s.iTag} ${local.tagFullMobile}`} />
-                    ),
-                    demoDayParticipation && demoDayPlacement === 'tags-chip' && (
-                      <DemoDayLinkBadge
-                        key="demoday"
-                        participation={demoDayParticipation}
-                        className={local.demoDayChip}
-                      />
-                    ),
-                  ]
-                    .filter(Boolean)
-                    .map((badge, i) => (
-                      <Fragment key={i}>
-                        {i > 0 && <Divider />}
-                        {badge}
-                      </Fragment>
-                    ))}
-                  {/* One line at every width: the industry tags join the badges'
+                      ),
+                    ]
+                      .filter(Boolean)
+                      .map((badge, i) => (
+                        <Fragment key={i}>
+                          {i > 0 && <Divider />}
+                          {badge}
+                        </Fragment>
+                      ))}
+                    {/* One line at every width: the industry tags join the badges'
                       line after a divider, and as many as fit are shown — the
                       rest fold into TagsList's "+n" chip (measured,
                       `useTagsThatFit`), rather than wrapping to a second line. */}
-                  {!!tags?.length && (
-                    <div className={local.tagsInlineGroup}>
-                      {hasBadges && <Divider />}
-                      <TagsList
-                        tags={tags}
-                        tagsToShow={tagsFit.shown}
-                        classes={{ root: local.tagsNoWrap, tag: local.tagFullMobile }}
-                      />
-                    </div>
-                  )}
+                    {!!tags?.length && (
+                      <div className={local.tagsInlineGroup}>
+                        {hasBadges && <Divider />}
+                        <TagsList
+                          tags={tags}
+                          tagsToShow={tagsFit.shown}
+                          classes={{ root: local.tagsNoWrap, tag: local.tagFullMobile }}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+              {afterBadges && <div className={local.afterBadgesSlot}>{afterBadges}</div>}
+            </div>
           </div>
+
+          {/* Follow cluster aligned with the whole header block (logo + name + tags). */}
+          {headerAction && <div className={local.headerActionSlot}>{headerAction}</div>}
         </div>
 
-        {/* Follow cluster aligned with the whole header block (logo + name + tags). */}
-        {headerAction && <div className={local.headerActionSlot}>{headerAction}</div>}
-      </div>
+        {/* Separate-row variant: the small compact code badge on its own row. */}
+        {demoDayParticipation && demoDayPlacement === 'own-row-small' && (
+          <div className={local.demoDayRow}>
+            <EmblemBadge participation={demoDayParticipation} short={demoDayShort} className={local.demoDayEmblem} />
+          </div>
+        )}
 
-      {/* Separate-row variant: the small compact code badge on its own row. */}
-      {demoDayParticipation && demoDayPlacement === 'own-row-small' && (
-        <div className={local.demoDayRow}>
-          <EmblemBadge participation={demoDayParticipation} short={demoDayShort} className={local.demoDayEmblem} />
-        </div>
-      )}
+        {/* Inline Follow variant sits on its own row below the header. */}
+        {beforeAbout && <div className={local.beforeAboutSlot}>{beforeAbout}</div>}
 
-      {/* Inline Follow variant sits on its own row below the header. */}
-      {beforeAbout && <div className={local.beforeAboutSlot}>{beforeAbout}</div>}
-
-      {/* About, back inside the header card (matches production's inline markup).
+        {/* About, back inside the header card (matches production's inline markup).
           DetailsSection's own row gap is commented out in production, so this
           needs its own top margin to breathe below the logo/name/tags block. */}
-      {hasAbout && (
-        <div className={`${s.aboutContainer} ${local.aboutSpacing}`}>
-          <div className={s.aboutTitle}>About</div>
-          <ExpandableDescription>
-            <div className={s.aboutContent} dangerouslySetInnerHTML={{ __html: about }} />
-          </ExpandableDescription>
-        </div>
+        {hasAbout && !aboutApart && (
+          <div className={`${s.aboutContainer} ${local.aboutSpacing}`}>
+            <div className={s.aboutTitle}>About</div>
+            {aboutBody}
+          </div>
+        )}
+        {afterAbout}
+      </DetailsSection>
+      {/* "About section": its own card, titled like the page's other sections,
+        so the header card ends on the actions row. */}
+      {hasAbout && aboutApart && (
+        <DetailsSection>
+          <DetailsSectionHeader title="About" />
+          {aboutBody}
+        </DetailsSection>
       )}
-      {afterAbout}
-    </DetailsSection>
+    </>
   );
 }
 
@@ -358,7 +383,7 @@ const CalendarGlyph = () => (
  * row overflows — hidden tags can't be measured, so it's a fit loop rather than
  * a sum — and starts over from `max` whenever the row resizes.
  */
-function useTagsThatFit(max: number) {
+export function useTagsThatFit(max: number) {
   // Callback ref (element in state) so the observer re-attaches when the row
   // mounts later, e.g. after the "no badges" review toggle.
   const [row, ref] = useState<HTMLDivElement | null>(null);

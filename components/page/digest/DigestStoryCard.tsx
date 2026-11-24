@@ -35,6 +35,10 @@ type Props = {
   onFollow?: () => void;
   /** Sends a signed-out reader to sign-in from the comments thread. */
   onSignIn: () => void;
+  /** Signed out (LAB-3347): Comments asks the reader to sign in instead of opening the thread. */
+  onCommentsSignIn?: () => void;
+  /** Back from a sign-in that Comments started (LAB-3347): open the thread once. */
+  openComments?: boolean;
 };
 
 /**
@@ -53,8 +57,16 @@ export function DigestStoryCard({
   following,
   onFollow,
   onSignIn,
+  onCommentsSignIn,
+  openComments = false,
 }: Props) {
   const [threadOpen, setThreadOpen] = useState(false);
+  // Opened once when the sign-in a Comments press started comes back; the reader can close it after that.
+  const [openedOnReturn, setOpenedOnReturn] = useState(false);
+  if (openComments && !openedOnReturn) {
+    setOpenedOnReturn(true);
+    setThreadOpen(true);
+  }
   // A thread holding an unsettled comment refuses to collapse (NewsCardFull's rule).
   const [threadBusy, setThreadBusy] = useState(false);
   const confirmation = choice && receipt ? <DigestReceipt choice={choice} onUndo={onUndo} /> : null;
@@ -127,6 +139,7 @@ export function DigestStoryCard({
             itemUid={story.uid}
             open={threadOpen}
             onToggle={() => {
+              if (onCommentsSignIn) return onCommentsSignIn();
               if (threadBusy && threadOpen) return;
               setThreadOpen((open) => !open);
             }}

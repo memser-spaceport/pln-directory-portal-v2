@@ -896,6 +896,9 @@ export const ALL_EVENTS_ANALYTICS = {
   ON_EVENTS_VIEW_CHANGED: 'events-view-changed',
   ON_EVENTS_FILTERS_APPLIED: 'events-filters-applied',
   ON_EVENTS_CITY_SELECTED: 'events-city-selected',
+  // LAB-3394: setting the location from Near you.
+  ON_EVENTS_LOCATION_DIALOG_OPENED: 'events-location-dialog-opened',
+  ON_EVENTS_LOCATION_SAVED: 'events-location-saved',
 };
 
 export const EVENTS_ANALYTICS = {

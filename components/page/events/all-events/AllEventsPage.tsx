@@ -51,7 +51,8 @@ import { EmbedModal, embedFrameTitle, embedScopeLine } from './EmbedModal';
 import { EventsToolbar, VIEW_LABEL } from './EventsToolbar';
 import { ListView } from './ListView';
 import { EventsMap } from './map/EventsMap';
-import { AddLocationRow, NearYou } from './NearYou';
+import { LocationDialog, type LocationDialogFrom } from './LocationDialog';
+import { AddLocationRow, NearYou, NoNearbyEventsRow } from './NearYou';
 import { EventsEmpty, EventsError } from './states';
 import type { AllEventsView } from './icons';
 import s from './AllEventsPage.module.scss';
@@ -228,6 +229,14 @@ export function AllEventsPage({
   const plainLanding = listTop && filterCount === 0;
   const near = signedIn && plainLanding ? nearYou(items, memberCity) : null;
   const askLocation = signedIn && plainLanding && memberCity === null && !!viewerUid;
+  // A place with no upcoming event: a row to change it, where Near you would be (LAB-3394).
+  const noNearby = signedIn && plainLanding && !near && typeof memberCity === 'string' && !!viewerUid;
+  // The location dialog (LAB-3394), and which row opened it.
+  const [locationFrom, setLocationFrom] = useState<LocationDialogFrom | null>(null);
+  const openLocation = (from: LocationDialogFrom) => {
+    setLocationFrom(from);
+    analytics.onEventsLocationDialogOpened({ from });
+  };
 
   // The calendar opens on the linked event's day, else the chosen city's first event, else today.
   const landed = landedUid ? items.find((item) => item.uid === landedUid) : undefined;
@@ -418,7 +427,7 @@ export function AllEventsPage({
         onBack={() => setCity(null, 'tile')}
       />
     </div>
-  ) : near || askLocation || cities.length > 0 ? (
+  ) : near || askLocation || noNearby || cities.length > 0 ? (
     <div className={s.listBands}>
       {near && (
         <NearYou
@@ -429,9 +438,11 @@ export function AllEventsPage({
           onOpen={open}
           onPrepare={prepare}
           onSeeAll={() => setCity(near.city, 'near-you')}
+          onChangeLocation={() => openLocation('change')}
         />
       )}
-      {askLocation && <AddLocationRow profileHref={`/members/${viewerUid}`} />}
+      {askLocation && <AddLocationRow onAdd={() => openLocation('add')} />}
+      {noNearby && <NoNearbyEventsRow city={memberCity} onChange={() => openLocation('no-events')} />}
       {cities.length > 0 && (
         <CityBand cities={cities} selected={filters.city} onPick={(city) => setCity(city, 'tile')} />
       )}
@@ -579,6 +590,14 @@ export function AllEventsPage({
         frameTitle={embedFrameTitle(embedLabels)}
         onCopied={onEmbedCopied}
       />
+      {locationFrom && viewerUid && (
+        <LocationDialog
+          viewerUid={viewerUid}
+          from={locationFrom}
+          onClose={() => setLocationFrom(null)}
+          onSaved={(from) => analytics.onEventsLocationSaved({ from })}
+        />
+      )}
     </>
   );
 }

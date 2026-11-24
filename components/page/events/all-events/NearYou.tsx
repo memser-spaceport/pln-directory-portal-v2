@@ -98,7 +98,7 @@ function LocationRow({
 
 /**
  * No location on the profile: one row where Near you would be, asking for the field the profile already has
- * (Location), not a new setting. "Add location" opens the location dialog (LAB-3394); Browse by city still works
+ * (Location), not a new setting. "Add location" opens the location dialog (LAB-3394); choosing a city still works
  * without it.
  */
 export function AddLocationRow({ onAdd }: { onAdd: () => void }) {
@@ -112,12 +112,15 @@ export function AddLocationRow({ onAdd }: { onAdd: () => void }) {
 
 /**
  * A location with no upcoming event in it (LAB-3394): without this row Near you would simply not show, and the member
- * would have nowhere on the page to change the place.
+ * would have nowhere on the page to change the place. Phones have no Browse by city (LAB-3391), so there the row points
+ * at Filters.
  */
 export function NoNearbyEventsRow({ city, onChange }: { city: string; onChange: () => void }) {
   return (
     <LocationRow label="Events near you" action="Change location" onAction={onChange}>
-      <strong>No upcoming events near {city}.</strong> Browse other cities below, or change your location.
+      <strong>No upcoming events near {city}.</strong>{' '}
+      <span className={s.fromTablet}>Browse other cities below, or change your location.</span>
+      <span className={s.onPhones}>Choose another city in Filters, or change your location.</span>
     </LocationRow>
   );
 }

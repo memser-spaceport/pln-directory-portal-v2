@@ -329,7 +329,28 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
-/* Browse by city: Luma Discover's tiles (a picture, the city, a count). */
+/* Browse by city: Luma Discover's tiles (a picture, the city, a count). Phones choose a city in Filters (LAB-3391). */
+.citySection {
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+// The no-events row's two wordings: from 640px it points at Browse by city, on phones at Filters.
+.fromTablet {
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.onPhones {
+  display: none;
+
+  @include media.mobile-only {
+    display: inline;
+  }
+}
+
 .cityRow {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -341,20 +362,6 @@
 
   @include media.tablet-portrait-only {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  @include media.mobile-only {
-    display: flex;
-    overflow-x: auto;
-    margin: 0 -16px;
-    padding: 0 16px 4px;
-    scroll-snap-type: x mandatory;
-    scroll-padding-inline: 16px; // keeps the first tile at the row's inset (see .nearTiles)
-    scrollbar-width: none;
-
-    &::-webkit-scrollbar {
-      display: none;
-    }
   }
 }
 
@@ -380,12 +387,6 @@
   &:focus-visible {
     outline: 2px solid var(--foreground-brand-primary, #1b4dff);
     outline-offset: 2px;
-  }
-
-  @include media.mobile-only {
-    flex: 0 0 auto;
-    padding-right: 16px;
-    scroll-snap-align: start;
   }
 }
 
@@ -1129,7 +1130,7 @@
   }
 }
 
-/* Near you on a phone: a row you swipe, so the city band and the list stay within reach. */
+/* Near you on a phone: a row you swipe, so the list stays within reach. */
 .nearTiles {
   @include media.mobile-only {
     display: flex;
@@ -1144,8 +1145,8 @@
       display: none;
     }
 
-    // The List card on phones (Polina, 2026-11-24): the same sizes as `.card`, the picture on the right. Short enough
-    // that Browse by city stays in view under it (LAB-3391); so the host and place keep to one line, the title to two.
+    // The List card on phones (Polina, 2026-11-24): the same sizes as `.card`, the picture on the right. The host
+    // and place keep to one line, the title to two, so the list stays within reach.
     > .tile {
       flex: 0 0 85%;
       flex-direction: row-reverse;
@@ -1323,4 +1324,11 @@
 // "All upcoming" / "Matching events": the dated list's own heading, a section title like the bands'.
 .listHeading.listHeading {
   margin: 32px 0 12px;
+}
+
+// Phones hide Browse by city, so with nothing above it the heading is the first band there.
+.listBands > .citySection:first-child + .listHeading {
+  @include media.mobile-only {
+    margin-top: 0;
+  }
 }

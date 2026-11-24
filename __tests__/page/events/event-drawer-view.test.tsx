@@ -97,6 +97,36 @@ describe('EventDrawerView (LAB-3216)', () => {
       ).toBeTruthy();
     });
 
+    it('focus areas show by name in their own group, apart from the topics (LAB-3404)', () => {
+      const base = eventResponse();
+      const tags = ['FA3', 'Conference', 'FA4'].map((name) => ({ name, color: null }));
+      render(<Harness raw={eventResponse({ details: { ...base.details!, tags } })} />);
+      const areas = screen.getByTestId('event-focus-areas');
+      expect(within(areas).getByText('Focus areas')).toBeInTheDocument();
+      expect(within(areas).getByText('AI & Robotics')).toBeInTheDocument();
+      expect(within(areas).getByText('Neurotech')).toBeInTheDocument();
+      expect(within(areas).queryByText('Conference')).not.toBeInTheDocument();
+      const topics = screen.getByTestId('event-tags');
+      expect(within(topics).getByText('Topics')).toBeInTheDocument();
+      expect(within(topics).getByText('Conference')).toBeInTheDocument();
+      expect(screen.queryByText(/^FA\d$/)).not.toBeInTheDocument();
+    });
+
+    it('an event with focus areas only still has About; topics alone have no label (LAB-3404)', () => {
+      const bare = bareEventResponse();
+      const { unmount } = render(
+        <Harness raw={bareEventResponse({ details: { ...bare.details!, tags: [{ name: 'FA1', color: null }] } })} />,
+      );
+      expect(screen.getByRole('heading', { name: 'About' })).toBeInTheDocument();
+      expect(screen.getByText('Digital Human Rights')).toBeInTheDocument();
+      expect(screen.queryByTestId('event-tags')).not.toBeInTheDocument();
+      unmount();
+
+      render(<Harness />);
+      expect(screen.queryByTestId('event-focus-areas')).not.toBeInTheDocument();
+      expect(screen.queryByText('Topics')).not.toBeInTheDocument();
+    });
+
     it('a one-day agenda has no day title, and its times use an en dash', () => {
       const base = eventResponse();
       const oneDay = { sessions: base.details!.agenda!.sessions.slice(0, 2) };

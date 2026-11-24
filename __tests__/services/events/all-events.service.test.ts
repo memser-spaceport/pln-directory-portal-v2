@@ -104,6 +104,30 @@ describe('toAllEventsItem', () => {
     expect(toAllEventsItem(row(), base).tagColor).toBeNull();
   });
 
+  it('splits focus areas from topics; the colour is the first topic’s (LAB-3404)', () => {
+    const base = detail();
+    const tags = [
+      { name: 'FA3', color: '#111111' },
+      { name: 'Talks', color: '#FF8800' },
+      { name: 'fa4', color: null },
+    ];
+    expect(toAllEventsItem(row(), detail({ details: { ...base.details!, tags } }))).toMatchObject({
+      focusAreas: ['FA3', 'FA4'],
+      tags: ['Talks'],
+      tagColor: '#FF8800',
+    });
+  });
+
+  it('reads the event’s own time zone before the gathering’s (LAB-3404)', () => {
+    expect(toAllEventsItem(row(), detail({ timezone: 'America/Chicago' }))).toMatchObject({
+      timezone: 'America/Chicago',
+      startTime: '9:30 PM',
+      startDay: '2030-12-02',
+      zone: 'UTC−6',
+    });
+    expect(toAllEventsItem(row(), detail({ timezone: null })).timezone).toBe('Asia/Kolkata');
+  });
+
   it('keeps the list fields when the detail call failed', () => {
     const item = toAllEventsItem(row(), null);
     expect(item).toMatchObject({
@@ -181,7 +205,8 @@ describe('getAllEventsPageEvents', () => {
 
   it('loads every upcoming event and its detail; a failed detail keeps the event', async () => {
     global.fetch = jest.fn((url: string) => {
-      if (url.endsWith('/v1/irl/events/upcoming')) return json([row({ uid: 'a' }), row({ uid: 'b' })]);
+      // LAB-3404: with the events in progress, so one stays on the page until it ends.
+      if (url.endsWith('/v1/irl/events/upcoming?ongoing=true')) return json([row({ uid: 'a' }), row({ uid: 'b' })]);
       if (url.endsWith('/v1/irl/events/a')) return json(detail({ uid: 'a' }));
       return json({ message: 'boom' }, 500);
     }) as unknown as typeof fetch;

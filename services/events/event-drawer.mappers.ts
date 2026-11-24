@@ -14,6 +14,7 @@ import type {
   EventTag,
   MyGatheringPlans,
 } from './event-drawer.types';
+import { toFocusAreaCode } from './focus-areas';
 
 /*
  * Pure mapping from the BE's wire shapes to what the event drawer draws (LAB-3216).
@@ -250,10 +251,12 @@ function cityOf(location: string): string {
 
 export function toEventDetail(raw: EventDetailResponse): EventDetail {
   const details = raw.details;
-  const timezone = safeTimezone(raw.location?.timezone);
+  const timezone = safeTimezone(raw.timezone || raw.location?.timezone);
   const partyHosts = uniqueNames([details?.host?.name, ...(details?.coHosts ?? []).map((h) => h.name)]);
   const hosts = partyHosts.length ? partyHosts : uniqueNames((raw.hosts ?? []).map((h) => h.name));
-  const tags = uniqueNames((details?.tags ?? []).map((t) => t.name)).map(toEventTag);
+  const tagNames = uniqueNames((details?.tags ?? []).map((t) => t.name));
+  const focusAreas = uniqueNames(tagNames.map(toFocusAreaCode));
+  const tags = tagNames.filter((name) => !toFocusAreaCode(name)).map(toEventTag);
 
   return {
     uid: raw.uid,
@@ -267,6 +270,7 @@ export function toEventDetail(raw: EventDetailResponse): EventDetail {
     address: raw.location?.location?.trim() || null,
     locationUrl: details?.locationUrl?.trim() || null,
     image: raw.logo || raw.banner || null,
+    focusAreas,
     tags,
     hosts,
     description: raw.description?.trim() || raw.shortDescription?.trim() || null,
@@ -279,7 +283,7 @@ export function toEventDetail(raw: EventDetailResponse): EventDetail {
           uid: raw.location.uid,
           location: raw.location.location,
           city: raw.location.city?.trim() || cityOf(raw.location.location),
-          timezone,
+          timezone: safeTimezone(raw.location.timezone || raw.timezone),
           resources: (raw.location.resources ?? []).map(toResource).filter((r): r is Resource => !!r),
           events: (raw.location.events ?? []).map(({ uid, name, startDate, endDate }) => ({
             uid,

@@ -26,6 +26,11 @@ export interface RsvpCardProps {
   /** The event's own page, for Register. Left out when unknown. */
   registerUrl: string | null;
   saving: boolean;
+  /**
+   * The embed (LAB-3392): going happens on LabOS, so "RSVP on LabOS ↗" opens this address in a new tab in place of
+   * "Yes, I'm going", and the going count is plain text (no sign-in, no attendee list inside another site).
+   */
+  rsvpHref?: string | null;
   onYes: () => void;
   onOpenAttendees: () => void;
   onNotGoing: () => void;
@@ -42,6 +47,21 @@ function Facepile({ faces }: { faces: EventPersonResponse[] }) {
         <img key={face.uid} src={face.image || getDefaultAvatar(face.name)} alt="" width={24} height={24} />
       ))}
     </span>
+  );
+}
+
+/** "RSVP on LabOS ↗": the embed's "Yes, I'm going" (LAB-3392), a link to the event on LabOS in a new tab. */
+export function RsvpLink({ href }: { href: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={clsx(btn.root, btn.small, btn.fill, btn.primary, r.btn)}
+    >
+      RSVP on LabOS
+      <ArrowUpRightIcon width={14} height={14} />
+    </a>
   );
 }
 
@@ -64,6 +84,7 @@ export function RsvpCard({
   city,
   registerUrl,
   saving,
+  rsvpHref = null,
   onYes,
   onOpenAttendees,
   onNotGoing,
@@ -83,12 +104,24 @@ export function RsvpCard({
     </a>
   ) : null;
 
+  const goingText = going
+    ? others > 0
+      ? `You and ${members(others)}`
+      : "You're the first one going"
+    : `${members(count)} going`;
   const people =
     count > 0 ? (
-      <button type="button" className={r.goingLink} onClick={onOpenAttendees}>
-        <Facepile faces={faces} />
-        {going ? (others > 0 ? `You and ${members(others)}` : "You're the first one going") : `${members(count)} going`}
-      </button>
+      rsvpHref ? (
+        <span className={r.goingCount}>
+          <Facepile faces={faces} />
+          {goingText}
+        </span>
+      ) : (
+        <button type="button" className={r.goingLink} onClick={onOpenAttendees}>
+          <Facepile faces={faces} />
+          {goingText}
+        </button>
+      )
     ) : (
       <span className={r.nobody}>Nobody has said they are going yet.</span>
     );
@@ -113,9 +146,13 @@ export function RsvpCard({
           {people}
         </div>
         <div className={r.cardActions}>
-          <Button type="button" size="s" onClick={onYes} disabled={saving}>
-            Yes, I&apos;m going
-          </Button>
+          {rsvpHref ? (
+            <RsvpLink href={rsvpHref} />
+          ) : (
+            <Button type="button" size="s" onClick={onYes} disabled={saving}>
+              Yes, I&apos;m going
+            </Button>
+          )}
           {register}
         </div>
       </div>

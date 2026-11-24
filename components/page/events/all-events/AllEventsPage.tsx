@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
-import { useEventsAnalytics } from '@/analytics/events.analytics';
+import { useEventsAnalytics, type EmbedDetails } from '@/analytics/events.analytics';
 import { ArrowUpRightIcon } from '@/components/icons';
 import { FilterStoreUrlSync } from '@/components/common/filters/FilterStoreUrlSync';
 import { MobileFilterWrapper } from '@/components/common/filters/MobileFilterWrapper';
@@ -21,6 +21,7 @@ import { useAllEventsFilterStore } from '@/services/events/all-events-filters.st
 import {
   EVENTS_EMBED_PATH,
   FILTER_PARAMS,
+  allEventsEventHref,
   type FilterParam,
   countAppliedFilters,
   embedQuery,
@@ -74,10 +75,12 @@ export interface AllEventsPageProps {
   eventsAppHref: string;
   /**
    * The embed (LAB-3352, `/events/embed`), framed by another site: the view only, with the filters from its address,
-   * and "All events on PL Directory ↗" under it. No page header, Near you, Browse by city, toolbar, filters, member
-   * parts or drawer: an event opens on LabOS in a new tab.
+   * and "All events on PL Directory ↗" under it. No page header, Near you, Browse by city, toolbar, filters or member
+   * parts. An event opens its drawer in the embed, signed out (LAB-3392).
    */
   embed?: boolean;
+  /** The embed's `details=labos` (LAB-3392): an event opens on LabOS in a new tab instead of in the embed's drawer. */
+  detailsOnLabOs?: boolean;
 }
 
 /** Same-origin frames can read their parent's address; another site's frame throws. */
@@ -88,9 +91,6 @@ function framedByLabOs(): boolean {
     return false;
   }
 }
-
-/** Where an event opens from the embed: the All Events page with its drawer, in a new tab. */
-export const embedEventHref = (uid: string) => `/events/all?event=${encodeURIComponent(uid)}`;
 
 const noopSubscribe = () => () => {};
 /** How long a filter must stay still before its change is recorded (the store's former debounce). */
@@ -111,11 +111,15 @@ export function AllEventsPage({
   submitHref,
   eventsAppHref,
   embed = false,
+  detailsOnLabOs = false,
 }: AllEventsPageProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const analytics = useEventsAnalytics();
-  const prefetchEvent = usePrefetchEventDetail();
+  // The embed reads events signed out, as its drawer does (LAB-3392).
+  const prefetchEvent = usePrefetchEventDetail({ anonymous: embed });
+  // An embed that sends events to LabOS opens no drawer of its own.
+  const embedDrawer = embed && !detailsOnLabOs;
   const todayIso = useSyncExternalStore(
     noopSubscribe,
     () => localIso(new Date()),
@@ -153,8 +157,11 @@ export function AllEventsPage({
   const calMode: CalMode = calParam === 'month' || calParam === 'week' ? calParam : belowMonthWidth ? 'week' : 'month';
 
   // The open event lives in the address, so a link to an event lands with its drawer open. The linked event stays
-  // marked after its drawer closes, until the member opens another one.
-  const openUid = params.get('event');
+  // marked after its drawer closes, until the member opens another one. The embed keeps it to itself (LAB-3392): its
+  // address belongs to another site's page, whose Back button must not step through our drawer, and an embed link
+  // never carries an event.
+  const [embedOpenUid, setEmbedOpenUid] = useState<string | null>(null);
+  const openUid = embed ? embedOpenUid : params.get('event');
   const [touched, setTouched] = useState(false);
   const [keptUid, setKeptUid] = useState<string | null>(null);
   const highlightUid = openUid ?? keptUid;
@@ -231,18 +238,19 @@ export function AllEventsPage({
       : todayIso;
 
   const prepare = (uid: string) => {
-    if (embed) return;
+    if (embed && !embedDrawer) return;
     void loadEventDrawer();
     prefetchEvent(uid);
   };
   const open = (uid: string) => {
-    if (embed) {
-      window.open(embedEventHref(uid), '_blank', 'noopener,noreferrer');
+    if (embed && !embedDrawer) {
+      window.open(allEventsEventHref(uid), '_blank', 'noopener,noreferrer');
       return;
     }
     setTouched(true);
     setKeptUid(null);
-    setParam('event', uid);
+    if (embed) setEmbedOpenUid(uid);
+    else setParam('event', uid);
   };
   // LAB-3361: the drawer's previous / next walk the events on show in the List's order (by list day, then start, so
   // an event under way counts from today); the neighbours load ahead.
@@ -251,17 +259,17 @@ export function AllEventsPage({
     [visible, todayIso],
   );
   useEffect(() => {
-    // The embed never opens the drawer, so it loads no neighbours either.
-    if (embed || !openUid) return;
+    if (!openUid) return;
     const at = sequence.indexOf(openUid);
     if (at < 0) return;
     [sequence[at - 1], sequence[at + 1]].forEach((uid) => uid && prefetchEvent(uid));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [embed, openUid, sequence]);
+  }, [openUid, sequence]);
   const closeDrawer = () => {
     if (!touched) setKeptUid(openUid);
     setTouched(true);
-    setParam('event', undefined);
+    if (embed) setEmbedOpenUid(null);
+    else setParam('event', undefined);
   };
   const onGoing = (eventUid: string) => (notice: EventGoingNotice) => {
     if (viewerUid) {
@@ -326,8 +334,8 @@ export function AllEventsPage({
   const embedLabels = appliedChips(embedParams, null)
     .filter((chip) => chip.key !== 'going')
     .map((chip) => chip.label);
-  const onEmbedCopied = (what: 'link' | 'code') => {
-    const props = { view, filters_count: countAppliedFilters(new URLSearchParams(embedLinkQuery)) };
+  const onEmbedCopied = (what: 'link' | 'code', details: EmbedDetails) => {
+    const props = { view, filters_count: countAppliedFilters(new URLSearchParams(embedLinkQuery)), details };
     if (what === 'code') analytics.onEventsEmbedCodeCopied(props);
     else analytics.onEventsEmbedLinkCopied(props);
   };
@@ -350,6 +358,7 @@ export function AllEventsPage({
     analytics.onEventsEmbedViewed({
       view: opened && AVAILABLE_VIEWS.includes(opened) ? opened : 'list',
       referrer_host: referrerHost,
+      details: detailsOnLabOs ? 'labos' : 'embed',
     });
     // Once per load.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -499,8 +508,9 @@ export function AllEventsPage({
   );
 
   // The embed (LAB-3352, Polina's design): the view alone, then "All events on PL Directory ↗" to the same view and
-  // filters on the full page, in a new tab. No header, Near you, Browse by city, toolbar, filters or drawer: the person
-  // embedding it chose the view and filters, and an event opens LabOS in a new tab.
+  // filters on the full page, in a new tab. No header, Near you, Browse by city, toolbar or filters: the person
+  // embedding it chose the view and filters. An event opens its drawer here, signed out (LAB-3392), or with
+  // `details=labos` opens LabOS in a new tab.
   if (embed) {
     const query = embedQuery(params);
     return (
@@ -517,6 +527,16 @@ export function AllEventsPage({
             All events on PL Directory <ArrowUpRightIcon width={14} height={14} />
           </a>
         </div>
+        {embedDrawer && (
+          <EventDrawer
+            embed
+            eventUid={openUid}
+            source="embed"
+            onClose={closeDrawer}
+            sequence={sequence}
+            onNavigate={open}
+          />
+        )}
       </>
     );
   }

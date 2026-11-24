@@ -22,6 +22,7 @@ jest.mock('next/navigation', () => ({
 type DrawerProps = {
   eventUid: string | null;
   source: string;
+  embed?: boolean;
   onClose: () => void;
   sequence?: string[];
   onNavigate?: (uid: string) => void;
@@ -36,6 +37,7 @@ jest.mock(
           data-testid="event-drawer"
           data-uid={props.eventUid}
           data-source={props.source}
+          data-embed={String(!!props.embed)}
           data-sequence={(props.sequence ?? []).join(',')}
         >
           <button type="button" onClick={props.onClose}>
@@ -80,8 +82,12 @@ jest.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({ setQueryData: jest.fn() }),
 }));
 const prefetchEventDetail = jest.fn();
+const prefetchOptions: { last?: { anonymous?: boolean } } = {};
 jest.mock('@/services/events/hooks/useEventDrawerQueries', () => ({
-  usePrefetchEventDetail: () => prefetchEventDetail,
+  usePrefetchEventDetail: (options?: { anonymous?: boolean }) => {
+    prefetchOptions.last = options;
+    return prefetchEventDetail;
+  },
 }));
 jest.mock('@/components/core/ToastContainer', () => ({ toast: { success: jest.fn(), error: jest.fn() } }));
 const { toast } = jest.requireMock('@/components/core/ToastContainer');
@@ -654,7 +660,7 @@ describe('Embed dialog (LAB-3352, LAB-3365)', () => {
     expect(preview()).toHaveAttribute('src', '/events/embed?view=calendar&cal=month&city=Lisbon');
     expect(preview()).toHaveAttribute('title', 'Preview: Protocol Labs events: Lisbon');
     expect(code()).toBe(
-      `<iframe src="${window.location.origin}/events/embed?view=calendar&amp;cal=month&amp;city=Lisbon" width="100%" height="640" style="border: 1px solid #e2e8f0; border-radius: 12px;" title="Protocol Labs events: Lisbon" loading="lazy"></iframe>`,
+      `<iframe src="${window.location.origin}/events/embed?view=calendar&amp;cal=month&amp;city=Lisbon" width="100%" height="640" style="border: 1px solid #e2e8f0; border-radius: 12px;" title="Protocol Labs events: Lisbon" allow="clipboard-write" loading="lazy"></iframe>`,
     );
     expect(within(dialog()).getByText(/New events that match appear on their own/)).toBeInTheDocument();
   });
@@ -665,10 +671,14 @@ describe('Embed dialog (LAB-3352, LAB-3365)', () => {
     expect(within(dialog()).getByText('List view · All upcoming events')).toBeInTheDocument();
     await press('Copy code');
     expect(writeText).toHaveBeenCalledWith(
-      `<iframe src="${window.location.origin}/events/embed" width="100%" height="640" style="border: 1px solid #e2e8f0; border-radius: 12px;" title="Protocol Labs events" loading="lazy"></iframe>`,
+      `<iframe src="${window.location.origin}/events/embed" width="100%" height="640" style="border: 1px solid #e2e8f0; border-radius: 12px;" title="Protocol Labs events" allow="clipboard-write" loading="lazy"></iframe>`,
     );
     expect(within(dialog()).getByRole('button', { name: 'Code copied' })).toBeInTheDocument();
-    expect(analytics.onEventsEmbedCodeCopied).toHaveBeenCalledWith({ view: 'list', filters_count: 0 });
+    expect(analytics.onEventsEmbedCodeCopied).toHaveBeenCalledWith({
+      view: 'list',
+      filters_count: 0,
+      details: 'embed',
+    });
     expect(analytics.onEventsEmbedLinkCopied).not.toHaveBeenCalled();
     act(() => jest.advanceTimersByTime(2000));
     expect(within(dialog()).getByRole('button', { name: 'Copy code' })).toBeInTheDocument();
@@ -692,7 +702,11 @@ describe('Embed dialog (LAB-3352, LAB-3365)', () => {
     expect(within(dialog()).getByRole('button', { name: 'Link copied' })).toBeInTheDocument();
     expect(within(dialog()).getByRole('button', { name: 'Copy code' })).toBeInTheDocument();
     expect(toast.success).not.toHaveBeenCalled();
-    expect(analytics.onEventsEmbedLinkCopied).toHaveBeenCalledWith({ view: 'calendar', filters_count: 2 });
+    expect(analytics.onEventsEmbedLinkCopied).toHaveBeenCalledWith({
+      view: 'calendar',
+      filters_count: 2,
+      details: 'embed',
+    });
   });
 
   it('embeds the calendar mode on show when the address has none', () => {
@@ -700,6 +714,40 @@ describe('Embed dialog (LAB-3352, LAB-3365)', () => {
     openDialog();
     expect(within(dialog()).getByText('Month calendar · All upcoming events')).toBeInTheDocument();
     expect(preview()).toHaveAttribute('src', '/events/embed?view=calendar&cal=month');
+  });
+
+  it('lets the host open event details on LabOS instead, in the link, the code and the preview (LAB-3392)', async () => {
+    renderPage({}, '/events/all?view=calendar&cal=month&city=Lisbon');
+    openDialog();
+    const option = within(dialog()).getByRole('checkbox', { name: 'Open event details on LabOS' });
+    expect(option).not.toBeChecked();
+    fireEvent.click(option);
+    expect(option).toBeChecked();
+    expect(preview()).toHaveAttribute('src', '/events/embed?view=calendar&cal=month&city=Lisbon&details=labos');
+    expect(code()).toContain(
+      `src="${window.location.origin}/events/embed?view=calendar&amp;cal=month&amp;city=Lisbon&amp;details=labos"`,
+    );
+    await press('Copy link');
+    expect(writeText).toHaveBeenCalledWith(
+      `${window.location.origin}/events/embed?view=calendar&cal=month&city=Lisbon&details=labos`,
+    );
+    expect(analytics.onEventsEmbedLinkCopied).toHaveBeenCalledWith({
+      view: 'calendar',
+      filters_count: 1,
+      details: 'labos',
+    });
+  });
+
+  it('adds `details` as the only parameter of the plain embed, and starts unticked on the next opening', () => {
+    renderPage();
+    openDialog();
+    fireEvent.click(within(dialog()).getByRole('checkbox', { name: 'Open event details on LabOS' }));
+    expect(preview()).toHaveAttribute('src', '/events/embed?details=labos');
+    fireEvent.click(within(dialog()).getByRole('button', { name: 'Close' }));
+    act(() => jest.advanceTimersByTime(300));
+    openDialog();
+    expect(within(dialog()).getByRole('checkbox', { name: 'Open event details on LabOS' })).not.toBeChecked();
+    expect(preview()).toHaveAttribute('src', '/events/embed');
   });
 
   it('escapes the search text in the code', () => {
@@ -796,15 +844,50 @@ describe('the embed (LAB-3352)', () => {
     expect(screen.getByRole('link', { name: /All events on PL Directory/ })).toHaveAttribute('href', '/events/all');
   });
 
-  it('opens an event on LabOS in a new tab, with no drawer and nothing in its own address', () => {
+  const drawer = () => screen.getByTestId('event-drawer');
+
+  it('opens an event in its own drawer, in embed mode, without touching its address (LAB-3392)', () => {
     renderPage({ embed: true }, '/events/embed');
+    fireEvent.click(card('DAI Summit'));
+    expect(drawer()).toHaveAttribute('data-uid', 'dai');
+    expect(drawer()).toHaveAttribute('data-embed', 'true');
+    expect(drawer()).toHaveAttribute('data-source', 'embed');
+    expect(open).not.toHaveBeenCalled();
+    // The address belongs to the framing page's history: opening and closing an event adds nothing to it.
+    expect(storeParams().get('event')).toBeNull();
+    expect(window.location.search).toBe('');
+  });
+
+  it('steps to the next event in the embed, and closes back to the same view and filters (LAB-3392 AC3)', () => {
+    renderPage({ embed: true }, '/events/embed?mode=In%20person');
+    fireEvent.click(card('Lisbon event 1'));
+    const sequence = drawer().getAttribute('data-sequence')?.split(',') ?? [];
+    fireEvent.click(screen.getByRole('button', { name: 'Next event' }));
+    expect(drawer()).toHaveAttribute('data-uid', sequence[1]);
+    fireEvent.click(screen.getByRole('button', { name: 'Close drawer' }));
+    expect(screen.queryByTestId('event-drawer')).toBeNull();
+    expect(storeParams().get('mode')).toBe('In person');
+    expect(card('Lisbon event 1')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Community Call/ })).toBeNull();
+  });
+
+  it('loads an event signed out when a press is coming', () => {
+    prefetchEventDetail.mockClear();
+    renderPage({ embed: true }, '/events/embed');
+    fireEvent.focus(card('DAI Summit'));
+    expect(prefetchEventDetail).toHaveBeenCalledWith('dai');
+    expect(prefetchOptions.last).toEqual({ anonymous: true });
+  });
+
+  it('with `details=labos`, opens an event on LabOS in a new tab, with no drawer (LAB-3392 AC2)', () => {
+    renderPage({ embed: true, detailsOnLabOs: true }, '/events/embed?details=labos');
     fireEvent.click(card('DAI Summit'));
     expect(open).toHaveBeenCalledWith('/events/all?event=dai', '_blank', 'noopener,noreferrer');
     expect(storeParams().get('event')).toBeNull();
     expect(screen.queryByTestId('event-drawer')).toBeNull();
   });
 
-  it('never opens the drawer, even from an `?event=` in its address', () => {
+  it('ignores an `?event=` in its address: an embed link never carries one', () => {
     prefetchEventDetail.mockClear();
     renderPage({ embed: true }, '/events/embed?event=dai');
     expect(screen.queryByTestId('event-drawer')).toBeNull();
@@ -824,7 +907,11 @@ describe('the embed (LAB-3352)', () => {
     Object.defineProperty(document, 'referrer', { configurable: true, value: 'https://www.plrd.org/' });
     renderPage({ embed: true }, '/events/embed?view=calendar');
     expect(analytics.onEventsEmbedViewed).toHaveBeenCalledTimes(1);
-    expect(analytics.onEventsEmbedViewed).toHaveBeenCalledWith({ view: 'calendar', referrer_host: 'www.plrd.org' });
+    expect(analytics.onEventsEmbedViewed).toHaveBeenCalledWith({
+      view: 'calendar',
+      referrer_host: 'www.plrd.org',
+      details: 'embed',
+    });
     Object.defineProperty(document, 'referrer', { configurable: true, value: '' });
   });
 

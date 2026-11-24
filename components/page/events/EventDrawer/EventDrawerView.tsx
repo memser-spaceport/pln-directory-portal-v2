@@ -33,7 +33,7 @@ import { AttendeesView, SubHead, type EventAttendeesState } from './AttendeesVie
 import { DrawerToolbar } from './DrawerToolbar';
 import { EventSummary } from './EventSummary';
 import e from './EventDrawer.module.scss';
-import { RsvpCard } from './RsvpCard';
+import { RsvpCard, RsvpLink } from './RsvpCard';
 import r from './RsvpCard.module.scss';
 
 export type EventDrawerStatus = 'loading' | 'error' | 'not-found' | 'ready';
@@ -84,6 +84,11 @@ export interface EventDrawerViewProps {
    * Leave it out for a signed-in viewer.
    */
   onSignIn?: () => void;
+  /**
+   * The embed (LAB-3392), framed by another site: going happens on LabOS, so the card and its pinned bar offer
+   * "RSVP on LabOS ↗" to this address in a new tab, and the going count opens nothing. Leave out everywhere else.
+   */
+  rsvpHref?: string;
   /** The list the drawer was opened from, in its order, for previous / next (LAB-3361). Leave out for none. */
   sequence?: string[];
   /** Previous / next pressed: the host opens that event. */
@@ -247,6 +252,7 @@ function EventFlow({
   onSave,
   onGoing,
   onSignIn,
+  rsvpHref,
   sequence = NO_SEQUENCE,
   onNavigate,
   onLinkCopied,
@@ -369,8 +375,8 @@ function EventFlow({
     onAttendeesOpen?.();
   };
 
-  // Signed out, "Yes, I'm going" starts sign-in (LAB-3271).
-  const asks = canMarkGoing || !!onSignIn;
+  // Signed out, "Yes, I'm going" starts sign-in (LAB-3271); in the embed it is a link to LabOS (LAB-3392).
+  const asks = canMarkGoing || !!onSignIn || !!rsvpHref;
   const pressYes = canMarkGoing ? handleYes : (onSignIn ?? NOOP);
 
   const index = sequence.indexOf(event.uid);
@@ -461,6 +467,7 @@ function EventFlow({
                       city={gathering?.city ?? null}
                       registerUrl={event.eventUrl}
                       saving={saving}
+                      rsvpHref={rsvpHref}
                       onYes={pressYes}
                       onOpenAttendees={openAttendees}
                       onNotGoing={handleNotGoing}
@@ -540,11 +547,14 @@ function EventFlow({
               )}
               <div className={e.rsvpBarActions}>
                 {register}
-                {!going && (
-                  <Button type="button" size="s" onClick={pressYes} disabled={saving}>
-                    Yes, I&apos;m going
-                  </Button>
-                )}
+                {!going &&
+                  (rsvpHref ? (
+                    <RsvpLink href={rsvpHref} />
+                  ) : (
+                    <Button type="button" size="s" onClick={pressYes} disabled={saving}>
+                      Yes, I&apos;m going
+                    </Button>
+                  ))}
               </div>
             </div>
           )}

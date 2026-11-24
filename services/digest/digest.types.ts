@@ -44,8 +44,8 @@ export type DigestForumPost = {
   tid: number;
   title: string;
   /**
-   * LAB-3351: true for a reader who may not read the forum (signed out, or no forum access). A locked post has its
-   * title, reply count and URL only: author fields and `contentHtml` are null. Absent from an older backend: unlocked.
+   * Always false since LAB-3355: a reader who may not read the forum gets no posts at all. A backend from before it
+   * sent such a reader locked posts (title, reply count and URL only); the page shows no section for them.
    */
   locked?: boolean;
   authorName: string | null;

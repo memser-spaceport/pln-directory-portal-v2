@@ -38,8 +38,10 @@ beforeEach(() => {
   jest.clearAllMocks();
   process.env.COOKIE_DOMAIN = DOMAIN;
   delete process.env.AI_APPS_SHARE_AUTH_TOKEN;
+  // Read once per test, so a token decodes to the same expiry in the code and in the assertion.
+  const now = nowSec();
   mockedDecode.mockImplementation((token: string) => ({
-    exp: nowSec() + (token.startsWith('refresh') ? 30 * 24 * HOUR : HOUR),
+    exp: now + (token.startsWith('refresh') ? 30 * 24 * HOUR : HOUR),
   }));
 });
 

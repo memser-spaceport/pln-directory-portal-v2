@@ -95,6 +95,20 @@
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
+
+  // Phones (Polina, 2026-11-24): the title and "Submit an event" share a row; the description runs under both.
+  @include media.mobile-only {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 4px 16px;
+  }
+}
+
+.headerText {
+  @include media.mobile-only {
+    display: contents;
+  }
 }
 
 .title {
@@ -116,8 +130,30 @@
   color: var(--foreground-neutral-secondary, #455468);
 
   @include media.mobile-only {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    margin: 0;
     font-size: 14px;
     line-height: 20px;
+  }
+}
+
+// The events app link as the end of the description: phones only, where the one in the actions is hidden.
+.ledeLink {
+  display: none;
+
+  @include media.mobile-only {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration: none;
+    white-space: nowrap;
+
+    &:hover {
+      text-decoration: underline;
+    }
   }
 }
 
@@ -140,6 +176,12 @@
   &:hover {
     color: var(--foreground-brand-primary, #1b4dff);
     text-decoration: underline;
+  }
+
+  .headerActions & {
+    @include media.mobile-only {
+      display: none;
+    }
   }
 }
 

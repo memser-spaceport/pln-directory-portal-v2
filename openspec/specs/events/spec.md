@@ -342,7 +342,9 @@ The page SHALL open with the title "Events", one line of description, a link "Op
 
 ### Requirement: Near you shows events in the member's city
 
-In List view with no filter applied (Polina's design, 2026-11-20; LAB-3375), a signed-in member whose profile has a location SHALL see "Near you in <city>" with up to 3 upcoming events in its city, soonest first, as picture tiles. On phones (below 640px) the tiles SHALL be compact, swiped sideways: an 80px square picture beside the date, title, place and going line, so Browse by city stays in view under them (LAB-3391, Vova on Nov 24). The location's most specific part is used: its city, else its metro area, region or country (a location may hold no city; a city-state such as Singapore is saved as a country only). If no upcoming event is in that place, the section SHALL NOT show. A signed-in member whose profile has no location SHALL see, in the same place, one row: "See events near you. Add your location to your profile and we'll show what's coming up where you are." and an "Add location" button that opens their profile. Signed-out visitors SHALL see neither.
+In List view with no filter applied (Polina's design, 2026-11-20; LAB-3375), a signed-in member whose profile has a location SHALL see "Near you in <city>" with up to 3 upcoming events in its city, soonest first, as picture tiles. On phones (below 640px) the tiles SHALL be compact, swiped sideways: an 80px square picture beside the date, title, place and going line, so Browse by city stays in view under them (LAB-3391, Vova on Nov 24). The location's most specific part is used: its city, else its metro area, region or country (a location may hold no city; a city-state such as Singapore is saved as a country only). If no upcoming event is in that place, the section SHALL NOT show; in its place one row SHALL say "No upcoming events near <place>. Browse other cities below, or change your location." with a "Change location" button (LAB-3394). A signed-in member whose profile has no location SHALL see, in the same place, one row: "See events near you. Add your location to your profile and we'll show what's coming up where you are." and an "Add location" button. Beside the "Near you in <city>" heading, "Change" SHALL be offered too. Signed-out visitors SHALL see none of these.
+
+"Add location", "Change" and "Change location" SHALL open the "Your location" dialog (LAB-3394): the profile's own Location field (place search), the line "This also updates the location on your profile.", the profile field's PLAA warning for a member with PLAA access, and Cancel and Save. Save SHALL be possible only once a place is picked, and SHALL write the member's profile location as the profile's Location field writes it (city; region from the place's metro area; country), keeping every other profile field. After a save the page SHALL reload its data, so Near you follows the new place. A refused save SHALL keep the dialog open with an error.
 
 #### Scenario: Member in Lisbon
 
@@ -352,9 +354,10 @@ In List view with no filter applied (Polina's design, 2026-11-20; LAB-3375), a s
 
 #### Scenario: Member whose location has no city
 
-- **GIVEN** a signed-in member whose profile location is the country "Slovenia", with no city
+- **GIVEN** a signed-in member whose profile location is the country "Slovenia", with no city, and no upcoming event there
 - **WHEN** they open the page
-- **THEN** neither Near you nor the Add location row shows
+- **THEN** the Add location row does not show
+- **AND** the page shows "No upcoming events near Slovenia." with "Change location"
 
 #### Scenario: City-state saved as a country
 
@@ -367,13 +370,20 @@ In List view with no filter applied (Polina's design, 2026-11-20; LAB-3375), a s
 - **GIVEN** a signed-in member whose profile has no location
 - **WHEN** they open `/events/all`
 - **THEN** the page shows "See events near you." with "Add location"
-- **AND** pressing "Add location" opens their profile
+- **AND** pressing "Add location" opens the "Your location" dialog
+
+#### Scenario: Member changes their location from Near you
+
+- **GIVEN** a signed-in member in Lisbon with upcoming Lisbon events, and upcoming events in Berlin
+- **WHEN** they press "Change" beside "Near you in Lisbon", pick Berlin and press Save
+- **THEN** their profile location is Berlin
+- **AND** the page shows "Near you in Berlin"
 
 #### Scenario: Near you belongs to the plain List
 
 - **GIVEN** a signed-in member in Lisbon with upcoming Lisbon events
 - **WHEN** they apply a filter or switch to Calendar or Map
-- **THEN** neither "Near you in Lisbon" nor the Add location row shows
+- **THEN** neither "Near you in Lisbon" nor the Add location or no-events row shows
 
 #### Scenario: A chosen city replaces Near you
 
@@ -384,7 +394,7 @@ In List view with no filter applied (Polina's design, 2026-11-20; LAB-3375), a s
 #### Scenario: Signed out
 
 - **WHEN** a signed-out visitor opens `/events/all`
-- **THEN** neither Near you nor the Add location row shows
+- **THEN** none of Near you, the Add location row or the no-events row shows
 
 ### Requirement: Browse by city scopes the page to one city
 
@@ -616,6 +626,7 @@ The page SHALL record these PostHog events:
 - `events-view-changed` with `view` (`list`, `calendar` or `map`) and, for the calendar, `mode` (`week` or `month`);
 - `events-filters-applied` with the filter `key` (`search`, `going`, `mode` or `city`) and its `values`, for every filter change whichever control made it (the rail, a chip, a city tile, "Clear all"), once that filter has been still for 300ms; "Clear all" records each filter it empties, with no values;
 - `events-city-selected` with `city` and `from` (`tile`, `filter` or `near-you`), in addition, whenever a single city is chosen.
+- `events-location-dialog-opened` with `from` (`add`, `change` or `no-events`), when a Near you row opens the "Your location" dialog, and `events-location-saved` with the same `from` when a location is saved there (LAB-3394);
 - `events-embed-link-copied` with `view`, `filters_count` (the applied values the link carries) and `details` (`embed`, or `labos` when ticked, LAB-3392), when Copy link in the Embed dialog copies the link (LAB-3352, LAB-3365);
 - `events-embed-code-copied` with `view`, `filters_count` and `details`, when Copy code copies the iframe code (LAB-3365);
 - `events-embed-viewed` with the `view` it opened on, `referrer_host` (the framing site's host, or null) and `details` (`embed` or `labos`), once per load of `/events/embed`, but not for the Embed dialog's preview, where LabOS frames itself (LAB-3365).

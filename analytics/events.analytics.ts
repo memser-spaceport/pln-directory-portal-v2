@@ -225,6 +225,15 @@ export const useEventsAnalytics = () => {
     captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_CITY_SELECTED, params);
   }
 
+  /** All Events (LAB-3394): the location dialog opened from Near you's rows, and a location saved there. */
+  function onEventsLocationDialogOpened(params: { from: 'add' | 'change' | 'no-events' }) {
+    captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_LOCATION_DIALOG_OPENED, params);
+  }
+
+  function onEventsLocationSaved(params: { from: 'add' | 'change' | 'no-events' }) {
+    captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_LOCATION_SAVED, params);
+  }
+
   function onEventGoingMarked(params: { eventUid: string; source: EventDrawerSource }) {
     captureEvent(EVENT_DRAWER_ANALYTICS.ON_EVENT_GOING_MARKED, {
       event_uid: params.eventUid,
@@ -288,6 +297,8 @@ export const useEventsAnalytics = () => {
     onEventsEmbedViewed,
     onEventsFiltersApplied,
     onEventsCitySelected,
+    onEventsLocationDialogOpened,
+    onEventsLocationSaved,
     onEventGoingMarked,
     onEventNotGoingMarked,
     onEventPlansSaved,

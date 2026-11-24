@@ -67,6 +67,8 @@ const analytics = {
   onEventsEmbedLinkCopied: jest.fn(),
   onEventsEmbedCodeCopied: jest.fn(),
   onEventsEmbedViewed: jest.fn(),
+  onEventsLocationDialogOpened: jest.fn(),
+  onEventsLocationSaved: jest.fn(),
 };
 jest.mock('@/analytics/events.analytics', () => ({ useEventsAnalytics: () => analytics }));
 
@@ -88,6 +90,16 @@ jest.mock('@/services/events/hooks/useEventDrawerQueries', () => ({
     prefetchOptions.last = options;
     return prefetchEventDetail;
   },
+}));
+// The location dialog (LAB-3394) has its own test; here a stand-in says which row opened it.
+jest.mock('@/components/page/events/all-events/LocationDialog', () => ({
+  LocationDialog: (props: { from: string; viewerUid: string; onClose: () => void }) => (
+    <div role="dialog" aria-label="Your location" data-from={props.from} data-uid={props.viewerUid}>
+      <button type="button" onClick={props.onClose}>
+        Cancel
+      </button>
+    </div>
+  ),
 }));
 jest.mock('@/components/core/ToastContainer', () => ({ toast: { success: jest.fn(), error: jest.fn() } }));
 const { toast } = jest.requireMock('@/components/core/ToastContainer');
@@ -261,10 +273,39 @@ describe('Near you', () => {
     expect(tiles).toEqual(['lis1', 'lis2', 'lis3']);
   });
 
-  it('asks a member with no location to add one, linking to their profile', () => {
+  it('asks a member with no location to add one, in the location dialog (LAB-3394)', () => {
     renderPage(signedIn(null));
     expect(screen.getByText('See events near you.')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Add location' })).toHaveAttribute('href', '/members/m1');
+    expect(screen.queryByRole('dialog', { name: 'Your location' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Add location' }));
+    const dialog = screen.getByRole('dialog', { name: 'Your location' });
+    expect(dialog).toHaveAttribute('data-from', 'add');
+    expect(dialog).toHaveAttribute('data-uid', 'm1');
+    expect(analytics.onEventsLocationDialogOpened).toHaveBeenCalledWith({ from: 'add' });
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.queryByRole('dialog', { name: 'Your location' })).toBeNull();
+  });
+
+  it('lets a member with a location change it from beside the heading (LAB-3394)', () => {
+    renderPage(signedIn('Lisbon'));
+    const near = screen.getByRole('region', { name: 'Near you in Lisbon' });
+    fireEvent.click(within(near).getByRole('button', { name: 'Change your location' }));
+    expect(screen.getByRole('dialog', { name: 'Your location' })).toHaveAttribute('data-from', 'change');
+    expect(analytics.onEventsLocationDialogOpened).toHaveBeenCalledWith({ from: 'change' });
+  });
+
+  it('offers to change a location with no upcoming event in it, where Near you would be (LAB-3394)', () => {
+    renderPage(signedIn('Reykjavik'));
+    expect(screen.queryByText(/Near you in/)).toBeNull();
+    expect(screen.queryByText('See events near you.')).toBeNull();
+    expect(screen.getByText('No upcoming events near Reykjavik.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Change location' }));
+    expect(screen.getByRole('dialog', { name: 'Your location' })).toHaveAttribute('data-from', 'no-events');
+  });
+
+  it('shows the no-events row on the plain List only', () => {
+    renderPage(signedIn('Reykjavik'), '/events/all?mode=Online');
+    expect(screen.queryByText('No upcoming events near Reykjavik.')).toBeNull();
   });
 
   it('shows on the plain List only: not in Calendar or Map, not with a filter (Polina, 2026-11-20; LAB-3375)', () => {
@@ -308,6 +349,7 @@ describe('Near you', () => {
     renderPage();
     expect(screen.queryByText(/Near you in/)).toBeNull();
     expect(screen.queryByText('See events near you.')).toBeNull();
+    expect(screen.queryByText(/No upcoming events near/)).toBeNull();
     expect(going.enabled.every((e) => e === false)).toBe(true);
   });
 });

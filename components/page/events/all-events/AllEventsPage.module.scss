@@ -185,7 +185,41 @@
   }
 }
 
-// No location: one white row (the city tiles' card), pin + sentence + the press.
+// "Near you in Lisbon · Change" (LAB-3394): the heading and a quiet text button beside it; "All Lisbon events" stays
+// the section's one link on the right.
+.nearTitle {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  column-gap: 8px;
+  min-width: 0;
+}
+
+.changeLocation {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+// No location, or no event in it: one white row (the city tiles' card), pin + sentence + the press.
 .askLocation {
   display: flex;
   align-items: center;

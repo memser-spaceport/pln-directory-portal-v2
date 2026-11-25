@@ -693,16 +693,15 @@ export const activitiesData: ActivitiesData = {
       frequency: 'One-Time',
       verificationType: 'Submission',
       cta: 'submit',
-      audience: 'pl-infra-members',
       popupContent: {
         title: 'Share Your Contacts with the Network',
         overview:
-          "Help the PL Capital team find warm paths to relevant connections through your professional network. Use the Fundraising Command Center to submit your LinkedIn connections securely, then review the matches it finds and decide which, if any, you're comfortable introducing.",
+          "Help the PL Capital team find warm paths to relevant connections through your professional network. Use the Fundraising Command Center (access opening to all users soon) to submit your LinkedIn connections securely, then review the matches it finds and decide which, if any, you're comfortable introducing.",
         networkBenefits:
           'Replaces cold outreach with warm relationship paths that members have checked themselves, gathered through a private, controlled process.',
         rules: [
-          'Available to PL Infra members only.',
-          "Submit your connections only through the Fundraising Command Center. Don't share your contacts any other way, such as in a shared spreadsheet.",
+          'Download your LinkedIn connections export before November 30, 2026. LinkedIn is changing how members download their data after that date.',
+          'Submit your connections only through the Fundraising Command Center, which is coming soon to all members.',
           'Review and label the matches the app returns by the stated deadline. You can decline any match or introduction.',
           "Don't share message history or sensitive personal information.",
           "Points are awarded once, for completing the mapping task. Introductions, meetings, investment interest and capital raised don't collect points, here or under **Make a Network Introduction**.",

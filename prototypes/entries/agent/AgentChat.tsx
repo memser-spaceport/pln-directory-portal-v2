@@ -429,15 +429,15 @@ export function AgentChat({
               className={s.aiSearchBtn}
               aria-disabled={!canOpenInAiSearch}
               onClick={openInAiSearch}
-              aria-label="Open in AI Search (new tab)"
+              aria-label="Open in AI agent chat (new tab)"
               title={
                 canOpenInAiSearch
-                  ? 'Open this chat in AI Search (new tab)'
-                  : 'Ask something first, then continue the chat in AI Search'
+                  ? 'Open this chat in AI agent chat (new tab)'
+                  : 'Ask something first, then continue in AI agent chat'
               }
             >
               <AiSearchIcon size={16} />
-              <span className={s.aiSearchLabel}>AI Search</span>
+              <span className={s.aiSearchLabel}>AI agent chat</span>
             </button>
           )}
           {headExtra}
@@ -465,7 +465,7 @@ export function AgentChat({
       {handoffFailed && (
         <div className={s.handoffError} role="alert">
           <WarningCircle weight="regular" aria-hidden />
-          <span className={s.handoffErrorText}>AI Search couldn’t save this chat.</span>
+          <span className={s.handoffErrorText}>Couldn’t open this chat in AI agent chat.</span>
           <button type="button" className={s.handoffRetry} onClick={openInAiSearch}>
             Retry
           </button>
@@ -590,8 +590,8 @@ export function AgentChat({
  * attached as context"). The slot never moves; only its state changes, so the three states read against each
  * other (the state and the press that sets it in one place, design-thinking lesson 40):
  *
- *   attached    [glyph] Reading  Maya Okonkwo  ✕   the context chip, with "Reading" saying what the chip IS
- *   removed     [glyph] Not reading  Maya Okonkwo  +   the same chip in the dashed add lineage ("+ Add" wears
+ *   attached    [glyph] Context  Maya Okonkwo  ✕   the context chip, with "Context" saying what the chip IS
+ *   removed     [glyph] Not in context  Maya Okonkwo  +   the same chip in the dashed add lineage ("+ Add" wears
  *                                                     it); the whole chip is one press that puts the page back.
  *                                                     It keeps the page's name, so it can't read as a second
  *                                                     "Add context" door beside the real one.
@@ -630,7 +630,7 @@ function PageSlot({
         title={`Let the agent read ${page.label} again`}
       >
         <ItemGlyph item={page} />
-        <span className={s.pageChipKicker}>Not reading</span>
+        <span className={s.pageChipKicker}>Not in context</span>
         <span className={clsx(corner.contextLabel, s.chipLabel)}>{page.label}</span>
         <Plus weight="bold" className={s.pageAddPlus} />
       </button>
@@ -638,7 +638,7 @@ function PageSlot({
   return (
     <span className={clsx(corner.contextChip, s.pageChip)} title={`The agent reads ${page.label} with every question`}>
       <ItemGlyph item={page} />
-      <span className={s.pageChipKicker}>Reading</span>
+      <span className={s.pageChipKicker}>Context</span>
       <span className={clsx(corner.contextLabel, s.chipLabel)}>{page.label}</span>
       <button
         type="button"
@@ -683,7 +683,10 @@ function ContextPicker({
   }, [active]);
 
   return (
-    <div className={clsx(menu.popup, s.picker)} role="dialog" aria-label="Add context">
+    <div className={clsx(menu.popup, s.picker)} role="dialog" aria-labelledby="agent-picker-title">
+      <div id="agent-picker-title" className={s.pickerTitle}>
+        Add context
+      </div>
       {mode === 'plus' ? (
         <input
           autoFocus

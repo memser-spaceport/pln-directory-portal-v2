@@ -19,6 +19,8 @@ export type HubCategory =
   | 'TEAM_NEWS'
   /** Proposed (LAB-2687): members suggested for a team's live role, sent to its leads. */
   | 'JOB_CANDIDATES'
+  /** Proposed (LAB-3400): a visitor asked a member with no Office hours link for time. */
+  | 'OFFICE_HOURS_REQUEST'
   | 'SYSTEM';
 
 export type HubNotification = {

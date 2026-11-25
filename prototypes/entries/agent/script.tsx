@@ -467,11 +467,11 @@ export function createScript(v: Viewer, getContext: () => ScriptContext) {
           blocks: [
             {
               kind: 'text',
-              text: `Intros through the PL Venture team are for portfolio founders, and ${v.team} isn’t in the portfolio. AI Search can find teams like these in the network.`,
+              text: `Intros through the PL Venture team are for portfolio founders, and ${v.team} isn’t in the portfolio. AI agent chat can find teams like these in the network.`,
             },
             custom(() => (
               <Link href="/prototypes/ai-mode-results" className={agentCss.moreLink}>
-                Open AI Search
+                Open AI agent chat
               </Link>
             )),
           ],

@@ -267,7 +267,7 @@ export default function AiSearchPrototype() {
       <main className={s.page}>
         <h1 className={s.title}>Search in two sizes</h1>
         <p className={s.lede}>
-          General search typed straight into the header field, with the results in a popover under it, and AI Search
+          General search typed straight into the header field, with the results in a popover under it, and AI agent chat
           as a full-screen view. One field, one AI door; the popover&apos;s row grows into the view with your term carried over, and Back brings the popover
           back with the term still in it. Everything is mocked; the corpus is a dozen invented members, teams, projects
           and events.
@@ -276,11 +276,11 @@ export default function AiSearchPrototype() {
         <ol className={s.steps}>
           <li>
             <strong>Click the header field</strong> or press ⌘K. The field widens in the bar with the caret in it, and
-            a card hangs under it: an <em>Ask AI Search a question</em> row, then your recent searches.
+            a card hangs under it: an <em>Ask AI agent chat a question</em> row, then your recent searches.
           </li>
           <li>
             <strong>Type</strong> a name — <em>filecoin</em>, <em>zk berlin</em>, <em>lisbon</em> — and the results
-            list in the card, with <em>Chat with AI Search about “…”</em> pinned above them, also when nothing matches.
+            list in the card, with <em>Ask AI agent chat about “…”</em> pinned above them, also when nothing matches.
             Under that row, up to two whole questions that start where your typing did (<em>fil ber</em> offers{' '}
             <em>Find teams building on Filecoin in Berlin</em>); the AI view&apos;s own field offers the full list as you
             type, walkable with ↓ ↑ and Enter.
@@ -320,7 +320,7 @@ export default function AiSearchPrototype() {
           </Button>
           <kbd className={s.kbd}>⌘K</kbd>
           <Button size="s" style="border" variant="neutral" onClick={() => askAi('')}>
-            Open AI Search
+            Open AI agent chat
           </Button>
         </div>
       </main>

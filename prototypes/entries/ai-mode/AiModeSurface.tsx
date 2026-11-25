@@ -247,7 +247,7 @@ export function AiModeSurface({
       <div className={s.railHead}>
         <span className={s.modeName}>
           <AiSearchIcon size={20} />
-          AI Search
+          AI agent chat
         </span>
         {inDrawer ? (
           <button type="button" className={s.iconBtn} onClick={() => setDrawerOpen(false)} aria-label="Close history">
@@ -345,7 +345,7 @@ export function AiModeSurface({
           </button>
         )}
         {isModal && onClose && (
-          <button type="button" className={sf.close} onClick={onClose} aria-label="Close AI Search">
+          <button type="button" className={sf.close} onClick={onClose} aria-label="Close AI agent chat">
             <CloseIcon />
           </button>
         )}
@@ -391,7 +391,7 @@ export function AiModeSurface({
 
   const surface = (
     <div className={clsx(s.surface, isModal && s.surfaceModal)}>
-      <aside className={clsx(s.rail, !railOpen && s.railIsCollapsed)} aria-label="AI Search history">
+      <aside className={clsx(s.rail, !railOpen && s.railIsCollapsed)} aria-label="AI agent chat history">
         {railOpen ? railBody(false) : railCollapsed}
       </aside>
       {main}
@@ -404,7 +404,7 @@ export function AiModeSurface({
       />
       <aside
         className={clsx(s.drawer, drawerOpen && s.drawerOpen)}
-        aria-label="AI Search history"
+        aria-label="AI agent chat history"
         aria-hidden={!drawerOpen}
       >
         {railBody(true)}
@@ -427,7 +427,7 @@ export function AiModeSurface({
 
   return (
     <Modal isOpen={open} onClose={onClose} overlayClassname={shell.overlay} className={shell.container} lockScroll>
-      <div className={shell.card} role="dialog" aria-modal="true" aria-label="AI Search">
+      <div className={shell.card} role="dialog" aria-modal="true" aria-label="AI agent chat">
         {surface}
       </div>
     </Modal>
@@ -482,7 +482,7 @@ function NewChat({ scope, onRemoveScope, onAsk, draft, onDraftChange }: NewChatP
       <div className={s.newChatColumn}>
         <div className={s.hero}>
           <AiSearchIcon size={32} />
-          <h1 className={s.heroTitle}>AI Search</h1>
+          <h1 className={s.heroTitle}>AI agent chat</h1>
           <p className={s.heroLine}>
             {scope
               ? `Answers come from the ${scope.name} profile. Remove it to ask the whole network.`
@@ -515,7 +515,7 @@ function NewChat({ scope, onRemoveScope, onAsk, draft, onDraftChange }: NewChatP
           <ChatInput
             ref={inputRef}
             id={COMPOSER_ID}
-            placeholder={scope ? `Ask about ${scope.name}` : 'Ask AI Search a question'}
+            placeholder={scope ? `Ask about ${scope.name}` : 'Ask AI agent chat a question'}
             rows={1}
             defaultValue={draft}
             onChange={(e) => {

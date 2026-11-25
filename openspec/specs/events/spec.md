@@ -30,10 +30,10 @@ The drawer SHALL follow the redesigned drawer prototype (LAB-3361, `prototypes/e
 1. A toolbar that stays at the top while the drawer scrolls (LAB-3361). On the left: "Copy link", which copies `/events/all?event=<uid>` on the current site and reads "Copied" for two seconds (only its icon on a phone). The drawer SHALL NOT show "Open in PL Events" or another link to the PL events app, also in the embed, because the event data will move to LabOS (LAB-3420). On the right: previous and next, when the page that opened the drawer passes a list of more than one event (see the All Events requirement); then Close.
 2. The event's picture as a 56px thumbnail when it has one, beside the title and "Hosted by <hosts>" ("A and B", "A, B and C"). Hosts are names, not links.
 3. A date row: a tile with the month and day, then the day ("Thursday, November 19", or "Tue, Dec 1 – Sat, Dec 5" for an event across days) and the time with its zone ("6:00 PM – 9:00 PM · UTC−5"), all in the event's own time zone: the one the event has, otherwise its gathering's, otherwise UTC (LAB-3404). When the dates can't be read, the row SHALL show the events app's date line instead.
-4. A place row with a pin tile: the address for an in-person event; "Online" with "Link sent after you register" for an online event; the address with "Hybrid, also online" under it for a hybrid event (LAB-3283). When the event has a map link (the events service's `location_url`) and an address, the place text and its arrow SHALL be one link that opens the map in a new tab, as on the PL events app (LAB-3324). An event without a map link, or whose map link is not an `http` or `https` address, SHALL show the place as plain text with no arrow. "Online" SHALL never link to a map.
+4. A place row with a pin tile: the address for an in-person event; "Online" with "Link sent after you register" for an online event ("Online event" once it has ended); the address with "Hybrid, also online" under it for a hybrid event (LAB-3283). When the event has a map link (the events service's `location_url`) and an address, the place text and its arrow SHALL be one link that opens the map in a new tab, as on the PL events app (LAB-3324). An event without a map link, or whose map link is not an `http` or `https` address, SHALL show the place as plain text with no arrow. "Online" SHALL never link to a map.
 5. The event's own page (for example its Luma page) when it has one, as a link under the place row (LAB-3271). The link SHALL open in a new tab. It SHALL show the address without `https://`. The row SHALL look like the other fact rows (LAB-3333, LAB-3361): a link icon in a tile like the place row's, then the link text styled like the day line, with no arrow. The page SHALL be the event's `websiteUrl`. When `websiteUrl` is empty or not an `http` or `https` address, the page SHALL be the link of the event's resource named "Registration" (any case, end spaces ignored), and "Register" SHALL open the same page (LAB-3334). An event without a page, or whose page is not an `http` or `https` address, SHALL have no link row and no "Register".
-6. An access row when the access is known, with an icon and two lines: "Invite only / The hosts approve each guest", "Paid / Tickets on the host's site" or, on one line, "RSVP to save your spot" (LAB-3283, LAB-3407). The events service's `OPEN` access SHALL read as the last one and never as "Free": it does not say that an event costs nothing. Mode and access SHALL NOT show as badges.
-7. The going card (see below).
+6. An access row when the access is known, with an icon and two lines: "Invite only / The hosts approve each guest", "Paid / Tickets on the host's site" or, on one line, "RSVP to save your spot" (LAB-3283, LAB-3407). The events service's `OPEN` access SHALL read as the last one and never as "Free": it does not say that an event costs nothing. Once the event has ended the row SHALL keep what the event was and drop the ask: "Invite only" as before, "Paid" on one line, and no row in place of "RSVP to save your spot" (LAB-3426). Mode and access SHALL NOT show as badges.
+7. The going card, or the ended card once the event has ended (see below).
 8. "About": the description, then the focus areas as neutral badges under the label "Focus areas", then the topics as neutral badges, under the label "Topics" when the event also has focus areas (LAB-3404). The events portal tags an event with focus area codes and with topics. The focus areas SHALL show by name, never by code: FA1 "Digital Human Rights", FA2 "Economies & Governance", FA3 "AI & Robotics", FA4 "Neurotech". Every other tag is a topic.
 9. "Agenda": a row per session with its time beside its title and description, under a day title ("Tue, 1st Dec") when the agenda spans several days.
 
@@ -145,7 +145,7 @@ While the event loads, the drawer SHALL show the toolbar with Close, and placeho
 
 ### Requirement: The drawer shows the gathering and the event's attendees
 
-The drawer SHALL show a going card right after the fact rows, before About and the agenda (LAB-3225, LAB-3361), with up to three faces and "N members going" ("1 member going" for one). When the event has its own page, the card SHALL have "Register", which opens that page in a new tab. The drawer SHALL NOT show the event's gathering: no "<city> gathering" label, no gathering schedule link, no gathering resources (such as Telegram or shared notes) and no gathering event count (LAB-3283). The gathering stays behind the going card and the plans, which still save to it.
+Until the event ends (see "An event that has ended shows who went"), the drawer SHALL show a going card right after the fact rows, before About and the agenda (LAB-3225, LAB-3361), with up to three faces and "N members going" ("1 member going" for one). When the event has its own page, the card SHALL have "Register", which opens that page in a new tab. The drawer SHALL NOT show the event's gathering: no "<city> gathering" label, no gathering schedule link, no gathering resources (such as Telegram or shared notes) and no gathering event count (LAB-3283). The gathering stays behind the going card and the plans, which still save to it.
 
 N SHALL count the members going to this event only. Members who said they are going to the gathering as a whole without naming an event SHALL NOT count.
 
@@ -186,6 +186,71 @@ The shared search box SHALL filter by name or team once the member stops typing,
 - **WHEN** the member opens "40 members going" and types "lighthouse"
 - **THEN** the list shows those three members
 - **AND** "Back to event" returns to the event
+
+### Requirement: An event that has ended shows who went
+
+An event has ended from its end time, the same instant for every viewer, not from the next day (LAB-3426). An event that spans several days has not ended before its end time on its last day. An event whose end is not a date never ends.
+
+Once the event has ended, the drawer SHALL show the ended card in place of the going card, wherever the drawer was opened from:
+
+- "This event has ended", with up to three faces and "N members went" ("1 member went" for one);
+- when the viewer had said they were going, "You went" with the green check, and "You and N members" ("You and 1 member"), or "Nobody else said they were going." when they were the only one;
+- "Nobody said they were going.", with nothing to press, when the count is 0.
+
+The faces and the count SHALL open the list as before: for a signed-out visitor they start sign-in, and in the embed they are text. The list SHALL be titled "N went to <event>", and its other lines SHALL be in the past: "Nobody who went matches “<what they typed>”.", "Nobody said they were going.", "We couldn't load who went.".
+
+The drawer SHALL have no "Are you going?", "Yes, I'm going", "Register", "RSVP on LabOS", "Add your plans", "Mark as not going" or bottom bar for an event that has ended. "Edit details" on the profile SHALL open the drawer on the event. The event's own page stays as a link among the facts.
+
+A signed-out visitor, and the embed, SHALL NOT see who went to an invite-only event: no count, no faces and nothing to press, whatever count the API sends, and the card SHALL NOT say that nobody went. An event is invite only when its access is invite only or its type is `INVITE_ONLY`, also when its access says otherwise. For every other event and viewer the count SHALL show as it does before the end.
+
+When the event ends while the drawer is open, the drawer SHALL change to this state, also when "Add your plans" or a picker over it is open (what was typed there is not saved). It SHALL NOT go back to the plans by itself when the end moves later. A press on "Yes, I'm going", "Mark as not going" or "Save" after the end SHALL save nothing and SHALL show this state at once.
+
+#### Scenario: Others went
+
+- **GIVEN** event A ended a minute ago with 12 members going, and the viewer had not said yes
+- **WHEN** they open event A from any page, or at `/events/all?event=<A's uid>`
+- **THEN** the card reads "This event has ended" and "12 members went"
+- **AND** there is no going action, no plans action, no "Register" and no bottom bar
+
+#### Scenario: The viewer went
+
+- **GIVEN** a member and 12 others said they were going to event A, which has ended
+- **WHEN** the member opens event A
+- **THEN** the card reads "You went" with the green check, and "You and 12 members"
+- **AND** pressing it opens "13 went to A"
+
+#### Scenario: Nobody went
+
+- **GIVEN** an event that ended and that nobody said they were going to
+- **WHEN** a member opens it
+- **THEN** the card reads "This event has ended" and "Nobody said they were going."
+
+#### Scenario: The last day of an event across days
+
+- **GIVEN** an event from December 1 to December 5 that ends at 6:00 PM in its time zone
+- **WHEN** a member opens it on December 5, one second before 6:00 PM there
+- **THEN** the card asks "Are you going?"
+- **WHEN** they open it at 6:00 PM there
+- **THEN** it shows the ended card
+
+#### Scenario: It ends while the drawer is open
+
+- **GIVEN** a member has event A open and has not said yes
+- **WHEN** event A's end time comes
+- **THEN** the card changes to "This event has ended" and the bottom bar goes away
+- **AND** a press on "Yes, I'm going" after the end saves nothing and shows the ended card at once
+
+#### Scenario: Signed out on an invite-only event
+
+- **GIVEN** an invite-only event that has ended, with 12 members who went
+- **WHEN** a signed-out visitor opens it, or a reader opens it in the embed
+- **THEN** the card reads "This event has ended" with no count, no faces and nothing to press
+
+#### Scenario: Ended in the embed
+
+- **GIVEN** an event in `/events/embed` that has ended
+- **WHEN** the reader opens it
+- **THEN** the card reads "This event has ended" with "N members went" as text, and no "RSVP on LabOS"
 
 ### Requirement: A member says they are going to this event
 
@@ -237,7 +302,7 @@ Going SHALL always be visible to signed-in members: there is no "Show on my prof
 
 ### Requirement: Members who cannot mark attendance see the event only
 
-A signed-in member without permission to mark attendance SHALL see the event and the attendees in a "Who's going" card, and SHALL NOT see the question, the bottom bar or any button that saves.
+Until the event ends, a signed-in member without permission to mark attendance SHALL see the event and the attendees in a "Who's going" card, and SHALL NOT see the question, the bottom bar or any button that saves.
 
 #### Scenario: Member without attendance permission
 
@@ -248,7 +313,7 @@ A signed-in member without permission to mark attendance SHALL see the event and
 
 ### Requirement: Signed-out visitors see the event and are asked to sign in
 
-A signed-out visitor SHALL be able to open the drawer from Home (LAB-3271). The drawer SHALL show the event, and the going card SHALL ask "Are you going?" with "Yes, I'm going" as for a member (LAB-3361), with the same bottom bar. "Yes, I'm going" and the people count SHALL open the sign-in modal over the drawer, which stays open, so a visitor who signs in is back on the same event (LAB-3368, LAB-3371). Nothing SHALL save.
+A signed-out visitor SHALL be able to open the drawer from Home (LAB-3271). The drawer SHALL show the event and, until the event ends, the going card SHALL ask "Are you going?" with "Yes, I'm going" as for a member (LAB-3361), with the same bottom bar. "Yes, I'm going" and the people count SHALL open the sign-in modal over the drawer, which stays open, so a visitor who signs in is back on the same event (LAB-3368, LAB-3371). Nothing SHALL save.
 
 #### Scenario: Signed out
 
@@ -259,7 +324,7 @@ A signed-out visitor SHALL be able to open the drawer from Home (LAB-3271). The 
 
 ### Requirement: The member adds their plans for the event
 
-"Add your plans for <city>" SHALL open the plans sub-view inside the drawer, titled "Your plans for <city>", with "Back to event". It SHALL show the member's role at this event as Host, Speaker and Sponsor chips (any number; none means attending), "What are you planning for <city>?" with dates and topics, and the additional details (team, Telegram, office hours, notes). There SHALL be no events picker. "Cancel" and "Back to event" SHALL return to the event without saving; "Save" SHALL save in place and return to the event. The owner's "Edit details" on their profile SHALL open the drawer on this sub-view. Pickers open as modals above the drawer.
+Until the event ends, "Add your plans for <city>" SHALL open the plans sub-view inside the drawer, titled "Your plans for <city>", with "Back to event". It SHALL show the member's role at this event as Host, Speaker and Sponsor chips (any number; none means attending), "What are you planning for <city>?" with dates and topics, and the additional details (team, Telegram, office hours, notes). There SHALL be no events picker. "Cancel" and "Back to event" SHALL return to the event without saving; "Save" SHALL save in place and return to the event. The owner's "Edit details" on their profile SHALL open the drawer on this sub-view until the event ends, and on the event after that. Pickers open as modals above the drawer.
 
 Save SHALL change the role of this event only. The dates, topics and details are the member's for the whole gathering.
 
@@ -625,7 +690,7 @@ Escape, Close and the backdrop SHALL close the dialog, focus SHALL go back to th
 
 ### Requirement: The embed shows one view for other sites
 
-`/events/embed` SHALL show only the view and filters in its address, on the page's grey, for anyone, signed in or not, with no member data: no Near you, no Add location, no "Events I'm going to", no Going marks (LAB-3352). Under the view it SHALL show the link "All events on PL Directory ↗", which opens `/events/all` with the same view and filters (not the open event) in a new tab. It SHALL NOT show the site header, the mobile bottom bar, the feedback button, contact support, the rating prompts, the page header ("Submit an event", the events app link), Browse by city, the city header, the "Coming up" toolbar (count, Filters, the view switch, Embed), the filters or the applied-filter chips (Polina's design, 2026-11-20): the person embedding it chose the view and filters. Pressing an event SHALL open its drawer inside the embed (LAB-3392): the same drawer as the page, with previous / next through the events on show, read signed out whoever is signed in. In the embed the drawer SHALL NOT ask to sign in or offer "Yes, I'm going": its card and pinned bar SHALL offer "RSVP on LabOS ↗", which opens `/events/all?event=<uid>` in a new tab, and "N members going" SHALL be text that opens nothing. Opening, stepping and closing the drawer SHALL leave the embed's address and the framing page's history alone, and closing it SHALL leave the view and filters as they were. With `details=labos` in its address, pressing an event SHALL instead open `/events/all?event=<uid>` in a new tab, with no drawer. The embed SHALL NOT open a drawer for `event` in its own address. With no match it SHALL show the page's empty state, and when the events fail to load the page's error state. It SHALL be served only while the native page flag is on (else not found), and SHALL NOT be indexed. Any https site (and LabOS itself) may frame it (see the runtime platform's security headers).
+`/events/embed` SHALL show only the view and filters in its address, on the page's grey, for anyone, signed in or not, with no member data: no Near you, no Add location, no "Events I'm going to", no Going marks (LAB-3352). Under the view it SHALL show the link "All events on PL Directory ↗", which opens `/events/all` with the same view and filters (not the open event) in a new tab. It SHALL NOT show the site header, the mobile bottom bar, the feedback button, contact support, the rating prompts, the page header ("Submit an event", the events app link), Browse by city, the city header, the "Coming up" toolbar (count, Filters, the view switch, Embed), the filters or the applied-filter chips (Polina's design, 2026-11-20): the person embedding it chose the view and filters. Pressing an event SHALL open its drawer inside the embed (LAB-3392): the same drawer as the page, with previous / next through the events on show, read signed out whoever is signed in. In the embed the drawer SHALL NOT ask to sign in or offer "Yes, I'm going": its card and pinned bar SHALL offer "RSVP on LabOS ↗", which opens `/events/all?event=<uid>` in a new tab, and "N members going" SHALL be text that opens nothing; an event that has ended shows the ended card, with no "RSVP on LabOS" (LAB-3426). Opening, stepping and closing the drawer SHALL leave the embed's address and the framing page's history alone, and closing it SHALL leave the view and filters as they were. With `details=labos` in its address, pressing an event SHALL instead open `/events/all?event=<uid>` in a new tab, with no drawer. The embed SHALL NOT open a drawer for `event` in its own address. With no match it SHALL show the page's empty state, and when the events fail to load the page's error state. It SHALL be served only while the native page flag is on (else not found), and SHALL NOT be indexed. Any https site (and LabOS itself) may frame it (see the runtime platform's security headers).
 
 #### Scenario: plrd.org frames online events
 

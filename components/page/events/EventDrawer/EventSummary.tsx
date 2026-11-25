@@ -7,6 +7,7 @@ import { Badge } from '@/components/common/Badge';
 import { ArrowUpRightIcon, GlobeIcon } from '@/components/icons';
 import { SafeHtml } from '@/components/ui/SafeHtml';
 import type { EventAccess, EventAgendaDay, EventDetail } from '@/services/events/event-drawer.types';
+import { ENDED_ACCESS_COPY } from '@/services/events/event-ended';
 import { ACCESS_COPY } from '@/services/events/event-facts';
 import { eventWhen } from '@/services/events/event-when';
 import { focusAreaName } from '@/services/events/focus-areas';
@@ -75,13 +76,23 @@ function HostNames({ hosts }: { hosts: string[] }) {
  * is the gathering's location text, with no venue and region lines (the Directory stores neither); a row with the
  * event's own page sits among the facts (LAB-3271, LAB-3333, LAB-3334); no "Part of the <city> gathering" (LAB-3283).
  * LAB-3324: with a map link, the place and its arrow open the map in a new tab; an online event never links.
+ * LAB-3426: for an event that has ended, nothing here asks the reader to register or RSVP.
  */
-export function EventSummary({ event, card }: { event: EventDetail; card?: ReactNode }) {
+export function EventSummary({
+  event,
+  ended = false,
+  card,
+}: {
+  event: EventDetail;
+  ended?: boolean;
+  card?: ReactNode;
+}) {
   const when = eventWhen(event.startDate, event.endDate, event.timezone);
   const page = eventLink(event.eventUrl);
   const mapLink = eventLink(event.locationUrl);
   const online = event.mode === 'Virtual' || (event.mode === 'Hybrid' && !event.address);
-  const access = event.access ? { kind: event.access, ...ACCESS_COPY[event.access] } : null;
+  const accessCopy = event.access && (ended ? ENDED_ACCESS_COPY : ACCESS_COPY)[event.access];
+  const access = event.access && accessCopy ? { kind: event.access, ...accessCopy } : null;
   const hasAbout = !!event.description || event.focusAreas.length > 0 || event.tags.length > 0;
 
   return (
@@ -140,7 +151,7 @@ export function EventSummary({ event, card }: { event: EventDetail; card?: React
                 <span className={e.factMain}>{event.address}</span>
               )}
               {online ? (
-                <span className={e.factSub}>Link sent after you register</span>
+                <span className={e.factSub}>{ended ? 'Online event' : 'Link sent after you register'}</span>
               ) : (
                 event.mode === 'Hybrid' && <span className={e.factSub}>Hybrid, also online</span>
               )}

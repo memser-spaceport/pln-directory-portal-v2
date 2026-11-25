@@ -418,3 +418,65 @@ describe('EventDrawer in the embed (LAB-3392)', () => {
     expect(mockRecordSignal).not.toHaveBeenCalled();
   });
 });
+
+describe('EventDrawer: an event that has ended (LAB-3426)', () => {
+  const ended = { startDate: '2030-12-01T09:00:00.000Z', endDate: '2030-12-05T18:00:00.000Z' };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers({ now: new Date(ended.endDate) });
+    flag.on = true;
+    access.canWrite = true;
+    access.isLoading = false;
+    queries.detail = { data: eventResponse(ended), isError: false, refetch: jest.fn() };
+    queries.plans = { data: NO_PLANS, isError: false };
+    queries.attendeesEnabled = [];
+    useCurrentUserStore.setState({ currentUser: { uid: 'viewer-1', name: 'Maya', leadingTeams: [] } as never });
+  });
+  afterEach(() => jest.useRealTimers());
+
+  it.each(['home', 'digest', 'member-profile', 'team-profile', 'add-event', 'all-events'] as const)(
+    'opened from %s: no going or plans action',
+    (source) => {
+      const viewer = { showOnProfile: true, roles: [] };
+      queries.detail.data = eventResponse({ ...ended, viewerGoing: true, viewer });
+      queries.plans = { data: GOING_PLANS, isError: false };
+      render(<EventDrawer eventUid="labweek-lisbon" source={source} initialStep="plans" onClose={jest.fn()} />);
+      expect(screen.getByText('You went')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /going|plans|Save/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Register' })).not.toBeInTheDocument();
+    },
+  );
+
+  it('the faces open the list of who went', () => {
+    render(<EventDrawer eventUid="labweek-lisbon" source="home" onClose={jest.fn()} />);
+    fireEvent.click(screen.getByRole('button', { name: '40 members went' }));
+    expect(queries.attendeesEnabled[queries.attendeesEnabled.length - 1]).toBe(true);
+    expect(analytics.onEventAttendeesOpened).toHaveBeenCalledWith({ eventUid: 'labweek-lisbon' });
+  });
+
+  it('signed out: the count starts sign-in, as before the end', async () => {
+    useCurrentUserStore.setState({ currentUser: null as never });
+    render(<EventDrawer eventUid="labweek-lisbon" source="all-events" onClose={jest.fn()} />);
+    expect(screen.queryByRole('button', { name: "Yes, I'm going" })).not.toBeInTheDocument();
+    await click(screen.getByRole('button', { name: '40 members went' }));
+    expect(goToLogin).toHaveBeenCalledTimes(1);
+  });
+
+  it('the embed: the same state, the count as text and no "RSVP on LabOS", and nothing of the member\'s own', () => {
+    queries.detail.data = eventResponse({ ...ended, viewerGoing: false, viewer: null });
+    render(<EventDrawer embed eventUid="labweek-lisbon" source="embed" onClose={jest.fn()} />);
+    expect(screen.getByText('This event has ended')).toBeInTheDocument();
+    expect(screen.getByText('40 members went').closest('button')).toBeNull();
+    expect(screen.queryByRole('link', { name: /RSVP on LabOS/ })).not.toBeInTheDocument();
+  });
+
+  it('opened after the end on a page that loaded before it, it shows the ended state', () => {
+    jest.setSystemTime(new Date('2030-12-05T17:00:00.000Z'));
+    const { rerender } = render(<EventDrawer eventUid={null} source="home" onClose={jest.fn()} />);
+    jest.setSystemTime(new Date('2030-12-05T18:00:00.000Z'));
+    rerender(<EventDrawer eventUid="labweek-lisbon" source="home" onClose={jest.fn()} />);
+    expect(screen.getByText('This event has ended')).toBeInTheDocument();
+    expect(screen.queryByText('Are you going?')).not.toBeInTheDocument();
+  });
+});

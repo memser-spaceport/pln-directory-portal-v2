@@ -26,10 +26,12 @@ import { useIrlGatheringModal } from '@/components/core/UpdatesPanel/IrlGatherin
 import m from '@/components/core/UpdatesPanel/IrlGatheringModal/IrlGatheringModal.module.scss';
 import type { IrlGatheringFormData } from '@/components/core/UpdatesPanel/IrlGatheringModal/types';
 import type { EventDetail, EventRoleName, MyGatheringPlans } from '@/services/events/event-drawer.types';
+import { useEventEnded } from '@/services/events/hooks/useEventEnded';
 import type { ITeam } from '@/types/teams.types';
 
 import { AttendeesView, SubHead, type EventAttendeesState } from './AttendeesView';
 import { DrawerToolbar } from './DrawerToolbar';
+import { EndedCard } from './EndedCard';
 import { EventSummary } from './EventSummary';
 import e from './EventDrawer.module.scss';
 import { RsvpCard, RsvpLink } from './RsvpCard';
@@ -257,7 +259,11 @@ function EventFlow({
   const wasGoing = !!event.viewer;
   const [going, setGoing] = useState(wasGoing);
   const [justMarked, setJustMarked] = useState(false);
+  const { ended, checkEnded } = useEventEnded(event.endDate);
   const [view, setView] = useState<View>(canMarkGoing && wasGoing && initialStep === 'plans' ? 'plans' : 'event');
+  // An event that has ended takes no plans: the sub-view gives way to the event, for good, also when it was open at the
+  // end.
+  if (ended && view === 'plans') setView('event');
   const [roles, setRoles] = useState<EventRoleName[]>(() => rolesFor(event, plans));
 
   const formDefaults = (): IrlGatheringFormData => ({
@@ -325,14 +331,14 @@ function EventFlow({
   const backToEvent = () => show('event');
 
   const handleYes = async () => {
-    if (saving) return;
+    if (saving || checkEnded()) return;
     if (!(await onYes())) return;
     setGoing(true);
     setJustMarked(true);
   };
 
   const handleNotGoing = async () => {
-    if (saving) return;
+    if (saving || checkEnded()) return;
     if (!(await onNotGoing())) return;
     setGoing(false);
     setJustMarked(false);
@@ -342,7 +348,7 @@ function EventFlow({
     setRoles((current) => (current.includes(role) ? current.filter((r) => r !== role) : [...current, role]));
 
   const handleSave = methods.handleSubmit(async (data) => {
-    if (saving) return;
+    if (saving || checkEnded()) return;
     const saved = await onSave({
       roles,
       topics: data.topics ?? [],
@@ -374,7 +380,7 @@ function EventFlow({
 
   // The pinned bar stands in for the going card once less than half of it is on screen (the prototype's RsvpBar).
   const cardRef = useRef<HTMLDivElement>(null);
-  const [cardAway, resetCardAway] = useAwayFromView(cardRef, scrollerRef, view === 'event' && asks);
+  const [cardAway, resetCardAway] = useAwayFromView(cardRef, scrollerRef, view === 'event' && asks && !ended);
 
   const renderOverlay = () => {
     if (picker.currentView === 'datePicker') {
@@ -407,7 +413,7 @@ function EventFlow({
 
     return null;
   };
-  const overlay = renderOverlay();
+  const overlay = view === 'plans' ? renderOverlay() : null;
 
   // Escape and the backdrop: a picker first (design D7), then a sub-view (who's going, the plans), then the drawer.
   useEffect(() => {
@@ -444,23 +450,34 @@ function EventFlow({
             <div className={e.body}>
               <EventSummary
                 event={event}
+                ended={ended}
                 card={
-                  <div ref={cardRef}>
-                    <RsvpCard
+                  ended ? (
+                    <EndedCard
                       count={count}
                       faces={event.faces}
-                      going={going}
-                      asks={asks}
-                      city={gathering?.city ?? null}
-                      registerUrl={event.eventUrl}
-                      saving={saving}
-                      rsvpHref={rsvpHref}
-                      onYes={pressYes}
-                      onOpenAttendees={openAttendees}
-                      onNotGoing={handleNotGoing}
-                      onOpenPlans={openPlans}
+                      went={going}
+                      attendanceHidden={!viewerUid && event.inviteOnly}
+                      onOpenAttendees={rsvpHref ? undefined : openAttendees}
                     />
-                  </div>
+                  ) : (
+                    <div ref={cardRef}>
+                      <RsvpCard
+                        count={count}
+                        faces={event.faces}
+                        going={going}
+                        asks={asks}
+                        city={gathering?.city ?? null}
+                        registerUrl={event.eventUrl}
+                        saving={saving}
+                        rsvpHref={rsvpHref}
+                        onYes={pressYes}
+                        onOpenAttendees={openAttendees}
+                        onNotGoing={handleNotGoing}
+                        onOpenPlans={openPlans}
+                      />
+                    </div>
+                  )
                 }
               />
             </div>
@@ -469,6 +486,7 @@ function EventFlow({
           {view === 'attendees' && (
             <AttendeesView
               eventName={event.name}
+              ended={ended}
               total={count}
               viewerUid={viewerUid}
               attendees={attendees}

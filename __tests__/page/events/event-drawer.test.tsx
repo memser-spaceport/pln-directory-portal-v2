@@ -398,6 +398,21 @@ describe('EventDrawer in the embed (LAB-3392)', () => {
     expect(queries.attendeesEnabled.every((e) => e === false)).toBe(true);
   });
 
+  it('has no "Open in PL Events" in the embed either, with the app address and the event id (LAB-3420)', () => {
+    const original = process.env.PL_EVENTS_BASE_URL;
+    process.env.PL_EVENTS_BASE_URL = 'https://events.test';
+    try {
+      renderEmbed();
+      expect(screen.getByRole('button', { name: 'Copy link' })).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: /PL Events/ })).toBeNull();
+      expect(document.querySelector('a[href^="https://events.test"]')).toBeNull();
+      expect(analytics.onEventEventsAppOpened).not.toHaveBeenCalled();
+    } finally {
+      if (original === undefined) delete process.env.PL_EVENTS_BASE_URL;
+      else process.env.PL_EVENTS_BASE_URL = original;
+    }
+  });
+
   it("records no member signal: a view inside another site's embed is nobody's", () => {
     renderEmbed();
     expect(mockRecordSignal).not.toHaveBeenCalled();

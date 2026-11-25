@@ -1,11 +1,9 @@
 'use client';
 
-import clsx from 'clsx';
 import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/common/Button';
-import btn from '@/components/common/Button/Button.module.scss';
-import { ArrowUpRightIcon, CaretLeftIcon, CaretRightIcon, CheckIcon, CloseIcon } from '@/components/icons';
+import { CaretLeftIcon, CaretRightIcon, CheckIcon, CloseIcon } from '@/components/icons';
 
 import { ChainIcon } from './EventSummary';
 import e from './EventDrawer.module.scss';
@@ -13,8 +11,6 @@ import e from './EventDrawer.module.scss';
 export interface DrawerToolbarProps {
   /** The event on show; without one (loading, failed, missing) the toolbar has Close only. */
   eventUid: string | null;
-  /** "Open in PL Events" goes here; left out when null. */
-  eventsAppHref: string | null;
   prev: string | null;
   next: string | null;
   /** Previous / next show only when the drawer was opened from a list of more than one event, on the event itself. */
@@ -22,27 +18,24 @@ export interface DrawerToolbarProps {
   onNavigate: (uid: string, direction: 'previous' | 'next') => void;
   onClose: () => void;
   onCopied?: () => void;
-  onEventsAppOpened?: () => void;
 }
 
 /** The address Copy link puts on the clipboard: All Events with this event's drawer open. */
 export const eventShareUrl = (uid: string) => `${window.location.origin}/events/all?event=${encodeURIComponent(uid)}`;
 
 /**
- * The drawer's toolbar, pinned at the top (LAB-3361, the prototype's `Toolbar`, Luma's side peek): Copy link and
- * Open in PL Events ↗ on the left; previous / next through the list the drawer was opened from, a rule, and close on
- * the right. On phones Copy link is its icon only.
+ * The drawer's toolbar, pinned at the top (LAB-3361, the prototype's `Toolbar`, Luma's side peek): Copy link on the
+ * left; previous / next through the list the drawer was opened from, a rule, and close on the right. On phones Copy
+ * link is its icon only. The toolbar has no link to the PL events app (LAB-3420): the event data will move here soon.
  */
 export function DrawerToolbar({
   eventUid,
-  eventsAppHref,
   prev,
   next,
   showStepper,
   onNavigate,
   onClose,
   onCopied,
-  onEventsAppOpened,
 }: DrawerToolbarProps) {
   const [copied, setCopied] = useState(false);
   // The toolbar mounts afresh with each event (the drawer keys its body by event), so "Copied" never carries over.
@@ -83,18 +76,6 @@ export function DrawerToolbar({
             {copied ? <CheckIcon width={14} height={14} /> : <ChainIcon size={14} />}
             <span className={e.btnLabelWide}>{copied ? 'Copied' : 'Copy link'}</span>
           </Button>
-        )}
-        {eventUid && eventsAppHref && (
-          <a
-            href={eventsAppHref}
-            target="_blank"
-            rel="noreferrer"
-            className={clsx(btn.root, btn.xs, btn.border, btn.neutral, e.btn)}
-            onClick={onEventsAppOpened}
-          >
-            Open in PL Events
-            <ArrowUpRightIcon width={14} height={14} />
-          </a>
         )}
       </div>
       <div className={e.toolbarGroup}>

@@ -283,7 +283,6 @@ function EventDrawerContainer({
         })
       }
       onLinkCopied={() => analytics.onEventLinkCopied({ eventUid })}
-      onEventsAppOpened={() => analytics.onEventEventsAppOpened({ eventUid })}
     />
   );
 }

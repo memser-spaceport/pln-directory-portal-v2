@@ -6,7 +6,7 @@ import {
   SESSION_MARKER_COOKIE,
   SESSION_SCOPE_COOKIE,
   sessionCookieFlags,
-  sharedCookieDomain,
+  sharedCookieDomains,
 } from './sessionCookies';
 
 /**
@@ -52,22 +52,15 @@ export const clearAllAuthCookies = async () => {
 };
 
 export const removeCookie = (name: string) => {
-  // Remove cookie without domain (scoped to current subdomain)
   Cookies.remove(name, { path: '/' });
-
-  // Remove cookie with domain (shared across subdomains, if defined)
-  if (process.env.COOKIE_DOMAIN) {
-    Cookies.remove(name, {
-      path: '/',
-      domain: process.env.COOKIE_DOMAIN,
-    });
+  for (const domain of sharedCookieDomains()) {
+    Cookies.remove(name, { path: '/', domain });
   }
 };
 
-/** Removes the COOKIE_DOMAIN (shared) copy of a cookie; a host-only cookie with the same name is left alone. */
+/** Removes each shared copy of a cookie; a host-only cookie with the same name is left alone. */
 export const expireSharedCookie = (name: string) => {
-  const domain = sharedCookieDomain();
-  if (domain) {
+  for (const domain of sharedCookieDomains()) {
     Cookies.remove(name, { path: '/', domain });
   }
 };

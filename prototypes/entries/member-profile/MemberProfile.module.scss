@@ -983,14 +983,9 @@
   order: -1;
 }
 
-/* "Wrap this tags line before schedule meeting": from tablet up the tags row
-   wraps short of the corner press's column (Schedule Meeting / Request an
-   intro, ~200px at xs) plus the cluster's 8px gap, so no chip runs under it. */
-@include media.tablet-portrait {
-  .tagsClearPress.tagsClearPress {
-    padding-right: 208px;
-  }
-}
+/* (`.tagsClearPress` — 208px right padding so the tags wrapped short of the
+   corner press — went 2026-11-23: the tags now start under the photo, below
+   the press's row, so no chip can run under it.) */
 
 /* Tablet up: name | action cluster on the first row, the facts line under
    the name only, so it wraps short of the cluster's column ("this line should
@@ -1196,4 +1191,12 @@
    fewer whole words and fold the rest into "+n". */
 .skillTagFull.skillTagFull {
   max-width: none;
+}
+
+/* LAB-3383 "One actions area": Schedule Meeting on the Office hours option's
+   right, full width on a phone (beats `.scheduleBtn`'s doubled `width: auto`). */
+.meetSchedule.meetSchedule.meetSchedule {
+  @include media.mobile-only {
+    width: 100%;
+  }
 }

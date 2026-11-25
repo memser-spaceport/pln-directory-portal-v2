@@ -372,7 +372,10 @@ function EventFlow({
 
   // Signed out, "Yes, I'm going" starts sign-in (LAB-3271); in the embed it is a link to LabOS (LAB-3392).
   const asks = canMarkGoing || !!onSignIn || !!rsvpHref;
-  const pressYes = canMarkGoing ? handleYes : (onSignIn ?? NOOP);
+  const signInToGo = () => {
+    if (!checkEnded()) onSignIn?.();
+  };
+  const pressYes = canMarkGoing ? handleYes : signInToGo;
 
   const index = sequence.indexOf(event.uid);
   const prev = index > 0 ? sequence[index - 1] : null;

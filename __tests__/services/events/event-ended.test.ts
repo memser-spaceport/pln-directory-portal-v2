@@ -35,6 +35,12 @@ describe('isEventEnded (LAB-3426)', () => {
     expect(isEventEnded('soon', at('2026-11-25T20:00:00.000Z'))).toBe(false);
   });
 
+  it('never ends without an end', () => {
+    // `new Date(null)` is 1970, not an invalid date.
+    expect(isEventEnded(null, at('2026-11-25T20:00:00.000Z'))).toBe(false);
+    expect(isEventEnded(undefined, at('2026-11-25T20:00:00.000Z'))).toBe(false);
+  });
+
   it('reads the clock when no time is given', () => {
     jest.useFakeTimers({ now: at('2026-11-25T20:00:00.000Z') });
     try {

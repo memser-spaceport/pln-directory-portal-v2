@@ -7,10 +7,11 @@ import { ACCESS_COPY } from './event-facts';
 
 /**
  * Whether the event has ended: its end instant has come. The instant already carries the event's time zone, so this is
- * the same moment for every viewer, and an event on its last day has not ended. An end that is not a date never ends it.
+ * the same moment for every viewer, and an event on its last day has not ended. An end that is missing or not a date
+ * never ends it (`new Date(null)` would be 1970).
  */
-export function isEventEnded(endDate: string, now: number = Date.now()): boolean {
-  return now >= new Date(endDate).getTime();
+export function isEventEnded(endDate: string | null | undefined, now: number = Date.now()): boolean {
+  return !!endDate && now >= new Date(endDate).getTime();
 }
 
 /**

@@ -254,6 +254,16 @@ describe('checkEventForm', () => {
     );
   });
 
+  it('says "Pick a venue from the suggestions" for venue text that is not a found place', () => {
+    const place = { city: 'Lisbon', state: null, country: 'Portugal', latitude: 1, longitude: 2, locationUrl: null };
+    expect(check({ venue: 'garage' }).venue).toBe('Pick a venue from the suggestions');
+    expect(check({ venue: 'garage' }, 'draft').venue).toBe('Pick a venue from the suggestions');
+    expect(check({ format: 'HYBRID', venue: 'garage' }).venue).toBe('Pick a venue from the suggestions');
+    expect(check({ format: 'VIRTUAL', venue: 'garage' }).venue).toBeUndefined();
+    expect(check({ venue: 'Avenida da Liberdade 10', place }).venue).toBeUndefined();
+    expect(check({ venue: '' }).venue).toBeUndefined();
+  });
+
   it('says "Enter a valid meeting link" for an online or hybrid event only', () => {
     expect(check({ format: 'VIRTUAL', meetingUrl: 'not a link' }).meetingUrl).toBe('Enter a valid meeting link');
     expect(check({ format: 'HYBRID', meetingUrl: 'not a link' }).meetingUrl).toBe('Enter a valid meeting link');

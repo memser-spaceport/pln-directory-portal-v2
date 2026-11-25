@@ -79,6 +79,8 @@ export const EVENT_FORM_TEXT = {
   emailInvalid: 'Enter a valid email',
   registrationInvalid: 'Enter a valid registration link',
   meetingInvalid: 'Enter a valid meeting link',
+  venueNotFound: 'Pick a venue from the suggestions',
+  venueLookupFailed: 'Could not check the venue right now. Please try again.',
   websiteInvalid: 'Enter a valid website link',
   platformRequired: 'Please select a platform',
   handleInvalid: 'Enter a valid handle',
@@ -383,8 +385,8 @@ export function descriptionLength(html: string): number {
 
 /**
  * The form's checks. "Submit Event", "Submit" and "Save Changes" run them all. "Save as draft" needs only the name,
- * the dates and the time zone, and still checks what is filled in: links, emails, social handles, the description's
- * length and the agenda.
+ * the dates and the time zone, and still checks what is filled in: a venue that is not a found place, links, emails,
+ * social handles, the description's length and the agenda.
  */
 export function checkEventForm(values: EventFormValues, mode: EventFormMode): EventFormErrors {
   const errors: EventFormErrors = {};
@@ -414,6 +416,8 @@ export function checkEventForm(values: EventFormValues, mode: EventFormMode): Ev
 
   if (values.registrationUrl.trim() && !isValidUrl(values.registrationUrl))
     errors.registrationUrl = EVENT_FORM_TEXT.registrationInvalid;
+  if (values.format !== 'VIRTUAL' && values.venue.trim() && !values.place)
+    errors.venue = EVENT_FORM_TEXT.venueNotFound;
   if (values.format !== 'IN_PERSON' && values.meetingUrl.trim() && !isValidUrl(values.meetingUrl))
     errors.meetingUrl = EVENT_FORM_TEXT.meetingInvalid;
   if (values.websiteUrl.trim() && !isValidUrl(values.websiteUrl)) errors.websiteUrl = EVENT_FORM_TEXT.websiteInvalid;

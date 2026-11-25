@@ -427,9 +427,13 @@ describe('FormatSection: venue', () => {
   });
 
   it.each([
-    ['fails', () => Promise.reject(new EventRequestError(500, 'Failed to resolve the place'))],
-    ['finds nothing', () => Promise.resolve(null)],
-  ])('changes nothing when the lookup %s', async (_label, answer) => {
+    [
+      'fails',
+      () => Promise.reject(new EventRequestError(500, 'Failed to resolve the place')),
+      'Could not check the venue right now. Please try again.',
+    ],
+    ['finds nothing', () => Promise.resolve(null), 'Pick a venue from the suggestions'],
+  ])('keeps the text with no place and says why when the lookup %s', async (_label, answer, message) => {
     resolve.mockImplementation(answer);
     const { form } = renderSection(<FormatSection />, { values: { timezone: 'Europe/Lisbon', startTime: '10:00' } });
 
@@ -440,12 +444,40 @@ describe('FormatSection: venue', () => {
 
     expect(resolve).toHaveBeenCalledTimes(1);
     expect(form.current.getValues()).toEqual(before);
-    expect(form.current.getValues('venue')).toBe('Nowhere at all');
     expect(form.current.getValues('place')).toBeNull();
     expect(venueInput()).toHaveValue('Nowhere at all');
     expect(screen.queryByTestId('venue-map')).not.toBeInTheDocument();
-    expect(screen.queryByPlaceholderText('8th Floor, 2nd Building, etc.')).not.toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(message);
+    expect(venueInput()).toHaveAttribute('aria-invalid', 'true');
+
+    fireEvent.change(venueInput(), { target: { value: 'Nowhere at al' } });
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('looks up typed text when the person leaves the field', async () => {
+    resolve.mockResolvedValue(null);
+    renderSection(<FormatSection />);
+
+    await typeAndWait('%^&iu8(*&sdfhhjhjhjhj');
+    fireEvent.blur(venueInput());
+    await settle();
+
+    expect(resolve).toHaveBeenCalledWith({ address: '%^&iu8(*&sdfhhjhjhjhj' });
+    expect(screen.getByRole('alert')).toHaveTextContent('Pick a venue from the suggestions');
+  });
+
+  it('does not look up an empty field or a resolved place on leaving it', async () => {
+    renderSection(<FormatSection />, {
+      values: {
+        venue: 'Avenida da Liberdade 10',
+        place: { city: 'Lisbon', state: null, country: 'Portugal', latitude: 1, longitude: 2, locationUrl: null },
+      },
+    });
+
+    fireEvent.blur(venueInput());
+    await settle();
+
+    expect(resolve).not.toHaveBeenCalled();
   });
 
   it('drops an answer that arrives after the text was edited', async () => {

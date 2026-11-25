@@ -5,12 +5,13 @@ import { type KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import { safeTimezone } from '@/services/events/event-dates';
-import { moveAgendaToTimezone } from '@/services/events/event-form';
+import { EVENT_FORM_TEXT, moveAgendaToTimezone } from '@/services/events/event-form';
 import { resolvePlace } from '@/services/events/event-submission.service';
 import type { EventFormValues, ResolvedPlace } from '@/services/events/event-submission.types';
 import { usePlaceSuggestions } from '@/services/events/hooks/useEventSubmission';
 
 import { useEventFormContext } from './EventFormContext';
+import { FieldError } from './FieldError';
 import s from './EventForm.module.scss';
 import v from './VenueField.module.scss';
 
@@ -20,12 +21,21 @@ const LIST_ID = 'event-venue-suggestions';
 const optionId = (index: number) => `event-venue-suggestion-${index}`;
 
 /**
- * The venue location: free text that suggests places while a person types. A picked suggestion, or Enter on the
- * typed text, resolves the place: the address, the place and its time zone go into the form. Text that is not
- * resolved stays as the address with no place; editing a resolved address drops the place and its instruction.
+ * The venue location: only a place that Google knows counts, as on the member profile's Location. Places are
+ * suggested while a person types. A picked suggestion, or Enter on the typed text or leaving the field with it, resolves
+ * the place: the address, the place and its time zone go into the form. Text that resolves to no place says "Pick a
+ * venue from the suggestions" and the form is not sent; editing a resolved address drops the place and its instruction.
  */
 export function VenueField() {
-  const { watch, getValues, setValue, clearErrors } = useFormContext<EventFormValues>();
+  const {
+    watch,
+    getValues,
+    setValue,
+    setError,
+    clearErrors,
+    formState: { errors },
+  } = useFormContext<EventFormValues>();
+  const venueError = errors.venue?.message;
   const { busy } = useEventFormContext();
   const venue = watch('venue') ?? '';
 
@@ -49,6 +59,7 @@ export function VenueField() {
   const edit = (text: string) => {
     latest.current += 1;
     setValue('venue', text, { shouldDirty: true });
+    clearErrors('venue');
     if (getValues('place')) {
       setValue('place', null, { shouldDirty: true });
       setValue('instruction', '', { shouldDirty: true });
@@ -66,6 +77,7 @@ export function VenueField() {
   const apply = (resolved: ResolvedPlace) => {
     setQuery('');
     setValue('venue', resolved.address, { shouldDirty: true });
+    clearErrors('venue');
     setValue(
       'place',
       {
@@ -97,9 +109,14 @@ export function VenueField() {
     try {
       resolved = await resolvePlace(place);
     } catch {
+      if (id === latest.current) setError('venue', { type: 'manual', message: EVENT_FORM_TEXT.venueLookupFailed });
       return;
     }
-    if (id !== latest.current || !resolved?.address?.trim()) return;
+    if (id !== latest.current) return;
+    if (!resolved?.address?.trim()) {
+      setError('venue', { type: 'manual', message: EVENT_FORM_TEXT.venueNotFound });
+      return;
+    }
     apply(resolved);
   };
 
@@ -131,7 +148,9 @@ export function VenueField() {
         <input
           id="event-venue"
           type="text"
-          className={s.input}
+          className={clsx(s.input, venueError && s.inputInvalid)}
+          aria-invalid={venueError ? true : undefined}
+          data-invalid={venueError ? true : undefined}
           placeholder="Enter Venue Location"
           autoComplete="off"
           role="combobox"
@@ -144,7 +163,11 @@ export function VenueField() {
           onChange={(event) => edit(event.target.value)}
           onKeyDown={onKeyDown}
           onFocus={() => setOpen(true)}
-          onBlur={() => setOpen(false)}
+          onBlur={() => {
+            setOpen(false);
+            // Typed text that was not resolved is looked up when the person leaves the field.
+            if (venue.trim() && !getValues('place')) void resolve({ address: venue.trim() });
+          }}
         />
         <ul id={LIST_ID} className={v.list} role="listbox" aria-label="Venue suggestions" hidden={!expanded}>
           {expanded &&
@@ -165,6 +188,7 @@ export function VenueField() {
             ))}
         </ul>
       </div>
+      <FieldError message={venueError} />
     </div>
   );
 }

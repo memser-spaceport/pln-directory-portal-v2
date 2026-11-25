@@ -204,6 +204,7 @@ export interface EventFormErrors {
   hostName?: string;
   coHosts?: ({ name?: string; email?: string } | undefined)[];
   registrationUrl?: string;
+  venue?: string;
   meetingUrl?: string;
   websiteUrl?: string;
   socialHandles?: (string | undefined)[];

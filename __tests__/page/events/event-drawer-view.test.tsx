@@ -76,8 +76,10 @@ describe('EventDrawerView (LAB-3216)', () => {
       expect(screen.getByText('Lisbon, Portugal')).toBeInTheDocument();
       // LAB-3283: access is a fact row, and neither mode nor access is a badge.
       const access = screen.getByTestId('event-access');
-      expect(within(access).getByText('Free')).toBeInTheDocument();
-      expect(within(access).getByText('RSVP to save your spot')).toBeInTheDocument();
+      // LAB-3407: one line for an OPEN event, never "Free".
+      expect(within(access).getByText('RSVP to save your spot')).toHaveClass('factMain');
+      expect(access).toHaveTextContent(/^RSVP to save your spot$/);
+      expect(access.querySelector('.factSub')).toBeNull();
       expect(screen.queryByText('In-Person')).not.toBeInTheDocument();
       expect(screen.queryByText('FREE w/ RSVP')).not.toBeInTheDocument();
       const tags = screen.getByTestId('event-tags');

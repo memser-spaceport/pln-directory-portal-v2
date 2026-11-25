@@ -93,15 +93,23 @@ export function countAppliedFilters(params: URLSearchParams): number {
 }
 
 /**
+ * The `access` param's value for an event that takes RSVPs. It reads "RSVP" (LAB-3407), but links and embeds made when
+ * it read "Free" are on other sites, so the value in the address stays.
+ */
+const RSVP_ACCESS_VALUE = 'Free';
+const RSVP_ACCESS_LABEL = 'RSVP';
+
+/**
  * The values an event has for a facet: the words its card and drawer use ("Invite only", "In person"), except that a
- * focus area is its code. `facetLabel` gives what a reader sees.
+ * focus area is its code and RSVP access is `RSVP_ACCESS_VALUE`. `facetLabel` gives what a reader sees.
  */
 export function facetValues(item: AllEventsItem, key: FacetKey): string[] {
   switch (key) {
     case 'mode':
       return item.mode ? [MODE_LABEL[item.mode]] : [];
     case 'access':
-      return item.access ? [ACCESS_COPY[item.access].main] : [];
+      if (!item.access) return [];
+      return [item.access === 'FREE w/ RSVP' ? RSVP_ACCESS_VALUE : ACCESS_COPY[item.access].main];
     case 'focus':
       return item.focusAreas;
     case 'topic':
@@ -113,8 +121,15 @@ export function facetValues(item: AllEventsItem, key: FacetKey): string[] {
   }
 }
 
-/** What a reader sees for a facet's value: a focus area's name for its code (LAB-3404), any other value as it is. */
-export const facetLabel = (key: FacetKey, value: string) => (key === 'focus' ? focusAreaName(value) : value);
+/**
+ * What a reader sees for a facet's value: a focus area's name for its code (LAB-3404), "RSVP" for RSVP access
+ * (LAB-3407), any other value as it is.
+ */
+export function facetLabel(key: FacetKey, value: string): string {
+  if (key === 'focus') return focusAreaName(value);
+  if (key === 'access' && value.toLowerCase() === RSVP_ACCESS_VALUE.toLowerCase()) return RSVP_ACCESS_LABEL;
+  return value;
+}
 
 /** A facet's options with how many events carry each, most first. */
 export function facetOptions(items: AllEventsItem[], key: FacetKey) {

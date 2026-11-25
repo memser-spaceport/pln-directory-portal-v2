@@ -50,7 +50,7 @@ function Hosts({ item, ellipsis }: { item: AllEventsItem; ellipsis?: boolean }) 
 
 /**
  * The Going pill, the faces and count when the event shows attendance, then how you get in when it isn't the usual
- * free RSVP: a glyph and a word in the meta ink, not a badge (prototype, 2026-11-17). On a tile the pill leaves the
+ * RSVP: a glyph and a word in the meta ink, not a badge (prototype, 2026-11-17). On a tile the pill leaves the
  * foot for the picture, except on phones (`.tilePill`).
  */
 function EventFoot({ item, going, onTile }: { item: AllEventsItem; going: boolean; onTile?: boolean }) {

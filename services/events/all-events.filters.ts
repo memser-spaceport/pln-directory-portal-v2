@@ -250,13 +250,16 @@ export function groupPastByDay(items: AllEventsItem[]): { day: string; events: A
   }, []);
 }
 
-/** "Day 2 of 5" for a multi-day event on a given day; empty for a one-day event. */
+/**
+ * "Day 2 of 5" for a multi-day event on a given day; empty for a one-day event. The day can be outside the span: it is
+ * the viewer's, who may be east of the event on its last day, or have left the page open past its end.
+ */
 export function dayOfSpan(item: AllEventsItem, isoDay: string): string {
-  if (item.startDay === item.endDay) return '';
+  if (item.endDay <= item.startDay) return '';
   const dayMs = 86_400_000;
   const total = Math.round((atNoon(item.endDay).getTime() - atNoon(item.startDay).getTime()) / dayMs) + 1;
   const n = Math.round((atNoon(isoDay).getTime() - atNoon(item.startDay).getTime()) / dayMs) + 1;
-  return `Day ${n} of ${total}`;
+  return `Day ${Math.min(Math.max(n, 1), total)} of ${total}`;
 }
 
 /** Luma's date column: "Today" / "Tomorrow" / "Dec 3", with the weekday under it. */

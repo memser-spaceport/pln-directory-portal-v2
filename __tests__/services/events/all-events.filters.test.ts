@@ -188,6 +188,15 @@ describe('days', () => {
     expect(dayOfSpan(lisbon, '2030-12-03')).toBe('');
   });
 
+  it.each([
+    ['a viewer east of the event, already on the day after its last', '2030-12-04', '2030-12-05', 'Day 2 of 2'],
+    ['a page left open past the end', '2030-12-24', '2030-12-28', 'Day 22 of 22'],
+    ['a day before the first', '2030-12-04', '2030-12-02', 'Day 1 of 2'],
+    ['an end before the start', '2030-12-01', '2030-12-03', ''],
+  ])('keeps the day number between 1 and the total: %s', (_, endDay, day, text) => {
+    expect(dayOfSpan(item({ startDay: '2030-12-03', endDay }), day)).toBe(text);
+  });
+
   it('labels days and spans as the prototype does', () => {
     expect(dayHeading('2030-12-03', '2030-12-03')).toEqual({ label: 'Today', weekday: 'Tuesday' });
     expect(dayHeading('2030-12-04', '2030-12-03').label).toBe('Tomorrow');

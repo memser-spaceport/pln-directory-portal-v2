@@ -762,13 +762,19 @@ When past events span more than one year, Past SHALL show a dropdown right after
 
 ### Requirement: The List view
 
-The List view SHALL be the default. On Live & upcoming it SHALL group events by start day, soonest first. Each day SHALL have a date label (for example "Dec 3 / Thursday"), at the size of a card's time line, that stays in view while its events scroll. From 1200px the cards SHALL end at the right edge of the 4th "Browse by city" tile; below 1200px, where that row has 3 tiles, they SHALL fill the width (LAB-3425). The loading state SHALL have the same width. Each card SHALL show: the start time in the event's time zone with its UTC offset, and "Day n of m" for a multi-day event; the title; the host when known; the place ("Online" for an online event, the city with "also online" for a hybrid one); the going count with up to 3 faces when the event shows attendance; and the picture. On phones the date SHALL sit above its cards.
+The List view SHALL be the default. On Live & upcoming it SHALL group events by start day, soonest first. Each day SHALL have a date label (for example "Dec 3 / Thursday"), at the size of a card's time line, that stays in view while its events scroll. From 1200px the cards SHALL end at the right edge of the 4th "Browse by city" tile; below 1200px, where that row has 3 tiles, they SHALL fill the width (LAB-3425). The loading state SHALL have the same width. Each card SHALL show: the start time in the event's time zone with its UTC offset, and "Day n of m" for a multi-day event, where n SHALL always be from 1 to m, also when the viewer's day is already past the event's last day (as on a Near you tile); the title; the host when known; the place ("Online" for an online event, the city with "also online" for a hybrid one); the going count with up to 3 faces when the event shows attendance; and the picture. On phones the date SHALL sit above its cards.
 
 #### Scenario: Multi-day event
 
 - **GIVEN** an event on Dec 3–4 starting 9:00 in Asia/Kolkata
 - **WHEN** the visitor opens the List view
 - **THEN** its card under Dec 3 reads "9:00 AM UTC+5:30 · Day 1 of 2"
+
+#### Scenario: The viewer's day is past the last day
+
+- **GIVEN** an event on Dec 3–4 in New York that is still on there, and a viewer in Tokyo, where it is already Dec 5
+- **WHEN** the visitor opens the List view
+- **THEN** its card reads "Day 2 of 2", never "Day 3 of 2"
 
 #### Scenario: The cards line up with the city tiles
 

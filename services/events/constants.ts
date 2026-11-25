@@ -14,4 +14,8 @@ export enum EventsQueryKeys {
   MY_UPCOMING_EVENT_UIDS = 'MY_UPCOMING_EVENT_UIDS',
   /** City positions for the All Events Map (LAB-3321): `[CITY_COORDS]`, the same for everyone. */
   CITY_COORDS = 'CITY_COORDS',
+  /** Every ended event, for All Events' Past and Calendar (LAB-3418): `[PAST_EVENTS]`, the same for everyone. */
+  PAST_EVENTS = 'PAST_EVENTS',
+  /** The ended events the viewer went to, for the "Went" pills (LAB-3418): `[MY_PAST_EVENT_UIDS, viewerUid]`. */
+  MY_PAST_EVENT_UIDS = 'MY_PAST_EVENT_UIDS',
 }

@@ -122,6 +122,8 @@ jest.mock('@/analytics/events.analytics', () => ({
   }),
 }));
 jest.mock('@/services/events/hooks/useMyUpcomingEventUids', () => ({ useMyUpcomingEventUids: () => ({ data: [] }) }));
+jest.mock('@/services/events/hooks/usePastEvents', () => ({ usePastEvents: () => ({ data: [] }) }));
+jest.mock('@/services/events/hooks/useMyPastEventUids', () => ({ useMyPastEventUids: () => ({ data: [] }) }));
 jest.mock('@tanstack/react-query', () => ({
   ...jest.requireActual('@tanstack/react-query'),
   useQueryClient: () => ({ setQueryData: jest.fn() }),
@@ -318,6 +320,40 @@ describe('EventsMap', () => {
     expect(row.querySelectorAll('img')).toHaveLength(1);
     const unplaced = within(screen.getByRole('region', { name: 'Not on the map · 1' })).getByRole('button');
     expect(unplaced.textContent).not.toMatch(/going/);
+  });
+
+  it('on Past: the same pins and lists, newest first, with years and "went" (LAB-3418)', async () => {
+    const past = [
+      item({
+        uid: 'old',
+        name: 'Old call',
+        city: null,
+        mode: 'Virtual',
+        startDay: '2028-12-30',
+        endDay: '2029-01-02',
+        startDate: '2028-12-30T09:00:00Z',
+        goingCount: 4,
+      }),
+      item({
+        uid: 'new',
+        name: 'New call',
+        city: null,
+        mode: 'Virtual',
+        startDay: '2030-11-01',
+        endDay: '2030-11-01',
+        startDate: '2030-11-01T09:00:00Z',
+        goingCount: 2,
+      }),
+      item({ uid: 'lis', name: 'Lisbon day', startDay: '2029-05-05', endDay: '2029-05-05' }),
+    ];
+    await renderMap({ events: past, pastAsOf: '2030-11-25', goingUids: new Set(['old', 'lis']) });
+    const rows = Array.from(document.querySelectorAll('ul [data-event-uid]'));
+    expect(rows.map((row) => row.getAttribute('data-event-uid'))).toEqual(['new', 'old']);
+    expect(rows[0]).toHaveTextContent(/^Nov 1New call2 went$/);
+    expect(rows[1]).toHaveTextContent(/^Dec 30, 2028 – Jan 2, 2029Old call4 wentWent$/);
+    const city = mockGoogle.markers.find((m) => m.title.startsWith('Lisbon:')) as FakeMarker;
+    expect(city.title).toBe('Lisbon: 1 event, you went. Zoom in to the events');
+    expect(eventMarker('Lisbon day').title).toBe('Lisbon day, May 5, 2029, you went');
   });
 
   it('takes the pin off when the filters leave its city out', async () => {

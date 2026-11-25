@@ -1,7 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
 import { Badge } from '@/components/common/Badge';
 import { ArrowUpRightIcon, GlobeIcon } from '@/components/icons';
@@ -76,7 +76,8 @@ function HostNames({ hosts }: { hosts: string[] }) {
  * is the gathering's location text, with no venue and region lines (the Directory stores neither); a row with the
  * event's own page sits among the facts (LAB-3271, LAB-3333, LAB-3334); no "Part of the <city> gathering" (LAB-3283).
  * LAB-3324: with a map link, the place and its arrow open the map in a new tab; an online event never links.
- * LAB-3426: for an event that has ended, nothing here asks the reader to register or RSVP.
+ * LAB-3426: for an event that has ended, nothing here asks the reader to register or RSVP. LAB-3418: its day line
+ * carries a year other than the current one.
  */
 export function EventSummary({
   event,
@@ -87,7 +88,9 @@ export function EventSummary({
   ended?: boolean;
   card?: ReactNode;
 }) {
-  const when = eventWhen(event.startDate, event.endDate, event.timezone);
+  // One reading of the clock, so the line never changes while the drawer is open.
+  const [now] = useState(() => Date.now());
+  const when = eventWhen(event.startDate, event.endDate, event.timezone, ended ? now : undefined);
   const page = eventLink(event.eventUrl);
   const mapLink = eventLink(event.locationUrl);
   const online = event.mode === 'Virtual' || (event.mode === 'Hybrid' && !event.address);

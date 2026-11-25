@@ -88,7 +88,8 @@ async function fetchDetail(uid: string): Promise<EventDetailResponse | null> {
   }
 }
 
-async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+/** Runs `fn` over every item, `limit` at a time, in order of `items`; the first failure fails it all. */
+export async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
   const out: R[] = new Array(items.length);
   let next = 0;
   const worker = async () => {

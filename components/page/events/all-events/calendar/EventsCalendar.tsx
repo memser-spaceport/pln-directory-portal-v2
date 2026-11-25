@@ -20,6 +20,8 @@ export interface EventsCalendarProps {
   mode: CalMode;
   onModeChange: (mode: CalMode) => void;
   goingUids: Set<string>;
+  /** The events that have ended (LAB-3418). */
+  pastUids: Set<string>;
   highlightUid: string | null;
   onOpen: (uid: string) => void;
   onPrepare: (uid: string) => void;
@@ -27,8 +29,9 @@ export interface EventsCalendarProps {
 
 /**
  * The All Events Calendar view (LAB-3320): Week (the LabWeek 2023 schedule board) and Month (the events app's grid;
- * the default from 960px, LAB-3353), in one card with Today and previous / next. Days before today are greyed. The page keys it on its anchor, so a linked event or a new
- * city opens it afresh; which week or month is showing is the calendar's own state.
+ * the default from 960px, LAB-3353), in one card with Today and previous / next. Days before today are greyed. The page
+ * keys it on its anchor, so a linked event or a new city opens it afresh; which week or month is showing is the
+ * calendar's own state. A linked past event comes later (LAB-3418): it moves the calendar unless the visitor has.
  */
 export function EventsCalendar({
   events,
@@ -37,6 +40,7 @@ export function EventsCalendar({
   mode,
   onModeChange,
   goingUids,
+  pastUids,
   highlightUid,
   onOpen,
   onPrepare,
@@ -44,12 +48,23 @@ export function EventsCalendar({
   // On the anchor itself, also when its week or month is quiet (LAB-3353: the calendar opens at today).
   const [day, setDay] = useState(anchorIso);
   const [month, setMonth] = useState<MonthRef>(() => monthOf(anchorIso));
+  const [anchor, setAnchor] = useState(anchorIso);
+  const [moved, setMoved] = useState(false);
+  if (anchorIso !== anchor) {
+    setAnchor(anchorIso);
+    if (!moved) {
+      setDay(anchorIso);
+      setMonth(monthOf(anchorIso));
+    }
+  }
 
   const goToday = () => {
+    setMoved(true);
     setDay(todayIso);
     setMonth(monthOf(todayIso));
   };
   const step = (delta: number) => {
+    setMoved(true);
     if (mode === 'month') setMonth((m) => stepMonth(m, delta));
     else setDay((d) => addDays(d, 7 * delta));
   };
@@ -60,13 +75,14 @@ export function EventsCalendar({
     onModeChange(next);
   };
   const openWeek = (isoDay: string) => {
+    setMoved(true);
     setDay(isoDay);
     onModeChange('week');
   };
 
   const monday = mondayOf(day);
   const unit = mode === 'month' ? 'month' : 'week';
-  const cards = { goingUids, highlightUid, onOpen, onPrepare };
+  const cards = { goingUids, pastUids, highlightUid, onOpen, onPrepare };
 
   return (
     <div className={k.frame} data-testid="events-calendar">

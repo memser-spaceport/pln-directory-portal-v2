@@ -7,9 +7,18 @@ import s from './AllEventsPage.module.scss';
 
 /**
  * Up to 3 faces and "N going", when the event shows its attendance and someone goes (LAB-3353): on List cards, Near you
- * tiles, Week cards and the map's rows. Nothing at 0, or when the event hides attendance (`goingCount` null).
+ * tiles, Week cards and the map's rows. "N went" for a past event (LAB-3418). Nothing at 0, or when the event hides
+ * attendance (`goingCount` null).
  */
-export function GoingFaces({ item, className }: { item: AllEventsItem; className?: string }) {
+export function GoingFaces({
+  item,
+  past = false,
+  className,
+}: {
+  item: AllEventsItem;
+  past?: boolean;
+  className?: string;
+}) {
   const count = item.goingCount ?? 0;
   if (count === 0) return null;
   return (
@@ -21,7 +30,9 @@ export function GoingFaces({ item, className }: { item: AllEventsItem; className
           ))}
         </span>
       )}
-      <span className={s.cardCount}>{count} going</span>
+      <span className={s.cardCount}>
+        {count} {past ? 'went' : 'going'}
+      </span>
     </span>
   );
 }

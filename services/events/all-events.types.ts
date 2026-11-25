@@ -1,9 +1,10 @@
 import type { EventAccess, EventMode, EventPersonResponse } from './event-drawer.types';
 
 /**
- * One upcoming event as every part of the All Events page reads it (LAB-3247, design D2): the List, Near you, Browse
+ * One event as every part of the All Events page reads it (LAB-3247, design D2): the List, Near you, Browse
  * by city and, later, the Calendar and the Map. Shaped once on the server from `GET /v1/irl/events/upcoming` and
- * `GET /v1/irl/events/:uid`; no field depends on the viewer, so the list is cached for everyone.
+ * `GET /v1/irl/events/:uid` (a past one from `GET /v1/irl/events`, LAB-3418); no field depends on the viewer, so the
+ * list is cached for everyone.
  */
 export interface AllEventsItem {
   uid: string;

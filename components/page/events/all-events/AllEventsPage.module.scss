@@ -485,13 +485,34 @@
 
   @include media.mobile-only {
     margin-top: 20px;
-    position: static;
+    position: relative;
+    top: auto;
+    z-index: auto;
     padding-bottom: 0;
     border-bottom: none;
   }
 }
 
+/* The When switch and Past's year, or the Calendar's title: as tall as the switch in each, and wide enough for the
+   switch with a year beside it, so the bar is the same on every tab and in every view (LAB-3418). On phones it fills
+   the row, with a second one under it for the year and Embed. */
 .toolbarStart {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 384px;
+  min-height: 34px;
+
+  @include media.mobile-only {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    min-width: 0;
+    min-height: 74px;
+  }
+}
+
+.toolbarHeading {
   display: flex;
   align-items: baseline;
   gap: 8px;
@@ -517,6 +538,12 @@
   display: flex;
   align-items: center;
   gap: 8px;
+
+  @include media.mobile-only {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+  }
 }
 
 /* Embed: with `filtersBtn`, the same bordered control, shown at every width (the phone bar has no room). */
@@ -641,6 +668,71 @@
   background: var(--background-base-white, #ffffff);
   color: var(--foreground-neutral-primary, #0a0c11);
   box-shadow: var(--shadow-sm, 0px 1px 2px 0px rgba(14, 15, 17, 0.06), 0px 1px 3px 0px rgba(14, 15, 17, 0.12));
+}
+
+/* Live & upcoming | Past (LAB-3418, the prototype's When switch): the tabs above with a count in each. Phones: equal
+   halves of the whole row, so the year goes under the switch and moves nothing; a label never wraps. */
+.whenSwitch {
+  @include media.mobile-only {
+    flex: 1 1 100%;
+  }
+}
+
+.scopeBtn.scopeBtn {
+  gap: 0;
+  padding: 0 12px;
+
+  @include media.mobile-only {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+}
+
+/* The design system's badge: full round, its neutral-subtle ground, 12/16 500 in secondary ink. */
+.scopeCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* The room of a three-digit badge, so Past's count moves nothing when it comes. */
+.scopeSlot {
+  display: inline-flex;
+  min-width: 41px;
+}
+
+/* Past's year (LAB-3418): SortDropdown dressed as the Filters button (32px, muted border, primary ink, grey caret).
+   Doubled class beats the trigger's own. */
+.yearPicker.yearPicker {
+  height: 32px;
+  padding: 0 10px 0 12px;
+  gap: 6px;
+  border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  font-family: inherit;
+  letter-spacing: normal;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  svg {
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
 }
 
 /* Phones and tablets: the directory's Filters pill + sheet; it hides itself from 1024px. */

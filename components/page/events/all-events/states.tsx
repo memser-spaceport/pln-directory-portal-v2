@@ -18,12 +18,16 @@ export function EventsSkeleton() {
   );
 }
 
-/** Copy from the prototype's Empty. */
-export function EventsEmpty({ onClear }: { onClear: () => void }) {
+/** Copy from the prototype's Empty; `past` on Past (LAB-3418). */
+export function EventsEmpty({ past = false, onClear }: { past?: boolean; onClear: () => void }) {
   return (
     <div className={s.empty}>
-      <p className={s.emptyTitle}>No live or upcoming events match</p>
-      <p className={s.emptyText}>Try another search or filter, or see everything coming up.</p>
+      <p className={s.emptyTitle}>{past ? 'No past events match' : 'No live or upcoming events match'}</p>
+      <p className={s.emptyText}>
+        {past
+          ? 'Try another search or filter, or see every past event.'
+          : 'Try another search or filter, or see everything coming up.'}
+      </p>
       <Button style="border" variant="neutral" size="s" onClick={onClear}>
         Show all events
       </Button>

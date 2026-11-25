@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import { GlobeIcon } from '@/components/icons';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { EventImage } from '@/components/page/events/EventImage/EventImage';
-import { GoingPill } from '@/components/page/events/GoingPill/GoingPill';
+import { GoingPill, WENT_LABEL } from '@/components/page/events/GoingPill/GoingPill';
 import { dayOfSpan, whenLine } from '@/services/events/all-events.filters';
 import { ACCESS_COPY, eventPlace } from '@/services/events/event-facts';
 import type { AllEventsItem } from '@/services/events/all-events.types';
@@ -52,16 +52,29 @@ function Hosts({ item, ellipsis }: { item: AllEventsItem; ellipsis?: boolean }) 
 /**
  * The Going pill, the faces and count when the event shows attendance, then how you get in when it isn't the usual
  * RSVP: a glyph and a word in the meta ink, not a badge (prototype, 2026-11-17). On a tile the pill leaves the
- * foot for the picture, except on phones (`.tilePill`).
+ * foot for the picture, except on phones (`.tilePill`). On Past (LAB-3418) the pill reads "Went", the count "N went",
+ * and how you got in no longer matters.
  */
-function EventFoot({ item, going, onTile }: { item: AllEventsItem; going: boolean; onTile?: boolean }) {
+function EventFoot({
+  item,
+  going,
+  past = false,
+  onTile,
+}: {
+  item: AllEventsItem;
+  going: boolean;
+  past?: boolean;
+  onTile?: boolean;
+}) {
   const count = item.goingCount ?? 0;
-  const access = item.access && item.access !== 'FREE w/ RSVP' ? item.access : null;
+  const access = !past && item.access && item.access !== 'FREE w/ RSVP' ? item.access : null;
   if (!going && count === 0 && !access) return null;
   return (
     <span className={s.cardFoot}>
-      {going && <GoingPill onImage={onTile} className={onTile ? s.tilePill : undefined} />}
-      <GoingFaces item={item} />
+      {going && (
+        <GoingPill label={past ? WENT_LABEL : undefined} onImage={onTile} className={onTile ? s.tilePill : undefined} />
+      )}
+      <GoingFaces item={item} past={past} />
       {access && (
         <span className={s.cardAccess}>
           {count > 0 && <span aria-hidden>·</span>}
@@ -78,11 +91,20 @@ export function EventCard({
   item,
   day,
   going,
+  past = false,
   live,
   highlighted,
   onOpen,
   onPrepare,
-}: { item: AllEventsItem; day: string; going: boolean; live: boolean; highlighted: boolean } & EventPress) {
+}: {
+  item: AllEventsItem;
+  day: string;
+  /** The viewer is going; on Past, they went. */
+  going: boolean;
+  past?: boolean;
+  live: boolean;
+  highlighted: boolean;
+} & EventPress) {
   const when = [`${item.startTime} ${item.zone}`, dayOfSpan(item, day)].filter(Boolean).join(' · ');
   return (
     <button
@@ -109,7 +131,7 @@ export function EventCard({
             <Place item={item} />
           </span>
         )}
-        <EventFoot item={item} going={going} />
+        <EventFoot item={item} going={going} past={past} />
       </span>
       <EventImage src={item.picture} className={s.thumb} />
     </button>

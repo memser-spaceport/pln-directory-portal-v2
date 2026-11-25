@@ -1,11 +1,15 @@
 import React from 'react';
 import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { hydrateRoot } from 'react-dom/client';
 
 import { AllEventsPage, type AllEventsPageProps } from '@/components/page/events/all-events/AllEventsPage';
 import { useAllEventsFilterStore } from '@/services/events/all-events-filters.store';
 import type { AllEventsItem } from '@/services/events/all-events.types';
 import { allEventsItem as item } from '@/services/events/all-events.fixtures';
+
+// The Node build, which the server runs; jsdom would resolve the browser build, which needs MessageChannel.
+const { renderToString } = require('react-dom/server.node');
 
 /*
  * LAB-3247 slice A (LAB-3317): the native All Events page. Header, Near you / Add location, Browse by city and the city
@@ -162,6 +166,7 @@ function renderPage(over: Partial<AllEventsPageProps> = {}, url = '/events/all')
       signedIn={false}
       viewerUid={null}
       memberCity={undefined}
+      serverNow={Date.now()}
       serverTodayIso="2030-12-01"
       submitHref="https://irl.example/auth/labos?returnUrl=%2Fevents%2Fadd"
       {...over}
@@ -226,7 +231,7 @@ describe('header and List', () => {
 
   it('moves a card’s count when the viewer says they are going or not, though the list is cached', () => {
     going.uids = [];
-    const props = { ...signedIn('Berlin'), result: { ok: true as const, items: sample() } };
+    const props = { ...signedIn('Berlin'), serverNow: Date.now(), result: { ok: true as const, items: sample() } };
     const { rerender } = render(
       <AllEventsPage {...props} serverTodayIso="2030-12-01" submitHref="https://irl.example/submit" />,
     );
@@ -246,6 +251,189 @@ describe('header and List', () => {
     renderPage(signedIn('Berlin'));
     expect(within(card('DAI Summit')).getByText('Going')).toBeInTheDocument();
     expect(screen.getAllByText('Going')).toHaveLength(1);
+  });
+});
+
+describe('the Live pill (LAB-3425)', () => {
+  // The clock is 10:00 in the zone the tests run in, so these are built from instants around it.
+  const iso = (minutes: number) => new Date(Date.now() + minutes * 60_000).toISOString();
+  const day = { startDay: '2030-12-01', endDay: '2030-12-01' };
+  const around = () => [
+    item({ uid: 'now', name: 'On now', startDate: iso(-30), endDate: iso(1.5), ...day }),
+    item({ uid: 'soon', name: 'Starts soon', startDate: iso(1), endDate: iso(90), ...day }),
+    item({
+      uid: 'fest',
+      name: 'Festival',
+      startDate: iso(-3000),
+      endDate: iso(3000),
+      startDay: '2030-11-29',
+      endDay: '2030-12-03',
+    }),
+  ];
+  let hydrated: { container: HTMLElement; root?: ReturnType<typeof hydrateRoot> } | null = null;
+  afterEach(() => {
+    act(() => hydrated?.root?.unmount());
+    hydrated?.container.remove();
+    hydrated = null;
+    jest.restoreAllMocks();
+  });
+  const live = () =>
+    screen.queryAllByText('Live').map((el) => el.closest('[data-event-uid]')?.getAttribute('data-event-uid'));
+  const render3 = (over: Partial<AllEventsPageProps> = {}, url?: string) =>
+    renderPage({ result: { ok: true, items: around() }, ...over }, url);
+
+  it('starts the time line of the cards under way, and only theirs', () => {
+    render3();
+    expect(live().sort()).toEqual(['fest', 'now']);
+    const line = within(card('On now')).getByText('Live').parentElement as HTMLElement;
+    expect(line).toHaveTextContent(/^Live 9:00 AM UTC\+0$/);
+    expect(within(card('Festival')).getByText('Live').parentElement).toHaveTextContent(
+      /^Live 9:00 AM UTC\+0 · Day 3 of 5$/,
+    );
+    // A screen reader hears the word apart from the time.
+    expect(screen.getByRole('button', { name: /^Live 9:00 AM UTC\+0 ?On now/ })).toBeInTheDocument();
+  });
+
+  it('starts the time line of a Near you tile under way', () => {
+    render3(signedIn('Lisbon'));
+    const near = screen.getByRole('region', { name: 'Near you in Lisbon' });
+    const tile = (uid: string) => near.querySelector(`[data-event-uid="${uid}"]`) as HTMLElement;
+    expect(within(tile('now')).getByText('Live').parentElement).toHaveTextContent(/^Live Today · 9:00 AM$/);
+    expect(within(tile('fest')).getByText('Live').parentElement).toHaveTextContent(/^Live Today · Day 3 of 5$/);
+    expect(within(tile('soon')).queryByText('Live')).toBeNull();
+  });
+
+  it('shows in the embed’s List too', () => {
+    render3({ embed: true }, '/events/embed');
+    expect(live().sort()).toEqual(['fest', 'now']);
+  });
+
+  it('appears at the start and goes at the end while the page stays open', () => {
+    render3();
+    expect(live().sort()).toEqual(['fest', 'now']);
+    act(() => jest.advanceTimersByTime(59_999));
+    expect(live().sort()).toEqual(['fest', 'now']);
+    act(() => jest.advanceTimersByTime(1));
+    expect(live().sort()).toEqual(['fest', 'now', 'soon']);
+    // "On now" ends at half past the minute; its pill goes on the next one, the card stays.
+    act(() => jest.advanceTimersByTime(60_000));
+    expect(live().sort()).toEqual(['fest', 'soon']);
+    expect(card('On now')).toBeInTheDocument();
+  });
+
+  it('ticks on the minute, whenever in the minute the page opened', () => {
+    jest.setSystemTime(new Date('2030-12-01T10:00:40'));
+    const items = [item({ uid: 'top', name: 'Top of the minute', startDate: iso(20 / 60), endDate: iso(90), ...day })];
+    renderPage({ result: { ok: true, items } });
+    act(() => jest.advanceTimersByTime(19_999));
+    expect(live()).toEqual([]);
+    act(() => jest.advanceTimersByTime(1));
+    expect(live()).toEqual(['top']);
+  });
+
+  it('shows the page when the browser does not know an event’s zone', () => {
+    const [, , fest] = around();
+    renderPage({ result: { ok: true, items: [{ ...fest, timezone: 'Mars/Olympus_Mons' }] } });
+    expect(live()).toEqual(['fest']);
+  });
+
+  it('listens to the tab only while it is open', () => {
+    const add = jest.spyOn(document, 'addEventListener');
+    const remove = jest.spyOn(document, 'removeEventListener');
+    const handlers = (spy: jest.SpyInstance) =>
+      spy.mock.calls.filter(([type]) => type === 'visibilitychange').map(([, handler]) => handler);
+    const { unmount } = render3();
+    const added = handlers(add);
+    expect(added.length).toBeGreaterThan(0);
+    unmount();
+    expect(new Set(handlers(remove))).toEqual(new Set(added));
+  });
+
+  it('is right as soon as a hidden tab is shown again', () => {
+    render3();
+    jest.setSystemTime(Date.now() + 5 * 60_000);
+    expect(live().sort()).toEqual(['fest', 'now']);
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    expect(live().sort()).toEqual(['fest', 'soon']);
+  });
+
+  it('runs one timer for the whole list, and stops it on leaving', () => {
+    const before = jest.getTimerCount();
+    const one = renderPage({ result: { ok: true, items: around().slice(0, 1) } });
+    const withOne = jest.getTimerCount();
+    one.unmount();
+    expect(jest.getTimerCount()).toBe(before);
+    render3();
+    expect(jest.getTimerCount()).toBe(withOne);
+  });
+
+  it('hydrates the server’s HTML without a mismatch, then follows the browser’s clock', async () => {
+    window.history.replaceState(null, '', '/events/all');
+    const page = (
+      <AllEventsPage
+        result={{ ok: true, items: around() }}
+        signedIn={false}
+        viewerUid={null}
+        memberCity={undefined}
+        serverNow={Date.now()}
+        serverTodayIso="2030-12-01"
+        submitHref="https://irl.example/submit"
+      />
+    );
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(page);
+    document.body.appendChild(container);
+    hydrated = { container };
+    expect(live().sort()).toEqual(['fest', 'now']);
+
+    // The HTML reaches the browser five minutes later: "On now" is over and "Starts soon" has started.
+    jest.setSystemTime(Date.now() + 5 * 60_000);
+    const onRecoverableError = jest.fn();
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    await act(async () => {
+      hydrated = { container, root: hydrateRoot(container, page, { onRecoverableError }) };
+    });
+    expect(onRecoverableError).not.toHaveBeenCalled();
+    expect(consoleError.mock.calls.filter(([message]) => /hydrat/i.test(String(message)))).toEqual([]);
+    expect(live().sort()).toEqual(['fest', 'soon']);
+  });
+});
+
+describe('the switches are tabs (LAB-3425)', () => {
+  const tabs = (name: string) =>
+    within(screen.getByRole('tablist', { name }))
+      .getAllByRole('tab')
+      .map((tab) => [tab.textContent, tab.tagName, tab.getAttribute('aria-selected')]);
+
+  it('keeps the roles, names and selection of List | Calendar and Week | Month', () => {
+    renderPage();
+    expect(tabs('View')).toEqual([
+      ['List', 'BUTTON', 'true'],
+      ['Calendar', 'BUTTON', 'false'],
+    ]);
+    fireEvent.click(screen.getByRole('tab', { name: 'Calendar' }));
+    expect(tabs('View')).toEqual([
+      ['List', 'BUTTON', 'false'],
+      ['Calendar', 'BUTTON', 'true'],
+    ]);
+    expect(tabs('Calendar mode')).toEqual([
+      ['Week', 'BUTTON', 'false'],
+      ['Month', 'BUTTON', 'true'],
+    ]);
+    // The toolbar keeps its title and count in Calendar.
+    expect(screen.getByRole('heading', { name: 'Coming up' })).toBeInTheDocument();
+    expect(toolbarCount()).toBe('11 events');
+  });
+
+  it('takes every tab in with the keyboard', () => {
+    renderPage({}, '/events/all?view=calendar');
+    screen.getAllByRole('tab').forEach((tab) => {
+      tab.focus();
+      expect(tab).toHaveFocus();
+      expect(tab.tabIndex).toBe(0);
+    });
   });
 });
 
@@ -315,7 +503,7 @@ describe('Near you', () => {
   it('shows on the plain List only: not in Calendar or Map, not with a filter (Polina, 2026-11-20; LAB-3375)', () => {
     const { unmount } = renderPage(signedIn('Lisbon'));
     expect(screen.getByRole('region', { name: 'Near you in Lisbon' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'All upcoming' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'All live & upcoming' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('tab', { name: /Calendar/ }));
     expect(screen.queryByRole('region', { name: 'Near you in Lisbon' })).toBeNull();
     expect(screen.queryByRole('heading', { name: 'Browse by city' })).toBeNull();
@@ -371,7 +559,7 @@ describe('Browse by city', () => {
 
     expect(screen.getByRole('heading', { name: 'Dubai' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Coming up in Dubai' })).toBeInTheDocument();
-    expect(screen.getByText(/1 upcoming event · Dec 10 · Times in Dubai time \(UTC\+0\)/)).toBeInTheDocument();
+    expect(screen.getByText(/1 live & upcoming event · Dec 10 · Times in Dubai time \(UTC\+0\)/)).toBeInTheDocument();
     expect(screen.queryByText('Lisbon event 1')).toBeNull();
     expect(storeParams().get('city')).toBe('Dubai');
     expect(analytics.onEventsCitySelected).toHaveBeenCalledWith({ city: 'Dubai', from: 'tile' });
@@ -487,7 +675,7 @@ describe('filters', () => {
 
   it('says nothing matches and clears the filters, keeping the open drawer', () => {
     renderPage({}, '/events/all?search=zzz&event=dai');
-    expect(screen.getByText('No upcoming events match')).toBeInTheDocument();
+    expect(screen.getByText('No live or upcoming events match')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Show all events' }));
     expect(storeParams().get('search')).toBeNull();
     expect(storeParams().get('event')).toBe('dai');
@@ -665,7 +853,7 @@ describe('Calendar', () => {
   it('shows the empty state with no match', () => {
     renderPage({}, '/events/all?view=calendar&search=zzz');
     expect(screen.queryByTestId('events-calendar')).toBeNull();
-    expect(screen.getByText('No upcoming events match')).toBeInTheDocument();
+    expect(screen.getByText('No live or upcoming events match')).toBeInTheDocument();
   });
 });
 
@@ -692,7 +880,7 @@ describe('review fixes', () => {
 
   it('gives the city header the dates of the events it counts', () => {
     renderPage({}, '/events/all?city=Lisbon&search=event%204');
-    expect(screen.getByText(/^1 upcoming event · Dec 4 · Times in Lisbon time/)).toBeInTheDocument();
+    expect(screen.getByText(/^1 live & upcoming event · Dec 4 · Times in Lisbon time/)).toBeInTheDocument();
   });
 
   it('opens the List for `?view=map` while there is no Map', () => {
@@ -754,10 +942,10 @@ describe('Embed dialog (LAB-3352, LAB-3365)', () => {
     expect(within(dialog()).getByText(/New events that match appear on their own/)).toBeInTheDocument();
   });
 
-  it('says "All upcoming events" with no filter, and copies the plain code', async () => {
+  it('says "All live & upcoming events" with no filter, and copies the plain code', async () => {
     renderPage();
     openDialog();
-    expect(within(dialog()).getByText('List view · All upcoming events')).toBeInTheDocument();
+    expect(within(dialog()).getByText('List view · All live & upcoming events')).toBeInTheDocument();
     await press('Copy code');
     expect(writeText).toHaveBeenCalledWith(
       `<iframe src="${window.location.origin}/events/embed" width="100%" height="640" style="border: 1px solid #e2e8f0; border-radius: 12px;" title="Protocol Labs events" allow="clipboard-write" loading="lazy"></iframe>`,
@@ -801,7 +989,7 @@ describe('Embed dialog (LAB-3352, LAB-3365)', () => {
   it('embeds the calendar mode on show when the address has none', () => {
     renderPage({}, '/events/all?view=calendar');
     openDialog();
-    expect(within(dialog()).getByText('Month calendar · All upcoming events')).toBeInTheDocument();
+    expect(within(dialog()).getByText('Month calendar · All live & upcoming events')).toBeInTheDocument();
     expect(preview()).toHaveAttribute('src', '/events/embed?view=calendar&cal=month');
   });
 
@@ -986,7 +1174,7 @@ describe('the embed (LAB-3352)', () => {
 
   it('shows the empty state when nothing matches, and the error state when the events fail', () => {
     const { unmount } = renderPage({ embed: true }, '/events/embed?search=nothing-matches');
-    expect(screen.getByText('No upcoming events match')).toBeInTheDocument();
+    expect(screen.getByText('No live or upcoming events match')).toBeInTheDocument();
     unmount();
     renderPage({ embed: true, result: { ok: false } }, '/events/embed');
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();

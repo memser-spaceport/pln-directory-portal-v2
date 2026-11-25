@@ -595,20 +595,24 @@
   }
 }
 
-// On the grey page the switch is a white track with the card border; the active tab is the grey.
+/* The design system's Tabs, "enclosed" variant (LAB-3425), transcribed from pl-design-system/components/Tabs, which
+   this app cannot import: a grey track with 4px padding and gap, 6px-radius tabs in label-sm, white on hover, the active
+   one white with shadow-sm. Two deviations (LAB-3424 section 6): the track is transparent-dark-6, because the DS track's
+   background-neutral-subtle is this page's own grey; and a tab is 26px tall (track 34px), not the DS md 40px, to sit
+   level with the 32px Filters and Embed buttons. The calendar's Week | Month is the same, in Calendar.module.scss. */
 .viewSwitch {
   display: inline-flex;
-  padding: 2px;
-  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  gap: 4px;
+  padding: 4px;
   border-radius: 8px;
-  background: var(--background-base-white, #ffffff);
+  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
 }
 
 .viewBtn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 28px;
+  height: 26px;
   padding: 0 12px 0 10px;
   border: none;
   border-radius: 6px;
@@ -617,17 +621,26 @@
   font-size: 14px;
   line-height: 20px;
   font-weight: 500;
+  letter-spacing: -0.2px;
   color: var(--foreground-neutral-secondary, #455468);
+  white-space: nowrap;
   cursor: pointer;
+  transition: all 120ms;
 
   &:hover {
-    color: var(--foreground-neutral-primary, #0a0c11);
+    background: var(--background-base-white, #ffffff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
   }
 }
 
 .viewBtnActive {
-  background: var(--background-neutral-subtle, #f1f5f9);
+  background: var(--background-base-white, #ffffff);
   color: var(--foreground-neutral-primary, #0a0c11);
+  box-shadow: var(--shadow-sm, 0px 1px 2px 0px rgba(14, 15, 17, 0.06), 0px 1px 3px 0px rgba(14, 15, 17, 0.12));
 }
 
 /* Phones and tablets: the directory's Filters pill + sheet; it hides itself from 1024px. */
@@ -912,14 +925,22 @@
 
 /* ---------- List (Luma's events list, 2026-11-17) ----------
    A date column (day over weekday, sticky while its events scroll), a dotted timeline with a
-   dot per day, and the day's cards beside it. The column is capped so cards stay card-sized
-   on a wide page, left-aligned with everything else. */
+   dot per day, and the day's cards beside it. */
+
+// On desktop the cards end at the right edge of the 4th Browse by city tile: 4 of `.cityRow`'s 5 columns and the 3 gaps
+// between them (LAB-3424 section 7). Below 1200px, where that row has 3 columns, they fill the width.
+@mixin list-width {
+  @include media.desktop {
+    max-width: calc((100% - 4 * 12px) * 4 / 5 + 3 * 12px);
+  }
+}
 
 .timeline {
-  max-width: 880px;
   margin: 0;
   padding: 0;
   list-style: none;
+
+  @include list-width;
 }
 
 .day {
@@ -974,8 +995,10 @@
   display: flex;
   flex-direction: column;
   margin: 0;
-  font-size: 16px;
-  line-height: 24px;
+  // 14/20, the cards' time line: at 16/24 a date read as another section title (LAB-3424). The 20px line is also centred
+  // on the timeline's dot.
+  font-size: 14px;
+  line-height: 20px;
   font-weight: 600;
   color: var(--foreground-neutral-primary, #0a0c11);
 
@@ -1065,6 +1088,22 @@
   line-height: 20px;
   font-weight: 500;
   color: var(--foreground-neutral-secondary, #455468);
+}
+
+// The AI Apps deploy status pill (DeploymentLogsModal `.status.statusLive`, LAB-3424 section 4), in the flow of the 14/20
+// time line and nudged onto its middle, so on a narrow card the time wraps beside it.
+.livePill {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: var(--foreground-success-primary, #0a9952);
+  background: var(--background-success-subtle, rgba(10, 153, 82, 0.08));
+  vertical-align: 1px;
 }
 
 .cardTitle {
@@ -1216,8 +1255,9 @@
   display: grid;
   grid-template-columns: 140px minmax(0, 1fr);
   column-gap: 32px;
-  max-width: 880px;
   padding-bottom: 24px;
+
+  @include list-width;
 
   @include media.mobile-only {
     grid-template-columns: minmax(0, 1fr);
@@ -1296,7 +1336,7 @@
   margin-top: 0;
 }
 
-// "All upcoming" / "Matching events": the dated list's own heading, a section title like the bands'.
+// "All live & upcoming" / "Matching events": the dated list's own heading, a section title like the bands'.
 .listHeading.listHeading {
   margin: 32px 0 12px;
 }

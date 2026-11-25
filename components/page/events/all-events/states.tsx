@@ -22,7 +22,7 @@ export function EventsSkeleton() {
 export function EventsEmpty({ onClear }: { onClear: () => void }) {
   return (
     <div className={s.empty}>
-      <p className={s.emptyTitle}>No upcoming events match</p>
+      <p className={s.emptyTitle}>No live or upcoming events match</p>
       <p className={s.emptyText}>Try another search or filter, or see everything coming up.</p>
       <Button style="border" variant="neutral" size="s" onClick={onClear}>
         Show all events

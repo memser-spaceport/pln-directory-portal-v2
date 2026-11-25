@@ -1,20 +1,19 @@
 'use client';
 
-import { FormField } from '@/components/form/FormField';
+import { EVENT_FORM_TEXT } from '@/services/events/event-form';
 
-import { useEventFormContext } from './EventFormContext';
+import { LinkField } from './LinkField';
 import s from './EventForm.module.scss';
 
 /** The registration link: where people sign up for the event. Optional. */
 export function RegistrationSection() {
-  const { busy } = useEventFormContext();
   return (
     <section className={s.section} data-section="registration">
-      <FormField
+      <LinkField
         name="registrationUrl"
         label="Registration Link"
         placeholder="Enter Registration Link"
-        disabled={busy}
+        invalidMessage={EVENT_FORM_TEXT.registrationInvalid}
       />
     </section>
   );

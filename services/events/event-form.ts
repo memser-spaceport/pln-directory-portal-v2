@@ -48,6 +48,9 @@ export const SOCIAL_PLATFORMS: { value: string; label: string }[] = [
 
 export const EVENT_NAME_MAX = 100;
 
+/** The longest link the API takes. */
+export const EVENT_LINK_MAX = 2048;
+
 /** What the UI calls each backend status. `PENDING` reads "Submitted". */
 export const EVENT_STATUS_LABEL: Record<EventStatus, string> = {
   DRAFT: 'Draft',

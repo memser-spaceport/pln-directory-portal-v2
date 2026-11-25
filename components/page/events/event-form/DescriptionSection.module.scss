@@ -1,3 +1,11 @@
+/* The editor is white like the other fields; on its own it shows the grey page through it. */
+.editor {
+  :global(.ql-toolbar),
+  :global(.ql-container) {
+    background: var(--background-base-white, #ffffff);
+  }
+}
+
 /* The hint is a button, so the agenda box opens from the keyboard as well as from the typed command. */
 .hint {
   align-self: flex-start;

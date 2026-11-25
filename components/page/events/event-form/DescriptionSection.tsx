@@ -75,6 +75,7 @@ export function DescriptionSection() {
             name="description"
             label="Description"
             placeholder="Enter description"
+            className={c.editor}
             simplified
             toolbarConfig={TOOLBAR}
             enableMentions={false}

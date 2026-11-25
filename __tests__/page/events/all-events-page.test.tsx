@@ -465,6 +465,20 @@ describe('filters', () => {
     expect(storeParams().get('host')).toBeNull();
   });
 
+  it('Access type offers "RSVP", and an old ?access=Free link shows an RSVP chip (LAB-3407)', () => {
+    const items = [item({ uid: 'a', name: 'Open night', access: 'FREE w/ RSVP' }), item({ uid: 'b', access: 'PAID' })];
+    renderPage({ result: { ok: true, items } }, '/events/all?access=Free');
+    expect(toolbarCount()).toBe('1 event');
+    expect(screen.getByText('Open night')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remove filter RSVP' })).toBeInTheDocument();
+    // The card names how you get in only when it isn't the usual RSVP.
+    expect(screen.queryByText('RSVP to save your spot')).toBeNull();
+    fireEvent.click(filtersDoor());
+    const rail = document.getElementById('events-filters') as HTMLElement;
+    expect(within(rail).getByText('RSVP')).toBeInTheDocument();
+    expect(within(rail).queryByText('Free')).toBeNull();
+  });
+
   it('a focus area chip shows the name and the link keeps the code (LAB-3404)', () => {
     renderPage({}, '/events/all?focus=FA4');
     fireEvent.click(screen.getByRole('button', { name: 'Remove filter Neurotech' }));

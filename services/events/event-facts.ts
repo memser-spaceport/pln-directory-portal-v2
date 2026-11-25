@@ -16,9 +16,13 @@ export function eventPlace(
   return where ? { text: where, online: false } : null;
 }
 
-/** How you get in, as words: the short label, and what it means for the guest (`event-drawer-redesign/AccessIcon`). */
-export const ACCESS_COPY: Record<EventAccess, { main: string; sub: string }> = {
+/**
+ * How you get in, as words: the short label, and what it means for the guest (`event-drawer-redesign/AccessIcon`).
+ * The events service's `OPEN` is one line and never "Free" (LAB-3407): it means "open to all" as much as "free", so it
+ * does not say that an event costs nothing.
+ */
+export const ACCESS_COPY: Record<EventAccess, { main: string; sub: string | null }> = {
   'INVITE ONLY': { main: 'Invite only', sub: 'The hosts approve each guest' },
   PAID: { main: 'Paid', sub: "Tickets on the host's site" },
-  'FREE w/ RSVP': { main: 'Free', sub: 'RSVP to save your spot' },
+  'FREE w/ RSVP': { main: 'RSVP to save your spot', sub: null },
 };

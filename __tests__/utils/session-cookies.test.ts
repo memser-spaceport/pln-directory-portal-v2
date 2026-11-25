@@ -66,6 +66,19 @@ describe('LabOS session cookie helpers', () => {
     }
   });
 
+  it('also expires authToken on a parent of COOKIE_DOMAIN (dev.os.pl.xyz still held the .os.pl.xyz copy)', () => {
+    process.env.COOKIE_DOMAIN = 'dev.os.pl.xyz';
+    process.env.AI_APPS_SHARE_AUTH_TOKEN = 'false';
+    try {
+      setSessionCookie('authToken', '"jwt"', { expires: EXPIRES });
+      expect(mockedCookies.remove).toHaveBeenCalledWith('authToken', { path: '/', domain: 'dev.os.pl.xyz' });
+      expect(mockedCookies.remove).toHaveBeenCalledWith('authToken', { path: '/', domain: 'os.pl.xyz' });
+      expect(mockedCookies.set).toHaveBeenCalledWith('authToken', '"jwt"', { ...FLAGS, expires: EXPIRES });
+    } finally {
+      delete process.env.AI_APPS_SHARE_AUTH_TOKEN;
+    }
+  });
+
   it('touches no domain when COOKIE_DOMAIN is empty (local dev)', () => {
     process.env.COOKIE_DOMAIN = '';
 

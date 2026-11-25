@@ -103,6 +103,15 @@ The `authToken` cookie SHALL be host-only on LabOS's own origin unless `AI_APPS_
 - **WHEN** the `authToken` cookie is written
 - **THEN** it has no `Domain` attribute, and deployed AI App subdomains never receive it
 - **AND** any copy of it already on `COOKIE_DOMAIN` is expired
+- **AND** any copy on a wider parent of `COOKIE_DOMAIN` is expired too (for example `.os.pl.xyz` when `COOKIE_DOMAIN` is `dev.os.pl.xyz`)
+
+#### Scenario: Old shared copy sits on a wider domain
+
+- **GIVEN** a signed-in member whose `authToken` is still on a wider parent of `COOKIE_DOMAIN`
+- **AND** the session marker already records the previous host-only layout
+- **WHEN** they load any LabOS page
+- **THEN** they stay signed in
+- **AND** the copies on `COOKIE_DOMAIN` and on that wider parent are expired
 
 ### Requirement: Browser can tell a session exists without the refresh token
 

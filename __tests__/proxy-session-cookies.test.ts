@@ -115,7 +115,7 @@ describe('proxy: host-only refreshToken/userInfo (authToken shared, AI_APPS_SHAR
         }),
         expect.objectContaining({
           name: 'sessionScope',
-          value: encodeURIComponent('host:2'),
+          value: encodeURIComponent('host:3'),
           domain: undefined,
           expired: false,
         }),
@@ -150,7 +150,7 @@ describe('proxy: host-only refreshToken/userInfo (authToken shared, AI_APPS_SHAR
   it('does nothing to cookies once the session is already host-only', async () => {
     mockedCheck.mockResolvedValue({ active: true });
 
-    const res = await proxy(request('/home', { ...SESSION, sessionScope: 'host:2' }));
+    const res = await proxy(request('/home', { ...SESSION, sessionScope: 'host:3' }));
 
     expectSignedIn(res!);
     expect(setCookies(res!)).toEqual([]);
@@ -349,14 +349,41 @@ describe('proxy: AI_APPS_SHARE_AUTH_TOKEN=false (LabOS stops sharing authToken)'
           expired: false,
         }),
         expect.objectContaining({ name: 'authToken', domain: DOMAIN, expired: true }),
-        expect.objectContaining({ name: 'sessionScope', value: encodeURIComponent('host-all:2') }),
+        expect.objectContaining({ name: 'sessionScope', value: encodeURIComponent('host-all:3') }),
+      ]),
+    );
+  });
+
+  it('expires an authToken left on a parent of COOKIE_DOMAIN when the marker is already host-all:2', async () => {
+    process.env.COOKIE_DOMAIN = 'dev.os.pl.xyz';
+    mockedCheck.mockResolvedValue({ active: true });
+
+    const res = await proxy(
+      request('/home', { ...SESSION, sessionScope: 'host-all:2' }, 'https://directoryv2.dev.os.pl.xyz'),
+    );
+    const cookies = setCookies(res!);
+    const expired = cookies.filter((c) => c.expired).map((c) => [c.name, c.domain]);
+
+    expectSignedIn(res!);
+    for (const name of ['authToken', 'refreshToken', 'userInfo']) {
+      expect(expired).toEqual(
+        expect.arrayContaining([
+          [name, 'dev.os.pl.xyz'],
+          [name, 'os.pl.xyz'],
+        ]),
+      );
+    }
+    expect(cookies).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'authToken', domain: undefined, expired: false }),
+        expect.objectContaining({ name: 'sessionScope', value: encodeURIComponent('host-all:3') }),
       ]),
     );
   });
 
   it('leaves an already fully host-only session alone', async () => {
     mockedCheck.mockResolvedValue({ active: true });
-    const res = await proxy(request('/home', { ...SESSION, sessionScope: 'host-all:2' }));
+    const res = await proxy(request('/home', { ...SESSION, sessionScope: 'host-all:3' }));
     expect(setCookies(res!)).toEqual([]);
   });
 

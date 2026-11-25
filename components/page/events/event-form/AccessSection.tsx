@@ -9,7 +9,7 @@ import type { EventFormValues } from '@/services/events/event-submission.types';
 import { useEventFormContext } from './EventFormContext';
 import s from './EventForm.module.scss';
 
-/** How people get in: one choice of "Free/Rsvp" (the default), "Paid" and "Invite Only". */
+/** How people get in: one choice of "Free/RSVP" (the default), "Paid" and "Invite Only". */
 export function AccessSection() {
   const { watch, setValue } = useFormContext<EventFormValues>();
   const { busy } = useEventFormContext();

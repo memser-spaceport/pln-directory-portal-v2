@@ -31,12 +31,12 @@ The form SHALL show, top to bottom: the access option, the registration link, th
 
 ### Requirement: Access option
 
-The access option SHALL be one choice of "Free/Rsvp", "Paid" and "Invite Only", and SHALL start as "Free/Rsvp".
+The access option SHALL be one choice of "Free/RSVP", "Paid" and "Invite Only", and SHALL start as "Free/RSVP".
 
 #### Scenario: Default access
 
 - **WHEN** a visitor opens the form
-- **THEN** the access option reads "Free/Rsvp"
+- **THEN** the access option reads "Free/RSVP"
 
 ### Requirement: Event logo
 

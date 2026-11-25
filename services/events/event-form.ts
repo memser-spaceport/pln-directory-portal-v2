@@ -24,7 +24,7 @@ import type {
 /* ---------- Options and texts ---------- */
 
 export const ACCESS_OPTIONS: { value: EventAccessOption; label: string }[] = [
-  { value: 'OPEN', label: 'Free/Rsvp' },
+  { value: 'OPEN', label: 'Free/RSVP' },
   { value: 'PAID', label: 'Paid' },
   { value: 'INVITE', label: 'Invite Only' },
 ];

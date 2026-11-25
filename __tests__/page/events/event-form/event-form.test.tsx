@@ -77,9 +77,9 @@ describe('sections', () => {
     expect(screen.getByText('Social Handles')).toBeInTheDocument();
   });
 
-  it('starts with "Free/Rsvp", "In Person" and the first tag', () => {
+  it('starts with "Free/RSVP", "In Person" and the first tag', () => {
     open();
-    expect(screen.getByRole('radio', { name: 'Free/Rsvp' })).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByRole('radio', { name: 'Free/RSVP' })).toHaveAttribute('aria-checked', 'true');
     expect(screen.getByRole('radio', { name: 'In Person' })).toHaveAttribute('aria-checked', 'true');
     expect(screen.getByPlaceholderText('Enter Venue Location')).toBeInTheDocument();
     expect(screen.queryByPlaceholderText('Enter Meeting Link')).toBeNull();

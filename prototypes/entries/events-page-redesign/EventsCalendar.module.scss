@@ -31,15 +31,19 @@
   }
 }
 
+/* Week | Month: the DS Tabs "enclosed" variant (2026-11-25), like the toolbar's switches. On this
+   white card the DS track (background-neutral-subtle) shows as designed, so no deviation but the
+   26px tab height the toolbar uses. */
 .modes {
   display: inline-flex;
-  padding: 2px;
+  gap: 4px;
+  padding: 4px;
   border-radius: 8px;
   background: var(--background-neutral-subtle, #f1f5f9);
 }
 
 .mode {
-  height: 28px;
+  height: 26px;
   padding: 0 12px;
   border: none;
   border-radius: 6px;
@@ -48,18 +52,20 @@
   font-size: 14px;
   line-height: 20px;
   font-weight: 500;
+  letter-spacing: -0.2px;
   color: var(--foreground-neutral-secondary, #455468);
   cursor: pointer;
+  transition: all 120ms;
 
   &:hover {
-    color: var(--foreground-neutral-primary, #0a0c11);
+    background: var(--background-base-white, #ffffff);
   }
 }
 
 .modeActive {
   background: var(--background-base-white, #ffffff);
   color: var(--foreground-neutral-primary, #0a0c11);
-  box-shadow: 0 0 0 1px var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  box-shadow: var(--shadow-sm, 0px 1px 2px 0px rgba(14, 15, 17, 0.06), 0px 1px 3px 0px rgba(14, 15, 17, 0.12));
 }
 
 .label {

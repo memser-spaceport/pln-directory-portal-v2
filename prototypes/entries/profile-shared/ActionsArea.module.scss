@@ -1,0 +1,152 @@
+@use 'styles/media';
+
+/* LAB-3383 "One actions area" — see ActionsArea.tsx. */
+
+/* The options stack: two grey insets, 12px apart (the inset's own rhythm
+   inside a section). */
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.option {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Title + line on the left, the press on the right, top-aligned with the
+   title (production's Office Hours row: description left, Schedule Meeting
+   right). Phone: stacked, the press full width. */
+.optionHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+}
+
+.optionText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.optionTitle {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* member-profile's `.ohLede` values: the line production's card opens with. */
+.optionLede {
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.optionPress {
+  flex-shrink: 0;
+  display: flex;
+
+  @include media.mobile-only {
+    > * {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+}
+
+.fullOnPhone {
+  @include media.mobile-only {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* The DS bordered press with a 16px glyph, 6px from its label (Schedule
+   Meeting's own glyph gap). */
+.secondaryPress {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+
+  @include media.mobile-only {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.pressGlyph {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Team: people who take office hours, one row each, a hairline between. */
+.people {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  &:last-child {
+    padding-bottom: 0;
+  }
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+}
+
+.personText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.personName {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.personRole {
+  font-weight: 400;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.personHelp {
+  margin: 0;
+  font-size: 12px;
+  line-height: 18px;
+  /* Secondary, not tertiary: tertiary at 12px falls under 4.5:1 on the grey inset. */
+  color: var(--foreground-neutral-secondary, #455468);
+}

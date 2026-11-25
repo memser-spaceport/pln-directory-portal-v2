@@ -45,6 +45,7 @@ import { BlueskyRailCard } from './BlueskyRailCard';
 import { ACTIVITY_SCENARIOS } from './activityMocks';
 
 import { PlTeamOnlyPill } from '../profile-shared/PlTeamOnlyPill';
+import { ActionsAreaCard, ActionsAreaOption, IntroOption } from '../profile-shared/ActionsArea';
 import { SuggestedRail, SUGGESTED_MEMBERS } from '../profile-shared/SuggestedRail';
 import { RequestIntroButton } from '../intro-shared/RequestIntroButton';
 import { useRequestIntro } from '../intro-shared/useRequestIntro';
@@ -125,9 +126,18 @@ export type AskAiOpens = 'view' | 'tab';
  *   badges      Follow + the contact press as a row under the badges.
  *   badges-bio  the same row, and the bio leaves the header for its own card.
  */
-export type ActionsAt = 'header' | 'bio' | 'sections' | 'badges' | 'badges-bio';
+/*   one         LAB-3383 (2026-11-24, the default): no Ask AI on the profile;
+ *               Follow (and an admin's Edit) alone in the header; one "Meet
+ *               <name>" card under the header holds both flows as separate
+ *               options — Office hours (its context: who, what they help
+ *               with, past bookings) with Schedule Meeting, and the intro via
+ *               the PL team with its one line. Replaces the Office Hours card.
+ *               See profile-shared/ActionsArea. */
+export type ActionsAt = 'one' | 'header' | 'header-bio' | 'bio' | 'sections' | 'badges' | 'badges-bio';
 export const ACTIONS_AT_OPTIONS: [ActionsAt, string][] = [
+  ['one', 'One actions area (LAB-3383)'],
   ['header', 'In header'],
+  ['header-bio', 'In header + Bio section'],
   ['bio', 'Under bio'],
   ['sections', 'In sections'],
   ['badges', 'Under badges'],
@@ -211,7 +221,17 @@ export function MemberProfilePage({
   const [hasOfficeHours, setHasOfficeHours] = useState(true);
   /* Where Follow and the contact press stand: the header cluster (the Sep 28
      decision, default) or a row under the bio, to compare. */
-  const [actionsAt, setActionsAt] = useState<ActionsAt>('header');
+  /* LAB-3383's "One actions area" is the default here. Hosts that bring their
+     own review band or contact press (agent, profile-agent-actions,
+     member-events-going) keep the header cluster they were built around. */
+  const [actionsAt, setActionsAt] = useState<ActionsAt>(reviewBand === undefined && !contactAction ? 'one' : 'header');
+  /* LAB-3383's open question, as a switch: does Request an intro show when
+     the member has office hours? Anuj (2026-11-23): neutral; intro has too
+     few clicks to judge (LAB-3296 funnel). Show is today's design-area default
+     so both flows can be compared; Hide is the current rule (intro-requests
+     spec: one contact button, never both). */
+  const [introWithOh, setIntroWithOh] = useState<'show' | 'hide'>('show');
+  const oneArea = actionsAt === 'one';
   /* Who is looking. Admin (a directory admin, not this member) keeps every
      visitor action and gains production's Edit at the end of the cluster —
      the team profile's admin row, on a person (2026-11-06). */
@@ -370,6 +390,29 @@ export function MemberProfilePage({
             </div>
           </div>
 
+          {oneArea && (
+            <div className={s.demoSwitchGroup}>
+              <span className={s.demoSwitchLabel}>Request an intro when office hours exist (open)</span>
+              <div className={s.demoSwitchRow}>
+                {(
+                  [
+                    ['show', 'Show'],
+                    ['hide', 'Hide'],
+                  ] as const
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={clsx(s.demoSwitchBtn, { [s.active]: value === introWithOh })}
+                    onClick={() => setIntroWithOh(value)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className={s.demoSwitchGroup}>
             <span className={s.demoSwitchLabel}>Viewer</span>
             <div className={s.demoSwitchRow}>
@@ -437,8 +480,11 @@ export function MemberProfilePage({
                 isAdmin={viewer === 'admin' || isOwner}
                 isOwner={isOwner}
                 facts={factsLength === 'long' ? LONG_FACTS : undefined}
+                /* LAB-3383: no Ask AI anywhere on the profile in "One actions
+                   area" — the ticket's criterion covers the bio too, so the
+                   strip goes with the header link. */
                 askAbout={
-                  askAi === 'strip' ? (
+                  askAi === 'strip' && !oneArea ? (
                     <AskAboutStrip
                       firstName={MOCK_MEMBER.name.split(' ')[0]}
                       prompts={aiScope.prompts}
@@ -456,10 +502,25 @@ export function MemberProfilePage({
               {/* `member-*` ids: where an AI answer's door lands (see aiSearchScope). */}
               {/* Production renders no card for a visitor when there is no
                   booking link (OfficeHoursDetails returns null). */}
-              {hasOfficeHours && (
+              {oneArea && !isOwner ? (
+                /* LAB-3383: the one actions area, in the Office Hours card's
+                   slot (first under the header) and replacing it. */
                 <div id="member-office-hours" className={s.aiAnchor}>
-                  <OfficeHoursCard schedule={scheduleOnCard || actionsAt === 'sections'} />
+                  <MeetCard
+                    hasOfficeHours={hasOfficeHours}
+                    showIntro={!hasOfficeHours || introWithOh === 'show'}
+                    introRequested={intro.requested(MOCK_MEMBER.id)}
+                    onRequestIntro={() =>
+                      intro.request({ uid: MOCK_MEMBER.id, name: MOCK_MEMBER.name, kind: 'member' })
+                    }
+                  />
                 </div>
+              ) : (
+                hasOfficeHours && (
+                  <div id="member-office-hours" className={s.aiAnchor}>
+                    <OfficeHoursCard schedule={scheduleOnCard || actionsAt === 'sections'} />
+                  </div>
+                )
               )}
               {eventsHigh && eventsSection}
               {/* "In sections" without office hours: the intro sits in Contact
@@ -621,11 +682,17 @@ function ProfileHeaderCard({
   const isMobile = useIsMobile();
   /* What stays in the header: everything; everything but the contact press
      (it went to its section); or Ask AI alone (the presses are in a row). */
-  const headerPart: 'all' | 'noContact' | 'askAi' =
-    actionsAt === 'header' ? 'all' : actionsAt === 'sections' ? 'noContact' : 'askAi';
+  const headerPart: 'all' | 'noContact' | 'askAi' | 'follow' =
+    actionsAt === 'one'
+      ? 'follow'
+      : actionsAt === 'header' || actionsAt === 'header-bio'
+        ? 'all'
+        : actionsAt === 'sections'
+          ? 'noContact'
+          : 'askAi';
   const actionsUnderBio = actionsAt === 'bio';
   const underBadges = actionsAt === 'badges' || actionsAt === 'badges-bio';
-  const bioApart = actionsAt === 'badges-bio';
+  const bioApart = actionsAt === 'badges-bio' || actionsAt === 'header-bio';
   /* The role badges, then the skills. In the "Under badges" states the line
      shows `tagsFit.shown` of them in that order and the rest go to "+n". */
   const roles = [
@@ -740,7 +807,9 @@ function ProfileHeaderCard({
             tags — a control beside a 20px name has nowhere to stand at 390px.
             The Ask AI badge first at its own width, then the presses full
             width (the team profile's phone header, same order). */}
-          {!isOwner && (
+          {/* "One actions area": only Follow is left for this row, so with
+              no Follow there is no row (an admin's Edit is in the corner). */}
+          {!isOwner && (headerPart !== 'follow' || follow) && (
             <div className={s.introMobileRow}>
               <ProfileActions
                 onAskAi={onAskAi}
@@ -763,12 +832,10 @@ function ProfileHeaderCard({
               from the end, so on a phone the "+n" never falls off the line. */}
           <div
             ref={underBadges ? tagsFit.ref : undefined}
-            className={clsx(
-              h.tags,
-              s.mTags,
-              actionsAt === 'header' && s.tagsClearPress,
-              underBadges && clsx(s.fullRow, s.tagsOneLine),
-            )}
+            /* Every state: the tags start at the card's left edge, under the
+               photo (2026-11-23, "Align all badges to the very left, just
+               under the photo") — production starts them under the name. */
+            className={clsx(h.tags, s.mTags, s.fullRow, underBadges && s.tagsOneLine)}
           >
             {shownRoles.map((role) =>
               role === 'Founder' ? (
@@ -902,7 +969,7 @@ function ProfileActions({
   /** The review band's "Actions" states split the cluster: Ask AI stays
       in the header (`askAi`) while Follow and the contact press go to a row
       (`presses`); "In sections" keeps all but the contact press (`noContact`). */
-  part?: 'all' | 'askAi' | 'presses' | 'noContact';
+  part?: 'all' | 'askAi' | 'presses' | 'noContact' | 'follow';
 }) {
   const phone = size === 's';
   /* Phone: a bordered button at the presses' height, left of the contact
@@ -921,6 +988,24 @@ function ProfileActions({
   ) : null;
   if (ownerView) return edit;
   // Phone passes no `onEdit`: there Edit sits in the card's corner (`.mEditCorner`).
+  /* LAB-3383 "One actions area": the header keeps Follow (a relationship,
+     not a way to reach them) and an admin's Edit; no Ask AI, and the contact
+     presses live in the Meet card. */
+  if (part === 'follow')
+    return (
+      <>
+        {follow && (
+          <FollowPill
+            following={follow.following}
+            onToggle={follow.onToggle}
+            name={MOCK_MEMBER.name}
+            size={size}
+            className={clsx(s.followFlat, phone && s.rowPressFull)}
+          />
+        )}
+        {!phone && edit}
+      </>
+    );
   if (part === 'askAi')
     return (
       <>
@@ -1128,6 +1213,79 @@ function OfficeHoursCard({ schedule = false }: { schedule?: boolean }) {
         </DetailsSectionGreyContentContainer>
       </div>
     </DetailsSection>
+  );
+}
+
+/* ---------- LAB-3383: the one actions area ("Meet Maya") ---------- */
+/**
+ * Both ways to reach the member, as two options in one card under the header
+ * (profile-shared/ActionsArea). Office hours carries the Office Hours card's
+ * whole body — the lede, past bookings, Interested in / Can help with — with
+ * Schedule Meeting on the lede's right, production's own row. The intro
+ * option is the line the "In sections" state already used ("Don't know
+ * Maya? The PL team can introduce you.") with its press.
+ *
+ * Title "Meet <first name>": one name for both flows. "Office Hours" names
+ * only one of them, and "Contact" is the Contact Details card below.
+ */
+function MeetCard({
+  hasOfficeHours,
+  showIntro,
+  introRequested,
+  onRequestIntro,
+}: {
+  hasOfficeHours: boolean;
+  showIntro: boolean;
+  introRequested: boolean;
+  onRequestIntro: () => void;
+}) {
+  const isMobile = useIsMobile();
+  const size = isMobile ? 's' : 'xs';
+  const first = MOCK_MEMBER.name.split(' ')[0];
+  return (
+    <ActionsAreaCard title={`Meet ${first}`} rootClassName={s.card}>
+      {hasOfficeHours && (
+        <ActionsAreaOption
+          title="Office hours"
+          lede={<>Short 1:1 calls with {MOCK_MEMBER.name} — no introduction needed.</>}
+          press={<ScheduleMeetingButton size={size} className={s.meetSchedule} />}
+        >
+          <div className={s.ohFact}>
+            <span className={s.ohFactLabel}>Past bookings</span>
+            <span className={s.ohFactValue}>{MOCK_MEMBER.scheduleMeetingCount}</span>
+          </div>
+          <div className={s.ohGroups}>
+            {(
+              [
+                ['Interested in', MOCK_MEMBER.ohInterest],
+                ['Can help with', MOCK_MEMBER.ohHelpWith],
+              ] as const
+            ).map(([label, items]) => (
+              <div key={label} className={s.ohGroup}>
+                <p className={s.ohGroupLabel}>{label}</p>
+                <ul className={s.ohChips}>
+                  {items.map((item) => (
+                    <li key={item} className={office.badge}>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </ActionsAreaOption>
+      )}
+      {showIntro && (
+        <IntroOption
+          lede={<>Don&apos;t know {first}? The PL team can introduce you.</>}
+          name={MOCK_MEMBER.name}
+          requested={introRequested}
+          onRequest={onRequestIntro}
+          primary={!hasOfficeHours}
+          size={size}
+        />
+      )}
+    </ActionsAreaCard>
   );
 }
 

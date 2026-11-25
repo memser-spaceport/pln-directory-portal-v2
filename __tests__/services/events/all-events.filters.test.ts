@@ -70,6 +70,18 @@ describe('filterEvents', () => {
     const many = [paid, invite, bare];
     const pick = (q: string) => filterEvents(many, readFilters(params(q)), new Set()).map((e) => e.uid);
 
+    it('an RSVP event reads "RSVP", and links made when it read "Free" still find it (LAB-3407)', () => {
+      const rsvp = item({ uid: 'rsvp', access: 'FREE w/ RSVP' });
+      const found = (query: string) =>
+        filterEvents([rsvp, paid], readFilters(params(query)), new Set()).map((e) => e.uid);
+      expect(found('access=Free')).toEqual(['rsvp']);
+      expect(found('access=free|Paid')).toEqual(['rsvp', 'paid']);
+      expect(facetOptions([rsvp, paid], 'access').map((o) => facetLabel('access', o.value))).toEqual(['Paid', 'RSVP']);
+      expect(facetLabel('access', 'free')).toBe('RSVP');
+      // Only there: a topic called "Free" stays as it is.
+      expect(facetLabel('topic', 'Free')).toBe('Free');
+    });
+
     it('filters by access, in the words the cards use', () => {
       expect(pick('access=Paid')).toEqual(['paid']);
       expect(pick('access=Paid|Invite only')).toEqual(['paid', 'inv']);

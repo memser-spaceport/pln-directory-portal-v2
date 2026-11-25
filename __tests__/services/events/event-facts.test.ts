@@ -13,5 +13,6 @@ it('reads the place with the mode folded in', () => {
 it('words every access type', () => {
   expect(ACCESS_COPY.PAID).toEqual({ main: 'Paid', sub: "Tickets on the host's site" });
   expect(ACCESS_COPY['INVITE ONLY'].main).toBe('Invite only');
-  expect(ACCESS_COPY['FREE w/ RSVP'].main).toBe('Free');
+  // LAB-3407: the events service's OPEN says nothing about the price.
+  expect(ACCESS_COPY['FREE w/ RSVP']).toEqual({ main: 'RSVP to save your spot', sub: null });
 });

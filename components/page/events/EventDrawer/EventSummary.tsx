@@ -173,7 +173,7 @@ export function EventSummary({ event, card }: { event: EventDetail; card?: React
             </span>
             <span className={e.factText}>
               <span className={e.factMain}>{access.main}</span>
-              <span className={e.factSub}>{access.sub}</span>
+              {access.sub && <span className={e.factSub}>{access.sub}</span>}
             </span>
           </li>
         )}
@@ -262,7 +262,7 @@ function Agenda({ agenda }: { agenda: EventAgendaDay[] }) {
 
 /* ---------- Glyphs the DS set doesn't have (stroked, 1.5px, as in the prototype) ---------- */
 
-/** Lock for invite only, ticket for paid or free (the prototype's `AccessIcon`). */
+/** Lock for invite only, ticket for paid or RSVP (the prototype's `AccessIcon`). */
 function AccessIcon({ access }: { access: EventAccess }) {
   if (access === 'INVITE ONLY') {
     return (

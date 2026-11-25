@@ -305,6 +305,8 @@
   font-size: 14px;
   line-height: 22px;
   color: var(--foreground-neutral-secondary, #455468);
+  /* A long word or link with no space breaks rather than widening the drawer. */
+  overflow-wrap: anywhere;
 }
 
 .tagGroup {

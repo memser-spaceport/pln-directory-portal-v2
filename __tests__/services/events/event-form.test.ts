@@ -376,6 +376,11 @@ describe('toEventBody', () => {
     expect(hybrid.meetingUrl).toBe('https://meet.x/y');
   });
 
+  it("sends the description with plain spaces, so the editor's &nbsp; does not stop lines from wrapping", () => {
+    const body = toEventBody(valid({ description: '<p>Lorem&nbsp;ipsum&#160;dolor\u00a0sit</p>' }), null);
+    expect(body.description).toBe('<p>Lorem ipsum dolor sit</p>');
+  });
+
   it('sends a description with no text as empty, and no agenda as null', () => {
     const body = toEventBody(valid({ description: '<p><br></p>', agenda: { sessions: [] } }), null);
     expect(body.description).toBe('');

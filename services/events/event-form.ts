@@ -1,5 +1,7 @@
 import { formatInTimeZone, fromZonedTime } from 'date-fns-tz';
 
+import { plainSpaces } from '@/utils/html/plainSpaces';
+
 import { safeTimezone } from './event-dates';
 import type {
   EventAccessOption,
@@ -431,7 +433,7 @@ export function toEventBody(values: EventFormValues, logoUid: string | null): Ev
 
   return {
     name: values.name.trim(),
-    description: descriptionText(values.description) ? values.description : '',
+    description: descriptionText(values.description) ? plainSpaces(values.description) : '',
     startDate: toInstant(values.startDay, values.startTime, values.timezone),
     endDate: toInstant(values.endDay, values.endTime, values.timezone),
     timezone: values.timezone,

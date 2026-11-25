@@ -10,15 +10,16 @@ import type { EventAccess, EventAgendaDay, EventDetail } from '@/services/events
 import { ACCESS_COPY } from '@/services/events/event-facts';
 import { eventWhen } from '@/services/events/event-when';
 import { focusAreaName } from '@/services/events/focus-areas';
+import { plainSpaces } from '@/utils/html/plainSpaces';
 
 import e from './EventDrawer.module.scss';
 
 const HTML_TAG = /<\/?[a-z][\s\S]*>/i;
 
-/** Plain text keeps its paragraphs; HTML from the events sync goes through the sanitiser. */
+/** Plain text keeps its paragraphs; HTML goes through the sanitiser with plain spaces, so its lines wrap. */
 function Description({ text }: { text: string }) {
   if (HTML_TAG.test(text)) {
-    return <SafeHtml html={text} className={e.paragraph} />;
+    return <SafeHtml html={plainSpaces(text)} className={e.paragraph} />;
   }
   const paragraphs = text
     .split(/\n\s*\n|\r\n\s*\r\n/)

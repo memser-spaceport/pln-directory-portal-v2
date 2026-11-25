@@ -56,9 +56,21 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
+/* Above phone width every press in the card is one width (152px: Request an intro
+   at ~150px natural, rounded up on the 8px grid; Schedule Meeting, ~162px,
+   stays a little wider) and
+   centres its label. The presses are right-aligned in stacked insets, so
+   hugging widths (~130 vs ~150) left a ragged left edge that read as a near
+   miss (design-thinking lesson 28). Only buttons: the sent receipts are
+   lines of text and keep their own width. */
 .optionPress {
   flex-shrink: 0;
   display: flex;
+
+  > button {
+    min-width: 152px;
+    justify-content: center;
+  }
 
   @include media.mobile-only {
     > * {

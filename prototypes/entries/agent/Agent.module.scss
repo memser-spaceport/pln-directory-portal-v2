@@ -163,7 +163,7 @@
 
 /* Narrower than the default 480 (a phone's sheet, or a desktop panel dragged towards its 440 minimum), the
    word doesn't fit beside the tabs and four icons, so the AI mark carries it alone; the accessible name and
-   the tooltip still say "Open in AI Search". Container widths are the content box: the panel's 1px left
+   the tooltip still say "Open in AI agent chat". Container widths are the content box: the panel's 1px left
    border makes 480 read as 479. */
 @container (max-width: 478px) {
   .aiSearchLabel {
@@ -220,7 +220,7 @@
 
 /* ---------- This page, in the context row (LAB-3389) ---------- */
 
-/* "Reading" is what makes the chip a statement rather than a tag: tertiary, so the page name stays the
+/* "Context" is what makes the chip a statement rather than a tag: tertiary, so the page name stays the
    thing you read. */
 .pageChipKicker {
   flex-shrink: 0;
@@ -275,6 +275,15 @@
   z-index: 2;
   max-height: min(380px, calc(var(--agent-h, 100dvh) - 220px));
   padding: 6px;
+}
+
+.pickerTitle {
+  flex-shrink: 0;
+  margin: 4px 4px 8px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
 }
 
 .pickerSearch {

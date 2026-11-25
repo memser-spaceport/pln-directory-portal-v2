@@ -106,7 +106,7 @@ export default function AiModePrototype() {
   useEffect(() => {
     if (!onAiPage) return;
     const before = document.title;
-    document.title = 'AI Search | Protocol Labs Directory';
+    document.title = 'AI agent chat | Protocol Labs Directory';
     return () => {
       document.title = before;
     };
@@ -168,7 +168,7 @@ export default function AiModePrototype() {
       {/* Review band: which frame the mode wears. Not part of the proposal. */}
       <div className={demo.demoBar}>
         <div className={demo.demoGroup}>
-          <span className={demo.demoLabel}>AI Search opens as</span>
+          <span className={demo.demoLabel}>AI agent chat opens as</span>
           <div className={demo.demoSwitch}>
             {(
               [
@@ -234,27 +234,27 @@ export default function AiModePrototype() {
 
       {!onAiPage && (
         <main className={hs.page}>
-          <h1 className={hs.title}>AI Search as a mode</h1>
+          <h1 className={hs.title}>AI agent chat as a mode</h1>
           <p className={hs.lede}>
-            Two surfaces instead of three. General search stays a popover under the header field; AI Search is one mode
+            Two surfaces instead of three. General search stays a popover under the header field; AI agent chat is one mode
             with a page of its own at <code>/ai-search</code> (was <code>/husky</code>), where the conversation and
             every past conversation live. Everything is mocked.
           </p>
           <ol className={hs.steps}>
             <li>
               <strong>Click the header field.</strong> At rest the popover lists your recent searches and, under
-              them, <em>Recent AI Search chats</em> with <em>All chats</em> — the signpost to where chats live. The
+              them, <em>Recent AI agent chats</em> with <em>All chats</em> — the signpost to where chats live. The
               field fills the free width in the nav row.
             </li>
             <li>
               <strong>Type</strong> <em>filecoin</em> and press the <em>AI</em> badge in the field: “filecoin” is the
               first question (on a phone, where the header is a glyph, the popover keeps its <em>Chat with AI
-              Search about “filecoin”</em> row). AI Search opens as a page: the answer in the middle, <em>History</em> on the left grouped by date, the new chat at
+              Search about “filecoin”</em> row). AI agent chat opens as a page: the answer in the middle, <em>History</em> on the left grouped by date, the new chat at
               the top of Today.
             </li>
             <li>
               <strong>Back to search</strong> (top left of the page) leaves the mode and reopens the popover with
-              “filecoin” still in the field. Your chat is the first row of Recent AI Search chats.
+              “filecoin” still in the field. Your chat is the first row of Recent AI agent chats.
             </li>
             <li>
               <strong>In the page:</strong> New chat, open any past chat, delete one (hover a row), collapse the rail
@@ -265,7 +265,7 @@ export default function AiModePrototype() {
               beside it while a chat is open.
             </li>
             <li>
-              <strong>Compare:</strong> switch <em>AI Search opens as</em> to <em>Modal + history</em> — the same
+              <strong>Compare:</strong> switch <em>AI agent chat opens as</em> to <em>Modal + history</em> — the same
               surface in the takeover dialog, its rail collapsed to three glyphs, five recent chats and{' '}
               <em>Show all history</em> once expanded.
             </li>
@@ -276,7 +276,7 @@ export default function AiModePrototype() {
             </Button>
             <kbd className={hs.kbd}>⌘K</kbd>
             <Button size="s" style="border" variant="neutral" onClick={() => enterAi({})}>
-              Open AI Search
+              Open AI agent chat
             </Button>
           </div>
         </main>

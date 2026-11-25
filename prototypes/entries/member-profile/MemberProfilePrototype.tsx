@@ -49,6 +49,9 @@ import { ActionsAreaCard, ActionsAreaOption, IntroOption } from '../profile-shar
 import { SuggestedRail, SUGGESTED_MEMBERS } from '../profile-shared/SuggestedRail';
 import { RequestIntroButton } from '../intro-shared/RequestIntroButton';
 import { useRequestIntro } from '../intro-shared/useRequestIntro';
+import { RequestTimeButton } from '../profile-shared/RequestTime/RequestTimeButton';
+import { useRequestTime } from '../profile-shared/RequestTime/useRequestTime';
+import { ReceiverPreview } from '../profile-shared/RequestTime/ReceiverPreview';
 import { FollowPill } from '../follow-shared/FollowPill';
 import { FollowToast } from '../follow-shared/FollowToast';
 import { AiSearchView, type AiSearchRequest } from '../ai-search/AiSearchView';
@@ -92,10 +95,6 @@ const VISIBLE_HANDLES = ['email', 'linkedin', 'telegram', 'twitter', 'bluesky', 
 const PL_TEAM_ONLY = 'PL team only';
 
 type CardAccent = 'slate' | 'blue';
-const CARD_ACCENTS: { key: CardAccent; label: string }[] = [
-  { key: 'slate', label: 'Slate' },
-  { key: 'blue', label: 'Blue' },
-];
 
 /**
  * The AI door is the header cluster's Ask AI on every entry (2026-09-28).
@@ -224,7 +223,7 @@ export function MemberProfilePage({
   /* LAB-3383's "One actions area" is the default here. Hosts that bring their
      own review band or contact press (agent, profile-agent-actions,
      member-events-going) keep the header cluster they were built around. */
-  const [actionsAt, setActionsAt] = useState<ActionsAt>(reviewBand === undefined && !contactAction ? 'one' : 'header');
+  const actionsAt = (reviewBand === undefined && !contactAction ? 'one' : 'header') as ActionsAt;
   /* LAB-3383's open question, as a switch: does Request an intro show when
      the member has office hours? Anuj (2026-11-23): neutral; intro has too
      few clicks to judge (LAB-3296 funnel). Show is today's design-area default
@@ -238,7 +237,7 @@ export function MemberProfilePage({
   const [viewer, setViewer] = useState<'visitor' | 'admin'>('visitor');
   /* Demo-only: the header's three facts at their worst — a long team name,
      a long role and a long city — to see how the line breaks. */
-  const [factsLength, setFactsLength] = useState<'typical' | 'long'>('long');
+  const factsLength = 'long' as 'typical' | 'long';
   /* Follow, session-local, with the team page's green receipt. */
   const [following, setFollowing] = useState(false);
   const [followToast, setFollowToast] = useState(false);
@@ -249,13 +248,17 @@ export function MemberProfilePage({
       if (next) setTimeout(() => setFollowToast(false), 4000);
       return next;
     });
-  const [scenarioKey, setScenarioKey] = useState(RELATIONSHIP_SCENARIOS[0].key);
-  const [cardAccent, setCardAccent] = useState<CardAccent>('slate');
-  const [activityKey, setActivityKey] = useState(ACTIVITY_SCENARIOS[0].key);
+  const scenarioKey = RELATIONSHIP_SCENARIOS[0].key;
+  const cardAccent: CardAccent = 'slate';
+  const activityKey = ACTIVITY_SCENARIOS[0].key;
   /* The viewer is a founder on someone else's page: the header offers an intro
      through the PL team. Shared with the team profile and search, so a request
      sent from any of them reads "Intro requested" here. */
   const intro = useRequestIntro();
+  /* LAB-3400: "Request time" when the member has no Office hours link, and
+     the review band's look at what the member receives for it. */
+  const requestTime = useRequestTime();
+  const [receiverOpen, setReceiverOpen] = useState(false);
   /* "Ask AI about Maya": the AI Search view scoped to this profile, the team
      profile's door on a person's page. The scope reads the same fixtures the
      cards draw, and each answer's door scrolls to the card it came from. */
@@ -296,70 +299,18 @@ export function MemberProfilePage({
         reviewBand
       ) : (
         <div className={s.demoSwitch}>
-          {/* Both Affinity controls govern the same card, so they share a row. */}
-          <div className={s.demoSwitchGroupRow}>
-            <div className={s.demoSwitchGroup}>
-              <span className={s.demoSwitchLabel}>Affinity — relationship state</span>
-              <div className={s.demoSwitchRow}>
-                {RELATIONSHIP_SCENARIOS.map((sc) => (
-                  <button
-                    key={sc.key}
-                    type="button"
-                    className={clsx(s.demoSwitchBtn, { [s.active]: sc.key === scenario.key })}
-                    onClick={() => setScenarioKey(sc.key)}
-                  >
-                    {sc.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className={s.demoSwitchGroup}>
-              <span className={s.demoSwitchLabel}>Affinity — card accent</span>
-              <div className={s.demoSwitchRow}>
-                {CARD_ACCENTS.map((a) => (
-                  <button
-                    key={a.key}
-                    type="button"
-                    className={clsx(s.demoSwitchBtn, { [s.active]: a.key === cardAccent })}
-                    onClick={() => setCardAccent(a.key)}
-                  >
-                    {a.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* The four states the rail card has to survive. Note the last two are
-            the same fact seen from two sides: with no account connected, the
-            owner is offered the prompt and a visitor gets nothing at all. */}
-          <div className={s.demoSwitchGroup}>
-            <span className={s.demoSwitchLabel}>Bluesky posts — state</span>
-            <div className={s.demoSwitchRow}>
-              {ACTIVITY_SCENARIOS.map((sc) => (
-                <button
-                  key={sc.key}
-                  type="button"
-                  className={clsx(s.demoSwitchBtn, { [s.active]: sc.key === activityKey })}
-                  onClick={() => setActivityKey(sc.key)}
-                >
-                  {sc.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Which contact press the header shows: Available → Schedule
-            Meeting (and the Office Hours card); None → Request an intro as
-            the primary. The two are never on the page together. */}
+          {/* Review band trimmed 2026-11-25: office hours (with a booking link,
+            or without one and Request time instead), the intro beside office
+            hours, and who is looking. Everything else is fixed at its default
+            (one actions area, first Affinity and Bluesky scenarios, slate
+            accent, long facts). */}
           <div className={s.demoSwitchGroup}>
             <span className={s.demoSwitchLabel}>Office hours</span>
             <div className={s.demoSwitchRow}>
               {(
                 [
-                  [true, 'Available'],
-                  [false, 'None'],
+                  [true, 'Has office hours'],
+                  [false, 'No office hours (Request time)'],
                 ] as const
               ).map(([value, label]) => (
                 <button
@@ -374,23 +325,9 @@ export function MemberProfilePage({
             </div>
           </div>
 
-          <div className={s.demoSwitchGroup}>
-            <span className={s.demoSwitchLabel}>Actions</span>
-            <div className={s.demoSwitchRow}>
-              {ACTIONS_AT_OPTIONS.map(([value, label]) => (
-                <button
-                  key={value}
-                  type="button"
-                  className={clsx(s.demoSwitchBtn, { [s.active]: value === actionsAt })}
-                  onClick={() => setActionsAt(value)}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {oneArea && (
+          {/* Only means something while there are office hours: without them
+            the intro always shows beside Request time. */}
+          {oneArea && hasOfficeHours && (
             <div className={s.demoSwitchGroup}>
               <span className={s.demoSwitchLabel}>Request an intro when office hours exist (open)</span>
               <div className={s.demoSwitchRow}>
@@ -435,27 +372,6 @@ export function MemberProfilePage({
           </div>
 
           {reviewBandExtra}
-
-          <div className={s.demoSwitchGroup}>
-            <span className={s.demoSwitchLabel}>Team · role · city</span>
-            <div className={s.demoSwitchRow}>
-              {(
-                [
-                  ['typical', 'Typical'],
-                  ['long', 'Long'],
-                ] as const
-              ).map(([value, label]) => (
-                <button
-                  key={value}
-                  type="button"
-                  className={clsx(s.demoSwitchBtn, { [s.active]: value === factsLength })}
-                  onClick={() => setFactsLength(value)}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       )}
 
@@ -508,6 +424,8 @@ export function MemberProfilePage({
                 <div id="member-office-hours" className={s.aiAnchor}>
                   <MeetCard
                     hasOfficeHours={hasOfficeHours}
+                    timeRequested={requestTime.requested(MOCK_MEMBER.id)}
+                    onRequestTime={() => requestTime.request({ uid: MOCK_MEMBER.id, name: MOCK_MEMBER.name })}
                     showIntro={!hasOfficeHours || introWithOh === 'show'}
                     introRequested={intro.requested(MOCK_MEMBER.id)}
                     onRequestIntro={() =>
@@ -623,6 +541,13 @@ export function MemberProfilePage({
         </div>
       </div>
       {intro.layer}
+      {requestTime.layer}
+      <ReceiverPreview
+        open={receiverOpen}
+        onClose={() => setReceiverOpen(false)}
+        memberName={MOCK_MEMBER.name}
+        message={requestTime.requestFor(MOCK_MEMBER.id)?.message}
+      />
       {followToast && (
         <FollowToast>
           You&apos;re following <strong>{MOCK_MEMBER.name}</strong> — their posts and their teams&apos; news rank first
@@ -1230,11 +1155,15 @@ function OfficeHoursCard({ schedule = false }: { schedule?: boolean }) {
  */
 function MeetCard({
   hasOfficeHours,
+  timeRequested,
+  onRequestTime,
   showIntro,
   introRequested,
   onRequestIntro,
 }: {
   hasOfficeHours: boolean;
+  timeRequested: boolean;
+  onRequestTime: () => void;
   showIntro: boolean;
   introRequested: boolean;
   onRequestIntro: () => void;
@@ -1275,13 +1204,38 @@ function MeetCard({
           </div>
         </ActionsAreaOption>
       )}
+      {/* LAB-3400: no booking link, but the option stays — same title, same
+          seat, the glossy press asks for time instead of booking it. The
+          intro below drops to the bordered secondary, so the card keeps one
+          fill. */}
+      {!hasOfficeHours && (
+        <ActionsAreaOption
+          title="Office hours"
+          lede={
+            timeRequested ? (
+              <>We emailed {first} your request. They&apos;ll reply to you directly.</>
+            ) : (
+              <>{first} hasn&apos;t set up office hours yet. Ask for a time, and we&apos;ll email {first} your note.</>
+            )
+          }
+          press={
+            <RequestTimeButton
+              requested={timeRequested}
+              onClick={onRequestTime}
+              name={MOCK_MEMBER.name}
+              size={size}
+              className={s.meetSchedule}
+            />
+          }
+        />
+      )}
       {showIntro && (
         <IntroOption
           lede={<>Don&apos;t know {first}? The PL team can introduce you.</>}
           name={MOCK_MEMBER.name}
           requested={introRequested}
           onRequest={onRequestIntro}
-          primary={!hasOfficeHours}
+          primary={false}
           size={size}
         />
       )}

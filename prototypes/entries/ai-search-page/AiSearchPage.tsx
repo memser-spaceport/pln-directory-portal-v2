@@ -336,7 +336,7 @@ export function AiSearchPage({
       <div className={am.railHead}>
         <span className={am.modeName}>
           <AiSearchIcon size={20} />
-          AI Search
+          AI agent chat
         </span>
         {inDrawer && (
           <button type="button" className={am.iconBtn} onClick={() => setDrawerOpen(false)} aria-label="Close history">
@@ -492,7 +492,7 @@ export function AiSearchPage({
 
   return (
     <div className={s.page} ref={pageRef}>
-      <aside className={clsx(s.rail, !railOpen && s.railCollapsed)} aria-label="AI Search history">
+      <aside className={clsx(s.rail, !railOpen && s.railCollapsed)} aria-label="AI agent chat history">
         {railOpen ? railBody(false) : railCollapsed}
       </aside>
 
@@ -557,7 +557,7 @@ export function AiSearchPage({
       />
       <aside
         className={clsx(am.drawer, s.drawer, drawerOpen && am.drawerOpen)}
-        aria-label="AI Search history"
+        aria-label="AI agent chat history"
         aria-hidden={!drawerOpen}
       >
         {railBody(true)}
@@ -622,7 +622,7 @@ function NewChat({ scope, onRemoveScope, onAsk, draft, onDraftChange }: NewChatP
     <div className={s.home}>
       <div className={s.homeColumn}>
         <div className={s.hero}>
-          <h1 className={s.heroTitle}>Explore Protocol Labs with AI Search</h1>
+          <h1 className={s.heroTitle}>Explore Protocol Labs with AI agent chat</h1>
           <p className={s.heroLine}>
             {scope
               ? `Answers come from the ${scope.name} profile. Remove it to ask the whole network.`

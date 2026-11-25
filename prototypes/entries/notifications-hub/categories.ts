@@ -80,6 +80,9 @@ const GANTRY: CategoryTone = { ...NEUTRAL, label: 'Gantry' };
    not a notification's. */
 const JOBS: CategoryTone = { ...NEUTRAL, label: 'Jobs' };
 
+/* LAB-3400 "Request time": neutral, for the same reason as Jobs (the hues are spent). */
+const OFFICE_HOURS: CategoryTone = { ...NEUTRAL, label: 'Office hours', Icon: EventIcon };
+
 const BY_CATEGORY: Record<HubCategory, CategoryTone> = {
   DEMO_DAY_LIKE: DEMO_DAY,
   DEMO_DAY_CONNECT: DEMO_DAY,
@@ -95,6 +98,7 @@ const BY_CATEGORY: Record<HubCategory, CategoryTone> = {
   GANTRY,
   TEAM_NEWS: NETWORK_NEWS,
   JOB_CANDIDATES: JOBS,
+  OFFICE_HOURS_REQUEST: OFFICE_HOURS,
   SYSTEM: NEUTRAL,
 };
 
@@ -111,6 +115,7 @@ export function getActionText(category: HubCategory): string {
   if (category === 'TEAM_NEWS') return 'Read update';
   if (category === 'GANTRY') return 'View request';
   if (category === 'JOB_CANDIDATES') return 'Review candidates';
+  if (category === 'OFFICE_HOURS_REQUEST') return 'View request';
   return 'View';
 }
 

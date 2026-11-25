@@ -12,6 +12,7 @@ export function toFieldErrors(errors: EventFormErrors): [Name, string][] {
   };
   add('registrationUrl', errors.registrationUrl);
   add('name', errors.name);
+  add('meetingUrl', errors.meetingUrl);
   add('startDay', errors.dates);
   add('timezone', errors.timezone);
   add('agenda', errors.agenda);

@@ -4,11 +4,12 @@ import clsx from 'clsx';
 import { useFormContext } from 'react-hook-form';
 
 import { FormField } from '@/components/form/FormField';
-import { FORMAT_OPTIONS } from '@/services/events/event-form';
+import { EVENT_FORM_TEXT, FORMAT_OPTIONS } from '@/services/events/event-form';
 import type { EventFormat, EventFormValues } from '@/services/events/event-submission.types';
 import { HAS_EVENTS_MAP } from '@/utils/events-page';
 
 import { useEventFormContext } from './EventFormContext';
+import { LinkField } from './LinkField';
 import { VenueField } from './VenueField';
 import { VenueMap } from './VenueMap';
 import s from './EventForm.module.scss';
@@ -75,7 +76,12 @@ export function FormatSection() {
       )}
 
       {hasMeeting && (
-        <FormField name="meetingUrl" label="Meeting Link" placeholder="Enter Meeting Link" disabled={busy} />
+        <LinkField
+          name="meetingUrl"
+          label="Meeting Link"
+          placeholder="Enter Meeting Link"
+          invalidMessage={EVENT_FORM_TEXT.meetingInvalid}
+        />
       )}
     </section>
   );

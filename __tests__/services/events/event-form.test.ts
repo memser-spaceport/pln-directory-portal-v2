@@ -243,6 +243,13 @@ describe('checkEventForm', () => {
     expect(check({ registrationUrl: 'lu.ma/abc', websiteUrl: 'https://example.com/x?y=1' })).toEqual({});
   });
 
+  it('says "Enter a valid meeting link" for an online or hybrid event only', () => {
+    expect(check({ format: 'VIRTUAL', meetingUrl: 'not a link' }).meetingUrl).toBe('Enter a valid meeting link');
+    expect(check({ format: 'HYBRID', meetingUrl: 'not a link' }).meetingUrl).toBe('Enter a valid meeting link');
+    expect(check({ format: 'IN_PERSON', meetingUrl: 'not a link' }).meetingUrl).toBeUndefined();
+    expect(check({ format: 'VIRTUAL', meetingUrl: 'meet.google.com/abc-defg-hij' })).toEqual({});
+  });
+
   it('says "Please select a platform" on the row with a handle and no platform', () => {
     const errors = check({
       socialHandles: [

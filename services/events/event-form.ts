@@ -69,6 +69,7 @@ export const EVENT_FORM_TEXT = {
   coHostNameRequired: 'Co-host name is required',
   emailInvalid: 'Enter a valid email',
   registrationInvalid: 'Enter a valid registration link',
+  meetingInvalid: 'Enter a valid meeting link',
   websiteInvalid: 'Enter a valid website link',
   platformRequired: 'Please select a platform',
   handleInvalid: 'Enter a valid handle',
@@ -394,6 +395,8 @@ export function checkEventForm(values: EventFormValues, mode: EventFormMode): Ev
 
   if (values.registrationUrl.trim() && !isValidUrl(values.registrationUrl))
     errors.registrationUrl = EVENT_FORM_TEXT.registrationInvalid;
+  if (values.format !== 'IN_PERSON' && values.meetingUrl.trim() && !isValidUrl(values.meetingUrl))
+    errors.meetingUrl = EVENT_FORM_TEXT.meetingInvalid;
   if (values.websiteUrl.trim() && !isValidUrl(values.websiteUrl)) errors.websiteUrl = EVENT_FORM_TEXT.websiteInvalid;
 
   const socialHandles = values.socialHandles.map(socialHandleIssue);

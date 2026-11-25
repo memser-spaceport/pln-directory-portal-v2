@@ -196,6 +196,20 @@ describe('FormatSection: format', () => {
     expect(form.current.getValues('meetingUrl')).toBe('meet.example/x');
   });
 
+  it('checks the meeting link like the registration link: 2048 characters, https:// added, message when invalid', async () => {
+    const { form } = renderSection(<FormatSection />, { values: { format: 'VIRTUAL' } });
+    const meeting = screen.getByPlaceholderText('Enter Meeting Link');
+    expect(meeting).toHaveAttribute('maxLength', '2048');
+
+    fireEvent.change(meeting, { target: { value: 'meet.google.com/abc' } });
+    fireEvent.blur(meeting);
+    expect(form.current.getValues('meetingUrl')).toBe('https://meet.google.com/abc');
+
+    fireEvent.change(meeting, { target: { value: 'not a link' } });
+    fireEvent.blur(meeting);
+    expect(await screen.findByText('Enter a valid meeting link')).toBeInTheDocument();
+  });
+
   it('disables every control while the form is busy', () => {
     renderSection(<FormatSection />, { values: { format: 'HYBRID' }, busy: true });
 

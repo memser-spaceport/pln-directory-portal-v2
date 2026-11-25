@@ -401,12 +401,36 @@ describe('EventDrawerView: an event that has ended (LAB-3426)', () => {
       expect(screen.queryByRole('button', { name: 'Save' })).not.toBeInTheDocument();
     });
 
-    it('the pinned bar goes away', () => {
-      const spy = jest.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
+    /** Lays the going card out below the drawer's screen, so the pinned bar shows. */
+    const scrollCardAway = () =>
+      jest.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
         const isCard = (this as HTMLElement).firstElementChild?.getAttribute('data-testid') === 'rsvp-card';
         const box = isCard ? { top: 900, height: 200 } : { top: 0, height: 800 };
         return { ...box, bottom: box.top + box.height, left: 0, right: 640, width: 640, x: 0, y: box.top } as DOMRect;
       });
+
+    it.each(['rsvp-card', 'rsvp-bar'])('signed out, a "Yes" press in %s after the end opens no sign-in', (place) => {
+      const spy = scrollCardAway();
+      try {
+        const onSignIn = jest.fn();
+        render(view({ ...SIGNED_OUT, onSignIn }));
+        const yes = within(screen.getByTestId(place)).getByRole('button', { name: "Yes, I'm going" });
+        fireEvent.click(yes);
+        expect(onSignIn).toHaveBeenCalledTimes(1);
+
+        sleepPastTheEnd();
+        fireEvent.click(yes);
+        expect(onSignIn).toHaveBeenCalledTimes(1);
+        // At once: no timer has run.
+        expect(within(card()).getByText('This event has ended')).toBeInTheDocument();
+        expectNoRsvp();
+      } finally {
+        spy.mockRestore();
+      }
+    });
+
+    it('the pinned bar goes away', () => {
+      const spy = scrollCardAway();
       try {
         render(view());
         expect(screen.getByTestId('rsvp-bar')).toBeInTheDocument();

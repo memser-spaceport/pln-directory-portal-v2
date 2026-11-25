@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import type { ReactNode } from 'react';
+import type { ReactNode, Ref } from 'react';
 
 import FilterCount from '@/components/ui/filter-count';
 
@@ -16,11 +16,11 @@ export const VIEW_LABEL: Record<AllEventsView, string> = { list: 'List', calenda
  * view is available. Embed (LAB-3352) shows at every width, when `onShare` is given.
  */
 export function EventsToolbar({
+  ref,
   city,
   count,
   when,
   pastCount,
-  pastCountLoading,
   onWhenChange,
   yearPicker,
   filterCount,
@@ -31,13 +31,13 @@ export function EventsToolbar({
   onViewChange,
   onShare,
 }: {
+  ref?: Ref<HTMLDivElement>;
   city: string | null;
   /** The live and upcoming events under the filters. */
   count: number;
   when: EventsWhen;
-  /** The past events under the filters; null while unknown. */
+  /** The past events under the filters; null while they load, or when they failed to. */
   pastCount: number | null;
-  pastCountLoading: boolean;
   onWhenChange: (when: EventsWhen) => void;
   /** Past's year, beside the switch. */
   yearPicker?: ReactNode;
@@ -51,7 +51,7 @@ export function EventsToolbar({
   onShare?: () => void;
 }) {
   return (
-    <div className={s.toolbar}>
+    <div ref={ref} className={s.toolbar}>
       <div className={s.toolbarStart}>
         {view === 'calendar' ? (
           <div className={s.toolbarHeading}>
@@ -62,12 +62,7 @@ export function EventsToolbar({
           </div>
         ) : (
           <>
-            <WhenSwitch
-              when={when}
-              counts={{ upcoming: count, past: pastCount }}
-              pastCountLoading={pastCountLoading}
-              onChange={onWhenChange}
-            />
+            <WhenSwitch when={when} counts={{ upcoming: count, past: pastCount }} onChange={onWhenChange} />
             {yearPicker}
           </>
         )}

@@ -41,7 +41,7 @@ function Hosts({ item, ellipsis }: { item: AllEventsItem; ellipsis?: boolean }) 
     <>
       <span className={s.hostFaces} aria-hidden>
         {item.hosts.slice(0, 2).map((host) => (
-          <img key={host} src={getDefaultAvatar(host)} alt="" width={16} height={16} />
+          <img key={host} src={getDefaultAvatar(host)} alt="" width={16} height={16} loading="lazy" />
         ))}
       </span>
       {ellipsis ? <span className={s.ellipsis}>{text}</span> : text}

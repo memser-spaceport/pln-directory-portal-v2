@@ -1,11 +1,17 @@
 import React from 'react';
 import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { hydrateRoot } from 'react-dom/client';
 
+import { EventRows } from '@/components/page/events/all-events/map/EventRows';
 import { AllEventsPage, type AllEventsPageProps } from '@/components/page/events/all-events/AllEventsPage';
 import { useAllEventsFilterStore } from '@/services/events/all-events-filters.store';
+import { pastLandingQuery } from '@/services/events/all-events.filters';
 import { allEventsItem as item } from '@/services/events/all-events.fixtures';
 import type { AllEventsItem } from '@/services/events/all-events.types';
+
+// The Node build, which the server runs; jsdom would resolve the browser build, which needs MessageChannel.
+const { renderToString } = require('react-dom/server.node');
 
 /* LAB-3418: past events on the All Events page: Live & upcoming | Past, the Past list, its year, Calendar and the embed. */
 
@@ -521,7 +527,7 @@ describe('loading past events', () => {
     expect(yearPicker()).toBeNull();
   });
 
-  it('the count takes the room it was kept', () => {
+  it('the count takes its own room, not the one that was kept', () => {
     pastEvents.state = query({ isFetching: true });
     const props = { result: { ok: true as const, items: upcoming() } };
     const { rerender } = renderPage(props);
@@ -537,15 +543,17 @@ describe('loading past events', () => {
         submitHref="https://irl.example/submit"
       />,
     );
-    expect(pastTab().querySelector('[class*="scopeSlot"]')).toHaveTextContent(/^4$/);
+    expect(pastTab().querySelector('[class*="scopeCount"]')).toHaveTextContent(/^4$/);
+    expect(pastTab().querySelector('[class*="scopeSlot"]')).toBeNull();
   });
 
-  it('when it fails: Live as ever, no badge on Past, and the error with a retry under it', () => {
+  it('when it fails: Live as ever, no badge on Past but its room kept, and the error with a retry under it', () => {
     pastEvents.state = query({ isError: true });
     renderPage({}, '/events/all?city=Lisbon');
     expect(listed()).toEqual(['now']);
     expect(tabTexts()).toEqual(['Live & upcoming 1', 'Past']);
-    expect(pastTab().querySelector('span')).toBeNull();
+    expect(pastTab().querySelector('[class*="scopeCount"]')).toBeNull();
+    expect(pastTab().querySelector('[class*="scopeSlot"]')).not.toBeNull();
     fireEvent.click(pastTab());
     expect(screen.getByText("Events couldn't load")).toBeInTheDocument();
     // No city header there, so the city is a chip.
@@ -1111,6 +1119,295 @@ describe('the year', () => {
     renderPage({}, '/events/all?when=past&year=2029');
     expect(screen.getByRole('button', { name: 'Year: 2029' })).toBeInTheDocument();
   });
+});
+
+describe('picking a year on a scrolled list', () => {
+  const scroll = jest.fn();
+  const rect = { list: 0 };
+  let position = 'sticky';
+  const layout = () => document.querySelector('[class*="layout"]') as HTMLElement;
+  beforeEach(() => {
+    scroll.mockClear();
+    rect.list = -5000;
+    position = 'sticky';
+    Element.prototype.scrollIntoView = scroll;
+    jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+      const top = this === layout() ? rect.list : 0;
+      return { x: 0, y: top, top, left: 0, right: 0, bottom: top, width: 0, height: 0 } as DOMRect;
+    });
+    jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(63);
+    const real = window.getComputedStyle;
+    // jsdom applies no stylesheet: the list's room is the header's 80px, the toolbar's height and 24px.
+    jest.spyOn(window, 'getComputedStyle').mockImplementation((el, pseudo) => {
+      const style = real(el, pseudo);
+      if ((el as HTMLElement) === layout()) {
+        const bar = parseFloat((el as HTMLElement).style.getPropertyValue('--events-toolbar-height')) || 0;
+        return Object.assign(Object.create(style), { scrollMarginTop: `${80 + bar + 24}px` });
+      }
+      return /toolbar$|toolbar /.test(el.className) ? Object.assign(Object.create(style), { position }) : style;
+    });
+  });
+  afterEach(() => {
+    jest.restoreAllMocks();
+    delete (Element.prototype as Partial<Element>).scrollIntoView;
+  });
+  const toTop = [{ block: 'start', behavior: 'instant' }];
+
+  it('goes to the top of the list, at once, also for "All years"', async () => {
+    renderPage({}, PAST);
+    await pickYear('2029');
+    expect(scroll.mock.contexts).toEqual([layout()]);
+    expect(scroll.mock.calls).toEqual([toTop]);
+    await pickYear('All years');
+    expect(scroll.mock.calls).toEqual([toTop, toTop]);
+  });
+
+  it('once the year’s list is there', async () => {
+    const listedThen: unknown[] = [];
+    scroll.mockImplementation(() => listedThen.push(listed()));
+    renderPage({}, PAST);
+    await pickYear('2029');
+    expect(listedThen).toEqual([['p-newyear', 'p-dec']]);
+  });
+
+  it('keeps clear of the toolbar, as tall as it is, where it stays in view', async () => {
+    renderPage({}, PAST);
+    await pickYear('2029');
+    expect(layout().style.getPropertyValue('--events-toolbar-height')).toBe('63px');
+    position = 'relative';
+    await pickYear('All years');
+    expect(layout().style.getPropertyValue('--events-toolbar-height')).toBe('0px');
+  });
+
+  it('stays put when the top of the list is in view', async () => {
+    rect.list = 80 + 63 + 24;
+    renderPage({}, PAST);
+    await pickYear('2029');
+    expect(scroll).not.toHaveBeenCalled();
+    rect.list -= 1;
+    await pickYear('All years');
+    expect(scroll).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not do it on the Map, nor for the year already picked', async () => {
+    const map = renderPage({}, '/events/all?when=past&view=map');
+    await pickYear('2029');
+    fireEvent.click(screen.getByRole('tab', { name: 'List' }));
+    expect(scroll).not.toHaveBeenCalled();
+    map.unmount();
+    renderPage({}, '/events/all?when=past&year=2029');
+    await pickYear('2029');
+    expect(scroll).not.toHaveBeenCalled();
+  });
+
+  it('is for a pick only: not Back, Forward, a tab or "Show all events"', () => {
+    renderPage({}, '/events/all?when=past&year=2029');
+    const goTo = (url: string) => {
+      window.history.replaceState(null, '', url);
+      act(() => void window.dispatchEvent(new PopStateEvent('popstate')));
+    };
+    goTo(PAST);
+    goTo('/events/all?when=past&year=2019');
+    fireEvent.click(liveTab());
+    fireEvent.click(pastTab());
+    fireEvent.click(screen.getByRole('button', { name: 'Show all events' }));
+    expect(listed()).toEqual(NEWEST_FIRST);
+    expect(scroll).not.toHaveBeenCalled();
+  });
+});
+
+describe('photos load near the screen only', () => {
+  const withPhotos = () => ({
+    goingCount: 3,
+    hosts: ['Host A', 'Host B'],
+    picture: 'https://img.example/event.png',
+    faces: ['a', 'b', 'c'].map((uid) => ({ uid, name: uid, image: `https://img.example/${uid}.png` })),
+  });
+  /** Every image under `root`: loaded lazily, with the sizes it has from the start. */
+  const images = (root: ParentNode) =>
+    Array.from(root.querySelectorAll('img')).map((el) => ({
+      lazy: el.getAttribute('loading') === 'lazy',
+      face: /facepile/.test(el.parentElement?.className ?? ''),
+      host: /hostFaces/.test(el.parentElement?.className ?? ''),
+      size: `${el.getAttribute('width')}x${el.getAttribute('height')}`,
+    }));
+  const expectLazy = (root: ParentNode, faces: number, hosts: number) => {
+    const all = images(root);
+    expect(all.filter((img) => !img.lazy)).toEqual([]);
+    expect(all.filter((img) => img.face).map((img) => img.size)).toEqual(Array(faces).fill('20x20'));
+    expect(all.filter((img) => img.host).map((img) => img.size)).toEqual(Array(hosts).fill('16x16'));
+  };
+
+  it('on a Past card: the faces, the hosts and the picture', () => {
+    pastEvents.state = query({ data: [on('p-photos', '2030-11-12', withPhotos())] });
+    renderPage({}, PAST);
+    expect(images(card('p-photos'))).toHaveLength(6);
+    expectLazy(card('p-photos'), 3, 2);
+  });
+
+  it('on a Near you tile', () => {
+    renderPage({ ...MEMBER, result: { ok: true, items: [on('near', '2030-12-03', withPhotos())] } });
+    expectLazy(screen.getByRole('region', { name: 'Near you in Lisbon' }), 3, 2);
+  });
+
+  it('on a Week card and a card across days', () => {
+    const items = [
+      on('one', TODAY, { ...withPhotos(), endDate: `${TODAY}T18:00:00.000Z` }),
+      on('span', TODAY, { ...withPhotos(), endDay: '2030-11-27', endDate: '2030-11-27T18:00:00.000Z' }),
+    ];
+    renderPage({ result: { ok: true, items } }, '/events/all?view=calendar&cal=week');
+    expectLazy(card('one'), 3, 0);
+    expectLazy(card('span'), 3, 0);
+  });
+
+  it('on a row under the Map', () => {
+    const { container } = render(
+      <EventRows
+        events={[on('row', '2030-11-12', withPhotos())]}
+        pastAsOf={TODAY}
+        goingUids={new Set()}
+        onOpen={jest.fn()}
+        onPrepare={jest.fn()}
+      />,
+    );
+    expectLazy(container, 3, 0);
+  });
+});
+
+describe('a link to Past is Past from its first paint', () => {
+  const page = (url: string, over: Partial<AllEventsPageProps> = {}) => (
+    <AllEventsPage
+      result={{ ok: true, items: upcoming() }}
+      signedIn={false}
+      viewerUid={null}
+      memberCity={undefined}
+      serverNow={NOW}
+      serverTodayIso={TODAY}
+      submitHref="https://irl.example/submit"
+      initialQuery={pastLandingQuery(Object.fromEntries(new URLSearchParams(url.split('?')[1])))}
+      {...over}
+    />
+  );
+  let container: HTMLElement;
+  let root: ReturnType<typeof hydrateRoot> | null = null;
+  /** The page as the browser first has it: the server's HTML. Past events are still to be asked for. */
+  const serve = (url: string, over?: Partial<AllEventsPageProps>) => {
+    window.history.replaceState(null, '', url);
+    pastEvents.state = query({ isFetching: true });
+    container = document.createElement('div');
+    container.innerHTML = renderToString(page(url, over));
+    document.body.appendChild(container);
+  };
+  const hydrate = async (url: string, over?: Partial<AllEventsPageProps>) => {
+    const onRecoverableError = jest.fn();
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    await act(async () => {
+      root = hydrateRoot(container, page(url, over), { onRecoverableError });
+    });
+    expect(onRecoverableError).not.toHaveBeenCalled();
+    expect(consoleError.mock.calls.filter(([message]) => /hydrat/i.test(String(message)))).toEqual([]);
+  };
+  afterEach(() => {
+    act(() => root?.unmount());
+    root = null;
+    container.remove();
+    jest.restoreAllMocks();
+  });
+  const skeleton = () => screen.queryByLabelText('Loading events');
+  const expectPast = () => {
+    expect(skeleton()).toBeInTheDocument();
+    expect(document.querySelector('[data-event-uid]')).toBeNull();
+    expect(screen.queryByText('All live & upcoming')).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Browse by city' })).toBeNull();
+  };
+
+  it.each([PAST, `${PAST}&year=2029`, `${PAST}&city=Paris`, `${PAST}&year=2029&city=Paris`])('%s', async (url) => {
+    serve(url);
+    expectPast();
+    expect(pastTab()).toHaveAttribute('aria-selected', 'true');
+    expect(liveTab()).toHaveAttribute('aria-selected', 'false');
+    const html = container.querySelector('[role="tablist"]');
+    await hydrate(url);
+    expectPast();
+    expect(pastTab()).toHaveAttribute('aria-selected', 'true');
+    // The server's own element, taken over.
+    expect(container.querySelector('[role="tablist"]')).toBe(html);
+  });
+
+  it('in the Map, with the filters’ count and chips', async () => {
+    const url = `${PAST}&view=map&city=Paris&mode=In person`;
+    serve(url);
+    expectPast();
+    const drawn = () => [
+      screen.getByRole('tab', { name: 'Map' }).getAttribute('aria-selected'),
+      within(filtersDoor()).getByText('2').textContent,
+      screen.getAllByRole('button', { name: /^Remove filter/ }).map((el) => el.textContent),
+      liveTab().textContent?.trim(),
+    ];
+    const served = drawn();
+    expect(served).toEqual(['true', '2', ['In person', 'Paris'], 'Live & upcoming 0']);
+    await hydrate(url);
+    expect(drawn()).toEqual(served);
+  });
+
+  it('in the embed, which asks for past events from its first render and links to the same', async () => {
+    const url = '/events/embed?when=past&year=2029';
+    serve(url, { embed: true });
+    expectPast();
+    const link = () => screen.getByRole('link', { name: /All events on PL Directory/ }).getAttribute('href');
+    expect(link()).toBe('/events/all?when=past&year=2029');
+    await hydrate(url, { embed: true });
+    expectPast();
+    expect(new Set(pastEvents.enabled)).toEqual(new Set([true]));
+  });
+
+  it('is never Live & upcoming in between', async () => {
+    serve(PAST);
+    const changes: string[] = [];
+    const watch = new MutationObserver((records) =>
+      records.forEach((r) => changes.push(`${r.attributeName ?? 'nodes'} ${(r.target as HTMLElement).textContent}`)),
+    );
+    watch.observe(container, { subtree: true, childList: true, attributes: true, attributeFilter: ['aria-selected'] });
+    await hydrate(PAST);
+    await act(async () => void jest.advanceTimersByTime(50));
+    watch.disconnect();
+    expect(changes.filter((c) => c.startsWith('aria-selected'))).toEqual([]);
+    expect(changes.filter((c) => /Event now/.test(c))).toEqual([]);
+  });
+
+  it('then follows the address as ever: the list, a tab, Back', async () => {
+    serve(`${PAST}&year=2029`);
+    await hydrate(`${PAST}&year=2029`);
+    pastEvents.state = query({ data: past() });
+    await act(async () => root?.render(page(`${PAST}&year=2029`)));
+    expect(listed()).toEqual(['p-newyear', 'p-dec']);
+    fireEvent.click(liveTab());
+    expect(listed()).toEqual(['now', 'dec', 'jan']);
+    expect(storeParams().toString()).toBe('year=2029');
+    window.history.replaceState(null, '', PAST);
+    act(() => void window.dispatchEvent(new PopStateEvent('popstate')));
+    expect(listed()).toEqual(NEWEST_FIRST);
+  });
+
+  it('opens no drawer in the server’s HTML, and the linked event’s after', async () => {
+    const url = `${PAST}&event=p-jan`;
+    serve(url);
+    expect(screen.queryByTestId('event-drawer')).toBeNull();
+    await hydrate(url);
+    expect(screen.getByTestId('event-drawer')).toHaveAttribute('data-uid', 'p-jan');
+  });
+
+  it.each(['/events/all', '/events/all?city=Lisbon', '/events/all?view=calendar', `${PAST}&view=calendar`])(
+    '%s: the server’s HTML is the plain page’s, as before',
+    async (url) => {
+      serve(url);
+      const plain = document.createElement('div');
+      plain.innerHTML = renderToString(page('/events/all', { initialQuery: undefined }));
+      expect(container.innerHTML).toBe(plain.innerHTML);
+      expect(listed()).toEqual(['now', 'dec', 'jan']);
+      await hydrate(url);
+    },
+  );
 });
 
 describe('the address', () => {

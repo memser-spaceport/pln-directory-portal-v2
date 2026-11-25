@@ -3,7 +3,12 @@ import { notFound } from 'next/navigation';
 
 import { AllEventsPage } from '@/components/page/events/all-events/AllEventsPage';
 import { getAllEventsPageEvents } from '@/services/events/all-events.service';
-import { EMBED_DETAILS_ON_LABOS, EMBED_DETAILS_PARAM, localIso } from '@/services/events/all-events.filters';
+import {
+  EMBED_DETAILS_ON_LABOS,
+  EMBED_DETAILS_PARAM,
+  localIso,
+  pastLandingQuery,
+} from '@/services/events/all-events.filters';
 import { SHOW_EVENTS_PAGE_V2 } from '@/utils/events-page';
 
 /**
@@ -34,6 +39,7 @@ export default async function EventsEmbedRoute({
       serverNow={now.getTime()}
       serverTodayIso={localIso(now)}
       submitHref=""
+      initialQuery={pastLandingQuery(query)}
     />
   );
 }

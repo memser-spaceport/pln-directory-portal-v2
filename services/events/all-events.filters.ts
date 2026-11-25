@@ -27,6 +27,20 @@ export const WHEN_PAST = 'past';
 /** `?year=2025` narrows Past to one year (LAB-3418). */
 export const YEAR_PARAM = 'year';
 
+/**
+ * The part of the address the server's HTML is made from, as a query (LAB-3418): on a link to Past, all of the page's
+ * state but the open event, so the page is Past from its first paint. Empty for any other address: its HTML is the plain
+ * page, and the browser reads the address itself.
+ */
+export function pastLandingQuery(searchParams: Record<string, string | string[] | undefined>): string {
+  const query = new URLSearchParams();
+  ['view', 'cal', WHEN_PARAM, YEAR_PARAM, ...FILTER_PARAMS].forEach((key) => {
+    const value = [searchParams[key]].flat()[0];
+    if (value) query.set(key, value);
+  });
+  return query.get(WHEN_PARAM) === WHEN_PAST && query.get('view') !== 'calendar' ? query.toString() : '';
+}
+
 /** The embed page's address (LAB-3352). */
 export const EVENTS_EMBED_PATH = '/events/embed';
 

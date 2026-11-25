@@ -3,7 +3,7 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import ScheduleSection from '@/components/page/events/schedule-section';
 import { AllEventsPage } from '@/components/page/events/all-events/AllEventsPage';
 import { getAllEventsPageEvents, getMemberProfileCity } from '@/services/events/all-events.service';
-import { localIso } from '@/services/events/all-events.filters';
+import { localIso, pastLandingQuery } from '@/services/events/all-events.filters';
 import { EVENTS_LIST_PATH } from '@/utils/constants';
 import { SHOW_EVENT_DRAWER } from '@/utils/event-drawer';
 import { SHOW_EVENTS_PAGE_V2 } from '@/utils/events-page';
@@ -12,7 +12,11 @@ import { listingPageMetadata } from '@/utils/seo';
 
 import s from './page.module.css';
 
-export default async function Page() {
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { userInfo, authToken } = await getCookiesFromHeaders();
 
   // The native page (LAB-3247) needs the event drawer: every event opens it. Either flag off keeps the iframe.
@@ -26,7 +30,8 @@ export default async function Page() {
 
   const viewerUid: string | null = userInfo?.uid ?? null;
   const signedIn = !!viewerUid && !!authToken;
-  const [result, memberCity] = await Promise.all([
+  const [query, result, memberCity] = await Promise.all([
+    searchParams,
     getAllEventsPageEvents(),
     signedIn ? getMemberProfileCity(viewerUid as string, authToken) : Promise.resolve(undefined),
   ]);
@@ -41,6 +46,7 @@ export default async function Page() {
       serverNow={now.getTime()}
       serverTodayIso={localIso(now)}
       submitHref={getSubmitEventUrl()}
+      initialQuery={pastLandingQuery(query)}
     />
   );
 }

@@ -13,6 +13,7 @@ import {
   nearYou,
   pastCitySummary,
   pastDayHeading,
+  pastLandingQuery,
   pastSpanLabel,
   pastYears,
   readFilters,
@@ -348,5 +349,33 @@ describe('Past (LAB-3418)', () => {
     expect(countAppliedFilters(address)).toBe(2); // Mode and "Events I'm going to".
     expect(embedQuery(address)).toBe('view=map&when=past&year=2029&mode=Online');
     expect(embedQuery(params('view=map&mode=Online'))).toBe('view=map&mode=Online');
+  });
+});
+
+describe('pastLandingQuery (LAB-3418)', () => {
+  it('is the page’s state on a link to Past, but the open event', () => {
+    expect(pastLandingQuery({ when: 'past' })).toBe('when=past');
+    expect(
+      pastLandingQuery({
+        event: 'e1',
+        going: 'true',
+        year: '2025',
+        when: 'past',
+        view: 'map',
+        search: 'a b',
+        other: 'x',
+      }),
+    ).toBe('view=map&when=past&year=2025&search=a+b&going=true');
+  });
+
+  it('takes the first of a repeated key, as the browser’s read does', () => {
+    expect(pastLandingQuery({ when: ['past', 'x'], year: ['2025', '2024'] })).toBe('when=past&year=2025');
+    expect(pastLandingQuery({ when: ['x', 'past'] })).toBe('');
+  });
+
+  it('is empty for any other address, and for the Calendar, which has no Past', () => {
+    [{}, { when: undefined }, { when: 'upcoming' }, { year: '2025' }, { when: 'past', view: 'calendar' }].forEach((q) =>
+      expect(pastLandingQuery(q)).toBe(''),
+    );
   });
 });

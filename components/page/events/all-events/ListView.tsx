@@ -9,6 +9,8 @@ interface Props {
   events: AllEventsItem[];
   todayIso: string;
   goingUids: Set<string>;
+  /** The events under way now (LAB-3425). */
+  liveUids: Set<string>;
   highlightUid: string | null;
   onOpen: (uid: string) => void;
   onPrepare: (uid: string) => void;
@@ -20,7 +22,7 @@ interface Props {
  * events scroll), a dotted timeline with a dot per day, and the day's cards beside it. Phones drop the timeline and put
  * the date above its cards.
  */
-export function ListView({ events, todayIso, goingUids, highlightUid, onOpen, onPrepare, onClear }: Props) {
+export function ListView({ events, todayIso, goingUids, liveUids, highlightUid, onOpen, onPrepare, onClear }: Props) {
   if (!events.length) return <EventsEmpty onClear={onClear} />;
 
   return (
@@ -40,6 +42,7 @@ export function ListView({ events, todayIso, goingUids, highlightUid, onOpen, on
                     item={item}
                     day={day}
                     going={goingUids.has(item.uid)}
+                    live={liveUids.has(item.uid)}
                     highlighted={item.uid === highlightUid}
                     onOpen={() => onOpen(item.uid)}
                     onPrepare={() => onPrepare(item.uid)}

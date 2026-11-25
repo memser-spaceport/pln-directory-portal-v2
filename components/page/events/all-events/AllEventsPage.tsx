@@ -38,6 +38,7 @@ import {
 import type { AllEventsItem, AllEventsResult } from '@/services/events/all-events.types';
 import { EventsQueryKeys } from '@/services/events/constants';
 import { usePrefetchEventDetail } from '@/services/events/hooks/useEventDrawerQueries';
+import { useLiveEventUids } from '@/services/events/hooks/useLiveEventUids';
 import { useMyUpcomingEventUids } from '@/services/events/hooks/useMyUpcomingEventUids';
 import { EVENTS_LIST_PATH } from '@/utils/constants';
 import { HAS_EVENTS_MAP } from '@/utils/events-page';
@@ -70,6 +71,8 @@ export interface AllEventsPageProps {
   viewerUid: string | null;
   /** The signed-in member's profile city; null when their profile has none; undefined signed out or unknown. */
   memberCity: string | null | undefined;
+  /** The server's clock (epoch ms), so the Live pills of the first render match the HTML; then the browser's own. */
+  serverNow: number;
   /** The server's day, so the first render matches the HTML; the browser's own day replaces it after hydration. */
   serverTodayIso: string;
   submitHref: string;
@@ -107,6 +110,7 @@ export function AllEventsPage({
   signedIn,
   viewerUid,
   memberCity,
+  serverNow,
   serverTodayIso,
   submitHref,
   embed = false,
@@ -144,6 +148,7 @@ export function AllEventsPage({
       return delta && item.goingCount !== null ? { ...item, goingCount: Math.max(0, item.goingCount + delta) } : item;
     });
   }, [result, goingUids, goingAtLoad]);
+  const liveUids = useLiveEventUids(items, serverNow);
 
   const [railOpen, setRailOpen] = useState(false);
 
@@ -409,6 +414,7 @@ export function AllEventsPage({
         events={visible}
         todayIso={todayIso}
         goingUids={goingUids}
+        liveUids={liveUids}
         highlightUid={highlightUid}
         onOpen={open}
         onPrepare={prepare}
@@ -433,6 +439,7 @@ export function AllEventsPage({
           events={near.events}
           todayIso={todayIso}
           goingUids={goingUids}
+          liveUids={liveUids}
           onOpen={open}
           onPrepare={prepare}
           onSeeAll={() => setCity(near.city, 'near-you')}
@@ -444,7 +451,7 @@ export function AllEventsPage({
       {cities.length > 0 && (
         <CityBand cities={cities} selected={filters.city} onPick={(city) => setCity(city, 'tile')} />
       )}
-      <h3 className={clsx(s.sectionTitle, s.listHeading)}>{filterCount ? 'Matching events' : 'All upcoming'}</h3>
+      <h3 className={clsx(s.sectionTitle, s.listHeading)}>{filterCount ? 'Matching events' : 'All live & upcoming'}</h3>
     </div>
   ) : null;
 

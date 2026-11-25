@@ -31,13 +31,15 @@ export default async function Page() {
     signedIn ? getMemberProfileCity(viewerUid as string, authToken) : Promise.resolve(undefined),
   ]);
 
+  const now = new Date();
   return (
     <AllEventsPage
       result={result}
       signedIn={signedIn}
       viewerUid={viewerUid}
       memberCity={memberCity}
-      serverTodayIso={localIso(new Date())}
+      serverNow={now.getTime()}
+      serverTodayIso={localIso(now)}
       submitHref={getSubmitEventUrl()}
     />
   );

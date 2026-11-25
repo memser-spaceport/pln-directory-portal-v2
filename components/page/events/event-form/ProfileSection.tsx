@@ -1,9 +1,9 @@
 'use client';
 
-import clsx from 'clsx';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
+import { FormField } from '@/components/form/FormField';
 import { EVENT_NAME_MAX } from '@/services/events/event-form';
 import type { EventFormValues } from '@/services/events/event-submission.types';
 
@@ -13,42 +13,38 @@ import { LogoTile } from './LogoTile';
 import s from './EventForm.module.scss';
 import p from './ProfileSection.module.scss';
 
-/** The event's logo with its name beside it. The name holds at most 100 characters; the rest is cut. */
+/**
+ * The event's logo with the Event Name field beside it. The name is a field like the others, with a counter; it
+ * holds at most 100 characters and the rest is cut.
+ */
 export function ProfileSection() {
-  const {
-    watch,
-    setValue,
-    clearErrors,
-    formState: { errors },
-  } = useFormContext<EventFormValues>();
+  const { setValue, clearErrors } = useFormContext<EventFormValues>();
   const { busy } = useEventFormContext();
-  const name = watch('name') ?? '';
-  const nameError = errors.name?.message;
   const [logoError, setLogoError] = useState<string | null>(null);
 
   return (
     <section className={s.section} data-section="profile">
       <div className={p.profile}>
         <LogoTile onIssue={setLogoError} />
-        <input
-          type="text"
-          className={clsx(p.name, nameError && p.nameInvalid)}
-          aria-label="Event name"
-          aria-invalid={nameError ? true : undefined}
-          data-invalid={nameError ? true : undefined}
-          placeholder="Enter Event Name"
-          maxLength={EVENT_NAME_MAX}
-          autoComplete="off"
-          value={name}
-          disabled={busy}
-          onChange={(event) => {
-            setValue('name', event.target.value.slice(0, EVENT_NAME_MAX), { shouldDirty: true });
-            clearErrors('name');
-          }}
-        />
+        <div className={p.name}>
+          <FormField
+            name="name"
+            label="Event Name"
+            placeholder="Enter Event Name"
+            maxLength={EVENT_NAME_MAX}
+            max={EVENT_NAME_MAX}
+            disabled={busy}
+            rules={{
+              onChange: (event: { target: { value: string } }) => {
+                const value = event.target.value;
+                if (value.length > EVENT_NAME_MAX) setValue('name', value.slice(0, EVENT_NAME_MAX));
+                clearErrors('name');
+              },
+            }}
+          />
+        </div>
       </div>
       <FieldError message={logoError} />
-      <FieldError message={nameError} />
     </section>
   );
 }

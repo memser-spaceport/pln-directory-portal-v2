@@ -11,41 +11,8 @@
   }
 }
 
-/* The event name, written straight onto the page in title size. */
+/* The Event Name field fills the row beside the logo. */
 .name {
   flex: 1;
   min-width: 0;
-  padding: 4px 0;
-  border: none;
-  border-bottom: 1px solid transparent;
-  background: transparent;
-  font: inherit;
-  font-size: 28px;
-  line-height: 36px;
-  font-weight: 700;
-  color: var(--foreground-neutral-primary, #0a0c11);
-  text-overflow: ellipsis;
-
-  &::placeholder {
-    color: var(--foreground-neutral-tertiary, #8897ae);
-  }
-
-  &:focus {
-    outline: none;
-    border-bottom-color: var(--foreground-brand-primary, #1b4dff);
-  }
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-  }
-
-  @include media.mobile-only {
-    font-size: 20px;
-    line-height: 28px;
-  }
-}
-
-.nameInvalid {
-  border-bottom-color: var(--action-border-error-focus, #e7000b);
 }

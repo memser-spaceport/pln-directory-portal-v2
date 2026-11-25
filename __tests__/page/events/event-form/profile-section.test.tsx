@@ -134,14 +134,14 @@ describe('ProfileSection: logo', () => {
 
     expect(screen.getByRole('button', { name: 'Replace logo' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Delete logo' })).toBeDisabled();
-    expect(screen.getByRole('textbox', { name: 'Event name' })).toBeDisabled();
+    expect(screen.getByRole('textbox', { name: 'Event Name' })).toBeDisabled();
   });
 });
 
 describe('ProfileSection: name', () => {
   it('has the placeholder and holds what is typed', () => {
     const { form } = renderSection(<ProfileSection />);
-    const input = screen.getByRole('textbox', { name: 'Event name' });
+    const input = screen.getByRole('textbox', { name: 'Event Name' });
 
     expect(input).toHaveAttribute('placeholder', 'Enter Event Name');
     fireEvent.change(input, { target: { value: 'Lab Week' } });
@@ -152,7 +152,7 @@ describe('ProfileSection: name', () => {
 
   it('cuts a 150-character name to the first 100', () => {
     const { form } = renderSection(<ProfileSection />);
-    const input = screen.getByRole('textbox', { name: 'Event name' });
+    const input = screen.getByRole('textbox', { name: 'Event Name' });
     const long = 'a'.repeat(99) + 'b' + 'c'.repeat(50);
 
     fireEvent.change(input, { target: { value: long } });
@@ -161,13 +161,20 @@ describe('ProfileSection: name', () => {
     expect(input).toHaveValue('a'.repeat(99) + 'b');
   });
 
+  it('takes at most 100 characters and shows how many are used', () => {
+    renderSection(<ProfileSection />, { values: { name: 'Lab Week' } });
+
+    expect(screen.getByRole('textbox', { name: 'Event Name' })).toHaveAttribute('maxLength', '100');
+    expect(screen.getByText('8 / 100')).toBeInTheDocument();
+  });
+
   it("shows the name's message and clears it on a change", async () => {
     const { form } = renderSection(<ProfileSection />);
     form.current.setError('name', { type: 'manual', message: 'Event name required' });
 
     expect(await screen.findByText('Event name required')).toBeInTheDocument();
 
-    fireEvent.change(screen.getByRole('textbox', { name: 'Event name' }), { target: { value: 'L' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Event Name' }), { target: { value: 'L' } });
 
     await waitFor(() => expect(screen.queryByText('Event name required')).not.toBeInTheDocument());
   });

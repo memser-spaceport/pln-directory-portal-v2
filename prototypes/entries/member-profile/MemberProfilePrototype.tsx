@@ -223,7 +223,7 @@ export function MemberProfilePage({
   /* LAB-3383's "One actions area" is the default here. Hosts that bring their
      own review band or contact press (agent, profile-agent-actions,
      member-events-going) keep the header cluster they were built around. */
-  const actionsAt: ActionsAt = reviewBand === undefined && !contactAction ? 'one' : 'header';
+  const actionsAt = (reviewBand === undefined && !contactAction ? 'one' : 'header') as ActionsAt;
   /* LAB-3383's open question, as a switch: does Request an intro show when
      the member has office hours? Anuj (2026-11-23): neutral; intro has too
      few clicks to judge (LAB-3296 funnel). Show is today's design-area default

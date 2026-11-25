@@ -1,5 +1,6 @@
 'use client';
 
+import clsx from 'clsx';
 import { useFormContext } from 'react-hook-form';
 
 import {
@@ -63,7 +64,7 @@ export function DatesSection() {
     <section className={s.section} data-section="dates">
       <div className={s.row}>
         <div className={c.group} role="group" aria-labelledby="event-start-title">
-          <h2 className={s.sectionTitle} id="event-start-title">
+          <h2 className={clsx(s.sectionTitle, s.required)} id="event-start-title">
             Start Date
           </h2>
           <div className={c.pair}>
@@ -89,7 +90,7 @@ export function DatesSection() {
           </div>
         </div>
         <div className={c.group} role="group" aria-labelledby="event-end-title">
-          <h2 className={s.sectionTitle} id="event-end-title">
+          <h2 className={clsx(s.sectionTitle, s.required)} id="event-end-title">
             End Date
           </h2>
           <div className={c.pair}>

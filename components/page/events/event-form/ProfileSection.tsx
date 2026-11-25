@@ -30,6 +30,7 @@ export function ProfileSection() {
           <FormField
             name="name"
             label="Event Name"
+            isRequired
             placeholder="Enter Event Name"
             maxLength={EVENT_NAME_MAX}
             max={EVENT_NAME_MAX}

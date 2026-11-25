@@ -24,6 +24,13 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
+/* A field Submit needs: a red asterisk after its title, as `FormField` draws it. */
+.required::after {
+  content: '*';
+  margin-left: 0.25rem;
+  color: red;
+}
+
 .hint {
   margin: 0;
   font-size: 12px;

@@ -77,6 +77,12 @@ describe('sections', () => {
     expect(screen.getByText('Social Handles')).toBeInTheDocument();
   });
 
+  it('marks the fields Submit needs with an asterisk, and no others', () => {
+    const { container } = open();
+    const marked = Array.from(container.querySelectorAll('[class~="required"]')).map((el) => el.textContent);
+    expect(marked).toEqual(['Event Name', 'Start Date', 'End Date', 'Choose Event tag(s)', 'Host (1)']);
+  });
+
   it('starts with "Free/RSVP", "In Person" and the first tag', () => {
     open();
     expect(screen.getByRole('radio', { name: 'Free/RSVP' })).toHaveAttribute('aria-checked', 'true');

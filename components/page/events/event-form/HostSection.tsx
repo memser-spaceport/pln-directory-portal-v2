@@ -39,7 +39,7 @@ export function HostSection() {
   return (
     <section className={s.section} data-section="host">
       <div className={c.header}>
-        <h2 className={s.sectionTitle}>Host ({coHosts.length + 1})</h2>
+        <h2 className={clsx(s.sectionTitle, s.required)}>Host ({coHosts.length + 1})</h2>
         <button
           type="button"
           className={s.textButton}

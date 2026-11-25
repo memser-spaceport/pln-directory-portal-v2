@@ -49,7 +49,7 @@ export function TagsSection() {
 
   return (
     <section className={s.section} data-section="tags">
-      <h2 className={s.sectionTitle} id="event-tags-title">
+      <h2 className={clsx(s.sectionTitle, s.required)} id="event-tags-title">
         Choose Event tag(s)
       </h2>
       <div className={s.choices} role="group" aria-labelledby="event-tags-title">

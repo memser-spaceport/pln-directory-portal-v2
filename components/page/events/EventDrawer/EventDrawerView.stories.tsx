@@ -163,6 +163,26 @@ export const NobodyGoing: Story = {
   args: { raw: eventResponse({ goingCount: 0, faces: [] }), attendeeRows: [] },
 };
 
+const ENDED = { startDate: '2025-12-01T09:00:00.000Z', endDate: '2025-12-05T18:00:00.000Z' };
+
+/** The event has ended: no RSVP, no Register, no pinned bar (LAB-3426). */
+export const Ended: Story = {
+  args: { raw: eventResponse(ENDED) },
+};
+
+/** It has ended, and the viewer had said yes. */
+export const EndedViewerWent: Story = {
+  args: {
+    raw: eventResponse({ ...ENDED, goingCount: 13, viewerGoing: true, viewer: { showOnProfile: true, roles: [] } }),
+    plans: GOING_PLANS,
+  },
+};
+
+/** It has ended, and nobody said they were going. */
+export const EndedNobodyWent: Story = {
+  args: { raw: eventResponse({ ...ENDED, goingCount: 0, faces: [] }), attendeeRows: [] },
+};
+
 export const Loading: Story = { args: { status: 'loading', raw: null } };
 
 /** A deleted event (404). */

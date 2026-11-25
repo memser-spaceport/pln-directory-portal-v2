@@ -44,15 +44,19 @@ export function SubHead({ title, onBack }: { title: string; onBack: () => void }
  * Ours, not in the prototype: rows come from the strict list, 20 at a time as the drawer scrolls to the last one; the
  * placeholder says "name or team", what the BE searches (the prototype's says "name, role or team"); a member with
  * several roles gets a tag for each.
+ *
+ * LAB-3426: once the event has ended the words are in the past ("N went to <event>").
  */
 export function AttendeesView({
   eventName,
+  ended = false,
   total,
   viewerUid,
   attendees,
   onBack,
 }: {
   eventName: string;
+  ended?: boolean;
   total: number;
   viewerUid: string | null;
   attendees: EventAttendeesState;
@@ -82,9 +86,9 @@ export function AttendeesView({
 
   return (
     <div className={e.body}>
-      <SubHead title={`${total} going to ${eventName}`} onBack={onBack} />
+      <SubHead title={`${total} ${ended ? 'went' : 'going'} to ${eventName}`} onBack={onBack} />
       <label className={e.search}>
-        <span className={e.srOnly}>Search people going</span>
+        <span className={e.srOnly}>{ended ? 'Search people who went' : 'Search people going'}</span>
         <SearchInput value={search} onChange={onSearchChange} placeholder="Search by name or team" />
       </label>
       <ul className={e.people} data-testid="event-attendees">
@@ -120,10 +124,16 @@ export function AttendeesView({
           );
         })}
         {isLoading && rows.length === 0 && <li className={e.empty}>Loading…</li>}
-        {isError && rows.length === 0 && <li className={e.empty}>We couldn&apos;t load who is going.</li>}
+        {isError && rows.length === 0 && (
+          <li className={e.empty}>We couldn&apos;t load who {ended ? 'went' : 'is going'}.</li>
+        )}
         {!isLoading && !isError && rows.length === 0 && (
           <li className={e.empty}>
-            {searching ? `Nobody going matches “${search.trim()}”.` : 'Nobody has said they are going yet.'}
+            {searching
+              ? `Nobody ${ended ? 'who went' : 'going'} matches “${search.trim()}”.`
+              : ended
+                ? 'Nobody said they were going.'
+                : 'Nobody has said they are going yet.'}
           </li>
         )}
         {isFetchingNextPage && <li className={e.empty}>Loading…</li>}

@@ -199,6 +199,7 @@ export interface EventFormErrors {
   name?: string;
   dates?: string;
   timezone?: string;
+  description?: string;
   tags?: string;
   hostName?: string;
   coHosts?: ({ name?: string; email?: string } | undefined)[];

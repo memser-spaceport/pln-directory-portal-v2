@@ -50,6 +50,12 @@ export const SOCIAL_PLATFORMS: { value: string; label: string }[] = [
 
 export const EVENT_NAME_MAX = 100;
 
+/**
+ * The longest description, in characters of text. The API takes up to 50,000 characters of HTML; the limit on the
+ * text leaves room for the tags.
+ */
+export const EVENT_DESCRIPTION_MAX = 10000;
+
 /** The longest link the API takes. */
 export const EVENT_LINK_MAX = 2048;
 
@@ -63,6 +69,7 @@ export const EVENT_STATUS_LABEL: Record<EventStatus, string> = {
 
 export const EVENT_FORM_TEXT = {
   nameRequired: 'Event name required',
+  descriptionTooLong: 'Description must be at most 10,000 characters',
   datesRequired: 'Start date and end date is required',
   endBeforeStart: 'End date must be after start date',
   timezoneRequired: 'Time zone is required',
@@ -369,9 +376,15 @@ export function descriptionText(html: string): string {
     .trim();
 }
 
+/** The description's length as its counter shows it: the text with no tags. */
+export function descriptionLength(html: string): number {
+  return plainSpaces(html).replace(/<[^>]*>/g, '').length;
+}
+
 /**
  * The form's checks. "Submit Event", "Submit" and "Save Changes" run them all. "Save as draft" needs only the name,
- * the dates and the time zone, and still checks what is filled in: links, emails, social handles and the agenda.
+ * the dates and the time zone, and still checks what is filled in: links, emails, social handles, the description's
+ * length and the agenda.
  */
 export function checkEventForm(values: EventFormValues, mode: EventFormMode): EventFormErrors {
   const errors: EventFormErrors = {};
@@ -384,6 +397,9 @@ export function checkEventForm(values: EventFormValues, mode: EventFormMode): Ev
   else if (instants && new Date(instants.end).getTime() < new Date(instants.start).getTime())
     errors.dates = EVENT_FORM_TEXT.endBeforeStart;
   if (!values.timezone) errors.timezone = EVENT_FORM_TEXT.timezoneRequired;
+
+  if (descriptionLength(values.description) > EVENT_DESCRIPTION_MAX)
+    errors.description = EVENT_FORM_TEXT.descriptionTooLong;
 
   if (submit && values.tags.length === 0) errors.tags = EVENT_FORM_TEXT.tagRequired;
   if (submit && !values.hostName.trim()) errors.hostName = EVENT_FORM_TEXT.hostRequired;

@@ -1,4 +1,8 @@
 /* The editor is white like the other fields; on its own it shows the grey page through it. */
+.editorBox {
+  width: 100%;
+}
+
 .editor {
   :global(.ql-toolbar),
   :global(.ql-container) {

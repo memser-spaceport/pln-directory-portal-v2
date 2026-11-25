@@ -243,6 +243,17 @@ describe('checkEventForm', () => {
     expect(check({ registrationUrl: 'lu.ma/abc', websiteUrl: 'https://example.com/x?y=1' })).toEqual({});
   });
 
+  it('says the description is too long past 10,000 characters of text, tags and &nbsp; not counted extra', () => {
+    const at = `<p>${'a'.repeat(9998)}&nbsp;b</p>`;
+    expect(check({ description: at }).description).toBeUndefined();
+    expect(check({ description: `<p>${'a'.repeat(10001)}</p>` }).description).toBe(
+      'Description must be at most 10,000 characters',
+    );
+    expect(check({ description: `<p>${'a'.repeat(10001)}</p>` }, 'draft').description).toBe(
+      'Description must be at most 10,000 characters',
+    );
+  });
+
   it('says "Enter a valid meeting link" for an online or hybrid event only', () => {
     expect(check({ format: 'VIRTUAL', meetingUrl: 'not a link' }).meetingUrl).toBe('Enter a valid meeting link');
     expect(check({ format: 'HYBRID', meetingUrl: 'not a link' }).meetingUrl).toBe('Enter a valid meeting link');

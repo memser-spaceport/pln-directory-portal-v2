@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import { FormEditor } from '@/components/form/FormEditor';
-import { descriptionText, groupAgendaByDay } from '@/services/events/event-form';
+import { descriptionText, EVENT_DESCRIPTION_MAX, groupAgendaByDay } from '@/services/events/event-form';
 import type { EventFormValues } from '@/services/events/event-submission.types';
 
 import { AgendaBox } from './AgendaBox';
@@ -26,7 +26,7 @@ const TOOLBAR = [
 const AGENDA_COMMAND = /(^|[\s>;])\/agenda(?![^<]*>)/gi;
 
 /**
- * The optional description and the agenda. The editor opens with "Add Description", or at once when the form holds
+ * The optional description, at most 10,000 characters with a counter under it, and the agenda. The editor opens with "Add Description", or at once when the form holds
  * a description or an agenda. Typing "/Agenda" in the description, or the hint under it, opens the agenda box.
  */
 export function DescriptionSection() {
@@ -71,17 +71,21 @@ export function DescriptionSection() {
         </button>
       ) : (
         <>
-          <FormEditor
-            name="description"
-            label="Description"
-            placeholder="Enter description"
-            className={c.editor}
-            simplified
-            toolbarConfig={TOOLBAR}
-            enableMentions={false}
-            minHeight={160}
-            disabled={busy}
-          />
+          <div className={c.editorBox} data-invalid={errors.description ? true : undefined}>
+            <FormEditor
+              name="description"
+              label="Description"
+              placeholder="Enter description"
+              className={c.editor}
+              simplified
+              toolbarConfig={TOOLBAR}
+              enableMentions={false}
+              minHeight={160}
+              disabled={busy}
+              maxLength={EVENT_DESCRIPTION_MAX}
+              showCharCount
+            />
+          </div>
           {!hasAgenda && (
             <button type="button" className={c.hint} disabled={busy} onClick={() => setBoxOpen(true)}>
               Type /Agenda to Add Agenda

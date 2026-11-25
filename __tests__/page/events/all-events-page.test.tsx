@@ -64,6 +64,8 @@ jest.mock('@/components/page/events/EventDrawer/EventDrawer', () => ({ EventDraw
 
 const analytics = {
   onEventsViewChanged: jest.fn(),
+  onEventsWhenChanged: jest.fn(),
+  onEventsYearChanged: jest.fn(),
   onEventsFiltersApplied: jest.fn(),
   onEventsCitySelected: jest.fn(),
   onSubmitEventButtonClicked: jest.fn(),
@@ -83,6 +85,9 @@ jest.mock('@/services/events/hooks/useMyUpcomingEventUids', () => ({
     return { data: enabled ? going.uids : undefined };
   },
 }));
+// LAB-3418: past events have their own suite (all-events-past.test.tsx); here there are none.
+jest.mock('@/services/events/hooks/usePastEvents', () => ({ usePastEvents: () => ({ data: [] }) }));
+jest.mock('@/services/events/hooks/useMyPastEventUids', () => ({ useMyPastEventUids: () => ({ data: [] }) }));
 jest.mock('@tanstack/react-query', () => ({
   ...jest.requireActual('@tanstack/react-query'),
   useQueryClient: () => ({ setQueryData: jest.fn() }),
@@ -179,7 +184,8 @@ const storeParams = () => useAllEventsFilterStore.getState().params;
 const card = (name: string) => screen.getByRole('button', { name: new RegExp(name) });
 /** The toolbar's door; the phone bar has a "Filters" button of its own. */
 const filtersDoor = () => document.querySelector('[aria-controls="events-filters"]') as HTMLElement;
-const toolbarCount = () => screen.getByRole('heading', { name: /^Coming up/ }).nextSibling?.textContent;
+/** The Live & upcoming tab's count (LAB-3418), in List and Map; Calendar keeps "Coming up" with its count. */
+const toolbarCount = () => screen.getByRole('tab', { name: /^Live & upcoming/ }).textContent;
 
 beforeEach(() => {
   jest.useFakeTimers({ now: new Date('2030-12-01T10:00:00') });
@@ -210,8 +216,7 @@ describe('header and List', () => {
       'https://irl.example/auth/labos?returnUrl=%2Fevents%2Fadd',
     );
     expect(container.querySelector('iframe')).toBeNull();
-    expect(screen.getByRole('heading', { name: 'Coming up' })).toBeInTheDocument();
-    expect(toolbarCount()).toBe('11 events');
+    expect(toolbarCount()).toBe('Live & upcoming 11');
   });
 
   it('reads a multi-day card in its own zone, with host, place and faces', () => {
@@ -315,10 +320,12 @@ describe('the Live pill (LAB-3425)', () => {
     expect(live().sort()).toEqual(['fest', 'now']);
     act(() => jest.advanceTimersByTime(1));
     expect(live().sort()).toEqual(['fest', 'now', 'soon']);
-    // "On now" ends at half past the minute; its pill goes on the next one, the card stays.
-    act(() => jest.advanceTimersByTime(60_000));
-    expect(live().sort()).toEqual(['fest', 'soon']);
+    // "On now" ends at half past the minute: at that instant it leaves the list, pill and all (LAB-3418).
+    act(() => jest.advanceTimersByTime(29_999));
     expect(card('On now')).toBeInTheDocument();
+    act(() => jest.advanceTimersByTime(1));
+    expect(live().sort()).toEqual(['fest', 'soon']);
+    expect(screen.queryByText('On now')).toBeNull();
   });
 
   it('ticks on the minute, whenever in the minute the page opened', () => {
@@ -423,8 +430,7 @@ describe('the switches are tabs (LAB-3425)', () => {
       ['Month', 'BUTTON', 'true'],
     ]);
     // The toolbar keeps its title and count in Calendar.
-    expect(screen.getByRole('heading', { name: 'Coming up' })).toBeInTheDocument();
-    expect(toolbarCount()).toBe('11 events');
+    expect(screen.getByRole('heading', { name: 'Coming up' }).nextSibling).toHaveTextContent(/^11 events$/);
   });
 
   it('takes every tab in with the keyboard', () => {
@@ -519,9 +525,9 @@ describe('Near you', () => {
     expect(screen.queryByText('See events near you.')).toBeNull();
   });
 
-  it('puts the Coming up toolbar above the List bands (LAB-3374)', () => {
+  it('puts the toolbar above the List bands (LAB-3374)', () => {
     renderPage(signedIn('Lisbon'));
-    const toolbar = screen.getByRole('heading', { name: 'Coming up' });
+    const toolbar = screen.getByRole('tablist', { name: 'When' });
     const near = screen.getByRole('region', { name: 'Near you in Lisbon' });
     expect(toolbar.compareDocumentPosition(near) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
@@ -558,7 +564,7 @@ describe('Browse by city', () => {
     fireEvent.click(screen.getByRole('button', { name: /^Dubai/ }));
 
     expect(screen.getByRole('heading', { name: 'Dubai' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Coming up in Dubai' })).toBeInTheDocument();
+    expect(toolbarCount()).toBe('Live & upcoming 1');
     expect(screen.getByText(/1 live & upcoming event · Dec 10 · Times in Dubai time \(UTC\+0\)/)).toBeInTheDocument();
     expect(screen.queryByText('Lisbon event 1')).toBeNull();
     expect(storeParams().get('city')).toBe('Dubai');
@@ -625,7 +631,7 @@ describe('filters', () => {
 
   it('narrows the events by host and shows it as a chip', () => {
     renderPage({}, '/events/all?host=Protocol Labs');
-    expect(toolbarCount()).toBe('1 event');
+    expect(toolbarCount()).toBe('Live & upcoming 1');
     expect(screen.getByText('DAI Summit')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Remove filter Protocol Labs' }));
     expect(storeParams().get('host')).toBeNull();
@@ -634,7 +640,7 @@ describe('filters', () => {
   it('Access type offers "RSVP", and an old ?access=Free link shows an RSVP chip (LAB-3407)', () => {
     const items = [item({ uid: 'a', name: 'Open night', access: 'FREE w/ RSVP' }), item({ uid: 'b', access: 'PAID' })];
     renderPage({ result: { ok: true, items } }, '/events/all?access=Free');
-    expect(toolbarCount()).toBe('1 event');
+    expect(toolbarCount()).toBe('Live & upcoming 1');
     expect(screen.getByText('Open night')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Remove filter RSVP' })).toBeInTheDocument();
     // The card names how you get in only when it isn't the usual RSVP.
@@ -670,7 +676,7 @@ describe('filters', () => {
   it('shows only the events the member is going to', () => {
     going.uids = ['dai', 'call'];
     renderPage(signedIn('Berlin'), '/events/all?going=true');
-    expect(toolbarCount()).toBe('2 events');
+    expect(toolbarCount()).toBe('Live & upcoming 2');
   });
 
   it('says nothing matches and clears the filters, keeping the open drawer', () => {
@@ -686,7 +692,7 @@ describe('filters', () => {
     renderPage({}, '/events/all?view=calendar&mode=Online');
     expect(storeParams().get('view')).toBe('calendar');
     expect(storeParams().get('mode')).toBe('Online');
-    expect(toolbarCount()).toBe('1 event');
+    expect(screen.getByRole('heading', { name: 'Coming up' }).nextSibling).toHaveTextContent(/^1 event$/);
   });
 });
 

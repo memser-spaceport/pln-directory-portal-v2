@@ -35,7 +35,7 @@ const FACETS: Record<FacetKey, { title: string; label?: string; placeholder?: st
 };
 
 interface RailProps {
-  /** Every upcoming event: the counts beside each option are over these. */
+  /** Every live and upcoming event, or every past one on Past (LAB-3418): each option's count is over these. */
   events: AllEventsItem[];
   /** Signed in: "Events I'm going to" shows, with how many. Null signed out. */
   goingCount: number | null;

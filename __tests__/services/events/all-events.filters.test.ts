@@ -7,8 +7,17 @@ import {
   facetOptions,
   filterEvents,
   groupByDay,
+  groupPastByDay,
+  inYear,
+  isFilterParam,
   nearYou,
+  pastCitySummary,
+  pastDayHeading,
+  pastSpanLabel,
+  pastYears,
   readFilters,
+  readYear,
+  sortPast,
   spanLabel,
   topCities,
 } from '@/services/events/all-events.filters';
@@ -230,5 +239,105 @@ describe('nearYou', () => {
     expect(nearYou(lisbonEvents, null)).toBeNull();
     expect(nearYou(lisbonEvents, 'Berlin')).toBeNull();
     expect(nearYou([item({ mode: 'Virtual' })], 'Lisbon')).toBeNull();
+  });
+});
+
+describe('Past (LAB-3418)', () => {
+  const on = (uid: string, startDay: string, hour = 9, endDay = startDay) =>
+    item({
+      uid,
+      startDay,
+      endDay,
+      startDate: `${startDay}T${String(hour).padStart(2, '0')}:00:00.000Z`,
+      endDate: `${endDay}T23:00:00.000Z`,
+    });
+  const mixed = [
+    on('jan', '2030-01-02'),
+    on('dec-late', '2029-12-31', 19),
+    on('dec-early', '2029-12-31', 8),
+    on('newyear', '2029-12-30', 9, '2030-01-03'),
+    on('nov', '2030-11-12'),
+  ];
+
+  it('sorts newest first by first day, then by start, whatever the order it came in', () => {
+    const order = ['nov', 'jan', 'dec-late', 'dec-early', 'newyear'];
+    expect(sortPast(mixed).map((e) => e.uid)).toEqual(order);
+    expect(sortPast([...mixed].reverse()).map((e) => e.uid)).toEqual(order);
+  });
+
+  // Each is in one year by its first day, and in the other by its start instant.
+  const tokyo = { ...on('tokyo', '2030-01-01'), startDate: '2029-12-31T15:30:00.000Z' };
+  const newYork = { ...on('new-york', '2029-12-31'), startDate: '2030-01-01T01:00:00.000Z' };
+
+  it('a first day is the event’s own, not that of its start instant: for the order and for the year', () => {
+    expect(sortPast([newYork, tokyo]).map((e) => e.uid)).toEqual(['tokyo', 'new-york']);
+    expect(inYear([newYork, tokyo], '2030').map((e) => e.uid)).toEqual(['tokyo']);
+    expect(inYear([newYork, tokyo], '2029').map((e) => e.uid)).toEqual(['new-york']);
+    expect(pastYears([tokyo])).toEqual(['2030']);
+    expect(pastYears([newYork])).toEqual(['2029']);
+  });
+
+  it('groups by first day, newest first: an event across days stays on its first', () => {
+    expect(groupPastByDay(mixed).map(({ day, events }) => [day, events.map((e) => e.uid)])).toEqual([
+      ['2030-11-12', ['nov']],
+      ['2030-01-02', ['jan']],
+      ['2029-12-31', ['dec-late', 'dec-early']],
+      ['2029-12-30', ['newyear']],
+    ]);
+  });
+
+  it('heads a day with its year outside the current one', () => {
+    expect(pastDayHeading('2030-01-02', '2030-11-25')).toEqual({ label: 'Jan 2', weekday: 'Wednesday' });
+    expect(pastDayHeading('2029-12-31', '2030-11-25')).toEqual({ label: 'Dec 31, 2029', weekday: 'Monday' });
+    expect(pastDayHeading('2029-12-31', '2030-01-01').label).toBe('Dec 31, 2029');
+    expect(pastDayHeading('2030-11-25', '2030-11-25').label).toBe('Today');
+  });
+
+  it('prints a span with its year outside the current one, and both years over New Year', () => {
+    const span = (from: string, to: string) => pastSpanLabel(from, to, '2030-11-25');
+    expect(span('2030-11-12', '2030-11-12')).toBe('Nov 12');
+    expect(span('2030-11-12', '2030-11-15')).toBe('Nov 12 – 15');
+    expect(span('2029-11-12', '2029-11-12')).toBe('Nov 12, 2029');
+    expect(span('2029-11-30', '2029-12-02')).toBe('Nov 30 – Dec 2, 2029');
+    expect(span('2029-12-30', '2030-01-03')).toBe('Dec 30, 2029 – Jan 3, 2030');
+  });
+
+  it('sums up a city from its first to its last day, with the newest event’s zone', () => {
+    const events = [
+      { ...on('new', '2030-11-12'), zone: 'UTC+1' },
+      { ...on('old', '2029-06-01', 9, '2029-06-04'), zone: 'UTC+2' },
+    ];
+    expect(pastCitySummary('Lisbon', events)).toEqual({
+      city: 'Lisbon',
+      eventCount: 2,
+      startDay: '2029-06-01',
+      endDay: '2030-11-12',
+      zone: 'UTC+1',
+    });
+    expect(pastCitySummary('Lisbon', [])).toBeUndefined();
+  });
+
+  it('an event’s year is that of its first day', () => {
+    expect(pastYears(mixed)).toEqual(['2030', '2029']);
+    expect(pastYears([on('newyear', '2029-12-30', 9, '2030-01-03')])).toEqual(['2029']);
+    expect(inYear(mixed, '2029').map((e) => e.uid)).toEqual(['dec-late', 'dec-early', 'newyear']);
+    expect(inYear(mixed, '2030').map((e) => e.uid)).toEqual(['jan', 'nov']);
+    expect(inYear(mixed, '2019')).toEqual([]);
+    expect(inYear(mixed, null)).toBe(mixed);
+  });
+
+  it('reads the year in the address, and nothing but four digits', () => {
+    expect(readYear(params('year=2029'))).toBe('2029');
+    ['', 'year=', 'year=all', 'year=29', 'year=20299', 'year=2029-01', 'year=%202029'].forEach((q) =>
+      expect(readYear(params(q))).toBeNull(),
+    );
+  });
+
+  it('`when` and `year` are no filters, and the embed link carries them after the view', () => {
+    const address = params('year=2029&when=past&mode=Online&going=true&event=e1&view=map');
+    expect(['when', 'year'].filter(isFilterParam)).toEqual([]);
+    expect(countAppliedFilters(address)).toBe(2); // Mode and "Events I'm going to".
+    expect(embedQuery(address)).toBe('view=map&when=past&year=2029&mode=Online');
+    expect(embedQuery(params('view=map&mode=Online'))).toBe('view=map&mode=Online');
   });
 });

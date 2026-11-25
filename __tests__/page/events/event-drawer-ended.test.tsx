@@ -114,6 +114,39 @@ describe('EventDrawerView: an event that has ended (LAB-3426)', () => {
     });
   });
 
+  describe('the year in the date line (LAB-3418)', () => {
+    const when = () => screen.getByTestId('event-when');
+
+    it('carries the year once another year has come, and not before', () => {
+      const { unmount } = render(view());
+      expect(when()).toHaveTextContent('Sun, Dec 1 – Thu, Dec 5');
+      expect(when()).not.toHaveTextContent('2030');
+      unmount();
+
+      jest.setSystemTime(new Date('2031-01-01T00:00:00.000Z'));
+      render(view());
+      expect(within(when()).getByText('Sun, Dec 1 – Thu, Dec 5, 2030')).toBeInTheDocument();
+    });
+
+    it('an event that has not ended has no year, next year’s included', () => {
+      jest.setSystemTime(new Date('2029-06-01T00:00:00.000Z'));
+      render(view());
+      expect(within(when()).getByText('Sun, Dec 1 – Thu, Dec 5')).toBeInTheDocument();
+    });
+
+    it('does not change while the drawer stays open', () => {
+      jest.setSystemTime(new Date('2030-12-31T23:59:59.000Z'));
+      const { rerender } = render(view());
+      passTime(2 * SECOND);
+      rerender(view());
+      expect(within(when()).getByText('Sun, Dec 1 – Thu, Dec 5')).toBeInTheDocument();
+    });
+
+    it('the date line it falls back to has had the year all along', () => {
+      expect(toEventDetail(eventResponse()).dateLine).toMatch(/Dec 2030/);
+    });
+  });
+
   describe('the card', () => {
     it('others went: "This event has ended", the faces and "N members went"', () => {
       render(view());

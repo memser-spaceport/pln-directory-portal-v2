@@ -29,7 +29,7 @@ The drawer SHALL follow the redesigned drawer prototype (LAB-3361, `prototypes/e
 
 1. A toolbar that stays at the top while the drawer scrolls (LAB-3361). On the left: "Copy link", which copies `/events/all?event=<uid>` on the current site and reads "Copied" for two seconds (only its icon on a phone). The drawer SHALL NOT show "Open in PL Events" or another link to the PL events app, also in the embed, because the event data will move to LabOS (LAB-3420). On the right: previous and next, when the page that opened the drawer passes a list of more than one event (see the All Events requirement); then Close.
 2. The event's picture as a 56px thumbnail when it has one, beside the title and "Hosted by <hosts>" ("A and B", "A, B and C"). Hosts are names, not links.
-3. A date row: a tile with the month and day, then the day ("Thursday, November 19", or "Tue, Dec 1 – Sat, Dec 5" for an event across days) and the time with its zone ("6:00 PM – 9:00 PM · UTC−5"), all in the event's own time zone: the one the event has, otherwise its gathering's, otherwise UTC (LAB-3404). When the dates can't be read, the row SHALL show the events app's date line instead.
+3. A date row: a tile with the month and day, then the day ("Thursday, November 19", or "Tue, Dec 1 – Sat, Dec 5" for an event across days) and the time with its zone ("6:00 PM – 9:00 PM · UTC−5"), all in the event's own time zone: the one the event has, otherwise its gathering's, otherwise UTC (LAB-3404). Once the event has ended, a day in a year other than the current one SHALL carry its year (LAB-3418): "Tuesday, November 4, 2025", "Mon, Jun 30 – Fri, Jul 4, 2025", and over New Year a year on each end, "Tue, Dec 30, 2025 – Fri, Jan 2, 2026". Both years are read in the line's own time zone. An event that has not ended SHALL carry no year, and the line SHALL NOT change while the drawer is open. An event whose end is before its start SHALL be on its first day, as on its card, and neither the day nor the time SHALL read backwards. When the dates can't be read, the row SHALL show the events app's date line instead.
 4. A place row with a pin tile: the address for an in-person event; "Online" with "Link sent after you register" for an online event ("Online event" once it has ended); the address with "Hybrid, also online" under it for a hybrid event (LAB-3283). When the event has a map link (the events service's `location_url`) and an address, the place text and its arrow SHALL be one link that opens the map in a new tab, as on the PL events app (LAB-3324). An event without a map link, or whose map link is not an `http` or `https` address, SHALL show the place as plain text with no arrow. "Online" SHALL never link to a map.
 5. The event's own page (for example its Luma page) when it has one, as a link under the place row (LAB-3271). The link SHALL open in a new tab. It SHALL show the address without `https://`. The row SHALL look like the other fact rows (LAB-3333, LAB-3361): a link icon in a tile like the place row's, then the link text styled like the day line, with no arrow. The page SHALL be the event's `websiteUrl`. When `websiteUrl` is empty or not an `http` or `https` address, the page SHALL be the link of the event's resource named "Registration" (any case, end spaces ignored), and "Register" SHALL open the same page (LAB-3334). An event without a page, or whose page is not an `http` or `https` address, SHALL have no link row and no "Register".
 6. An access row when the access is known, with an icon and two lines: "Invite only / The hosts approve each guest", "Paid / Tickets on the host's site" or, on one line, "RSVP to save your spot" (LAB-3283, LAB-3407). The events service's `OPEN` access SHALL read as the last one and never as "Free": it does not say that an event costs nothing. Once the event has ended the row SHALL keep what the event was and drop the ask: "Invite only" as before, "Paid" on one line, and no row in place of "RSVP to save your spot" (LAB-3426). Mode and access SHALL NOT show as badges.
@@ -38,6 +38,19 @@ The drawer SHALL follow the redesigned drawer prototype (LAB-3361, `prototypes/e
 9. "Agenda": a row per session with its time beside its title and description, under a day title ("Tue, 1st Dec") when the agenda spans several days.
 
 A block whose data is empty SHALL be left out rather than shown empty. On a narrow screen the drawer SHALL take the full width.
+
+#### Scenario: The year of an ended event
+
+- **GIVEN** today is November 25, 2026, and an event that ran on November 4, 2025
+- **WHEN** a viewer opens it
+- **THEN** its day line reads "Tuesday, November 4, 2025"
+- **AND** an event that ended on October 5, 2026, and an upcoming one in January 2027, carry no year
+
+#### Scenario: The year is the line's own
+
+- **GIVEN** an ended event at 9 PM on December 31, 2025 in New York, which is already 2026 in UTC
+- **WHEN** a viewer opens it in 2026
+- **THEN** its day line reads "Wednesday, December 31, 2025"
 
 #### Scenario: Event with its own page
 
@@ -386,7 +399,7 @@ The drawer SHALL record these PostHog events, each with `event_uid`:
 
 ### Requirement: The All Events page is native behind a flag
 
-When the build flag `NEXT_PUBLIC_SHOW_EVENTS_PAGE_V2` is `true`, `/events/all` SHALL render the All Events page in LabOS, with no iframe. With the flag off, `/events/all` SHALL show the events app iframe exactly as before. The page SHALL be open to signed-out visitors, as before. It SHALL show upcoming events only: events that have not ended.
+When the build flag `NEXT_PUBLIC_SHOW_EVENTS_PAGE_V2` is `true`, `/events/all` SHALL render the All Events page in LabOS, with no iframe. With the flag off, `/events/all` SHALL show the events app iframe exactly as before. The page SHALL be open to signed-out visitors, as before. It SHALL show the events that have not ended under "Live & upcoming" and those that have under "Past" (LAB-3418).
 
 #### Scenario: Flag off
 
@@ -398,7 +411,7 @@ When the build flag `NEXT_PUBLIC_SHOW_EVENTS_PAGE_V2` is `true`, `/events/all` S
 
 - **GIVEN** the build has `NEXT_PUBLIC_SHOW_EVENTS_PAGE_V2=true`
 - **WHEN** a visitor opens `/events/all`
-- **THEN** the page shows the header, the Coming up toolbar, Browse by city and the List view
+- **THEN** the page shows the header, the toolbar with Live & upcoming selected, Browse by city and the List view
 - **AND** no iframe loads
 
 #### Scenario: An event in progress stays until it ends
@@ -407,11 +420,79 @@ When the build flag `NEXT_PUBLIC_SHOW_EVENTS_PAGE_V2` is `true`, `/events/all` S
 - **WHEN** a visitor opens `/events/all`
 - **THEN** the event is listed under today
 
-#### Scenario: Past events are not listed
+#### Scenario: Past events are not under Live & upcoming
 
 - **GIVEN** an event that ended yesterday and one that starts tomorrow
 - **WHEN** a visitor opens `/events/all`
 - **THEN** only the event that starts tomorrow is listed
+- **AND** under Past, only the event that ended yesterday
+
+### Requirement: Past events load after the page
+
+An event SHALL be past from its end instant, on the visitor's clock (LAB-3418). While the page stays open, an event that ends SHALL leave Live & upcoming and enter Past at that instant, with no reload. An event that has started on that clock, and that either of the page's lists has held, SHALL be in exactly one of the two until the visitor leaves the page, whatever order the lists load, refresh or go stale. An event that has not started SHALL be under Live & upcoming only while the page's newest list has it: one that a later list no longer has SHALL leave the page and SHALL NOT come back when its start time comes, and one that only the past events route has SHALL be in neither until it starts.
+
+The browser SHALL ask for past events once, after the page has loaded, from `GET /api/events/past`, so the page's own HTML does not wait for them; showing the tab again, a filter, a tab, a view or a year SHALL NOT ask again. An embed SHALL ask only when its link has `when=past` and it does not show the Calendar. The route SHALL be the same for every visitor and read signed out: every page of `GET /v1/irl/events` (100 events a page, at most 6 calls at once, at most 20 pages), cached on the server for five minutes under a key that holds no clock, then the events that have started or start within 24 hours, newest first, on every read; the browser tells the ended ones by its own clock. Each of its calls SHALL be stopped after 10 seconds, which fails the load. Requests that come while it loads SHALL share that load, and a failed load SHALL NOT be kept. Its answer SHALL be `Cache-Control: private, max-age=300`, and a failure `no-store`. It SHALL fail as a whole, with 502, when a page fails or takes more than 10 seconds, when a page is not a list with a total, when a page is empty before the total is reached, or when there are more events than 20 pages hold (2,000); it SHALL leave out a row without a uid, a name or readable dates, and list an event once. An event in both the page's own newest list and the route's SHALL show once, as the page's newest list has it; one that has started and is no longer in it SHALL show as the list that came last has it, of those that say it has started. An event that ends on a day before the day it starts SHALL be a one-day event on its first day.
+
+#### Scenario: The end instant
+
+- **GIVEN** an event that ends at 6:00:00 PM
+- **WHEN** it is 5:59:59 PM
+- **THEN** it is under Live & upcoming and not under Past
+- **AND** at 6:00:00 PM it is under Past and not under Live & upcoming, with no reload
+
+#### Scenario: A list that loads again
+
+- **GIVEN** the page open since before event E ended, with a past list from before that too
+- **WHEN** E ends and the page's list loads again without E
+- **THEN** E is under Past, once, until the visitor leaves the page
+
+#### Scenario: An event cancelled before it starts
+
+- **GIVEN** an upcoming event E on the page, and in the past events route's list too
+- **WHEN** the page's list loads again without E
+- **THEN** E is in neither tab, also once its start time has come, unless a later list has it
+
+#### Scenario: An event cancelled while live
+
+- **GIVEN** event E under way on the page
+- **WHEN** the page's list loads again without E
+- **THEN** E stays under Live & upcoming, then under Past from its end, until the visitor leaves the page
+
+#### Scenario: An event that has moved
+
+- **GIVEN** an upcoming event E on the page
+- **WHEN** the page's list loads again with new dates for E
+- **THEN** E shows once, at the new dates, whatever the past events route's list has for it
+
+#### Scenario: The backend never answers
+
+- **GIVEN** a call for the events list that the backend never answers
+- **WHEN** 10 seconds have passed
+- **THEN** every request that waited responds 502 with `no-store`, and the next request loads again
+
+#### Scenario: Coming back within five minutes
+
+- **GIVEN** a past list kept from before event E ended, and a new server list without E
+- **WHEN** the visitor opens the page again
+- **THEN** E is under Past once it has ended on their clock, and under Live & upcoming until then
+
+#### Scenario: A page fails
+
+- **GIVEN** the second page of the events list responds with an error
+- **WHEN** the route is asked
+- **THEN** it responds 502, and no partial list is kept
+
+#### Scenario: Past events fail to load
+
+- **GIVEN** the route fails
+- **WHEN** a visitor opens `/events/all`
+- **THEN** Live & upcoming works as before, the Past tab has no count, and Calendar shows the upcoming events
+- **AND** under Past the page says the events couldn't load, with "Try again", which asks again
+
+#### Scenario: Asked once
+
+- **WHEN** a visitor opens `/events/all`, switches to Past, picks a year, opens the Calendar and comes back to the tab
+- **THEN** `/api/events/past` was asked once
 
 ### Requirement: The page header
 
@@ -509,9 +590,9 @@ From 640px up, List view SHALL show "Browse by city" under the toolbar with the 
 - **WHEN** the visitor presses "← All cities"
 - **THEN** every city's events show again and the City filter is cleared
 
-### Requirement: The Coming up toolbar and filters
+### Requirement: The toolbar and filters
 
-A "Coming up" toolbar, right under the page header (Polina's design, 2026-11-20; LAB-3374), SHALL show the number of events that match, a Filters button and the view switch List · Calendar · Map, offering only the views this build has (no switch while there is one). The view switch, and Week | Month in the Calendar, SHALL look like the design system's enclosed tabs (LAB-3425): a grey track, 34px tall, of 26px tabs with 4px between them, the active one white. The view switch's track SHALL be darker than the page's grey; Week | Month SHALL keep the design system's track colour, on the white calendar card. Both SHALL be tab lists to assistive technology, each tab SHALL be reachable with the keyboard and SHALL show its focus, and no tab's label SHALL wrap. On desktop and tablet the toolbar SHALL stay in view under the navbar while the events scroll. The filter rail SHALL be closed by default. The Filters button SHALL open it and show the number of applied filters. The rail SHALL have a control that closes it and "Clear All". While the rail is closed, each applied filter SHALL show as a removable chip under the toolbar. The filters SHALL be, in this order: search (event name, host, city, focus area name or topic), "Events I'm going to" (signed-in members only), Mode (In person, Online, Hybrid; LAB-3370), Access type (RSVP, Paid, Invite only; the address keeps `access=Free` for RSVP, so links and embeds made before LAB-3407 still work), Focus area (the event's focus areas, by name; the address keeps the code, `focus=FA4`), Topic (every other tag; LAB-3404), City and Host (any of the event's hosts). Topic and Host SHALL have a search box. Values within one filter SHALL match any (OR); different filters SHALL all apply (AND). A filter list with fewer than 2 values in the loaded events SHALL NOT show, unless it is applied; so Access type, Focus area, Topic and Host stay hidden while the events carry no details. A Featured filter SHALL NOT show until the events data says which events are featured. Filters and the view SHALL be kept in the page address, so a copied link reopens the same view and filters, and switching view SHALL keep the filters. On phones the filters SHALL open as a bottom sheet from a Filters button.
+A toolbar, right under the page header (Polina's design, 2026-11-20; LAB-3374), SHALL show what the view shows, a Filters button and the view switch List · Calendar · Map, offering only the views this build has (no switch while there is one). In List and Map it SHALL start with the tabs Live & upcoming | Past, each with the number of its events that match (LAB-3418, see below); in Calendar with "Coming up" ("Coming up in <city>" when one is chosen) and the number of live and upcoming events that match. The tabs, the view switch, and Week | Month in the Calendar, SHALL look like the design system's enclosed tabs (LAB-3425): a grey track, 34px tall, of 26px tabs with 4px between them, the active one white. The view switch's track SHALL be darker than the page's grey; Week | Month SHALL keep the design system's track colour, on the white calendar card. Both SHALL be tab lists to assistive technology, each tab SHALL be reachable with the keyboard and SHALL show its focus, and no tab's label SHALL wrap. On desktop and tablet the toolbar SHALL stay in view under the navbar while the events scroll. The filter rail SHALL be closed by default. The Filters button SHALL open it and show the number of applied filters. The rail SHALL have a control that closes it and "Clear All". While the rail is closed, each applied filter SHALL show as a removable chip under the toolbar. The filters SHALL be, in this order: search (event name, host, city, focus area name or topic), "Events I'm going to" (signed-in members only), Mode (In person, Online, Hybrid; LAB-3370), Access type (RSVP, Paid, Invite only; the address keeps `access=Free` for RSVP, so links and embeds made before LAB-3407 still work), Focus area (the event's focus areas, by name; the address keeps the code, `focus=FA4`), Topic (every other tag; LAB-3404), City and Host (any of the event's hosts). Topic and Host SHALL have a search box. Values within one filter SHALL match any (OR); different filters SHALL all apply (AND). A filter list with fewer than 2 values in the loaded events SHALL NOT show, unless it is applied; so Access type, Focus area, Topic and Host stay hidden while the events carry no details. A Featured filter SHALL NOT show until the events data says which events are featured. Filters and the view SHALL be kept in the page address, so a copied link reopens the same view and filters, and switching view SHALL keep the filters. On phones the filters SHALL open as a bottom sheet from a Filters button.
 
 #### Scenario: Filter survives a view switch
 
@@ -561,9 +642,127 @@ A "Coming up" toolbar, right under the page header (Polina's design, 2026-11-20;
 - **WHEN** a visitor opens `/events/all`
 - **THEN** the header stays, and the page says the events couldn't load, with "Try again"
 
+### Requirement: Live & upcoming and Past
+
+In List and Map the toolbar SHALL start with the tabs "Live & upcoming" and "Past" (LAB-3418, Polina's design on LAB-3424), in the view switch's style, each with its count in the design system's badge. Live & upcoming SHALL be the default; `?when=past` in the address SHALL open Past. `when` is not a filter: it SHALL NOT count as one, show a chip or be cleared with the filters, and it SHALL mean nothing in Calendar. Both counts SHALL follow the filters, whichever tab is on. Until past events have loaded, and when they fail to, Past SHALL have no count. Switching tabs SHALL change only what is under the toolbar: the toolbar's controls SHALL NOT move, nor when the count comes. The filters' options and their counts SHALL come from the events of the tab on show. Below 640px the tabs SHALL fill the row in equal halves, and their labels SHALL NOT wrap; the year and Embed SHALL be on the row under them, on every tab. Back and Forward SHALL bring back the tab of that address, and a tab chosen after them SHALL be in the address again.
+
+#### Scenario: Switch to Past
+
+- **GIVEN** 4 live and upcoming events and 577 past ones
+- **WHEN** a visitor opens `/events/all` and presses "Past 577"
+- **THEN** the past events show, the address has `when=past`, and the toolbar has not moved
+
+#### Scenario: Counts follow the filters
+
+- **GIVEN** no upcoming and 2 past events in Paris
+- **WHEN** the visitor filters by Paris
+- **THEN** the tabs read "Live & upcoming 0" and "Past 2"
+
+#### Scenario: Clearing the filters keeps Past
+
+- **GIVEN** `/events/all?when=past&mode=Online`
+- **WHEN** the visitor presses "Show all events" or "Clear all"
+- **THEN** every past event shows, and the address still has `when=past`
+
+#### Scenario: Past, Back, Past
+
+- **GIVEN** a visitor who pressed Past, then Back
+- **WHEN** they press Past again
+- **THEN** the address has `when=past`
+
+#### Scenario: Calendar has no tabs
+
+- **GIVEN** `/events/all?when=past&view=calendar`
+- **WHEN** the visitor opens it
+- **THEN** the toolbar reads "Coming up" with the number of live and upcoming events
+
+### Requirement: The Past list
+
+Past SHALL list ended events newest first, by first day and then by start, each under its first day (LAB-3418). A date outside the current year SHALL carry its year ("Nov 12, 2025"), in the list, the city header, the map and its lists. Past SHALL have no Near you, Add location, Browse by city or list heading. A chosen city SHALL keep its header, with "N past events", their span ("Dec 30, 2025 – Jan 3, 2026" over New Year) and the newest one's time zone. A card SHALL read "N went" in place of "N going", and "Went" in place of the viewer's "Going", and SHALL have no access note and no Live pill; an event that hides its attendance SHALL show no count. Map SHALL show past events with the same pins and lists, newest first, and "you went". With no match Past SHALL say "No past events match" and "Try another search or filter, or see every past event.", with "Show all events".
+
+The events the viewer went to SHALL be those of `GET /v1/members/:uid/events?group=past`, 50 a call, every page, and those they were going to that have just ended. They SHALL be asked for a signed-in member only, once Past is shown or "Events I'm going to" is on, and never in the embed. "Events I'm going to" SHALL narrow Past to them, and both counts SHALL follow it on either tab. A change of the viewer's answer SHALL NOT move a past event's count.
+
+#### Scenario: Newest first across a year
+
+- **GIVEN** today is November 25, 2030, and past events on November 12, 2030, January 2, 2030, and December 30, 2029 to January 3, 2030
+- **WHEN** a visitor opens Past
+- **THEN** they are listed under "Nov 12", "Jan 2" and "Dec 30, 2029", in that order
+
+#### Scenario: The viewer went
+
+- **GIVEN** a signed-in member who went to event A
+- **WHEN** they open Past
+- **THEN** A's card reads "Went"
+- **AND** a signed-out visitor's browser asks for no member's events
+
+#### Scenario: A city's past events
+
+- **GIVEN** 2 past events in Paris
+- **WHEN** a visitor opens `/events/all?when=past&city=Paris`
+- **THEN** the header reads "2 past events", their span and Paris's time zone
+
+#### Scenario: No past event matches
+
+- **GIVEN** a search no past event matches
+- **WHEN** the visitor is on Past
+- **THEN** it says "No past events match", and "Show all events" clears the filters and the year and stays on Past, so it always leads to a list when there are past events
+
+### Requirement: Past's year
+
+When past events span more than one year, Past SHALL show a dropdown right after the tabs, in List and Map (LAB-3418, Polina's design on LAB-3424): "All years", then each year with a past event, newest first, whatever the filters. An event's year SHALL be that of its first day. `?year=2025` SHALL narrow the List, the Map, the Past count, the city header, the drawer's previous and next, and the embed. The filters' options and their counts SHALL be those of that year; a value already picked SHALL stay listed when the year has none of it. The year is not a filter: it SHALL NOT count as one or be cleared by "Clear all"; "Show all events" SHALL clear it. It SHALL mean nothing on Live & upcoming and in Calendar, stay in the address there, and apply again on Past. A value that is not 4 digits SHALL be ignored. A year with no past event SHALL show Past's empty state, and be listed in the dropdown while it is the one picked. Picking a year SHALL ask for nothing. The dropdown SHALL look like the Filters button, have the name "Year: <choice>" and show its focus.
+
+#### Scenario: Pick a year
+
+- **GIVEN** past events in 2026 and 2025
+- **WHEN** the visitor picks 2025
+- **THEN** only the events whose first day is in 2025 show, the Past count is theirs, and the address has `year=2025`
+
+#### Scenario: An event over New Year
+
+- **GIVEN** a past event from December 30, 2029 to January 3, 2030
+- **WHEN** the visitor opens `?when=past&year=2029`
+- **THEN** it is listed
+- **AND** it is not under `year=2030`
+
+#### Scenario: One year only
+
+- **GIVEN** every past event is of 2026
+- **WHEN** the visitor opens Past
+- **THEN** there is no year dropdown
+
+#### Scenario: The filters don't narrow the years
+
+- **GIVEN** past events in 2026 and 2025, and a search that matches none of 2025
+- **WHEN** the visitor opens the dropdown on `year=2025`
+- **THEN** it lists All years, 2026 and 2025, and reads 2025
+- **AND** "Clear all" keeps the year
+
+#### Scenario: An invalid year and an empty one
+
+- **WHEN** the visitor opens `?when=past&year=20255`
+- **THEN** every past event shows and the dropdown reads "All years"
+- **AND** `?when=past&year=1999` shows "No past events match", with 1999 picked
+
+#### Scenario: A year with no event leads out
+
+- **GIVEN** `?when=past&year=2019`, with no past event in 2019 and no filter
+- **WHEN** the visitor presses "Show all events"
+- **THEN** every past event shows and the address has no `year`
+
+#### Scenario: The filters' options are the year's
+
+- **GIVEN** past events in Paris in 2025 and in Lisbon in 2026 only
+- **WHEN** the visitor picks 2025
+- **THEN** City lists Paris and not Lisbon, unless Lisbon was already picked
+
+#### Scenario: Calendar ignores the year
+
+- **WHEN** the visitor opens `?when=past&year=2025&view=calendar`
+- **THEN** the Calendar shows the events of every year
+
 ### Requirement: The List view
 
-The List view SHALL be the default. It SHALL group events by start day, soonest first. Each day SHALL have a date label (for example "Dec 3 / Thursday"), at the size of a card's time line, that stays in view while its events scroll. From 1200px the cards SHALL end at the right edge of the 4th "Browse by city" tile; below 1200px, where that row has 3 tiles, they SHALL fill the width (LAB-3425). The loading state SHALL have the same width. Each card SHALL show: the start time in the event's time zone with its UTC offset, and "Day n of m" for a multi-day event; the title; the host when known; the place ("Online" for an online event, the city with "also online" for a hybrid one); the going count with up to 3 faces when the event shows attendance; and the picture. On phones the date SHALL sit above its cards.
+The List view SHALL be the default. On Live & upcoming it SHALL group events by start day, soonest first. Each day SHALL have a date label (for example "Dec 3 / Thursday"), at the size of a card's time line, that stays in view while its events scroll. From 1200px the cards SHALL end at the right edge of the 4th "Browse by city" tile; below 1200px, where that row has 3 tiles, they SHALL fill the width (LAB-3425). The loading state SHALL have the same width. Each card SHALL show: the start time in the event's time zone with its UTC offset, and "Day n of m" for a multi-day event; the title; the host when known; the place ("Online" for an online event, the city with "also online" for a hybrid one); the going count with up to 3 faces when the event shows attendance; and the picture. On phones the date SHALL sit above its cards.
 
 #### Scenario: Multi-day event
 
@@ -585,7 +784,7 @@ The List view SHALL be the default. It SHALL group events by start day, soonest 
 
 ### Requirement: An event under way reads Live
 
-On the All Events page and in its embed, a green "Live" pill SHALL start the time line of a List card and of a Near you tile while the event is under way (LAB-3425, Polina's design on LAB-3424). An event that lasts 24 hours or less SHALL be live from its start until it ends, also when it crosses midnight. A longer event SHALL be live on every day of its span: from midnight of its first day, in its own time zone, until it ends; where the browser does not know that zone, from its start. An event that has ended SHALL NOT be live. The viewer's time zone SHALL NOT matter. The pill SHALL be in the server's HTML, and SHALL appear and go within a minute of the event's start and end while the page stays open, with no reload; an event that ends then stays listed, without the pill, until the next load. On a narrow card the time SHALL wrap beside the pill and stay whole. Calendar and Map SHALL show no Live pill.
+On the All Events page and in its embed, a green "Live" pill SHALL start the time line of a List card and of a Near you tile while the event is under way (LAB-3425, Polina's design on LAB-3424). An event that lasts 24 hours or less SHALL be live from its start until it ends, also when it crosses midnight. A longer event SHALL be live on every day of its span: from midnight of its first day, in its own time zone, until it ends; where the browser does not know that zone, from its start. An event that has ended SHALL NOT be live. The viewer's time zone SHALL NOT matter. The pill SHALL be in the server's HTML, and SHALL appear and go within a minute of the event's start and end while the page stays open, with no reload; at its end the event moves to Past (LAB-3418). On a narrow card the time SHALL wrap beside the pill and stay whole. Calendar and Map SHALL show no Live pill.
 
 #### Scenario: Event longer than 24 hours
 
@@ -616,7 +815,7 @@ On the All Events page and in its embed, a green "Live" pill SHALL start the tim
 
 ### Requirement: The Calendar view
 
-The Calendar view SHALL have Week and Month. Month SHALL be the default on screens 960px wide and wider, and Week below 960px (LAB-3353). A mode the visitor picks SHALL be kept in the address (`cal=week` or `cal=month`) and SHALL win over the screen width. Weeks SHALL start on Monday, and every event SHALL sit on its days in its own time zone. In Week and in Month, every day before today SHALL be greyed, today marked. Week SHALL show one column per day of the week. An event that runs several days SHALL be one card across its days. One-day events SHALL stack in their day's column, earliest first, each card showing title, its first topic with "+n" for the rest when it has topics, its start and end time ("6:00 PM – 9:00 PM"), and the place and zone in the event's time zone ("Lisbon · UTC+0", "Lisbon · also online · UTC+0", "Online · UTC+0"). A Week card SHALL show up to 3 faces and "N going" when the event shows attendance and someone is going. A week with no matching event SHALL say "Nothing this week." On phones the cards SHALL stack by day, and empty days SHALL be skipped. Month SHALL show the month grid with a bar per event per week. Pressing a day number in Month SHALL open that week in Week, and switching to Month SHALL show the month of the week in view. Previous and next controls SHALL move by one week or one month, and "Today" SHALL return to the current week or month. The calendar SHALL open on the linked event's week, else the chosen city's first event, else today's week or month, even when that week or month has no event.
+The Calendar view SHALL have Week and Month. Month SHALL be the default on screens 960px wide and wider, and Week below 960px (LAB-3353). A mode the visitor picks SHALL be kept in the address (`cal=week` or `cal=month`) and SHALL win over the screen width. Weeks SHALL start on Monday, and every event SHALL sit on its days in its own time zone. In Week and in Month, every day before today SHALL be greyed, today marked. Week SHALL show one column per day of the week. An event that runs several days SHALL be one card across its days. One-day events SHALL stack in their day's column, earliest first, each card showing title, its first topic with "+n" for the rest when it has topics, its start and end time ("6:00 PM – 9:00 PM"), and the place and zone in the event's time zone ("Lisbon · UTC+0", "Lisbon · also online · UTC+0", "Online · UTC+0"). A Week card SHALL show up to 3 faces and "N going" when the event shows attendance and someone is going. A week with no matching event SHALL say "Nothing this week." On phones the cards SHALL stack by day, and empty days SHALL be skipped. Month SHALL show the month grid with a bar per event per week. Pressing a day number in Month SHALL open that week in Week, and switching to Month SHALL show the month of the week in view. Previous and next controls SHALL move by one week or one month, and "Today" SHALL return to the current week or month. Past days SHALL show the events that have ended, under the same filters, as soon as past events have loaded (LAB-3418); a Week card of one reads "N went", and "Went" when the page knows the viewer went. In the embed, Calendar SHALL show the live and upcoming events only, as before. With no live, upcoming or past match the view SHALL show the empty state. The calendar SHALL open on the linked event's week, else the chosen city's first event, else today's week or month, even when that week or month has no event. It SHALL NOT move when the event it opened on ends, nor, once the visitor has moved it, when a linked past event comes (LAB-3418).
 
 #### Scenario: Day number opens its week
 
@@ -642,6 +841,18 @@ The Calendar view SHALL have Week and Month. Month SHALL be the default on scree
 - **WHEN** the screen is 1280px wide
 - **THEN** Month opens on the current month
 - **AND** on a 390px phone, Week opens on the current week
+
+#### Scenario: Past days
+
+- **GIVEN** events in October of last year
+- **WHEN** the visitor opens the Calendar in Month and steps back to that month
+- **THEN** its days show those events, and nothing more was asked for
+
+#### Scenario: A linked past event comes late
+
+- **GIVEN** `?view=calendar&event=<a past event>`, before past events have loaded
+- **WHEN** the visitor steps to another month and past events then load
+- **THEN** that month stays; without the step, the calendar opens on the event
 
 #### Scenario: Opens on today
 
@@ -684,7 +895,7 @@ When a Maps key is configured, the Map view SHALL show a street map. Zoomed out 
 
 Pressing an event in any view or in Near you SHALL open the event drawer for that event. Opening `/events/all?event=<uid>` SHALL open the page with that event's drawer open and the event marked in the active view: its list card, its calendar card on its own week, or its event pin, with the map zoomed into its city. Closing the drawer SHALL remove `event` from the address. An unknown uid SHALL open the drawer's "no longer available" state.
 
-The drawer's previous and next SHALL step through the events the page shows under the current filters, in the List's order (by list day, then start time), whichever view is open (LAB-3361). Stepping SHALL replace the event in the open drawer and the `event` in the address, without closing and reopening the drawer. Previous SHALL be disabled on the first event and next on the last. Other pages that open the drawer SHALL show no previous or next.
+The drawer's previous and next SHALL step through the events the page shows under the current filters, in the List's order (by list day, then start time), whichever view is open (LAB-3361). On Past they SHALL follow Past's order, newest first, narrowed to its year; in Calendar the past events come first, oldest first, then the List's order (LAB-3418). Stepping SHALL replace the event in the open drawer and the `event` in the address, without closing and reopening the drawer. Previous SHALL be disabled on the first event and next on the last. Other pages that open the drawer SHALL show no previous or next.
 
 #### Scenario: Next event
 
@@ -702,11 +913,11 @@ The drawer's previous and next SHALL step through the events the page shows unde
 
 ### Requirement: Embed opens a dialog with the link and the code
 
-The "Coming up" toolbar on `/events/all` SHALL show an "Embed" button with a `</>` glyph, styled like the Filters button, after the List / Calendar / Map switch, in every view and at every width (LAB-3352). A press SHALL open the dialog "Embed these events" in the standard modal shell (LAB-3365, Polina's design on LAB-3352) and copy nothing. It embeds what the page shows, one link `<origin>/events/embed` with the active `view`, the calendar mode on show as `cal` (also when the address has none) and each applied filter of search, Mode, Access type, Focus area, Topic, City and Host, under the page address's own keys. The link SHALL NOT carry "Events I'm going to" (`going`), the open event (`event`) or any other parameter, except `details=labos` when the host ticks "Open event details on LabOS" (LAB-3392).
+The toolbar on `/events/all` SHALL show an "Embed" button with a `</>` glyph, styled like the Filters button, after the List / Calendar / Map switch, in every view and at every width (LAB-3352). A press SHALL open the dialog "Embed these events" in the standard modal shell (LAB-3365, Polina's design on LAB-3352) and copy nothing. It embeds what the page shows, one link `<origin>/events/embed` with the active `view`, the calendar mode on show as `cal` (also when the address has none), `when=past` and its `year` while Past is on show (LAB-3418), and each applied filter of search, Mode, Access type, Focus area, Topic, City and Host, under the page address's own keys. The link SHALL NOT carry "Events I'm going to" (`going`), the open event (`event`) or any other parameter, except `details=labos` when the host ticks "Open event details on LabOS" (LAB-3392).
 
 The dialog SHALL show:
 
-- under the title, what the embed shows: "List view", "Week calendar", "Month calendar" or "Map view", then each applied filter's chip label (the search text in curly quotes), joined by " · ", or "All live & upcoming events" with none (LAB-3425);
+- under the title, what the embed shows: "List view", "Week calendar", "Month calendar" or "Map view", then each applied filter's chip label (the search text in curly quotes), joined by " · ", or with none "All live & upcoming events" (LAB-3425), on Past "All past events" (LAB-3418);
 - a live preview: `/events/embed` with that query, 320px high, loaded only while the dialog is open;
 - "Embed code": one line, `<iframe src="<link>" width="100%" height="640" style="border: 1px solid #e2e8f0; border-radius: 12px;" title="<title>" allow="clipboard-write" loading="lazy"></iframe>`, whose title is "Protocol Labs events: " and the filter labels joined by " · ", or "Protocol Labs events" with none; `&`, `"` and `<` escaped; with the line "New events that match appear on their own. Change height to fit your page.";
 - the checkbox "Open event details on LabOS", unticked whenever the dialog opens, with the line "In a new tab. Otherwise they open inside the embed, with a link to RSVP on LabOS." Ticked, the preview, the code and the copied link SHALL end with `details=labos` (LAB-3392);
@@ -721,6 +932,13 @@ Escape, Close and the backdrop SHALL close the dialog, focus SHALL go back to th
 - **THEN** the dialog reads "Month calendar · Lisbon" and previews `/events/embed?view=calendar&cal=month&city=Lisbon`
 - **AND** its code has that link and `title="Protocol Labs events: Lisbon"`
 
+#### Scenario: Embed a year of past events
+
+- **GIVEN** a visitor on `/events/all?when=past&year=2025`
+- **WHEN** they press Embed
+- **THEN** the dialog reads "List view · All past events" and previews `/events/embed?when=past&year=2025`
+- **AND** on Live & upcoming, and in Calendar, the link has neither `when` nor `year`
+
 #### Scenario: Copy the link to the map of online events
 
 - **GIVEN** a visitor on `/events/all?view=map&mode=Online&going=true`
@@ -729,7 +947,7 @@ Escape, Close and the backdrop SHALL close the dialog, focus SHALL go back to th
 
 ### Requirement: The embed shows one view for other sites
 
-`/events/embed` SHALL show only the view and filters in its address, on the page's grey, for anyone, signed in or not, with no member data: no Near you, no Add location, no "Events I'm going to", no Going marks (LAB-3352). Under the view it SHALL show the link "All events on PL Directory ↗", which opens `/events/all` with the same view and filters (not the open event) in a new tab. It SHALL NOT show the site header, the mobile bottom bar, the feedback button, contact support, the rating prompts, the page header ("Submit an event", the events app link), Browse by city, the city header, the "Coming up" toolbar (count, Filters, the view switch, Embed), the filters or the applied-filter chips (Polina's design, 2026-11-20): the person embedding it chose the view and filters. Pressing an event SHALL open its drawer inside the embed (LAB-3392): the same drawer as the page, with previous / next through the events on show, read signed out whoever is signed in. In the embed the drawer SHALL NOT ask to sign in or offer "Yes, I'm going": its card and pinned bar SHALL offer "RSVP on LabOS ↗", which opens `/events/all?event=<uid>` in a new tab, and "N members going" SHALL be text that opens nothing; an event that has ended shows the ended card, with no "RSVP on LabOS" (LAB-3426). Opening, stepping and closing the drawer SHALL leave the embed's address and the framing page's history alone, and closing it SHALL leave the view and filters as they were. With `details=labos` in its address, pressing an event SHALL instead open `/events/all?event=<uid>` in a new tab, with no drawer. The embed SHALL NOT open a drawer for `event` in its own address. With no match it SHALL show the page's empty state, and when the events fail to load the page's error state. It SHALL be served only while the native page flag is on (else not found), and SHALL NOT be indexed. Any https site (and LabOS itself) may frame it (see the runtime platform's security headers).
+`/events/embed` SHALL show only the view and filters in its address, on the page's grey, for anyone, signed in or not, with no member data: no Near you, no Add location, no "Events I'm going to", no Going marks (LAB-3352). Under the view it SHALL show the link "All events on PL Directory ↗", which opens `/events/all` with the same view and filters (not the open event) in a new tab. It SHALL NOT show the site header, the mobile bottom bar, the feedback button, contact support, the rating prompts, the page header ("Submit an event", the events app link), Browse by city, the city header, the toolbar (the tabs and their counts, the year, Filters, the view switch, Embed), the filters or the applied-filter chips (Polina's design, 2026-11-20): the person embedding it chose the view and filters. Pressing an event SHALL open its drawer inside the embed (LAB-3392): the same drawer as the page, with previous / next through the events on show, read signed out whoever is signed in. In the embed the drawer SHALL NOT ask to sign in or offer "Yes, I'm going": its card and pinned bar SHALL offer "RSVP on LabOS ↗", which opens `/events/all?event=<uid>` in a new tab, and "N members going" SHALL be text that opens nothing; an event that has ended shows the ended card, with no "RSVP on LabOS" (LAB-3426). Opening, stepping and closing the drawer SHALL leave the embed's address and the framing page's history alone, and closing it SHALL leave the view and filters as they were. With `details=labos` in its address, pressing an event SHALL instead open `/events/all?event=<uid>` in a new tab, with no drawer. The embed SHALL NOT open a drawer for `event` in its own address. With no match it SHALL show the page's empty state, and when the events fail to load the page's error state. It SHALL be served only while the native page flag is on (else not found), and SHALL NOT be indexed. Any https site (and LabOS itself) may frame it (see the runtime platform's security headers).
 
 #### Scenario: plrd.org frames online events
 
@@ -742,6 +960,13 @@ Escape, Close and the backdrop SHALL close the dialog, focus SHALL go back to th
 - **WHEN** they close it
 - **THEN** the iframe still shows the map with only online events
 
+#### Scenario: An embed of past events
+
+- **GIVEN** an iframe on `/events/embed?when=past`
+- **WHEN** the page loads
+- **THEN** it shows the past events, newest first, and links to `/events/all?when=past`
+- **AND** an embed made before LAB-3418 shows what it showed, its Calendar too, and asks for no past events
+
 #### Scenario: A host sends events to LabOS
 
 - **GIVEN** an iframe on `/events/embed?view=calendar&details=labos`
@@ -750,7 +975,7 @@ Escape, Close and the backdrop SHALL close the dialog, focus SHALL go back to th
 
 ### Requirement: One Going mark on the page
 
-On the All Events page, an event the signed-in viewer is going to SHALL carry one "Going" pill: a green pill with a white tick and the word "Going", on its List card, Near you tile, Week card and map row. A Month bar is too small for the pill and SHALL carry no going mark; the "Events I'm going to" filter lists those events. On the map, the city pin is marked and the event pin has a green ring instead. No other going mark (badge or tick) SHALL appear on the page. When the viewer says they are going, or no longer going, the event's "N going" on the page SHALL move by one at once, though the page's list of events is cached.
+On the All Events page, an event the signed-in viewer is going to SHALL carry one "Going" pill: a green pill with a white tick and the word "Going", on its List card, Near you tile, Week card and map row. A Month bar is too small for the pill and SHALL carry no going mark; the "Events I'm going to" filter lists those events. On the map, the city pin is marked and the event pin has a green ring instead. No other going mark (badge or tick) SHALL appear on the page. When the viewer says they are going, or no longer going, the event's "N going" on the page SHALL move by one at once, though the page's list of events is cached. Once an event has ended its pill SHALL read "Went" (LAB-3418).
 
 #### Scenario: Going event in the list
 
@@ -764,6 +989,8 @@ The page SHALL record these PostHog events:
 
 - `event-drawer-opened` with `source` = `all-events` when the drawer opens from the page, and `embed` when it opens inside `/events/embed` (LAB-3392);
 - `events-view-changed` with `view` (`list`, `calendar` or `map`) and, for the calendar, `mode` (`week` or `month`);
+- `events-when-changed` with `when` (`upcoming` or `past`) and `view`, when the visitor switches tabs (LAB-3418);
+- `events-year-changed` with `year` (`2025`, or `all`) and `view`, when the visitor picks a year on Past (LAB-3418);
 - `events-filters-applied` with the filter `key` (`search`, `going`, `mode` or `city`) and its `values`, for every filter change whichever control made it (the rail, a chip, a city tile, "Clear all"), once that filter has been still for 300ms; "Clear all" records each filter it empties, with no values;
 - `events-city-selected` with `city` and `from` (`tile`, `filter` or `near-you`), in addition, whenever a single city is chosen.
 - `events-location-dialog-opened` with `from` (`add`, `change` or `no-events`), when a Near you row opens the "Your location" dialog, and `events-location-saved` with the same `from` when a location is saved there (LAB-3394);

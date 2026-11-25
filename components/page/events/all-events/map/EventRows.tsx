@@ -1,8 +1,8 @@
 import clsx from 'clsx';
 
-import { GoingPill } from '@/components/page/events/GoingPill/GoingPill';
+import { GoingPill, WENT_LABEL } from '@/components/page/events/GoingPill/GoingPill';
 import { GoingFaces } from '@/components/page/events/all-events/GoingFaces';
-import { spanLabel } from '@/services/events/all-events.filters';
+import { pastSpanLabel, spanLabel } from '@/services/events/all-events.filters';
 import type { AllEventsItem } from '@/services/events/all-events.types';
 
 import m from './EventsMap.module.scss';
@@ -13,12 +13,15 @@ import m from './EventsMap.module.scss';
  */
 export function EventRows({
   events,
+  pastAsOf,
   goingUids,
   highlightUid,
   onOpen,
   onPrepare,
 }: {
   events: AllEventsItem[];
+  /** On Past (LAB-3418): today, so a date outside this year carries its year and the marks read "went". */
+  pastAsOf?: string;
   goingUids: Set<string>;
   highlightUid?: string | null;
   onOpen: (uid: string) => void;
@@ -36,11 +39,13 @@ export function EventRows({
             onPointerEnter={() => onPrepare(e.uid)}
             onFocus={() => onPrepare(e.uid)}
           >
-            <span className={m.rowDate}>{spanLabel(e.startDay, e.endDay)}</span>
+            <span className={m.rowDate}>
+              {pastAsOf ? pastSpanLabel(e.startDay, e.endDay, pastAsOf) : spanLabel(e.startDay, e.endDay)}
+            </span>
             <span className={m.rowName}>{e.name}</span>
             <span className={m.rowEnd}>
-              <GoingFaces item={e} />
-              {goingUids.has(e.uid) && <GoingPill />}
+              <GoingFaces item={e} past={!!pastAsOf} />
+              {goingUids.has(e.uid) && <GoingPill label={pastAsOf ? WENT_LABEL : undefined} />}
             </span>
           </button>
         </li>

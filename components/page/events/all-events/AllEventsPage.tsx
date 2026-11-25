@@ -21,6 +21,9 @@ import { useAllEventsFilterStore } from '@/services/events/all-events-filters.st
 import {
   EVENTS_EMBED_PATH,
   FILTER_PARAMS,
+  WHEN_PARAM,
+  WHEN_PAST,
+  YEAR_PARAM,
   allEventsEventHref,
   type FilterParam,
   countAppliedFilters,
@@ -29,17 +32,24 @@ import {
   filterValues,
   isFilterParam,
   groupByDay,
+  inYear,
   listDay,
   localIso,
   nearYou,
+  pastCitySummary,
+  pastYears,
   readFilters,
+  readYear,
+  sortPast,
   topCities,
 } from '@/services/events/all-events.filters';
 import type { AllEventsItem, AllEventsResult } from '@/services/events/all-events.types';
 import { EventsQueryKeys } from '@/services/events/constants';
 import { usePrefetchEventDetail } from '@/services/events/hooks/useEventDrawerQueries';
-import { useLiveEventUids } from '@/services/events/hooks/useLiveEventUids';
+import { useMyPastEventUids } from '@/services/events/hooks/useMyPastEventUids';
 import { useMyUpcomingEventUids } from '@/services/events/hooks/useMyUpcomingEventUids';
+import { usePastEvents } from '@/services/events/hooks/usePastEvents';
+import { useSeenEvents } from '@/services/events/hooks/useSeenEvents';
 import { EVENTS_LIST_PATH } from '@/utils/constants';
 import { HAS_EVENTS_MAP } from '@/utils/events-page';
 
@@ -54,8 +64,10 @@ import { ListView } from './ListView';
 import { EventsMap } from './map/EventsMap';
 import { LocationDialog, type LocationDialogFrom } from './LocationDialog';
 import { AddLocationRow, NearYou, NoNearbyEventsRow } from './NearYou';
-import { EventsEmpty, EventsError } from './states';
+import { EventsEmpty, EventsError, EventsSkeleton } from './states';
 import type { AllEventsView } from './icons';
+import type { EventsWhen } from './WhenSwitch';
+import { YearPicker } from './YearPicker';
 import s from './AllEventsPage.module.scss';
 
 /** Loaded on the first press (or the hover before it), so the page doesn't ship the drawer to everyone up front. */
@@ -101,9 +113,10 @@ const FILTER_SETTLE_MS = 300;
 const EMPTY_ITEMS: AllEventsItem[] = [];
 
 /**
- * The native All Events page (LAB-3247), ported from `prototypes/entries/events-page-redesign`. Every event comes in
- * once from the server; filters, the city scope, the view and the open event live in the address through
- * `useAllEventsFilterStore`, and everything below is computed from them in the browser.
+ * The native All Events page (LAB-3247), ported from `prototypes/entries/events-page-redesign`. Every live and upcoming
+ * event comes in once from the server, every past one once after the page has loaded (LAB-3418); filters, the city
+ * scope, the view and the open event live in the address through `useAllEventsFilterStore`, and everything below is
+ * computed from them in the browser.
  */
 export function AllEventsPage({
   result,
@@ -140,16 +153,6 @@ export function AllEventsPage({
   // or "Not going" here would not show on the cards. Each count moves by the viewer's change since the page loaded.
   const [goingAtLoad, setGoingAtLoad] = useState<Set<string> | null>(null);
   if (goingAtLoad === null && Array.isArray(goingData)) setGoingAtLoad(new Set(goingData));
-  const items = useMemo(() => {
-    const loaded = result.ok ? result.items : EMPTY_ITEMS;
-    if (!goingAtLoad) return loaded;
-    return loaded.map((item) => {
-      const delta = (goingUids.has(item.uid) ? 1 : 0) - (goingAtLoad.has(item.uid) ? 1 : 0);
-      return delta && item.goingCount !== null ? { ...item, goingCount: Math.max(0, item.goingCount + delta) } : item;
-    });
-  }, [result, goingUids, goingAtLoad]);
-  const liveUids = useLiveEventUids(items, serverNow);
-
   const [railOpen, setRailOpen] = useState(false);
 
   const viewParam = params.get('view') as AllEventsView | null;
@@ -159,6 +162,35 @@ export function AllEventsPage({
   const belowMonthWidth = useIsBelowTabletLandscape();
   const calParam = params.get('cal');
   const calMode: CalMode = calParam === 'month' || calParam === 'week' ? calParam : belowMonthWidth ? 'week' : 'month';
+
+  // Past (LAB-3418): List and Map show one or the other; Calendar needs no switch, its past days are there.
+  const past = params.get(WHEN_PARAM) === WHEN_PAST && view !== 'calendar';
+  // An embed asks for past events only when its link says Past.
+  const pastQuery = usePastEvents(result.ok && (!embed || past));
+  // The events of both lists, each in one tab: in Past from its end, on this page's own clock, else in Live & upcoming.
+  const { seen, fromPage, liveUids, endedUids } = useSeenEvents(
+    result.ok ? result.items : EMPTY_ITEMS,
+    Array.isArray(pastQuery.data) ? pastQuery.data : EMPTY_ITEMS,
+    serverNow,
+  );
+  const liveItems = useMemo(() => {
+    const open = seen.filter((item) => !endedUids.has(item.uid));
+    if (!goingAtLoad) return open;
+    return open.map((item) => {
+      const delta = (goingUids.has(item.uid) ? 1 : 0) - (goingAtLoad.has(item.uid) ? 1 : 0);
+      return delta && item.goingCount !== null ? { ...item, goingCount: Math.max(0, item.goingCount + delta) } : item;
+    });
+  }, [seen, endedUids, goingUids, goingAtLoad]);
+  const pastItems = useMemo(() => sortPast(seen.filter((item) => endedUids.has(item.uid))), [seen, endedUids]);
+  const pastUids = useMemo(() => new Set(pastItems.map((item) => item.uid)), [pastItems]);
+  // "Went": the viewer's past events, and those they were going to that have just ended. Asked for once Past is shown,
+  // or "Events I'm going to" is on, which Past's count and the Calendar's past days follow.
+  const wentQuery = useMyPastEventUids(signedIn && (past || filters.going));
+  const wentData = wentQuery.data;
+  const wentUids = useMemo(
+    () => new Set([...goingUids, ...(Array.isArray(wentData) ? wentData : [])]),
+    [goingUids, wentData],
+  );
 
   // The open event lives in the address, so a link to an event lands with its drawer open. The linked event stays
   // marked after its drawer closes, until the member opens another one. The embed keeps it to itself (LAB-3392): its
@@ -204,10 +236,20 @@ export function AllEventsPage({
     };
   }, []);
 
+  // Back and Forward start the address sync afresh: it doesn't write the address it wrote last, so after Past and Back,
+  // Past again would leave the address without `when=past`.
+  const [popCount, setPopCount] = useState(0);
+  useEffect(() => {
+    const onPopState = () => setPopCount((n) => n + 1);
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
   // Landing on `?event=`: bring its card into view once.
   const scrolled = useRef(false);
+  const cardsReady = (!past && view !== 'calendar') || !!pastQuery.data || seen.some((item) => item.uid === openUid);
   useEffect(() => {
-    if (scrolled.current || !openUid || touched) return;
+    if (scrolled.current || !openUid || touched || !cardsReady) return;
     scrolled.current = true;
     const id = window.setTimeout(() => {
       // The Week board renders its cards twice (columns, and the phone stack); scroll to the one that shows.
@@ -216,21 +258,44 @@ export function AllEventsPage({
         ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
     }, 300);
     return () => window.clearTimeout(id);
-  }, [openUid, touched]);
+  }, [openUid, touched, cardsReady]);
 
-  const visible = useMemo(() => filterEvents(items, filters, goingUids), [items, filters, goingUids]);
-  const cities = useMemo(() => topCities(items), [items]);
+  const visibleLive = useMemo(() => filterEvents(liveItems, filters, goingUids), [liveItems, filters, goingUids]);
+  // Past's year: kept in the address on the other tab and in Calendar, where it means nothing.
+  const year = past ? readYear(params) : null;
+  const years = useMemo(() => pastYears(pastItems), [pastItems]);
+  const visiblePast = useMemo(
+    () => filterEvents(inYear(pastItems, year), filters, wentUids),
+    [pastItems, year, filters, wentUids],
+  );
+  const visible = past ? visiblePast : visibleLive;
+  // Calendar's past days come from the same events, oldest first.
+  const visibleCalendar = useMemo(() => [...[...visiblePast].reverse(), ...visibleLive], [visiblePast, visibleLive]);
+  // Filtered to the events the viewer went to, Past needs to know which they are.
+  const wentQueries = signedIn && filters.going ? [pastQuery, wentQuery] : [pastQuery];
+  // A query that is switched off has nothing to wait for.
+  const pastLoaded = wentQueries.every(
+    (query) => query.data !== undefined || (query.fetchStatus === 'idle' && !query.isError),
+  );
+  const pastFailed = !pastLoaded && wentQueries.some((query) => query.isError && !query.isFetching);
+  const pastLoading = !pastLoaded && !pastFailed;
+  const retryPast = () => wentQueries.filter((query) => query.isError).forEach((query) => void query.refetch());
+
+  const cities = useMemo(() => topCities(liveItems), [liveItems]);
   // The city header's dates and zone follow the same filtered events as its count.
-  const visibleCities = useMemo(() => topCities(visible), [visible]);
+  const visibleCities = useMemo(() => topCities(visibleLive), [visibleLive]);
   const scopedCity = filters.city.length === 1 ? filters.city[0] : null;
-  const goingCount = signedIn ? items.filter((item) => goingUids.has(item.uid)).length : null;
+  // The rail's options, and its "Events I'm going to" count, come from the events in scope.
+  const railEvents = past ? inYear(pastItems, year) : liveItems;
+  const railGoingUids = past ? wentUids : goingUids;
+  const goingCount = signedIn ? railEvents.filter((item) => railGoingUids.has(item.uid)).length : null;
 
   // List view's own top (Polina's prototype, 2026-11-20; LAB-3374, LAB-3375): Calendar and Map lead with the view
   // itself. In List, a chosen city shows its header; otherwise Near you or the Add location row, for a signed-in member
   // on the plain landing (nothing filtered), then Browse by city and the dated list's heading.
   const listTop = view === 'list';
   const plainLanding = listTop && filterCount === 0;
-  const near = signedIn && plainLanding ? nearYou(items, memberCity) : null;
+  const near = signedIn && plainLanding ? nearYou(liveItems, memberCity) : null;
   const askLocation = signedIn && plainLanding && memberCity === null && !!viewerUid;
   // A place with no upcoming event: a row to change it, where Near you would be (LAB-3394).
   const noNearby = signedIn && plainLanding && !near && typeof memberCity === 'string' && !!viewerUid;
@@ -242,12 +307,17 @@ export function AllEventsPage({
   };
 
   // The calendar opens on the linked event's day, else the chosen city's first event, else today.
-  const landed = landedUid ? items.find((item) => item.uid === landedUid) : undefined;
-  const anchorIso = landed
-    ? listDay(landed, todayIso)
-    : scopedCity && visible[0]
-      ? listDay(visible[0], todayIso)
-      : todayIso;
+  // Read off the page's own events, ended or not, so one that ends while the calendar is open doesn't move it.
+  const landed = landedUid ? fromPage.find((item) => item.uid === landedUid) : undefined;
+  const cityFirst = scopedCity ? filterEvents(fromPage, filters, goingUids)[0] : undefined;
+  const pageAnchorIso = landed ? listDay(landed, todayIso) : cityFirst ? listDay(cityFirst, todayIso) : todayIso;
+  // A linked event that comes with past events, after the calendar has opened.
+  const landedLate = landedUid && !landed ? seen.find((item) => item.uid === landedUid) : undefined;
+  const anchorIso = !landedLate
+    ? pageAnchorIso
+    : pastUids.has(landedLate.uid)
+      ? landedLate.startDay
+      : listDay(landedLate, todayIso);
 
   const prepare = (uid: string) => {
     if (embed && !embedDrawer) return;
@@ -265,11 +335,13 @@ export function AllEventsPage({
     else setParam('event', uid);
   };
   // LAB-3361: the drawer's previous / next walk the events on show in the List's order (by list day, then start, so
-  // an event under way counts from today); the neighbours load ahead.
-  const sequence = useMemo(
-    () => groupByDay(visible, todayIso).flatMap((day) => day.events.map((item) => item.uid)),
-    [visible, todayIso],
-  );
+  // an event under way counts from today); the neighbours load ahead. On Past in its own order, newest first; in
+  // Calendar the past events, oldest first, then the List's (LAB-3418).
+  const sequence = useMemo(() => {
+    if (past) return visiblePast.map((item) => item.uid);
+    const live = groupByDay(visibleLive, todayIso).flatMap((day) => day.events.map((item) => item.uid));
+    return view === 'calendar' ? [...visiblePast.map((item) => item.uid).reverse(), ...live] : live;
+  }, [past, view, visiblePast, visibleLive, todayIso]);
   useEffect(() => {
     if (!openUid) return;
     const at = sequence.indexOf(openUid);
@@ -309,6 +381,17 @@ export function AllEventsPage({
     setParam('view', next === 'list' ? undefined : next);
     analytics.onEventsViewChanged(next === 'calendar' ? { view: next, mode: calMode } : { view: next });
   };
+  const when: EventsWhen = past ? 'past' : 'upcoming';
+  const setWhen = (next: EventsWhen) => {
+    if (next === when) return;
+    setParam(WHEN_PARAM, next === 'past' ? WHEN_PAST : undefined);
+    analytics.onEventsWhenChanged({ when: next, view });
+  };
+  const setYear = (next: string | null) => {
+    if (next === year) return;
+    setParam(YEAR_PARAM, next ?? undefined);
+    analytics.onEventsYearChanged({ year: next ?? 'all', view });
+  };
   const setCalMode = (mode: CalMode) => {
     if (mode === calMode) return;
     setParam('cal', mode);
@@ -320,16 +403,23 @@ export function AllEventsPage({
   };
   const onCityPicked = (city: string) => analytics.onEventsCitySelected({ city, from: 'filter' });
   /** Clears the filters only: the view and an open drawer stay. Each filter that was set is recorded as emptied. */
-  const clearFilters = () => {
+  const clearFilters = () => clearFiltersAnd();
+  const clearFiltersAnd = (...more: string[]) => {
     const cleared = FILTER_PARAMS.filter((key) => params.has(key));
     const next = new URLSearchParams(params);
-    FILTER_PARAMS.forEach((key) => next.delete(key));
+    [...FILTER_PARAMS, ...more].forEach((key) => next.delete(key));
     setAllParams(next);
     cleared.forEach((key) => {
       window.clearTimeout(filterTimers.current.get(key));
       filterTimers.current.delete(key);
       analytics.onEventsFiltersApplied({ key, values: [] });
     });
+  };
+
+  /** "Show all events" on Past: its year too, so the press always leads to a list. */
+  const showAllPast = () => {
+    clearFiltersAnd(YEAR_PARAM);
+    if (year) analytics.onEventsYearChanged({ year: 'all', view });
   };
 
   // Embed (LAB-3365): the dialog with a preview, the iframe code, Copy link and Copy code. It embeds what the page
@@ -340,6 +430,8 @@ export function AllEventsPage({
   else embedParams.set('view', view);
   if (view === 'calendar') embedParams.set('cal', calMode);
   else embedParams.delete('cal');
+  if (!past) embedParams.delete(WHEN_PARAM);
+  if (!year) embedParams.delete(YEAR_PARAM);
   const embedLinkQuery = embedQuery(embedParams);
   const embedPath = `${EVENTS_EMBED_PATH}${embedLinkQuery ? `?${embedLinkQuery}` : ''}`;
   // Every applied value but "Events I'm going to", which the link does not carry; a scoped city counts too.
@@ -380,30 +472,36 @@ export function AllEventsPage({
 
   // The view itself: the page puts it under its toolbar, the embed shows it alone.
   const viewBody =
-    view === 'map' ? (
+    past && pastFailed ? (
+      <EventsError onRetry={retryPast} />
+    ) : past && pastLoading ? (
+      <EventsSkeleton />
+    ) : view === 'map' ? (
       visible.length === 0 ? (
-        <EventsEmpty onClear={clearFilters} />
+        <EventsEmpty past={past} onClear={past ? showAllPast : clearFilters} />
       ) : (
         <EventsMap
           events={visible}
-          goingUids={goingUids}
+          pastAsOf={past ? todayIso : undefined}
+          goingUids={past ? wentUids : goingUids}
           highlightUid={highlightUid}
           onOpen={open}
           onPrepare={prepare}
         />
       )
     ) : view === 'calendar' ? (
-      visible.length === 0 ? (
+      visibleCalendar.length === 0 && !pastLoading ? (
         <EventsEmpty onClear={clearFilters} />
       ) : (
         <EventsCalendar
-          key={`${anchorIso}:${scopedCity ?? ''}`}
-          events={visible}
+          key={`${pageAnchorIso}:${scopedCity ?? ''}`}
+          events={visibleCalendar}
           todayIso={todayIso}
           anchorIso={anchorIso}
           mode={calMode}
           onModeChange={setCalMode}
-          goingUids={goingUids}
+          goingUids={wentUids}
+          pastUids={pastUids}
           highlightUid={highlightUid}
           onOpen={open}
           onPrepare={prepare}
@@ -412,48 +510,59 @@ export function AllEventsPage({
     ) : (
       <ListView
         events={visible}
+        past={past}
         todayIso={todayIso}
-        goingUids={goingUids}
+        goingUids={past ? wentUids : goingUids}
         liveUids={liveUids}
         highlightUid={highlightUid}
         onOpen={open}
         onPrepare={prepare}
-        onClear={clearFilters}
+        onClear={past ? showAllPast : clearFilters}
       />
     );
 
-  const listBands = !listTop ? null : scopedCity ? (
-    <div className={s.listBands}>
-      <CityHeader
-        city={scopedCity}
-        summary={visibleCities.find((c) => c.city.toLowerCase() === scopedCity.toLowerCase())}
-        eventCount={visible.length}
-        onBack={() => setCity(null, 'tile')}
-      />
-    </div>
-  ) : near || askLocation || noNearby || cities.length > 0 ? (
-    <div className={s.listBands}>
-      {near && (
-        <NearYou
-          city={near.city}
-          events={near.events}
-          todayIso={todayIso}
-          goingUids={goingUids}
-          liveUids={liveUids}
-          onOpen={open}
-          onPrepare={prepare}
-          onSeeAll={() => setCity(near.city, 'near-you')}
-          onChangeLocation={() => openLocation('change')}
+  // Past has no Near you, Browse by city or heading: they answer "what can I go to?". A chosen city keeps its header,
+  // once its events are known.
+  const listBands =
+    !listTop || (past && (!scopedCity || !pastLoaded)) ? null : scopedCity ? (
+      <div className={s.listBands}>
+        <CityHeader
+          city={scopedCity}
+          summary={
+            past
+              ? pastCitySummary(scopedCity, visiblePast)
+              : visibleCities.find((c) => c.city.toLowerCase() === scopedCity.toLowerCase())
+          }
+          eventCount={visible.length}
+          pastAsOf={past ? todayIso : undefined}
+          onBack={() => setCity(null, 'tile')}
         />
-      )}
-      {askLocation && <AddLocationRow onAdd={() => openLocation('add')} />}
-      {noNearby && <NoNearbyEventsRow city={memberCity} onChange={() => openLocation('no-events')} />}
-      {cities.length > 0 && (
-        <CityBand cities={cities} selected={filters.city} onPick={(city) => setCity(city, 'tile')} />
-      )}
-      <h3 className={clsx(s.sectionTitle, s.listHeading)}>{filterCount ? 'Matching events' : 'All live & upcoming'}</h3>
-    </div>
-  ) : null;
+      </div>
+    ) : near || askLocation || noNearby || cities.length > 0 ? (
+      <div className={s.listBands}>
+        {near && (
+          <NearYou
+            city={near.city}
+            events={near.events}
+            todayIso={todayIso}
+            goingUids={goingUids}
+            liveUids={liveUids}
+            onOpen={open}
+            onPrepare={prepare}
+            onSeeAll={() => setCity(near.city, 'near-you')}
+            onChangeLocation={() => openLocation('change')}
+          />
+        )}
+        {askLocation && <AddLocationRow onAdd={() => openLocation('add')} />}
+        {noNearby && <NoNearbyEventsRow city={memberCity} onChange={() => openLocation('no-events')} />}
+        {cities.length > 0 && (
+          <CityBand cities={cities} selected={filters.city} onPick={(city) => setCity(city, 'tile')} />
+        )}
+        <h3 className={clsx(s.sectionTitle, s.listHeading)}>
+          {filterCount ? 'Matching events' : 'All live & upcoming'}
+        </h3>
+      </div>
+    ) : null;
 
   const content = (
     <div className={s.page}>
@@ -470,7 +579,12 @@ export function AllEventsPage({
                 switch changes only what is under it and the switch never moves under the pointer. */}
             <EventsToolbar
               city={scopedCity}
-              count={visible.length}
+              count={visibleLive.length}
+              when={when}
+              pastCount={pastLoaded ? visiblePast.length : null}
+              pastCountLoading={pastLoading}
+              onWhenChange={setWhen}
+              yearPicker={past && pastQuery.data ? <YearPicker years={years} year={year} onChange={setYear} /> : null}
               filterCount={filterCount}
               railOpen={railOpen}
               onToggleRail={() => setRailOpen((v) => !v)}
@@ -492,7 +606,7 @@ export function AllEventsPage({
                   onClearFilters={clearFilters}
                   renderFilter={(onClose) => (
                     <AllEventsFilterRail
-                      events={items}
+                      events={railEvents}
                       goingCount={goingCount}
                       onClose={onClose}
                       onClear={clearFilters}
@@ -504,7 +618,11 @@ export function AllEventsPage({
             </div>
 
             {/* A chosen city is a chip in Calendar and Map, where List's city header doesn't show. */}
-            <AppliedChips scopedCity={listTop ? scopedCity : null} railOpen={railOpen} onClear={clearFilters} />
+            <AppliedChips
+              scopedCity={listTop && !(past && pastFailed) ? scopedCity : null}
+              railOpen={railOpen}
+              onClear={clearFilters}
+            />
 
             <div className={s.layout}>
               <div className={s.main}>
@@ -526,7 +644,7 @@ export function AllEventsPage({
     const query = embedQuery(params);
     return (
       <>
-        <FilterStoreUrlSync store={useAllEventsFilterStore} strategy="history" />
+        <FilterStoreUrlSync key={popCount} store={useAllEventsFilterStore} strategy="history" />
         <div className={s.embedPage}>
           {result.ok ? viewBody : <EventsError onRetry={() => router.refresh()} />}
           <a
@@ -554,14 +672,14 @@ export function AllEventsPage({
 
   return (
     <>
-      <FilterStoreUrlSync store={useAllEventsFilterStore} strategy="history" />
+      <FilterStoreUrlSync key={popCount} store={useAllEventsFilterStore} strategy="history" />
       <div className={s.shell}>
         <DashboardPagesLayout
           filters={
             railOpen && result.ok ? (
               <div id="events-filters" className={s.railWrap}>
                 <AllEventsFilterRail
-                  events={items}
+                  events={railEvents}
                   goingCount={goingCount}
                   onHide={() => setRailOpen(false)}
                   onClear={clearFilters}
@@ -586,7 +704,7 @@ export function AllEventsPage({
         onClose={() => setEmbedOpen(false)}
         link={typeof window === 'undefined' ? embedPath : `${window.location.origin}${embedPath}`}
         previewSrc={embedPath}
-        scope={embedScopeLine(view, calMode, embedLabels)}
+        scope={embedScopeLine(view, calMode, embedLabels, past)}
         frameTitle={embedFrameTitle(embedLabels)}
         onCopied={onEmbedCopied}
       />

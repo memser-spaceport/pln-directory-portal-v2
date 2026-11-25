@@ -199,7 +199,7 @@ describe('EventDrawerView (LAB-3216)', () => {
       fireEvent.click(within(screen.getByRole('status')).getByRole('button', { name: 'Close' }));
       fireEvent.click(toolbarClose());
       expect(onClose).toHaveBeenCalledTimes(2);
-      // No event: no copy link, no events app, no previous / next.
+      // No event: no copy link, no previous / next.
       expect(screen.queryByRole('button', { name: 'Copy link' })).not.toBeInTheDocument();
       expect(screen.queryByRole('link', { name: /Open in PL Events/ })).not.toBeInTheDocument();
     });
@@ -781,25 +781,15 @@ describe('EventDrawerView (LAB-3216)', () => {
       expect(onLinkCopied).toHaveBeenCalledTimes(1);
     });
 
-    it('opens the event in PL Events by its id, in a new tab', () => {
+    it('has no "Open in PL Events" even with the app address and the event id (LAB-3420)', () => {
       process.env.PL_EVENTS_BASE_URL = 'https://events.test/';
-      const onEventsAppOpened = jest.fn();
-      render(<Harness onEventsAppOpened={onEventsAppOpened} />);
-      const link = screen.getByRole('link', { name: /Open in PL Events/ });
-      expect(link).toHaveAttribute('href', 'https://events.test/calendar#ext-1');
-      expect(link).toHaveAttribute('target', '_blank');
-      fireEvent.click(link);
-      expect(onEventsAppOpened).toHaveBeenCalledTimes(1);
-    });
-
-    it('leaves "Open in PL Events" out without the event id or the app address', () => {
-      process.env.PL_EVENTS_BASE_URL = 'https://events.test';
-      const { unmount } = render(<Harness raw={eventResponse({ externalId: null })} />);
-      expect(screen.queryByRole('link', { name: /Open in PL Events/ })).not.toBeInTheDocument();
-      unmount();
-      delete process.env.PL_EVENTS_BASE_URL;
-      render(<Harness />);
-      expect(screen.queryByRole('link', { name: /Open in PL Events/ })).not.toBeInTheDocument();
+      // The event has an events-app id and the app has an address: only LAB-3420 keeps the link out.
+      const { container } = render(<Harness raw={eventResponse({ externalId: 'ext-1' })} />);
+      const toolbar = screen.getByTestId('event-drawer-toolbar');
+      expect(within(toolbar).getByRole('button', { name: 'Copy link' })).toBeInTheDocument();
+      expect(within(toolbar).queryAllByRole('link')).toHaveLength(0);
+      expect(screen.queryByRole('link', { name: /PL Events/ })).not.toBeInTheDocument();
+      expect(container.querySelector('a[href^="https://events.test"]')).toBeNull();
     });
 
     it('steps through the list it was opened from, and stops at the ends', () => {

@@ -26,7 +26,6 @@ import { useIrlGatheringModal } from '@/components/core/UpdatesPanel/IrlGatherin
 import m from '@/components/core/UpdatesPanel/IrlGatheringModal/IrlGatheringModal.module.scss';
 import type { IrlGatheringFormData } from '@/components/core/UpdatesPanel/IrlGatheringModal/types';
 import type { EventDetail, EventRoleName, MyGatheringPlans } from '@/services/events/event-drawer.types';
-import { eventsAppEventHref } from '@/services/events/event-when';
 import type { ITeam } from '@/types/teams.types';
 
 import { AttendeesView, SubHead, type EventAttendeesState } from './AttendeesView';
@@ -96,7 +95,6 @@ export interface EventDrawerViewProps {
   /** Show the drawer in place, without its entrance: the host stepped from one event to the next. */
   animateIn?: boolean;
   onLinkCopied?: () => void;
-  onEventsAppOpened?: () => void;
 }
 
 const NOOP = () => {};
@@ -151,15 +149,7 @@ export function EventDrawerView(props: EventDrawerViewProps) {
 function DrawerStates({ status, onClose, onRetry }: Pick<EventDrawerViewProps, 'status' | 'onClose' | 'onRetry'>) {
   return (
     <div className={e.root}>
-      <DrawerToolbar
-        eventUid={null}
-        eventsAppHref={null}
-        prev={null}
-        next={null}
-        showStepper={false}
-        onNavigate={NOOP}
-        onClose={onClose}
-      />
+      <DrawerToolbar eventUid={null} prev={null} next={null} showStepper={false} onNavigate={NOOP} onClose={onClose} />
       {status === 'not-found' ? (
         <div className={e.state} role="status">
           <h2 className={e.stateTitle}>This event is no longer available</h2>
@@ -256,7 +246,6 @@ function EventFlow({
   sequence = NO_SEQUENCE,
   onNavigate,
   onLinkCopied,
-  onEventsAppOpened,
   drawerCloseRef,
   scrollerRef,
 }: EventDrawerViewProps & {
@@ -443,14 +432,12 @@ function EventFlow({
         <form onSubmit={handleSave} className={e.root} onKeyDown={(ev) => ev.key === 'Enter' && ev.preventDefault()}>
           <DrawerToolbar
             eventUid={event.uid}
-            eventsAppHref={eventsAppEventHref(event.externalId)}
             prev={prev}
             next={next}
             showStepper={view === 'event' && !!onNavigate && index >= 0 && sequence.length > 1}
             onNavigate={step}
             onClose={close}
             onCopied={onLinkCopied}
-            onEventsAppOpened={onEventsAppOpened}
           />
 
           {view === 'event' && (

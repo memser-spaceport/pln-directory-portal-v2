@@ -73,7 +73,6 @@ export interface AllEventsPageProps {
   /** The server's day, so the first render matches the HTML; the browser's own day replaces it after hydration. */
   serverTodayIso: string;
   submitHref: string;
-  eventsAppHref: string;
   /**
    * The embed (LAB-3352, `/events/embed`), framed by another site: the view only, with the filters from its address,
    * and "All events on PL Directory ↗" under it. No page header, Near you, Browse by city, toolbar, filters or member
@@ -110,7 +109,6 @@ export function AllEventsPage({
   memberCity,
   serverTodayIso,
   submitHref,
-  eventsAppHref,
   embed = false,
   detailsOnLabOs = false,
 }: AllEventsPageProps) {
@@ -453,12 +451,7 @@ export function AllEventsPage({
   const content = (
     <div className={s.page}>
       <div className={s.container}>
-        <AllEventsHeader
-          submitHref={submitHref}
-          eventsAppHref={eventsAppHref}
-          onSubmitClick={() => analytics.onSubmitEventButtonClicked()}
-          onEventsAppClick={() => analytics.onGoToEventsButtonClicked()}
-        />
+        <AllEventsHeader submitHref={submitHref} onSubmitClick={() => analytics.onSubmitEventButtonClicked()} />
 
         {!result.ok ? (
           <div className={s.layout}>

@@ -138,25 +138,6 @@
   }
 }
 
-// The events app link as the end of the description: phones only, where the one in the actions is hidden.
-.ledeLink {
-  display: none;
-
-  @include media.mobile-only {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-weight: 500;
-    color: var(--foreground-brand-primary, #1b4dff);
-    text-decoration: none;
-    white-space: nowrap;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-}
-
 .headerActions {
   display: flex;
   align-items: center;
@@ -176,12 +157,6 @@
   &:hover {
     color: var(--foreground-brand-primary, #1b4dff);
     text-decoration: underline;
-  }
-
-  .headerActions & {
-    @include media.mobile-only {
-      display: none;
-    }
   }
 }
 

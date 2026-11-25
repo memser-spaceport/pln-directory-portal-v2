@@ -138,7 +138,7 @@ export interface EventDetail {
   description: string | null;
   agenda: EventAgendaDay[];
   websiteUrl: string | null;
-  /** The event's id in the PL events app, for "Open in PL Events" (LAB-3361). Null when unknown. */
+  /** The event's id in the PL events app (LAB-3361). The drawer does not link it now (LAB-3420). Null when unknown. */
   externalId: string | null;
   /**
    * LAB-3334: the link that the drawer's link row and "Register" open. It is `websiteUrl` when that is an `http` or

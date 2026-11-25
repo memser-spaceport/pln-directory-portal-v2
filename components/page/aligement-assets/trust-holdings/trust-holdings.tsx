@@ -1321,7 +1321,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           opacity: 0.9;
         }
 
-        .th-table .th-activity-row td {
+        .th-table > tbody > tr.th-activity-row > td {
           white-space: normal;
           padding: 0;
           border-bottom: none;
@@ -1790,6 +1790,14 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
         @media (max-width: 768px) {
           .th-card {
             padding: 24px 20px;
+          }
+
+          .th-card--nav {
+            padding: 0;
+          }
+
+          .th-card__body {
+            padding: 20px 20px 24px;
           }
 
           .th__title {

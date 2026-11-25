@@ -62,7 +62,7 @@ function MonthlyActivityStyles() {
         left: 0;
         box-sizing: border-box;
         max-width: min(1040px, 100cqw);
-        padding: 4px 24px 20px 42px;
+        padding: 4px 24px 20px 58px;
       }
 
       .th-ce__title {
@@ -139,6 +139,7 @@ function MonthlyActivityStyles() {
 
       .th-table .th-ce__table tbody th {
         padding-right: 16px;
+        white-space: normal;
         font-size: 13px;
         font-weight: 500;
         letter-spacing: normal;
@@ -230,7 +231,7 @@ function MonthlyActivityStyles() {
 
       @media (max-width: 768px) {
         .th-ce {
-          padding: 4px 16px 16px 24px;
+          padding: 4px 16px 16px 40px;
         }
       }
 
@@ -238,7 +239,7 @@ function MonthlyActivityStyles() {
            gutters leave far less than 100vw on a phone. */
       @container (max-width: 360px) {
         .th-ce {
-          padding: 4px 12px 14px;
+          padding: 4px 12px 14px 16px;
         }
 
         .th-table .th-ce__table th,

@@ -1,11 +1,13 @@
 import type { NextResponse } from 'next/server';
 
 /**
- * Whether LabOS still shares `authToken` with deployed AI Apps on COOKIE_DOMAIN (LAB-2695). On until every app's
- * auth gate issues its own sessions; `AI_APPS_SHARE_AUTH_TOKEN=false` makes `authToken` host-only too.
+ * Whether LabOS shares `authToken` with deployed AI Apps on COOKIE_DOMAIN (LAB-2695). Off unless
+ * `AI_APPS_SHARE_AUTH_TOKEN=true`: `authToken` is a script-readable directory API bearer token, and on COOKIE_DOMAIN
+ * every app on a sibling subdomain (its page scripts and its server) receives it. Apps sign members in through their
+ * own auth gate (`/pl-infra/ai-apps/authorize`) instead.
  */
 export const shareAuthTokenWithApps = () =>
-  (process.env.AI_APPS_SHARE_AUTH_TOKEN ?? 'true').trim().toLowerCase() !== 'false';
+  (process.env.AI_APPS_SHARE_AUTH_TOKEN ?? '').trim().toLowerCase() === 'true';
 
 /**
  * LabOS session cookies kept host-only on LabOS's own origin. Deployed AI Apps run on sibling subdomains of
@@ -59,10 +61,11 @@ export const SESSION_COOKIES = ['refreshToken', 'authToken', 'userInfo', SESSION
 /**
  * Migration marker: which session cookie layout the proxy already rewrote for this browser. `host` =
  * refreshToken/userInfo host-only; `host-all` = authToken as well; the `:2` revision adds the Secure/SameSite flags,
- * the httpOnly refreshToken and the session marker. A switch flip or a new revision re-runs the rewrite once.
+ * the httpOnly refreshToken and the session marker. `:3` also expires copies on a parent of COOKIE_DOMAIN
+ * (dev still held the prod `.os.pl.xyz` authToken). A switch flip or a new revision re-runs the rewrite once.
  */
 export const SESSION_SCOPE_COOKIE = 'sessionScope';
-export const sessionScopeValue = () => (shareAuthTokenWithApps() ? 'host:2' : 'host-all:2');
+export const sessionScopeValue = () => (shareAuthTokenWithApps() ? 'host:3' : 'host-all:3');
 
 /**
  * The COOKIE_DOMAIN whose copies of a cookie are separate from LabOS's host-only ones, or null when there are none.
@@ -81,22 +84,43 @@ export function sharedCookieDomain(): string | null {
   return host === 'localhost' || isIp ? null : domain;
 }
 
+/**
+ * COOKIE_DOMAIN, then each wider parent that is still below the registrable domain.
+ * Dev's domain is `dev.os.pl.xyz`, but an older session stored `authToken` on `.os.pl.xyz`,
+ * so sibling hosts such as dev-admin still received it. Stop at two labels (`pl.xyz`): that
+ * domain is the registrable one, and LabOS never set a cookie there.
+ */
+export function sharedCookieDomains(): string[] {
+  const domain = sharedCookieDomain();
+  if (!domain) return [];
+  const leadingDot = domain.startsWith('.');
+  const labels = domain.replace(/^\./, '').split('.').filter(Boolean);
+  const domains = [domain];
+  for (let size = labels.length - 1; size >= 3; size--) {
+    const host = labels.slice(labels.length - size).join('.');
+    domains.push(leadingDot ? `.${host}` : host);
+  }
+  return domains;
+}
+
 export const isHostOnlySessionCookie = (name: string) => hostOnlySessionCookies().includes(name);
 
 /**
- * Appends a `Set-Cookie` that expires the COOKIE_DOMAIN copy of each cookie. It is a raw header because
- * `response.cookies` is keyed by name and can't hold a host-only and a domain cookie with the same name at once.
- * ResponseCookies rewrites every Set-Cookie header on each set/delete, so call this after the last
- * `response.cookies` change in a branch.
+ * Appends a `Set-Cookie` that expires each shared copy of each cookie (see sharedCookieDomains). It is a raw
+ * header because `response.cookies` is keyed by name and can't hold a host-only and a domain cookie with the
+ * same name at once. ResponseCookies rewrites every Set-Cookie header on each set/delete, so call this after
+ * the last `response.cookies` change in a branch.
  */
 export function expireSharedCookies(response: NextResponse, names: readonly string[]) {
-  const domain = sharedCookieDomain();
-  if (!domain) return;
+  const domains = sharedCookieDomains();
+  if (domains.length === 0) return;
   for (const name of names) {
-    response.headers.append(
-      'set-cookie',
-      `${name}=; Domain=${domain}; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`,
-    );
+    for (const domain of domains) {
+      response.headers.append(
+        'set-cookie',
+        `${name}=; Domain=${domain}; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`,
+      );
+    }
   }
 }
 

@@ -28,9 +28,10 @@ export type DigestTopicsCardProps = {
 type Props = DigestTopicsCardProps & { headingId: string };
 
 /**
- * "Add topics" (LAB-3289, the digest-web prototype's TopicsCard): topics the reader doesn't follow yet as News
- * preferences' own chips, in the page's weight order, as many as fill three rows. Save topics appears once a chip
- * differs from what's saved; a failed save keeps the picks. Unfollowing lives in the modal ("See all topics").
+ * "Suggested topics" (LAB-3289; renamed from "Add topics" in the digest-web prototype, Polina 2026-11-20): the topics
+ * the reader doesn't follow yet, in the page's weight order, as many as fill three rows. Followed topics aren't shown
+ * (Polina, 2026-11-17): unfollowing is in the topics modal, behind See all topics. A suggestion saved during the visit
+ * stays where it was, ticked. Save topics appears once a chip differs from what's saved; a failed save keeps the picks.
  */
 export function DigestTopicsCard({
   headingId,
@@ -91,7 +92,7 @@ export function DigestTopicsCard({
   return (
     <section className={s.card} aria-labelledby={headingId}>
       <h2 id={headingId} className={s.cardTitle}>
-        Add topics
+        Suggested topics
       </h2>
       <p className={s.cardText}>Tick a topic to get stories about it in your digest.</p>
       {suggested.length > 0 && (

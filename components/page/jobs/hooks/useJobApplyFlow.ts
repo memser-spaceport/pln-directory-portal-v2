@@ -442,9 +442,24 @@ export function useJobApplyFlow({ viewer, verdict, refreshVerdict, source }: Job
     [analytics, applyBase, applyRejected, verdict, viewer, viewStep],
   );
 
+  /** LAB-3382: back from `/sign-up`, a guest gets the Job Board sign-up modal for the role, with no click event. */
+  const onResumeGuestSignUp = useCallback(
+    (target: JobDetailTarget) => {
+      if (viewer !== 'logged-out') return;
+      if (shouldApplyGoExternal({ viewer, verdict, team: target.team })) {
+        dispatch({ type: 'OPEN_FLOW', target, at: 'review' });
+        return viewStep('review', target);
+      }
+      dispatch({ type: 'OPEN_SIGN_UP', target });
+      viewStep('sign-up', target);
+    },
+    [verdict, viewer, viewStep],
+  );
+
   return {
     state,
     onApply,
+    onResumeGuestSignUp,
     onViewJob,
     goToStep,
     setCoverLetter,

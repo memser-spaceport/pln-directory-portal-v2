@@ -1,3 +1,4 @@
+import { upstreamError } from '@/app/api/plaa/_errors';
 import { sign } from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -120,6 +121,10 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify(turn.data),
       cache: 'no-store',
     });
+
+    if (!res.ok) {
+      return upstreamError(res.status, res.headers?.get('retry-after'));
+    }
 
     const data = await res.json().catch(() => null);
     return NextResponse.json(data, { status: res.status });

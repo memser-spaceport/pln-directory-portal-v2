@@ -12,4 +12,6 @@ export enum EventsQueryKeys {
   TEAM_EVENTS = 'TEAM_EVENTS',
   /** The viewer's own upcoming event uids, for Home's "Going" marks (LAB-3220): `[MY_UPCOMING_EVENT_UIDS, viewerUid]`. */
   MY_UPCOMING_EVENT_UIDS = 'MY_UPCOMING_EVENT_UIDS',
+  /** City positions for the All Events Map (LAB-3321): `[CITY_COORDS]`, the same for everyone. */
+  CITY_COORDS = 'CITY_COORDS',
 }

@@ -15,11 +15,14 @@ export function DigestForum({
   asEmail,
   id,
   onOpenPost,
+  onOpenForum,
   extraReplies,
 }: {
   asEmail: boolean;
   id: string;
   onOpenPost: (postId: string) => void;
+  /** Signed out (LAB-3347): Open the forum asks for sign-in instead of leaving. */
+  onOpenForum?: () => void;
   /** Replies added on this page (the modal's comments), on top of the thread's count. */
   extraReplies: (postId: string) => number;
 }) {
@@ -60,7 +63,18 @@ export function DigestForum({
         })}
       </ol>
 
-      <a href="/forum" className={s.open}>
+      <a
+        href="/forum"
+        className={s.open}
+        onClick={
+          onOpenForum
+            ? (e) => {
+                e.preventDefault();
+                onOpenForum();
+              }
+            : undefined
+        }
+      >
         Open the forum →
       </a>
     </section>

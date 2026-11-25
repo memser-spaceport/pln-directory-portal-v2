@@ -10,7 +10,10 @@
  * for a prototype. Before that: OSM standard tiles greyed, then slate-washed.
  * One pin per city with its count; from z9 one photo pin per venue. Drag to pan, wheel or +/−/
  * slider to zoom, "Show all" to fit every pin again.
- * Online events have no place, so they sit under the map as their own list.
+ * Events with no place (online, or in person without a known location) aren't drawn. Since
+ * 2026-11-23 they get one line under the map ("3 events aren't on the map: 2 online, 1 with no
+ * location · See them in List") instead of their own list: the map answers "where", List already
+ * shows every event, and the line keeps the toolbar's count honest.
  */
 
 import clsx from 'clsx';
@@ -43,6 +46,7 @@ export const CITY_COORDS: Record<string, [number, number]> = {
   Singapore: [1.3521, 103.8198],
   Tokyo: [35.6762, 139.6503],
   Austin: [30.2672, -97.7431],
+  London: [51.5072, -0.1276],
 };
 
 /**
@@ -67,6 +71,9 @@ export const VENUE_COORDS: Record<string, [number, number]> = {
   'tokyo-founders-breakfast': [35.656, 139.7029], // Shibuya Stream
   'desci-austin': [30.269, -97.74], // Capital Factory
   'nyc-founders-demo-night': [40.6995, -73.9705], // Newlab, Brooklyn Navy Yard
+  'desci-london': [51.5097, -0.1424], // The Royal Institution
+  'ipfs-thing-berlin': [52.4963, 13.4475], // Factory Berlin Görlitzer Park
+  'sf-ai-builders-night': [37.7812, -122.4111], // Frontier Tower
 };
 
 const toU = (lng: number) => (lng + 180) / 360;
@@ -92,14 +99,23 @@ export function EventsMap({
   goingUids,
   onOpen,
   highlightUid,
+  onShowList,
 }: {
   events: CalEvent[];
   goingUids: Set<string>;
   onOpen: (uid: string, from: CalEvent[]) => void;
   /** Arriving from a link to one event: its city's card opens with the row marked. */
   highlightUid?: string | null;
+  /** Switches to List with the same filters, where the off-map events are. */
+  onShowList: () => void;
 }) {
-  const online = events.filter((e) => DETAILS[e.uid].mode === 'Virtual');
+  const onlineCount = events.filter((e) => DETAILS[e.uid].mode === 'Virtual').length;
+  const noPlaceCount = events.filter((e) => DETAILS[e.uid].mode !== 'Virtual' && !CITY_COORDS[e.city]).length;
+  const offMap = onlineCount + noPlaceCount;
+  const offMapParts = [
+    onlineCount ? `${onlineCount} online` : '',
+    noPlaceCount ? `${noPlaceCount} with no location` : '',
+  ].filter(Boolean);
   const places = useMemo<Place[]>(() => {
     const byCity = new Map<string, CalEvent[]>();
     events
@@ -446,23 +462,13 @@ export function EventsMap({
         </span>
       </div>
 
-      {online.length > 0 && (
-        <section className={m.online} aria-labelledby="online-title">
-          <h3 id="online-title" className={m.onlineTitle}>
-            Online · {online.length}
-          </h3>
-          <ul className={m.cardList}>
-            {online.map((e) => (
-              <li key={e.uid}>
-                <button type="button" className={m.cardRow} onClick={() => onOpen(e.uid, online)}>
-                  <span className={m.cardDate}>{spanLabel(e.startDate, e.endDate)}</span>
-                  <span className={m.cardName}>{e.name}</span>
-                  {goingUids.has(e.uid) && <GoingTag />}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
+      {offMap > 0 && (
+        <p className={m.offMap}>
+          {offMap} {offMap === 1 ? "event isn't" : "events aren't"} on the map: {offMapParts.join(', ')}.{' '}
+          <button type="button" className={m.offMapLink} onClick={onShowList}>
+            See {offMap === 1 ? 'it' : 'them'} in List →
+          </button>
+        </p>
       )}
     </div>
   );

@@ -12,9 +12,10 @@
  */
 
 import clsx from 'clsx';
-import { Plus, X } from '@phosphor-icons/react';
+import { LockSimple, Plus, WarningCircle, X } from '@phosphor-icons/react';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
+import { AiSearchIcon } from '@/components/icons/AiSearchIcon';
 import { CloseIcon } from '@/components/icons/CloseIcon';
 import menu from '@/components/page/home/TeamNews/components/NewsShareMenu/NewsShareMenu.module.scss';
 
@@ -71,10 +72,13 @@ export function AgentChat({
   headTitle,
   headExtra,
   reading,
+  page,
+  pageReadable = true,
   catalog,
   suggested,
   onAdd,
   onRemove,
+  onOpenInAiSearch,
   initialThread,
   initialSend,
   className,
@@ -90,6 +94,15 @@ export function AgentChat({
   headExtra?: ReactNode;
   /** The chips: what the agent reads. */
   reading: AgentItem[];
+  /** The page the member is on. It always holds the first slot of the context row (LAB-3389). */
+  page: AgentItem;
+  /** False for a page the agent may not read (settings, messages): the slot says so and offers nothing. */
+  pageReadable?: boolean;
+  /**
+   * "Open in AI Search" (LAB-3389): copies this chat's questions into a new AI Search thread, in a new tab.
+   * Returns false when AI Search couldn't save the thread; the panel then shows the error with Retry.
+   */
+  onOpenInAiSearch?: (questions: string[]) => boolean;
   /** Everything the picker can add. */
   catalog: AgentItem[];
   /** Listed first in the picker before anything is typed (this page if removed, recently viewed). */
@@ -222,7 +235,23 @@ export function AgentChat({
   const newChat = () => {
     setTurns([]);
     setExpanded(new Set());
+    setHandoffFailed(false);
     inputRef.current?.focus();
+  };
+
+  /* ---------- Open in AI Search ---------- */
+
+  /* The questions that got an answer. Until one has, there is nothing to continue, so the control is
+     disabled (ticket AC: "disabled (chat has no answer)"), not hidden: the door is visible from the start. */
+  const answered = turns.flatMap((t, i) => {
+    const next = turns[i + 1];
+    return t.role === 'user' && next?.role === 'agent' && next.done ? [t.text] : [];
+  });
+  const canOpenInAiSearch = answered.length > 0;
+  const [handoffFailed, setHandoffFailed] = useState(false);
+  const openInAiSearch = () => {
+    if (!onOpenInAiSearch || !canOpenInAiSearch) return;
+    setHandoffFailed(!onOpenInAiSearch(answered));
   };
 
   /* ---------- Picker ---------- */
@@ -394,6 +423,23 @@ export function AgentChat({
       <header className={p.head}>
         {headTitle}
         <span className={p.headActions}>
+          {onOpenInAiSearch && (
+            <button
+              type="button"
+              className={s.aiSearchBtn}
+              aria-disabled={!canOpenInAiSearch}
+              onClick={openInAiSearch}
+              aria-label="Open in AI Search (new tab)"
+              title={
+                canOpenInAiSearch
+                  ? 'Open this chat in AI Search (new tab)'
+                  : 'Ask something first, then continue the chat in AI Search'
+              }
+            >
+              <AiSearchIcon size={16} />
+              <span className={s.aiSearchLabel}>AI Search</span>
+            </button>
+          )}
           {headExtra}
           {turns.length > 0 && (
             <button type="button" className={p.iconBtn} onClick={newChat} aria-label="New chat" title="New chat">
@@ -414,6 +460,25 @@ export function AgentChat({
           </button>
         </span>
       </header>
+
+      {/* The member stays in the panel with the chat intact (ticket scenario 3). */}
+      {handoffFailed && (
+        <div className={s.handoffError} role="alert">
+          <WarningCircle weight="regular" aria-hidden />
+          <span className={s.handoffErrorText}>AI Search couldn’t save this chat.</span>
+          <button type="button" className={s.handoffRetry} onClick={openInAiSearch}>
+            Retry
+          </button>
+          <button
+            type="button"
+            className={p.iconBtn}
+            onClick={() => setHandoffFailed(false)}
+            aria-label="Dismiss"
+          >
+            <CloseIcon />
+          </button>
+        </div>
+      )}
 
       <div ref={threadRef} className={p.thread}>
         {turns.length === 0 ? (
@@ -463,7 +528,14 @@ export function AgentChat({
         )}
 
         <div className={corner.contextRow} aria-label="What the agent reads">
-          {reading.map((r) => (
+          <PageSlot
+            page={page}
+            readable={pageReadable}
+            attached={reading.some((r) => r.id === page.id)}
+            onRemove={() => onRemove(page.id)}
+            onAddBack={() => onAdd(page)}
+          />
+          {reading.filter((r) => r.id !== page.id).map((r) => (
             <span key={r.id} className={corner.contextChip} title={`The agent reads ${r.label}`}>
               <ItemGlyph item={r} />
               <span className={clsx(corner.contextLabel, s.chipLabel)}>{r.label}</span>
@@ -510,6 +582,74 @@ export function AgentChat({
         />
       </div>
     </aside>
+  );
+}
+
+/**
+ * The page the member is on, in the context row's first slot (LAB-3389: "make it clear the current page is
+ * attached as context"). The slot never moves; only its state changes, so the three states read against each
+ * other (the state and the press that sets it in one place, design-thinking lesson 40):
+ *
+ *   attached    [glyph] Reading  Maya Okonkwo  ✕   the context chip, with "Reading" saying what the chip IS
+ *   removed     [glyph] Not reading  Maya Okonkwo  +   the same chip in the dashed add lineage ("+ Add" wears
+ *                                                     it); the whole chip is one press that puts the page back.
+ *                                                     It keeps the page's name, so it can't read as a second
+ *                                                     "Add context" door beside the real one.
+ *   unreadable  [lock] Can't read this page        no ✕, no add, no hover (label lineage): nothing to press
+ */
+function PageSlot({
+  page,
+  readable,
+  attached,
+  onRemove,
+  onAddBack,
+}: {
+  page: AgentItem;
+  readable: boolean;
+  attached: boolean;
+  onRemove: () => void;
+  onAddBack: () => void;
+}) {
+  if (!readable)
+    return (
+      <span
+        className={clsx(corner.contextChip, s.pageChipLocked)}
+        title={`The agent can’t read ${page.label}: settings and messages stay private. Ask anyway, or add something with +.`}
+      >
+        <LockSimple weight="regular" aria-hidden />
+        <span className={corner.contextLabel}>Can’t read this page</span>
+      </span>
+    );
+  if (!attached)
+    return (
+      <button
+        type="button"
+        className={clsx(corner.contextAdd, s.pageAddBack)}
+        onClick={onAddBack}
+        aria-label={`Let the agent read ${page.label} again`}
+        title={`Let the agent read ${page.label} again`}
+      >
+        <ItemGlyph item={page} />
+        <span className={s.pageChipKicker}>Not reading</span>
+        <span className={clsx(corner.contextLabel, s.chipLabel)}>{page.label}</span>
+        <Plus weight="bold" className={s.pageAddPlus} />
+      </button>
+    );
+  return (
+    <span className={clsx(corner.contextChip, s.pageChip)} title={`The agent reads ${page.label} with every question`}>
+      <ItemGlyph item={page} />
+      <span className={s.pageChipKicker}>Reading</span>
+      <span className={clsx(corner.contextLabel, s.chipLabel)}>{page.label}</span>
+      <button
+        type="button"
+        className={corner.contextRemove}
+        aria-label={`Stop reading ${page.label}`}
+        title="Stop reading this page"
+        onClick={onRemove}
+      >
+        <X weight="bold" />
+      </button>
+    </span>
   );
 }
 

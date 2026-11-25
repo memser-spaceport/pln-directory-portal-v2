@@ -12,6 +12,10 @@ $stack-breakpoint: 720px; // set by the design, not one of the shared breakpoint
   // No top or left padding: the gray panel bleeds to the container's corner.
   padding: 0 40px 0 0;
   border-bottom: 1px solid $card-border;
+
+  @media (max-width: $stack-breakpoint - 1) {
+    padding-right: 0;
+  }
   font-family: 'Inter', sans-serif;
   color: $ink;
 }

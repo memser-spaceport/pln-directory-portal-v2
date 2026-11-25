@@ -93,6 +93,17 @@ The `refreshToken` cookie SHALL be `httpOnly` every time it is written: at sign-
 - **WHEN** the refresh token cookie is written
 - **THEN** it is host-only on LabOS's own origin, as it is today, and deployed AI App subdomains never receive it
 
+### Requirement: Access token is not shared with AI Apps by default
+
+The `authToken` cookie SHALL be host-only on LabOS's own origin unless `AI_APPS_SHARE_AUTH_TOKEN` is set to `true`. Any other value, or no value, SHALL keep it host-only. Deployed AI Apps sign members in through their own auth gate, not with LabOS's token.
+
+#### Scenario: Sharing is not configured
+
+- **GIVEN** an environment with a shared `COOKIE_DOMAIN` and no `AI_APPS_SHARE_AUTH_TOKEN`
+- **WHEN** the `authToken` cookie is written
+- **THEN** it has no `Domain` attribute, and deployed AI App subdomains never receive it
+- **AND** any copy of it already on `COOKIE_DOMAIN` is expired
+
 ### Requirement: Browser can tell a session exists without the refresh token
 
 LabOS SHALL keep a non-secret, script-readable session marker cookie. It holds the session expiry time and no credential. It SHALL be set, renewed and cleared together with `refreshToken`, with the same lifetime. Browser code that needs to know whether a session exists, or when it ends, SHALL read the marker.

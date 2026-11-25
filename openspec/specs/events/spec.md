@@ -644,13 +644,25 @@ A toolbar, right under the page header (Polina's design, 2026-11-20; LAB-3374), 
 
 ### Requirement: Live & upcoming and Past
 
-In List and Map the toolbar SHALL start with the tabs "Live & upcoming" and "Past" (LAB-3418, Polina's design on LAB-3424), in the view switch's style, each with its count in the design system's badge. Live & upcoming SHALL be the default; `?when=past` in the address SHALL open Past. `when` is not a filter: it SHALL NOT count as one, show a chip or be cleared with the filters, and it SHALL mean nothing in Calendar. Both counts SHALL follow the filters, whichever tab is on. Until past events have loaded, and when they fail to, Past SHALL have no count. Switching tabs SHALL change only what is under the toolbar: the toolbar's controls SHALL NOT move, nor when the count comes. The filters' options and their counts SHALL come from the events of the tab on show. Below 640px the tabs SHALL fill the row in equal halves, and their labels SHALL NOT wrap; the year and Embed SHALL be on the row under them, on every tab. Back and Forward SHALL bring back the tab of that address, and a tab chosen after them SHALL be in the address again.
+In List and Map the toolbar SHALL start with the tabs "Live & upcoming" and "Past" (LAB-3418, Polina's design on LAB-3424), in the view switch's style, each with its count in the design system's badge. Live & upcoming SHALL be the default; `?when=past` in the address SHALL open Past, and a link with it SHALL show Past from its first paint, in the page and in the embed: the server's HTML SHALL have Past's tab, view, filters and loading state, with no past event in it, and SHALL open no drawer. The server's HTML of any other address, the Calendar's too, SHALL be the plain page's. `when` is not a filter: it SHALL NOT count as one, show a chip or be cleared with the filters, and it SHALL mean nothing in Calendar. Both counts SHALL follow the filters, whichever tab is on. Until past events have loaded, and when they fail to, Past SHALL have no count, and its tab SHALL keep the room of a three-digit one, so the tabs are as wide after a failure as before. With its count, the tab SHALL have the same 12px on both sides as the other, and on phones the label and the count SHALL be centred in it. Switching tabs SHALL change only what is under the toolbar: the toolbar's controls SHALL NOT move, nor when the count comes, except by the count's own difference from the room kept for it. The filters' options and their counts SHALL come from the events of the tab on show. Below 640px the tabs SHALL fill the row in equal halves, and their labels SHALL NOT wrap; the year and Embed SHALL be on the row under them, on every tab. Back and Forward SHALL bring back the tab of that address, and a tab chosen after them SHALL be in the address again.
 
 #### Scenario: Switch to Past
 
 - **GIVEN** 4 live and upcoming events and 577 past ones
 - **WHEN** a visitor opens `/events/all` and presses "Past 577"
 - **THEN** the past events show, the address has `when=past`, and the toolbar has not moved
+
+#### Scenario: A link to Past
+
+- **GIVEN** `/events/all?when=past&year=2025&view=map&city=Paris`, or the embed with the same query
+- **WHEN** a visitor opens it on a slow connection
+- **THEN** the first thing painted is Past loading, with Map selected and the city's chip on the page, and never Live & upcoming
+- **AND** the server has loaded no past event for it
+
+#### Scenario: The count does not come
+
+- **WHEN** past events fail to load
+- **THEN** the tabs are as wide as while they were loading
 
 #### Scenario: Counts follow the filters
 
@@ -709,13 +721,19 @@ The events the viewer went to SHALL be those of `GET /v1/members/:uid/events?gro
 
 ### Requirement: Past's year
 
-When past events span more than one year, Past SHALL show a dropdown right after the tabs, in List and Map (LAB-3418, Polina's design on LAB-3424): "All years", then each year with a past event, newest first, whatever the filters. An event's year SHALL be that of its first day. `?year=2025` SHALL narrow the List, the Map, the Past count, the city header, the drawer's previous and next, and the embed. The filters' options and their counts SHALL be those of that year; a value already picked SHALL stay listed when the year has none of it. The year is not a filter: it SHALL NOT count as one or be cleared by "Clear all"; "Show all events" SHALL clear it. It SHALL mean nothing on Live & upcoming and in Calendar, stay in the address there, and apply again on Past. A value that is not 4 digits SHALL be ignored. A year with no past event SHALL show Past's empty state, and be listed in the dropdown while it is the one picked. Picking a year SHALL ask for nothing. The dropdown SHALL look like the Filters button, have the name "Year: <choice>" and show its focus.
+When past events span more than one year, Past SHALL show a dropdown right after the tabs, in List and Map (LAB-3418, Polina's design on LAB-3424): "All years", then each year with a past event, newest first, whatever the filters. An event's year SHALL be that of its first day. `?year=2025` SHALL narrow the List, the Map, the Past count, the city header, the drawer's previous and next, and the embed. The filters' options and their counts SHALL be those of that year; a value already picked SHALL stay listed when the year has none of it. The year is not a filter: it SHALL NOT count as one or be cleared by "Clear all"; "Show all events" SHALL clear it. It SHALL mean nothing on Live & upcoming and in Calendar, stay in the address there, and apply again on Past. A value that is not 4 digits SHALL be ignored. A year with no past event SHALL show Past's empty state, and be listed in the dropdown while it is the one picked. Picking a year SHALL ask for nothing. In List, picking a year or "All years" while the list is scrolled SHALL take the visitor to its top, under the bars that stay in view, at once and with no scroll animation; with the top of the list in view, on the Map, and on Back and Forward the page SHALL NOT scroll. The dropdown's menu SHALL open from its left edge, clear of the tabs. The dropdown SHALL look like the Filters button, have the name "Year: <choice>" and show its focus.
 
 #### Scenario: Pick a year
 
 - **GIVEN** past events in 2026 and 2025
 - **WHEN** the visitor picks 2025
 - **THEN** only the events whose first day is in 2025 show, the Past count is theirs, and the address has `year=2025`
+
+#### Scenario: Pick a year far down the list
+
+- **GIVEN** a visitor who has scrolled 100 events down Past
+- **WHEN** they pick 2025
+- **THEN** 2025's newest day is the first under the toolbar
 
 #### Scenario: An event over New Year
 
@@ -762,7 +780,7 @@ When past events span more than one year, Past SHALL show a dropdown right after
 
 ### Requirement: The List view
 
-The List view SHALL be the default. On Live & upcoming it SHALL group events by start day, soonest first. Each day SHALL have a date label (for example "Dec 3 / Thursday"), at the size of a card's time line, that stays in view while its events scroll. From 1200px the cards SHALL end at the right edge of the 4th "Browse by city" tile; below 1200px, where that row has 3 tiles, they SHALL fill the width (LAB-3425). The loading state SHALL have the same width. Each card SHALL show: the start time in the event's time zone with its UTC offset, and "Day n of m" for a multi-day event, where n SHALL always be from 1 to m, also when the viewer's day is already past the event's last day (as on a Near you tile); the title; the host when known; the place ("Online" for an online event, the city with "also online" for a hybrid one); the going count with up to 3 faces when the event shows attendance; and the picture. On phones the date SHALL sit above its cards.
+The List view SHALL be the default. On Live & upcoming it SHALL group events by start day, soonest first. Each day SHALL have a date label (for example "Dec 3 / Thursday"), at the size of a card's time line, that stays in view while its events scroll. From 1200px the cards SHALL end at the right edge of the 4th "Browse by city" tile; below 1200px, where that row has 3 tiles, they SHALL fill the width (LAB-3425). The loading state SHALL have the same width, and its dates SHALL be as tall as the list's, on phones too. Each card SHALL show: the start time in the event's time zone with its UTC offset, and "Day n of m" for a multi-day event, where n SHALL always be from 1 to m, also when the viewer's day is already past the event's last day (as on a Near you tile); the title; the host when known; the place ("Online" for an online event, the city with "also online" for a hybrid one); the going count with up to 3 faces when the event shows attendance; and the picture. Its photos (the picture, the hosts' and the faces) SHALL load only near the screen, in room kept for them, as they SHALL on Near you tiles, Week cards and the map's lists (LAB-3418). On phones the date SHALL sit above its cards.
 
 #### Scenario: Multi-day event
 

@@ -704,7 +704,7 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
-/* The room of a three-digit badge, so Past's count moves nothing when it comes. */
+/* The room of a three-digit badge, only while Past has no count (loading, or failed): the badge then takes its own. */
 .scopeSlot {
   display: inline-flex;
   min-width: 41px;
@@ -804,11 +804,15 @@
 
 /* ---------- Layout ---------- */
 
+/* A year picked on Past scrolls here (LAB-3418): under the site header, the toolbar where it stays in view (the page
+   measures it) and the layout's own gap. */
 .layout {
   margin-top: 24px;
+  scroll-margin-top: calc(var(--app-header-height, 80px) + var(--events-toolbar-height, 0px) + 24px);
 
   @include media.mobile-only {
     margin-top: 16px;
+    scroll-margin-top: calc(var(--app-header-height, 80px) + 16px);
   }
 }
 
@@ -1377,6 +1381,11 @@
 .skeletonDate {
   width: 80px;
   height: 40px;
+
+  // One line there, as `.dayHeading`.
+  @include media.mobile-only {
+    height: 20px;
+  }
 }
 
 .skeletonCard {

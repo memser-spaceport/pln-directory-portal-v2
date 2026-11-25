@@ -8,7 +8,7 @@ import s from './AllEventsPage.module.scss';
 /**
  * Up to 3 faces and "N going", when the event shows its attendance and someone goes (LAB-3353): on List cards, Near you
  * tiles, Week cards and the map's rows. "N went" for a past event (LAB-3418). Nothing at 0, or when the event hides
- * attendance (`goingCount` null).
+ * attendance (`goingCount` null). The faces load near the screen only: Past has hundreds of cards (LAB-3418).
  */
 export function GoingFaces({
   item,
@@ -26,7 +26,14 @@ export function GoingFaces({
       {item.faces.length > 0 && (
         <span className={s.facepile} aria-hidden>
           {item.faces.map((face) => (
-            <img key={face.uid} src={face.image || getDefaultAvatar(face.name)} alt="" width={20} height={20} />
+            <img
+              key={face.uid}
+              src={face.image || getDefaultAvatar(face.name)}
+              alt=""
+              width={20}
+              height={20}
+              loading="lazy"
+            />
           ))}
         </span>
       )}

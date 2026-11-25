@@ -29,6 +29,8 @@ export function YearPicker({
       currentSort={year ?? ALL_YEARS}
       onSortChange={(next) => onChange(next === ALL_YEARS ? null : next)}
       className={s.yearPicker}
+      // Lined up with the year's left edge, so it doesn't open over the When switch.
+      align="start"
       ariaLabel={`Year: ${year ?? ALL_YEARS_LABEL}`}
     />
   );

@@ -19,6 +19,8 @@ interface SortDropdownProps {
   sortByLabel?: string;
   /** The trigger's accessible name, when its text alone doesn't say what it changes. */
   ariaLabel?: string;
+  /** The trigger's edge the menu lines up with. */
+  align?: 'start' | 'end';
 }
 
 export function SortDropdown({
@@ -28,6 +30,7 @@ export function SortDropdown({
   className,
   sortByLabel,
   ariaLabel,
+  align = 'end',
 }: SortDropdownProps) {
   const currentOption = options.find((o) => o.value === currentSort) ?? options[0];
   const currentLabel = currentOption?.selectedLabel ?? currentOption?.label;
@@ -47,8 +50,8 @@ export function SortDropdown({
         </svg>
       </Menu.Trigger>
       <Menu.Portal>
-        <Menu.Positioner className={s.positioner} align="end" sideOffset={4}>
-          <Menu.Popup className={s.menu}>
+        <Menu.Positioner className={s.positioner} align={align} sideOffset={4}>
+          <Menu.Popup className={clsx(s.menu, align === 'start' && s.menuStart)}>
             {options.map((option) => (
               <Menu.Item
                 key={option.value}

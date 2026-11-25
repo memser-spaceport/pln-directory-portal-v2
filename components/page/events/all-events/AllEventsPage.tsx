@@ -4,7 +4,7 @@ import clsx from 'clsx';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useEventsAnalytics, type EmbedDetails } from '@/analytics/events.analytics';
@@ -88,6 +88,8 @@ export interface AllEventsPageProps {
   /** The server's day, so the first render matches the HTML; the browser's own day replaces it after hydration. */
   serverTodayIso: string;
   submitHref: string;
+  /** What the server read of a link to Past (`pastLandingQuery`); empty or absent for any other address. */
+  initialQuery?: string;
   /**
    * The embed (LAB-3352, `/events/embed`), framed by another site: the view only, with the filters from its address,
    * and "All events on PL Directory ↗" under it. No page header, Near you, Browse by city, toolbar, filters or member
@@ -108,6 +110,18 @@ function framedByLabOs(): boolean {
 }
 
 const noopSubscribe = () => () => {};
+
+/** Takes the visitor to the top of the list, under the bars that stay in view, when they are past it. */
+function backToTop(list: HTMLElement | null, toolbar: HTMLElement | null) {
+  if (!list || !toolbar) return;
+  // The toolbar stays in view from 640px, and can take two rows with the rail open.
+  const bar = getComputedStyle(toolbar).position === 'sticky' ? toolbar.offsetHeight : 0;
+  list.style.setProperty('--events-toolbar-height', `${bar}px`);
+  const room = parseFloat(getComputedStyle(list).scrollMarginTop) || 0;
+  // At once, for everyone: what is under the bars is another list, and a smooth run would load the photos on its way.
+  if (list.getBoundingClientRect().top < room) list.scrollIntoView({ block: 'start', behavior: 'instant' });
+}
+
 /** How long a filter must stay still before its change is recorded (the store's former debounce). */
 const FILTER_SETTLE_MS = 300;
 const EMPTY_ITEMS: AllEventsItem[] = [];
@@ -126,6 +140,7 @@ export function AllEventsPage({
   serverNow,
   serverTodayIso,
   submitHref,
+  initialQuery = '',
   embed = false,
   detailsOnLabOs = false,
 }: AllEventsPageProps) {
@@ -142,7 +157,18 @@ export function AllEventsPage({
     () => serverTodayIso,
   );
 
-  const { params, setParam, setAllParams } = useAllEventsFilterStore();
+  const { params: storeParams, setParam, setAllParams } = useAllEventsFilterStore();
+  // The store takes in the address before the first paint of a page the browser renders. The server's HTML is painted
+  // well before that, so it, and the render that hydrates it, go by what the server read: a link to Past is Past at once.
+  const hydrated = useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false,
+  );
+  const params = useMemo(
+    () => (hydrated ? storeParams : new URLSearchParams(initialQuery)),
+    [hydrated, storeParams, initialQuery],
+  );
   const filters = useMemo(() => readFilters(params), [params]);
   const filterCount = countAppliedFilters(params);
 
@@ -387,11 +413,21 @@ export function AllEventsPage({
     setParam(WHEN_PARAM, next === 'past' ? WHEN_PAST : undefined);
     analytics.onEventsWhenChanged({ when: next, view });
   };
+  const listRef = useRef<HTMLDivElement>(null);
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const yearPicked = useRef(false);
   const setYear = (next: string | null) => {
     if (next === year) return;
+    yearPicked.current = view === 'list';
     setParam(YEAR_PARAM, next ?? undefined);
     analytics.onEventsYearChanged({ year: next ?? 'all', view });
   };
+  // Another year is another list: it opens at its top. Only a pick does that, not Back, Forward or the Map.
+  useLayoutEffect(() => {
+    if (!yearPicked.current) return;
+    yearPicked.current = false;
+    backToTop(listRef.current, toolbarRef.current);
+  }, [year]);
   const setCalMode = (mode: CalMode) => {
     if (mode === calMode) return;
     setParam('cal', mode);
@@ -578,11 +614,11 @@ export function AllEventsPage({
             {/* The toolbar sits right under the header (Polina, 2026-11-20): the city bands belong to List view, so a view
                 switch changes only what is under it and the switch never moves under the pointer. */}
             <EventsToolbar
+              ref={toolbarRef}
               city={scopedCity}
               count={visibleLive.length}
               when={when}
               pastCount={pastLoaded ? visiblePast.length : null}
-              pastCountLoading={pastLoading}
               onWhenChange={setWhen}
               yearPicker={past && pastQuery.data ? <YearPicker years={years} year={year} onChange={setYear} /> : null}
               filterCount={filterCount}
@@ -619,12 +655,13 @@ export function AllEventsPage({
 
             {/* A chosen city is a chip in Calendar and Map, where List's city header doesn't show. */}
             <AppliedChips
+              params={params}
               scopedCity={listTop && !(past && pastFailed) ? scopedCity : null}
               railOpen={railOpen}
               onClear={clearFilters}
             />
 
-            <div className={s.layout}>
+            <div className={s.layout} ref={listRef}>
               <div className={s.main}>
                 {listBands}
                 {viewBody}

@@ -140,15 +140,18 @@ export function appliedChips(params: URLSearchParams, scopedCity: string | null)
 
 /** While the rail is closed, applied filters show as removable chips, so filtering is never invisible. */
 export function AppliedChips({
+  params,
   scopedCity,
   railOpen,
   onClear,
 }: {
+  /** The page's state, as the page itself has it. */
+  params: URLSearchParams;
   scopedCity: string | null;
   railOpen: boolean;
   onClear: () => void;
 }) {
-  const { params, setParam } = useAllEventsFilterStore();
+  const { setParam } = useAllEventsFilterStore();
   const chips = appliedChips(params, scopedCity);
   if (!chips.length) return null;
 

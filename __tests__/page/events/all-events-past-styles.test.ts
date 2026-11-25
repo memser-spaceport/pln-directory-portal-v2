@@ -28,8 +28,32 @@ it('the badge is the design system’s: full round, 12/16 500, 6px off its label
   expect(rule('.scopeCount')).toContain('color: var(--foreground-neutral-secondary, #455468);');
 });
 
-it('Past holds the room of a three-digit badge before its count comes', () => {
+it('Past holds the room of a three-digit badge while it has none, and the badge has no width but its own', () => {
   expect(rule('.scopeSlot')).toContain('min-width: 41px;');
+  expect(rule('.scopeCount')).not.toContain('width');
+  expect(rule('.scopeBtn.scopeBtn')).toContain('padding: 0 12px;');
+  expect(phone('.scopeBtn.scopeBtn')).toContain('justify-content: center;');
+});
+
+it('the skeleton’s date is as tall as a day’s: two lines, on phones one', () => {
+  expect(rule('.dayHeading')).toContain('line-height: 20px;');
+  expect(rule('.dayHeading')).toContain('flex-direction: column;');
+  expect(phone('.dayHeading')).toContain('flex-direction: row;');
+  expect(rule('.skeletonDate')).toContain('height: 40px;');
+  expect(phone('.skeletonDate')).toContain('height: 20px;');
+  // The same gap to the first card.
+  expect(phone('.skeletonDay')).toContain('row-gap: 8px;');
+  expect(phone('.day')).toContain('row-gap: 8px;');
+});
+
+it('a picked year’s list comes to rest under the header, the toolbar where it stays in view, and the list’s own gap', () => {
+  expect(rule('.layout')).toContain('margin-top: 24px;');
+  expect(rule('.layout')).toContain(
+    'scroll-margin-top: calc(var(--app-header-height, 80px) + var(--events-toolbar-height, 0px) + 24px);',
+  );
+  expect(phone('.layout')).toMatch(
+    /margin-top: 16px;\s*scroll-margin-top: calc\(var\(--app-header-height, 80px\) \+ 16px\);/,
+  );
 });
 
 it('the toolbar’s start is as tall as the switch, and wide enough for a year beside it, on every tab', () => {

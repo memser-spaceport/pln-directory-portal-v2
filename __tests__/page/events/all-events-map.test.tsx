@@ -364,7 +364,6 @@ describe('the page with a Maps key', () => {
         memberCity={undefined}
         serverTodayIso="2030-12-01"
         submitHref="https://irl.example/submit"
-        eventsAppHref="https://events.example/calendar"
       />,
     );
     await act(async () => {});

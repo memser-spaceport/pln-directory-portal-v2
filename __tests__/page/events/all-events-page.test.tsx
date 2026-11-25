@@ -164,7 +164,6 @@ function renderPage(over: Partial<AllEventsPageProps> = {}, url = '/events/all')
       memberCity={undefined}
       serverTodayIso="2030-12-01"
       submitHref="https://irl.example/auth/labos?returnUrl=%2Fevents%2Fadd"
-      eventsAppHref="https://events.example/calendar"
       {...over}
     />,
   );
@@ -190,19 +189,17 @@ afterEach(() => {
 });
 
 describe('header and List', () => {
-  it('links the events app and the production submit address, with no iframe', () => {
+  it('links the production submit address, with no events app link and no iframe (LAB-3420)', () => {
     const { container } = renderPage();
     expect(screen.getByRole('heading', { level: 1, name: 'Events' })).toBeInTheDocument();
-    // Twice in the markup, one shown at a time: ending the description on phones, in the actions from 640px up.
-    const appLinks = screen.getAllByRole('link', { name: /Open PL Events/ });
-    expect(appLinks).toHaveLength(2);
-    expect(appLinks[0].closest('p')).toHaveTextContent(/^Meetups, .* network\. Open PL Events$/);
-    appLinks.forEach((link, i) => {
-      expect(link).toHaveAttribute('href', 'https://events.example/calendar');
-      expect(link).toHaveAttribute('target', '_blank');
-      fireEvent.click(link);
-      expect(analytics.onGoToEventsButtonClicked).toHaveBeenCalledTimes(i + 1);
-    });
+    // The header has one markup for phones and wider screens, so no link means none on any viewport.
+    const header = container.querySelector('header') as HTMLElement;
+    expect(within(header).getByText('Meetups and conferences across the Protocol Labs network.')).toBeInTheDocument();
+    expect(header).not.toHaveTextContent(/office hours/i);
+    expect(within(header).queryByRole('link', { name: /Open PL Events/ })).toBeNull();
+    expect(within(header).getAllByRole('link')).toHaveLength(1);
+    expect(screen.queryByRole('link', { name: /PL Events/ })).toBeNull();
+    expect(analytics.onGoToEventsButtonClicked).not.toHaveBeenCalled();
     expect(screen.getByRole('link', { name: /Submit an event/ })).toHaveAttribute(
       'href',
       'https://irl.example/auth/labos?returnUrl=%2Fevents%2Fadd',
@@ -231,35 +228,16 @@ describe('header and List', () => {
     going.uids = [];
     const props = { ...signedIn('Berlin'), result: { ok: true as const, items: sample() } };
     const { rerender } = render(
-      <AllEventsPage
-        {...props}
-        serverTodayIso="2030-12-01"
-        submitHref="https://irl.example/submit"
-        eventsAppHref="https://events.example/calendar"
-      />,
+      <AllEventsPage {...props} serverTodayIso="2030-12-01" submitHref="https://irl.example/submit" />,
     );
     expect(within(card('DAI Summit')).getByText('3 going')).toBeInTheDocument();
 
     going.uids = ['dai'];
-    rerender(
-      <AllEventsPage
-        {...props}
-        serverTodayIso="2030-12-01"
-        submitHref="https://irl.example/submit"
-        eventsAppHref="https://events.example/calendar"
-      />,
-    );
+    rerender(<AllEventsPage {...props} serverTodayIso="2030-12-01" submitHref="https://irl.example/submit" />);
     expect(within(card('DAI Summit')).getByText('4 going')).toBeInTheDocument();
 
     going.uids = [];
-    rerender(
-      <AllEventsPage
-        {...props}
-        serverTodayIso="2030-12-01"
-        submitHref="https://irl.example/submit"
-        eventsAppHref="https://events.example/calendar"
-      />,
-    );
+    rerender(<AllEventsPage {...props} serverTodayIso="2030-12-01" submitHref="https://irl.example/submit" />);
     expect(within(card('DAI Summit')).getByText('3 going')).toBeInTheDocument();
   });
 

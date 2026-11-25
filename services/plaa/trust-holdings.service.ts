@@ -1,4 +1,5 @@
 import { plaaApiHeaders } from '@/services/plaa/plaa-api';
+import type { TrustStatement } from '@/components/page/aligement-assets/trust-holdings/reconciliation/reconciliation';
 
 // Retained for /api/revalidate consumers.
 export const TRUST_HOLDINGS_CACHE_TAG = 'trust-holdings';
@@ -40,6 +41,8 @@ export interface TrustHoldingsData {
   focusAreas: DonutSlice[];
   trustComposition: DonutSlice[];
   disclaimers: string[];
+  // Absent from plaa-service builds before trust statements shipped.
+  statements?: TrustStatement[];
 }
 
 export const getTrustHoldings = async (

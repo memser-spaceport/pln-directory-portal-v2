@@ -28,6 +28,243 @@
   max-width: 200px;
 }
 
+/* ---------- Resize (LAB-3389) ---------- */
+
+/* From 960 the panel is a drawer over the page's right edge; its width is the member's (--agent-w, set on
+   <html> by AgentDrawer so the Feedback tab follows it too). Tripled to beat panelOnHome's 480px. Below 960
+   it stays the full-screen sheet and nothing here applies. */
+.resizable.resizable.resizable {
+  container-type: inline-size;
+
+  @include media.tablet-landscape {
+    width: var(--agent-w, 600px);
+  }
+}
+
+/* The left edge. Idle: nothing but the panel's own 1px border, so the drawer looks as it did. Hover: the
+   col-resize cursor and a 2px brand rule on the border. Dragging: the rule stays and the page under the
+   pointer can't select text. 12px hit area, centred on the border. */
+.resizeHandle {
+  display: none;
+
+  @include media.tablet-landscape {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    right: calc(var(--agent-w, 600px) - 6px);
+    z-index: 1001;
+    display: block;
+    width: 12px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: col-resize;
+    touch-action: none;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 5px;
+      width: 2px;
+      background: var(--foreground-brand-primary, #1b4dff);
+      opacity: 0;
+      transition: opacity 120ms ease;
+    }
+
+    @media (hover: hover) {
+      &:hover::after {
+        opacity: 0.6;
+      }
+    }
+
+    &[data-dragging]::after,
+    &:focus-visible::after {
+      opacity: 1;
+    }
+
+    &:focus-visible {
+      outline: 0;
+    }
+  }
+}
+
+/* While dragging: the whole page wears the cursor, and nothing gets selected on the way. */
+.dragging,
+.dragging * {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
+/* ---------- Open in AI Search (LAB-3389) ---------- */
+
+/* The header's one labelled action: the same quiet control as this entry's "Ask AI" on cards (28px, 12/16
+   500, secondary ink, brand-soft hover), because both are doors into AI. It wears the product's AI mark,
+   as the profile's Ask AI does (that door opens AI Search too), and the label names the destination. It
+   opens in a new tab, like the profiles' Ask AI; the tooltip says so. */
+.aiSearchBtn {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+  cursor: pointer;
+
+  svg {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+  }
+
+  @media (hover: hover) {
+    &:hover:not([aria-disabled='true']) {
+      background: var(--background-brand-soft-surface, #f2f5ff);
+      color: var(--foreground-brand-primary, #1b4dff);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+
+  /* Nothing to continue yet. aria-disabled, not disabled, so the tooltip still says why. */
+  &[aria-disabled='true'] {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+    opacity: 0.6;
+    cursor: default;
+
+    > span:first-child {
+      filter: grayscale(1);
+    }
+  }
+
+  /* A finger gets 44px without the header growing: the hit area reaches past the 28px box. */
+  @media (pointer: coarse) {
+    &::after {
+      content: '';
+      position: absolute;
+      inset: -8px -4px;
+    }
+  }
+}
+
+/* Narrower than the default 480 (a phone's sheet, or a desktop panel dragged towards its 440 minimum), the
+   word doesn't fit beside the tabs and four icons, so the AI mark carries it alone; the accessible name and
+   the tooltip still say "Open in AI Search". Container widths are the content box: the panel's 1px left
+   border makes 480 read as 479. */
+@container (max-width: 478px) {
+  .aiSearchLabel {
+    display: none;
+  }
+
+  .aiSearchBtn {
+    width: 28px;
+    padding: 0;
+    justify-content: center;
+  }
+}
+
+.handoffError {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px 8px 16px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-error-soft-surface, #fef3f2);
+  color: var(--foreground-error-primary, #d21a0e);
+  font-size: 14px;
+  line-height: 20px;
+
+  > svg {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.handoffErrorText {
+  flex: 1;
+  min-width: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.handoffRetry {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+
+  @media (hover: hover) {
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+/* ---------- This page, in the context row (LAB-3389) ---------- */
+
+/* "Reading" is what makes the chip a statement rather than a tag: tertiary, so the page name stays the
+   thing you read. */
+.pageChipKicker {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-weight: 400;
+}
+
+.pageChip {
+  gap: 4px;
+
+  svg:first-child {
+    margin-right: 2px;
+  }
+}
+
+/* Removed: the chip's own anatomy (glyph, kicker, name), dashed, with + where the ✕ was. */
+.pageAddBack.pageAddBack {
+  max-width: 100%;
+  padding: 0 6px 0 8px;
+
+  svg {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.pageAddPlus {
+  margin-left: 2px;
+}
+
+/* No press here: tertiary ink, no hover (the label lineage). */
+.pageChipLocked.pageChipLocked {
+  padding-right: 8px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: default;
+
+  svg {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+  }
+}
+
 /* ---------- Context picker ("+" and "@") ---------- */
 
 .picker.picker {
@@ -199,4 +436,30 @@
     outline: 2px solid var(--foreground-brand-primary, #1b4dff);
     outline-offset: 1px;
   }
+}
+
+/* ---------- History: the door to AI Search's chats (LAB-3389, 2026-11-25) ---------- */
+
+.historyRule {
+  height: 1px;
+  margin: 6px 4px;
+  background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+/* A menu row like the chats above it, in the secondary ink: it leaves this list for another one. */
+.historyAiSearch.historyAiSearch {
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+}
+
+.historyAiSearchLabel {
+  flex: 1;
+  min-width: 0;
+}
+
+.historyAiSearchArrow {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
 }

@@ -690,7 +690,7 @@ its session cookies.
 
 | Cookie | Content | Expiry | Scripts can read | Domain |
 |--------|---------|--------|------------------|--------|
-| `authToken` | JWT access token | Access token expiry | yes | `COOKIE_DOMAIN` while shared with AI Apps, else host-only |
+| `authToken` | JWT access token | Access token expiry | yes | host-only; `COOKIE_DOMAIN` only when `AI_APPS_SHARE_AUTH_TOKEN=true` |
 | `refreshToken` | JWT refresh token | Refresh token expiry | **no (httpOnly)** | host-only |
 | `userInfo` | User profile data | Access token expiry | yes | host-only |
 | `sessionExpiresAt` | Refresh token `exp` (epoch seconds); no credential | Refresh token expiry | yes | host-only |

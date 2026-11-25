@@ -60,6 +60,9 @@ import { getSubmitEventUrl } from '@/utils/irl-submit-url';
 import { MobileFilterWrapper } from '@/components/common/filters/MobileFilterWrapper';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
 import FilterCount from '@/components/ui/filter-count';
+import { SortDropdown } from '@/components/common/filters/SortDropdown';
+// The product's "Live" status pill (AI Apps deploy logs), reused for events under way.
+import logs from '@/components/page/ai-apps/AiAppsPage/components/DeploymentLogsModal/DeploymentLogsModal.module.scss';
 import { ArrowBackIcon, ArrowUpRightIcon, CheckIcon, CloseIcon, GlobeIcon } from '@/components/icons';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
@@ -89,6 +92,7 @@ import {
   dayHeading,
   dayOfSpan,
   eventByUid,
+  isLive,
   isUpcoming,
   iso,
   listDay,
@@ -167,6 +171,13 @@ export default function EventsPageRedesignPrototype() {
   const embed = searchParams.get('embed') === '1';
   const [embedOpen, setEmbedOpen] = useState(false);
   const [drawerOn, setDrawerOn] = useState<OpenOn>('event');
+  /* Upcoming | Past (2026-11-25, Luma's calendar page): List and Map show one or the other. Calendar
+     needs no switch: its past days are already there, one press back. */
+  const past = searchParams.get('when') === 'past' && view !== 'calendar';
+  const setPast = (next: boolean) => setUrl({ when: next ? 'past' : null });
+  // Past's year picker (2026-11-25): `?year=2025`; no param is every year.
+  const year = past ? searchParams.get('year') : null;
+  const setYear = (next: string) => setUrl({ year: next === 'all' ? null : next });
   const railOpen = searchParams.get('filters') === 'open';
   const setRailOpen = (open: boolean) => setUrl({ filters: open ? 'open' : null });
 
@@ -231,6 +242,24 @@ export default function EventsPageRedesignPrototype() {
         .sort((a, b) => listDay(a, todayIso).localeCompare(listDay(b, todayIso))),
     [visible, todayIso],
   );
+  // Past: over before today, the most recent first (what you just missed leads).
+  const pastEvents = useMemo(
+    () =>
+      visible
+        .filter((e) => !isUpcoming(e, todayIso) && (!year || e.startDate.startsWith(year)))
+        .sort((a, b) => b.startDate.localeCompare(a.startDate)),
+    [visible, todayIso, year],
+  );
+  // The picker lists every year that has a past event, newest first (not narrowed by filters,
+  // so a year never vanishes from the menu while it is the one selected).
+  const pastYears = useMemo(
+    () =>
+      Array.from(new Set(CAL_EVENTS.filter((e) => !isUpcoming(e, todayIso)).map((e) => e.startDate.slice(0, 4)))).sort(
+        (a, b) => b.localeCompare(a),
+      ),
+    [todayIso],
+  );
+  const scoped = past ? pastEvents : upcoming;
 
   // Arriving from a link to one event: bring its tile / row / bar into view.
   useEffect(() => {
@@ -269,15 +298,18 @@ export default function EventsPageRedesignPrototype() {
 
   const filterCount = countAppliedFilters(params);
   const allUpcoming = CAL_EVENTS.filter((e) => isUpcoming(e, todayIso));
+  // The rail's options come off the events in scope, so a Past list never offers an empty facet.
+  const railEvents = past ? CAL_EVENTS.filter((e) => !isUpcoming(e, todayIso)) : allUpcoming;
   const plans = CAL_EVENTS.filter((e) => goingUids.has(e.uid) && isUpcoming(e, todayIso));
   const cities = upcomingCities(todayIso);
   const citySummary = city ? cities.find((c) => c.city === city) : undefined;
   // The drawer steps through the list it was opened from; a link lands on the upcoming list.
-  const drawerSequence = sequence.length ? sequence : upcoming.map((e) => e.uid);
+  const drawerSequence = sequence.length ? sequence : scoped.map((e) => e.uid);
 
   // Near you: a plain landing only (the default List view, nothing filtered), from the member's
   // profile location. Switching to Calendar / Map is a choice of view, so the band steps aside.
-  const plainLanding = filterCount === 0 && view === 'list';
+  // Past has none of the discovery bands: they answer "what can I go to?".
+  const plainLanding = filterCount === 0 && view === 'list' && !past;
   const nearYou =
     memberCity && plainLanding
       ? allUpcoming.filter((e) => e.city === memberCity && DETAILS[e.uid].mode !== 'Virtual').slice(0, 3)
@@ -299,6 +331,8 @@ export default function EventsPageRedesignPrototype() {
     const p = new URLSearchParams();
     if (view !== 'list') p.set('view', view);
     if (view === 'calendar') p.set('cal', calMode);
+    if (past) p.set('when', 'past');
+    if (year) p.set('year', year);
     COUNTED_PARAMS.forEach((key) => {
       const value = params.get(key);
       if (value) p.set(key, value);
@@ -321,7 +355,9 @@ export default function EventsPageRedesignPrototype() {
     ...embedFilters,
   ];
   const embedScopeLine =
-    embedScope.length > 1 ? `${embedScope.join(' · ')}` : `${embedScope[0]} · All upcoming events`;
+    embedScope.length > 1
+      ? `${embedScope.join(' · ')}`
+      : `${embedScope[0]} · ${past ? 'All past events' : 'All live & upcoming events'}`;
 
   const drawer = (
     <EventDrawer
@@ -331,13 +367,15 @@ export default function EventsPageRedesignPrototype() {
       onClose={closeDrawer}
       onNotice={onNotice}
       openOn={drawerOn}
+      todayIso={todayIso}
     />
   );
 
   const viewBody =
     view === 'list' ? (
       <ListView
-        events={upcoming}
+        events={scoped}
+        past={past}
         todayIso={todayIso}
         goingUids={goingUids}
         highlightUid={highlightUid}
@@ -345,7 +383,13 @@ export default function EventsPageRedesignPrototype() {
         onClear={clearParams}
       />
     ) : view === 'map' ? (
-      <EventsMap events={upcoming} goingUids={goingUids} onOpen={open} highlightUid={highlightUid} />
+      <EventsMap
+        events={scoped}
+        goingUids={goingUids}
+        onOpen={open}
+        highlightUid={highlightUid}
+        onShowList={() => setView('list')}
+      />
     ) : (
       <EventsCalendar
         key={`${anchorIso}:${city ?? ''}`}
@@ -382,10 +426,16 @@ export default function EventsPageRedesignPrototype() {
 
   // List view's own top: a city header when scoped, else Near you / Add location and Browse by
   // city, then a heading that hands over to the dated list (it now sits under the bands, not the toolbar).
-  const hasDiscovery = !!nearYou || askLocation || cities.length > 0;
+  const hasDiscovery = !past && (!!nearYou || askLocation || cities.length > 0);
   const listBands = !showTopBands ? null : city ? (
     <div className={s.listBands}>
-      <CityHeader city={city} summary={citySummary} events={upcoming} onBack={() => setCity(null)} />
+      <CityHeader
+        city={city}
+        summary={past ? undefined : citySummary}
+        events={scoped}
+        past={past}
+        onBack={() => setCity(null)}
+      />
     </div>
   ) : hasDiscovery ? (
     <div className={s.listBands}>
@@ -401,7 +451,7 @@ export default function EventsPageRedesignPrototype() {
       )}
       {askLocation && <AddLocation />}
       {cities.length > 0 && <CityBand cities={cities} selected={filters.city} onPick={setCity} />}
-      <h3 className={clsx(s.sectionTitle, s.listHeading)}>{filterCount ? 'Matching events' : 'All upcoming'}</h3>
+      <h3 className={clsx(s.sectionTitle, s.listHeading)}>{filterCount ? 'Matching events' : 'All live & upcoming'}</h3>
     </div>
   ) : null;
 
@@ -411,10 +461,23 @@ export default function EventsPageRedesignPrototype() {
         <header className={s.header}>
           <div className={s.headerText}>
             <h1 className={s.title}>Events</h1>
-            <p className={s.lede}>Meetups, conferences and office hours across the Protocol Labs network.</p>
+            <p className={s.lede}>
+              Meetups, conferences and office hours across the Protocol Labs network.{' '}
+              {/* Phone only (2026-11-24): the two header actions wrapped into a row of their own under
+                the lede, a text link and a button with nothing tying them to anything. Submit moves up
+                opposite the title; the outbound link finishes the lede's sentence. */}
+              <a
+                href={EVENTS_APP_HREF}
+                target="_blank"
+                rel="noreferrer"
+                className={clsx(s.textLink, s.ledeLink)}
+              >
+                Open PL Events <ArrowUpRightIcon width={14} height={14} />
+              </a>
+            </p>
           </div>
           <div className={s.headerActions}>
-            <a href={EVENTS_APP_HREF} target="_blank" rel="noreferrer" className={s.textLink}>
+            <a href={EVENTS_APP_HREF} target="_blank" rel="noreferrer" className={clsx(s.textLink, s.headerLink)}>
               Open PL Events <ArrowUpRightIcon width={14} height={14} />
             </a>
             {/* The DS Button's classes on the link itself (a <button> inside an <a> is two controls),
@@ -439,10 +502,52 @@ export default function EventsPageRedesignPrototype() {
             moves under the pointer (it used to sit below the bands and jump ~490px up). */}
         <div className={s.toolbar}>
           <div className={s.toolbarStart}>
-            <h2 className={s.toolbarTitle}>{city ? `Coming up in ${city}` : 'Coming up'}</h2>
-            <span className={s.toolbarCount}>
-              {upcoming.length} {upcoming.length === 1 ? 'event' : 'events'}
-            </span>
+            {view === 'calendar' ? (
+              <>
+                <h2 className={s.toolbarTitle}>{city ? `Coming up in ${city}` : 'Coming up'}</h2>
+                <span className={s.toolbarCount}>
+                  {upcoming.length} {upcoming.length === 1 ? 'event' : 'events'}
+                </span>
+              </>
+            ) : (
+              /* When (2026-11-25, after Luma's and Zoom's Upcoming | Past): the view switch's own
+                 segmented control, each segment carrying its count, then on Past a year pill at the
+                 Filters button's height (Meetup's "Any day ▾", Reddit's "Upcoming Events ▾"). It
+                 replaced title-size text tabs and a dropdown in grey text, which read as two styles. */
+              <>
+                <div className={s.viewSwitch} role="tablist" aria-label="When">
+                  {[
+                    /* "Live & upcoming": the tab always held events already under way; they now say
+                       so with a Live pill, and the tab's name says it too. */
+                    { value: false, label: 'Live & upcoming', count: upcoming.length },
+                    { value: true, label: 'Past', count: pastEvents.length },
+                  ].map((o) => (
+                    <button
+                      key={o.label}
+                      type="button"
+                      role="tab"
+                      aria-selected={past === o.value}
+                      className={clsx(s.viewBtn, s.scopeBtn, past === o.value && s.viewBtnActive)}
+                      onClick={() => setPast(o.value)}
+                    >
+                      {o.label}
+                      <span className={s.scopeCount}>{o.count}</span>
+                    </button>
+                  ))}
+                </div>
+                {past && pastYears.length > 1 && (
+                  <SortDropdown
+                    options={[
+                      { value: 'all', label: 'All years' },
+                      ...pastYears.map((y) => ({ value: y, label: y })),
+                    ]}
+                    currentSort={year ?? 'all'}
+                    onSortChange={setYear}
+                    className={s.yearPicker}
+                  />
+                )}
+              </>
+            )}
           </div>
           <div className={s.toolbarEnd}>
             {/* The rail's door. Desktop only: phones have MobileFilterWrapper's pill below. */}
@@ -493,7 +598,7 @@ export default function EventsPageRedesignPrototype() {
               onSortChange={(v) => setView(v as View)}
               onClearFilters={clearParams}
               renderFilter={(onClose) => (
-                <EventsFilterView events={allUpcoming} goingCount={plans.length} onClose={onClose} />
+                <EventsFilterView events={railEvents} goingCount={plans.length} onClose={onClose} />
               )}
             />
           </div>
@@ -575,7 +680,7 @@ export default function EventsPageRedesignPrototype() {
           filters={
             railOpen ? (
               <div id="events-filters" className={s.railWrap}>
-                <EventsFilterView events={allUpcoming} goingCount={plans.length} onHide={() => setRailOpen(false)} />
+                <EventsFilterView events={railEvents} goingCount={plans.length} onHide={() => setRailOpen(false)} />
               </div>
             ) : null
           }
@@ -707,17 +812,20 @@ function CityHeader({
   city,
   summary,
   events,
+  past = false,
   onBack,
 }: {
   city: string;
   summary?: CitySummary;
   events: CalEvent[];
+  past?: boolean;
   onBack: () => void;
 }) {
   const tile = cityTile(city);
   const zone = summary?.zone ?? (events[0] ? zoneOf(DETAILS[events[0].uid]) : '');
-  const first = events[0]?.startDate;
-  const last = events.reduce((m, e) => (e.endDate > m ? e.endDate : m), first ?? '');
+  // Past runs newest first, so the span reads from the other end.
+  const first = events.reduce((m, e) => (e.startDate < m ? e.startDate : m), events[0]?.startDate ?? '');
+  const last = events.reduce((m, e) => (e.endDate > m ? e.endDate : m), first);
   return (
     <section className={s.cityHeader} aria-labelledby="city-title">
       <button type="button" className={s.back} onClick={onBack}>
@@ -733,7 +841,7 @@ function CityHeader({
             {city}
           </h2>
           <p className={s.cityHeaderMeta}>
-            {events.length} upcoming {events.length === 1 ? 'event' : 'events'}
+            {events.length} {past ? 'past' : 'live & upcoming'} {events.length === 1 ? 'event' : 'events'}
             {first && ` · ${spanLabel(first, last)}`}
             {zone && ` · Times in ${city} time (${zone})`}
           </p>
@@ -860,7 +968,10 @@ function EventTile({
         {going && <GoingTag onImage />}
       </span>
       <span className={s.tileBody}>
-        <span className={s.tileWhen}>{whenLine(event, todayIso)}</span>
+        <span className={s.tileWhen}>
+          {isLive(event, new Date()) && <LivePill />}
+          {whenLine(event, todayIso)}
+        </span>
         <span className={s.tileTitle}>{event.name}</span>
         <span className={s.tileMeta}>
           {online ? <GlobeIcon width={14} height={14} className={s.pin} /> : <PinIcon />}
@@ -888,10 +999,13 @@ function placeText(event: CalEvent, venue: string) {
 function EventFoot({
   event,
   going,
+  past = false,
   onOpenPeople,
 }: {
   event: CalEvent;
   going: boolean;
+  /** Past (2026-11-25): "N went", your mark reads "Went", and how you got in no longer matters. */
+  past?: boolean;
   /** Facepile + "N going" open the drawer on who's going (2026-11-20, Luma's "N Going"). */
   onOpenPeople: () => void;
 }) {
@@ -905,12 +1019,12 @@ function EventFoot({
   };
   return (
     <span className={s.cardFoot}>
-      {going && <GoingTag />}
+      {going && <GoingTag label={past ? 'Went' : undefined} />}
       <span
         role="button"
         tabIndex={0}
         className={s.goingLink}
-        aria-label={`See who's going: ${event.attendeeCount} people`}
+        aria-label={`${past ? 'See who went' : "See who's going"}: ${event.attendeeCount} people`}
         onClick={press}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') press(e);
@@ -921,9 +1035,11 @@ function EventFoot({
             <img key={a.uid} src={getDefaultAvatar(a.name)} alt="" width={20} height={20} />
           ))}
         </span>
-        <span className={s.cardCount}>{event.attendeeCount} going</span>
+        <span className={s.cardCount}>
+          {event.attendeeCount} {past ? 'went' : 'going'}
+        </span>
       </span>
-      {detail.access !== 'FREE w/ RSVP' && (
+      {!past && detail.access !== 'FREE w/ RSVP' && (
         <span className={s.cardAccess}>
           <span aria-hidden>·</span>
           <AccessIcon access={detail.access} size={14} />
@@ -934,11 +1050,13 @@ function EventFoot({
   );
 }
 
-function Empty({ onClear }: { onClear: () => void }) {
+function Empty({ past, onClear }: { past: boolean; onClear: () => void }) {
   return (
     <div className={s.empty}>
-      <p className={s.emptyTitle}>No upcoming events match</p>
-      <p className={s.emptyText}>Try another search or filter, or see everything coming up.</p>
+      <p className={s.emptyTitle}>{past ? 'No past events match' : 'No live or upcoming events match'}</p>
+      <p className={s.emptyText}>
+        {past ? 'Try another search or filter, or see every past event.' : 'Try another search or filter, or see everything coming up.'}
+      </p>
       <Button style="border" variant="neutral" size="s" onClick={onClear}>
         Show all events
       </Button>
@@ -950,6 +1068,7 @@ function Empty({ onClear }: { onClear: () => void }) {
 
 function ListView({
   events,
+  past = false,
   todayIso,
   goingUids,
   highlightUid,
@@ -957,16 +1076,18 @@ function ListView({
   onClear,
 }: {
   events: CalEvent[];
+  /** Past: newest first, each event under its first day (nothing is "under way"). */
+  past?: boolean;
   todayIso: string;
   goingUids: Set<string>;
   highlightUid: string | null;
   onOpen: OpenEvent;
   onClear: () => void;
 }) {
-  if (!events.length) return <Empty onClear={onClear} />;
+  if (!events.length) return <Empty past={past} onClear={onClear} />;
 
   const days = events.reduce<{ day: string; events: CalEvent[] }[]>((acc, e) => {
-    const day = listDay(e, todayIso);
+    const day = past ? e.startDate : listDay(e, todayIso);
     const last = acc[acc.length - 1];
     if (last?.day === day) last.events.push(e);
     else acc.push({ day, events: [e] });
@@ -976,7 +1097,10 @@ function ListView({
   return (
     <ol className={s.timeline}>
       {days.map(({ day, events: dayEvents }) => {
-        const { label, weekday } = dayHeading(day, todayIso);
+        const heading = dayHeading(day, todayIso);
+        // Past spans years: a date outside this year carries its year ("Nov 12, 2025").
+        const label = past && day.slice(0, 4) !== todayIso.slice(0, 4) ? `${heading.label}, ${day.slice(0, 4)}` : heading.label;
+        const { weekday } = heading;
         return (
           <li key={day} className={s.day}>
             {/* Luma's date column: the day over its weekday, held in view while its events scroll. */}
@@ -991,6 +1115,7 @@ function ListView({
                     event={e}
                     day={day}
                     going={goingUids.has(e.uid)}
+                    past={past}
                     highlighted={e.uid === highlightUid}
                     onOpen={() => onOpen(e.uid, events)}
                     onOpenPeople={() => onOpen(e.uid, events, 'attendees')}
@@ -1009,6 +1134,7 @@ function EventCard({
   event,
   day,
   going,
+  past = false,
   highlighted,
   onOpen,
   onOpenPeople,
@@ -1016,6 +1142,7 @@ function EventCard({
   event: CalEvent;
   day: string;
   going: boolean;
+  past?: boolean;
   highlighted: boolean;
   onOpen: () => void;
   onOpenPeople: () => void;
@@ -1035,7 +1162,10 @@ function EventCard({
       onClick={onOpen}
     >
       <span className={s.cardBody}>
-        <span className={s.cardWhen}>{when}</span>
+        <span className={s.cardWhen}>
+          {!past && isLive(event, new Date()) && <LivePill />}
+          {when}
+        </span>
         <span className={s.cardTitle}>{event.name}</span>
         <span className={s.cardMeta}>
           <span className={s.hostFaces} aria-hidden>
@@ -1049,7 +1179,7 @@ function EventCard({
           {online ? <GlobeIcon width={14} height={14} className={s.pin} /> : <PinIcon />}
           {placeText(event, venue)}
         </span>
-        <EventFoot event={event} going={going} onOpenPeople={onOpenPeople} />
+        <EventFoot event={event} going={going} past={past} onOpenPeople={onOpenPeople} />
       </span>
       <EventImage uid={event.uid} className={s.thumb} />
     </button>
@@ -1057,6 +1187,11 @@ function EventCard({
 }
 
 /* ---------- Small parts ---------- */
+
+/** "Live" at the head of the when line: the AI Apps deploy status pill, verbatim (green tint). */
+function LivePill() {
+  return <span className={clsx(logs.status, logs.statusLive, s.livePill)}>Live</span>;
+}
 
 /** "</>" at the toolbar set's size and weight (16px, 1.5px stroke), like ViewIcon and the Filters mark. */
 function EmbedGlyph() {

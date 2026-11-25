@@ -27,7 +27,7 @@ The event drawer SHALL be available only when the build flag `NEXT_PUBLIC_SHOW_E
 
 The drawer SHALL follow the redesigned drawer prototype (LAB-3361, `prototypes/entries/event-drawer-redesign`): 640px wide, the full width on a narrow screen. It SHALL open on one event and show, top to bottom:
 
-1. A toolbar that stays at the top while the drawer scrolls (LAB-3361). On the left: "Copy link", which copies `/events/all?event=<uid>` on the current site and reads "Copied" for two seconds (only its icon on a phone); and "Open in PL Events", which opens the event in the PL events app (`<PL events app>/calendar#<the event's events-app id>`) in a new tab, left out when the event has no events-app id. On the right: previous and next, when the page that opened the drawer passes a list of more than one event (see the All Events requirement); then Close.
+1. A toolbar that stays at the top while the drawer scrolls (LAB-3361). On the left: "Copy link", which copies `/events/all?event=<uid>` on the current site and reads "Copied" for two seconds (only its icon on a phone). The drawer SHALL NOT show "Open in PL Events" or another link to the PL events app, also in the embed, because the event data will move to LabOS (LAB-3420). On the right: previous and next, when the page that opened the drawer passes a list of more than one event (see the All Events requirement); then Close.
 2. The event's picture as a 56px thumbnail when it has one, beside the title and "Hosted by <hosts>" ("A and B", "A, B and C"). Hosts are names, not links.
 3. A date row: a tile with the month and day, then the day ("Thursday, November 19", or "Tue, Dec 1 – Sat, Dec 5" for an event across days) and the time with its zone ("6:00 PM – 9:00 PM · UTC−5"), all in the event's own time zone: the one the event has, otherwise its gathering's, otherwise UTC (LAB-3404). When the dates can't be read, the row SHALL show the events app's date line instead.
 4. A place row with a pin tile: the address for an in-person event; "Online" with "Link sent after you register" for an online event; the address with "Hybrid, also online" under it for a hybrid event (LAB-3283). When the event has a map link (the events service's `location_url`) and an address, the place text and its arrow SHALL be one link that opens the map in a new tab, as on the PL events app (LAB-3324). An event without a map link, or whose map link is not an `http` or `https` address, SHALL show the place as plain text with no arrow. "Online" SHALL never link to a map.
@@ -103,11 +103,11 @@ A block whose data is empty SHALL be left out rather than shown empty. On a narr
 - **THEN** the drawer shows no Agenda block and no tags row
 - **AND** the rest of the event shows as usual
 
-#### Scenario: The event in the PL events app
+#### Scenario: No link to the PL events app
 
-- **GIVEN** event A whose events-app id is `abc`
-- **WHEN** a viewer opens event A and presses "Open in PL Events"
-- **THEN** the PL events app opens on `/calendar#abc` in a new tab
+- **GIVEN** event A whose events-app id is `abc`, and the PL events app has an address
+- **WHEN** a viewer opens event A, on All Events or in the embed
+- **THEN** the drawer shows no "Open in PL Events" and no link to the PL events app
 
 #### Scenario: Copying the link
 
@@ -306,7 +306,6 @@ The drawer SHALL record these PostHog events, each with `event_uid`:
 - `event-plans-saved`, with `roles`;
 - `event-attendees-opened`;
 - `event-drawer-link-copied`, on "Copy link" (LAB-3361);
-- `event-drawer-events-app-opened`, on "Open in PL Events" (LAB-3361);
 - `event-drawer-stepped`, on previous or next, with `direction` (`previous` or `next`) and `source`; its `event_uid` is the event it moved to (LAB-3361).
 
 #### Scenario: Going from Home
@@ -351,7 +350,13 @@ When the build flag `NEXT_PUBLIC_SHOW_EVENTS_PAGE_V2` is `true`, `/events/all` S
 
 ### Requirement: The page header
 
-The page SHALL open with the title "Events", one line of description, a link "Open PL Events" to the events app (new tab), and "Submit an event". On phones (below 640px) "Submit an event" SHALL sit on the right of the title's row, and "Open PL Events" SHALL be an inline link at the end of the description, shown once (Polina, 2026-11-24). "Submit an event" SHALL lead where the production submit link leads today.
+The page SHALL open with the title "Events", the description "Meetups and conferences across the Protocol Labs network.", and "Submit an event" (LAB-3420). The page SHALL NOT show "Open PL Events" or another link to the PL events app on any screen size, because the event data will move to LabOS (LAB-3420). On phones (below 640px) "Submit an event" SHALL sit on the right of the title's row (Polina, 2026-11-24). "Submit an event" SHALL lead where the production submit link leads today.
+
+#### Scenario: No link to the PL events app
+
+- **WHEN** a visitor opens `/events/all` on a phone or a wider screen
+- **THEN** the header shows "Meetups and conferences across the Protocol Labs network."
+- **AND** the page shows no "Open PL Events" link
 
 #### Scenario: Submit an event
 

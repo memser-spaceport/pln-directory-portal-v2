@@ -39,15 +39,20 @@ describe('LabOS session cookie helpers', () => {
     );
   });
 
-  it('keeps authToken on COOKIE_DOMAIN, where deployed AI Apps read it', () => {
-    setSessionCookie('authToken', '"jwt"', { expires: EXPIRES });
+  it('keeps authToken on COOKIE_DOMAIN while LabOS shares it with AI Apps (AI_APPS_SHARE_AUTH_TOKEN=true)', () => {
+    process.env.AI_APPS_SHARE_AUTH_TOKEN = 'true';
+    try {
+      setSessionCookie('authToken', '"jwt"', { expires: EXPIRES });
 
-    expect(mockedCookies.set).toHaveBeenCalledWith('authToken', '"jwt"', {
-      ...FLAGS,
-      expires: EXPIRES,
-      domain: DOMAIN,
-    });
-    expect(mockedCookies.remove).not.toHaveBeenCalled();
+      expect(mockedCookies.set).toHaveBeenCalledWith('authToken', '"jwt"', {
+        ...FLAGS,
+        expires: EXPIRES,
+        domain: DOMAIN,
+      });
+      expect(mockedCookies.remove).not.toHaveBeenCalled();
+    } finally {
+      delete process.env.AI_APPS_SHARE_AUTH_TOKEN;
+    }
   });
 
   it('writes authToken host-only once LabOS stops sharing it (AI_APPS_SHARE_AUTH_TOKEN=false)', () => {
@@ -55,6 +60,19 @@ describe('LabOS session cookie helpers', () => {
     try {
       setSessionCookie('authToken', '"jwt"', { expires: EXPIRES });
       expect(mockedCookies.remove).toHaveBeenCalledWith('authToken', { path: '/', domain: DOMAIN });
+      expect(mockedCookies.set).toHaveBeenCalledWith('authToken', '"jwt"', { ...FLAGS, expires: EXPIRES });
+    } finally {
+      delete process.env.AI_APPS_SHARE_AUTH_TOKEN;
+    }
+  });
+
+  it('also expires authToken on a parent of COOKIE_DOMAIN (dev.os.pl.xyz still held the .os.pl.xyz copy)', () => {
+    process.env.COOKIE_DOMAIN = 'dev.os.pl.xyz';
+    process.env.AI_APPS_SHARE_AUTH_TOKEN = 'false';
+    try {
+      setSessionCookie('authToken', '"jwt"', { expires: EXPIRES });
+      expect(mockedCookies.remove).toHaveBeenCalledWith('authToken', { path: '/', domain: 'dev.os.pl.xyz' });
+      expect(mockedCookies.remove).toHaveBeenCalledWith('authToken', { path: '/', domain: 'os.pl.xyz' });
       expect(mockedCookies.set).toHaveBeenCalledWith('authToken', '"jwt"', { ...FLAGS, expires: EXPIRES });
     } finally {
       delete process.env.AI_APPS_SHARE_AUTH_TOKEN;

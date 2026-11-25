@@ -32,7 +32,6 @@ export default async function EventsEmbedRoute({
       memberCity={undefined}
       serverTodayIso={localIso(new Date())}
       submitHref=""
-      eventsAppHref=""
     />
   );
 }

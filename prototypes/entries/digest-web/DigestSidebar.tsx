@@ -33,6 +33,11 @@ export interface PastIssue {
  *    (`AllTopicsModal`), where unfollowing happens too.
  * 3. Past issues: collapsed by default, so the cards above stay in view.
  *
+ * Signed out (LAB-3347, 2026-11-20): the explainer says the reader is seeing the network's top
+ * stories, with "Sign in to personalize"; the chips show unticked and a press, like See all
+ * topics, opens the sign-in prompt. After sign-in the card comes back with the pressed chip
+ * ticked and Save topics showing. Past issues stays: the archive is the same for everyone.
+ *
  * From 1100px it's a sticky column on the right; under that the same cards follow the end of
  * the issue (`variant="inline"`).
  */
@@ -45,8 +50,17 @@ export function DigestSidebar({
   subscribed,
   onSaveTopics,
   onOpenAllTopics,
+  signedIn = true,
+  onAskSignIn,
+  pendingTopic,
 }: {
   variant: 'rail' | 'inline';
+  /** Signed out (LAB-3347): the explainer says what this reader is seeing, and every topic
+   *  control asks for sign-in through `onAskSignIn` instead of acting. */
+  signedIn?: boolean;
+  onAskSignIn?: (ask: { kind: 'topic'; topic: string } | { kind: 'topics' } | { kind: 'personalize' }) => void;
+  /** A chip pressed while signed out: after sign-in the card opens with it ticked, unsaved. */
+  pendingTopic?: string | null;
   currentIssue: string;
   latestIssue: string;
   pastIssues: PastIssue[];
@@ -62,15 +76,33 @@ export function DigestSidebar({
         <h2 id={`how-${variant}`} className={s.cardTitle}>
           How personalization works
         </h2>
-        <p className={s.cardText}>
-          Stories come from your topics first, then the teams you follow, then the network’s top stories.
-        </p>
+        {signedIn ? (
+          <p className={s.cardText}>
+            Stories come from your topics first, then the teams you follow, then the network’s top stories.
+          </p>
+        ) : (
+          // Signed out the usual sentence would be false: nothing is picked from this reader's topics.
+          // It says what they see instead, and the one door that changes it.
+          <>
+            <p className={s.cardText}>
+              You’re seeing the network’s top stories. Signed in, your digest leads with your topics, then the teams you
+              follow.
+            </p>
+            <div className={s.actions}>
+              <button type="button" className={s.link} onClick={() => onAskSignIn?.({ kind: 'personalize' })}>
+                Sign in to personalize
+              </button>
+            </div>
+          </>
+        )}
       </section>
       <TopicsCard
-        key={subscribed.join()}
+        key={`${subscribed.join()}:${pendingTopic ?? ''}`}
         subscribed={subscribed}
         onSave={onSaveTopics}
-        onOpenAll={onOpenAllTopics}
+        onOpenAll={signedIn ? onOpenAllTopics : () => onAskSignIn?.({ kind: 'topics' })}
+        onChipAsk={signedIn ? undefined : (topic) => onAskSignIn?.({ kind: 'topic', topic })}
+        pendingTopic={pendingTopic}
       />
       <PastIssuesCard
         id={`past-${variant}`}
@@ -99,18 +131,28 @@ function TopicsCard({
   subscribed,
   onSave,
   onOpenAll,
+  onChipAsk,
+  pendingTopic,
 }: {
   subscribed: string[];
   onSave: (topics: string[]) => void;
   onOpenAll: () => void;
+  /** Signed out: a chip press asks for sign-in instead of ticking. */
+  onChipAsk?: (topic: string) => void;
+  pendingTopic?: string | null;
 }) {
   // Only topics the reader doesn't follow yet (Polina, 2026-11-17): the card adds topics;
   // unfollowing is in the All topics modal. `saved` is which suggestions are subscribed now
   // (the page remounts this card when the subscribed set changes, so the two agree).
   const saved = DIGEST_SUGGESTED_TOPICS.filter((t) => subscribed.includes(t));
-  const [picked, setPicked] = useState<string[]>(saved);
+  const [picked, setPicked] = useState<string[]>(() =>
+    pendingTopic && !saved.includes(pendingTopic) ? [...saved, pendingTopic] : saved,
+  );
   const changed = picked.length !== saved.length || picked.some((t) => !saved.includes(t));
-  const toggle = (t: string) => setPicked((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
+  const toggle = (t: string) => {
+    if (onChipAsk) return onChipAsk(t);
+    setPicked((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
+  };
 
   return (
     <section className={s.card} aria-labelledby="digest-topics-title">
@@ -141,9 +183,7 @@ function TopicsCard({
           <Button
             size="xs"
             className={fb.glossy}
-            onClick={() =>
-              onSave([...subscribed.filter((t) => !DIGEST_SUGGESTED_TOPICS.includes(t)), ...picked])
-            }
+            onClick={() => onSave([...subscribed.filter((t) => !DIGEST_SUGGESTED_TOPICS.includes(t)), ...picked])}
           >
             Save topics
           </Button>

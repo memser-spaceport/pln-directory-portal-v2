@@ -76,6 +76,11 @@ describe('PLAA API auth', () => {
     expect(data).toEqual([{ roundNumber: 1 }, { roundNumber: 2 }]);
   });
 
+  it('preserves upstream authentication status for callers', async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 401, statusText: 'Unauthorized' });
+    expect((await getAllRoundStats('expired')).error?.status).toBe(401);
+  });
+
   it('builds completed buybacks from a single all-rounds call', async () => {
     const buyback = { totalBuybackPool: '$10k', simulation: false };
     fetchMock.mockResolvedValue({

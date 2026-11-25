@@ -96,7 +96,7 @@ import { MUTED_ROLE, ROLE_TAG } from '../member-events-going/roleTags';
 import { AccessIcon, ACCESS_FACT } from './AccessIcon';
 import { dayLine, dayOfMonth, mapsHref, monthShort, regionLine, timeLine, venueOf } from './format';
 import { DETAILS, eventByUid, eventsAppHref, gatheringFor, registerHref, siblingsOf, type CalEvent } from './mocks';
-import { RsvpCard } from './RsvpCard';
+import { Facepile, RsvpCard } from './RsvpCard';
 import { GoingCardCompact, RsvpFooter } from './RsvpFooter';
 import d from './EventDrawer.module.scss';
 
@@ -121,6 +121,7 @@ export function EventDrawer({
   onNotice,
   rsvp = 'card',
   openOn = 'event',
+  todayIso,
 }: {
   eventUid: string | null;
   /** The list the drawer was opened from, for previous / next. */
@@ -133,6 +134,9 @@ export function EventDrawer({
   /** Which view a newly opened event lands on: its overview, or straight on who's going
    *  (events-page-redesign's "N going" on a card, 2026-11-20). Back still returns to the overview. */
   openOn?: 'event' | 'attendees';
+  /** Opt-in past state (events-page-redesign's Past list, 2026-11-25): given today's ISO day, an
+   *  event that ended before it drops the RSVP ask for "This event has ended · N members went". */
+  todayIso?: string;
 }) {
   /* Keep drawing the last event while the drawer slides out. */
   const [shownUid, setShownUid] = useState(eventUid);
@@ -159,6 +163,7 @@ export function EventDrawer({
   }, [eventUid]);
 
   const event = shownUid ? eventByUid(shownUid) : null;
+  const ended = !!event && !!todayIso && event.endDate < todayIso;
 
   const close = () => {
     onClose();
@@ -194,6 +199,7 @@ export function EventDrawer({
               key={event.uid}
               event={event}
               rsvp={rsvp}
+              ended={ended}
               onOpenAttendees={() => setView('attendees')}
               onOpenPlans={() => setView('plans')}
               onNavigate={onNavigate}
@@ -201,7 +207,7 @@ export function EventDrawer({
               onUnmarked={() => setLastMarked((n) => (n?.eventName === event.name ? null : n))}
             />
           )}
-          {view === 'attendees' && <AttendeesView event={event} onBack={() => setView('event')} />}
+          {view === 'attendees' && <AttendeesView event={event} ended={ended} onBack={() => setView('event')} />}
           {view === 'plans' && gatheringFor(event) && (
             <PlansView
               event={event}
@@ -308,6 +314,7 @@ function Toolbar({
 function EventView({
   event,
   rsvp,
+  ended = false,
   onOpenAttendees,
   onOpenPlans,
   onNavigate,
@@ -316,6 +323,7 @@ function EventView({
 }: {
   event: CalEvent;
   rsvp: RsvpPlacement;
+  ended?: boolean;
   onOpenAttendees: () => void;
   onOpenPlans: () => void;
   onNavigate: (uid: string) => void;
@@ -407,7 +415,9 @@ function EventView({
               )}
               <span className={d.factSub}>
                 {online
-                  ? 'Link sent after you register'
+                  ? ended
+                    ? 'Online event'
+                    : 'Link sent after you register'
                   : detail.mode === 'Hybrid'
                     ? `${regionLine(detail)} · Hybrid, also online`
                     : regionLine(detail)}
@@ -425,7 +435,9 @@ function EventView({
           </li>
         </ul>
 
-        {rsvp === 'footer' ? (
+        {ended ? (
+          <EndedCard event={event} onOpenAttendees={onOpenAttendees} />
+        ) : rsvp === 'footer' ? (
           /* Footer version: the body keeps only the follow-ups, and only after a yes (no empty slot before). */
           <GoingCardCompact event={event} gathering={gathering} onOpenPlans={onOpenPlans} />
         ) : (
@@ -462,12 +474,40 @@ function EventView({
 
         {gathering && <GatheringBlock event={event} gathering={gathering} onNavigate={onNavigate} />}
       </div>
-      {rsvp === 'footer' ? (
+      {ended ? null : rsvp === 'footer' ? (
         <RsvpFooter event={event} onOpenAttendees={onOpenAttendees} onMarked={onMarked} onUnmarked={onUnmarked} />
       ) : (
         rsvpAway && <RsvpBar event={event} onMarked={onMarked} />
       )}
     </>
+  );
+}
+
+/**
+ * A past event (2026-11-25): nothing is left to answer, so the RSVP card's slot keeps what is still
+ * true: it happened, and who was there. Same card and people row as the ask; "You went" takes the
+ * going card's green mark when you had said yes.
+ */
+function EndedCard({ event, onOpenAttendees }: { event: CalEvent; onOpenAttendees: () => void }) {
+  const going = useGoing(SCOPE);
+  const you = !!going[event.uid];
+  return (
+    <div className={d.card}>
+      <div className={d.cardHead}>
+        {you ? (
+          <p className={clsx(d.cardTitle, d.cardTitleGoing)}>
+            <SuccessCircleIcon width={20} height={20} />
+            You went
+          </p>
+        ) : (
+          <p className={d.cardTitle}>This event has ended</p>
+        )}
+        <button type="button" className={d.goingLink} onClick={onOpenAttendees}>
+          <Facepile count={event.attendeeCount} />
+          {you ? `You and ${event.attendeeCount} members` : `${event.attendeeCount} members went`}
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -646,7 +686,15 @@ function SubHead({ title, onBack }: { title: string; onBack: () => void }) {
   );
 }
 
-export function AttendeesView({ event, onBack }: { event: CalEvent; onBack: () => void }) {
+export function AttendeesView({
+  event,
+  ended = false,
+  onBack,
+}: {
+  event: CalEvent;
+  ended?: boolean;
+  onBack: () => void;
+}) {
   const going = useGoing(SCOPE);
   const you = !!going[event.uid];
   const [query, setQuery] = useState('');
@@ -658,7 +706,7 @@ export function AttendeesView({ event, onBack }: { event: CalEvent; onBack: () =
 
   return (
     <div className={d.body}>
-      <SubHead title={`${total} going to ${event.name}`} onBack={onBack} />
+      <SubHead title={`${total} ${ended ? 'went' : 'going'} to ${event.name}`} onBack={onBack} />
       <SearchInput value={query} onChange={setQuery} placeholder="Search by name, role or team" />
       <ul className={d.people}>
         {you && !needle && (
@@ -684,7 +732,7 @@ export function AttendeesView({ event, onBack }: { event: CalEvent; onBack: () =
             </a>
           </li>
         ))}
-        {rows.length === 0 && <li className={d.empty}>Nobody going matches “{query.trim()}”.</li>}
+        {rows.length === 0 && <li className={d.empty}>Nobody {ended ? 'who went' : 'going'} matches “{query.trim()}”.</li>}
       </ul>
     </div>
   );

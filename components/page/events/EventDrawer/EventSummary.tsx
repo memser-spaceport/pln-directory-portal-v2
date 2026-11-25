@@ -9,6 +9,7 @@ import { SafeHtml } from '@/components/ui/SafeHtml';
 import type { EventAccess, EventAgendaDay, EventDetail } from '@/services/events/event-drawer.types';
 import { ACCESS_COPY } from '@/services/events/event-facts';
 import { eventWhen } from '@/services/events/event-when';
+import { focusAreaName } from '@/services/events/focus-areas';
 
 import e from './EventDrawer.module.scss';
 
@@ -68,7 +69,7 @@ function HostNames({ hosts }: { hosts: string[] }) {
  * The event, as Polina's redesigned drawer draws it (LAB-3361, `prototypes/entries/event-drawer-redesign`, her
  * 1032bf25d): the picture as a thumbnail beside the title and "Hosted by", then the facts (a date tile with the day
  * and the time in the event's zone, the place, the event's own page, the access), then `card` (the going card), then
- * About with its tags at the end, then Agenda. Plain section titles over hairlines; a block with no data is left out.
+ * About with its focus areas (LAB-3404) and its topics at the end, then Agenda. Plain section titles over hairlines; a block with no data is left out.
  *
  * Deviations from the prototype: hosts are names, not links (the Directory has no team for an event host); the place
  * is the gathering's location text, with no venue and region lines (the Directory stores neither); a row with the
@@ -81,7 +82,7 @@ export function EventSummary({ event, card }: { event: EventDetail; card?: React
   const mapLink = eventLink(event.locationUrl);
   const online = event.mode === 'Virtual' || (event.mode === 'Hybrid' && !event.address);
   const access = event.access ? { kind: event.access, ...ACCESS_COPY[event.access] } : null;
-  const hasAbout = !!event.description || event.tags.length > 0;
+  const hasAbout = !!event.description || event.focusAreas.length > 0 || event.tags.length > 0;
 
   return (
     <>
@@ -172,7 +173,7 @@ export function EventSummary({ event, card }: { event: EventDetail; card?: React
             </span>
             <span className={e.factText}>
               <span className={e.factMain}>{access.main}</span>
-              <span className={e.factSub}>{access.sub}</span>
+              {access.sub && <span className={e.factSub}>{access.sub}</span>}
             </span>
           </li>
         )}
@@ -183,20 +184,37 @@ export function EventSummary({ event, card }: { event: EventDetail; card?: React
       {hasAbout && (
         <Section title="About">
           {event.description && <Description text={event.description} />}
+          {event.focusAreas.length > 0 && (
+            <TagGroup label="Focus areas" names={event.focusAreas.map(focusAreaName)} testId="event-focus-areas" />
+          )}
           {event.tags.length > 0 && (
-            <div className={e.tags} data-testid="event-tags">
-              {event.tags.map((tag) => (
-                <Badge key={tag.name} className={e.tag}>
-                  {tag.name}
-                </Badge>
-              ))}
-            </div>
+            <TagGroup
+              label={event.focusAreas.length > 0 ? 'Topics' : undefined}
+              names={event.tags.map((tag) => tag.name)}
+              testId="event-tags"
+            />
           )}
         </Section>
       )}
 
       {event.agenda.length > 0 && <Agenda agenda={event.agenda} />}
     </>
+  );
+}
+
+/** Badges under a small label. Topics on their own have no label, as the prototype draws them. */
+function TagGroup({ label, names, testId }: { label?: string; names: string[]; testId: string }) {
+  return (
+    <div className={e.tagGroup} data-testid={testId}>
+      {label && <p className={e.tagGroupLabel}>{label}</p>}
+      <div className={e.tags}>
+        {names.map((name) => (
+          <Badge key={name} className={e.tag}>
+            {name}
+          </Badge>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -244,7 +262,7 @@ function Agenda({ agenda }: { agenda: EventAgendaDay[] }) {
 
 /* ---------- Glyphs the DS set doesn't have (stroked, 1.5px, as in the prototype) ---------- */
 
-/** Lock for invite only, ticket for paid or free (the prototype's `AccessIcon`). */
+/** Lock for invite only, ticket for paid or RSVP (the prototype's `AccessIcon`). */
 function AccessIcon({ access }: { access: EventAccess }) {
   if (access === 'INVITE ONLY') {
     return (

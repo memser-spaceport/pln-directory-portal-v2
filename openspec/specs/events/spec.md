@@ -27,14 +27,14 @@ The event drawer SHALL be available only when the build flag `NEXT_PUBLIC_SHOW_E
 
 The drawer SHALL follow the redesigned drawer prototype (LAB-3361, `prototypes/entries/event-drawer-redesign`): 640px wide, the full width on a narrow screen. It SHALL open on one event and show, top to bottom:
 
-1. A toolbar that stays at the top while the drawer scrolls (LAB-3361). On the left: "Copy link", which copies `/events/all?event=<uid>` on the current site and reads "Copied" for two seconds (only its icon on a phone); and "Open in PL Events", which opens the event in the PL events app (`<PL events app>/calendar#<the event's events-app id>`) in a new tab, left out when the event has no events-app id. On the right: previous and next, when the page that opened the drawer passes a list of more than one event (see the All Events requirement); then Close.
+1. A toolbar that stays at the top while the drawer scrolls (LAB-3361). On the left: "Copy link", which copies `/events/all?event=<uid>` on the current site and reads "Copied" for two seconds (only its icon on a phone). The drawer SHALL NOT show "Open in PL Events" or another link to the PL events app, also in the embed, because the event data will move to LabOS (LAB-3420). On the right: previous and next, when the page that opened the drawer passes a list of more than one event (see the All Events requirement); then Close.
 2. The event's picture as a 56px thumbnail when it has one, beside the title and "Hosted by <hosts>" ("A and B", "A, B and C"). Hosts are names, not links.
-3. A date row: a tile with the month and day, then the day ("Thursday, November 19", or "Tue, Dec 1 – Sat, Dec 5" for an event across days) and the time with its zone ("6:00 PM – 9:00 PM · UTC−5"), all in the event's own time zone. When the dates can't be read, the row SHALL show the events app's date line instead.
+3. A date row: a tile with the month and day, then the day ("Thursday, November 19", or "Tue, Dec 1 – Sat, Dec 5" for an event across days) and the time with its zone ("6:00 PM – 9:00 PM · UTC−5"), all in the event's own time zone: the one the event has, otherwise its gathering's, otherwise UTC (LAB-3404). When the dates can't be read, the row SHALL show the events app's date line instead.
 4. A place row with a pin tile: the address for an in-person event; "Online" with "Link sent after you register" for an online event; the address with "Hybrid, also online" under it for a hybrid event (LAB-3283). When the event has a map link (the events service's `location_url`) and an address, the place text and its arrow SHALL be one link that opens the map in a new tab, as on the PL events app (LAB-3324). An event without a map link, or whose map link is not an `http` or `https` address, SHALL show the place as plain text with no arrow. "Online" SHALL never link to a map.
 5. The event's own page (for example its Luma page) when it has one, as a link under the place row (LAB-3271). The link SHALL open in a new tab. It SHALL show the address without `https://`. The row SHALL look like the other fact rows (LAB-3333, LAB-3361): a link icon in a tile like the place row's, then the link text styled like the day line, with no arrow. The page SHALL be the event's `websiteUrl`. When `websiteUrl` is empty or not an `http` or `https` address, the page SHALL be the link of the event's resource named "Registration" (any case, end spaces ignored), and "Register" SHALL open the same page (LAB-3334). An event without a page, or whose page is not an `http` or `https` address, SHALL have no link row and no "Register".
-6. An access row when the access is known, with an icon and two lines: "Invite only / The hosts approve each guest", "Paid / Tickets on the host's site" or "Free / RSVP to save your spot" (LAB-3283). Mode and access SHALL NOT show as badges.
+6. An access row when the access is known, with an icon and two lines: "Invite only / The hosts approve each guest", "Paid / Tickets on the host's site" or, on one line, "RSVP to save your spot" (LAB-3283, LAB-3407). The events service's `OPEN` access SHALL read as the last one and never as "Free": it does not say that an event costs nothing. Mode and access SHALL NOT show as badges.
 7. The going card (see below).
-8. "About": the description, then the tags as neutral badges.
+8. "About": the description, then the focus areas as neutral badges under the label "Focus areas", then the topics as neutral badges, under the label "Topics" when the event also has focus areas (LAB-3404). The events portal tags an event with focus area codes and with topics. The focus areas SHALL show by name, never by code: FA1 "Digital Human Rights", FA2 "Economies & Governance", FA3 "AI & Robotics", FA4 "Neurotech". Every other tag is a topic.
 9. "Agenda": a row per session with its time beside its title and description, under a day title ("Tue, 1st Dec") when the agenda spans several days.
 
 A block whose data is empty SHALL be left out rather than shown empty. On a narrow screen the drawer SHALL take the full width.
@@ -65,11 +65,23 @@ A block whose data is empty SHALL be left out rather than shown empty. On a narr
 - **WHEN** a viewer opens event D
 - **THEN** the drawer shows the address as plain text with no arrow
 
+#### Scenario: Event with focus areas and a topic
+
+- **GIVEN** an event tagged `FA3`, `FA4` and "Conference"
+- **WHEN** a viewer opens it
+- **THEN** About shows "AI & Robotics" and "Neurotech" under "Focus areas", and "Conference" under "Topics"
+
+#### Scenario: Event with its own time zone
+
+- **GIVEN** an event with the time zone `America/Chicago` in a gathering that has none
+- **WHEN** a viewer opens it
+- **THEN** the date row shows the Chicago day and time
+
 #### Scenario: Event with agenda and tags
 
-- **GIVEN** an upcoming in-person, free-with-RSVP event with two tags, one host, a description and a two-day agenda
+- **GIVEN** an upcoming in-person event with `OPEN` access, two tags, one host, a description and a two-day agenda
 - **WHEN** a member opens it
-- **THEN** the drawer shows the title, "Hosted by" the host, the date tile with the days and the time, the address, "Free" with "RSVP to save your spot", the description with both tags under it, and both agenda days
+- **THEN** the drawer shows the title, "Hosted by" the host, the date tile with the days and the time, the address, "RSVP to save your spot" on one line, the description with both tags under it, and both agenda days
 - **AND** no mode or access badge
 
 #### Scenario: Hybrid event
@@ -91,11 +103,11 @@ A block whose data is empty SHALL be left out rather than shown empty. On a narr
 - **THEN** the drawer shows no Agenda block and no tags row
 - **AND** the rest of the event shows as usual
 
-#### Scenario: The event in the PL events app
+#### Scenario: No link to the PL events app
 
-- **GIVEN** event A whose events-app id is `abc`
-- **WHEN** a viewer opens event A and presses "Open in PL Events"
-- **THEN** the PL events app opens on `/calendar#abc` in a new tab
+- **GIVEN** event A whose events-app id is `abc`, and the PL events app has an address
+- **WHEN** a viewer opens event A, on All Events or in the embed
+- **THEN** the drawer shows no "Open in PL Events" and no link to the PL events app
 
 #### Scenario: Copying the link
 
@@ -288,13 +300,12 @@ When the drawer closes, or steps to another event with previous or next, after a
 
 The drawer SHALL record these PostHog events, each with `event_uid`:
 
-- `event-drawer-opened`, with `source` (`home`, `member-profile`, `team-profile`, `add-event`, `digest` or `all-events`);
+- `event-drawer-opened`, with `source` (`home`, `member-profile`, `team-profile`, `add-event`, `digest`, `all-events` or `embed`);
 - `event-going-marked`, with `source`;
 - `event-not-going-marked`, on "Mark as not going";
 - `event-plans-saved`, with `roles`;
 - `event-attendees-opened`;
 - `event-drawer-link-copied`, on "Copy link" (LAB-3361);
-- `event-drawer-events-app-opened`, on "Open in PL Events" (LAB-3361);
 - `event-drawer-stepped`, on previous or next, with `direction` (`previous` or `next`) and `source`; its `event_uid` is the event it moved to (LAB-3361).
 
 #### Scenario: Going from Home
@@ -325,6 +336,12 @@ When the build flag `NEXT_PUBLIC_SHOW_EVENTS_PAGE_V2` is `true`, `/events/all` S
 - **THEN** the page shows the header, the Coming up toolbar, Browse by city and the List view
 - **AND** no iframe loads
 
+#### Scenario: An event in progress stays until it ends
+
+- **GIVEN** an event that started yesterday and ends tomorrow
+- **WHEN** a visitor opens `/events/all`
+- **THEN** the event is listed under today
+
 #### Scenario: Past events are not listed
 
 - **GIVEN** an event that ended yesterday and one that starts tomorrow
@@ -333,7 +350,13 @@ When the build flag `NEXT_PUBLIC_SHOW_EVENTS_PAGE_V2` is `true`, `/events/all` S
 
 ### Requirement: The page header
 
-The page SHALL open with the title "Events", one line of description, a link "Open PL Events" to the events app (new tab), and "Submit an event". "Submit an event" SHALL lead where the production submit link leads today.
+The page SHALL open with the title "Events", the description "Meetups and conferences across the Protocol Labs network.", and "Submit an event" (LAB-3420). The page SHALL NOT show "Open PL Events" or another link to the PL events app on any screen size, because the event data will move to LabOS (LAB-3420). On phones (below 640px) "Submit an event" SHALL sit on the right of the title's row (Polina, 2026-11-24). "Submit an event" SHALL lead where the production submit link leads today.
+
+#### Scenario: No link to the PL events app
+
+- **WHEN** a visitor opens `/events/all` on a phone or a wider screen
+- **THEN** the header shows "Meetups and conferences across the Protocol Labs network."
+- **AND** the page shows no "Open PL Events" link
 
 #### Scenario: Submit an event
 
@@ -342,7 +365,9 @@ The page SHALL open with the title "Events", one line of description, a link "Op
 
 ### Requirement: Near you shows events in the member's city
 
-In List view with no filter applied (Polina's design, 2026-11-20; LAB-3375), a signed-in member whose profile has a location SHALL see "Near you in <city>" with up to 3 upcoming events in its city, soonest first, as picture tiles. The location's most specific part is used: its city, else its metro area, region or country (a location may hold no city; a city-state such as Singapore is saved as a country only). If no upcoming event is in that place, the section SHALL NOT show. A signed-in member whose profile has no location SHALL see, in the same place, one row: "See events near you. Add your location to your profile and we'll show what's coming up where you are." and an "Add location" button that opens their profile. Signed-out visitors SHALL see neither.
+In List view with no filter applied (Polina's design, 2026-11-20; LAB-3375), a signed-in member whose profile has a location SHALL see "Near you in <city>" with up to 3 upcoming events in its city, soonest first, as picture tiles. On phones (below 640px) they SHALL look like the List's cards (Polina, 2026-11-24): the date, title, host, place and going line, with a 64px square picture on the right. They SHALL be swiped sideways, so the list stays within reach; for that the title keeps to two lines and the host and place to one. The location's most specific part is used: its city, else its metro area, region or country (a location may hold no city; a city-state such as Singapore is saved as a country only). If no upcoming event is in that place, the section SHALL NOT show; in its place one row SHALL say "No upcoming events near <place>. Browse other cities below, or change your location." with a "Change location" button (LAB-3394); on phones, which have no Browse by city, it SHALL say "Choose another city in Filters, or change your location." instead. A signed-in member whose profile has no location SHALL see, in the same place, one row: "See events near you. Add your location to your profile and we'll show what's coming up where you are." and an "Add location" button. Beside the "Near you in <city>" heading, "Change" SHALL be offered too. Signed-out visitors SHALL see none of these.
+
+"Add location", "Change" and "Change location" SHALL open the "Your location" dialog (LAB-3394): the profile's own Location field (place search), the line "This also updates the location on your profile.", the profile field's PLAA warning for a member with PLAA access, and Cancel and Save. Save SHALL be possible only once a place is picked and the member's current profile has loaded (a failed load SHALL say so), and SHALL write the member's profile location as the profile's Location field writes it (city; region from the place's metro area; country), keeping every other profile field. After a save the page SHALL reload its data, so Near you follows the new place. A refused save SHALL keep the dialog open with an error. Focus SHALL move into the dialog on open and back to the button that opened it on close.
 
 #### Scenario: Member in Lisbon
 
@@ -352,9 +377,10 @@ In List view with no filter applied (Polina's design, 2026-11-20; LAB-3375), a s
 
 #### Scenario: Member whose location has no city
 
-- **GIVEN** a signed-in member whose profile location is the country "Slovenia", with no city
+- **GIVEN** a signed-in member whose profile location is the country "Slovenia", with no city, and no upcoming event there
 - **WHEN** they open the page
-- **THEN** neither Near you nor the Add location row shows
+- **THEN** the Add location row does not show
+- **AND** the page shows "No upcoming events near Slovenia." with "Change location"
 
 #### Scenario: City-state saved as a country
 
@@ -367,13 +393,20 @@ In List view with no filter applied (Polina's design, 2026-11-20; LAB-3375), a s
 - **GIVEN** a signed-in member whose profile has no location
 - **WHEN** they open `/events/all`
 - **THEN** the page shows "See events near you." with "Add location"
-- **AND** pressing "Add location" opens their profile
+- **AND** pressing "Add location" opens the "Your location" dialog
+
+#### Scenario: Member changes their location from Near you
+
+- **GIVEN** a signed-in member in Lisbon with upcoming Lisbon events, and upcoming events in Berlin
+- **WHEN** they press "Change" beside "Near you in Lisbon", pick Berlin and press Save
+- **THEN** their profile location is Berlin
+- **AND** the page shows "Near you in Berlin"
 
 #### Scenario: Near you belongs to the plain List
 
 - **GIVEN** a signed-in member in Lisbon with upcoming Lisbon events
 - **WHEN** they apply a filter or switch to Calendar or Map
-- **THEN** neither "Near you in Lisbon" nor the Add location row shows
+- **THEN** neither "Near you in Lisbon" nor the Add location or no-events row shows
 
 #### Scenario: A chosen city replaces Near you
 
@@ -384,11 +417,18 @@ In List view with no filter applied (Polina's design, 2026-11-20; LAB-3375), a s
 #### Scenario: Signed out
 
 - **WHEN** a signed-out visitor opens `/events/all`
-- **THEN** neither Near you nor the Add location row shows
+- **THEN** none of Near you, the Add location row or the no-events row shows
 
 ### Requirement: Browse by city scopes the page to one city
 
-List view SHALL show "Browse by city" under the toolbar with the 5 cities that have the most upcoming events, each with its name and count. When there are more cities, "All N cities" SHALL show the rest in place, and "Show fewer" SHALL hide them again. Choosing a city SHALL scope the page to it: in List, a city header with "← All cities", the city's name, its event count, its date range and its time zone, in place of Near you and Browse by city; every view SHALL show only that city's events. Under the List's bands, the dated list SHALL have the heading "All upcoming", or "Matching events" while a filter is applied. Calendar and Map SHALL show neither Near you, Browse by city nor the city header (LAB-3375): a chosen city SHALL show there as a removable chip. The city tile and the City filter SHALL be the same selection. The word "Gatherings" SHALL NOT appear on the page.
+From 640px up, List view SHALL show "Browse by city" under the toolbar with the 5 cities that have the most upcoming events, each with its name and count. When there are more cities, "All N cities" SHALL show the rest in place, and "Show fewer" SHALL hide them again. On phones (below 640px) it SHALL NOT show: a city is chosen in Filters (LAB-3391). Choosing a city SHALL scope the page to it: in List, a city header with "← All cities", the city's name, its event count, its date range and its time zone, in place of Near you and Browse by city; every view SHALL show only that city's events. Under the List's bands, the dated list SHALL have the heading "All upcoming", or "Matching events" while a filter is applied. Calendar and Map SHALL show neither Near you, Browse by city nor the city header (LAB-3375): a chosen city SHALL show there as a removable chip. The city tile and the City filter SHALL be the same selection. The word "Gatherings" SHALL NOT appear on the page.
+
+#### Scenario: Phones have no Browse by city
+
+- **GIVEN** a screen narrower than 640px
+- **WHEN** a visitor opens List view
+- **THEN** Browse by city does not show
+- **AND** they can choose a city in Filters
 
 #### Scenario: Choosing a city
 
@@ -405,7 +445,7 @@ List view SHALL show "Browse by city" under the toolbar with the 5 cities that h
 
 ### Requirement: The Coming up toolbar and filters
 
-A "Coming up" toolbar, right under the page header (Polina's design, 2026-11-20; LAB-3374), SHALL show the number of events that match, a Filters button and the view switch List · Calendar · Map, offering only the views this build has (no switch while there is one). On desktop and tablet it SHALL stay in view under the navbar while the events scroll. The filter rail SHALL be closed by default. The Filters button SHALL open it and show the number of applied filters. The rail SHALL have a control that closes it and "Clear All". While the rail is closed, each applied filter SHALL show as a removable chip under the toolbar. The filters SHALL be, in this order: search (event name, host, city or topic), "Events I'm going to" (signed-in members only), Mode (In person, Online, Hybrid; LAB-3370), Access type (Free, Paid, Invite only: the words the cards and the drawer use), Focus area (the event's tags), City and Host (any of the event's hosts). Focus area and Host SHALL have a search box. Values within one filter SHALL match any (OR); different filters SHALL all apply (AND). A filter list with fewer than 2 values in the loaded events SHALL NOT show, unless it is applied; so Access type, Focus area and Host stay hidden while the events carry no details. A Featured filter SHALL NOT show until the events data says which events are featured. Filters and the view SHALL be kept in the page address, so a copied link reopens the same view and filters, and switching view SHALL keep the filters. On phones the filters SHALL open as a bottom sheet from a Filters button.
+A "Coming up" toolbar, right under the page header (Polina's design, 2026-11-20; LAB-3374), SHALL show the number of events that match, a Filters button and the view switch List · Calendar · Map, offering only the views this build has (no switch while there is one). On desktop and tablet it SHALL stay in view under the navbar while the events scroll. The filter rail SHALL be closed by default. The Filters button SHALL open it and show the number of applied filters. The rail SHALL have a control that closes it and "Clear All". While the rail is closed, each applied filter SHALL show as a removable chip under the toolbar. The filters SHALL be, in this order: search (event name, host, city, focus area name or topic), "Events I'm going to" (signed-in members only), Mode (In person, Online, Hybrid; LAB-3370), Access type (RSVP, Paid, Invite only; the address keeps `access=Free` for RSVP, so links and embeds made before LAB-3407 still work), Focus area (the event's focus areas, by name; the address keeps the code, `focus=FA4`), Topic (every other tag; LAB-3404), City and Host (any of the event's hosts). Topic and Host SHALL have a search box. Values within one filter SHALL match any (OR); different filters SHALL all apply (AND). A filter list with fewer than 2 values in the loaded events SHALL NOT show, unless it is applied; so Access type, Focus area, Topic and Host stay hidden while the events carry no details. A Featured filter SHALL NOT show until the events data says which events are featured. Filters and the view SHALL be kept in the page address, so a copied link reopens the same view and filters, and switching view SHALL keep the filters. On phones the filters SHALL open as a bottom sheet from a Filters button.
 
 #### Scenario: Filter survives a view switch
 
@@ -425,11 +465,17 @@ A "Coming up" toolbar, right under the page header (Polina's design, 2026-11-20;
 - **WHEN** the visitor picks Host "Protocol Labs"
 - **THEN** only the events Protocol Labs hosts or co-hosts show, with a "Protocol Labs" chip
 
+#### Scenario: Filter by focus area
+
+- **GIVEN** upcoming events tagged `FA3` and `FA4`
+- **WHEN** the visitor picks Focus area "Neurotech"
+- **THEN** only the events tagged `FA4` show, with a "Neurotech" chip, and the address has `focus=FA4`
+
 #### Scenario: No details yet
 
 - **GIVEN** upcoming events whose access, tags and hosts are all empty
 - **WHEN** the visitor opens the rail
-- **THEN** it shows no Access type, Focus area or Host section
+- **THEN** it shows no Access type, Focus area, Topic or Host section
 
 #### Scenario: Events I'm going to
 
@@ -552,13 +598,14 @@ The drawer's previous and next SHALL step through the events the page shows unde
 
 ### Requirement: Embed opens a dialog with the link and the code
 
-The "Coming up" toolbar on `/events/all` SHALL show an "Embed" button with a `</>` glyph, styled like the Filters button, after the List / Calendar / Map switch, in every view and at every width (LAB-3352). A press SHALL open the dialog "Embed these events" in the standard modal shell (LAB-3365, Polina's design on LAB-3352) and copy nothing. It embeds what the page shows, one link `<origin>/events/embed` with the active `view`, the calendar mode on show as `cal` (also when the address has none) and each applied filter of search, Mode, Access type, Focus area, City and Host, under the page address's own keys. The link SHALL NOT carry "Events I'm going to" (`going`), the open event (`event`) or any other parameter.
+The "Coming up" toolbar on `/events/all` SHALL show an "Embed" button with a `</>` glyph, styled like the Filters button, after the List / Calendar / Map switch, in every view and at every width (LAB-3352). A press SHALL open the dialog "Embed these events" in the standard modal shell (LAB-3365, Polina's design on LAB-3352) and copy nothing. It embeds what the page shows, one link `<origin>/events/embed` with the active `view`, the calendar mode on show as `cal` (also when the address has none) and each applied filter of search, Mode, Access type, Focus area, Topic, City and Host, under the page address's own keys. The link SHALL NOT carry "Events I'm going to" (`going`), the open event (`event`) or any other parameter, except `details=labos` when the host ticks "Open event details on LabOS" (LAB-3392).
 
 The dialog SHALL show:
 
 - under the title, what the embed shows: "List view", "Week calendar", "Month calendar" or "Map view", then each applied filter's chip label (the search text in curly quotes), joined by " · ", or "All upcoming events" with none;
 - a live preview: `/events/embed` with that query, 320px high, loaded only while the dialog is open;
-- "Embed code": one line, `<iframe src="<link>" width="100%" height="640" style="border: 1px solid #e2e8f0; border-radius: 12px;" title="<title>" loading="lazy"></iframe>`, whose title is "Protocol Labs events: " and the filter labels joined by " · ", or "Protocol Labs events" with none; `&`, `"` and `<` escaped; with the line "New events that match appear on their own. Change height to fit your page.";
+- "Embed code": one line, `<iframe src="<link>" width="100%" height="640" style="border: 1px solid #e2e8f0; border-radius: 12px;" title="<title>" allow="clipboard-write" loading="lazy"></iframe>`, whose title is "Protocol Labs events: " and the filter labels joined by " · ", or "Protocol Labs events" with none; `&`, `"` and `<` escaped; with the line "New events that match appear on their own. Change height to fit your page.";
+- the checkbox "Open event details on LabOS", unticked whenever the dialog opens, with the line "In a new tab. Otherwise they open inside the embed, with a link to RSVP on LabOS." Ticked, the preview, the code and the copied link SHALL end with `details=labos` (LAB-3392);
 - Copy link (a text button, left) and Copy code (primary, right). Each copies its text and reads "Link copied" / "Code copied" for 2 seconds; a second press starts the 2 seconds again. When the browser refuses the clipboard, a toast SHALL say "Could not copy the link" / "Could not copy the code", the button SHALL keep its label and nothing SHALL be recorded.
 
 Escape, Close and the backdrop SHALL close the dialog, focus SHALL go back to the Embed button, and the page SHALL keep its view and filters.
@@ -578,7 +625,7 @@ Escape, Close and the backdrop SHALL close the dialog, focus SHALL go back to th
 
 ### Requirement: The embed shows one view for other sites
 
-`/events/embed` SHALL show only the view and filters in its address, on the page's grey, for anyone, signed in or not, with no member data: no Near you, no Add location, no "Events I'm going to", no Going marks (LAB-3352). Under the view it SHALL show the link "All events on PL Directory ↗", which opens `/events/all` with the same view and filters (not the open event) in a new tab. It SHALL NOT show the site header, the mobile bottom bar, the feedback button, contact support, the rating prompts, the page header ("Submit an event", the events app link), Browse by city, the city header, the "Coming up" toolbar (count, Filters, the view switch, Embed), the filters or the applied-filter chips (Polina's design, 2026-11-20): the person embedding it chose the view and filters. Pressing an event SHALL open `/events/all?event=<uid>` in a new tab; the embed SHALL NOT open the drawer, also not for `event` in its own address. With no match it SHALL show the page's empty state, and when the events fail to load the page's error state. It SHALL be served only while the native page flag is on (else not found), and SHALL NOT be indexed. Any https site (and LabOS itself) may frame it (see the runtime platform's security headers).
+`/events/embed` SHALL show only the view and filters in its address, on the page's grey, for anyone, signed in or not, with no member data: no Near you, no Add location, no "Events I'm going to", no Going marks (LAB-3352). Under the view it SHALL show the link "All events on PL Directory ↗", which opens `/events/all` with the same view and filters (not the open event) in a new tab. It SHALL NOT show the site header, the mobile bottom bar, the feedback button, contact support, the rating prompts, the page header ("Submit an event", the events app link), Browse by city, the city header, the "Coming up" toolbar (count, Filters, the view switch, Embed), the filters or the applied-filter chips (Polina's design, 2026-11-20): the person embedding it chose the view and filters. Pressing an event SHALL open its drawer inside the embed (LAB-3392): the same drawer as the page, with previous / next through the events on show, read signed out whoever is signed in. In the embed the drawer SHALL NOT ask to sign in or offer "Yes, I'm going": its card and pinned bar SHALL offer "RSVP on LabOS ↗", which opens `/events/all?event=<uid>` in a new tab, and "N members going" SHALL be text that opens nothing. Opening, stepping and closing the drawer SHALL leave the embed's address and the framing page's history alone, and closing it SHALL leave the view and filters as they were. With `details=labos` in its address, pressing an event SHALL instead open `/events/all?event=<uid>` in a new tab, with no drawer. The embed SHALL NOT open a drawer for `event` in its own address. With no match it SHALL show the page's empty state, and when the events fail to load the page's error state. It SHALL be served only while the native page flag is on (else not found), and SHALL NOT be indexed. Any https site (and LabOS itself) may frame it (see the runtime platform's security headers).
 
 #### Scenario: plrd.org frames online events
 
@@ -587,7 +634,15 @@ Escape, Close and the backdrop SHALL close the dialog, focus SHALL go back to th
 - **THEN** the iframe shows the map with only online events, without the LabOS header, "Submit an event" or the toolbar
 - **AND** under the map, "All events on PL Directory ↗" links to `/events/all?view=map&mode=Online`
 - **WHEN** the reader presses an event
-- **THEN** that event opens on LabOS in a new tab, with its drawer open
+- **THEN** its drawer opens inside the iframe, with "RSVP on LabOS ↗" in place of "Yes, I'm going"
+- **WHEN** they close it
+- **THEN** the iframe still shows the map with only online events
+
+#### Scenario: A host sends events to LabOS
+
+- **GIVEN** an iframe on `/events/embed?view=calendar&details=labos`
+- **WHEN** the reader presses an event
+- **THEN** that event opens on LabOS in a new tab, with its drawer open, and the embed opens no drawer
 
 ### Requirement: One Going mark on the page
 
@@ -603,13 +658,14 @@ On the All Events page, an event the signed-in viewer is going to SHALL carry on
 
 The page SHALL record these PostHog events:
 
-- `event-drawer-opened` with `source` = `all-events` when the drawer opens from the page;
+- `event-drawer-opened` with `source` = `all-events` when the drawer opens from the page, and `embed` when it opens inside `/events/embed` (LAB-3392);
 - `events-view-changed` with `view` (`list`, `calendar` or `map`) and, for the calendar, `mode` (`week` or `month`);
 - `events-filters-applied` with the filter `key` (`search`, `going`, `mode` or `city`) and its `values`, for every filter change whichever control made it (the rail, a chip, a city tile, "Clear all"), once that filter has been still for 300ms; "Clear all" records each filter it empties, with no values;
 - `events-city-selected` with `city` and `from` (`tile`, `filter` or `near-you`), in addition, whenever a single city is chosen.
-- `events-embed-link-copied` with `view` and `filters_count` (the applied values the link carries), when Copy link in the Embed dialog copies the link (LAB-3352, LAB-3365);
-- `events-embed-code-copied` with `view` and `filters_count`, when Copy code copies the iframe code (LAB-3365);
-- `events-embed-viewed` with the `view` it opened on and `referrer_host` (the framing site's host, or null), once per load of `/events/embed`, but not for the Embed dialog's preview, where LabOS frames itself (LAB-3365).
+- `events-location-dialog-opened` with `from` (`add`, `change` or `no-events`), when a Near you row opens the "Your location" dialog, and `events-location-saved` with the same `from` when a location is saved there (LAB-3394);
+- `events-embed-link-copied` with `view`, `filters_count` (the applied values the link carries) and `details` (`embed`, or `labos` when ticked, LAB-3392), when Copy link in the Embed dialog copies the link (LAB-3352, LAB-3365);
+- `events-embed-code-copied` with `view`, `filters_count` and `details`, when Copy code copies the iframe code (LAB-3365);
+- `events-embed-viewed` with the `view` it opened on, `referrer_host` (the framing site's host, or null) and `details` (`embed` or `labos`), once per load of `/events/embed`, but not for the Embed dialog's preview, where LabOS frames itself (LAB-3365).
 
 No filter event SHALL be recorded for filters read from the address on landing, and a later change to another param (the view, the open event) SHALL NOT cancel a pending filter event.
 

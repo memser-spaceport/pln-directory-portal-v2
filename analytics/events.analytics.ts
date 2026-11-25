@@ -13,7 +13,17 @@ import { UpcomingEvent } from '@/services/events/hooks/useUpcomingEvents';
 import type { FilterParam } from '@/services/events/all-events.filters';
 
 /** Where the event drawer was opened from. */
-export type EventDrawerSource = 'home' | 'member-profile' | 'team-profile' | 'add-event' | 'digest' | 'all-events';
+export type EventDrawerSource =
+  | 'home'
+  | 'member-profile'
+  | 'team-profile'
+  | 'add-event'
+  | 'digest'
+  | 'all-events'
+  | 'embed';
+
+/** Where the embed opens an event's details (LAB-3392): its own drawer, or LabOS in a new tab. */
+export type EmbedDetails = 'embed' | 'labos';
 
 export const useEventsAnalytics = () => {
   const postHogProps = usePostHog();
@@ -229,17 +239,29 @@ export const useEventsAnalytics = () => {
   }
 
   /** All Events: Copy link in the Embed dialog put the embed link on the clipboard (LAB-3352, LAB-3365). */
-  function onEventsEmbedLinkCopied(params: { view: 'list' | 'calendar' | 'map'; filters_count: number }) {
+  function onEventsEmbedLinkCopied(params: {
+    view: 'list' | 'calendar' | 'map';
+    filters_count: number;
+    details: EmbedDetails;
+  }) {
     captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_EMBED_LINK_COPIED, params);
   }
 
   /** All Events: Copy code in the Embed dialog put the iframe code on the clipboard (LAB-3365). */
-  function onEventsEmbedCodeCopied(params: { view: 'list' | 'calendar' | 'map'; filters_count: number }) {
+  function onEventsEmbedCodeCopied(params: {
+    view: 'list' | 'calendar' | 'map';
+    filters_count: number;
+    details: EmbedDetails;
+  }) {
     captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_EMBED_CODE_COPIED, params);
   }
 
   /** The embed page loaded, with the host of the page that framed it (null opened directly). */
-  function onEventsEmbedViewed(params: { view: 'list' | 'calendar' | 'map'; referrer_host: string | null }) {
+  function onEventsEmbedViewed(params: {
+    view: 'list' | 'calendar' | 'map';
+    referrer_host: string | null;
+    details: EmbedDetails;
+  }) {
     captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_EMBED_VIEWED, params);
   }
 
@@ -251,6 +273,15 @@ export const useEventsAnalytics = () => {
   /** All Events: a city chosen from a Browse by city tile or Near you's "All <city> events". */
   function onEventsCitySelected(params: { city: string; from: 'tile' | 'filter' | 'near-you' }) {
     captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_CITY_SELECTED, params);
+  }
+
+  /** All Events (LAB-3394): the location dialog opened from Near you's rows, and a location saved there. */
+  function onEventsLocationDialogOpened(params: { from: 'add' | 'change' | 'no-events' }) {
+    captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_LOCATION_DIALOG_OPENED, params);
+  }
+
+  function onEventsLocationSaved(params: { from: 'add' | 'change' | 'no-events' }) {
+    captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_LOCATION_SAVED, params);
   }
 
   function onEventGoingMarked(params: { eventUid: string; source: EventDrawerSource }) {
@@ -322,6 +353,8 @@ export const useEventsAnalytics = () => {
     onEventsEmbedViewed,
     onEventsFiltersApplied,
     onEventsCitySelected,
+    onEventsLocationDialogOpened,
+    onEventsLocationSaved,
     onEventGoingMarked,
     onEventNotGoingMarked,
     onEventPlansSaved,

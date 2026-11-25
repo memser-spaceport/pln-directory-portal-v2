@@ -11,15 +11,9 @@ import {
   userInfoForImpersonation,
 } from '@/services/forum/forum-proxy';
 import type { IUserInfo } from '@/types/shared.types';
-import { calculateExpiry, decodeToken } from '@/utils/auth.utils';
+import { decodeToken } from '@/utils/auth.utils';
 import { getParsedValue } from '@/utils/common.utils';
-import {
-  expireSharedCookies,
-  hostOnlySessionCookies,
-  SESSION_SCOPE_COOKIE,
-  sessionScopeValue,
-  shareAuthTokenWithApps,
-} from '@/utils/sessionCookies';
+import { setSessionCookies } from '@/utils/sessionResponse';
 
 type Session = {
   authToken: string;
@@ -61,28 +55,12 @@ async function renewSession(refreshToken: string): Promise<RenewedSession | null
   };
 }
 
-function applyRenewedSession(response: NextResponse, tokens: RenewedSession) {
+function applyRenewedSession(response: NextResponse, request: NextRequest, tokens: RenewedSession) {
   const accessTokenExpiry = decodeToken(tokens.accessToken) as { exp?: number } | null;
   const refreshTokenExpiry = decodeToken(tokens.refreshToken) as { exp?: number } | null;
   if (typeof accessTokenExpiry?.exp !== 'number' || typeof refreshTokenExpiry?.exp !== 'number') return;
 
-  response.cookies.set('refreshToken', JSON.stringify(tokens.refreshToken), {
-    maxAge: calculateExpiry(refreshTokenExpiry.exp),
-    path: '/',
-  });
-  response.cookies.set('authToken', JSON.stringify(tokens.accessToken), {
-    maxAge: calculateExpiry(accessTokenExpiry.exp),
-    ...(shareAuthTokenWithApps() ? { domain: process.env.COOKIE_DOMAIN } : { path: '/' }),
-  });
-  response.cookies.set('userInfo', JSON.stringify(tokens.userInfo), {
-    maxAge: calculateExpiry(accessTokenExpiry.exp),
-    path: '/',
-  });
-  response.cookies.set(SESSION_SCOPE_COOKIE, sessionScopeValue(), {
-    maxAge: calculateExpiry(refreshTokenExpiry.exp),
-    path: '/',
-  });
-  expireSharedCookies(response, hostOnlySessionCookies());
+  setSessionCookies(response, request, tokens);
 }
 
 async function callNodebb(input: {
@@ -229,7 +207,7 @@ export async function proxyForumRequest(request: NextRequest, segments: string[]
     status: upstream.status,
     headers: { 'content-type': upstream.headers.get('content-type') ?? 'application/json' },
   });
-  if (renewed) applyRenewedSession(response, renewed);
+  if (renewed) applyRenewedSession(response, request, renewed);
   return response;
 }
 

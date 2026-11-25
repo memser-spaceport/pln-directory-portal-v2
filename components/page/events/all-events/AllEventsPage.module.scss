@@ -95,6 +95,20 @@
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
+
+  // Phones (Polina, 2026-11-24): the title and "Submit an event" share a row; the description runs under both.
+  @include media.mobile-only {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 4px 16px;
+  }
+}
+
+.headerText {
+  @include media.mobile-only {
+    display: contents;
+  }
 }
 
 .title {
@@ -116,6 +130,9 @@
   color: var(--foreground-neutral-secondary, #455468);
 
   @include media.mobile-only {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    margin: 0;
     font-size: 14px;
     line-height: 20px;
   }
@@ -185,7 +202,41 @@
   }
 }
 
-// No location: one white row (the city tiles' card), pin + sentence + the press.
+// "Near you in Lisbon · Change" (LAB-3394): the heading and a quiet text button beside it; "All Lisbon events" stays
+// the section's one link on the right.
+.nearTitle {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  column-gap: 8px;
+  min-width: 0;
+}
+
+.changeLocation {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+// No location, or no event in it: one white row (the city tiles' card), pin + sentence + the press.
 .askLocation {
   display: flex;
   align-items: center;
@@ -253,7 +304,28 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
-/* Browse by city: Luma Discover's tiles (a picture, the city, a count). */
+/* Browse by city: Luma Discover's tiles (a picture, the city, a count). Phones choose a city in Filters (LAB-3391). */
+.citySection {
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+// The no-events row's two wordings: from 640px it points at Browse by city, on phones at Filters.
+.fromTablet {
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.onPhones {
+  display: none;
+
+  @include media.mobile-only {
+    display: inline;
+  }
+}
+
 .cityRow {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -265,19 +337,6 @@
 
   @include media.tablet-portrait-only {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  @include media.mobile-only {
-    display: flex;
-    overflow-x: auto;
-    margin: 0 -16px;
-    padding: 0 16px 4px;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-
-    &::-webkit-scrollbar {
-      display: none;
-    }
   }
 }
 
@@ -304,12 +363,6 @@
     outline: 2px solid var(--foreground-brand-primary, #1b4dff);
     outline-offset: 2px;
   }
-
-  @include media.mobile-only {
-    flex: 0 0 auto;
-    padding-right: 16px;
-    scroll-snap-align: start;
-  }
 }
 
 .cityCardActive,
@@ -335,9 +388,12 @@
   }
 }
 
+// On the page's own grey, which the small tile's background would vanish into: a white tile, as the cards.
 .cityThumbLarge {
   width: 64px;
   height: 64px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-neutral-primary, #ffffff);
 }
 
 .cityText {
@@ -362,9 +418,9 @@
   white-space: nowrap;
 }
 
-/* A city chosen: the band becomes where you are and the way back. */
+/* A city chosen: the band becomes where you are and the way back. The dated list follows it with no heading between. */
 .cityHeader {
-  margin-top: 24px;
+  margin: 24px 0;
 }
 
 .back {
@@ -675,6 +731,7 @@
 }
 
 .tile {
+  position: relative; // for the Going pill
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -1048,7 +1105,7 @@
   }
 }
 
-/* Near you on a phone: a row you swipe, so the city band and the list stay within reach. */
+/* Near you on a phone: a row you swipe, so the list stays within reach. */
 .nearTiles {
   @include media.mobile-only {
     display: flex;
@@ -1056,16 +1113,71 @@
     margin: 0 -16px;
     padding: 0 16px 4px;
     scroll-snap-type: x mandatory;
+    scroll-padding-inline: 16px; // else the snap eats the row's inset and the first card touches the screen edge
     scrollbar-width: none;
 
     &::-webkit-scrollbar {
       display: none;
     }
 
+    // The List card on phones (Polina, 2026-11-24): the same sizes as `.card`, the picture on the right. The host
+    // and place keep to one line, the title to two, so the list stays within reach.
     > .tile {
-      flex: 0 0 80%;
+      flex: 0 0 85%;
+      flex-direction: row-reverse;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
       scroll-snap-align: start;
     }
+
+    .tileImage {
+      flex: 0 0 64px;
+      width: 64px;
+      height: 64px;
+      aspect-ratio: auto;
+      border-radius: 8px;
+    }
+
+    .tileBody {
+      gap: 2px;
+      padding: 0;
+    }
+
+    .tileTitle {
+      margin-bottom: 4px;
+      font-size: 18px;
+    }
+  }
+}
+
+// The host line is the phone card's; a tile has none.
+.tileHost {
+  display: none;
+
+  @include media.mobile-only {
+    display: flex;
+  }
+
+  .hostFaces {
+    margin-top: 0;
+  }
+}
+
+// The Going pill floats on a tile's picture (GoingPill's `onImage`); the phone card has it in the foot.
+.tile .tilePill {
+  @include media.mobile-only {
+    position: static;
+    box-shadow: none;
+  }
+}
+
+// With the pill on the picture, a foot that holds nothing else takes no room.
+.tile .cardFoot:has(> .tilePill:only-child) {
+  display: contents;
+
+  @include media.mobile-only {
+    display: flex;
   }
 }
 
@@ -1187,4 +1299,11 @@
 // "All upcoming" / "Matching events": the dated list's own heading, a section title like the bands'.
 .listHeading.listHeading {
   margin: 32px 0 12px;
+}
+
+// Phones hide Browse by city, so with nothing above it the heading is the first band there.
+.listBands > .citySection:first-child + .listHeading {
+  @include media.mobile-only {
+    margin-top: 0;
+  }
 }

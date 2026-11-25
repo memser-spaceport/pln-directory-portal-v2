@@ -73,6 +73,13 @@ describe('toAllEventsItem', () => {
     expect(toAllEventsItem(row({ format: null, accessOption: null }))).toMatchObject({ mode: null, access: null });
   });
 
+  it('splits focus areas from topics (LAB-3404)', () => {
+    expect(toAllEventsItem(row({ tags: ['FA3', 'Talks', 'fa4'] }))).toMatchObject({
+      focusAreas: ['FA3', 'FA4'],
+      tags: ['Talks'],
+    });
+  });
+
   it('lists the host first, then the co-hosts, each once', () => {
     const coHosts = [{ name: 'Filecoin Foundation' }, { name: 'Protocol Labs' }];
     expect(toAllEventsItem(row({ coHosts })).hosts).toEqual(['Protocol Labs', 'Filecoin Foundation']);

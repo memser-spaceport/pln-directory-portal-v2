@@ -76,8 +76,10 @@ describe('EventDrawerView (LAB-3216)', () => {
       expect(screen.getByText('Lisbon, Portugal')).toBeInTheDocument();
       // LAB-3283: access is a fact row, and neither mode nor access is a badge.
       const access = screen.getByTestId('event-access');
-      expect(within(access).getByText('Free')).toBeInTheDocument();
-      expect(within(access).getByText('RSVP to save your spot')).toBeInTheDocument();
+      // LAB-3407: one line for an OPEN event, never "Free".
+      expect(within(access).getByText('RSVP to save your spot')).toHaveClass('factMain');
+      expect(access).toHaveTextContent(/^RSVP to save your spot$/);
+      expect(access.querySelector('.factSub')).toBeNull();
       expect(screen.queryByText('In-Person')).not.toBeInTheDocument();
       expect(screen.queryByText('FREE w/ RSVP')).not.toBeInTheDocument();
       const tags = screen.getByTestId('event-tags');
@@ -95,6 +97,36 @@ describe('EventDrawerView (LAB-3216)', () => {
         screen.getByText(/The main stage runs/).compareDocumentPosition(screen.getByTestId('event-tags')) &
           Node.DOCUMENT_POSITION_FOLLOWING,
       ).toBeTruthy();
+    });
+
+    it('focus areas show by name in their own group, apart from the topics (LAB-3404)', () => {
+      const base = eventResponse();
+      const tags = ['FA3', 'Conference', 'FA4'].map((name) => ({ name, color: null }));
+      render(<Harness raw={eventResponse({ details: { ...base.details!, tags } })} />);
+      const areas = screen.getByTestId('event-focus-areas');
+      expect(within(areas).getByText('Focus areas')).toBeInTheDocument();
+      expect(within(areas).getByText('AI & Robotics')).toBeInTheDocument();
+      expect(within(areas).getByText('Neurotech')).toBeInTheDocument();
+      expect(within(areas).queryByText('Conference')).not.toBeInTheDocument();
+      const topics = screen.getByTestId('event-tags');
+      expect(within(topics).getByText('Topics')).toBeInTheDocument();
+      expect(within(topics).getByText('Conference')).toBeInTheDocument();
+      expect(screen.queryByText(/^FA\d$/)).not.toBeInTheDocument();
+    });
+
+    it('an event with focus areas only still has About; topics alone have no label (LAB-3404)', () => {
+      const bare = bareEventResponse();
+      const { unmount } = render(
+        <Harness raw={bareEventResponse({ details: { ...bare.details!, tags: [{ name: 'FA1', color: null }] } })} />,
+      );
+      expect(screen.getByRole('heading', { name: 'About' })).toBeInTheDocument();
+      expect(screen.getByText('Digital Human Rights')).toBeInTheDocument();
+      expect(screen.queryByTestId('event-tags')).not.toBeInTheDocument();
+      unmount();
+
+      render(<Harness />);
+      expect(screen.queryByTestId('event-focus-areas')).not.toBeInTheDocument();
+      expect(screen.queryByText('Topics')).not.toBeInTheDocument();
     });
 
     it('a one-day agenda has no day title, and its times use an en dash', () => {
@@ -169,7 +201,7 @@ describe('EventDrawerView (LAB-3216)', () => {
       fireEvent.click(within(screen.getByRole('status')).getByRole('button', { name: 'Close' }));
       fireEvent.click(toolbarClose());
       expect(onClose).toHaveBeenCalledTimes(2);
-      // No event: no copy link, no events app, no previous / next.
+      // No event: no copy link, no previous / next.
       expect(screen.queryByRole('button', { name: 'Copy link' })).not.toBeInTheDocument();
       expect(screen.queryByRole('link', { name: /Open in PL Events/ })).not.toBeInTheDocument();
     });
@@ -751,25 +783,15 @@ describe('EventDrawerView (LAB-3216)', () => {
       expect(onLinkCopied).toHaveBeenCalledTimes(1);
     });
 
-    it('opens the event in PL Events by its id, in a new tab', () => {
+    it('has no "Open in PL Events" even with the app address and the event id (LAB-3420)', () => {
       process.env.PL_EVENTS_BASE_URL = 'https://events.test/';
-      const onEventsAppOpened = jest.fn();
-      render(<Harness onEventsAppOpened={onEventsAppOpened} />);
-      const link = screen.getByRole('link', { name: /Open in PL Events/ });
-      expect(link).toHaveAttribute('href', 'https://events.test/calendar#ext-1');
-      expect(link).toHaveAttribute('target', '_blank');
-      fireEvent.click(link);
-      expect(onEventsAppOpened).toHaveBeenCalledTimes(1);
-    });
-
-    it('leaves "Open in PL Events" out without the event id or the app address', () => {
-      process.env.PL_EVENTS_BASE_URL = 'https://events.test';
-      const { unmount } = render(<Harness raw={eventResponse({ externalId: null })} />);
-      expect(screen.queryByRole('link', { name: /Open in PL Events/ })).not.toBeInTheDocument();
-      unmount();
-      delete process.env.PL_EVENTS_BASE_URL;
-      render(<Harness />);
-      expect(screen.queryByRole('link', { name: /Open in PL Events/ })).not.toBeInTheDocument();
+      // The event has an events-app id and the app has an address: only LAB-3420 keeps the link out.
+      const { container } = render(<Harness raw={eventResponse({ externalId: 'ext-1' })} />);
+      const toolbar = screen.getByTestId('event-drawer-toolbar');
+      expect(within(toolbar).getByRole('button', { name: 'Copy link' })).toBeInTheDocument();
+      expect(within(toolbar).queryAllByRole('link')).toHaveLength(0);
+      expect(screen.queryByRole('link', { name: /PL Events/ })).not.toBeInTheDocument();
+      expect(container.querySelector('a[href^="https://events.test"]')).toBeNull();
     });
 
     it('steps through the list it was opened from, and stops at the ends', () => {
@@ -844,6 +866,16 @@ describe('EventDrawerView (LAB-3216)', () => {
       placeCard(650);
       render(<Harness />);
       expect(screen.queryByTestId('rsvp-bar')).not.toBeInTheDocument();
+    });
+
+    it('in the embed, offers "RSVP on LabOS" in a new tab instead of "Yes" (LAB-3392)', () => {
+      placeCard(900);
+      const href = '/events/all?event=labweek-lisbon';
+      render(<Harness canMarkGoing={false} viewerUid={null} plans={null} rsvpHref={href} />);
+      const bar = screen.getByTestId('rsvp-bar');
+      expect(within(bar).getByText('Are you going?')).toBeInTheDocument();
+      expect(within(bar).queryByRole('button', { name: "Yes, I'm going" })).toBeNull();
+      expect(within(bar).getByRole('link', { name: /RSVP on LabOS/ })).toHaveAttribute('href', href);
     });
 
     it('never shows for a member who cannot say they are going', () => {

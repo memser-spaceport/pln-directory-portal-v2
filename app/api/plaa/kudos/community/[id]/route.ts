@@ -1,3 +1,4 @@
+import { kudosUpstreamError } from '@/app/api/plaa/_errors';
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveAuthHeader } from '../../_auth';
 import { plaaUpstreamUrl } from '../../../_upstream';
@@ -15,7 +16,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
     const baseUrl = process.env.PLAA_API_URL;
     if (!baseUrl) {
-      return NextResponse.json({ error: 'PLAA_API_URL is not configured' }, { status: 500 });
+      return NextResponse.json({ error: 'PLAA service is temporarily unavailable' }, { status: 500 });
     }
 
     const { id } = await context.params;
@@ -32,6 +33,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     });
 
     const data = await res.json().catch(() => null);
+    if (!res.ok) return kudosUpstreamError(res.status, data, res.headers?.get('retry-after'));
     return NextResponse.json(data, { status: res.status });
   } catch (error) {
     console.error('PLAA kudos update proxy error:', error);

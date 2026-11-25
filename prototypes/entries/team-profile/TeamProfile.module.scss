@@ -1391,9 +1391,77 @@
   }
 }
 
-.factDivider,
+/* Production's `.roleAndLocation` is no longer a flex row and its `.divider`
+   class is gone (MemberDetailHeader now draws dividers per `.metaItem`), so
+   the facts ran together — "Founded 2014201–500 people". The row and the
+   hairline are drawn here, in production's current divider colour. */
+.factsRow.factsRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 16px;
+  row-gap: 4px;
+}
+
+.factDivider {
+  flex-shrink: 0;
+  width: 1px;
+  height: 20px;
+  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+}
+
 .factLocation {
-  /* class hooks only; see `.factsRow` */
+  /* class hook only; see `.factsRow` */
+}
+
+/* Tablet up, as on the phone: the logo sits beside the name and the facts,
+   and the tags and the action row under them start at the card's left edge,
+   under the logo (2026-11-23, "Align all badges to the very left, just under
+   the photo" — the member profile's change, on the team). Production starts
+   them in the name's column. The column dissolves into the grid so its rows
+   can span both columns. Gaps keep production's: name → facts 8, facts →
+   tags 16, tags → action row 32. */
+@include media.tablet-portrait {
+  .logoTagsGrow.logoTagsGrow {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 8px;
+    row-gap: 8px;
+    align-items: start;
+  }
+
+  .nameTagCol.nameTagCol {
+    display: contents;
+  }
+
+  .logoCell.logoCell {
+    grid-row: 1 / span 2;
+  }
+
+  .nameRowWrap,
+  .factsRow.factsRow {
+    grid-column: 2;
+  }
+
+  .factsRow.factsRow {
+    margin-top: 0;
+  }
+
+  .tagsBlock {
+    grid-column: 1 / -1;
+    margin-top: 8px;
+  }
+
+  .afterBadgesSlot.afterBadgesSlot {
+    grid-column: 1 / -1;
+    margin-top: 24px;
+  }
+}
+
+@include media.breakpoint-1024 {
+  .logoTagsGrow.logoTagsGrow {
+    column-gap: 24px;
+  }
 }
 
 /* ---- Phone header layout (the mock's): logo beside name + facts, tags and

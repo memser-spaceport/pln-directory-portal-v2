@@ -1,0 +1,14 @@
+// LAB-3347: SubmitDealModal's chrome at 440px, header and footer only. One hairline between them: the footer's.
+.root.root {
+  width: 440px;
+}
+
+.header.header {
+  padding: 16px;
+  border-bottom: none;
+}
+
+.footer.footer {
+  justify-content: flex-end;
+  padding: 12px 16px 16px;
+}

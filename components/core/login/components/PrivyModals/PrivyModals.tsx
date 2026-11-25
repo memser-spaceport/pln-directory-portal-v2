@@ -18,6 +18,7 @@ import { LinkAccountModal } from '../modals/LinkAccountModal';
 import { authStatus, authEvents, AuthErrorCode, LinkMethod, isDemoDayScopePage } from '../../utils';
 import { consumeAuthReturnHash } from '../../utils/authReturnHash';
 import { getSafeBacklinkTarget } from '../../utils/safeBacklink';
+import { stripApplySignInAfterSignIn } from '@/services/jobs/job-apply-resume';
 
 import './PrivyModals.scss';
 
@@ -135,6 +136,8 @@ export function PrivyModals() {
 
   const loginUser = useCallback(
     async (output: { userInfo: { uid: string } }) => {
+      // LAB-3382: before clearPrivyParams copies the query, remove the Job Board Apply marker.
+      stripApplySignInAfterSignIn();
       clearPrivyParams();
       showLoginSuccess();
 

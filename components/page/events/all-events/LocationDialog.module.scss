@@ -1,0 +1,19 @@
+// "Your location" (LAB-3394). The shell is SubmitDealModal.module.scss, imported in the component; the PLAA note is the
+// profile Location field's own (ProfileLocationInput.module.scss).
+
+.root.root {
+  width: 480px;
+  // The place search's menu drops below the field, past the dialog's edge; a clipped shell would hide it.
+  overflow: visible;
+}
+
+.content.content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: visible;
+}
+
+.footer.footer {
+  justify-content: flex-end;
+}

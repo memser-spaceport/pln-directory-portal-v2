@@ -1,6 +1,6 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { toast } from '@/components/core/ToastContainer';
@@ -29,6 +29,7 @@ import { DigestEvents } from './DigestEvents';
 import { DigestForum } from './DigestForum';
 import { DigestNetworkNews } from './DigestNetworkNews';
 import { DigestSidebar, type PastIssue } from './DigestSidebar';
+import { SignInAskModal } from './SignInAskModal';
 import { PrototypeMobileNav } from '../nav-shared/PrototypeMobileNav';
 import { PrototypeNavBar } from '../nav-shared/PrototypeNavBar';
 import {
@@ -54,8 +55,72 @@ import s from './DigestWebPrototype.module.scss';
  * its More / Less like this are plain links into this page, and Read More opens the page
  * scrolled to the story with no feedback.
  */
+/**
+ * Signed-out reader (LAB-3347, 2026-11-20; review switch "Signed out", `?auth=out`). They read
+ * everything: every story in full, Sources, Share, More from the network, Upcoming events, the
+ * forum's titles and reply counts, Past issues. Anything that needs a member opens one sign-in
+ * prompt (`SignInAskModal`) whose title names the press, and signing in finishes it:
+ *   More / Less like this → saved, with the receipt;   a forum thread → it opens;
+ *   a topic chip → the card comes back with it ticked;  See all topics → the modal opens;
+ *   Follow → followed;   Comments → the thread opens;   Open the forum → the forum.
+ * Arriving from the email's More / Less link signed out scrolls to the story and opens the prompt
+ * for that press; nothing is saved before sign-in. The greeting is "Hi there,". "Got news from
+ * your team?" is hidden: it's for team members, and a signed-out reader's team is unknown.
+ */
+type SignInAsk =
+  | { kind: 'feedback'; storyId: string; feedback: Feedback }
+  | { kind: 'post'; postId: string }
+  | { kind: 'forum' }
+  | { kind: 'topic'; topic: string }
+  | { kind: 'topics' }
+  | { kind: 'personalize' }
+  | { kind: 'follow'; team: string }
+  | { kind: 'comments'; storyId: string };
+
+const TOPICS_WHY = 'Your topics decide which stories your digest leads with.';
+const MEMBERS_WHY = 'Forum threads are open to Protocol Labs network members.';
+
+/** The prompt's title names the press; the line says why it needs an account. */
+function askCopy(ask: SignInAsk): { title: string; body: string } {
+  switch (ask.kind) {
+    case 'feedback':
+      return {
+        title:
+          ask.feedback === 'more' ? 'Sign in to get more stories like this' : 'Sign in to get fewer stories like this',
+        body: 'Your choice shapes which stories lead your next digest.',
+      };
+    case 'post':
+      return { title: 'Sign in to read this thread', body: MEMBERS_WHY };
+    case 'forum':
+      return { title: 'Sign in to open the forum', body: MEMBERS_WHY };
+    case 'topic':
+      return { title: `Sign in to add #${ask.topic}`, body: TOPICS_WHY };
+    case 'topics':
+      return { title: 'Sign in to choose your topics', body: TOPICS_WHY };
+    case 'personalize':
+      return {
+        title: 'Sign in to personalize your digest',
+        body: 'Pick topics and follow teams, and your digest leads with them.',
+      };
+    case 'follow':
+      return { title: `Sign in to follow ${ask.team}`, body: 'Their news comes first in your feed and your digest.' };
+    case 'comments':
+      return { title: 'Sign in to read and add comments', body: 'Comments on network stories are open to members.' };
+  }
+}
+
 export default function DigestWebPrototype() {
   const params = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const signedIn = params.get('auth') !== 'out';
+  /** A review-switch link that keeps the reader's signed-in state. */
+  const withAuth = (query: string) => {
+    const p = new URLSearchParams(query);
+    if (!signedIn) p.set('auth', 'out');
+    const q = p.toString();
+    return q ? `?${q}` : '?';
+  };
   const landedStory = params.get('story');
   const rawFeedback = params.get('feedback');
   const landedFeedback: Feedback | null = rawFeedback === 'more' || rawFeedback === 'less' ? rawFeedback : null;
@@ -76,17 +141,26 @@ export default function DigestWebPrototype() {
     toast.success('Topics saved. Your next digest uses them.');
   };
 
+  // Signed out, the email's More / Less press is not saved on landing: the prompt asks first.
   const [feedback, setFeedback] = useState<Record<string, Feedback | undefined>>(() =>
-    landed && landedFeedback ? { [landed]: landedFeedback } : {},
+    landed && landedFeedback && signedIn ? { [landed]: landedFeedback } : {},
   );
   // The landing receipt sits at the top of the card, where the scroll puts the reader's eye
   // (a full story is taller than a phone screen, so a receipt under the buttons is off-screen).
   // Once the reader presses on the page, it moves under the buttons they pressed.
-  const [receiptAtTop, setReceiptAtTop] = useState<string | null>(landed && landedFeedback ? landed : null);
+  const [receiptAtTop, setReceiptAtTop] = useState<string | null>(landed && landedFeedback && signedIn ? landed : null);
+
+  // The sign-in prompt and the press it is holding (signed out only).
+  const [ask, setAsk] = useState<SignInAsk | null>(() =>
+    !signedIn && landed && landedFeedback ? { kind: 'feedback', storyId: landed, feedback: landedFeedback } : null,
+  );
+  // A chip pressed signed out comes back ticked on the card after sign-in.
+  const [pendingTopic, setPendingTopic] = useState<string | null>(null);
   // Story comments, as Home's feed holds them (mocked, this visit only): the thread opens
   // under the story from its Comments button, one story at a time or several, like the feed.
   const [comments, setComments] = useState<Record<string, FeedComment[]>>(DIGEST_COMMENTS);
-  const [openThreads, setOpenThreads] = useState<Set<string>>(() => new Set());  const [likedComments, setLikedComments] = useState<Set<string>>(() => new Set());
+  const [openThreads, setOpenThreads] = useState<Set<string>>(() => new Set());
+  const [likedComments, setLikedComments] = useState<Set<string>>(() => new Set());
   const toggleInSet = (setter: typeof setOpenThreads, key: string) =>
     setter((current) => {
       const next = new Set(current);
@@ -154,32 +228,105 @@ export default function DigestWebPrototype() {
     toast.success('Undone. Your preferences haven’t changed.');
   };
 
+  /** Signed in: do it. Signed out: hold it and ask. */
+  const gate = (pending: SignInAsk, act: () => void) => (signedIn ? act() : setAsk(pending));
+
+  /** Mocked sign-in (production opens Privy and returns here): flips the page to signed in,
+   *  then finishes the press the prompt was holding. */
+  const signIn = (pending: SignInAsk | null) => {
+    const p = new URLSearchParams(params.toString());
+    p.delete('auth');
+    const q = p.toString();
+    router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+    setAsk(null);
+    if (!pending) return;
+    switch (pending.kind) {
+      case 'feedback':
+        setFeedback((current) => ({ ...current, [pending.storyId]: pending.feedback }));
+        break;
+      case 'post':
+        setOpenPostId(pending.postId);
+        break;
+      case 'forum':
+        router.push('/forum');
+        break;
+      case 'topic':
+        setPendingTopic(pending.topic);
+        break;
+      case 'topics':
+        setTopicsOpen(true);
+        break;
+      case 'follow':
+        toggleFollow(pending.team);
+        break;
+      case 'comments':
+        setOpenThreads((current) => new Set(current).add(pending.storyId));
+        break;
+      case 'personalize':
+        break;
+    }
+  };
+
   return (
     <>
       {/* Platform navigation on the web version only; the Email view is an inbox, not the platform. */}
       {mounted && !isEmail && (
         <>
-          <PrototypeNavBar hasUnreadNews={false} newsHref="/home" eventsInMore />
+          <PrototypeNavBar
+            hasUnreadNews={false}
+            newsHref="/home"
+            eventsInMore
+            isLoggedIn={signedIn}
+            onSignIn={() => signIn(null)}
+          />
           <PrototypeMobileNav hasUnreadNews={false} />
         </>
       )}
       <div className={`${s.page} ${isEmail ? '' : s.pageWeb}`}>
         {/* Prototype-only switch: not part of the email or the page. */}
         <nav className={s.viewSwitch} aria-label="Prototype view">
-          <a href="?view=email" className={isEmail ? s.viewSwitchActive : undefined}>
+          <a href={withAuth('view=email')} className={isEmail ? s.viewSwitchActive : undefined}>
             Email
           </a>
           {/* The two ways the page is opened from the email. */}
           <a
-            href="?story=starknet-l1&feedback=more"
+            href={withAuth('story=starknet-l1&feedback=more')}
             className={landed && landedFeedback ? s.viewSwitchActive : undefined}
           >
             From More / Less like this
           </a>
-          <a href="?story=starknet-l1" className={landed && !landedFeedback ? s.viewSwitchActive : undefined}>
+          <a
+            href={withAuth('story=starknet-l1')}
+            className={landed && !landedFeedback ? s.viewSwitchActive : undefined}
+          >
             From Read More
           </a>
         </nav>
+        {/* Prototype-only: who is reading (LAB-3347). Keeps the current view. */}
+        {!isEmail && (
+          <nav className={s.viewSwitch} aria-label="Reader">
+            <a
+              href={(() => {
+                const p = new URLSearchParams(params.toString());
+                p.delete('auth');
+                return `?${p.toString()}`;
+              })()}
+              className={signedIn ? s.viewSwitchActive : undefined}
+            >
+              Signed in
+            </a>
+            <a
+              href={(() => {
+                const p = new URLSearchParams(params.toString());
+                p.set('auth', 'out');
+                return `?${p.toString()}`;
+              })()}
+              className={!signedIn ? s.viewSwitchActive : undefined}
+            >
+              Signed out
+            </a>
+          </nav>
+        )}
 
         <div className={isEmail ? undefined : s.webLayout}>
           <article className={s.email}>
@@ -198,7 +345,7 @@ export default function DigestWebPrototype() {
             )}
 
             <header className={s.intro}>
-              <h1 className={s.greeting}>Hi {DIGEST_ISSUE.greetingName},</h1>
+              <h1 className={s.greeting}>Hi {signedIn ? DIGEST_ISSUE.greetingName : 'there'},</h1>
               {/* Web (manager, 2026-11-20): the How personalization works card explains the picks,
                   so the line under the greeting only says what the digest is. The email has no
                   side column, so it keeps one line in the card's words plus Change topics, a link
@@ -232,15 +379,18 @@ export default function DigestWebPrototype() {
                   asEmail={isEmail}
                   layout={isEmail ? 'email' : i === 0 ? 'hero' : 'row'}
                   following={followed.has(story.team)}
-                  onFollow={() => toggleFollow(story.team)}
+                  onFollow={() => gate({ kind: 'follow', team: story.team }, () => toggleFollow(story.team))}
                   feedback={feedback[story.id]}
                   receiptAtTop={receiptAtTop === story.id}
-                  onPress={(next) => press(story.id, next)}
+                  onPress={(next) =>
+                    gate({ kind: 'feedback', storyId: story.id, feedback: next }, () => press(story.id, next))
+                  }
                   onUndo={() => undo(story.id)}
                   thread={{
                     comments: comments[story.id] ?? [],
                     open: openThreads.has(story.id),
-                    onToggle: () => toggleInSet(setOpenThreads, story.id),
+                    onToggle: () =>
+                      gate({ kind: 'comments', storyId: story.id }, () => toggleInSet(setOpenThreads, story.id)),
                     onAdd: (text, parentUid) => addComment(story.id, text, parentUid),
                     isLiked: (uid) => likedComments.has(uid),
                     onToggleLike: (uid) => toggleInSet(setLikedComments, uid),
@@ -261,7 +411,8 @@ export default function DigestWebPrototype() {
             <DigestForum
               asEmail={isEmail}
               id={`story-${FORUM_SECTION}`}
-              onOpenPost={setOpenPostId}
+              onOpenPost={(postId) => gate({ kind: 'post', postId }, () => setOpenPostId(postId))}
+              onOpenForum={signedIn ? undefined : () => setAsk({ kind: 'forum' })}
               extraReplies={(postId) => (comments[postKey(postId)] ?? []).length}
             />
 
@@ -302,39 +453,51 @@ export default function DigestWebPrototype() {
                 latestIssue={DIGEST_ISSUE.id}
                 pastIssues={PAST_ISSUES}
                 formatDate={(id) => formatIssueDate(id, 'short')}
-                subscribed={topics}
+                subscribed={signedIn ? topics : []}
                 onSaveTopics={saveTopics}
                 onOpenAllTopics={() => setTopicsOpen(true)}
+                signedIn={signedIn}
+                onAskSignIn={setAsk}
+                pendingTopic={pendingTopic}
               />
             )}
 
             {/* The digest asks for content: on the page it opens the team profile's Post news
                 modal; in the email it lands on the page with that modal open. */}
-            <section className={s.sendNews} aria-label="Send us your team news">
-              {/* Left-aligned with a mark on the left (Polina, 2026-11-17): a megaphone, the
+            {/* Team members only, so hidden from a signed-out reader (their team is unknown). */}
+            {signedIn && (
+              <section className={s.sendNews} aria-label="Send us your team news">
+                {/* Left-aligned with a mark on the left (Polina, 2026-11-17): a megaphone, the
                   product's "announce" glyph, in the brand-soft tile. */}
-              <span className={s.sendNewsIcon} aria-hidden>
-                <MegaphoneSimple size={20} />
-              </span>
-              <div className={s.sendNewsBody}>
-                <p className={s.sendNewsTitle}>Got news from your team?</p>
-                <p className={s.sendNewsText}>
-                  {/* "Post", not "send" (Anuj, 2026-11-16): nobody reviews it first, it goes
+                <span className={s.sendNewsIcon} aria-hidden>
+                  <MegaphoneSimple size={20} />
+                </span>
+                <div className={s.sendNewsBody}>
+                  <p className={s.sendNewsTitle}>Got news from your team?</p>
+                  <p className={s.sendNewsText}>
+                    {/* "Post", not "send" (Anuj, 2026-11-16): nobody reviews it first, it goes
                       straight onto the feed. */}
-                  Post it here and it goes straight onto the network feed. The best of the week makes the next
-                  digest.
-                </p>
-                {isEmail ? (
-                  <a href="/prototypes/digest-web?postnews=open" className={s.sendNewsLink}>
-                    Post your team news →
-                  </a>
-                ) : (
-                  <button type="button" className={s.sendNewsLink} onClick={() => setComposeOpen(true)}>
-                    Post your team news →
-                  </button>
-                )}
-              </div>
-            </section>
+                    Post it here and it goes straight onto the network feed. The best of the week makes the next digest.
+                  </p>
+                  {isEmail ? (
+                    <a href="/prototypes/digest-web?postnews=open" className={s.sendNewsLink}>
+                      Post your team news →
+                    </a>
+                  ) : (
+                    <button type="button" className={s.sendNewsLink} onClick={() => setComposeOpen(true)}>
+                      Post your team news →
+                    </button>
+                  )}
+                </div>
+              </section>
+            )}
+
+            <SignInAskModal
+              ask={ask ? askCopy(ask) : null}
+              onClose={() => setAsk(null)}
+              onSignIn={() => signIn(ask)}
+              onSignUp={() => signIn(ask)}
+            />
 
             {!isEmail && (
               <PostNewsModal
@@ -378,9 +541,12 @@ export default function DigestWebPrototype() {
                 latestIssue={DIGEST_ISSUE.id}
                 pastIssues={PAST_ISSUES}
                 formatDate={(id) => formatIssueDate(id, 'short')}
-                subscribed={topics}
+                subscribed={signedIn ? topics : []}
                 onSaveTopics={saveTopics}
                 onOpenAllTopics={() => setTopicsOpen(true)}
+                signedIn={signedIn}
+                onAskSignIn={setAsk}
+                pendingTopic={pendingTopic}
               />
             </aside>
           )}
@@ -440,12 +606,7 @@ function StoryCard({
     </div>
   );
 
-  const layoutClass =
-    layout === 'hero'
-      ? s.cardHero
-      : story.imageSide === 'left'
-        ? s.cardImageLeft
-        : '';
+  const layoutClass = layout === 'hero' ? s.cardHero : story.imageSide === 'left' ? s.cardImageLeft : '';
 
   return (
     <article

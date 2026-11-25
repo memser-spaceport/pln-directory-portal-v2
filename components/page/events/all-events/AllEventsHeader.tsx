@@ -2,42 +2,37 @@ import clsx from 'clsx';
 import Link from 'next/link';
 
 import btn from '@/components/common/Button/Button.module.scss';
-import { ArrowUpRightIcon } from '@/components/icons';
 
 import s from './AllEventsPage.module.scss';
 
 /**
- * The title, one line about the page, the events app in a new tab, "My Submissions" for a signed-in member, and
- * "Submit an event". The server passes the links: with events submitted in LabOS, "Submit an event" opens the LabOS
- * form in the same tab (`submitInApp`); otherwise it opens the submission portal in a new tab.
+ * The title, one line about the page, "My Submissions" for a signed-in member, and "Submit an event". The server
+ * passes the links: with events submitted in LabOS, "Submit an event" opens the LabOS form in the same tab
+ * (`submitInApp`); otherwise it opens the submission portal in a new tab.
+ *
+ * On phones (Polina, 2026-11-24) "Submit an event" sits in the title row, so the actions take no row of their own.
+ * The page has no link to the PL events app (LAB-3420): the event data will move here soon.
  */
 export function AllEventsHeader({
   submitHref,
   submitInApp = false,
   mySubmissionsHref,
-  eventsAppHref,
   onSubmitClick,
-  onEventsAppClick,
 }: {
   submitHref: string;
   /** The submit link stays in LabOS: same tab. */
   submitInApp?: boolean;
   /** The member's own submissions. Left out for a signed-out visitor and while events are not submitted in LabOS. */
   mySubmissionsHref?: string;
-  eventsAppHref: string;
   onSubmitClick?: () => void;
-  onEventsAppClick?: () => void;
 }) {
   return (
     <header className={s.header}>
-      <div>
+      <div className={s.headerText}>
         <h1 className={s.title}>Events</h1>
-        <p className={s.lede}>Meetups, conferences and office hours across the Protocol Labs network.</p>
+        <p className={s.lede}>Meetups and conferences across the Protocol Labs network.</p>
       </div>
       <div className={s.headerActions}>
-        <a href={eventsAppHref} target="_blank" rel="noreferrer" className={s.textLink} onClick={onEventsAppClick}>
-          Open PL Events <ArrowUpRightIcon width={14} height={14} />
-        </a>
         {mySubmissionsHref && (
           <Link href={mySubmissionsHref} className={s.textLink}>
             My Submissions

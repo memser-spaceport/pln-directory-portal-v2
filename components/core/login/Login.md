@@ -223,10 +223,12 @@ const saveTokens = async (response: TokenResponse, user: User) => {
 
 ### Step 8: Complete Login
 
-Show success toast and reload page.
+On `/jobs` or the matching `/jobs/openings/<uid>`, remove `applySignIn` before you call `clearPrivyParams` (LAB-3382).
+`clearPrivyParams` copies the query into the next URL. Then show the success toast and refresh the page.
 
 ```typescript
 const loginUser = async (output) => {
+  stripApplySignInAfterSignIn();
   clearPrivyParams();
   showLoginSuccess();
   router.refresh();
@@ -647,7 +649,7 @@ const isLoggedIn = authStatus.isLoggedIn();
 |------|-------------|--------------|
 | `unexpected_error` | Server error (500/401) | "Unexpected error occurred" |
 | `rejected_access_level` | Access denied (403) | "Access denied" with registration link |
-| `email_not_found` | No member for the email (404) | "This email isn't in the directory yet", naming the email; Sign up or Try another email |
+| `email_not_found` | No member for the email (404) | "This email isn't in the directory yet", naming the email; Sign up or Try another email. The ✕, Escape and a backdrop click remove only the Job Board `applySignIn` marker (LAB-3382) |
 | `linked_to_another_user` | Email already linked | Opens LinkAccountModal |
 | `exited_link_flow` | User cancelled email linking | Cleans up and shows error |
 | `invalid_credentials` | Invalid auth credentials | Cleans up and shows error |
@@ -688,7 +690,7 @@ its session cookies.
 
 | Cookie | Content | Expiry | Scripts can read | Domain |
 |--------|---------|--------|------------------|--------|
-| `authToken` | JWT access token | Access token expiry | yes | `COOKIE_DOMAIN` while shared with AI Apps, else host-only |
+| `authToken` | JWT access token | Access token expiry | yes | host-only; `COOKIE_DOMAIN` only when `AI_APPS_SHARE_AUTH_TOKEN=true` |
 | `refreshToken` | JWT refresh token | Refresh token expiry | **no (httpOnly)** | host-only |
 | `userInfo` | User profile data | Access token expiry | yes | host-only |
 | `sessionExpiresAt` | Refresh token `exp` (epoch seconds); no credential | Refresh token expiry | yes | host-only |

@@ -49,7 +49,7 @@ export interface AllEventsItem {
   endDate: string;
   /** The dates carry no time of day: `startTime`, `endTime` and `zone` are empty. */
   allDay: boolean;
-  /** The event's IANA time zone ("UTC" when unknown), the one the drawer prints times in. */
+  /** The event's own IANA time zone, else its gathering's, else "UTC": the one the drawer prints times in. */
   timezone: string;
   /** "2026-12-03": the first and last day in the event's own time zone. */
   startDay: string;
@@ -70,7 +70,9 @@ export interface AllEventsItem {
   access: EventAccess | null;
   /** Hosts by name: the event's host, then its co-hosts. */
   hosts: string[];
-  /** Topic names. */
+  /** The codes of the event's focus areas, e.g. "FA4" (LAB-3404). */
+  focusAreas: string[];
+  /** Topic names: the tags that are not focus areas. Empty until the events sync fills `details` (LAB-3214). */
   tags: string[];
   featured: boolean;
   picture: string | null;

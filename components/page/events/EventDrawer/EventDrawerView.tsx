@@ -27,14 +27,13 @@ import m from '@/components/core/UpdatesPanel/IrlGatheringModal/IrlGatheringModa
 import type { IrlGatheringFormData } from '@/components/core/UpdatesPanel/IrlGatheringModal/types';
 import type { EventDetail, EventRoleName, MyGatheringPlans } from '@/services/events/event-drawer.types';
 import { EVENT_STATUS_LABEL } from '@/services/events/event-form';
-import { eventsAppEventHref } from '@/services/events/event-when';
 import type { ITeam } from '@/types/teams.types';
 
 import { AttendeesView, SubHead, type EventAttendeesState } from './AttendeesView';
 import { DrawerToolbar } from './DrawerToolbar';
 import { EventSummary } from './EventSummary';
 import e from './EventDrawer.module.scss';
-import { RsvpCard } from './RsvpCard';
+import { RsvpCard, RsvpLink } from './RsvpCard';
 import r from './RsvpCard.module.scss';
 
 export type EventDrawerStatus = 'loading' | 'error' | 'not-found' | 'ready';
@@ -87,6 +86,11 @@ export interface EventDrawerViewProps {
    * Leave it out for a signed-in viewer.
    */
   onSignIn?: () => void;
+  /**
+   * The embed (LAB-3392), framed by another site: going happens on LabOS, so the card and its pinned bar offer
+   * "RSVP on LabOS ↗" to this address in a new tab, and the going count opens nothing. Leave out everywhere else.
+   */
+  rsvpHref?: string;
   /** The list the drawer was opened from, in its order, for previous / next (LAB-3361). Leave out for none. */
   sequence?: string[];
   /** Previous / next pressed: the host opens that event. */
@@ -94,7 +98,6 @@ export interface EventDrawerViewProps {
   /** Show the drawer in place, without its entrance: the host stepped from one event to the next. */
   animateIn?: boolean;
   onLinkCopied?: () => void;
-  onEventsAppOpened?: () => void;
 }
 
 const NOOP = () => {};
@@ -149,15 +152,7 @@ export function EventDrawerView(props: EventDrawerViewProps) {
 function DrawerStates({ status, onClose, onRetry }: Pick<EventDrawerViewProps, 'status' | 'onClose' | 'onRetry'>) {
   return (
     <div className={e.root}>
-      <DrawerToolbar
-        eventUid={null}
-        eventsAppHref={null}
-        prev={null}
-        next={null}
-        showStepper={false}
-        onNavigate={NOOP}
-        onClose={onClose}
-      />
+      <DrawerToolbar eventUid={null} prev={null} next={null} showStepper={false} onNavigate={NOOP} onClose={onClose} />
       {status === 'not-found' ? (
         <div className={e.state} role="status">
           <h2 className={e.stateTitle}>This event is no longer available</h2>
@@ -251,10 +246,10 @@ function EventFlow({
   onSave,
   onGoing,
   onSignIn,
+  rsvpHref,
   sequence = NO_SEQUENCE,
   onNavigate,
   onLinkCopied,
-  onEventsAppOpened,
   drawerCloseRef,
   scrollerRef,
 }: EventDrawerViewProps & {
@@ -375,8 +370,8 @@ function EventFlow({
     onAttendeesOpen?.();
   };
 
-  // Signed out, "Yes, I'm going" starts sign-in (LAB-3271).
-  const asks = !unpublishedStatus && (canMarkGoing || !!onSignIn);
+  // Signed out, "Yes, I'm going" starts sign-in (LAB-3271); in the embed it is a link to LabOS (LAB-3392).
+  const asks = !unpublishedStatus && (canMarkGoing || !!onSignIn || !!rsvpHref);
   const pressYes = canMarkGoing ? handleYes : (onSignIn ?? NOOP);
 
   const index = sequence.indexOf(event.uid);
@@ -443,7 +438,6 @@ function EventFlow({
         <form onSubmit={handleSave} className={e.root} onKeyDown={(ev) => ev.key === 'Enter' && ev.preventDefault()}>
           <DrawerToolbar
             eventUid={event.uid}
-            eventsAppHref={eventsAppEventHref(event.externalId)}
             editHref={view === 'event' ? editHref : undefined}
             prev={prev}
             next={next}
@@ -451,7 +445,6 @@ function EventFlow({
             onNavigate={step}
             onClose={close}
             onCopied={onLinkCopied}
-            onEventsAppOpened={onEventsAppOpened}
           />
 
           {view === 'event' && (
@@ -475,6 +468,7 @@ function EventFlow({
                         city={gathering?.city ?? null}
                         registerUrl={event.eventUrl}
                         saving={saving}
+                        rsvpHref={rsvpHref}
                         onYes={pressYes}
                         onOpenAttendees={openAttendees}
                         onNotGoing={handleNotGoing}
@@ -555,11 +549,14 @@ function EventFlow({
               )}
               <div className={e.rsvpBarActions}>
                 {register}
-                {!going && (
-                  <Button type="button" size="s" onClick={pressYes} disabled={saving}>
-                    Yes, I&apos;m going
-                  </Button>
-                )}
+                {!going &&
+                  (rsvpHref ? (
+                    <RsvpLink href={rsvpHref} />
+                  ) : (
+                    <Button type="button" size="s" onClick={pressYes} disabled={saving}>
+                      Yes, I&apos;m going
+                    </Button>
+                  ))}
               </div>
             </div>
           )}

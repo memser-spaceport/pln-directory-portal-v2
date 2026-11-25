@@ -1,5 +1,6 @@
 import { formatEventDateLine, safeTimezone } from './event-dates';
 import { toAgendaDays, toEventAccess, toEventMode, toEventTag } from './event-drawer.mappers';
+import { toFocusAreaCode } from './focus-areas';
 import type { EventDetail, EventDetailResponse } from './event-drawer.types';
 import {
   browserTimezone,
@@ -163,7 +164,8 @@ export function toPreviewEvent(values: EventFormValues, uid = 'preview'): EventD
     address: venue || null,
     locationUrl: place?.locationUrl ?? null,
     image: values.logo ? (values.logo.kind === 'file' ? values.logo.previewUrl : values.logo.url) : null,
-    tags: values.tags.map(toEventTag),
+    focusAreas: Array.from(new Set(values.tags.map(toFocusAreaCode).filter((code): code is string => !!code))),
+    tags: values.tags.filter((name) => !toFocusAreaCode(name)).map(toEventTag),
     hosts: Array.from(new Set(hosts)),
     description: descriptionText(values.description) ? values.description : null,
     agenda: toAgendaDays(values.agenda ? { ...values.agenda } : null, timezone),

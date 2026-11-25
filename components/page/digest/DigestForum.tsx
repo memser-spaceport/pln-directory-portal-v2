@@ -29,10 +29,10 @@ const replies = (count: number) => `${count} ${count === 1 ? 'reply' : 'replies'
 
 /**
  * "From the forum" (LAB-3293, the digest-web prototype's DigestForum): the email's top threads of the week, numbered,
- * each with "N replies", then "Open the forum". Built on the Upcoming events section's head, list and rows. A row
- * opens Home's forum post modal (the full post, likes, comments) for a signed-in member with forum access; otherwise,
- * or for a thread the member's feed doesn't have, it links to the thread in the forum. Each row keeps `post-<tid>`,
- * so links from older emails still land on it.
+ * each with "N replies" (none at 0), then "Open the forum". Built on the Upcoming events section's head, list and rows. A row
+ * opens Home's forum post modal (the full post, likes, comments) when the member's feed has the thread; otherwise it
+ * links to the thread in the forum. Each row keeps `post-<tid>`, so links from older emails still land on it. Only a
+ * signed-in member with forum access gets here (LAB-3355): the page shows the section to no one else.
  */
 export function DigestForum({ posts, signedIn }: Props) {
   const analytics = useDigestAnalytics();
@@ -54,7 +54,8 @@ export function DigestForum({ posts, signedIn }: Props) {
             <>
               <span className={s.num}>{position + 1}.</span>
               <span className={clsx(ev.name, s.title)}>{post.title}</span>
-              <span className={s.replies}>{replies(post.replyCount)}</span>
+              {/* No count for a thread without replies (Anuj, 2026-11-23: "0 replies" reads as a dead thread). */}
+              {post.replyCount > 0 && <span className={s.replies}>{replies(post.replyCount)}</span>}
             </>
           );
           return (

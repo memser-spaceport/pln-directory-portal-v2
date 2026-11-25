@@ -95,6 +95,22 @@ export const addDays = (isoDay: string, n: number) => {
 /** Upcoming = not over yet. A multi-day event already under way still counts. */
 export const isUpcoming = (event: CalEvent, todayIso: string) => event.endDate >= todayIso;
 
+/**
+ * Live = under way right now (2026-11-25). A multi-day event is live on every one of its days; a
+ * one-day event only between its start and end time, read in its own zone off the dateLine.
+ */
+export function isLive(event: CalEvent, now: Date) {
+  const todayIso = iso(now);
+  if (event.startDate > todayIso || event.endDate < todayIso) return false;
+  if (event.startDate !== event.endDate) return true;
+  const m = DETAILS[event.uid].dateLine.match(/(\d{2}):(\d{2}) - .*?(\d{2}):(\d{2}) \(UTC\s*([+-])(\d+):(\d{2})\)/);
+  if (!m) return true;
+  const [, sh, sm, eh, em, sign, oh, om] = m;
+  const offset = (sign === '-' ? -1 : 1) * (Number(oh) * 60 + Number(om));
+  const local = (((now.getUTCHours() * 60 + now.getUTCMinutes() + offset) % 1440) + 1440) % 1440;
+  return local >= Number(sh) * 60 + Number(sm) && local < Number(eh) * 60 + Number(em);
+}
+
 /** Where a row sits in the list: its first day, or today if it is already under way. */
 export const listDay = (event: CalEvent, todayIso: string) => (event.startDate < todayIso ? todayIso : event.startDate);
 

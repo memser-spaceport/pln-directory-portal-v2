@@ -3,6 +3,7 @@ import { unstable_cache } from 'next/cache';
 import { toDisplayCity } from './all-events.filters';
 import { eventClock, eventEndsAt, safeTimezone, toZoneLabel } from './event-dates';
 import { toEventAccess, toEventMode } from './event-drawer.mappers';
+import { toFocusAreaCode } from './focus-areas';
 import type { AllEventsItem, AllEventsResult, EventListItemResponse, EventListResponse } from './all-events.types';
 
 /*
@@ -32,6 +33,8 @@ export function toAllEventsItem(row: EventListItemResponse): AllEventsItem {
   const country = row.gathering?.country?.trim();
   // Null means the event hides its attendance; 0 means nobody goes yet.
   const hidden = row.goingCount === null || row.goingCount === undefined;
+  // Focus area codes ("FA4") and topics are both tags; they are told apart by the code (LAB-3404).
+  const tagNames = uniqueNames(row.tags ?? []);
 
   return {
     uid: row.uid,
@@ -47,7 +50,8 @@ export function toAllEventsItem(row: EventListItemResponse): AllEventsItem {
     mode: toEventMode(row.format),
     access: toEventAccess(row.accessOption),
     hosts: uniqueNames([row.host?.name, ...(row.coHosts ?? []).map((coHost) => coHost?.name)]),
-    tags: uniqueNames(row.tags ?? []),
+    focusAreas: uniqueNames(tagNames.map(toFocusAreaCode)),
+    tags: tagNames.filter((name) => !toFocusAreaCode(name)),
     featured: row.isFeatured === true,
     picture: row.banner || row.logo || null,
     goingCount: hidden ? null : row.goingCount,
@@ -73,7 +77,7 @@ async function loadAllEvents(): Promise<AllEventsItem[]> {
   return rows.map(toAllEventsItem);
 }
 
-const loadAllEventsCached = unstable_cache(loadAllEvents, ['all-events-page'], {
+const loadAllEventsCached = unstable_cache(loadAllEvents, ['all-events-page', 'focus-areas'], {
   revalidate: 300,
   tags: [ALL_EVENTS_CACHE_TAG],
 });

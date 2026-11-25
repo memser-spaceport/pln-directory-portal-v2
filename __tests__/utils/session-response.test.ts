@@ -38,8 +38,10 @@ beforeEach(() => {
   jest.clearAllMocks();
   process.env.COOKIE_DOMAIN = DOMAIN;
   delete process.env.AI_APPS_SHARE_AUTH_TOKEN;
+  // Read once per test, so a token decodes to the same expiry in the code and in the assertion.
+  const now = nowSec();
   mockedDecode.mockImplementation((token: string) => ({
-    exp: nowSec() + (token.startsWith('refresh') ? 30 * 24 * HOUR : HOUR),
+    exp: now + (token.startsWith('refresh') ? 30 * 24 * HOUR : HOUR),
   }));
 });
 
@@ -74,6 +76,7 @@ describe('sessionCookieAttributes', () => {
   });
 
   it('puts authToken on COOKIE_DOMAIN while sharing is on, host-only once it is off', () => {
+    process.env.AI_APPS_SHARE_AUTH_TOKEN = 'true';
     expect(sessionCookieAttributes('authToken', req()).domain).toBe(DOMAIN);
     process.env.AI_APPS_SHARE_AUTH_TOKEN = 'false';
     expect(sessionCookieAttributes('authToken', req()).domain).toBeUndefined();
@@ -110,6 +113,7 @@ describe('setSessionCookies', () => {
     expect(cookies.filter((c) => c.value === '').map((c) => [c.name, c.attrs.domain])).toEqual([
       ['refreshToken', DOMAIN],
       ['userInfo', DOMAIN],
+      ['authToken', DOMAIN],
     ]);
   });
 

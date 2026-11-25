@@ -22,6 +22,7 @@ jest.mock('next/navigation', () => ({
 type DrawerProps = {
   eventUid: string | null;
   source: string;
+  embed?: boolean;
   onClose: () => void;
   sequence?: string[];
   onNavigate?: (uid: string) => void;
@@ -36,6 +37,7 @@ jest.mock(
           data-testid="event-drawer"
           data-uid={props.eventUid}
           data-source={props.source}
+          data-embed={String(!!props.embed)}
           data-sequence={(props.sequence ?? []).join(',')}
         >
           <button type="button" onClick={props.onClose}>
@@ -65,6 +67,8 @@ const analytics = {
   onEventsEmbedLinkCopied: jest.fn(),
   onEventsEmbedCodeCopied: jest.fn(),
   onEventsEmbedViewed: jest.fn(),
+  onEventsLocationDialogOpened: jest.fn(),
+  onEventsLocationSaved: jest.fn(),
 };
 jest.mock('@/analytics/events.analytics', () => ({ useEventsAnalytics: () => analytics }));
 
@@ -80,8 +84,22 @@ jest.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({ setQueryData: jest.fn() }),
 }));
 const prefetchEventDetail = jest.fn();
+const prefetchOptions: { last?: { anonymous?: boolean } } = {};
 jest.mock('@/services/events/hooks/useEventDrawerQueries', () => ({
-  usePrefetchEventDetail: () => prefetchEventDetail,
+  usePrefetchEventDetail: (options?: { anonymous?: boolean }) => {
+    prefetchOptions.last = options;
+    return prefetchEventDetail;
+  },
+}));
+// The location dialog (LAB-3394) has its own test; here a stand-in says which row opened it.
+jest.mock('@/components/page/events/all-events/LocationDialog', () => ({
+  LocationDialog: (props: { from: string; viewerUid: string; onClose: () => void }) => (
+    <div role="dialog" aria-label="Your location" data-from={props.from} data-uid={props.viewerUid}>
+      <button type="button" onClick={props.onClose}>
+        Cancel
+      </button>
+    </div>
+  ),
 }));
 jest.mock('@/components/core/ToastContainer', () => ({ toast: { success: jest.fn(), error: jest.fn() } }));
 const { toast } = jest.requireMock('@/components/core/ToastContainer');
@@ -146,7 +164,6 @@ function renderPage(over: Partial<AllEventsPageProps> = {}, url = '/events/all')
       memberCity={undefined}
       serverTodayIso="2030-12-01"
       submitHref="https://irl.example/auth/labos?returnUrl=%2Fevents%2Fadd"
-      eventsAppHref="https://events.example/calendar"
       {...over}
     />,
   );
@@ -172,13 +189,17 @@ afterEach(() => {
 });
 
 describe('header and List', () => {
-  it('links the events app and the production submit address, with no iframe', () => {
+  it('links the production submit address, with no events app link and no iframe (LAB-3420)', () => {
     const { container } = renderPage();
     expect(screen.getByRole('heading', { level: 1, name: 'Events' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Open PL Events/ })).toHaveAttribute(
-      'href',
-      'https://events.example/calendar',
-    );
+    // The header has one markup for phones and wider screens, so no link means none on any viewport.
+    const header = container.querySelector('header') as HTMLElement;
+    expect(within(header).getByText('Meetups and conferences across the Protocol Labs network.')).toBeInTheDocument();
+    expect(header).not.toHaveTextContent(/office hours/i);
+    expect(within(header).queryByRole('link', { name: /Open PL Events/ })).toBeNull();
+    expect(within(header).getAllByRole('link')).toHaveLength(1);
+    expect(screen.queryByRole('link', { name: /PL Events/ })).toBeNull();
+    expect(analytics.onGoToEventsButtonClicked).not.toHaveBeenCalled();
     expect(screen.getByRole('link', { name: /Submit an event/ })).toHaveAttribute(
       'href',
       'https://irl.example/auth/labos?returnUrl=%2Fevents%2Fadd',
@@ -207,35 +228,16 @@ describe('header and List', () => {
     going.uids = [];
     const props = { ...signedIn('Berlin'), result: { ok: true as const, items: sample() } };
     const { rerender } = render(
-      <AllEventsPage
-        {...props}
-        serverTodayIso="2030-12-01"
-        submitHref="https://irl.example/submit"
-        eventsAppHref="https://events.example/calendar"
-      />,
+      <AllEventsPage {...props} serverTodayIso="2030-12-01" submitHref="https://irl.example/submit" />,
     );
     expect(within(card('DAI Summit')).getByText('3 going')).toBeInTheDocument();
 
     going.uids = ['dai'];
-    rerender(
-      <AllEventsPage
-        {...props}
-        serverTodayIso="2030-12-01"
-        submitHref="https://irl.example/submit"
-        eventsAppHref="https://events.example/calendar"
-      />,
-    );
+    rerender(<AllEventsPage {...props} serverTodayIso="2030-12-01" submitHref="https://irl.example/submit" />);
     expect(within(card('DAI Summit')).getByText('4 going')).toBeInTheDocument();
 
     going.uids = [];
-    rerender(
-      <AllEventsPage
-        {...props}
-        serverTodayIso="2030-12-01"
-        submitHref="https://irl.example/submit"
-        eventsAppHref="https://events.example/calendar"
-      />,
-    );
+    rerender(<AllEventsPage {...props} serverTodayIso="2030-12-01" submitHref="https://irl.example/submit" />);
     expect(within(card('DAI Summit')).getByText('3 going')).toBeInTheDocument();
   });
 
@@ -255,10 +257,59 @@ describe('Near you', () => {
     expect(tiles).toEqual(['lis1', 'lis2', 'lis3']);
   });
 
-  it('asks a member with no location to add one, linking to their profile', () => {
+  it('carries what the List card does, for the phone layout: the host, and one Going pill in the foot', () => {
+    going.uids = ['dai'];
+    renderPage(signedIn('Bangalore'));
+    const tile = screen
+      .getByRole('region', { name: 'Near you in Bangalore' })
+      .querySelector('[data-event-uid="dai"]') as HTMLElement;
+    expect(within(tile).getByText('By Protocol Labs')).toBeInTheDocument();
+    expect(within(tile).getAllByText('Going')).toHaveLength(1);
+    expect(within(tile).getByText('Going').parentElement).toContainElement(within(tile).getByText('3 going'));
+  });
+
+  it('has no host line for an event with no host', () => {
+    renderPage(signedIn('Lisbon'));
+    const near = screen.getByRole('region', { name: 'Near you in Lisbon' });
+    expect(within(near).queryByText(/^By\b/)).toBeNull();
+  });
+
+  it('asks a member with no location to add one, in the location dialog (LAB-3394)', () => {
     renderPage(signedIn(null));
     expect(screen.getByText('See events near you.')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Add location' })).toHaveAttribute('href', '/members/m1');
+    expect(screen.queryByRole('dialog', { name: 'Your location' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Add location' }));
+    const dialog = screen.getByRole('dialog', { name: 'Your location' });
+    expect(dialog).toHaveAttribute('data-from', 'add');
+    expect(dialog).toHaveAttribute('data-uid', 'm1');
+    expect(analytics.onEventsLocationDialogOpened).toHaveBeenCalledWith({ from: 'add' });
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.queryByRole('dialog', { name: 'Your location' })).toBeNull();
+  });
+
+  it('lets a member with a location change it from beside the heading (LAB-3394)', () => {
+    renderPage(signedIn('Lisbon'));
+    const near = screen.getByRole('region', { name: 'Near you in Lisbon' });
+    fireEvent.click(within(near).getByRole('button', { name: 'Change your location' }));
+    expect(screen.getByRole('dialog', { name: 'Your location' })).toHaveAttribute('data-from', 'change');
+    expect(analytics.onEventsLocationDialogOpened).toHaveBeenCalledWith({ from: 'change' });
+  });
+
+  it('offers to change a location with no upcoming event in it, where Near you would be (LAB-3394)', () => {
+    renderPage(signedIn('Reykjavik'));
+    expect(screen.queryByText(/Near you in/)).toBeNull();
+    expect(screen.queryByText('See events near you.')).toBeNull();
+    expect(screen.getByText('No upcoming events near Reykjavik.')).toBeInTheDocument();
+    // Two wordings, one shown at a time (CSS): phones have no Browse by city to point at (LAB-3391).
+    expect(screen.getByText('Browse other cities below, or change your location.')).toHaveClass('fromTablet');
+    expect(screen.getByText('Choose another city in Filters, or change your location.')).toHaveClass('onPhones');
+    fireEvent.click(screen.getByRole('button', { name: 'Change location' }));
+    expect(screen.getByRole('dialog', { name: 'Your location' })).toHaveAttribute('data-from', 'no-events');
+  });
+
+  it('shows the no-events row on the plain List only', () => {
+    renderPage(signedIn('Reykjavik'), '/events/all?mode=Online');
+    expect(screen.queryByText('No upcoming events near Reykjavik.')).toBeNull();
   });
 
   it('shows on the plain List only: not in Calendar or Map, not with a filter (Polina, 2026-11-20; LAB-3375)', () => {
@@ -302,11 +353,17 @@ describe('Near you', () => {
     renderPage();
     expect(screen.queryByText(/Near you in/)).toBeNull();
     expect(screen.queryByText('See events near you.')).toBeNull();
+    expect(screen.queryByText(/No upcoming events near/)).toBeNull();
     expect(going.enabled.every((e) => e === false)).toBe(true);
   });
 });
 
 describe('Browse by city', () => {
+  it('carries the class that hides it on phones, where a city is chosen in Filters (LAB-3391)', () => {
+    renderPage();
+    expect(screen.getByRole('region', { name: 'Browse by city' })).toHaveClass('citySection');
+  });
+
   it('opens every city in place, scopes the page to one and leaves it again', () => {
     renderPage();
     fireEvent.click(screen.getByRole('button', { name: 'All 7 cities' }));
@@ -347,25 +404,35 @@ describe('filters', () => {
     expect(within(rail).queryByText("Events I'm going to")).toBeNull();
   });
 
-  it('offers Access type, Focus area and Host once the events carry them, and hides them before', () => {
+  it('offers Access type, Focus area, Topic and Host once the events carry them, and hides them before', () => {
     const detailed = [
-      item({ uid: 'a', access: 'PAID', hosts: ['Protocol Labs'], tags: ['AI'] }),
-      item({ uid: 'b', city: 'Dubai', access: 'INVITE ONLY', hosts: ['Filecoin Foundation'], tags: ['Storage'] }),
+      item({ uid: 'a', access: 'PAID', hosts: ['Protocol Labs'], focusAreas: ['FA3'], tags: ['AI'] }),
+      item({
+        uid: 'b',
+        city: 'Dubai',
+        access: 'INVITE ONLY',
+        hosts: ['Filecoin Foundation'],
+        focusAreas: ['FA4'],
+        tags: ['Storage'],
+      }),
     ];
     const { unmount } = renderPage({ result: { ok: true, items: detailed } });
     fireEvent.click(filtersDoor());
     let rail = document.getElementById('events-filters') as HTMLElement;
-    const titles = ['Access type', 'Focus area', 'City', 'Host'];
+    const titles = ['Access type', 'Focus area', 'Topic', 'City', 'Host'];
     titles.forEach((title) => expect(within(rail).getByText(title)).toBeInTheDocument());
-    // The prototype's order: Mode, Access type, Focus area, City, Host.
+    // The prototype's order: Mode, Access type, Focus area, City, Host; Topic after Focus area (LAB-3404).
     const text = rail.textContent ?? '';
     expect(titles.map((t) => text.indexOf(t))).toEqual([...titles.map((t) => text.indexOf(t))].sort((x, y) => x - y));
+    // LAB-3404: names, never codes.
+    expect(within(rail).getByText('AI & Robotics')).toBeInTheDocument();
+    expect(text).not.toMatch(/FA\d/);
     unmount();
 
     renderPage();
     fireEvent.click(filtersDoor());
     rail = document.getElementById('events-filters') as HTMLElement;
-    ['Access type', 'Focus area'].forEach((title) => expect(within(rail).queryByText(title)).toBeNull());
+    ['Access type', 'Focus area', 'Topic'].forEach((title) => expect(within(rail).queryByText(title)).toBeNull());
   });
 
   it('narrows the events by host and shows it as a chip', () => {
@@ -374,6 +441,34 @@ describe('filters', () => {
     expect(screen.getByText('DAI Summit')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Remove filter Protocol Labs' }));
     expect(storeParams().get('host')).toBeNull();
+  });
+
+  it('Access type offers "RSVP", and an old ?access=Free link shows an RSVP chip (LAB-3407)', () => {
+    const items = [item({ uid: 'a', name: 'Open night', access: 'FREE w/ RSVP' }), item({ uid: 'b', access: 'PAID' })];
+    renderPage({ result: { ok: true, items } }, '/events/all?access=Free');
+    expect(toolbarCount()).toBe('1 event');
+    expect(screen.getByText('Open night')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remove filter RSVP' })).toBeInTheDocument();
+    // The card names how you get in only when it isn't the usual RSVP.
+    expect(screen.queryByText('RSVP to save your spot')).toBeNull();
+    fireEvent.click(filtersDoor());
+    const rail = document.getElementById('events-filters') as HTMLElement;
+    expect(within(rail).getByText('RSVP')).toBeInTheDocument();
+    expect(within(rail).queryByText('Free')).toBeNull();
+  });
+
+  it('a focus area chip shows the name and the link keeps the code (LAB-3404)', () => {
+    renderPage({}, '/events/all?focus=FA4');
+    fireEvent.click(screen.getByRole('button', { name: 'Remove filter Neurotech' }));
+    expect(storeParams().get('focus')).toBeNull();
+  });
+
+  it('an applied focus area no event has still shows its name in the rail (LAB-3404)', () => {
+    renderPage({}, '/events/all?focus=FA2');
+    fireEvent.click(filtersDoor());
+    const rail = document.getElementById('events-filters') as HTMLElement;
+    expect(within(rail).getByText('Economies & Governance')).toBeInTheDocument();
+    expect(rail.textContent).not.toMatch(/FA\d/);
   });
 
   it('removes one chip and the count follows', () => {
@@ -654,7 +749,7 @@ describe('Embed dialog (LAB-3352, LAB-3365)', () => {
     expect(preview()).toHaveAttribute('src', '/events/embed?view=calendar&cal=month&city=Lisbon');
     expect(preview()).toHaveAttribute('title', 'Preview: Protocol Labs events: Lisbon');
     expect(code()).toBe(
-      `<iframe src="${window.location.origin}/events/embed?view=calendar&amp;cal=month&amp;city=Lisbon" width="100%" height="640" style="border: 1px solid #e2e8f0; border-radius: 12px;" title="Protocol Labs events: Lisbon" loading="lazy"></iframe>`,
+      `<iframe src="${window.location.origin}/events/embed?view=calendar&amp;cal=month&amp;city=Lisbon" width="100%" height="640" style="border: 1px solid #e2e8f0; border-radius: 12px;" title="Protocol Labs events: Lisbon" allow="clipboard-write" loading="lazy"></iframe>`,
     );
     expect(within(dialog()).getByText(/New events that match appear on their own/)).toBeInTheDocument();
   });
@@ -665,10 +760,14 @@ describe('Embed dialog (LAB-3352, LAB-3365)', () => {
     expect(within(dialog()).getByText('List view · All upcoming events')).toBeInTheDocument();
     await press('Copy code');
     expect(writeText).toHaveBeenCalledWith(
-      `<iframe src="${window.location.origin}/events/embed" width="100%" height="640" style="border: 1px solid #e2e8f0; border-radius: 12px;" title="Protocol Labs events" loading="lazy"></iframe>`,
+      `<iframe src="${window.location.origin}/events/embed" width="100%" height="640" style="border: 1px solid #e2e8f0; border-radius: 12px;" title="Protocol Labs events" allow="clipboard-write" loading="lazy"></iframe>`,
     );
     expect(within(dialog()).getByRole('button', { name: 'Code copied' })).toBeInTheDocument();
-    expect(analytics.onEventsEmbedCodeCopied).toHaveBeenCalledWith({ view: 'list', filters_count: 0 });
+    expect(analytics.onEventsEmbedCodeCopied).toHaveBeenCalledWith({
+      view: 'list',
+      filters_count: 0,
+      details: 'embed',
+    });
     expect(analytics.onEventsEmbedLinkCopied).not.toHaveBeenCalled();
     act(() => jest.advanceTimersByTime(2000));
     expect(within(dialog()).getByRole('button', { name: 'Copy code' })).toBeInTheDocument();
@@ -692,7 +791,11 @@ describe('Embed dialog (LAB-3352, LAB-3365)', () => {
     expect(within(dialog()).getByRole('button', { name: 'Link copied' })).toBeInTheDocument();
     expect(within(dialog()).getByRole('button', { name: 'Copy code' })).toBeInTheDocument();
     expect(toast.success).not.toHaveBeenCalled();
-    expect(analytics.onEventsEmbedLinkCopied).toHaveBeenCalledWith({ view: 'calendar', filters_count: 2 });
+    expect(analytics.onEventsEmbedLinkCopied).toHaveBeenCalledWith({
+      view: 'calendar',
+      filters_count: 2,
+      details: 'embed',
+    });
   });
 
   it('embeds the calendar mode on show when the address has none', () => {
@@ -700,6 +803,40 @@ describe('Embed dialog (LAB-3352, LAB-3365)', () => {
     openDialog();
     expect(within(dialog()).getByText('Month calendar · All upcoming events')).toBeInTheDocument();
     expect(preview()).toHaveAttribute('src', '/events/embed?view=calendar&cal=month');
+  });
+
+  it('lets the host open event details on LabOS instead, in the link, the code and the preview (LAB-3392)', async () => {
+    renderPage({}, '/events/all?view=calendar&cal=month&city=Lisbon');
+    openDialog();
+    const option = within(dialog()).getByRole('checkbox', { name: 'Open event details on LabOS' });
+    expect(option).not.toBeChecked();
+    fireEvent.click(option);
+    expect(option).toBeChecked();
+    expect(preview()).toHaveAttribute('src', '/events/embed?view=calendar&cal=month&city=Lisbon&details=labos');
+    expect(code()).toContain(
+      `src="${window.location.origin}/events/embed?view=calendar&amp;cal=month&amp;city=Lisbon&amp;details=labos"`,
+    );
+    await press('Copy link');
+    expect(writeText).toHaveBeenCalledWith(
+      `${window.location.origin}/events/embed?view=calendar&cal=month&city=Lisbon&details=labos`,
+    );
+    expect(analytics.onEventsEmbedLinkCopied).toHaveBeenCalledWith({
+      view: 'calendar',
+      filters_count: 1,
+      details: 'labos',
+    });
+  });
+
+  it('adds `details` as the only parameter of the plain embed, and starts unticked on the next opening', () => {
+    renderPage();
+    openDialog();
+    fireEvent.click(within(dialog()).getByRole('checkbox', { name: 'Open event details on LabOS' }));
+    expect(preview()).toHaveAttribute('src', '/events/embed?details=labos');
+    fireEvent.click(within(dialog()).getByRole('button', { name: 'Close' }));
+    act(() => jest.advanceTimersByTime(300));
+    openDialog();
+    expect(within(dialog()).getByRole('checkbox', { name: 'Open event details on LabOS' })).not.toBeChecked();
+    expect(preview()).toHaveAttribute('src', '/events/embed');
   });
 
   it('escapes the search text in the code', () => {
@@ -796,15 +933,50 @@ describe('the embed (LAB-3352)', () => {
     expect(screen.getByRole('link', { name: /All events on PL Directory/ })).toHaveAttribute('href', '/events/all');
   });
 
-  it('opens an event on LabOS in a new tab, with no drawer and nothing in its own address', () => {
+  const drawer = () => screen.getByTestId('event-drawer');
+
+  it('opens an event in its own drawer, in embed mode, without touching its address (LAB-3392)', () => {
     renderPage({ embed: true }, '/events/embed');
+    fireEvent.click(card('DAI Summit'));
+    expect(drawer()).toHaveAttribute('data-uid', 'dai');
+    expect(drawer()).toHaveAttribute('data-embed', 'true');
+    expect(drawer()).toHaveAttribute('data-source', 'embed');
+    expect(open).not.toHaveBeenCalled();
+    // The address belongs to the framing page's history: opening and closing an event adds nothing to it.
+    expect(storeParams().get('event')).toBeNull();
+    expect(window.location.search).toBe('');
+  });
+
+  it('steps to the next event in the embed, and closes back to the same view and filters (LAB-3392 AC3)', () => {
+    renderPage({ embed: true }, '/events/embed?mode=In%20person');
+    fireEvent.click(card('Lisbon event 1'));
+    const sequence = drawer().getAttribute('data-sequence')?.split(',') ?? [];
+    fireEvent.click(screen.getByRole('button', { name: 'Next event' }));
+    expect(drawer()).toHaveAttribute('data-uid', sequence[1]);
+    fireEvent.click(screen.getByRole('button', { name: 'Close drawer' }));
+    expect(screen.queryByTestId('event-drawer')).toBeNull();
+    expect(storeParams().get('mode')).toBe('In person');
+    expect(card('Lisbon event 1')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Community Call/ })).toBeNull();
+  });
+
+  it('loads an event signed out when a press is coming', () => {
+    prefetchEventDetail.mockClear();
+    renderPage({ embed: true }, '/events/embed');
+    fireEvent.focus(card('DAI Summit'));
+    expect(prefetchEventDetail).toHaveBeenCalledWith('dai');
+    expect(prefetchOptions.last).toEqual({ anonymous: true });
+  });
+
+  it('with `details=labos`, opens an event on LabOS in a new tab, with no drawer (LAB-3392 AC2)', () => {
+    renderPage({ embed: true, detailsOnLabOs: true }, '/events/embed?details=labos');
     fireEvent.click(card('DAI Summit'));
     expect(open).toHaveBeenCalledWith('/events/all?event=dai', '_blank', 'noopener,noreferrer');
     expect(storeParams().get('event')).toBeNull();
     expect(screen.queryByTestId('event-drawer')).toBeNull();
   });
 
-  it('never opens the drawer, even from an `?event=` in its address', () => {
+  it('ignores an `?event=` in its address: an embed link never carries one', () => {
     prefetchEventDetail.mockClear();
     renderPage({ embed: true }, '/events/embed?event=dai');
     expect(screen.queryByTestId('event-drawer')).toBeNull();
@@ -824,7 +996,11 @@ describe('the embed (LAB-3352)', () => {
     Object.defineProperty(document, 'referrer', { configurable: true, value: 'https://www.plrd.org/' });
     renderPage({ embed: true }, '/events/embed?view=calendar');
     expect(analytics.onEventsEmbedViewed).toHaveBeenCalledTimes(1);
-    expect(analytics.onEventsEmbedViewed).toHaveBeenCalledWith({ view: 'calendar', referrer_host: 'www.plrd.org' });
+    expect(analytics.onEventsEmbedViewed).toHaveBeenCalledWith({
+      view: 'calendar',
+      referrer_host: 'www.plrd.org',
+      details: 'embed',
+    });
     Object.defineProperty(document, 'referrer', { configurable: true, value: '' });
   });
 

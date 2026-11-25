@@ -307,11 +307,26 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
+.tagGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+/* As the agenda's day titles. */
+.tagGroupLabel {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
 .tags {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 4px;
 }
 
 .tag.tag {

@@ -14,7 +14,7 @@ jest.mock('react-calendar', () => ({ __esModule: true, default: () => <div data-
 
 describe('All Events header', () => {
   it('opens the old portal in a new tab, with no "My Submissions", while events are not submitted in LabOS', () => {
-    render(<AllEventsHeader submitHref="https://irl.test/auth/labos" eventsAppHref="https://events.test/calendar" />);
+    render(<AllEventsHeader submitHref="https://irl.test/auth/labos" />);
     const submit = screen.getByRole('link', { name: 'Submit an event' });
     expect(submit).toHaveAttribute('href', 'https://irl.test/auth/labos');
     expect(submit).toHaveAttribute('target', '_blank');
@@ -22,14 +22,7 @@ describe('All Events header', () => {
   });
 
   it('opens the LabOS form in the same tab and shows a signed-in member "My Submissions"', () => {
-    render(
-      <AllEventsHeader
-        submitHref="/events/submit"
-        submitInApp
-        mySubmissionsHref="/events/mine"
-        eventsAppHref="https://events.test/calendar"
-      />,
-    );
+    render(<AllEventsHeader submitHref="/events/submit" submitInApp mySubmissionsHref="/events/mine" />);
     const submit = screen.getByRole('link', { name: 'Submit an event' });
     expect(submit).toHaveAttribute('href', '/events/submit');
     expect(submit).not.toHaveAttribute('target');
@@ -37,7 +30,7 @@ describe('All Events header', () => {
   });
 
   it('shows a signed-out visitor "Submit an event" and no "My Submissions"', () => {
-    render(<AllEventsHeader submitHref="/events/submit" submitInApp eventsAppHref="https://events.test/calendar" />);
+    render(<AllEventsHeader submitHref="/events/submit" submitInApp />);
     expect(screen.getByRole('link', { name: 'Submit an event' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'My Submissions' })).toBeNull();
   });

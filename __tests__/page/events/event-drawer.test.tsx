@@ -36,6 +36,7 @@ jest.mock('@/services/access-control/hooks/useIrlGoingAccess', () => ({ useIrlGo
 
 const queries: {
   detail: { data: EventDetailResponse | null | undefined; isError: boolean; refetch: jest.Mock };
+  detailOptions?: { anonymous?: boolean };
   plans: { data: MyGatheringPlans | undefined; isError: boolean };
   attendeesEnabled: boolean[];
 } = {
@@ -44,7 +45,10 @@ const queries: {
   attendeesEnabled: [],
 };
 jest.mock('@/services/events/hooks/useEventDrawerQueries', () => ({
-  useEventDetail: () => queries.detail,
+  useEventDetail: (_uid: string, options?: { anonymous?: boolean }) => {
+    queries.detailOptions = options;
+    return queries.detail;
+  },
   useMyGatheringPlans: () => queries.plans,
   useEventAttendees: ({ enabled }: { enabled: boolean }) => {
     queries.attendeesEnabled.push(enabled);
@@ -356,5 +360,61 @@ describe('EventDrawer member signals (LAB-3267)', () => {
       await click(screen.getByRole('button', { name: 'Copy link' }));
       expect(analytics.onEventLinkCopied).toHaveBeenCalledWith({ eventUid: 'labweek-lisbon' });
     });
+  });
+});
+
+describe('EventDrawer in the embed (LAB-3392)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    flag.on = true;
+    access.canWrite = true;
+    access.isLoading = false;
+    queries.detail = { data: eventResponse(), isError: false, refetch: jest.fn() };
+    queries.plans = { data: NO_PLANS, isError: false };
+    queries.attendeesEnabled = [];
+    // The Embed dialog's preview is LabOS framing itself, so a member may well be signed in.
+    useCurrentUserStore.setState({ currentUser: { uid: 'viewer-1', name: 'Maya', leadingTeams: [] } as never });
+  });
+
+  const renderEmbed = () => render(<EventDrawer embed eventUid="labweek-lisbon" source="embed" onClose={jest.fn()} />);
+
+  it('reads the event signed out and asks with "RSVP on LabOS", in a new tab', () => {
+    renderEmbed();
+    expect(queries.detailOptions).toEqual({ anonymous: true });
+    expect(screen.getByText('Are you going?')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: "Yes, I'm going" })).toBeNull();
+    const rsvp = screen.getByRole('link', { name: /RSVP on LabOS/ });
+    expect(rsvp).toHaveAttribute('href', '/events/all?event=labweek-lisbon');
+    expect(rsvp).toHaveAttribute('target', '_blank');
+    expect(rsvp).toHaveAttribute('rel', 'noopener noreferrer');
+    expect(analytics.onEventDrawerOpened).toHaveBeenCalledWith({ eventUid: 'labweek-lisbon', source: 'embed' });
+  });
+
+  it('shows who is going as text: no sign-in, no attendee list', () => {
+    renderEmbed();
+    expect(screen.getByText('40 members going')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '40 members going' })).toBeNull();
+    expect(goToLogin).not.toHaveBeenCalled();
+    expect(queries.attendeesEnabled.every((e) => e === false)).toBe(true);
+  });
+
+  it('has no "Open in PL Events" in the embed either, with the app address and the event id (LAB-3420)', () => {
+    const original = process.env.PL_EVENTS_BASE_URL;
+    process.env.PL_EVENTS_BASE_URL = 'https://events.test';
+    try {
+      renderEmbed();
+      expect(screen.getByRole('button', { name: 'Copy link' })).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: /PL Events/ })).toBeNull();
+      expect(document.querySelector('a[href^="https://events.test"]')).toBeNull();
+      expect(analytics.onEventEventsAppOpened).not.toHaveBeenCalled();
+    } finally {
+      if (original === undefined) delete process.env.PL_EVENTS_BASE_URL;
+      else process.env.PL_EVENTS_BASE_URL = original;
+    }
+  });
+
+  it("records no member signal: a view inside another site's embed is nobody's", () => {
+    renderEmbed();
+    expect(mockRecordSignal).not.toHaveBeenCalled();
   });
 });

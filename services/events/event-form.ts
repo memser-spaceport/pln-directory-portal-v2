@@ -75,6 +75,7 @@ export const EVENT_FORM_TEXT = {
   handleInvalid: 'Enter a valid handle',
   agendaNeedsDates: 'Please select start and end date before adding agenda items.',
   agendaNeedsEventDates: 'Please set your event start date, end date, and timezone first',
+  logoHint: 'Logo: a square (1:1) PNG or JPEG, up to 4MB',
   logoTooLarge: 'Image size should be less than 4MB',
   logoNotSquare: 'Image must have a 1:1 aspect ratio',
   created: 'Event Created Successfully',

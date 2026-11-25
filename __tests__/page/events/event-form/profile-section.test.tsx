@@ -38,6 +38,12 @@ beforeEach(() => {
 });
 
 describe('ProfileSection: logo', () => {
+  it('says what a logo must be before anything is picked', () => {
+    renderSection(<ProfileSection />);
+
+    expect(screen.getByText('Logo: a square (1:1) PNG or JPEG, up to 4MB')).toBeInTheDocument();
+  });
+
   it('offers an upload control and no picture while there is no logo', () => {
     renderSection(<ProfileSection />);
 

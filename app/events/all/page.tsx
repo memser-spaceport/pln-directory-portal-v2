@@ -39,7 +39,6 @@ export default async function Page() {
       memberCity={memberCity}
       serverTodayIso={localIso(new Date())}
       submitHref={getSubmitEventUrl()}
-      eventsAppHref={`${process.env.PL_EVENTS_BASE_URL}/calendar`}
     />
   );
 }

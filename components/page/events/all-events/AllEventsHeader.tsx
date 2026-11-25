@@ -1,44 +1,24 @@
 import clsx from 'clsx';
 
 import btn from '@/components/common/Button/Button.module.scss';
-import { ArrowUpRightIcon } from '@/components/icons';
 
 import s from './AllEventsPage.module.scss';
 
 /**
- * The title, one line about the page, the events app in a new tab, and "Submit an event". The submit link is
- * production's `getSubmitEventUrl()` (through the events portal's LabOS sign-in), passed in from the server.
+ * The title, one line about the page and "Submit an event". The submit link is production's `getSubmitEventUrl()`
+ * (through the events portal's LabOS sign-in), passed in from the server.
  *
- * On phones (Polina, 2026-11-24) "Submit an event" sits in the title row and the events app link ends the description,
- * so the actions take no row of their own. That link is in the markup twice; CSS shows one of the two.
+ * On phones (Polina, 2026-11-24) "Submit an event" sits in the title row, so the actions take no row of their own.
+ * The page has no link to the PL events app (LAB-3420): the event data will move here soon.
  */
-export function AllEventsHeader({
-  submitHref,
-  eventsAppHref,
-  onSubmitClick,
-  onEventsAppClick,
-}: {
-  submitHref: string;
-  eventsAppHref: string;
-  onSubmitClick?: () => void;
-  onEventsAppClick?: () => void;
-}) {
-  const eventsAppLink = (className: string) => (
-    <a href={eventsAppHref} target="_blank" rel="noreferrer" className={className} onClick={onEventsAppClick}>
-      Open PL Events <ArrowUpRightIcon width={14} height={14} />
-    </a>
-  );
-
+export function AllEventsHeader({ submitHref, onSubmitClick }: { submitHref: string; onSubmitClick?: () => void }) {
   return (
     <header className={s.header}>
       <div className={s.headerText}>
         <h1 className={s.title}>Events</h1>
-        <p className={s.lede}>
-          Meetups, conferences and office hours across the Protocol Labs network. {eventsAppLink(s.ledeLink)}
-        </p>
+        <p className={s.lede}>Meetups and conferences across the Protocol Labs network.</p>
       </div>
       <div className={s.headerActions}>
-        {eventsAppLink(s.textLink)}
         {/* The DS Button's classes on the link itself: a <button> inside an <a> is two controls. */}
         <a
           href={submitHref}

@@ -8,6 +8,7 @@ export interface NavPoint {
   label: string;
   date: string;
   totalPlaa: number;
+  plaaReserves?: number | null;
   nav: number;
   navPerPlaa: number;
   treasuries: number;

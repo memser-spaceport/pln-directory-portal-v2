@@ -1,11 +1,3 @@
-// Monthly NAV reconciliation built from Surus trust statement facts. Pure —
-// no React, no fetching — so the same logic can move server-side once
-// statements come from plaa-service instead of a checked-in file.
-//
-// All arithmetic is in integer cents. Statement amounts are kept as the
-// strings printed on the statement and parsed here, so a figure can be
-// checked against its PDF line by eye.
-
 export type Cents = number;
 
 // verified: the statement states it. inferred: derived or classified by us,
@@ -23,7 +15,6 @@ export type MovementCategory =
   | 'valuation'
   | 'unclassified';
 
-// A transaction transcribed from a statement's Activity Detail.
 export interface StatementMovement {
   category: Exclude<MovementCategory, 'valuation' | 'unclassified'>;
   // Signed, as it moves NAV: inflows positive, outflows negative.
@@ -39,7 +30,6 @@ export interface StatementMovement {
   note?: string;
 }
 
-// A line, or group of lines, from a statement's Portfolio Assets Detail.
 export interface StatementHolding {
   id: string;
   name: string;
@@ -187,8 +177,6 @@ const GROUPS: { key: BridgeGroupKey; label: string; categories: MovementCategory
   { key: 'unclassified', label: 'Unclassified NAV Movement', categories: ['unclassified'] },
 ];
 
-// Categories in ALWAYS_SHOWN render every month, with an em dash when
-// empty; the rest appear only when a month has them.
 const CATEGORY_ORDER: MovementCategory[] = GROUPS.flatMap((group) => group.categories);
 const ALWAYS_SHOWN = new Set<MovementCategory>([
   'cashContribution',
@@ -217,9 +205,11 @@ interface Entry {
   note?: string;
 }
 
-// Whatever a holding's transactions don't explain. Market holdings call it
-// valuation; carrying-value holdings can't move on price, so any remainder
-// is unclassified.
+const valuationStatus = (corroborated: boolean | null, openingSource?: string): ClassificationStatus => {
+  if (corroborated === false) return 'unresolved';
+  return corroborated || openingSource ? 'verified' : 'inferred';
+};
+
 function residualEntries(statement: TrustStatement, checks: ReconciliationCheck[]): Entry[] {
   return statement.holdings.flatMap((holding): Entry[] => {
     const flows = sum(statement.movements.filter((m) => m.holding === holding.id).map((m) => toCents(m.amount)));
@@ -260,9 +250,7 @@ function residualEntries(statement: TrustStatement, checks: ReconciliationCheck[
         category: 'valuation',
         label: holding.valuationLabel ?? `${holding.name} Valuation Changes`,
         amount: residual,
-        // Verified when the statement's own unrealized gain/loss moved by the same amount, or
-        // when there is nothing to corroborate against but the opening value has a named source.
-        status: corroborated === false ? 'unresolved' : corroborated || holding.openingSource ? 'verified' : 'inferred',
+        status: valuationStatus(corroborated, holding.openingSource),
         assets: holding.assets,
         source,
         note: holding.valuationNote,

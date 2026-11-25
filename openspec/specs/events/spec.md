@@ -486,7 +486,7 @@ In List view with no filter applied (Polina's design, 2026-11-20; LAB-3375), a s
 
 ### Requirement: Browse by city scopes the page to one city
 
-From 640px up, List view SHALL show "Browse by city" under the toolbar with the 5 cities that have the most upcoming events, each with its name and count. When there are more cities, "All N cities" SHALL show the rest in place, and "Show fewer" SHALL hide them again. On phones (below 640px) it SHALL NOT show: a city is chosen in Filters (LAB-3391). Choosing a city SHALL scope the page to it: in List, a city header with "← All cities", the city's name, its event count, its date range and its time zone, in place of Near you and Browse by city; every view SHALL show only that city's events. Under the List's bands, the dated list SHALL have the heading "All upcoming", or "Matching events" while a filter is applied. Calendar and Map SHALL show neither Near you, Browse by city nor the city header (LAB-3375): a chosen city SHALL show there as a removable chip. The city tile and the City filter SHALL be the same selection. The word "Gatherings" SHALL NOT appear on the page.
+From 640px up, List view SHALL show "Browse by city" under the toolbar with the 5 cities that have the most upcoming events, each with its name and count. When there are more cities, "All N cities" SHALL show the rest in place, and "Show fewer" SHALL hide them again. On phones (below 640px) it SHALL NOT show: a city is chosen in Filters (LAB-3391). Choosing a city SHALL scope the page to it: in List, a city header with "← All cities", the city's name, its event count ("3 live & upcoming events", LAB-3425), its date range and its time zone, in place of Near you and Browse by city; every view SHALL show only that city's events. Under the List's bands, the dated list SHALL have the heading "All live & upcoming" (LAB-3425), or "Matching events" while a filter is applied. Calendar and Map SHALL show neither Near you, Browse by city nor the city header (LAB-3375): a chosen city SHALL show there as a removable chip. The city tile and the City filter SHALL be the same selection. The word "Gatherings" SHALL NOT appear on the page.
 
 #### Scenario: Phones have no Browse by city
 
@@ -500,6 +500,7 @@ From 640px up, List view SHALL show "Browse by city" under the toolbar with the 
 - **GIVEN** upcoming events in 7 cities
 - **WHEN** a visitor presses "All 7 cities" and then "Dubai"
 - **THEN** the page shows the Dubai header and only Dubai events
+- **AND** with one event there, the header's count reads "1 live & upcoming event"
 - **AND** the City filter shows Dubai as applied
 
 #### Scenario: Leaving the city
@@ -510,7 +511,7 @@ From 640px up, List view SHALL show "Browse by city" under the toolbar with the 
 
 ### Requirement: The Coming up toolbar and filters
 
-A "Coming up" toolbar, right under the page header (Polina's design, 2026-11-20; LAB-3374), SHALL show the number of events that match, a Filters button and the view switch List · Calendar · Map, offering only the views this build has (no switch while there is one). On desktop and tablet it SHALL stay in view under the navbar while the events scroll. The filter rail SHALL be closed by default. The Filters button SHALL open it and show the number of applied filters. The rail SHALL have a control that closes it and "Clear All". While the rail is closed, each applied filter SHALL show as a removable chip under the toolbar. The filters SHALL be, in this order: search (event name, host, city, focus area name or topic), "Events I'm going to" (signed-in members only), Mode (In person, Online, Hybrid; LAB-3370), Access type (RSVP, Paid, Invite only; the address keeps `access=Free` for RSVP, so links and embeds made before LAB-3407 still work), Focus area (the event's focus areas, by name; the address keeps the code, `focus=FA4`), Topic (every other tag; LAB-3404), City and Host (any of the event's hosts). Topic and Host SHALL have a search box. Values within one filter SHALL match any (OR); different filters SHALL all apply (AND). A filter list with fewer than 2 values in the loaded events SHALL NOT show, unless it is applied; so Access type, Focus area, Topic and Host stay hidden while the events carry no details. A Featured filter SHALL NOT show until the events data says which events are featured. Filters and the view SHALL be kept in the page address, so a copied link reopens the same view and filters, and switching view SHALL keep the filters. On phones the filters SHALL open as a bottom sheet from a Filters button.
+A "Coming up" toolbar, right under the page header (Polina's design, 2026-11-20; LAB-3374), SHALL show the number of events that match, a Filters button and the view switch List · Calendar · Map, offering only the views this build has (no switch while there is one). The view switch, and Week | Month in the Calendar, SHALL look like the design system's enclosed tabs (LAB-3425): a grey track, 34px tall, of 26px tabs with 4px between them, the active one white. The view switch's track SHALL be darker than the page's grey; Week | Month SHALL keep the design system's track colour, on the white calendar card. Both SHALL be tab lists to assistive technology, each tab SHALL be reachable with the keyboard and SHALL show its focus, and no tab's label SHALL wrap. On desktop and tablet the toolbar SHALL stay in view under the navbar while the events scroll. The filter rail SHALL be closed by default. The Filters button SHALL open it and show the number of applied filters. The rail SHALL have a control that closes it and "Clear All". While the rail is closed, each applied filter SHALL show as a removable chip under the toolbar. The filters SHALL be, in this order: search (event name, host, city, focus area name or topic), "Events I'm going to" (signed-in members only), Mode (In person, Online, Hybrid; LAB-3370), Access type (RSVP, Paid, Invite only; the address keeps `access=Free` for RSVP, so links and embeds made before LAB-3407 still work), Focus area (the event's focus areas, by name; the address keeps the code, `focus=FA4`), Topic (every other tag; LAB-3404), City and Host (any of the event's hosts). Topic and Host SHALL have a search box. Values within one filter SHALL match any (OR); different filters SHALL all apply (AND). A filter list with fewer than 2 values in the loaded events SHALL NOT show, unless it is applied; so Access type, Focus area, Topic and Host stay hidden while the events carry no details. A Featured filter SHALL NOT show until the events data says which events are featured. Filters and the view SHALL be kept in the page address, so a copied link reopens the same view and filters, and switching view SHALL keep the filters. On phones the filters SHALL open as a bottom sheet from a Filters button.
 
 #### Scenario: Filter survives a view switch
 
@@ -552,7 +553,7 @@ A "Coming up" toolbar, right under the page header (Polina's design, 2026-11-20;
 
 - **GIVEN** filters that match no event
 - **WHEN** the view loads
-- **THEN** it says no upcoming events match and offers "Show all events", which clears every filter and keeps the view and an open event
+- **THEN** it says "No live or upcoming events match" and offers "Show all events", which clears every filter and keeps the view and an open event
 
 #### Scenario: Events fail to load
 
@@ -562,7 +563,7 @@ A "Coming up" toolbar, right under the page header (Polina's design, 2026-11-20;
 
 ### Requirement: The List view
 
-The List view SHALL be the default. It SHALL group events by start day, soonest first. Each day SHALL have a date label (for example "Dec 3 / Thursday") that stays in view while its events scroll. Each card SHALL show: the start time in the event's time zone with its UTC offset, and "Day n of m" for a multi-day event; the title; the host when known; the place ("Online" for an online event, the city with "also online" for a hybrid one); the going count with up to 3 faces when the event shows attendance; and the picture. On phones the date SHALL sit above its cards.
+The List view SHALL be the default. It SHALL group events by start day, soonest first. Each day SHALL have a date label (for example "Dec 3 / Thursday"), at the size of a card's time line, that stays in view while its events scroll. From 1200px the cards SHALL end at the right edge of the 4th "Browse by city" tile; below 1200px, where that row has 3 tiles, they SHALL fill the width (LAB-3425). The loading state SHALL have the same width. Each card SHALL show: the start time in the event's time zone with its UTC offset, and "Day n of m" for a multi-day event; the title; the host when known; the place ("Online" for an online event, the city with "also online" for a hybrid one); the going count with up to 3 faces when the event shows attendance; and the picture. On phones the date SHALL sit above its cards.
 
 #### Scenario: Multi-day event
 
@@ -570,10 +571,48 @@ The List view SHALL be the default. It SHALL group events by start day, soonest 
 - **WHEN** the visitor opens the List view
 - **THEN** its card under Dec 3 reads "9:00 AM UTC+5:30 · Day 1 of 2"
 
+#### Scenario: The cards line up with the city tiles
+
+- **GIVEN** a 1440px screen and events in 5 cities or more
+- **WHEN** the visitor opens the List view
+- **THEN** the event cards end where the 4th city tile ends
+- **AND** on a 1024px screen they fill the width
+
 #### Scenario: Online event
 
 - **GIVEN** an online event
 - **THEN** its card's place reads "Online"
+
+### Requirement: An event under way reads Live
+
+On the All Events page and in its embed, a green "Live" pill SHALL start the time line of a List card and of a Near you tile while the event is under way (LAB-3425, Polina's design on LAB-3424). An event that lasts 24 hours or less SHALL be live from its start until it ends, also when it crosses midnight. A longer event SHALL be live on every day of its span: from midnight of its first day, in its own time zone, until it ends; where the browser does not know that zone, from its start. An event that has ended SHALL NOT be live. The viewer's time zone SHALL NOT matter. The pill SHALL be in the server's HTML, and SHALL appear and go within a minute of the event's start and end while the page stays open, with no reload; an event that ends then stays listed, without the pill, until the next load. On a narrow card the time SHALL wrap beside the pill and stay whole. Calendar and Map SHALL show no Live pill.
+
+#### Scenario: Event longer than 24 hours
+
+- **GIVEN** an event on Dec 3–5 in Asia/Kolkata, 9:00 AM to 6:00 PM
+- **WHEN** it is 1:00 AM on Dec 3, or any time on Dec 4, in Kolkata
+- **THEN** its card reads Live
+- **AND** from 6:00 PM on Dec 5 there it does not
+
+#### Scenario: Event of 24 hours or less
+
+- **GIVEN** an event on Dec 3, 6:00–9:00 PM in New York, and a viewer in Tokyo
+- **WHEN** it is 7:00 PM in New York, already Dec 4 in Tokyo
+- **THEN** the event's card reads Live
+- **AND** at 5:59 PM and at 9:00 PM in New York it does not
+
+#### Scenario: Evening event that ends after midnight
+
+- **GIVEN** an event from 10:00 PM on Dec 3 to 1:00 AM on Dec 4 in New York
+- **WHEN** it is 9:00 AM on Dec 3 in New York
+- **THEN** its card does not read Live
+- **AND** from 10:00 PM until 1:00 AM it does
+
+#### Scenario: The page stays open
+
+- **GIVEN** the List view open at 5:58 PM, with an event that starts at 6:00 PM
+- **WHEN** it is 6:00 PM
+- **THEN** the event's card shows the Live pill with no reload
 
 ### Requirement: The Calendar view
 
@@ -667,7 +706,7 @@ The "Coming up" toolbar on `/events/all` SHALL show an "Embed" button with a `</
 
 The dialog SHALL show:
 
-- under the title, what the embed shows: "List view", "Week calendar", "Month calendar" or "Map view", then each applied filter's chip label (the search text in curly quotes), joined by " · ", or "All upcoming events" with none;
+- under the title, what the embed shows: "List view", "Week calendar", "Month calendar" or "Map view", then each applied filter's chip label (the search text in curly quotes), joined by " · ", or "All live & upcoming events" with none (LAB-3425);
 - a live preview: `/events/embed` with that query, 320px high, loaded only while the dialog is open;
 - "Embed code": one line, `<iframe src="<link>" width="100%" height="640" style="border: 1px solid #e2e8f0; border-radius: 12px;" title="<title>" allow="clipboard-write" loading="lazy"></iframe>`, whose title is "Protocol Labs events: " and the filter labels joined by " · ", or "Protocol Labs events" with none; `&`, `"` and `<` escaped; with the line "New events that match appear on their own. Change height to fit your page.";
 - the checkbox "Open event details on LabOS", unticked whenever the dialog opens, with the line "In a new tab. Otherwise they open inside the embed, with a link to RSVP on LabOS." Ticked, the preview, the code and the copied link SHALL end with `details=labos` (LAB-3392);

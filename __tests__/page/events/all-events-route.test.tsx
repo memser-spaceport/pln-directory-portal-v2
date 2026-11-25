@@ -29,8 +29,13 @@ jest.mock('@/services/events/all-events.service', () => ({
   getMemberProfileCity: (...a: unknown[]) => loads.city(...a),
 }));
 jest.mock('@/components/page/events/all-events/AllEventsPage', () => ({
-  AllEventsPage: (props: { memberCity: unknown; signedIn: boolean }) => (
-    <div data-testid="all-events" data-signed-in={String(props.signedIn)} data-city={String(props.memberCity)} />
+  AllEventsPage: (props: { memberCity: unknown; signedIn: boolean; serverNow: number }) => (
+    <div
+      data-testid="all-events"
+      data-signed-in={String(props.signedIn)}
+      data-city={String(props.memberCity)}
+      data-server-now={String(props.serverNow)}
+    />
   ),
 }));
 
@@ -74,4 +79,13 @@ it('reads a signed-in member’s city with their token', async () => {
   render(await Page());
   expect(loads.city).toHaveBeenCalledWith('m1', 'tok');
   expect(screen.getByTestId('all-events')).toHaveAttribute('data-city', 'Lisbon');
+});
+
+it('hands the page the server’s clock, for the Live pills of the first render (LAB-3425)', async () => {
+  flags.page = true;
+  jest.useFakeTimers({ now: new Date('2030-12-01T10:00:00Z') });
+  const page = await Page();
+  jest.useRealTimers();
+  render(page);
+  expect(screen.getByTestId('all-events')).toHaveAttribute('data-server-now', String(Date.UTC(2030, 11, 1, 10)));
 });

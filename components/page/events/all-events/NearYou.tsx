@@ -17,6 +17,7 @@ export function NearYou({
   events,
   todayIso,
   goingUids,
+  liveUids,
   onOpen,
   onPrepare,
   onSeeAll,
@@ -26,6 +27,8 @@ export function NearYou({
   events: AllEventsItem[];
   todayIso: string;
   goingUids: Set<string>;
+  /** The events under way now (LAB-3425). */
+  liveUids: Set<string>;
   onOpen: (uid: string) => void;
   onPrepare: (uid: string) => void;
   onSeeAll: () => void;
@@ -58,6 +61,7 @@ export function NearYou({
             item={item}
             todayIso={todayIso}
             going={goingUids.has(item.uid)}
+            live={liveUids.has(item.uid)}
             onOpen={() => onOpen(item.uid)}
             onPrepare={() => onPrepare(item.uid)}
           />

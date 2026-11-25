@@ -29,15 +29,18 @@
   }
 }
 
+/* The design system's enclosed Tabs, as the toolbar's view switch (AllEventsPage.module.scss `.viewSwitch`, LAB-3425):
+   the same 26px tabs, on the DS track colour, because this track sits on a white card. */
 .modes {
   display: inline-flex;
-  padding: 2px;
+  gap: 4px;
+  padding: 4px;
   border-radius: 8px;
   background: var(--background-neutral-subtle, #f1f5f9);
 }
 
 .mode {
-  height: 28px;
+  height: 26px;
   padding: 0 12px;
   border: none;
   border-radius: 6px;
@@ -46,18 +49,26 @@
   font-size: 14px;
   line-height: 20px;
   font-weight: 500;
+  letter-spacing: -0.2px;
   color: var(--foreground-neutral-secondary, #455468);
+  white-space: nowrap;
   cursor: pointer;
+  transition: all 120ms;
 
   &:hover {
-    color: var(--foreground-neutral-primary, #0a0c11);
+    background: var(--background-base-white, #ffffff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
   }
 }
 
 .modeActive {
   background: var(--background-base-white, #ffffff);
   color: var(--foreground-neutral-primary, #0a0c11);
-  box-shadow: 0 0 0 1px var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  box-shadow: var(--shadow-sm, 0px 1px 2px 0px rgba(14, 15, 17, 0.06), 0px 1px 3px 0px rgba(14, 15, 17, 0.12));
 }
 
 .label {

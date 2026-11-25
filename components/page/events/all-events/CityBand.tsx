@@ -103,7 +103,7 @@ export function CityHeader({
             {city}
           </h2>
           <p className={s.cityHeaderMeta}>
-            {eventCount} upcoming {eventCount === 1 ? 'event' : 'events'}
+            {eventCount} live & upcoming {eventCount === 1 ? 'event' : 'events'}
             {summary && ` · ${spanLabel(summary.startDay, summary.endDay)}`}
             {summary?.zone && ` · Times in ${city} time (${summary.zone})`}
           </p>

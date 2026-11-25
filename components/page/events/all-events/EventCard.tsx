@@ -10,6 +10,7 @@ import type { AllEventsItem } from '@/services/events/all-events.types';
 
 import { GoingFaces } from './GoingFaces';
 import { AccessIcon, PinIcon } from './icons';
+import { LivePill } from './LivePill';
 import s from './AllEventsPage.module.scss';
 
 /** What a card needs to open the drawer: the press, and the hover / focus that preloads it. */
@@ -77,10 +78,11 @@ export function EventCard({
   item,
   day,
   going,
+  live,
   highlighted,
   onOpen,
   onPrepare,
-}: { item: AllEventsItem; day: string; going: boolean; highlighted: boolean } & EventPress) {
+}: { item: AllEventsItem; day: string; going: boolean; live: boolean; highlighted: boolean } & EventPress) {
   const when = [`${item.startTime} ${item.zone}`, dayOfSpan(item, day)].filter(Boolean).join(' · ');
   return (
     <button
@@ -92,7 +94,10 @@ export function EventCard({
       onFocus={onPrepare}
     >
       <span className={s.cardBody}>
-        <span className={s.cardWhen}>{when}</span>
+        <span className={s.cardWhen}>
+          {live && <LivePill />}
+          {when}
+        </span>
         <span className={s.cardTitle}>{item.name}</span>
         {item.hosts.length > 0 && (
           <span className={s.cardMeta}>
@@ -119,9 +124,10 @@ export function EventTile({
   item,
   todayIso,
   going,
+  live,
   onOpen,
   onPrepare,
-}: { item: AllEventsItem; todayIso: string; going: boolean } & EventPress) {
+}: { item: AllEventsItem; todayIso: string; going: boolean; live: boolean } & EventPress) {
   return (
     <button
       type="button"
@@ -135,7 +141,10 @@ export function EventTile({
         <EventImage src={item.picture} className={s.tileFill} />
       </span>
       <span className={s.tileBody}>
-        <span className={s.tileWhen}>{whenLine(item, todayIso)}</span>
+        <span className={s.tileWhen}>
+          {live && <LivePill />}
+          {whenLine(item, todayIso)}
+        </span>
         <span className={s.tileTitle}>{item.name}</span>
         {item.hosts.length > 0 && (
           <span className={clsx(s.tileMeta, s.tileHost)}>

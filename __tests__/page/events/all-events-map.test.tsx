@@ -362,6 +362,7 @@ describe('the page with a Maps key', () => {
         signedIn={false}
         viewerUid={null}
         memberCity={undefined}
+        serverNow={Date.now()}
         serverTodayIso="2030-12-01"
         submitHref="https://irl.example/submit"
       />,

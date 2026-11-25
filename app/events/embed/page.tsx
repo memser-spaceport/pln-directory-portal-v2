@@ -22,6 +22,7 @@ export default async function EventsEmbedRoute({
   if (!SHOW_EVENTS_PAGE_V2) notFound();
 
   const [result, query] = await Promise.all([getAllEventsPageEvents(), searchParams]);
+  const now = new Date();
   return (
     <AllEventsPage
       embed
@@ -30,7 +31,8 @@ export default async function EventsEmbedRoute({
       signedIn={false}
       viewerUid={null}
       memberCity={undefined}
-      serverTodayIso={localIso(new Date())}
+      serverNow={now.getTime()}
+      serverTodayIso={localIso(now)}
       submitHref=""
     />
   );

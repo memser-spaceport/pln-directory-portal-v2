@@ -37,25 +37,25 @@ export interface TrustBuyback {
 type ViewMode = 'monthly-graph' | 'table';
 
 const VIEW_OPTIONS: { id: ViewMode; label: string }[] = [
-  { id: 'monthly-graph', label: 'Chart View' },
+  { id: 'monthly-graph', label: 'Monthly Graph' },
   { id: 'table', label: 'Table View' },
 ];
 
 const SERIES_COLORS = {
-  plvh: '#30c593',
-  digital: '#0090ff',
+  plvh: '#34c38f',
+  digital: '#1e7bff',
   treasuries: '#64748b',
   nav: '#1e3a8a',
-  issuance: '#dc2626',
+  issuance: '#0c5259',
 };
 
 // Maroon, outside the series palette — reads against every bar and the green total.
-const BUYBACK_COLOR = '#800000';
+const BUYBACK_COLOR = '#9b1c1c';
 
 // Single source for the chart's margin — used by the ComposedChart itself
 // and by perPlaaPixelY below, so the two can never drift apart.
 const CHART_MARGIN = { top: 48, right: 16, left: 16, bottom: 8 };
-const AXIS_TEXT_STYLE = { fontFamily: 'inherit', fontSize: 12, fontWeight: 500, fill: '#64748b' };
+const AXIS_TEXT_STYLE = { fontFamily: 'inherit', fontSize: 12, fontWeight: 500, fill: '#8897ae' };
 const NAV_LINE_WIDTH = 2;
 
 const digitalTotal = (p: { btc: number; eth: number; fil: number }) => p.btc + p.eth + p.fil;
@@ -69,28 +69,24 @@ const KEY_ITEMS: {
   color: string;
   line: boolean;
   dashed: boolean;
-  monthlyOnly?: boolean;
   toggle?: SeriesToggle;
 }[] = [
   { label: 'PLVH', color: SERIES_COLORS.plvh, line: false, dashed: false },
   { label: 'Digital assets', color: SERIES_COLORS.digital, line: false, dashed: false },
   { label: 'US Treasuries', color: SERIES_COLORS.treasuries, line: false, dashed: false },
-  { label: 'NAV / PLAA', color: SERIES_COLORS.nav, line: true, dashed: false, toggle: 'nav' },
+  { label: 'NAV / PLAA (FDV)', color: SERIES_COLORS.nav, line: true, dashed: false, toggle: 'nav' },
   { label: 'Buyback clearing price', color: BUYBACK_COLOR, line: true, dashed: true, toggle: 'buyback' },
   {
-    label: 'PLAA Outstanding',
+    label: 'Total PLAA',
     color: SERIES_COLORS.issuance,
     line: true,
     dashed: false,
-    monthlyOnly: true,
     toggle: 'issuance',
   },
 ];
 
-const keyMarkerStyle = (item: { color: string; dashed: boolean }) =>
-  item.dashed
-    ? { backgroundImage: `repeating-linear-gradient(to right, ${item.color} 0 4px, transparent 4px 8px)` }
-    : { backgroundColor: item.color };
+const keyMarkerStyle = (item: { color: string; line: boolean; dashed: boolean }) =>
+  item.line ? { borderTop: `2px ${item.dashed ? 'dashed' : 'solid'} ${item.color}` } : { backgroundColor: item.color };
 
 const formatCurrency = (value: number) => {
   if (!value) return '—';
@@ -114,7 +110,7 @@ const renderIssuanceDot = ({
   index?: number;
 }) => (
   <circle key={`issuance-${index}`} cx={cx} cy={cy} r={3} fill={SERIES_COLORS.issuance} strokeWidth={0}>
-    <title>{payload ? `${payload.label}: ${formatCount(payload.totalPlaa)} PLAA in circulation` : ''}</title>
+    <title>{payload ? `${payload.label}: ${formatCount(payload.totalPlaa)} total PLAA` : ''}</title>
   </circle>
 );
 
@@ -220,7 +216,7 @@ const renderTotalLabel = (rows: NavPoint[]) =>
         x={x + width / 2}
         y={baseline}
         textAnchor="middle"
-        fill={highlight ? SERIES_COLORS.plvh : '#475569'}
+        fill={highlight ? '#1f9d6e' : '#455468'}
         stroke="#f8fafc"
         strokeWidth={4}
         paintOrder="stroke"
@@ -335,6 +331,25 @@ function buybackMarkersByPeriod(buybacks: TrustBuyback[]): Record<string, Buybac
 }
 
 // Final category (latest month) highlighted in blue.
+const formatAxisCount = (value: number) => {
+  if (Math.abs(value) >= 1_000_000) return `${+(value / 1_000_000).toFixed(1)}M`;
+  if (Math.abs(value) >= 1_000) return `${Math.round(value / 1_000)}k`;
+  return String(value);
+};
+
+const renderIssuanceTick = ({ x, y, payload }: { x: number; y: number; payload: { value: number } }) => (
+  <text
+    x={x}
+    y={y}
+    transform={`rotate(-90, ${x}, ${y})`}
+    textAnchor="middle"
+    dominantBaseline="hanging"
+    style={{ ...AXIS_TEXT_STYLE, fill: SERIES_COLORS.issuance }}
+  >
+    {formatAxisCount(payload.value)}
+  </text>
+);
+
 const renderAxisTick = (lastLabel: string) =>
   function AxisTick(props: any) {
     const { x, y, payload } = props;
@@ -346,7 +361,7 @@ const renderAxisTick = (lastLabel: string) =>
         dy={16}
         textAnchor="middle"
         {...AXIS_TEXT_STYLE}
-        fill={isLast ? '#0090ff' : AXIS_TEXT_STYLE.fill}
+        fill={isLast ? '#0c5259' : AXIS_TEXT_STYLE.fill}
         fontWeight={isLast ? 600 : AXIS_TEXT_STYLE.fontWeight}
       >
         {payload.value}
@@ -404,17 +419,17 @@ function NavChart({
               <YAxis
                 yAxisId="issuance"
                 orientation="right"
-                width={110}
+                width={48}
                 domain={[0, (max: number) => Math.max(1, max)]}
                 padding={{ bottom: 32 }}
                 allowDecimals={false}
-                tickFormatter={formatCount}
-                tick={AXIS_TEXT_STYLE}
+                tick={renderIssuanceTick}
                 tickLine={false}
                 axisLine={false}
                 label={{
                   ...AXIS_TEXT_STYLE,
-                  value: 'PLAA in circulation',
+                  fill: SERIES_COLORS.issuance,
+                  value: 'Total PLAA',
                   angle: -90,
                   position: 'insideRight',
                   style: { textAnchor: 'middle' },
@@ -427,7 +442,7 @@ function NavChart({
                 yAxisId="issuance"
                 type="linear"
                 dataKey="totalPlaa"
-                name="PLAA Outstanding"
+                name="Total PLAA"
                 stroke={SERIES_COLORS.issuance}
                 strokeWidth={NAV_LINE_WIDTH}
                 dot={renderIssuanceDot}
@@ -449,6 +464,7 @@ function NavChart({
             </Bar>
             {!hidden.nav && (
               <Line
+                className="th-nav-line"
                 yAxisId="perPlaa"
                 type="linear"
                 dataKey="navPerPlaa"
@@ -459,8 +475,11 @@ function NavChart({
                 isAnimationActive={false}
               />
             )}
+            {/* Auctions are months apart, so the track is dotted through the
+              periods that had none rather than implying a price in between. */}
             {hasBuybacks && (
               <Line
+                className="th-buyback-line"
                 yAxisId="perPlaa"
                 type="linear"
                 dataKey="buyback"
@@ -559,11 +578,9 @@ function BuybackResultsAccordion({ buybacks }: { buybacks: TrustBuyback[] }) {
 
 const assetCell = (value: number) => (value ? formatAsset(value) : <span className="th-table__dash">—</span>);
 
-const NAV_TABLE_COLUMNS = 9;
+const NAV_TABLE_COLUMNS = 10;
 
-// Each month expands into its Contributions & Expenses breakdown, one at a
-// time. The panel row stays mounted so it can animate; collapsed, it has no
-// height or border, so the table reads exactly as before.
+// The panel row stays mounted so it can animate; collapsed, it has no height or border.
 function NavTable({
   data,
   reconciliations,
@@ -581,8 +598,9 @@ function NavTable({
           <tr>
             <th>DATE</th>
             <th>TOTAL PLAA</th>
+            <th>PLAA RESERVES</th>
             <th>NAV</th>
-            <th>NAV / PLAA</th>
+            <th>NAV / PLAA FDV</th>
             <th>US TREASURIES</th>
             <th>BTC</th>
             <th>ETH</th>
@@ -614,6 +632,7 @@ function NavTable({
                     </button>
                   </td>
                   <td>{formatCount(row.totalPlaa)}</td>
+                  <td>{row.plaaReserves != null ? formatCount(row.plaaReserves) : ''}</td>
                   <td className="th-table__nav">{formatCurrency(row.nav)}</td>
                   <td className="th-table__perplaa">{formatPerPlaa(row.navPerPlaa)}</td>
                   <td>{formatCurrency(row.treasuries)}</td>
@@ -730,7 +749,11 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
 
       {/* Trust NAV Over Time */}
       <section className="th-card th-card--nav">
-        <NavSummaryCard navUsd={latestMonthly?.nav ?? null} totalUnits={latestMonthly?.totalPlaa ?? null} />
+        <NavSummaryCard
+          navUsd={latestMonthly?.nav ?? null}
+          totalUnits={latestMonthly?.totalPlaa ?? null}
+          reserves={latestMonthly?.plaaReserves ?? null}
+        />
 
         <div className="th-card__body">
           <div className="th-nav-meta-block">
@@ -758,41 +781,39 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
               ))}
             </div>
 
-            {view === 'monthly-graph' && (
-              <ul className="th-key">
-                {KEY_ITEMS.filter((item) => !item.monthlyOnly || view === 'monthly-graph').map((item) => {
-                  const marker = (
-                    <span
-                      className={`th-key__marker ${item.line ? 'th-key__marker--line' : ''}`}
-                      style={keyMarkerStyle(item)}
-                    />
-                  );
-                  const toggle = item.toggle;
-                  return (
-                    <li key={item.label} className="th-key__item">
-                      {toggle ? (
-                        <label className="th-key__toggle">
-                          <input
-                            type="checkbox"
-                            className="th-key__checkbox"
-                            data-testid={`th-key-${toggle}`}
-                            checked={!hidden[toggle]}
-                            onChange={() => setHidden((prev) => ({ ...prev, [toggle]: !prev[toggle] }))}
-                          />
-                          {marker}
-                          {item.label}
-                        </label>
-                      ) : (
-                        <>
-                          {marker}
-                          {item.label}
-                        </>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
+            <ul className="th-key" aria-label="Chart key">
+              {KEY_ITEMS.map((item) => {
+                const marker = (
+                  <span
+                    className={`th-key__marker ${item.line ? 'th-key__marker--line' : ''}`}
+                    style={keyMarkerStyle(item)}
+                  />
+                );
+                const toggle = item.toggle;
+                return (
+                  <li key={item.label} className="th-key__item">
+                    {toggle ? (
+                      <label className="th-key__toggle">
+                        <input
+                          type="checkbox"
+                          className="th-key__checkbox"
+                          data-testid={`th-key-${toggle}`}
+                          checked={!hidden[toggle]}
+                          onChange={() => setHidden((prev) => ({ ...prev, [toggle]: !prev[toggle] }))}
+                        />
+                        {marker}
+                        {item.label}
+                      </label>
+                    ) : (
+                      <>
+                        {marker}
+                        {item.label}
+                      </>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
           </div>
 
           {view === 'monthly-graph' && (
@@ -943,7 +964,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           flex-direction: column;
           gap: 28px;
           width: 100%;
-          color: #475569;
+          color: #455468;
           font-family: 'Inter', sans-serif;
         }
 
@@ -958,7 +979,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           font-size: 24px;
           font-weight: 600;
           line-height: 28px;
-          color: #0f172a;
+          color: #0a0c11;
         }
 
         .th__subtitle {
@@ -966,7 +987,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           max-width: 1052px;
           font-size: 14px;
           line-height: 20px;
-          color: #475569;
+          color: #455468;
         }
 
         /* Cards */
@@ -1005,7 +1026,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           font-size: 13px;
           font-weight: 400;
           line-height: 18px;
-          color: #94a3b8;
+          color: #8897ae;
         }
 
         .th-card__note--standalone {
@@ -1014,6 +1035,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
 
         /* Controls */
         .th-controls {
+          letter-spacing: -0.014em;
           display: flex;
           flex-wrap: wrap;
           gap: 16px;
@@ -1024,20 +1046,24 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
 
         .th-toggle {
           display: inline-flex;
-          gap: 4px;
-          padding: 4px;
-          border-radius: 9px;
-          background-color: #eef1f5;
+          gap: 3px;
+          padding: 3px;
+          border-radius: 10px;
+          background-color: rgb(249, 250, 251);
+          box-shadow: inset 0 0 0 1px rgba(27, 56, 96, 0.12);
         }
 
         .th-toggle__btn {
-          padding: 7px 18px;
+          height: 30px;
+          padding: 0 14px;
+          white-space: nowrap;
           border: none;
           border-radius: 8px;
           background-color: transparent;
-          font-size: 13px;
-          font-weight: 500;
-          color: #64748b;
+          font-size: 12px;
+          line-height: 16px;
+          font-weight: 600;
+          color: rgb(69, 84, 104);
           cursor: pointer;
           transition:
             background-color 0.15s ease,
@@ -1046,15 +1072,17 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
 
         .th-toggle__btn--active {
           background-color: #ffffff;
-          color: #0f172a;
-          font-weight: 600;
-          box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.08);
+          color: rgb(10, 12, 17);
+          box-shadow:
+            inset 0 0 0 1px rgba(27, 56, 96, 0.12),
+            0 1px 2px rgba(15, 23, 42, 0.06);
         }
 
         .th-key {
           display: flex;
           flex-wrap: wrap;
-          gap: 20px;
+          align-items: center;
+          gap: 8px 16px;
           margin: 0;
           padding: 0;
           list-style: none;
@@ -1063,46 +1091,54 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
         .th-key__item {
           display: flex;
           align-items: center;
-          gap: 7px;
-          font-size: 13px;
+          gap: 6px;
+          white-space: nowrap;
+          font-size: 12px;
+          line-height: 16px;
           font-weight: 500;
-          color: #475569;
+          color: rgb(69, 84, 104);
         }
 
         .th-key__marker {
-          width: 12px;
-          height: 12px;
-          border-radius: 4px;
+          width: 9px;
+          height: 9px;
+          border-radius: 999px;
         }
 
         .th-key__marker--line {
-          width: 18px;
-          height: 3px;
-          border-radius: 2px;
+          width: 16px;
+          height: 0;
+          border-radius: 0;
         }
 
         .th-key__toggle {
-          display: flex;
+          display: inline-flex;
           align-items: center;
-          gap: 7px;
+          gap: 6px;
           cursor: pointer;
           user-select: none;
         }
 
         .th-key__checkbox {
+          appearance: none;
+          flex: none;
           width: 14px;
           height: 14px;
           margin: 0;
+          border-radius: 3px;
+          box-shadow: inset 0 0 0 1.5px rgb(61, 74, 92);
+          background-color: #fff;
           cursor: pointer;
-          accent-color: #0090ff;
         }
 
-        .th-key__toggle:has(.th-key__checkbox:not(:checked)) {
-          color: #94a3b8;
+        .th-key__checkbox:checked {
+          box-shadow: none;
+          background-color: #0c5259;
         }
 
-        .th-key__toggle:has(.th-key__checkbox:not(:checked)) .th-key__marker {
-          opacity: 0.35;
+        .th-key__checkbox:focus-visible {
+          outline: 2px solid #0c5259;
+          outline-offset: 2px;
         }
 
         /* Chart sits on a subtle panel band (Figma "crow": #f8fafc, 16px top pad). */
@@ -1145,34 +1181,65 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           container-type: inline-size;
           width: 100%;
           overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
           margin-top: 8px;
-          border: 1px solid #e2e8f0;
-          border-radius: 14px;
+          border-radius: 12px;
+          box-shadow: inset 0 0 0 1px rgba(27, 56, 96, 0.12);
+        }
+
+        /* macOS hides overlay scrollbars until you scroll, so a wide table
+           would look cut off. A styled scrollbar stays visible. */
+        .th-table-wrapper::-webkit-scrollbar {
+          height: 8px;
+        }
+
+        .th-table-wrapper::-webkit-scrollbar-thumb {
+          border-radius: 8px;
+          background-color: rgba(27, 56, 96, 0.24);
+        }
+
+        .th-table-wrapper::-webkit-scrollbar-track {
+          background-color: transparent;
         }
 
         .th-table {
           width: 100%;
-          min-width: 938px;
+          min-width: 1060px;
           border-collapse: collapse;
           font-size: 12px;
+          line-height: 18px;
+          font-variant-numeric: tabular-nums;
         }
 
         .th-table th {
           text-align: right;
-          padding: 15px 24px;
-          font-size: 10px;
+          white-space: nowrap;
+          padding: 12px 6px;
+          font-size: 11px;
+          line-height: 16px;
           font-weight: 600;
           letter-spacing: 0.04em;
           text-transform: uppercase;
-          color: #94a3b8;
-          border-bottom: 1px solid #eef1f5;
+          color: rgb(136, 151, 174);
+          border-bottom: 1px solid rgba(27, 56, 96, 0.12);
         }
 
         .th-table td {
           text-align: right;
-          padding: 17px 24px;
-          border-bottom: 1px solid #eef1f5;
-          color: #475569;
+          white-space: nowrap;
+          padding: 12px 6px;
+          border-bottom: 1px solid rgba(27, 56, 96, 0.06);
+          color: rgb(69, 84, 104);
+        }
+
+        .th-table > thead > tr > th:first-child,
+        .th-table > tbody > tr > td:first-child {
+          padding-left: 16px;
+        }
+
+        .th-table > thead > tr > th:last-child,
+        .th-table > tbody > tr > td:last-child {
+          padding-right: 16px;
         }
 
         /* DATE column left-aligned; all numeric columns right-aligned. */
@@ -1188,26 +1255,18 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
         }
 
         .th-table td.th-table__date {
-          font-weight: 500;
-          color: #0f172a;
+          color: rgb(10, 12, 17);
         }
 
         .th-table td.th-table__nav {
-          font-weight: 700;
-          color: #0f172a;
-        }
-
-        .th-table td.th-table__perplaa {
-          font-weight: 500;
-          color: #475569;
+          font-weight: 600;
+          color: rgb(10, 12, 17);
         }
 
         .th-table__dash {
           color: #cbd5e1;
         }
 
-        /* Expandable monthly rows. Collapsed, a row looks as it always has —
-           just a pointer cursor, a hover tint and a small chevron. */
         .th-nav-row {
           cursor: pointer;
         }
@@ -1241,7 +1300,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
         }
 
         .th-nav-row__toggle:focus-visible {
-          outline: 2px solid #156ff7;
+          outline: 2px solid #0c5259;
           outline-offset: 4px;
           border-radius: 4px;
         }
@@ -1263,6 +1322,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
         }
 
         .th-table .th-activity-row td {
+          white-space: normal;
           padding: 0;
           border-bottom: none;
           background-color: #f8fafc;
@@ -1301,206 +1361,6 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           .th-activity-row--open .th-activity-row__collapse,
           .th-nav-row__chevron {
             transition: none;
-          }
-        }
-
-        /* NAV reconciliation + Contributions & Expenses. Sticky-left keeps it
-           in view when the wide table is scrolled sideways on small screens. */
-        .th-ce {
-          position: sticky;
-          left: 0;
-          box-sizing: border-box;
-          max-width: min(1040px, 100cqw);
-          padding: 4px 24px 20px 42px;
-        }
-
-        .th-ce__title {
-          margin: 0 0 6px;
-          font-size: 11px;
-          font-weight: 600;
-          letter-spacing: 0.04em;
-          text-transform: uppercase;
-          color: #156ff7;
-        }
-
-        /* Stacked by default; side by side once the table area can fit both. */
-        .th-ce__sections {
-          display: grid;
-          gap: 20px 48px;
-        }
-
-        @container (min-width: 820px) {
-          .th-ce__sections {
-            grid-template-columns: 1fr 1fr;
-            align-items: start;
-          }
-        }
-
-        .th-ce__review {
-          margin: 0 0 10px;
-          font-size: 12px;
-          line-height: 17px;
-          color: #b45309;
-        }
-
-        .th-ce__marker {
-          margin-left: 2px;
-          font-size: 9px;
-          font-weight: 700;
-          color: #b45309;
-        }
-
-        .th-ce__caption {
-          position: absolute;
-          width: 1px;
-          height: 1px;
-          overflow: hidden;
-          clip: rect(0 0 0 0);
-          white-space: nowrap;
-        }
-
-        .th-ce__table {
-          width: 100%;
-          border-collapse: collapse;
-          font-size: 13px;
-        }
-
-        .th-table .th-ce__table th,
-        .th-table .th-ce__table td {
-          padding: 9px 0;
-          border-bottom: 1px solid #e2e8f0;
-          background: none;
-          text-align: left;
-        }
-
-        .th-table .th-ce__table thead th {
-          padding: 6px 0;
-          font-size: 10px;
-          font-weight: 600;
-          letter-spacing: 0.04em;
-          text-transform: uppercase;
-          color: #94a3b8;
-        }
-
-        .th-table .th-ce__table thead th:last-child,
-        .th-table .th-ce__table td {
-          text-align: right;
-        }
-
-        .th-table .th-ce__table tbody th {
-          padding-right: 16px;
-          font-size: 13px;
-          font-weight: 500;
-          letter-spacing: normal;
-          text-transform: none;
-          color: #475569;
-        }
-
-        .th-table .th-ce__table td {
-          font-weight: 600;
-          font-variant-numeric: tabular-nums;
-          white-space: nowrap;
-        }
-
-        .th-table .th-ce__table tbody tr:last-child th,
-        .th-table .th-ce__table tbody tr:last-child td {
-          border-bottom: none;
-        }
-
-        .th-table td.th-ce__amount--in {
-          color: #16a34a;
-        }
-
-        .th-table td.th-ce__amount--out {
-          color: #b42318;
-        }
-
-        .th-table td.th-ce__amount--none {
-          font-weight: 400;
-          color: #94a3b8;
-        }
-
-        /* Bridge groups: a subtotal row, its movements indented beneath. */
-        .th-table .th-ce__table tr.th-ce__row--group th,
-        .th-table .th-ce__table tr.th-ce__row--group td {
-          padding-top: 12px;
-          font-weight: 600;
-          color: #0f172a;
-        }
-
-        .th-table .th-ce__table tr.th-ce__row--item th {
-          padding-left: 14px;
-        }
-
-        .th-table .th-ce__table tr.th-ce__row--context td {
-          padding: 6px 0 9px 14px;
-          text-align: left;
-          white-space: normal;
-          font-size: 12px;
-          font-weight: 400;
-          color: #64748b;
-        }
-
-        /* Opening/closing NAV and subtotals. */
-        .th-table .th-ce__table tr.th-ce__row--balance th,
-        .th-table .th-ce__table tr.th-ce__row--balance td {
-          font-weight: 700;
-          color: #0f172a;
-        }
-
-        /* An inset shadow, not border-top — in a collapsed table the row
-           above's border-bottom wins the shared edge. */
-        .th-table .th-ce__table tr.th-ce__row--close th,
-        .th-table .th-ce__table tr.th-ce__row--close td {
-          box-shadow: inset 0 1px 0 #94a3b8;
-        }
-
-        .th-table .th-ce__table tr.th-ce__row--flag th,
-        .th-table .th-ce__table tr.th-ce__row--flag td {
-          color: #b45309;
-        }
-
-        .th-ce__footnotes {
-          margin: 12px 0 0;
-          padding-left: 16px;
-          font-size: 12px;
-          line-height: 17px;
-          color: #64748b;
-        }
-
-        .th-ce__footnotes li::marker {
-          color: #b45309;
-          font-weight: 700;
-        }
-
-        .th-ce__note {
-          margin: 10px 0 0;
-          font-size: 12px;
-          line-height: 17px;
-          color: #94a3b8;
-        }
-
-        @media (max-width: 768px) {
-          .th-ce {
-            padding: 4px 16px 16px 24px;
-          }
-        }
-
-        /* Sized to the visible table area, not the viewport — the page's own
-           gutters leave far less than 100vw on a phone. */
-        @container (max-width: 360px) {
-          .th-ce {
-            padding: 4px 12px 14px;
-          }
-
-          .th-table .th-ce__table th,
-          .th-table .th-ce__table td,
-          .th-table .th-ce__table tbody th {
-            font-size: 12px;
-          }
-
-          .th-table .th-ce__table tbody th {
-            padding-right: 8px;
           }
         }
 
@@ -1642,22 +1502,18 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           font-weight: 600;
           letter-spacing: 0.4px;
           text-transform: uppercase;
-          color: #0f172a;
+          color: #8897ae;
         }
 
         /* Per-card label accents (the tiles render in a fixed order: price, date, next). */
         .th-metric:nth-child(1) .th-metric__label {
-          color: #16a34a;
-        }
-
-        .th-metric:nth-child(2) .th-metric__label {
-          color: #0b4f66;
+          color: #048746;
         }
 
         .th-metric__value {
           font-size: 24px;
           font-weight: 700;
-          color: #0f172a;
+          color: #0a0c11;
         }
 
         /* CTA */
@@ -1667,10 +1523,10 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           gap: 16px;
           align-items: center;
           justify-content: space-between;
-          border: 1px solid #d6e4ff;
+          border: 1px solid rgba(27, 56, 96, 0.12);
           border-radius: 14px;
           padding: 26px 32px 26px 40px;
-          background-color: #eef4ff;
+          background-color: #e4f1f2;
         }
 
         .th-cta__text {
@@ -1683,13 +1539,13 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           margin: 0;
           font-size: 22px;
           font-weight: 700;
-          color: #0f172a;
+          color: #0a0c11;
         }
 
         .th-cta__subtitle {
           margin: 0;
           font-size: 15px;
-          color: #475569;
+          color: #455468;
         }
 
         .th-cta__button {
@@ -1698,7 +1554,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           justify-content: center;
           padding: 13px 24px;
           border-radius: 8px;
-          background-color: #156ff7;
+          background-color: #0c5259;
           color: #ffffff;
           font-size: 15px;
           font-weight: 600;
@@ -1708,7 +1564,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
         }
 
         .th-cta__button:hover {
-          background-color: #1260d9;
+          background-color: #0a454b;
         }
 
         /* Section headings */
@@ -1716,7 +1572,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           margin: 0;
           font-size: 24px;
           font-weight: 700;
-          color: #0f172a;
+          color: #0a0c11;
         }
 
         /* Matches .th__title's weight/line-height (the page's own topline) instead
@@ -1730,7 +1586,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           margin: 0;
           font-size: 15px;
           line-height: 21px;
-          color: #475569;
+          color: #455468;
         }
 
         .th-heading__sub--muted {
@@ -1779,14 +1635,14 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
         .th-donut__value {
           font-size: 38px;
           font-weight: 700;
-          color: #0f172a;
+          color: #0a0c11;
         }
 
         .th-donut__label {
           font-size: 10px;
           font-weight: 600;
           letter-spacing: 0.04em;
-          color: #94a3b8;
+          color: #8897ae;
         }
 
         .th-legend {
@@ -1798,7 +1654,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           margin: 0 0 12px;
           font-size: 13px;
           line-height: 18px;
-          color: #94a3b8;
+          color: #8897ae;
         }
 
         .th-legend__list {
@@ -1814,7 +1670,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           padding: 11px 0;
           border-bottom: 1px solid #e2e8f0;
           font-size: 15px;
-          color: #0f172a;
+          color: #0a0c11;
         }
 
         .th-legend__list--detailed .th-legend__row:first-child {
@@ -1835,7 +1691,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
         .th-legend__name {
           flex: 1;
           font-weight: 600;
-          color: #0f172a;
+          color: #0a0c11;
         }
 
         .th-legend__row--detailed {
@@ -1857,13 +1713,13 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
         .th-legend__desc {
           font-size: 12.5px;
           font-weight: 400;
-          color: #94a3b8;
+          color: #8897ae;
         }
 
         .th-legend__amount {
           font-size: 15px;
           font-weight: 600;
-          color: #0f172a;
+          color: #0a0c11;
         }
 
         .th-legend__pct {
@@ -1886,7 +1742,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
         .th-disclaimers__item {
           font-size: 14px;
           line-height: 20px;
-          color: #475569;
+          color: #455468;
         }
 
         .th-disclaimers__item::marker {
@@ -1903,7 +1759,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           border: 1px solid transparent;
           background:
             linear-gradient(to right, #f4f9ff, #f3fbf8) padding-box,
-            linear-gradient(to right, #156ff7, #30c593) border-box;
+            linear-gradient(to right, #0c5259, #34c38f) border-box;
         }
 
         .th-callout__icon {
@@ -1928,7 +1784,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           font-size: 15px;
           font-style: italic;
           line-height: 24px;
-          color: #475569;
+          color: #455468;
         }
 
         @media (max-width: 768px) {

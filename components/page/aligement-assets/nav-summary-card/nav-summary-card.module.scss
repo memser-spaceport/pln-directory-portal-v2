@@ -1,8 +1,9 @@
 // Local palette: the shared Slate tokens sit at different values than this design.
 $ink: #101828;
-$brand-blue: #2563eb;
+$brand-text: #0c5259;
+$secondary-text: rgb(69, 84, 104);
+$subtle-border: rgba(27, 56, 96, 0.12);
 $card-border: #e4e7ec;
-$hairline: #edf0f4;
 $tint: #f7f9fc;
 $stack-breakpoint: 720px; // set by the design, not one of the shared breakpoints
 
@@ -67,17 +68,18 @@ $stack-breakpoint: 720px; // set by the design, not one of the shared breakpoint
 
 .label {
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
+  line-height: 16px;
   font-weight: 600;
-  color: $brand-blue;
+  color: $brand-text;
 }
 
 .hero {
   margin: 0;
-  font-size: 64px;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: -0.025em;
+  font-size: 52px;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
   color: $ink;
   font-variant-numeric: tabular-nums;
   @media (max-width: 480px) {
@@ -89,12 +91,38 @@ $stack-breakpoint: 720px; // set by the design, not one of the shared breakpoint
   margin: 0;
   font-size: 24px;
   font-weight: 600;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
   color: $ink;
   font-variant-numeric: tabular-nums;
 }
 
 .divider {
   height: 1px;
-  background-color: $hairline;
+  background-color: $subtle-border;
+}
+
+.inlineField {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid $subtle-border;
+}
+
+.inlineValue {
+  order: -1;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: $ink;
+  font-variant-numeric: tabular-nums;
+}
+
+.inlineLabel {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  color: $secondary-text;
 }

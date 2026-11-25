@@ -23,8 +23,6 @@ const signedCell = (cents: Cents | null) => (
   </td>
 );
 
-// One footnote per distinct note, in first-seen order, so a line can carry
-// the marker(s) for the note(s) that explain it.
 function footnotesFor(lines: ReconciliationLine[]) {
   const notes: string[] = [];
   const markers = new Map<string, number[]>();
@@ -54,10 +52,209 @@ function Section({ title, caption, children }: { title: string; caption: string;
   );
 }
 
-// A month's NAV bridge plus the simplified contributions & expenses view —
-// both read from the same reconciliation, so nothing is counted twice.
-// Separate from the asset values in the row above, never folded into NAV.
-// Styles live in trust-holdings.tsx with the rest of the table's.
+function MonthlyActivityStyles() {
+  return (
+    <style jsx global>{`
+      /* Sticky-left keeps the panel in view when the wide table is scrolled
+           sideways on small screens. */
+      .th-ce {
+        position: sticky;
+        left: 0;
+        box-sizing: border-box;
+        max-width: min(1040px, 100cqw);
+        padding: 4px 24px 20px 42px;
+      }
+
+      .th-ce__title {
+        margin: 0 0 6px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #0c5259;
+      }
+
+      .th-ce__sections {
+        display: grid;
+        gap: 20px 48px;
+      }
+
+      @container (min-width: 820px) {
+        .th-ce__sections {
+          grid-template-columns: 1fr 1fr;
+          align-items: start;
+        }
+      }
+
+      .th-ce__review {
+        margin: 0 0 10px;
+        font-size: 12px;
+        line-height: 17px;
+        color: #b45309;
+      }
+
+      .th-ce__marker {
+        margin-left: 2px;
+        font-size: 9px;
+        font-weight: 700;
+        color: #b45309;
+      }
+
+      .th-ce__caption {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+
+      .th-ce__table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+
+      .th-table .th-ce__table th,
+      .th-table .th-ce__table td {
+        padding: 9px 0;
+        border-bottom: 1px solid #e2e8f0;
+        background: none;
+        text-align: left;
+      }
+
+      .th-table .th-ce__table thead th {
+        padding: 6px 0;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #8897ae;
+      }
+
+      .th-table .th-ce__table thead th:last-child,
+      .th-table .th-ce__table td {
+        text-align: right;
+      }
+
+      .th-table .th-ce__table tbody th {
+        padding-right: 16px;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: normal;
+        text-transform: none;
+        color: #455468;
+      }
+
+      .th-table .th-ce__table td {
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+
+      .th-table .th-ce__table tbody tr:last-child th,
+      .th-table .th-ce__table tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      .th-table td.th-ce__amount--in {
+        color: #16a34a;
+      }
+
+      .th-table td.th-ce__amount--out {
+        color: #b42318;
+      }
+
+      .th-table td.th-ce__amount--none {
+        font-weight: 400;
+        color: #8897ae;
+      }
+
+      .th-table .th-ce__table tr.th-ce__row--group th,
+      .th-table .th-ce__table tr.th-ce__row--group td {
+        padding-top: 12px;
+        font-weight: 600;
+        color: #0a0c11;
+      }
+
+      .th-table .th-ce__table tr.th-ce__row--item th {
+        padding-left: 14px;
+      }
+
+      .th-table .th-ce__table tr.th-ce__row--context td {
+        padding: 6px 0 9px 14px;
+        text-align: left;
+        white-space: normal;
+        font-size: 12px;
+        font-weight: 400;
+        color: #64748b;
+      }
+
+      .th-table .th-ce__table tr.th-ce__row--balance th,
+      .th-table .th-ce__table tr.th-ce__row--balance td {
+        font-weight: 700;
+        color: #0a0c11;
+      }
+
+      /* An inset shadow, not border-top — in a collapsed table the row
+           above's border-bottom wins the shared edge. */
+      .th-table .th-ce__table tr.th-ce__row--close th,
+      .th-table .th-ce__table tr.th-ce__row--close td {
+        box-shadow: inset 0 1px 0 #94a3b8;
+      }
+
+      .th-table .th-ce__table tr.th-ce__row--flag th,
+      .th-table .th-ce__table tr.th-ce__row--flag td {
+        color: #b45309;
+      }
+
+      .th-ce__footnotes {
+        margin: 12px 0 0;
+        padding-left: 16px;
+        font-size: 12px;
+        line-height: 17px;
+        color: #64748b;
+      }
+
+      .th-ce__footnotes li::marker {
+        color: #b45309;
+        font-weight: 700;
+      }
+
+      .th-ce__note {
+        margin: 10px 0 0;
+        font-size: 12px;
+        line-height: 17px;
+        color: #8897ae;
+      }
+
+      @media (max-width: 768px) {
+        .th-ce {
+          padding: 4px 16px 16px 24px;
+        }
+      }
+
+      /* Sized to the visible table area, not the viewport — the page's own
+           gutters leave far less than 100vw on a phone. */
+      @container (max-width: 360px) {
+        .th-ce {
+          padding: 4px 12px 14px;
+        }
+
+        .th-table .th-ce__table th,
+        .th-table .th-ce__table td,
+        .th-table .th-ce__table tbody th {
+          font-size: 12px;
+        }
+
+        .th-table .th-ce__table tbody th {
+          padding-right: 8px;
+        }
+      }
+    `}</style>
+  );
+}
+
 export default function MonthlyActivity({
   month,
   reconciliation,
@@ -68,6 +265,7 @@ export default function MonthlyActivity({
   if (!reconciliation) {
     return (
       <div className="th-ce">
+        <MonthlyActivityStyles />
         <p className="th-ce__title">NAV Reconciliation</p>
         <p className="th-ce__note">No trust statement has been published for {month} yet.</p>
       </div>
@@ -79,6 +277,7 @@ export default function MonthlyActivity({
 
   return (
     <div className="th-ce">
+      <MonthlyActivityStyles />
       {r.needsReview && (
         <p className="th-ce__review">
           {r.balanced

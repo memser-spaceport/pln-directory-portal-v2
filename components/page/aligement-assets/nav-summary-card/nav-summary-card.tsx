@@ -3,6 +3,7 @@ import styles from './nav-summary-card.module.scss';
 export interface NavSummaryCardProps {
   navUsd: number | null | undefined;
   totalUnits: number | null | undefined;
+  reserves?: number | null;
 }
 
 const unitFormatter = new Intl.NumberFormat('en-US');
@@ -27,13 +28,16 @@ function formatNavUsd(value: number): string {
   return currency0dpFormatter.format(value);
 }
 
-export default function NavSummaryCard({ navUsd, totalUnits }: NavSummaryCardProps) {
+export default function NavSummaryCard({ navUsd, totalUnits, reserves }: NavSummaryCardProps) {
   // Zero units is treated as missing, not divided by.
   const perUnit = navUsd != null && totalUnits ? navUsd / totalUnits : null;
+  const outstandingUnits = totalUnits != null ? totalUnits - (reserves ?? 0) : null;
+  const perOutstandingUnit = navUsd != null && outstandingUnits ? navUsd / outstandingUnits : null;
 
   const navLabel = navUsd != null ? formatNavUsd(navUsd) : '—';
-  const totalUnitsLabel = totalUnits != null ? unitFormatter.format(totalUnits) : '—';
+  const issuedUnitsLabel = outstandingUnits != null ? unitFormatter.format(outstandingUnits) : '—';
   const perUnitLabel = perUnit != null ? currency2dpFormatter.format(perUnit) : '—';
+  const perOutstandingUnitLabel = perOutstandingUnit != null ? currency2dpFormatter.format(perOutstandingUnit) : '—';
 
   return (
     <div className={styles.root}>
@@ -41,8 +45,12 @@ export default function NavSummaryCard({ navUsd, totalUnits }: NavSummaryCardPro
         <div className={styles.panelPrimary}>
           <dl className={styles.fieldGroup}>
             <div className={styles.field}>
-              <dt className={styles.label}>NAV per PLAA</dt>
+              <dt className={styles.label}>Fully Diluted NAV</dt>
               <dd className={styles.hero}>{perUnitLabel}</dd>
+            </div>
+            <div className={styles.inlineField}>
+              <dt className={styles.inlineLabel}>Outstanding PLAA NAV</dt>
+              <dd className={styles.inlineValue}>{perOutstandingUnitLabel}</dd>
             </div>
           </dl>
         </div>
@@ -56,7 +64,7 @@ export default function NavSummaryCard({ navUsd, totalUnits }: NavSummaryCardPro
             <div className={styles.divider} aria-hidden="true" />
             <div className={styles.field}>
               <dt className={styles.label}>Total PLAA outstanding</dt>
-              <dd className={styles.secondaryValue}>{totalUnitsLabel}</dd>
+              <dd className={styles.secondaryValue}>{issuedUnitsLabel}</dd>
             </div>
           </dl>
         </div>

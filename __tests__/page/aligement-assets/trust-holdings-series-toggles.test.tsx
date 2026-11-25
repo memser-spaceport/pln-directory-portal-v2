@@ -73,11 +73,9 @@ const legendBox = (series: 'nav' | 'buyback' | 'issuance') => screen.getByTestId
 test('offers only the monthly graph and the table, opening on the monthly graph', () => {
   render(<TrustHoldings data={data} buybacks={buybacks} />);
 
-  const views = screen.getAllByRole('button', { name: /Chart View|Table View/ }).map((b) => b.textContent);
-  expect(views).toEqual(['Chart View', 'Table View']);
+  const views = screen.getAllByRole('button', { name: /Monthly Graph|Table View/ }).map((b) => b.textContent);
+  expect(views).toEqual(['Monthly Graph', 'Table View']);
   expect(screen.queryByRole('button', { name: /Quarterly/ })).not.toBeInTheDocument();
-
-  expect(screen.getByTestId('axis-issuance')).toBeInTheDocument();
 });
 
 test('every series checkbox starts checked and its line is plotted', () => {
@@ -104,23 +102,20 @@ test('unchecking a series removes only that line from the chart', () => {
   expect(screen.getByTestId('line-navPerPlaa')).toBeInTheDocument();
 });
 
-test('PLAA Outstanding toggle drops its line and its right-hand axis in the monthly view', () => {
+test('Total PLAA toggle drops its line in the monthly view', () => {
   render(<TrustHoldings data={data} buybacks={buybacks} />);
 
   expect(screen.getByTestId('line-totalPlaa')).toBeInTheDocument();
-  expect(screen.getByTestId('axis-issuance')).toBeInTheDocument();
-
   fireEvent.click(legendBox('issuance'));
   expect(screen.queryByTestId('line-totalPlaa')).not.toBeInTheDocument();
-  expect(screen.queryByTestId('axis-issuance')).not.toBeInTheDocument();
 });
 
-test('shows series controls only in chart view and keeps selections when switching views', () => {
+test('keeps the series controls in table view and their selections when switching views', () => {
   render(<TrustHoldings data={data} buybacks={buybacks} />);
   fireEvent.click(legendBox('nav'));
   fireEvent.click(screen.getByRole('button', { name: 'Table View' }));
-  expect(screen.queryByRole('checkbox', { name: 'NAV / PLAA' })).not.toBeInTheDocument();
-  expect(screen.queryByRole('checkbox', { name: 'Buyback clearing price' })).not.toBeInTheDocument();
-  fireEvent.click(screen.getByRole('button', { name: 'Chart View' }));
+  expect(screen.getByRole('checkbox', { name: 'NAV / PLAA (FDV)' })).not.toBeChecked();
+  expect(screen.getByRole('checkbox', { name: 'Buyback clearing price' })).toBeChecked();
+  fireEvent.click(screen.getByRole('button', { name: 'Monthly Graph' }));
   expect(legendBox('nav')).not.toBeChecked();
 });

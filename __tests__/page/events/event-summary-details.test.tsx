@@ -12,7 +12,7 @@ import type { EventFormValues } from '@/services/events/event-submission.types';
 
 /*
  * LAB-3278 QA fixes in the event summary, which the drawer, Preview and the edit page's read-only view all draw:
- * the social handles (LAB-3451) and the venue's instruction (LAB-3454).
+ * the social handles (LAB-3451), the venue's instruction (LAB-3454) and both event links (LAB-3456).
  */
 
 const values = (over: Partial<EventFormValues> = {}): EventFormValues => ({
@@ -25,7 +25,10 @@ const values = (over: Partial<EventFormValues> = {}): EventFormValues => ({
   ...over,
 });
 
-const stored = (details: Partial<NonNullable<EventDetailResponse['details']>>, over: Partial<EventDetailResponse> = {}) => {
+const stored = (
+  details: Partial<NonNullable<EventDetailResponse['details']>>,
+  over: Partial<EventDetailResponse> = {},
+) => {
   const base = eventResponse(over);
   return toEventDetail({ ...base, details: { ...base.details!, ...details } });
 };
@@ -63,7 +66,11 @@ describe('LAB-3451: the social handles', () => {
     const { unmount } = render(<EventSummary event={toPreviewEvent(values())} />);
     expect(screen.queryByTestId('event-socials')).not.toBeInTheDocument();
     unmount();
-    render(<EventSummary event={stored({ contactInfos: { website: ['javascript:alert(1)'], email: ['javascript:alert(1)'] } })} />);
+    render(
+      <EventSummary
+        event={stored({ contactInfos: { website: ['javascript:alert(1)'], email: ['javascript:alert(1)'] } })}
+      />,
+    );
     expect(screen.queryByTestId('event-socials')).not.toBeInTheDocument();
   });
 });
@@ -106,5 +113,44 @@ describe('LAB-3454: the instruction under the venue', () => {
       expect(screen.queryByTestId('event-place-instruction')).not.toBeInTheDocument();
       unmount();
     }
+  });
+});
+
+describe('LAB-3456: the website and the registration link', () => {
+  const SITE = 'https://example.com/';
+  const REG = 'https://lu.ma/abc';
+
+  function expectBoth() {
+    expect(within(screen.getByTestId('event-link-row')).getByRole('link', { name: 'example.com' })).toHaveAttribute(
+      'href',
+      SITE,
+    );
+    const row = screen.getByTestId('event-registration-row');
+    const link = within(row).getByRole('link', { name: 'lu.ma/abc' });
+    expect(link).toHaveAttribute('href', REG);
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+  }
+
+  it('Preview shows both rows', () => {
+    render(
+      <EventSummary event={toPreviewEvent(values({ websiteUrl: 'example.com', registrationUrl: 'lu.ma/abc' }))} />,
+    );
+    expectBoth();
+  });
+
+  it('the drawer shows both rows from the stored links', () => {
+    render(<EventSummary event={stored({}, { websiteUrl: 'https://example.com', registrationUrl: REG })} />);
+    expectBoth();
+  });
+
+  it('shows one row when there is one link, and no registration row once the event has ended', () => {
+    const { unmount } = render(<EventSummary event={toPreviewEvent(values({ registrationUrl: 'lu.ma/abc' }))} />);
+    expect(within(screen.getByTestId('event-link-row')).getByRole('link')).toHaveAttribute('href', REG);
+    expect(screen.queryByTestId('event-registration-row')).not.toBeInTheDocument();
+    unmount();
+    render(<EventSummary ended event={stored({}, { websiteUrl: 'https://example.com', registrationUrl: REG })} />);
+    expect(screen.getByTestId('event-link-row')).toBeInTheDocument();
+    expect(screen.queryByTestId('event-registration-row')).not.toBeInTheDocument();
   });
 });

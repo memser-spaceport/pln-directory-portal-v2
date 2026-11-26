@@ -5,6 +5,7 @@ import {
   toEventAccess,
   toEventAttendee,
   toEventDetail,
+  toEventLinks,
   toEventUrl,
   toEventMode,
   toEventSocials,
@@ -283,6 +284,33 @@ describe('event drawer mappers (LAB-3216)', () => {
       expect(event.websiteUrl).toBe('https://lu.ma/labweek');
     });
 
+    it('LAB-3456: keeps both links: the website as the page, the registration for Register', () => {
+      const site = 'https://lu.ma/labweek';
+      for (const raw of [
+        eventResponse({ websiteUrl: site, resources: [registration()] }),
+        eventResponse({ websiteUrl: site, registrationUrl: REG }),
+      ]) {
+        expect(toEventDetail(raw)).toMatchObject({ eventUrl: site, registrationUrl: REG, registerUrl: REG });
+      }
+      // The stored registration link wins over the resource; unsafe links never count.
+      expect(toEventLinks(site, 'https://reg.test/a', [registration()])).toEqual({
+        eventUrl: site,
+        registrationUrl: 'https://reg.test/a',
+        registerUrl: 'https://reg.test/a',
+      });
+      expect(toEventLinks('javascript:alert(1)', 'javascript:alert(2)', [])).toEqual({
+        eventUrl: null,
+        registrationUrl: null,
+        registerUrl: null,
+      });
+      expect(toEventLinks(site, null, [])).toEqual({ eventUrl: site, registrationUrl: null, registerUrl: site });
+      expect(toEventLinks(null, null, [registration()])).toEqual({
+        eventUrl: REG,
+        registrationUrl: REG,
+        registerUrl: REG,
+      });
+    });
+
     it('LAB-3334 R2: falls back to the Registration resource when websiteUrl is empty or not a web address', () => {
       for (const websiteUrl of [null, '', '   ', 'javascript:alert(1)', 'not a url']) {
         expect(toEventDetail(eventResponse({ websiteUrl, resources: [registration()] })).eventUrl).toBe(REG);
@@ -352,7 +380,11 @@ describe('event drawer mappers (LAB-3216)', () => {
         details: { ...base.details!, contactInfos: { bluesky: ['pl.bsky.social'] } },
       });
       expect(event.socials).toEqual([
-        { platform: 'Bluesky', href: 'https://bsky.app/profile/pl.bsky.social', label: 'bsky.app/profile/pl.bsky.social' },
+        {
+          platform: 'Bluesky',
+          href: 'https://bsky.app/profile/pl.bsky.social',
+          label: 'bsky.app/profile/pl.bsky.social',
+        },
       ]);
       expect(toEventDetail(eventResponse()).socials).toEqual([]);
       expect(toEventDetail(bareEventResponse()).socials).toEqual([]);

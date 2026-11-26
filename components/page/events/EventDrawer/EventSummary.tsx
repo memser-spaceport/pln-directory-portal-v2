@@ -79,6 +79,7 @@ function HostNames({ hosts }: { hosts: string[] }) {
  * LAB-3324: with a map link, the place and its arrow open the map in a new tab; an online event never links.
  * LAB-3426: for an event that has ended, nothing here asks the reader to register or RSVP. LAB-3418: its day line
  * carries a year other than the current one. LAB-3454: the venue's instruction sits in small text under the venue line.
+ * LAB-3456: with a website and a registration link, the page row shows the website and a second row the registration.
  * LAB-3451: the event's social handles, as links, close the facts.
  */
 export function EventSummary({
@@ -94,6 +95,8 @@ export function EventSummary({
   const [now] = useState(() => Date.now());
   const when = eventWhen(event.startDate, event.endDate, event.timezone, event.allDay, ended ? now : undefined);
   const page = eventLink(event.eventUrl);
+  // LAB-3456: the registration link gets its own row when it is not the page row. An ended event asks no one to register.
+  const registration = !ended && event.registrationUrl !== event.eventUrl ? eventLink(event.registrationUrl) : null;
   const mapLink = eventLink(event.locationUrl);
   const online = event.mode === 'Virtual' || (event.mode === 'Hybrid' && !event.address);
   const accessCopy = event.access && (ended ? ENDED_ACCESS_COPY : ACCESS_COPY)[event.access];
@@ -183,6 +186,25 @@ export function EventSummary({
               >
                 {page.label}
               </a>
+            </span>
+          </li>
+        )}
+
+        {registration && (
+          <li className={e.fact} data-testid="event-registration-row">
+            <span className={e.factIcon} aria-hidden>
+              <ChainIcon />
+            </span>
+            <span className={e.factText}>
+              <a
+                className={clsx(e.factMain, e.factLink, e.factLinkText)}
+                href={registration.href}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {registration.label}
+              </a>
+              <span className={e.factSub}>Registration</span>
             </span>
           </li>
         )}

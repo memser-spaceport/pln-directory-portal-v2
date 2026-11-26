@@ -719,11 +719,27 @@ describe('EventDrawerView (LAB-3216)', () => {
     const resources = [{ name: 'Registration', link: REG, description: 'Registration URL' }];
     const register = () => within(screen.getByTestId('rsvp-card')).queryByRole('link', { name: 'Register' });
 
-    it('LAB-3334 R1: the link row and Register use websiteUrl when it is a web address', () => {
-      render(<Harness raw={eventResponse({ websiteUrl: SITE, resources })} />);
+    it('LAB-3334 R1: the link row and Register use websiteUrl when it is the only web address', () => {
+      render(<Harness raw={eventResponse({ websiteUrl: SITE })} />);
       const link = within(screen.getByTestId('event-link-row')).getByRole('link');
       expect(link).toHaveAttribute('href', SITE);
       expect(register()).toHaveAttribute('href', SITE);
+      expect(screen.queryByTestId('event-registration-row')).not.toBeInTheDocument();
+    });
+
+    it('LAB-3456: with a website and a Registration link, the link row shows the website and Register the registration', () => {
+      for (const raw of [
+        eventResponse({ websiteUrl: SITE, resources }),
+        eventResponse({ websiteUrl: SITE, registrationUrl: REG }),
+      ]) {
+        const { unmount } = render(<Harness raw={raw} />);
+        expect(within(screen.getByTestId('event-link-row')).getByRole('link')).toHaveAttribute('href', SITE);
+        const row = screen.getByTestId('event-registration-row');
+        expect(within(row).getByRole('link', { name: 'luma.com/n4ad0k9m' })).toHaveAttribute('href', REG);
+        expect(within(row).getByText('Registration')).toBeInTheDocument();
+        expect(register()).toHaveAttribute('href', REG);
+        unmount();
+      }
     });
 
     it('LAB-3334 R2: the link row and Register use the Registration link, in a new tab, when websiteUrl is not valid', () => {

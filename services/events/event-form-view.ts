@@ -1,5 +1,12 @@
 import { formatEventDateLine, safeTimezone } from './event-dates';
-import { toAgendaDays, toEventAccess, toEventMode, toEventSocials, toEventTag } from './event-drawer.mappers';
+import {
+  toAgendaDays,
+  toEventAccess,
+  toEventLinks,
+  toEventMode,
+  toEventSocials,
+  toEventTag,
+} from './event-drawer.mappers';
 import { toFocusAreaCode } from './focus-areas';
 import type { EventDetail, EventDetailResponse } from './event-drawer.types';
 import {
@@ -149,7 +156,6 @@ export function toPreviewEvent(values: EventFormValues, uid = 'preview'): EventD
   const hosts = [values.hostName, ...values.coHosts.map((coHost) => coHost.name)]
     .map((name) => name.trim())
     .filter(Boolean);
-  const link = toHttpUrl(values.registrationUrl) ?? toHttpUrl(values.websiteUrl);
   const access = toEventAccess(values.accessOption);
 
   return {
@@ -177,7 +183,8 @@ export function toPreviewEvent(values: EventFormValues, uid = 'preview'): EventD
     // LAB-3451: the same links as the drawer draws for the stored event.
     socials: toEventSocials(toContactInfos(values.socialHandles)),
     websiteUrl: toHttpUrl(values.websiteUrl),
-    eventUrl: link,
+    // LAB-3456: the drawer's rule, so Preview shows the website and the registration link both.
+    ...toEventLinks(toHttpUrl(values.websiteUrl), toHttpUrl(values.registrationUrl), null),
     gathering: null,
     inviteOnly: access === 'INVITE ONLY',
     goingCount: 0,

@@ -198,6 +198,18 @@ export function httpUrlOrNull(url: unknown): string | null {
 
 const REGISTRATION_RESOURCE = 'registration';
 
+/** The link of the event-level resource named "Registration" (any case, end spaces ignored), when it is a web address. */
+function registrationResource(resources: unknown[] | null | undefined): string | null {
+  for (const raw of Array.isArray(resources) ? resources : []) {
+    if (!raw || typeof raw !== 'object') continue;
+    const r = raw as Record<string, unknown>;
+    if (typeof r.name !== 'string' || r.name.trim().toLowerCase() !== REGISTRATION_RESOURCE) continue;
+    const link = httpUrlOrNull(r.link);
+    if (link) return link;
+  }
+  return null;
+}
+
 /**
  * LAB-3334: the event's own link. `websiteUrl` comes first. When it is empty or not a web address, the link of the
  * event-level resource named "Registration" (any case, end spaces ignored) is the fallback. Some synced events (for
@@ -207,16 +219,24 @@ export function toEventUrl(
   websiteUrl: string | null | undefined,
   resources: unknown[] | null | undefined,
 ): string | null {
+  return toEventLinks(websiteUrl, null, resources).eventUrl;
+}
+
+/**
+ * LAB-3456: the event's links, one rule for the drawer and Preview. Only `http` and `https` addresses count.
+ * - `registrationUrl`: the registration link, else the "Registration" resource's link.
+ * - `eventUrl`: the event's own page row: the website, else the registration link (LAB-3334).
+ * - `registerUrl`: what Register opens: the registration link, else the website.
+ * With both a website and a registration link, the page row shows the website and Register opens the registration.
+ */
+export function toEventLinks(
+  websiteUrl: string | null | undefined,
+  registrationUrl: string | null | undefined,
+  resources: unknown[] | null | undefined,
+): Pick<EventDetail, 'eventUrl' | 'registrationUrl' | 'registerUrl'> {
   const website = httpUrlOrNull(websiteUrl);
-  if (website) return website;
-  for (const raw of Array.isArray(resources) ? resources : []) {
-    if (!raw || typeof raw !== 'object') continue;
-    const r = raw as Record<string, unknown>;
-    if (typeof r.name !== 'string' || r.name.trim().toLowerCase() !== REGISTRATION_RESOURCE) continue;
-    const link = httpUrlOrNull(r.link);
-    if (link) return link;
-  }
-  return null;
+  const registration = httpUrlOrNull(registrationUrl) ?? registrationResource(resources);
+  return { eventUrl: website ?? registration, registrationUrl: registration, registerUrl: registration ?? website };
 }
 
 /** "https://www.x.com/plabs/" → "x.com/plabs". */
@@ -243,7 +263,8 @@ export function toEventSocials(contactInfos: unknown): EventSocialLink[] {
       let link: EventSocialLink | null = null;
       if (key === 'email') {
         const email = handle.trim().replace(/^mailto:/i, '');
-        if (isValidEmail(email) && !/[\s?#&/]/.test(email)) link = { platform: name, href: `mailto:${email}`, label: email };
+        if (isValidEmail(email) && !/[\s?#&/]/.test(email))
+          link = { platform: name, href: `mailto:${email}`, label: email };
       } else {
         const href = httpUrlOrNull(normalizeSocialHandle(key, handle));
         if (href) link = { platform: name, href, label: linkLabel(href) };
@@ -306,7 +327,7 @@ export function toEventDetail(raw: EventDetailResponse): EventDetail {
     socials: toEventSocials(details?.contactInfos),
     websiteUrl: raw.websiteUrl,
     externalId: raw.externalId || null,
-    eventUrl: toEventUrl(raw.websiteUrl, raw.resources),
+    ...toEventLinks(raw.websiteUrl, raw.registrationUrl, raw.resources),
     gathering: raw.location
       ? {
           uid: raw.location.uid,

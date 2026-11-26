@@ -70,6 +70,8 @@ export interface EventDetailResponse {
   logo: string | null;
   banner: string | null;
   websiteUrl: string | null;
+  /** LAB-3456: the registration link the form stored. Optional: an older backend does not send it. */
+  registrationUrl?: string | null;
   externalId: string | null;
   resources: unknown[];
   /** The event's own venue (LAB-3281). Null or absent when it has none, or on an older API. */
@@ -175,11 +177,17 @@ export interface EventDetail {
   /** The event's id in the PL events app (LAB-3361). The drawer does not link it now (LAB-3420). Null when unknown. */
   externalId: string | null;
   /**
-   * LAB-3334: the link that the drawer's link row and "Register" open. It is `websiteUrl` when that is an `http` or
-   * `https` address. Otherwise it is the link of the event's resource named "Registration" (name match ignores case
-   * and end spaces), when that is an `http` or `https` address. Null when neither is.
+   * LAB-3334: the link of the drawer's event page row. It is `websiteUrl` when that is an `http` or `https` address.
+   * Otherwise it is the registration link (`registrationUrl`). Null when neither is.
    */
   eventUrl: string | null;
+  /**
+   * LAB-3456: the registration link: the stored `registrationUrl`, else the link of the event's resource named
+   * "Registration" (name match ignores case and end spaces). Only an `http` or `https` address. Null when none.
+   */
+  registrationUrl: string | null;
+  /** LAB-3456: what Register opens: `registrationUrl`, else the website. Null when neither is. */
+  registerUrl: string | null;
   gathering: EventGathering | null;
   /** Invite only by its access or by its type: a signed-out visitor does not see who went (LAB-3426). */
   inviteOnly: boolean;

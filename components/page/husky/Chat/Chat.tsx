@@ -240,7 +240,8 @@ export const Chat = (props: Props) => {
       submitType = type,
     }: {
       question: string;
-      type: 'prompt' | 'followup' | 'user-input';
+      /** `agent-handoff` (LAB-3429): a question the agent handed over, asked again here; not one the member typed. */
+      type: 'prompt' | 'followup' | 'user-input' | 'agent-handoff';
       submitType?: AiQuerySubmitType;
     }) => {
       try {
@@ -265,7 +266,8 @@ export const Chat = (props: Props) => {
         setOpenThreadId(threadId);
         const chatUid = generateUUID();
         setQuestion(question);
-        countAiSearch();
+        // The MCP search hint counts the questions the member sends, not the ones the agent hands over.
+        if (type !== 'agent-handoff') countAiSearch();
         addMessage(question, chatUid);
 
         const submitParams = {
@@ -405,6 +407,8 @@ export const Chat = (props: Props) => {
 
   const onStopStreaming = useCallback(() => {
     analytics.trackHuskyChatStopBtnClicked(question);
+    // LAB-3429: a Stop also stops the agent's handed-over questions that are still waiting.
+    pendingRef.current = [];
     stopChat();
   }, [question]);
 
@@ -476,7 +480,7 @@ export const Chat = (props: Props) => {
       adoptedRef.current = true;
       pendingRef.current = handedOver.slice(1);
       askedRef.current = 1;
-      handleChatSubmission({ question: handedOver[0], type: 'user-input' });
+      handleChatSubmission({ question: handedOver[0], type: 'agent-handoff' });
       return;
     }
     const followUpKey = PENDING_FOLLOW_UP_KEY_PREFIX + id;
@@ -504,7 +508,7 @@ export const Chat = (props: Props) => {
     }
     const next = pendingRef.current.shift() as string;
     askedRef.current += 1;
-    handleChatSubmission({ question: next, type: 'user-input' });
+    handleChatSubmission({ question: next, type: 'agent-handoff' });
   }, [messages, chatIsLoading, isAnswerLoading, handleChatSubmission]);
 
   useEffect(() => {

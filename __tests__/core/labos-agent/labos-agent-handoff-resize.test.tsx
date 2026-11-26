@@ -61,6 +61,7 @@ import { FeedbackDrawerFrame } from '@/components/page/ai-apps/components/GiveAi
 import { AI_SEARCH_PENDING_QUESTIONS_KEY_PREFIX } from '@/components/constants/aiSearchHandoff';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useFeedbackDrawerStore } from '@/services/feedback/store';
+import { LabosAgentError } from '@/services/labos-agent/labos-agent.errors';
 import { isUnreadablePage } from '@/services/labos-agent/labos-agent.page-context';
 import { clampWidth, maxWidthFor, useLabosAgentWidthStore } from '@/services/labos-agent/labos-agent.width';
 import { useLabosAgentStore } from '@/services/labos-agent/store';
@@ -137,6 +138,13 @@ if (typeof window.PointerEvent === 'undefined') {
 
 let openSpy: jest.SpyInstance;
 const fetchSpy = jest.fn();
+/* Spies on shared prototypes (Storage) are restored after each test, also when the test fails, so none leaks. */
+const spies: jest.SpyInstance[] = [];
+const restoreLater = <T extends jest.SpyInstance>(spy: T): T => {
+  spies.push(spy);
+  return spy;
+};
+const threadCreates = () => customFetch.mock.calls.filter(([url]) => /\/v1\/husky\/threads$/.test(url));
 
 beforeEach(() => {
   chat.mockReset().mockResolvedValue(answer);
@@ -161,6 +169,7 @@ beforeEach(() => {
 
 afterEach(() => {
   openSpy.mockRestore();
+  spies.splice(0).forEach((spy) => spy.mockRestore());
 });
 
 describe('LAB-3429 Decision 1: AI agent chat in the header', () => {
@@ -311,20 +320,94 @@ describe('LAB-3429 Decision 1: AI agent chat in the header', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
-  it('blocked storage counts as not saved, so the new tab never opens an empty thread', async () => {
+  it('blocked storage fails before the save: the tab closes and no thread is made, also on Retry', async () => {
     const tab = fakeTab();
     openSpy.mockImplementation(() => tab as unknown as Window);
     renderApp();
     await openAgent();
     await askOnce();
-    const setItem = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
-      throw new Error('QuotaExceededError');
-    });
+    restoreLater(
+      jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+        throw new Error('QuotaExceededError');
+      }),
+    );
 
     fireEvent.click(handoffButton());
-    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    const alert = await screen.findByRole('alert');
     expect(tab.close).toHaveBeenCalled();
-    setItem.mockRestore();
+    expect(tab.location.href).toBe('');
+    expect(customFetch).not.toHaveBeenCalled();
+
+    fireEvent.click(within(alert).getByRole('button', { name: 'Retry' }));
+    await waitFor(() => expect(captured('agent-open-ai-search-clicked')).toHaveLength(2));
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    expect(customFetch).not.toHaveBeenCalled();
+  });
+
+  it('a blocked new tab fails before the save: no thread is made, also on Retry; a Retry with a tab goes on', async () => {
+    openSpy.mockImplementation(() => null);
+    renderApp();
+    await openAgent();
+    await askOnce();
+
+    fireEvent.click(handoffButton());
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('Couldn’t open this chat in AI agent chat.');
+    expect(customFetch).not.toHaveBeenCalled();
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(
+      Object.keys(window.localStorage).filter((k) => k.startsWith(AI_SEARCH_PENDING_QUESTIONS_KEY_PREFIX)),
+    ).toEqual([]);
+
+    fireEvent.click(within(alert).getByRole('button', { name: 'Retry' }));
+    await waitFor(() => expect(captured('agent-open-ai-search-clicked')).toHaveLength(2));
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    expect(customFetch).not.toHaveBeenCalled();
+
+    // The browser lets the next press through: one thread, and the tab goes to it.
+    const tab = fakeTab();
+    openSpy.mockImplementation(() => tab as unknown as Window);
+    fireEvent.click(within(screen.getByRole('alert')).getByRole('button', { name: 'Retry' }));
+    await waitFor(() => expect(tab.location.href).toMatch(/^\/ai-search\//));
+    expect(threadCreates()).toHaveLength(1);
+  });
+
+  it('two fast presses make one thread and one tab', async () => {
+    const tab = fakeTab();
+    openSpy.mockImplementation(() => tab as unknown as Window);
+    renderApp();
+    await openAgent();
+    await askOnce();
+
+    fireEvent.click(handoffButton());
+    fireEvent.click(handoffButton());
+    await waitFor(() => expect(tab.location.href).toMatch(/^\/ai-search\//));
+
+    expect(openSpy).toHaveBeenCalledTimes(1);
+    expect(threadCreates()).toHaveLength(1);
+    expect(captured('agent-open-ai-search-clicked')).toHaveLength(1);
+  });
+
+  it('a question whose answer failed does not travel', async () => {
+    goTo('/');
+    const tab = fakeTab();
+    openSpy.mockImplementation(() => tab as unknown as Window);
+    renderApp();
+    await openAgent();
+    await askOnce();
+    chat.mockRejectedValueOnce(new LabosAgentError(500, 'UNKNOWN', 'Server error'));
+    const composer = screen.getByRole('textbox', { name: 'Message the agent' });
+    fireEvent.change(composer, { target: { value: 'And who funds it?' } });
+    fireEvent.keyDown(composer, { key: 'Enter' });
+    await screen.findByText('The agent did not finish the answer.');
+
+    fireEvent.click(handoffButton());
+    await waitFor(() => expect(tab.location.href).toMatch(/^\/ai-search\//));
+    const threadId = tab.location.href.split('/').pop() as string;
+    expect(JSON.parse(window.localStorage.getItem(AI_SEARCH_PENDING_QUESTIONS_KEY_PREFIX + threadId) ?? '[]')).toEqual([
+      PROMPT,
+    ]);
+    expect(captured('agent-open-ai-search-clicked')[0]).toMatchObject({ questionCount: 1 });
   });
 });
 
@@ -352,6 +435,8 @@ describe('LAB-3429 Decision 4: the page chip', () => {
 
     const row = screen.getByRole('group', { name: 'What the agent reads' });
     expect(row).toHaveTextContent('ContextMember profile');
+    // The prototype's title (agent/AgentChat.tsx).
+    expect(within(row).getByTitle('The agent reads Member profile with every question')).toBeInTheDocument();
     fireEvent.click(within(row).getByRole('button', { name: 'Stop reading Member profile' }));
 
     const addBack = within(row).getByRole('button', { name: 'Let the agent read Member profile again' });
@@ -488,6 +573,39 @@ describe('LAB-3429 Decision 3: resize', () => {
     expect(edge).toHaveAttribute('aria-valuenow', '520');
   });
 
+  it('a plain click on the edge is no resize: nothing is stored and no event is sent', async () => {
+    renderApp();
+    await openAgent();
+    const edge = handle() as HTMLElement;
+
+    fireEvent.pointerDown(edge, { button: 0, pointerId: 1, clientX: 840 });
+    fireEvent.pointerUp(edge, { pointerId: 1, clientX: 840 });
+    fireEvent.click(edge);
+
+    expect(edge).toHaveAttribute('aria-valuenow', '600');
+    expect(window.localStorage.getItem('labos-agent-width')).toBeNull();
+    expect(captured('agent-panel-resized')).toHaveLength(0);
+  });
+
+  it('a real double-click (two presses, then dblclick) sends one reset and no drag', async () => {
+    window.localStorage.setItem('labos-agent-width', '512');
+    renderApp();
+    await openAgent();
+    const edge = handle() as HTMLElement;
+    expect(edge).toHaveAttribute('aria-valuenow', '512');
+
+    for (let i = 0; i < 2; i += 1) {
+      fireEvent.pointerDown(edge, { button: 0, pointerId: 1, clientX: 928 });
+      fireEvent.pointerUp(edge, { pointerId: 1, clientX: 928 });
+      fireEvent.click(edge, { detail: i + 1 });
+    }
+    fireEvent.doubleClick(edge, { detail: 2 });
+
+    expect(edge).toHaveAttribute('aria-valuenow', '600');
+    expect(window.localStorage.getItem('labos-agent-width')).toBeNull();
+    expect(captured('agent-panel-resized')).toEqual([expect.objectContaining({ width: 600, method: 'reset' })]);
+  });
+
   it('keeps the width after a reload (localStorage) and survives blocked storage', async () => {
     window.localStorage.setItem('labos-agent-width', '512');
     const { unmount } = renderApp();
@@ -495,15 +613,16 @@ describe('LAB-3429 Decision 3: resize', () => {
     expect(handle()).toHaveAttribute('aria-valuenow', '512');
     unmount();
 
-    const getItem = jest.spyOn(Storage.prototype, 'getItem').mockImplementation((key: string) => {
-      if (key === 'labos-agent-width') throw new Error('SecurityError');
-      return key === 'labos-agent' ? 'on' : null;
-    });
+    restoreLater(
+      jest.spyOn(Storage.prototype, 'getItem').mockImplementation((key: string) => {
+        if (key === 'labos-agent-width') throw new Error('SecurityError');
+        return key === 'labos-agent' ? 'on' : null;
+      }),
+    );
     useLabosAgentStore.setState({ isOpen: false });
     renderApp();
     await openAgent();
     expect(handle()).toHaveAttribute('aria-valuenow', '600');
-    getItem.mockRestore();
   });
 
   it('below 960px the panel is a sheet with no edge', async () => {

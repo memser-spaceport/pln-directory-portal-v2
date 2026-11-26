@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Cookies from 'js-cookie';
 
@@ -9,6 +9,7 @@ const stopChat = jest.fn();
 const trackHuskyChatStopBtnClicked = jest.fn();
 const trackQuestionEdit = jest.fn();
 const trackRegenerate = jest.fn();
+const onAiQuerySubmitted = jest.fn();
 const chatState: { object?: any; isLoading: boolean; error?: Error } = { isLoading: false };
 /* The options Chat passes to `useObject`, so a test can call `onError` as the SDK does. */
 const chatOptions: { current?: { onError?: (error: Error) => void } } = {};
@@ -44,7 +45,7 @@ jest.mock('@/analytics/husky.analytics', () => ({
     ),
 }));
 jest.mock('@/analytics/unified-search.analytics', () => ({
-  useUnifiedSearchAnalytics: () => ({ onAiQuerySubmitted: jest.fn() }),
+  useUnifiedSearchAnalytics: () => ({ onAiQuerySubmitted }),
 }));
 jest.mock('@/components/core/ToastContainer', () => ({ toast: { error: jest.fn(), info: jest.fn() } }));
 jest.mock('@/components/core/login/utils', () => ({ useLoginRedirect: () => jest.fn() }));
@@ -164,5 +165,46 @@ describe('LAB-3429: AI agent chat asks the questions handed over by the agent', 
 
     expect(submitChat).not.toHaveBeenCalled();
     expect(localStorage.getItem(KEY)).toBeNull();
+  });
+
+  it('sends the handed-over questions as "agent-handoff", not as typed questions, and leaves the search hint count', async () => {
+    localStorage.setItem(KEY, JSON.stringify([Q1, Q2]));
+    const { rerenderThread } = renderThread();
+    await waitFor(() => expect(submitChat).toHaveBeenCalledTimes(1));
+    answer('She works on storage.', rerenderThread);
+    await waitFor(() => expect(submitChat).toHaveBeenCalledTimes(2));
+
+    expect(onAiQuerySubmitted.mock.calls).toEqual([
+      [Q1, 'ai-search-page', 'agent-handoff'],
+      [Q2, 'ai-search-page', 'agent-handoff'],
+    ]);
+    expect(sessionStorage.getItem('mcp_hint_ai_search_count')).toBeNull();
+  });
+
+  it('a question handed over from AI Search itself (the "input" entry) still counts as typed', async () => {
+    localStorage.setItem('input', 'What is Filecoin?');
+    renderThread({ id: 'other-thread' });
+    await waitFor(() => expect(submitChat).toHaveBeenCalledTimes(1));
+
+    expect(onAiQuerySubmitted).toHaveBeenCalledWith('What is Filecoin?', 'ai-search-page', 'user-input');
+    expect(sessionStorage.getItem('mcp_hint_ai_search_count')).toBe('1');
+  });
+
+  it('a Stop during an answer drops the questions still waiting', async () => {
+    localStorage.setItem(KEY, JSON.stringify([Q1, Q2]));
+    const { rerenderThread } = renderThread();
+    await waitFor(() => expect(submitChat).toHaveBeenCalledTimes(1));
+
+    chatState.object = { content: 'She works on', followUpQuestions: [] };
+    chatState.isLoading = true;
+    rerenderThread();
+    fireEvent.click(await screen.findByRole('button', { name: 'Stop answering' }));
+    expect(stopChat).toHaveBeenCalled();
+
+    // The stream ends with the text it had: without the Stop, the next question would go now.
+    chatState.isLoading = false;
+    rerenderThread();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(submitChat).toHaveBeenCalledTimes(1);
   });
 });

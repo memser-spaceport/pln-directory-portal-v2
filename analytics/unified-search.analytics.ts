@@ -6,7 +6,8 @@ import { ForumFoundItem, FoundItem } from '@/services/search/types';
 /** Where a member asked an AI search question. */
 export type AiQueryEntryPoint = 'header-dialog' | 'ai-search-page' | 'home';
 /** How the question was submitted. */
-export type AiQuerySubmitType = 'user-input' | 'prompt' | 'followup' | 'regenerate';
+/** `agent-handoff` (LAB-3429): a question the LabOS agent handed over to AI agent chat, asked again there. */
+export type AiQuerySubmitType = 'user-input' | 'prompt' | 'followup' | 'regenerate' | 'agent-handoff';
 
 const AI_QUERY_MAX_LENGTH = 500;
 

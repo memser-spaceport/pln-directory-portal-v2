@@ -593,7 +593,7 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
         <div className={s.chipRow} role="group" aria-label="What the agent reads">
           {/* LAB-3429 Decision 4: the page slot. Attached, removed (dashed, one press adds it back) or locked. */}
           {context && label && readsPage && (
-            <span className={s.pageChip} title="The agent reads the page you opened it on">
+            <span className={s.pageChip} title={`The agent reads ${label} with every question`}>
               <PageGlyph context={context} />
               <span className={s.pageChipKicker}>{LABOS_AGENT_CONTEXT_TEXT.attached}</span>
               {context.page === 'news-story' ? (

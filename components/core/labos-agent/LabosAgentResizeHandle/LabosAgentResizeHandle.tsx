@@ -37,6 +37,9 @@ export function LabosAgentResizeHandle({ tab, overModal = false }: Props) {
   const { onPanelResized } = useLabosAgentAnalytics();
   const [dragging, setDragging] = useState(false);
   const latest = useRef(width);
+  /* Where the press began: the drag moves the edge by the pointer's travel, so a press off the edge's centre does not
+   * jump it, and a press that ends where it began is no resize. */
+  const start = useRef({ x: 0, width });
   useEffect(() => {
     latest.current = width;
   }, [width]);
@@ -60,18 +63,22 @@ export function LabosAgentResizeHandle({ tab, overModal = false }: Props) {
     if (e.button !== 0) return;
     e.preventDefault();
     e.currentTarget.setPointerCapture?.(e.pointerId);
+    start.current = { x: e.clientX, width };
+    latest.current = width;
     setDragging(true);
   };
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!dragging) return;
-    const next = clampWidth(window.innerWidth - e.clientX, window.innerWidth);
+    const next = clampWidth(start.current.width + start.current.x - e.clientX, window.innerWidth);
     latest.current = next;
     setWidth(next, false);
   };
+  /* A drag commits (stored, one event) only when it changed the width. A plain click, or each press of a
+   * double-click, changes nothing; the double-click itself is the one `reset`. */
   const end = () => {
     if (!dragging) return;
     setDragging(false);
-    commit(latest.current, 'drag');
+    if (latest.current !== start.current.width) commit(latest.current, 'drag');
   };
   const onKeyDown = (e: React.KeyboardEvent) => {
     const step = e.shiftKey ? LABOS_AGENT_WIDTH_STEP_BIG : LABOS_AGENT_WIDTH_STEP;

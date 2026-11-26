@@ -109,9 +109,10 @@ export interface OpenInAiSearchInput {
 }
 
 /**
- * The press. The new tab opens at once, inside the click (an `await` first would let a popup blocker eat it), and goes
- * to the thread once it is saved. A failure closes the tab and gives `false`: the member stays in the agent with the
- * error line and Retry.
+ * The press. The new tab opens at once, inside the click (an `await` first would let a popup blocker eat it). Then the
+ * local checks, before anything is saved: a blocked tab or blocked storage fails here, so a failure leaves no thread in
+ * the History rail and a Retry adds none. Then the thread is saved and the tab goes to it. A failure closes the tab and
+ * gives `false`: the member stays in the agent with the error line and Retry.
  */
 export async function openInAiSearch({ questions, memberUid }: OpenInAiSearchInput): Promise<boolean> {
   if (questions.length === 0) return false;
@@ -123,6 +124,8 @@ export async function openInAiSearch({ questions, memberUid }: OpenInAiSearchInp
   } catch {
     tab = null;
   }
+  // Blocked: no thread. A Retry is a new click, which may open the tab.
+  if (!tab) return false;
 
   const threadId = getUniqueId();
   try {
@@ -130,27 +133,25 @@ export async function openInAiSearch({ questions, memberUid }: OpenInAiSearchInp
     const name = memberUid ? await memberName(memberUid) : null;
     const thread = withMemberScope(questions, profileUrl ? memberScopeLine(name, profileUrl) : null);
 
-    if (!(await saveThread(threadId, thread[0])) || !leaveQuestions(threadId, thread)) {
-      tab?.close();
+    // The questions go in storage first: blocked storage fails before any thread is made.
+    if (tab.closed || !leaveQuestions(threadId, thread)) {
+      tab.close();
       return false;
     }
-
-    const url = `${PAGE_ROUTES.HUSKY}/${threadId}`;
-    if (tab && !tab.closed) {
-      tab.location.href = url;
+    if (!(await saveThread(threadId, thread[0]))) {
+      forgetQuestions(threadId);
+      tab.close();
+      return false;
+    }
+    if (tab.closed) {
+      // The member closed the tab while the thread saved. The thread is in History, and its questions wait in
+      // storage: opening it from History asks them.
       return true;
     }
-    // The browser gave no tab up front (or the member closed it): one more try, now outside the click.
-    // Without `noopener`: with it `open` returns null even when the tab opens.
-    const late = window.open(url, '_blank');
-    if (late) {
-      late.opener = null;
-      return true;
-    }
-    forgetQuestions(threadId);
-    return false;
+    tab.location.href = `${PAGE_ROUTES.HUSKY}/${threadId}`;
+    return true;
   } catch {
-    tab?.close();
+    tab.close();
     forgetQuestions(threadId);
     return false;
   }

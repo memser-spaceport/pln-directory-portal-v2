@@ -55,7 +55,7 @@ A Node runtime change SHALL NOT reach production unless the lint, Jest, build an
 #### Scenario: Main pages still render with live data
 
 - **GIVEN** the app runs on the new runtime against the dev Directory API
-- **WHEN** a visitor opens the home, members, teams, projects, events, forum, jobs, AI search and Explore PL Network pages and a member, team and project detail page
+- **WHEN** a visitor opens the home, members, teams, projects, events, forum, jobs, AI agent chat and Explore PL Network pages and a member, team and project detail page
 - **THEN** each page answers with a non-5xx status and shows data loaded from the API
 - **AND** the server log has no new runtime errors compared with the old runtime
 

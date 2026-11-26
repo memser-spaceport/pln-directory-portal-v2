@@ -326,7 +326,7 @@ export const AppSearchDialog = ({
       {/* Says what the field reaches. It earns its place most in the states the
           rest of this view leaves thin — no history yet, still loading, signed
           out — so it is not tied to any of them. */}
-      <p className={s.hint}>Search members, teams, projects, events and forum posts, or chat with AI Search.</p>
+      <p className={s.hint}>Search members, teams, projects, events and forum posts, or ask AI agent chat.</p>
     </div>
   );
 
@@ -364,8 +364,8 @@ export const AppSearchDialog = ({
               onKeyDown={(e) => {
                 if (e.key === 'Enter') askAi();
               }}
-              placeholder="Search or ask AI Search a question"
-              aria-label="Search or ask AI Search a question"
+              placeholder="Search or ask AI agent chat a question"
+              aria-label="Search or ask AI agent chat a question"
             />
             {!!rawTerm && (
               <button type="button" className={s.fieldClear} onClick={clearTerm} aria-label="Clear search">
@@ -387,7 +387,7 @@ export const AppSearchDialog = ({
           <div className={s.askBar}>
             <button type="button" className={s.askRow} onClick={askAi}>
               <Image className={s.askGlyph} src="/icons/ai-search.svg" alt="" width={20} height={20} />
-              <span className={s.askText}>Chat with AI Search about &ldquo;{rawTerm}&rdquo;</span>
+              <span className={s.askText}>Ask AI agent chat about &ldquo;{rawTerm}&rdquo;</span>
               <span className={s.askArrow}>
                 <ArrowUpRightIcon />
               </span>

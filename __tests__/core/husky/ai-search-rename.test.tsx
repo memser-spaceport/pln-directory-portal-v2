@@ -71,8 +71,8 @@ describe('LAB-2772: the AI chat page is AI Search at /ai-search', () => {
     expect(PAGE_ROUTES.HUSKY).toBe('/ai-search');
   });
 
-  it('titles the browser tab "AI Search"', () => {
-    expect(metadata.title).toBe('AI Search | Protocol Labs Directory');
+  it('titles the browser tab "AI agent chat"', () => {
+    expect(metadata.title).toBe('AI agent chat | Protocol Labs Directory');
     expect(String(metadata.description)).not.toMatch(OLD_TEXT);
   });
 

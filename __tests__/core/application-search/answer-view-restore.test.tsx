@@ -103,7 +103,7 @@ describe('AnswerView on a restored thread', () => {
 });
 
 /**
- * `Continue in AI Search` hands the reader a URL to `/husky/chat/<threadId>`,
+ * `Continue in AI agent chat` hands the reader a URL to `/husky/chat/<threadId>`,
  * so it has to be gated on the thread *existing*.
  *
  * `threadId` is generated client-side and is truthy from the first answer
@@ -116,13 +116,13 @@ describe('AnswerView continue link', () => {
   /* Queried by text, not by role: an `<a>` with no `href` exposes no `link`
      role at all, so a role-based lookup would fail on exactly the state under
      test and pass only when the bug is absent. */
-  const continueLink = () => screen.getByText(/Continue in AI Search/i).closest('a')!;
+  const continueLink = () => screen.getByText(/Continue in AI agent chat/i).closest('a')!;
 
   it('links to the thread once the backend has one', () => {
     render(<AnswerView {...baseProps} isThreadPersisted />);
 
     expect(continueLink()).toHaveAttribute('href', '/ai-search/t1');
-    expect(screen.getByRole('link', { name: /Continue in AI Search/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Continue in AI agent chat/i })).toBeInTheDocument();
   });
 
   it('offers no destination when registration never landed', () => {
@@ -132,7 +132,7 @@ describe('AnswerView continue link', () => {
     // the route can only answer with notFound().
     expect(continueLink()).not.toHaveAttribute('href');
     expect(continueLink()).toHaveAttribute('aria-disabled', 'true');
-    expect(screen.queryByRole('link', { name: /Continue in AI Search/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Continue in AI agent chat/i })).not.toBeInTheDocument();
   });
 
   it('offers no destination while the answer is still streaming', () => {

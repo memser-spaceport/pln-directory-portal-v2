@@ -25,24 +25,24 @@ import HuskyLink from '@/components/core/navbar/husky-link';
 const OLD_TEXT = /Husky|AI Chat/;
 
 describe('LAB-2772: entry points into AI Search use the new name', () => {
-  it('the events banner reads "Ask AI Search" and links to /ai-search', () => {
+  it('the events banner reads "Ask AI agent chat" and links to /ai-search', () => {
     const { container } = render(<HuskyBanner />);
 
-    expect(screen.getByText('Ask AI Search').closest('a')).toHaveAttribute('href', '/ai-search');
+    expect(screen.getByText('Ask AI agent chat').closest('a')).toHaveAttribute('href', '/ai-search');
     expect(container.textContent).not.toMatch(OLD_TEXT);
   });
 
-  it('the IRL gatherings card names AI Search and links to /ai-search', () => {
+  it('the IRL gatherings card names AI agent chat and links to /ai-search', () => {
     const { container } = render(<IrlHuskyIntegration currentLocation="" />);
 
-    expect(screen.getByText('AI Search').closest('a')).toHaveAttribute('href', '/ai-search');
-    expect(screen.getByText('Open AI Search').closest('a')).toHaveAttribute('href', '/ai-search');
+    expect(screen.getByText('AI agent chat').closest('a')).toHaveAttribute('href', '/ai-search');
+    expect(screen.getByText('Open AI agent chat').closest('a')).toHaveAttribute('href', '/ai-search');
     expect(container.textContent).not.toMatch(OLD_TEXT);
   });
 
-  it('the navbar button is announced as AI Search', () => {
+  it('the navbar button is announced as AI agent chat', () => {
     render(<HuskyLink />);
 
-    expect(screen.getByRole('button', { name: 'Open AI Search' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Open AI agent chat' })).toBeInTheDocument();
   });
 });

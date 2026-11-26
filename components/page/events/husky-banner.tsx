@@ -42,7 +42,7 @@ export default function HuskyBanner(props: any) {
               buttonWidth="188px"
               textColor="#156FF7"
             >
-              Ask AI Search
+              Ask AI agent chat
             </ShadowButton>
           </a>
         </div>

@@ -98,8 +98,8 @@ export const AiSearchHistorySection = ({ mode, isLoggedIn, onOpenThread, onShowA
     if (mode === 'full') return null;
     return (
       <div className={s.section}>
-        <div className={s.label}>Your AI Search History</div>
-        <p className={s.signedOut}>Sign in to keep your AI Search history.</p>
+        <div className={s.label}>Your AI agent chat history</div>
+        <p className={s.signedOut}>Sign in to keep your AI agent chat history.</p>
       </div>
     );
   }
@@ -133,7 +133,7 @@ export const AiSearchHistorySection = ({ mode, isLoggedIn, onOpenThread, onShowA
   if (isLoading) {
     return (
       <div className={s.section}>
-        <div className={s.label}>Your AI Search History</div>
+        <div className={s.label}>Your AI agent chat history</div>
         <div className={s.skeleton} aria-hidden />
       </div>
     );
@@ -142,7 +142,7 @@ export const AiSearchHistorySection = ({ mode, isLoggedIn, onOpenThread, onShowA
   if (isError) {
     return (
       <div className={s.section}>
-        <div className={s.label}>Your AI Search History</div>
+        <div className={s.label}>Your AI agent chat history</div>
         <p className={s.failed}>
           Couldn&rsquo;t load your history.{' '}
           <button type="button" className={s.retry} onClick={() => refetch()}>
@@ -162,7 +162,7 @@ export const AiSearchHistorySection = ({ mode, isLoggedIn, onOpenThread, onShowA
   return (
     <div className={s.section}>
       <div className={s.head}>
-        <div className={s.label}>Your AI Search History</div>
+        <div className={s.label}>Your AI agent chat history</div>
         {threads.length > COMPACT_ROWS && (
           <button type="button" className={s.showAll} onClick={onShowAll}>
             Show all ({threads.length})

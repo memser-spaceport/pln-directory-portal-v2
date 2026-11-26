@@ -254,7 +254,7 @@ export const AppSidebar = (props: Props) => {
           <div className={s.logoContainer}>
             <span className={s.title}>
               <span className={s.titleIcon} aria-hidden="true" />
-              AI Search
+              AI agent chat
             </span>
             <button className={s.logoIconButton} onClick={handleSidebarToggle}>
               <img src="/icons/sidenav-close.svg" alt="toggle sidebar" />

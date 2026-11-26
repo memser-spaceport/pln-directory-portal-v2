@@ -1,16 +1,35 @@
 # ai-search Specification
 
 ## Purpose
-The AI Search new-chat page, where a member starts a chat, and the prompts it suggests.
+The AI agent chat page at `/ai-search` (formerly named AI Search), where a member starts a chat, the prompts it suggests, and the AI agent chat entries in the header search.
 
 ## Requirements
 
+### Requirement: The product is named AI agent chat wherever a member reads it
+Every text a member reads or hears for this product (visible text, placeholders, aria-labels, the page title and description) SHALL call it "AI agent chat", and "AI agent chats" in the plural. The name AI Search SHALL appear only in past changelog entries (Version 4.6.3 and older). The route `/ai-search`, the `/husky` redirects, the `/v1/husky` API, code identifiers and PostHog event names SHALL keep their names (LAB-3430).
+
+#### Scenario: The page and the navbar
+- **WHEN** a member opens `/ai-search`
+- **THEN** the browser tab reads "AI agent chat | Protocol Labs Directory" and the sidebar is titled "AI agent chat"
+- **AND** the navbar button is announced as "Open AI agent chat"
+
+#### Scenario: The header search
+- **GIVEN** a member typed "filecoin" in the header search
+- **WHEN** the search shows its AI row
+- **THEN** the row reads `Ask AI agent chat about “filecoin”`, and with nothing typed it reads "Ask AI agent chat a question"
+- **AND** the field placeholder reads "Search or ask AI agent chat a question"
+- **AND** the recent chats are listed under "Recent AI agent chats"
+
+#### Scenario: A search with no results
+- **WHEN** a header search finds nothing
+- **THEN** the member is offered "Ask AI agent chat instead"
+
 ### Requirement: Try asking prompts come from the top news stories
-The AI Search new-chat page SHALL show a "Try asking" block with up to 4 prompts built from the 20 newest stories in the news feed. The Top Stories picks among them SHALL come first, in editorial order, then the newest stories; a Top Stories pick older than those 20 is not offered. Each story SHALL appear once, as a question that names its team and its title. The prompts SHALL follow the news feed when the top news changes.
+The AI agent chat new-chat page SHALL show a "Try asking" block with up to 4 prompts built from the 20 newest stories in the news feed. The Top Stories picks among them SHALL come first, in editorial order, then the newest stories; a Top Stories pick older than those 20 is not offered. Each story SHALL appear once, as a question that names its team and its title. The prompts SHALL follow the news feed when the top news changes.
 
 #### Scenario: Top stories become prompts
 - **GIVEN** the news feed has Top Stories picks and other stories
-- **WHEN** a member opens the AI Search new-chat page
+- **WHEN** a member opens the AI agent chat new-chat page
 - **THEN** the "Try asking" block shows up to 4 prompts
 - **AND** the Top Stories picks come first, in editorial order, then the newest stories
 
@@ -19,13 +38,13 @@ The AI Search new-chat page SHALL show a "Try asking" block with up to 4 prompts
 - **WHEN** the block shows a prompt for it
 - **THEN** the prompt reads `What is the news from Saturn Grid: "Saturn Grid ships v2"?`
 
-### Requirement: A picked prompt starts an AI Search query
-When a member picks a "Try asking" prompt, AI Search SHALL ask that prompt as a new question, the same as a typed question. At the signed-out daily limit, the page SHALL refuse the prompt and show the limit notice.
+### Requirement: A picked prompt starts an AI agent chat query
+When a member picks a "Try asking" prompt, AI agent chat SHALL ask that prompt as a new question, the same as a typed question. At the signed-out daily limit, the page SHALL refuse the prompt and show the limit notice.
 
 #### Scenario: Member picks a prompt
 - **GIVEN** the "Try asking" block shows a prompt about a news story
 - **WHEN** the member selects the prompt
-- **THEN** AI Search starts a query with the prompt text
+- **THEN** AI agent chat starts a query with the prompt text
 
 #### Scenario: Signed-out visitor at the daily limit
 - **GIVEN** a signed-out visitor at the daily chat limit
@@ -34,16 +53,16 @@ When a member picks a "Try asking" prompt, AI Search SHALL ask that prompt as a 
 - **AND** the limit notice shows
 
 ### Requirement: No news hides the block
-When the news feed has no stories, or the news request fails, the AI Search new-chat page SHALL hide the "Try asking" block and keep the headline, the scope line and the field.
+When the news feed has no stories, or the news request fails, the AI agent chat new-chat page SHALL hide the "Try asking" block and keep the headline, the scope line and the field.
 
 #### Scenario: No news
 - **GIVEN** the news feed returns no stories, or the request fails
-- **WHEN** a member opens the AI Search new-chat page
+- **WHEN** a member opens the AI agent chat new-chat page
 - **THEN** the "Try asking" block is not shown
 - **AND** the field is still shown
 
 ### Requirement: Answer sources show directory and web sources in labeled groups
-The sources list of an AI Search answer SHALL show directory sources under a "Directory" label and web sources under a "Web" label, on the AI Search page and in the header search dialog. A source is a web source when it has no directory page and its type is `web` or `external`. A list with one kind of source SHALL show only that group. Each source SHALL open its page in a new tab. An older answer with plain source URLs and no source refs SHALL show its sources without group labels.
+The sources list of an AI agent chat answer SHALL show directory sources under a "Directory" label and web sources under a "Web" label, on the AI agent chat page and in the header search dialog. A source is a web source when it has no directory page and its type is `web` or `external`. A list with one kind of source SHALL show only that group. Each source SHALL open its page in a new tab. An older answer with plain source URLs and no source refs SHALL show its sources without group labels.
 
 #### Scenario: An answer with both kinds of source
 - **GIVEN** an answer with a team source and a web source
@@ -69,7 +88,7 @@ When an answer that streamed in the open view finishes with one or more web sour
 - **THEN** `unified-search-ai-web-sources-shown` is sent once with `webSources` 2 and `directorySources` 1
 
 #### Scenario: A member selects a web source
-- **WHEN** the member selects a web source on the AI Search page
+- **WHEN** the member selects a web source on the AI agent chat page
 - **THEN** `unified-search-ai-web-source-clicked` is sent with its link and the entry point `ai-search-page`
 
 #### Scenario: The web source click event sends no query string

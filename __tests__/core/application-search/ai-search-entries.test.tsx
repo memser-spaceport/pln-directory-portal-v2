@@ -136,7 +136,7 @@ describe('header search popover (desktop)', () => {
     renderDesktop();
     fireEvent.click(screen.getAllByRole('textbox')[0]);
 
-    expect(screen.getByText('Recent AI Search chats')).toBeInTheDocument();
+    expect(screen.getByText('Recent AI agent chats')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'All chats (4)' })).toBeInTheDocument();
     expect(screen.getByText('Lumen Storage vs Saturn Grid')).toBeInTheDocument();
     expect(screen.getByText('PL members at Lisbon events')).toBeInTheDocument();
@@ -160,7 +160,7 @@ describe('header search popover (desktop)', () => {
     renderDesktop();
     fireEvent.click(screen.getAllByRole('textbox')[0]);
 
-    expect(screen.queryByText('Recent AI Search chats')).not.toBeInTheDocument();
+    expect(screen.queryByText('Recent AI agent chats')).not.toBeInTheDocument();
     expect(screen.getByText('Search members, teams, projects, events and forum posts.')).toBeInTheDocument();
   });
 
@@ -168,7 +168,7 @@ describe('header search popover (desktop)', () => {
     renderDesktop();
     typeTerm('  filecoin ');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Open AI Search' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Open AI agent chat' }));
 
     expect(push).toHaveBeenCalledWith('/ai-search');
     expect(localStorage.getItem('input')).toBe('filecoin');
@@ -181,15 +181,15 @@ describe('header search popover (desktop)', () => {
   it('starts results at the top, with no AI Search row or suggested questions, in any state', () => {
     renderDesktop();
     fireEvent.click(screen.getAllByRole('textbox')[0]);
-    expect(screen.queryByText('Ask AI Search a question')).not.toBeInTheDocument();
+    expect(screen.queryByText('Ask AI agent chat a question')).not.toBeInTheDocument();
 
     typeTerm('lumen');
-    expect(screen.queryByText(/Chat with AI Search about/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Ask AI agent chat about/)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /What does Lumen Storage work on\?/ })).not.toBeInTheDocument();
 
     mockResults = { top: [], teams: [], members: [], projects: [], events: [], forumThreads: [] };
     typeTerm('zzzz');
-    expect(screen.queryByText(/Chat with AI Search about/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Ask AI agent chat about/)).not.toBeInTheDocument();
   });
 
   it('sends a search with no results to the AI Search page, not the modal', () => {
@@ -198,7 +198,7 @@ describe('header search popover (desktop)', () => {
     typeTerm('zzzz');
 
     expect(screen.getByText(/No results for “zzzz”/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Ask AI Search instead' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Ask AI agent chat instead' }));
 
     expect(push).toHaveBeenCalledWith('/ai-search');
     expect(localStorage.getItem('input')).toBe('zzzz');
@@ -231,7 +231,7 @@ describe('header search popover (desktop)', () => {
     renderDesktop();
     typeTerm('   ');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Open AI Search' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Open AI agent chat' }));
 
     expect(push).toHaveBeenCalledWith('/ai-search');
     expect(localStorage.getItem('input')).toBeNull();
@@ -258,10 +258,10 @@ describe('header search sheet (phone)', () => {
   it('offers AI Search and the latest chats at rest, with no chat inside the sheet', () => {
     render(<AppSearchMobile isLoggedIn />);
 
-    expect(screen.getByText('Ask AI Search a question')).toBeInTheDocument();
+    expect(screen.getByText('Ask AI agent chat a question')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'All chats (4)' })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('Ask AI Search a question'));
+    fireEvent.click(screen.getByText('Ask AI agent chat a question'));
     expect(push).toHaveBeenCalledWith('/ai-search');
   });
 
@@ -269,7 +269,7 @@ describe('header search sheet (phone)', () => {
     render(<AppSearchMobile isLoggedIn />);
     typeTerm('filecoin');
 
-    fireEvent.click(screen.getByText(/Chat with AI Search about/));
+    fireEvent.click(screen.getByText(/Ask AI agent chat about/));
 
     expect(push).toHaveBeenCalledWith('/ai-search');
     expect(localStorage.getItem('input')).toBe('filecoin');

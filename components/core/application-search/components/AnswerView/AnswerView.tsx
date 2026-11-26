@@ -234,7 +234,7 @@ export const AnswerView = ({
             if (!canContinue) e.preventDefault();
           }}
         >
-          Continue in AI Search
+          Continue in AI agent chat
           <ArrowUpRightIcon />
         </a>
       </div>

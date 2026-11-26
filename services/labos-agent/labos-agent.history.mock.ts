@@ -52,13 +52,43 @@ const seed = (): Map<string, LabosAgentThread> =>
     ],
   ]);
 
-let threads = seed();
+/*
+ * The mock history lives in localStorage too, so "AI agent chat" in the panel opens the chat in a new tab, as the
+ * backend does. Blocked or broken storage: memory only, from the seed.
+ */
+const STORAGE_KEY = 'labos-agent-mock-history';
+
+function load(): Map<string, LabosAgentThread> {
+  try {
+    const raw = typeof window === 'undefined' ? null : window.localStorage.getItem(STORAGE_KEY);
+    const parsed: unknown = raw ? JSON.parse(raw) : null;
+    if (Array.isArray(parsed)) return new Map(parsed as [string, LabosAgentThread][]);
+  } catch {
+    /* The seed. */
+  }
+  return seed();
+}
+
+function save() {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify([...threads.entries()]));
+  } catch {
+    /* Memory only. */
+  }
+}
+
+let threads = load();
 const failedDraftOnce = new Set<string>();
 
 /** Tests only: back to the seeded history. */
 export function resetMockHistory() {
   threads = seed();
   failedDraftOnce.clear();
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    /* Nothing stored. */
+  }
 }
 
 /** The mock C1 calls this when a turn sent with `persist: true` finishes. */
@@ -92,6 +122,7 @@ export function recordMockTurn(request: LabosAgentChatRequest, body: LabosAgentC
   });
   thread.updatedAt = now;
   threads.set(request.threadId, thread);
+  save();
 }
 
 const notFound = () => new LabosAgentError(404, 'THREAD_NOT_FOUND', 'The thread was not found.');
@@ -120,6 +151,7 @@ async function deleteThread(threadId: string): Promise<void> {
   await wait(WAIT_MS);
   find(threadId);
   threads.delete(threadId);
+  save();
 }
 
 async function confirmDraft({
@@ -146,6 +178,7 @@ async function confirmDraft({
   }
   if (decision === 'cancel') {
     draft.status = 'cancelled';
+    save();
     return { draftId, status: 'cancelled' };
   }
   const sent = (text ?? '').trim();
@@ -162,6 +195,7 @@ async function confirmDraft({
     introRequestUid: `mock-intro-${draftId}`,
     sentAt: new Date().toISOString(),
   });
+  save();
   return { draftId, status: 'sent', introRequestUid: `mock-intro-${draftId}` };
 }
 

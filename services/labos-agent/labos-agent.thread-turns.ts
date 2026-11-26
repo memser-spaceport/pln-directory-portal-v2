@@ -100,3 +100,15 @@ export const toChatTurns = (thread: LabosAgentThread): LabosAgentTurn[] =>
 /** The intro drafts of the thread that went out: their targets count as requested in this page visit. */
 export const sentDrafts = (thread: LabosAgentThread): LabosAgentStoredDraft[] =>
   thread.turns.flatMap((turn) => (turn.kind === 'agent' ? turn.drafts.filter((d) => d.status === 'sent') : []));
+
+/**
+ * The thread the backend saved this chat in: the newest saved turn's (a THREAD_NOT_FOUND restart moves the chat to a
+ * new thread). `null` until a turn is saved: a stopped or failed turn is not.
+ */
+export function savedThreadId(turns: LabosAgentTurn[]): string | null {
+  for (let i = turns.length - 1; i >= 0; i -= 1) {
+    const { savedIn } = turns[i];
+    if (savedIn) return savedIn;
+  }
+  return null;
+}

@@ -13,7 +13,6 @@ import {
   Plus,
   User,
   UsersThree,
-  WarningCircle,
   X,
 } from '@phosphor-icons/react';
 
@@ -33,13 +32,8 @@ import { useLabosAgentChat } from '@/services/labos-agent/hooks/useLabosAgentCha
 import { useLabosAgentComposer } from '@/services/labos-agent/hooks/useLabosAgentComposer';
 import { isLabosAgentMock } from '@/services/labos-agent/labos-agent.config';
 import { keepInteractive } from '@/services/labos-agent/labos-agent.dialogs';
-import {
-  AI_SEARCH_HISTORY_URL,
-  canOpenInAiSearch,
-  handoffQuestions,
-  openInAiSearch,
-  scopedMemberUid,
-} from '@/services/labos-agent/labos-agent.handoff';
+import { AI_SEARCH_HISTORY_URL, fullPageUrl } from '@/services/labos-agent/labos-agent.handoff';
+import { savedThreadId } from '@/services/labos-agent/labos-agent.thread-turns';
 import { replacedDraftIds } from '@/services/labos-agent/labos-agent.open-cards';
 import { contextMentionKey } from '@/services/labos-agent/labos-agent.mentions';
 import { useLabosAgentStore } from '@/services/labos-agent/store';
@@ -256,19 +250,15 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
   }, [turns]);
 
   /*
-   * LAB-3429 Decision 1: the hand-off to AI agent chat. `failed` shows the error line with Retry; the chat stays as it
-   * is either way. `busy` while the thread saves, so a second press does not make a second thread.
+   * LAB-3457: "AI agent chat" opens this chat on the full page, in a new tab: the same thread, with nothing copied. It
+   * waits for the first saved turn. The panel keeps the chat as it is.
    */
-  const [handoff, setHandoff] = useState<'idle' | 'busy' | 'failed'>('idle');
-  const canHandoff = canOpenInAiSearch(turns);
-  const handOff = async (isRetry: boolean) => {
-    if (!canHandoff || handoff === 'busy') return;
-    const questions = handoffQuestions(turns);
-    const memberUid = scopedMemberUid(context, readsPage);
-    onOpenAiSearchClicked(context, { questionCount: questions.length, memberScoped: !!memberUid, isRetry });
-    setHandoff('busy');
-    const ok = await openInAiSearch({ questions, memberUid });
-    setHandoff(ok ? 'idle' : 'failed');
+  const savedThread = savedThreadId(turns);
+  const openFullPage = () => {
+    if (!savedThread) return;
+    onOpenAiSearchClicked(context, { questionCount: turns.filter((t) => t.savedIn === savedThread).length });
+    const tab = window.open(fullPageUrl(savedThread), '_blank');
+    if (tab) tab.opener = null;
   };
 
   const submit = (text: string) => void composer.submit(text);
@@ -296,11 +286,10 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
           <button
             type="button"
             className={s.aiSearchBtn}
-            aria-disabled={!canHandoff || handoff === 'busy'}
-            aria-busy={handoff === 'busy' || undefined}
-            onClick={() => void handOff(false)}
+            aria-disabled={!savedThread}
+            onClick={openFullPage}
             aria-label={LABOS_AGENT_HANDOFF_TEXT.actionAria}
-            title={canHandoff ? LABOS_AGENT_HANDOFF_TEXT.tooltip : LABOS_AGENT_HANDOFF_TEXT.tooltipDisabled}
+            title={savedThread ? LABOS_AGENT_HANDOFF_TEXT.tooltip : LABOS_AGENT_HANDOFF_TEXT.tooltipDisabled}
           >
             <AiSearchIcon size={16} />
             <span className={s.aiSearchLabel}>{LABOS_AGENT_HANDOFF_TEXT.action}</span>
@@ -324,25 +313,6 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
           </button>
         </span>
       </header>
-
-      {/* LAB-3429: the member stays in the panel with the chat intact. */}
-      {handoff === 'failed' && (
-        <div className={s.handoffError} role="alert">
-          <WarningCircle weight="regular" aria-hidden />
-          <span className={s.handoffErrorText}>{LABOS_AGENT_HANDOFF_TEXT.error}</span>
-          <button type="button" className={s.handoffRetry} onClick={() => void handOff(true)}>
-            {LABOS_AGENT_HANDOFF_TEXT.retry}
-          </button>
-          <button
-            type="button"
-            className={s.iconBtn}
-            onClick={() => setHandoff('idle')}
-            aria-label={LABOS_AGENT_HANDOFF_TEXT.dismiss}
-          >
-            <CloseIcon />
-          </button>
-        </div>
-      )}
 
       <div ref={threadRef} className={s.thread} aria-live="polite">
         {turns.length === 0 ? (

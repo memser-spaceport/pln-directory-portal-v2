@@ -172,12 +172,8 @@ export interface AgentActionFailedProps {
 
 /** LAB-3429: the "AI agent chat" press. Counts and booleans only: the questions never go in an event. */
 export interface AgentOpenAiSearchClickedProps {
-  /** The answered questions that travel to the new thread. */
+  /** LAB-3457: the saved turns the full page opens with (the same thread; nothing is copied). */
   questionCount: number;
-  /** The agent read a member profile, so the scope line went before the first question. */
-  memberScoped: boolean;
-  /** The press came from Retry on the error line. */
-  isRetry: boolean;
 }
 
 /** LAB-3429: how the member resized the slot. */

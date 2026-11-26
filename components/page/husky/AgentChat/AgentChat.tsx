@@ -20,7 +20,11 @@ import { useLabosAgentChat } from '@/services/labos-agent/hooks/useLabosAgentCha
 import { useLabosAgentThread } from '@/services/labos-agent/hooks/useLabosAgentThreads';
 import { draftTargetKey } from '@/services/labos-agent/labos-agent.drafts';
 import { LabosAgentError } from '@/services/labos-agent/labos-agent.errors';
-import { sentDrafts, toChatTurns } from '@/services/labos-agent/labos-agent.thread-turns';
+import {
+  savedThreadId as threadOfTurns,
+  sentDrafts,
+  toChatTurns,
+} from '@/services/labos-agent/labos-agent.thread-turns';
 import { replacedDraftIds } from '@/services/labos-agent/labos-agent.open-cards';
 import { labosAgentRequestPrompts, type LabosAgentRequestTopic } from '@/services/labos-agent/labos-agent.page';
 import { useLabosAgentStore } from '@/services/labos-agent/store';
@@ -115,7 +119,7 @@ export function AgentChat({ threadId: savedThreadId }: { threadId?: string } = {
    * The thread the backend saved this chat in (the first saved turn; a THREAD_NOT_FOUND restart moves it). The rail
    * marks its row open, as today's page announces a chat with no id in the URL, and the title bar offers Delete.
    */
-  const savedIn = turns.find((t) => t.savedIn)?.savedIn ?? null;
+  const savedIn = threadOfTurns(turns);
   useEffect(() => {
     if (!savedIn) return;
     document.dispatchEvent(new CustomEvent('refresh-husky-history', { detail: { openThreadId: savedIn } }));

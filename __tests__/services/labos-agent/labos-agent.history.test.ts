@@ -261,6 +261,39 @@ describe('LAB-3457: the mock history', () => {
     return result.value as T;
   };
 
+  it('keeps the history in localStorage, so a new tab (a fresh module) opens the same chat', async () => {
+    // This suite runs in node: a window with an in-memory localStorage for this test.
+    const store = new Map<string, string>();
+    const g = globalThis as { window?: unknown };
+    g.window = {
+      localStorage: {
+        getItem: (k: string) => store.get(k) ?? null,
+        setItem: (k: string, v: string) => void store.set(k, v),
+        removeItem: (k: string) => void store.delete(k),
+      },
+    };
+    await run(mockLabosAgentClient.chat({ threadId: 'mt-tab', chatId: 'c-1', message: 'Hello', persist: true }));
+    let fresh: typeof import('@/services/labos-agent/labos-agent.history.mock') | undefined;
+    jest.isolateModules(() => {
+      fresh = jest.requireActual<typeof import('@/services/labos-agent/labos-agent.history.mock')>(
+        '@/services/labos-agent/labos-agent.history.mock',
+      );
+    });
+    const thread = await run(fresh!.mockLabosAgentHistoryClient.getThread('mt-tab'));
+    expect(thread.turns.map((t) => t.question)).toEqual(['Hello']);
+
+    // Broken storage: the seed.
+    store.set('labos-agent-mock-history', '{broken');
+    jest.isolateModules(() => {
+      fresh = jest.requireActual<typeof import('@/services/labos-agent/labos-agent.history.mock')>(
+        '@/services/labos-agent/labos-agent.history.mock',
+      );
+    });
+    const list = await run(fresh!.mockLabosAgentHistoryClient.listThreads());
+    expect(list.items.map((i) => i.threadId)).toEqual(['mock-ai-search-thread']);
+    delete g.window;
+  });
+
   it('lists the old AI search thread and adds a turn sent with persist: true', async () => {
     const before = await run(mockLabosAgentHistoryClient.listThreads());
     expect(before.items.map((i) => i.source)).toEqual(['ai-search']);

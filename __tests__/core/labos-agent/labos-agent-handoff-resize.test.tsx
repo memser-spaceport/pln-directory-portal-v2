@@ -19,7 +19,7 @@ jest.mock('@/services/labos-agent/labos-agent.service', () => ({
   getLabosAgentClient: () => client,
 }));
 
-// The thread save goes through `customFetch` (the signed-in fetch).
+// LAB-3457: nothing is saved by the panel on open: `customFetch` (the signed-in fetch) stays unused.
 const customFetch = jest.fn();
 jest.mock('@/utils/fetch-wrapper', () => ({ customFetch: (...args: unknown[]) => customFetch(...args) }));
 
@@ -120,7 +120,6 @@ function fakeTab() {
 }
 
 const ok = (body: unknown = {}) => ({ ok: true, status: 200, json: async () => body });
-const fail = (status = 500) => ({ ok: false, status, json: async () => ({}) });
 
 const captured = (event: string) => mockCapture.mock.calls.filter(([name]) => name === event).map(([, props]) => props);
 
@@ -144,7 +143,6 @@ const restoreLater = <T extends jest.SpyInstance>(spy: T): T => {
   spies.push(spy);
   return spy;
 };
-const threadCreates = () => customFetch.mock.calls.filter(([url]) => /\/v1\/husky\/threads$/.test(url));
 
 beforeEach(() => {
   chat.mockReset().mockResolvedValue(answer);
@@ -172,8 +170,8 @@ afterEach(() => {
   spies.splice(0).forEach((spy) => spy.mockRestore());
 });
 
-describe('LAB-3429 Decision 1: AI agent chat in the header', () => {
-  it('is disabled with the "ask first" tooltip until the chat has one answer', async () => {
+describe('LAB-3457: AI agent chat in the header opens the same chat on the full page', () => {
+  it('is disabled with the "ask first" tooltip until the chat has one saved answer', async () => {
     renderApp();
     await openAgent();
 
@@ -184,7 +182,6 @@ describe('LAB-3429 Decision 1: AI agent chat in the header', () => {
 
     fireEvent.click(button);
     expect(openSpy).not.toHaveBeenCalled();
-    expect(customFetch).not.toHaveBeenCalled();
     expect(captured('agent-open-ai-search-clicked')).toHaveLength(0);
 
     await askOnce();
@@ -192,233 +189,79 @@ describe('LAB-3429 Decision 1: AI agent chat in the header', () => {
     expect(handoffButton()).toHaveAttribute('title', 'Open this chat in AI agent chat (new tab)');
   });
 
-  it("saves a new thread with the chat's questions, opens it in a new tab, and leaves the agent chat as it is", async () => {
+  it("opens /ai-search/<the chat's own thread> in a new tab: nothing is copied, saved or asked again", async () => {
     goTo('/');
     const tab = fakeTab();
     openSpy.mockImplementation(() => tab as unknown as Window);
     renderApp();
     await openAgent();
     await askOnce();
-    fireEvent.change(screen.getByRole('textbox', { name: 'Message the agent' }), {
-      target: { value: 'And who funds it?' },
-    });
-    fireEvent.keyDown(screen.getByRole('textbox', { name: 'Message the agent' }), { key: 'Enter' });
+    const composer = screen.getByRole('textbox', { name: 'Message the agent' });
+    fireEvent.change(composer, { target: { value: 'And who funds it?' } });
+    fireEvent.keyDown(composer, { key: 'Enter' });
     await waitFor(() => expect(screen.getAllByText('Mock answer text')).toHaveLength(2));
 
     fireEvent.click(handoffButton());
 
-    // The tab opens inside the click, before any await, so a popup blocker lets it through.
-    expect(openSpy).toHaveBeenCalledWith('', '_blank');
-    await waitFor(() => expect(tab.location.href).toMatch(/^\/ai-search\/[a-z0-9]+$/));
+    // Both turns went to C1 with one thread, saved (`persist`); that thread opens.
+    const [first, second] = chat.mock.calls.map(([request]) => request);
+    expect(first).toMatchObject({ persist: true });
+    expect(second.threadId).toBe(first.threadId);
+    expect(openSpy).toHaveBeenCalledTimes(1);
+    expect(openSpy).toHaveBeenCalledWith(`/ai-search/${first.threadId}`, '_blank');
     expect(tab.opener).toBeNull();
-
-    const threadId = tab.location.href.split('/').pop() as string;
-    const [createCall, titleCall] = customFetch.mock.calls;
-    expect(createCall[0]).toMatch(/\/v1\/husky\/threads$/);
-    expect(JSON.parse(createCall[1].body)).toEqual({ threadId });
-    expect(createCall[2]).toBe(true);
-    expect(titleCall[0]).toMatch(new RegExp(`/v1/husky/threads/${threadId}/basic-info$`));
-    expect(JSON.parse(titleCall[1].body)).toEqual({ question: PROMPT });
-
-    // Only the questions travel; Home has no scope line.
-    expect(JSON.parse(window.localStorage.getItem(AI_SEARCH_PENDING_QUESTIONS_KEY_PREFIX + threadId) ?? '[]')).toEqual([
-      PROMPT,
-      'And who funds it?',
-    ]);
+    expect(customFetch).not.toHaveBeenCalled();
+    expect(
+      Object.keys(window.localStorage).filter((k) => k.startsWith(AI_SEARCH_PENDING_QUESTIONS_KEY_PREFIX)),
+    ).toEqual([]);
 
     // The agent chat is unchanged.
     expect(screen.getAllByText('Mock answer text')).toHaveLength(2);
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-
     expect(captured('agent-open-ai-search-clicked')).toEqual([
-      expect.objectContaining({ questionCount: 2, memberScoped: false, isRetry: false, pageType: 'other' }),
+      expect.objectContaining({ questionCount: 2, pageType: 'other' }),
     ]);
     // No question text goes in the event.
     expect(JSON.stringify(captured('agent-open-ai-search-clicked'))).not.toContain('network');
   });
 
-  it('on a member profile, puts "About <member name> (<profile URL>):" before EVERY question (option B)', async () => {
-    const tab = fakeTab();
-    openSpy.mockImplementation(() => tab as unknown as Window);
-    renderApp();
-    await openAgent();
-    await askOnce();
-    const composer = screen.getByRole('textbox', { name: 'Message the agent' });
-    fireEvent.change(composer, { target: { value: 'Which teams is this member part of?' } });
-    fireEvent.keyDown(composer, { key: 'Enter' });
-    await waitFor(() => expect(screen.getAllByText('Mock answer text')).toHaveLength(2));
-
-    fireEvent.click(handoffButton());
-    await waitFor(() => expect(tab.location.href).toMatch(/^\/ai-search\//));
-    const threadId = tab.location.href.split('/').pop() as string;
-
-    // AI Search does not carry the member from one question to the next, so each question names them.
-    const about = 'About Maya Okonkwo (http://localhost/members/m-2):';
-    expect(JSON.parse(window.localStorage.getItem(AI_SEARCH_PENDING_QUESTIONS_KEY_PREFIX + threadId) ?? '[]')).toEqual([
-      `${about} ${PROMPT}`,
-      `${about} Which teams is this member part of?`,
-    ]);
-    expect(JSON.parse(customFetch.mock.calls[1][1].body)).toEqual({ question: `${about} ${PROMPT}` });
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
-    expect(fetchSpy.mock.calls[0][0]).toMatch(/\/v1\/members\/m-2$/);
-    expect(captured('agent-open-ai-search-clicked')[0]).toMatchObject({
-      questionCount: 2,
-      memberScoped: true,
-      pageType: 'member',
-    });
-  });
-
-  it('names the profile URL alone when the name lookup fails, and has no scope line once the chip is off', async () => {
-    fetchSpy.mockResolvedValue(fail(404));
-    const tab = fakeTab();
-    openSpy.mockImplementation(() => tab as unknown as Window);
-    renderApp();
-    await openAgent();
-    await askOnce();
-
-    fireEvent.click(handoffButton());
-    await waitFor(() => expect(tab.location.href).toMatch(/^\/ai-search\//));
-    let threadId = tab.location.href.split('/').pop() as string;
-    expect(JSON.parse(window.localStorage.getItem(AI_SEARCH_PENDING_QUESTIONS_KEY_PREFIX + threadId) ?? '[]')).toEqual([
-      `About this member (http://localhost/members/m-2): ${PROMPT}`,
-    ]);
-
-    // The member takes the page out: the agent does not read it, so no scope line travels.
-    fireEvent.click(screen.getByRole('button', { name: 'Stop reading Member profile' }));
-    tab.location.href = '';
-    fireEvent.click(handoffButton());
-    await waitFor(() => expect(tab.location.href).toMatch(/^\/ai-search\//));
-    threadId = tab.location.href.split('/').pop() as string;
-    expect(JSON.parse(window.localStorage.getItem(AI_SEARCH_PENDING_QUESTIONS_KEY_PREFIX + threadId) ?? '[]')).toEqual([
-      PROMPT,
-    ]);
-  });
-
-  it('when the thread cannot be saved, closes the tab, keeps the member in the agent and shows the error with Retry', async () => {
-    const tab = fakeTab();
-    openSpy.mockImplementation(() => tab as unknown as Window);
-    customFetch.mockResolvedValueOnce(fail(500));
-    renderApp();
-    const panel = await openAgent();
-    await askOnce();
-
-    fireEvent.click(handoffButton());
-
-    const alert = await screen.findByRole('alert');
-    expect(alert).toHaveTextContent('Couldn’t open this chat in AI agent chat.');
-    expect(tab.close).toHaveBeenCalled();
-    expect(tab.location.href).toBe('');
-    expect(panel).toBeInTheDocument();
-    expect(screen.getByText('Mock answer text')).toBeInTheDocument();
-
-    // Retry tries again.
-    fireEvent.click(within(alert).getByRole('button', { name: 'Retry' }));
-    await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
-    expect(tab.location.href).toMatch(/^\/ai-search\//);
-    expect(captured('agent-open-ai-search-clicked').map((p) => p.isRetry)).toEqual([false, true]);
-  });
-
-  it('a saved thread with no title counts as not saved (the History rail lists titled threads only)', async () => {
-    customFetch.mockResolvedValueOnce(ok()).mockResolvedValueOnce(fail(500));
-    renderApp();
-    await openAgent();
-    await askOnce();
-
-    fireEvent.click(handoffButton());
-    expect(await screen.findByRole('alert')).toHaveTextContent('Couldn’t open this chat in AI agent chat.');
-
-    fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }));
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-  });
-
-  it('blocked storage fails before the save: the tab closes and no thread is made, also on Retry', async () => {
-    const tab = fakeTab();
-    openSpy.mockImplementation(() => tab as unknown as Window);
-    renderApp();
-    await openAgent();
-    await askOnce();
-    restoreLater(
-      jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
-        throw new Error('QuotaExceededError');
-      }),
-    );
-
-    fireEvent.click(handoffButton());
-    const alert = await screen.findByRole('alert');
-    expect(tab.close).toHaveBeenCalled();
-    expect(tab.location.href).toBe('');
-    expect(customFetch).not.toHaveBeenCalled();
-
-    fireEvent.click(within(alert).getByRole('button', { name: 'Retry' }));
-    await waitFor(() => expect(captured('agent-open-ai-search-clicked')).toHaveLength(2));
-    expect(await screen.findByRole('alert')).toBeInTheDocument();
-    expect(customFetch).not.toHaveBeenCalled();
-  });
-
-  it('a blocked new tab fails before the save: no thread is made, also on Retry; a Retry with a tab goes on', async () => {
-    openSpy.mockImplementation(() => null);
-    renderApp();
-    await openAgent();
-    await askOnce();
-
-    fireEvent.click(handoffButton());
-    const alert = await screen.findByRole('alert');
-    expect(alert).toHaveTextContent('Couldn’t open this chat in AI agent chat.');
-    expect(customFetch).not.toHaveBeenCalled();
-    expect(fetchSpy).not.toHaveBeenCalled();
-    expect(
-      Object.keys(window.localStorage).filter((k) => k.startsWith(AI_SEARCH_PENDING_QUESTIONS_KEY_PREFIX)),
-    ).toEqual([]);
-
-    fireEvent.click(within(alert).getByRole('button', { name: 'Retry' }));
-    await waitFor(() => expect(captured('agent-open-ai-search-clicked')).toHaveLength(2));
-    expect(await screen.findByRole('alert')).toBeInTheDocument();
-    expect(customFetch).not.toHaveBeenCalled();
-
-    // The browser lets the next press through: one thread, and the tab goes to it.
-    const tab = fakeTab();
-    openSpy.mockImplementation(() => tab as unknown as Window);
-    fireEvent.click(within(screen.getByRole('alert')).getByRole('button', { name: 'Retry' }));
-    await waitFor(() => expect(tab.location.href).toMatch(/^\/ai-search\//));
-    expect(threadCreates()).toHaveLength(1);
-  });
-
-  it('two fast presses make one thread and one tab', async () => {
-    const tab = fakeTab();
-    openSpy.mockImplementation(() => tab as unknown as Window);
-    renderApp();
-    await openAgent();
-    await askOnce();
-
-    fireEvent.click(handoffButton());
-    fireEvent.click(handoffButton());
-    await waitFor(() => expect(tab.location.href).toMatch(/^\/ai-search\//));
-
-    expect(openSpy).toHaveBeenCalledTimes(1);
-    expect(threadCreates()).toHaveLength(1);
-    expect(captured('agent-open-ai-search-clicked')).toHaveLength(1);
-  });
-
-  it('a question whose answer failed does not travel', async () => {
+  it('a failed turn is not saved: it does not count, and a chat with no saved turn cannot open', async () => {
     goTo('/');
-    const tab = fakeTab();
-    openSpy.mockImplementation(() => tab as unknown as Window);
+    chat.mockRejectedValueOnce(new LabosAgentError(500, 'UNKNOWN', 'Server error'));
     renderApp();
     await openAgent();
-    await askOnce();
-    chat.mockRejectedValueOnce(new LabosAgentError(500, 'UNKNOWN', 'Server error'));
+    fireEvent.click(screen.getByRole('button', { name: PROMPT }));
+    await screen.findByText('The agent did not finish the answer.');
+    expect(handoffButton()).toHaveAttribute('aria-disabled', 'true');
+    fireEvent.click(handoffButton());
+    expect(openSpy).not.toHaveBeenCalled();
+
     const composer = screen.getByRole('textbox', { name: 'Message the agent' });
     fireEvent.change(composer, { target: { value: 'And who funds it?' } });
     fireEvent.keyDown(composer, { key: 'Enter' });
-    await screen.findByText('The agent did not finish the answer.');
-
+    await screen.findByText('Mock answer text');
     fireEvent.click(handoffButton());
-    await waitFor(() => expect(tab.location.href).toMatch(/^\/ai-search\//));
-    const threadId = tab.location.href.split('/').pop() as string;
-    expect(JSON.parse(window.localStorage.getItem(AI_SEARCH_PENDING_QUESTIONS_KEY_PREFIX + threadId) ?? '[]')).toEqual([
-      PROMPT,
-    ]);
+    expect(openSpy).toHaveBeenCalledWith(`/ai-search/${chat.mock.calls[1][0].threadId}`, '_blank');
     expect(captured('agent-open-ai-search-clicked')[0]).toMatchObject({ questionCount: 1 });
+  });
+
+  it('after a THREAD_NOT_FOUND restart, it opens the new thread', async () => {
+    goTo('/');
+    chat
+      .mockResolvedValueOnce(answer)
+      .mockRejectedValueOnce(new LabosAgentError(404, 'THREAD_NOT_FOUND', 'Gone'))
+      .mockResolvedValueOnce({ ...answer, content: 'Second answer' });
+    renderApp();
+    await openAgent();
+    await askOnce();
+    const composer = screen.getByRole('textbox', { name: 'Message the agent' });
+    fireEvent.change(composer, { target: { value: 'And who funds it?' } });
+    fireEvent.keyDown(composer, { key: 'Enter' });
+    await screen.findByText('Second answer');
+
+    const renewed = chat.mock.calls[2][0].threadId;
+    expect(renewed).not.toBe(chat.mock.calls[0][0].threadId);
+    fireEvent.click(handoffButton());
+    expect(openSpy).toHaveBeenCalledWith(`/ai-search/${renewed}`, '_blank');
   });
 });
 

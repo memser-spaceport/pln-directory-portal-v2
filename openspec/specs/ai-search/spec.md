@@ -140,3 +140,7 @@ LAB-3457. For a signed-in member inside the agent gate, the History rail SHALL l
 ### Requirement: Thread pages are not indexed
 
 LAB-3457. `/ai-search/<threadId>` SHALL send `robots: { index: false, follow: false }`: it is a member's own chat or a guest's shared link. Its title and share image SHALL stay the layout's ("AI Search | Protocol Labs Directory"; renaming to "AI agent chat" is a design question for Polina). `/ai-search` itself SHALL stay indexable.
+
+### Requirement: The chat composer clears the phone bottom bar
+
+LAB-3457. Below 960px the fixed chat composer of `/ai-search` and `/ai-search/<threadId>` (today's page and AI agent chat share `Chat.module.scss`) SHALL sit above the fixed bottom bar (`MobileBottomNav`), so it is usable on a short chat that cannot scroll. The bar SHALL publish the room it takes as `--mobile-bottom-nav-offset` on `<html>`: its height while it shows, `0px` while it hides on scroll, on a bare route and from 960px. The composer SHALL sit at `max(offset, env(safe-area-inset-bottom))`, and the chat SHALL leave that room under its last message.

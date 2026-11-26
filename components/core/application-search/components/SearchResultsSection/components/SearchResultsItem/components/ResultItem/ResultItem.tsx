@@ -52,12 +52,7 @@ export function ResultItem(props: Props) {
 
   return (
     <li className={clsx(s.foundItem, s.foundItemHost)}>
-      <Link
-        href={link}
-        onClick={onClick}
-        target={opensNewTab ? '_blank' : '_self'}
-        className={s.foundItemLink}
-      >
+      <Link href={link} onClick={onClick} target={opensNewTab ? '_blank' : '_self'} className={s.foundItemLink}>
         <div className={clsx(s.header, askAi && s.headerAskable)}>
           <div className={s.avatar}>
             <Image src={defaultAvatar} alt={item.name} width={24} height={24} />

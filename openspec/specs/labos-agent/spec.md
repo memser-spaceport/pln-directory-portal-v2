@@ -374,7 +374,7 @@ The panel header SHALL show a labelled action, "AI agent chat" with the AI mark,
 
 A press SHALL open a new tab at once (inside the click), save a NEW AI Search thread (`POST /v1/husky/threads` with a client-made `threadId`, then `POST /v1/husky/threads/:id/basic-info` with the first question, through `customFetch`), leave the questions in `localStorage['ai-search-pending-questions:<threadId>']` and send the tab to `/ai-search/<threadId>`, where AI agent chat asks them one at a time. The questions are the messages of the `done` turns, in order. Only the questions travel: no answers, cards or steps. The agent chat SHALL stay as it is, and the two histories stay separate.
 
-While the agent reads a member profile (`context.page` `member` and `readsPage`), the first question SHALL start with one line, "About <member name> (<profile URL>): " (t1, 2026-11-26, option B). The name comes from `GET /v1/members/<uid>` (the API answers `?select=name` with a 400); when that fails the line SHALL be "About this member (<profile URL>): ". This is a deviation from the design's `about=member` scope: the AI Search backend takes no scope (`HuskyChatSchema`), so the member travels in the question text. A proper scope is a later backend change.
+While the agent reads a member profile (`context.page` `member` and `readsPage`), every handed-over question SHALL start with one line, "About <member name> (<profile URL>): " (t1, 2026-11-26, option B), not only the first: AI Search does not carry the member from one question to the next (LAB-3429 retest 10). On any other page (Home, a team, a story) no question SHALL get the line. The name comes from `GET /v1/members/<uid>` (the API answers `?select=name` with a 400); when that fails the line SHALL be "About this member (<profile URL>): ". This is a deviation from the design's `about=member` scope: the AI Search backend takes no scope (`HuskyChatSchema`), so the member travels in the question text. A proper scope is a later backend change.
 
 The local checks SHALL come before the thread is saved: when the browser gives no tab, or storage is blocked, no thread SHALL be made, so a failure leaves nothing in the History rail and a Retry adds nothing. If the thread or its title can't be saved, or storage is blocked, the tab SHALL close and the member SHALL stay in the agent. A red line under the header SHALL read "Couldn’t open this chat in AI agent chat." with Retry (which tries again) and Dismiss. If the member closes the new tab while the thread saves, the thread SHALL stay in the History rail with its questions waiting, and opening it SHALL ask them. No "Opened in AI agent chat" link back (the ticket's designed default).
 
@@ -388,9 +388,9 @@ Each press (Retry too) SHALL send `agent-open-ai-search-clicked` with `questionC
 
 #### Scenario: On a member profile
 
-- **GIVEN** the agent reads Maya Okonkwo's profile and the chat has 1 answer
+- **GIVEN** the agent reads Maya Okonkwo's profile and the chat has 2 answers
 - **WHEN** the member presses "AI agent chat"
-- **THEN** the first question starts with "About Maya Okonkwo (<origin>/members/<uid>): "
+- **THEN** both questions start with "About Maya Okonkwo (<origin>/members/<uid>): "
 
 #### Scenario: The thread can't be saved
 

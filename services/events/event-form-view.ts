@@ -166,6 +166,8 @@ export function toPreviewEvent(values: EventFormValues, uid = 'preview'): EventD
     dateLine: instants ? formatEventDateLine(instants.start, instants.end, timezone) : '',
     address: venue || null,
     locationUrl: place?.locationUrl ?? null,
+    // LAB-3454: the instruction shows under a found venue only, as `address` does.
+    locationInstructions: (venue && values.instruction.trim()) || null,
     image: values.logo ? (values.logo.kind === 'file' ? values.logo.previewUrl : values.logo.url) : null,
     focusAreas: Array.from(new Set(values.tags.map(toFocusAreaCode).filter((code): code is string => !!code))),
     tags: values.tags.filter((name) => !toFocusAreaCode(name)).map(toEventTag),

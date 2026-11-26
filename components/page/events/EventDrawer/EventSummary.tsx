@@ -78,7 +78,8 @@ function HostNames({ hosts }: { hosts: string[] }) {
  * event's own page sits among the facts (LAB-3271, LAB-3333, LAB-3334); no "Part of the <city> gathering" (LAB-3283).
  * LAB-3324: with a map link, the place and its arrow open the map in a new tab; an online event never links.
  * LAB-3426: for an event that has ended, nothing here asks the reader to register or RSVP. LAB-3418: its day line
- * carries a year other than the current one. LAB-3451: the event's social handles, as links, close the facts.
+ * carries a year other than the current one. LAB-3454: the venue's instruction sits in small text under the venue line.
+ * LAB-3451: the event's social handles, as links, close the facts.
  */
 export function EventSummary({
   event,
@@ -158,6 +159,11 @@ export function EventSummary({
                 <span className={e.factSub}>{ended ? 'Online event' : 'Link sent after you register'}</span>
               ) : (
                 event.mode === 'Hybrid' && <span className={e.factSub}>Hybrid, also online</span>
+              )}
+              {!online && event.locationInstructions && (
+                <span className={clsx(e.factSub, e.factNote)} data-testid="event-place-instruction">
+                  {event.locationInstructions}
+                </span>
               )}
             </span>
           </li>

@@ -12,7 +12,7 @@ import type { EventFormValues } from '@/services/events/event-submission.types';
 
 /*
  * LAB-3278 QA fixes in the event summary, which the drawer, Preview and the edit page's read-only view all draw:
- * the social handles (LAB-3451).
+ * the social handles (LAB-3451) and the venue's instruction (LAB-3454).
  */
 
 const values = (over: Partial<EventFormValues> = {}): EventFormValues => ({
@@ -65,5 +65,46 @@ describe('LAB-3451: the social handles', () => {
     unmount();
     render(<EventSummary event={stored({ contactInfos: { website: ['javascript:alert(1)'], email: ['javascript:alert(1)'] } })} />);
     expect(screen.queryByTestId('event-socials')).not.toBeInTheDocument();
+  });
+});
+
+describe('LAB-3454: the instruction under the venue', () => {
+  const place = { city: 'Lisbon', state: null, country: 'Portugal', latitude: 1, longitude: 2, locationUrl: null };
+  const venue = { address: 'Avenida da Liberdade 10', latitude: 1, longitude: 2 };
+
+  function expectInstruction() {
+    const row = screen.getByTestId('event-place');
+    expect(within(row).getByText('Avenida da Liberdade 10')).toBeInTheDocument();
+    expect(within(row).getByTestId('event-place-instruction')).toHaveTextContent('8th floor, ask at the desk');
+    expect(within(row).getByTestId('event-place-instruction')).toHaveClass('factSub');
+  }
+
+  it('Preview draws the form instruction under a found venue', () => {
+    render(
+      <EventSummary
+        event={toPreviewEvent(values({ venue: venue.address, place, instruction: ' 8th floor, ask at the desk ' }))}
+      />,
+    );
+    expectInstruction();
+  });
+
+  it('the drawer draws details.locationInstructions under the venue', () => {
+    render(<EventSummary event={stored({ locationInstructions: '8th floor, ask at the desk' }, { venue })} />);
+    expectInstruction();
+  });
+
+  it('shows no instruction without a venue, for an online event, or when it is empty', () => {
+    const cases = [
+      toPreviewEvent(values({ venue: 'My garage', place: null, instruction: '8th floor' })),
+      toPreviewEvent(values({ format: 'VIRTUAL', venue: venue.address, place, instruction: '8th floor' })),
+      toPreviewEvent(values({ venue: venue.address, place, instruction: '  ' })),
+      stored({ locationInstructions: '8th floor' }, { venue: null }),
+      stored({ locationInstructions: '8th floor', format: 'VIRTUAL' }, { venue }),
+    ];
+    for (const event of cases) {
+      const { unmount } = render(<EventSummary event={event} />);
+      expect(screen.queryByTestId('event-place-instruction')).not.toBeInTheDocument();
+      unmount();
+    }
   });
 });

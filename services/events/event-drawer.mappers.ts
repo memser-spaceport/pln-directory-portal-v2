@@ -296,6 +296,7 @@ export function toEventDetail(raw: EventDetailResponse): EventDetail {
     dateLine: formatEventDateLine(raw.startDate, raw.endDate, timezone, allDay),
     address: eventAddress(raw),
     locationUrl: details?.locationUrl?.trim() || null,
+    locationInstructions: (raw.venue?.address?.trim() && details?.locationInstructions?.trim()) || null,
     image: raw.logo || raw.banner || null,
     focusAreas,
     tags,

@@ -572,6 +572,14 @@
   white-space: nowrap;
 }
 
+/* LAB-3454: how to find the venue, small under the venue line. */
+.factNote {
+  font-size: 12px;
+  line-height: 16px;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
 /* LAB-3451: the event's social handles, one per line: "Discord: discord.gg/x". */
 .socialList {
   display: flex;

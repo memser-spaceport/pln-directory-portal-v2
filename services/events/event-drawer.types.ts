@@ -47,6 +47,8 @@ export interface EventDetailsResponse {
    * `email`), as the form stored them. Every viewer gets them. Optional: an older backend does not send them.
    */
   contactInfos?: Record<string, string[]> | null;
+  /** LAB-3454: how to find the venue, for example "8th floor". Every viewer gets it. Optional on an older backend. */
+  locationInstructions?: string | null;
 }
 
 /** `GET /v1/irl/events/:uid` (`ResponsePLEventDetailSchema`). 404 for an unknown or deleted event. */
@@ -156,6 +158,8 @@ export interface EventDetail {
   address: string | null;
   /** LAB-3324: the venue's map link (for example Google Maps). Null when the event has none. */
   locationUrl: string | null;
+  /** LAB-3454: how to find the venue, under the venue line. Null when the event has no venue or no instruction. */
+  locationInstructions: string | null;
   image: string | null;
   /** The codes of the event's focus areas, e.g. "FA4" (LAB-3404). */
   focusAreas: string[];

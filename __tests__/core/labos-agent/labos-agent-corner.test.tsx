@@ -722,3 +722,82 @@ describe('LAB-3302: agent corner, Ctrl/⌘ J and context chips', () => {
     });
   });
 });
+
+describe('LAB-3457: the corner on AI agent chat (the page agent)', () => {
+  const pageFocus = jest.fn();
+  beforeEach(() => {
+    chat.mockReset().mockResolvedValue(answer);
+    getAccess.mockReset().mockResolvedValue({ enabled: true });
+    mockPreferences = { memberPreferences: { showFeedbackButton: true } };
+    window.localStorage.clear();
+    useLabosAgentStore.setState({ isOpen: false, context: null, readsPage: true, chats: {} });
+    useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
+    act(() => useFeedbackDrawerStore.getState().actions.closeDrawer());
+    pageFocus.mockReset();
+    document.addEventListener('labos-agent-page-focus', pageFocus);
+  });
+  afterEach(() => document.removeEventListener('labos-agent-page-focus', pageFocus));
+
+  it.each(['/ai-search', '/ai-search/t-1'])(
+    'on %s keeps Feedback, has no Agent tab, and Ctrl/⌘ J goes to the page composer, not the panel',
+    async (url) => {
+      goTo(url);
+      signIn();
+      renderApp();
+
+      expect(await screen.findByRole('group', { name: 'Agent and feedback' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Give feedback' })).toBeInTheDocument();
+      expect(agentTab()).not.toBeInTheDocument();
+
+      ctrlJ();
+      expect(pageFocus).toHaveBeenCalledTimes(1);
+      expect(panel()).not.toBeInTheDocument();
+      expect(useLabosAgentStore.getState().isOpen).toBe(false);
+    },
+  );
+
+  it('a panel open from another page closes on AI agent chat; elsewhere the corner is as before', async () => {
+    goTo('/members/m-2');
+    signIn();
+    const { rerender } = renderApp();
+    fireEvent.click(await screen.findByRole('button', { name: 'Agent' }));
+    expect(panel()).toBeInTheDocument();
+
+    goTo('/ai-search');
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    rerender(
+      <QueryClientProvider client={qc}>
+        <GlobalFeedback isLoggedIn />
+        <LabosAgentRoot />
+      </QueryClientProvider>,
+    );
+    await waitFor(() => expect(useLabosAgentStore.getState().isOpen).toBe(false));
+    expect(agentTab()).not.toBeInTheDocument();
+  });
+
+  it('with the feedback button hidden, AI agent chat shows no corner, and Ctrl/⌘ J still goes to the composer', async () => {
+    mockPreferences = { memberPreferences: { showFeedbackButton: false } };
+    goTo('/ai-search');
+    signIn();
+    renderApp();
+    await waitFor(() => expect(getAccess).toHaveBeenCalled());
+    await act(async () => {});
+
+    expect(screen.queryByRole('group', { name: 'Agent and feedback' })).not.toBeInTheDocument();
+    expect(agentTab()).not.toBeInTheDocument();
+    ctrlJ();
+    expect(pageFocus).toHaveBeenCalledTimes(1);
+  });
+
+  it('outside the gate, AI search keeps the feedback button and Ctrl/⌘ J does nothing', async () => {
+    getAccess.mockResolvedValue({ enabled: false });
+    goTo('/ai-search');
+    signIn();
+    renderApp();
+
+    expect(await screen.findByRole('button', { name: 'Give feedback' })).toBeInTheDocument();
+    ctrlJ();
+    expect(pageFocus).not.toHaveBeenCalled();
+    expect(panel()).not.toBeInTheDocument();
+  });
+});

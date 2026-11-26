@@ -2,7 +2,8 @@
   width: 100%;
   /* A flex item beside the rail: without this a long chat title in the title bar widens the page. */
   min-width: 0;
-  min-height: inherit;
+  /* As /ai-search: a short chat still fills the page below the header, so the page colour does not stop under it. */
+  min-height: calc(100dvh - 80px);
   display: flex;
   flex-direction: column;
   background-color: #f4faff;

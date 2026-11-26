@@ -84,6 +84,8 @@ When an answer that streamed in the open view finishes with one or more web sour
 
 ### Requirement: A thread handed over by the agent asks its questions
 
+LAB-3457: the agent no longer hands chats over this way; "AI agent chat" now opens the same thread (see `labos-agent`), and a member inside the gate opens `/ai-search/<threadId>` on the agent. The reader below stays for today's page until a cleanup removes it.
+
 When the LabOS agent hands a chat over ("AI agent chat", see `labos-agent`), it saves the thread and leaves its questions in `localStorage['ai-search-pending-questions:<threadId>']` (`AI_SEARCH_PENDING_QUESTIONS_KEY_PREFIX`). On `/ai-search/<threadId>`, the member's own thread (`isOwnThread`) SHALL read the entry once and remove it (`takePendingQuestions`), then ask the questions one at a time on that thread: each one after the answer before it has finished or failed. It SHALL not create the thread or its title again. A broken entry SHALL ask nothing. Someone else's thread SHALL not read the entry. The questions go through the normal ask flow, so each answer is saved to the thread. Each one SHALL be sent with the submit type `agent-handoff` (the `ai-query-submitted` `submitType` and the AI response `mode`), not `user-input`, and SHALL not count toward the MCP search hint (`countAiSearch`), so AI search metrics keep the agent's questions apart from typed ones. A Stop SHALL drop the questions still waiting.
 
 #### Scenario: Two questions from the agent
@@ -96,3 +98,49 @@ When the LabOS agent hands a chat over ("AI agent chat", see `labos-agent`), it 
 - **WHEN** the member presses Stop
 - **THEN** the second question is not asked
 
+
+### Requirement: AI agent chat runs on the agent for members inside the gate
+
+LAB-3457 (prototype `prototypes/entries/ai-search-page`, develop a68f8a668). `/ai-search` SHALL show `AgentChat` to a signed-in member who passes the agent gate (`useLabosAgentAccessState()` is `on`), and today's page (`ChatContainer`) to everyone else: signed out (without asking the gate), outside the gate, or with `localStorage['labos-agent'] = 'off'`. While the gate has not answered for a signed-in member, the page SHALL show neither, so today's page never reads a handed-over question (`localStorage.input`) and sends it to AI search.
+
+`AgentChat` SHALL send every message to C1 (`POST /v1/labos-agent/chat`) through `useLabosAgentChat` with its own store key (`ai-search:<threadId>`, `labosAgentPageChatKey`) and thread id, and SHALL never call `/v1/husky/chat/contextual-tools`. Each answer SHALL be the panel's `LabosAgentTurn` (steps and the "Worked for Ns · N steps" toggle, sources, follow-ups, action cards, intro draft cards, errors with Retry, Stopped) under the question, in the page's reading column. The composer SHALL be `AgentChatComposer`: the panel's composer logic (`useLabosAgentComposer`), picker (`LabosAgentMentionPicker`) and chips (`LabosAgentMentionChip`) in the page's `ChatComposer`, with the chips inside the field above the text (`leading`). The field SHALL hold at most 2000 characters, SHALL become Stop while an answer streams, and SHALL have the placeholder "Ask, request an intro, or type @". `@` SHALL open the picker as in the panel; Esc SHALL close it. A question in `localStorage.input` SHALL be sent once and removed.
+
+The new chat SHALL keep the headline, SHALL say "Ask about the network, or make a request." under it, and SHALL show two columns, stacked on phones: "Try asking" (the first 3 news prompts) and "Make a request" (up to 3 of `labosAgentRequestPrompts`: an intro request when `useCanRequestIntro()`, a team update when the member leads a team, a profile update). A picked prompt SHALL send at once. The title bar's new chat (`new-chat` event) SHALL stop the open answer and start a new thread.
+
+#### Scenario: A member inside the gate asks a question
+- **GIVEN** a member inside the agent gate on `/ai-search`
+- **WHEN** they send "Which teams work on decentralized storage?"
+- **THEN** C1 gets the message with the page's thread id, the answer shows its steps, sources and follow-ups, and no request goes to `/v1/husky/chat/contextual-tools`
+
+#### Scenario: A member outside the gate
+- **GIVEN** a signed-in member for whom `GET /v1/labos-agent/access` is `{ enabled: false }`
+- **WHEN** they open `/ai-search`
+- **THEN** they see today's page with today's placeholder
+
+### Requirement: A saved chat opens on the agent for members inside the gate
+
+LAB-3457. On `/ai-search/<threadId>` a signed-in member inside the agent gate SHALL get `AgentChat` with that thread when it is their own (AI search has it under their account, `isOwner`) or AI search does not have it (an agent thread): it SHALL read the thread with T2 (`GET /v1/labos-agent/threads/:threadId`) and show its turns finished, old AI search turns as saved answers (content, sources, follow-ups and the directory results: T2 `actions` in `DirectoryResultCards`, "Results from the directory", under the answer, as AI search draws them today; no steps, no agent cards) and agent turns with their steps ("Worked · N steps", no duration) and cards. Finished cards (`done`, `cancelled`, `failed`, `expired`; drafts `sent`, `cancelled`) SHALL show their result with no buttons; open cards (a proposal `open` before `expiresAt`, a draft `open`) SHALL keep their buttons, and an open draft SHALL send with C5 in that thread. The title bar SHALL show the thread title. The next message SHALL go to C1 with the same `threadId`. A handed-over question (`localStorage.input`) SHALL stay for the new chat. A 404 `THREAD_NOT_FOUND` SHALL show the 404 page, also when AI search still returns the thread (a chat the member deleted: AI search does not filter soft-deleted threads); another failure SHALL say "This chat could not be loaded." with "Try again". A chat already in the store from this page visit SHALL show as it is, with no T2 read.
+
+Inside the gate, an AI search thread that is not under the member's account SHALL show today's thread page, as today, with no T2 read: another member's shared link ("Shared by <name>", a follow-up makes the member's own copy) and a chat the member started as a guest (matched by the `guestId` cookie). Signed out, the route SHALL stay as today (the 404 page when AI search has no such thread). Signed in outside the gate, it SHALL show today's thread page, or the 404 page when AI search has no such thread. Nothing SHALL show for a signed-in member until the gate answers.
+
+#### Scenario: An old AI search thread continues on the agent
+- **GIVEN** a member inside the gate and an old AI search thread `t-1`
+- **WHEN** they open `/ai-search/t-1` and press a follow-up
+- **THEN** the saved answer shows, and C1 gets the follow-up with `threadId` `t-1` and `persist: true`
+
+### Requirement: The History rail is the shared history for members inside the gate
+
+LAB-3457. For a signed-in member inside the agent gate, the History rail SHALL list T1 (`GET /v1/labos-agent/threads`): old AI search chats and agent chats in one list, newest first, 20 rows a page, with "Load more chats" while rows are left (a row that moved to a later page shows once). It SHALL not read `/v1/husky/threads`. The date groups SHALL work on the loaded rows. While the search box has text, the rail SHALL load the remaining T1 pages by itself, up to 500 rows, with no Load more press, and stop at a failed page, so search covers the member's chats as AI search's own list does today; search SHALL work on the loaded rows. Delete SHALL go to T3 (`DELETE /v1/labos-agent/threads/:threadId`): the row leaves at once (also on 404), the list reads its pages again, the open chat leaves for a new chat, and a failure keeps the row with the failure toast. A chat on `/ai-search` (no id in the URL) SHALL announce its saved thread (`refresh-husky-history` with `openThreadId`), so its row is marked open, and its title bar SHALL offer Delete once the chat is saved. While the gate has not answered, the rail SHALL show its skeleton and read neither list. Signed out and outside the gate, the rail SHALL stay as today.
+
+#### Scenario: Old and new chats in one rail
+- **GIVEN** a member inside the gate with an old AI search chat and an agent chat
+- **WHEN** they open `/ai-search`
+- **THEN** History lists both, and opening the old one shows it on the agent
+
+### Requirement: Thread pages are not indexed
+
+LAB-3457. `/ai-search/<threadId>` SHALL send `robots: { index: false, follow: false }`: it is a member's own chat or a guest's shared link. Its title and share image SHALL stay the layout's ("AI Search | Protocol Labs Directory"; renaming to "AI agent chat" is a design question for Polina). `/ai-search` itself SHALL stay indexable.
+
+### Requirement: The chat composer clears the phone bottom bar
+
+LAB-3457. Below 960px the fixed chat composer of `/ai-search` and `/ai-search/<threadId>` (today's page and AI agent chat share `Chat.module.scss`) SHALL sit above the fixed bottom bar (`MobileBottomNav`), so it is usable on a short chat that cannot scroll. The bar SHALL publish the room it takes as `--mobile-bottom-nav-offset` on `<html>`: its height while it shows, `0px` while it hides on scroll, on a bare route and from 960px. The composer SHALL sit at `max(offset, env(safe-area-inset-bottom))`, and the chat SHALL leave that room under its last message. The pinned composer SHALL publish its height as `--pinned-composer-height` and carry `data-pinned-composer`; below 960px the floating corner (the agent corner and the feedback button) SHALL sit 16px above it, so it covers neither Send nor the bar. From 960px the corner keeps its place beside the composer.

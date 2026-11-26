@@ -23,7 +23,8 @@
   margin: 0px auto;
   position: relative;
   overflow: hidden;
-  padding: 26px 16px 90px 16px;
+  /* LAB-3457: the fixed composer sits above the phone bottom bar, so the last message clears both. */
+  padding: 26px 16px calc(90px + var(--mobile-bottom-nav-offset, 0px)) 16px;
 }
 
 .messages {
@@ -38,7 +39,10 @@
   width: min(768px, calc(100% - 32px));
   left: 50%;
   transform: translateX(-50%);
-  bottom: 0;
+  /* LAB-3457: above the phone bottom bar while it shows (`MobileBottomNav` publishes its height), else above the
+     home indicator. */
+  bottom: max(var(--mobile-bottom-nav-offset, 0px), env(safe-area-inset-bottom, 0px));
+  transition: bottom 0.2s ease;
   z-index: 1;
   display: flex;
   justify-content: center;

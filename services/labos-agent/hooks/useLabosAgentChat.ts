@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { useIntroRequestAnalytics, type IntroRequestEventContext } from '@/analytics/intro-requests.analytics';
 import {
@@ -19,12 +20,14 @@ import type {
   LabosAgentDraftCardState,
   LabosAgentMentionChip,
   LabosAgentOpenContext,
+  LabosAgentSurface,
   LabosAgentTurn,
   LabosAgentTurnStatus,
 } from '@/types/labos-agent.types';
 import { generateUUID } from '@/utils/common.utils';
 
 import {
+  draftConfirmErrorState,
   draftErrorState,
   draftTargetKey,
   introErrorStatus,
@@ -36,8 +39,13 @@ import { isStalledAnswer, LabosAgentError } from '../labos-agent.errors';
 import { toChatMentions } from '../labos-agent.mentions';
 import { currentIntroDraft, openCards } from '../labos-agent.open-cards';
 import { distinctSourceCount } from '../labos-agent.sources';
+import { getLabosAgentHistoryClient } from '../labos-agent.history';
 import { getLabosAgentClient, toChatContext } from '../labos-agent.service';
+import { refreshLabosAgentHistory } from './useLabosAgentThreads';
 import { chatKey, useLabosAgentStore } from '../store';
+
+/** LAB-3457: C5 answers that mean the backend has no saved draft to send: the card falls back to C3 once. */
+const C5_UNKNOWN_DRAFT: ReadonlySet<string> = new Set(['THREAD_NOT_FOUND', 'DRAFT_NOT_FOUND']);
 
 export type { LabosAgentTurn, LabosAgentTurnStatus };
 
@@ -124,6 +132,7 @@ export function cardErrorState(error: LabosAgentError): LabosAgentCardState {
 export function draftEventContext(
   draft: LabosAgentDraft,
   context: LabosAgentOpenContext | null,
+  surface: LabosAgentSurface = 'panel',
 ): IntroRequestEventContext {
   const targetType = draft.target.type;
   const entryPoint =
@@ -132,22 +141,38 @@ export function draftEventContext(
       : targetType === 'member'
         ? 'member-header'
         : 'team-header';
-  const conversationId = currentConversationId();
+  const conversationId = currentConversationId(surface);
   return { targetType, entryPoint, source: 'agent', ...(conversationId ? { conversationId } : {}) };
 }
 
 /** LAB-3297: the member changed the draft text before Send or Cancel. */
 const isDraftEdited = (draft: LabosAgentDraft, text: string) => text.trim() !== draft.text.trim();
 
+/** LAB-3457: how the AI agent chat page runs a chat. The panel passes none. */
+export interface LabosAgentChatOptions {
+  /** The page's own chat key. Default: `chatKey(context)`, one chat per context (the panel). */
+  key?: string;
+  /** With `key`: the thread id of the chat, so C1 gets the page's thread. */
+  threadId?: string;
+  /** The page always sends its context (a chat scoped to one profile). Default: the panel's page chip (`readsPage`). */
+  readsContext?: boolean;
+  /** For the agent events. Default `panel`. */
+  surface?: LabosAgentSurface;
+}
+
 /**
  * One chat with the agent, for one context. Turns live in the store (`chats[chatKey(context)]`), so closing the panel
  * keeps the chat and an open stream keeps writing to it. A hard error or a stall marks the turn, and `retry` sends the
- * same message again.
+ * same message again. LAB-3457: the AI agent chat page runs the same chat under its own key (`options`).
  */
-export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
-  const key = chatKey(context);
+export function useLabosAgentChat(context: LabosAgentOpenContext | null, options: LabosAgentChatOptions = {}) {
+  const { threadId: ownThreadId, readsContext, surface = 'panel' } = options;
+  const key = options.key ?? chatKey(context);
   const turns = useLabosAgentStore((s) => s.chats[key]?.turns ?? NO_TURNS);
-  const { updateTurns, resetChat, markPageUnreadable, countSession } = useLabosAgentStore((s) => s.actions);
+  const { updateTurns, resetChat, markPageUnreadable, countSession, ensureChat, renewThread } = useLabosAgentStore(
+    (s) => s.actions,
+  );
+  const queryClient = useQueryClient();
   const {
     onMessageSent,
     onAnswerShown,
@@ -156,7 +181,7 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
     onActionConfirmed,
     onActionCancelled,
     onActionFailed,
-  } = useLabosAgentAnalytics();
+  } = useLabosAgentAnalytics(surface);
   const { onDialogOpened, onDialogClosed, onAskSubmitted, onSubmitFailed } = useIntroRequestAnalytics();
 
   const patch = useCallback(
@@ -168,10 +193,11 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
   const run = useCallback(
     async (message: string, replaceId?: string, chips: LabosAgentMentionChip[] = []) => {
       const id = generateUUID();
+      if (ownThreadId) ensureChat(key, ownThreadId);
       const before = useLabosAgentStore.getState();
       const prevTurns = before.chats[key]?.turns ?? NO_TURNS;
       // LAB-3302: after the member removes the page chip, the request has no page context.
-      const chatContext = toChatContext(before.readsPage ? context : null);
+      const chatContext = toChatContext((readsContext ?? before.readsPage) ? context : null);
       const mentions = toChatMentions(chips);
       // LAB-3362 (C4-R7): the newest waiting intro card goes with the message. Only `done` turns count, so a retry of
       // an `error` or `stalled` turn never sends a card of that turn.
@@ -200,8 +226,8 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
         startedAt: Date.now(),
       };
       updateTurns(key, (prev) => (replaceId ? prev.map((t) => (t.id === replaceId ? turn : t)) : [...prev, turn]));
-      const threadId = useLabosAgentStore.getState().chats[key].threadId;
-      countSession('turnCount');
+      let threadId = useLabosAgentStore.getState().chats[key].threadId;
+      countSession('turnCount', 1, surface);
       onMessageSent(context, {
         messageLength: message.length,
         turnIndex,
@@ -212,17 +238,19 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
 
       const controller = new AbortController();
       streams.set(key, controller);
-      try {
-        const body = await getLabosAgentClient().chat(
+      const ask = (thread: string) =>
+        getLabosAgentClient().chat(
           // S6-F14: `mentions` in the order of the chips, only when the member picked some.
           // LAB-3362: `introDraft` only while an intro card waits. Its text never goes into an event or a log.
+          // LAB-3457: `persist` saves the finished turn in the thread, for the shared history.
           {
-            threadId,
+            threadId: thread,
             chatId: id,
             message,
             context: chatContext,
             ...(mentions ? { mentions } : {}),
             ...(introDraft ? { introDraft } : {}),
+            persist: true,
           },
           {
             signal: controller.signal,
@@ -231,9 +259,23 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
             },
           },
         );
+      try {
+        let body;
+        try {
+          body = await ask(threadId);
+        } catch (err) {
+          // LAB-3457: the thread was deleted (or is not the member's). C1 said so before the stream: the chat goes on
+          // in a new thread, once.
+          if (controller.signal.aborted || !(err instanceof LabosAgentError) || err.code !== 'THREAD_NOT_FOUND')
+            throw err;
+          threadId = renewThread(key);
+          body = await ask(threadId);
+        }
         if (controller.signal.aborted) return;
         const stalled = isStalledAnswer(body.content);
-        patch(id, { ...body, status: stalled ? 'stalled' : 'done', endedAt: Date.now() });
+        // LAB-3457: the backend saved the finished turn (stopped and failed turns are not saved).
+        patch(id, { ...body, status: stalled ? 'stalled' : 'done', endedAt: Date.now(), savedIn: threadId });
+        refreshLabosAgentHistory(queryClient, threadId);
         if (stalled) onAnswerFailed(context, { turnIndex, errorType: 'timeout', status: 200 });
         else {
           // V0-R4: the C1 counts when they come. Else the client counts the distinct sources and omits the rest.
@@ -261,9 +303,9 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
             }),
           );
           if (body.proposals.length + drafts.length > 0)
-            countSession('actionCount', body.proposals.length + drafts.length);
+            countSession('actionCount', body.proposals.length + drafts.length, surface);
           // The draft card is the agent's intro form: one `intro-request-dialog-opened` for each card (LAB-3296).
-          drafts.forEach((d) => onDialogOpened(draftEventContext(d, context)));
+          drafts.forEach((d) => onDialogOpened(draftEventContext(d, context, surface)));
         }
       } catch (err) {
         if (controller.signal.aborted) return;
@@ -300,6 +342,12 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
     [
       context,
       key,
+      ownThreadId,
+      readsContext,
+      surface,
+      ensureChat,
+      renewThread,
+      queryClient,
       patch,
       updateTurns,
       markPageUnreadable,
@@ -389,7 +437,7 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
           res.status === 'cancelled' ? { status: 'cancelled' } : { status: 'done', summary: res.summary },
         );
         if (decision === 'confirm' && res.status === 'done') {
-          countSession('confirmedCount');
+          countSession('confirmedCount', 1, surface);
           // v0 action cards have no edit, so `edited` is always false.
           onActionConfirmed(context, { actionType, fieldCount, edited: false, draftLength: 0 });
         }
@@ -406,7 +454,7 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
         }
       }
     },
-    [context, key, setCard, countSession, onActionCancelled, onActionConfirmed, onActionFailed],
+    [context, key, surface, setCard, countSession, onActionCancelled, onActionConfirmed, onActionFailed],
   );
 
   const findDraft = useCallback(
@@ -415,7 +463,7 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
       const draft = turn?.drafts?.find((d) => d.draftId === draftId);
       if (!turn || !draft) return null;
       const card: LabosAgentDraftCardState = turn.draftCards?.[draftId] ?? { status: 'open', text: draft.text };
-      return { draft, card };
+      return { turn, draft, card };
     },
     [key],
   );
@@ -447,7 +495,7 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
     async (turnId: string, draftId: string) => {
       const found = findDraft(turnId, draftId);
       if (!found) return;
-      const { draft, card } = found;
+      const { turn, draft, card } = found;
       if (card.status !== 'open' && card.status !== 'error') return;
       // One intro request for each target in a page visit, across turns and New chat (C3 has no duplicate check).
       const { sentIntroTargets, actions } = useLabosAgentStore.getState();
@@ -455,15 +503,41 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
       const text = card.text.trim();
       if (text.length < draft.minLength || text.length > draft.maxLength) return;
 
-      const events = draftEventContext(draft, context);
+      const events = draftEventContext(draft, context, surface);
       setDraftCard(turnId, draftId, { status: 'sending', text: card.text });
       // Claim the target before the request, so a Send on another card for it in the same tick does nothing.
       actions.markIntroTargetSent(draftTargetKey(draft));
+      // LAB-3457: a saved draft goes through C5, which keeps the sent state on the server (sent at most once). A
+      // draft of a turn that was not saved keeps the C3 path.
+      let viaC5 = !!turn.savedIn;
       try {
-        await createIntroRequest(toIntroRequestBody(draft, text));
+        if (turn.savedIn) {
+          const threadId = turn.savedIn;
+          const res = await getLabosAgentHistoryClient()
+            .confirmDraft({ threadId, draftId, decision: 'send', text })
+            .catch((err: unknown) => {
+              // The backend did not save this turn after all (its write failed or ran out of time), or the thread was
+              // deleted (another tab). C5 checks the thread before the draft, so it answers THREAD_NOT_FOUND or
+              // DRAFT_NOT_FOUND, and nothing was sent. The draft goes as an unsaved one does, through C3, once.
+              if (err instanceof LabosAgentError && C5_UNKNOWN_DRAFT.has(err.code)) return null;
+              throw err;
+            })
+            .finally(() => refreshLabosAgentHistory(queryClient, threadId));
+          if (!res) viaC5 = false;
+          if (res?.status === 'cancelled') {
+            setDraftCard(turnId, draftId, { status: 'cancelled', text: card.text });
+            useLabosAgentStore.setState((st) => {
+              const next = { ...st.sentIntroTargets };
+              delete next[draftTargetKey(draft)];
+              return { sentIntroTargets: next };
+            });
+            return;
+          }
+        }
+        if (!viaC5) await createIntroRequest(toIntroRequestBody(draft, text));
         setDraftCard(turnId, draftId, { status: 'sent', text: card.text });
         onAskSubmitted({ ...events, textLength: text.length });
-        countSession('confirmedCount');
+        countSession('confirmedCount', 1, surface);
         onActionConfirmed(context, {
           actionType: 'intro-draft',
           fieldCount: 1,
@@ -472,19 +546,34 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
         });
         markIntroRequestSent(draftTargetKey(draft));
       } catch (err) {
-        // The send failed, so the target is free again.
-        useLabosAgentStore.setState((st) => {
-          const next = { ...st.sentIntroTargets };
-          delete next[draftTargetKey(draft)];
-          return { sentIntroTargets: next };
-        });
-        setDraftCard(turnId, draftId, draftErrorState(err, card.text));
+        const next = viaC5 ? draftConfirmErrorState(err, card.text) : draftErrorState(err, card.text);
+        // The send failed, so the target is free again. A C5 409 that says `sent` keeps it taken.
+        if (next.status !== 'sent') {
+          useLabosAgentStore.setState((st) => {
+            const free = { ...st.sentIntroTargets };
+            delete free[draftTargetKey(draft)];
+            return { sentIntroTargets: free };
+          });
+        } else markIntroRequestSent(draftTargetKey(draft));
+        setDraftCard(turnId, draftId, next);
+        if (next.status === 'sent' || next.status === 'cancelled') return;
         const status = introErrorStatus(err);
         onSubmitFailed({ ...events, status, textLength: text.length });
         onActionFailed(context, { actionType: 'intro-draft', status });
       }
     },
-    [context, findDraft, setDraftCard, countSession, onAskSubmitted, onSubmitFailed, onActionConfirmed, onActionFailed],
+    [
+      context,
+      surface,
+      queryClient,
+      findDraft,
+      setDraftCard,
+      countSession,
+      onAskSubmitted,
+      onSubmitFailed,
+      onActionConfirmed,
+      onActionFailed,
+    ],
   );
 
   /** Cancel on a draft card (S3-R14): the card closes and no request goes out. */
@@ -494,8 +583,17 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
       if (!found || ['sending', 'sent', 'cancelled'].includes(found.card.status)) return;
       const textLength = found.card.text.trim().length;
       setDraftCard(turnId, draftId, { ...found.card, status: 'cancelled' });
+      // LAB-3457: a saved draft is cancelled on the server too, so a reopened chat shows it cancelled. The card closes
+      // whatever C5 answers.
+      const threadId = found.turn.savedIn;
+      if (threadId) {
+        void getLabosAgentHistoryClient()
+          .confirmDraft({ threadId, draftId, decision: 'cancel' })
+          .catch(() => undefined)
+          .finally(() => refreshLabosAgentHistory(queryClient, threadId));
+      }
       onDialogClosed({
-        ...draftEventContext(found.draft, context),
+        ...draftEventContext(found.draft, context, surface),
         hadText: textLength > 0,
         textLength,
       });
@@ -504,7 +602,7 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
         edited: isDraftEdited(found.draft, found.card.text),
       });
     },
-    [context, findDraft, setDraftCard, onDialogClosed, onActionCancelled],
+    [context, surface, queryClient, findDraft, setDraftCard, onDialogClosed, onActionCancelled],
   );
 
   /** S5-C29: the panel put the text of a failed turn back in the composer. It does that once only. */

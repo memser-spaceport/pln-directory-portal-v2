@@ -8,6 +8,7 @@ import type {
   LabosAgentOpenContext,
   LabosAgentProposalTool,
   LabosAgentSession,
+  LabosAgentSurface,
 } from '@/types/labos-agent.types';
 import { LABOS_AGENT_ANALYTICS_EVENTS } from '@/utils/constants';
 
@@ -108,8 +109,16 @@ export function agentSharedProps(
   };
 }
 
-/** The `conversationId` of the current dock session, for the intro events with `source: 'agent'` (V0-R2). */
-export const currentConversationId = () => useLabosAgentStore.getState().session?.conversationId;
+/**
+ * The session of a surface (LAB-3457): the dock session for the panel, the page chat's session for AI agent chat.
+ */
+export const currentSession = (surface: LabosAgentSurface = 'panel') => {
+  const state = useLabosAgentStore.getState();
+  return surface === 'page' ? state.pageSession : state.session;
+};
+
+/** The `conversationId` of the current session, for the intro events with `source: 'agent'` (V0-R2). */
+export const currentConversationId = (surface: LabosAgentSurface = 'panel') => currentSession(surface)?.conversationId;
 
 export interface AgentMessageSentProps {
   messageLength: number;
@@ -163,12 +172,8 @@ export interface AgentActionFailedProps {
 
 /** LAB-3429: the "AI agent chat" press. Counts and booleans only: the questions never go in an event. */
 export interface AgentOpenAiSearchClickedProps {
-  /** The answered questions that travel to the new thread. */
+  /** LAB-3457: the saved turns the full page opens with (the same thread; nothing is copied). */
   questionCount: number;
-  /** The agent read a member profile, so the scope line went before the first question. */
-  memberScoped: boolean;
-  /** The press came from Retry on the error line. */
-  isRetry: boolean;
 }
 
 /** LAB-3429: how the member resized the slot. */
@@ -190,24 +195,26 @@ export interface AgentDockClosedProps {
 }
 
 /**
- * The agent event handlers. Each handler takes the context of the chat and reads the dock session from the store, so
- * all events of one session carry one `conversationId`. A failed capture logs and never breaks the panel.
+ * The agent event handlers. Each handler takes the context of the chat and reads the session of its surface from the
+ * store, so all events of one session carry one `conversationId`. A failed capture logs and never breaks the panel.
+ * LAB-3457: every event carries `surface`, `panel` (the default) or `page` (AI agent chat), so the use of each surface
+ * can be told apart.
  */
-export function useLabosAgentAnalytics() {
+export function useLabosAgentAnalytics(surface: LabosAgentSurface = 'panel') {
   const posthog = usePostHog();
 
   const capture = useCallback(
     (event: string, context: LabosAgentOpenContext | null, properties: object, session?: LabosAgentSession | null) => {
       try {
         if (!posthog?.capture) return;
-        const shared = agentSharedProps(session ?? useLabosAgentStore.getState().session, context);
+        const shared = agentSharedProps(session ?? currentSession(surface), context);
         const userInfo = useCurrentUserStore.getState().currentUser;
-        posthog.capture(event, { ...shared, ...properties, loggedInUserUid: userInfo?.uid });
+        posthog.capture(event, { ...shared, ...properties, surface, loggedInUserUid: userInfo?.uid });
       } catch (error) {
         console.error(error);
       }
     },
-    [posthog],
+    [posthog, surface],
   );
 
   /** `agent-dock-opened`: the panel shows. The session holds the context of the open. */

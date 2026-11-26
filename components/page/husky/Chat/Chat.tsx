@@ -28,6 +28,7 @@ import { saveVisitChat } from '../utils/saveVisitChat';
 import { takePendingQuestions } from '../utils/takePendingQuestions';
 
 import { useSidebar } from '../hooks/useSidebar';
+import { usePinnedComposerHeight } from '../hooks/usePinnedComposerHeight';
 
 import { Messages } from './components/Messages';
 import { ChatHome } from './components/ChatHome';
@@ -57,6 +58,7 @@ export const Chat = (props: Props) => {
   const [limitReached, setLimitReached] = useState<'warn' | 'info' | 'finalRequest'>();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const composerWrapperRef = usePinnedComposerHeight();
   /* The signed-in token for the request `submitChat` is about to send. The API gates
      member-only tools (Investor DB, warm intros, investor profiles) on it, so without
      it every answer on this page is the signed-out one. */
@@ -558,7 +560,7 @@ export const Chat = (props: Props) => {
             <McpHint context="search" query={messages[messages.length - 1]?.question ?? ''} />
           </div>
 
-          <div data-state={state} className={s.formWrapper}>
+          <div ref={composerWrapperRef} data-state={state} data-pinned-composer="" className={s.formWrapper}>
             <form className={s.form}>
               {limitReached && (
                 <HuskyLimitStrip

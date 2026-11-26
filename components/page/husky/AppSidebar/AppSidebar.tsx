@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 
 import { PAGE_ROUTES } from '@/utils/constants';
@@ -9,6 +9,9 @@ import { AI_SEARCH_HISTORY_PARAM } from '@/components/constants/aiSearchHandoff'
 import { triggerLoader } from '@/utils/common.utils';
 import { getUserCredentials } from '@/utils/auth.utils';
 import { getHuskyHistory, deleteThread } from '@/services/husky.service';
+import { useLabosAgentAccessState } from '@/services/labos-agent/hooks/useLabosAgentAccess';
+import { useDeleteLabosAgentThread, useLabosAgentThreads } from '@/services/labos-agent/hooks/useLabosAgentThreads';
+import { LABOS_AGENT_HISTORY_TEXT } from '@/services/labos-agent/constants';
 
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { useLoginRedirect } from '@/components/core/login/utils';
@@ -57,7 +60,31 @@ export const AppSidebar = (props: Props) => {
   const goToLogin = useLoginRedirect();
   const openChatId = (id as string | undefined) ?? announcedChatId;
 
+  /*
+   * LAB-3457: a member inside the agent gate sees the shared history (T1): old AI search chats and agent chats in one
+   * list, paged with "Load more", deleted with T3. Everyone else keeps AI search's own list. While the gate has not
+   * answered, the rail shows its skeleton and asks neither.
+   */
+  const access = useLabosAgentAccessState();
+  const agentHistory = isLoggedIn && access === 'on';
+  const huskyHistory = !isLoggedIn || access === 'off';
+  // While the search box has text, the rail loads the rest of T1 (capped), so search finds older chats too.
+  const agentThreads = useLabosAgentThreads({ enabled: agentHistory, loadAll: query.trim().length > 0 });
+  const deleteAgentThread = useDeleteLabosAgentThread();
+  // The document listeners below are set once; they read these.
+  const refetchAgentRef = useRef(agentThreads.refetch);
+  const huskyHistoryRef = useRef(huskyHistory);
+  useEffect(() => {
+    refetchAgentRef.current = agentThreads.refetch;
+    huskyHistoryRef.current = huskyHistory;
+  });
+
   const fetchHistory = async (showLoading = true) => {
+    if (!huskyHistoryRef.current) {
+      // The agent list refetches on its own after each saved turn; an announce asks for it too.
+      if (isLoggedIn) void refetchAgentRef.current();
+      return;
+    }
     if (!isLoggedIn) {
       setHistory(getVisitChats());
       setIsLoading(false);
@@ -160,7 +187,12 @@ export const AppSidebar = (props: Props) => {
     const toastId = toast.loading('Deleting thread...');
 
     try {
-      const res = await deleteThread(authToken, deleteId);
+      const res = agentHistory
+        ? await deleteAgentThread.mutateAsync(deleteId).then(
+            () => true,
+            () => false,
+          )
+        : await deleteThread(authToken, deleteId);
 
       if (!res) {
         toast.update(toastId, {
@@ -196,10 +228,13 @@ export const AppSidebar = (props: Props) => {
     }
   };
 
+  const threads: IHistoryThread[] = agentHistory ? agentThreads.rows : history;
+  const threadsLoading = agentHistory ? agentThreads.isPending : huskyHistory ? isLoading : true;
+
   const shownHistory = useMemo(() => {
     const words = query.trim().toLowerCase();
-    return words ? history.filter((thread) => thread.title?.toLowerCase().includes(words)) : history;
-  }, [history, query]);
+    return words ? threads.filter((thread) => thread.title?.toLowerCase().includes(words)) : threads;
+  }, [threads, query]);
 
   const historyGroups = useMemo(() => groupThreadsByDate(shownHistory), [shownHistory]);
   const deleteSubject = deleteTarget?.title ? `“${deleteTarget.title}”` : 'This chat';
@@ -217,9 +252,13 @@ export const AppSidebar = (props: Props) => {
     router.replace(window.location.pathname, { scroll: false });
   }, [searchParams, setOpen, setOpenMobile, router]);
 
+  // AI search's own list: signed out, or outside the agent gate (once the gate has answered).
   useEffect(() => {
-    fetchHistory(true);
+    if (huskyHistory) fetchHistory(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [huskyHistory]);
 
+  useEffect(() => {
     const handleRefreshHistory = (e: Event) => {
       const openThreadId = (e as CustomEvent<{ openThreadId?: string }>).detail?.openThreadId;
       if (openThreadId) {
@@ -277,9 +316,9 @@ export const AppSidebar = (props: Props) => {
               </div>
             </div>
             <div className={s.list}>
-              {isLoading ? (
+              {threadsLoading ? (
                 <SkeletonLoader />
-              ) : history.length === 0 ? (
+              ) : threads.length === 0 ? (
                 <div className={s.empty}>
                   {isLoggedIn
                     ? 'Your conversations will appear here once you start chatting!'
@@ -319,6 +358,18 @@ export const AppSidebar = (props: Props) => {
                     </ul>
                   </div>
                 ))
+              )}
+              {agentHistory && agentThreads.hasNextPage && !threadsLoading && (
+                <button
+                  type="button"
+                  className={s.loadMore}
+                  disabled={agentThreads.isFetchingNextPage}
+                  onClick={() => void agentThreads.fetchNextPage()}
+                >
+                  {agentThreads.isFetchingNextPage
+                    ? LABOS_AGENT_HISTORY_TEXT.loadingMore
+                    : LABOS_AGENT_HISTORY_TEXT.loadMore}
+                </button>
               )}
             </div>
             {!isLoggedIn && (

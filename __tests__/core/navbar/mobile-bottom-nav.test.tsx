@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 
 import { MobileBottomNav } from '@/components/core/MobileBottomNav';
 import {
@@ -35,7 +35,10 @@ jest.mock('@/services/team-news/hooks/useHasNewNews', () => ({ useHasNewNews: ()
 jest.mock('@/services/rbac/hooks/useDemoDayAnalyticsAccess', () => ({
   useDemoDayAnalyticsAccess: () => ({ hasAccess: false }),
 }));
-jest.mock('@/components/core/MobileBottomNav/useScrollDirection', () => ({ useScrollDirection: () => 'up' }));
+let mockScrollDirection: 'up' | 'down' = 'up';
+jest.mock('@/components/core/MobileBottomNav/useScrollDirection', () => ({
+  useScrollDirection: () => mockScrollDirection,
+}));
 
 const mockOnNavItemClicked = jest.fn();
 const mockOnHomeNavClicked = jest.fn();
@@ -274,6 +277,53 @@ describe('MobileBottomNav', () => {
       // denominator that never included them.
       expect(mockOnHomeNavClicked).not.toHaveBeenCalled();
       expect(mockOnNavItemClicked).not.toHaveBeenCalled();
+    });
+  });
+
+  // LAB-3457: the AI agent chat composer sits above the bar; the bar says how much room it takes.
+  describe('the room it takes at the foot (--mobile-bottom-nav-offset)', () => {
+    const offset = () => document.documentElement.style.getPropertyValue('--mobile-bottom-nav-offset');
+    let heightSpy: jest.SpyInstance;
+    beforeEach(() => {
+      mockScrollDirection = 'up';
+      mockPlInfraItems.mockReturnValue([]);
+      heightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(57);
+    });
+    afterEach(() => {
+      heightSpy.mockRestore();
+      mockScrollDirection = 'up';
+    });
+
+    it('is the bar height while it shows, 0px while it hides on scroll, and goes away with the bar', () => {
+      const { rerender, unmount } = render(<MobileBottomNav />);
+      expect(offset()).toBe('57px');
+
+      mockScrollDirection = 'down';
+      rerender(<MobileBottomNav />);
+      expect(offset()).toBe('0px');
+
+      mockScrollDirection = 'up';
+      rerender(<MobileBottomNav />);
+      expect(offset()).toBe('57px');
+
+      unmount();
+      expect(offset()).toBe('');
+    });
+
+    it('follows the bar on resize (from 960px it is display: none, so 0px)', () => {
+      render(<MobileBottomNav />);
+      heightSpy.mockReturnValue(0);
+      act(() => {
+        window.dispatchEvent(new Event('resize'));
+      });
+      expect(offset()).toBe('0px');
+    });
+
+    it('is 0px on a bare route, which has no bar', () => {
+      mockUsePathname.mockReturnValue('/explore-pl-network');
+      const { container } = render(<MobileBottomNav />);
+      expect(container).toBeEmptyDOMElement();
+      expect(offset()).toBe('0px');
     });
   });
 });

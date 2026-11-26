@@ -1,0 +1,95 @@
+@use 'styles/media';
+
+/* LAB-3457: the turns of a page chat, spaced as today's Messages list. */
+.turns {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* "Try asking" and "Make a request" side by side, three compact rows each (prototype `ai-search-page`
+   .promptColumns .promptList .promptRow .promptIcon .promptGlyph, verbatim). Phones stack them. */
+.columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  width: 100%;
+
+  @include media.mobile-only {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+}
+
+.promptList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.promptRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 8px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--background-neutral-secondary, #f8fafc);
+  color: var(--foreground-neutral-secondary, #455468);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    background: var(--background-neutral-hover, #f1f5f9);
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: -2px;
+  }
+}
+
+.promptIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.promptGlyph {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin: 2px;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+/* A saved chat (T2) that did not load. */
+.loadError {
+  margin: 48px auto 0;
+  padding: 0 16px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-secondary, #475569);
+  text-align: center;
+}
+
+.loadRetry {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--text-link, #156ff7);
+  text-decoration: underline;
+  cursor: pointer;
+}

@@ -308,7 +308,7 @@ All agent calls SHALL go through `getLabosAgentClient()`. The live client SHALL 
 
 ### Requirement: The agent sends the v0 agent events
 
-The agent SHALL send the 10 v0 events of the LAB-3297 spec (V0-R1), and the 2 LAB-3429 events (`agent-open-ai-search-clicked` and `agent-panel-resized`, below), through `useLabosAgentAnalytics` (`analytics/labos-agent.analytics.ts`), with the names in `LABOS_AGENT_ANALYTICS_EVENTS`: `agent-dock-opened`, `agent-dock-closed`, `agent-message-sent`, `agent-answer-shown`, `agent-answer-failed`, `agent-source-clicked`, `agent-action-proposed`, `agent-action-confirmed`, `agent-action-cancelled` and `agent-action-failed`. Every event SHALL carry `flow`, `entryPoint`, `pageType`, `conversationId` and `loggedInUserUid`. `conversationId` SHALL be a random UUID that the store makes for each dock session (`session` in `services/labos-agent/store.ts`). A closed panel, or a new context in the open panel, SHALL start a new session. `openAgent` SHALL take `entryPoint` (`news-story`, `intro-entry`, `corner` or `shortcut`; default `corner`). `LabosAgentRoot` SHALL send `agent-dock-opened` and `agent-dock-closed` through `useLabosAgentDockEvents`, for every way to open the panel. Each card SHALL send at most one `agent-action-cancelled` (V0-R6): when the member presses Cancel, or when New chat discards the card while it still waits. A panel close SHALL send no `agent-action-cancelled`; the card stays in the chat for a reopen. A card that shows "Intro already requested" does not wait. A card that shows "Replaced by a newer draft" does not wait and SHALL send no `agent-action-cancelled`; the revision sends a new `agent-action-proposed` (V0-R9). Only a card of a `done` turn waits; the panel shows no card for a turn that is not `done`. An action card in `error` with Retry (`canRetry`) waits. A pending action card past its `expiresAt` does not wait (it shows no buttons). `agent-message-sent` SHALL carry `mentionCount`, the number of mention chips (V0-R3). `agent-answer-shown` SHALL send the C1 `toolCount`, `usedWebSearch` and `sourceCount` when the final chunk has them. Else it SHALL count the distinct sources of the answer (a page in both lists counts once, as backend PR #3754 does) and leave out the other two (V0-R4). A source ref SHALL link to its `directoryLink` (a LabOS path) or its `externalUrl` (http or https, new tab); `uid` and `url` stay as a fallback for an older body and the mock. The intro events with `source` `agent` SHALL carry the `conversationId` of the session (V0-R2). No event SHALL carry message text, draft text, names, emails, or IDs of members, teams or news (V0-R5). S4 (`agent-draft-copied`, `apply_via`, `job-draft`, `job-apply`) is not in v0. These events SHALL not reach production before Anuj's own yes (LAB-3297).
+The agent SHALL send the 10 v0 events of the LAB-3297 spec (V0-R1), and the 2 LAB-3429 events (`agent-open-ai-search-clicked`, which LAB-3457 changed, and `agent-panel-resized`, below), through `useLabosAgentAnalytics` (`analytics/labos-agent.analytics.ts`), with the names in `LABOS_AGENT_ANALYTICS_EVENTS`: `agent-dock-opened`, `agent-dock-closed`, `agent-message-sent`, `agent-answer-shown`, `agent-answer-failed`, `agent-source-clicked`, `agent-action-proposed`, `agent-action-confirmed`, `agent-action-cancelled` and `agent-action-failed`. Every event SHALL carry `flow`, `entryPoint`, `pageType`, `conversationId` and `loggedInUserUid`. `conversationId` SHALL be a random UUID that the store makes for each dock session (`session` in `services/labos-agent/store.ts`). A closed panel, or a new context in the open panel, SHALL start a new session. `openAgent` SHALL take `entryPoint` (`news-story`, `intro-entry`, `corner` or `shortcut`; default `corner`). LAB-3457: every event SHALL carry `surface`: `panel` for the panel, `page` for AI agent chat (`useLabosAgentAnalytics('page')`). Page events SHALL use the page session (`pageSession` in the store, `entryPoint` `ai-search-page`, a new `conversationId` for each page chat, `startPageSession`), never the dock session, and the page's counts SHALL go to the page session (`countSession(field, by, 'page')`). `LabosAgentRoot` SHALL send `agent-dock-opened` and `agent-dock-closed` through `useLabosAgentDockEvents`, for every way to open the panel. Each card SHALL send at most one `agent-action-cancelled` (V0-R6): when the member presses Cancel, or when New chat discards the card while it still waits. A panel close SHALL send no `agent-action-cancelled`; the card stays in the chat for a reopen. A card that shows "Intro already requested" does not wait. A card that shows "Replaced by a newer draft" does not wait and SHALL send no `agent-action-cancelled`; the revision sends a new `agent-action-proposed` (V0-R9). Only a card of a `done` turn waits; the panel shows no card for a turn that is not `done`. An action card in `error` with Retry (`canRetry`) waits. A pending action card past its `expiresAt` does not wait (it shows no buttons). `agent-message-sent` SHALL carry `mentionCount`, the number of mention chips (V0-R3). `agent-answer-shown` SHALL send the C1 `toolCount`, `usedWebSearch` and `sourceCount` when the final chunk has them. Else it SHALL count the distinct sources of the answer (a page in both lists counts once, as backend PR #3754 does) and leave out the other two (V0-R4). A source ref SHALL link to its `directoryLink` (a LabOS path) or its `externalUrl` (http or https, new tab); `uid` and `url` stay as a fallback for an older body and the mock. The intro events with `source` `agent` SHALL carry the `conversationId` of the session (V0-R2). No event SHALL carry message text, draft text, names, emails, or IDs of members, teams or news (V0-R5). S4 (`agent-draft-copied`, `apply_via`, `job-draft`, `job-apply`) is not in v0. These events SHALL not reach production before Anuj's own yes (LAB-3297).
 
 #### Scenario: Two messages in one session
 
@@ -368,35 +368,25 @@ The placeholder SHALL be "Ask, request an intro, or type @ to add context" when 
 
 The mock client SHALL answer C4 with mock pages, news, teams and members only, and accept `mentions` (S6-F21, S6-F22). The query "unavailable" SHALL give a 503. A mention uid that starts with `missing` SHALL give a C1 404 with `mentionIndex`. The answer SHALL list the mentions it read.
 
-### Requirement: The agent hands the chat over to AI agent chat
+### Requirement: AI agent chat opens the same chat on the full page
 
-The panel header SHALL show a labelled action, "AI agent chat" with the AI mark, first among the header actions (before History, New chat and ✕) (LAB-3429 Decision 1). Its accessible name SHALL be "Open in AI agent chat (new tab)". Until the chat has one `done` turn it SHALL be `aria-disabled` with the tooltip "Ask something first, then continue in AI agent chat"; then the tooltip SHALL be "Open this chat in AI agent chat (new tab)". Below 478px of panel width (a container query) the word SHALL hide and the AI mark SHALL carry the action; the accessible name SHALL stay. On a coarse pointer the hit area SHALL be 44px.
+The panel header SHALL show a labelled action, "AI agent chat" with the AI mark, first among the header actions (before History, New chat and ✕) (LAB-3429 Decision 1). Its accessible name SHALL be "Open in AI agent chat (new tab)". Until the chat has one saved turn (`savedIn`, see "Agent turns are saved in the shared history") it SHALL be `aria-disabled` with the tooltip "Ask something first, then continue in AI agent chat"; then the tooltip SHALL be "Open this chat in AI agent chat (new tab)". Below 478px of panel width (a container query) the word SHALL hide and the AI mark SHALL carry the action; the accessible name SHALL stay. On a coarse pointer the hit area SHALL be 44px.
 
-A press SHALL open a new tab at once (inside the click), save a NEW AI Search thread (`POST /v1/husky/threads` with a client-made `threadId`, then `POST /v1/husky/threads/:id/basic-info` with the first question, through `customFetch`), leave the questions in `localStorage['ai-search-pending-questions:<threadId>']` and send the tab to `/ai-search/<threadId>`, where AI agent chat asks them one at a time. The questions are the messages of the `done` turns, in order. Only the questions travel: no answers, cards or steps. The agent chat SHALL stay as it is, and the two histories stay separate.
+LAB-3457: a press SHALL open `/ai-search/<threadId>` in a new tab, with no opener, where `threadId` is the chat's own thread (the newest saved turn's, so after a `THREAD_NOT_FOUND` restart it is the new thread). AI agent chat reads the thread with T2 and goes on in it. Nothing SHALL be copied, saved or asked again: no `/v1/husky/threads` call and no `ai-search-pending-questions:` entry (this replaces the LAB-3429 hand-off, its member scope line and its error line with Retry). A turn that is not saved (stopped or failed) does not count, and a turn still streaming is not in the thread yet. The agent chat SHALL stay as it is.
 
-While the agent reads a member profile (`context.page` `member` and `readsPage`), every handed-over question SHALL start with one line, "About <member name> (<profile URL>): " (t1, 2026-11-26, option B), not only the first: AI Search does not carry the member from one question to the next (LAB-3429 retest 10). On any other page (Home, a team, a story) no question SHALL get the line. The name comes from `GET /v1/members/<uid>` (the API answers `?select=name` with a 400); when that fails the line SHALL be "About this member (<profile URL>): ". This is a deviation from the design's `about=member` scope: the AI Search backend takes no scope (`HuskyChatSchema`), so the member travels in the question text. A proper scope is a later backend change.
-
-The local checks SHALL come before the thread is saved: when the browser gives no tab, or storage is blocked, no thread SHALL be made, so a failure leaves nothing in the History rail and a Retry adds nothing. If the thread or its title can't be saved, or storage is blocked, the tab SHALL close and the member SHALL stay in the agent. A red line under the header SHALL read "Couldn’t open this chat in AI agent chat." with Retry (which tries again) and Dismiss. If the member closes the new tab while the thread saves, the thread SHALL stay in the History rail with its questions waiting, and opening it SHALL ask them. No "Opened in AI agent chat" link back (the ticket's designed default).
-
-Each press (Retry too) SHALL send `agent-open-ai-search-clicked` with `questionCount`, `memberScoped` and `isRetry`. No question text.
+Each press SHALL send `agent-open-ai-search-clicked` with `questionCount`, the saved turns of that thread in the chat. No question text.
 
 #### Scenario: Two answers, then AI agent chat
 
 - **GIVEN** a chat with 2 answers on Home
 - **WHEN** the member presses "AI agent chat"
-- **THEN** a new tab opens `/ai-search/<threadId>` with the 2 questions handed over, and the agent chat is unchanged
+- **THEN** a new tab opens `/ai-search/<the chat's threadId>`, which shows the 2 turns, and the agent chat is unchanged
 
-#### Scenario: On a member profile
+#### Scenario: No saved answer yet
 
-- **GIVEN** the agent reads Maya Okonkwo's profile and the chat has 2 answers
+- **GIVEN** a chat whose only answer failed
 - **WHEN** the member presses "AI agent chat"
-- **THEN** both questions start with "About Maya Okonkwo (<origin>/members/<uid>): "
-
-#### Scenario: The thread can't be saved
-
-- **GIVEN** `POST /v1/husky/threads` fails
-- **WHEN** the member presses "AI agent chat"
-- **THEN** the new tab closes, the member stays in the agent and sees "Couldn’t open this chat in AI agent chat." with Retry
+- **THEN** nothing opens
 
 ### Requirement: The history menu links to all AI agent chats
 
@@ -415,3 +405,37 @@ From 960px window width, the member SHALL resize the agent slot by its left edge
 ### Requirement: The picker has a heading
 
 The context picker SHALL open with an "Add context" heading above its search field, from + and from `@` alike (LAB-3429 Decision 5). The picker dialog SHALL be named by the heading.
+
+### Requirement: The history client reads the shared chat history
+
+LAB-3457 (backend contract T1, T2, T3, C5). `getLabosAgentHistoryClient()` SHALL return the live client, or the mock when the agent mock is selected. `listThreads` SHALL call `GET /v1/labos-agent/threads?page&limit`, `getThread` `GET /v1/labos-agent/threads/:threadId`, `deleteThread` `DELETE /v1/labos-agent/threads/:threadId`, and `confirmDraft` `POST /v1/labos-agent/drafts/confirm` with `{ threadId, draftId, decision }` and, for `send` only, the trimmed `text`. Every failure SHALL be a `LabosAgentError`; `THREAD_NOT_FOUND`, `DRAFT_NOT_FOUND` and `DRAFT_CLOSED` (with `draftStatus` `sent` or `cancelled`) SHALL keep their codes. A T1 row with no `threadId` SHALL drop out, a row with no `source` SHALL be `ai-search`, and a row with no title SHALL read "Untitled chat". A T2 turn with no `kind` SHALL be an old AI search turn; a saved action card with an unknown status SHALL read as `expired` and a saved draft with an unknown status as `cancelled`, so neither shows its buttons.
+
+The React Query hooks (`useLabosAgentThreads`, `useLabosAgentThread`, `useDeleteLabosAgentThread`, `useConfirmLabosAgentDraft`, keys `LabosAgentQueryKeys.THREADS` and `THREAD` with the member uid) SHALL ask only when the caller passes `enabled` (a member inside the gate). T1 SHALL ask a page of 20 rows at a time (`LABOS_AGENT_THREADS_PAGE_SIZE`), starting at page 1. With `loadAll` it SHALL load the next pages by itself up to 500 rows (`LABOS_AGENT_HISTORY_SEARCH_CAP`), and stop at a failed page. T2 SHALL not retry `THREAD_NOT_FOUND`. A delete SHALL drop the row from the cached list, also when T3 answers `THREAD_NOT_FOUND`. A C5 answer SHALL write the draft's new status (and the sent text) into the cached thread. The mock history SHALL hold one old AI search thread and save each finished mock C1 turn sent with `persist: true`.
+
+#### Scenario: A deleted thread
+
+- **GIVEN** a member inside the gate with thread `t-1` in the cached list
+- **WHEN** the delete answers 404 `THREAD_NOT_FOUND`
+- **THEN** `t-1` leaves the list and no error shows
+
+### Requirement: Every agent chat is saved in the shared history
+
+LAB-3457. Every C1 request from the panel and from AI agent chat SHALL carry `persist: true`. A finished answer (`done` or `stalled`) SHALL record the thread it was saved in on its turn (`savedIn`), and the history list SHALL refetch; a stopped or failed turn has no `savedIn`. When C1 answers 404 `THREAD_NOT_FOUND` before the stream, the chat SHALL get a new thread id (`renewThread`), keep its turns and send the same message once more in the new thread; a second `THREAD_NOT_FOUND` SHALL show the turn's error.
+
+The intro draft of a saved turn SHALL go to C5: Send posts `{ threadId, draftId, decision: 'send', text }` with the trimmed text, Cancel posts `{ threadId, draftId, decision: 'cancel' }` and closes the card whatever C5 answers. A C5 409 `DRAFT_CLOSED` SHALL show the card as it closed (`sent` or `cancelled`) with no Send and no failure event; `cancelled` SHALL never show as sent. C5's 403 and 404 SHALL show the API message, or the intro request texts when there is none, as with C3. A draft of a turn with no `savedIn` SHALL keep the C3 path (`POST /v1/intro-requests`).
+
+#### Scenario: A deleted thread on the next message
+
+- **GIVEN** a chat whose thread was deleted in another tab
+- **WHEN** the member sends a message and C1 answers 404 `THREAD_NOT_FOUND`
+- **THEN** the same message goes again in a new thread and the answer shows
+
+### Requirement: A saved draft the backend does not know, and the C3 already-sent answer
+
+LAB-3457. Cards show only on a `done` turn, so a stopped turn has no Send. When C5 answers 404 `DRAFT_NOT_FOUND` or `THREAD_NOT_FOUND` (the backend did not save the turn after all, or the thread was deleted; C5 checks the thread first), nothing was sent: the card SHALL send the draft once through C3, as an unsaved draft, with no error and no loop; a C3 failure then SHALL show the C3 message. When C3 answers 409 `DRAFT_CLOSED` `{ status: 'sent' }` (the same text went to that target from a saved card), the agent card and the intro dialog (`RequestIntroDialog`) SHALL show the request as received, with no failure event and no new submit event.
+
+LAB-3457: when the permission check is down, C3 and C5 answer 503 and send nothing. The agent card SHALL show the API's message ("Intro requests are not available right now. Please try again."), or "The request could not be sent. Try again." when there is none, keep the text and Send, and not retry by itself; a press tries once more. The intro dialog SHALL do the same with its own error line. Other 5xx answers keep the plain message.
+
+### Requirement: The corner on AI agent chat
+
+LAB-3457. On `/ai-search` and `/ai-search/<threadId>`, for a member with agent access (the only members who get the corner, and who get AI agent chat there), the corner SHALL have no Agent tab, so no second agent opens in the panel; the Feedback tab SHALL stay. With the feedback button hidden, the corner SHALL show nothing there. Ctrl/⌘ J SHALL put focus in the page's composer (`labos-agent-page-focus`) instead of opening the panel. A panel still open from another page SHALL close on AI agent chat; its chat stays in the store. Members outside the gate keep the feedback button, with no change.

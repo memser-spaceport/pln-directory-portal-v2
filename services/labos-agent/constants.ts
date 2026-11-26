@@ -1,5 +1,9 @@
 export enum LabosAgentQueryKeys {
   ACCESS = 'labos-agent-access',
+  /** LAB-3457: T1, the history list. */
+  THREADS = 'labos-agent-threads',
+  /** LAB-3457: T2, one thread with its turns. */
+  THREAD = 'labos-agent-thread',
 }
 
 export const LABOS_AGENT_ENDPOINTS = {
@@ -7,7 +11,16 @@ export const LABOS_AGENT_ENDPOINTS = {
   access: '/v1/labos-agent/access',
   confirm: '/v1/labos-agent/actions/confirm',
   mentions: '/v1/labos-agent/mentions',
+  /** LAB-3457: T1 (GET); `threads/:threadId` is T2 (GET) and T3 (DELETE). */
+  threads: '/v1/labos-agent/threads',
+  /** LAB-3457: C5. */
+  draftConfirm: '/v1/labos-agent/drafts/confirm',
 } as const;
+
+/** LAB-3457: the T1 page size of the history rail (the backend allows 1 to 50); "Load more" asks for the next. */
+export const LABOS_AGENT_THREADS_PAGE_SIZE = 20;
+/** LAB-3457: while the History search has text, the rail loads T1 pages up to this many rows, so search covers them. */
+export const LABOS_AGENT_HISTORY_SEARCH_CAP = 500;
 
 /** C1 request limits. */
 export const LABOS_AGENT_MESSAGE_MAX = 2000;
@@ -61,9 +74,6 @@ export const LABOS_AGENT_HANDOFF_TEXT = {
   actionAria: 'Open in AI agent chat (new tab)',
   tooltip: 'Open this chat in AI agent chat (new tab)',
   tooltipDisabled: 'Ask something first, then continue in AI agent chat',
-  error: 'Couldn’t open this chat in AI agent chat.',
-  retry: 'Retry',
-  dismiss: 'Dismiss',
   historyTrigger: 'Agent history',
   historyTitle: 'History',
   historyLink: 'All AI agent chats',
@@ -80,4 +90,32 @@ export const LABOS_AGENT_CONTEXT_TEXT = {
   lockedTitle:
     'The agent can’t read this page: settings and notifications stay private. Ask anyway, or add something with +.',
   pickerTitle: 'Add context',
+} as const;
+
+/**
+ * LAB-3457: AI agent chat (`/ai-search`) runs on the agent for members inside the gate. Texts verbatim from Polina's
+ * prototype `prototypes/entries/ai-search-page` (develop a68f8a668, PR #3735 "AI search merged with AI agent").
+ */
+export const LABOS_AGENT_PAGE_TEXT = {
+  placeholder: 'Ask, request an intro, or type @',
+  line: 'Ask about the network, or make a request.',
+  tryAsking: 'Try asking',
+  makeRequest: 'Make a request',
+  composerAria: 'Message the agent',
+  chipsAria: 'What the agent reads',
+  /** A saved chat (T2) did not load. */
+  loadFailed: 'This chat could not be loaded.',
+  loadRetry: 'Try again',
+} as const;
+
+/** LAB-3457: the new chat shows 3 questions and up to 3 requests (prototype `ai-search-page`, two columns of three). */
+export const LABOS_AGENT_PAGE_PROMPT_COUNT = 3;
+
+/** LAB-3457: the store key of a page chat. One chat per thread. */
+export const labosAgentPageChatKey = (threadId: string) => `ai-search:${threadId}`;
+
+/** LAB-3457: the History rail's paging, for members inside the agent gate. */
+export const LABOS_AGENT_HISTORY_TEXT = {
+  loadMore: 'Load more chats',
+  loadingMore: 'Loading…',
 } as const;

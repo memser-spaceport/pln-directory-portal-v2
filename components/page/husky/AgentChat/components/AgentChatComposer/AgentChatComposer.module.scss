@@ -1,0 +1,20 @@
+/* LAB-3457: the agent's picker (LabosAgentMentionPicker .picker) anchors to the field. In a thread the field sits at
+   the foot of the page, so the picker opens above it (its default). Prototype `ai-search-page` .mentionWrap. */
+.root {
+  position: relative;
+  width: 100%;
+}
+
+/* New chat: the field sits under the headline, so the picker drops below it, over the prompts. */
+.home.home > [role='dialog'] {
+  top: calc(100% + 4px);
+  bottom: auto;
+}
+
+/* The scope chip (if any) and the mention chips, in one wrapping row inside the field. */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}

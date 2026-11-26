@@ -5,6 +5,7 @@ import type {
   LabosAgentEntryPoint,
   LabosAgentOpenContext,
   LabosAgentSession,
+  LabosAgentSurface,
   LabosAgentTurn,
 } from '@/types/labos-agent.types';
 import { generateUUID } from '@/utils/common.utils';
@@ -54,6 +55,11 @@ interface LabosAgentState {
    * still sends its events with the right `conversationId`. `null` before the first open.
    */
   readonly session: LabosAgentSession | null;
+  /**
+   * LAB-3457: the session of the chat open on the AI agent chat page, for the agent events with `surface: 'page'`.
+   * Each new or opened page chat starts one. `null` before the page shows the agent.
+   */
+  readonly pageSession: LabosAgentSession | null;
   readonly actions: {
     /**
      * The one "open with context" call (LAB-3298). Opens the panel on this context. S2–S5 reuse it.
@@ -67,8 +73,19 @@ interface LabosAgentState {
       /** LAB-3429: the page under the panel is one the agent can't read. Default `false`. */
       pageLocked?: boolean;
     }) => void;
-    /** LAB-3297: adds to a count of the current dock session. */
-    countSession: (field: 'turnCount' | 'actionCount' | 'confirmedCount', by?: number) => void;
+    /** LAB-3297: adds to a count of the current session of a surface (default: the dock session). */
+    countSession: (
+      field: 'turnCount' | 'actionCount' | 'confirmedCount',
+      by?: number,
+      surface?: LabosAgentSurface,
+    ) => void;
+    /** LAB-3457: a new page chat on AI agent chat starts a new page session (a new `conversationId`). */
+    startPageSession: (context?: LabosAgentOpenContext | null) => void;
+    /**
+     * LAB-3457: the page's chat, by its own key and thread id. Creates the chat with these turns when the key has none;
+     * an existing chat stays as it is.
+     */
+    ensureChat: (key: string, threadId: string, turns?: LabosAgentTurn[]) => void;
     /** The chip ✕ (`false`) and "Read this page" (`true`), LAB-3302. */
     setReadsPage: (readsPage: boolean) => void;
     /** The panel calls this after it puts `prefill` in the composer. */
@@ -81,10 +98,15 @@ interface LabosAgentState {
     updateTurns: (key: string, update: (turns: LabosAgentTurn[]) => LabosAgentTurn[]) => void;
     /** New chat: a new `threadId` and no turns. */
     resetChat: (key: string) => void;
+    /**
+     * LAB-3457: C1 said `THREAD_NOT_FOUND` (the thread was deleted, or is not the member's). The chat keeps its turns
+     * and gets a new `threadId`, which comes back.
+     */
+    renewThread: (key: string) => string;
   };
 }
 
-export const useLabosAgentStore = create<LabosAgentState>((set) => ({
+export const useLabosAgentStore = create<LabosAgentState>((set, get) => ({
   isOpen: false,
   context: null,
   readsPage: true,
@@ -93,6 +115,7 @@ export const useLabosAgentStore = create<LabosAgentState>((set) => ({
   prefill: null,
   sentIntroTargets: {},
   session: null,
+  pageSession: null,
   actions: {
     openAgent: ({ context = null, prefill, entryPoint = 'corner', pageLocked = false } = {}) =>
       set((state) => {
@@ -119,8 +142,27 @@ export const useLabosAgentStore = create<LabosAgentState>((set) => ({
               },
         };
       }),
-    countSession: (field, by = 1) =>
-      set((state) => (state.session ? { session: { ...state.session, [field]: state.session[field] + by } } : {})),
+    countSession: (field, by = 1, surface = 'panel') =>
+      set((state) => {
+        const slot = surface === 'page' ? 'pageSession' : 'session';
+        const current = state[slot];
+        return current ? { [slot]: { ...current, [field]: current[field] + by } } : {};
+      }),
+    startPageSession: (context = null) =>
+      set({
+        pageSession: {
+          conversationId: generateUUID(),
+          entryPoint: 'ai-search-page',
+          context,
+          contextAttached: !!context,
+          openedAt: Date.now(),
+          turnCount: 0,
+          actionCount: 0,
+          confirmedCount: 0,
+        },
+      }),
+    ensureChat: (key, threadId, turns = []) =>
+      set((state) => (state.chats[key] ? {} : { chats: { ...state.chats, [key]: { threadId, turns } } })),
     setReadsPage: (readsPage) => set({ readsPage }),
     clearPrefill: () => set({ prefill: null }),
     markIntroTargetSent: (key) => set((state) => ({ sentIntroTargets: { ...state.sentIntroTargets, [key]: true } })),
@@ -136,6 +178,12 @@ export const useLabosAgentStore = create<LabosAgentState>((set) => ({
         return { chats: { ...state.chats, [key]: { ...chat, turns: update(chat.turns) } } };
       }),
     resetChat: (key) => set((state) => ({ chats: { ...state.chats, [key]: { threadId: generateUUID(), turns: [] } } })),
+    renewThread: (key) => {
+      const threadId = generateUUID();
+      const chat = get().chats[key] ?? { turns: [] };
+      set((state) => ({ chats: { ...state.chats, [key]: { ...chat, threadId } } }));
+      return threadId;
+    },
   },
 }));
 

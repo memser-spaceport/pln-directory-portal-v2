@@ -1,6 +1,16 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
+// LAB-3457: these tests cover AI search's own History rail, which members outside the agent gate keep.
+jest.mock('@/services/labos-agent/hooks/useLabosAgentAccess', () => ({
+  useLabosAgentAccessState: () => 'off',
+  useLabosAgentAccess: () => false,
+}));
+jest.mock('@/services/labos-agent/hooks/useLabosAgentThreads', () => ({
+  useLabosAgentThreads: () => ({ rows: [], isPending: false, hasNextPage: false, refetch: jest.fn() }),
+  useDeleteLabosAgentThread: () => ({ mutateAsync: jest.fn() }),
+}));
+
 jest.mock('@/components/core/husky/husky-code-block', () => ({
   __esModule: true,
   default: ({ children }: { children?: React.ReactNode }) => <code>{children}</code>,

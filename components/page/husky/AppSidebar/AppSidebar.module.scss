@@ -152,6 +152,31 @@
   line-height: 22px;
 }
 
+/* LAB-3457: the next page of the shared history (members inside the agent gate). */
+.loadMore {
+  display: block;
+  width: 100%;
+  margin: 4px 0 12px;
+  padding: 8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: #1b4dff;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.loadMore:hover:not(:disabled) {
+  background-color: rgba(27, 77, 255, 0.06);
+}
+
+.loadMore:disabled {
+  color: #64748b;
+  cursor: default;
+}
+
 .history {
   display: flex;
   flex-direction: column;

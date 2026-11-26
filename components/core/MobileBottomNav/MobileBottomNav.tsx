@@ -1,7 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -62,9 +62,19 @@ function moreRank({ href }: ISubItem) {
   return rank === -1 ? MORE_ORDER.length : rank;
 }
 
+/**
+ * LAB-3457: the space the bar takes at the foot of the screen, on `<html>`: its height while it shows, `0px` while it
+ * hides on scroll, on a bare route, and from 960px (where it is `display: none`). Fixed controls at the foot (the AI
+ * agent chat composer) sit above it.
+ */
+export const MOBILE_BOTTOM_NAV_OFFSET_VAR = '--mobile-bottom-nav-offset';
+
 export function MobileBottomNav() {
   const pathname = usePathname();
   const scrollDirection = useScrollDirection();
+  const navRef = useRef<HTMLDivElement>(null);
+  const bare = isBareRoute(pathname);
+  const hidden = scrollDirection === 'down';
   const { hasAccess: hasDemoDayAnalyticsAccess } = useDemoDayAnalyticsAccess();
 
   const baseMoreItems = useMoreNavItems();
@@ -108,12 +118,27 @@ export function MobileBottomNav() {
     return [...items].sort((a, b) => moreRank(a) - moreRank(b));
   }, [hasPlInfra, eventLinks, baseMoreItems]);
 
-  if (isBareRoute(pathname)) return null;
+  useEffect(() => {
+    const style = document.documentElement.style;
+    const publish = () => {
+      const height = !bare && !hidden && navRef.current ? navRef.current.offsetHeight : 0;
+      style.setProperty(MOBILE_BOTTOM_NAV_OFFSET_VAR, `${height}px`);
+    };
+    publish();
+    window.addEventListener('resize', publish);
+    return () => {
+      window.removeEventListener('resize', publish);
+      style.removeProperty(MOBILE_BOTTOM_NAV_OFFSET_VAR);
+    };
+  }, [bare, hidden]);
+
+  if (bare) return null;
 
   return (
     <div
+      ref={navRef}
       className={clsx(s.wrapper, {
-        [s.hidden]: scrollDirection === 'down',
+        [s.hidden]: hidden,
       })}
       id="mobile-bottom-nav"
     >

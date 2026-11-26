@@ -1,1 +1,1 @@
-export type ViewType = 'view' | 'add' | 'edit'
+export type ViewType = 'view' | 'add' | 'edit';

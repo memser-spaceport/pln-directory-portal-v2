@@ -96,3 +96,21 @@ When the LabOS agent hands a chat over ("AI agent chat", see `labos-agent`), it 
 - **WHEN** the member presses Stop
 - **THEN** the second question is not asked
 
+
+### Requirement: AI agent chat runs on the agent for members inside the gate
+
+LAB-3457 (prototype `prototypes/entries/ai-search-page`, develop a68f8a668). `/ai-search` SHALL show `AgentChat` to a signed-in member who passes the agent gate (`useLabosAgentAccessState()` is `on`), and today's page (`ChatContainer`) to everyone else: signed out (without asking the gate), outside the gate, or with `localStorage['labos-agent'] = 'off'`. While the gate has not answered for a signed-in member, the page SHALL show neither, so today's page never reads a handed-over question (`localStorage.input`) and sends it to AI search.
+
+`AgentChat` SHALL send every message to C1 (`POST /v1/labos-agent/chat`) through `useLabosAgentChat` with its own store key (`ai-search:<threadId>`, `labosAgentPageChatKey`) and thread id, and SHALL never call `/v1/husky/chat/contextual-tools`. Each answer SHALL be the panel's `LabosAgentTurn` (steps and the "Worked for Ns · N steps" toggle, sources, follow-ups, action cards, intro draft cards, errors with Retry, Stopped) under the question, in the page's reading column. The composer SHALL be `AgentChatComposer`: the panel's composer logic (`useLabosAgentComposer`), picker (`LabosAgentMentionPicker`) and chips (`LabosAgentMentionChip`) in the page's `ChatComposer`, with the chips inside the field above the text (`leading`). The field SHALL hold at most 2000 characters, SHALL become Stop while an answer streams, and SHALL have the placeholder "Ask, request an intro, or type @". `@` SHALL open the picker as in the panel; Esc SHALL close it. A question in `localStorage.input` SHALL be sent once and removed.
+
+The new chat SHALL keep the headline, SHALL say "Ask about the network, or make a request." under it, and SHALL show two columns, stacked on phones: "Try asking" (the first 3 news prompts) and "Make a request" (up to 3 of `labosAgentRequestPrompts`: an intro request when `useCanRequestIntro()`, a team update when the member leads a team, a profile update). A picked prompt SHALL send at once. The title bar's new chat (`new-chat` event) SHALL stop the open answer and start a new thread.
+
+#### Scenario: A member inside the gate asks a question
+- **GIVEN** a member inside the agent gate on `/ai-search`
+- **WHEN** they send "Which teams work on decentralized storage?"
+- **THEN** C1 gets the message with the page's thread id, the answer shows its steps, sources and follow-ups, and no request goes to `/v1/husky/chat/contextual-tools`
+
+#### Scenario: A member outside the gate
+- **GIVEN** a signed-in member for whom `GET /v1/labos-agent/access` is `{ enabled: false }`
+- **WHEN** they open `/ai-search`
+- **THEN** they see today's page with today's placeholder

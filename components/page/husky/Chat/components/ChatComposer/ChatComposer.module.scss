@@ -53,6 +53,24 @@
   padding-bottom: 56px;
 }
 
+// LAB-3457: the agent's @mention chips ride inside the field, above the text (prototype `ai-search-page` Composer).
+.withLeading {
+  flex-direction: column;
+}
+
+.leading {
+  display: flex;
+  padding: 12px 16px 0;
+}
+
+.withLeading .input {
+  padding-top: 8px;
+}
+
+.withLeading.home .input {
+  min-height: 88px;
+}
+
 .send {
   position: absolute;
   right: 12px;

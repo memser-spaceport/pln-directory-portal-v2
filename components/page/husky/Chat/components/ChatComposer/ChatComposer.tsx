@@ -1,7 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-import { useState, useEffect, forwardRef, ComponentProps } from 'react';
+import { useState, useEffect, forwardRef, ComponentProps, ReactNode } from 'react';
 
 import s from './ChatComposer.module.scss';
 
@@ -11,6 +11,8 @@ type Props = ComponentProps<'textarea'> & {
   isAnswerLoading?: boolean;
   isLoadingObject?: boolean;
   size?: 'home' | 'thread';
+  /** LAB-3457: inside the field, above the text (the agent's @mention chips, prototype `ai-search-page` Composer). */
+  leading?: ReactNode;
 };
 
 export const ChatComposer = forwardRef<HTMLTextAreaElement, Props>(function ChatComposer(
@@ -25,6 +27,7 @@ export const ChatComposer = forwardRef<HTMLTextAreaElement, Props>(function Chat
     onFocus,
     size = 'thread',
     defaultValue,
+    leading,
     ...props
   },
   ref,
@@ -58,7 +61,11 @@ export const ChatComposer = forwardRef<HTMLTextAreaElement, Props>(function Chat
   const canSend = hasText && !isAnswerLoading && !isStreaming;
 
   return (
-    <div className={clsx(s.root, size === 'home' && s.home, className)} data-testid="chat-composer">
+    <div
+      className={clsx(s.root, size === 'home' && s.home, !!leading && s.withLeading, className)}
+      data-testid="chat-composer"
+    >
+      {leading && <div className={s.leading}>{leading}</div>}
       <textarea
         {...props}
         ref={ref}

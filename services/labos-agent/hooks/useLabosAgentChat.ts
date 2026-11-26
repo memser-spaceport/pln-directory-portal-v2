@@ -19,6 +19,7 @@ import type {
   LabosAgentDraftCardState,
   LabosAgentMentionChip,
   LabosAgentOpenContext,
+  LabosAgentSurface,
   LabosAgentTurn,
   LabosAgentTurnStatus,
 } from '@/types/labos-agent.types';
@@ -124,6 +125,7 @@ export function cardErrorState(error: LabosAgentError): LabosAgentCardState {
 export function draftEventContext(
   draft: LabosAgentDraft,
   context: LabosAgentOpenContext | null,
+  surface: LabosAgentSurface = 'panel',
 ): IntroRequestEventContext {
   const targetType = draft.target.type;
   const entryPoint =
@@ -132,22 +134,35 @@ export function draftEventContext(
       : targetType === 'member'
         ? 'member-header'
         : 'team-header';
-  const conversationId = currentConversationId();
+  const conversationId = currentConversationId(surface);
   return { targetType, entryPoint, source: 'agent', ...(conversationId ? { conversationId } : {}) };
 }
 
 /** LAB-3297: the member changed the draft text before Send or Cancel. */
 const isDraftEdited = (draft: LabosAgentDraft, text: string) => text.trim() !== draft.text.trim();
 
+/** LAB-3457: how the AI agent chat page runs a chat. The panel passes none. */
+export interface LabosAgentChatOptions {
+  /** The page's own chat key. Default: `chatKey(context)`, one chat per context (the panel). */
+  key?: string;
+  /** With `key`: the thread id of the chat, so C1 gets the page's thread. */
+  threadId?: string;
+  /** The page always sends its context (a chat scoped to one profile). Default: the panel's page chip (`readsPage`). */
+  readsContext?: boolean;
+  /** For the agent events. Default `panel`. */
+  surface?: LabosAgentSurface;
+}
+
 /**
  * One chat with the agent, for one context. Turns live in the store (`chats[chatKey(context)]`), so closing the panel
  * keeps the chat and an open stream keeps writing to it. A hard error or a stall marks the turn, and `retry` sends the
- * same message again.
+ * same message again. LAB-3457: the AI agent chat page runs the same chat under its own key (`options`).
  */
-export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
-  const key = chatKey(context);
+export function useLabosAgentChat(context: LabosAgentOpenContext | null, options: LabosAgentChatOptions = {}) {
+  const { threadId: ownThreadId, readsContext, surface = 'panel' } = options;
+  const key = options.key ?? chatKey(context);
   const turns = useLabosAgentStore((s) => s.chats[key]?.turns ?? NO_TURNS);
-  const { updateTurns, resetChat, markPageUnreadable, countSession } = useLabosAgentStore((s) => s.actions);
+  const { updateTurns, resetChat, markPageUnreadable, countSession, ensureChat } = useLabosAgentStore((s) => s.actions);
   const {
     onMessageSent,
     onAnswerShown,
@@ -156,7 +171,7 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
     onActionConfirmed,
     onActionCancelled,
     onActionFailed,
-  } = useLabosAgentAnalytics();
+  } = useLabosAgentAnalytics(surface);
   const { onDialogOpened, onDialogClosed, onAskSubmitted, onSubmitFailed } = useIntroRequestAnalytics();
 
   const patch = useCallback(
@@ -168,10 +183,11 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
   const run = useCallback(
     async (message: string, replaceId?: string, chips: LabosAgentMentionChip[] = []) => {
       const id = generateUUID();
+      if (ownThreadId) ensureChat(key, ownThreadId);
       const before = useLabosAgentStore.getState();
       const prevTurns = before.chats[key]?.turns ?? NO_TURNS;
       // LAB-3302: after the member removes the page chip, the request has no page context.
-      const chatContext = toChatContext(before.readsPage ? context : null);
+      const chatContext = toChatContext((readsContext ?? before.readsPage) ? context : null);
       const mentions = toChatMentions(chips);
       // LAB-3362 (C4-R7): the newest waiting intro card goes with the message. Only `done` turns count, so a retry of
       // an `error` or `stalled` turn never sends a card of that turn.
@@ -201,7 +217,7 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
       };
       updateTurns(key, (prev) => (replaceId ? prev.map((t) => (t.id === replaceId ? turn : t)) : [...prev, turn]));
       const threadId = useLabosAgentStore.getState().chats[key].threadId;
-      countSession('turnCount');
+      countSession('turnCount', 1, surface);
       onMessageSent(context, {
         messageLength: message.length,
         turnIndex,
@@ -261,9 +277,9 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
             }),
           );
           if (body.proposals.length + drafts.length > 0)
-            countSession('actionCount', body.proposals.length + drafts.length);
+            countSession('actionCount', body.proposals.length + drafts.length, surface);
           // The draft card is the agent's intro form: one `intro-request-dialog-opened` for each card (LAB-3296).
-          drafts.forEach((d) => onDialogOpened(draftEventContext(d, context)));
+          drafts.forEach((d) => onDialogOpened(draftEventContext(d, context, surface)));
         }
       } catch (err) {
         if (controller.signal.aborted) return;
@@ -300,6 +316,10 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
     [
       context,
       key,
+      ownThreadId,
+      readsContext,
+      surface,
+      ensureChat,
       patch,
       updateTurns,
       markPageUnreadable,
@@ -389,7 +409,7 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
           res.status === 'cancelled' ? { status: 'cancelled' } : { status: 'done', summary: res.summary },
         );
         if (decision === 'confirm' && res.status === 'done') {
-          countSession('confirmedCount');
+          countSession('confirmedCount', 1, surface);
           // v0 action cards have no edit, so `edited` is always false.
           onActionConfirmed(context, { actionType, fieldCount, edited: false, draftLength: 0 });
         }
@@ -406,7 +426,7 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
         }
       }
     },
-    [context, key, setCard, countSession, onActionCancelled, onActionConfirmed, onActionFailed],
+    [context, key, surface, setCard, countSession, onActionCancelled, onActionConfirmed, onActionFailed],
   );
 
   const findDraft = useCallback(
@@ -455,7 +475,7 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
       const text = card.text.trim();
       if (text.length < draft.minLength || text.length > draft.maxLength) return;
 
-      const events = draftEventContext(draft, context);
+      const events = draftEventContext(draft, context, surface);
       setDraftCard(turnId, draftId, { status: 'sending', text: card.text });
       // Claim the target before the request, so a Send on another card for it in the same tick does nothing.
       actions.markIntroTargetSent(draftTargetKey(draft));
@@ -463,7 +483,7 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
         await createIntroRequest(toIntroRequestBody(draft, text));
         setDraftCard(turnId, draftId, { status: 'sent', text: card.text });
         onAskSubmitted({ ...events, textLength: text.length });
-        countSession('confirmedCount');
+        countSession('confirmedCount', 1, surface);
         onActionConfirmed(context, {
           actionType: 'intro-draft',
           fieldCount: 1,
@@ -484,7 +504,17 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
         onActionFailed(context, { actionType: 'intro-draft', status });
       }
     },
-    [context, findDraft, setDraftCard, countSession, onAskSubmitted, onSubmitFailed, onActionConfirmed, onActionFailed],
+    [
+      context,
+      surface,
+      findDraft,
+      setDraftCard,
+      countSession,
+      onAskSubmitted,
+      onSubmitFailed,
+      onActionConfirmed,
+      onActionFailed,
+    ],
   );
 
   /** Cancel on a draft card (S3-R14): the card closes and no request goes out. */
@@ -495,7 +525,7 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
       const textLength = found.card.text.trim().length;
       setDraftCard(turnId, draftId, { ...found.card, status: 'cancelled' });
       onDialogClosed({
-        ...draftEventContext(found.draft, context),
+        ...draftEventContext(found.draft, context, surface),
         hadText: textLength > 0,
         textLength,
       });
@@ -504,7 +534,7 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null) {
         edited: isDraftEdited(found.draft, found.card.text),
       });
     },
-    [context, findDraft, setDraftCard, onDialogClosed, onActionCancelled],
+    [context, surface, findDraft, setDraftCard, onDialogClosed, onActionCancelled],
   );
 
   /** S5-C29: the panel put the text of a failed turn back in the composer. It does that once only. */

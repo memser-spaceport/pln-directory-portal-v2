@@ -172,6 +172,8 @@ describe('LAB-3297: agent events', () => {
       pageType: 'news',
       conversationId: expect.stringMatching(UUID),
       contextAttached: true,
+      // LAB-3457: every agent event says which surface sent it.
+      surface: 'panel',
       loggedInUserUid: 'me',
     });
   });

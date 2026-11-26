@@ -382,8 +382,20 @@ export interface LabosAgentTurn {
   endedAt?: number;
 }
 
-/** LAB-3297: where the member opened the agent. `job-apply` comes with S4 (not in v0). */
-export type LabosAgentEntryPoint = 'news-story' | 'intro-entry' | 'job-apply' | 'corner' | 'shortcut';
+/**
+ * LAB-3297: where the member opened the agent. `job-apply` comes with S4 (not in v0). LAB-3457: `ai-search-page` is
+ * the AI agent chat page, the agent's full-page surface.
+ */
+export type LabosAgentEntryPoint =
+  | 'news-story'
+  | 'intro-entry'
+  | 'job-apply'
+  | 'corner'
+  | 'shortcut'
+  | 'ai-search-page';
+
+/** LAB-3457: where the agent runs. `panel` is the dock, `page` is AI agent chat (`/ai-search`). */
+export type LabosAgentSurface = 'panel' | 'page';
 
 /**
  * LAB-3297: one dock session, from the open of the panel to its close. For the agent events only. `conversationId`

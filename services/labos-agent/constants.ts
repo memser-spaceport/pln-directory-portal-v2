@@ -81,3 +81,22 @@ export const LABOS_AGENT_CONTEXT_TEXT = {
     'The agent can’t read this page: settings and notifications stay private. Ask anyway, or add something with +.',
   pickerTitle: 'Add context',
 } as const;
+
+/**
+ * LAB-3457: AI agent chat (`/ai-search`) runs on the agent for members inside the gate. Texts verbatim from Polina's
+ * prototype `prototypes/entries/ai-search-page` (develop a68f8a668, PR #3735 "AI search merged with AI agent").
+ */
+export const LABOS_AGENT_PAGE_TEXT = {
+  placeholder: 'Ask, request an intro, or type @',
+  line: 'Ask about the network, or make a request.',
+  tryAsking: 'Try asking',
+  makeRequest: 'Make a request',
+  composerAria: 'Message the agent',
+  chipsAria: 'What the agent reads',
+} as const;
+
+/** LAB-3457: the new chat shows 3 questions and up to 3 requests (prototype `ai-search-page`, two columns of three). */
+export const LABOS_AGENT_PAGE_PROMPT_COUNT = 3;
+
+/** LAB-3457: the store key of a page chat. One chat per thread. */
+export const labosAgentPageChatKey = (threadId: string) => `ai-search:${threadId}`;

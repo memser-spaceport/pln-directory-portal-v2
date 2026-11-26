@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { clsx } from 'clsx';
 import Link from 'next/link';
 import { Menu } from '@base-ui-components/react/menu';
@@ -27,11 +27,10 @@ import menu from '@/components/page/home/TeamNews/components/NewsShareMenu/NewsS
 import {
   LABOS_AGENT_CONTEXT_TEXT,
   LABOS_AGENT_HANDOFF_TEXT,
-  LABOS_AGENT_MAX_MENTIONS,
   LABOS_AGENT_MENTION_TEXT,
 } from '@/services/labos-agent/constants';
-import { PAGE_NOT_FOUND_CODES, useLabosAgentChat } from '@/services/labos-agent/hooks/useLabosAgentChat';
-import { useLabosAgentMentionSearch } from '@/services/labos-agent/hooks/useLabosAgentMentionSearch';
+import { useLabosAgentChat } from '@/services/labos-agent/hooks/useLabosAgentChat';
+import { useLabosAgentComposer } from '@/services/labos-agent/hooks/useLabosAgentComposer';
 import { isLabosAgentMock } from '@/services/labos-agent/labos-agent.config';
 import { keepInteractive } from '@/services/labos-agent/labos-agent.dialogs';
 import {
@@ -42,21 +41,11 @@ import {
   scopedMemberUid,
 } from '@/services/labos-agent/labos-agent.handoff';
 import { replacedDraftIds } from '@/services/labos-agent/labos-agent.open-cards';
-import {
-  contextMentionKey,
-  pickerGroups,
-  readAtQuery,
-  replaceAtQuery,
-  toMentionChip,
-} from '@/services/labos-agent/labos-agent.mentions';
+import { contextMentionKey } from '@/services/labos-agent/labos-agent.mentions';
 import { useLabosAgentStore } from '@/services/labos-agent/store';
-import type {
-  LabosAgentMentionChip,
-  LabosAgentOpenContext,
-  LabosAgentOpenPage,
-  LabosAgentPickerItem,
-} from '@/types/labos-agent.types';
+import type { LabosAgentOpenContext, LabosAgentOpenPage } from '@/types/labos-agent.types';
 
+import { LabosAgentMentionChip } from '../LabosAgentMentionChip/LabosAgentMentionChip';
 import { LabosAgentMentionPicker } from '../LabosAgentMentionPicker/LabosAgentMentionPicker';
 import { LabosAgentTurn } from '../LabosAgentTurn/LabosAgentTurn';
 
@@ -170,16 +159,6 @@ function AgentHistoryMenu() {
   );
 }
 
-/** Sets a textarea value the way typing does, so the composer's own `onChange` (height, `@` check) runs. */
-function setNativeValue(el: HTMLTextAreaElement, value: string) {
-  const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set;
-  setter?.call(el, value);
-  el.dispatchEvent(new Event('input', { bubbles: true }));
-}
-
-/** The open picker. `at`: `@` in the composer, `start` is the index of the `@`. `plus`: the + button. */
-type PickerState = { mode: 'at' | 'plus'; query: string; start: number };
-
 /**
  * The member's agent, docked on the right (home-v2-b's AgentPanel, homepage-redesign-v0-agent design). It reads the
  * page it was opened on (`context`), shows its steps, streams its answer and lists its sources. S1: answers only, no
@@ -221,60 +200,19 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
   /* D7: the long placeholder wraps in the 1-row composer below 768px, so a short one shows there. */
   const narrow = useIsMobile();
 
-  /* S6 @mentions: the chips of the next message and the open picker. */
-  const [chips, setChips] = useState<LabosAgentMentionChip[]>([]);
-  const [picker, setPicker] = useState<PickerState | null>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const pickerRef = useRef(picker);
-  // True while code (not the member) sets the composer text, so `readMention` does not open the picker.
-  const quietRef = useRef(false);
-  /*
-   * Code sets the composer text through an `input` event, so `ChatInput` sees it (S6-F19: the "Shift + Enter" hint
-   * shows only with text).
-   */
-  const setComposerText = (el: HTMLTextAreaElement, value: string) => {
-    quietRef.current = true;
-    try {
-      setNativeValue(el, value);
-    } finally {
-      quietRef.current = false;
-    }
-  };
-  // S6-F2: the start of an `@` that Esc closed. The picker opens again only for a new `@`.
-  const closedAtRef = useRef<number | null>(null);
-  const pickerId = useId();
-  const listboxId = `${pickerId}-listbox`;
-  useEffect(() => {
-    pickerRef.current = picker;
-  }, [picker]);
-  const limitReached = chips.length >= LABOS_AGENT_MAX_MENTIONS;
-  const search = useLabosAgentMentionSearch(picker && !limitReached ? picker.query : null);
-  const pageKey = readsPage ? contextMentionKey(context) : null;
-  const groups = useMemo(
-    () =>
-      picker && !limitReached
-        ? pickerGroups({
-            query: picker.query,
-            response: search.response,
-            taken: new Set([...chips.map((c) => c.key), ...(pageKey ? [pageKey] : [])]),
-            currentPageLabel: label && !readsPage ? label : null,
-          })
-        : [],
-    [picker, limitReached, search.response, chips, pageKey, label, readsPage],
-  );
-  const flat = groups.flatMap((g) => g.items);
-  const activePos = flat.length ? Math.min(activeIndex, flat.length - 1) : -1;
-  const active = activePos >= 0 ? flat[activePos] : undefined;
-  // S6-F9: the composer or the + search field keeps the focus, so `aria-activedescendant` names the active row.
-  const activeOptionId = active ? `${pickerId}-option-${activePos}` : undefined;
-
-  // S6-F11: a new query or mode moves the highlight back to the first option.
-  const pickerKey = picker ? `${picker.mode}:${picker.query}` : null;
-  const [activeFor, setActiveFor] = useState(pickerKey);
-  if (activeFor !== pickerKey) {
-    setActiveFor(pickerKey);
-    setActiveIndex(0);
-  }
+  /* S6 @mentions and the restore of a failed message: the composer logic the AI agent chat page shares (LAB-3457). */
+  const lastTurn = turns[turns.length - 1];
+  const composer = useLabosAgentComposer({
+    inputRef,
+    send,
+    lastTurn,
+    onTextRestored: markTextRestored,
+    onMentionsRestored: markMentionsRestored,
+    pageKey: readsPage ? contextMentionKey(context) : null,
+    currentPageLabel: label && !readsPage ? label : null,
+    onRestorePage: () => setReadsPage(true),
+  });
+  const { chips, picker, setComposerText } = composer;
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -289,70 +227,22 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
     const end = inputRef.current.value.length;
     inputRef.current.setSelectionRange(end, end);
     clearPrefill();
-  }, [prefill, clearPrefill]);
-
-  /*
-   * S5-C29: C1 cannot read the page of the chip (404 MEMBER_NOT_FOUND, TEAM_NOT_FOUND or JOB_NOT_FOUND). The turn
-   * keeps the member's text, and the text goes back in an empty composer, so the member can remove the chip and send.
-   * Once only: a new open of the panel does not put the text back again (the chip is off then, see `openAgent`).
-   */
-  const lastTurn = turns[turns.length - 1];
-  const pageErrorTurn =
-    lastTurn?.status === 'error' &&
-    lastTurn.error &&
-    !lastTurn.textRestored &&
-    lastTurn.error.mentionIndex === undefined &&
-    PAGE_NOT_FOUND_CODES.has(lastTurn.error.code)
-      ? lastTurn
-      : null;
-  useEffect(() => {
-    const input = inputRef.current;
-    if (!pageErrorTurn || !input) return;
-    if (!input.value.trim()) setComposerText(input, pageErrorTurn.message);
-    markTextRestored(pageErrorTurn.id);
-  }, [pageErrorTurn, markTextRestored]);
-
-  /*
-   * S6-F17: C1 cannot read one mention (404 with `mentionIndex`). The chips of that message come back with the failed
-   * chip marked, and the text goes back in an empty composer. Once only.
-   */
-  const mentionErrorTurn =
-    lastTurn?.status === 'error' && lastTurn.error?.mentionIndex !== undefined && !lastTurn.mentionsRestored
-      ? lastTurn
-      : null;
-  // The chips come back during render (React's pattern for state that follows a prop), once per failed turn.
-  const [restoredTurnId, setRestoredTurnId] = useState<string | null>(null);
-  if (mentionErrorTurn && restoredTurnId !== mentionErrorTurn.id) {
-    const failedIndex = mentionErrorTurn.error?.mentionIndex;
-    setRestoredTurnId(mentionErrorTurn.id);
-    setChips((current) =>
-      current.length > 0
-        ? current
-        : (mentionErrorTurn.mentions ?? []).map((chip, i) => (i === failedIndex ? { ...chip, failed: true } : chip)),
-    );
-  }
-  useEffect(() => {
-    if (!mentionErrorTurn) return;
-    const input = inputRef.current;
-    if (input && !input.value.trim()) setComposerText(input, mentionErrorTurn.message);
-    markMentionsRestored(mentionErrorTurn.id);
-  }, [mentionErrorTurn, markMentionsRestored]);
+  }, [prefill, clearPrefill, setComposerText]);
 
   /*
    * Esc closes the panel from anywhere inside it. Window capture runs before `Modal`'s document capture, so Esc in the
    * panel over a news story closes the panel only, not the story.
    */
+  const closePickerRef = useRef(composer.closePicker);
+  useEffect(() => {
+    closePickerRef.current = composer.closePicker;
+  });
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape' || !panelRef.current?.contains(document.activeElement)) return;
       e.stopImmediatePropagation();
       // S6-F9: Esc closes the picker first, then the panel.
-      if (pickerRef.current) {
-        if (pickerRef.current.mode === 'at') closedAtRef.current = pickerRef.current.start;
-        setPicker(null);
-        inputRef.current?.focus();
-        return;
-      }
+      if (closePickerRef.current()) return;
       onClose();
     };
     window.addEventListener('keydown', onKey, true);
@@ -381,72 +271,7 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
     setHandoff(ok ? 'idle' : 'failed');
   };
 
-  const submit = (text: string) => {
-    if (!send(text, chips)) return;
-    if (inputRef.current) setComposerText(inputRef.current, '');
-    // S6-F15: the mention chips clear after a send. The page chip stays.
-    setChips([]);
-    setPicker(null);
-  };
-
-  /* S6-F10: an `@` pick puts `@<name> ` in the place of `@<query>` and adds a chip. A + pick adds a chip only. */
-  const pick = (item: LabosAgentPickerItem) => {
-    const el = inputRef.current;
-    const current = pickerRef.current;
-    if (current?.mode === 'at' && el) {
-      const next = replaceAtQuery(el.value, current.start, current.query, item.mentionName);
-      setNativeValue(el, next.value);
-      el.focus();
-      el.setSelectionRange(next.caret, next.caret);
-    } else {
-      el?.focus();
-    }
-    if (item.restoresPage) setReadsPage(true);
-    else {
-      const chip = toMentionChip(item);
-      if (chip) {
-        setChips((prev) =>
-          prev.length >= LABOS_AGENT_MAX_MENTIONS || prev.some((c) => c.key === chip.key) ? prev : [...prev, chip],
-        );
-      }
-    }
-    setPicker(null);
-  };
-
-  /* S6-F1, S6-F2: `@` at the start or after a space opens the picker. A space or a deleted `@` closes it. */
-  const readMention = (el: HTMLTextAreaElement) => {
-    const at = readAtQuery(el.value, el.selectionStart ?? el.value.length);
-    // After Esc, the same `@` stays closed. A new `@` (or no `@`) clears the mark.
-    if (at && at.start === closedAtRef.current) return;
-    closedAtRef.current = null;
-    if (at) setPicker({ mode: 'at', ...at });
-    else if (pickerRef.current?.mode === 'at') setPicker(null);
-  };
-
-  /* S6-F9: Up, Down, Enter and Tab move and pick in the open picker, from the composer or the + search field. */
-  const pickerKeys = (e: React.KeyboardEvent) => {
-    if (!picker) return false;
-    // S6-F9: while C4 loads and the `@` picker has no row, Enter does nothing. It does not send `@<query>`.
-    if (!flat.length) {
-      if (picker.mode === 'at' && search.status === 'loading' && e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        return true;
-      }
-      return false;
-    }
-    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-      e.preventDefault();
-      const from = Math.min(activeIndex, flat.length - 1);
-      setActiveIndex((from + (e.key === 'ArrowDown' ? 1 : flat.length - 1)) % flat.length);
-      return true;
-    }
-    if (e.key === 'Enter' || e.key === 'Tab') {
-      e.preventDefault();
-      if (active) pick(active);
-      return true;
-    }
-    return false;
-  };
+  const submit = (text: string) => void composer.submit(text);
 
   return (
     <aside
@@ -566,30 +391,7 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
       </div>
 
       <div className={s.foot}>
-        {picker && (
-          <LabosAgentMentionPicker
-            mode={picker.mode}
-            query={picker.query}
-            groups={groups}
-            activeKey={active?.key}
-            listboxId={listboxId}
-            optionIdPrefix={`${pickerId}-option`}
-            activeOptionId={activeOptionId}
-            status={search.status}
-            limitReached={limitReached}
-            onQuery={(q) => setPicker({ mode: 'plus', query: q, start: 0 })}
-            onKeyDown={pickerKeys}
-            onHover={(key) =>
-              setActiveIndex(
-                Math.max(
-                  0,
-                  flat.findIndex((f) => f.key === key),
-                ),
-              )
-            }
-            onPick={pick}
-          />
-        )}
+        {composer.pickerProps && <LabosAgentMentionPicker {...composer.pickerProps} />}
         <div className={s.chipRow} role="group" aria-label="What the agent reads">
           {/* LAB-3429 Decision 4: the page slot. Attached, removed (dashed, one press adds it back) or locked. */}
           {context && label && readsPage && (
@@ -642,37 +444,16 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
             </span>
           )}
           {chips.map((chip) => (
-            <span
-              key={chip.key}
-              className={clsx(s.contextRow, s.mentionChip, chip.failed && s.mentionChipFailed)}
-              data-failed={chip.failed ? 'true' : undefined}
-              title={chip.failed ? `The agent cannot read ${chip.label}` : `The agent reads ${chip.label}`}
-            >
-              <span className={s.context}>
-                <span className={s.contextText}>{chip.label}</span>
-              </span>
-              <button
-                type="button"
-                className={s.contextRemove}
-                aria-label={`Remove ${chip.label}`}
-                onClick={() => {
-                  // S6-F13: the chip goes. The `@name` text stays in the message.
-                  setChips((prev) => prev.filter((c) => c.key !== chip.key));
-                  inputRef.current?.focus();
-                }}
-              >
-                <CloseIcon />
-              </button>
-            </span>
+            <LabosAgentMentionChip key={chip.key} chip={chip} onRemove={composer.removeChip} />
           ))}
           <button
             type="button"
             className={s.mentionAdd}
             aria-label="Add context"
             aria-expanded={picker?.mode === 'plus'}
-            disabled={limitReached}
+            disabled={composer.limitReached}
             title={LABOS_AGENT_MENTION_TEXT.addTooltip}
-            onClick={() => setPicker((cur) => (cur?.mode === 'plus' ? null : { mode: 'plus', query: '', start: 0 }))}
+            onClick={composer.togglePlus}
           >
             +
           </button>
@@ -691,29 +472,13 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
           }
           aria-label="Message the agent"
           // S6-F9: in `@` mode the composer controls the picker (ARIA combobox).
-          {...(picker?.mode === 'at'
-            ? {
-                role: 'combobox',
-                'aria-expanded': true,
-                'aria-autocomplete': 'list' as const,
-                'aria-controls': limitReached ? undefined : listboxId,
-                'aria-activedescendant': activeOptionId,
-              }
-            : {})}
+          {...composer.comboboxProps}
           onTextSubmit={() => submit(inputRef.current?.value ?? '')}
           onStopStreaming={stop}
           isLoadingObject={busy}
           hideHintWhenEmpty
-          onChange={(e) => {
-            if (!quietRef.current) readMention(e.currentTarget);
-          }}
-          onKeyDown={(e) => {
-            if (pickerKeys(e)) return;
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              submit(e.currentTarget.value);
-            }
-          }}
+          onChange={(e) => composer.readMention(e.currentTarget)}
+          onKeyDown={composer.onComposerKeyDown}
         />
       </div>
     </aside>

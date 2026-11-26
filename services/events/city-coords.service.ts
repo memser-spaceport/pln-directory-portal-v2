@@ -85,4 +85,5 @@ async function loadCityCoords(): Promise<CityCoords> {
   return toCityCoords(Array.isArray(body) ? body : []);
 }
 
-export const getCityCoords = unstable_cache(loadCityCoords, ['events-city-coords'], { revalidate: 86400 });
+// The cache key must change when a fix changes the cached positions.
+export const getCityCoords = unstable_cache(loadCityCoords, ['events-city-coords-v2'], { revalidate: 86400 });

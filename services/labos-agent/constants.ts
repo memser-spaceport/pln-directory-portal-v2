@@ -104,6 +104,9 @@ export const LABOS_AGENT_PAGE_TEXT = {
   makeRequest: 'Make a request',
   composerAria: 'Message the agent',
   chipsAria: 'What the agent reads',
+  /** A saved chat (T2) did not load. */
+  loadFailed: 'This chat could not be loaded.',
+  loadRetry: 'Try again',
 } as const;
 
 /** LAB-3457: the new chat shows 3 questions and up to 3 requests (prototype `ai-search-page`, two columns of three). */

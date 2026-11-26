@@ -113,7 +113,7 @@ async function listThreads({ page = 1, limit = 20 }: LabosAgentThreadsQuery = {}
 
 async function getThread(threadId: string): Promise<LabosAgentThread> {
   await wait(WAIT_MS);
-  return structuredClone(find(threadId));
+  return JSON.parse(JSON.stringify(find(threadId))) as LabosAgentThread;
 }
 
 async function deleteThread(threadId: string): Promise<void> {

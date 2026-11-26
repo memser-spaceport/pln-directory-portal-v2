@@ -93,7 +93,7 @@ export function LabosAgentTurn({
             aria-expanded={showSteps}
             onClick={() => setShowSteps((v) => !v)}
           >
-            {working ? 'Working' : `Worked for ${seconds}s`} · {turn.steps.length}{' '}
+            {working ? 'Working' : turn.restored ? 'Worked' : `Worked for ${seconds}s`} · {turn.steps.length}{' '}
             {turn.steps.length === 1 ? 'step' : 'steps'}
             <svg viewBox="0 0 16 16" fill="none" aria-hidden className={s.caret}>
               <path

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { notFound } from 'next/navigation';
 import { EnvelopeSimple, User, UsersThree } from '@phosphor-icons/react';
 
 import { McpHint } from '@/components/core/mcp-hints/McpHint';
@@ -15,6 +16,10 @@ import {
   labosAgentPageChatKey,
 } from '@/services/labos-agent/constants';
 import { useLabosAgentChat } from '@/services/labos-agent/hooks/useLabosAgentChat';
+import { useLabosAgentThread } from '@/services/labos-agent/hooks/useLabosAgentThreads';
+import { draftTargetKey } from '@/services/labos-agent/labos-agent.drafts';
+import { LabosAgentError } from '@/services/labos-agent/labos-agent.errors';
+import { sentDrafts, toChatTurns } from '@/services/labos-agent/labos-agent.thread-turns';
 import { replacedDraftIds } from '@/services/labos-agent/labos-agent.open-cards';
 import { labosAgentRequestPrompts, type LabosAgentRequestTopic } from '@/services/labos-agent/labos-agent.page';
 import { useLabosAgentStore } from '@/services/labos-agent/store';
@@ -44,10 +49,25 @@ const REQUEST_GLYPHS: Record<LabosAgentRequestTopic, typeof User> = {
  * the panel's own turn (`LabosAgentTurn`): steps, the streamed answer, sources, follow-ups, action cards, intro draft
  * cards, errors with Retry. The page keeps its own layout (title bar, reading column, pinned field) and its History
  * rail. The new chat keeps the headline, says what the chat can do, and lists "Try asking" and "Make a request".
+ *
+ * `threadId` (`/ai-search/<threadId>`): a saved chat from the shared history (T2). Its turns arrive finished, old AI
+ * search turns as saved answers; the next message continues the same thread. A thread that is not the member's, or
+ * was deleted, is a 404 page.
  */
-export function AgentChat() {
-  const [threadId, setThreadId] = useState(() => generateUUID());
+export function AgentChat({ threadId: savedThreadId }: { threadId?: string } = {}) {
+  const [threadId, setThreadId] = useState(() => savedThreadId ?? generateUUID());
   const key = labosAgentPageChatKey(threadId);
+  const opensSaved = !!savedThreadId && threadId === savedThreadId;
+  const hasChat = useLabosAgentStore((st) => !!st.chats[key]);
+  const { ensureChat, markIntroTargetSent } = useLabosAgentStore((st) => st.actions);
+  const saved = useLabosAgentThread(opensSaved ? threadId : null, { enabled: opensSaved && !hasChat });
+
+  // The saved turns go into the chat once. A chat already in the store (this page visit) stays as it is.
+  useEffect(() => {
+    if (!saved.data || saved.data.threadId !== threadId) return;
+    sentDrafts(saved.data).forEach((d) => markIntroTargetSent(draftTargetKey(d)));
+    ensureChat(key, threadId, toChatTurns(saved.data));
+  }, [saved.data, threadId, key, ensureChat, markIntroTargetSent]);
   const {
     turns,
     busy,
@@ -112,6 +132,8 @@ export function AgentChat() {
     sendRef.current = sendTyped;
   });
   useEffect(() => {
+    // A saved chat is not the new chat that a handed-over question goes to.
+    if (savedThreadId) return;
     let handed: string | null = null;
     try {
       handed = localStorage.getItem('input');
@@ -120,7 +142,7 @@ export function AgentChat() {
       handed = null;
     }
     if (handed?.trim()) sendRef.current(handed, []);
-  }, []);
+  }, [savedThreadId]);
 
   const composer = (size: 'home' | 'thread') => (
     <AgentChatComposer
@@ -138,6 +160,25 @@ export function AgentChat() {
     />
   );
 
+  if (opensSaved && !hasChat) {
+    if (saved.error instanceof LabosAgentError && saved.error.code === 'THREAD_NOT_FOUND') notFound();
+    return (
+      <>
+        <ChatTitleBar chat={saved.data ? { title: saved.data.title } : undefined} />
+        <div className={chat.root} aria-busy={!saved.isError}>
+          {saved.isError && (
+            <p className={s.loadError} role="alert">
+              {LABOS_AGENT_PAGE_TEXT.loadFailed}{' '}
+              <button type="button" className={s.loadRetry} onClick={() => void saved.refetch()}>
+                {LABOS_AGENT_PAGE_TEXT.loadRetry}
+              </button>
+            </p>
+          )}
+        </div>
+      </>
+    );
+  }
+
   if (turns.length === 0) {
     return (
       <>
@@ -151,7 +192,7 @@ export function AgentChat() {
 
   return (
     <>
-      <ChatTitleBar chat={{ title: turns[0].message }} />
+      <ChatTitleBar chat={{ title: (opensSaved && saved.data?.title) || turns[0].message }} />
       <div className={chat.root}>
         <div className={chat.messages}>
           <div className={s.turns}>

@@ -390,6 +390,8 @@ export interface LabosAgentTurn {
    * T2). Its intro drafts go to C5, not C3. Absent: not saved.
    */
   savedIn?: string;
+  /** LAB-3457: read from T2, finished before this page visit. It has no duration: the toggle says "Worked · N steps". */
+  restored?: true;
   startedAt: number;
   endedAt?: number;
 }

@@ -73,3 +73,23 @@
   margin: 2px;
   color: var(--foreground-brand-primary, #1b4dff);
 }
+
+/* A saved chat (T2) that did not load. */
+.loadError {
+  margin: 48px auto 0;
+  padding: 0 16px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-secondary, #475569);
+  text-align: center;
+}
+
+.loadRetry {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--text-link, #156ff7);
+  text-decoration: underline;
+  cursor: pointer;
+}

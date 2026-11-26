@@ -42,6 +42,22 @@
   }
 }
 
+/*
+  LAB-3457: on AI search and AI agent chat the chat composer is pinned above the bottom bar. Below 960px the corner
+  sits above the composer (`usePinnedComposerHeight`), so it covers neither Send nor the bar. From 960px the corner
+  is beside the composer.
+*/
+:global(body:has([data-pinned-composer])) .wrap {
+  bottom: calc(
+    max(var(--mobile-bottom-nav-offset, 0px), env(safe-area-inset-bottom, 0px)) + var(--pinned-composer-height, 0px) +
+      16px
+  );
+
+  @include media.tablet-landscape {
+    bottom: 24px;
+  }
+}
+
 /* It arrives rather than appearing: on the detail page the surface below is an
    embedded app, so a control that is simply *there* on the first frame reads as
    part of that app. */

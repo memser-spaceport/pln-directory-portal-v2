@@ -36,6 +36,7 @@ import { generateUUID } from '@/utils/common.utils';
 import { useSidebar } from '../hooks/useSidebar';
 import { ChatTitleBar } from '../Chat/components/ChatTitleBar';
 
+import { usePinnedComposerHeight } from '../hooks/usePinnedComposerHeight';
 import { AgentChatComposer, type AgentChatComposerHandle } from './components/AgentChatComposer/AgentChatComposer';
 
 import chat from '../Chat/Chat.module.scss';
@@ -96,6 +97,7 @@ export function AgentChat({ threadId: savedThreadId }: { threadId?: string } = {
   const { state } = useSidebar();
   const composerRef = useRef<AgentChatComposerHandle>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  const composerWrapperRef = usePinnedComposerHeight();
 
   // LAB-3297 / LAB-3457: each page chat is one session of the page's agent events.
   useEffect(() => {
@@ -259,7 +261,7 @@ export function AgentChat({ threadId: savedThreadId }: { threadId?: string } = {
           <McpHint context="search" query={lastTurn?.message ?? ''} />
           <div ref={endRef} />
         </div>
-        <div data-state={state} className={chat.formWrapper}>
+        <div ref={composerWrapperRef} data-state={state} data-pinned-composer="" className={chat.formWrapper}>
           <form className={chat.form} onSubmit={(e) => e.preventDefault()}>
             {composer('thread')}
           </form>

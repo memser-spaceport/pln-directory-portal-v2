@@ -6,7 +6,7 @@ Route: `/prototypes/lab-3386-invite`. Mock data only. No API, events, auth, coun
 
 - Avatar menu: "Invite someone to LabOS", beside My profile.
 - Members search with no results: "Can’t find them? They may not be on LabOS yet. Invite them." Populated results show no CTA.
-- Team profile, Members header: "Invite a teammate" beside "Add New", for team leads and admins only.
+- Team profile: the Admin tab opens first for team leads and admins. Its Members header shows "Invite a teammate" beside "Add New". Other viewers see the member list without the Admin tab.
 - All three open Settings → Invite: the personal mock link, "Copy invite link", a Copied state (2 s) and a fallback that selects the link when the clipboard is blocked.
 
 ## Team lead evidence (develop d7a2eaea)
@@ -24,7 +24,7 @@ Route: `/prototypes/lab-3386-invite`. Mock data only. No API, events, auth, coun
 
 IMPORT DIRECTLY
 
-- `MemberGridView`, `TeamMembersViewCard`, `DetailsSection`, `DetailsSectionHeader`, `HeaderActionBtn`, `Button`, `isTeamLeaderOrAdmin`.
+- `MemberGridView`, `TeamMembersViewCard`, `DetailsSection`, `DetailsSectionHeader`, `HeaderActionBtn`, `Tabs`, `Button`, `isTeamLeaderOrAdmin`.
 - SCSS: `AccountMenu.module.scss`, settings shell (`app/settings/accounts/page.module.css`, `app/settings/page.module.css`), `ConnectedAccounts.module.scss` (tab frame and card), `SettingsMenu*` modules, members shell and grid, `TeamMembersView.module.scss`.
 - Prototype siblings (read only): `nav-shared/PrototypeNav.module.scss` (avatar disc), `members/MembersPrototype.module.scss` (toolbar), `lab-2948.../SettingsBackButtonMock`.
 

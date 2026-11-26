@@ -124,12 +124,19 @@ describe('rendered states', () => {
   it('team: "Invite a teammate" shows for lead and admin only', async () => {
     const { TeamMembersSection } = await import('../TeamMembersSection');
     const { rerender } = render(<TeamMembersSection viewer="member" onInvite={() => {}} />);
+    expect(screen.queryByRole('tab', { name: 'Admin' })).not.toBeInTheDocument();
     expect(screen.queryByText('Invite a teammate')).not.toBeInTheDocument();
     expect(screen.queryByText('Add New')).not.toBeInTheDocument();
     for (const viewer of ['team-lead', 'admin'] as const) {
       rerender(<TeamMembersSection viewer={viewer} onInvite={() => {}} />);
+      expect(screen.getByRole('tab', { name: 'Admin' })).toHaveAttribute('aria-selected', 'true');
       expect(screen.getByText('Invite a teammate')).toBeInTheDocument();
       expect(screen.getByText('Add New')).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('tab', { name: 'Members' }));
+      expect(screen.getByRole('tab', { name: 'Members' })).toHaveAttribute('aria-selected', 'true');
+      expect(screen.queryByText('Invite a teammate')).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole('tab', { name: 'Admin' }));
+      expect(screen.getByText('Invite a teammate')).toBeInTheDocument();
     }
   });
 

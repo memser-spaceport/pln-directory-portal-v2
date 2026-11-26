@@ -1,10 +1,12 @@
 'use client';
 
 import Image from 'next/image';
+import { useState } from 'react';
 
 import type { IMember } from '@/types/members.types';
 
 import { DetailsSection, DetailsSectionHeader, HeaderActionBtn } from '@/components/common/profile/DetailsSection';
+import { Tabs, type Tab } from '@/components/common/Tabs/Tabs';
 // The production leaf card: no store, analytics or data.
 import { TeamMembersViewCard } from '@/components/page/team-details/TeamMembers/components/TeamMembersView/components/TeamMembersViewCard';
 import tmv from '@/components/page/team-details/TeamMembers/components/TeamMembersView/TeamMembersView.module.scss';
@@ -12,6 +14,11 @@ import tmv from '@/components/page/team-details/TeamMembers/components/TeamMembe
 import { canManageTeamMembers, userInfoFor } from './invite';
 import { MOCK_TEAM, MOCK_TEAM_MEMBERS, type Viewer } from './mocks';
 import s from './InvitePrototype.module.scss';
+
+const TEAM_TABS: Tab[] = [
+  { label: 'Members', value: 'members' },
+  { label: 'Admin', value: 'admin' },
+];
 
 /**
  * COPY-SIMPLIFY of production's team profile Members section
@@ -25,14 +32,25 @@ import s from './InvitePrototype.module.scss';
  */
 export function TeamMembersSection({ viewer, onInvite }: { viewer: Viewer; onInvite: () => void }) {
   const hasEditAccess = canManageTeamMembers(userInfoFor(viewer), MOCK_TEAM.id);
+  return <TeamProfile key={viewer} hasEditAccess={hasEditAccess} onInvite={onInvite} />;
+}
+
+function TeamProfile({ hasEditAccess, onInvite }: { hasEditAccess: boolean; onInvite: () => void }) {
+  const [tab, setTab] = useState(hasEditAccess ? 'admin' : 'members');
   const members = MOCK_TEAM_MEMBERS as unknown as IMember[];
+  const showActions = hasEditAccess && tab === 'admin';
 
   return (
     <div className={s.teamPage}>
       <h1 className={s.teamName}>{MOCK_TEAM.name}</h1>
+      {hasEditAccess && (
+        <div className={s.teamTabs}>
+          <Tabs tabs={TEAM_TABS} value={tab} onValueChange={setTab} />
+        </div>
+      )}
       <DetailsSection>
         <DetailsSectionHeader title={`Members (${members.length})`}>
-          {hasEditAccess && (
+          {showActions && (
             <div className={s.headerActions} data-testid="team-actions">
               <HeaderActionBtn onClick={() => {}}>
                 <Image loading="lazy" alt="add" src="/icons/add-blue.svg" height={16} width={16} />
@@ -52,7 +70,7 @@ export function TeamMembersSection({ viewer, onInvite }: { viewer: Viewer; onInv
               member={member}
               teamId={MOCK_TEAM.id}
               showBorder={index < members.length - 1}
-              hasEditAccess={hasEditAccess}
+              hasEditAccess={showActions}
               onClick={() => {}}
               onEdit={() => {}}
             />

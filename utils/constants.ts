@@ -894,6 +894,10 @@ export const ALL_EVENTS_ANALYTICS = {
   // LAB-3365: Copy code in the Embed dialog.
   ON_EVENTS_EMBED_CODE_COPIED: 'events-embed-code-copied',
   ON_EVENTS_VIEW_CHANGED: 'events-view-changed',
+  // LAB-3418: Live & upcoming | Past.
+  ON_EVENTS_WHEN_CHANGED: 'events-when-changed',
+  // LAB-3418: Past's year.
+  ON_EVENTS_YEAR_CHANGED: 'events-year-changed',
   ON_EVENTS_FILTERS_APPLIED: 'events-filters-applied',
   ON_EVENTS_CITY_SELECTED: 'events-city-selected',
   // LAB-3394: setting the location from Near you.

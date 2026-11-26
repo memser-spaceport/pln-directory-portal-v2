@@ -160,6 +160,8 @@ export interface EventDetail {
    */
   eventUrl: string | null;
   gathering: EventGathering | null;
+  /** Invite only by its access or by its type: a signed-out visitor does not see who went (LAB-3426). */
+  inviteOnly: boolean;
   goingCount: number;
   faces: EventPersonResponse[];
   /** The viewer's own attendance, or null when they are not going (or signed out). */

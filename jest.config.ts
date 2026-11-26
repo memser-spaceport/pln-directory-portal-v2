@@ -54,5 +54,25 @@ const config: Config = {
   setupFiles: ['<rootDir>/jest.setup.js'],
 };
 
+/**
+ * Packages that ship ES modules only, so jest must transform them like our own code: react-calendar (the event form's
+ * pickers and the All Events month picker, LAB-3460) and its ESM dependencies. next/jest ignores `node_modules` but
+ * for the packages Next transpiles, and only lets a config append patterns; a file is skipped when any pattern matches,
+ * so these are added to next's own list of exceptions.
+ */
+const ESM_PACKAGES = ['react-calendar', '@wojtekmaj/date-utils', 'get-user-locale', 'memoize', 'mimic-function'];
+const SPARED = '/node_modules/(?!.pnpm)(?!(';
+
+const spareEsmPackages = (pattern: string) => {
+  if (pattern === '/node_modules/') return `${SPARED}${ESM_PACKAGES.join('|')})/)`;
+  if (pattern.startsWith(SPARED)) return `${SPARED}${ESM_PACKAGES.join('|')}|${pattern.slice(SPARED.length)}`;
+  return pattern;
+};
+
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
-export default createJestConfig(config);
+const jestConfig = async () => {
+  const resolved = await createJestConfig(config)();
+  return { ...resolved, transformIgnorePatterns: (resolved.transformIgnorePatterns ?? []).map(spareEsmPackages) };
+};
+
+export default jestConfig;

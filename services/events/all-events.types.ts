@@ -37,9 +37,9 @@ export interface EventListItemResponse {
 }
 
 /**
- * One upcoming event as every part of the All Events page reads it: the List, Near you, Browse by city, the Calendar
- * and the Map. Shaped once on the server from `GET /v1/irl/events`; no field depends on the viewer, so the list is
- * cached for everyone.
+ * One event as every part of the All Events page reads it: the List, Near you, Browse by city, the Calendar and the
+ * Map. Shaped once on the server from `GET /v1/irl/events` (an upcoming one from its default list, a past one from the
+ * list from the epoch, LAB-3418); no field depends on the viewer, so the list is cached for everyone.
  */
 export interface AllEventsItem {
   uid: string;

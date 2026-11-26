@@ -1,4 +1,4 @@
-import { dayHeading, groupByDay } from '@/services/events/all-events.filters';
+import { dayHeading, groupByDay, groupPastByDay, pastDayHeading } from '@/services/events/all-events.filters';
 import type { AllEventsItem } from '@/services/events/all-events.types';
 
 import { EventCard } from './EventCard';
@@ -7,11 +7,18 @@ import s from './AllEventsPage.module.scss';
 
 interface Props {
   events: AllEventsItem[];
+  /** Past (LAB-3418): newest first, each event under its first day. */
+  past?: boolean;
   todayIso: string;
+  /** The events the viewer is going to; on Past, those they went to. */
   goingUids: Set<string>;
+  /** The events under way now (LAB-3425). */
+  liveUids: Set<string>;
   highlightUid: string | null;
   onOpen: (uid: string) => void;
   onPrepare: (uid: string) => void;
+  /** Past: a card's faces and "N went" open the drawer on who went (P1). Left out where the list can't be opened. */
+  onOpenPeople?: (uid: string) => void;
   onClear: () => void;
 }
 
@@ -20,13 +27,24 @@ interface Props {
  * events scroll), a dotted timeline with a dot per day, and the day's cards beside it. Phones drop the timeline and put
  * the date above its cards.
  */
-export function ListView({ events, todayIso, goingUids, highlightUid, onOpen, onPrepare, onClear }: Props) {
-  if (!events.length) return <EventsEmpty onClear={onClear} />;
+export function ListView({
+  events,
+  past = false,
+  todayIso,
+  goingUids,
+  liveUids,
+  highlightUid,
+  onOpen,
+  onPrepare,
+  onOpenPeople,
+  onClear,
+}: Props) {
+  if (!events.length) return <EventsEmpty past={past} onClear={onClear} />;
 
   return (
     <ol className={s.timeline}>
-      {groupByDay(events, todayIso).map(({ day, events: dayEvents }) => {
-        const { label, weekday } = dayHeading(day, todayIso);
+      {(past ? groupPastByDay(events) : groupByDay(events, todayIso)).map(({ day, events: dayEvents }) => {
+        const { label, weekday } = past ? pastDayHeading(day, todayIso) : dayHeading(day, todayIso);
         return (
           <li key={day} className={s.day}>
             <h3 className={s.dayHeading}>
@@ -40,9 +58,12 @@ export function ListView({ events, todayIso, goingUids, highlightUid, onOpen, on
                     item={item}
                     day={day}
                     going={goingUids.has(item.uid)}
+                    past={past}
+                    live={liveUids.has(item.uid)}
                     highlighted={item.uid === highlightUid}
                     onOpen={() => onOpen(item.uid)}
                     onPrepare={() => onPrepare(item.uid)}
+                    onOpenPeople={onOpenPeople && (() => onOpenPeople(item.uid))}
                   />
                 </li>
               ))}

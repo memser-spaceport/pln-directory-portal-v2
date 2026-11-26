@@ -242,6 +242,7 @@ export function toEventDetail(raw: EventDetailResponse): EventDetail {
   const tagNames = uniqueNames((details?.tags ?? []).map((t) => t.name));
   const focusAreas = uniqueNames(tagNames.map(toFocusAreaCode));
   const tags = tagNames.filter((name) => !toFocusAreaCode(name)).map(toEventTag);
+  const access = toEventAccess(details?.accessOption, details?.accessType, raw.type);
 
   return {
     uid: raw.uid,
@@ -250,7 +251,7 @@ export function toEventDetail(raw: EventDetailResponse): EventDetail {
     endDate: raw.endDate,
     timezone,
     mode: toEventMode(details?.format, raw.type),
-    access: toEventAccess(details?.accessOption, details?.accessType, raw.type),
+    access,
     status: raw.status ?? null,
     allDay,
     dateLine: formatEventDateLine(raw.startDate, raw.endDate, timezone, allDay),
@@ -280,6 +281,7 @@ export function toEventDetail(raw: EventDetailResponse): EventDetail {
           })),
         }
       : null,
+    inviteOnly: access === 'INVITE ONLY' || normalizeKey(raw.type) === 'INVITE ONLY',
     goingCount: raw.goingCount ?? 0,
     faces: (raw.faces ?? []).slice(0, 3),
     viewer: raw.viewerGoing && raw.viewer ? raw.viewer : null,

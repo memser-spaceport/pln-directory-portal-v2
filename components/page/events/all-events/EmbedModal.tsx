@@ -18,15 +18,24 @@ import s from './EmbedModal.module.scss';
 /** How long "Link copied" / "Code copied" stays on the pressed button. */
 export const COPIED_MS = 2000;
 
-/** "List view · Lisbon", "Month calendar · All upcoming events": what the embed shows, under the dialog's title. */
-export function embedScopeLine(view: AllEventsView, calMode: CalMode, filterLabels: string[]): string {
+/**
+ * "List view · Lisbon", "Month calendar · All live & upcoming events", "Map view · All past events": what the embed
+ * shows, under the dialog's title.
+ */
+export function embedScopeLine(
+  view: AllEventsView,
+  calMode: CalMode,
+  filterLabels: string[],
+  past: boolean = false,
+): string {
   const viewName =
     view === 'calendar'
       ? `${calMode === 'month' ? 'Month' : 'Week'} calendar`
       : view === 'map'
         ? 'Map view'
         : 'List view';
-  return [viewName, ...(filterLabels.length ? filterLabels : ['All upcoming events'])].join(' · ');
+  const all = past ? 'All past events' : 'All live & upcoming events';
+  return [viewName, ...(filterLabels.length ? filterLabels : [all])].join(' · ');
 }
 
 /** The iframe's `title`, which a screen reader announces for the embed, so it names the filters. */

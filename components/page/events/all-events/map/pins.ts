@@ -1,3 +1,4 @@
+import { sortPast } from '@/services/events/all-events.filters';
 import type { CityCoords } from '@/services/events/city-coords.service';
 import type { AllEventsItem } from '@/services/events/all-events.types';
 
@@ -15,7 +16,7 @@ export interface CityPin {
   key: string;
   city: string;
   position: LatLngLiteral;
-  /** Soonest first. */
+  /** Soonest first; on Past, newest first. */
   events: AllEventsItem[];
 }
 
@@ -35,11 +36,12 @@ const venueLabel = (item: AllEventsItem) => item.place?.split(',')[0]?.trim() ||
 const byStart = (a: AllEventsItem, b: AllEventsItem) =>
   new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
 
-export function mapLayout(items: AllEventsItem[], coords: CityCoords): MapLayout {
+/** `past` (LAB-3418) lists the newest event first, as the Past list does. */
+export function mapLayout(items: AllEventsItem[], coords: CityCoords, past: boolean = false): MapLayout {
   const online: AllEventsItem[] = [];
   const unplaced: AllEventsItem[] = [];
   const byCity = new Map<string, CityPin>();
-  for (const item of [...items].sort(byStart)) {
+  for (const item of past ? sortPast(items) : [...items].sort(byStart)) {
     if (item.mode === 'Virtual') {
       online.push(item);
       continue;

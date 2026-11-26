@@ -76,6 +76,20 @@ async function fetchListPage(page: number): Promise<EventListResponse> {
   return { ...body, items: Array.isArray(body?.items) ? body.items : [], total: Number(body?.total) || 0 };
 }
 
+/** Runs `fn` over every item, `limit` at a time, in order of `items`; the first failure fails it all (Past). */
+export async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const out: R[] = new Array(items.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < items.length) {
+      const index = next++;
+      out[index] = await fn(items[index]);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return out;
+}
+
 /** Every page until `total` is reached. A failed page fails the load: a partial list would hide events silently. */
 async function loadAllEvents(): Promise<AllEventsItem[]> {
   const rows: EventListItemResponse[] = [];

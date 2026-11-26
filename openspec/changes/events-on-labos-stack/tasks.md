@@ -65,3 +65,4 @@ Groups map to the Tasks under LAB-3278: group 1 = LAB-3339, groups 2 and 3 = LAB
 - The deploy config (Vercel env, `pl-infra-pipeline` feature-env workflow) loses the three variables in LAB-3330.
 - Prod flag switch and redeploy are steps of the cutover checklist in LAB-3327.
 - The redirects from the old portal's addresses (`/events/add`, `/events`) to `/events/submit` and `/events/mine` are set in LAB-3330.
+- Synced in the `lab-3415` merge of `develop` (LAB-3415): this change's ADDED requirements are already in `openspec/specs/events/spec.md`, and its Featured, header and list-endpoint rules are folded into that spec's own requirements. Its MODIFIED requirements predate Past (LAB-3418): "upcoming events only" and "Past events are not listed" contradict it, and "The Coming up toolbar and filters" is now "The toolbar and filters". Archive with `--skip-specs`, after reconciling the cutover's own changes (no iframe, no flag) into the main spec by hand.

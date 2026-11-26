@@ -83,7 +83,7 @@ To comment current-cycle Linear issues with related PostHog events, run the `pos
 
 ### Testing
 
-- **Jest 29** with `@testing-library/react` — tests live in `__tests__/` and mirror the source structure (e.g. `core/`, `page/`, `ui/`, `services/`, `utils/`, `hooks/`); `proxy.test.ts` covers `proxy.ts`. Jest ignores `pl-design-system/`, `prototypes/` and `design-canvas/`.
+- **Jest 29** with `@testing-library/react` — tests live in `__tests__/` and mirror the source structure (e.g. `core/`, `page/`, `ui/`, `services/`, `utils/`, `hooks/`); `proxy.test.ts` covers `proxy.ts`. Jest ignores `pl-design-system/`, `prototypes/` and `design-canvas/`. ESM-only packages (`react-calendar` and its dependencies) are transformed: add one to `ESM_PACKAGES` in `jest.config.ts` rather than mocking it.
 - **Storybook 9 + Vitest 3** — `vitest.config.ts` runs Storybook stories as browser tests via Playwright (Chromium)
 - Global mocks for `next/navigation`, `next/image`, `next/cache`, `@tanstack/react-query`, `nuqs`, `react-quill-new`, and `quill-image-uploader` are in `jest.setup.js`
 

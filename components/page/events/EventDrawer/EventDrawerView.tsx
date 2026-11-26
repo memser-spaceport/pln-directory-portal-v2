@@ -27,18 +27,23 @@ import m from '@/components/core/UpdatesPanel/IrlGatheringModal/IrlGatheringModa
 import type { IrlGatheringFormData } from '@/components/core/UpdatesPanel/IrlGatheringModal/types';
 import type { EventDetail, EventRoleName, MyGatheringPlans } from '@/services/events/event-drawer.types';
 import { EVENT_STATUS_LABEL } from '@/services/events/event-form';
+import { useEventEnded } from '@/services/events/hooks/useEventEnded';
 import type { ITeam } from '@/types/teams.types';
 
 import { AttendeesView, SubHead, type EventAttendeesState } from './AttendeesView';
 import { DrawerToolbar } from './DrawerToolbar';
+import { EndedCard } from './EndedCard';
 import { EventSummary } from './EventSummary';
 import e from './EventDrawer.module.scss';
 import { RsvpCard, RsvpLink } from './RsvpCard';
 import r from './RsvpCard.module.scss';
 
 export type EventDrawerStatus = 'loading' | 'error' | 'not-found' | 'ready';
-/** `event`: the event with its going card. `plans`: the "Add your plans" sub-view (the owner's "Edit details"). */
-export type EventDrawerStep = 'event' | 'plans';
+/**
+ * `event`: the event with its going card. `plans`: the "Add your plans" sub-view (the owner's "Edit details").
+ * `attendees`: who's going, or who went (a Past card's faces, LAB-3418 P1); signed out or in the embed, the event.
+ */
+export type EventDrawerStep = 'event' | 'plans' | 'attendees';
 
 /** What the plans sub-view hands to Save (LAB-3234: this event's role, the stay, topics, and the details). */
 export interface EventPlansValues {
@@ -263,7 +268,25 @@ function EventFlow({
   const wasGoing = !!event.viewer;
   const [going, setGoing] = useState(wasGoing);
   const [justMarked, setJustMarked] = useState(false);
-  const [view, setView] = useState<View>(canMarkGoing && wasGoing && initialStep === 'plans' ? 'plans' : 'event');
+  const { ended, checkEnded } = useEventEnded(event.endDate, event.allDay, event.timezone);
+  const [view, setView] = useState<View>(() =>
+    canMarkGoing && wasGoing && initialStep === 'plans'
+      ? 'plans'
+      : initialStep === 'attendees' && !onSignIn && !rsvpHref
+        ? 'attendees'
+        : 'event',
+  );
+  // Opened on who's going: its list loads, and the opening is recorded, as a press on the count would.
+  const openedOnAttendees = useRef(view === 'attendees');
+  useEffect(() => {
+    if (!openedOnAttendees.current) return;
+    openedOnAttendees.current = false;
+    onAttendeesOpen?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  // An event that has ended takes no plans: the sub-view gives way to the event, for good, also when it was open at the
+  // end.
+  if (ended && view === 'plans') setView('event');
   const [roles, setRoles] = useState<EventRoleName[]>(() => rolesFor(event, plans));
 
   const formDefaults = (): IrlGatheringFormData => ({
@@ -331,14 +354,14 @@ function EventFlow({
   const backToEvent = () => show('event');
 
   const handleYes = async () => {
-    if (saving) return;
+    if (saving || checkEnded()) return;
     if (!(await onYes())) return;
     setGoing(true);
     setJustMarked(true);
   };
 
   const handleNotGoing = async () => {
-    if (saving) return;
+    if (saving || checkEnded()) return;
     if (!(await onNotGoing())) return;
     setGoing(false);
     setJustMarked(false);
@@ -348,7 +371,7 @@ function EventFlow({
     setRoles((current) => (current.includes(role) ? current.filter((r) => r !== role) : [...current, role]));
 
   const handleSave = methods.handleSubmit(async (data) => {
-    if (saving) return;
+    if (saving || checkEnded()) return;
     const saved = await onSave({
       roles,
       topics: data.topics ?? [],
@@ -372,7 +395,10 @@ function EventFlow({
 
   // Signed out, "Yes, I'm going" starts sign-in (LAB-3271); in the embed it is a link to LabOS (LAB-3392).
   const asks = !unpublishedStatus && (canMarkGoing || !!onSignIn || !!rsvpHref);
-  const pressYes = canMarkGoing ? handleYes : (onSignIn ?? NOOP);
+  const signInToGo = () => {
+    if (!checkEnded()) onSignIn?.();
+  };
+  const pressYes = canMarkGoing ? handleYes : signInToGo;
 
   const index = sequence.indexOf(event.uid);
   const prev = index > 0 ? sequence[index - 1] : null;
@@ -380,7 +406,7 @@ function EventFlow({
 
   // The pinned bar stands in for the going card once less than half of it is on screen (the prototype's RsvpBar).
   const cardRef = useRef<HTMLDivElement>(null);
-  const [cardAway, resetCardAway] = useAwayFromView(cardRef, scrollerRef, view === 'event' && asks);
+  const [cardAway, resetCardAway] = useAwayFromView(cardRef, scrollerRef, view === 'event' && asks && !ended);
 
   const renderOverlay = () => {
     if (picker.currentView === 'datePicker') {
@@ -413,7 +439,7 @@ function EventFlow({
 
     return null;
   };
-  const overlay = renderOverlay();
+  const overlay = view === 'plans' ? renderOverlay() : null;
 
   // Escape and the backdrop: a picker first (design D7), then a sub-view (who's going, the plans), then the drawer.
   useEffect(() => {
@@ -457,8 +483,17 @@ function EventFlow({
               )}
               <EventSummary
                 event={event}
+                ended={ended}
                 card={
-                  unpublishedStatus ? undefined : (
+                  unpublishedStatus ? undefined : ended ? (
+                    <EndedCard
+                      count={count}
+                      faces={event.faces}
+                      went={going}
+                      attendanceHidden={!viewerUid && event.inviteOnly}
+                      onOpenAttendees={rsvpHref ? undefined : openAttendees}
+                    />
+                  ) : (
                     <div ref={cardRef}>
                       <RsvpCard
                         count={count}
@@ -484,6 +519,7 @@ function EventFlow({
           {view === 'attendees' && (
             <AttendeesView
               eventName={event.name}
+              ended={ended}
               total={count}
               viewerUid={viewerUid}
               attendees={attendees}

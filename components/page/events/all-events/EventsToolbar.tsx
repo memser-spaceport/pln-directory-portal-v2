@@ -1,20 +1,27 @@
 import clsx from 'clsx';
+import type { ReactNode, Ref } from 'react';
 
 import FilterCount from '@/components/ui/filter-count';
 
 import { EmbedIcon, SlidersIcon, ViewIcon, type AllEventsView } from './icons';
 import s from './AllEventsPage.module.scss';
+import { WhenSwitch, type EventsWhen } from './WhenSwitch';
 
 export const VIEW_LABEL: Record<AllEventsView, string> = { list: 'List', calendar: 'Calendar', map: 'Map' };
 
 /**
- * "Coming up": the count, the rail's door with the applied count, and the view switch. Sticky under the site header on
- * desktop; under 1024px the phone bar (MobileFilterWrapper) carries Filters and the view instead. The switch only
- * shows when more than one view is available. Embed (LAB-3352) shows at every width, when `onShare` is given.
+ * The When switch in every view (LAB-3418; in Calendar too since LAB-3460, where its tab follows the month or week on
+ * show) and Past's year beside it, the rail's door with the applied count, and the view switch. Sticky under the site header on desktop; under 1024px the
+ * phone bar (MobileFilterWrapper) carries Filters and the view instead. The view switch only shows when more than one
+ * view is available. Embed (LAB-3352) shows at every width, when `onShare` is given.
  */
 export function EventsToolbar({
-  city,
+  ref,
   count,
+  when,
+  pastCount,
+  onWhenChange,
+  yearPicker,
   filterCount,
   railOpen,
   onToggleRail,
@@ -23,8 +30,15 @@ export function EventsToolbar({
   onViewChange,
   onShare,
 }: {
-  city: string | null;
+  ref?: Ref<HTMLDivElement>;
+  /** The live and upcoming events under the filters. */
   count: number;
+  when: EventsWhen;
+  /** The past events under the filters; null while they load, or when they failed to. */
+  pastCount: number | null;
+  onWhenChange: (when: EventsWhen) => void;
+  /** Past's year, beside the switch; none in Calendar, whose month picker jumps years. */
+  yearPicker?: ReactNode;
   filterCount: number;
   railOpen: boolean;
   onToggleRail: () => void;
@@ -35,12 +49,10 @@ export function EventsToolbar({
   onShare?: () => void;
 }) {
   return (
-    <div className={s.toolbar}>
+    <div ref={ref} className={s.toolbar}>
       <div className={s.toolbarStart}>
-        <h2 className={s.toolbarTitle}>{city ? `Coming up in ${city}` : 'Coming up'}</h2>
-        <span className={s.toolbarCount}>
-          {count} {count === 1 ? 'event' : 'events'}
-        </span>
+        <WhenSwitch when={when} counts={{ upcoming: count, past: pastCount }} onChange={onWhenChange} />
+        {yearPicker}
       </div>
       <div className={s.toolbarActions}>
         <div className={s.toolbarEnd}>

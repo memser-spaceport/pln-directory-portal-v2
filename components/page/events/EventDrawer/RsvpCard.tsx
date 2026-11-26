@@ -37,9 +37,9 @@ export interface RsvpCardProps {
   onOpenPlans: () => void;
 }
 
-const members = (n: number) => `${n} ${n === 1 ? 'member' : 'members'}`;
+export const members = (n: number) => `${n} ${n === 1 ? 'member' : 'members'}`;
 
-function Facepile({ faces }: { faces: EventPersonResponse[] }) {
+export function Facepile({ faces }: { faces: EventPersonResponse[] }) {
   if (!faces.length) return null;
   return (
     <span className={r.facepile} aria-hidden>

@@ -148,6 +148,7 @@ export function toPreviewEvent(values: EventFormValues, uid = 'preview'): EventD
     .map((name) => name.trim())
     .filter(Boolean);
   const link = toHttpUrl(values.registrationUrl) ?? toHttpUrl(values.websiteUrl);
+  const access = toEventAccess(values.accessOption);
 
   return {
     uid,
@@ -159,7 +160,7 @@ export function toPreviewEvent(values: EventFormValues, uid = 'preview'): EventD
     status: null,
     allDay: false,
     mode: toEventMode(values.format),
-    access: toEventAccess(values.accessOption),
+    access,
     dateLine: instants ? formatEventDateLine(instants.start, instants.end, timezone) : '',
     address: venue || null,
     locationUrl: place?.locationUrl ?? null,
@@ -172,6 +173,7 @@ export function toPreviewEvent(values: EventFormValues, uid = 'preview'): EventD
     websiteUrl: toHttpUrl(values.websiteUrl),
     eventUrl: link,
     gathering: null,
+    inviteOnly: access === 'INVITE ONLY',
     goingCount: 0,
     faces: [],
     viewer: null,

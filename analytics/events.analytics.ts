@@ -238,6 +238,16 @@ export const useEventsAnalytics = () => {
     captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_VIEW_CHANGED, params);
   }
 
+  /** All Events (LAB-3418): the member switched Live & upcoming | Past, in List or Map, or in Calendar by a press (LAB-3460). */
+  function onEventsWhenChanged(params: { when: 'upcoming' | 'past'; view: 'list' | 'calendar' | 'map' }) {
+    captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_WHEN_CHANGED, params);
+  }
+
+  /** All Events (LAB-3418): the member picked a year on Past, or every year (`all`). */
+  function onEventsYearChanged(params: { year: string; view: 'list' | 'calendar' | 'map' }) {
+    captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_YEAR_CHANGED, params);
+  }
+
   /** All Events: Copy link in the Embed dialog put the embed link on the clipboard (LAB-3352, LAB-3365). */
   function onEventsEmbedLinkCopied(params: {
     view: 'list' | 'calendar' | 'map';
@@ -348,6 +358,8 @@ export const useEventsAnalytics = () => {
     onEventsEventDeleted,
     onEventDrawerOpened,
     onEventsViewChanged,
+    onEventsWhenChanged,
+    onEventsYearChanged,
     onEventsEmbedLinkCopied,
     onEventsEmbedCodeCopied,
     onEventsEmbedViewed,

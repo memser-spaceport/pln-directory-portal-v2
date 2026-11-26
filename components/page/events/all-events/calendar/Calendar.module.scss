@@ -29,15 +29,18 @@
   }
 }
 
+/* The design system's enclosed Tabs, as the toolbar's view switch (AllEventsPage.module.scss `.viewSwitch`, LAB-3425):
+   the same 26px tabs, on the DS track colour, because this track sits on a white card. */
 .modes {
   display: inline-flex;
-  padding: 2px;
+  gap: 4px;
+  padding: 4px;
   border-radius: 8px;
   background: var(--background-neutral-subtle, #f1f5f9);
 }
 
 .mode {
-  height: 28px;
+  height: 26px;
   padding: 0 12px;
   border: none;
   border-radius: 6px;
@@ -46,18 +49,26 @@
   font-size: 14px;
   line-height: 20px;
   font-weight: 500;
+  letter-spacing: -0.2px;
   color: var(--foreground-neutral-secondary, #455468);
+  white-space: nowrap;
   cursor: pointer;
+  transition: all 120ms;
 
   &:hover {
-    color: var(--foreground-neutral-primary, #0a0c11);
+    background: var(--background-base-white, #ffffff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
   }
 }
 
 .modeActive {
   background: var(--background-base-white, #ffffff);
   color: var(--foreground-neutral-primary, #0a0c11);
-  box-shadow: 0 0 0 1px var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  box-shadow: var(--shadow-sm, 0px 1px 2px 0px rgba(14, 15, 17, 0.06), 0px 1px 3px 0px rgba(14, 15, 17, 0.12));
 }
 
 .label {
@@ -95,6 +106,136 @@
 
   &:hover {
     background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+/* ---------- Month / year jump (MonthYearPicker, LAB-3460) ---------- */
+
+// Ported verbatim from prototypes/entries/events-page-redesign/EventsCalendar.module.scss (Polina, 2026-11-26).
+
+// The trigger is the toolbar's year pill (SortDropdown .trigger + page .yearPicker); this only
+// keeps its label from wrapping on phones.
+.monthTrigger {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+// Today beside it: the DS Button (size s is 38px) brought to the bar's 32px pill height and
+// border, so the month pill, Today and the steppers read as one row of one control.
+.todayBtn.todayBtn {
+  height: 32px;
+  padding: 0 12px;
+  border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+}
+
+.monthPositioner {
+  z-index: 20;
+}
+
+// The popup is DateRangePicker's .calendarInline card; month tiles get a tighter padding
+// (production styles only its day view) and a dot under months that have events.
+// 2026-11-26, "use mobbin to adjust this": production's .calendarInline is sized for a day grid
+// (16px padding, 48px header, 20px corners), which made a 12-month jump feel like a dialog. Clockwise
+// and Melio draw it as a small dense popover: a 32px year row, 36px month cells, an 8px-radius
+// selected cell. Same tokens as before; only the measures shrink.
+.monthPopup.monthPopup {
+  width: 240px;
+  max-width: calc(100vw - 32px);
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  box-shadow: 0 8px 24px var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
+  outline: none;
+
+  @include media.mobile-only {
+    width: calc(100vw - 32px);
+  }
+
+  :global(.react-calendar__navigation) {
+    height: 32px;
+    margin-bottom: 4px;
+    padding: 0;
+  }
+
+  :global(.react-calendar__navigation__arrow) {
+    min-width: 32px;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 8px;
+    color: var(--foreground-neutral-secondary, #455468);
+
+    &:hover {
+      background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    }
+  }
+
+  :global(.react-calendar__navigation__label) {
+    pointer-events: none;
+  }
+
+  :global(.react-calendar__navigation__label__labelText) {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  // Focus lands on ‹ when the popover opens; tint it for keyboard focus only, not on every open.
+  :global(.react-calendar__navigation__arrow:enabled:focus:not(:focus-visible):not(:hover)) {
+    background-color: transparent;
+  }
+
+  // react-calendar writes each tile's flex basis inline; the !importants make room for a 2px gap.
+  :global(.react-calendar__year-view__months) {
+    gap: 2px;
+  }
+
+  :global(.react-calendar__year-view .react-calendar__tile) {
+    position: relative;
+    flex: 0 0 calc((100% - 4px) / 3) !important;
+    height: 36px;
+    padding: 0;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: var(--foreground-neutral-primary, #0a0c11);
+
+    &:enabled:hover {
+      background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    }
+  }
+
+  // This month: brand text only. The selected month is the one filled shape in the grid.
+  :global(.react-calendar__year-view .react-calendar__tile--now) {
+    background: none;
+    color: var(--foreground-brand-primary, #1b4dff);
+    font-weight: 500;
+  }
+
+  :global(.react-calendar__year-view .react-calendar__tile--hasActive),
+  :global(.react-calendar__year-view .react-calendar__tile--active) {
+    border-radius: 8px;
+    background: var(--background-brand-primary, #1b4dff);
+    color: var(--background-base-white, #ffffff);
+    font-weight: 500;
+  }
+}
+
+.monthDot {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--foreground-brand-primary, #1b4dff);
+
+  :global(.react-calendar__tile--hasActive) > &,
+  :global(.react-calendar__tile--active) > & {
+    background: var(--background-base-white, #ffffff);
   }
 }
 

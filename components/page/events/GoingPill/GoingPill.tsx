@@ -2,6 +2,9 @@ import clsx from 'clsx';
 
 import s from './GoingPill.module.scss';
 
+/** The pill's label on an event that has ended (LAB-3418). */
+export const WENT_LABEL = 'Went';
+
 /**
  * "Going" (LAB-3247): a filled green pill with a white tick, ported from the prototype's
  * `events-shared/GoingTag` (its 2026-11-18 version). On All Events it is the one going mark; Home, the profiles and

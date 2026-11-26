@@ -229,10 +229,11 @@
   min-width: 0;
 }
 
-// Shared by the spanning banner and the day cards: a plain bordered card with the topic's faint wash (no coloured left edge, 2026-11-17).
+// Shared by the spanning banner and the day cards: a plain bordered card with one faint neutral wash.
 %cardBase {
   position: relative;
   min-width: 0;
+  background: var(--background-neutral-subtle, #f1f5f9);
   border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   border-radius: 8px;
   font: inherit;
@@ -407,8 +408,9 @@
   margin: 0 2px;
   padding: 2px 4px;
   border: none;
-  border-left: 3px solid transparent;
+  border-left: 3px solid var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
   border-radius: 2px;
+  background: var(--background-neutral-subtle, #f1f5f9);
   font-size: 12px;
   line-height: 16px;
   text-align: left;

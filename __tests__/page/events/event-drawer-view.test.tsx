@@ -885,3 +885,28 @@ describe('EventDrawerView (LAB-3216)', () => {
     });
   });
 });
+
+describe('EventDrawerView: Edit and an event that is not approved (LAB-3340)', () => {
+  const toolbar = () => within(screen.getByTestId('event-drawer-toolbar'));
+
+  it('shows "Edit" in the toolbar only when the host passes the edit page', () => {
+    const { unmount } = render(<Harness editHref="/events/edit/labweek-lisbon" />);
+    expect(toolbar().getByRole('link', { name: 'Edit' })).toHaveAttribute('href', '/events/edit/labweek-lisbon');
+    unmount();
+    render(<Harness />);
+    expect(toolbar().queryByRole('link', { name: 'Edit' })).not.toBeInTheDocument();
+  });
+
+  it('a submitted event shows its status and has no going card', () => {
+    render(<Harness raw={eventResponse({ status: 'PENDING' })} editHref="/events/edit/labweek-lisbon" />);
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Status: Submitted. Only you and directory admins see this event.',
+    );
+    expect(screen.queryByRole('button', { name: "Yes, I'm going" })).not.toBeInTheDocument();
+  });
+
+  it('an approved event has no status line', () => {
+    render(<Harness raw={eventResponse({ status: 'APPROVED' })} />);
+    expect(screen.queryByText(/Only you and directory admins/)).not.toBeInTheDocument();
+  });
+});

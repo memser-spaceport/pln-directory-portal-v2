@@ -10,7 +10,10 @@ import {
   nearYou,
   readFilters,
   spanLabel,
+  startLabel,
+  timeRange,
   topCities,
+  whenLine,
 } from '@/services/events/all-events.filters';
 import { allEventsItem as item } from '@/services/events/all-events.fixtures';
 
@@ -45,6 +48,31 @@ describe('filterEvents', () => {
 
   it('keeps only the events the viewer is going to', () => {
     expect(run('going=true', ['lis', 'hyb'])).toEqual(['lis', 'hyb']);
+  });
+
+  it('keeps only featured events when Featured is on', () => {
+    const featured = item({ uid: 'fea', featured: true });
+    const uids = (q: string) => filterEvents([...all, featured], readFilters(params(q)), new Set()).map((e) => e.uid);
+    expect(uids('featured=true')).toEqual(['fea']);
+    expect(uids('featured=true&mode=Virtual')).toEqual([]);
+    expect(uids('featured=false')).toHaveLength(4);
+  });
+
+  it('reads every filter back from a page address', () => {
+    const address =
+      'search=lab&going=true&featured=true&mode=Hybrid&access=Paid|Free&focus=FA3&topic=Talks&city=Lisbon&host=PL&view=map';
+    expect(readFilters(params(address))).toEqual({
+      search: 'lab',
+      going: true,
+      featured: true,
+      mode: ['Hybrid'],
+      access: ['Paid', 'Free'],
+      focus: ['FA3'],
+      topic: ['Talks'],
+      city: ['Lisbon'],
+      host: ['PL'],
+    });
+    expect(countAppliedFilters(params(address))).toBe(10);
   });
 
   it('ANDs filters together', () => {
@@ -230,5 +258,43 @@ describe('nearYou', () => {
     expect(nearYou(lisbonEvents, null)).toBeNull();
     expect(nearYou(lisbonEvents, 'Berlin')).toBeNull();
     expect(nearYou([item({ mode: 'Virtual' })], 'Lisbon')).toBeNull();
+  });
+});
+
+describe('all-day events', () => {
+  const timed = item({ startTime: '9:00 AM', endTime: '6:00 PM', zone: 'UTC+5:30' });
+  const oneDay = item({ allDay: true, startTime: '', endTime: '', zone: '' });
+  const threeDays = item({
+    allDay: true,
+    startDay: '2030-07-24',
+    endDay: '2030-07-26',
+    startTime: '',
+    endTime: '',
+    zone: '',
+  });
+
+  it('prints a timed event with its start, end and zone', () => {
+    expect(startLabel(timed)).toBe('9:00 AM UTC+5:30');
+    expect(timeRange(timed)).toBe('9:00 AM – 6:00 PM');
+    expect(whenLine(timed, '2030-01-01')).toBe('Tue, Dec 3 · 9:00 AM');
+  });
+
+  it('prints a one-day all-day event with its day and no time', () => {
+    expect(startLabel(oneDay)).toBe('');
+    expect(timeRange(oneDay)).toBe('');
+    expect(whenLine(oneDay, '2030-01-01')).toBe('Tue, Dec 3');
+    expect(whenLine(oneDay, '2030-12-03')).toBe('Today');
+  });
+
+  it('prints a three-day all-day event as "Day n of 3" and its span, with no time', () => {
+    expect(startLabel(threeDays)).toBe('');
+    expect(dayOfSpan(threeDays, '2030-07-24')).toBe('Day 1 of 3');
+    expect(whenLine(threeDays, '2030-01-01')).toBe('Wed, Jul 24 – 26');
+    expect(spanLabel(threeDays.startDay, threeDays.endDay)).toBe('Jul 24 – 26');
+  });
+
+  it('takes a city’s zone from its first event that has a time', () => {
+    expect(topCities([oneDay, timed])[0].zone).toBe('UTC+5:30');
+    expect(topCities([oneDay])[0].zone).toBe('');
   });
 });

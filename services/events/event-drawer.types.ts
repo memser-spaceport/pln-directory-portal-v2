@@ -1,5 +1,7 @@
 import type { EventRoleSelection, Resource } from '@/components/core/UpdatesPanel/IrlGatheringModal/types';
 
+import type { EventStatus } from './event-submission.types';
+
 /**
  * The event drawer's wire and view types (LAB-3216).
  *
@@ -50,15 +52,21 @@ export interface EventDetailResponse {
   type: string | null;
   startDate: string;
   endDate: string;
+  /** The approval status, sent to the event's submitter and a directory admin. Absent for other viewers. */
+  status?: EventStatus;
+  /** True when the dates carry no time of day. Absent on an API that has no all-day events. */
+  allDay?: boolean;
+  /** The event's own IANA time zone, else its gathering's (LAB-3403). Absent or null: the gathering's is used. */
+  timezone?: string | null;
   description: string | null;
   shortDescription: string | null;
   logo: string | null;
   banner: string | null;
   websiteUrl: string | null;
   externalId: string | null;
-  /** LAB-3403: the event's own IANA time zone, else its gathering's. Optional: an older backend does not send it. */
-  timezone?: string | null;
   resources: unknown[];
+  /** The event's own venue (LAB-3281). Null or absent when it has none, or on an older API. */
+  venue?: { address: string | null; latitude: number | null; longitude: number | null } | null;
   location: {
     uid: string;
     location: string;
@@ -119,12 +127,17 @@ export interface EventDetail {
   endDate: string;
   /** The event's own time zone, else its gathering's, else UTC. */
   timezone: string;
+  /** The approval status, when the backend sent it: only the submitter and a directory admin get one. */
+  status: EventStatus | null;
+  /** The dates carry no time of day: the drawer shows the days only. */
+  allDay: boolean;
   /** Hidden when unknown. */
   mode: EventMode | null;
   /** Hidden when unknown. */
   access: EventAccess | null;
-  /** "19th Nov 2026, 18:00 - 19th Nov 2026, 21:00 (UTC -5:00)", in `timezone`. */
+  /** "19th Nov 2026, 18:00 - 19th Nov 2026, 21:00 (UTC -5:00)", in `timezone`; days only when all-day. */
   dateLine: string;
+  /** The event's own venue address, else its gathering's location; never the catch-all "Others". */
   address: string | null;
   /** LAB-3324: the venue's map link (for example Google Maps). Null when the event has none. */
   locationUrl: string | null;

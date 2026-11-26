@@ -1,0 +1,77 @@
+.body {
+  margin-top: 24px;
+}
+
+.month + .month {
+  margin-top: 24px;
+}
+
+.monthTitle {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 48px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #ffffff);
+  text-align: center;
+}
+
+.stateText {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton {
+  display: block;
+  height: 96px;
+  border-radius: 12px;
+  background: linear-gradient(
+    90deg,
+    var(--border-neutral-secondary, #e2e8f0) 0%,
+    var(--background-base-white, #ffffff) 50%,
+    var(--border-neutral-secondary, #e2e8f0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}

@@ -1,0 +1,123 @@
+.root {
+  position: relative;
+  min-width: 0;
+}
+
+.trigger {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid rgba(203, 213, 225, 0.5);
+  border-radius: 8px;
+  background: var(--background-base-white, #ffffff);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  color: #455468;
+  text-align: left;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: none;
+    border-color: #5e718d;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.invalid {
+  border-color: var(--action-border-error-focus, #e7000b);
+}
+
+.icon {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(360px, 100%);
+  padding: 8px;
+  border: 1px solid var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 25px 80px -12px rgba(14, 15, 17, 0.12);
+}
+
+.search {
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1px solid rgba(203, 213, 225, 0.5);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  color: #455468;
+
+  &::placeholder {
+    color: #cbd5e1;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #5e718d;
+  }
+}
+
+.list {
+  max-height: 240px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.option {
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.optionActive {
+  background: var(--background-neutral-subtle, #f1f5f9);
+}
+
+.optionOn {
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-weight: 500;
+}
+
+.none {
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}

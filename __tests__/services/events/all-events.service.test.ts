@@ -6,59 +6,26 @@ import {
   toZoneLabel,
   upcomingOnly,
 } from '@/services/events/all-events.service';
-import type { EventDetailResponse } from '@/services/events/event-drawer.types';
-import type { UpcomingEvent } from '@/services/events/hooks/useUpcomingEvents';
+import type { EventListItemResponse } from '@/services/events/all-events.types';
 
-/* LAB-3247 (design D2): the All Events page's server loader and its mapping. */
+/* The All Events page's server loader (`GET /v1/irl/events`, page by page) and its mapping. */
 
-const row = (over: Partial<UpcomingEvent> = {}): UpcomingEvent => ({
+const row = (over: Partial<EventListItemResponse> = {}): EventListItemResponse => ({
   uid: 'e1',
   name: 'DAI Summit',
-  logo: 'https://img/logo.png',
-  location: 'bangalore',
-  flag: '',
   startDate: '2030-12-03T03:30:00.000Z',
   endDate: '2030-12-04T12:30:00.000Z',
-  websiteUrl: '',
-  locationUid: 'loc-1',
-  goingCount: 12,
-  ...over,
-});
-
-const detail = (over: Partial<EventDetailResponse> = {}): EventDetailResponse => ({
-  uid: 'e1',
-  name: 'DAI Summit',
-  slugURL: 'dai-summit',
-  type: 'HYBRID',
-  startDate: '2030-12-03T03:30:00.000Z',
-  endDate: '2030-12-04T12:30:00.000Z',
-  description: null,
-  shortDescription: null,
+  allDay: false,
+  timezone: 'Asia/Kolkata',
+  format: 'HYBRID',
+  accessOption: 'PAID',
+  tags: ['AI'],
+  isFeatured: false,
   logo: 'https://img/logo.png',
   banner: 'https://img/banner.png',
-  websiteUrl: null,
-  externalId: null,
-  resources: [],
-  location: {
-    uid: 'loc-1',
-    location: 'Bangalore, India',
-    city: null,
-    flag: null,
-    timezone: 'Asia/Kolkata',
-    resources: [],
-    events: [],
-  },
-  details: {
-    tags: [{ name: 'AI', color: null }],
-    accessType: null,
-    accessOption: 'PAID',
-    format: null,
-    host: { name: 'Protocol Labs', logo: null },
-    coHosts: [],
-    sponsors: [],
-    agenda: null,
-  },
-  hosts: [],
+  host: { name: 'Protocol Labs', logo: null },
+  gathering: { uid: 'loc-1', city: 'bangalore', country: 'India' },
+  venue: { address: '12 MG Road', latitude: 12.97, longitude: 77.59 },
   goingCount: 12,
   faces: [
     { uid: 'm1', name: 'Ann', image: null },
@@ -66,15 +33,14 @@ const detail = (over: Partial<EventDetailResponse> = {}): EventDetailResponse =>
     { uid: 'm3', name: 'Cy', image: null },
     { uid: 'm4', name: 'Di', image: null },
   ],
-  viewerGoing: false,
-  viewer: null,
   ...over,
 });
 
 describe('toAllEventsItem', () => {
-  it('reads time, day, zone, place, mode, access, hosts and tags in the event’s own time zone', () => {
-    const item = toAllEventsItem(row(), detail());
+  it('reads time, day, zone, place, mode, access, host and tags in the event’s own time zone', () => {
+    const item = toAllEventsItem(row());
     expect(item).toMatchObject({
+      allDay: false,
       timezone: 'Asia/Kolkata',
       startDay: '2030-12-03',
       endDay: '2030-12-04',
@@ -88,72 +54,101 @@ describe('toAllEventsItem', () => {
       access: 'PAID',
       hosts: ['Protocol Labs'],
       tags: ['AI'],
+      featured: false,
       picture: 'https://img/banner.png',
       goingCount: 12,
     });
     expect(item.faces).toHaveLength(3);
   });
 
-  it('carries the first topic’s colour for the calendar', () => {
-    const base = detail();
-    const tags = [
-      { name: 'AI', color: '#FF8800' },
-      { name: 'Storage', color: '#00AA00' },
-    ];
-    expect(toAllEventsItem(row(), detail({ details: { ...base.details!, tags } })).tagColor).toBe('#FF8800');
-    expect(toAllEventsItem(row(), base).tagColor).toBeNull();
+  it('maps each format and access value to the words the cards use', () => {
+    expect(toAllEventsItem(row({ format: 'IN_PERSON', accessOption: 'OPEN' }))).toMatchObject({
+      mode: 'In-Person',
+      access: 'FREE w/ RSVP',
+    });
+    expect(toAllEventsItem(row({ format: 'VIRTUAL', accessOption: 'INVITE' }))).toMatchObject({
+      mode: 'Virtual',
+      access: 'INVITE ONLY',
+    });
+    expect(toAllEventsItem(row({ format: null, accessOption: null }))).toMatchObject({ mode: null, access: null });
   });
 
-  it('splits focus areas from topics; the colour is the first topic’s (LAB-3404)', () => {
-    const base = detail();
-    const tags = [
-      { name: 'FA3', color: '#111111' },
-      { name: 'Talks', color: '#FF8800' },
-      { name: 'fa4', color: null },
-    ];
-    expect(toAllEventsItem(row(), detail({ details: { ...base.details!, tags } }))).toMatchObject({
+  it('splits focus areas from topics (LAB-3404)', () => {
+    expect(toAllEventsItem(row({ tags: ['FA3', 'Talks', 'fa4'] }))).toMatchObject({
       focusAreas: ['FA3', 'FA4'],
       tags: ['Talks'],
-      tagColor: '#FF8800',
     });
   });
 
-  it('reads the event’s own time zone before the gathering’s (LAB-3404)', () => {
-    expect(toAllEventsItem(row(), detail({ timezone: 'America/Chicago' }))).toMatchObject({
-      timezone: 'America/Chicago',
-      startTime: '9:30 PM',
-      startDay: '2030-12-02',
-      zone: 'UTC−6',
-    });
-    expect(toAllEventsItem(row(), detail({ timezone: null })).timezone).toBe('Asia/Kolkata');
+  it('lists the host first, then the co-hosts, each once', () => {
+    const coHosts = [{ name: 'Filecoin Foundation' }, { name: 'Protocol Labs' }];
+    expect(toAllEventsItem(row({ coHosts })).hosts).toEqual(['Protocol Labs', 'Filecoin Foundation']);
   });
 
-  it('keeps the list fields when the detail call failed', () => {
-    const item = toAllEventsItem(row(), null);
+  it('carries the featured mark', () => {
+    expect(toAllEventsItem(row({ isFeatured: true })).featured).toBe(true);
+  });
+
+  it('gives an all-day event its days and no time or zone', () => {
+    const item = toAllEventsItem(row({ allDay: true, startDate: '2030-07-24', endDate: '2030-07-26' }));
     expect(item).toMatchObject({
-      uid: 'e1',
-      name: 'DAI Summit',
-      timezone: 'UTC',
-      startDay: '2030-12-03',
-      zone: 'UTC+0',
-      city: 'Bangalore',
-      mode: null,
-      access: null,
-      hosts: [],
-      picture: 'https://img/logo.png',
-      goingCount: 12,
-      faces: [],
+      allDay: true,
+      startDay: '2030-07-24',
+      endDay: '2030-07-26',
+      startTime: '',
+      endTime: '',
+      zone: '',
     });
   });
 
-  it('turns the "Others" gathering into no city', () => {
-    const item = toAllEventsItem(row({ location: 'Others' }), detail({ location: null }));
-    expect(item.city).toBeNull();
-    expect(item.cityKey).toBeNull();
+  it('reads a virtual event with no gathering, venue, host or time zone', () => {
+    const item = toAllEventsItem(
+      row({ format: 'VIRTUAL', gathering: null, venue: null, host: null, timezone: null, tags: [], banner: null }),
+    );
+    expect(item).toMatchObject({
+      timezone: 'UTC',
+      zone: 'UTC+0',
+      city: null,
+      cityKey: null,
+      place: null,
+      mode: 'Virtual',
+      hosts: [],
+      tags: [],
+      picture: 'https://img/logo.png',
+    });
   });
 
-  it('hides attendance when the list says the event hides it, even if the detail says 0', () => {
-    const item = toAllEventsItem(row({ goingCount: null }), detail({ goingCount: 0 }));
+  it('turns the "Others" gathering into no city, with the venue address as the place (LAB-3458)', () => {
+    const item = toAllEventsItem(
+      row({
+        gathering: { uid: 'loc-9', city: 'Others', country: null },
+        venue: { address: 'Zhytomyr, Zhytomyr Oblast, Ukraine, 10000', latitude: 50.26, longitude: 28.67 },
+      }),
+    );
+    expect(item.city).toBeNull();
+    expect(item.place).toBe('Zhytomyr, Zhytomyr Oblast, Ukraine, 10000');
+    expect(item.venuePoint).toEqual({ lat: 50.26, lng: 28.67 });
+  });
+
+  it('has no place and no point for an "Others" event with no venue', () => {
+    const item = toAllEventsItem(row({ gathering: { uid: 'loc-9', city: 'Others', country: null }, venue: null }));
+    expect(item.place).toBeNull();
+    expect(item.venuePoint).toBeNull();
+  });
+
+  it('keeps the gathering as the place when the event has a city, and the venue as its point', () => {
+    const item = toAllEventsItem(row());
+    expect(item.place).not.toBe('12 MG Road');
+    expect(item.venuePoint).toEqual({ lat: 12.97, lng: 77.59 });
+  });
+
+  it('drops a venue point with a missing or out-of-range number', () => {
+    expect(toAllEventsItem(row({ venue: { address: 'x', latitude: null, longitude: 1 } })).venuePoint).toBeNull();
+    expect(toAllEventsItem(row({ venue: { address: 'x', latitude: 95, longitude: 1 } })).venuePoint).toBeNull();
+  });
+
+  it('hides attendance when the event hides it', () => {
+    const item = toAllEventsItem(row({ goingCount: null }));
     expect(item.goingCount).toBeNull();
     expect(item.faces).toEqual([]);
   });
@@ -162,13 +157,13 @@ describe('toAllEventsItem', () => {
 describe('labels', () => {
   it('title-cases an all-lower-case city and keeps a cased one', () => {
     expect(toDisplayCity('new york')).toBe('New York');
-    expect(toDisplayCity('abu dhabi, UAE')).toBe('Abu Dhabi');
-    expect(toDisplayCity('San Francisco, CA')).toBe('San Francisco');
-    expect(toDisplayCity('  ')).toBeNull();
+    expect(toDisplayCity('San Francisco, USA')).toBe('San Francisco');
+    expect(toDisplayCity('')).toBeNull();
+    expect(toDisplayCity(null)).toBeNull();
   });
 
   it('prints UTC offsets as the prototype does', () => {
-    const d = new Date('2030-01-15T12:00:00Z');
+    const d = new Date('2030-12-03T12:00:00.000Z');
     expect(toZoneLabel(d, 'UTC')).toBe('UTC+0');
     expect(toZoneLabel(d, 'Asia/Kolkata')).toBe('UTC+5:30');
     expect(toZoneLabel(d, 'America/Sao_Paulo')).toBe('UTC−3');
@@ -176,21 +171,29 @@ describe('labels', () => {
 });
 
 describe('upcomingOnly', () => {
+  const now = new Date('2030-12-03T12:00:00.000Z');
+
   it('drops an event that ended and sorts the rest soonest first', () => {
-    const now = new Date('2030-06-10T12:00:00Z');
-    const ended = toAllEventsItem(
-      row({ uid: 'past', startDate: '2030-06-09T08:00:00Z', endDate: '2030-06-09T18:00:00Z' }),
-      null,
-    );
-    const later = toAllEventsItem(
-      row({ uid: 'later', startDate: '2030-06-20T08:00:00Z', endDate: '2030-06-20T18:00:00Z' }),
-      null,
-    );
-    const underway = toAllEventsItem(
-      row({ uid: 'now', startDate: '2030-06-09T08:00:00Z', endDate: '2030-06-11T18:00:00Z' }),
-      null,
-    );
-    expect(upcomingOnly([later, ended, underway], now).map((i) => i.uid)).toEqual(['now', 'later']);
+    const items = [
+      toAllEventsItem(
+        row({ uid: 'later', startDate: '2030-12-10T09:00:00.000Z', endDate: '2030-12-10T18:00:00.000Z' }),
+      ),
+      toAllEventsItem(
+        row({ uid: 'ended', startDate: '2030-12-01T09:00:00.000Z', endDate: '2030-12-02T18:00:00.000Z' }),
+      ),
+      toAllEventsItem(
+        row({ uid: 'running', startDate: '2030-12-02T09:00:00.000Z', endDate: '2030-12-05T18:00:00.000Z' }),
+      ),
+    ];
+    expect(upcomingOnly(items, now).map((i) => i.uid)).toEqual(['running', 'later']);
+  });
+
+  it('keeps an all-day event until the end of its last day in its time zone', () => {
+    const allDay = (uid: string, endDate: string) =>
+      toAllEventsItem(row({ uid, allDay: true, startDate: '2030-12-01', endDate, timezone: 'UTC' }));
+    expect(
+      upcomingOnly([allDay('today', '2030-12-03'), allDay('yesterday', '2030-12-02')], now).map((i) => i.uid),
+    ).toEqual(['today']);
   });
 });
 
@@ -202,27 +205,49 @@ describe('getAllEventsPageEvents', () => {
 
   const json = (body: unknown, status = 200) =>
     Promise.resolve({ ok: status < 400, status, json: () => Promise.resolve(body) } as Response);
+  const pageOf = (url: string) => Number(new URL(url).searchParams.get('page'));
 
-  it('loads every upcoming event and its detail; a failed detail keeps the event', async () => {
-    global.fetch = jest.fn((url: string) => {
-      // LAB-3404: with the events in progress, so one stays on the page until it ends.
-      if (url.endsWith('/v1/irl/events/upcoming?ongoing=true')) return json([row({ uid: 'a' }), row({ uid: 'b' })]);
-      if (url.endsWith('/v1/irl/events/a')) return json(detail({ uid: 'a' }));
-      return json({ message: 'boom' }, 500);
-    }) as unknown as typeof fetch;
+  beforeAll(() => {
+    process.env.DIRECTORY_API_URL = 'https://api.test';
+  });
+
+  it('reads the list page by page until the total is reached', async () => {
+    const fetchMock = jest.fn((url: string) =>
+      pageOf(url) === 1
+        ? json({ page: 1, limit: 100, total: 3, items: [row({ uid: 'a' }), row({ uid: 'b' })] })
+        : json({ page: 2, limit: 100, total: 3, items: [row({ uid: 'c' })] }),
+    );
+    global.fetch = fetchMock as unknown as typeof fetch;
 
     const result = await getAllEventsPageEvents();
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.items.map((i) => [i.uid, i.mode])).toEqual([
-      ['a', 'Hybrid'],
-      ['b', null],
+    expect(result.items.map((i) => i.uid)).toEqual(['a', 'b', 'c']);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      'https://api.test/v1/irl/events?page=1&limit=100',
+      'https://api.test/v1/irl/events?page=2&limit=100',
     ]);
   });
 
-  it('reports a failure when the upcoming list itself fails', async () => {
+  it('returns no events for an empty list, with one call', async () => {
+    const fetchMock = jest.fn(() => json({ page: 1, limit: 100, total: 0, items: [] }));
+    global.fetch = fetchMock as unknown as typeof fetch;
+    expect(await getAllEventsPageEvents()).toEqual({ ok: true, items: [] });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports a failure when the list request fails', async () => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
     global.fetch = jest.fn(() => json({}, 502)) as unknown as typeof fetch;
+    expect(await getAllEventsPageEvents()).toEqual({ ok: false });
+  });
+
+  it('reports a failure when a later page fails, instead of a partial list', async () => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    global.fetch = jest.fn((url: string) =>
+      pageOf(url) === 1 ? json({ page: 1, limit: 100, total: 150, items: [row({ uid: 'a' })] }) : json({}, 500),
+    ) as unknown as typeof fetch;
     expect(await getAllEventsPageEvents()).toEqual({ ok: false });
   });
 });

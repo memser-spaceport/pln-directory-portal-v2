@@ -1,5 +1,7 @@
 import { formatInTimeZone } from 'date-fns-tz';
 
+import { eventDay, safeTimezone } from '@/services/events/event-dates';
+
 /*
  * When an event is, as the redesigned drawer prints it (LAB-3361, Polina's `event-drawer-redesign/format.ts`): the date
  * tile's month and day, the day line and the time line with its zone. Read in the event's own time zone, so an event
@@ -13,7 +15,7 @@ export interface EventWhen {
   day: string;
   /** "Thursday, November 19", or "Tue, Dec 1 – Sat, Dec 5" for an event across days. */
   dayLine: string;
-  /** "6:00 PM – 9:00 PM · UTC−5". */
+  /** "6:00 PM – 9:00 PM · UTC−5"; "All day" for an all-day event, which has no time or zone. */
   timeLine: string;
 }
 
@@ -28,8 +30,9 @@ export function utcZone(date: Date, timezone: string): string {
 }
 
 /** Null when the start is not a date or the zone is unknown; the drawer then prints the events app's date line. */
-export function eventWhen(startDate: string, endDate: string, timezone: string): EventWhen | null {
+export function eventWhen(startDate: string, endDate: string, timezone: string, allDay = false): EventWhen | null {
   if (!valid(startDate)) return null;
+  if (allDay) return allDayWhen(startDate, endDate, timezone);
   const start = new Date(startDate);
   const end = valid(endDate) ? new Date(endDate) : start;
   try {
@@ -44,6 +47,23 @@ export function eventWhen(startDate: string, endDate: string, timezone: string):
   } catch {
     return null;
   }
+}
+
+/** An all-day event: its own days, read as calendar days, and "All day" in place of the times. */
+function allDayWhen(startDate: string, endDate: string, timezone: string): EventWhen {
+  const tz = safeTimezone(timezone);
+  const startDay = eventDay(startDate, tz);
+  const endDay = valid(endDate) ? eventDay(endDate, tz) : startDay;
+  const at = (isoDay: string, pattern: string) => formatInTimeZone(new Date(`${isoDay}T12:00:00Z`), 'UTC', pattern);
+  return {
+    month: at(startDay, 'MMM').toUpperCase(),
+    day: at(startDay, 'd'),
+    dayLine:
+      startDay === endDay
+        ? at(startDay, 'EEEE, MMMM d')
+        : `${at(startDay, 'EEE, MMM d')} – ${at(endDay, 'EEE, MMM d')}`,
+    timeLine: 'All day',
+  };
 }
 
 /**

@@ -1,0 +1,18 @@
+@use 'styles/media';
+
+.profile {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  min-width: 0;
+
+  @include media.mobile-only {
+    gap: 12px;
+  }
+}
+
+/* The Event Name field fills the row beside the logo. */
+.name {
+  flex: 1;
+  min-width: 0;
+}

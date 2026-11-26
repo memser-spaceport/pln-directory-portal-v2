@@ -1,0 +1,126 @@
+@use 'styles/media';
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+
+  @include media.mobile-only {
+    padding: 20px 16px 48px;
+  }
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.back {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.titleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: 28px;
+  line-height: 36px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  @include media.mobile-only {
+    font-size: 22px;
+    line-height: 28px;
+  }
+}
+
+.edit {
+  margin-left: auto;
+}
+
+.delete {
+  margin-right: auto;
+}
+
+.view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: var(--background-base-white, #ffffff);
+
+  @include media.mobile-only {
+    padding: 16px;
+  }
+}
+
+.viewActions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.loading {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 24px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: var(--background-base-white, #ffffff);
+}
+
+.stateText {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.stateLink {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

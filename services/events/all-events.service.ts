@@ -1,113 +1,90 @@
 import { unstable_cache } from 'next/cache';
-import { formatInTimeZone } from 'date-fns-tz';
 
 import { toDisplayCity } from './all-events.filters';
-import { toEventDetail } from './event-drawer.mappers';
+import { eventClock, eventEndsAt, safeTimezone, toZoneLabel } from './event-dates';
+import { toEventAccess, toEventMode } from './event-drawer.mappers';
 import { toFocusAreaCode } from './focus-areas';
-import type { EventDetailResponse } from './event-drawer.types';
-import type { UpcomingEvent } from './hooks/useUpcomingEvents';
-import type { AllEventsItem, AllEventsResult } from './all-events.types';
+import type { AllEventsItem, AllEventsResult, EventListItemResponse, EventListResponse } from './all-events.types';
 
 /*
- * The All Events page's one loader (LAB-3247, design D2). Phase 1 uses the endpoints that exist: every upcoming event
- * from `/v1/irl/events/upcoming`, then each one's `/v1/irl/events/:uid` for its time zone, mode, hosts and faces. There
- * are about ten upcoming events, so N detail calls are cheap; the backend list endpoint of phase 2 (LAB-3281)
- * replaces them. Signed out on purpose: the list is the same for everyone and cached for five minutes.
+ * The All Events page's one loader: every approved event that has not ended, from `GET /v1/irl/events`, page by page.
+ * Signed out on purpose: the list is the same for everyone and cached for five minutes.
  */
 
 const api = () => process.env.DIRECTORY_API_URL;
 
-/** Detail calls in flight at once. */
-const DETAIL_CONCURRENCY = 6;
-/** Past this many events the per-event calls are worth a warning; the phase 2 endpoint is the fix. */
-const MANY_EVENTS = 60;
+/** The list endpoint's largest page. */
+const PAGE_SIZE = 100;
+/** A stop for a `total` that never comes true, so a broken answer can't loop. */
+const MAX_PAGES = 50;
 export const ALL_EVENTS_CACHE_TAG = 'all-events';
 
-/** Lives in the client-safe filters module (the IRL page's links use it too); re-exported for existing callers. */
-export { toDisplayCity };
+/** Live in client-safe modules (the IRL page's links and the cards use them too); re-exported for existing callers. */
+export { toDisplayCity, toZoneLabel };
 
-/** "+05:30" → "UTC+5:30", "-03:00" → "UTC−3", "+00:00" → "UTC+0". */
-export function toZoneLabel(date: Date, timezone: string): string {
-  const match = /^([+-])(\d{2}):(\d{2})$/.exec(formatInTimeZone(date, timezone, 'xxx'));
-  if (!match) return 'UTC+0';
-  const [, sign, hours, minutes] = match;
-  return `UTC${sign === '-' ? '−' : '+'}${Number(hours)}${minutes === '00' ? '' : `:${minutes}`}`;
+const uniqueNames = (names: (string | null | undefined)[]) =>
+  Array.from(new Set(names.map((name) => name?.trim()).filter((name): name is string => !!name)));
+
+/** The venue's position, or null unless both numbers are there and in range. */
+function venuePoint(venue: EventListItemResponse['venue']): AllEventsItem['venuePoint'] {
+  const lat = venue?.latitude;
+  const lng = venue?.longitude;
+  if (typeof lat !== 'number' || typeof lng !== 'number' || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return null;
+  return { lat, lng };
 }
 
-/** One event for the page, from its `/upcoming` row and its detail (null when the detail call failed). */
-export function toAllEventsItem(row: UpcomingEvent, raw: EventDetailResponse | null): AllEventsItem {
-  const detail = raw ? toEventDetail(raw) : null;
-  const timezone = detail?.timezone ?? 'UTC';
-  const start = new Date(row.startDate);
-  const end = new Date(row.endDate);
-  const city = toDisplayCity(raw?.location?.city || raw?.location?.location || row.location);
-  // `/upcoming` sends null for an event that hides its attendance; the detail would say 0, which isn't the same.
-  const hidden = row.goingCount === null;
+/** One event for the page, from its row of the list endpoint. */
+export function toAllEventsItem(row: EventListItemResponse): AllEventsItem {
+  const timezone = safeTimezone(row.timezone);
+  const allDay = row.allDay === true;
+  const city = toDisplayCity(row.gathering?.city);
+  const country = row.gathering?.country?.trim();
+  // Null means the event hides its attendance; 0 means nobody goes yet.
+  const hidden = row.goingCount === null || row.goingCount === undefined;
+  // Focus area codes ("FA4") and topics are both tags; they are told apart by the code (LAB-3404).
+  const tagNames = uniqueNames(row.tags ?? []);
 
   return {
     uid: row.uid,
     name: row.name,
     startDate: row.startDate,
     endDate: row.endDate,
+    allDay,
     timezone,
-    startDay: formatInTimeZone(start, timezone, 'yyyy-MM-dd'),
-    endDay: formatInTimeZone(end, timezone, 'yyyy-MM-dd'),
-    startTime: formatInTimeZone(start, timezone, 'h:mm a'),
-    endTime: formatInTimeZone(end, timezone, 'h:mm a'),
-    zone: toZoneLabel(start, timezone),
+    ...eventClock(row.startDate, row.endDate, timezone, allDay),
     city,
     cityKey: city ? city.toLowerCase() : null,
-    place: detail?.address ?? null,
-    mode: detail?.mode ?? null,
-    access: detail?.access ?? null,
-    hosts: detail?.hosts ?? [],
-    focusAreas: detail?.focusAreas ?? [],
-    tags: detail?.tags.map((t) => t.name) ?? [],
-    tagColor: raw?.details?.tags?.find((t) => !toFocusAreaCode(t.name))?.color ?? null,
-    picture: raw?.banner || raw?.logo || row.logo || null,
-    goingCount: hidden ? null : (raw?.goingCount ?? row.goingCount ?? null),
-    faces: hidden ? [] : (raw?.faces ?? []).slice(0, 3),
+    place: city ? [city, country].filter(Boolean).join(', ') : row.venue?.address?.trim() || null,
+    venuePoint: venuePoint(row.venue),
+    mode: toEventMode(row.format),
+    access: toEventAccess(row.accessOption),
+    hosts: uniqueNames([row.host?.name, ...(row.coHosts ?? []).map((coHost) => coHost?.name)]),
+    focusAreas: uniqueNames(tagNames.map(toFocusAreaCode)),
+    tags: tagNames.filter((name) => !toFocusAreaCode(name)),
+    featured: row.isFeatured === true,
+    picture: row.banner || row.logo || null,
+    goingCount: hidden ? null : row.goingCount,
+    faces: hidden ? [] : (row.faces ?? []).slice(0, 3),
   };
 }
 
-/** `ongoing` adds the events in progress (LAB-3403); an older backend ignores it and sends only those not started. */
-async function fetchUpcomingRows(): Promise<UpcomingEvent[]> {
-  const response = await fetch(`${api()}/v1/irl/events/upcoming?ongoing=true`, { cache: 'no-store' });
-  if (!response.ok) throw new Error(`Upcoming events responded with ${response.status}`);
+async function fetchListPage(page: number): Promise<EventListResponse> {
+  const response = await fetch(`${api()}/v1/irl/events?page=${page}&limit=${PAGE_SIZE}`, { cache: 'no-store' });
+  if (!response.ok) throw new Error(`Events list responded with ${response.status}`);
   const body = await response.json();
-  return Array.isArray(body) ? body : [];
+  return { ...body, items: Array.isArray(body?.items) ? body.items : [], total: Number(body?.total) || 0 };
 }
 
-/** One event's detail, or null on any failure: one bad event keeps its list fields and never fails the page. */
-async function fetchDetail(uid: string): Promise<EventDetailResponse | null> {
-  try {
-    const response = await fetch(`${api()}/v1/irl/events/${encodeURIComponent(uid)}`, { cache: 'no-store' });
-    return response.ok ? ((await response.json()) as EventDetailResponse) : null;
-  } catch {
-    return null;
-  }
-}
-
-async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
-  const out: R[] = new Array(items.length);
-  let next = 0;
-  const worker = async () => {
-    while (next < items.length) {
-      const index = next++;
-      out[index] = await fn(items[index]);
-    }
-  };
-  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
-  return out;
-}
-
+/** Every page until `total` is reached. A failed page fails the load: a partial list would hide events silently. */
 async function loadAllEvents(): Promise<AllEventsItem[]> {
-  const rows = await fetchUpcomingRows();
-  if (rows.length > MANY_EVENTS) {
-    console.warn(`[all-events] ${rows.length} upcoming events: one detail call each. Phase 2 needs the list endpoint.`);
+  const rows: EventListItemResponse[] = [];
+  for (let page = 1; page <= MAX_PAGES; page++) {
+    const { items, total } = await fetchListPage(page);
+    rows.push(...items);
+    if (!items.length || rows.length >= total) break;
   }
-  const details = await mapLimit(rows, DETAIL_CONCURRENCY, (row) => fetchDetail(row.uid));
-  return rows.map((row, i) => toAllEventsItem(row, details[i]));
+  return rows.map(toAllEventsItem);
 }
 
 const loadAllEventsCached = unstable_cache(loadAllEvents, ['all-events-page', 'focus-areas'], {
@@ -118,7 +95,7 @@ const loadAllEventsCached = unstable_cache(loadAllEvents, ['all-events-page', 'f
 /** Not ended yet, soonest first. Applied on every read, so a cached list never shows a finished event. */
 export function upcomingOnly(items: AllEventsItem[], now: Date = new Date()): AllEventsItem[] {
   return items
-    .filter((item) => new Date(item.endDate).getTime() > now.getTime())
+    .filter((item) => eventEndsAt(item.endDate, item.timezone, item.allDay).getTime() > now.getTime())
     .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
 }
 

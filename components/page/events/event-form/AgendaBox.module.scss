@@ -1,0 +1,22 @@
+.text {
+  width: 100%;
+  min-height: 180px;
+  padding: 10px 12px;
+  border: 1px solid rgba(203, 213, 225, 0.5);
+  border-radius: 8px;
+  background: var(--background-base-white, #ffffff);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  color: #455468;
+  resize: vertical;
+
+  &::placeholder {
+    color: #cbd5e1;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #5e718d;
+  }
+}

@@ -7,6 +7,7 @@ import { localIso } from '@/services/events/all-events.filters';
 import { EVENTS_LIST_PATH } from '@/utils/constants';
 import { SHOW_EVENT_DRAWER } from '@/utils/event-drawer';
 import { SHOW_EVENTS_PAGE_V2 } from '@/utils/events-page';
+import { EVENTS_LOCAL_SUBMIT, EVENTS_SUBMIT_PATH } from '@/utils/events-submit';
 import { getSubmitEventUrl } from '@/utils/irl-submit-url';
 import { listingPageMetadata } from '@/utils/seo';
 
@@ -38,7 +39,8 @@ export default async function Page() {
       viewerUid={viewerUid}
       memberCity={memberCity}
       serverTodayIso={localIso(new Date())}
-      submitHref={getSubmitEventUrl()}
+      submitHref={EVENTS_LOCAL_SUBMIT ? EVENTS_SUBMIT_PATH : getSubmitEventUrl()}
+      submitInApp={EVENTS_LOCAL_SUBMIT}
     />
   );
 }

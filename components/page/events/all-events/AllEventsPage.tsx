@@ -55,6 +55,8 @@ import { LocationDialog, type LocationDialogFrom } from './LocationDialog';
 import { AddLocationRow, NearYou, NoNearbyEventsRow } from './NearYou';
 import { EventsEmpty, EventsError } from './states';
 import type { AllEventsView } from './icons';
+import { EVENTS_MINE_PATH } from '@/utils/events-submit';
+
 import s from './AllEventsPage.module.scss';
 
 /** Loaded on the first press (or the hover before it), so the page doesn't ship the drawer to everyone up front. */
@@ -73,6 +75,8 @@ export interface AllEventsPageProps {
   /** The server's day, so the first render matches the HTML; the browser's own day replaces it after hydration. */
   serverTodayIso: string;
   submitHref: string;
+  /** "Submit an event" opens the LabOS form (same tab), and a signed-in member gets "My Submissions". */
+  submitInApp?: boolean;
   /**
    * The embed (LAB-3352, `/events/embed`), framed by another site: the view only, with the filters from its address,
    * and "All events on PL Directory ↗" under it. No page header, Near you, Browse by city, toolbar, filters or member
@@ -109,6 +113,7 @@ export function AllEventsPage({
   memberCity,
   serverTodayIso,
   submitHref,
+  submitInApp = false,
   embed = false,
   detailsOnLabOs = false,
 }: AllEventsPageProps) {
@@ -451,7 +456,12 @@ export function AllEventsPage({
   const content = (
     <div className={s.page}>
       <div className={s.container}>
-        <AllEventsHeader submitHref={submitHref} onSubmitClick={() => analytics.onSubmitEventButtonClicked()} />
+        <AllEventsHeader
+          submitHref={submitHref}
+          submitInApp={submitInApp}
+          mySubmissionsHref={submitInApp && signedIn ? EVENTS_MINE_PATH : undefined}
+          onSubmitClick={() => analytics.onSubmitEventButtonClicked()}
+        />
 
         {!result.ok ? (
           <div className={s.layout}>

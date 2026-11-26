@@ -1,8 +1,11 @@
 'use client';
 
+import clsx from 'clsx';
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/common/Button';
+import btn from '@/components/common/Button/Button.module.scss';
 import { CaretLeftIcon, CaretRightIcon, CheckIcon, CloseIcon } from '@/components/icons';
 
 import { ChainIcon } from './EventSummary';
@@ -11,6 +14,8 @@ import e from './EventDrawer.module.scss';
 export interface DrawerToolbarProps {
   /** The event on show; without one (loading, failed, missing) the toolbar has Close only. */
   eventUid: string | null;
+  /** The event's edit page, for its submitter and a directory admin. Nobody else gets the "Edit" link. */
+  editHref?: string;
   prev: string | null;
   next: string | null;
   /** Previous / next show only when the drawer was opened from a list of more than one event, on the event itself. */
@@ -30,6 +35,7 @@ export const eventShareUrl = (uid: string) => `${window.location.origin}/events/
  */
 export function DrawerToolbar({
   eventUid,
+  editHref,
   prev,
   next,
   showStepper,
@@ -76,6 +82,11 @@ export function DrawerToolbar({
             {copied ? <CheckIcon width={14} height={14} /> : <ChainIcon size={14} />}
             <span className={e.btnLabelWide}>{copied ? 'Copied' : 'Copy link'}</span>
           </Button>
+        )}
+        {eventUid && editHref && (
+          <Link href={editHref} className={clsx(btn.root, btn.xs, btn.border, btn.neutral, e.btn)}>
+            Edit
+          </Link>
         )}
       </div>
       <div className={e.toolbarGroup}>

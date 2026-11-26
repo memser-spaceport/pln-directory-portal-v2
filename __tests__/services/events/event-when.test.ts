@@ -71,3 +71,15 @@ describe('agendaDayTitle', () => {
     expect(agendaDayTitle('Opening day')).toBe('Opening day');
   });
 });
+
+describe('eventWhen, all day (LAB-3339)', () => {
+  it('prints an all-day event as its days with "All day", no time or zone', () => {
+    expect(eventWhen('2030-07-24', '2030-07-24', 'America/Los_Angeles', true)).toEqual({
+      month: 'JUL',
+      day: '24',
+      dayLine: 'Wednesday, July 24',
+      timeLine: 'All day',
+    });
+    expect(eventWhen('2030-07-24', '2030-07-26', 'UTC', true)?.dayLine).toBe('Wed, Jul 24 – Fri, Jul 26');
+  });
+});

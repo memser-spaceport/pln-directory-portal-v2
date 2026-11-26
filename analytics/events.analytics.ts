@@ -3,6 +3,7 @@ import {
   ALL_EVENTS_ANALYTICS,
   EVENT_DRAWER_ANALYTICS,
   EVENTS_ANALYTICS,
+  EVENTS_SUBMIT_ANALYTICS,
   HOME_ANALYTICS_EVENTS,
 } from '@/utils/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -41,6 +42,55 @@ export const useEventsAnalytics = () => {
       console.error(e);
     }
   };
+
+  /**
+   * The submit form, the edit page and My Submissions. These events carry the viewer's uid and whether they are
+   * signed in, and never an email, a name or the event's text.
+   */
+  const captureSubmitEvent = (eventName: string, eventParams: Record<string, string | number | boolean | null>) => {
+    try {
+      if (!postHogProps?.capture) return;
+      const loggedInUserUid = useCurrentUserStore.getState().currentUser?.uid ?? null;
+      postHogProps.capture(eventName, { ...eventParams, loggedInUserUid, is_authenticated: !!loggedInUserUid });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  function onEventsSubmitFormOpened() {
+    captureSubmitEvent(EVENTS_SUBMIT_ANALYTICS.ON_EVENTS_SUBMIT_FORM_OPENED, {});
+  }
+
+  /** `result`: what the backend made of it. `submitted` waits for approval. */
+  function onEventsSubmitFormSubmitted(params: { result: 'approved' | 'submitted' | 'draft' }) {
+    captureSubmitEvent(EVENTS_SUBMIT_ANALYTICS.ON_EVENTS_SUBMIT_FORM_SUBMITTED, {
+      result: params.result,
+    });
+  }
+
+  /** `status`: the HTTP status, null when the request never got an answer. */
+  function onEventsSubmitFormFailed(params: { status: number | null }) {
+    captureSubmitEvent(EVENTS_SUBMIT_ANALYTICS.ON_EVENTS_SUBMIT_FORM_FAILED, { status: params.status });
+  }
+
+  function onEventsMySubmissionsOpened() {
+    captureSubmitEvent(EVENTS_SUBMIT_ANALYTICS.ON_EVENTS_MY_SUBMISSIONS_OPENED, {});
+  }
+
+  /** `action`: a draft saved, a draft submitted, or changes saved to a submitted or approved event. */
+  function onEventsEventEdited(params: { eventUid: string; action: 'draft-saved' | 'submitted' | 'updated' }) {
+    captureSubmitEvent(EVENTS_SUBMIT_ANALYTICS.ON_EVENTS_EVENT_EDITED, {
+      event_uid: params.eventUid,
+      action: params.action,
+    });
+  }
+
+  function onEventsEventDeleted(params: { eventUid: string; from: 'edit-page' | 'my-submissions' }) {
+    captureSubmitEvent(EVENTS_SUBMIT_ANALYTICS.ON_EVENTS_EVENT_DELETED, {
+      event_uid: params.eventUid,
+      from: params.from,
+    });
+  }
 
   function onIrlLocationClicked(location: any) {
     const params = {
@@ -290,6 +340,12 @@ export const useEventsAnalytics = () => {
   }
 
   return {
+    onEventsSubmitFormOpened,
+    onEventsSubmitFormSubmitted,
+    onEventsSubmitFormFailed,
+    onEventsMySubmissionsOpened,
+    onEventsEventEdited,
+    onEventsEventDeleted,
     onEventDrawerOpened,
     onEventsViewChanged,
     onEventsEmbedLinkCopied,

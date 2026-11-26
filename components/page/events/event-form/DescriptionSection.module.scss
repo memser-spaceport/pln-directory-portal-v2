@@ -1,0 +1,80 @@
+/* The editor is white like the other fields; on its own it shows the grey page through it. */
+.editorBox {
+  width: 100%;
+}
+
+.editor {
+  :global(.ql-toolbar),
+  :global(.ql-container) {
+    background: var(--background-base-white, #ffffff);
+  }
+}
+
+/* The hint is a button, so the agenda box opens from the keyboard as well as from the typed command. */
+.hint {
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  text-align: left;
+  cursor: pointer;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration: underline;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.agenda {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+}
+
+.agendaHeader {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.agendaActions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.remove {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--action-border-error-focus, #e7000b);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    text-decoration: underline;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -241,7 +241,7 @@ describe('LAB-3457: a saved chat on AI agent chat', () => {
     });
   });
 
-  it('a thread that is not the member’s is the 404 page', async () => {
+  it('a thread T2 does not know, with nothing to fall back to, is the 404 page', async () => {
     history.getThread.mockRejectedValue(new LabosAgentError(404, 'THREAD_NOT_FOUND', 'No'));
     wrap(<AgentChat threadId="gone" />);
     await waitFor(() => expect(notFound).toHaveBeenCalled());
@@ -269,21 +269,53 @@ describe('LAB-3457: a saved chat on AI agent chat', () => {
 
 describe('LAB-3457: the thread route switch', () => {
   it('inside the gate the thread opens on the agent, not today’s page', async () => {
-    wrap(<AiSearchThreadBody threadId="t-1" fallback={<div data-testid="husky-thread" />} />);
+    wrap(<AiSearchThreadBody threadId="t-1" fallback={<div data-testid="husky-thread" />} ownedByMember />);
     expect(await screen.findByText('A saved AI search answer.')).toBeInTheDocument();
     expect(screen.queryByTestId('husky-thread')).not.toBeInTheDocument();
   });
 
   it('outside the gate today’s thread page shows', async () => {
     getAccess.mockResolvedValue({ enabled: false });
-    wrap(<AiSearchThreadBody threadId="t-1" fallback={<div data-testid="husky-thread" />} />);
+    wrap(<AiSearchThreadBody threadId="t-1" fallback={<div data-testid="husky-thread" />} ownedByMember />);
     expect(await screen.findByTestId('husky-thread')).toBeInTheDocument();
     expect(history.getThread).not.toHaveBeenCalled();
   });
 
+  it('inside the gate, another member’s shared AI search link (or the member’s guest chat) keeps today’s page', async () => {
+    wrap(<AiSearchThreadBody threadId="t-1" fallback={<div data-testid="husky-thread" />} ownedByMember={false} />);
+    expect(await screen.findByTestId('husky-thread')).toBeInTheDocument();
+    expect(history.getThread).not.toHaveBeenCalled();
+    expect(notFound).not.toHaveBeenCalled();
+  });
+
+  it('inside the gate, the member’s own AI search thread that T2 does not know shows today’s page, not a 404', async () => {
+    history.getThread.mockRejectedValue(new LabosAgentError(404, 'THREAD_NOT_FOUND', 'No'));
+    wrap(<AiSearchThreadBody threadId="t-1" fallback={<div data-testid="husky-thread" />} ownedByMember />);
+    expect(await screen.findByTestId('husky-thread')).toBeInTheDocument();
+    expect(history.getThread).toHaveBeenCalledWith('t-1');
+    expect(notFound).not.toHaveBeenCalled();
+  });
+
+  it('inside the gate, an agent thread (no AI search thread) that T2 does not know is the 404 page', async () => {
+    history.getThread.mockRejectedValue(new LabosAgentError(404, 'THREAD_NOT_FOUND', 'No'));
+    wrap(<AiSearchThreadBody threadId="t-1" fallback={null} ownedByMember={false} />);
+    await waitFor(() => expect(notFound).toHaveBeenCalled());
+  });
+
+  it('while the gate has not answered, neither the agent nor today’s page shows', async () => {
+    getAccess.mockImplementation(() => new Promise(() => {}));
+    const { container } = wrap(
+      <AiSearchThreadBody threadId="t-1" fallback={<div data-testid="husky-thread" />} ownedByMember={false} />,
+    );
+    await act(async () => {});
+    expect(screen.queryByTestId('husky-thread')).not.toBeInTheDocument();
+    expect(history.getThread).not.toHaveBeenCalled();
+    expect(container).toBeEmptyDOMElement();
+  });
+
   it('outside the gate with no AI search thread: the 404 page', async () => {
     getAccess.mockResolvedValue({ enabled: false });
-    wrap(<AiSearchThreadBody threadId="t-1" fallback={null} />);
+    wrap(<AiSearchThreadBody threadId="t-1" fallback={null} ownedByMember={false} />);
     await waitFor(() => expect(notFound).toHaveBeenCalled());
   });
 });

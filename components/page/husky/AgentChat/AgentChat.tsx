@@ -1,6 +1,6 @@
 'use client';
 
-import { type ComponentProps, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type ComponentProps, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { notFound } from 'next/navigation';
 import { EnvelopeSimple, User, UsersThree } from '@phosphor-icons/react';
 
@@ -62,9 +62,12 @@ const REQUEST_GLYPHS: Record<LabosAgentRequestTopic, typeof User> = {
  *
  * `threadId` (`/ai-search/<threadId>`): a saved chat from the shared history (T2). Its turns arrive finished, old AI
  * search turns as saved answers; the next message continues the same thread. A thread that is not the member's, or
- * was deleted, is a 404 page.
+ * was deleted, is a 404 page, or `notFoundFallback` when the page has one (today's AI search thread page).
  */
-export function AgentChat({ threadId: savedThreadId }: { threadId?: string } = {}) {
+export function AgentChat({
+  threadId: savedThreadId,
+  notFoundFallback = null,
+}: { threadId?: string; notFoundFallback?: ReactNode | null } = {}) {
   const [threadId, setThreadId] = useState(() => savedThreadId ?? generateUUID());
   const key = labosAgentPageChatKey(threadId);
   const opensSaved = !!savedThreadId && threadId === savedThreadId;
@@ -189,7 +192,10 @@ export function AgentChat({ threadId: savedThreadId }: { threadId?: string } = {
   );
 
   if (opensSaved && !hasChat) {
-    if (saved.error instanceof LabosAgentError && saved.error.code === 'THREAD_NOT_FOUND') notFound();
+    if (saved.error instanceof LabosAgentError && saved.error.code === 'THREAD_NOT_FOUND') {
+      if (notFoundFallback) return <>{notFoundFallback}</>;
+      notFound();
+    }
     return (
       <>
         <ChatTitleBar chat={saved.data ? { title: saved.data.title } : undefined} />

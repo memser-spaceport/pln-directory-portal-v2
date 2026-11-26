@@ -205,6 +205,26 @@ describe('LAB-3457: AI agent chat on the agent', () => {
       expect(screen.getByTestId('title-bar')).toHaveTextContent('Which teams work on decentralized storage?');
     });
 
+    it('Ctrl/⌘ J on this page (the corner event) puts focus in the composer, on a new chat and in a thread', async () => {
+      signIn();
+      wrap(<AgentChat />);
+      const before = field();
+      before.blur();
+      act(() => {
+        document.dispatchEvent(new CustomEvent('labos-agent-page-focus'));
+      });
+      expect(document.activeElement).toBe(before);
+
+      type(field(), 'Which teams work on decentralized storage?');
+      fireEvent.keyDown(field(), { key: 'Enter' });
+      await screen.findByText('Three teams work on storage.');
+      field().blur();
+      act(() => {
+        document.dispatchEvent(new CustomEvent('labos-agent-page-focus'));
+      });
+      expect(document.activeElement).toBe(field());
+    });
+
     it('a saved chat tells the rail its thread and gives the title bar its id (Delete)', async () => {
       const announced = jest.fn();
       const listen = (e: Event) => announced((e as CustomEvent).detail);

@@ -25,6 +25,7 @@ import {
   sentDrafts,
   toChatTurns,
 } from '@/services/labos-agent/labos-agent.thread-turns';
+import { LABOS_AGENT_PAGE_FOCUS_EVENT } from '@/services/labos-agent/labos-agent.handoff';
 import { replacedDraftIds } from '@/services/labos-agent/labos-agent.open-cards';
 import { labosAgentRequestPrompts, type LabosAgentRequestTopic } from '@/services/labos-agent/labos-agent.page';
 import { useLabosAgentStore } from '@/services/labos-agent/store';
@@ -100,6 +101,13 @@ export function AgentChat({ threadId: savedThreadId }: { threadId?: string } = {
   useEffect(() => {
     startPageSession(null);
   }, [threadId, startPageSession]);
+
+  // LAB-3457: Ctrl/⌘ J on this page (the corner has no Agent tab here) puts focus in the composer.
+  useEffect(() => {
+    const onFocus = () => composerRef.current?.focus();
+    document.addEventListener(LABOS_AGENT_PAGE_FOCUS_EVENT, onFocus);
+    return () => document.removeEventListener(LABOS_AGENT_PAGE_FOCUS_EVENT, onFocus);
+  }, []);
 
   // The title bar's + (and the rail's New chat) asks for a new chat. The open answer stops first.
   const stopRef = useRef(stop);

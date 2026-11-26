@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import { clsx } from 'clsx';
+import { usePathname } from 'next/navigation';
 
 import { AiSearchIcon } from '@/components/icons/AiSearchIcon';
 import { CommentIcon } from '@/components/icons';
@@ -15,6 +16,7 @@ import {
   useLabosAgentShortcut,
   useShowsKeyHint,
 } from '@/services/labos-agent/hooks/useLabosAgentShortcut';
+import { isAiAgentChatPath, LABOS_AGENT_PAGE_FOCUS_EVENT } from '@/services/labos-agent/labos-agent.handoff';
 import { isUnreadablePage, pageContextFromLocation } from '@/services/labos-agent/labos-agent.page-context';
 import { keepInteractive, useIsPassthroughModalOpen } from '@/services/labos-agent/labos-agent.dialogs';
 import { useLabosAgentStore } from '@/services/labos-agent/store';
@@ -81,6 +83,11 @@ export function LabosAgentCorner({
   const isCollapsed = useIntroCollapse(slotOpen);
   const agentRef = useRef<HTMLButtonElement>(null);
   const openedHere = useRef(false);
+  /*
+   * LAB-3457: AI agent chat is the agent on a full page. There the corner keeps Feedback only (no second agent in the
+   * panel), and Ctrl/⌘ J goes to the page's composer.
+   */
+  const onAgentPage = isAiAgentChatPath(usePathname());
 
   const open = useCallback(
     (entryPoint: 'corner' | 'shortcut') => {
@@ -94,9 +101,17 @@ export function LabosAgentCorner({
   );
 
   const onToggle = useCallback(() => {
-    if (useLabosAgentStore.getState().isOpen) closeAgent();
+    if (onAgentPage) {
+      if (useLabosAgentStore.getState().isOpen) closeAgent();
+      document.dispatchEvent(new CustomEvent(LABOS_AGENT_PAGE_FOCUS_EVENT));
+    } else if (useLabosAgentStore.getState().isOpen) closeAgent();
     else open('shortcut');
-  }, [closeAgent, open]);
+  }, [onAgentPage, closeAgent, open]);
+
+  /* A panel still open from the page before closes on AI agent chat: one agent at a time. Its chat stays. */
+  useEffect(() => {
+    if (onAgentPage && useLabosAgentStore.getState().isOpen) closeAgent();
+  }, [onAgentPage, closeAgent]);
 
   useLabosAgentShortcut({ isEnabled: true, feedbackOpen, onToggle });
 
@@ -135,21 +150,23 @@ export function LabosAgentCorner({
         aria-label="Agent and feedback"
         data-collapsed={isCollapsed || slotOpen || overModal}
       >
-        <button
-          ref={agentRef}
-          type="button"
-          className={s.tab}
-          aria-label="Agent"
-          aria-keyshortcuts="Control+J Meta+J"
-          tabIndex={slotOpen ? -1 : undefined}
-          onClick={() => open('corner')}
-        >
-          <AiSearchIcon size={20} />
-          <span className={s.tabLabel} aria-hidden>
-            Agent
-            {showsKeyHint && <kbd className={s.kbd}>{agentShortcutHint(shortcuts.mod)}</kbd>}
-          </span>
-        </button>
+        {!onAgentPage && (
+          <button
+            ref={agentRef}
+            type="button"
+            className={s.tab}
+            aria-label="Agent"
+            aria-keyshortcuts="Control+J Meta+J"
+            tabIndex={slotOpen ? -1 : undefined}
+            onClick={() => open('corner')}
+          >
+            <AiSearchIcon size={20} />
+            <span className={s.tabLabel} aria-hidden>
+              Agent
+              {showsKeyHint && <kbd className={s.kbd}>{agentShortcutHint(shortcuts.mod)}</kbd>}
+            </span>
+          </button>
+        )}
         {showFeedback && !overModal && (
           <button
             type="button"
@@ -170,5 +187,7 @@ export function LabosAgentCorner({
     </div>
   );
 
+  // AI agent chat with the feedback button hidden: nothing is left in the corner (Ctrl/⌘ J still works).
+  if (onAgentPage && !showFeedback) return null;
   return overModal ? createPortal(corner, document.body) : corner;
 }

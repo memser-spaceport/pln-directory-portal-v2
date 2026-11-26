@@ -12,3 +12,13 @@ export const AI_SEARCH_HISTORY_URL = `${PAGE_ROUTES.HUSKY}?${AI_SEARCH_HISTORY_P
 
 /** The full page of a saved chat. */
 export const fullPageUrl = (threadId: string) => `${PAGE_ROUTES.HUSKY}/${encodeURIComponent(threadId)}`;
+
+/**
+ * LAB-3457: AI agent chat, the page agent (`/ai-search` and `/ai-search/<threadId>`). For a member with agent access
+ * the corner keeps Feedback only there, and Ctrl/⌘ J asks the page for its composer (`LABOS_AGENT_PAGE_FOCUS_EVENT`).
+ */
+export const isAiAgentChatPath = (pathname: string | null | undefined): boolean =>
+  !!pathname && (pathname === PAGE_ROUTES.HUSKY || pathname.startsWith(`${PAGE_ROUTES.HUSKY}/`));
+
+/** Ctrl/⌘ J on AI agent chat: the page puts focus in its composer. */
+export const LABOS_AGENT_PAGE_FOCUS_EVENT = 'labos-agent-page-focus';

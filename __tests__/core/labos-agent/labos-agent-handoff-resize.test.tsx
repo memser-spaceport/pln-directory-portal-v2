@@ -237,24 +237,35 @@ describe('LAB-3429 Decision 1: AI agent chat in the header', () => {
     expect(JSON.stringify(captured('agent-open-ai-search-clicked'))).not.toContain('network');
   });
 
-  it('on a member profile, puts "About <member name> (<profile URL>):" before the first question (option B)', async () => {
+  it('on a member profile, puts "About <member name> (<profile URL>):" before EVERY question (option B)', async () => {
     const tab = fakeTab();
     openSpy.mockImplementation(() => tab as unknown as Window);
     renderApp();
     await openAgent();
     await askOnce();
+    const composer = screen.getByRole('textbox', { name: 'Message the agent' });
+    fireEvent.change(composer, { target: { value: 'Which teams is this member part of?' } });
+    fireEvent.keyDown(composer, { key: 'Enter' });
+    await waitFor(() => expect(screen.getAllByText('Mock answer text')).toHaveLength(2));
 
     fireEvent.click(handoffButton());
     await waitFor(() => expect(tab.location.href).toMatch(/^\/ai-search\//));
     const threadId = tab.location.href.split('/').pop() as string;
 
-    const first = `About Maya Okonkwo (http://localhost/members/m-2): ${PROMPT}`;
+    // AI Search does not carry the member from one question to the next, so each question names them.
+    const about = 'About Maya Okonkwo (http://localhost/members/m-2):';
     expect(JSON.parse(window.localStorage.getItem(AI_SEARCH_PENDING_QUESTIONS_KEY_PREFIX + threadId) ?? '[]')).toEqual([
-      first,
+      `${about} ${PROMPT}`,
+      `${about} Which teams is this member part of?`,
     ]);
-    expect(JSON.parse(customFetch.mock.calls[1][1].body)).toEqual({ question: first });
+    expect(JSON.parse(customFetch.mock.calls[1][1].body)).toEqual({ question: `${about} ${PROMPT}` });
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
     expect(fetchSpy.mock.calls[0][0]).toMatch(/\/v1\/members\/m-2$/);
-    expect(captured('agent-open-ai-search-clicked')[0]).toMatchObject({ memberScoped: true, pageType: 'member' });
+    expect(captured('agent-open-ai-search-clicked')[0]).toMatchObject({
+      questionCount: 2,
+      memberScoped: true,
+      pageType: 'member',
+    });
   });
 
   it('names the profile URL alone when the name lookup fails, and has no scope line once the chip is off', async () => {

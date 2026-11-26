@@ -14,8 +14,9 @@ import { customFetch } from '@/utils/fetch-wrapper';
  * cards or steps.
  *
  * Scope (t1, 2026-11-26, option B): AI Search has no member scope on the backend (`HuskyChatSchema` takes no scope),
- * so while the agent reads a member profile, one line goes before the first question:
- * "About <member name> (<profile URL>):". A deviation from the design's `about=member`.
+ * so while the agent reads a member profile, one line goes before EVERY handed-over question:
+ * "About <member name> (<profile URL>):". AI Search does not carry the member from one question to the next
+ * (retest 10: the second question got "you didn't mention which member"). A deviation from the design's `about=member`.
  */
 
 /** `/ai-search?history=open`: AI agent chat with its History rail open (Decision 2). */
@@ -35,16 +36,15 @@ export const handoffQuestions = (turns: LabosAgentTurn[]): string[] =>
 export const scopedMemberUid = (context: LabosAgentOpenContext | null, readsPage: boolean): string | null =>
   readsPage && context?.page === 'member' ? context.memberUid : null;
 
-/** The line before the first question. No name (the lookup failed): the profile URL alone names the member. */
+/** The line before each question. No name (the lookup failed): the profile URL alone names the member. */
 export function memberScopeLine(name: string | null, profileUrl: string): string {
   return name ? `About ${name} (${profileUrl}):` : `About this member (${profileUrl}):`;
 }
 
-/** The questions of the new thread: the scope line goes before the first one, on the same line. */
+/** The questions of the new thread: the scope line goes before each one, on the same line. No line: as they are. */
 export function withMemberScope(questions: string[], scopeLine: string | null): string[] {
-  if (!scopeLine || questions.length === 0) return questions;
-  const [first, ...rest] = questions;
-  return [`${scopeLine} ${first}`, ...rest];
+  if (!scopeLine) return questions;
+  return questions.map((question) => `${scopeLine} ${question}`);
 }
 
 const apiUrl = (path: string) => `${process.env.DIRECTORY_API_URL}${path}`;

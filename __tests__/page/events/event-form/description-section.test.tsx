@@ -23,11 +23,13 @@ jest.mock('@/components/form/FormEditor', () => ({
     placeholder,
     maxLength,
     showCharCount,
+    hardLimit,
   }: {
     name: string;
     placeholder: string;
     maxLength?: number;
     showCharCount?: boolean;
+    hardLimit?: boolean;
   }) {
     const { watch, setValue } = useFormContext();
     return (
@@ -35,6 +37,7 @@ jest.mock('@/components/form/FormEditor', () => ({
         aria-label="Description"
         data-max-length={maxLength}
         data-char-count={showCharCount ? 'shown' : undefined}
+        data-hard-limit={hardLimit ? 'on' : undefined}
         placeholder={placeholder}
         value={watch(name) ?? ''}
         onChange={(event) => setValue(name, event.target.value)}
@@ -68,13 +71,14 @@ function openBoxWith(text: string) {
 beforeEach(() => parse.mockReset());
 
 describe('DescriptionSection: description', () => {
-  it('shows a counter against the 10,000-character limit', () => {
+  it('shows a counter against the 10,000-character limit and stops the text at the limit', () => {
     renderSection(<DescriptionSection />);
     fireEvent.click(screen.getByRole('button', { name: 'Add Description' }));
 
     const editor = screen.getByRole('textbox', { name: 'Description' });
     expect(editor).toHaveAttribute('data-max-length', '10000');
     expect(editor).toHaveAttribute('data-char-count', 'shown');
+    expect(editor).toHaveAttribute('data-hard-limit', 'on');
   });
 
   it('is closed at first and opens with "Add Description"', () => {

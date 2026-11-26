@@ -29,6 +29,7 @@ import { ImageLayoutOverlay } from './ImageLayoutOverlay';
 import { NoteImageChrome } from './NoteImageChrome/NoteImageChrome';
 import { indexFromPoint } from './utils/indexFromPoint';
 import { insertAnnotatedImage } from './utils/moveImageEmbed';
+import { type LimitDelta, trimToTextLimit } from './utils/hardTextLimit';
 
 import s from './RichTextEditor.module.scss';
 
@@ -59,6 +60,10 @@ interface Props {
   disabled?: boolean;
   autoFocus?: boolean;
   maxLength?: number;
+  /** Opt in to a hard stop: typing and pasting stop when `textLength` of the HTML reaches this number. */
+  maxTextLength?: number;
+  /** Measures the HTML for `maxTextLength`. Without it, the HTML's length with no tags. */
+  textLength?: (html: string) => number;
   enableMentions?: boolean;
   onMentionInitiated?: () => void;
   onMentionSearch?: (query: string, resultsCount?: number) => void;
@@ -127,6 +132,8 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
   const {
     value,
     maxLength,
+    maxTextLength,
+    textLength,
     onChange,
     className,
     errorMessage,
@@ -380,6 +387,31 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
       editor.off('text-change', stripDataUriImages);
     };
   }, []);
+
+  const textLengthRef = useRef(textLength);
+  textLengthRef.current = textLength;
+
+  // The hard stop. A user change that takes the text over the limit loses the end of what it inserted, so typing stops
+  // and a paste is cut to fit. Text set from outside (a stored event) stays; when it is already over the limit, the
+  // user can only shorten it.
+  useEffect(() => {
+    const editor = quillRef.current?.getEditor();
+    if (!editor || maxTextLength == null) return;
+    const measure = (html: string) =>
+      textLengthRef.current ? textLengthRef.current(html) : html.replace(/<[^>]*>/g, '').length;
+    let current = measure(editor.getSemanticHTML());
+    const onTextChange = (delta: LimitDelta, _old: unknown, source: string) => {
+      if (source !== 'user') {
+        current = measure(editor.getSemanticHTML());
+        return;
+      }
+      current = trimToTextLimit(editor, delta, Math.max(maxTextLength, current), measure);
+    };
+    editor.on('text-change', onTextChange);
+    return () => {
+      editor.off('text-change', onTextChange);
+    };
+  }, [maxTextLength]);
 
   useEffect(() => {
     const editor = quillRef.current?.getEditor();

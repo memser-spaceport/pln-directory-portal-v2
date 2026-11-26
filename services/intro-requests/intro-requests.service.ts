@@ -13,11 +13,29 @@ export class IntroRequestError extends Error {
   constructor(
     public status: number,
     message: string,
+    /** LAB-3457: the API's error `code` and, for a 409 `DRAFT_CLOSED`, how the saved agent draft closed. */
+    public code?: string,
+    public draftStatus?: string,
   ) {
     super(message);
     this.name = 'IntroRequestError';
   }
 }
+
+/**
+ * LAB-3457: a member inside the agent gate sent this text to this target already, from an agent card (the C3 guard:
+ * 409 `DRAFT_CLOSED` `{ status: 'sent' }`). Nothing was sent again; the request exists.
+ */
+export const isIntroAlreadySent = (error: unknown): boolean =>
+  error instanceof IntroRequestError &&
+  error.status === 409 &&
+  error.code === 'DRAFT_CLOSED' &&
+  error.draftStatus === 'sent';
+
+const stringField = (body: unknown, key: string): string | undefined => {
+  const value = body && typeof body === 'object' ? (body as Record<string, unknown>)[key] : undefined;
+  return typeof value === 'string' ? value : undefined;
+};
 
 export function messageForIntroRequestFailure(status: number, body: unknown): string {
   const message = messageFromBody(body);
@@ -46,11 +64,7 @@ export async function fetchPortfolioTeamsForMember(memberUid: string): Promise<P
     'teamMemberRoles.member.uid': memberUid,
     'communityAffiliations.title': PL_PORTFOLIO_AFFILIATION,
   });
-  const response = await customFetch(
-    `${process.env.DIRECTORY_API_URL}/v1/teams?${params}`,
-    { method: 'GET' },
-    true,
-  );
+  const response = await customFetch(`${process.env.DIRECTORY_API_URL}/v1/teams?${params}`, { method: 'GET' }, true);
   if (!response?.ok) {
     throw new Error('Could not check intro request access');
   }
@@ -79,7 +93,12 @@ export async function createIntroRequest(input: {
     } catch {
       body = null;
     }
-    throw new IntroRequestError(response?.status ?? 0, messageForIntroRequestFailure(response?.status ?? 0, body));
+    throw new IntroRequestError(
+      response?.status ?? 0,
+      messageForIntroRequestFailure(response?.status ?? 0, body),
+      stringField(body, 'code'),
+      stringField(body, 'status'),
+    );
   }
   return response.json();
 }

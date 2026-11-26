@@ -427,3 +427,7 @@ The intro draft of a saved turn SHALL go to C5: Send posts `{ threadId, draftId,
 - **GIVEN** a chat whose thread was deleted in another tab
 - **WHEN** the member sends a message and C1 answers 404 `THREAD_NOT_FOUND`
 - **THEN** the same message goes again in a new thread and the answer shows
+
+### Requirement: A saved draft the backend does not know, and the C3 already-sent answer
+
+LAB-3457. Cards show only on a `done` turn, so a stopped turn has no Send. When C5 answers 404 `DRAFT_NOT_FOUND` (the backend did not save the turn after all), nothing was sent: the card SHALL send the draft once through C3, as an unsaved draft, with no error and no loop; a C3 failure then SHALL show the C3 message. When C3 answers 409 `DRAFT_CLOSED` `{ status: 'sent' }` (the same text went to that target from a saved card), the agent card and the intro dialog (`RequestIntroDialog`) SHALL show the request as received, with no failure event and no new submit event.

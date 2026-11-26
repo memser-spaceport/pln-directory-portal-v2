@@ -299,6 +299,84 @@ describe('LAB-3300: agent intro draft card', () => {
     expect(onSubmitFailed).not.toHaveBeenCalled();
   });
 
+  it('LAB-3457: a C5 404 DRAFT_NOT_FOUND (the turn was not saved after all) sends once with C3, with no failure loop', async () => {
+    customFetch
+      .mockResolvedValueOnce(
+        fail(404, { statusCode: 404, code: 'DRAFT_NOT_FOUND', message: 'The draft was not found.' }),
+      )
+      .mockResolvedValueOnce(ok());
+    await openWithDraft([draft({ target: { type: 'team', uid: 't-9', name: 'Ada Lovelace' } })]);
+    fireEvent.change(field(), { target: { value: '  My own words for the intro request.  ' } });
+    fireEvent.click(sendButton()!);
+
+    expect(
+      await within(card()).findByText('Your request is received. Someone from the team will reach out.'),
+    ).toBeInTheDocument();
+    expect(customFetch).toHaveBeenCalledTimes(2);
+    expect(customFetch.mock.calls[0][0]).toMatch(/\/v1\/labos-agent\/drafts\/confirm$/);
+    const [url, init] = customFetch.mock.calls[1];
+    expect(url).toMatch(/\/v1\/intro-requests$/);
+    expect(JSON.parse(init.body)).toEqual({
+      type: 'TEAM',
+      targetId: 't-9',
+      text: 'My own words for the intro request.',
+    });
+    expect(sendButton()).not.toBeInTheDocument();
+    expect(screen.queryByText('The draft was not found.')).not.toBeInTheDocument();
+    expect(onSubmitFailed).not.toHaveBeenCalled();
+  });
+
+  it('LAB-3457: after a DRAFT_NOT_FOUND, a C3 failure shows the C3 message and keeps Send', async () => {
+    customFetch
+      .mockResolvedValueOnce(
+        fail(404, { statusCode: 404, code: 'DRAFT_NOT_FOUND', message: 'The draft was not found.' }),
+      )
+      .mockResolvedValueOnce(fail(404, { message: 'That member is not on the directory any more.' }));
+    await openWithDraft();
+    fireEvent.click(sendButton()!);
+
+    expect(await within(card()).findByText('That member is not on the directory any more.')).toBeInTheDocument();
+    expect(screen.queryByText('The draft was not found.')).not.toBeInTheDocument();
+    expect(onSubmitFailed).toHaveBeenCalledTimes(1);
+  });
+
+  it('LAB-3457: a C3 409 DRAFT_CLOSED sent (the same text went from a saved card) shows the card sent', async () => {
+    customFetch.mockResolvedValue(
+      fail(409, { statusCode: 409, code: 'DRAFT_CLOSED', message: 'This draft is closed.', status: 'sent' }),
+    );
+    act(() =>
+      useLabosAgentStore.getState().actions.updateTurns(chatKey(context), () => [
+        {
+          id: 'turn-unsaved',
+          message: 'Help me write an intro request.',
+          status: 'done',
+          ...answer(),
+          cards: {},
+          draftCards: {},
+          startedAt: 1,
+          endedAt: 2,
+        },
+      ]),
+    );
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={qc}>
+        <LabosAgentRoot />
+      </QueryClientProvider>,
+    );
+    act(() => useLabosAgentStore.getState().actions.openAgent({ context }));
+    await screen.findByText('Here is a draft. Check it and press Send.');
+    fireEvent.click(sendButton()!);
+
+    expect(
+      await within(card()).findByText('Your request is received. Someone from the team will reach out.'),
+    ).toBeInTheDocument();
+    expect(customFetch.mock.calls[0][0]).toMatch(/\/v1\/intro-requests$/);
+    expect(sendButton()).not.toBeInTheDocument();
+    expect(screen.queryByText('This draft is closed.')).not.toBeInTheDocument();
+    expect(onSubmitFailed).not.toHaveBeenCalled();
+  });
+
   it('LAB-3457: a C5 403 with no message shows the intro request text and hides Send', async () => {
     customFetch.mockResolvedValue(fail(403, {}));
     await openWithDraft();

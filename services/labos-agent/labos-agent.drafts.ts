@@ -1,6 +1,7 @@
 import { introRequestTargetKey, isIntroRequestSent } from '@/services/intro-requests/intro-request-entry-registry';
 import {
   IntroRequestError,
+  isIntroAlreadySent,
   messageForIntroRequestFailure,
   type IntroRequestTargetType,
 } from '@/services/intro-requests/intro-requests.service';
@@ -53,6 +54,9 @@ export const introErrorStatus = (error: unknown) =>
  * 403 and 404 show the API `message` through `messageForIntroRequestFailure` (in `createIntroRequest`).
  */
 export function draftErrorState(error: unknown, text: string): LabosAgentDraftCardState {
+  // LAB-3457: the C3 guard: this text went to this target from a saved card already.
+  if (isIntroAlreadySent(error)) return { status: 'sent', text };
+
   const status = introErrorStatus(error);
   if (status === 403) {
     const message = error instanceof IntroRequestError ? error.message : messageForIntroRequestFailure(403, null);

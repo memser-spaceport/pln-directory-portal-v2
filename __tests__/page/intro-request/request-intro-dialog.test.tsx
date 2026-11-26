@@ -2,7 +2,7 @@ import '@testing-library/jest-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { RequestIntroDialog } from '@/components/page/intro-request/RequestIntroDialog';
-import { INTRO_REQUEST_RECEIVED_MESSAGE } from '@/services/intro-requests/intro-requests.service';
+import { INTRO_REQUEST_RECEIVED_MESSAGE, IntroRequestError } from '@/services/intro-requests/intro-requests.service';
 
 const FIELD_LABEL = 'What do you need help with?';
 const HELP_TEXT =
@@ -279,5 +279,53 @@ describe('RequestIntroDialog', () => {
 
     expect(onDialogClosed).not.toHaveBeenCalled();
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('LAB-3457: a 409 DRAFT_CLOSED sent (the same text went from an agent card) shows the request as received', async () => {
+    createIntroRequest.mockRejectedValue(new IntroRequestError(409, 'This draft is closed.', 'DRAFT_CLOSED', 'sent'));
+    render(
+      <RequestIntroDialog
+        type="MEMBER"
+        targetId="member-2"
+        targetName="Ada Lovelace"
+        entryPoint="member-header"
+        onSent={onSent}
+        onClose={onClose}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText(FIELD_LABEL), {
+      target: { value: 'I lead fundraising at Acme and want advice on a seed round.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    expect(await screen.findByRole('status')).toHaveTextContent(INTRO_REQUEST_RECEIVED_MESSAGE);
+    expect(onSent).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('This draft is closed.')).not.toBeInTheDocument();
+    // Nothing new was sent, and nothing failed.
+    expect(onAskSubmitted).not.toHaveBeenCalled();
+    expect(onSubmitFailed).not.toHaveBeenCalled();
+  });
+
+  it('LAB-3457: any other 409 stays an error', async () => {
+    createIntroRequest.mockRejectedValue(
+      new IntroRequestError(409, 'This draft is closed.', 'DRAFT_CLOSED', 'cancelled'),
+    );
+    render(
+      <RequestIntroDialog
+        type="MEMBER"
+        targetId="member-2"
+        targetName="Ada Lovelace"
+        entryPoint="member-header"
+        onSent={onSent}
+        onClose={onClose}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText(FIELD_LABEL), {
+      target: { value: 'I lead fundraising at Acme and want advice on a seed round.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    expect(await screen.findByText('This draft is closed.')).toBeInTheDocument();
+    expect(onSent).not.toHaveBeenCalled();
   });
 });

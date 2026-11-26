@@ -504,15 +504,23 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null, options
       setDraftCard(turnId, draftId, { status: 'sending', text: card.text });
       // Claim the target before the request, so a Send on another card for it in the same tick does nothing.
       actions.markIntroTargetSent(draftTargetKey(draft));
+      // LAB-3457: a saved draft goes through C5, which keeps the sent state on the server (sent at most once). A
+      // draft of a turn that was not saved keeps the C3 path.
+      let viaC5 = !!turn.savedIn;
       try {
-        // LAB-3457: a saved draft goes through C5, which keeps the sent state on the server (sent at most once). A
-        // draft of a turn that was not saved keeps the C3 path.
         if (turn.savedIn) {
           const threadId = turn.savedIn;
           const res = await getLabosAgentHistoryClient()
             .confirmDraft({ threadId, draftId, decision: 'send', text })
+            .catch((err: unknown) => {
+              // The backend did not save this turn after all (its write failed or ran out of time), so C5 knows no
+              // such draft and nothing was sent. The draft goes as an unsaved one does, through C3, with no loop.
+              if (err instanceof LabosAgentError && err.code === 'DRAFT_NOT_FOUND') return null;
+              throw err;
+            })
             .finally(() => refreshLabosAgentHistory(queryClient, threadId));
-          if (res.status === 'cancelled') {
+          if (!res) viaC5 = false;
+          if (res?.status === 'cancelled') {
             setDraftCard(turnId, draftId, { status: 'cancelled', text: card.text });
             useLabosAgentStore.setState((st) => {
               const next = { ...st.sentIntroTargets };
@@ -521,9 +529,8 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null, options
             });
             return;
           }
-        } else {
-          await createIntroRequest(toIntroRequestBody(draft, text));
         }
+        if (!viaC5) await createIntroRequest(toIntroRequestBody(draft, text));
         setDraftCard(turnId, draftId, { status: 'sent', text: card.text });
         onAskSubmitted({ ...events, textLength: text.length });
         countSession('confirmedCount', 1, surface);
@@ -535,7 +542,7 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null, options
         });
         markIntroRequestSent(draftTargetKey(draft));
       } catch (err) {
-        const next = turn.savedIn ? draftConfirmErrorState(err, card.text) : draftErrorState(err, card.text);
+        const next = viaC5 ? draftConfirmErrorState(err, card.text) : draftErrorState(err, card.text);
         // The send failed, so the target is free again. A C5 409 that says `sent` keeps it taken.
         if (next.status !== 'sent') {
           useLabosAgentStore.setState((st) => {

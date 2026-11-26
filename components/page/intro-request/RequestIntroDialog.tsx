@@ -15,6 +15,7 @@ import {
   INTRO_REQUEST_RECEIVED_MESSAGE,
   INTRO_REQUEST_TEXT_MAX_LENGTH,
   IntroRequestError,
+  isIntroAlreadySent,
   type IntroRequestTargetType,
 } from '@/services/intro-requests/intro-requests.service';
 
@@ -71,6 +72,12 @@ export function RequestIntroDialog({ type, targetId, targetName, entryPoint, onS
       setSent(true);
       onSent();
     } catch (sendError) {
+      // LAB-3457: the same text went to this target from an agent card already: the request exists, nothing new went.
+      if (isIntroAlreadySent(sendError)) {
+        setSent(true);
+        onSent();
+        return;
+      }
       const status = sendError instanceof IntroRequestError ? sendError.status : 0;
       onSubmitFailed({ ...context, status, textLength: message.length });
       const fallback = 'The request could not be sent. Try again.';

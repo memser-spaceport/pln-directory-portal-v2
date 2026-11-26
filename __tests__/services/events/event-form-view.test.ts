@@ -155,6 +155,18 @@ describe('toPreviewEvent', () => {
     });
   });
 
+  it('LAB-3447: shows no location for a venue that matched no place, and the venue once it is found', () => {
+    const place = { city: 'Lisbon', state: null, country: 'Portugal', latitude: 1, longitude: 2, locationUrl: null };
+    for (const format of ['IN_PERSON', 'HYBRID'] as const) {
+      const unresolved = toPreviewEvent({ ...values, format, venue: "My friend's garage", place: null });
+      expect(unresolved).toMatchObject({ address: null, locationUrl: null });
+      expect(toPreviewEvent({ ...values, format, venue: 'Avenida da Liberdade 10', place }).address).toBe(
+        'Avenida da Liberdade 10',
+      );
+    }
+    expect(toPreviewEvent({ ...values, format: 'VIRTUAL', venue: 'Avenida da Liberdade 10', place }).address).toBeNull();
+  });
+
   it('leaves out the dates and an empty description, and names an untitled event', () => {
     const event = toPreviewEvent({ ...values, name: '', startDay: '', description: '<p><br></p>' });
     expect(event).toMatchObject({ name: 'Untitled event', dateLine: '', description: null });

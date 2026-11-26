@@ -142,8 +142,9 @@ export function toPreviewEvent(values: EventFormValues, uid = 'preview'): EventD
   const timezone = safeTimezone(values.timezone);
   const instants = eventInstants(values);
   const hasVenue = values.format !== 'VIRTUAL';
-  const venue = hasVenue ? values.venue.trim() : '';
-  const place = venue ? values.place : null;
+  // LAB-3447: only a venue that Google found (a place is set) shows. Text that matched no place shows no location.
+  const place = hasVenue && values.venue.trim() ? values.place : null;
+  const venue = place ? values.venue.trim() : '';
   const hosts = [values.hostName, ...values.coHosts.map((coHost) => coHost.name)]
     .map((name) => name.trim())
     .filter(Boolean);

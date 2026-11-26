@@ -163,6 +163,19 @@ describe('event drawer mappers (LAB-3216)', () => {
       expect(toEventDetail(eventResponse({ details: null })).locationUrl).toBeNull();
     });
 
+    it('LAB-3458: shows the event’s own venue address before its gathering, and never "Others"', () => {
+      const venue = { address: 'Zhytomyr, Zhytomyr Oblast, Ukraine, 10000', latitude: 50.26, longitude: 28.67 };
+      const others = { ...eventResponse().location!, location: 'Others' };
+      expect(toEventDetail(eventResponse({ venue })).address).toBe('Zhytomyr, Zhytomyr Oblast, Ukraine, 10000');
+      expect(toEventDetail(eventResponse({ venue, location: others })).address).toBe(
+        'Zhytomyr, Zhytomyr Oblast, Ukraine, 10000',
+      );
+      expect(toEventDetail(eventResponse({ venue: null, location: others })).address).toBeNull();
+      expect(toEventDetail(eventResponse({ venue: { address: '  ', latitude: 1, longitude: 2 } })).address).toBe(
+        'Lisbon, Portugal',
+      );
+    });
+
     it('survives an event with no details and no location', () => {
       const event = toEventDetail(eventResponse({ details: null, location: null }));
       expect(event.gathering).toBeNull();

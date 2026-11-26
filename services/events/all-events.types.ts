@@ -64,8 +64,13 @@ export interface AllEventsItem {
   city: string | null;
   /** `city` lower-cased, for matching against a member's profile city. */
   cityKey: string | null;
-  /** The gathering's city and country, e.g. "Lisbon, Portugal". Null when the event has no gathering. */
+  /**
+   * The gathering's city and country, e.g. "Lisbon, Portugal". For an event whose gathering is "Others" or missing, its
+   * own venue address. Null when it has neither.
+   */
   place: string | null;
+  /** The event's own venue position, for the Map when its city has none. Null when the event has no position. */
+  venuePoint: { lat: number; lng: number } | null;
   mode: EventMode | null;
   access: EventAccess | null;
   /** Hosts by name: the event's host, then its co-hosts. */

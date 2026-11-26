@@ -25,6 +25,15 @@ export { toDisplayCity, toZoneLabel };
 const uniqueNames = (names: (string | null | undefined)[]) =>
   Array.from(new Set(names.map((name) => name?.trim()).filter((name): name is string => !!name)));
 
+/** The venue's position, or null unless both numbers are there and in range. */
+function venuePoint(venue: EventListItemResponse['venue']): AllEventsItem['venuePoint'] {
+  const lat = venue?.latitude;
+  const lng = venue?.longitude;
+  if (typeof lat !== 'number' || typeof lng !== 'number' || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return null;
+  return { lat, lng };
+}
+
 /** One event for the page, from its row of the list endpoint. */
 export function toAllEventsItem(row: EventListItemResponse): AllEventsItem {
   const timezone = safeTimezone(row.timezone);
@@ -46,7 +55,8 @@ export function toAllEventsItem(row: EventListItemResponse): AllEventsItem {
     ...eventClock(row.startDate, row.endDate, timezone, allDay),
     city,
     cityKey: city ? city.toLowerCase() : null,
-    place: city ? [city, country].filter(Boolean).join(', ') : null,
+    place: city ? [city, country].filter(Boolean).join(', ') : row.venue?.address?.trim() || null,
+    venuePoint: venuePoint(row.venue),
     mode: toEventMode(row.format),
     access: toEventAccess(row.accessOption),
     hosts: uniqueNames([row.host?.name, ...(row.coHosts ?? []).map((coHost) => coHost?.name)]),

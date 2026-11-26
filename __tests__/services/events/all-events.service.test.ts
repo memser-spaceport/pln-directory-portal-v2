@@ -118,10 +118,33 @@ describe('toAllEventsItem', () => {
     });
   });
 
-  it('turns the "Others" gathering into no city', () => {
-    const item = toAllEventsItem(row({ gathering: { uid: 'loc-9', city: 'Others', country: null } }));
+  it('turns the "Others" gathering into no city, with the venue address as the place (LAB-3458)', () => {
+    const item = toAllEventsItem(
+      row({
+        gathering: { uid: 'loc-9', city: 'Others', country: null },
+        venue: { address: 'Zhytomyr, Zhytomyr Oblast, Ukraine, 10000', latitude: 50.26, longitude: 28.67 },
+      }),
+    );
     expect(item.city).toBeNull();
+    expect(item.place).toBe('Zhytomyr, Zhytomyr Oblast, Ukraine, 10000');
+    expect(item.venuePoint).toEqual({ lat: 50.26, lng: 28.67 });
+  });
+
+  it('has no place and no point for an "Others" event with no venue', () => {
+    const item = toAllEventsItem(row({ gathering: { uid: 'loc-9', city: 'Others', country: null }, venue: null }));
     expect(item.place).toBeNull();
+    expect(item.venuePoint).toBeNull();
+  });
+
+  it('keeps the gathering as the place when the event has a city, and the venue as its point', () => {
+    const item = toAllEventsItem(row());
+    expect(item.place).not.toBe('12 MG Road');
+    expect(item.venuePoint).toEqual({ lat: 12.97, lng: 77.59 });
+  });
+
+  it('drops a venue point with a missing or out-of-range number', () => {
+    expect(toAllEventsItem(row({ venue: { address: 'x', latitude: null, longitude: 1 } })).venuePoint).toBeNull();
+    expect(toAllEventsItem(row({ venue: { address: 'x', latitude: 95, longitude: 1 } })).venuePoint).toBeNull();
   });
 
   it('hides attendance when the event hides it', () => {

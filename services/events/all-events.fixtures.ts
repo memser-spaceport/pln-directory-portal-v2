@@ -18,6 +18,7 @@ export function allEventsItem(over: Partial<AllEventsItem> = {}): AllEventsItem 
     city,
     cityKey: city ? city.toLowerCase() : null,
     place: city ? `${city}, Portugal` : null,
+    venuePoint: null,
     mode: 'In-Person',
     access: null,
     hosts: [],

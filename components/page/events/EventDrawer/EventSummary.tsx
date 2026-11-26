@@ -73,7 +73,7 @@ function HostNames({ hosts }: { hosts: string[] }) {
  * About with its focus areas (LAB-3404) and its topics at the end, then Agenda. Plain section titles over hairlines; a block with no data is left out.
  *
  * Deviations from the prototype: hosts are names, not links (the Directory has no team for an event host); the place
- * is the gathering's location text, with no venue and region lines (the Directory stores neither); a row with the
+ * is one line, the event's venue address or else its gathering's location, never "Others" (LAB-3458); a row with the
  * event's own page sits among the facts (LAB-3271, LAB-3333, LAB-3334); no "Part of the <city> gathering" (LAB-3283).
  * LAB-3324: with a map link, the place and its arrow open the map in a new tab; an online event never links.
  */

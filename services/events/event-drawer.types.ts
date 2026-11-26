@@ -65,6 +65,8 @@ export interface EventDetailResponse {
   websiteUrl: string | null;
   externalId: string | null;
   resources: unknown[];
+  /** The event's own venue (LAB-3281). Null or absent when it has none, or on an older API. */
+  venue?: { address: string | null; latitude: number | null; longitude: number | null } | null;
   location: {
     uid: string;
     location: string;
@@ -135,6 +137,7 @@ export interface EventDetail {
   access: EventAccess | null;
   /** "19th Nov 2026, 18:00 - 19th Nov 2026, 21:00 (UTC -5:00)", in `timezone`; days only when all-day. */
   dateLine: string;
+  /** The event's own venue address, else its gathering's location; never the catch-all "Others". */
   address: string | null;
   /** LAB-3324: the venue's map link (for example Google Maps). Null when the event has none. */
   locationUrl: string | null;

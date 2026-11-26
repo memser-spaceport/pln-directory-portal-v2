@@ -170,6 +170,17 @@ function toResource(raw: unknown): Resource | null {
   };
 }
 
+/**
+ * The place line of the drawer: the event's own venue address; for an event with no venue, its gathering's location.
+ * The gathering "Others" is the events app's catch-all, not a place, so it is never shown.
+ */
+export function eventAddress(raw: Pick<EventDetailResponse, 'venue' | 'location'>): string | null {
+  const venue = raw.venue?.address?.trim();
+  if (venue) return venue;
+  const gathering = raw.location?.location?.trim();
+  return gathering && gathering.toLowerCase() !== 'others' ? gathering : null;
+}
+
 /** The URL as given (trimmed) when it is an `http` or `https` address, otherwise null. */
 export function httpUrlOrNull(url: unknown): string | null {
   if (typeof url !== 'string') return null;
@@ -243,7 +254,7 @@ export function toEventDetail(raw: EventDetailResponse): EventDetail {
     status: raw.status ?? null,
     allDay,
     dateLine: formatEventDateLine(raw.startDate, raw.endDate, timezone, allDay),
-    address: raw.location?.location?.trim() || null,
+    address: eventAddress(raw),
     locationUrl: details?.locationUrl?.trim() || null,
     image: raw.logo || raw.banner || null,
     focusAreas,

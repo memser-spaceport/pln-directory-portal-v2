@@ -187,6 +187,42 @@ describe('map layout', () => {
     expect(unplaced.map((e) => e.uid)).toEqual(['south']);
   });
 
+  it('puts a city with no known point on its first event’s venue (LAB-3458)', () => {
+    const london = [
+      item({ uid: 'yc', city: 'London', venuePoint: { lat: 51.5, lng: -0.12 } }),
+      item({ uid: 'yc2', city: 'London', startDate: '2030-12-04T09:00:00.000Z', venuePoint: null }),
+    ];
+    const { pins, unplaced } = mapLayout(london, {});
+    expect(pins).toEqual([
+      expect.objectContaining({ key: 'london', city: 'London', position: { lat: 51.5, lng: -0.12 } }),
+    ]);
+    expect(pins[0].events.map((e) => e.uid)).toEqual(['yc', 'yc2']);
+    expect(unplaced).toEqual([]);
+  });
+
+  it('keeps the city’s known point over a venue', () => {
+    const { pins } = mapLayout([item({ uid: 'l', venuePoint: { lat: 1, lng: 2 } })], { lisbon: LISBON });
+    expect(pins[0].position).toEqual({ lat: LISBON[0], lng: LISBON[1] });
+  });
+
+  it('pins an event with no city ("Others") on its own venue, named by the address', () => {
+    const orlando = { lat: 28.37, lng: -81.27 };
+    const { pins, unplaced } = mapLayout(
+      [
+        item({
+          uid: 'nona',
+          city: null,
+          place: 'Lake Nona, Orlando, FL, USA',
+          venuePoint: orlando,
+        }),
+        item({ uid: 'none', city: null, place: null, venuePoint: null }),
+      ],
+      {},
+    );
+    expect(pins).toEqual([expect.objectContaining({ city: 'Lake Nona', position: orlando })]);
+    expect(unplaced.map((e) => e.uid)).toEqual(['none']);
+  });
+
   it('looks at the linked event’s city, else the only city, else every pin, else the world', () => {
     const { pins } = mapLayout(events(), { dubai: DUBAI, lisbon: LISBON });
     expect(mapCamera(pins, 'dub2')).toEqual({ center: { lat: DUBAI[0], lng: DUBAI[1] }, zoom: CITY_ZOOM });

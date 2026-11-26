@@ -40,7 +40,7 @@ export const FORMAT_OPTIONS: { value: EventFormat; label: string }[] = [
 export const DEFAULT_EVENT_TAGS = ['Talks & Presentation', 'Hackathon', 'Workshop', 'Art Exhibition', 'Social Event'];
 
 export const SOCIAL_PLATFORMS: { value: string; label: string }[] = [
-  { value: 'twitter', label: 'Twitter' },
+  { value: 'twitter', label: 'X/Twitter' },
   { value: 'discord', label: 'Discord' },
   { value: 'bluesky', label: 'Bluesky' },
   { value: 'mastodon', label: 'Mastodon' },

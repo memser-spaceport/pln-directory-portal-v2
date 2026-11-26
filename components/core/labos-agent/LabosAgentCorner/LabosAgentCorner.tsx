@@ -15,7 +15,7 @@ import {
   useLabosAgentShortcut,
   useShowsKeyHint,
 } from '@/services/labos-agent/hooks/useLabosAgentShortcut';
-import { pageContextFromLocation } from '@/services/labos-agent/labos-agent.page-context';
+import { isUnreadablePage, pageContextFromLocation } from '@/services/labos-agent/labos-agent.page-context';
 import { keepInteractive, useIsPassthroughModalOpen } from '@/services/labos-agent/labos-agent.dialogs';
 import { useLabosAgentStore } from '@/services/labos-agent/store';
 
@@ -87,7 +87,7 @@ export function LabosAgentCorner({
       const context = currentPageContext(uid);
       onCloseFeedback();
       // LAB-3297: `LabosAgentRoot` sends `agent-dock-opened` with this entry point.
-      openAgent({ context, entryPoint });
+      openAgent({ context, entryPoint, pageLocked: isUnreadablePage(window.location.pathname) });
       openedHere.current = true;
     },
     [uid, onCloseFeedback, openAgent],

@@ -64,6 +64,14 @@
   }
 }
 
+/* LAB-3429: the agent slot's Feedback tab wears the agent's width (600px by default, 440 to 720). Tripled to beat
+   .panelNarrow. Phones keep the full-width sheet. */
+.panelAgentWidth.panelAgentWidth.panelAgentWidth {
+  @include media.tablet-landscape {
+    width: var(--labos-agent-w, 480px);
+  }
+}
+
 /* The Wider width, restated: .panel's max-width would otherwise cap it. */
 .panelWide.panelWide {
   width: min(1120px, 80vw);

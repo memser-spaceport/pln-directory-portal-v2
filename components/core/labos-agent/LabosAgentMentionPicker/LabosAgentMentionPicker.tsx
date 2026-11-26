@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { clsx } from 'clsx';
 
-import { LABOS_AGENT_MENTION_TEXT } from '@/services/labos-agent/constants';
+import { LABOS_AGENT_CONTEXT_TEXT, LABOS_AGENT_MENTION_TEXT } from '@/services/labos-agent/constants';
 import type { LabosAgentMentionSearchStatus } from '@/services/labos-agent/hooks/useLabosAgentMentionSearch';
 import { PICKER_GROUP_LABELS, type LabosAgentPickerGroup } from '@/services/labos-agent/labos-agent.mentions';
 import type { LabosAgentPickerItem } from '@/types/labos-agent.types';
@@ -62,7 +62,11 @@ export function LabosAgentMentionPicker({
   let position = 0;
 
   return (
-    <div className={s.picker} role="dialog" aria-label="Add context">
+    <div className={s.picker} role="dialog" aria-labelledby={`${listboxId}-title`}>
+      {/* LAB-3429 Decision 5: the heading, from + and from @ alike. */}
+      <div id={`${listboxId}-title`} className={s.title}>
+        {LABOS_AGENT_CONTEXT_TEXT.pickerTitle}
+      </div>
       {mode === 'plus' && (
         <input
           autoFocus

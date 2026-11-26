@@ -16,6 +16,7 @@ import { useFeedbackShortcuts } from '@/components/page/ai-apps/hooks/useFeedbac
 import { FeedbackFabButton } from '@/components/page/ai-apps/components/FeedbackFabButton';
 import { GiveAiAppFeedbackDialog } from '@/components/page/ai-apps/components/GiveAiAppFeedbackDialog';
 import { LabosAgentCorner } from '@/components/core/labos-agent/LabosAgentCorner/LabosAgentCorner';
+import { LabosAgentResizeHandle } from '@/components/core/labos-agent/LabosAgentResizeHandle/LabosAgentResizeHandle';
 import { useLabosAgentAccessState } from '@/services/labos-agent/hooks/useLabosAgentAccess';
 
 interface Props {
@@ -37,6 +38,8 @@ interface Props {
  * LAB-3302: for a member with agent access (`useLabosAgentAccess`), the button becomes the agent corner: one pill
  * with Agent and Feedback tabs, plus Ctrl/⌘ J. The Feedback tab opens this same drawer. Everyone else keeps the
  * button as it was.
+ *
+ * LAB-3429: the Feedback tab is the agent slot's other tab, so it wears the agent's width and edge from 960px.
  */
 export function GlobalFeedback({ isLoggedIn }: Props) {
   const pathname = usePathname() ?? '';
@@ -93,6 +96,7 @@ export function GlobalFeedback({ isLoggedIn }: Props) {
           onCloseFeedback={closeDrawer}
         />
       )}
+      {showAgentCorner && open && !isFormHidden && <LabosAgentResizeHandle tab="feedback" />}
       {showFab && (
         <FeedbackFabButton name="Give feedback" isDrawerOpen={open} isHidden={isFormHidden} onClick={onOpenFloating} />
       )}
@@ -106,6 +110,7 @@ export function GlobalFeedback({ isLoggedIn }: Props) {
         pickViewport
         onHiddenChange={setIsFormHidden}
         labosOnly
+        followAgentWidth={showAgentCorner}
         onHideButton={
           showButton
             ? () => {

@@ -286,6 +286,11 @@ interface Props {
    * list is not loaded — the member may have no AI Apps access.
    */
   labosOnly?: boolean;
+  /**
+   * LAB-3429: the narrow drawer is the agent slot's Feedback tab, so from 960px it wears the agent's width
+   * (`--labos-agent-w`) instead of 480px.
+   */
+  followAgentWidth?: boolean;
   /** The member hid the LabOS-wide floating button, after confirming. Set while that button shows. */
   onHideButton?: () => void;
 }
@@ -403,6 +408,7 @@ export function GiveAiAppFeedbackDialog({
   altBody,
   collapsed = false,
   labosOnly = false,
+  followAgentWidth = false,
   onHideButton,
 }: Props) {
   const isDrawer = variant === 'drawer';
@@ -1934,6 +1940,7 @@ export function GiveAiAppFeedbackDialog({
           wide={isWideShown}
           hidden={isBusy || collapsed}
           reserveSpace={Boolean(appUid) && showingAlt}
+          followAgentWidth={followAgentWidth}
           label={title}
         >
           {panel}

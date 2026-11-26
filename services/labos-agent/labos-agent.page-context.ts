@@ -60,3 +60,14 @@ export function pageContextFromLocation(
   }
   return null;
 }
+
+/**
+ * LAB-3429 Decision 4: pages the agent can't read. The chip says "Can't read this page", with nothing to press. The
+ * design names settings and messages; the Directory's messages are its notifications. `/settings/profile` is the
+ * member's own profile, which the agent reads (`profile`).
+ */
+export function isUnreadablePage(pathname: string): boolean {
+  const path = pathname.replace(/\/+$/, '') || '/';
+  if (path === '/settings/profile') return false;
+  return /^\/(settings|notifications)(\/|$)/.test(path);
+}

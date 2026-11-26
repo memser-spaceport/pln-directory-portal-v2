@@ -25,6 +25,7 @@ import { countAiSearch } from '@/components/core/mcp-hints/aiSearchSessionCount'
 import { OPEN_VISIT_CHAT_EVENT, PENDING_FOLLOW_UP_KEY_PREFIX } from '../constants/visitChats';
 
 import { saveVisitChat } from '../utils/saveVisitChat';
+import { takePendingQuestions } from '../utils/takePendingQuestions';
 
 import { useSidebar } from '../hooks/useSidebar';
 
@@ -76,6 +77,14 @@ export const Chat = (props: Props) => {
   // The thread the title bar shares and deletes: the page's id, or the one a new chat gets on its first question.
   const [openThreadId, setOpenThreadId] = useState(id);
   const isContinuingSharedRef = useRef(false);
+  /*
+   * LAB-3429: a thread the agent saved and handed over ("AI agent chat" in the agent). The thread exists already, so
+   * the first question keeps its id and does not create it again. The rest of the questions wait in `pendingRef` and
+   * go one at a time, each after the answer before it. `askedRef` counts the questions sent.
+   */
+  const adoptedRef = useRef(false);
+  const pendingRef = useRef<string[]>([]);
+  const askedRef = useRef(0);
 
   const {
     object: chatObject,
@@ -155,7 +164,7 @@ export const Chat = (props: Props) => {
   }, [id, initialMessages]);
 
   const checkAndSetThreadId = useCallback(() => {
-    if (threadUidRef.current && messagesRef.current.length > 0) {
+    if (threadUidRef.current && (messagesRef.current.length > 0 || adoptedRef.current)) {
       return threadUidRef.current;
     }
     const newThreadUid = getUniqueId();
@@ -231,7 +240,8 @@ export const Chat = (props: Props) => {
       submitType = type,
     }: {
       question: string;
-      type: 'prompt' | 'followup' | 'user-input';
+      /** `agent-handoff` (LAB-3429): a question the agent handed over, asked again here; not one the member typed. */
+      type: 'prompt' | 'followup' | 'user-input' | 'agent-handoff';
       submitType?: AiQuerySubmitType;
     }) => {
       try {
@@ -256,7 +266,8 @@ export const Chat = (props: Props) => {
         setOpenThreadId(threadId);
         const chatUid = generateUUID();
         setQuestion(question);
-        countAiSearch();
+        // The MCP search hint counts the questions the member sends, not the ones the agent hands over.
+        if (type !== 'agent-handoff') countAiSearch();
         addMessage(question, chatUid);
 
         const submitParams = {
@@ -292,8 +303,9 @@ export const Chat = (props: Props) => {
         }
 
         if (
-          (hasRefreshToken && messagesRef.current.length === 0) ||
-          (hasRefreshToken && fromRef.current === 'blog' && messagesRef.current.length === 1)
+          !adoptedRef.current &&
+          ((hasRefreshToken && messagesRef.current.length === 0) ||
+            (hasRefreshToken && fromRef.current === 'blog' && messagesRef.current.length === 1))
         ) {
           const threadResponse = await createHuskyThread(authToken, threadId);
           if (threadResponse) {
@@ -307,7 +319,11 @@ export const Chat = (props: Props) => {
           }
         } else {
           submitChat(submitParams);
-          document.dispatchEvent(new Event('refresh-husky-history'));
+          document.dispatchEvent(
+            adoptedRef.current
+              ? new CustomEvent('refresh-husky-history', { detail: { openThreadId: threadId } })
+              : new Event('refresh-husky-history'),
+          );
         }
         analytics.trackAiResponse('success', type, false, question);
       } catch (error) {
@@ -391,6 +407,8 @@ export const Chat = (props: Props) => {
 
   const onStopStreaming = useCallback(() => {
     analytics.trackHuskyChatStopBtnClicked(question);
+    // LAB-3429: a Stop also stops the agent's handed-over questions that are still waiting.
+    pendingRef.current = [];
     stopChat();
   }, [question]);
 
@@ -456,6 +474,15 @@ export const Chat = (props: Props) => {
 
   // A question handed over by another page: the copy of a shared chat, or the AI Search entry points.
   useEffect(() => {
+    // LAB-3429: the agent's questions, for the member's own new thread only. Read once; the key goes.
+    const handedOver = isOwnThread ? takePendingQuestions(id) : [];
+    if (handedOver.length > 0) {
+      adoptedRef.current = true;
+      pendingRef.current = handedOver.slice(1);
+      askedRef.current = 1;
+      handleChatSubmission({ question: handedOver[0], type: 'agent-handoff' });
+      return;
+    }
     const followUpKey = PENDING_FOLLOW_UP_KEY_PREFIX + id;
     const followUp = id ? sessionStorage.getItem(followUpKey) : null;
     if (followUp) {
@@ -469,6 +496,20 @@ export const Chat = (props: Props) => {
       localStorage.removeItem('input');
     }
   }, []);
+
+  // LAB-3429: the next handed-over question, once the answer before it has finished (or failed).
+  useEffect(() => {
+    if (pendingRef.current.length === 0 || chatIsLoading || isAnswerLoading) {
+      return;
+    }
+    const last = messages[messages.length - 1];
+    if (messages.length !== askedRef.current || !last || (!last.answer && !last.isError)) {
+      return;
+    }
+    const next = pendingRef.current.shift() as string;
+    askedRef.current += 1;
+    handleChatSubmission({ question: next, type: 'agent-handoff' });
+  }, [messages, chatIsLoading, isAnswerLoading, handleChatSubmission]);
 
   useEffect(() => {
     if (isAnswerLoading && chatContainerRef.current) {

@@ -39,6 +39,8 @@ interface Props {
    * room for, so it overlays there too.
    */
   reserveSpace: boolean;
+  /** LAB-3429: narrow, from 960px, the drawer is as wide as the agent slot (`--labos-agent-w`). */
+  followAgentWidth?: boolean;
   /** Names the dialog for assistive tech. */
   label: string;
 }
@@ -61,7 +63,15 @@ interface Props {
  * app does not jump under the crosshair. The panel appears in place: a slide
  * would cover the page the member is about to capture. Closed, it draws nothing.
  */
-export function FeedbackDrawerFrame({ isOpen, wide, hidden, reserveSpace, label, children }: PropsWithChildren<Props>) {
+export function FeedbackDrawerFrame({
+  isOpen,
+  wide,
+  hidden,
+  reserveSpace,
+  followAgentWidth = false,
+  label,
+  children,
+}: PropsWithChildren<Props>) {
   const panelRef = useRef<HTMLDivElement>(null);
   /* The button that opened it steps aside, so focus moves into the drawer rather than stay on a hidden control.
      Same when the drawer comes back from stepping aside (a capture, or a comment placed on a phone). */
@@ -117,7 +127,13 @@ export function FeedbackDrawerFrame({ isOpen, wide, hidden, reserveSpace, label,
       data-wide={wide ? 'true' : 'false'}
     >
       <div
-        className={clsx(s.modalContainer, wide && s.modalContainerWide, dw.panel, wide ? dw.panelWide : dw.panelNarrow)}
+        className={clsx(
+          s.modalContainer,
+          wide && s.modalContainerWide,
+          dw.panel,
+          wide ? dw.panelWide : dw.panelNarrow,
+          !wide && followAgentWidth && dw.panelAgentWidth,
+        )}
         ref={panelRef}
         tabIndex={-1}
         role="dialog"

@@ -384,7 +384,11 @@ describe('LAB-3302: agent corner, Ctrl/⌘ J and context chips', () => {
       expect(chat.mock.calls[0][0].context).toEqual({ page: 'news-story', newsUid: 'n-1' });
 
       fireEvent.click(screen.getByRole('button', { name: 'Stop reading News story' }));
-      expect(screen.queryByText('News story', { selector: 'span' })).not.toBeInTheDocument();
+      // LAB-3429: the chip stays, dashed, as "Not in context News story +".
+      expect(screen.queryByRole('button', { name: 'Stop reading News story' })).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Let the agent read News story again' })).toHaveTextContent(
+        'Not in contextNews story',
+      );
       expect(composer).toHaveFocus();
       fireEvent.change(composer, { target: { value: 'And now?' } });
       fireEvent.keyDown(composer, { key: 'Enter' });
@@ -395,7 +399,7 @@ describe('LAB-3302: agent corner, Ctrl/⌘ J and context chips', () => {
       expect(JSON.parse(JSON.stringify(chat.mock.calls[1][0]))).not.toHaveProperty('context');
 
       // The member can give the page back.
-      fireEvent.click(screen.getByRole('button', { name: '+ Read News story' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Let the agent read News story again' }));
       expect(screen.getByRole('button', { name: 'Stop reading News story' })).toBeInTheDocument();
     });
 
@@ -701,7 +705,7 @@ describe('LAB-3302: agent corner, Ctrl/⌘ J and context chips', () => {
       composer = screen.getByRole('textbox', { name: 'Message the agent' }) as HTMLTextAreaElement;
       expect(composer.value).toBe('');
       expect(screen.queryByRole('button', { name: 'Stop reading Team page' })).not.toBeInTheDocument();
-      expect(screen.getByRole('button', { name: '+ Read Team page' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Let the agent read Team page again' })).toBeInTheDocument();
 
       fireEvent.change(composer, { target: { value: 'Try again' } });
       fireEvent.keyDown(composer, { key: 'Enter' });

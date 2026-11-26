@@ -54,3 +54,30 @@ export const LABOS_AGENT_GATE_STORAGE_KEY = 'labos-agent';
 
 /** localStorage key. The value `mock` sends chat to the mock client in this browser, for development and QA. */
 export const LABOS_AGENT_API_STORAGE_KEY = 'labos-agent-api';
+
+/** LAB-3429 texts, verbatim from the prototype `prototypes/entries/agent` (design LAB-3389, update of 2026-11-25). */
+export const LABOS_AGENT_HANDOFF_TEXT = {
+  action: 'AI agent chat',
+  actionAria: 'Open in AI agent chat (new tab)',
+  tooltip: 'Open this chat in AI agent chat (new tab)',
+  tooltipDisabled: 'Ask something first, then continue in AI agent chat',
+  error: 'Couldn’t open this chat in AI agent chat.',
+  retry: 'Retry',
+  dismiss: 'Dismiss',
+  historyTrigger: 'Agent history',
+  historyTitle: 'History',
+  historyLink: 'All AI agent chats',
+  historyLinkAria: 'All AI agent chats (opens in a new tab)',
+  resizeAria: 'Resize the agent panel',
+  resizeTitle: 'Drag to resize · double-click to reset',
+} as const;
+
+/** LAB-3429 Decision 4: the page chip. `Context` and `Not in context` sit before the page name. */
+export const LABOS_AGENT_CONTEXT_TEXT = {
+  attached: 'Context',
+  removed: 'Not in context',
+  locked: 'Can’t read this page',
+  lockedTitle:
+    'The agent can’t read this page: settings and notifications stay private. Ask anyway, or add something with +.',
+  pickerTitle: 'Add context',
+} as const;

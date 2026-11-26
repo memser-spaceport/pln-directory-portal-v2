@@ -841,6 +841,10 @@ export const LABOS_AGENT_ANALYTICS_EVENTS = {
   ACTION_CONFIRMED: 'agent-action-confirmed',
   ACTION_CANCELLED: 'agent-action-cancelled',
   ACTION_FAILED: 'agent-action-failed',
+  /** LAB-3429: the "AI agent chat" header action. The name keeps the code name (`ai-search`). */
+  OPEN_AI_SEARCH_CLICKED: 'agent-open-ai-search-clicked',
+  /** LAB-3429: the member resized the agent slot (a drag, a key, or a reset). */
+  PANEL_RESIZED: 'agent-panel-resized',
 };
 
 export const AFFINITY_ANALYTICS_EVENTS = {

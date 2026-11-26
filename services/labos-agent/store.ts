@@ -30,6 +30,11 @@ interface LabosAgentState {
    */
   readonly readsPage: boolean;
   /**
+   * LAB-3429: the panel opened on a page the agent can't read (`isUnreadablePage`: settings, notifications). The chip
+   * says "Can't read this page". The context is `null` there, so the agent reads no page.
+   */
+  readonly pageLocked: boolean;
+  /**
    * The chats of this page visit, by `chatKey`. They outlive the panel, so closing and reopening from the same
    * context restores the chat. A full page load clears them (no saved history in v0).
    */
@@ -59,6 +64,8 @@ interface LabosAgentState {
       prefill?: string;
       /** LAB-3297: for the agent events. Default `corner`. */
       entryPoint?: LabosAgentEntryPoint;
+      /** LAB-3429: the page under the panel is one the agent can't read. Default `false`. */
+      pageLocked?: boolean;
     }) => void;
     /** LAB-3297: adds to a count of the current dock session. */
     countSession: (field: 'turnCount' | 'actionCount' | 'confirmedCount', by?: number) => void;
@@ -81,12 +88,13 @@ export const useLabosAgentStore = create<LabosAgentState>((set) => ({
   isOpen: false,
   context: null,
   readsPage: true,
+  pageLocked: false,
   chats: {},
   prefill: null,
   sentIntroTargets: {},
   session: null,
   actions: {
-    openAgent: ({ context = null, prefill, entryPoint = 'corner' } = {}) =>
+    openAgent: ({ context = null, prefill, entryPoint = 'corner', pageLocked = false } = {}) =>
       set((state) => {
         const readsPage = !state.chats[chatKey(context)]?.pageUnreadable;
         // LAB-3297: a closed panel, or a new context in the open panel, starts a new dock session.
@@ -95,6 +103,7 @@ export const useLabosAgentStore = create<LabosAgentState>((set) => ({
           isOpen: true,
           context,
           readsPage,
+          pageLocked: !context && pageLocked,
           prefill: prefill ?? null,
           session: sameSession
             ? state.session

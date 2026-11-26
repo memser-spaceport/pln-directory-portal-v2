@@ -12,26 +12,16 @@
  * raise?") between turns.
  */
 
-import clsx from 'clsx';
-import { createContext, useContext, useState } from 'react';
+import { useState } from 'react';
 import { ChatCircle, ChatsCircle, EnvelopeSimple, FileText, User, UsersThree } from '@phosphor-icons/react';
-
-import { Badge } from '@/components/common/Badge';
-import { SearchIcon } from '@/components/icons';
-import tabs from '@/components/page/ai-apps/components/FeedbackTabs/FeedbackTabs.module.scss';
-import { AgentGlyph } from '../home-v2-agent-dock/AgentCorner';
-import { Button } from '@/components/common/Button';
-import { CheckIcon } from '@/components/icons';
 
 import type { AgentReply } from '../home-v2-b/agentScript';
 import p from '../home-v2-b/AgentPanel.module.scss';
 import type { AgentItem } from '../agent/items';
-import { AgentCardsSettled, AgentUndoOverride, createScript, rolePrompts, VIEWERS, type Prompt, type ViewerKey } from '../agent/script';
+import { AgentCardsSettled, createScript, rolePrompts, VIEWERS, type Prompt, type ViewerKey } from '../agent/script';
 import { TopicLabel } from '../agent/TopicLabel';
 import { makeTurn, type Turn } from '../ai-search/AnswerPanel';
 import type { ChatThread } from '../ai-mode/threads';
-
-import s from './agentActions.module.scss';
 
 /** What feedback is "about" here, and what the script reads: this page. */
 const THIS_PAGE: AgentItem = { id: 'page-ai-agent-chat', kind: 'page', label: 'AI agent chat', meta: 'Page' };
@@ -47,8 +37,9 @@ const pointsHere = (reply: AgentReply) =>
 export type ThreadAgent = (question: string) => AgentReply | null;
 
 /** One per thread. Returns the agent's reply when the message is something to do, otherwise null. */
-export function createThreadAgent(viewer: ViewerKey): ThreadAgent {
-  const reply = createScript(VIEWERS[viewer], () => ({ page: THIS_PAGE, reading: [THIS_PAGE] }));
+/** `getReading`: what else the agent reads with the next message (the items it @mentions). */
+export function createThreadAgent(viewer: ViewerKey, getReading: () => AgentItem[] = () => []): ThreadAgent {
+  const reply = createScript(VIEWERS[viewer], () => ({ page: THIS_PAGE, reading: [THIS_PAGE, ...getReading()] }));
   return (question) => {
     const r = reply(question);
     if (isFallback(r)) return null;
@@ -70,27 +61,11 @@ export function createThreadAgent(viewer: ViewerKey): ThreadAgent {
    a turn on screen already has. */
 let nextAgentTurnId = Date.now();
 
-/** What the agent did, in one line, for a receipt. Read off the request, as the agent's own done-lines say it. */
-export function receiptSummary(question: string, viewer: ViewerKey): string {
-  const v = VIEWERS[viewer];
-  if (/my profile|i moved|i'?m now/i.test(question)) {
-    const parts = [/\bceo\b/i.test(question) && 'role CEO', /lisbon/i.test(question) && 'location Lisbon, Portugal'].filter(Boolean);
-    return parts.length ? `Updated your profile: ${parts.join(', ')}` : 'Updated your profile';
-  }
-  if (/team news|news post|post (our |team |the )?news/i.test(question))
-    return v.lead ? `Posted to ${v.team}’s news` : `Sent ${v.team}’s news to ${v.teamLead} to post`;
-  if (/intro|fundrais|investor|venture/i.test(question)) return 'Sent your intro request to the PL Venture team';
-  if (/team|profile/i.test(question))
-    return v.lead ? `Updated ${v.team}’s team profile` : `Sent ${v.team}’s profile changes to ${v.teamLead} to approve`;
-  if (/forum|draft|announc/i.test(question)) return 'Posted your draft to the forum';
-  return 'Sent your feedback to the LabOS team';
-}
-
 /**
- * A chat brought over from the agent, for version 1's review: two things the agent did and a question
- * between them. History shows it like any chat; the actions read as receipts.
+ * A past chat where the agent acted: two things it did and a question between them. History shows it like
+ * any chat; the actions show as the agent's own cards, finished.
  */
-export function agentHandoffThread(viewer: ViewerKey, view: 'receipt' | 'history' = 'receipt'): ChatThread {
+export function agentHandoffThread(viewer: ViewerKey): ChatThread {
   const agent = createThreadAgent(viewer);
   const v = VIEWERS[viewer];
   const questions = [
@@ -110,7 +85,7 @@ export function agentHandoffThread(viewer: ViewerKey, view: 'receipt' | 'history
     title: 'Lisbon move and next steps',
     turns: questions.map((q) => {
       const reply = agent(q);
-      if (reply) return agentTurn(q, reply, viewer, view);
+      if (reply) return agentTurn(q, reply, viewer, 'history');
       const turn = makeTurn(q);
       return { ...turn, shown: turn.answer, status: 'done' as const };
     }),
@@ -118,39 +93,19 @@ export function agentHandoffThread(viewer: ViewerKey, view: 'receipt' | 'history
 }
 
 /**
- * How an action shows on this page:
- *   live      version 2: the chat is the agent. Its steps and confirm cards, here.
- *   receipt   an action the agent already took, brought over by its hand-off. A "Done in the agent" card,
- *             never run again (both versions).
- *   elsewhere version 1: the chat only reads. A new request points to the agent, which can do it.
- *   history   version 2, a past chat: the agent's own steps and cards, in their finished state.
- *   switch    version 3, Search mode: a request that needs the agent. One press asks the agent instead.
+ * How an action shows on this page (2026-11-26: the chat is the agent; the other two alignment versions
+ * were dropped):
+ *   live      a request asked here: the agent's steps and confirm cards.
+ *   history   a past chat, or a chat handed over from the agent's drawer: the same cards, finished.
  */
-export type AgentView = 'live' | 'receipt' | 'elsewhere' | 'history' | 'switch';
-
-const SWITCH_TEXT = 'This needs the agent: Search only answers questions.';
-
-const ELSEWHERE_TEXT =
-  'AI agent chat can’t make changes yet. The agent can: open it and ask the same thing.';
-
-/** Set by the page when the agent's floating button is on it: open its drawer here, not a new tab. */
-export const OpenAgentContext = createContext<(() => void) | null>(null);
-
-/** The agent, opened on this member's role (the agent prototype). */
-export const agentHref = (viewer: ViewerKey) =>
-  `/prototypes/agent?state=signed-in&agent=open${viewer === 'founder' ? '' : `&viewer=${viewer}`}`;
+export type AgentView = 'live' | 'history';
 
 /** A turn the agent answers. The text blocks stream like any answer; the cards land once it's done. */
 export function agentTurn(question: string, reply: AgentReply, viewer: ViewerKey, view: AgentView = 'live'): Turn {
-  const text =
-    view === 'elsewhere'
-      ? ELSEWHERE_TEXT
-      : view === 'switch'
-        ? SWITCH_TEXT
-        : reply.blocks
-            .filter((b): b is { kind: 'text'; text: string } => b.kind === 'text')
-            .map((b) => b.text)
-            .join(' ');
+  const text = reply.blocks
+    .filter((b): b is { kind: 'text'; text: string } => b.kind === 'text')
+    .map((b) => b.text)
+    .join(' ');
   return {
     id: nextAgentTurnId++,
     question,
@@ -164,9 +119,8 @@ export function agentTurn(question: string, reply: AgentReply, viewer: ViewerKey
     agent: reply,
     agentView: view,
     agentViewer: viewer,
-    agentSummary: view === 'receipt' ? receiptSummary(question, viewer) : undefined,
-    /* A receipt arrives finished: there is nothing to stream. */
-    ...(view === 'receipt' || view === 'history' ? { status: 'done' as const, shown: text } : {}),
+    /* A past turn arrives finished: there is nothing to stream. */
+    ...(view === 'history' ? { status: 'done' as const, shown: text } : {}),
   } as Turn;
 }
 
@@ -182,58 +136,6 @@ export function AgentTurnView(props: {
   onSend: (text: string) => void;
   busy: boolean;
 }) {
-  const openAgent = useContext(OpenAgentContext);
-  /* Version 1 (2026-11-25, "use the same style … just undo will lead you to the agent"): the agent's own
-     finished cards, as version 2 shows them. The step line says where it happened; Undo opens the agent,
-     because only the agent can change it. */
-  if (props.view === 'receipt')
-    return (
-      <AgentCardsSettled.Provider value>
-        <AgentUndoOverride.Provider value={openAgent ?? (() => window.open(agentHref(props.viewer), '_blank', 'noopener'))}>
-          <AgentReplyView {...props} workedLabel="Done in the agent" />
-        </AgentUndoOverride.Provider>
-      </AgentCardsSettled.Provider>
-    );
-  if (props.view === 'switch')
-    return (
-      <div className={s.elsewhere}>
-        <p className={p.text}>{props.streaming ? props.shown : SWITCH_TEXT}</p>
-        {!props.streaming && (
-          <div>
-            <Button
-              style="border"
-              variant="neutral"
-              size="s"
-              disabled={props.busy}
-              onClick={() => props.onSend(`@agent ${props.question ?? ''}`)}
-            >
-              <span className={s.btnGlyph}>
-                <AgentGlyph />
-              </span>
-              Ask the agent
-            </Button>
-          </div>
-        )}
-      </div>
-    );
-  if (props.view === 'elsewhere')
-    return (
-      <div className={s.elsewhere}>
-        <p className={p.text}>{props.streaming ? props.shown : ELSEWHERE_TEXT}</p>
-        {!props.streaming && (
-          <div>
-            <Button
-              style="border"
-              variant="neutral"
-              size="s"
-              onClick={() => (openAgent ? openAgent() : window.open(agentHref(props.viewer), '_blank', 'noopener'))}
-            >
-              Open the agent
-            </Button>
-          </div>
-        )}
-      </div>
-    );
   if (props.view === 'history')
     return (
       <AgentCardsSettled.Provider value>
@@ -250,9 +152,7 @@ export function AgentReplyView({
   shown,
   onSend,
   busy,
-  workedLabel,
 }: {
-  workedLabel?: string;
   reply: AgentReply;
   streaming: boolean;
   shown: string;
@@ -272,7 +172,7 @@ export function AgentReplyView({
             onClick={() => setStepsOpen((v) => !v)}
             aria-expanded={stepsOpen}
           >
-            {workedLabel ?? `Worked for ${steps.length * 2}s`} · {steps.length} {steps.length === 1 ? 'step' : 'steps'}
+            {`Worked for ${steps.length * 2}s`} · {steps.length} {steps.length === 1 ? 'step' : 'steps'}
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
               <path
                 d={stepsOpen ? 'M4 10l4-4 4 4' : 'M4 6l4 4 4-4'}
@@ -367,49 +267,5 @@ export function ActionPrompts({
           );
         })}
     </>
-  );
-}
-
-/* ---------- Version 3: Search | Agent ---------- */
-
-export type ChatMode = 'search' | 'agent';
-
-/** "@agent …" (or "@labos …") sends one message to the agent, whatever the switch says. */
-export function readMention(text: string): { agent: boolean; text: string } {
-  const m = text.match(/^\s*@(agent|labos)\b[\s,:]*/i);
-  return m ? { agent: true, text: text.slice(m[0].length).trim() } : { agent: false, text };
-}
-
-/**
- * The composer's mode switch (version 3, the manager's middle path): one chat, two modes. Search answers
- * questions; Agent can also make changes. Production's segmented tabs (the agent's own Agent | Feedback
- * switch wears them), small, at the field's bottom-left opposite the send.
- */
-export function ModeSwitch({ mode, onChange }: { mode: ChatMode; onChange: (mode: ChatMode) => void }) {
-  return (
-    <div className={clsx(tabs.root, s.modeSwitch)} role="radiogroup" aria-label="Search or agent">
-      <button
-        type="button"
-        role="radio"
-        aria-checked={mode === 'search'}
-        className={clsx(tabs.tab, s.modeTab, mode === 'search' && tabs.active)}
-        onClick={() => onChange('search')}
-        title="Search: answers questions about the network"
-      >
-        <SearchIcon width={14} height={14} />
-        Search
-      </button>
-      <button
-        type="button"
-        role="radio"
-        aria-checked={mode === 'agent'}
-        className={clsx(tabs.tab, s.modeTab, mode === 'agent' && tabs.active)}
-        onClick={() => onChange('agent')}
-        title="Agent: answers, and makes changes after you confirm"
-      >
-        <AgentGlyph />
-        Agent
-      </button>
-    </div>
   );
 }

@@ -489,7 +489,28 @@
   color: var(--foreground-brand-primary, #1b4dff);
 }
 
-/* Version 3's single list under the field (it follows the switch). */
-.promptListSingle {
-  max-width: 100%;
+/* ---------- @mentions (the chat is the agent) ---------- */
+
+/* The agent's picker (agent/Agent.module.scss .picker) anchors to the field: above it in a thread, where the
+   field sits at the bottom of the page. */
+.mentionWrap {
+  position: relative;
+}
+
+/* New chat: the field sits under the headline, so the picker drops below it, over the prompts. */
+.mentionWrapHome.mentionWrapHome > [role='dialog'] {
+  top: calc(100% + 4px);
+  bottom: auto;
+}
+
+/* The scope chip (if any) and the mentioned items, in one wrapping row inside the field. */
+.mentionChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.mentionChipLabel {
+  max-width: 200px;
 }

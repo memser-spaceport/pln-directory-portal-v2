@@ -173,10 +173,19 @@ export default function EventsPageRedesignPrototype() {
   const embed = searchParams.get('embed') === '1';
   const [embedOpen, setEmbedOpen] = useState(false);
   const [drawerOn, setDrawerOn] = useState<OpenOn>('event');
-  /* Upcoming | Past (2026-11-25, Luma's calendar page): List and Map show one or the other. Calendar
-     needs no switch: its past days are already there, one press back. */
+  /* Upcoming | Past (2026-11-25, Luma's calendar page): List and Map show one or the other.
+     Calendar keeps the same tabs (2026-11-26: swapping them for an "All events" title read as the
+     toolbar changing under you). There the tab follows the calendar, not the URL: stepping into a
+     month or week that ended before today selects Past, stepping back selects Live & upcoming, and
+     a press on a tab moves the calendar (Past → the latest past event, Live & upcoming → today). */
   const past = searchParams.get('when') === 'past' && view !== 'calendar';
-  const setPast = (next: boolean) => setUrl({ when: next ? 'past' : null });
+  const [calPast, setCalPast] = useState(false);
+  const [calJump, setCalJump] = useState<{ to: 'today' | 'past'; seq: number } | null>(null);
+  const setPast = (next: boolean) =>
+    view === 'calendar'
+      ? setCalJump((j) => ({ to: next ? 'past' : 'today', seq: (j?.seq ?? 0) + 1 }))
+      : setUrl({ when: next ? 'past' : null });
+  const shownPast = view === 'calendar' ? calPast : past;
   // Past's year picker (2026-11-25): `?year=2025`; no param is every year.
   const year = past ? searchParams.get('year') : null;
   const setYear = (next: string) => setUrl({ year: next === 'all' ? null : next });
@@ -407,6 +416,8 @@ export default function EventsPageRedesignPrototype() {
         onOpen={open}
         initialMonth={monthParam}
         onMonthChange={(key) => setUrl({ month: key })}
+        jump={calJump}
+        onPeriodChange={setCalPast}
       />
     );
 
@@ -507,20 +518,13 @@ export default function EventsPageRedesignPrototype() {
             moves under the pointer (it used to sit below the bands and jump ~490px up). */}
         <div className={s.toolbar}>
           <div className={s.toolbarStart}>
-            {view === 'calendar' ? (
-              <>
-                {/* The calendar draws every event, past and upcoming (`visible`), so the title and
-                    count say all of them, not "Coming up" (2026-11-26). */}
-                <h2 className={s.toolbarTitle}>{city ? `All events in ${city}` : 'All events'}</h2>
-                <span className={s.toolbarCount}>
-                  {visible.length} {visible.length === 1 ? 'event' : 'events'}
-                </span>
-              </>
-            ) : (
+            {
               /* When (2026-11-25, after Luma's and Zoom's Upcoming | Past): the view switch's own
                  segmented control, each segment carrying its count, then on Past a year pill at the
                  Filters button's height (Meetup's "Any day ▾", Reddit's "Upcoming Events ▾"). It
-                 replaced title-size text tabs and a dropdown in grey text, which read as two styles. */
+                 replaced title-size text tabs and a dropdown in grey text, which read as two styles.
+                 Same tabs in every view (2026-11-26); in Calendar they follow the month on show, and
+                 the year pill stays out (the calendar's own month picker jumps years). */
               <>
                 <div className={s.viewSwitch} role="tablist" aria-label="When">
                   {[
@@ -533,8 +537,8 @@ export default function EventsPageRedesignPrototype() {
                       key={o.label}
                       type="button"
                       role="tab"
-                      aria-selected={past === o.value}
-                      className={clsx(s.viewBtn, s.scopeBtn, past === o.value && s.viewBtnActive)}
+                      aria-selected={shownPast === o.value}
+                      className={clsx(s.viewBtn, s.scopeBtn, shownPast === o.value && s.viewBtnActive)}
                       onClick={() => setPast(o.value)}
                     >
                       {o.label}
@@ -554,7 +558,7 @@ export default function EventsPageRedesignPrototype() {
                   />
                 )}
               </>
-            )}
+            }
           </div>
           <div className={s.toolbarEnd}>
             {/* The rail's door. Desktop only: phones have MobileFilterWrapper's pill below. */}

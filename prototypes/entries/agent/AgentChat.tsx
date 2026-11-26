@@ -51,11 +51,25 @@ type Turn =
     };
 
 /** How an @mention reads inside the sentence; the chip carries the full name. */
-const mentionName = (item: AgentItem) =>
+export const mentionName = (item: AgentItem) =>
   item.kind === 'news' ? `${item.by} news` : item.kind === 'forum' ? `${item.by}’s thread` : item.label;
 
+/** The picker's groups: suggested first, then the catalog, minus what's already in context, filtered by the query. */
+export function pickerGroups(query: string, taken: AgentItem[], catalog: AgentItem[], suggested: AgentItem[]) {
+  const q = query.trim().toLowerCase();
+  const takenIds = new Set(taken.map((r) => r.id));
+  const pool = [...suggested, ...catalog.filter((c) => !suggested.some((x) => x.id === c.id))].filter(
+    (i) => !takenIds.has(i.id),
+  );
+  const match = (i: AgentItem) => !q || `${i.label} ${i.meta}`.toLowerCase().includes(q);
+  return GROUP_ORDER.map((kind) => {
+    const all = pool.filter((i) => i.kind === kind && match(i));
+    return { kind, items: q ? all.slice(0, 6) : all.slice(0, GROUP_PEEK) };
+  }).filter((g) => g.items.length);
+}
+
 /** Sets a textarea's value the way typing does, so the composer's own onChange (height, send button) runs. */
-function setNativeValue(el: HTMLTextAreaElement, value: string) {
+export function setNativeValue(el: HTMLTextAreaElement, value: string) {
   const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set;
   setter?.call(el, value);
   el.dispatchEvent(new Event('input', { bubbles: true }));
@@ -256,19 +270,10 @@ export function AgentChat({
 
   /* ---------- Picker ---------- */
 
-  const groups = useMemo(() => {
-    if (!picker) return [];
-    const q = picker.query.trim().toLowerCase();
-    const taken = new Set(reading.map((r) => r.id));
-    const pool = [...suggested, ...catalog.filter((c) => !suggested.some((x) => x.id === c.id))].filter(
-      (i) => !taken.has(i.id),
-    );
-    const match = (i: AgentItem) => !q || `${i.label} ${i.meta}`.toLowerCase().includes(q);
-    return GROUP_ORDER.map((kind) => {
-      const all = pool.filter((i) => i.kind === kind && match(i));
-      return { kind, items: q ? all.slice(0, 6) : all.slice(0, GROUP_PEEK) };
-    }).filter((g) => g.items.length);
-  }, [picker, reading, catalog, suggested]);
+  const groups = useMemo(
+    () => (picker ? pickerGroups(picker.query, reading, catalog, suggested) : []),
+    [picker, reading, catalog, suggested],
+  );
   const flat = groups.flatMap((g) => g.items);
 
   useEffect(() => setActive(0), [picker?.query, picker?.mode]);
@@ -658,7 +663,7 @@ function PageSlot({
  * news, teams, members, events, forum). From "+", it has its own search field; from "@", the composer is the
  * search field. Arrows + Enter pick; Esc closes.
  */
-function ContextPicker({
+export function ContextPicker({
   mode,
   query,
   groups,

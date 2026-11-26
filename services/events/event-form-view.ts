@@ -1,5 +1,12 @@
 import { formatEventDateLine, safeTimezone } from './event-dates';
-import { toAgendaDays, toEventAccess, toEventMode, toEventTag } from './event-drawer.mappers';
+import {
+  toAgendaDays,
+  toEventAccess,
+  toEventLinks,
+  toEventMode,
+  toEventSocials,
+  toEventTag,
+} from './event-drawer.mappers';
 import { toFocusAreaCode } from './focus-areas';
 import type { EventDetail, EventDetailResponse } from './event-drawer.types';
 import {
@@ -9,6 +16,7 @@ import {
   eventInstants,
   fromContactInfos,
   fromInstant,
+  toContactInfos,
   toHttpUrl,
 } from './event-form';
 import type {
@@ -142,12 +150,12 @@ export function toPreviewEvent(values: EventFormValues, uid = 'preview'): EventD
   const timezone = safeTimezone(values.timezone);
   const instants = eventInstants(values);
   const hasVenue = values.format !== 'VIRTUAL';
-  const venue = hasVenue ? values.venue.trim() : '';
-  const place = venue ? values.place : null;
+  // LAB-3447: only a venue that Google found (a place is set) shows. Text that matched no place shows no location.
+  const place = hasVenue && values.venue.trim() ? values.place : null;
+  const venue = place ? values.venue.trim() : '';
   const hosts = [values.hostName, ...values.coHosts.map((coHost) => coHost.name)]
     .map((name) => name.trim())
     .filter(Boolean);
-  const link = toHttpUrl(values.registrationUrl) ?? toHttpUrl(values.websiteUrl);
   const access = toEventAccess(values.accessOption);
 
   return {
@@ -164,14 +172,19 @@ export function toPreviewEvent(values: EventFormValues, uid = 'preview'): EventD
     dateLine: instants ? formatEventDateLine(instants.start, instants.end, timezone) : '',
     address: venue || null,
     locationUrl: place?.locationUrl ?? null,
+    // LAB-3454: the instruction shows under a found venue only, as `address` does.
+    locationInstructions: (venue && values.instruction.trim()) || null,
     image: values.logo ? (values.logo.kind === 'file' ? values.logo.previewUrl : values.logo.url) : null,
     focusAreas: Array.from(new Set(values.tags.map(toFocusAreaCode).filter((code): code is string => !!code))),
     tags: values.tags.filter((name) => !toFocusAreaCode(name)).map(toEventTag),
     hosts: Array.from(new Set(hosts)),
     description: descriptionText(values.description) ? values.description : null,
     agenda: toAgendaDays(values.agenda ? { ...values.agenda } : null, timezone),
+    // LAB-3451: the same links as the drawer draws for the stored event.
+    socials: toEventSocials(toContactInfos(values.socialHandles)),
     websiteUrl: toHttpUrl(values.websiteUrl),
-    eventUrl: link,
+    // LAB-3456: the drawer's rule, so Preview shows the website and the registration link both.
+    ...toEventLinks(toHttpUrl(values.websiteUrl), toHttpUrl(values.registrationUrl), null),
     gathering: null,
     inviteOnly: access === 'INVITE ONLY',
     goingCount: 0,

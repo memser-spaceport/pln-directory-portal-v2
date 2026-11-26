@@ -61,11 +61,12 @@ beforeEach(() => scrollIntoView.mockClear());
 describe('sections', () => {
   it('keeps the old portal’s order on the submit page', () => {
     const { sections } = open();
-    expect(sections()).toHaveLength(8);
+    expect(sections()).toHaveLength(10);
     const order = sections().join(' > ');
     expect(order).toMatch(/^access > registration.* > profile.* > format.* > dates.* > description.* > tags.* > host/);
-    expect(screen.queryByText('Website Link')).toBeNull();
-    expect(screen.queryByText('Social Handles')).toBeNull();
+    expect(sections().slice(-3)).toEqual(['host', 'website', 'social-handles']);
+    expect(screen.getByText('Website Link')).toBeInTheDocument();
+    expect(screen.getByText('Social Handles')).toBeInTheDocument();
     expect(screen.queryByPlaceholderText('Enter your email')).toBeNull();
     expect(screen.queryByText(/Luma/)).toBeNull();
   });
@@ -136,6 +137,14 @@ describe('Submit Event checks', () => {
     await run('submit');
     expect(screen.getByText('Co-host name is required')).toBeInTheDocument();
     expect(screen.getByText('Enter a valid email')).toBeInTheDocument();
+  });
+
+  it.each(['submit', 'draft'] as const)('blocks %s and marks the host email field when it is invalid', async (mode) => {
+    const { run, onSend } = open({ values: { ...filled, hostEmail: 'not an email' } });
+    await run(mode);
+    expect(screen.getByRole('textbox', { name: 'Host email' })).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByText('Enter a valid email')).toBeInTheDocument();
+    expect(onSend).not.toHaveBeenCalled();
   });
 
   it('says "Enter a valid website link" and "Please select a platform" on the edit page', async () => {

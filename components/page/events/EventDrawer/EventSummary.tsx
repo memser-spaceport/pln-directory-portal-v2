@@ -78,7 +78,9 @@ function HostNames({ hosts }: { hosts: string[] }) {
  * event's own page sits among the facts (LAB-3271, LAB-3333, LAB-3334); no "Part of the <city> gathering" (LAB-3283).
  * LAB-3324: with a map link, the place and its arrow open the map in a new tab; an online event never links.
  * LAB-3426: for an event that has ended, nothing here asks the reader to register or RSVP. LAB-3418: its day line
- * carries a year other than the current one.
+ * carries a year other than the current one. LAB-3454: the venue's instruction sits in small text under the venue line.
+ * LAB-3456: with a website and a registration link, the page row shows the website and a second row the registration.
+ * LAB-3451: the event's social handles, as links, close the facts.
  */
 export function EventSummary({
   event,
@@ -93,6 +95,8 @@ export function EventSummary({
   const [now] = useState(() => Date.now());
   const when = eventWhen(event.startDate, event.endDate, event.timezone, event.allDay, ended ? now : undefined);
   const page = eventLink(event.eventUrl);
+  // LAB-3456: the registration link gets its own row when it is not the page row. An ended event asks no one to register.
+  const registration = !ended && event.registrationUrl !== event.eventUrl ? eventLink(event.registrationUrl) : null;
   const mapLink = eventLink(event.locationUrl);
   const online = event.mode === 'Virtual' || (event.mode === 'Hybrid' && !event.address);
   const accessCopy = event.access && (ended ? ENDED_ACCESS_COPY : ACCESS_COPY)[event.access];
@@ -159,6 +163,11 @@ export function EventSummary({
               ) : (
                 event.mode === 'Hybrid' && <span className={e.factSub}>Hybrid, also online</span>
               )}
+              {!online && event.locationInstructions && (
+                <span className={clsx(e.factSub, e.factNote)} data-testid="event-place-instruction">
+                  {event.locationInstructions}
+                </span>
+              )}
             </span>
           </li>
         )}
@@ -181,6 +190,25 @@ export function EventSummary({
           </li>
         )}
 
+        {registration && (
+          <li className={e.fact} data-testid="event-registration-row">
+            <span className={e.factIcon} aria-hidden>
+              <ChainIcon />
+            </span>
+            <span className={e.factText}>
+              <a
+                className={clsx(e.factMain, e.factLink, e.factLinkText)}
+                href={registration.href}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {registration.label}
+              </a>
+              <span className={e.factSub}>Registration</span>
+            </span>
+          </li>
+        )}
+
         {access && (
           <li className={e.fact} data-testid="event-access">
             <span className={e.factIcon} aria-hidden>
@@ -189,6 +217,31 @@ export function EventSummary({
             <span className={e.factText}>
               <span className={e.factMain}>{access.main}</span>
               {access.sub && <span className={e.factSub}>{access.sub}</span>}
+            </span>
+          </li>
+        )}
+
+        {event.socials.length > 0 && (
+          <li className={e.fact} data-testid="event-socials">
+            <span className={e.factIcon} aria-hidden>
+              <AtIcon />
+            </span>
+            <span className={e.factText}>
+              <span className={e.factMain}>Social</span>
+              <ul className={e.socialList}>
+                {event.socials.map((social) => (
+                  <li key={social.href} className={e.socialItem}>
+                    <span className={e.factSub}>{`${social.platform}:`}</span>
+                    <a
+                      className={clsx(e.factSub, e.factLink, e.factLinkText)}
+                      href={social.href}
+                      {...(social.href.startsWith('mailto:') ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
+                    >
+                      {social.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </span>
           </li>
         )}
@@ -296,6 +349,21 @@ function AccessIcon({ access }: { access: EventAccess }) {
         strokeLinejoin="round"
       />
       <path d="M12 5.5v9" stroke="currentColor" strokeWidth="1.5" strokeDasharray="1.5 2" />
+    </svg>
+  );
+}
+
+/** LAB-3451: the social handles' glyph. */
+function AtIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <circle cx="10" cy="10" r="3" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M13 10v1.25a2.25 2.25 0 004.5 0V10A7.5 7.5 0 1014 16.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }

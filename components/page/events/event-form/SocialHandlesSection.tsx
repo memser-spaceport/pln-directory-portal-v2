@@ -22,7 +22,7 @@ function platformOptions(platform: string) {
 }
 
 /**
- * Edit page only: "Social Handles", rows of a platform and a handle. An empty list shows one empty row, which is
+ * "Social Handles" on the submit and edit forms. An empty list shows one empty row, which is
  * written to the form once the person fills it in.
  */
 export function SocialHandlesSection() {

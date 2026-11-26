@@ -1,7 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-import { type KeyboardEvent, useState } from 'react';
+import { type ChangeEvent, type KeyboardEvent, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import { CloseIcon } from '@/components/icons';
@@ -16,8 +16,9 @@ import c from './TagsSection.module.scss';
 const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 
 /**
- * "Choose Event tag(s)": the default tags as chips that switch on and off, and a field where Enter adds a custom
- * tag. A typed tag that is already selected is ignored; one that names a default tag switches that chip on.
+ * "Choose Event tag(s)": the default tags as chips that switch on and off, and a field for custom tags. Enter, a comma
+ * or leaving the field adds the typed text as a tag. A typed tag that is already selected is ignored; one that names a
+ * default tag switches that chip on.
  */
 export function TagsSection() {
   const {
@@ -38,13 +39,33 @@ export function TagsSection() {
 
   const toggle = (tag: string) => write(tags.includes(tag) ? tags.filter((item) => item !== tag) : [...tags, tag]);
 
+  /** Adds each typed tag that is not empty and not already selected, whatever its case. */
+  const add = (typedTags: string[]) => {
+    const next = [...tags];
+    typedTags.forEach((text) => {
+      const tag = text.trim();
+      if (!tag || next.some((item) => same(item, tag))) return;
+      next.push(DEFAULT_EVENT_TAGS.find((item) => same(item, tag)) ?? tag);
+    });
+    if (next.length > tags.length) write(next);
+  };
+
+  const onChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const parts = event.target.value.split(',');
+    const rest = parts.pop() ?? '';
+    if (parts.length > 0) add(parts);
+    setTyped(rest);
+  };
+
+  const commit = () => {
+    setTyped('');
+    add([typed]);
+  };
+
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key !== 'Enter') return;
     event.preventDefault();
-    const tag = typed.trim();
-    setTyped('');
-    if (!tag || tags.some((item) => same(item, tag))) return;
-    write([...tags, DEFAULT_EVENT_TAGS.find((item) => same(item, tag)) ?? tag]);
+    commit();
   };
 
   return (
@@ -91,8 +112,9 @@ export function TagsSection() {
         autoComplete="off"
         value={typed}
         disabled={busy}
-        onChange={(event) => setTyped(event.target.value)}
+        onChange={onChange}
         onKeyDown={onKeyDown}
+        onBlur={commit}
       />
       <FieldError message={errors.tags?.message} />
     </section>

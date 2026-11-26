@@ -31,13 +31,17 @@ The drawer SHALL follow the redesigned drawer prototype (LAB-3361, `prototypes/e
 2. The event's picture as a 56px thumbnail when it has one, beside the title and "Hosted by <hosts>" ("A and B", "A, B and C"). Hosts are names, not links.
 3. A date row: a tile with the month and day, then the day ("Thursday, November 19", or "Tue, Dec 1 – Sat, Dec 5" for an event across days) and the time with its zone ("6:00 PM – 9:00 PM · UTC−5"), all in the event's own time zone: the one the event has, otherwise its gathering's, otherwise UTC (LAB-3404). Once the event has ended, a day in a year other than the current one SHALL carry its year (LAB-3418): "Tuesday, November 4, 2025", "Mon, Jun 30 – Fri, Jul 4, 2025", and over New Year a year on each end, "Tue, Dec 30, 2025 – Fri, Jan 2, 2026". Both years are read in the line's own time zone. An event that has not ended SHALL carry no year, and the line SHALL NOT change while the drawer is open. An event whose end is before its start SHALL be on its first day, as on its card, and neither the day nor the time SHALL read backwards. When the dates can't be read, the row SHALL show the events app's date line instead.
 4. A place row with a pin tile: the address for an in-person event; "Online" with "Link sent after you register" for an online event ("Online event" once it has ended); the address with "Hybrid, also online" under it for a hybrid event (LAB-3283). When the event has a map link (the events service's `location_url`) and an address, the place text and its arrow SHALL be one link that opens the map in a new tab, as on the PL events app (LAB-3324). An event without a map link, or whose map link is not an `http` or `https` address, SHALL show the place as plain text with no arrow. "Online" SHALL never link to a map.
-5. The event's own page (for example its Luma page) when it has one, as a link under the place row (LAB-3271). The link SHALL open in a new tab. It SHALL show the address without `https://`. The row SHALL look like the other fact rows (LAB-3333, LAB-3361): a link icon in a tile like the place row's, then the link text styled like the day line, with no arrow. The page SHALL be the event's `websiteUrl`. When `websiteUrl` is empty or not an `http` or `https` address, the page SHALL be the link of the event's resource named "Registration" (any case, end spaces ignored), and "Register" SHALL open the same page (LAB-3334). An event without a page, or whose page is not an `http` or `https` address, SHALL have no link row and no "Register".
+5. The event's own page (for example its Luma page) when it has one, as a link under the place row (LAB-3271). The link SHALL open in a new tab. It SHALL show the address without `https://`. The row SHALL look like the other fact rows (LAB-3333, LAB-3361): a link icon in a tile like the place row's, then the link text styled like the day line, with no arrow. Only `http` and `https` links SHALL appear in this row or the Register action.
 6. An access row when the access is known, with an icon and two lines: "Invite only / The hosts approve each guest", "Paid / Tickets on the host's site" or, on one line, "RSVP to save your spot" (LAB-3283, LAB-3407). The events service's `OPEN` access SHALL read as the last one and never as "Free": it does not say that an event costs nothing. Once the event has ended the row SHALL keep what the event was and drop the ask: "Invite only" as before, "Paid" on one line, and no row in place of "RSVP to save your spot" (LAB-3426). Mode and access SHALL NOT show as badges.
 7. The going card, or the ended card once the event has ended (see below).
 8. "About": the description, then the focus areas as neutral badges under the label "Focus areas", then the topics as neutral badges, under the label "Topics" when the event also has focus areas (LAB-3404). The events portal tags an event with focus area codes and with topics. The focus areas SHALL show by name, never by code: FA1 "Digital Human Rights", FA2 "Economies & Governance", FA3 "AI & Robotics", FA4 "Neurotech". Every other tag is a topic.
 9. "Agenda": a row per session with its time beside its title and description, under a day title ("Tue, 1st Dec") when the agenda spans several days.
 
 A block whose data is empty SHALL be left out rather than shown empty. On a narrow screen the drawer SHALL take the full width.
+
+The place row SHALL show the venue instruction under the venue when both are present (LAB-3454). The event facts SHALL show a Social list with platform labels and links (LAB-3451). The list SHALL use `mailto:` for email and omit unused or invalid handles.
+
+When both links are valid, the page row SHALL show the website and the Registration row SHALL show the registration link (LAB-3456). Register SHALL open `registrationUrl`, then the "Registration" resource, then the website, in that order. The page row SHALL keep the registration link as the fallback when the website is absent (LAB-3334). An ended event SHALL omit the separate Registration row.
 
 #### Scenario: The year of an ended event
 
@@ -1246,6 +1250,8 @@ The time zone SHALL be picked from a searchable list (placeholder "Search timezo
 
 The description SHALL be optional rich text, opened with "Add Description", with the placeholder "Enter description" and the tools bold, italic, strikethrough, underline, link, two heading levels, bullet and numbered lists and four alignments. A description with no text SHALL be sent as empty. Wherever LabOS shows a description, it SHALL show only safe formatting.
 
+The event editor SHALL stop text input and trim pasted text at 10,000 characters (LAB-3442). The counter SHALL exclude HTML tags and count nonbreaking spaces as spaces. Submit SHALL also check the length.
+
 #### Scenario: A formatted description
 
 - **WHEN** the visitor types a heading and a bullet list and submits
@@ -1290,7 +1296,7 @@ When the form is sent with an agenda, in any mode, each session SHALL be inside 
 
 ### Requirement: Tags
 
-"Choose Event tag(s)" SHALL offer the chips "Talks & Presentation", "Hackathon", "Workshop", "Art Exhibition" and "Social Event", with "Talks & Presentation" selected on a new form, and a field "Type your tag here" where Enter adds a custom tag that can be removed. A custom tag that already exists SHALL be ignored.
+"Choose Event tag(s)" SHALL offer the chips "Talks & Presentation", "Hackathon", "Workshop", "Art Exhibition" and "Social Event", with "Talks & Presentation" selected on a new form. In "Type your tag here", Enter, a comma, or loss of focus SHALL add the text as a removable tag (LAB-3448). The field SHALL ignore empty tags and compare duplicates without regard to case.
 
 #### Scenario: A custom tag
 
@@ -1299,7 +1305,9 @@ When the form is sent with an agenda, in any mode, each session SHALL be inside 
 
 ### Requirement: Host and co-hosts
 
-The host section SHALL have a host name ("Enter Host Name") and an optional host email ("Enter Host Email"). "Add Co-Host" SHALL add a row with a name and an optional email, and each row SHALL have a remove control. The title SHALL read "Host (N)", where N counts the host and the co-hosts.
+The host section SHALL have a host name ("Enter Host Name") and an optional host email ("Enter Host Email"). "Add Co-Host" SHALL add a row with a name and an optional email, and each row SHALL have a remove control. The title SHALL read "Host (N)", where N counts the host and the co-hosts. The host and co-host fields SHALL align on desktop and at 375 pixels (LAB-3449).
+
+If the host email is not empty and is invalid, Submit and Save as draft SHALL stop and show "Enter a valid email" under the host email field (LAB-3453).
 
 #### Scenario: Two co-hosts
 
@@ -1316,9 +1324,9 @@ The registration link ("Enter Registration Link") SHALL be optional. A link type
 - **WHEN** the member submits a valid form
 - **THEN** the event is sent with `https://lu.ma/abc`
 
-### Requirement: Website link and social handles on the edit page
+### Requirement: Website link and social handles
 
-The edit page SHALL also show "Website Link" ("Enter Website Link") and "Social Handles". Social Handles SHALL be rows of a platform (Twitter, Discord, Bluesky, Mastodon, Telegram, Email) and a handle ("Enter your handle"), with "Add More" and a remove control. A handle that is not a web address SHALL be turned into the platform's profile address when sent. The submit page SHALL NOT show these two.
+The submit and edit forms SHALL show "Website Link" ("Enter Website Link") after the host (LAB-3455), then "Social Handles" (LAB-3450). Social Handles SHALL be rows of a platform (X/Twitter, Discord, Bluesky, Mastodon, Telegram, Email) and a handle ("Enter your handle"), with "Add More" and a remove control. X/Twitter SHALL keep the stored value `twitter` (LAB-3452). A handle that is not a web address SHALL be turned into the platform's profile address when sent.
 
 #### Scenario: A Twitter handle
 
@@ -1373,6 +1381,8 @@ The edit page SHALL also show "Website Link" ("Enter Website Link") and "Social 
 ### Requirement: Clear form and Preview
 
 "Clear form" SHALL ask "Are you sure you want to clear this form?" with "Clicking confirm will remove all information you've entered in the event submission form". On confirm it SHALL reset every field and say "Form has been cleared successfully"; nothing SHALL be sent, and on the edit page the event itself SHALL stay. "Preview" SHALL show the event as LabOS will show it, from the values typed so far, with a way back to the form.
+
+Preview SHALL show an in-person or hybrid venue only if the form has a resolved place (LAB-3447). Preview and the read-only edit view SHALL use the drawer's rules for the venue instruction, social links, website, and registration.
 
 #### Scenario: Clear is cancelled
 

@@ -446,9 +446,9 @@ function EventFlow({
     drawerCloseRef.current = overlay ? NOOP : view !== 'event' ? backToEvent : close;
   });
 
-  const register = event.eventUrl ? (
+  const register = event.registerUrl ? (
     <a
-      href={event.eventUrl}
+      href={event.registerUrl}
       target="_blank"
       rel="noreferrer"
       className={clsx(btn.root, btn.small, btn.border, btn.neutral, r.btn)}
@@ -501,7 +501,7 @@ function EventFlow({
                         going={going}
                         asks={asks}
                         city={gathering?.city ?? null}
-                        registerUrl={event.eventUrl}
+                        registerUrl={event.registerUrl}
                         saving={saving}
                         rsvpHref={rsvpHref}
                         onYes={pressYes}

@@ -5,7 +5,7 @@ import { EVENT_FORM_TEXT } from '@/services/events/event-form';
 import { LinkField } from './LinkField';
 import s from './EventForm.module.scss';
 
-/** Edit page only: the event's own website. */
+/** The event's own website on the submit and edit forms. */
 export function WebsiteSection() {
   return (
     <section className={s.section} data-section="website">

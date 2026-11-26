@@ -84,6 +84,7 @@ export function DescriptionSection() {
               disabled={busy}
               maxLength={EVENT_DESCRIPTION_MAX}
               showCharCount
+              hardLimit
             />
           </div>
           {!hasAgenda && (

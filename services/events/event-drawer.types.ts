@@ -42,6 +42,13 @@ export interface EventDetailsResponse {
   locationUrl?: string | null;
   /** LAB-3403: the event's own IANA time zone. Optional: an older backend does not send it. */
   timezone?: string | null;
+  /**
+   * LAB-3451: the event's social handles by platform (`twitter`, `discord`, `bluesky`, `mastodon`, `telegram`,
+   * `email`), as the form stored them. Every viewer gets them. Optional: an older backend does not send them.
+   */
+  contactInfos?: Record<string, string[]> | null;
+  /** LAB-3454: how to find the venue, for example "8th floor". Every viewer gets it. Optional on an older backend. */
+  locationInstructions?: string | null;
 }
 
 /** `GET /v1/irl/events/:uid` (`ResponsePLEventDetailSchema`). 404 for an unknown or deleted event. */
@@ -63,6 +70,8 @@ export interface EventDetailResponse {
   logo: string | null;
   banner: string | null;
   websiteUrl: string | null;
+  /** LAB-3456: the registration link the form stored. Optional: an older backend does not send it. */
+  registrationUrl?: string | null;
   externalId: string | null;
   resources: unknown[];
   /** The event's own venue (LAB-3281). Null or absent when it has none, or on an older API. */
@@ -98,6 +107,16 @@ export interface EventTag {
 export interface EventAgendaDay {
   day: string;
   items: { time: string; title: string; about?: string }[];
+}
+
+/** LAB-3451: one social handle of the event, ready to link. */
+export interface EventSocialLink {
+  /** The platform's form label, for example "Discord". */
+  platform: string;
+  /** An `http` or `https` address, or `mailto:` for an email. */
+  href: string;
+  /** The address without the scheme, for example "x.com/plabs", or the email address. */
+  label: string;
 }
 
 /** One event of the gathering, as the events picker needs it. */
@@ -141,6 +160,8 @@ export interface EventDetail {
   address: string | null;
   /** LAB-3324: the venue's map link (for example Google Maps). Null when the event has none. */
   locationUrl: string | null;
+  /** LAB-3454: how to find the venue, under the venue line. Null when the event has no venue or no instruction. */
+  locationInstructions: string | null;
   image: string | null;
   /** The codes of the event's focus areas, e.g. "FA4" (LAB-3404). */
   focusAreas: string[];
@@ -150,15 +171,23 @@ export interface EventDetail {
   /** May hold HTML from the events sync; rendered through `SafeHtml`. */
   description: string | null;
   agenda: EventAgendaDay[];
+  /** LAB-3451: the social handles that give a safe link, in their stored order. Empty when none. */
+  socials: EventSocialLink[];
   websiteUrl: string | null;
   /** The event's id in the PL events app (LAB-3361). The drawer does not link it now (LAB-3420). Null when unknown. */
   externalId: string | null;
   /**
-   * LAB-3334: the link that the drawer's link row and "Register" open. It is `websiteUrl` when that is an `http` or
-   * `https` address. Otherwise it is the link of the event's resource named "Registration" (name match ignores case
-   * and end spaces), when that is an `http` or `https` address. Null when neither is.
+   * LAB-3334: the link of the drawer's event page row. It is `websiteUrl` when that is an `http` or `https` address.
+   * Otherwise it is the registration link (`registrationUrl`). Null when neither is.
    */
   eventUrl: string | null;
+  /**
+   * LAB-3456: the registration link: the stored `registrationUrl`, else the link of the event's resource named
+   * "Registration" (name match ignores case and end spaces). Only an `http` or `https` address. Null when none.
+   */
+  registrationUrl: string | null;
+  /** LAB-3456: what Register opens: `registrationUrl`, else the website. Null when neither is. */
+  registerUrl: string | null;
   gathering: EventGathering | null;
   /** Invite only by its access or by its type: a signed-out visitor does not see who went (LAB-3426). */
   inviteOnly: boolean;

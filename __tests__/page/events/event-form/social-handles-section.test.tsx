@@ -19,7 +19,7 @@ describe('SocialHandlesSection', () => {
     const platform = screen.getByLabelText('Social platform 1') as HTMLSelectElement;
     expect(Array.from(platform.options).map((option) => option.text)).toEqual([
       'Select platform',
-      'Twitter',
+      'X/Twitter',
       'Discord',
       'Bluesky',
       'Mastodon',

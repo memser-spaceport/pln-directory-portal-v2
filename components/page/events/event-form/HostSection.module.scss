@@ -15,8 +15,8 @@
   list-style: none;
 }
 
-/* A co-host: the name and the email, then the remove control at the right. */
-.coHost {
+/* A host or co-host row: the name and the email, then the remove control (or its empty slot) at the right. */
+.line {
   display: flex;
   gap: 8px;
   align-items: flex-start;
@@ -31,4 +31,10 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+/* The empty place of the remove control in the host row: the width of `.iconButton`. */
+.slot {
+  flex: 0 0 40px;
+  width: 40px;
 }

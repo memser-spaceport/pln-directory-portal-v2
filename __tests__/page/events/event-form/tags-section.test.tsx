@@ -66,6 +66,64 @@ describe('TagsSection', () => {
     expect(screen.queryByRole('button', { name: /^Remove tag/ })).not.toBeInTheDocument();
   });
 
+  it('adds the typed tag when the field loses focus', () => {
+    const { form } = renderSection(<TagsSection />);
+    const input = screen.getByPlaceholderText('Type your tag here');
+
+    fireEvent.change(input, { target: { value: 'Demo day' } });
+    fireEvent.blur(input);
+
+    expect(form.current.getValues('tags')).toEqual(['Talks & Presentation', 'Demo day']);
+    expect(screen.getByRole('button', { name: 'Remove tag Demo day' })).toBeInTheDocument();
+    expect(input).toHaveValue('');
+  });
+
+  it('adds nothing when the field loses focus empty', () => {
+    const { form } = renderSection(<TagsSection />);
+    const input = screen.getByPlaceholderText('Type your tag here');
+
+    fireEvent.change(input, { target: { value: '   ' } });
+    fireEvent.blur(input);
+
+    expect(form.current.getValues('tags')).toEqual(['Talks & Presentation']);
+    expect(form.current.formState.isDirty).toBe(false);
+  });
+
+  it('adds a tag on a comma and keeps the text after it', () => {
+    const { form } = renderSection(<TagsSection />);
+    const input = screen.getByPlaceholderText('Type your tag here');
+
+    fireEvent.change(input, { target: { value: 'Demo day,' } });
+    expect(form.current.getValues('tags')).toEqual(['Talks & Presentation', 'Demo day']);
+    expect(input).toHaveValue('');
+
+    fireEvent.change(input, { target: { value: 'Mixer, Pit' } });
+    expect(form.current.getValues('tags')).toEqual(['Talks & Presentation', 'Demo day', 'Mixer']);
+    expect(input).toHaveValue(' Pit');
+  });
+
+  it('adds every tag of a pasted list once, whatever its case', () => {
+    const { form } = renderSection(<TagsSection />);
+    const input = screen.getByPlaceholderText('Type your tag here');
+
+    fireEvent.change(input, { target: { value: 'Demo day, mixer,, DEMO DAY, workshop, Mixer' } });
+    fireEvent.blur(input);
+
+    expect(form.current.getValues('tags')).toEqual(['Talks & Presentation', 'Demo day', 'mixer', 'Workshop']);
+    expect(chip('Workshop')).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('keeps two custom tags as two chips', () => {
+    const { form } = renderSection(<TagsSection />);
+
+    typeTag('Demo day');
+    typeTag('Mixer');
+
+    expect(form.current.getValues('tags')).toEqual(['Talks & Presentation', 'Demo day', 'Mixer']);
+    expect(screen.getByRole('button', { name: 'Remove tag Demo day' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remove tag Mixer' })).toBeInTheDocument();
+  });
+
   it('leaves `tags` empty when every tag is removed', () => {
     const { form } = renderSection(<TagsSection />, { values: { tags: ['Talks & Presentation', 'Demo Day'] } });
 

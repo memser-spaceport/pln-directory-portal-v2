@@ -43,7 +43,6 @@ import { CHANGES, sharedChat, titleFor, withTitle, type SharedChat } from './moc
 import s from './AiSearchPagePrototype.module.scss';
 
 type Viewer = 'in' | 'out';
-type Actions = 'live' | 'elsewhere' | 'mode';
 type Start = 'agent' | 'new' | 'chat' | 'shared';
 
 export default function AiSearchPagePrototype() {
@@ -56,18 +55,12 @@ export default function AiSearchPagePrototype() {
     typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('q') ? 'chat' : 'agent',
   );
   const [showChanges, setShowChanges] = useState(false);
-  /* 2026-11-25, two ways to align the chat with the agent:
-       version 1 (`?version=1`, default): the agent acts; the chat shows what it did and points new requests to it.
-       version 2 (`?version=2`): the chat is the agent, expanded. It does the same things, with the same cards.
-       version 3 (`?version=3`, the manager's middle path, 2026-11-26): a Search | Agent switch in the composer;
-         Search answers, Agent also makes changes, and "@agent …" sends one message to the agent.
-     `?role=` picks the member: portfolio founder (default), team lead, member. */
-  const [actions, setActions] = useState<Actions>('elsewhere');
+  /* 2026-11-26 decision: AI agent chat IS the agent. It answers questions and does what the agent does,
+     with the same steps and confirm cards. (Versions 1 "agent acts, chat shows it" and 3 "Search | Agent
+     switch" were dropped.) `?role=` picks the member: portfolio founder (default), team lead, member. */
   const [role, setRole] = useState<ViewerKey>('founder');
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('version') === '2') setActions('live');
-    if (params.get('version') === '3') setActions('mode');
     const r = params.get('role');
     if (r === 'lead' || r === 'member') setRole(r);
   }, []);
@@ -84,19 +77,18 @@ export default function AiSearchPagePrototype() {
   const [activeId, setActiveId] = useState<number | null>(null);
   const [shared, setShared] = useState<SharedChat | null>(null);
 
-  /* A chat where the agent acted, first in History. Version 1: its actions read as "Done in the agent"
-     receipts. Version 2 (the chat is the agent): the agent's own steps and cards, finished. Rebuilt per
-     version and member role, because what the agent may do follows the role. */
+  /* A chat where the agent acted, first in History: the agent's own steps and cards, finished. Rebuilt per
+     member role, because what the agent may do follows the role. */
   const agentThreadId = useRef<number | null>(null);
   useEffect(() => {
-    const thread = agentHandoffThread(role, actions === 'elsewhere' ? 'receipt' : 'history');
+    const thread = agentHandoffThread(role);
     const old = agentThreadId.current;
     agentThreadId.current = thread.id;
     /* One copy, always: drop the previous one by id, and by title in case a hot reload lost the id. */
     setSaved((prev) => [thread, ...prev.filter((x) => x.id !== old && x.title !== thread.title)]);
     setActiveId((cur) => (cur === old || (old === null && start === 'agent') ? thread.id : cur));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [role, actions]);
+  }, [role]);
 
   const signedIn = viewer === 'in';
   const threads = signedIn ? saved : visit;
@@ -169,14 +161,14 @@ export default function AiSearchPagePrototype() {
       scope,
       title: titleFor(q),
       turns: (() => {
-        /* Requests the agent acted on arrive as "Done in the agent" receipts, never run again; questions are
-           answered here, as before. One script reads them in order, as the agent did. */
+        /* Requests the agent acted on arrive as its finished cards, never run again; questions are answered
+           here, as before. One script reads them in order, as the agent did. */
         const r = params.get('role');
         const arrivalRole: ViewerKey = r === 'lead' || r === 'member' ? r : 'founder';
         const agent = createThreadAgent(arrivalRole);
         return qs.map((question) => {
           const reply = scope ? null : agent(question);
-          if (reply) return agentTurn(question, reply, arrivalRole, 'receipt');
+          if (reply) return agentTurn(question, reply, arrivalRole, 'history');
           const turn = makeTurn(question, scope);
           return answered ? { ...turn, shown: turn.answer, status: 'done' as const } : turn;
         });
@@ -260,30 +252,6 @@ export default function AiSearchPagePrototype() {
               ))}
           </div>
         </div>
-        <div className={demo.demoGroup}>
-          <span className={demo.demoLabel}>Version</span>
-          <div className={demo.demoSwitch}>
-            {(
-              [
-                ['elsewhere', '1 · Agent acts, chat shows it'],
-                ['live', '2 · Chat is the agent'],
-                ['mode', '3 · Search | Agent switch'],
-              ] as const
-            ).map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                className={`${demo.demoBtn} ${actions === key ? demo.demoBtnActive : ''}`}
-                onClick={() => {
-                  setActions(key);
-                  setParam('version', key === 'live' ? '2' : key === 'mode' ? '3' : null);
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
         {signedIn && (
           <div className={demo.demoGroup}>
             <span className={demo.demoLabel}>Member</span>
@@ -360,9 +328,8 @@ export default function AiSearchPagePrototype() {
         request={request}
         canShare={false}
         /* Signed out there is no member to act for: answers only. Re-keyed so a role change starts fresh scripts. */
-        key={`${actions}-${role}`}
+        key={role}
         agentViewer={signedIn ? role : undefined}
-        agentActions={actions}
       />
     </>
   );

@@ -79,6 +79,8 @@ export function EventsCalendar({
   onOpen,
   initialMonth,
   onMonthChange,
+  jump,
+  onPeriodChange,
 }: {
   events: CalEvent[];
   todayIso: string;
@@ -95,6 +97,11 @@ export function EventsCalendar({
   /** The city the page is scoped to. Unused since the Week board: each card names its own zone. */
   city?: string | null;
   onOpen: (uid: string, from: CalEvent[]) => void;
+  /** The page's Live & upcoming | Past tabs (2026-11-26): a press moves the calendar to that side of
+      today. `seq` changes on every press, so pressing the same tab twice still moves it. */
+  jump?: { to: 'today' | 'past'; seq: number } | null;
+  /** Reports whether the month / week on show ended before today, so the tabs follow the stepping. */
+  onPeriodChange?: (past: boolean) => void;
 }) {
   type YM = { year: number; month: number };
   const [month, setMonthState] = useState<YM>(() => {
@@ -140,6 +147,37 @@ export function EventsCalendar({
       : `${at(weekStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${at(
           addDays(weekStart, 6),
         ).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+
+  // The tabs follow the calendar: a month or week that ended before today reads as Past.
+  const shownEnd = mode === 'month' ? iso(new Date(month.year, month.month + 1, 0)) : addDays(weekStart, 6);
+  const periodPast = shownEnd < todayIso;
+  useEffect(() => {
+    onPeriodChange?.(periodPast);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [periodPast]);
+
+  // A tab press: Live & upcoming is Today; Past is the latest past event, capped at the last month /
+  // week that ended before today, so the landing period is wholly past and the tab holds.
+  useEffect(() => {
+    if (!jump) return;
+    if (jump.to === 'today') {
+      goToday();
+      return;
+    }
+    const cap =
+      mode === 'month'
+        ? iso(new Date(at(todayIso).getFullYear(), at(todayIso).getMonth(), 0))
+        : addDays(mondayOf(todayIso), -1);
+    const latest = events
+      .filter((e) => e.endDate < todayIso)
+      .map((e) => (e.endDate < cap ? e.endDate : cap))
+      .sort()
+      .pop();
+    const target = latest ?? cap;
+    setMonth({ year: at(target).getFullYear(), month: at(target).getMonth() });
+    setDay(target);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jump?.seq]);
 
   // Month fills the viewport, so switching to it brings the whole card on screen.
   // Compared with the previous mode, not a "first run" flag: dev Strict Mode runs effects twice.

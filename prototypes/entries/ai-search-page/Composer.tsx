@@ -18,7 +18,7 @@ type ComposerProps = React.ComponentProps<'textarea'> & {
   size?: 'home' | 'thread';
   /** Inside the field, above the text: what the question is asked about (the scope chip). */
   leading?: React.ReactNode;
-  /** Bottom-left, opposite the send: the Search | Agent switch (version 3). */
+  /** Bottom-left, opposite the send: a control such as a mode switch (none in use since 2026-11-26). */
   footer?: React.ReactNode;
 };
 

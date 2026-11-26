@@ -38,10 +38,10 @@ export interface Turn extends CannedAnswer {
    * cards replace the answer's anatomy. See `ai-search-page/agentActions.tsx`.
    */
   agent?: AgentReply;
-  /** How the page treats that action: live cards, a "Done in the agent" receipt, or a pointer to the agent. */
+  /** How the page treats that action: live cards, or the same cards finished (a past chat). */
   agentView?: AgentView;
   agentViewer?: ViewerKey;
-  /** A receipt's one line: what the agent did. */
+  /** Unused since 2026-11-26 (receipts were dropped with version 1). */
   agentSummary?: string;
 }
 
@@ -95,7 +95,7 @@ interface AnswerPanelProps {
   InputComponent?: typeof ChatInput;
   /** Optional content right above the follow-up field (the MCP prototype puts its hint here). Nothing renders without it. */
   aboveInput?: React.ReactNode;
-  /** Handed to the input as its `footer` (ai-search-page version 3: the Search | Agent switch). */
+  /** Handed to the input as its `footer` (unused since the Search | Agent switch was dropped, 2026-11-26). */
   inputFooter?: React.ReactNode;
   /** The follow-up field's placeholder; "Ask a follow-up" by default. */
   inputPlaceholder?: string;

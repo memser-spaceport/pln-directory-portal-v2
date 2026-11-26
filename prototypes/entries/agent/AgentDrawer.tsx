@@ -251,7 +251,7 @@ export function AgentDrawer({
     }
     const scoped = aiSearchScope && readingRef.current.some((r) => r.id === page.id);
     /* The member's role travels too, so AI agent chat knows which of these were actions the agent took
-       (they arrive as "Done in the agent" receipts, never run again). */
+       (they arrive as the agent's finished cards, never run again). */
     const role = (Object.keys(VIEWERS) as ViewerKey[]).find((k) => VIEWERS[k] === viewer);
     const extra: Record<string, string> = { ...(scoped ? aiSearchScope : {}), ...(role && role !== 'founder' ? { role } : {}) };
     window.open(aiSearchUrl(questions, Object.keys(extra).length ? extra : undefined), '_blank', 'noopener');

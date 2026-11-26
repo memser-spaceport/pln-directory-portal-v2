@@ -20,6 +20,7 @@ export function toFieldErrors(errors: EventFormErrors): [Name, string][] {
   add('agenda', errors.agenda);
   add('tags', errors.tags);
   add('hostName', errors.hostName);
+  add('hostEmail', errors.hostEmail);
   errors.coHosts?.forEach((row, index) => {
     add(`coHosts.${index}.name`, row?.name);
     add(`coHosts.${index}.email`, row?.email);

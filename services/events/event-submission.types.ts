@@ -202,6 +202,7 @@ export interface EventFormErrors {
   description?: string;
   tags?: string;
   hostName?: string;
+  hostEmail?: string;
   coHosts?: ({ name?: string; email?: string } | undefined)[];
   registrationUrl?: string;
   venue?: string;

@@ -405,6 +405,7 @@ export function checkEventForm(values: EventFormValues, mode: EventFormMode): Ev
 
   if (submit && values.tags.length === 0) errors.tags = EVENT_FORM_TEXT.tagRequired;
   if (submit && !values.hostName.trim()) errors.hostName = EVENT_FORM_TEXT.hostRequired;
+  if (values.hostEmail.trim() && !isValidEmail(values.hostEmail)) errors.hostEmail = EVENT_FORM_TEXT.emailInvalid;
 
   const coHosts = values.coHosts.map((coHost) => {
     const issue: { name?: string; email?: string } = {};

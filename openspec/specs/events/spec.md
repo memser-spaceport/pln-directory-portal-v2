@@ -1301,6 +1301,8 @@ When the form is sent with an agenda, in any mode, each session SHALL be inside 
 
 The host section SHALL have a host name ("Enter Host Name") and an optional host email ("Enter Host Email"). "Add Co-Host" SHALL add a row with a name and an optional email, and each row SHALL have a remove control. The title SHALL read "Host (N)", where N counts the host and the co-hosts.
 
+If the host email is not empty and is invalid, Submit and Save as draft SHALL stop and show "Enter a valid email" under the host email field (LAB-3453).
+
 #### Scenario: Two co-hosts
 
 - **WHEN** the visitor adds two co-host rows

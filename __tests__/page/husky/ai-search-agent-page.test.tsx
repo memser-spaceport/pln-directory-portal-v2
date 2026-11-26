@@ -47,8 +47,10 @@ jest.mock('@/components/page/husky/hooks/useSidebar', () => ({
   useSidebar: () => ({ toggleSidebar: jest.fn(), state: 'expanded', isMobile: false }),
 }));
 jest.mock('@/components/page/husky/Chat/components/ChatTitleBar', () => ({
-  ChatTitleBar: ({ chat: shown }: { chat?: { title: string } }) => (
-    <div data-testid="title-bar">{shown?.title ?? ''}</div>
+  ChatTitleBar: ({ chat: shown }: { chat?: { title: string; threadId?: string } }) => (
+    <div data-testid="title-bar" data-thread-id={shown?.threadId ?? ''}>
+      {shown?.title ?? ''}
+    </div>
   ),
 }));
 jest.mock('@/components/page/husky/ChatContainer', () => ({
@@ -201,6 +203,22 @@ describe('LAB-3457: AI agent chat on the agent', () => {
       expect(screen.getByRole('button', { name: /Worked for \d+s · 1 step/ })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Which one is hiring?' })).toBeInTheDocument();
       expect(screen.getByTestId('title-bar')).toHaveTextContent('Which teams work on decentralized storage?');
+    });
+
+    it('a saved chat tells the rail its thread and gives the title bar its id (Delete)', async () => {
+      const announced = jest.fn();
+      const listen = (e: Event) => announced((e as CustomEvent).detail);
+      document.addEventListener('refresh-husky-history', listen);
+      signIn();
+      wrap(<AgentChat />);
+      type(field(), 'Which teams work on decentralized storage?');
+      fireEvent.keyDown(field(), { key: 'Enter' });
+
+      await screen.findByText('Three teams work on storage.');
+      const { threadId } = chat.mock.calls[0][0];
+      expect(announced).toHaveBeenCalledWith({ openThreadId: threadId });
+      expect(screen.getByTestId('title-bar')).toHaveAttribute('data-thread-id', threadId);
+      document.removeEventListener('refresh-husky-history', listen);
     });
 
     it('C1 THREAD_NOT_FOUND before the stream: the message goes again once, in a new thread', async () => {

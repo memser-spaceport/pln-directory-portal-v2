@@ -3,6 +3,16 @@ import '@testing-library/jest-dom';
 
 const push = jest.fn();
 
+// LAB-3457: these tests cover AI search's own History rail, which members outside the agent gate keep.
+jest.mock('@/services/labos-agent/hooks/useLabosAgentAccess', () => ({
+  useLabosAgentAccessState: () => 'off',
+  useLabosAgentAccess: () => false,
+}));
+jest.mock('@/services/labos-agent/hooks/useLabosAgentThreads', () => ({
+  useLabosAgentThreads: () => ({ rows: [], isPending: false, hasNextPage: false, refetch: jest.fn() }),
+  useDeleteLabosAgentThread: () => ({ mutateAsync: jest.fn() }),
+}));
+
 jest.mock('@/analytics/husky.analytics', () => ({
   useHuskyAnalytics: () => ({
     trackMobileHeaderToggleClicked: jest.fn(),

@@ -1,9 +1,17 @@
 'use client';
 
-import { type QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  type InfiniteData,
+  type QueryClient,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 import { useCurrentUserStore } from '@/services/auth/store';
-import type { LabosAgentDraftConfirmRequest, LabosAgentThread, LabosAgentThreadList } from '@/types/labos-agent.types';
+import type { LabosAgentThreadList, LabosAgentThreadListItem } from '@/types/labos-agent.types';
 
 import { LABOS_AGENT_THREADS_PAGE_SIZE, LabosAgentQueryKeys } from '../constants';
 import { LabosAgentError } from '../labos-agent.errors';
@@ -17,14 +25,33 @@ import { getLabosAgentHistoryClient } from '../labos-agent.history';
 
 const notFound = (error: unknown) => error instanceof LabosAgentError && error.code === 'THREAD_NOT_FOUND';
 
-/** T1: the newest threads first, one page of 50. The rail searches and groups them by date on the client. */
+/** The rows loaded so far, in order. A row that moved to a later page while paging shows once. */
+export function threadRows(data: InfiniteData<LabosAgentThreadList> | undefined): LabosAgentThreadListItem[] {
+  const seen = new Set<string>();
+  return (data?.pages ?? []).flatMap((page) =>
+    page.items.filter((item) => (seen.has(item.threadId) ? false : (seen.add(item.threadId), true))),
+  );
+}
+
+/**
+ * T1: the newest threads first, a page of `LABOS_AGENT_THREADS_PAGE_SIZE` at a time; `fetchNextPage` loads the next
+ * one while `hasNextPage`. The rail searches and groups the loaded rows by date on the client.
+ */
 export function useLabosAgentThreads({ enabled }: { enabled: boolean }) {
   const uid = useCurrentUserStore((state) => state.currentUser?.uid);
-  return useQuery({
+  const query = useInfiniteQuery({
     queryKey: [LabosAgentQueryKeys.THREADS, uid],
-    queryFn: () => getLabosAgentHistoryClient().listThreads({ page: 1, limit: LABOS_AGENT_THREADS_PAGE_SIZE }),
+    queryFn: ({ pageParam }) =>
+      getLabosAgentHistoryClient().listThreads({ page: pageParam, limit: LABOS_AGENT_THREADS_PAGE_SIZE }),
+    initialPageParam: 1,
+    getNextPageParam: (last, pages) => {
+      const loaded = pages.reduce((n, page) => n + page.items.length, 0);
+      return last.items.length > 0 && loaded < last.total ? last.page + 1 : undefined;
+    },
     enabled: enabled && !!uid,
   });
+  const rows = useMemo(() => threadRows(query.data), [query.data]);
+  return { ...query, rows };
 }
 
 /** T2: one thread with its turns. A 404 (`THREAD_NOT_FOUND`) is final: no retry. */
@@ -54,20 +81,27 @@ export function refreshLabosAgentHistory(queryClient: QueryClient, threadId: str
   });
 }
 
-/** T3. The row leaves the cached list at once; a 404 means it is gone already, so it leaves too. */
+/** T3. The row leaves the cached list at once; a 404 means it is gone already, so it leaves too. Then the list refetches. */
 export function useDeleteLabosAgentThread() {
   const queryClient = useQueryClient();
   const drop = (threadId: string) => {
-    queryClient.setQueriesData<LabosAgentThreadList>({ queryKey: [LabosAgentQueryKeys.THREADS] }, (list) =>
-      list
-        ? {
-            ...list,
-            total: Math.max(0, list.total - 1),
-            items: list.items.filter((item) => item.threadId !== threadId),
-          }
-        : list,
+    queryClient.setQueriesData<InfiniteData<LabosAgentThreadList>>(
+      { queryKey: [LabosAgentQueryKeys.THREADS] },
+      (data) =>
+        data
+          ? {
+              ...data,
+              pages: data.pages.map((page) => ({
+                ...page,
+                total: Math.max(0, page.total - 1),
+                items: page.items.filter((item) => item.threadId !== threadId),
+              })),
+            }
+          : data,
     );
     queryClient.removeQueries({ queryKey: [LabosAgentQueryKeys.THREAD], predicate: (q) => q.queryKey[2] === threadId });
+    // The server pages moved up by one row: read the loaded pages again, so "Load more" skips none.
+    void queryClient.invalidateQueries({ queryKey: [LabosAgentQueryKeys.THREADS] });
   };
   return useMutation({
     mutationFn: async (threadId: string) => {
@@ -79,39 +113,5 @@ export function useDeleteLabosAgentThread() {
       return threadId;
     },
     onSuccess: drop,
-  });
-}
-
-/** C5. The cached thread gets the draft's new state, so a reopened chat shows it sent or cancelled. */
-export function useConfirmLabosAgentDraft() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (request: LabosAgentDraftConfirmRequest) => getLabosAgentHistoryClient().confirmDraft(request),
-    onSuccess: (response, request) => {
-      queryClient.setQueriesData<LabosAgentThread>(
-        { queryKey: [LabosAgentQueryKeys.THREAD], predicate: (q) => q.queryKey[2] === request.threadId },
-        (thread) =>
-          thread && {
-            ...thread,
-            turns: thread.turns.map((turn) =>
-              turn.kind !== 'agent'
-                ? turn
-                : {
-                    ...turn,
-                    drafts: turn.drafts.map((draft) =>
-                      draft.draftId !== response.draftId
-                        ? draft
-                        : {
-                            ...draft,
-                            status: response.status,
-                            ...(response.status === 'sent' && request.text ? { text: request.text.trim() } : {}),
-                            ...(response.introRequestUid ? { introRequestUid: response.introRequestUid } : {}),
-                          },
-                    ),
-                  },
-            ),
-          },
-      );
-    },
   });
 }

@@ -6,12 +6,11 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { LabosAgentQueryKeys } from '@/services/labos-agent/constants';
 import { LabosAgentError } from '@/services/labos-agent/labos-agent.errors';
 import {
-  useConfirmLabosAgentDraft,
   useDeleteLabosAgentThread,
   useLabosAgentThread,
   useLabosAgentThreads,
 } from '@/services/labos-agent/hooks/useLabosAgentThreads';
-import type { LabosAgentHistoryClient, LabosAgentThread } from '@/types/labos-agent.types';
+import type { LabosAgentHistoryClient } from '@/types/labos-agent.types';
 
 jest.mock('@tanstack/react-query', () => jest.requireActual('@tanstack/react-query'));
 
@@ -31,37 +30,6 @@ const row = (threadId: string) => ({
   updatedAt: '2026-11-26T10:00:00.000Z',
 });
 
-const thread: LabosAgentThread = {
-  ...row('t-1'),
-  turns: [
-    {
-      kind: 'agent',
-      chatId: 'c-1',
-      question: 'Intro me to Ada',
-      content: 'A draft.',
-      sources: [],
-      sourceRefs: [],
-      followUpQuestions: [],
-      actions: [],
-      createdAt: null,
-      steps: [],
-      proposals: [],
-      drafts: [
-        {
-          draftId: 'dr-1',
-          kind: 'intro',
-          target: { type: 'member', uid: 'm-2', name: 'Ada' },
-          text: 'Hi Ada, an intro please.',
-          minLength: 20,
-          maxLength: 3500,
-          source: 'agent',
-          status: 'open',
-        },
-      ],
-    },
-  ],
-};
-
 let client: QueryClient;
 const wrapper = ({ children }: { children: ReactNode }) => (
   <QueryClientProvider client={client}>{children}</QueryClientProvider>
@@ -74,15 +42,24 @@ beforeEach(() => {
 });
 
 describe('LAB-3457: history hooks', () => {
-  it('asks T1 only inside the gate', async () => {
-    history.listThreads.mockResolvedValue({ page: 1, limit: 50, total: 1, items: [row('t-1')] });
+  it('asks T1 only inside the gate, 20 rows a page, and loads more until the total', async () => {
+    history.listThreads
+      .mockResolvedValueOnce({ page: 1, limit: 20, total: 3, items: [row('t-1'), row('t-2')] })
+      .mockResolvedValueOnce({ page: 2, limit: 20, total: 3, items: [row('t-2'), row('t-3')] });
     const outside = renderHook(() => useLabosAgentThreads({ enabled: false }), { wrapper });
     expect(outside.result.current.fetchStatus).toBe('idle');
     expect(history.listThreads).not.toHaveBeenCalled();
 
     const inside = renderHook(() => useLabosAgentThreads({ enabled: true }), { wrapper });
-    await waitFor(() => expect(inside.result.current.data?.items).toHaveLength(1));
-    expect(history.listThreads).toHaveBeenCalledWith({ page: 1, limit: 50 });
+    await waitFor(() => expect(inside.result.current.rows).toHaveLength(2));
+    expect(history.listThreads).toHaveBeenCalledWith({ page: 1, limit: 20 });
+    expect(inside.result.current.hasNextPage).toBe(true);
+
+    await act(() => inside.result.current.fetchNextPage());
+    expect(history.listThreads).toHaveBeenLastCalledWith({ page: 2, limit: 20 });
+    // t-2 moved to page 2 while paging: it shows once.
+    await waitFor(() => expect(inside.result.current.rows.map((r) => r.threadId)).toEqual(['t-1', 't-2', 't-3']));
+    expect(inside.result.current.hasNextPage).toBe(false);
   });
 
   it('T2 does not retry a THREAD_NOT_FOUND', async () => {
@@ -94,45 +71,24 @@ describe('LAB-3457: history hooks', () => {
   });
 
   it('delete drops the row from the cached list, also when T3 says it is gone already', async () => {
-    client.setQueryData([LabosAgentQueryKeys.THREADS, 'me'], {
-      page: 1,
-      limit: 50,
-      total: 2,
-      items: [row('t-1'), row('t-2')],
+    const pages = (ids: string[]) => ({
+      pages: [{ page: 1, limit: 20, total: ids.length, items: ids.map(row) }],
+      pageParams: [1],
     });
+    client.setQueryData([LabosAgentQueryKeys.THREADS, 'me'], pages(['t-1', 't-2']));
     history.deleteThread.mockRejectedValueOnce(new LabosAgentError(404, 'THREAD_NOT_FOUND', 'No'));
     const { result } = renderHook(() => useDeleteLabosAgentThread(), { wrapper });
     await act(() => result.current.mutateAsync('t-1'));
     expect(client.getQueryData([LabosAgentQueryKeys.THREADS, 'me'])).toMatchObject({
-      total: 1,
-      items: [{ threadId: 't-2' }],
+      pages: [{ total: 1, items: [{ threadId: 't-2' }] }],
     });
 
     history.deleteThread.mockRejectedValueOnce(new LabosAgentError(0, 'STREAM_FAILED', 'No'));
     await act(async () => {
       await expect(result.current.mutateAsync('t-2')).rejects.toMatchObject({ code: 'STREAM_FAILED' });
     });
-    expect(client.getQueryData([LabosAgentQueryKeys.THREADS, 'me'])).toMatchObject({ items: [{ threadId: 't-2' }] });
-  });
-
-  it('C5 marks the cached draft sent with the sent text', async () => {
-    client.setQueryData([LabosAgentQueryKeys.THREAD, 'me', 't-1'], thread);
-    history.confirmDraft.mockResolvedValue({ draftId: 'dr-1', status: 'sent', introRequestUid: 'ir-1' });
-    const { result } = renderHook(() => useConfirmLabosAgentDraft(), { wrapper });
-    await act(() =>
-      result.current.mutateAsync({
-        threadId: 't-1',
-        draftId: 'dr-1',
-        decision: 'send',
-        text: ' Hi Ada, edited text. ',
-      }),
-    );
-    const cached = client.getQueryData<LabosAgentThread>([LabosAgentQueryKeys.THREAD, 'me', 't-1']);
-    const turn = cached?.turns[0];
-    expect(turn?.kind === 'agent' && turn.drafts[0]).toMatchObject({
-      status: 'sent',
-      text: 'Hi Ada, edited text.',
-      introRequestUid: 'ir-1',
+    expect(client.getQueryData([LabosAgentQueryKeys.THREADS, 'me'])).toMatchObject({
+      pages: [{ items: [{ threadId: 't-2' }] }],
     });
   });
 });

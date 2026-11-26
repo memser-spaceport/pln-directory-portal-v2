@@ -125,3 +125,12 @@ Signed out, the route SHALL stay as today (the 404 page when AI search has no su
 - **GIVEN** a member inside the gate and an old AI search thread `t-1`
 - **WHEN** they open `/ai-search/t-1` and press a follow-up
 - **THEN** the saved answer shows, and C1 gets the follow-up with `threadId` `t-1` and `persist: true`
+
+### Requirement: The History rail is the shared history for members inside the gate
+
+LAB-3457. For a signed-in member inside the agent gate, the History rail SHALL list T1 (`GET /v1/labos-agent/threads`): old AI search chats and agent chats in one list, newest first, 20 rows a page, with "Load more chats" while rows are left (a row that moved to a later page shows once). It SHALL not read `/v1/husky/threads`. Search and the date groups SHALL work on the loaded rows, as today. Delete SHALL go to T3 (`DELETE /v1/labos-agent/threads/:threadId`): the row leaves at once (also on 404), the list reads its pages again, the open chat leaves for a new chat, and a failure keeps the row with the failure toast. A chat on `/ai-search` (no id in the URL) SHALL announce its saved thread (`refresh-husky-history` with `openThreadId`), so its row is marked open, and its title bar SHALL offer Delete once the chat is saved. While the gate has not answered, the rail SHALL show its skeleton and read neither list. Signed out and outside the gate, the rail SHALL stay as today.
+
+#### Scenario: Old and new chats in one rail
+- **GIVEN** a member inside the gate with an old AI search chat and an agent chat
+- **WHEN** they open `/ai-search`
+- **THEN** History lists both, and opening the old one shows it on the agent

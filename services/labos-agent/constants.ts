@@ -17,8 +17,8 @@ export const LABOS_AGENT_ENDPOINTS = {
   draftConfirm: '/v1/labos-agent/drafts/confirm',
 } as const;
 
-/** LAB-3457: the T1 page size of the history rail (the backend allows 1 to 50). */
-export const LABOS_AGENT_THREADS_PAGE_SIZE = 50;
+/** LAB-3457: the T1 page size of the history rail (the backend allows 1 to 50); "Load more" asks for the next. */
+export const LABOS_AGENT_THREADS_PAGE_SIZE = 20;
 
 /** C1 request limits. */
 export const LABOS_AGENT_MESSAGE_MAX = 2000;
@@ -114,3 +114,9 @@ export const LABOS_AGENT_PAGE_PROMPT_COUNT = 3;
 
 /** LAB-3457: the store key of a page chat. One chat per thread. */
 export const labosAgentPageChatKey = (threadId: string) => `ai-search:${threadId}`;
+
+/** LAB-3457: the History rail's paging, for members inside the agent gate. */
+export const LABOS_AGENT_HISTORY_TEXT = {
+  loadMore: 'Load more chats',
+  loadingMore: 'Loading…',
+} as const;

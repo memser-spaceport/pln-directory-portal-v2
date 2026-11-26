@@ -111,6 +111,16 @@ export function AgentChat({ threadId: savedThreadId }: { threadId?: string } = {
     return () => document.removeEventListener('new-chat', onNewChat);
   }, []);
 
+  /*
+   * The thread the backend saved this chat in (the first saved turn; a THREAD_NOT_FOUND restart moves it). The rail
+   * marks its row open, as today's page announces a chat with no id in the URL, and the title bar offers Delete.
+   */
+  const savedIn = turns.find((t) => t.savedIn)?.savedIn ?? null;
+  useEffect(() => {
+    if (!savedIn) return;
+    document.dispatchEvent(new CustomEvent('refresh-husky-history', { detail: { openThreadId: savedIn } }));
+  }, [savedIn]);
+
   // Keep the newest words in view while a turn arrives.
   const lastTurn = turns[turns.length - 1];
   useEffect(() => {
@@ -196,7 +206,12 @@ export function AgentChat({ threadId: savedThreadId }: { threadId?: string } = {
 
   return (
     <>
-      <ChatTitleBar chat={{ title: (opensSaved && saved.data?.title) || turns[0].message }} />
+      <ChatTitleBar
+        chat={{
+          title: (opensSaved && saved.data?.title) || turns[0].message,
+          ...(savedIn ? { threadId: savedIn } : {}),
+        }}
+      />
       <div className={chat.root}>
         <div className={chat.messages}>
           <div className={s.turns}>

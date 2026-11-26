@@ -27,14 +27,38 @@ jest.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(window.location.search),
 }));
 
-type DrawerProps = { eventUid: string | null; sequence?: string[]; onClose: () => void };
+type DrawerProps = {
+  eventUid: string | null;
+  sequence?: string[];
+  initialStep?: string;
+  onClose: () => void;
+  onNavigate?: (uid: string) => void;
+};
 jest.mock(
   'next/dynamic',
   () => () =>
     function EventDrawerStandIn(props: DrawerProps) {
       if (!props.eventUid) return null;
       return (
-        <div data-testid="event-drawer" data-uid={props.eventUid} data-sequence={(props.sequence ?? []).join(',')} />
+        <div
+          data-testid="event-drawer"
+          data-uid={props.eventUid}
+          data-sequence={(props.sequence ?? []).join(',')}
+          data-step={props.initialStep ?? 'event'}
+        >
+          <button type="button" onClick={props.onClose}>
+            Close drawer
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const list = props.sequence ?? [];
+              props.onNavigate?.(list[list.indexOf(props.eventUid as string) + 1]);
+            }}
+          >
+            Next event
+          </button>
+        </div>
       );
     },
 );
@@ -106,6 +130,8 @@ jest.mock('@/components/page/events/all-events/map/EventsMap', () => ({
   ),
 }));
 jest.mock('@/components/core/ToastContainer', () => ({ toast: { success: jest.fn(), error: jest.fn() } }));
+// The Calendar's month picker (LAB-3460) is react-calendar, which ships ESM only; its own suite has a stand-in.
+jest.mock('react-calendar', () => ({ __esModule: true, default: () => null }));
 
 /** Noon UTC on Nov 25, 2030, whatever zone the tests run in. */
 const NOW = Date.UTC(2030, 10, 25, 12);
@@ -210,10 +236,13 @@ describe('the When switch', () => {
     expect(tabTexts()).toEqual(['Live & upcoming 3', 'Past 4']);
   });
 
-  it('Calendar keeps "Coming up" and the upcoming count, also with `when=past` in the address', () => {
-    renderPage({}, '/events/all?when=past&view=calendar');
-    expect(screen.queryByRole('tablist', { name: 'When' })).toBeNull();
-    expect(screen.getByRole('heading', { name: 'Coming up' }).nextSibling).toHaveTextContent(/^3 events$/);
+  it('Calendar has the same tabs and counts, and no year, also with `when=past&year=` in the address (LAB-3460)', () => {
+    renderPage({}, '/events/all?when=past&year=2029&view=calendar');
+    expect(screen.queryByRole('heading', { name: /^Coming up/ })).toBeNull();
+    expect(tabTexts()).toEqual(['Live & upcoming 3', 'Past 4']);
+    // `when` means nothing in Calendar: the tab is this month's.
+    expect(liveTab()).toHaveAttribute('aria-selected', 'true');
+    expect(yearPicker()).toBeNull();
   });
 
   it('switches what is under the toolbar, keeps it in the address, and records it', () => {
@@ -606,13 +635,18 @@ describe('the Past list', () => {
     expect(screen.queryByText('See events near you.')).toBeNull();
   });
 
-  it('a chosen city keeps its header: "N past events", their span with years, and the newest one’s zone', () => {
+  it('a chosen city keeps its header: "N past events" and their span with years; no zone when its events differ', () => {
     renderPage({}, '/events/all?when=past&city=Paris');
-    expect(
-      screen.getByText('2 past events · Dec 30, 2029 – Jan 3, 2030 · Times in Paris time (UTC+1)'),
-    ).toBeInTheDocument();
+    // p-jan is in UTC+1, p-newyear in UTC+0: no one "Times in" would be true for both cards (P13).
+    expect(screen.getByText('2 past events · Dec 30, 2029 – Jan 3, 2030')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'All cities' }));
     expect(storeParams().toString()).toBe('when=past');
+  });
+
+  it('a city whose events share one zone says it (P13)', () => {
+    // Only p-jan, in UTC+1, matches.
+    renderPage({}, '/events/all?when=past&city=Paris&search=p-jan');
+    expect(screen.getByText('1 past event · Jan 2 · Times in Paris time (UTC+1)')).toBeInTheDocument();
   });
 
   it('one past event in a city reads "1 past event"', () => {
@@ -627,6 +661,73 @@ describe('the Past list', () => {
     expect(within(card('p-nov')).queryByText('Invite only')).toBeNull();
     expect(card('p-dec').textContent).not.toMatch(/went/);
     expect(document.querySelector('ol')?.textContent).not.toMatch(/going|Live/);
+  });
+
+  describe('who went (P1)', () => {
+    const people = (uid: string) => within(card(uid)).queryByRole('button', { name: /^See who went/ });
+    const drawer = () => screen.queryByTestId('event-drawer');
+
+    it('a Past card’s faces and count open the drawer on who went; the rest of the card on the event', () => {
+      renderPage(MEMBER, PAST);
+      expect(people('p-jan')).toHaveAccessibleName('See who went: 12 people');
+      expect(people('p-nov')).toHaveAccessibleName('See who went: 1 person');
+      fireEvent.click(people('p-jan') as HTMLElement);
+      expect(drawer()).toHaveAttribute('data-uid', 'p-jan');
+      expect(drawer()).toHaveAttribute('data-step', 'attendees');
+      expect(storeParams().get('event')).toBe('p-jan');
+      fireEvent.click(screen.getByRole('button', { name: 'Close drawer' }));
+      fireEvent.click(card('p-jan'));
+      expect(drawer()).toHaveAttribute('data-step', 'event');
+    });
+
+    it('opens from the keyboard, Enter or Space', () => {
+      renderPage(MEMBER, PAST);
+      fireEvent.keyDown(people('p-nov') as HTMLElement, { key: 'Enter' });
+      expect(drawer()).toHaveAttribute('data-step', 'attendees');
+      fireEvent.click(screen.getByRole('button', { name: 'Close drawer' }));
+      fireEvent.keyDown(people('p-jan') as HTMLElement, { key: ' ' });
+      expect(drawer()).toHaveAttribute('data-uid', 'p-jan');
+    });
+
+    it('Back to the event after closing it opens it on the event, not on who went', () => {
+      renderPage(MEMBER, PAST);
+      fireEvent.click(people('p-jan') as HTMLElement);
+      fireEvent.click(screen.getByRole('button', { name: 'Close drawer' }));
+      expect(drawer()).toBeNull();
+      window.history.replaceState(null, '', `${PAST}&event=p-jan`);
+      act(() => void window.dispatchEvent(new PopStateEvent('popstate')));
+      expect(drawer()).toHaveAttribute('data-uid', 'p-jan');
+      expect(drawer()).toHaveAttribute('data-step', 'event');
+    });
+
+    it('previous / next from there open the next event on the event, not on who went', () => {
+      renderPage(MEMBER, PAST);
+      fireEvent.click(people('p-jan') as HTMLElement);
+      expect(drawer()).toHaveAttribute('data-step', 'attendees');
+      const sequence = (drawer()?.getAttribute('data-sequence') ?? '').split(',');
+      const next = sequence[sequence.indexOf('p-jan') + 1];
+      fireEvent.click(screen.getByRole('button', { name: 'Next event' }));
+      expect(drawer()).toHaveAttribute('data-uid', next);
+      expect(drawer()).toHaveAttribute('data-step', 'event');
+    });
+
+    it('Live & upcoming cards keep their faces as part of the card', () => {
+      going.uids = [];
+      renderPage(MEMBER);
+      // The List card, not its Near you tile.
+      const listCard = document.querySelector('ol [data-event-uid="now"]') as HTMLElement;
+      expect(within(listCard).getByText('5 going')).toBeInTheDocument();
+      expect(within(listCard).queryByRole('button')).toBeNull();
+      fireEvent.click(within(listCard).getByText('5 going'));
+      expect(drawer()).toHaveAttribute('data-step', 'event');
+    });
+
+    it('signed out, who went needs a sign-in: the faces stay the card’s', () => {
+      renderPage({}, PAST);
+      expect(people('p-jan')).toBeNull();
+      fireEvent.click(within(card('p-jan')).getByText('12 went'));
+      expect(drawer()).toHaveAttribute('data-step', 'event');
+    });
   });
 
   it('says so when nothing matches, and offers every past event', () => {
@@ -729,13 +830,31 @@ describe('"Went"', () => {
     expect(within(card('now')).getByText('5 went')).toBeInTheDocument();
   });
 
-  it('"Events I’m going to" on Past shows the events the viewer went to, and counts them in the rail', () => {
+  it('"Events I went to" on Past shows the events the viewer went to, and counts them in the rail', () => {
     went.state = query({ data: ['p-jan', 'p-dec'] });
     renderPage(MEMBER, '/events/all?when=past&going=true');
     expect(listed()).toEqual(['p-jan', 'p-dec']);
     expect(tabTexts()[1]).toBe('Past 2');
     fireEvent.click(filtersDoor());
-    expect(within(rail()).getByText("Events I'm going to (2)")).toBeInTheDocument();
+    expect(within(rail()).getByText('Events I went to (2)')).toBeInTheDocument();
+    expect(within(rail()).queryByText(/Events I'm going to/)).toBeNull();
+  });
+
+  it('the filter reads in the tab’s tense: its chip too, and the address keeps `going`', () => {
+    went.state = query({ data: ['p-jan', 'p-dec'] });
+    going.uids = ['dec'];
+    renderPage(MEMBER, '/events/all?when=past&going=true');
+    const chips = () => screen.getByLabelText('Applied filters');
+    expect(within(chips()).getByRole('button', { name: 'Remove filter Events I went to' })).toBeInTheDocument();
+    fireEvent.click(liveTab());
+    expect(within(chips()).getByRole('button', { name: "Remove filter Events I'm going to" })).toBeInTheDocument();
+    fireEvent.click(filtersDoor());
+    expect(within(rail()).getByText("Events I'm going to (1)")).toBeInTheDocument();
+    fireEvent.click(pastTab());
+    expect(within(rail()).getByText('Events I went to (2)')).toBeInTheDocument();
+    expect(storeParams().get('going')).toBe('true');
+    fireEvent.click(within(chips()).getByRole('button', { name: 'Remove filter Events I went to' }));
+    expect(storeParams().has('going')).toBe(false);
   });
 
   it('under that filter, Past waits for which they are, and a failure offers a retry of that', () => {
@@ -881,7 +1000,7 @@ describe('Calendar', () => {
   it('stays a calendar when only past events match, and says nothing matches when none does', () => {
     const { unmount } = renderPage({}, '/events/all?view=calendar&city=Paris');
     expect(screen.getByTestId('events-calendar')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Coming up in Paris' }).nextSibling).toHaveTextContent(/^0 events$/);
+    expect(tabTexts()).toEqual(['Live & upcoming 0', 'Past 2']);
     unmount();
     renderPage({}, '/events/all?view=calendar&search=zzz');
     expect(screen.getByText('No live or upcoming events match')).toBeInTheDocument();
@@ -922,7 +1041,7 @@ describe('Embed', () => {
     expect(src).toBe('/events/embed?view=map&when=past&mode=Online');
   });
 
-  it('in Calendar, which has no tabs, the link carries neither `when` nor `year`', async () => {
+  it('in Calendar, where `when` and `year` mean nothing, the link carries neither', async () => {
     renderPage({}, '/events/all?when=past&year=2029&view=calendar&cal=month');
     const { dialog, src } = await scope();
     expect(within(dialog).getByText('Month calendar · All live & upcoming events')).toBeInTheDocument();
@@ -1038,11 +1157,11 @@ describe('the year', () => {
     expect(within(rail()).getByText('Lisbon')).toBeInTheDocument();
   });
 
-  it('so does "Events I’m going to"', () => {
+  it('so does "Events I went to"', () => {
     went.state = query({ data: ['p-jan', 'p-dec'] });
     renderPage(MEMBER, '/events/all?when=past&year=2029');
     fireEvent.click(filtersDoor());
-    expect(within(rail()).getByText("Events I'm going to (1)")).toBeInTheDocument();
+    expect(within(rail()).getByText('Events I went to (1)')).toBeInTheDocument();
   });
 
   it('"Show all events" clears it too, with or without filters', () => {

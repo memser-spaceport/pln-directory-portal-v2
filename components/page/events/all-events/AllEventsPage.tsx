@@ -4,7 +4,7 @@ import clsx from 'clsx';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useEventsAnalytics, type EmbedDetails } from '@/analytics/events.analytics';
@@ -21,6 +21,7 @@ import { useAllEventsFilterStore } from '@/services/events/all-events-filters.st
 import {
   EVENTS_EMBED_PATH,
   FILTER_PARAMS,
+  MONTH_PARAM,
   WHEN_PARAM,
   WHEN_PAST,
   YEAR_PARAM,
@@ -37,6 +38,7 @@ import {
   localIso,
   nearYou,
   pastCitySummary,
+  sharedZone,
   pastYears,
   readFilters,
   readYear,
@@ -54,8 +56,8 @@ import { EVENTS_LIST_PATH } from '@/utils/constants';
 import { HAS_EVENTS_MAP } from '@/utils/events-page';
 
 import { AllEventsFilterRail, AppliedChips, appliedChips } from './AllEventsFilters';
-import { EventsCalendar } from './calendar/EventsCalendar';
-import type { CalMode } from './calendar/weeks';
+import { EventsCalendar, type CalendarJump } from './calendar/EventsCalendar';
+import { parseMonthKey, type CalMode } from './calendar/weeks';
 import { AllEventsHeader } from './AllEventsHeader';
 import { CityBand, CityHeader } from './CityBand';
 import { EmbedModal, embedFrameTitle, embedScopeLine } from './EmbedModal';
@@ -110,6 +112,10 @@ function framedByLabOs(): boolean {
 }
 
 const noopSubscribe = () => () => {};
+
+/** `?month=` as the address has it now. */
+const addressMonth = () =>
+  typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get(MONTH_PARAM);
 
 /** Takes the visitor to the top of the list, under the bars that stay in view, when they are past it. */
 function backToTop(list: HTMLElement | null, toolbar: HTMLElement | null) {
@@ -189,8 +195,30 @@ export function AllEventsPage({
   const calParam = params.get('cal');
   const calMode: CalMode = calParam === 'month' || calParam === 'week' ? calParam : belowMonthWidth ? 'week' : 'month';
 
-  // Past (LAB-3418): List and Map show one or the other; Calendar needs no switch, its past days are there.
+  // Past (LAB-3418): List and Map show one or the other. Calendar shows both, and `when` means nothing there: its tab
+  // follows the month or week on show, and a press on a tab moves the calendar (LAB-3460).
   const past = params.get(WHEN_PARAM) === WHEN_PAST && view !== 'calendar';
+  const [calPast, setCalPast] = useState(false);
+  const [calJump, setCalJump] = useState<CalendarJump | null>(null);
+  // The calendar's month (`?month=2026-03`, LAB-3460): the address's, until the visitor moves the calendar. Written with
+  // replaceState, as in the prototype, so stepping through months adds no Back steps; Back and Forward read it again.
+  // Read off the address itself, not the store, which can still hold a previous visit's on the first render. The
+  // server's HTML is never the Calendar, so it never reads this. '' is "no month": dropped when the city changes, so the
+  // calendar opens on the city's first event, as before LAB-3460.
+  const [calMonth, setCalMonth] = useState<string | null>(null);
+  const monthParam = view === 'calendar' ? (calMonth !== null ? calMonth || null : addressMonth()) : null;
+  const onCalMonthChange = useCallback((key: string) => {
+    setCalMonth(key);
+    // After the address sync's own write (its timer is set first): a move that also pushes an entry (Week | Month)
+    // writes its month on the new entry, and the one before keeps the month it showed, for Back.
+    window.setTimeout(() => {
+      const url = new URL(window.location.href);
+      if (url.searchParams.get(MONTH_PARAM) === key) return;
+      url.searchParams.set(MONTH_PARAM, key);
+      // `null`, never history.state: Next ignores the address of a write that carries its own state.
+      window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+    }, 0);
+  }, []);
   // An embed asks for past events only when its link says Past.
   const pastQuery = usePastEvents(result.ok && (!embed || past));
   // The events of both lists, each in one tab: in Past from its end, on this page's own clock, else in Live & upcoming.
@@ -242,10 +270,11 @@ export function AllEventsPage({
   useEffect(() => {
     const timers = filterTimers.current;
     const store = useAllEventsFilterStore as unknown as {
-      setAnalyticsCallback: (cb: (key: string, value: string | undefined) => void) => void;
+      setAnalyticsCallback: (cb: (key: string, value: string | undefined, next: URLSearchParams) => void) => void;
     };
-    store.setAnalyticsCallback((key, value) => {
+    store.setAnalyticsCallback((key, value, next) => {
       if (!isFilterParam(key)) return;
+      if (key === 'city') dropMonthOnCityChangeRef.current(next);
       window.clearTimeout(timers.get(key));
       timers.set(
         key,
@@ -262,11 +291,36 @@ export function AllEventsPage({
     };
   }, []);
 
+  // A city chosen, changed or cleared by the visitor drops the calendar's month (LAB-3460): the calendar opens on the
+  // city's first event, else today, as the spec has it. Then the month leaves the address, once the address sync has
+  // written the new entry (its timer runs first), so the entry before it keeps its month for Back.
+  const scopedCity = filters.city.length === 1 ? filters.city[0] : null;
+  const dropMonthOnCityChangeRef = useRef((next: URLSearchParams) => void next);
+  useEffect(() => {
+    dropMonthOnCityChangeRef.current = (next: URLSearchParams) => {
+      const city = readFilters(next).city;
+      if ((city.length === 1 ? city[0] : null) !== scopedCity) setCalMonth('');
+    };
+  });
+  useEffect(() => {
+    if (calMonth !== '') return;
+    const id = window.setTimeout(() => {
+      const url = new URL(window.location.href);
+      if (!url.searchParams.has(MONTH_PARAM)) return;
+      url.searchParams.delete(MONTH_PARAM);
+      window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [calMonth]);
+
   // Back and Forward start the address sync afresh: it doesn't write the address it wrote last, so after Past and Back,
   // Past again would leave the address without `when=past`.
   const [popCount, setPopCount] = useState(0);
   useEffect(() => {
-    const onPopState = () => setPopCount((n) => n + 1);
+    const onPopState = () => {
+      setPopCount((n) => n + 1);
+      setCalMonth(null);
+    };
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
@@ -305,12 +359,13 @@ export function AllEventsPage({
   );
   const pastFailed = !pastLoaded && wentQueries.some((query) => query.isError && !query.isFetching);
   const pastLoading = !pastLoaded && !pastFailed;
+  // Calendar shows the empty state only when nothing matches and nothing is still coming.
+  const calendarShown = view === 'calendar' && (visibleCalendar.length > 0 || pastLoading);
   const retryPast = () => wentQueries.filter((query) => query.isError).forEach((query) => void query.refetch());
 
   const cities = useMemo(() => topCities(liveItems), [liveItems]);
   // The city header's dates and zone follow the same filtered events as its count.
   const visibleCities = useMemo(() => topCities(visibleLive), [visibleLive]);
-  const scopedCity = filters.city.length === 1 ? filters.city[0] : null;
   // The rail's options, and its "Events I'm going to" count, come from the events in scope.
   const railEvents = past ? inYear(pastItems, year) : liveItems;
   const railGoingUids = past ? wentUids : goingUids;
@@ -350,11 +405,15 @@ export function AllEventsPage({
     void loadEventDrawer();
     prefetchEvent(uid);
   };
-  const open = (uid: string) => {
+  // Where the drawer opens (P1): on the event, or on who went from a Past card's faces. Not in the address: Back to an
+  // event opens it on the event.
+  const [drawerOn, setDrawerOn] = useState<'event' | 'attendees'>('event');
+  const open = (uid: string, on: 'event' | 'attendees' = 'event') => {
     if (embed && !embedDrawer) {
       window.open(allEventsEventHref(uid), '_blank', 'noopener,noreferrer');
       return;
     }
+    setDrawerOn(on);
     setTouched(true);
     setKeptUid(null);
     if (embed) setEmbedOpenUid(uid);
@@ -376,6 +435,7 @@ export function AllEventsPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openUid, sequence]);
   const closeDrawer = () => {
+    setDrawerOn('event');
     if (!touched) setKeptUid(openUid);
     setTouched(true);
     if (embed) setEmbedOpenUid(null);
@@ -407,10 +467,16 @@ export function AllEventsPage({
     setParam('view', next === 'list' ? undefined : next);
     analytics.onEventsViewChanged(next === 'calendar' ? { view: next, mode: calMode } : { view: next });
   };
-  const when: EventsWhen = past ? 'past' : 'upcoming';
+  const when: EventsWhen = (view === 'calendar' ? calPast : past) ? 'past' : 'upcoming';
   const setWhen = (next: EventsWhen) => {
+    // In Calendar every press moves it, the tab on show too; only a switch is recorded. With no calendar on show (the
+    // empty state) a press moves nothing and records nothing.
+    if (view === 'calendar') {
+      if (!calendarShown) return;
+      setCalJump((j) => ({ to: next === 'past' ? 'past' : 'today', seq: (j?.seq ?? 0) + 1 }));
+    }
     if (next === when) return;
-    setParam(WHEN_PARAM, next === 'past' ? WHEN_PAST : undefined);
+    if (view !== 'calendar') setParam(WHEN_PARAM, next === 'past' ? WHEN_PAST : undefined);
     analytics.onEventsWhenChanged({ when: next, view });
   };
   const listRef = useRef<HTMLDivElement>(null);
@@ -444,6 +510,7 @@ export function AllEventsPage({
     const cleared = FILTER_PARAMS.filter((key) => params.has(key));
     const next = new URLSearchParams(params);
     [...FILTER_PARAMS, ...more].forEach((key) => next.delete(key));
+    if (cleared.includes('city')) dropMonthOnCityChangeRef.current(next);
     setAllParams(next);
     cleared.forEach((key) => {
       window.clearTimeout(filterTimers.current.get(key));
@@ -526,7 +593,7 @@ export function AllEventsPage({
         />
       )
     ) : view === 'calendar' ? (
-      visibleCalendar.length === 0 && !pastLoading ? (
+      !calendarShown ? (
         <EventsEmpty onClear={clearFilters} />
       ) : (
         <EventsCalendar
@@ -541,6 +608,10 @@ export function AllEventsPage({
           highlightUid={highlightUid}
           onOpen={open}
           onPrepare={prepare}
+          initialMonth={monthParam}
+          onMonthChange={onCalMonthChange}
+          jump={calJump}
+          onPeriodChange={setCalPast}
         />
       )
     ) : (
@@ -553,6 +624,8 @@ export function AllEventsPage({
         highlightUid={highlightUid}
         onOpen={open}
         onPrepare={prepare}
+        // Who went needs a signed-in member, and the embed never opens it (LAB-3392): there the faces stay the card's.
+        onOpenPeople={past && signedIn && !embed ? (uid) => open(uid, 'attendees') : undefined}
         onClear={past ? showAllPast : clearFilters}
       />
     );
@@ -570,6 +643,7 @@ export function AllEventsPage({
               : visibleCities.find((c) => c.city.toLowerCase() === scopedCity.toLowerCase())
           }
           eventCount={visible.length}
+          zone={sharedZone(visible)}
           pastAsOf={past ? todayIso : undefined}
           onBack={() => setCity(null, 'tile')}
         />
@@ -615,7 +689,6 @@ export function AllEventsPage({
                 switch changes only what is under it and the switch never moves under the pointer. */}
             <EventsToolbar
               ref={toolbarRef}
-              city={scopedCity}
               count={visibleLive.length}
               when={when}
               pastCount={pastLoaded ? visiblePast.length : null}
@@ -644,6 +717,7 @@ export function AllEventsPage({
                     <AllEventsFilterRail
                       events={railEvents}
                       goingCount={goingCount}
+                      past={past}
                       onClose={onClose}
                       onClear={clearFilters}
                       onCityPicked={onCityPicked}
@@ -658,6 +732,7 @@ export function AllEventsPage({
               params={params}
               scopedCity={listTop && !(past && pastFailed) ? scopedCity : null}
               railOpen={railOpen}
+              past={past}
               onClear={clearFilters}
             />
 
@@ -678,7 +753,10 @@ export function AllEventsPage({
   // embedding it chose the view and filters. An event opens its drawer here, signed out (LAB-3392), or with
   // `details=labos` opens LabOS in a new tab.
   if (embed) {
-    const query = embedQuery(params);
+    // The full page opens on the same month as the embed's calendar, once its visitor has moved it.
+    const footParams = new URLSearchParams(embedQuery(params));
+    if (parseMonthKey(monthParam)) footParams.set(MONTH_PARAM, monthParam as string);
+    const query = footParams.toString();
     return (
       <>
         <FilterStoreUrlSync key={popCount} store={useAllEventsFilterStore} strategy="history" />
@@ -718,6 +796,7 @@ export function AllEventsPage({
                 <AllEventsFilterRail
                   events={railEvents}
                   goingCount={goingCount}
+                  past={past}
                   onHide={() => setRailOpen(false)}
                   onClear={clearFilters}
                   onCityPicked={onCityPicked}
@@ -731,6 +810,7 @@ export function AllEventsPage({
       <EventDrawer
         eventUid={openUid}
         source="all-events"
+        initialStep={drawerOn === 'attendees' ? 'attendees' : undefined}
         onClose={closeDrawer}
         onGoing={openUid ? onGoing(openUid) : undefined}
         sequence={sequence}

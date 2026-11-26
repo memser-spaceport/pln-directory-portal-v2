@@ -26,6 +26,11 @@ export const WHEN_PARAM = 'when';
 export const WHEN_PAST = 'past';
 /** `?year=2025` narrows Past to one year (LAB-3418). */
 export const YEAR_PARAM = 'year';
+/**
+ * `?month=2026-03`: the month the Calendar shows (LAB-3460). Not in the filter store: the calendar writes it itself. Never
+ * in an Embed link: an embed opens on today.
+ */
+export const MONTH_PARAM = 'month';
 
 /**
  * The part of the address the server's HTML is made from, as a query (LAB-3418): on a link to Past, all of the page's
@@ -356,6 +361,15 @@ export function topCities(items: AllEventsItem[]): CitySummary[] {
   }).sort(
     (a, b) => b.eventCount - a.eventCount || a.startDay.localeCompare(b.startDay) || a.city.localeCompare(b.city),
   );
+}
+
+/**
+ * The UTC offset every event shares ("UTC+1"), else null: the city header says "Times in <city> time" only when the
+ * whole list is in one offset (P13). A city's events can sit either side of a clock change, or be online elsewhere.
+ */
+export function sharedZone(items: AllEventsItem[]): string | null {
+  const zone = items[0]?.zone;
+  return zone && items.every((item) => item.zone === zone) ? zone : null;
 }
 
 /** The span and the zone of one city's past events, newest first (LAB-3418); undefined with none. */

@@ -38,6 +38,20 @@ export function stepMonth({ year, month }: MonthRef, delta: number): MonthRef {
   return { year: d.getFullYear(), month: d.getMonth() };
 }
 
+/** "2026-03": the month as the address keeps it (`?month=`, LAB-3460). */
+export const monthKey = ({ year, month }: MonthRef) => `${year}-${String(month + 1).padStart(2, '0')}`;
+
+/** `?month=2026-03` read back; null for anything but a year from 1000, a dash and a month from 01 to 12. */
+export function parseMonthKey(value: string | null | undefined): MonthRef | null {
+  const m = /^([1-9]\d{3})-(\d{2})$/.exec(value ?? '');
+  if (!m || Number(m[2]) < 1 || Number(m[2]) > 12) return null;
+  return { year: Number(m[1]), month: Number(m[2]) - 1 };
+}
+
+/** The month's first and last ISO days. */
+export const monthStart = ({ year, month }: MonthRef) => localIso(new Date(year, month, 1, 12));
+export const monthEnd = ({ year, month }: MonthRef) => localIso(new Date(year, month + 1, 0, 12));
+
 /** The Monday-first weeks that cover the month, each as seven ISO days. */
 export function monthWeeks({ year, month }: MonthRef): string[][] {
   const last = localIso(new Date(year, month + 1, 0, 12));

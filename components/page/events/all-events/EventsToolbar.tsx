@@ -10,14 +10,13 @@ import { WhenSwitch, type EventsWhen } from './WhenSwitch';
 export const VIEW_LABEL: Record<AllEventsView, string> = { list: 'List', calendar: 'Calendar', map: 'Map' };
 
 /**
- * The When switch (List and Map, LAB-3418) or "Coming up" with the count (Calendar, which shows past days itself), the
- * rail's door with the applied count, and the view switch. Sticky under the site header on desktop; under 1024px the
+ * The When switch in every view (LAB-3418; in Calendar too since LAB-3460, where its tab follows the month or week on
+ * show) and Past's year beside it, the rail's door with the applied count, and the view switch. Sticky under the site header on desktop; under 1024px the
  * phone bar (MobileFilterWrapper) carries Filters and the view instead. The view switch only shows when more than one
  * view is available. Embed (LAB-3352) shows at every width, when `onShare` is given.
  */
 export function EventsToolbar({
   ref,
-  city,
   count,
   when,
   pastCount,
@@ -32,14 +31,13 @@ export function EventsToolbar({
   onShare,
 }: {
   ref?: Ref<HTMLDivElement>;
-  city: string | null;
   /** The live and upcoming events under the filters. */
   count: number;
   when: EventsWhen;
   /** The past events under the filters; null while they load, or when they failed to. */
   pastCount: number | null;
   onWhenChange: (when: EventsWhen) => void;
-  /** Past's year, beside the switch. */
+  /** Past's year, beside the switch; none in Calendar, whose month picker jumps years. */
   yearPicker?: ReactNode;
   filterCount: number;
   railOpen: boolean;
@@ -53,19 +51,8 @@ export function EventsToolbar({
   return (
     <div ref={ref} className={s.toolbar}>
       <div className={s.toolbarStart}>
-        {view === 'calendar' ? (
-          <div className={s.toolbarHeading}>
-            <h2 className={s.toolbarTitle}>{city ? `Coming up in ${city}` : 'Coming up'}</h2>
-            <span className={s.toolbarCount}>
-              {count} {count === 1 ? 'event' : 'events'}
-            </span>
-          </div>
-        ) : (
-          <>
-            <WhenSwitch when={when} counts={{ upcoming: count, past: pastCount }} onChange={onWhenChange} />
-            {yearPicker}
-          </>
-        )}
+        <WhenSwitch when={when} counts={{ upcoming: count, past: pastCount }} onChange={onWhenChange} />
+        {yearPicker}
       </div>
       <div className={s.toolbarActions}>
         <div className={s.toolbarEnd}>

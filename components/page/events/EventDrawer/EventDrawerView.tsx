@@ -38,8 +38,11 @@ import { RsvpCard, RsvpLink } from './RsvpCard';
 import r from './RsvpCard.module.scss';
 
 export type EventDrawerStatus = 'loading' | 'error' | 'not-found' | 'ready';
-/** `event`: the event with its going card. `plans`: the "Add your plans" sub-view (the owner's "Edit details"). */
-export type EventDrawerStep = 'event' | 'plans';
+/**
+ * `event`: the event with its going card. `plans`: the "Add your plans" sub-view (the owner's "Edit details").
+ * `attendees`: who's going, or who went (a Past card's faces, LAB-3418 P1); signed out or in the embed, the event.
+ */
+export type EventDrawerStep = 'event' | 'plans' | 'attendees';
 
 /** What the plans sub-view hands to Save (LAB-3234: this event's role, the stay, topics, and the details). */
 export interface EventPlansValues {
@@ -260,7 +263,21 @@ function EventFlow({
   const [going, setGoing] = useState(wasGoing);
   const [justMarked, setJustMarked] = useState(false);
   const { ended, checkEnded } = useEventEnded(event.endDate);
-  const [view, setView] = useState<View>(canMarkGoing && wasGoing && initialStep === 'plans' ? 'plans' : 'event');
+  const [view, setView] = useState<View>(() =>
+    canMarkGoing && wasGoing && initialStep === 'plans'
+      ? 'plans'
+      : initialStep === 'attendees' && !onSignIn && !rsvpHref
+        ? 'attendees'
+        : 'event',
+  );
+  // Opened on who's going: its list loads, and the opening is recorded, as a press on the count would.
+  const openedOnAttendees = useRef(view === 'attendees');
+  useEffect(() => {
+    if (!openedOnAttendees.current) return;
+    openedOnAttendees.current = false;
+    onAttendeesOpen?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // An event that has ended takes no plans: the sub-view gives way to the event, for good, also when it was open at the
   // end.
   if (ended && view === 'plans') setView('event');

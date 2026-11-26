@@ -111,6 +111,8 @@ jest.mock('@/components/page/events/all-events/LocationDialog', () => ({
   ),
 }));
 jest.mock('@/components/core/ToastContainer', () => ({ toast: { success: jest.fn(), error: jest.fn() } }));
+// The Calendar's month picker (LAB-3460) is react-calendar, which ships ESM only; its own suite has a stand-in.
+jest.mock('react-calendar', () => ({ __esModule: true, default: () => null }));
 const { toast } = jest.requireMock('@/components/core/ToastContainer');
 
 const CITIES = ['Lisbon', 'Dubai', 'Paris', 'Berlin', 'Tokyo', 'Denver', 'Bangalore'];
@@ -184,7 +186,7 @@ const storeParams = () => useAllEventsFilterStore.getState().params;
 const card = (name: string) => screen.getByRole('button', { name: new RegExp(name) });
 /** The toolbar's door; the phone bar has a "Filters" button of its own. */
 const filtersDoor = () => document.querySelector('[aria-controls="events-filters"]') as HTMLElement;
-/** The Live & upcoming tab's count (LAB-3418), in List and Map; Calendar keeps "Coming up" with its count. */
+/** The Live & upcoming tab's count (LAB-3418), in every view (Calendar too since LAB-3460). */
 const toolbarCount = () => screen.getByRole('tab', { name: /^Live & upcoming/ }).textContent;
 
 beforeEach(() => {
@@ -429,8 +431,9 @@ describe('the switches are tabs (LAB-3425)', () => {
       ['Week', 'BUTTON', 'false'],
       ['Month', 'BUTTON', 'true'],
     ]);
-    // The toolbar keeps its title and count in Calendar.
-    expect(screen.getByRole('heading', { name: 'Coming up' }).nextSibling).toHaveTextContent(/^11 events$/);
+    // The toolbar keeps its When tabs and their counts in Calendar (LAB-3460).
+    expect(screen.queryByRole('heading', { name: /^Coming up/ })).toBeNull();
+    expect(toolbarCount()).toBe('Live & upcoming 11');
   });
 
   it('takes every tab in with the keyboard', () => {
@@ -692,7 +695,7 @@ describe('filters', () => {
     renderPage({}, '/events/all?view=calendar&mode=Online');
     expect(storeParams().get('view')).toBe('calendar');
     expect(storeParams().get('mode')).toBe('Online');
-    expect(screen.getByRole('heading', { name: 'Coming up' }).nextSibling).toHaveTextContent(/^1 event$/);
+    expect(toolbarCount()).toBe('Live & upcoming 1');
   });
 });
 
@@ -1099,6 +1102,7 @@ describe('the embed (LAB-3352)', () => {
     expect(screen.queryByRole('region', { name: /Near you/ })).toBeNull();
     expect(screen.queryByRole('heading', { name: 'Browse by city' })).toBeNull();
     expect(screen.queryByRole('heading', { name: /^Coming up/ })).toBeNull();
+    expect(screen.queryByRole('tablist', { name: 'When' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Embed' })).toBeNull();
     expect(screen.queryByRole('tab', { name: /Calendar/ })).toBeNull();
     expect(screen.queryByRole('button', { name: /Filters/ })).toBeNull();

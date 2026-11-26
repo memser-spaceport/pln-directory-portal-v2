@@ -15,8 +15,6 @@ import { InvestorSettings } from '@/services/members/hooks/useGetInvestorSetting
 import { MemberInvestorSettings } from '@/services/members/hooks/useGetMemberInvestorSettings';
 import { DemoDaySubscriptionSettings } from '@/services/members/hooks/useGetDemoDaySubscription';
 import { getMemberInfo } from '@/services/members.service';
-import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
-import { useInvestorAccess } from '@/services/access-control/hooks/useInvestorAccess';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { SHOW_SUGGESTED_CANDIDATES_EMAIL } from '@/services/jobs/constants';
 
@@ -34,7 +32,6 @@ interface Props {
 
 export const EmailPreferencesForm = ({ uid, userInfo, initialData }: Props) => {
   const router = useRouter();
-  const { isInvestor: v2IsInvestor } = useInvestorAccess();
   const { currentUser } = useCurrentUserStore();
   // The digest itself is available to everyone; forum access only controls
   // whether the "Forum activity" content type can be enabled inside it.
@@ -64,7 +61,7 @@ export const EmailPreferencesForm = ({ uid, userInfo, initialData }: Props) => {
     <div className={s.root}>
       <h5 className={s.title}>Email Preferences</h5>
       <ForumDigest userInfo={userInfo} initialData={initialData.settings} hasForumAccess={hasForumAccess} />
-      {!v2IsInvestor && <Newsletter userInfo={userInfo} initialData={initialData.memberInfo} />}
+      <Newsletter userInfo={userInfo} initialData={initialData.memberInfo} />
       <DemoDayUpdates userInfo={userInfo} initialData={initialData.demoDaySubscription} />
       {SHOW_SUGGESTED_CANDIDATES_EMAIL && isTeamLead && <SuggestedCandidatesEmail userInfo={userInfo} />}
       <InvestorCommunications

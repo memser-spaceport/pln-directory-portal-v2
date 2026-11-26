@@ -35,8 +35,9 @@ jest.mock('@/analytics/auth.analytics', () => ({
   useAuthAnalytics: () => new Proxy({}, { get: () => jest.fn() }),
 }));
 jest.mock('@/components/core/login/components/modals/LinkAccountModal', () => ({ LinkAccountModal: () => null }));
+const mockPush = jest.fn();
 jest.mock('next/navigation', () => ({
-  useRouter: () => ({ push: jest.fn(), replace: jest.fn(), refresh: jest.fn() }),
+  useRouter: () => ({ push: mockPush, replace: jest.fn(), refresh: jest.fn() }),
   usePathname: () => '/home',
   useParams: () => ({}),
   useSearchParams: () => new URLSearchParams(),
@@ -54,7 +55,7 @@ import type { InvalidEmailPayload } from '@/components/core/login/utils';
 
 const flush = () => act(async () => {});
 
-async function signInAndGet404(eventUser: unknown) {
+async function signInAndCollectErrors(eventUser: unknown) {
   const payloads: InvalidEmailPayload[] = [];
   authEvents.on('auth:invalid-email', (payload) => {
     calls.push('invalid-email');
@@ -77,6 +78,8 @@ beforeEach(() => {
   privy.user = null;
   privy.logout.mockClear();
   mockExchangeToken.mockReset();
+  mockPush.mockClear();
+  window.history.replaceState({}, '', '/home');
   mockExchangeToken.mockResolvedValue({ ok: false, data: null, status: 404 });
   authEvents.clear();
   localStorage.clear();
@@ -88,26 +91,26 @@ describe('PrivyModals: email not found', () => {
     const user = { id: 'did:privy:1', email: { address: 'new.person@example.com' }, linkedAccounts: [] };
     privy.user = user;
 
-    const payloads = await signInAndGet404(user);
+    const payloads = await signInAndCollectErrors(user);
 
     expect(payloads).toEqual([{ code: 'email_not_found', email: 'new.person@example.com' }]);
     expect(calls).toEqual(['invalid-email', 'logout']);
   });
 
   it("uses the event's user when the hook has not caught up yet", async () => {
-    const payloads = await signInAndGet404({ id: 'did:privy:2', email: { address: 'fresh@example.com' } });
+    const payloads = await signInAndCollectErrors({ id: 'did:privy:2', email: { address: 'fresh@example.com' } });
 
     expect(payloads).toEqual([{ code: 'email_not_found', email: 'fresh@example.com' }]);
   });
 
   it('falls back to the Google account email', async () => {
-    const payloads = await signInAndGet404({ id: 'did:privy:3', google: { email: 'g.person@example.com' } });
+    const payloads = await signInAndCollectErrors({ id: 'did:privy:3', google: { email: 'g.person@example.com' } });
 
     expect(payloads).toEqual([{ code: 'email_not_found', email: 'g.person@example.com' }]);
   });
 
   it('sends no email when the Privy user has none', async () => {
-    const payloads = await signInAndGet404({ id: 'did:privy:4', wallet: { address: '0xabc' } });
+    const payloads = await signInAndCollectErrors({ id: 'did:privy:4', wallet: { address: '0xabc' } });
 
     expect(payloads).toEqual([{ code: 'email_not_found', email: undefined }]);
     expect(calls).toEqual(['invalid-email', 'logout']);
@@ -116,8 +119,40 @@ describe('PrivyModals: email not found', () => {
   it('keeps sending the bare code for other failures', async () => {
     mockExchangeToken.mockResolvedValue({ ok: false, data: null, status: 403 });
 
-    const payloads = await signInAndGet404({ id: 'did:privy:5', email: { address: 'x@example.com' } });
+    const payloads = await signInAndCollectErrors({ id: 'did:privy:5', email: { address: 'x@example.com' } });
 
     expect(payloads).toEqual(['rejected_access_level']);
+  });
+});
+
+describe('PrivyModals: Job Board Apply marker (LAB-3382)', () => {
+  // jsdom has no structuredClone, and the success path clones the result.
+  globalThis.structuredClone ??= (value) => JSON.parse(JSON.stringify(value));
+  const MARKED = '/jobs/openings/role1?applySignIn=role1&x=1&privy_oauth_state=s';
+  const user = { id: 'did:privy:6', email: { address: 'member@example.com' }, linkedAccounts: [] };
+  const success = () =>
+    mockExchangeToken.mockResolvedValue({ ok: true, status: 200, data: { userInfo: { uid: 'u1' } } });
+
+  it('removes only applySignIn before the success push on the role page', async () => {
+    success();
+    window.history.replaceState({}, '', MARKED);
+    await signInAndCollectErrors(user);
+    expect(window.location.search).toBe('?x=1&privy_oauth_state=s');
+    expect(mockPush).toHaveBeenCalledWith('/jobs/openings/role1?x=1');
+  });
+
+  it('keeps the marker on another page', async () => {
+    success();
+    window.history.replaceState({}, '', '/members?applySignIn=role1');
+    await signInAndCollectErrors(user);
+    expect(mockPush).toHaveBeenCalledWith('/members?applySignIn=role1');
+  });
+
+  it('keeps the marker when the email is not found', async () => {
+    window.history.replaceState({}, '', MARKED);
+    const payloads = await signInAndCollectErrors(user);
+    expect(payloads).toEqual([{ code: 'email_not_found', email: 'member@example.com' }]);
+    expect(window.location.search).toBe('?applySignIn=role1&x=1&privy_oauth_state=s');
+    expect(mockPush).not.toHaveBeenCalled();
   });
 });

@@ -4,6 +4,10 @@ import { getSkillsData } from '@/services/sign-up.service';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { redirect, RedirectType } from 'next/navigation';
 import { SignupWizard } from '@/components/page/sign-up/components/SignupWizard';
+import { SHOW_JOB_BOARD_APPLY } from '@/services/jobs/constants';
+import { applySignUpReturnPath } from '@/services/jobs/job-apply-resume';
+
+type PageProps = { searchParams: Promise<{ returnTo?: string | string[] }> };
 
 const getPageData = async () => {
   const memberInfo = await getSkillsData();
@@ -27,15 +31,21 @@ const getPageData = async () => {
   return {
     skillsInfo: memberInfo.skills,
     canAccess,
+    isLoggedIn: !!isLoggedIn,
   };
 };
 
-export default async function Page() {
-  const { skillsInfo, canAccess } = await getPageData();
+export default async function Page({ searchParams }: PageProps) {
+  const { skillsInfo, canAccess, isLoggedIn } = await getPageData();
 
   if (!canAccess) {
     redirect(`${PAGE_ROUTES.HOME}`, RedirectType.replace);
   }
+
+  // LAB-3382: a guest from Sign in after Job Board Apply goes back to the Job Aspirant sign-up.
+  const { returnTo } = await searchParams;
+  const applySignUpPath = typeof returnTo === 'string' && applySignUpReturnPath(returnTo);
+  if (SHOW_JOB_BOARD_APPLY && !isLoggedIn && applySignUpPath) redirect(applySignUpPath, RedirectType.replace);
 
   return <SignupWizard />;
 }

@@ -187,6 +187,47 @@ describe('AuthInvalidUser', () => {
     expect(mockRouter.replace).not.toHaveBeenCalled();
   });
 
+  describe('Job Board sign-in marker (LAB-3382 R4)', () => {
+    const MARKED = '/jobs/openings/role-1?tab=all&applySignIn=role-1#login';
+    const openDialog = async () => {
+      window.history.replaceState({}, '', MARKED);
+      render(<AuthInvalidUser />);
+      await emitAuthError({ code: 'email_not_found', email: 'new.person@example.com' });
+      await waitFor(() => expect(screen.getByText(NEW_TITLE)).toBeInTheDocument());
+    };
+
+    it('removes only the marker on the ✕', async () => {
+      await openDialog();
+      fireEvent.click(screen.getAllByRole('button').find((button) => !button.textContent?.trim())!);
+      expect(window.location.pathname + window.location.search + window.location.hash).toBe(
+        '/jobs/openings/role-1?tab=all#login',
+      );
+      expect(mockRouter.push).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['Escape', () => fireEvent.keyDown(document, { key: 'Escape' })],
+      ['backdrop click', () => fireEvent.click(document.querySelector('[data-modal]')!)],
+    ])('removes only the marker on %s', async (_, dismiss) => {
+      await openDialog();
+      dismiss();
+      await waitFor(() => expect(screen.queryByText(NEW_TITLE)).not.toBeInTheDocument());
+      expect(window.location.search + window.location.hash).toBe('?tab=all#login');
+      expect(mockRouter.push).not.toHaveBeenCalled();
+    });
+
+    it.each(['Sign up', 'Try another email'])('keeps the marker on %s', async (name) => {
+      await openDialog();
+      fireEvent.click(screen.getByRole('button', { name }));
+      expect(window.location.search).toBe('?tab=all&applySignIn=role-1');
+      expect(mockRouter.push).toHaveBeenCalledWith(
+        ...(name === 'Sign up'
+          ? [`/sign-up?returnTo=${encodeURIComponent('/jobs/openings/role-1?tab=all&applySignIn=role-1')}`]
+          : ['/jobs/openings/role-1?tab=all&applySignIn=role-1#login', { scroll: false }]),
+      );
+    });
+  });
+
   it('keeps the old content for unexpected_error', async () => {
     render(<AuthInvalidUser />);
 

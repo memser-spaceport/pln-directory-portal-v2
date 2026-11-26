@@ -6,6 +6,7 @@ import {
   DEALS_LINK,
   ALL_EVENTS_LINK,
   IRL_GATHERING_LINK,
+  FORUM_LINK,
   FOUNDER_GUIDES_LINK,
   EVENT_CONTRIBUTORS_LINK,
   PLAA_LINK,
@@ -18,7 +19,7 @@ jest.mock('next/navigation', () => ({ usePathname: () => mockUsePathname() }));
 const mockPlInfraItems = jest.fn<ISubItem[], []>();
 const mockMoreItems = jest.fn<ISubItem[], []>();
 const mockHasNewNews = jest.fn<boolean, []>();
-/** The Events links as an admin gets them (IRL Gatherings is admins only); the bar takes them from the More hook. */
+/** The Events links as an admin gets them (IRL Gatherings is admins only); the bar adds them to More itself. */
 const EVENT_LINKS = [IRL_GATHERING_LINK, ALL_EVENTS_LINK, EVENT_CONTRIBUTORS_LINK];
 
 jest.mock('@/components/core/navbar/components/navItems/PLInfraNavItems/hook/useGetPlInfraNavItems', () => ({
@@ -26,6 +27,9 @@ jest.mock('@/components/core/navbar/components/navItems/PLInfraNavItems/hook/use
 }));
 jest.mock('@/components/core/navbar/components/navItems/MoreNavItems/hooks/useMoreNavItems', () => ({
   useMoreNavItems: () => mockMoreItems(),
+}));
+jest.mock('@/components/core/navbar/hooks/useGetEventMenuItemLinks', () => ({
+  useGetEventMenuItemLinks: () => EVENT_LINKS,
 }));
 jest.mock('@/services/team-news/hooks/useHasNewNews', () => ({ useHasNewNews: () => mockHasNewNews() }));
 jest.mock('@/services/rbac/hooks/useDemoDayAnalyticsAccess', () => ({
@@ -88,8 +92,8 @@ describe('MobileBottomNav', () => {
     jest.clearAllMocks();
     capturedMenuHandlers.clear();
     mockUsePathname.mockReturnValue('/members');
-    // The shared More hook's shape since LAB-3172: Events took Job Board's place in it.
-    mockMoreItems.mockReturnValue([DEALS_LINK, ...EVENT_LINKS]);
+    // The shared More hook's shape since Events and Forum swapped: Forum took the Events links' place in it.
+    mockMoreItems.mockReturnValue([DEALS_LINK, FORUM_LINK]);
     mockHasNewNews.mockReturnValue(false);
   });
 
@@ -152,38 +156,38 @@ describe('MobileBottomNav', () => {
   // The menu it comes from is ordered for the desktop dropdown; More is a flat
   // list, so mobile re-orders it rather than inheriting that.
   describe('More ordering', () => {
-    // LAB-3172 swapped the two: Events leads where Job Board did, and Job Board takes Events' place after Forum.
-    it('leads with the Events links, in their own order, then Deals, then Forum', () => {
+    // Events and Forum swapped: Forum leads, and the Events links take Forum's place after Deals.
+    it('leads with Forum, then Deals, then the Events links in their own order', () => {
       mockPlInfraItems.mockReturnValue([]);
 
       render(<MobileBottomNav />);
 
-      expect(moreItems()).toEqual([...EVENTS, 'Deals', 'Forum']);
+      expect(moreItems()).toEqual(['Forum', 'Deals', ...EVENTS]);
     });
 
-    it('slots Job Board in after Forum when PL Infra holds the bar slot', () => {
+    it('slots Job Board in after the Events links when PL Infra holds the bar slot', () => {
       mockPlInfraItems.mockReturnValue([gantry]);
 
       render(<MobileBottomNav />);
 
-      expect(moreItems()).toEqual([...EVENTS, 'Deals', 'Forum', 'Job Board']);
+      expect(moreItems()).toEqual(['Forum', 'Deals', ...EVENTS, 'Job Board']);
     });
 
     // LAB-3200: the hook hands a published AI App over as a `/apps/<uid>` entry.
     it('lists a published AI App after PLAA and above Founder Guides', () => {
       mockPlInfraItems.mockReturnValue([]);
       const published: ISubItem = { icon: null, href: '/apps/cmplaybook1', title: 'PLaybook' };
-      mockMoreItems.mockReturnValue([published, FOUNDER_GUIDES_LINK, PLAA_LINK, DEALS_LINK, ...EVENT_LINKS]);
+      mockMoreItems.mockReturnValue([published, FOUNDER_GUIDES_LINK, PLAA_LINK, DEALS_LINK, FORUM_LINK]);
 
       render(<MobileBottomNav />);
 
-      expect(moreItems()).toEqual([...EVENTS, 'Deals', 'Forum', 'PLAA', 'PLaybook', 'Founder Guides']);
+      expect(moreItems()).toEqual(['Forum', 'Deals', ...EVENTS, 'PLAA', 'PLaybook', 'Founder Guides']);
     });
 
     it('pins Founder Guides last', () => {
       mockPlInfraItems.mockReturnValue([gantry]);
       // The hook hands it over in the middle — mobile still puts it at the end.
-      mockMoreItems.mockReturnValue([DEALS_LINK, FOUNDER_GUIDES_LINK, ...EVENT_LINKS]);
+      mockMoreItems.mockReturnValue([DEALS_LINK, FOUNDER_GUIDES_LINK, FORUM_LINK]);
 
       render(<MobileBottomNav />);
 

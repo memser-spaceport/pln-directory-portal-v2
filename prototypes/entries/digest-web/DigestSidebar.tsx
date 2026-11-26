@@ -23,14 +23,20 @@ export interface PastIssue {
  * The web page's side column, modelled on Perplexity Discover's right rail (Mobbin): small
  * white cards, each with one job.
  *
- * 1. Add topics: "Make it yours". Topics the reader doesn't follow yet, as News preferences'
- *    own control chips (digest-topics `.chip`/`.chipOn`, the same ones the For You starter card
- *    uses). Followed topics aren't shown (Polina, 2026-11-17). Save topics appears once a chip
- *    changes; See all topics opens the All topics modal (`AllTopicsModal`), where unfollowing
- *    happens too.
- * 2. How personalization works: Perplexity's "How Discover works". One card, title plus the
- *    pick order (Vova's backend order), which the greeting line doesn't say.
+ * 1. How personalization works: Perplexity's "How Discover works". One card, title plus the
+ *    pick order (Vova's backend order). First, so the explanation comes before the ask, and it's
+ *    the page's only explanation: the web intro line was dropped (manager, 2026-11-20).
+ * 2. Suggested topics (was "Add topics", renamed 2026-11-20): topics the reader doesn't follow
+ *    yet, as News preferences' own control chips (digest-topics `.chip`/`.chipOn`, the same ones
+ *    the For You starter card uses). Followed topics aren't shown (Polina, 2026-11-17). Save
+ *    topics appears once a chip changes; See all topics opens the All topics modal
+ *    (`AllTopicsModal`), where unfollowing happens too.
  * 3. Past issues: collapsed by default, so the cards above stay in view.
+ *
+ * Signed out (LAB-3347, 2026-11-20): the explainer says the reader is seeing the network's top
+ * stories, with "Sign in to personalize"; the chips show unticked and a press, like See all
+ * topics, opens the sign-in prompt. After sign-in the card comes back with the pressed chip
+ * ticked and Save topics showing. Past issues stays: the archive is the same for everyone.
  *
  * From 1100px it's a sticky column on the right; under that the same cards follow the end of
  * the issue (`variant="inline"`).
@@ -44,8 +50,17 @@ export function DigestSidebar({
   subscribed,
   onSaveTopics,
   onOpenAllTopics,
+  signedIn = true,
+  onAskSignIn,
+  pendingTopic,
 }: {
   variant: 'rail' | 'inline';
+  /** Signed out (LAB-3347): the explainer says what this reader is seeing, and every topic
+   *  control asks for sign-in through `onAskSignIn` instead of acting. */
+  signedIn?: boolean;
+  onAskSignIn?: (ask: { kind: 'topic'; topic: string } | { kind: 'topics' } | { kind: 'personalize' }) => void;
+  /** A chip pressed while signed out: after sign-in the card opens with it ticked, unsaved. */
+  pendingTopic?: string | null;
   currentIssue: string;
   latestIssue: string;
   pastIssues: PastIssue[];
@@ -57,20 +72,38 @@ export function DigestSidebar({
 }) {
   return (
     <div className={variant === 'rail' ? s.rail : s.inline}>
-      <TopicsCard
-        key={subscribed.join()}
-        subscribed={subscribed}
-        onSave={onSaveTopics}
-        onOpenAll={onOpenAllTopics}
-      />
       <section className={s.card} aria-labelledby={`how-${variant}`}>
         <h2 id={`how-${variant}`} className={s.cardTitle}>
           How personalization works
         </h2>
-        <p className={s.cardText}>
-          Stories come from your topics first, then the teams you follow, then the network’s top stories.
-        </p>
+        {signedIn ? (
+          <p className={s.cardText}>
+            Stories come from your topics first, then the teams you follow, then the network’s top stories.
+          </p>
+        ) : (
+          // Signed out the usual sentence would be false: nothing is picked from this reader's topics.
+          // It says what they see instead, and the one door that changes it.
+          <>
+            <p className={s.cardText}>
+              You’re seeing the network’s top stories. Signed in, your digest leads with your topics, then the teams you
+              follow.
+            </p>
+            <div className={s.actions}>
+              <button type="button" className={s.link} onClick={() => onAskSignIn?.({ kind: 'personalize' })}>
+                Sign in to personalize
+              </button>
+            </div>
+          </>
+        )}
       </section>
+      <TopicsCard
+        key={`${subscribed.join()}:${pendingTopic ?? ''}`}
+        subscribed={subscribed}
+        onSave={onSaveTopics}
+        onOpenAll={signedIn ? onOpenAllTopics : () => onAskSignIn?.({ kind: 'topics' })}
+        onChipAsk={signedIn ? undefined : (topic) => onAskSignIn?.({ kind: 'topic', topic })}
+        pendingTopic={pendingTopic}
+      />
       <PastIssuesCard
         id={`past-${variant}`}
         current={currentIssue}
@@ -98,23 +131,33 @@ function TopicsCard({
   subscribed,
   onSave,
   onOpenAll,
+  onChipAsk,
+  pendingTopic,
 }: {
   subscribed: string[];
   onSave: (topics: string[]) => void;
   onOpenAll: () => void;
+  /** Signed out: a chip press asks for sign-in instead of ticking. */
+  onChipAsk?: (topic: string) => void;
+  pendingTopic?: string | null;
 }) {
   // Only topics the reader doesn't follow yet (Polina, 2026-11-17): the card adds topics;
   // unfollowing is in the All topics modal. `saved` is which suggestions are subscribed now
   // (the page remounts this card when the subscribed set changes, so the two agree).
   const saved = DIGEST_SUGGESTED_TOPICS.filter((t) => subscribed.includes(t));
-  const [picked, setPicked] = useState<string[]>(saved);
+  const [picked, setPicked] = useState<string[]>(() =>
+    pendingTopic && !saved.includes(pendingTopic) ? [...saved, pendingTopic] : saved,
+  );
   const changed = picked.length !== saved.length || picked.some((t) => !saved.includes(t));
-  const toggle = (t: string) => setPicked((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
+  const toggle = (t: string) => {
+    if (onChipAsk) return onChipAsk(t);
+    setPicked((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
+  };
 
   return (
     <section className={s.card} aria-labelledby="digest-topics-title">
       <h2 id="digest-topics-title" className={s.cardTitle}>
-        Add topics
+        Suggested topics
       </h2>
       <p className={s.cardText}>Tick a topic to get stories about it in your digest.</p>
       <div className={clsx(dt.chips, s.chips)} role="group" aria-label="Topics to add">
@@ -140,9 +183,7 @@ function TopicsCard({
           <Button
             size="xs"
             className={fb.glossy}
-            onClick={() =>
-              onSave([...subscribed.filter((t) => !DIGEST_SUGGESTED_TOPICS.includes(t)), ...picked])
-            }
+            onClick={() => onSave([...subscribed.filter((t) => !DIGEST_SUGGESTED_TOPICS.includes(t)), ...picked])}
           >
             Save topics
           </Button>

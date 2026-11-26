@@ -19,7 +19,7 @@ import { isJobGoneError } from '@/services/jobs/job-interests.service';
 import { followTeam } from '@/services/follow/follow.service';
 import { useRememberTeamFollowed } from '@/services/follow/hooks/useFollowedTeamUids';
 import { useFollowAnalytics } from '@/analytics/follow.analytics';
-import { withPendingApply, withPendingInterest } from '@/services/jobs/job-apply-resume';
+import { withApplySignIn, withPendingApply, withPendingInterest } from '@/services/jobs/job-apply-resume';
 import type { IUserInfo } from '@/types/shared.types';
 
 import type { useJobApplyFlow } from '@/components/page/jobs/hooks/useJobApplyFlow';
@@ -107,7 +107,13 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
    * The rest of the search string rides along, so the rail the person narrowed
    * before signing up is still narrowed when they land back on the board.
    */
-  const pushLogin = (opts?: { prefillEmail?: string; pendingRoleUid?: string; pendingInterestUid?: string }) => {
+  type LoginOpts = {
+    prefillEmail?: string;
+    pendingRoleUid?: string;
+    pendingInterestUid?: string;
+    applySignInUid?: string;
+  };
+  const pushLogin = (opts?: LoginOpts) => {
     const search = new URLSearchParams(window.location.search);
     if (opts?.prefillEmail) {
       search.set('prefillEmail', opts.prefillEmail);
@@ -121,7 +127,11 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
        absent. That symmetry is the whole safety property: a door that merely
        declined to set a parameter would inherit whichever stale one was already
        on the search string and resume something nobody just asked for. */
-    const qs = withPendingInterest(withPendingApply(withEmail, opts?.pendingRoleUid), opts?.pendingInterestUid);
+    // LAB-3382: the Apply sign-in marker follows the same rule.
+    const qs = withApplySignIn(
+      withPendingInterest(withPendingApply(withEmail, opts?.pendingRoleUid), opts?.pendingInterestUid),
+      opts?.applySignInUid,
+    );
     goToLogin({ returnTo: `${window.location.pathname}${qs}` });
   };
 
@@ -134,10 +144,8 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
    * failed request leaves nothing behind.
    */
   const handleSignUp = async (details: JobSignUpDetails): Promise<JobSignUpResult> => {
-    /* Two doors reach this now: the modal (`sign-up`, role-less) and the flow's
-       step 2 (`flow`, always carrying a role). Reading the target from whichever
-       is open keeps one handler — and one place where the analytics for a
-       sign-up are fired — rather than a second copy that could drift. */
+    /* The modal can carry a role after an Apply return. Both forms use this
+       handler so the account request and the return route stay the same. */
     const target = state.step === 'sign-up' ? state.target : state.step === 'flow' ? state.target : null;
     const analyticsBase = {
       job_id: target?.role.uid ?? null,
@@ -176,11 +184,8 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
 
     analytics.onJobApplySignUpSubmitted({
       ...analyticsBase,
-      /* Three doors, three values, all of them already in `JobApplyTrigger`.
-         `detail` is the flow's own step 2 — the pane reached by pressing Apply
-         on a job — and it is the path that matters most now, so it must not be
-         counted as a row press. */
-      trigger: state.step === 'flow' ? 'detail' : target ? 'row' : 'banner',
+      // LAB-3382: both Apply paths use `detail`, including the return modal.
+      trigger: target ? 'detail' : 'banner',
       has_team_email: false,
     });
     flow.closeSignUp({ completed: true });
@@ -202,8 +207,11 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
    * URL by an abandoned sign-up, so a stale one can't resume here.
    */
   const handleModalSignIn = () => {
+    // LAB-3382: only Sign in from Job Board Apply (the flow or the role's sign-up modal) carries the role.
+    const applyTarget = state.step === 'flow' || state.step === 'sign-up' ? state.target : null;
+    const applySignInUid = source === 'job-board' ? applyTarget?.role.uid : undefined;
     flow.closeSignUp();
-    pushLogin();
+    pushLogin({ applySignInUid });
   };
 
   /* The standalone profile drawer's press — the banner's "Update profile", which

@@ -154,7 +154,7 @@ export default function AiSearchIntrosPrototype() {
             reads <em>Intro requested</em>.
           </li>
           <li>
-            <strong>Ask AI Search</strong> — <em>Who at Lumen Storage offers office hours?</em> — and the member cards
+            <strong>Ask AI agent chat</strong> — <em>Who at Lumen Storage offers office hours?</em> — and the member cards
             under the answer carry the button too.
           </li>
         </ol>
@@ -164,7 +164,7 @@ export default function AiSearchIntrosPrototype() {
           </Button>
           <kbd className={s.kbd}>⌘K</kbd>
           <Button size="s" style="border" variant="neutral" onClick={() => askAi('')}>
-            Open AI Search
+            Open AI agent chat
           </Button>
         </div>
       </main>

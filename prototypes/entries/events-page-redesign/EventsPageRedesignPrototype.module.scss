@@ -133,6 +133,53 @@
   gap: 16px;
 }
 
+// Phone: title and Submit share the first row, the lede spans under both and ends in the
+// outbound link, so the header loses the wrapped actions row.
+@include media.mobile-only {
+  .header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 12px;
+    row-gap: 0;
+    align-items: center;
+  }
+
+  .headerText {
+    display: contents;
+  }
+
+  .title {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .lede {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .headerActions {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  // Doubled: `.textLink` is declared further down and its `display: inline-flex` won otherwise,
+  // leaving the link in the title row on top of "Events".
+  .headerLink.headerLink {
+    display: none;
+  }
+}
+
+.ledeLink.ledeLink {
+  display: none;
+
+  @include media.mobile-only {
+    display: inline-flex;
+    vertical-align: bottom;
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
 .textLink {
   display: inline-flex;
   align-items: center;
@@ -443,7 +490,7 @@
 
 .toolbarStart {
   display: flex;
-  align-items: baseline;
+  align-items: center; // controls now (the When switch + year pill), not a title on a baseline
   gap: 8px;
   min-width: 0;
 }
@@ -453,6 +500,76 @@
   font-size: 20px;
   line-height: 28px;
   font-weight: 600;
+}
+
+/* When (2026-11-25): the same DS enclosed tabs as the view switch (styles below). No glyph, so the
+   padding is even (spacing-sm); each tab carries its count in the DS badge. Doubled class: .viewBtn
+   is declared later in this file and would win the padding otherwise. */
+.scopeBtn.scopeBtn {
+  gap: 0;
+  padding: 0 12px;
+  white-space: nowrap; // "Live & upcoming" broke onto two lines on phones (2026-11-25)
+}
+
+/* Phones (toolbarEnd is hidden under 1024, so the When switch owns the row): the switch fills the
+   row in equal halves, and the year pill wraps under it when both don't fit (narrower than ~390px)
+   instead of squeezing the labels. */
+@include media.mobile-only {
+  .toolbarStart {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+  }
+
+  .toolbarStart > .viewSwitch {
+    flex: 1 1 auto;
+  }
+
+  .scopeBtn {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+}
+
+// The DS Tabs badge, verbatim: full-round grey pill, label-xs strong (12/16 500), 6px off the label.
+.scopeCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* Past's year: SortDropdown dressed as the toolbar's Filters button (32px, muted border, primary
+   ink), so the bar keeps one control height and one border. Doubled class beats the trigger's own. */
+.yearPicker.yearPicker {
+  height: 32px;
+  padding: 0 10px 0 12px;
+  gap: 6px;
+  border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  color: var(--foreground-neutral-primary, #0a0c11);
+  letter-spacing: normal;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  svg {
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+// Live pill inside a 14/20 when line: a 16px pill, nudged onto the text's middle.
+.livePill {
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: 1px;
 }
 
 .toolbarCount {
@@ -515,20 +632,25 @@
   }
 }
 
-// On the grey page the switch is a white track with the card border; the active tab is the grey.
+/* Both switches (When, View) wear the DS Tabs "enclosed" variant (2026-11-25,
+   pl-design-system/components/Tabs): a grey track with 4px padding and gap, 6px-radius tabs in
+   label-sm, white on hover, the active one white with shadow-sm. Two deviations, both forced by
+   this page: the track is transparent-dark-6 (production common/Tabs pill's grey) because the DS
+   track's background-neutral-subtle IS the page's grey and vanished; and tabs are 26px (track 34px)
+   rather than the DS md 40px, to sit level with the 32px Filters / Embed buttons. */
 .viewSwitch {
   display: inline-flex;
-  padding: 2px;
-  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  gap: 4px;
+  padding: 4px;
   border-radius: 8px;
-  background: var(--background-base-white, #ffffff);
+  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
 }
 
 .viewBtn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 28px;
+  height: 26px;
   padding: 0 12px 0 10px;
   border: none;
   border-radius: 6px;
@@ -537,17 +659,25 @@
   font-size: 14px;
   line-height: 20px;
   font-weight: 500;
+  letter-spacing: -0.2px;
   color: var(--foreground-neutral-secondary, #455468);
   cursor: pointer;
+  transition: all 120ms;
 
   &:hover {
-    color: var(--foreground-neutral-primary, #0a0c11);
+    background: var(--background-base-white, #ffffff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
   }
 }
 
 .viewBtnActive {
-  background: var(--background-neutral-subtle, #f1f5f9);
+  background: var(--background-base-white, #ffffff);
   color: var(--foreground-neutral-primary, #0a0c11);
+  box-shadow: var(--shadow-sm, 0px 1px 2px 0px rgba(14, 15, 17, 0.06), 0px 1px 3px 0px rgba(14, 15, 17, 0.12));
 }
 
 /* Phones and tablets: the directory's Filters pill + sheet; it hides itself from 1024px. */
@@ -629,6 +759,18 @@
 
 .main {
   min-width: 0;
+}
+
+// List view's bands, now under the toolbar: the layout's 24px is the gap above the first one.
+.listBands {
+  > :first-child {
+    margin-top: 0;
+  }
+}
+
+// "All upcoming" / "Matching events": the dated list's own heading, a section title like the bands'.
+.listHeading.listHeading {
+  margin: 32px 0 12px;
 }
 
 /* Arriving from a link to one event (?event=): its tile / row is marked. */
@@ -759,6 +901,40 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
+// Facepile + "N going" as one press (2026-11-20): opens the drawer on who's going. The whole
+// pair is the hit area; the count turns brand + underline on hover, the control lineage's hover.
+.goingLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: -2px -4px;
+  padding: 2px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+
+  &:hover .cardCount {
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+}
+
+/* ---------- Embed (?embed=1): the view alone, in someone else's iframe ---------- */
+
+.embed {
+  min-height: 100vh;
+  padding: 16px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+}
+
+.embedFoot {
+  margin-top: 16px;
+}
+
 // Access as meta text, same ink and size as the count it follows (not a Badge, 2026-11-17).
 .cardAccess {
   display: inline-flex;
@@ -819,14 +995,18 @@
 
 /* ---------- List (Luma's events list, 2026-11-17) ----------
    A date column (day over weekday, sticky while its events scroll), a dotted timeline with a
-   dot per day, and the day's cards beside it. The column is capped so cards stay card-sized
-   on a wide page, left-aligned with everything else. */
+   dot per day, and the day's cards beside it. Desktop (2026-11-25): the cards end where the 4th
+   "Browse by city" tile ends, not at an arbitrary 880px: 4 of the row's 5 columns plus their 3
+   gaps (cityRow: repeat(5, 1fr), gap 12px). Below 1200 the row is 3 columns; cards fill the width. */
 
 .timeline {
-  max-width: 880px;
   margin: 0;
   padding: 0;
   list-style: none;
+
+  @include media.desktop {
+    max-width: calc((100% - 4 * 12px) * 4 / 5 + 3 * 12px);
+  }
 }
 
 .day {
@@ -881,8 +1061,12 @@
   display: flex;
   flex-direction: column;
   margin: 0;
-  font-size: 16px;
-  line-height: 24px;
+  /* 14/20, the cards' when-line size (2026-11-25): at 16/600 a date read as the same rank as the
+     section title above the list ("All live & upcoming"), one heading stacked on another. The date
+     is a label of its column, so it steps below the section's 16px. The 20px line also centres it
+     on the timeline dot (top 7 + 3.5 = 10.5). */
+  font-size: 14px;
+  line-height: 20px;
   font-weight: 600;
   color: var(--foreground-neutral-primary, #0a0c11);
 

@@ -1,0 +1,16 @@
+// The sign-in prompt's own values; the shell is SubmitDealModal.module.scss (imported in the component).
+
+// A one-sentence ask: narrower than the form modals the shell was made for.
+.root.root {
+  width: 440px;
+}
+
+// No body between header and footer, so one rule between them, not two.
+.header.header {
+  border-bottom: none;
+  padding-bottom: 8px;
+}
+
+.footer.footer {
+  justify-content: flex-end;
+}

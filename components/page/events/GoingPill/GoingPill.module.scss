@@ -1,0 +1,39 @@
+// The Going pill (LAB-3247, from prototypes/entries/events-shared/GoingTag.module.scss). The Going tag: a filled green pill, white tick, white 12px label (2026-11-18: "make going badge
+// filled green"; it was a white pill with a green tick disc).
+//
+// The fill is the success green darkened 15%: white 12px text on the token's own #0a9952 is ~3.9:1,
+// under AA's 4.5:1; mixed with 15% black it is ~5:1. Still the token, so it moves with it.
+.tag {
+  --going-green: color-mix(in srgb, var(--foreground-success-primary, #0a9952) 85%, #000000);
+
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  width: fit-content;
+  height: 22px;
+  padding: 0 8px 0 6px;
+  border: none;
+  border-radius: 999px;
+  background: var(--going-green);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  color: var(--background-base-white, #ffffff);
+  white-space: nowrap;
+}
+
+// On a picture: a soft lift and a thin white ring, so it reads on dark and green images too.
+.onImage {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  box-shadow:
+    0 0 0 1.5px var(--background-base-white, #ffffff),
+    0 1px 3px rgba(14, 15, 17, 0.2);
+}
+
+.mark {
+  flex-shrink: 0;
+  color: var(--background-base-white, #ffffff);
+}

@@ -1,3 +1,4 @@
+import { upstreamError } from '@/app/api/plaa/_errors';
 import { NextResponse } from 'next/server';
 import { getPlaaSummary } from '@/services/plaa/summary.service';
 
@@ -6,7 +7,7 @@ export async function GET() {
   const { data, error } = await getPlaaSummary();
 
   if (error || !data) {
-    return NextResponse.json({ error: error?.message ?? 'Failed to fetch round stats' }, { status: 502 });
+    return upstreamError();
   }
 
   return NextResponse.json(data.round);

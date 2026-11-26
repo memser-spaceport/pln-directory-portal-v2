@@ -10,7 +10,10 @@
  *   script ........ role-aware actions (founder / lead / member), feedback as an action, answers about context
  *   items ......... what can be put in context: pages, news, teams, members, events, forum threads
  *
- * Review switches: ?page=profile, ?viewer=lead|member, ?askai=off, ?agent=open.
+ * Review switches: ?page=profile, ?viewer=lead|member, ?askai=off, ?agent=open, ?pageread=off, ?handoff=fail.
+ *
+ * LAB-3389 (2026-11-24): "Open in AI Search" in the drawer's header, a resizable panel (drag the left edge,
+ * 400 to 720px, kept in localStorage), and the page the member is on as a labelled first chip ("Context Home").
  */
 
 import clsx from 'clsx';
@@ -90,6 +93,28 @@ const VIEWER_OPTIONS: Option<ViewerKey>[] = [
   { value: 'member', label: 'Member', note: VIEWER_NOTES.member },
 ];
 
+const PAGE_READ_OPTIONS: Option<'on' | 'off'>[] = [
+  {
+    value: 'on',
+    label: 'Readable',
+    note: 'Default. The context row starts with “Context <this page>”; ✕ turns it into “Not in context <this page> +”, which puts it back in one press.',
+  },
+  {
+    value: 'off',
+    label: 'Can’t read',
+    note: 'A page the agent may not read (settings, messages). The first slot says “Can’t read this page”, with nothing to press.',
+  },
+];
+
+const HANDOFF_OPTIONS: Option<'ok' | 'fail'>[] = [
+  { value: 'ok', label: 'Works', note: 'Default. “AI agent chat” in the header opens this chat as a new AI agent chat thread, in a new tab.' },
+  {
+    value: 'fail',
+    label: 'Fails once',
+    note: 'The first press fails: the member stays in the agent with the chat and sees the error with Retry. Retry works.',
+  },
+];
+
 const ASK_OPTIONS: Option<'on' | 'off'>[] = [
   {
     value: 'on',
@@ -153,6 +178,8 @@ export default function AgentPrototype() {
   const rawViewer = searchParams.get('viewer');
   const viewerKey: ViewerKey = rawViewer === 'lead' || rawViewer === 'member' ? rawViewer : 'founder';
   const askAi = searchParams.get('askai') !== 'off';
+  const pageRead = searchParams.get('pageread') !== 'off';
+  const handoffFails = searchParams.get('handoff') === 'fail';
   const catalog = useMemo(() => (now ? buildCatalog(now) : []), [now]);
 
   if (!now) return <div className={hv.mountShell} />;
@@ -162,6 +189,18 @@ export default function AgentPrototype() {
       <div className={feed.reviewRow}>
         <Switch label="Page" options={PAGE_OPTIONS} value={pageKey} onChange={(v) => setParam('page', v, 'home')} />
         <Switch label="Viewer" options={VIEWER_OPTIONS} value={viewerKey} onChange={(v) => setParam('viewer', v, 'founder')} />
+        <Switch
+          label="This page"
+          options={PAGE_READ_OPTIONS}
+          value={pageRead ? 'on' : 'off'}
+          onChange={(v) => setParam('pageread', v, 'on')}
+        />
+        <Switch
+          label="Open in AI agent chat"
+          options={HANDOFF_OPTIONS}
+          value={handoffFails ? 'fail' : 'ok'}
+          onChange={(v) => setParam('handoff', v, 'ok')}
+        />
         {pageKey === 'home' && (
           <Switch label="Ask AI" options={ASK_OPTIONS} value={askAi ? 'on' : 'off'} onChange={(v) => setParam('askai', v, 'on')} />
         )}
@@ -173,6 +212,8 @@ export default function AgentPrototype() {
     viewerKey,
     catalog,
     openOnArrival: searchParams.get('agent') === 'open',
+    pageRead,
+    handoffFails,
   };
 
   return pageKey === 'profile' ? (
@@ -200,6 +241,8 @@ function HomePage({
   catalog,
   askAi,
   openOnArrival,
+  pageRead,
+  handoffFails,
   reviewBand,
 }: {
   now: Date;
@@ -207,6 +250,8 @@ function HomePage({
   catalog: AgentItem[];
   askAi: boolean;
   openOnArrival: boolean;
+  pageRead: boolean;
+  handoffFails: boolean;
   reviewBand: ReactNode;
 }) {
   const forumPosts = useMemo(() => weekForumPosts(now), [now]);
@@ -393,8 +438,10 @@ function HomePage({
 
       {/* Keyed by viewer: switching role starts from that member's agent. */}
       <AgentDrawer
-        key={viewerKey}
+        key={`${viewerKey}-${pageRead}-${handoffFails}`}
         page={PAGES.home}
+        pageReadable={pageRead}
+        handoffFailsOnce={handoffFails}
         viewer={VIEWERS[viewerKey]}
         recentPages={[PAGES.maya, PAGES.lattice, PAGES.jobs]}
         catalog={catalog}
@@ -479,11 +526,15 @@ function ProfilePage({
   viewerKey,
   catalog,
   openOnArrival,
+  pageRead,
+  handoffFails,
   reviewBand,
 }: {
   viewerKey: ViewerKey;
   catalog: AgentItem[];
   openOnArrival: boolean;
+  pageRead: boolean;
+  handoffFails: boolean;
   reviewBand: ReactNode;
 }) {
   return (
@@ -491,8 +542,11 @@ function ProfilePage({
       <Chrome />
       <MemberProfilePage askAi="header" reviewBand={reviewBand} />
       <AgentDrawer
-        key={viewerKey}
+        key={`${viewerKey}-${pageRead}-${handoffFails}`}
         page={PAGES.maya}
+        pageReadable={pageRead}
+        handoffFailsOnce={handoffFails}
+        aiSearchScope={{ about: 'member' }}
         viewer={VIEWERS[viewerKey]}
         recentPages={[PAGES.home, PAGES.lattice, PAGES.jobs]}
         catalog={catalog}

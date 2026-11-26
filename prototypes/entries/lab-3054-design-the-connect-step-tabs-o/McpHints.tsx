@@ -38,7 +38,7 @@ type HintContext = {
 const CONTEXTS: HintContext[] = [
   {
     key: 'search',
-    host: 'AI Search',
+    host: 'AI agent chat',
     trigger: 'Above the follow-up field, from the second search in a session',
     title: 'Ask this from Claude or Codex next time',
     text: `Connect LabOS to your agent and search “${SEARCH_QUESTION}” where you already work.`,

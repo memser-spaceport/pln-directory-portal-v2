@@ -475,7 +475,7 @@ export function PrototypeNavBar({
                       type="button"
                       className={clsx(local.navAiBadge, local.navAiBadgeInline)}
                       onClick={onAiSearchClick}
-                      aria-label="Open AI Search"
+                      aria-label="Open AI agent chat"
                     >
                       <AiSearchIcon size={12} />
                       AI
@@ -503,7 +503,7 @@ export function PrototypeNavBar({
                     type="button"
                     className={local.navAiBadge}
                     onClick={onAiSearchClick}
-                    aria-label="Open AI Search"
+                    aria-label="Open AI agent chat"
                   >
                     <AiSearchIcon size={16} />
                     AI

@@ -407,20 +407,26 @@
   }
 }
 
-.online {
-  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-  border-radius: 12px;
-  padding-top: 4px;
-  background: var(--background-base-white, #ffffff); // a white card on the grey page
+/* One quiet line for the events with no place (2026-11-23, replaced the Online card). */
+.offMap {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
 }
 
-.onlineTitle {
-  margin: 0;
-  padding: 12px 16px 8px;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 600;
-  color: var(--foreground-neutral-primary, #0a0c11);
+.offMapLink {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 /* Esri World Street Map, the Google-Maps-like look, shown in its own colours (the grey filter and slate wash

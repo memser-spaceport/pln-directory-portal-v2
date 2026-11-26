@@ -2,7 +2,7 @@
 
 import map from 'lodash/map';
 import get from 'lodash/get';
-import { Fragment } from 'react';
+import { Fragment, type ReactNode } from 'react';
 
 import type { ITeam } from '@/types/teams.types';
 
@@ -25,6 +25,8 @@ import s from '@/components/page/team-details/TeamContactInfo/components/TeamCon
 
 interface Props {
   team: ITeam;
+  /** Under the links: team-profile's "Actions → In sections" puts Request an intro here. */
+  footer?: ReactNode;
 }
 
 /**
@@ -33,7 +35,7 @@ interface Props {
  * `useTeamAnalytics` on click. We drop the store + analytics and the edit
  * affordance, importing the clean leaf social-link components and production scss.
  */
-export function TeamContactView({ team }: Props) {
+export function TeamContactView({ team, footer }: Props) {
   const { contactMethod } = team ?? {};
   const noop = () => {};
 
@@ -67,6 +69,7 @@ export function TeamContactView({ team }: Props) {
           );
         })}
       </DetailsSectionGreyContentContainer>
+      {footer}
     </DetailsSection>
   );
 }

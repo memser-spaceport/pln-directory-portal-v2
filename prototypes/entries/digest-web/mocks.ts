@@ -49,7 +49,10 @@ export interface DigestForumPost {
 export const DIGEST_ISSUE = {
   id: '2026-11-09',
   greetingName: 'Polina',
-  intro: 'Picked for you from subscribed tags and the teams you follow.',
+  /** Web only: what the digest is. How it's picked is the side column's job, so it isn't repeated here. */
+  description: 'The week’s top stories from across the Protocol Labs network, in one place.',
+  /** Email only; same words as the web page's How personalization works card. */
+  intro: 'Stories come from your topics first, then the teams you follow, then the network’s top stories.',
 };
 
 /**

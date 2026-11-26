@@ -37,6 +37,17 @@ export function gatheringScheduleLink(
   };
 }
 
+/**
+ * One event, e.g. a global search result (LAB-3341): with the All Events page on, `/events/all?event=<uid>` in the
+ * same tab, which opens its drawer; LabOS owns events, so the old events app is no target. With it off, `legacyHref`
+ * (the search index's events-app link) in a new tab as before. No uid and no legacy link: no link.
+ */
+export function eventLink(uid: string | null | undefined, legacyHref?: string | null): EventsLink | null {
+  if (isAllEventsPageOn() && uid) return { href: `${ALL_EVENTS_PATH}?event=${encodeURIComponent(uid)}`, newTab: false };
+  const legacy = legacyHref?.trim();
+  return legacy ? { href: legacy, newTab: true } : null;
+}
+
 /** Every event (the IRL page's "View All Events" card): `/events/all` when it is on, else `legacyHref` in a new tab. */
 export function allEventsLink(legacyHref: string): EventsLink {
   return isAllEventsPageOn() ? { href: ALL_EVENTS_PATH, newTab: false } : { href: legacyHref, newTab: true };

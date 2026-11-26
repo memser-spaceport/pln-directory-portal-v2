@@ -51,3 +51,22 @@ describe('isEventEnded (LAB-3426)', () => {
     }
   });
 });
+
+describe('isEventEnded, an all-day event (LAB-3339 with LAB-3418)', () => {
+  it('ends with its last day in its own time zone, not at midnight UTC of it', () => {
+    // Jul 26 ends at 11:59:59 PM in Los Angeles: 06:59:59 UTC on Jul 27.
+    const ended = (iso: string) => isEventEnded('2030-07-26', at(iso), true, 'America/Los_Angeles');
+    expect(ended('2030-07-26T00:00:00.000Z')).toBe(false);
+    expect(ended('2030-07-27T06:59:59.000Z')).toBe(false);
+    expect(ended('2030-07-27T07:00:00.000Z')).toBe(true);
+  });
+
+  it('read as an instant, the same day would have ended at its start', () => {
+    expect(isEventEnded('2030-07-26', at('2030-07-26T12:00:00.000Z'))).toBe(true);
+    expect(isEventEnded('2030-07-26', at('2030-07-26T12:00:00.000Z'), true, 'UTC')).toBe(false);
+  });
+
+  it('an unreadable day never ends it', () => {
+    expect(isEventEnded('soon', at('2030-07-26T12:00:00.000Z'), true, 'UTC')).toBe(false);
+  });
+});

@@ -13,7 +13,7 @@
  * Review switches: ?page=profile, ?viewer=lead|member, ?askai=off, ?agent=open, ?pageread=off, ?handoff=fail.
  *
  * LAB-3389 (2026-11-24): "Open in AI Search" in the drawer's header, a resizable panel (drag the left edge,
- * 400 to 720px, kept in localStorage), and the page the member is on as a labelled first chip ("Reading Home").
+ * 400 to 720px, kept in localStorage), and the page the member is on as a labelled first chip ("Context Home").
  */
 
 import clsx from 'clsx';
@@ -97,7 +97,7 @@ const PAGE_READ_OPTIONS: Option<'on' | 'off'>[] = [
   {
     value: 'on',
     label: 'Readable',
-    note: 'Default. The context row starts with “Reading <this page>”; ✕ turns it into “Not reading <this page> +”, which puts it back in one press.',
+    note: 'Default. The context row starts with “Context <this page>”; ✕ turns it into “Not in context <this page> +”, which puts it back in one press.',
   },
   {
     value: 'off',
@@ -107,7 +107,7 @@ const PAGE_READ_OPTIONS: Option<'on' | 'off'>[] = [
 ];
 
 const HANDOFF_OPTIONS: Option<'ok' | 'fail'>[] = [
-  { value: 'ok', label: 'Works', note: 'Default. “AI Search” in the header opens this chat as a new AI Search thread, in a new tab.' },
+  { value: 'ok', label: 'Works', note: 'Default. “AI agent chat” in the header opens this chat as a new AI agent chat thread, in a new tab.' },
   {
     value: 'fail',
     label: 'Fails once',
@@ -196,7 +196,7 @@ export default function AgentPrototype() {
           onChange={(v) => setParam('pageread', v, 'on')}
         />
         <Switch
-          label="Open in AI Search"
+          label="Open in AI agent chat"
           options={HANDOFF_OPTIONS}
           value={handoffFails ? 'fail' : 'ok'}
           onChange={(v) => setParam('handoff', v, 'ok')}

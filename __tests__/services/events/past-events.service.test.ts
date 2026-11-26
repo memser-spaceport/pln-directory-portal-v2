@@ -83,6 +83,7 @@ describe('toPastEventItem', () => {
       name: 'DAI Summit',
       startDate: '2029-12-03T03:30:00.000Z',
       endDate: '2029-12-04T12:30:00.000Z',
+      allDay: false,
       timezone: 'Asia/Kolkata',
       startDay: '2029-12-03',
       endDay: '2029-12-04',
@@ -92,12 +93,13 @@ describe('toPastEventItem', () => {
       city: 'Bangalore',
       cityKey: 'bangalore',
       place: 'Bangalore, India',
+      venuePoint: null,
       mode: 'Hybrid',
       access: 'PAID',
       hosts: ['Protocol Labs', 'Filecoin Foundation'],
       focusAreas: [],
       tags: ['AI', 'Storage'],
-      tagColor: null,
+      featured: false,
       picture: 'https://img/banner.png',
       goingCount: 12,
       faces: ['m1', 'm2', 'm3'].map((uid) => ({ uid, name: uid, image: null })),
@@ -139,6 +141,29 @@ describe('toPastEventItem', () => {
       row({ timezone: 'Mars/Olympus', gathering: { uid: 'x', city: 'Others', country: null } }),
     );
     expect(item).toMatchObject({ timezone: 'UTC', city: null, cityKey: null, place: null });
+  });
+
+  it('as for an upcoming event (LAB-3278): an all-day row has days only, and Featured and the venue are read', () => {
+    expect(
+      toPastEventItem(row({ allDay: true, startDate: '2029-07-24', endDate: '2029-07-26', isFeatured: true })),
+    ).toMatchObject({
+      allDay: true,
+      startDay: '2029-07-24',
+      endDay: '2029-07-26',
+      startTime: '',
+      endTime: '',
+      zone: '',
+      featured: true,
+    });
+    expect(
+      toPastEventItem(
+        row({
+          gathering: { uid: 'x', city: 'Others', country: null },
+          venue: { address: ' Rua Augusta 1, Lisbon ', latitude: 38.71, longitude: -9.14 },
+        }),
+      ),
+    ).toMatchObject({ city: null, place: 'Rua Augusta 1, Lisbon', venuePoint: { lat: 38.71, lng: -9.14 } });
+    expect(toPastEventItem(row({ venue: { address: null, latitude: 91, longitude: 0 } }))?.venuePoint).toBeNull();
   });
 
   it('keeps focus area codes out of the topics', () => {

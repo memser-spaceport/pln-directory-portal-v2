@@ -5,7 +5,6 @@ import {
   mondayOf,
   monthLabel,
   monthWeeks,
-  safeColor,
   spanColumns,
   stepMonth,
   weekLabel,
@@ -64,11 +63,5 @@ describe('order and anchor', () => {
     const early = item({ uid: 'early', startTime: '9:00 AM' });
     const nextDay = item({ uid: 'next', startDay: '2030-12-04', startTime: '7:00 AM' });
     expect([nextDay, late, early].sort(byStart).map((e) => e.uid)).toEqual(['early', 'late', 'next']);
-  });
-
-  it('only lets a plain hex colour into a style', () => {
-    expect(safeColor('#ff8800')).toBe('#ff8800');
-    expect(safeColor('red; background: url(x)')).toBe('#1E88E5');
-    expect(safeColor(null)).toBe('#1E88E5');
   });
 });

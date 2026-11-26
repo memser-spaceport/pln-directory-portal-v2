@@ -4,7 +4,7 @@ import { GlobeIcon } from '@/components/icons';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { EventImage } from '@/components/page/events/EventImage/EventImage';
 import { GoingPill, WENT_LABEL } from '@/components/page/events/GoingPill/GoingPill';
-import { dayOfSpan, whenLine } from '@/services/events/all-events.filters';
+import { dayOfSpan, startLabel, whenLine } from '@/services/events/all-events.filters';
 import { ACCESS_COPY, eventPlace } from '@/services/events/event-facts';
 import type { AllEventsItem } from '@/services/events/all-events.types';
 
@@ -110,7 +110,7 @@ export function EventCard({
   /** On Past: the faces and "N went" open who went (P1). */
   onOpenPeople?: () => void;
 } & EventPress) {
-  const when = [`${item.startTime} ${item.zone}`, dayOfSpan(item, day)].filter(Boolean).join(' · ');
+  const when = [startLabel(item), dayOfSpan(item, day)].filter(Boolean).join(' · ') || 'All day';
   return (
     <button
       type="button"

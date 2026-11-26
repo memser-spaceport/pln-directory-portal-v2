@@ -305,6 +305,8 @@
   font-size: 14px;
   line-height: 22px;
   color: var(--foreground-neutral-secondary, #455468);
+  /* A long word or link with no space breaks rather than widening the drawer. */
+  overflow-wrap: anywhere;
 }
 
 .tagGroup {
@@ -717,4 +719,14 @@
   to {
     background-position: -100% 0;
   }
+}
+
+.statusLine {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
 }

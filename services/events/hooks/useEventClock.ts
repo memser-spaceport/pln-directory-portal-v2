@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useSyncExternalStore } from 'react';
 
 import type { AllEventsItem } from '../all-events.types';
-import { isEventEnded } from '../event-ended';
+import { eventEndMs, isEventEnded } from '../event-ended';
 import { isLive } from '../event-live';
 
 const MINUTE_MS = 60_000;
@@ -10,7 +10,7 @@ const MINUTE_MS = 60_000;
 function untilNextTick(items: AllEventsItem[], now: number): number {
   return items.reduce(
     (wait, item) => {
-      const left = new Date(item.endDate).getTime() - now;
+      const left = eventEndMs(item.endDate, item.allDay, item.timezone) - now;
       return left > 0 ? Math.min(wait, left) : wait;
     },
     MINUTE_MS - (now % MINUTE_MS),
@@ -45,7 +45,10 @@ const placesOf = (items: AllEventsItem[], test: (item: AllEventsItem) => boolean
   items.flatMap((item, i) => (test(item) ? [i] : [])).join(' ');
 
 const clockKey = (items: AllEventsItem[], now: number) =>
-  [placesOf(items, (item) => isLive(item, now)), placesOf(items, (item) => isEventEnded(item.endDate, now))].join('|');
+  [
+    placesOf(items, (item) => isLive(item, now)),
+    placesOf(items, (item) => isEventEnded(item.endDate, now, item.allDay, item.timezone)),
+  ].join('|');
 
 const toSet = (items: AllEventsItem[], places: string) =>
   new Set(places ? places.split(' ').map((i) => items[Number(i)]) : []);

@@ -17,7 +17,7 @@
 
 import clsx from 'clsx';
 import Link from 'next/link';
-import { useState, type ReactNode } from 'react';
+import { createContext, useContext, useState, type ReactNode } from 'react';
 
 import { Button } from '@/components/common/Button';
 import { Checkbox } from '@/components/common/Checkbox';
@@ -191,10 +191,10 @@ export const itemPrompts = (item: AgentItem): Prompt[] => {
 /** The empty state's one line: what this member can have the agent do (the permissions, said once). */
 export const intro = (v: Viewer) => {
   if (v.portfolio)
-    return `You lead ${v.team}, a portfolio team, so I can ask the PL Venture team for intros, update your profile and ${v.team}’s, and post its news. Nothing is sent or changed until you confirm.`;
+    return `You lead ${v.team}, a portfolio team, so I can ask the PL Venture team for intros, update your profile and ${v.team}’s, and post its news.`;
   if (v.lead)
-    return `You lead ${v.team}, so I can update your profile and ${v.team}’s, and post its news. Nothing is sent or changed until you confirm.`;
-  return `I can update your profile, draft forum posts, and send ${v.teamLead} changes for ${v.team}. Nothing is sent or changed until you confirm.`;
+    return `You lead ${v.team}, so I can update your profile and ${v.team}’s, and post its news.`;
+  return `I can update your profile, draft forum posts, and send ${v.teamLead} changes for ${v.team}.`;
 };
 
 export const placeholder = (v: Viewer) =>
@@ -467,11 +467,11 @@ export function createScript(v: Viewer, getContext: () => ScriptContext) {
           blocks: [
             {
               kind: 'text',
-              text: `Intros through the PL Venture team are for portfolio founders, and ${v.team} isn’t in the portfolio. AI Search can find teams like these in the network.`,
+              text: `Intros through the PL Venture team are for portfolio founders, and ${v.team} isn’t in the portfolio. AI agent chat can find teams like these in the network.`,
             },
             custom(() => (
               <Link href="/prototypes/ai-mode-results" className={agentCss.moreLink}>
-                Open AI Search
+                Open AI agent chat
               </Link>
             )),
           ],
@@ -555,8 +555,18 @@ const ask = (options: string[]): AgentBlock => custom((ctx) => <AskOptions optio
 
 /* ---------- Cards ---------- */
 
+/**
+ * True when a reply is replayed from history (AI agent chat, version 2: "the chat is the agent", showing a
+ * chat where the agent already acted). Every card then opens in its finished state: sent, applied, posted.
+ * The live agent never sets it.
+ */
+export const AgentCardsSettled = createContext(false);
+
+/** Set where Undo can't happen in place (AI agent chat, version 1): Undo opens the agent instead. */
+export const AgentUndoOverride = createContext<(() => void) | null>(null);
+
 function AskOptions({ options, ctx }: { options: string[]; ctx: AgentBlockContext }) {
-  const [answered, setAnswered] = useState(false);
+  const [answered, setAnswered] = useState(useContext(AgentCardsSettled));
   if (answered) return null;
   return (
     <ol className={v0.options}>
@@ -604,7 +614,8 @@ function Receipt({ children, onUndo }: { children: ReactNode; onUndo?: () => voi
 
 function RequestCard({ viewer, body }: { viewer: Viewer; body: string }) {
   const [text, setText] = useState(body);
-  const [state, setState] = useState<'draft' | 'sent' | 'dismissed'>('draft');
+  const settled = useContext(AgentCardsSettled);
+  const [state, setState] = useState<'draft' | 'sent' | 'dismissed'>(settled ? 'sent' : 'draft');
 
   if (state === 'dismissed') return <p className={v0.muted}>Not sent.</p>;
   if (state === 'sent')
@@ -660,13 +671,15 @@ function ChangesCard({
   doneLabel: string;
 }) {
   const [picked, setPicked] = useState<Set<number>>(() => new Set(changes.map((_, i) => i)));
-  const [state, setState] = useState<'draft' | 'applied' | 'dismissed'>('draft');
+  const settled = useContext(AgentCardsSettled);
+  const [state, setState] = useState<'draft' | 'applied' | 'dismissed'>(settled ? 'applied' : 'draft');
+  const undoOverride = useContext(AgentUndoOverride);
   const n = picked.size;
 
   if (state === 'dismissed') return <p className={v0.muted}>{sendTo ? 'Not sent.' : 'Nothing changed.'}</p>;
   if (state === 'applied')
     return (
-      <Receipt onUndo={sendTo ? undefined : () => setState('draft')}>
+      <Receipt onUndo={sendTo ? undefined : (undoOverride ?? (() => setState('draft')))}>
         {doneLabel}{' '}
         {!sendTo && (
           <a href={viewHref} className={v0.inlineLink}>
@@ -727,7 +740,8 @@ function ChangesCard({
 function PostDraftCard({ title: initialTitle, body: initialBody }: { title: string; body: string }) {
   const [title, setTitle] = useState(initialTitle);
   const [body, setBody] = useState(initialBody);
-  const [state, setState] = useState<'draft' | 'posted' | 'dismissed'>('draft');
+  const settled = useContext(AgentCardsSettled);
+  const [state, setState] = useState<'draft' | 'posted' | 'dismissed'>(settled ? 'posted' : 'draft');
 
   if (state === 'dismissed') return <p className={v0.muted}>Not posted.</p>;
   if (state === 'posted')
@@ -769,7 +783,9 @@ function TeamNewsCard({ viewer, sendTo }: { viewer: Viewer; sendTo?: string }) {
   const [type, setType] = useState(viewer.newsDraft.type);
   const [title, setTitle] = useState(viewer.newsDraft.title);
   const [summary, setSummary] = useState(viewer.newsDraft.summary);
-  const [state, setState] = useState<'draft' | 'done' | 'dismissed'>('draft');
+  const settled = useContext(AgentCardsSettled);
+  const [state, setState] = useState<'draft' | 'done' | 'dismissed'>(settled ? 'done' : 'draft');
+  const undoOverride = useContext(AgentUndoOverride);
 
   if (state === 'dismissed') return <p className={v0.muted}>{sendTo ? 'Not sent.' : 'Not posted.'}</p>;
   if (state === 'done')
@@ -778,7 +794,7 @@ function TeamNewsCard({ viewer, sendTo }: { viewer: Viewer; sendTo?: string }) {
         Sent to {sendTo}. It goes up on {viewer.team}’s news when they post it.
       </Receipt>
     ) : (
-      <Receipt onUndo={() => setState('draft')}>
+      <Receipt onUndo={undoOverride ?? (() => setState('draft'))}>
         Posted to {viewer.team}’s news. It shows on Home and the team profile.{' '}
         <a href={`/teams/${viewer.teamUid}`} className={v0.inlineLink}>
           View
@@ -823,7 +839,8 @@ function FeedbackCard({ viewer, page, body, kind: initialKind }: { viewer: Viewe
   const [kind, setKind] = useState(initialKind);
   const [text, setText] = useState(body);
   const [shot, setShot] = useState(true);
-  const [state, setState] = useState<'draft' | 'sent' | 'dismissed'>('draft');
+  const settled = useContext(AgentCardsSettled);
+  const [state, setState] = useState<'draft' | 'sent' | 'dismissed'>(settled ? 'sent' : 'draft');
 
   if (state === 'dismissed') return <p className={v0.muted}>Not sent.</p>;
   if (state === 'sent')
@@ -869,7 +886,8 @@ function FeedbackCard({ viewer, page, body, kind: initialKind }: { viewer: Viewe
 
 function CommentCard({ on, body }: { on: string; body: string }) {
   const [text, setText] = useState(body);
-  const [state, setState] = useState<'draft' | 'posted' | 'dismissed'>('draft');
+  const settled = useContext(AgentCardsSettled);
+  const [state, setState] = useState<'draft' | 'posted' | 'dismissed'>(settled ? 'posted' : 'draft');
   if (state === 'dismissed') return <p className={v0.muted}>Not posted.</p>;
   if (state === 'posted') return <Receipt>Commented on “{on}”.</Receipt>;
   return (

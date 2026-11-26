@@ -51,11 +51,25 @@ type Turn =
     };
 
 /** How an @mention reads inside the sentence; the chip carries the full name. */
-const mentionName = (item: AgentItem) =>
+export const mentionName = (item: AgentItem) =>
   item.kind === 'news' ? `${item.by} news` : item.kind === 'forum' ? `${item.by}’s thread` : item.label;
 
+/** The picker's groups: suggested first, then the catalog, minus what's already in context, filtered by the query. */
+export function pickerGroups(query: string, taken: AgentItem[], catalog: AgentItem[], suggested: AgentItem[]) {
+  const q = query.trim().toLowerCase();
+  const takenIds = new Set(taken.map((r) => r.id));
+  const pool = [...suggested, ...catalog.filter((c) => !suggested.some((x) => x.id === c.id))].filter(
+    (i) => !takenIds.has(i.id),
+  );
+  const match = (i: AgentItem) => !q || `${i.label} ${i.meta}`.toLowerCase().includes(q);
+  return GROUP_ORDER.map((kind) => {
+    const all = pool.filter((i) => i.kind === kind && match(i));
+    return { kind, items: q ? all.slice(0, 6) : all.slice(0, GROUP_PEEK) };
+  }).filter((g) => g.items.length);
+}
+
 /** Sets a textarea's value the way typing does, so the composer's own onChange (height, send button) runs. */
-function setNativeValue(el: HTMLTextAreaElement, value: string) {
+export function setNativeValue(el: HTMLTextAreaElement, value: string) {
   const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set;
   setter?.call(el, value);
   el.dispatchEvent(new Event('input', { bubbles: true }));
@@ -256,19 +270,10 @@ export function AgentChat({
 
   /* ---------- Picker ---------- */
 
-  const groups = useMemo(() => {
-    if (!picker) return [];
-    const q = picker.query.trim().toLowerCase();
-    const taken = new Set(reading.map((r) => r.id));
-    const pool = [...suggested, ...catalog.filter((c) => !suggested.some((x) => x.id === c.id))].filter(
-      (i) => !taken.has(i.id),
-    );
-    const match = (i: AgentItem) => !q || `${i.label} ${i.meta}`.toLowerCase().includes(q);
-    return GROUP_ORDER.map((kind) => {
-      const all = pool.filter((i) => i.kind === kind && match(i));
-      return { kind, items: q ? all.slice(0, 6) : all.slice(0, GROUP_PEEK) };
-    }).filter((g) => g.items.length);
-  }, [picker, reading, catalog, suggested]);
+  const groups = useMemo(
+    () => (picker ? pickerGroups(picker.query, reading, catalog, suggested) : []),
+    [picker, reading, catalog, suggested],
+  );
   const flat = groups.flatMap((g) => g.items);
 
   useEffect(() => setActive(0), [picker?.query, picker?.mode]);
@@ -429,15 +434,15 @@ export function AgentChat({
               className={s.aiSearchBtn}
               aria-disabled={!canOpenInAiSearch}
               onClick={openInAiSearch}
-              aria-label="Open in AI Search (new tab)"
+              aria-label="Open in AI agent chat (new tab)"
               title={
                 canOpenInAiSearch
-                  ? 'Open this chat in AI Search (new tab)'
-                  : 'Ask something first, then continue the chat in AI Search'
+                  ? 'Open this chat in AI agent chat (new tab)'
+                  : 'Ask something first, then continue in AI agent chat'
               }
             >
               <AiSearchIcon size={16} />
-              <span className={s.aiSearchLabel}>AI Search</span>
+              <span className={s.aiSearchLabel}>AI agent chat</span>
             </button>
           )}
           {headExtra}
@@ -465,7 +470,7 @@ export function AgentChat({
       {handoffFailed && (
         <div className={s.handoffError} role="alert">
           <WarningCircle weight="regular" aria-hidden />
-          <span className={s.handoffErrorText}>AI Search couldn’t save this chat.</span>
+          <span className={s.handoffErrorText}>Couldn’t open this chat in AI agent chat.</span>
           <button type="button" className={s.handoffRetry} onClick={openInAiSearch}>
             Retry
           </button>
@@ -590,8 +595,8 @@ export function AgentChat({
  * attached as context"). The slot never moves; only its state changes, so the three states read against each
  * other (the state and the press that sets it in one place, design-thinking lesson 40):
  *
- *   attached    [glyph] Reading  Maya Okonkwo  ✕   the context chip, with "Reading" saying what the chip IS
- *   removed     [glyph] Not reading  Maya Okonkwo  +   the same chip in the dashed add lineage ("+ Add" wears
+ *   attached    [glyph] Context  Maya Okonkwo  ✕   the context chip, with "Context" saying what the chip IS
+ *   removed     [glyph] Not in context  Maya Okonkwo  +   the same chip in the dashed add lineage ("+ Add" wears
  *                                                     it); the whole chip is one press that puts the page back.
  *                                                     It keeps the page's name, so it can't read as a second
  *                                                     "Add context" door beside the real one.
@@ -630,7 +635,7 @@ function PageSlot({
         title={`Let the agent read ${page.label} again`}
       >
         <ItemGlyph item={page} />
-        <span className={s.pageChipKicker}>Not reading</span>
+        <span className={s.pageChipKicker}>Not in context</span>
         <span className={clsx(corner.contextLabel, s.chipLabel)}>{page.label}</span>
         <Plus weight="bold" className={s.pageAddPlus} />
       </button>
@@ -638,7 +643,7 @@ function PageSlot({
   return (
     <span className={clsx(corner.contextChip, s.pageChip)} title={`The agent reads ${page.label} with every question`}>
       <ItemGlyph item={page} />
-      <span className={s.pageChipKicker}>Reading</span>
+      <span className={s.pageChipKicker}>Context</span>
       <span className={clsx(corner.contextLabel, s.chipLabel)}>{page.label}</span>
       <button
         type="button"
@@ -658,7 +663,7 @@ function PageSlot({
  * news, teams, members, events, forum). From "+", it has its own search field; from "@", the composer is the
  * search field. Arrows + Enter pick; Esc closes.
  */
-function ContextPicker({
+export function ContextPicker({
   mode,
   query,
   groups,
@@ -683,7 +688,10 @@ function ContextPicker({
   }, [active]);
 
   return (
-    <div className={clsx(menu.popup, s.picker)} role="dialog" aria-label="Add context">
+    <div className={clsx(menu.popup, s.picker)} role="dialog" aria-labelledby="agent-picker-title">
+      <div id="agent-picker-title" className={s.pickerTitle}>
+        Add context
+      </div>
       {mode === 'plus' ? (
         <input
           autoFocus

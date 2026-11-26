@@ -1,0 +1,192 @@
+@use 'styles/media';
+
+/* Shared by the event form and its sections: the old portal's order of sections, in LabOS spacing, colours and type. */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* A field Submit needs: a red asterisk after its title, as `FormField` draws it. */
+.required::after {
+  content: '*';
+  margin-left: 0.25rem;
+  color: red;
+}
+
+.hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+
+  > * {
+    flex: 1;
+    min-width: 0;
+  }
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.error {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--action-border-error-focus, #e7000b);
+}
+
+/* One choice of a few: the access option and the format. */
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.choice {
+  padding: 8px 14px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-base-white, #ffffff);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+
+  &:hover:not(:disabled) {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.choiceOn {
+  border-color: var(--foreground-brand-primary, #1b4dff);
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-weight: 500;
+}
+
+/* A bare text input for rows that are not a `FormField` (co-hosts, social handles, the venue). */
+.input {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid rgba(203, 213, 225, 0.5);
+  border-radius: 8px;
+  background: var(--background-base-white, #ffffff);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  color: #455468;
+
+  &::placeholder {
+    color: #cbd5e1;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #5e718d;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.inputInvalid {
+  border-color: var(--action-border-error-focus, #e7000b);
+}
+
+.iconButton {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--background-neutral-subtle, #f1f5f9);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+}
+
+.textButton {
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    text-decoration: underline;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-end;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}

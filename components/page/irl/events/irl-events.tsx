@@ -25,6 +25,7 @@ import { Dropdown } from '../../../form/Dropdown';
 import DeleteEventModal from './delete-event-modal';
 import { deleteEventLocation } from '@/services/irl.service';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { EVENTS_LOCAL_SUBMIT, EVENTS_MINE_PATH, EVENTS_SUBMIT_PATH } from '@/utils/events-submit';
 import { getSubmitEventUrl } from '@/utils/irl-submit-url';
 
 interface IIrlEvents {
@@ -122,19 +123,25 @@ const IrlEvents = (props: IIrlEvents) => {
     });
   };
 
+  // With events submitted in LabOS, both links stay in LabOS and open in the same tab.
+  const submitEventHref = EVENTS_LOCAL_SUBMIT ? EVENTS_SUBMIT_PATH : getSubmitEventUrl();
+  const linkTarget = EVENTS_LOCAL_SUBMIT ? undefined : '_blank';
+
   const onSubmitEventClick = () => {
     analytics.trackSubmitEventClick({
       location: irlLocation,
-      link: getSubmitEventUrl(),
+      link: submitEventHref,
     });
   };
 
   const onManageEventClick = () => {
     analytics.trackManageEventsClicked({
       location: irlLocation,
-      link: isScheduleEnabled
-        ? `${process.env.IRL_SUBMIT_FORM_URL}/${updatedIrlLocation}/events/manage`
-        : IRL_AIRTABLE_FORM_LINK,
+      link: EVENTS_LOCAL_SUBMIT
+        ? EVENTS_MINE_PATH
+        : isScheduleEnabled
+          ? `${process.env.IRL_SUBMIT_FORM_URL}/${updatedIrlLocation}/events/manage`
+          : IRL_AIRTABLE_FORM_LINK,
     });
   };
   const handleAllGathering = () => {
@@ -427,8 +434,8 @@ const IrlEvents = (props: IIrlEvents) => {
               <div className="root__manage__events">
                 {/* TODO: Remove this once the new submit form is deployed */}
                 {/* <Link href={`${process.env.IRL_SUBMIT_FORM_URL}?location=${updatedIrlLocation}`} legacyBehavior target="_blank"> */}
-                <Link href={getSubmitEventUrl()} legacyBehavior target="_blank">
-                  <a target="_blank" className="root__submit" onClick={onSubmitEventClick}>
+                <Link href={submitEventHref} legacyBehavior target={linkTarget}>
+                  <a target={linkTarget} className="root__submit" onClick={onSubmitEventClick}>
                     <img src="/icons/doc.svg" height={16} width={16} className="root__submit__img" alt="calendar" />
                     Submit an event
                   </a>
@@ -437,11 +444,15 @@ const IrlEvents = (props: IIrlEvents) => {
                 {/* TODO: Remove this once the new submit form is deployed */}
                 {/* <Link href={`${process.env.IRL_SUBMIT_FORM_URL}/events/manage?location=${updatedIrlLocation}`} legacyBehavior target="_blank"> */}
                 <Link
-                  href={`${process.env.IRL_SUBMIT_FORM_URL}?location=${updatedIrlLocation}&status=${encodeURIComponent('my events')}`}
+                  href={
+                    EVENTS_LOCAL_SUBMIT
+                      ? EVENTS_MINE_PATH
+                      : `${process.env.IRL_SUBMIT_FORM_URL}?location=${updatedIrlLocation}&status=${encodeURIComponent('my events')}`
+                  }
                   legacyBehavior
-                  target="_blank"
+                  target={linkTarget}
                 >
-                  <a target="_blank" className="root__submit" onClick={onManageEventClick}>
+                  <a target={linkTarget} className="root__submit" onClick={onManageEventClick}>
                     <img
                       src="/icons/settings-blue.svg"
                       height={16}

@@ -18,4 +18,10 @@ export enum EventsQueryKeys {
   PAST_EVENTS = 'PAST_EVENTS',
   /** The ended events the viewer went to, for the "Went" pills (LAB-3418): `[MY_PAST_EVENT_UIDS, viewerUid]`. */
   MY_PAST_EVENT_UIDS = 'MY_PAST_EVENT_UIDS',
+  /** The signed-in member's own submissions (My Submissions, the drawer's "Edit"): `[MY_EVENTS, viewerUid]`. */
+  MY_EVENTS = 'MY_EVENTS',
+  /** One event for the edit page, read with the member's token: `[EVENT_FOR_EDIT, eventUid, viewerUid]`. */
+  EVENT_FOR_EDIT = 'EVENT_FOR_EDIT',
+  /** Venue suggestions for the submit form: `[EVENT_PLACES, query]`. */
+  EVENT_PLACES = 'EVENT_PLACES',
 }

@@ -11,15 +11,16 @@ import { ENDED_ACCESS_COPY } from '@/services/events/event-ended';
 import { ACCESS_COPY } from '@/services/events/event-facts';
 import { eventWhen } from '@/services/events/event-when';
 import { focusAreaName } from '@/services/events/focus-areas';
+import { plainSpaces } from '@/utils/html/plainSpaces';
 
 import e from './EventDrawer.module.scss';
 
 const HTML_TAG = /<\/?[a-z][\s\S]*>/i;
 
-/** Plain text keeps its paragraphs; HTML from the events sync goes through the sanitiser. */
+/** Plain text keeps its paragraphs; HTML goes through the sanitiser with plain spaces, so its lines wrap. */
 function Description({ text }: { text: string }) {
   if (HTML_TAG.test(text)) {
-    return <SafeHtml html={text} className={e.paragraph} />;
+    return <SafeHtml html={plainSpaces(text)} className={e.paragraph} />;
   }
   const paragraphs = text
     .split(/\n\s*\n|\r\n\s*\r\n/)
@@ -73,7 +74,7 @@ function HostNames({ hosts }: { hosts: string[] }) {
  * About with its focus areas (LAB-3404) and its topics at the end, then Agenda. Plain section titles over hairlines; a block with no data is left out.
  *
  * Deviations from the prototype: hosts are names, not links (the Directory has no team for an event host); the place
- * is the gathering's location text, with no venue and region lines (the Directory stores neither); a row with the
+ * is one line, the event's venue address or else its gathering's location, never "Others" (LAB-3458); a row with the
  * event's own page sits among the facts (LAB-3271, LAB-3333, LAB-3334); no "Part of the <city> gathering" (LAB-3283).
  * LAB-3324: with a map link, the place and its arrow open the map in a new tab; an online event never links.
  * LAB-3426: for an event that has ended, nothing here asks the reader to register or RSVP. LAB-3418: its day line
@@ -90,7 +91,7 @@ export function EventSummary({
 }) {
   // One reading of the clock, so the line never changes while the drawer is open.
   const [now] = useState(() => Date.now());
-  const when = eventWhen(event.startDate, event.endDate, event.timezone, ended ? now : undefined);
+  const when = eventWhen(event.startDate, event.endDate, event.timezone, event.allDay, ended ? now : undefined);
   const page = eventLink(event.eventUrl);
   const mapLink = eventLink(event.locationUrl);
   const online = event.mode === 'Virtual' || (event.mode === 'Hybrid' && !event.address);

@@ -107,8 +107,3 @@ export const weekdayName = (isoDay: string, width: 'short' | 'long') =>
 /** "Wednesday, December 10" for a day number's label. */
 export const longDay = (isoDay: string) =>
   at(isoDay).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-
-/** The first topic's colour, when it is a plain hex colour (it comes from event data, so nothing else goes in a style). */
-export function safeColor(color: string | null | undefined): string {
-  return color && /^#[0-9a-f]{6}$/i.test(color) ? color : '#1E88E5';
-}

@@ -63,7 +63,7 @@ export const CHANGES: { area: string; was: string; now: string }[] = [
   {
     area: 'Name',
     was: '/husky, "AI Chat" tab title, "New Conversation", "Threads"',
-    now: '/ai-search, "AI Search" everywhere a person reads it, "New chat", "History"',
+    now: '/ai-search, "AI agent chat" everywhere a person reads it, "New chat", "History"',
   },
   {
     area: 'New chat',
@@ -72,7 +72,7 @@ export const CHANGES: { area: string; was: string; now: string }[] = [
   },
   {
     area: 'Field',
-    was: '2px brand ring even at rest, an inline "Shift + Enter to add new line" hint, a square send with the AI Search logo on a grey block',
+    was: '2px brand ring even at rest, an inline "Shift + Enter to add new line" hint, a square send with the AI agent chat logo on a grey block',
     now: 'Card border at rest, brand edge on focus, no hint, a round arrow send dimmed until there is text (a stop square while answering); the same field under a chat',
   },
   {

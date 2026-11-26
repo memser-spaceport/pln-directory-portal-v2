@@ -53,10 +53,9 @@ interface RailProps {
 
 /**
  * The left rail, built as Teams and Members build theirs: a FiltersSidePanel ("Filters", applied count, Clear All)
- * with a title-less search, then one section per filter: search, "Events I'm going to", Mode, Access type, Focus area,
- * Topic, City and Host. A facet with fewer than two values in the events is left out, unless it is applied: before the events
- * service has synced the events' details, Access, Focus area, Topic and Host have none and stay hidden. Featured waits for
- * the backend to send it (phase 2, LAB-3281).
+ * with a title-less search, then one section per filter: search, "Events I'm going to", "Featured events", Mode,
+ * Access type, Focus area, Topic, City and Host. A facet with fewer than two values in the events is left out, unless
+ * it is applied. "Featured events" is left out when no event is featured, unless it is applied.
  */
 export function AllEventsFilterRail({
   events,
@@ -70,6 +69,8 @@ export function AllEventsFilterRail({
   const goingLabel = goingFilterLabel(past);
   const { params } = useAllEventsFilterStore();
   const applied = readFilters(params);
+  const showGoing = goingCount !== null;
+  const showFeatured = applied.featured || events.some((event) => event.featured);
 
   return (
     <FiltersSidePanel
@@ -92,13 +93,18 @@ export function AllEventsFilterRail({
         />
       </FilterSection>
 
-      {goingCount !== null && (
+      {(showGoing || showFeatured) && (
         <FilterSection title="Show">
-          <GenericFilterToggle
-            label={goingCount ? `${goingLabel} (${goingCount})` : goingLabel}
-            paramKey="going"
-            filterStore={useAllEventsFilterStore}
-          />
+          {showGoing && (
+            <GenericFilterToggle
+              label={goingCount ? `${goingLabel} (${goingCount})` : goingLabel}
+              paramKey="going"
+              filterStore={useAllEventsFilterStore}
+            />
+          )}
+          {showFeatured && (
+            <GenericFilterToggle label="Featured events" paramKey="featured" filterStore={useAllEventsFilterStore} />
+          )}
         </FilterSection>
       )}
 
@@ -145,6 +151,7 @@ export function appliedChips(params: URLSearchParams, scopedCity: string | null,
   const chips: Chip[] = [];
   if (f.search) chips.push({ key: 'search', label: `“${f.search}”` });
   if (f.going) chips.push({ key: 'going', label: goingFilterLabel(past) });
+  if (f.featured) chips.push({ key: 'featured', label: 'Featured events' });
   FACET_KEYS.forEach((key) => {
     if (key === 'city' && scopedCity) return;
     f[key].forEach((value) => chips.push({ key, value, label: facetLabel(key, value) }));

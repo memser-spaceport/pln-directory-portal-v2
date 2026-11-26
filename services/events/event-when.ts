@@ -1,5 +1,7 @@
 import { formatInTimeZone } from 'date-fns-tz';
 
+import { eventDay, safeTimezone } from '@/services/events/event-dates';
+
 /*
  * When an event is, as the redesigned drawer prints it (LAB-3361, Polina's `event-drawer-redesign/format.ts`): the date
  * tile's month and day, the day line and the time line with its zone. Read in the event's own time zone, so an event
@@ -13,7 +15,7 @@ export interface EventWhen {
   day: string;
   /** "Thursday, November 19", or "Tue, Dec 1 – Sat, Dec 5" for an event across days; with its year, see `dayLineOf`. */
   dayLine: string;
-  /** "6:00 PM – 9:00 PM · UTC−5". */
+  /** "6:00 PM – 9:00 PM · UTC−5"; "All day" for an all-day event, which has no time or zone. */
   timeLine: string;
 }
 
@@ -50,8 +52,15 @@ function dayLineOf(
  * `endedAsOf` is the clock, for an event that has ended (LAB-3418): its day line then carries a year other than the
  * current one. Without it the line has no year.
  */
-export function eventWhen(startDate: string, endDate: string, timezone: string, endedAsOf?: number): EventWhen | null {
+export function eventWhen(
+  startDate: string,
+  endDate: string,
+  timezone: string,
+  allDay = false,
+  endedAsOf?: number,
+): EventWhen | null {
   if (!valid(startDate)) return null;
+  if (allDay) return allDayWhen(startDate, endDate, timezone, endedAsOf);
   const start = new Date(startDate);
   const end = valid(endDate) ? new Date(endDate) : start;
   try {
@@ -69,6 +78,24 @@ export function eventWhen(startDate: string, endDate: string, timezone: string, 
   } catch {
     return null;
   }
+}
+
+/**
+ * An all-day event: its own days, read as calendar days, and "All day" in place of the times. Ended (`endedAsOf`), its
+ * day line carries a year other than the current one, as for any ended event.
+ */
+function allDayWhen(startDate: string, endDate: string, timezone: string, endedAsOf?: number): EventWhen {
+  const tz = safeTimezone(timezone);
+  const startDay = eventDay(startDate, tz);
+  const endDay = valid(endDate) ? eventDay(endDate, tz) : startDay;
+  const noon = (isoDay: string) => new Date(`${isoDay}T12:00:00Z`);
+  const at = (date: Date, pattern: string) => formatInTimeZone(date, 'UTC', pattern);
+  return {
+    month: at(noon(startDay), 'MMM').toUpperCase(),
+    day: at(noon(startDay), 'd'),
+    dayLine: dayLineOf(at, noon(startDay), noon(endDay < startDay ? startDay : endDay), endedAsOf),
+    timeLine: 'All day',
+  };
 }
 
 /**

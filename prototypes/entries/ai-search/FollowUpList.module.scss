@@ -1,0 +1,82 @@
+// Follow-ups as a quiet list (see FollowUpList.tsx). Token pairs are the dialog's own.
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+/* The same 12/500 secondary label as "From the directory". */
+.label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  > li + li {
+    border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  min-height: 40px;
+  padding: 10px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-primary, #0a0c11);
+
+    .glyph {
+      color: var(--foreground-brand-primary, #1b4dff);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: -2px;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.5;
+  }
+}
+
+.glyph {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  transition: color 0.15s ease;
+}
+
+.text {
+  min-width: 0;
+}

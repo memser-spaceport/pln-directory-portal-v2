@@ -256,11 +256,11 @@ export function createAgentV0Script(v: AgentViewer, otherwise?: (text: string, d
           blocks: [
             {
               kind: 'text',
-              text: `Requests to the PL Venture team are open to portfolio founders, and ${v.team} isn’t in the portfolio yet. AI Search can find teams like these in the network.`,
+              text: `Requests to the PL Venture team are open to portfolio founders, and ${v.team} isn’t in the portfolio yet. AI agent chat can find teams like these in the network.`,
             },
             custom(() => (
               <a href="/prototypes/ai-mode-results" className={agentCss.moreLink}>
-                Open AI Search
+                Open AI agent chat
               </a>
             )),
           ],

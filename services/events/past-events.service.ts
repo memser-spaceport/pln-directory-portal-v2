@@ -95,6 +95,10 @@ const loadListedEventsCached = unstable_cache(loadListedEventsOnce, ['past-event
 export async function getStartedEvents(now: number = Date.now()): Promise<AllEventsItem[]> {
   const items = await loadListedEventsCached();
   return sortPast(
-    items.filter((item) => new Date(item.startDate).getTime() <= now + AHEAD_MS || isEventEnded(item.endDate, now)),
+    items.filter(
+      (item) =>
+        new Date(item.startDate).getTime() <= now + AHEAD_MS ||
+        isEventEnded(item.endDate, now, item.allDay, item.timezone),
+    ),
   );
 }

@@ -6,8 +6,9 @@ import type { LatLngLiteral } from './google-maps.types';
 
 /*
  * What the All Events Map shows (LAB-3321): one pin per city with in-person or hybrid events, the online events, and
- * the in-person events whose city has no known position. Pure, so the grouping and the camera are unit-tested without
- * Google.
+ * the in-person events with no known position. A city pin sits on the city's known point, else on the venue of its
+ * first event. An event with no city (its gathering is "Others" or missing) gets a pin on its own venue. Pure, so the
+ * grouping and the camera are unit-tested without Google.
  */
 
 export interface CityPin {
@@ -22,9 +23,15 @@ export interface CityPin {
 export interface MapLayout {
   pins: CityPin[];
   online: AllEventsItem[];
-  /** In person, but no position for their city (or no city): listed under the map so no event goes missing. */
+  /** In person, but no position for their city and none of their own: listed under the map so no event goes missing. */
   unplaced: AllEventsItem[];
 }
+
+/** Events with no city share a pin only when their venues are within about 100 m. */
+const venueKey = (point: LatLngLiteral) => `venue:${point.lat.toFixed(3)},${point.lng.toFixed(3)}`;
+
+/** The pin's name for an event with no city: its venue address up to the first comma, else the event's name. */
+const venueLabel = (item: AllEventsItem) => item.place?.split(',')[0]?.trim() || item.name;
 
 const byStart = (a: AllEventsItem, b: AllEventsItem) =>
   new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
@@ -39,20 +46,26 @@ export function mapLayout(items: AllEventsItem[], coords: CityCoords, past: bool
       online.push(item);
       continue;
     }
-    const at = item.cityKey ? coords[item.cityKey] : undefined;
-    if (!item.cityKey || !item.city || !at) {
+    const point = item.venuePoint;
+    const hasCity = !!item.cityKey && !!item.city;
+    const key = hasCity ? item.cityKey! : point ? venueKey(point) : null;
+    const pin = key ? byCity.get(key) : undefined;
+    if (pin) {
+      pin.events.push(item);
+      continue;
+    }
+    const at = hasCity ? coords[item.cityKey!] : undefined;
+    const position = at ? { lat: at[0], lng: at[1] } : point;
+    if (!key || !position) {
       unplaced.push(item);
       continue;
     }
-    const pin = byCity.get(item.cityKey);
-    if (pin) pin.events.push(item);
-    else
-      byCity.set(item.cityKey, {
-        key: item.cityKey,
-        city: item.city,
-        position: { lat: at[0], lng: at[1] },
-        events: [item],
-      });
+    byCity.set(key, {
+      key,
+      city: hasCity ? item.city! : venueLabel(item),
+      position,
+      events: [item],
+    });
   }
   const pins = Array.from(byCity.values()).sort(
     (a, b) => b.events.length - a.events.length || a.city.localeCompare(b.city),
@@ -81,8 +94,8 @@ const SPREAD_PX = 34;
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
 /**
- * The offsets of a city's `n` event pins around its point: a lone event on it, several on a sunflower spiral. The events
- * carry no venue position yet, so the pins are spread in pixels, not degrees: none covers another at any zoom
+ * The offsets of a city's `n` event pins around its point: a lone event on it, several on a sunflower spiral. The pins
+ * are spread in pixels around the city point, not placed on each venue: none covers another at any zoom
  * (Polina, 2026-11-20: "slightly apart around the city point is fine").
  */
 export function spreadOffsets(n: number): Array<{ x: number; y: number }> {

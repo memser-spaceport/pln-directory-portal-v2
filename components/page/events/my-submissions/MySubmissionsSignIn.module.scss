@@ -1,0 +1,19 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 48px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #ffffff);
+  text-align: center;
+}
+
+.text {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--foreground-neutral-secondary, #455468);
+}

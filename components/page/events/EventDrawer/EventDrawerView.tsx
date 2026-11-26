@@ -26,6 +26,7 @@ import { useIrlGatheringModal } from '@/components/core/UpdatesPanel/IrlGatherin
 import m from '@/components/core/UpdatesPanel/IrlGatheringModal/IrlGatheringModal.module.scss';
 import type { IrlGatheringFormData } from '@/components/core/UpdatesPanel/IrlGatheringModal/types';
 import type { EventDetail, EventRoleName, MyGatheringPlans } from '@/services/events/event-drawer.types';
+import { EVENT_STATUS_LABEL } from '@/services/events/event-form';
 import { useEventEnded } from '@/services/events/hooks/useEventEnded';
 import type { ITeam } from '@/types/teams.types';
 
@@ -62,6 +63,8 @@ export interface EventGoingNotice {
 export interface EventDrawerViewProps {
   status: EventDrawerStatus;
   event: EventDetail | null;
+  /** The event's edit page, for its submitter and a directory admin. Nobody else gets the "Edit" link. */
+  editHref?: string;
   /** Signed in with `irlg.going.write` (or admin) and the event belongs to a gathering. */
   canMarkGoing: boolean;
   viewerUid: string | null;
@@ -240,6 +243,7 @@ function EventFlow({
   attendees,
   initialStep = 'event',
   saving,
+  editHref,
   onClose,
   onAttendeesOpen,
   onYes,
@@ -259,10 +263,12 @@ function EventFlow({
   scrollerRef: RefObject<HTMLDivElement | null>;
 }) {
   const gathering = event.gathering;
+  // An event that is not approved shows its status to its submitter and a directory admin, and has no "I'm going".
+  const unpublishedStatus = event.status && event.status !== 'APPROVED' ? event.status : null;
   const wasGoing = !!event.viewer;
   const [going, setGoing] = useState(wasGoing);
   const [justMarked, setJustMarked] = useState(false);
-  const { ended, checkEnded } = useEventEnded(event.endDate);
+  const { ended, checkEnded } = useEventEnded(event.endDate, event.allDay, event.timezone);
   const [view, setView] = useState<View>(() =>
     canMarkGoing && wasGoing && initialStep === 'plans'
       ? 'plans'
@@ -388,7 +394,7 @@ function EventFlow({
   };
 
   // Signed out, "Yes, I'm going" starts sign-in (LAB-3271); in the embed it is a link to LabOS (LAB-3392).
-  const asks = canMarkGoing || !!onSignIn || !!rsvpHref;
+  const asks = !unpublishedStatus && (canMarkGoing || !!onSignIn || !!rsvpHref);
   const signInToGo = () => {
     if (!checkEnded()) onSignIn?.();
   };
@@ -458,6 +464,7 @@ function EventFlow({
         <form onSubmit={handleSave} className={e.root} onKeyDown={(ev) => ev.key === 'Enter' && ev.preventDefault()}>
           <DrawerToolbar
             eventUid={event.uid}
+            editHref={view === 'event' ? editHref : undefined}
             prev={prev}
             next={next}
             showStepper={view === 'event' && !!onNavigate && index >= 0 && sequence.length > 1}
@@ -468,11 +475,17 @@ function EventFlow({
 
           {view === 'event' && (
             <div className={e.body}>
+              {unpublishedStatus && (
+                <p className={e.statusLine} role="status">
+                  Status: <strong>{EVENT_STATUS_LABEL[unpublishedStatus]}</strong>. Only you and directory admins see
+                  this event.
+                </p>
+              )}
               <EventSummary
                 event={event}
                 ended={ended}
                 card={
-                  ended ? (
+                  unpublishedStatus ? undefined : ended ? (
                     <EndedCard
                       count={count}
                       faces={event.faces}

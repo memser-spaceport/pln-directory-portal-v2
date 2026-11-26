@@ -58,10 +58,10 @@ export function AgentHistory({ chats, onOpenChat }: { chats: AgentChat[]; onOpen
             <Menu.Item
               className={`${menu.item} ${s.historyAiSearch}`}
               onClick={() => window.open(AI_SEARCH_HISTORY_URL, '_blank', 'noopener')}
-              aria-label="All AI Search chats (opens in a new tab)"
+              aria-label="All AI agent chats (opens in a new tab)"
             >
               <AiSearchIcon size={16} />
-              <span className={s.historyAiSearchLabel}>All AI Search chats</span>
+              <span className={s.historyAiSearchLabel}>All AI agent chats</span>
               <ArrowUpRight weight="bold" aria-hidden className={s.historyAiSearchArrow} />
             </Menu.Item>
           </Menu.Popup>

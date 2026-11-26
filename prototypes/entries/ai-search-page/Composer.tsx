@@ -18,6 +18,8 @@ type ComposerProps = React.ComponentProps<'textarea'> & {
   size?: 'home' | 'thread';
   /** Inside the field, above the text: what the question is asked about (the scope chip). */
   leading?: React.ReactNode;
+  /** Bottom-left, opposite the send: a control such as a mode switch (none in use since 2026-11-26). */
+  footer?: React.ReactNode;
 };
 
 /**
@@ -50,6 +52,7 @@ const Composer = React.forwardRef<HTMLTextAreaElement, ComposerProps>(function C
     size = 'thread',
     defaultValue,
     leading,
+    footer,
     ...props
   },
   ref,
@@ -72,7 +75,7 @@ const Composer = React.forwardRef<HTMLTextAreaElement, ComposerProps>(function C
   const canSend = hasText && !isAnswerLoading && !streaming;
 
   return (
-    <div className={clsx(s.root, size === 'home' && s.home, !!leading && s.withLeading, className)}>
+    <div className={clsx(s.root, size === 'home' && s.home, !!leading && s.withLeading, !!footer && s.withFooter, className)}>
       {leading && <div className={s.leading}>{leading}</div>}
       <textarea
         {...props}
@@ -85,6 +88,7 @@ const Composer = React.forwardRef<HTMLTextAreaElement, ComposerProps>(function C
           onChange?.(e);
         }}
       />
+      {footer && <div className={s.footer}>{footer}</div>}
       {streaming ? (
         <button
           type="button"

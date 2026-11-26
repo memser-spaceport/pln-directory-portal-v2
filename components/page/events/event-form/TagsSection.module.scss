@@ -1,0 +1,46 @@
+/* A custom tag: a selected chip with its own remove button. */
+.custom {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  max-width: 100%;
+  cursor: default;
+}
+
+.customText {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.remove {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: rgba(27, 77, 255, 0.12);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+}

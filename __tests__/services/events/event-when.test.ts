@@ -30,7 +30,7 @@ describe('eventWhen (LAB-3361)', () => {
   describe('an event that has ended (LAB-3418)', () => {
     const NOW = Date.UTC(2026, 10, 25, 12);
     const line = (start: string, end: string, zone = 'UTC', now: number | undefined = NOW) =>
-      eventWhen(start, end, zone, now)?.dayLine;
+      eventWhen(start, end, zone, false, now)?.dayLine;
 
     it('last year: the year, on one day and across days of one year', () => {
       expect(line('2025-11-04T18:00:00.000Z', '2025-11-04T20:00:00.000Z')).toBe('Tuesday, November 4, 2025');
@@ -68,7 +68,7 @@ describe('eventWhen (LAB-3361)', () => {
     });
 
     it('an end before its start is on the first day, and no line reads backwards', () => {
-      const when = (start: string, end: string, zone = 'UTC') => eventWhen(start, end, zone, NOW);
+      const when = (start: string, end: string, zone = 'UTC') => eventWhen(start, end, zone, false, NOW);
       // As the old rows are: a day in full, whose end lands a minute before it starts.
       expect(when('2025-01-01T00:00:00.000Z', '2024-12-31T23:59:00.000Z')).toMatchObject({
         dayLine: 'Wednesday, January 1, 2025',
@@ -85,7 +85,7 @@ describe('eventWhen (LAB-3361)', () => {
 
     it('changes the day line only', () => {
       const args = ['2025-11-04T18:00:00.000Z', '2025-11-04T20:00:00.000Z', 'UTC'] as const;
-      const { dayLine: _ended, ...ended } = eventWhen(...args, NOW) ?? {};
+      const { dayLine: _ended, ...ended } = eventWhen(...args, false, NOW) ?? {};
       const { dayLine: _live, ...live } = eventWhen(...args) ?? {};
       expect(ended).toEqual(live);
     });
@@ -133,5 +133,26 @@ describe('agendaDayTitle', () => {
 
   it('leaves anything else as it is', () => {
     expect(agendaDayTitle('Opening day')).toBe('Opening day');
+  });
+});
+
+describe('eventWhen, all day (LAB-3339)', () => {
+  it('prints an all-day event as its days with "All day", no time or zone', () => {
+    expect(eventWhen('2030-07-24', '2030-07-24', 'America/Los_Angeles', true)).toEqual({
+      month: 'JUL',
+      day: '24',
+      dayLine: 'Wednesday, July 24',
+      timeLine: 'All day',
+    });
+    expect(eventWhen('2030-07-24', '2030-07-26', 'UTC', true)?.dayLine).toBe('Wed, Jul 24 – Fri, Jul 26');
+  });
+
+  it('an all-day event that ended last year carries its year (LAB-3418)', () => {
+    const NOW = Date.UTC(2026, 10, 25, 12);
+    expect(eventWhen('2025-07-24', '2025-07-26', 'UTC', true, NOW)).toMatchObject({
+      dayLine: 'Thu, Jul 24 – Sat, Jul 26, 2025',
+      timeLine: 'All day',
+    });
+    expect(eventWhen('2026-07-24', '2026-07-24', 'UTC', true, NOW)?.dayLine).toBe('Friday, July 24');
   });
 });

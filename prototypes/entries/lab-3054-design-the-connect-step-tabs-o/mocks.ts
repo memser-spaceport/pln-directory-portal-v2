@@ -48,7 +48,7 @@ export const SCOPES: Scope[] = [
   {
     key: 'search',
     name: 'Search',
-    read: 'Search members, teams, projects and events, and ask AI Search.',
+    read: 'Search members, teams, projects and events, and ask AI agent chat.',
   },
   {
     key: 'forum',

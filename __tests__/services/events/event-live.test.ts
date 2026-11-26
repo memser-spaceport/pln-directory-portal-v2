@@ -230,3 +230,36 @@ it('is never live with a date that cannot be read', () => {
   expect(liveAt(item({ ...day, startDate: '2026-12-03T09:00:00Z', endDate: 'soon' }), now)).toEqual([false]);
   expect(liveAt(item({ ...day, startDate: 'soon', endDate: '2026-12-03T18:00:00Z' }), now)).toEqual([false]);
 });
+
+describe('an all-day event (LAB-3339)', () => {
+  // Jul 24 – 26 in Los Angeles (UTC−7): live from 07:00 UTC on Jul 24 to 07:00 UTC on Jul 27.
+  const festival = item({
+    allDay: true,
+    startDate: '2030-07-24',
+    endDate: '2030-07-26',
+    timezone: 'America/Los_Angeles',
+    startDay: '2030-07-24',
+    endDay: '2030-07-26',
+    startTime: '',
+    endTime: '',
+    zone: '',
+  });
+  const oneDay = { ...festival, endDate: '2030-07-24', endDay: '2030-07-24' };
+
+  it('is live from midnight of its first day to the end of its last, in its own zone', () => {
+    expect(liveAt(festival, '2030-07-24T06:59:59.000Z', '2030-07-24T07:00:00.000Z')).toEqual([false, true]);
+    expect(liveAt(festival, '2030-07-27T06:59:59.000Z', '2030-07-27T07:00:00.000Z')).toEqual([true, false]);
+  });
+
+  it('a one-day all-day event is live all that day, and not before or after', () => {
+    expect(
+      liveAt(
+        oneDay,
+        '2030-07-24T06:59:59.000Z',
+        '2030-07-24T12:00:00.000Z',
+        '2030-07-25T06:59:59.000Z',
+        '2030-07-25T07:00:00.000Z',
+      ),
+    ).toEqual([false, true, true, false]);
+  });
+});

@@ -17,7 +17,17 @@ import { focusAreaName } from './focus-areas';
 export const MODE_LABEL: Record<EventMode, string> = { 'In-Person': 'In person', Virtual: 'Online', Hybrid: 'Hybrid' };
 
 /** The params that count as applied filters. `view`, `cal`, `when`, `year` and `event` are page state, not filters. */
-export const FILTER_PARAMS = ['search', 'going', 'mode', 'access', 'focus', 'topic', 'city', 'host'] as const;
+export const FILTER_PARAMS = [
+  'search',
+  'going',
+  'featured',
+  'mode',
+  'access',
+  'focus',
+  'topic',
+  'city',
+  'host',
+] as const;
 export type FilterParam = (typeof FILTER_PARAMS)[number];
 export const isFilterParam = (key: string): key is FilterParam => (FILTER_PARAMS as readonly string[]).includes(key);
 
@@ -88,7 +98,7 @@ export function embedQuery(params: URLSearchParams): string {
   return next.toString();
 }
 
-/** A filter param's values as analytics records them: the decoded list, `['true']` for going, the search text. */
+/** A filter param's values as analytics records them: the decoded list, `['true']` for a toggle, the search text. */
 export function filterValues(key: FilterParam, value: string | null | undefined): string[] {
   if (isFacetKey(key)) return decodeFilterValues(value ?? undefined);
   return value ? [value] : [];
@@ -103,12 +113,13 @@ export const FACET_KEYS = ['mode', 'access', 'focus', 'topic', 'city', 'host'] a
 export type FacetKey = (typeof FACET_KEYS)[number];
 const isFacetKey = (key: string): key is FacetKey => (FACET_KEYS as readonly string[]).includes(key);
 
-export type AllEventsFilters = { search: string; going: boolean } & Record<FacetKey, string[]>;
+export type AllEventsFilters = { search: string; going: boolean; featured: boolean } & Record<FacetKey, string[]>;
 
 export function readFilters(params: URLSearchParams): AllEventsFilters {
   return {
     search: params.get('search')?.trim() ?? '',
     going: params.get('going') === 'true',
+    featured: params.get('featured') === 'true',
     mode: decodeFilterValues(params.get('mode')),
     access: decodeFilterValues(params.get('access')),
     focus: decodeFilterValues(params.get('focus')),
@@ -121,7 +132,9 @@ export function readFilters(params: URLSearchParams): AllEventsFilters {
 /** One per applied value, as the Filters button and the phone pill count them. */
 export function countAppliedFilters(params: URLSearchParams): number {
   const f = readFilters(params);
-  return (f.search ? 1 : 0) + (f.going ? 1 : 0) + FACET_KEYS.reduce((n, key) => n + f[key].length, 0);
+  return (
+    (f.search ? 1 : 0) + (f.going ? 1 : 0) + (f.featured ? 1 : 0) + FACET_KEYS.reduce((n, key) => n + f[key].length, 0)
+  );
 }
 
 /**
@@ -191,6 +204,7 @@ export function filterEvents(items: AllEventsItem[], f: AllEventsFilters, goingU
   return items.filter(
     (item) =>
       (!f.going || goingUids.has(item.uid)) &&
+      (!f.featured || item.featured) &&
       matchesSearch(item, f.search) &&
       FACET_KEYS.every((key) => matchesFacet(item, key, f[key])),
   );
@@ -318,7 +332,17 @@ export function pastSpanLabel(startDay: string, endDay: string, todayIso: string
   return from === yearOf(todayIso) ? spanLabel(startDay, endDay) : `${spanLabel(startDay, endDay)}, ${from}`;
 }
 
-/** A Near you tile's when: "Thu, Nov 19 · 6:00 PM"; a multi-day event reads its span ("Tue, Dec 1 – 5"). */
+/** A card's start in the event's time zone: "9:00 AM UTC+5:30". Empty for an all-day event. */
+export const startLabel = (item: AllEventsItem) => [item.startTime, item.zone].filter(Boolean).join(' ');
+
+/** "6:00 PM – 9:00 PM" in the event's time zone; the start alone when it ends when it starts. Empty when all-day. */
+export const timeRange = (item: AllEventsItem) =>
+  item.endTime && item.endTime !== item.startTime ? `${item.startTime} – ${item.endTime}` : item.startTime;
+
+/**
+ * A Near you tile's when: "Thu, Nov 19 · 6:00 PM"; a multi-day event reads its span ("Tue, Dec 1 – 5"); an all-day
+ * event reads its day with no time.
+ */
 export function whenLine(item: AllEventsItem, todayIso: string): string {
   const weekdayDate = (iso: string) =>
     atNoon(iso).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
@@ -326,7 +350,9 @@ export function whenLine(item: AllEventsItem, todayIso: string): string {
     if (item.startDay < todayIso) return `Today · ${dayOfSpan(item, todayIso)}`;
     return `${weekdayDate(item.startDay).split(',')[0]}, ${spanLabel(item.startDay, item.endDay)}`;
   }
-  return [item.startDay === todayIso ? 'Today' : weekdayDate(item.startDay), item.startTime].join(' · ');
+  return [item.startDay === todayIso ? 'Today' : weekdayDate(item.startDay), item.startTime]
+    .filter(Boolean)
+    .join(' · ');
 }
 
 /* ---------- Cities ---------- */
@@ -339,7 +365,7 @@ export interface CitySummary {
   eventCount: number;
   startDay: string;
   endDay: string;
-  /** "UTC+0", from the city's first event. */
+  /** "UTC+0", from the city's first event that has a time. Empty when every event there is all-day. */
   zone: string;
 }
 
@@ -356,7 +382,7 @@ export function topCities(items: AllEventsItem[]): CitySummary[] {
       eventCount: list.length,
       startDay: first.startDay,
       endDay: list.reduce((m, e) => (e.endDay > m ? e.endDay : m), first.endDay),
-      zone: first.zone,
+      zone: list.find((e) => e.zone)?.zone ?? '',
     };
   }).sort(
     (a, b) => b.eventCount - a.eventCount || a.startDay.localeCompare(b.startDay) || a.city.localeCompare(b.city),
@@ -368,8 +394,10 @@ export function topCities(items: AllEventsItem[]): CitySummary[] {
  * whole list is in one offset (P13). A city's events can sit either side of a clock change, or be online elsewhere.
  */
 export function sharedZone(items: AllEventsItem[]): string | null {
-  const zone = items[0]?.zone;
-  return zone && items.every((item) => item.zone === zone) ? zone : null;
+  // An all-day event has no zone and no times to read, so it never breaks the header.
+  const timed = items.filter((item) => item.zone);
+  const zone = timed[0]?.zone;
+  return zone && timed.every((item) => item.zone === zone) ? zone : null;
 }
 
 /** The span and the zone of one city's past events, newest first (LAB-3418); undefined with none. */
@@ -380,7 +408,7 @@ export function pastCitySummary(city: string, items: AllEventsItem[]): CitySumma
     eventCount: items.length,
     startDay: items.reduce((m, e) => (e.startDay < m ? e.startDay : m), items[0].startDay),
     endDay: items.reduce((m, e) => (e.endDay > m ? e.endDay : m), items[0].endDay),
-    zone: items[0].zone,
+    zone: items.find((e) => e.zone)?.zone ?? '',
   };
 }
 

@@ -1,17 +1,16 @@
-import { formatInTimeZone } from 'date-fns-tz';
-
 import { toDisplayCity } from './all-events.filters';
-import { toZoneLabel } from './all-events.service';
+import { eventClock, safeTimezone } from './event-dates';
 import { toEventAccess, toEventMode } from './event-drawer.mappers';
 import { toFocusAreaCode } from './focus-areas';
 import type { AllEventsItem } from './all-events.types';
 import type { EventPersonResponse } from './event-drawer.types';
 
 /*
- * One row of `GET /v1/irl/events` as the All Events page reads it (LAB-3418). It mirrors `toAllEventsItem(row)` on
- * `lab-3278`, which maps the same rows for upcoming events: when that branch lands, drop this file and use that one.
- * Two differences until then: a row that can't be drawn gives null here, and a date-only (all-day) row is read as
- * midnight UTC, as the rest of the page reads dates today. No past event is all-day.
+ * One row of `GET /v1/irl/events` as the All Events page reads it (LAB-3418). The same rows, upcoming, go through
+ * `toAllEventsItem` (LAB-3278), and the two agree on every field: the clock (all-day included), the place with its
+ * venue fallback, the venue's position and Featured. This one stays apart because the rows from the epoch are older and
+ * looser: a row that can't be drawn gives null, a value of the wrong kind is skipped, an event that ends before it
+ * starts is on its first day, and the event's `type` still marks a mode or an invite-only event.
  */
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -31,16 +30,12 @@ const uniqueNames = (names: unknown[]): string[] =>
 
 const nameOf = (value: unknown) => (isRecord(value) ? value.name : null);
 
-/** The zone itself when dates can be printed in it, otherwise "UTC", as the page does for an event without one. */
-function safeTimezone(value: unknown): string {
-  const timezone = text(value);
-  if (!timezone) return 'UTC';
-  try {
-    formatInTimeZone(new Date(0), timezone, 'xxx');
-    return timezone;
-  } catch {
-    return 'UTC';
-  }
+/** The venue's position, or null unless both numbers are there and in range (as `toAllEventsItem` reads it). */
+function venuePoint(venue: Record<string, unknown> | null): AllEventsItem['venuePoint'] {
+  const { latitude: lat, longitude: lng } = venue ?? {};
+  if (typeof lat !== 'number' || typeof lng !== 'number' || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return null;
+  return { lat, lng };
 }
 
 function toFace(value: unknown): EventPersonResponse | null {
@@ -58,13 +53,12 @@ export function toPastEventItem(row: unknown): AllEventsItem | null {
   const endDate = instant(row.endDate);
   if (!uid || !name || !startDate || !endDate) return null;
 
-  const timezone = safeTimezone(row.timezone);
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  const startDay = formatInTimeZone(start, timezone, 'yyyy-MM-dd');
-  const endDay = formatInTimeZone(end, timezone, 'yyyy-MM-dd');
+  const timezone = safeTimezone(text(row.timezone));
+  const allDay = row.allDay === true;
+  const clock = eventClock(startDate, endDate, timezone, allDay);
   const tags = uniqueNames(list(row.tags));
   const gathering = isRecord(row.gathering) ? row.gathering : null;
+  const venue = isRecord(row.venue) ? row.venue : null;
   const city = toDisplayCity(text(gathering?.city));
   // Null means the event hides its attendance; 0 means nobody said they were going.
   const goingCount = typeof row.goingCount === 'number' && row.goingCount >= 0 ? row.goingCount : null;
@@ -74,23 +68,23 @@ export function toPastEventItem(row: unknown): AllEventsItem | null {
     name,
     startDate,
     endDate,
+    allDay,
     timezone,
-    startDay,
+    ...clock,
     // About 40 old events end a minute before they start: they are one-day events on their first day.
-    endDay: endDay < startDay ? startDay : endDay,
-    startTime: formatInTimeZone(start, timezone, 'h:mm a'),
-    endTime: formatInTimeZone(end, timezone, 'h:mm a'),
-    zone: toZoneLabel(start, timezone),
+    endDay: clock.endDay < clock.startDay ? clock.startDay : clock.endDay,
     city,
     cityKey: city ? city.toLowerCase() : null,
-    place: city ? [city, text(gathering?.country)].filter(Boolean).join(', ') : null,
+    // As for an upcoming event (LAB-3458): the gathering's city and country, else the event's own venue address.
+    place: city ? [city, text(gathering?.country)].filter(Boolean).join(', ') : text(venue?.address),
+    venuePoint: venuePoint(venue),
     mode: toEventMode(text(row.format), text(row.type)),
     access: toEventAccess(text(row.accessOption), null, text(row.type)),
     hosts: uniqueNames([nameOf(row.host), ...list(row.coHosts).map(nameOf)]),
     // Most rows have topics only; a few carry the portal's focus area codes among them (LAB-3404).
     focusAreas: Array.from(new Set(tags.map(toFocusAreaCode).filter((code): code is string => !!code))),
     tags: tags.filter((tag) => !toFocusAreaCode(tag)),
-    tagColor: null,
+    featured: row.isFeatured === true,
     picture: text(row.banner) ?? text(row.logo),
     goingCount,
     faces:

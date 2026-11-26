@@ -57,10 +57,12 @@ export function SuggestedRail({
   if (items.length === 0) return null;
 
   const href = kind === 'team' ? '/prototypes/team-profile' : '/prototypes/member-profile';
+  /* Anuj (2026-11-25): name what the rows are. "You might be interested in" didn't say. */
+  const title = kind === 'team' ? 'Teams you might like' : 'Profiles you might like';
 
   return (
-    <section className={clsx(book.root, className)} aria-label="You might be interested in">
-      <h2 className={clsx(book.header, s.title)}>You might be interested in</h2>
+    <section className={clsx(book.root, className)} aria-label={title}>
+      <h2 className={clsx(book.header, s.title)}>{title}</h2>
       <div className={s.list}>
         {items.map((item) => {
           const isFollowing = followed.has(item.uid);

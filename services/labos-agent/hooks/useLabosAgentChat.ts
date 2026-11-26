@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { useIntroRequestAnalytics, type IntroRequestEventContext } from '@/analytics/intro-requests.analytics';
 import {
@@ -26,6 +27,7 @@ import type {
 import { generateUUID } from '@/utils/common.utils';
 
 import {
+  draftConfirmErrorState,
   draftErrorState,
   draftTargetKey,
   introErrorStatus,
@@ -37,7 +39,9 @@ import { isStalledAnswer, LabosAgentError } from '../labos-agent.errors';
 import { toChatMentions } from '../labos-agent.mentions';
 import { currentIntroDraft, openCards } from '../labos-agent.open-cards';
 import { distinctSourceCount } from '../labos-agent.sources';
+import { getLabosAgentHistoryClient } from '../labos-agent.history';
 import { getLabosAgentClient, toChatContext } from '../labos-agent.service';
+import { refreshLabosAgentHistory } from './useLabosAgentThreads';
 import { chatKey, useLabosAgentStore } from '../store';
 
 export type { LabosAgentTurn, LabosAgentTurnStatus };
@@ -162,7 +166,10 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null, options
   const { threadId: ownThreadId, readsContext, surface = 'panel' } = options;
   const key = options.key ?? chatKey(context);
   const turns = useLabosAgentStore((s) => s.chats[key]?.turns ?? NO_TURNS);
-  const { updateTurns, resetChat, markPageUnreadable, countSession, ensureChat } = useLabosAgentStore((s) => s.actions);
+  const { updateTurns, resetChat, markPageUnreadable, countSession, ensureChat, renewThread } = useLabosAgentStore(
+    (s) => s.actions,
+  );
+  const queryClient = useQueryClient();
   const {
     onMessageSent,
     onAnswerShown,
@@ -216,7 +223,7 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null, options
         startedAt: Date.now(),
       };
       updateTurns(key, (prev) => (replaceId ? prev.map((t) => (t.id === replaceId ? turn : t)) : [...prev, turn]));
-      const threadId = useLabosAgentStore.getState().chats[key].threadId;
+      let threadId = useLabosAgentStore.getState().chats[key].threadId;
       countSession('turnCount', 1, surface);
       onMessageSent(context, {
         messageLength: message.length,
@@ -228,17 +235,19 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null, options
 
       const controller = new AbortController();
       streams.set(key, controller);
-      try {
-        const body = await getLabosAgentClient().chat(
+      const ask = (thread: string) =>
+        getLabosAgentClient().chat(
           // S6-F14: `mentions` in the order of the chips, only when the member picked some.
           // LAB-3362: `introDraft` only while an intro card waits. Its text never goes into an event or a log.
+          // LAB-3457: `persist` saves the finished turn in the thread, for the shared history.
           {
-            threadId,
+            threadId: thread,
             chatId: id,
             message,
             context: chatContext,
             ...(mentions ? { mentions } : {}),
             ...(introDraft ? { introDraft } : {}),
+            persist: true,
           },
           {
             signal: controller.signal,
@@ -247,9 +256,23 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null, options
             },
           },
         );
+      try {
+        let body;
+        try {
+          body = await ask(threadId);
+        } catch (err) {
+          // LAB-3457: the thread was deleted (or is not the member's). C1 said so before the stream: the chat goes on
+          // in a new thread, once.
+          if (controller.signal.aborted || !(err instanceof LabosAgentError) || err.code !== 'THREAD_NOT_FOUND')
+            throw err;
+          threadId = renewThread(key);
+          body = await ask(threadId);
+        }
         if (controller.signal.aborted) return;
         const stalled = isStalledAnswer(body.content);
-        patch(id, { ...body, status: stalled ? 'stalled' : 'done', endedAt: Date.now() });
+        // LAB-3457: the backend saved the finished turn (stopped and failed turns are not saved).
+        patch(id, { ...body, status: stalled ? 'stalled' : 'done', endedAt: Date.now(), savedIn: threadId });
+        refreshLabosAgentHistory(queryClient, threadId);
         if (stalled) onAnswerFailed(context, { turnIndex, errorType: 'timeout', status: 200 });
         else {
           // V0-R4: the C1 counts when they come. Else the client counts the distinct sources and omits the rest.
@@ -320,6 +343,8 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null, options
       readsContext,
       surface,
       ensureChat,
+      renewThread,
+      queryClient,
       patch,
       updateTurns,
       markPageUnreadable,
@@ -435,7 +460,7 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null, options
       const draft = turn?.drafts?.find((d) => d.draftId === draftId);
       if (!turn || !draft) return null;
       const card: LabosAgentDraftCardState = turn.draftCards?.[draftId] ?? { status: 'open', text: draft.text };
-      return { draft, card };
+      return { turn, draft, card };
     },
     [key],
   );
@@ -467,7 +492,7 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null, options
     async (turnId: string, draftId: string) => {
       const found = findDraft(turnId, draftId);
       if (!found) return;
-      const { draft, card } = found;
+      const { turn, draft, card } = found;
       if (card.status !== 'open' && card.status !== 'error') return;
       // One intro request for each target in a page visit, across turns and New chat (C3 has no duplicate check).
       const { sentIntroTargets, actions } = useLabosAgentStore.getState();
@@ -480,7 +505,25 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null, options
       // Claim the target before the request, so a Send on another card for it in the same tick does nothing.
       actions.markIntroTargetSent(draftTargetKey(draft));
       try {
-        await createIntroRequest(toIntroRequestBody(draft, text));
+        // LAB-3457: a saved draft goes through C5, which keeps the sent state on the server (sent at most once). A
+        // draft of a turn that was not saved keeps the C3 path.
+        if (turn.savedIn) {
+          const threadId = turn.savedIn;
+          const res = await getLabosAgentHistoryClient()
+            .confirmDraft({ threadId, draftId, decision: 'send', text })
+            .finally(() => refreshLabosAgentHistory(queryClient, threadId));
+          if (res.status === 'cancelled') {
+            setDraftCard(turnId, draftId, { status: 'cancelled', text: card.text });
+            useLabosAgentStore.setState((st) => {
+              const next = { ...st.sentIntroTargets };
+              delete next[draftTargetKey(draft)];
+              return { sentIntroTargets: next };
+            });
+            return;
+          }
+        } else {
+          await createIntroRequest(toIntroRequestBody(draft, text));
+        }
         setDraftCard(turnId, draftId, { status: 'sent', text: card.text });
         onAskSubmitted({ ...events, textLength: text.length });
         countSession('confirmedCount', 1, surface);
@@ -492,13 +535,17 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null, options
         });
         markIntroRequestSent(draftTargetKey(draft));
       } catch (err) {
-        // The send failed, so the target is free again.
-        useLabosAgentStore.setState((st) => {
-          const next = { ...st.sentIntroTargets };
-          delete next[draftTargetKey(draft)];
-          return { sentIntroTargets: next };
-        });
-        setDraftCard(turnId, draftId, draftErrorState(err, card.text));
+        const next = turn.savedIn ? draftConfirmErrorState(err, card.text) : draftErrorState(err, card.text);
+        // The send failed, so the target is free again. A C5 409 that says `sent` keeps it taken.
+        if (next.status !== 'sent') {
+          useLabosAgentStore.setState((st) => {
+            const free = { ...st.sentIntroTargets };
+            delete free[draftTargetKey(draft)];
+            return { sentIntroTargets: free };
+          });
+        } else markIntroRequestSent(draftTargetKey(draft));
+        setDraftCard(turnId, draftId, next);
+        if (next.status === 'sent' || next.status === 'cancelled') return;
         const status = introErrorStatus(err);
         onSubmitFailed({ ...events, status, textLength: text.length });
         onActionFailed(context, { actionType: 'intro-draft', status });
@@ -507,6 +554,7 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null, options
     [
       context,
       surface,
+      queryClient,
       findDraft,
       setDraftCard,
       countSession,
@@ -524,6 +572,15 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null, options
       if (!found || ['sending', 'sent', 'cancelled'].includes(found.card.status)) return;
       const textLength = found.card.text.trim().length;
       setDraftCard(turnId, draftId, { ...found.card, status: 'cancelled' });
+      // LAB-3457: a saved draft is cancelled on the server too, so a reopened chat shows it cancelled. The card closes
+      // whatever C5 answers.
+      const threadId = found.turn.savedIn;
+      if (threadId) {
+        void getLabosAgentHistoryClient()
+          .confirmDraft({ threadId, draftId, decision: 'cancel' })
+          .catch(() => undefined)
+          .finally(() => refreshLabosAgentHistory(queryClient, threadId));
+      }
       onDialogClosed({
         ...draftEventContext(found.draft, context, surface),
         hadText: textLength > 0,
@@ -534,7 +591,7 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null, options
         edited: isDraftEdited(found.draft, found.card.text),
       });
     },
-    [context, surface, findDraft, setDraftCard, onDialogClosed, onActionCancelled],
+    [context, surface, queryClient, findDraft, setDraftCard, onDialogClosed, onActionCancelled],
   );
 
   /** S5-C29: the panel put the text of a failed turn back in the composer. It does that once only. */

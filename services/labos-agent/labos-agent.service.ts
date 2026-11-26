@@ -237,7 +237,17 @@ export async function toError(response: Response): Promise<LabosAgentError> {
   // LAB-3457, C5: a 409 `DRAFT_CLOSED` says how the draft closed.
   const draftStatus =
     code === 'DRAFT_CLOSED' && (body.status === 'sent' || body.status === 'cancelled') ? body.status : undefined;
-  return new LabosAgentError(response.status, code, message, retryAfter, closedStatus, mentionIndex, draftStatus);
+  const error = new LabosAgentError(
+    response.status,
+    code,
+    message,
+    retryAfter,
+    closedStatus,
+    mentionIndex,
+    draftStatus,
+  );
+  if (typeof body.message === 'string' && body.message.trim()) error.bodyMessage = body.message.trim();
+  return error;
 }
 
 /** C1: `POST /v1/labos-agent/chat`. Streams the chunked JSON body and returns the full body at the end. */

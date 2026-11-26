@@ -11,6 +11,8 @@ export class LabosAgentError extends Error {
   readonly mentionIndex?: number;
   /** LAB-3457, C5 409 `DRAFT_CLOSED` only: how the draft closed. */
   readonly draftStatus?: 'sent' | 'cancelled';
+  /** LAB-3457: the `message` of the error body as sent, when it had one (C5 passes C3's own messages through). */
+  bodyMessage?: string;
 
   constructor(
     status: number,

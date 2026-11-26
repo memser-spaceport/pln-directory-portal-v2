@@ -98,10 +98,15 @@ interface LabosAgentState {
     updateTurns: (key: string, update: (turns: LabosAgentTurn[]) => LabosAgentTurn[]) => void;
     /** New chat: a new `threadId` and no turns. */
     resetChat: (key: string) => void;
+    /**
+     * LAB-3457: C1 said `THREAD_NOT_FOUND` (the thread was deleted, or is not the member's). The chat keeps its turns
+     * and gets a new `threadId`, which comes back.
+     */
+    renewThread: (key: string) => string;
   };
 }
 
-export const useLabosAgentStore = create<LabosAgentState>((set) => ({
+export const useLabosAgentStore = create<LabosAgentState>((set, get) => ({
   isOpen: false,
   context: null,
   readsPage: true,
@@ -173,6 +178,12 @@ export const useLabosAgentStore = create<LabosAgentState>((set) => ({
         return { chats: { ...state.chats, [key]: { ...chat, turns: update(chat.turns) } } };
       }),
     resetChat: (key) => set((state) => ({ chats: { ...state.chats, [key]: { threadId: generateUUID(), turns: [] } } })),
+    renewThread: (key) => {
+      const threadId = generateUUID();
+      const chat = get().chats[key] ?? { turns: [] };
+      set((state) => ({ chats: { ...state.chats, [key]: { ...chat, threadId } } }));
+      return threadId;
+    },
   },
 }));
 

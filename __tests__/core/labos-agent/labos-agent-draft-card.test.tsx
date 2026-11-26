@@ -7,8 +7,9 @@ import { LabosAgentError } from '@/services/labos-agent/labos-agent.errors';
 
 /**
  * LAB-3300 (S3 frontend): the intro draft card in the agent panel. Contract section 8 of
- * `contracts/lab-3272-labos-agent-api.md`. Send goes through the real `createIntroRequest`; only `customFetch` is
- * mocked, so the tests check the C3 fetch body.
+ * `contracts/lab-3272-labos-agent-api.md`. Only `customFetch` is mocked, so the tests check the fetch bodies. LAB-3457:
+ * a saved turn (C1 `persist: true`) sends its draft with C5 (`/v1/labos-agent/drafts/confirm`); a turn that was not
+ * saved keeps the real `createIntroRequest` (C3).
  */
 const chat = jest.fn();
 const client: LabosAgentClient = {
@@ -57,7 +58,7 @@ import {
   markIntroRequestSent,
   retainIntroRequestTarget,
 } from '@/services/intro-requests/intro-request-entry-registry';
-import { useLabosAgentStore } from '@/services/labos-agent/store';
+import { chatKey, useLabosAgentStore } from '@/services/labos-agent/store';
 import type { IUserInfo } from '@/types/shared.types';
 
 const context = {
@@ -224,21 +225,87 @@ describe('LAB-3300: agent intro draft card', () => {
     }
   });
 
-  it('S3-R12: Send posts exactly { type, targetId, text } with the edited, trimmed text', async () => {
-    customFetch.mockResolvedValue(ok());
+  it('LAB-3457: Send on a saved turn posts C5 { threadId, draftId, decision, text } with the edited, trimmed text', async () => {
+    customFetch.mockResolvedValue(ok({ draftId: 'dr_1', status: 'sent', introRequestUid: 'ir-1' }));
     await openWithDraft([draft({ target: { type: 'team', uid: 't-9', name: 'Ada Lovelace' } })]);
+    expect(chat.mock.calls[0][0]).toMatchObject({ persist: true });
+    const threadId = chat.mock.calls[0][0].threadId;
+    fireEvent.change(field(), { target: { value: '  My own words for the intro request.  ' } });
+    fireEvent.click(sendButton()!);
+
+    await waitFor(() => expect(customFetch).toHaveBeenCalledTimes(1));
+    const [url, init] = customFetch.mock.calls[0];
+    expect(url).toMatch(/\/v1\/labos-agent\/drafts\/confirm$/);
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(init.body)).toEqual({
+      threadId,
+      draftId: 'dr_1',
+      decision: 'send',
+      text: 'My own words for the intro request.',
+    });
+    expect(
+      await within(card()).findByText('Your request is received. Someone from the team will reach out.'),
+    ).toBeInTheDocument();
+  });
+
+  it('S3-R12: Send on a turn that was not saved posts C3 exactly { type, targetId, text }', async () => {
+    customFetch.mockResolvedValue(ok());
+    act(() =>
+      useLabosAgentStore.getState().actions.updateTurns(chatKey(context), () => [
+        {
+          id: 'turn-unsaved',
+          message: 'Help me write an intro request.',
+          status: 'done',
+          ...answer([draft({ target: { type: 'team', uid: 't-9', name: 'Ada Lovelace' } })]),
+          cards: {},
+          draftCards: {},
+          startedAt: 1,
+          endedAt: 2,
+        },
+      ]),
+    );
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={qc}>
+        <LabosAgentRoot />
+      </QueryClientProvider>,
+    );
+    act(() => useLabosAgentStore.getState().actions.openAgent({ context }));
+    await screen.findByText('Here is a draft. Check it and press Send.');
     fireEvent.change(field(), { target: { value: '  My own words for the intro request.  ' } });
     fireEvent.click(sendButton()!);
 
     await waitFor(() => expect(customFetch).toHaveBeenCalledTimes(1));
     const [url, init] = customFetch.mock.calls[0];
     expect(url).toMatch(/\/v1\/intro-requests$/);
-    expect(init.method).toBe('POST');
     expect(JSON.parse(init.body)).toEqual({
       type: 'TEAM',
       targetId: 't-9',
       text: 'My own words for the intro request.',
     });
+  });
+
+  it('LAB-3457: a C5 409 DRAFT_CLOSED with status sent shows the card sent, with no Send', async () => {
+    customFetch.mockResolvedValue(
+      fail(409, { statusCode: 409, code: 'DRAFT_CLOSED', message: 'Closed', status: 'sent' }),
+    );
+    await openWithDraft();
+    fireEvent.click(sendButton()!);
+
+    expect(
+      await within(card()).findByText('Your request is received. Someone from the team will reach out.'),
+    ).toBeInTheDocument();
+    expect(sendButton()).not.toBeInTheDocument();
+    expect(onSubmitFailed).not.toHaveBeenCalled();
+  });
+
+  it('LAB-3457: a C5 403 with no message shows the intro request text and hides Send', async () => {
+    customFetch.mockResolvedValue(fail(403, {}));
+    await openWithDraft();
+    fireEvent.click(sendButton()!);
+
+    expect(await within(card()).findByText('You cannot send an intro request.')).toBeInTheDocument();
+    expect(sendButton()).not.toBeInTheDocument();
   });
 
   it('S3-R12, S3-R13: after a 200 the card shows the received text, Send is gone and focus moves to the result', async () => {
@@ -271,14 +338,24 @@ describe('LAB-3300: agent intro draft card', () => {
     expect(customFetch).toHaveBeenCalledTimes(1);
   });
 
-  it('S3-R14: Cancel closes the card and sends no request', async () => {
+  it('S3-R14, LAB-3457: Cancel closes the card and sends no intro; a saved draft is cancelled with C5', async () => {
+    customFetch.mockResolvedValue(fail(500));
     await openWithDraft();
     fireEvent.click(within(card()).getByRole('button', { name: 'Cancel' }));
 
     const status = within(card()).getByText('Cancelled. Nothing was sent.');
     expect(status).toHaveFocus();
     expect(within(card()).queryByRole('button')).not.toBeInTheDocument();
-    expect(customFetch).not.toHaveBeenCalled();
+    expect(customFetch).toHaveBeenCalledTimes(1);
+    const [url, init] = customFetch.mock.calls[0];
+    expect(url).toMatch(/\/v1\/labos-agent\/drafts\/confirm$/);
+    expect(JSON.parse(init.body)).toEqual({
+      threadId: chat.mock.calls[0][0].threadId,
+      draftId: 'dr_1',
+      decision: 'cancel',
+    });
+    // A failed C5 cancel leaves the card closed.
+    await waitFor(() => expect(within(card()).getByText('Cancelled. Nothing was sent.')).toBeInTheDocument());
     expect(onDialogClosed).toHaveBeenCalledWith({ ...eventContext, hadText: true, textLength: DRAFT_TEXT.length });
   });
 

@@ -41,9 +41,17 @@ export function useLabosAgentThread(threadId: string | null | undefined, { enabl
   });
 }
 
-/** After a saved turn: the list order and titles change. */
-export function invalidateLabosAgentThreads(queryClient: QueryClient) {
-  return queryClient.invalidateQueries({ queryKey: [LabosAgentQueryKeys.THREADS] });
+/**
+ * After a saved turn or a C5 answer: the list order and titles change, and the cached thread is old. The list refetches
+ * now; the thread is only marked stale, so an open chat keeps its store turns and the next open reads it again.
+ */
+export function refreshLabosAgentHistory(queryClient: QueryClient, threadId: string) {
+  void queryClient.invalidateQueries({ queryKey: [LabosAgentQueryKeys.THREADS] });
+  void queryClient.invalidateQueries({
+    queryKey: [LabosAgentQueryKeys.THREAD],
+    predicate: (q) => q.queryKey[2] === threadId,
+    refetchType: 'none',
+  });
 }
 
 /** T3. The row leaves the cached list at once; a 404 means it is gone already, so it leaves too. */

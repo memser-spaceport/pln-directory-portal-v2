@@ -426,3 +426,14 @@ The React Query hooks (`useLabosAgentThreads`, `useLabosAgentThread`, `useDelete
 - **GIVEN** a member inside the gate with thread `t-1` in the cached list
 - **WHEN** the delete answers 404 `THREAD_NOT_FOUND`
 - **THEN** `t-1` leaves the list and no error shows
+
+### Requirement: Every agent chat is saved in the shared history
+
+LAB-3457. Every C1 request from the panel and from AI agent chat SHALL carry `persist: true`. A finished answer (`done` or `stalled`) SHALL record the thread it was saved in on its turn (`savedIn`), and the history list SHALL refetch; a stopped or failed turn has no `savedIn`. When C1 answers 404 `THREAD_NOT_FOUND` before the stream, the chat SHALL get a new thread id (`renewThread`), keep its turns and send the same message once more in the new thread; a second `THREAD_NOT_FOUND` SHALL show the turn's error.
+
+The intro draft of a saved turn SHALL go to C5: Send posts `{ threadId, draftId, decision: 'send', text }` with the trimmed text, Cancel posts `{ threadId, draftId, decision: 'cancel' }` and closes the card whatever C5 answers. A C5 409 `DRAFT_CLOSED` SHALL show the card as it closed (`sent` or `cancelled`) with no Send and no failure event. C5's 403 and 404 SHALL show the API message, or the intro request texts when there is none, as with C3. A draft of a turn with no `savedIn` SHALL keep the C3 path (`POST /v1/intro-requests`).
+
+#### Scenario: A deleted thread on the next message
+- **GIVEN** a chat whose thread was deleted in another tab
+- **WHEN** the member sends a message and C1 answers 404 `THREAD_NOT_FOUND`
+- **THEN** the same message goes again in a new thread and the answer shows

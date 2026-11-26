@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import type { LabosAgentChatResponse, LabosAgentClient } from '@/types/labos-agent.types';
 import { mockMentions } from '@/services/labos-agent/labos-agent.mock';
+import { LabosAgentError } from '@/services/labos-agent/labos-agent.errors';
 
 /**
  * LAB-3457: AI agent chat runs on the agent for members inside the gate. The real page, store, composer hook, turn
@@ -193,9 +194,46 @@ describe('LAB-3457: AI agent chat on the agent', () => {
       const key = Object.keys(useLabosAgentStore.getState().chats)[0];
       expect(key).toBe(`ai-search:${request.threadId}`);
       expect(request.context).toBeUndefined();
+      // The finished turn is saved in the thread, for the shared history.
+      expect(request.persist).toBe(true);
+      const chatState = useLabosAgentStore.getState().chats[key];
+      expect(chatState.turns[0].savedIn).toBe(request.threadId);
       expect(screen.getByRole('button', { name: /Worked for \d+s · 1 step/ })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Which one is hiring?' })).toBeInTheDocument();
       expect(screen.getByTestId('title-bar')).toHaveTextContent('Which teams work on decentralized storage?');
+    });
+
+    it('C1 THREAD_NOT_FOUND before the stream: the message goes again once, in a new thread', async () => {
+      chat.mockRejectedValueOnce(new LabosAgentError(404, 'THREAD_NOT_FOUND', 'No'));
+      signIn();
+      wrap(<AgentChat />);
+      type(field(), 'Which teams work on decentralized storage?');
+      fireEvent.keyDown(field(), { key: 'Enter' });
+
+      expect(await screen.findByText('Three teams work on storage.')).toBeInTheDocument();
+      expect(chat).toHaveBeenCalledTimes(2);
+      const [first, second] = chat.mock.calls.map(([r]) => r);
+      expect(second.threadId).not.toBe(first.threadId);
+      expect(second.chatId).toBe(first.chatId);
+      expect(second.message).toBe(first.message);
+      const chatState = Object.values(useLabosAgentStore.getState().chats)[0];
+      expect(chatState.threadId).toBe(second.threadId);
+      expect(chatState.turns).toHaveLength(1);
+      expect(chatState.turns[0].savedIn).toBe(second.threadId);
+    });
+
+    it('a second THREAD_NOT_FOUND shows the error, with no third call', async () => {
+      chat.mockRejectedValue(new LabosAgentError(404, 'THREAD_NOT_FOUND', 'No'));
+      signIn();
+      wrap(<AgentChat />);
+      type(field(), 'Which teams work on decentralized storage?');
+      fireEvent.keyDown(field(), { key: 'Enter' });
+
+      await waitFor(() =>
+        expect(Object.values(useLabosAgentStore.getState().chats)[0]?.turns[0]?.status).toBe('error'),
+      );
+      expect(chat).toHaveBeenCalledTimes(2);
+      expect(Object.values(useLabosAgentStore.getState().chats)[0].turns[0].savedIn).toBeUndefined();
     });
 
     it('sends agent-message-sent with surface page, in the page’s own session', async () => {

@@ -385,6 +385,11 @@ export interface LabosAgentTurn {
   mentionsRestored?: true;
   /** S5-C29: the panel put the text of this failed turn back in the composer. It does that once only. */
   textRestored?: boolean;
+  /**
+   * LAB-3457: the thread the backend saved this turn in (C1 `persist: true` and a finished answer, or a turn read from
+   * T2). Its intro drafts go to C5, not C3. Absent: not saved.
+   */
+  savedIn?: string;
   startedAt: number;
   endedAt?: number;
 }

@@ -50,6 +50,7 @@ const nextConfig = {
   // skips test files, as before; Jest compiles the tests.
   experimental: {
     useTypeScriptCli: false,
+    agentUpgrade: 'security',
   },
 
   // DELETE WITH: the `design-canvas/` folder.

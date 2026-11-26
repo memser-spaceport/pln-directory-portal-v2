@@ -25,6 +25,7 @@ import { ISubItem } from '@/components/core/navbar/type';
 import { useDemoDayAnalyticsAccess } from '@/services/rbac/hooks/useDemoDayAnalyticsAccess';
 import { useMoreNavItems } from '@/components/core/navbar/components/navItems/MoreNavItems/hooks/useMoreNavItems';
 import { useGetPlInfraNavItems } from '@/components/core/navbar/components/navItems/PLInfraNavItems/hook/useGetPlInfraNavItems';
+import { useGetEventMenuItemLinks } from '@/components/core/navbar/hooks/useGetEventMenuItemLinks';
 import { isBareRoute } from '@/utils/isBareRoute';
 import { PUBLISHED_AI_APPS_PATH } from '@/services/ai-apps/constants';
 
@@ -39,14 +40,15 @@ import s from './MobileBottomNav.module.scss';
 
 /** More is one flat list on mobile — no sub-menus — so it sets its own order
  *  instead of inheriting the desktop menu's. Matched by href prefix so the
- *  three Events links rank together as one block. LAB-3172 swapped Job Board
- *  and Events: Events leads, and Job Board (only here for PL Infra members)
- *  takes Events' old place after Forum. AI Apps published to the member
- *  (LAB-3200) close the named block, as they do on desktop. */
+ *  three Events links rank together as one block. Events and Forum swapped
+ *  places, as on desktop: Forum leads and the Events links take Forum's old
+ *  place after Deals. Job Board (only here for PL Infra members) follows them.
+ *  AI Apps published to the member (LAB-3200) close the named block, as they
+ *  do on desktop. */
 const MORE_ORDER = [
-  '/events',
-  DEALS_LINK.href,
   FORUM_LINK.href,
+  DEALS_LINK.href,
+  '/events',
   JOBS_LINK.href,
   PLAA_LINK.href,
   `${PUBLISHED_AI_APPS_PATH}/`,
@@ -67,6 +69,7 @@ export function MobileBottomNav() {
 
   const baseMoreItems = useMoreNavItems();
   const plInfraItems: ISubItem[] = useGetPlInfraNavItems();
+  const eventLinks = useGetEventMenuItemLinks();
   const hasNewNews = useHasNewNews();
 
   const analytics = useCommonAnalytics();
@@ -95,14 +98,15 @@ export function MobileBottomNav() {
 
   // Five slots, and PL Infra members need one of them for PL Infra — so Job
   // Board gives up the bar for them and moves into More. Everyone else keeps
-  // Job Board where it is. The Events links come flat from the shared More hook.
+  // Job Board where it is. Forum comes from the shared More hook; the Events
+  // links, a top-level menu on desktop, are added here as flat entries.
   const hasPlInfra = plInfraItems.length > 0;
   const moreItems = useMemo(() => {
-    const items = hasPlInfra ? [FORUM_LINK, JOBS_LINK, ...baseMoreItems] : [FORUM_LINK, ...baseMoreItems];
+    const items = hasPlInfra ? [...eventLinks, JOBS_LINK, ...baseMoreItems] : [...eventLinks, ...baseMoreItems];
 
     // Stable sort, so the Events links keep their own relative order.
     return [...items].sort((a, b) => moreRank(a) - moreRank(b));
-  }, [hasPlInfra, baseMoreItems]);
+  }, [hasPlInfra, eventLinks, baseMoreItems]);
 
   if (isBareRoute(pathname)) return null;
 

@@ -1,3 +1,5 @@
+import type { Metadata } from 'next';
+
 import { Chat } from '@/components/page/husky/Chat';
 import { AiSearchThreadBody } from '@/components/page/husky/AiSearchThreadBody/AiSearchThreadBody';
 import styles from './page.module.css';
@@ -5,6 +7,14 @@ import { getHuskyThreadById } from '@/services/husky.service';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
+
+/**
+ * LAB-3457: a thread page is a member's own chat (or a guest's shared link), never a page for search engines. Only
+ * the robots rule: the title and the share image stay the layout's.
+ */
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function Page(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;

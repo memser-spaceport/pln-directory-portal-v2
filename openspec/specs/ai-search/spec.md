@@ -136,3 +136,7 @@ LAB-3457. For a signed-in member inside the agent gate, the History rail SHALL l
 - **GIVEN** a member inside the gate with an old AI search chat and an agent chat
 - **WHEN** they open `/ai-search`
 - **THEN** History lists both, and opening the old one shows it on the agent
+
+### Requirement: Thread pages are not indexed
+
+LAB-3457. `/ai-search/<threadId>` SHALL send `robots: { index: false, follow: false }`: it is a member's own chat or a guest's shared link. Its title and share image SHALL stay the layout's ("AI Search | Protocol Labs Directory"; renaming to "AI agent chat" is a design question for Polina). `/ai-search` itself SHALL stay indexable.

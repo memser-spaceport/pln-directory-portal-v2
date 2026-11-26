@@ -1,5 +1,5 @@
 import { formatEventDateLine, safeTimezone } from './event-dates';
-import { toAgendaDays, toEventAccess, toEventMode, toEventTag } from './event-drawer.mappers';
+import { toAgendaDays, toEventAccess, toEventMode, toEventSocials, toEventTag } from './event-drawer.mappers';
 import { toFocusAreaCode } from './focus-areas';
 import type { EventDetail, EventDetailResponse } from './event-drawer.types';
 import {
@@ -9,6 +9,7 @@ import {
   eventInstants,
   fromContactInfos,
   fromInstant,
+  toContactInfos,
   toHttpUrl,
 } from './event-form';
 import type {
@@ -171,6 +172,8 @@ export function toPreviewEvent(values: EventFormValues, uid = 'preview'): EventD
     hosts: Array.from(new Set(hosts)),
     description: descriptionText(values.description) ? values.description : null,
     agenda: toAgendaDays(values.agenda ? { ...values.agenda } : null, timezone),
+    // LAB-3451: the same links as the drawer draws for the stored event.
+    socials: toEventSocials(toContactInfos(values.socialHandles)),
     websiteUrl: toHttpUrl(values.websiteUrl),
     eventUrl: link,
     gathering: null,

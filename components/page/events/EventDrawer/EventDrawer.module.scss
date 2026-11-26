@@ -572,6 +572,22 @@
   white-space: nowrap;
 }
 
+/* LAB-3451: the event's social handles, one per line: "Discord: discord.gg/x". */
+.socialList {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.socialItem {
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
 /* A description from the events sync may be HTML with its own paragraphs and lists. */
 .paragraph {
   p,

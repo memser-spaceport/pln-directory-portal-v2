@@ -42,6 +42,11 @@ export interface EventDetailsResponse {
   locationUrl?: string | null;
   /** LAB-3403: the event's own IANA time zone. Optional: an older backend does not send it. */
   timezone?: string | null;
+  /**
+   * LAB-3451: the event's social handles by platform (`twitter`, `discord`, `bluesky`, `mastodon`, `telegram`,
+   * `email`), as the form stored them. Every viewer gets them. Optional: an older backend does not send them.
+   */
+  contactInfos?: Record<string, string[]> | null;
 }
 
 /** `GET /v1/irl/events/:uid` (`ResponsePLEventDetailSchema`). 404 for an unknown or deleted event. */
@@ -100,6 +105,16 @@ export interface EventAgendaDay {
   items: { time: string; title: string; about?: string }[];
 }
 
+/** LAB-3451: one social handle of the event, ready to link. */
+export interface EventSocialLink {
+  /** The platform's form label, for example "Discord". */
+  platform: string;
+  /** An `http` or `https` address, or `mailto:` for an email. */
+  href: string;
+  /** The address without the scheme, for example "x.com/plabs", or the email address. */
+  label: string;
+}
+
 /** One event of the gathering, as the events picker needs it. */
 export interface EventGatheringEvent {
   uid: string;
@@ -150,6 +165,8 @@ export interface EventDetail {
   /** May hold HTML from the events sync; rendered through `SafeHtml`. */
   description: string | null;
   agenda: EventAgendaDay[];
+  /** LAB-3451: the social handles that give a safe link, in their stored order. Empty when none. */
+  socials: EventSocialLink[];
   websiteUrl: string | null;
   /** The event's id in the PL events app (LAB-3361). The drawer does not link it now (LAB-3420). Null when unknown. */
   externalId: string | null;

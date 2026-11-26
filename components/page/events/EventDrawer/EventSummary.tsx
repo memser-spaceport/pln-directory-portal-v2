@@ -78,7 +78,7 @@ function HostNames({ hosts }: { hosts: string[] }) {
  * event's own page sits among the facts (LAB-3271, LAB-3333, LAB-3334); no "Part of the <city> gathering" (LAB-3283).
  * LAB-3324: with a map link, the place and its arrow open the map in a new tab; an online event never links.
  * LAB-3426: for an event that has ended, nothing here asks the reader to register or RSVP. LAB-3418: its day line
- * carries a year other than the current one.
+ * carries a year other than the current one. LAB-3451: the event's social handles, as links, close the facts.
  */
 export function EventSummary({
   event,
@@ -192,6 +192,31 @@ export function EventSummary({
             </span>
           </li>
         )}
+
+        {event.socials.length > 0 && (
+          <li className={e.fact} data-testid="event-socials">
+            <span className={e.factIcon} aria-hidden>
+              <AtIcon />
+            </span>
+            <span className={e.factText}>
+              <span className={e.factMain}>Social</span>
+              <ul className={e.socialList}>
+                {event.socials.map((social) => (
+                  <li key={social.href} className={e.socialItem}>
+                    <span className={e.factSub}>{`${social.platform}:`}</span>
+                    <a
+                      className={clsx(e.factSub, e.factLink, e.factLinkText)}
+                      href={social.href}
+                      {...(social.href.startsWith('mailto:') ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
+                    >
+                      {social.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </span>
+          </li>
+        )}
       </ul>
 
       {card}
@@ -296,6 +321,21 @@ function AccessIcon({ access }: { access: EventAccess }) {
         strokeLinejoin="round"
       />
       <path d="M12 5.5v9" stroke="currentColor" strokeWidth="1.5" strokeDasharray="1.5 2" />
+    </svg>
+  );
+}
+
+/** LAB-3451: the social handles' glyph. */
+function AtIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <circle cx="10" cy="10" r="3" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M13 10v1.25a2.25 2.25 0 004.5 0V10A7.5 7.5 0 1014 16.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }

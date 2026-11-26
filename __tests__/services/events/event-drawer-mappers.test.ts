@@ -7,6 +7,7 @@ import {
   toEventDetail,
   toEventUrl,
   toEventMode,
+  toEventSocials,
   toEventTag,
   toMyGatheringPlans,
 } from '@/services/events/event-drawer.mappers';
@@ -312,6 +313,49 @@ describe('event drawer mappers (LAB-3216)', () => {
         expect(toEventUrl('', [registration(name)])).toBe(REG);
       }
       expect(toEventUrl('', [registration('Registration link')])).toBeNull();
+    });
+  });
+
+  describe('LAB-3451: the social handles', () => {
+    it('links each handle by the form rule, with the form label, and an email as mailto', () => {
+      expect(
+        toEventSocials({
+          twitter: ['@plabs'],
+          discord: ['https://discord.gg/abc'],
+          telegram: ['labweek'],
+          email: ['team@pl.xyz'],
+        }),
+      ).toEqual([
+        { platform: expect.stringMatching(/Twitter/), href: 'https://x.com/plabs', label: 'x.com/plabs' },
+        { platform: 'Discord', href: 'https://discord.gg/abc', label: 'discord.gg/abc' },
+        { platform: 'Telegram', href: 'https://t.me/labweek', label: 't.me/labweek' },
+        { platform: 'Email', href: 'mailto:team@pl.xyz', label: 'team@pl.xyz' },
+      ]);
+    });
+
+    it('leaves out unsafe or empty handles, duplicates and bad input', () => {
+      expect(
+        toEventSocials({
+          twitter: ['', '  ', 'plabs', 'https://x.com/plabs'],
+          email: ['not an email', 'a@b.co?subject=x', 'javascript:alert(1)'],
+          other: ['ftp://x.test', 'javascript:alert(1)'],
+          bluesky: [42 as unknown as string],
+        }),
+      ).toEqual([{ platform: expect.stringMatching(/Twitter/), href: 'https://x.com/plabs', label: 'x.com/plabs' }]);
+      for (const bad of [null, undefined, 'x', [], 1]) expect(toEventSocials(bad)).toEqual([]);
+    });
+
+    it('reads them from details.contactInfos of the event read; none when absent', () => {
+      const base = eventResponse();
+      const event = toEventDetail({
+        ...base,
+        details: { ...base.details!, contactInfos: { bluesky: ['pl.bsky.social'] } },
+      });
+      expect(event.socials).toEqual([
+        { platform: 'Bluesky', href: 'https://bsky.app/profile/pl.bsky.social', label: 'bsky.app/profile/pl.bsky.social' },
+      ]);
+      expect(toEventDetail(eventResponse()).socials).toEqual([]);
+      expect(toEventDetail(bareEventResponse()).socials).toEqual([]);
     });
   });
 });

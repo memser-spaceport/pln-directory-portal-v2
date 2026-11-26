@@ -12,9 +12,11 @@ import type {
   EventMode,
   EventRoleName,
   EventRolesPayload,
+  EventSocialLink,
   EventTag,
   MyGatheringPlans,
 } from './event-drawer.types';
+import { isValidEmail, normalizeSocialHandle, SOCIAL_PLATFORMS } from './event-form';
 import { toFocusAreaCode } from './focus-areas';
 
 /*
@@ -217,6 +219,43 @@ export function toEventUrl(
   return null;
 }
 
+/** "https://www.x.com/plabs/" → "x.com/plabs". */
+function linkLabel(href: string): string {
+  const { host, pathname, search } = new URL(href);
+  const path = pathname === '/' ? '' : pathname.replace(/\/$/, '');
+  return `${host.replace(/^www\./, '')}${path}${search}`;
+}
+
+/**
+ * LAB-3451: the event's social handles as links, by `normalizeSocialHandle()`, the form's own rule. An email becomes a
+ * `mailto:` link. A handle that gives no `http` or `https` address (or no valid email) is left out, so no other scheme
+ * reaches an `href`. Duplicates show once.
+ */
+export function toEventSocials(contactInfos: unknown): EventSocialLink[] {
+  if (!contactInfos || typeof contactInfos !== 'object' || Array.isArray(contactInfos)) return [];
+  const out: EventSocialLink[] = [];
+  const seen = new Set<string>();
+  for (const [platform, handles] of Object.entries(contactInfos as Record<string, unknown>)) {
+    const key = platform.trim().toLowerCase();
+    const name = SOCIAL_PLATFORMS.find((p) => p.value === key)?.label ?? platform.trim();
+    for (const handle of Array.isArray(handles) ? handles : []) {
+      if (typeof handle !== 'string' || !handle.trim()) continue;
+      let link: EventSocialLink | null = null;
+      if (key === 'email') {
+        const email = handle.trim().replace(/^mailto:/i, '');
+        if (isValidEmail(email) && !/[\s?#&/]/.test(email)) link = { platform: name, href: `mailto:${email}`, label: email };
+      } else {
+        const href = httpUrlOrNull(normalizeSocialHandle(key, handle));
+        if (href) link = { platform: name, href, label: linkLabel(href) };
+      }
+      if (!link || seen.has(link.href)) continue;
+      seen.add(link.href);
+      out.push(link);
+    }
+  }
+  return out;
+}
+
 function uniqueNames(names: (string | null | undefined)[]): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -263,6 +302,7 @@ export function toEventDetail(raw: EventDetailResponse): EventDetail {
     hosts,
     description: raw.description?.trim() || raw.shortDescription?.trim() || null,
     agenda: toAgendaDays(details?.agenda ?? null, timezone),
+    socials: toEventSocials(details?.contactInfos),
     websiteUrl: raw.websiteUrl,
     externalId: raw.externalId || null,
     eventUrl: toEventUrl(raw.websiteUrl, raw.resources),

@@ -326,7 +326,7 @@ export function AiSearchView({
 
   return (
     <Modal isOpen={open} onClose={handleClose} overlayClassname={shell.overlay} className={shell.container} lockScroll>
-      <div className={shell.card} role="dialog" aria-modal="true" aria-label="AI Search">
+      <div className={shell.card} role="dialog" aria-modal="true" aria-label="AI agent chat">
         {showAnswer ? (
           /* The title bar: same row, same chip, same ✕ — the input gives way
              to the thread's name, since the thread's own input is below. */
@@ -347,7 +347,7 @@ export function AiSearchView({
             <span className={s.title} title={turns[0]?.question}>
               {turns[0]?.question}
             </span>
-            <button type="button" className={sf.close} onClick={handleClose} aria-label="Close AI Search">
+            <button type="button" className={sf.close} onClick={handleClose} aria-label="Close AI agent chat">
               <CloseIcon />
             </button>
           </div>
@@ -382,14 +382,14 @@ export function AiSearchView({
             activeDescendant={activeSuggestion >= 0 ? `ai-suggestion-${activeSuggestion}` : undefined}
             /* One job now, so the placeholder names it. Scoped, the chip
                already names the team. */
-            placeholder={activeScope ? `Ask about ${activeScope.name}` : 'Ask AI Search a question'}
+            placeholder={activeScope ? `Ask about ${activeScope.name}` : 'Ask AI agent chat a question'}
             scope={activeScope}
             onRemoveScope={removeScope}
             /* The AI mark, not the popover's magnifier: the two fields are
                one chrome, and the glyph is what tells them apart. */
             glyph={<AiSearchIcon />}
             onClose={handleClose}
-            closeLabel="Close AI Search"
+            closeLabel="Close AI agent chat"
           />
         )}
 
@@ -513,7 +513,7 @@ export function AiSearchView({
                     <div className={rs.divider} />
                     <div className={clsx(rs.root, s.idleSection)}>
                       <div className={s.historyHead}>
-                        <div className={rs.label}>Your AI Search History</div>
+                        <div className={rs.label}>Your AI agent chat history</div>
                         {threads.length > HISTORY_ROWS && (
                           <button
                             type="button"

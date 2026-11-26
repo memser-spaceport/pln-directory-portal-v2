@@ -36,7 +36,7 @@ type TourId = 'warm-intros' | 'candidates';
 
 const TOURS: { id: TourId; label: string; feature: string }[] = [
   { id: 'candidates', label: 'Candidates', feature: 'Hiring' },
-  { id: 'warm-intros', label: 'Warm intros', feature: 'AI Search' },
+  { id: 'warm-intros', label: 'Warm intros', feature: 'AI agent chat' },
 ];
 
 const COUNT_LINE = '[data-tour="candidates-count"]';
@@ -92,7 +92,7 @@ export default function GuidedTourPrototype() {
             {
               target: SEARCH_ANCHOR_SELECTOR,
               title: 'Find investors who’d take an intro',
-              body: 'Ask AI Search about investors. As a founder, your answers now name the person in the network who can introduce you.',
+              body: 'Ask AI agent chat about investors. As a founder, your answers now name the person in the network who can introduce you.',
               nextLabel: 'Show me',
               onNext: () => askAi(INVESTORS_QUESTION),
               radius: 8,

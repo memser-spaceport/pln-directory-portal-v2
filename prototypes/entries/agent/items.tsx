@@ -68,6 +68,8 @@ export const PAGES = {
     label: MOCK_MEMBER.name,
     meta: 'Member profile',
     path: `/members/${MOCK_MEMBER.id}`,
+    /* Read when the page is @mentioned in AI agent chat (version 2); the agent drawer never reads a page's body. */
+    body: `${MOCK_MEMBER.name} co-founded Lattice Compute (verifiable compute markets for AI training) and offers office hours on fundraising and infra go-to-market.`,
   },
   lattice: {
     id: 'page-lattice',
@@ -76,6 +78,7 @@ export const PAGES = {
     label: 'Lattice Compute',
     meta: 'Team profile',
     path: '/teams/lattice-compute',
+    body: 'Lattice Compute builds verifiable compute markets for AI training. It has 2 open roles on the Jobs page: Senior protocol engineer (remote, EU time zones) and Developer relations lead (Lisbon). Maya Okonkwo, the CEO, holds office hours on fundraising.',
   },
   jobs: { id: 'page-jobs', kind: 'page', page: 'jobs', label: 'Jobs', meta: 'Page', path: '/jobs' },
 } satisfies Record<string, AgentItem>;

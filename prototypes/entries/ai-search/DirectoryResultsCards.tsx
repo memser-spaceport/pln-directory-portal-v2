@@ -21,8 +21,8 @@ import s from './DirectoryResultsCards.module.scss';
 export const hitUid = (hit: DirectoryHit) =>
   /[?&]investor=([^&]+)/.exec(hit.source)?.[1] ?? hit.source.split('/').filter(Boolean).pop() ?? hit.source;
 
-/** How many cards show before "Show all" — two rows of the two-column grid. */
-const SHOWN = 4;
+/** How many rows show before "Show N more" (Dropbox Dash shows a short list, then Show more). */
+const SHOWN = 3;
 
 const TYPE_LABEL: Record<DirectoryHit['type'], string> = {
   member: 'Member',
@@ -72,13 +72,19 @@ const FALLBACK_LOGO: Record<Exclude<DirectoryHit['type'], 'member'>, string> = {
  * (N)" keeps production's words and expands in place — a popup over a dialog
  * would be a modal on a modal.
  *
+ * 2026-11-25 redraw ("update this UI using Mobbin"): one bordered list instead of a two-column grid of
+ * cards, after Dropbox Dash's sources list and Reddit Answers' "Generated from these posts". The head is a
+ * quiet 12px label with the count, not a brand-blue icon line: the answer is the loud thing, what it was
+ * read from is the receipt. Rows are 44px: a 24px picture, the name, the fact after it, and the arrow only
+ * on hover. More than three hits end in a "Show N more" row inside the list.
+ *
  * Internal destinations open in this tab, as the dialog's keyword results do;
  * only an event's external site opens in a new one. (Production opens all of
  * them in new tabs.)
  */
 export function DirectoryResultsCards({
   hits,
-  title = 'Results from the directory',
+  title = 'From the directory',
   requestIntro,
 }: {
   hits: DirectoryHit[];
@@ -94,22 +100,16 @@ export function DirectoryResultsCards({
   const [expanded, setExpanded] = useState(false);
   const shown = expanded ? hits : hits.slice(0, SHOWN);
   const hasMore = hits.length > SHOWN;
+  const rest = hits.length - SHOWN;
 
   return (
     <section className={s.root} aria-label={title}>
-      <div className={s.head}>
-        <h3 className={s.title}>
-          <img src="/icons/chip.svg" width={16} height={16} alt="" />
-          {title}
-        </h3>
-        {hasMore && (
-          <button type="button" className={sub.button} onClick={() => setExpanded((v) => !v)}>
-            {expanded ? 'Show less' : `Show all (${hits.length})`}
-          </button>
-        )}
-      </div>
+      <h3 className={s.title}>
+        {title}
+        <span className={s.count}>{hits.length}</span>
+      </h3>
 
-      <ul className={s.grid}>
+      <ul className={s.list}>
         {shown.map((hit) => {
           const external = /^https?:/i.test(hit.source);
           const picture = hit.avatar ?? (hit.type === 'member' ? getDefaultAvatar(hit.name) : FALLBACK_LOGO[hit.type]);
@@ -128,8 +128,8 @@ export function DirectoryResultsCards({
                   className={clsx(s.picture, hit.type !== 'member' && s.logo)}
                   src={picture}
                   alt=""
-                  width={32}
-                  height={32}
+                  width={24}
+                  height={24}
                 />
                 {/* Both lines clip at half the dialog's width; the `title`s hand
                     back what the ellipsis took (a long role, a long name). */}
@@ -157,6 +157,13 @@ export function DirectoryResultsCards({
             </li>
           );
         })}
+        {hasMore && (
+          <li>
+            <button type="button" className={clsx(sub.button, s.more)} onClick={() => setExpanded((v) => !v)}>
+              {expanded ? 'Show less' : `Show ${rest} more`}
+            </button>
+          </li>
+        )}
       </ul>
     </section>
   );

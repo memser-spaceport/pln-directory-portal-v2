@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useState, type ReactNode } from 'react';
 import clsx from 'clsx';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import type { IMember } from '@/types/members.types';
 import type { IUserInfo } from '@/types/shared.types';
@@ -216,8 +217,20 @@ export function MemberProfilePage({
      no Office Hours card for a visitor, so here: no card, no Schedule
      Meeting (the intro stands alone), and the AI scope drops its office
      hours question. A review-band state ("add a state when no office hours
-     available") flips it. */
-  const [hasOfficeHours, setHasOfficeHours] = useState(true);
+     available") flips it. `?oh=0` opens on No office hours (Request time),
+     and the switch keeps the URL in step so the state can be shared. */
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [hasOfficeHours, setHasOfficeHoursState] = useState(() => searchParams?.get('oh') !== '0');
+  const setHasOfficeHours = (value: boolean) => {
+    setHasOfficeHoursState(value);
+    const params = new URLSearchParams(searchParams?.toString() ?? '');
+    if (value) params.delete('oh');
+    else params.set('oh', '0');
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
   /* Where Follow and the contact press stand: the header cluster (the Sep 28
      decision, default) or a row under the bio, to compare. */
   /* LAB-3383's "One actions area" is the default here. Hosts that bring their

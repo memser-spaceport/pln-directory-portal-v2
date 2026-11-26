@@ -11,6 +11,7 @@ Every text a member reads or hears for this product (visible text, placeholders,
 #### Scenario: The page and the navbar
 - **WHEN** a member opens `/ai-search`
 - **THEN** the browser tab reads "AI agent chat | Protocol Labs Directory" and the sidebar is titled "AI agent chat"
+- **AND** the new-chat headline reads "Explore Protocol Labs with AI agent chat"
 - **AND** the navbar button is announced as "Open AI agent chat"
 
 #### Scenario: The header search

@@ -37,7 +37,7 @@ import type { IUserInfo } from '@/types/shared.types';
 import { LABOS_AGENT_ANALYTICS_EVENTS } from '@/utils/constants';
 
 describe('LAB-3297: agent event helpers', () => {
-  it('names the 10 v0 events in kebab case with the agent- prefix (V0-R1)', () => {
+  it('names the 10 v0 events and the 2 LAB-3429 events in kebab case with the agent- prefix (V0-R1)', () => {
     expect(Object.values(LABOS_AGENT_ANALYTICS_EVENTS).sort()).toEqual([
       'agent-action-cancelled',
       'agent-action-confirmed',
@@ -48,6 +48,8 @@ describe('LAB-3297: agent event helpers', () => {
       'agent-dock-closed',
       'agent-dock-opened',
       'agent-message-sent',
+      'agent-open-ai-search-clicked',
+      'agent-panel-resized',
       'agent-source-clicked',
     ]);
     // S4 is out of v0.

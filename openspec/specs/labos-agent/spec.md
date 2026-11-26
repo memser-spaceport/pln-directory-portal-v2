@@ -55,7 +55,7 @@ The news story detail SHALL show "Ask a follow-up" at the start of its footer fo
 
 ### Requirement: The panel streams an answer with steps and sources
 
-The panel SHALL be a right-hand column (480px from 960px wide, a full-screen sheet below) with Agent, New chat and Close in its header. With no turns it SHALL show prompts for the context. Each turn SHALL show the member's message, then the agent's steps while it works, then the streamed Markdown answer. A finished answer SHALL list its LabOS items (a news item links to `/?news=<uid>`) and its web pages under "Sources", and its follow-up questions as buttons. The composer SHALL send on Enter, accept up to 2000 characters, and turn into Stop while an answer streams. Esc inside the panel SHALL close it.
+The panel SHALL be a right-hand column (600px by default from 960px wide, resizable from 440px to 720px, see LAB-3429; a full-screen sheet below) with Agent, AI agent chat, History, New chat and Close in its header. With no turns it SHALL show prompts for the context. Each turn SHALL show the member's message, then the agent's steps while it works, then the streamed Markdown answer. A finished answer SHALL list its LabOS items (a news item links to `/?news=<uid>`) and its web pages under "Sources", and its follow-up questions as buttons. The composer SHALL send on Enter, accept up to 2000 characters, and turn into Stop while an answer streams. Esc inside the panel SHALL close it.
 
 #### Scenario: Answer with web sources
 
@@ -279,13 +279,24 @@ The Agent tab SHALL show the key hint only on a device with a mouse or trackpad 
 
 ### Requirement: The member can remove the page context
 
-The context chip SHALL have a ✕ button "Stop reading <label>" (S5-R4). After ✕, the store SHALL set `readsPage` to false, the C1 request SHALL have no `context` field, and the empty state SHALL offer the network prompt only. "+ Read <label>" SHALL set `readsPage` back to true. Each `openAgent` SHALL set `readsPage` to true. The chat of the context SHALL stay.
+The context chip SHALL read "[page glyph] Context <label> ✕" (LAB-3429 Decision 4), with a ✕ button "Stop reading <label>" (S5-R4). After ✕, the store SHALL set `readsPage` to false, the C1 request SHALL have no `context` field, and the empty state SHALL offer the network prompt only. The chip SHALL then stay in its slot as a dashed button "[page glyph] Not in context <label> +" (accessible name "Let the agent read <label> again"); one press SHALL set `readsPage` back to true. Each `openAgent` SHALL set `readsPage` to true. The chat of the context SHALL stay.
 
 #### Scenario: Remove the story chip
 
 - **GIVEN** the agent opened on a news story
 - **WHEN** the member presses ✕ on the chip and sends a message
 - **THEN** the C1 body has no `context`
+- **AND** the chip reads "Not in context News story +", and one press on it reads the story again
+
+### Requirement: A page the agent can't read says so
+
+When the corner or Ctrl/⌘ J opens the agent on a page the agent can't read (`isUnreadablePage`: `/settings` and its sub-pages except `/settings/profile`, and `/notifications`), `openAgent` SHALL get `pageLocked: true`. The context is `null` there, so C1 gets no `context`. The chip slot SHALL show "[lock] Can’t read this page" with nothing to press (LAB-3429 Decision 4). Other pages with no context (events, forum) SHALL show no chip, as before. The design names "settings and messages"; the Directory's messages are its notifications.
+
+#### Scenario: Open the agent on email settings
+
+- **GIVEN** the member is on `/settings/email`
+- **WHEN** they open the agent from the corner
+- **THEN** the chip row shows "Can’t read this page" with no button, and the next C1 body has no `context`
 
 ### Requirement: The mock gives intro drafts
 
@@ -297,7 +308,7 @@ All agent calls SHALL go through `getLabosAgentClient()`. The live client SHALL 
 
 ### Requirement: The agent sends the v0 agent events
 
-The agent SHALL send the 10 v0 events of the LAB-3297 spec (V0-R1) through `useLabosAgentAnalytics` (`analytics/labos-agent.analytics.ts`), with the names in `LABOS_AGENT_ANALYTICS_EVENTS`: `agent-dock-opened`, `agent-dock-closed`, `agent-message-sent`, `agent-answer-shown`, `agent-answer-failed`, `agent-source-clicked`, `agent-action-proposed`, `agent-action-confirmed`, `agent-action-cancelled` and `agent-action-failed`. Every event SHALL carry `flow`, `entryPoint`, `pageType`, `conversationId` and `loggedInUserUid`. `conversationId` SHALL be a random UUID that the store makes for each dock session (`session` in `services/labos-agent/store.ts`). A closed panel, or a new context in the open panel, SHALL start a new session. `openAgent` SHALL take `entryPoint` (`news-story`, `intro-entry`, `corner` or `shortcut`; default `corner`). `LabosAgentRoot` SHALL send `agent-dock-opened` and `agent-dock-closed` through `useLabosAgentDockEvents`, for every way to open the panel. Each card SHALL send at most one `agent-action-cancelled` (V0-R6): when the member presses Cancel, or when New chat discards the card while it still waits. A panel close SHALL send no `agent-action-cancelled`; the card stays in the chat for a reopen. A card that shows "Intro already requested" does not wait. A card that shows "Replaced by a newer draft" does not wait and SHALL send no `agent-action-cancelled`; the revision sends a new `agent-action-proposed` (V0-R9). Only a card of a `done` turn waits; the panel shows no card for a turn that is not `done`. An action card in `error` with Retry (`canRetry`) waits. A pending action card past its `expiresAt` does not wait (it shows no buttons). `agent-message-sent` SHALL carry `mentionCount`, the number of mention chips (V0-R3). `agent-answer-shown` SHALL send the C1 `toolCount`, `usedWebSearch` and `sourceCount` when the final chunk has them. Else it SHALL count the distinct sources of the answer (a page in both lists counts once, as backend PR #3754 does) and leave out the other two (V0-R4). A source ref SHALL link to its `directoryLink` (a LabOS path) or its `externalUrl` (http or https, new tab); `uid` and `url` stay as a fallback for an older body and the mock. The intro events with `source` `agent` SHALL carry the `conversationId` of the session (V0-R2). No event SHALL carry message text, draft text, names, emails, or IDs of members, teams or news (V0-R5). S4 (`agent-draft-copied`, `apply_via`, `job-draft`, `job-apply`) is not in v0. These events SHALL not reach production before Anuj's own yes (LAB-3297).
+The agent SHALL send the 10 v0 events of the LAB-3297 spec (V0-R1), and the 2 LAB-3429 events (`agent-open-ai-search-clicked` and `agent-panel-resized`, below), through `useLabosAgentAnalytics` (`analytics/labos-agent.analytics.ts`), with the names in `LABOS_AGENT_ANALYTICS_EVENTS`: `agent-dock-opened`, `agent-dock-closed`, `agent-message-sent`, `agent-answer-shown`, `agent-answer-failed`, `agent-source-clicked`, `agent-action-proposed`, `agent-action-confirmed`, `agent-action-cancelled` and `agent-action-failed`. Every event SHALL carry `flow`, `entryPoint`, `pageType`, `conversationId` and `loggedInUserUid`. `conversationId` SHALL be a random UUID that the store makes for each dock session (`session` in `services/labos-agent/store.ts`). A closed panel, or a new context in the open panel, SHALL start a new session. `openAgent` SHALL take `entryPoint` (`news-story`, `intro-entry`, `corner` or `shortcut`; default `corner`). `LabosAgentRoot` SHALL send `agent-dock-opened` and `agent-dock-closed` through `useLabosAgentDockEvents`, for every way to open the panel. Each card SHALL send at most one `agent-action-cancelled` (V0-R6): when the member presses Cancel, or when New chat discards the card while it still waits. A panel close SHALL send no `agent-action-cancelled`; the card stays in the chat for a reopen. A card that shows "Intro already requested" does not wait. A card that shows "Replaced by a newer draft" does not wait and SHALL send no `agent-action-cancelled`; the revision sends a new `agent-action-proposed` (V0-R9). Only a card of a `done` turn waits; the panel shows no card for a turn that is not `done`. An action card in `error` with Retry (`canRetry`) waits. A pending action card past its `expiresAt` does not wait (it shows no buttons). `agent-message-sent` SHALL carry `mentionCount`, the number of mention chips (V0-R3). `agent-answer-shown` SHALL send the C1 `toolCount`, `usedWebSearch` and `sourceCount` when the final chunk has them. Else it SHALL count the distinct sources of the answer (a page in both lists counts once, as backend PR #3754 does) and leave out the other two (V0-R4). A source ref SHALL link to its `directoryLink` (a LabOS path) or its `externalUrl` (http or https, new tab); `uid` and `url` stay as a fallback for an older body and the mock. The intro events with `source` `agent` SHALL carry the `conversationId` of the session (V0-R2). No event SHALL carry message text, draft text, names, emails, or IDs of members, teams or news (V0-R5). S4 (`agent-draft-copied`, `apply_via`, `job-draft`, `job-apply`) is not in v0. These events SHALL not reach production before Anuj's own yes (LAB-3297).
 
 #### Scenario: Two messages in one session
 
@@ -356,3 +367,51 @@ The placeholder SHALL be "Ask, request an intro, or type @ to add context" when 
 ### Requirement: The mock answers C4
 
 The mock client SHALL answer C4 with mock pages, news, teams and members only, and accept `mentions` (S6-F21, S6-F22). The query "unavailable" SHALL give a 503. A mention uid that starts with `missing` SHALL give a C1 404 with `mentionIndex`. The answer SHALL list the mentions it read.
+
+### Requirement: The agent hands the chat over to AI agent chat
+
+The panel header SHALL show a labelled action, "AI agent chat" with the AI mark, first among the header actions (before History, New chat and ✕) (LAB-3429 Decision 1). Its accessible name SHALL be "Open in AI agent chat (new tab)". Until the chat has one `done` turn it SHALL be `aria-disabled` with the tooltip "Ask something first, then continue in AI agent chat"; then the tooltip SHALL be "Open this chat in AI agent chat (new tab)". Below 478px of panel width (a container query) the word SHALL hide and the AI mark SHALL carry the action; the accessible name SHALL stay. On a coarse pointer the hit area SHALL be 44px.
+
+A press SHALL open a new tab at once (inside the click), save a NEW AI Search thread (`POST /v1/husky/threads` with a client-made `threadId`, then `POST /v1/husky/threads/:id/basic-info` with the first question, through `customFetch`), leave the questions in `localStorage['ai-search-pending-questions:<threadId>']` and send the tab to `/ai-search/<threadId>`, where AI agent chat asks them one at a time. The questions are the messages of the `done` turns, in order. Only the questions travel: no answers, cards or steps. The agent chat SHALL stay as it is, and the two histories stay separate.
+
+While the agent reads a member profile (`context.page` `member` and `readsPage`), the first question SHALL start with one line, "About <member name> (<profile URL>): " (t1, 2026-11-26, option B). The name comes from `GET /v1/members/<uid>?select=name`; when that fails the line SHALL be "About this member (<profile URL>): ". This is a deviation from the design's `about=member` scope: the AI Search backend takes no scope (`HuskyChatSchema`), so the member travels in the question text. A proper scope is a later backend change.
+
+If the thread or its title can't be saved, or storage is blocked, the tab SHALL close and the member SHALL stay in the agent. A red line under the header SHALL read "Couldn’t open this chat in AI agent chat." with Retry (which tries again) and Dismiss. No "Opened in AI agent chat" link back (the ticket's designed default).
+
+Each press (Retry too) SHALL send `agent-open-ai-search-clicked` with `questionCount`, `memberScoped` and `isRetry`. No question text.
+
+#### Scenario: Two answers, then AI agent chat
+
+- **GIVEN** a chat with 2 answers on Home
+- **WHEN** the member presses "AI agent chat"
+- **THEN** a new tab opens `/ai-search/<threadId>` with the 2 questions handed over, and the agent chat is unchanged
+
+#### Scenario: On a member profile
+
+- **GIVEN** the agent reads Maya Okonkwo's profile and the chat has 1 answer
+- **WHEN** the member presses "AI agent chat"
+- **THEN** the first question starts with "About Maya Okonkwo (<origin>/members/<uid>): "
+
+#### Scenario: The thread can't be saved
+
+- **GIVEN** `POST /v1/husky/threads` fails
+- **WHEN** the member presses "AI agent chat"
+- **THEN** the new tab closes, the member stays in the agent and sees "Couldn’t open this chat in AI agent chat." with Retry
+
+### Requirement: The history menu links to all AI agent chats
+
+The panel header SHALL have a History button (accessible name "Agent history", the prototype's history glyph, after "AI agent chat"). The agent keeps no saved history in v0, so its menu SHALL hold one row, "All AI agent chats ↗" (accessible name "All AI agent chats (opens in a new tab)"), which SHALL open `/ai-search?history=open` in a new tab with the History rail open (LAB-3429 Decision 2; t1, 2026-11-26: no Recent chats list, Polina confirms in design review).
+
+### Requirement: The member resizes the agent slot
+
+From 960px window width, the member SHALL resize the agent slot by its left edge (`LabosAgentResizeHandle`, a focusable `separator` "Resize the agent panel") (LAB-3429 Decision 3). The default width SHALL be 600px, the minimum 440px and the maximum 720px, and the page behind SHALL keep at least 480px (`maxWidthFor`). Idle, the edge SHALL be just the border; on hover the cursor SHALL change and a 2px brand rule SHALL show; while dragging (and on keyboard focus) the rule SHALL stay solid and the page SHALL not select text. A double-click SHALL reset to 600px. With focus on the edge, ← and → SHALL resize by 24px (Shift: 96px), and Home and End SHALL go to the minimum and the maximum. The width SHALL be kept per browser in `localStorage['labos-agent-width']` (try/catch; the default is not stored; blocked storage gives 600) and SHALL be clamped to the window as it resizes. `LabosAgentRoot` SHALL write it on `<html>` as `--labos-agent-w`. The Feedback tab (the slot's other tab, `followAgentWidth`) SHALL wear the same width and edge; its Wider mode SHALL not. Below 960px the panel SHALL stay a full-screen sheet with no edge. Each commit (the end of a drag, a key, a reset) SHALL send `agent-panel-resized` with `width`, `method` (`drag`, `keyboard` or `reset`) and `tab` (`agent` or `feedback`).
+
+#### Scenario: Drag past the maximum at 1440px
+
+- **GIVEN** a 1440px window with the agent open
+- **WHEN** the member drags the edge to the left
+- **THEN** the panel stops at 720px and the page keeps at least 480px
+
+### Requirement: The picker has a heading
+
+The context picker SHALL open with an "Add context" heading above its search field, from + and from `@` alike (LAB-3429 Decision 5). The picker dialog SHALL be named by the heading.

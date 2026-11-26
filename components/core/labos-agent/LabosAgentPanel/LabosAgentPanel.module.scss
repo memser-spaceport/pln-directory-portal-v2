@@ -1,7 +1,8 @@
 @use 'styles/media';
 
 /* The agent panel. From home-v2-b's AgentPanel.module.scss (prototype). Phones: a full-screen sheet.
-   From 960px: a 480px column over the page's right edge (homepage-redesign-v0-agent width). */
+   From 960px: a column over the page's right edge, as wide as the member made it (LAB-3429: --labos-agent-w on
+   <html>, 600px by default, 440 to 720). A container, so the header's "AI agent chat" word can drop when narrow. */
 .panel {
   position: fixed;
   inset: 0;
@@ -9,10 +10,11 @@
   display: flex;
   flex-direction: column;
   background: var(--background-neutral-default, #fff);
+  container-type: inline-size;
 
   @include media.tablet-landscape {
     inset: 0 0 0 auto;
-    width: 480px;
+    width: var(--labos-agent-w, 600px);
     max-width: 100vw;
     border-left: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
     box-shadow: -8px 0 24px var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
@@ -46,6 +48,7 @@
 
 .headActions {
   display: flex;
+  align-items: center;
   gap: 4px;
 }
 
@@ -361,4 +364,301 @@ a.context {
   color: var(--foreground-neutral-tertiary, #8897ae);
   font-size: 13px;
   line-height: 18px;
+}
+
+/* ---------- LAB-3429: "AI agent chat" (prototype `agent`, Agent.module.scss) ---------- */
+
+/* The header's one labelled action: 28px, 12/16 500, secondary ink, brand-soft hover. It wears the product's AI
+   mark, and the label names the destination. It opens in a new tab; the tooltip says so. */
+.aiSearchBtn {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+  cursor: pointer;
+
+  svg {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+  }
+
+  @media (hover: hover) {
+    &:hover:not([aria-disabled='true']) {
+      background: var(--background-brand-soft-surface, #f2f5ff);
+      color: var(--foreground-brand-primary, #1b4dff);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+
+  /* Nothing to continue yet. aria-disabled, not disabled, so the tooltip still says why. */
+  &[aria-disabled='true'] {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+    opacity: 0.6;
+    cursor: default;
+
+    > span:first-child {
+      filter: grayscale(1);
+    }
+  }
+
+  /* A finger gets 44px without the header growing: the hit area reaches past the 28px box. */
+  @media (pointer: coarse) {
+    &::after {
+      content: '';
+      position: absolute;
+      inset: -8px -4px;
+    }
+  }
+}
+
+/* Below 478px of panel (a phone's sheet, or a panel dragged towards its 440 minimum) the word doesn't fit beside
+   the title and the icons, so the AI mark carries it alone; the accessible name and the tooltip stay. Container
+   widths are the content box: the panel's 1px left border makes 480 read as 479. */
+@container (max-width: 478px) {
+  .aiSearchLabel {
+    display: none;
+  }
+
+  .aiSearchBtn {
+    width: 28px;
+    padding: 0;
+    justify-content: center;
+  }
+}
+
+.handoffError {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px 8px 16px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-error-soft-surface, #fef3f2);
+  color: var(--foreground-error-primary, #d21a0e);
+  font-size: 14px;
+  line-height: 20px;
+
+  > svg {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.handoffErrorText {
+  flex: 1;
+  min-width: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.handoffRetry {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+
+  @media (hover: hover) {
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+}
+
+/* ---------- LAB-3429: History, the door to AI agent chat's chats ---------- */
+
+.historyPopup.historyPopup {
+  width: 280px;
+  max-width: calc(100vw - 32px);
+}
+
+/* A menu row in the secondary ink: it leaves this panel for another list. */
+.historyAiSearch.historyAiSearch {
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+}
+
+.historyAiSearchLabel {
+  flex: 1;
+  min-width: 0;
+}
+
+.historyAiSearchArrow {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* ---------- LAB-3429 Decision 4: this page, in the context row (prototype `PageSlot`) ---------- */
+
+/* The prototype's context chip (home-v2-agent-dock AgentCorner .contextChip), with its ✕ inside. */
+.pageChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  height: 24px;
+  padding: 0 4px 0 8px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 6px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+
+  svg {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+  }
+
+  > svg:first-child {
+    margin-right: 2px;
+  }
+}
+
+/* "Context" makes the chip a statement rather than a tag: tertiary, so the page name stays the thing you read. */
+.pageChipKicker {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-weight: 400;
+}
+
+.pageChipLabel {
+  min-width: 0;
+  max-width: 200px;
+  overflow: hidden;
+  color: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+a.pageChipLabel {
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.pageChipRemove {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+      color: var(--foreground-neutral-primary, #0a0c11);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+
+  /* A finger gets 44px without the chip growing. */
+  @media (pointer: coarse) {
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: -14px;
+    }
+  }
+}
+
+/* Removed: the chip's own anatomy (glyph, kicker, name), dashed, with + where the ✕ was. The whole chip is the press. */
+.pageAddBack {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  height: 24px;
+  padding: 0 6px 0 8px;
+  border: 1px dashed var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  border-radius: 6px;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  cursor: pointer;
+
+  svg {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+  }
+
+  > svg:first-child {
+    margin-right: 2px;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      border-color: var(--foreground-neutral-tertiary, #8897ae);
+      color: var(--foreground-neutral-secondary, #455468);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+}
+
+.pageAddPlus.pageAddPlus {
+  width: 12px;
+  height: 12px;
+  margin-left: 2px;
+}
+
+/* No press here: tertiary ink, no hover (the label lineage). */
+.pageChipLocked.pageChipLocked {
+  padding-right: 8px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: default;
 }

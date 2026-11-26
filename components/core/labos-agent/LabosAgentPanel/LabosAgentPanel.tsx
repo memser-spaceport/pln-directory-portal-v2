@@ -3,6 +3,19 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { clsx } from 'clsx';
 import Link from 'next/link';
+import { Menu } from '@base-ui-components/react/menu';
+import {
+  ArrowUpRight,
+  Briefcase,
+  House,
+  LockSimple,
+  Newspaper,
+  Plus,
+  User,
+  UsersThree,
+  WarningCircle,
+  X,
+} from '@phosphor-icons/react';
 
 import { useLabosAgentAnalytics } from '@/analytics/labos-agent.analytics';
 import { ChatInput } from '@/components/core/husky/ChatInput';
@@ -10,11 +23,24 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import { AiSearchIcon } from '@/components/icons/AiSearchIcon';
 import { CloseIcon } from '@/components/icons/CloseIcon';
 import { useCanRequestIntro } from '@/services/intro-requests/hooks/useCanRequestIntro';
-import { LABOS_AGENT_MAX_MENTIONS, LABOS_AGENT_MENTION_TEXT } from '@/services/labos-agent/constants';
+import menu from '@/components/page/home/TeamNews/components/NewsShareMenu/NewsShareMenu.module.scss';
+import {
+  LABOS_AGENT_CONTEXT_TEXT,
+  LABOS_AGENT_HANDOFF_TEXT,
+  LABOS_AGENT_MAX_MENTIONS,
+  LABOS_AGENT_MENTION_TEXT,
+} from '@/services/labos-agent/constants';
 import { PAGE_NOT_FOUND_CODES, useLabosAgentChat } from '@/services/labos-agent/hooks/useLabosAgentChat';
 import { useLabosAgentMentionSearch } from '@/services/labos-agent/hooks/useLabosAgentMentionSearch';
 import { isLabosAgentMock } from '@/services/labos-agent/labos-agent.config';
 import { keepInteractive } from '@/services/labos-agent/labos-agent.dialogs';
+import {
+  AI_SEARCH_HISTORY_URL,
+  canOpenInAiSearch,
+  handoffQuestions,
+  openInAiSearch,
+  scopedMemberUid,
+} from '@/services/labos-agent/labos-agent.handoff';
 import { replacedDraftIds } from '@/services/labos-agent/labos-agent.open-cards';
 import {
   contextMentionKey,
@@ -72,6 +98,78 @@ const contextLabel = (context: LabosAgentOpenContext | null) => {
   return context.label || PAGE_LABELS[context.page];
 };
 
+/** LAB-3429 Decision 4: the glyph of the page in the chip (prototype `items.tsx` `ItemGlyph`). */
+function PageGlyph({ context }: { context: LabosAgentOpenContext }) {
+  const p = { weight: 'regular' as const, 'aria-hidden': true };
+  switch (context.page) {
+    case 'news-story':
+      return <Newspaper {...p} />;
+    case 'team':
+      return <UsersThree {...p} />;
+    case 'job':
+      return <Briefcase {...p} />;
+    case 'member':
+    case 'profile':
+      return <User {...p} />;
+    case 'intro':
+      return context.introTarget.type === 'team' ? <UsersThree {...p} /> : <User {...p} />;
+    default:
+      return <House {...p} />;
+  }
+}
+
+/** The history glyph (prototype `AgentHistory` `HistoryGlyph`). */
+function HistoryGlyph() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8M3 3v5h5M12 7v5l4 2"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
+}
+
+/**
+ * LAB-3429 Decision 2: the agent's history menu. The agent keeps no saved history in v0, so the menu holds one row,
+ * "All AI agent chats ↗", which opens AI agent chat in a new tab with its History rail open (t1, 2026-11-26).
+ */
+function AgentHistoryMenu() {
+  return (
+    <Menu.Root modal={false}>
+      <Menu.Trigger
+        className={s.iconBtn}
+        aria-label={LABOS_AGENT_HANDOFF_TEXT.historyTrigger}
+        title={LABOS_AGENT_HANDOFF_TEXT.historyTitle}
+      >
+        <HistoryGlyph />
+      </Menu.Trigger>
+      <Menu.Portal>
+        <Menu.Positioner className={menu.positioner} side="bottom" align="end" sideOffset={6}>
+          <Menu.Popup className={clsx(menu.popup, s.historyPopup)}>
+            <Menu.Item
+              className={clsx(menu.item, s.historyAiSearch)}
+              onClick={() => {
+                const tab = window.open(AI_SEARCH_HISTORY_URL, '_blank');
+                if (tab) tab.opener = null;
+              }}
+              aria-label={LABOS_AGENT_HANDOFF_TEXT.historyLinkAria}
+            >
+              <AiSearchIcon size={16} />
+              <span className={s.historyAiSearchLabel}>{LABOS_AGENT_HANDOFF_TEXT.historyLink}</span>
+              <ArrowUpRight weight="bold" aria-hidden className={s.historyAiSearchArrow} />
+            </Menu.Item>
+          </Menu.Popup>
+        </Menu.Positioner>
+      </Menu.Portal>
+    </Menu.Root>
+  );
+}
+
 /** Sets a textarea value the way typing does, so the composer's own `onChange` (height, `@` check) runs. */
 function setNativeValue(el: HTMLTextAreaElement, value: string) {
   const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set;
@@ -85,7 +183,8 @@ type PickerState = { mode: 'at' | 'plus'; query: string; start: number };
 /**
  * The member's agent, docked on the right (home-v2-b's AgentPanel, homepage-redesign-v0-agent design). It reads the
  * page it was opened on (`context`), shows its steps, streams its answer and lists its sources. S1: answers only, no
- * writes. Phones: a full-screen sheet. From 960px: a 480px column over the page's right edge.
+ * writes. Phones: a full-screen sheet. From 960px: a column over the page's right edge, 600px by default and
+ * resizable from 440px to 720px (LAB-3429, `LabosAgentResizeHandle`).
  */
 export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAgentPanelProps) {
   const {
@@ -102,12 +201,13 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
     markTextRestored,
     markMentionsRestored,
   } = useLabosAgentChat(context);
-  const { onSourceClicked } = useLabosAgentAnalytics();
+  const { onSourceClicked, onOpenAiSearchClicked } = useLabosAgentAnalytics();
   const replacedDrafts = useMemo(() => replacedDraftIds(turns), [turns]);
   const prefill = useLabosAgentStore((st) => st.prefill);
   const clearPrefill = useLabosAgentStore((st) => st.actions.clearPrefill);
   const readsPage = useLabosAgentStore((st) => st.readsPage);
   const setReadsPage = useLabosAgentStore((st) => st.actions.setReadsPage);
+  const pageLocked = useLabosAgentStore((st) => st.pageLocked);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const threadRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
@@ -265,6 +365,22 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
     if (el) el.scrollTop = el.scrollHeight;
   }, [turns]);
 
+  /*
+   * LAB-3429 Decision 1: the hand-off to AI agent chat. `failed` shows the error line with Retry; the chat stays as it
+   * is either way. `busy` while the thread saves, so a second press does not make a second thread.
+   */
+  const [handoff, setHandoff] = useState<'idle' | 'busy' | 'failed'>('idle');
+  const canHandoff = canOpenInAiSearch(turns);
+  const handOff = async (isRetry: boolean) => {
+    if (!canHandoff || handoff === 'busy') return;
+    const questions = handoffQuestions(turns);
+    const memberUid = scopedMemberUid(context, readsPage);
+    onOpenAiSearchClicked(context, { questionCount: questions.length, memberScoped: !!memberUid, isRetry });
+    setHandoff('busy');
+    const ok = await openInAiSearch({ questions, memberUid });
+    setHandoff(ok ? 'idle' : 'failed');
+  };
+
   const submit = (text: string) => {
     if (!send(text, chips)) return;
     if (inputRef.current) setComposerText(inputRef.current, '');
@@ -352,6 +468,19 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
           )}
         </span>
         <span className={s.headActions}>
+          <button
+            type="button"
+            className={s.aiSearchBtn}
+            aria-disabled={!canHandoff || handoff === 'busy'}
+            aria-busy={handoff === 'busy' || undefined}
+            onClick={() => void handOff(false)}
+            aria-label={LABOS_AGENT_HANDOFF_TEXT.actionAria}
+            title={canHandoff ? LABOS_AGENT_HANDOFF_TEXT.tooltip : LABOS_AGENT_HANDOFF_TEXT.tooltipDisabled}
+          >
+            <AiSearchIcon size={16} />
+            <span className={s.aiSearchLabel}>{LABOS_AGENT_HANDOFF_TEXT.action}</span>
+          </button>
+          <AgentHistoryMenu />
           {turns.length > 0 && (
             <button type="button" className={s.iconBtn} onClick={newChat} aria-label="New chat" title="New chat">
               <svg viewBox="0 0 16 16" fill="none" aria-hidden>
@@ -370,6 +499,25 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
           </button>
         </span>
       </header>
+
+      {/* LAB-3429: the member stays in the panel with the chat intact. */}
+      {handoff === 'failed' && (
+        <div className={s.handoffError} role="alert">
+          <WarningCircle weight="regular" aria-hidden />
+          <span className={s.handoffErrorText}>{LABOS_AGENT_HANDOFF_TEXT.error}</span>
+          <button type="button" className={s.handoffRetry} onClick={() => void handOff(true)}>
+            {LABOS_AGENT_HANDOFF_TEXT.retry}
+          </button>
+          <button
+            type="button"
+            className={s.iconBtn}
+            onClick={() => setHandoff('idle')}
+            aria-label={LABOS_AGENT_HANDOFF_TEXT.dismiss}
+          >
+            <CloseIcon />
+          </button>
+        </div>
+      )}
 
       <div ref={threadRef} className={s.thread} aria-live="polite">
         {turns.length === 0 ? (
@@ -443,39 +591,55 @@ export function LabosAgentPanel({ context, onClose, overModal = false }: LabosAg
           />
         )}
         <div className={s.chipRow} role="group" aria-label="What the agent reads">
-          {label && readsPage && (
-            <span className={s.contextRow}>
-              {context?.page === 'news-story' ? (
+          {/* LAB-3429 Decision 4: the page slot. Attached, removed (dashed, one press adds it back) or locked. */}
+          {context && label && readsPage && (
+            <span className={s.pageChip} title="The agent reads the page you opened it on">
+              <PageGlyph context={context} />
+              <span className={s.pageChipKicker}>{LABOS_AGENT_CONTEXT_TEXT.attached}</span>
+              {context.page === 'news-story' ? (
                 <Link
                   href={`/?news=${encodeURIComponent(context.newsUid)}`}
-                  className={s.context}
+                  className={s.pageChipLabel}
                   title="The agent reads this story. Open the story."
                 >
-                  <span className={s.contextText}>{label}</span>
+                  {label}
                 </Link>
               ) : (
-                <span className={s.context} title="The agent reads the page you opened it on">
-                  <span className={s.contextText}>{label}</span>
-                </span>
+                <span className={s.pageChipLabel}>{label}</span>
               )}
               <button
                 type="button"
-                className={s.contextRemove}
+                className={s.pageChipRemove}
                 aria-label={`Stop reading ${label}`}
-                title="The agent stops reading this page"
+                title="Stop reading this page"
                 onClick={() => {
                   setReadsPage(false);
                   inputRef.current?.focus();
                 }}
               >
-                <CloseIcon />
+                <X weight="bold" />
               </button>
             </span>
           )}
-          {label && !readsPage && (
-            <button type="button" className={s.contextAdd} onClick={() => setReadsPage(true)}>
-              + Read {label}
+          {context && label && !readsPage && (
+            <button
+              type="button"
+              className={s.pageAddBack}
+              onClick={() => setReadsPage(true)}
+              aria-label={`Let the agent read ${label} again`}
+              title={`Let the agent read ${label} again`}
+            >
+              <PageGlyph context={context} />
+              <span className={s.pageChipKicker}>{LABOS_AGENT_CONTEXT_TEXT.removed}</span>
+              <span className={s.pageChipLabel}>{label}</span>
+              <Plus weight="bold" aria-hidden className={s.pageAddPlus} />
             </button>
+          )}
+          {!context && pageLocked && (
+            <span className={clsx(s.pageChip, s.pageChipLocked)} title={LABOS_AGENT_CONTEXT_TEXT.lockedTitle}>
+              <LockSimple weight="regular" aria-hidden />
+              <span className={s.pageChipLabel}>{LABOS_AGENT_CONTEXT_TEXT.locked}</span>
+            </span>
           )}
           {chips.map((chip) => (
             <span

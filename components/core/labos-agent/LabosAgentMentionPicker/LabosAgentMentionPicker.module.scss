@@ -16,6 +16,16 @@
   box-shadow: 0 8px 24px var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
 }
 
+/* LAB-3429 Decision 5: "Add context" above the search field (prototype `ContextPicker` .pickerTitle). */
+.title {
+  flex-shrink: 0;
+  margin: 4px 4px 8px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
 .search {
   flex-shrink: 0;
   height: 36px;

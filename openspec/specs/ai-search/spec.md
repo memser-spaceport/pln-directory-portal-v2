@@ -81,3 +81,13 @@ When an answer that streamed in the open view finishes with one or more web sour
 - **GIVEN** a saved thread whose answers have web sources
 - **WHEN** a member opens it
 - **THEN** no `unified-search-ai-web-sources-shown` event is sent for those answers
+
+### Requirement: A thread handed over by the agent asks its questions
+
+When the LabOS agent hands a chat over ("AI agent chat", see `labos-agent`), it saves the thread and leaves its questions in `localStorage['ai-search-pending-questions:<threadId>']` (`AI_SEARCH_PENDING_QUESTIONS_KEY_PREFIX`). On `/ai-search/<threadId>`, the member's own thread (`isOwnThread`) SHALL read the entry once and remove it (`takePendingQuestions`), then ask the questions one at a time on that thread: each one after the answer before it has finished or failed. It SHALL not create the thread or its title again. A broken entry SHALL ask nothing. Someone else's thread SHALL not read the entry. The questions go through the normal ask flow, so each answer is saved to the thread.
+
+#### Scenario: Two questions from the agent
+- **GIVEN** the entry for thread `t` holds 2 questions
+- **WHEN** the member's own `/ai-search/t` opens
+- **THEN** the first question is asked on thread `t`, and the second is asked once the first answer has finished
+

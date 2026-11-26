@@ -1,0 +1,68 @@
+@use 'styles/media';
+
+/* LAB-3429 Decision 3 (prototype `agent`, Agent.module.scss .resizeHandle): the slot's left edge, from 960px.
+   Idle: nothing but the panel's own 1px border. Hover: the col-resize cursor and a 2px brand rule on the border.
+   Dragging (and keyboard focus): the rule stays solid. A 12px hit area, centred on the border. Below 960 the panel
+   is a full-screen sheet and the edge is not drawn. */
+.handle {
+  display: none;
+
+  @include media.tablet-landscape {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    right: calc(var(--labos-agent-w, 600px) - 6px);
+    z-index: 1001;
+    display: block;
+    width: 12px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: col-resize;
+    touch-action: none;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 5px;
+      width: 2px;
+      background: var(--foreground-brand-primary, #1b4dff);
+      opacity: 0;
+      transition: opacity 120ms ease;
+    }
+
+    @media (hover: hover) {
+      &:hover::after {
+        opacity: 0.6;
+      }
+    }
+
+    &[data-dragging]::after,
+    &:focus-visible::after {
+      opacity: 1;
+    }
+
+    &:focus-visible {
+      outline: 0;
+    }
+  }
+}
+
+/* LAB-3302: the panel over the news story modal sits at 10000. */
+.overModal {
+  z-index: 10001;
+}
+
+/* While dragging: the whole page wears the cursor, and nothing gets selected on the way. */
+.dragging,
+.dragging * {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
+/* The Feedback tab's own Wider mode covers the page over a scrim: the slot's edge has nothing to resize there. */
+:global(body:has([data-testid='feedback-drawer'][data-wide='true'])) .handle {
+  display: none;
+}

@@ -161,6 +161,27 @@ export interface AgentActionFailedProps {
   status: number;
 }
 
+/** LAB-3429: the "AI agent chat" press. Counts and booleans only: the questions never go in an event. */
+export interface AgentOpenAiSearchClickedProps {
+  /** The answered questions that travel to the new thread. */
+  questionCount: number;
+  /** The agent read a member profile, so the scope line went before the first question. */
+  memberScoped: boolean;
+  /** The press came from Retry on the error line. */
+  isRetry: boolean;
+}
+
+/** LAB-3429: how the member resized the slot. */
+export type LabosAgentResizeMethod = 'drag' | 'keyboard' | 'reset';
+
+export interface AgentPanelResizedProps {
+  /** The new width in CSS pixels (440 to 720). */
+  width: number;
+  method: LabosAgentResizeMethod;
+  /** The tab of the slot that was open: the Feedback tab wears the same width. */
+  tab: 'agent' | 'feedback';
+}
+
 export interface AgentDockClosedProps {
   turnCount: number;
   actionCount: number;
@@ -256,8 +277,24 @@ export function useLabosAgentAnalytics() {
     [capture],
   );
 
+  /** `agent-open-ai-search-clicked` (LAB-3429): the member pressed "AI agent chat" or Retry. */
+  const onOpenAiSearchClicked = useCallback(
+    (context: LabosAgentOpenContext | null, props: AgentOpenAiSearchClickedProps) =>
+      capture(LABOS_AGENT_ANALYTICS_EVENTS.OPEN_AI_SEARCH_CLICKED, context, { ...props }),
+    [capture],
+  );
+
+  /** `agent-panel-resized` (LAB-3429): the end of a drag, an arrow key on the edge, or a double-click reset. */
+  const onPanelResized = useCallback(
+    (context: LabosAgentOpenContext | null, props: AgentPanelResizedProps) =>
+      capture(LABOS_AGENT_ANALYTICS_EVENTS.PANEL_RESIZED, context, { ...props }),
+    [capture],
+  );
+
   return {
     onDockOpened,
+    onOpenAiSearchClicked,
+    onPanelResized,
     onDockClosed,
     onMessageSent,
     onAnswerShown,

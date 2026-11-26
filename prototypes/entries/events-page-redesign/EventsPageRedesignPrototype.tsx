@@ -167,6 +167,8 @@ export default function EventsPageRedesignPrototype() {
   const calParam = searchParams.get('cal');
   const calMode: CalMode = calParam === 'month' || calParam === 'week' ? calParam : wide ? 'month' : 'week';
   const setCalMode = (next: CalMode) => setUrl({ cal: next });
+  // The calendar's month (2026-11-26): `?month=2026-03`, written by its steppers and month picker.
+  const monthParam = view === 'calendar' ? searchParams.get('month') : null;
   // `?embed=1`: the view alone, for an iframe on another site (the Embed button builds the link).
   const embed = searchParams.get('embed') === '1';
   const [embedOpen, setEmbedOpen] = useState(false);
@@ -331,6 +333,7 @@ export default function EventsPageRedesignPrototype() {
     const p = new URLSearchParams();
     if (view !== 'list') p.set('view', view);
     if (view === 'calendar') p.set('cal', calMode);
+    if (monthParam) p.set('month', monthParam);
     if (past) p.set('when', 'past');
     if (year) p.set('year', year);
     COUNTED_PARAMS.forEach((key) => {
@@ -402,6 +405,8 @@ export default function EventsPageRedesignPrototype() {
         highlightUid={highlightUid}
         city={city}
         onOpen={open}
+        initialMonth={monthParam}
+        onMonthChange={(key) => setUrl({ month: key })}
       />
     );
 
@@ -504,9 +509,11 @@ export default function EventsPageRedesignPrototype() {
           <div className={s.toolbarStart}>
             {view === 'calendar' ? (
               <>
-                <h2 className={s.toolbarTitle}>{city ? `Coming up in ${city}` : 'Coming up'}</h2>
+                {/* The calendar draws every event, past and upcoming (`visible`), so the title and
+                    count say all of them, not "Coming up" (2026-11-26). */}
+                <h2 className={s.toolbarTitle}>{city ? `All events in ${city}` : 'All events'}</h2>
                 <span className={s.toolbarCount}>
-                  {upcoming.length} {upcoming.length === 1 ? 'event' : 'events'}
+                  {visible.length} {visible.length === 1 ? 'event' : 'events'}
                 </span>
               </>
             ) : (

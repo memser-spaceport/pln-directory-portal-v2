@@ -40,6 +40,7 @@ import { DETAILS, addDays, at, iso, zoneOf, type CalEvent } from './mocks';
 import { EventImage } from '../events-shared/EventImage';
 import { GoingTag } from '../events-shared/GoingTag';
 import k from './EventsCalendar.module.scss';
+import { MonthYearPicker } from './MonthYearPicker';
 
 export type CalMode = 'month' | 'week';
 
@@ -76,9 +77,15 @@ export function EventsCalendar({
   goingUids,
   highlightUid,
   onOpen,
+  initialMonth,
+  onMonthChange,
 }: {
   events: CalEvent[];
   todayIso: string;
+  /** `?month=2026-03`: the month a link opens on (wins over the anchor). */
+  initialMonth?: string | null;
+  /** Writes the month on show back to the URL. */
+  onMonthChange?: (key: string) => void;
   /** The day the calendar opens on: the linked event, the chosen city's first event, or today. */
   anchorIso: string;
   mode: CalMode;
@@ -89,7 +96,18 @@ export function EventsCalendar({
   city?: string | null;
   onOpen: (uid: string, from: CalEvent[]) => void;
 }) {
-  const [month, setMonth] = useState(() => ({ year: at(anchorIso).getFullYear(), month: at(anchorIso).getMonth() }));
+  type YM = { year: number; month: number };
+  const [month, setMonthState] = useState<YM>(() => {
+    const m = initialMonth?.match(/^(\d{4})-(\d{2})$/);
+    if (m && +m[2] >= 1 && +m[2] <= 12) return { year: +m[1], month: +m[2] - 1 };
+    return { year: at(anchorIso).getFullYear(), month: at(anchorIso).getMonth() };
+  });
+  // The month on show is kept in the URL (`?month=2026-03`) so a link opens on it.
+  const setMonth = (next: YM | ((prev: YM) => YM)) => {
+    const value = typeof next === 'function' ? next(month) : next;
+    setMonthState(value);
+    onMonthChange?.(`${value.year}-${String(value.month + 1).padStart(2, '0')}`);
+  };
   // Schedule opens on the anchor, or on the first day with something on it from there.
   const [day, setDay] = useState(() => {
     const first = events
@@ -151,9 +169,32 @@ export function EventsCalendar({
             </button>
           ))}
         </div>
-        <h3 className={k.label}>{label}</h3>
+        {/* Week keeps its range as the heading; in Month the picker below says the month itself. */}
+        {mode === 'week' && <h3 className={k.label}>{label}</h3>}
         <div className={k.nav}>
-          <Button style="border" variant="neutral" size="s" onClick={goToday}>
+          {/* Jump to a month of any year (2026-11-26), beside the steppers it shortcuts. */}
+          <MonthYearPicker
+            year={mode === 'month' ? month.year : at(day).getFullYear()}
+            month={mode === 'month' ? month.month : at(day).getMonth()}
+            label={
+              mode === 'month'
+                ? label
+                : at(day).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+            }
+            events={events}
+            onPick={(year, m) => {
+              setMonth({ year, month: m });
+              // Week lands on the month's first day with something on it, else the 1st.
+              const first = iso(new Date(year, m, 1));
+              const last = iso(new Date(year, m + 1, 0));
+              const busy = events
+                .filter((e) => e.endDate >= first && e.startDate <= last)
+                .map((e) => (e.startDate < first ? first : e.startDate))
+                .sort()[0];
+              setDay(busy ?? first);
+            }}
+          />
+          <Button style="border" variant="neutral" size="s" className={k.todayBtn} onClick={goToday}>
             Today
           </Button>
           <button

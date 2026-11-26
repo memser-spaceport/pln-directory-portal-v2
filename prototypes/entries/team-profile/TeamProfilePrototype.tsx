@@ -1177,10 +1177,15 @@ export default function TeamProfilePrototype({
                   {(teamOh === 'none' || introWithOh === 'show') && (
                     <IntroOption
                       lede={
-                        <>
-                          Don&apos;t know anyone at {team.name ?? 'this team'}? The PL team can introduce you to the
-                          right person.
-                        </>
+                        teamOh === 'some' ? (
+                          <>
+                            Don&apos;t know anyone at {team.name ?? 'this team'}? Request the PL team to make an intro.
+                            <br />
+                            Booking an office hours slot is faster than waiting for an intro.
+                          </>
+                        ) : (
+                          <>Don&apos;t know anyone at {team.name ?? 'this team'}? Request the PL team to make an intro.</>
+                        )
                       }
                       name={team.name ?? 'this team'}
                       requested={intro.requested(teamIntroUid)}

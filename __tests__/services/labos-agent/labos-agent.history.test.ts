@@ -166,6 +166,7 @@ describe('LAB-3457: T2 thread turns', () => {
       sourceRefs: [],
       followUpQuestions: ['Who leads them?'],
       actions: [{ type: 'team' }],
+      sql: [],
       createdAt: null,
     });
     const agent = thread.turns[1];
@@ -180,6 +181,12 @@ describe('LAB-3457: T2 thread turns', () => {
       ['ap_2', 'expired', undefined],
     ]);
     expect(agent.drafts[0]).toMatchObject({ draftId: 'dr_1', status: 'sent', introRequestUid: 'ir-1' });
+  });
+
+  it('an old turn keeps its directory results, as `sql` or as husky `sqlData`', () => {
+    const rows = [{ name: 'Acme', type: 'team', source: 'directory' }];
+    expect(normalizeThreadTurn({ chatId: 'c', question: 'q', sql: rows })).toMatchObject({ sql: rows });
+    expect(normalizeThreadTurn({ chatId: 'c', question: 'q', sqlData: rows })).toMatchObject({ sql: rows });
   });
 
   it('a turn with no kind is an old turn; a turn with no question drops out', () => {

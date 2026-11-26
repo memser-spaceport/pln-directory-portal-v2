@@ -2,7 +2,7 @@
 
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
-import { type MouseEvent, useState } from 'react';
+import { type MouseEvent, type ReactNode, useState } from 'react';
 
 import { Button } from '@/components/common/Button';
 import { Markdown } from '@/components/common/Markdown';
@@ -31,6 +31,9 @@ interface LabosAgentTurnProps {
   replacedDrafts?: ReadonlySet<string>;
   /** LAB-3297: the member opened a source. `position` 1 is the first source in the list. */
   onSourceClick?: (sourceType: 'labos' | 'web', position: number) => void;
+  /** LAB-3457: AI agent chat's blocks under the answer and under the follow-ups (an old AI search turn's results). */
+  afterAnswer?: ReactNode;
+  afterFollowUps?: ReactNode;
 }
 
 const domainOf = (url: string) => {
@@ -69,6 +72,8 @@ export function LabosAgentTurn({
   onDraftCancel,
   replacedDrafts,
   onSourceClick,
+  afterAnswer,
+  afterFollowUps,
 }: LabosAgentTurnProps) {
   const [showSteps, setShowSteps] = useState(false);
   const router = useRouter();
@@ -123,6 +128,8 @@ export function LabosAgentTurn({
       )}
 
       {turn.content && <Markdown className={s.text}>{turn.content}</Markdown>}
+
+      {afterAnswer}
 
       {!working && (turn.sourceRefs.length > 0 || turn.sources.length > 0) && (
         <div className={s.sources}>
@@ -221,6 +228,8 @@ export function LabosAgentTurn({
           ))}
         </div>
       )}
+
+      {afterFollowUps}
     </div>
   );
 }

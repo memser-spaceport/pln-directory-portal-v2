@@ -132,7 +132,10 @@ export function normalizeThreadTurn(v: unknown): LabosAgentThreadTurn | null {
     actions: Array.isArray(t.actions) ? t.actions : [],
     createdAt: text(t.createdAt),
   };
-  if (t.kind !== 'agent') return { ...base, kind: 'ai-search' };
+  if (t.kind !== 'agent') {
+    const sql = Array.isArray(t.sql) ? t.sql : Array.isArray(t.sqlData) ? t.sqlData : [];
+    return { ...base, kind: 'ai-search', sql };
+  }
   const context = normalizeChatContext(t.context);
   const mentions = normalizeMentions(t.mentions);
   return {

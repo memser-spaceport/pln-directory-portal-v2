@@ -33,6 +33,7 @@ const thread: LabosAgentThread = {
       sourceRefs: [],
       followUpQuestions: ['Who leads them?'],
       actions: [{ type: 'team' }],
+      sql: [{ name: 'Acme', type: 'team', source: 'directory' }],
       createdAt: null,
     },
     {
@@ -80,6 +81,12 @@ describe('LAB-3457: a saved thread as chat turns', () => {
       restored: true,
     });
     expect(old.endedAt).toBeUndefined();
+    // Today's result blocks stay: no history is lost.
+    expect(old.savedResults).toEqual({
+      directory: [{ name: 'Acme', type: 'team', source: 'directory' }],
+      related: [{ type: 'team' }],
+    });
+    expect(agent.savedResults).toBeUndefined();
   });
 
   it('open cards keep their buttons; finished cards show their result', () => {

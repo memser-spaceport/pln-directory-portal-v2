@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type ComponentProps, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { notFound } from 'next/navigation';
 import { EnvelopeSimple, User, UsersThree } from '@phosphor-icons/react';
 
@@ -29,6 +29,8 @@ import { generateUUID } from '@/utils/common.utils';
 
 import { useSidebar } from '../hooks/useSidebar';
 import { ChatTitleBar } from '../Chat/components/ChatTitleBar';
+import { DirectoryResults } from '../Chat/components/Messages/components/PreviewMessage/components/DirectoryResults';
+import { RelatedResults } from '../Chat/components/Messages/components/PreviewMessage/components/RelatedResults';
 import { AgentChatComposer, type AgentChatComposerHandle } from './components/AgentChatComposer/AgentChatComposer';
 
 import chat from '../Chat/Chat.module.scss';
@@ -36,6 +38,9 @@ import home from '../Chat/components/ChatHome/ChatHome.module.scss';
 import prompts from '../Chat/components/ChatHome/components/PromptSuggestions/PromptSuggestions.module.scss';
 import message from '../Chat/components/Messages/components/PreviewMessage/PreviewMessage.module.scss';
 import s from './AgentChat.module.scss';
+
+type DirectoryActions = ComponentProps<typeof DirectoryResults>['actions'];
+type RelatedActions = ComponentProps<typeof RelatedResults>['actions'];
 
 const REQUEST_GLYPHS: Record<LabosAgentRequestTopic, typeof User> = {
   intro: EnvelopeSimple,
@@ -213,6 +218,17 @@ export function AgentChat({ threadId: savedThreadId }: { threadId?: string } = {
                     onDraftCancel={cancelDraft}
                     replacedDrafts={replacedDrafts}
                     onSourceClick={(sourceType, position) => onSourceClicked(null, { sourceType, position })}
+                    // An old AI search turn keeps today's result blocks, where today's thread page shows them.
+                    afterAnswer={
+                      t.savedResults && t.savedResults.directory.length > 0 ? (
+                        <DirectoryResults actions={t.savedResults.directory as DirectoryActions} />
+                      ) : undefined
+                    }
+                    afterFollowUps={
+                      t.savedResults && t.savedResults.related.length > 0 ? (
+                        <RelatedResults actions={t.savedResults.related as RelatedActions} />
+                      ) : undefined
+                    }
                   />
                 </div>
               </div>

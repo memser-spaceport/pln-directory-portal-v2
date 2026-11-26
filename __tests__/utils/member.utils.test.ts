@@ -1,5 +1,5 @@
-import { getVisibleSocialHandles } from '@/utils/member.utils';
-import officeHours from '@/components/page/irl/add-edit-attendee/office-hours';
+import { getVisibleSocialHandles, hidePreferences } from '@/utils/member.utils';
+import { IMember, IMemberPreferences } from '@/types/members.types';
 
 describe('getVisibleSocialHandles function', () => {
   it('should return all handles', () => {
@@ -188,5 +188,91 @@ describe('getVisibleSocialHandles function', () => {
 
     const handles = getVisibleSocialHandles(member);
     expect(handles).toEqual(expectedResult);
+  });
+});
+
+const shown: IMemberPreferences = {
+  showEmail: true,
+  showDiscord: true,
+  showTwitter: true,
+  showLinkedin: true,
+  showTelegram: true,
+  showGithubHandle: true,
+  showGithubProjects: true,
+  showBluesky: true,
+};
+
+function memberWithContacts(): IMember {
+  return {
+    email: 'ada@example.com',
+    githubHandle: 'ada',
+    discordHandle: 'ada-discord',
+    telegramHandle: 'ada-tg',
+    linkedinHandle: 'ada-li',
+    twitter: 'ada-x',
+    blueskyHandle: 'ada.bsky',
+    repositories: [
+      {
+        name: 'repo',
+        description: null,
+        url: 'https://github.com/ada/repo',
+        createdAt: '',
+        updatedAt: '',
+      },
+    ],
+  } as IMember;
+}
+
+describe('hidePreferences', () => {
+  it('keeps every contact when each flag is true', () => {
+    const member = memberWithContacts();
+
+    hidePreferences(shown, member);
+
+    expect(member.email).toBe('ada@example.com');
+    expect(member.githubHandle).toBe('ada');
+    expect(member.discordHandle).toBe('ada-discord');
+    expect(member.telegramHandle).toBe('ada-tg');
+    expect(member.linkedinHandle).toBe('ada-li');
+    expect(member.twitter).toBe('ada-x');
+    expect(member.blueskyHandle).toBe('ada.bsky');
+    expect(member.repositories).toHaveLength(1);
+  });
+
+  it('keeps every contact when the flags were never saved', () => {
+    const member = memberWithContacts();
+
+    hidePreferences({} as IMemberPreferences, member);
+
+    expect(member.email).toBe('ada@example.com');
+    expect(member.githubHandle).toBe('ada');
+    expect(member.discordHandle).toBe('ada-discord');
+    expect(member.telegramHandle).toBe('ada-tg');
+    expect(member.linkedinHandle).toBe('ada-li');
+    expect(member.twitter).toBe('ada-x');
+    expect(member.blueskyHandle).toBe('ada.bsky');
+    expect(member.repositories).toHaveLength(1);
+  });
+
+  it('removes a contact only when its flag is false', () => {
+    const member = memberWithContacts();
+
+    hidePreferences(
+      {
+        ...shown,
+        showEmail: false,
+        showGithubProjects: false,
+      },
+      member,
+    );
+
+    expect(member.email).toBeUndefined();
+    expect(member.repositories).toBeUndefined();
+    expect(member.githubHandle).toBe('ada');
+    expect(member.discordHandle).toBe('ada-discord');
+    expect(member.telegramHandle).toBe('ada-tg');
+    expect(member.linkedinHandle).toBe('ada-li');
+    expect(member.twitter).toBe('ada-x');
+    expect(member.blueskyHandle).toBe('ada.bsky');
   });
 });

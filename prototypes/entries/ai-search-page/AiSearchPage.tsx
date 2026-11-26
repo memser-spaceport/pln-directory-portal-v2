@@ -35,6 +35,11 @@ import { DeleteIcon } from '../job-board/icons';
 
 import { threadUrl, titleFor, type SharedChat } from './mocks';
 import Composer from './Composer';
+import { AgentDrawer } from '../agent/AgentDrawer';
+import { buildCatalog, PAGES, type AgentItem } from '../agent/items';
+import { VIEWERS } from '../agent/script';
+import { ActionPrompts, agentTurn, OpenAgentContext, ModeSwitch, readMention, type ChatMode, createThreadAgent, type ThreadAgent } from './agentActions';
+import type { ViewerKey } from '../agent/script';
 import s from './AiSearchPage.module.scss';
 
 const COMPOSER_ID = 'ai-search-page-composer';
@@ -66,6 +71,17 @@ interface AiSearchPageProps {
   open?: boolean;
   /** Passed to AnswerPanel: optional content right above the follow-up field (the MCP prototype's hint). */
   aboveInput?: React.ReactNode;
+  /** The signed-in member's role, for what the agent may do for them. Unset (signed out): answers only. */
+  agentViewer?: ViewerKey;
+  /**
+   * What a request to change something gets here (2026-11-25):
+   *   live      version 2: the chat is the agent. Its steps and confirm cards, on this page.
+   *   elsewhere version 1 (default): the chat only reads. It points to the agent, which can do it.
+   *   mode      version 3: a Search | Agent switch in the composer; @agent sends one message to the agent.
+   */
+  agentActions?: 'live' | 'elsewhere' | 'mode';
+  /** False: no Share in the title bar (2026-11-26, manager: sharing chats isn't planned for rollout). */
+  canShare?: boolean;
 }
 
 /**
@@ -98,6 +114,9 @@ export function AiSearchPage({
   term,
   open = true,
   aboveInput,
+  agentViewer,
+  agentActions = 'elsewhere',
+  canShare = true,
 }: AiSearchPageProps) {
   const [railOpen, setRailOpen] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -119,6 +138,42 @@ export function AiSearchPage({
     if (shownId != null) pageRef.current?.scrollIntoView({ block: 'start' });
   }, [shownId]);
 
+  /* Version 3: the composer's mode, shared by the new chat and every thread (it's the member's choice, not
+     the chat's). */
+  const [mode, setMode] = useState<ChatMode>('search');
+  const modeSwitch = agentActions === 'mode' && agentViewer ? <ModeSwitch mode={mode} onChange={setMode} /> : undefined;
+
+  /* Version 1: the agent's floating button lives on this page too, as on every signed-in page. The rail
+     link, Undo and "Open the agent" open its drawer here. */
+  const agentHere = !!agentViewer && agentActions === 'elsewhere';
+  const [agentOpenSeq, setAgentOpenSeq] = useState(0);
+  const openAgentHere = useCallback(() => setAgentOpenSeq((n) => n + 1), []);
+  const agentCatalog = useMemo(() => buildCatalog(new Date()), []);
+
+  /* One agent script per thread: it remembers a half-asked request between turns. */
+  const agents = useRef(new Map<number, ThreadAgent>());
+  const turnFor = useCallback(
+    (threadId: number, question: string, scope: AiSearchScope | null): Turn => {
+      if (!agentViewer || scope) return makeTurn(readMention(question).text, scope);
+      let agent = agents.current.get(threadId);
+      if (!agent) {
+        agent = createThreadAgent(agentViewer);
+        agents.current.set(threadId, agent);
+      }
+      if (agentActions === 'mode') {
+        /* "@agent …" is the agent for this one message; otherwise the switch decides. */
+        const mention = readMention(question);
+        const asAgent = mention.agent || mode === 'agent';
+        const reply = agent(mention.text);
+        if (!reply) return makeTurn(mention.text, scope);
+        return agentTurn(mention.text, reply, agentViewer, asAgent ? 'live' : 'switch');
+      }
+      const reply = agent(question);
+      return reply ? agentTurn(question, reply, agentViewer, agentActions) : makeTurn(question, scope);
+    },
+    [agentViewer, agentActions, mode],
+  );
+
   const focusComposer = () => requestAnimationFrame(() => document.getElementById(COMPOSER_ID)?.focus());
 
   /* ---------------------------------------------------------------------- */
@@ -129,19 +184,20 @@ export function AiSearchPage({
     (question: string, scope: AiSearchScope | null = null) => {
       const text = question.trim();
       if (!text) return;
+      const id = newThreadId();
       const thread: ChatThread = {
-        id: newThreadId(),
+        id,
         createdAt: new Date(),
         scope,
         title: titleFor(text),
-        turns: [makeTurn(text, scope)],
+        turns: [turnFor(id, text, scope)],
       };
       onThreadsChange((prev) => [thread, ...prev]);
       onSharedChange(null);
       onActiveIdChange(thread.id);
       setNewChatScope(null);
     },
-    [onThreadsChange, onActiveIdChange, onSharedChange],
+    [onThreadsChange, onActiveIdChange, onSharedChange, turnFor],
   );
 
   const setTurns = useCallback(
@@ -166,12 +222,13 @@ export function AiSearchPage({
   const followUp = useCallback(
     (q: string) => {
       if (shared) {
+        const copyId = newThreadId();
         const copy: ChatThread = {
-          id: newThreadId(),
+          id: copyId,
           createdAt: new Date(),
           scope: null,
           title: shared.thread.title,
-          turns: [...shared.thread.turns, makeTurn(q)],
+          turns: [...shared.thread.turns, turnFor(copyId, q, null)],
         };
         onThreadsChange((prev) => [copy, ...prev]);
         onSharedChange(null);
@@ -179,9 +236,9 @@ export function AiSearchPage({
         toast.success(signedIn ? 'Saved a copy to your history' : 'Started your own copy of this chat');
         return;
       }
-      setTurns((prev) => [...prev, makeTurn(q, active?.scope ?? null)]);
+      if (activeId != null) setTurns((prev) => [...prev, turnFor(activeId, q, active?.scope ?? null)]);
     },
-    [shared, setTurns, onThreadsChange, onSharedChange, onActiveIdChange, signedIn, active],
+    [shared, setTurns, onThreadsChange, onSharedChange, onActiveIdChange, signedIn, active, activeId, turnFor],
   );
 
   const newChat = useCallback(() => {
@@ -455,10 +512,12 @@ export function AiSearchPage({
       <div className={s.titleActions}>
         {shown && !shared && (
           <>
-            <button type="button" className={am.barBtn} onClick={() => share(shown)}>
-              <ShareIcon />
-              <span className={s.hideOnPhone}>Share</span>
-            </button>
+            {canShare && (
+              <button type="button" className={am.barBtn} onClick={() => share(shown)}>
+                <ShareIcon />
+                <span className={s.hideOnPhone}>Share</span>
+              </button>
+            )}
             <Menu.Root modal={false}>
               <Menu.Trigger className={clsx(menu.iconTrigger, lm.trigger)} aria-label="More actions for this chat">
                 <DotsIcon />
@@ -491,6 +550,7 @@ export function AiSearchPage({
   );
 
   return (
+    <OpenAgentContext.Provider value={agentHere ? openAgentHere : null}>
     <div className={s.page} ref={pageRef}>
       <aside className={clsx(s.rail, !railOpen && s.railCollapsed)} aria-label="AI agent chat history">
         {railOpen ? railBody(false) : railCollapsed}
@@ -512,6 +572,10 @@ export function AiSearchPage({
                 draft={drafts[draftKey] ?? ''}
                 onDraftChange={setDraft}
                 aboveInput={aboveInput}
+                inputFooter={modeSwitch}
+                inputPlaceholder={
+                  !modeSwitch ? undefined : mode === 'agent' ? 'Ask the agent, or tell it what to change' : 'Ask a follow-up, or type @agent to make changes'
+                }
               />
             </div>
           </>
@@ -543,6 +607,9 @@ export function AiSearchPage({
               }}
               draft={drafts.new ?? ''}
               onDraftChange={(text) => setDrafts((prev) => ({ ...prev, new: text }))}
+              agentViewer={agentActions === 'live' || (agentActions === 'mode' && mode === 'agent') ? agentViewer : undefined}
+              modeSwitch={modeSwitch}
+              mode={agentActions === 'mode' ? mode : undefined}
             />
           </>
         )}
@@ -571,9 +638,24 @@ export function AiSearchPage({
         onClose={() => setDeleteId(null)}
         onConfirm={confirmDelete}
       />
+
+      {agentHere && agentViewer && (
+        <AgentDrawer
+          key={agentViewer}
+          page={AI_CHAT_PAGE}
+          viewer={VIEWERS[agentViewer]}
+          recentPages={[PAGES.home, PAGES.maya, PAGES.lattice]}
+          catalog={agentCatalog}
+          openSeq={agentOpenSeq}
+        />
+      )}
     </div>
+    </OpenAgentContext.Provider>
   );
 }
+
+/** This page, as the agent reads it. */
+const AI_CHAT_PAGE: AgentItem = { id: 'page-ai-agent-chat', kind: 'page', label: 'AI agent chat', meta: 'Page', path: '/ai-search' };
 
 /* ------------------------------------------------------------------------ */
 /* New chat                                                                   */
@@ -586,6 +668,10 @@ interface NewChatProps {
   onAsk: (question: string) => void;
   draft: string;
   onDraftChange: (text: string) => void;
+  agentViewer?: ViewerKey;
+  /** Version 3: the switch, in the field, and which side it's on. */
+  modeSwitch?: React.ReactNode;
+  mode?: ChatMode;
 }
 
 /**
@@ -600,7 +686,7 @@ interface NewChatProps {
  *    offer on a page whose whole job is to be asked something. While you type
  *    they yield to questions matching your words (the ai-search rule).
  */
-function NewChat({ scope, onRemoveScope, onAsk, draft, onDraftChange }: NewChatProps) {
+function NewChat({ scope, onRemoveScope, onAsk, draft, onDraftChange, agentViewer, modeSwitch, mode }: NewChatProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [live, setLive] = useState(draft);
   const suggestions = useMemo(() => suggestQuestions(live, { pool: scope?.prompts }), [live, scope]);
@@ -626,7 +712,13 @@ function NewChat({ scope, onRemoveScope, onAsk, draft, onDraftChange }: NewChatP
           <p className={s.heroLine}>
             {scope
               ? `Answers come from the ${scope.name} profile. Remove it to ask the whole network.`
-              : 'Answers come from the directory: members, teams, projects, events and forum posts.'}
+              : mode === 'agent'
+                ? 'The agent answers questions and makes changes for you.'
+                : mode === 'search'
+                  ? 'Search answers questions. Switch to Agent, or type @agent, to make changes.'
+                  : agentViewer
+                ? 'Ask about the network, or make a request.'
+                : 'Answers come from the directory: members, teams, projects, events and forum posts.'}
           </p>
         </div>
 
@@ -659,7 +751,16 @@ function NewChat({ scope, onRemoveScope, onAsk, draft, onDraftChange }: NewChatP
                 </span>
               )
             }
-            placeholder={scope ? `Ask about ${scope.name}` : 'Ask anything about the network'}
+            footer={modeSwitch}
+            placeholder={
+              scope
+                ? `Ask about ${scope.name}`
+                : mode === 'agent'
+                  ? 'Ask the agent, or tell it what to change'
+                  : mode === 'search'
+                    ? 'Ask anything, or type @agent to make changes'
+                    : 'Ask anything about the network'
+            }
             rows={1}
             autoFocus
             defaultValue={draft}
@@ -689,6 +790,49 @@ function NewChat({ scope, onRemoveScope, onAsk, draft, onDraftChange }: NewChatP
                 idPrefix="ai-search-page-suggestion"
               />
             </>
+          ) : mode && !scope ? (
+            /* Version 3: one list, and it follows the switch: questions in Search, what it can do in Agent. */
+            <div>
+              <div className={tt.label}>{mode === 'agent' ? 'The agent can' : 'Try asking'}</div>
+              <ul className={clsx(s.promptList, s.promptListSingle)}>
+                {mode === 'agent' && agentViewer ? (
+                  <ActionPrompts viewer={agentViewer} onPick={submit} rowClass={s.promptRow} glyphClass={s.promptGlyph} />
+                ) : (
+                  prompts.slice(0, 3).map((p) => (
+                    <li key={p.text}>
+                      <button type="button" className={s.promptRow} onClick={() => submit(p.text)}>
+                        <img src={p.icon} alt="" className={s.promptIcon} />
+                        <span>{p.text}</span>
+                      </button>
+                    </li>
+                  ))
+                )}
+              </ul>
+            </div>
+          ) : agentViewer && !scope ? (
+            /* Requests on: two columns of three, side by side, so "Make a request" is on the first screen
+               (Notion AI's home: two labelled lists under the field). Phones stack them. */
+            <div className={s.promptColumns}>
+              <div>
+                <div className={tt.label}>Try asking</div>
+                <ul className={s.promptList}>
+                  {prompts.slice(0, 3).map((p) => (
+                    <li key={p.text}>
+                      <button type="button" className={s.promptRow} onClick={() => submit(p.text)}>
+                        <img src={p.icon} alt="" className={s.promptIcon} />
+                        <span>{p.text}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <div className={tt.label}>Make a request</div>
+                <ul className={s.promptList}>
+                  <ActionPrompts viewer={agentViewer} onPick={submit} rowClass={s.promptRow} glyphClass={s.promptGlyph} />
+                </ul>
+              </div>
+            </div>
           ) : (
             <>
               <div className={tt.label}>Try asking</div>

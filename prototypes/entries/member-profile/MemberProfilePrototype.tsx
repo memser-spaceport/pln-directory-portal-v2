@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useState, type ReactNode } from 'react';
 import clsx from 'clsx';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import type { IMember } from '@/types/members.types';
 import type { IUserInfo } from '@/types/shared.types';
@@ -216,8 +217,20 @@ export function MemberProfilePage({
      no Office Hours card for a visitor, so here: no card, no Schedule
      Meeting (the intro stands alone), and the AI scope drops its office
      hours question. A review-band state ("add a state when no office hours
-     available") flips it. */
-  const [hasOfficeHours, setHasOfficeHours] = useState(true);
+     available") flips it. `?oh=0` opens on No office hours (Request time),
+     and the switch keeps the URL in step so the state can be shared. */
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [hasOfficeHours, setHasOfficeHoursState] = useState(() => searchParams?.get('oh') !== '0');
+  const setHasOfficeHours = (value: boolean) => {
+    setHasOfficeHoursState(value);
+    const params = new URLSearchParams(searchParams?.toString() ?? '');
+    if (value) params.delete('oh');
+    else params.set('oh', '0');
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
   /* Where Follow and the contact press stand: the header cluster (the Sep 28
      decision, default) or a row under the bio, to compare. */
   /* LAB-3383's "One actions area" is the default here. Hosts that bring their
@@ -234,7 +247,24 @@ export function MemberProfilePage({
   /* Who is looking. Admin (a directory admin, not this member) keeps every
      visitor action and gains production's Edit at the end of the cluster —
      the team profile's admin row, on a person (2026-11-06). */
-  const [viewer, setViewer] = useState<'visitor' | 'admin'>('visitor');
+  /* Anuj (2026-11-25) on the no-office-hours flow: never both Request an intro and Request time. A visitor
+     who may request intros gets the intro; one who can't gets Request time; an admin never gets Request
+     time; Maya on her own profile gets neither, only "Add office hours". `?viewer=` picks the seat. */
+  const [viewer, setViewerState] = useState<'intro' | 'visitor' | 'admin' | 'self'>(() => {
+    const v = searchParams?.get('viewer');
+    return v === 'visitor' || v === 'admin' || v === 'self' ? v : 'intro';
+  });
+  const setViewer = (value: 'intro' | 'visitor' | 'admin' | 'self') => {
+    setViewerState(value);
+    const params = new URLSearchParams(searchParams?.toString() ?? '');
+    if (value === 'intro') params.delete('viewer');
+    else params.set('viewer', value);
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
+  const ownView = isOwner || viewer === 'self';
+  /* Intro access: a portfolio or PL Infra member (the intro-requests rule), and admins. */
+  const canIntro = viewer === 'intro' || viewer === 'admin';
   /* Demo-only: the header's three facts at their worst — a long team name,
      a long role and a long city — to see how the line breaks. */
   const factsLength = 'long' as 'typical' | 'long';
@@ -325,9 +355,8 @@ export function MemberProfilePage({
             </div>
           </div>
 
-          {/* Only means something while there are office hours: without them
-            the intro always shows beside Request time. */}
-          {oneArea && hasOfficeHours && (
+          {/* Only means something while there are office hours and the viewer may request intros. */}
+          {oneArea && hasOfficeHours && canIntro && !ownView && (
             <div className={s.demoSwitchGroup}>
               <span className={s.demoSwitchLabel}>Request an intro when office hours exist (open)</span>
               <div className={s.demoSwitchRow}>
@@ -355,8 +384,10 @@ export function MemberProfilePage({
             <div className={s.demoSwitchRow}>
               {(
                 [
-                  ['visitor', 'Visitor'],
+                  ['intro', 'Visitor, can request intros'],
+                  ['visitor', 'Visitor, no intro access'],
                   ['admin', 'Admin'],
+                  ['self', 'Maya (own profile)'],
                 ] as const
               ).map(([value, label]) => (
                 <button
@@ -393,8 +424,8 @@ export function MemberProfilePage({
                 hasOfficeHours={hasOfficeHours}
                 contactAction={contactAction}
                 actionsAt={actionsAt}
-                isAdmin={viewer === 'admin' || isOwner}
-                isOwner={isOwner}
+                isAdmin={viewer === 'admin' || ownView}
+                isOwner={ownView}
                 facts={factsLength === 'long' ? LONG_FACTS : undefined}
                 /* LAB-3383: no Ask AI anywhere on the profile in "One actions
                    area" — the ticket's criterion covers the bio too, so the
@@ -418,15 +449,22 @@ export function MemberProfilePage({
               {/* `member-*` ids: where an AI answer's door lands (see aiSearchScope). */}
               {/* Production renders no card for a visitor when there is no
                   booking link (OfficeHoursDetails returns null). */}
-              {oneArea && !isOwner ? (
+              {oneArea && ownView ? (
+                /* Her own profile: no Request time, no intro. Only her office hours, or the way to add them. */
+                <div id="member-office-hours" className={s.aiAnchor}>
+                  <OwnMeetCard hasOfficeHours={hasOfficeHours} />
+                </div>
+              ) : oneArea ? (
                 /* LAB-3383: the one actions area, in the Office Hours card's
                    slot (first under the header) and replacing it. */
                 <div id="member-office-hours" className={s.aiAnchor}>
                   <MeetCard
+                    canIntro={canIntro}
+                    canRequestTime={viewer !== 'admin'}
                     hasOfficeHours={hasOfficeHours}
                     timeRequested={requestTime.requested(MOCK_MEMBER.id)}
                     onRequestTime={() => requestTime.request({ uid: MOCK_MEMBER.id, name: MOCK_MEMBER.name })}
-                    showIntro={!hasOfficeHours || introWithOh === 'show'}
+                    showIntro={canIntro && (!hasOfficeHours || introWithOh === 'show')}
                     introRequested={intro.requested(MOCK_MEMBER.id)}
                     onRequestIntro={() =>
                       intro.request({ uid: MOCK_MEMBER.id, name: MOCK_MEMBER.name, kind: 'member' })
@@ -482,7 +520,7 @@ export function MemberProfilePage({
               {/* Below tablet-landscape the rail is hidden, so the updates card
                   falls in here — directly under the teams it describes. */}
               <div className={s.updatesMobile}>
-                <MemberTeamUpdates teams={MOCK_MEMBER.teams} />
+                <MemberTeamUpdates teams={MOCK_MEMBER.teams} firstName={MOCK_MEMBER.name.split(' ')[0]} />
               </div>
               <div id="member-experience" className={s.aiAnchor}>
                 <ExperienceCard />
@@ -526,7 +564,7 @@ export function MemberProfilePage({
                   text rows, so this order also runs the rail's visual weight
                   downwards instead of pulling the eye past Relationship — which
                   is what an internal reader opened this column for. */}
-              <MemberTeamUpdates teams={MOCK_MEMBER.teams} />
+              <MemberTeamUpdates teams={MOCK_MEMBER.teams} firstName={MOCK_MEMBER.name.split(' ')[0]} />
               {/* Above Bluesky for the fill-rate reason above: this card is on
                   every profile, and Bluesky's images would push it far down. */}
               {suggestions}
@@ -1154,6 +1192,8 @@ function OfficeHoursCard({ schedule = false }: { schedule?: boolean }) {
  * only one of them, and "Contact" is the Contact Details card below.
  */
 function MeetCard({
+  canIntro,
+  canRequestTime,
   hasOfficeHours,
   timeRequested,
   onRequestTime,
@@ -1161,6 +1201,10 @@ function MeetCard({
   introRequested,
   onRequestIntro,
 }: {
+  /** The viewer may request intros (portfolio / PL Infra members, admins). */
+  canIntro: boolean;
+  /** Admins never ask a member for time. */
+  canRequestTime: boolean;
   hasOfficeHours: boolean;
   timeRequested: boolean;
   onRequestTime: () => void;
@@ -1208,7 +1252,9 @@ function MeetCard({
           seat, the glossy press asks for time instead of booking it. The
           intro below drops to the bordered secondary, so the card keeps one
           fill. */}
-      {!hasOfficeHours && (
+      {/* No booking link: Request time only for a viewer who can't request an intro (never both), and
+          never for an admin. */}
+      {!hasOfficeHours && !canIntro && canRequestTime && (
         <ActionsAreaOption
           title="Office hours"
           lede={
@@ -1231,14 +1277,53 @@ function MeetCard({
       )}
       {showIntro && (
         <IntroOption
-          lede={<>Don&apos;t know {first}? The PL team can introduce you.</>}
+          lede={
+            hasOfficeHours ? (
+              /* Anuj (2026-11-25): steer people to office hours when there are some. */
+              <>
+                Don&apos;t know {first}? Request the PL team to make an introduction.
+                <br />
+                Booking an office hours slot is faster than waiting for an intro.
+              </>
+            ) : (
+              <>Don&apos;t know {first}? Request the PL team to make an introduction.</>
+            )
+          }
           name={MOCK_MEMBER.name}
           requested={introRequested}
           onRequest={onRequestIntro}
-          primary={false}
+          primary={!hasOfficeHours}
           size={size}
         />
       )}
+    </ActionsAreaCard>
+  );
+}
+
+/**
+ * Maya on her own profile (Anuj, 2026-11-25): she can't book or ask herself, so the card holds only her
+ * office hours, or the way to add them.
+ */
+function OwnMeetCard({ hasOfficeHours }: { hasOfficeHours: boolean }) {
+  const isMobile = useIsMobile();
+  const size = isMobile ? 's' : 'xs';
+  return (
+    <ActionsAreaCard title="Office hours" rootClassName={s.card}>
+      <ActionsAreaOption
+        title={hasOfficeHours ? 'Your office hours are on' : 'Add office hours'}
+        lede={
+          hasOfficeHours ? (
+            <>Members can book short calls with you, with no introduction needed.</>
+          ) : (
+            <>Let members book short calls with you. Without them, people can only ask the PL team for an intro.</>
+          )
+        }
+        press={
+          <Button style="border" variant="neutral" size={size} onClick={() => undefined}>
+            {hasOfficeHours ? 'Edit office hours' : 'Add office hours'}
+          </Button>
+        }
+      />
     </ActionsAreaCard>
   );
 }

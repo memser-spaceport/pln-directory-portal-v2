@@ -45,7 +45,6 @@ const seed = (): Map<string, LabosAgentThread> =>
             sourceRefs: [],
             followUpQuestions: ['Who leads these teams?'],
             actions: [],
-            sql: [],
             createdAt: '2026-11-20T10:00:00.000Z',
           },
         ],

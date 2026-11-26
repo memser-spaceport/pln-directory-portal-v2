@@ -92,8 +92,10 @@ const thread: LabosAgentThread = {
       sources: [],
       sourceRefs: [],
       followUpQuestions: ['Who leads them?'],
-      actions: [{ name: 'Ada Lovelace', type: 'member', directoryLink: 'https://example.com/members/m-2' }],
-      sql: [{ name: 'Acme Storage', type: 'team', source: 'directory' }],
+      actions: [
+        { name: 'Ada Lovelace', type: 'member', directoryLink: 'https://example.com/members/m-2' },
+        { name: 'Acme Storage', type: 'team', directoryLink: 'https://example.com/teams/t-7' },
+      ],
       createdAt: null,
     },
     {
@@ -175,23 +177,23 @@ describe('LAB-3457: a saved chat on AI agent chat', () => {
     expect(screen.getByRole('button', { name: /^Worked · 2 steps/ })).toBeInTheDocument();
   });
 
-  it('an old AI search turn keeps today’s result blocks; an agent turn has none', async () => {
+  it('an old AI search turn keeps its directory results (T2 actions); an agent turn has none', async () => {
     wrap(<AgentChat threadId="t-1" />);
     await screen.findByText('A saved AI search answer.');
     // One message block per turn: the question block's parent.
     const turnOf = (question: string) => screen.getByRole('heading', { name: question }).parentElement!.parentElement!;
     const old = turnOf('Which teams work on storage?');
-    // DirectoryResults draws a desktop and a phone copy; CSS shows one.
-    expect(within(old).getAllByText('Results from the directory').length).toBeGreaterThan(0);
-    expect(within(old).getAllByText('Acme Storage').length).toBeGreaterThan(0);
-    expect(within(old).getByText('Related results')).toBeInTheDocument();
+    expect(within(old).getByText('Results from the directory')).toBeInTheDocument();
     expect(within(old).getByRole('link', { name: /Ada Lovelace/ })).toHaveAttribute(
       'href',
       'https://example.com/members/m-2',
     );
+    expect(within(old).getByRole('link', { name: /Acme Storage/ })).toHaveAttribute(
+      'href',
+      'https://example.com/teams/t-7',
+    );
     const agent = turnOf('Update my bio and intro me');
     expect(within(agent).queryByText('Results from the directory')).not.toBeInTheDocument();
-    expect(within(agent).queryByText('Related results')).not.toBeInTheDocument();
   });
 
   it('finished cards show their result and no buttons; open cards keep theirs', async () => {

@@ -72,9 +72,7 @@ export function toChatTurn(turn: LabosAgentThreadTurn, threadId: string): LabosA
     startedAt: time(turn.createdAt),
   };
   if (turn.kind !== 'agent') {
-    return turn.sql.length > 0 || turn.actions.length > 0
-      ? { ...base, savedResults: { directory: turn.sql, related: turn.actions } }
-      : base;
+    return turn.actions.length > 0 ? { ...base, savedActions: turn.actions } : base;
   }
   const cards: Record<string, LabosAgentCardState> = {};
   turn.proposals.forEach((p) => {

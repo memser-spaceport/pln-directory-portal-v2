@@ -393,10 +393,10 @@ export interface LabosAgentTurn {
   /** LAB-3457: read from T2, finished before this page visit. It has no duration: the toggle says "Worked · N steps". */
   restored?: true;
   /**
-   * LAB-3457: an old AI search turn's result blocks, as today's thread page shows them: `directory` (husky `sqlData`,
-   * `DirectoryResults`) and `related` (husky `actions`, `RelatedResults`).
+   * LAB-3457: an old AI search turn's directory results (T2 `actions`), drawn as AI search draws them today
+   * ("Results from the directory", `DirectoryResultCards`).
    */
-  savedResults?: { directory: unknown[]; related: unknown[] };
+  savedActions?: unknown[];
   startedAt: number;
   endedAt?: number;
 }
@@ -519,8 +519,6 @@ interface LabosAgentThreadTurnBase {
 /** An old AI search turn: shown as saved, with no steps and no cards. */
 export interface LabosAgentLegacyThreadTurn extends LabosAgentThreadTurnBase {
   kind: 'ai-search';
-  /** The AI search directory results (husky `sqlData`), when T2 sends them as `sql`. Empty when absent. */
-  sql: unknown[];
 }
 
 /** A saved agent turn: what the member saw when it finished. */

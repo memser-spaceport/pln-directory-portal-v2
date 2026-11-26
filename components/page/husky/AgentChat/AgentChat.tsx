@@ -4,6 +4,7 @@ import { type ComponentProps, useCallback, useEffect, useMemo, useRef, useState 
 import { notFound } from 'next/navigation';
 import { EnvelopeSimple, User, UsersThree } from '@phosphor-icons/react';
 
+import { DirectoryResultCards } from '@/components/core/application-search/components/DirectoryResultCards';
 import { McpHint } from '@/components/core/mcp-hints/McpHint';
 import { countAiSearch } from '@/components/core/mcp-hints/aiSearchSessionCount';
 import { LabosAgentTurn } from '@/components/core/labos-agent/LabosAgentTurn/LabosAgentTurn';
@@ -29,8 +30,7 @@ import { generateUUID } from '@/utils/common.utils';
 
 import { useSidebar } from '../hooks/useSidebar';
 import { ChatTitleBar } from '../Chat/components/ChatTitleBar';
-import { DirectoryResults } from '../Chat/components/Messages/components/PreviewMessage/components/DirectoryResults';
-import { RelatedResults } from '../Chat/components/Messages/components/PreviewMessage/components/RelatedResults';
+
 import { AgentChatComposer, type AgentChatComposerHandle } from './components/AgentChatComposer/AgentChatComposer';
 
 import chat from '../Chat/Chat.module.scss';
@@ -39,8 +39,7 @@ import prompts from '../Chat/components/ChatHome/components/PromptSuggestions/Pr
 import message from '../Chat/components/Messages/components/PreviewMessage/PreviewMessage.module.scss';
 import s from './AgentChat.module.scss';
 
-type DirectoryActions = ComponentProps<typeof DirectoryResults>['actions'];
-type RelatedActions = ComponentProps<typeof RelatedResults>['actions'];
+type DirectoryActions = ComponentProps<typeof DirectoryResultCards>['actions'];
 
 const REQUEST_GLYPHS: Record<LabosAgentRequestTopic, typeof User> = {
   intro: EnvelopeSimple,
@@ -218,15 +217,10 @@ export function AgentChat({ threadId: savedThreadId }: { threadId?: string } = {
                     onDraftCancel={cancelDraft}
                     replacedDrafts={replacedDrafts}
                     onSourceClick={(sourceType, position) => onSourceClicked(null, { sourceType, position })}
-                    // An old AI search turn keeps today's result blocks, where today's thread page shows them.
+                    // An old AI search turn keeps its directory results, drawn as AI search draws them today.
                     afterAnswer={
-                      t.savedResults && t.savedResults.directory.length > 0 ? (
-                        <DirectoryResults actions={t.savedResults.directory as DirectoryActions} />
-                      ) : undefined
-                    }
-                    afterFollowUps={
-                      t.savedResults && t.savedResults.related.length > 0 ? (
-                        <RelatedResults actions={t.savedResults.related as RelatedActions} />
+                      t.savedActions && t.savedActions.length > 0 ? (
+                        <DirectoryResultCards actions={t.savedActions as DirectoryActions} />
                       ) : undefined
                     }
                   />

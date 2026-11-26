@@ -41,6 +41,11 @@ describe('toCityCoords', () => {
       lisbon: CITY_COORD_FIXES.lisbon,
     });
   });
+
+  it('puts San Francisco at its city point, not at the stored east longitude (LAB-3444)', () => {
+    const coords = toCityCoords([{ location: 'San Francisco', latitude: '37.78', longitude: '122.42' }]);
+    expect(coords).toEqual({ 'san francisco': [37.7749, -122.4194] });
+  });
 });
 
 describe('getCityCoords', () => {

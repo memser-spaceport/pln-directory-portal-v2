@@ -1,5 +1,9 @@
 export enum LabosAgentQueryKeys {
   ACCESS = 'labos-agent-access',
+  /** LAB-3457: T1, the history list. */
+  THREADS = 'labos-agent-threads',
+  /** LAB-3457: T2, one thread with its turns. */
+  THREAD = 'labos-agent-thread',
 }
 
 export const LABOS_AGENT_ENDPOINTS = {
@@ -7,7 +11,14 @@ export const LABOS_AGENT_ENDPOINTS = {
   access: '/v1/labos-agent/access',
   confirm: '/v1/labos-agent/actions/confirm',
   mentions: '/v1/labos-agent/mentions',
+  /** LAB-3457: T1 (GET); `threads/:threadId` is T2 (GET) and T3 (DELETE). */
+  threads: '/v1/labos-agent/threads',
+  /** LAB-3457: C5. */
+  draftConfirm: '/v1/labos-agent/drafts/confirm',
 } as const;
+
+/** LAB-3457: the T1 page size of the history rail (the backend allows 1 to 50). */
+export const LABOS_AGENT_THREADS_PAGE_SIZE = 50;
 
 /** C1 request limits. */
 export const LABOS_AGENT_MESSAGE_MAX = 2000;

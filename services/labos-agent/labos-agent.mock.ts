@@ -14,6 +14,7 @@ import type {
 } from '@/types/labos-agent.types';
 
 import { LabosAgentError, LABOS_AGENT_STALL_MARKER } from './labos-agent.errors';
+import { recordMockTurn } from './labos-agent.history.mock';
 
 /**
  * The mock C1 client. Scripted answers, no network, no member data. It streams like the real endpoint: steps first,
@@ -46,6 +47,8 @@ import { LabosAgentError, LABOS_AGENT_STALL_MARKER } from './labos-agent.errors'
  * - The answer names each mention, in order.
  *
  * A second C2 call on a closed proposal gets a 409 `PROPOSAL_CLOSED` with the stored `status`, like the backend.
+ *
+ * LAB-3457: a finished turn sent with `persist: true` is saved in the mock history (`labos-agent.history.mock.ts`).
  */
 
 const STEP_MS = 400;
@@ -346,6 +349,8 @@ async function chat(
   }
 
   onUpdate?.(full);
+  // LAB-3457: a finished turn sent with `persist: true` goes into the mock history.
+  if (request.persist) recordMockTurn(request, full);
   return full;
 }
 

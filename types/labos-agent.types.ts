@@ -70,6 +70,8 @@ export interface LabosAgentChatRequest {
   mentions?: LabosAgentMention[];
   /** LAB-3362 (contract 11.1): the newest waiting intro card. Absent when no card waits. */
   introDraft?: LabosAgentChatIntroDraft;
+  /** LAB-3457: `true` saves the finished turn in thread `threadId` (T1, T2). A stopped or failed turn is not saved. */
+  persist?: boolean;
 }
 
 /** LAB-3362 (contract 11.1): the target of a waiting intro card and its current text (1 to 3500 characters). */
@@ -280,6 +282,11 @@ export type LabosAgentChatErrorCode =
   | 'PROPOSAL_CLOSED'
   | 'PROPOSAL_EXPIRED'
   | 'ACTION_FAILED'
+  /** LAB-3457: C1 (before the stream), T2, T3, C5: the thread is not the member's, or it was deleted. */
+  | 'THREAD_NOT_FOUND'
+  /** LAB-3457, C5 only. */
+  | 'DRAFT_NOT_FOUND'
+  | 'DRAFT_CLOSED'
   /** The connection broke after the stream started, or the request never reached the server. */
   | 'STREAM_FAILED'
   | 'UNKNOWN';
@@ -426,4 +433,121 @@ export interface LabosAgentChat {
    * this context then starts with the chip off, so a second send does not get the same 404.
    */
   pageUnreadable?: true;
+}
+
+/*
+ * LAB-3457: one chat history for the panel and AI agent chat (backend contract `lab-3457-be-contract.md`, types in the
+ * backend `libs/contracts/src/schema/labos-agent.ts`). Old AI search threads and agent threads are in one list.
+ *   T1 GET    /v1/labos-agent/threads?page&limit
+ *   T2 GET    /v1/labos-agent/threads/:threadId
+ *   T3 DELETE /v1/labos-agent/threads/:threadId   (soft delete)
+ *   C5 POST   /v1/labos-agent/drafts/confirm      (send or cancel a saved intro draft)
+ */
+
+/** Where a thread started. An old thread with no source is `ai-search`. */
+export type LabosAgentThreadSource = 'ai-search' | 'agent';
+
+/** One row of T1. `title` is never empty. `context`: the C1 context of the first agent turn. Times are ISO. */
+export interface LabosAgentThreadListItem {
+  threadId: string;
+  title: string;
+  source: LabosAgentThreadSource;
+  context?: LabosAgentChatContext;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** T1 query. `page` starts at 1 (1 to 10000); `limit` is 1 to 50, 20 by default. */
+export interface LabosAgentThreadsQuery {
+  page?: number;
+  limit?: number;
+}
+
+/** T1 response: newest `updatedAt` first. */
+export interface LabosAgentThreadList {
+  page: number;
+  limit: number;
+  total: number;
+  items: LabosAgentThreadListItem[];
+}
+
+/** A saved action card's state. An `open` card past `expiresAt` comes as `expired`. Only `open` goes to C2. */
+export type LabosAgentStoredProposalStatus = 'open' | 'done' | 'cancelled' | 'failed' | 'expired';
+
+/** A saved action card: the C1 proposal and its state. `summary`: the C2 summary after `done` or `cancelled`. */
+export type LabosAgentStoredProposal = LabosAgentProposal & {
+  status: LabosAgentStoredProposalStatus;
+  summary?: string;
+};
+
+/** A saved intro draft card's state. Only `open` goes to C5. */
+export type LabosAgentStoredDraftStatus = 'open' | 'sent' | 'cancelled';
+
+/** A saved intro draft card: the C1 draft and its state. After `sent`, `text` is the text that went. */
+export type LabosAgentStoredDraft = LabosAgentDraft & {
+  status: LabosAgentStoredDraftStatus;
+  introRequestUid?: string;
+  sentAt?: string;
+};
+
+interface LabosAgentThreadTurnBase {
+  /** The C1 `chatId` (the AI search `questionId`). */
+  chatId: string;
+  question: string;
+  content: string;
+  sources: string[];
+  sourceRefs: LabosAgentSourceRef[];
+  followUpQuestions: string[];
+  /** AI search directory result cards. */
+  actions: unknown[];
+  /** ISO, or null for an old turn with no time. */
+  createdAt: string | null;
+}
+
+/** An old AI search turn: shown as saved, with no steps and no cards. */
+export interface LabosAgentLegacyThreadTurn extends LabosAgentThreadTurnBase {
+  kind: 'ai-search';
+}
+
+/** A saved agent turn: what the member saw when it finished. */
+export interface LabosAgentSavedThreadTurn extends LabosAgentThreadTurnBase {
+  kind: 'agent';
+  steps: string[];
+  context?: LabosAgentChatContext;
+  mentions?: LabosAgentMention[];
+  toolCount?: number;
+  usedWebSearch?: boolean;
+  sourceCount?: number;
+  proposals: LabosAgentStoredProposal[];
+  drafts: LabosAgentStoredDraft[];
+}
+
+export type LabosAgentThreadTurn = LabosAgentLegacyThreadTurn | LabosAgentSavedThreadTurn;
+
+/** T2 response: the thread and its turns, oldest first. */
+export interface LabosAgentThread extends LabosAgentThreadListItem {
+  turns: LabosAgentThreadTurn[];
+}
+
+/** C5 request. `text` (20 to 3500 characters after trim) goes with `send` only. The target is the saved one. */
+export interface LabosAgentDraftConfirmRequest {
+  threadId: string;
+  draftId: string;
+  decision: 'send' | 'cancel';
+  text?: string;
+}
+
+/** C5 response: 200. */
+export interface LabosAgentDraftConfirmResponse {
+  draftId: string;
+  status: 'sent' | 'cancelled';
+  introRequestUid?: string;
+}
+
+/** The history seam (T1, T2, T3, C5). The real and the mock client both implement it. */
+export interface LabosAgentHistoryClient {
+  listThreads: (query?: LabosAgentThreadsQuery) => Promise<LabosAgentThreadList>;
+  getThread: (threadId: string) => Promise<LabosAgentThread>;
+  deleteThread: (threadId: string) => Promise<void>;
+  confirmDraft: (request: LabosAgentDraftConfirmRequest) => Promise<LabosAgentDraftConfirmResponse>;
 }

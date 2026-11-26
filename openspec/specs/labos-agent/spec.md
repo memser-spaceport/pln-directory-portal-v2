@@ -415,3 +415,14 @@ From 960px window width, the member SHALL resize the agent slot by its left edge
 ### Requirement: The picker has a heading
 
 The context picker SHALL open with an "Add context" heading above its search field, from + and from `@` alike (LAB-3429 Decision 5). The picker dialog SHALL be named by the heading.
+
+### Requirement: The history client reads the shared chat history
+
+LAB-3457 (backend contract T1, T2, T3, C5). `getLabosAgentHistoryClient()` SHALL return the live client, or the mock when the agent mock is selected. `listThreads` SHALL call `GET /v1/labos-agent/threads?page&limit`, `getThread` `GET /v1/labos-agent/threads/:threadId`, `deleteThread` `DELETE /v1/labos-agent/threads/:threadId`, and `confirmDraft` `POST /v1/labos-agent/drafts/confirm` with `{ threadId, draftId, decision }` and, for `send` only, the trimmed `text`. Every failure SHALL be a `LabosAgentError`; `THREAD_NOT_FOUND`, `DRAFT_NOT_FOUND` and `DRAFT_CLOSED` (with `draftStatus` `sent` or `cancelled`) SHALL keep their codes. A T1 row with no `threadId` SHALL drop out, a row with no `source` SHALL be `ai-search`, and a row with no title SHALL read "Untitled chat". A T2 turn with no `kind` SHALL be an old AI search turn; a saved action card with an unknown status SHALL read as `expired` and a saved draft with an unknown status as `cancelled`, so neither shows its buttons.
+
+The React Query hooks (`useLabosAgentThreads`, `useLabosAgentThread`, `useDeleteLabosAgentThread`, `useConfirmLabosAgentDraft`, keys `LabosAgentQueryKeys.THREADS` and `THREAD` with the member uid) SHALL ask only when the caller passes `enabled` (a member inside the gate). T1 SHALL ask for page 1 with 50 rows. T2 SHALL not retry `THREAD_NOT_FOUND`. A delete SHALL drop the row from the cached list, also when T3 answers `THREAD_NOT_FOUND`. A C5 answer SHALL write the draft's new status (and the sent text) into the cached thread. The mock history SHALL hold one old AI search thread and save each finished mock C1 turn sent with `persist: true`.
+
+#### Scenario: A deleted thread
+- **GIVEN** a member inside the gate with thread `t-1` in the cached list
+- **WHEN** the delete answers 404 `THREAD_NOT_FOUND`
+- **THEN** `t-1` leaves the list and no error shows

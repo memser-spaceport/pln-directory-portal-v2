@@ -48,6 +48,9 @@ const KNOWN_CODES: LabosAgentChatErrorCode[] = [
   'PROPOSAL_CLOSED',
   'PROPOSAL_EXPIRED',
   'ACTION_FAILED',
+  'THREAD_NOT_FOUND',
+  'DRAFT_NOT_FOUND',
+  'DRAFT_CLOSED',
 ];
 
 const CLOSED_STATUSES: LabosAgentClosedStatus[] = ['done', 'cancelled', 'failed'];
@@ -95,10 +98,10 @@ export function validateChatMessage(raw: string): string {
   return message;
 }
 
-const strings = (v: unknown): string[] =>
+export const strings = (v: unknown): string[] =>
   Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string' && x.length > 0) : [];
 
-const sourceRefs = (v: unknown): LabosAgentSourceRef[] =>
+export const sourceRefs = (v: unknown): LabosAgentSourceRef[] =>
   Array.isArray(v)
     ? v.filter(
         (r): r is LabosAgentSourceRef =>
@@ -209,7 +212,8 @@ export function normalizeChatBody(value: unknown): LabosAgentChatResponse {
 
 const isCount = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v >= 0;
 
-async function toError(response: Response): Promise<LabosAgentError> {
+/** Reads a failed response of any agent endpoint into a `LabosAgentError`. */
+export async function toError(response: Response): Promise<LabosAgentError> {
   if (response.status === 401) return new LabosAgentError(401, 'UNAUTHORIZED', 'Sign in to use the agent.');
   let body: Record<string, unknown> = {};
   try {
@@ -230,7 +234,10 @@ async function toError(response: Response): Promise<LabosAgentError> {
     response.status === 404 && Number.isInteger(body.mentionIndex) && (body.mentionIndex as number) >= 0
       ? (body.mentionIndex as number)
       : undefined;
-  return new LabosAgentError(response.status, code, message, retryAfter, closedStatus, mentionIndex);
+  // LAB-3457, C5: a 409 `DRAFT_CLOSED` says how the draft closed.
+  const draftStatus =
+    code === 'DRAFT_CLOSED' && (body.status === 'sent' || body.status === 'cancelled') ? body.status : undefined;
+  return new LabosAgentError(response.status, code, message, retryAfter, closedStatus, mentionIndex, draftStatus);
 }
 
 /** C1: `POST /v1/labos-agent/chat`. Streams the chunked JSON body and returns the full body at the end. */

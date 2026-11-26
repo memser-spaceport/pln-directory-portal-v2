@@ -24,7 +24,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
 
   // LAB-3457: signed out, AI search has the only say. Signed in, a member inside the agent gate opens their own thread
   // on the agent (T2), which also knows agent threads that AI search hides. Someone else's shared link, and a chat
-  // the member started as a guest, keep today's page; so does a thread T2 does not know.
+  // the member started as a guest, keep today's page. Their own thread that T2 does not know was deleted: 404.
   if (isError && !isLoggedIn) {
     return notFound();
   }

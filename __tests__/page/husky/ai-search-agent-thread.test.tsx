@@ -288,12 +288,13 @@ describe('LAB-3457: the thread route switch', () => {
     expect(notFound).not.toHaveBeenCalled();
   });
 
-  it('inside the gate, the member’s own AI search thread that T2 does not know shows today’s page, not a 404', async () => {
+  it('inside the gate, the member’s own chat that they deleted is the 404 page, not today’s page', async () => {
+    // AI search still returns a soft-deleted thread (isOwner true); T2 knows it is deleted.
     history.getThread.mockRejectedValue(new LabosAgentError(404, 'THREAD_NOT_FOUND', 'No'));
     wrap(<AiSearchThreadBody threadId="t-1" fallback={<div data-testid="husky-thread" />} ownedByMember />);
-    expect(await screen.findByTestId('husky-thread')).toBeInTheDocument();
+    await waitFor(() => expect(notFound).toHaveBeenCalled());
     expect(history.getThread).toHaveBeenCalledWith('t-1');
-    expect(notFound).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('husky-thread')).not.toBeInTheDocument();
   });
 
   it('inside the gate, an agent thread (no AI search thread) that T2 does not know is the 404 page', async () => {

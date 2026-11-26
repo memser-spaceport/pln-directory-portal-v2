@@ -23,8 +23,8 @@ const noop = () => () => {};
 /**
  * `/ai-search/<threadId>` for a signed-in member (LAB-3457). Inside the agent gate the thread opens in AI agent chat
  * on the agent (T2: old AI search threads and agent threads alike). An AI search thread that is not the member's
- * own (another member's shared link: "Shared by …", or a chat they started as a guest) keeps today's thread page, as
- * does one T2 does not know. Outside the gate, today's thread page shows, or the 404 page when AI search has no such
+ * own (another member's shared link: "Shared by …", or a chat they started as a guest) keeps today's thread page.
+ * The member's own thread that T2 does not know was deleted: the 404 page. Outside the gate, today's thread page shows, or the 404 page when AI search has no such
  * thread. Nothing shows until the gate answers.
  */
 export function AiSearchThreadBody({ threadId, fallback, ownedByMember }: Props) {
@@ -38,7 +38,7 @@ export function AiSearchThreadBody({ threadId, fallback, ownedByMember }: Props)
   if (!mounted || access === 'unknown') return null;
   if (access === 'on') {
     if (fallback && !ownedByMember) return <>{fallback}</>;
-    return <AgentChat key={threadId} threadId={threadId} notFoundFallback={fallback} />;
+    return <AgentChat key={threadId} threadId={threadId} />;
   }
   if (!fallback) notFound();
   return <>{fallback}</>;

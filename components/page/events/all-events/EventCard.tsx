@@ -60,11 +60,13 @@ function EventFoot({
   going,
   past = false,
   onTile,
+  onOpenPeople,
 }: {
   item: AllEventsItem;
   going: boolean;
   past?: boolean;
   onTile?: boolean;
+  onOpenPeople?: () => void;
 }) {
   const count = item.goingCount ?? 0;
   const access = !past && item.access && item.access !== 'FREE w/ RSVP' ? item.access : null;
@@ -74,7 +76,7 @@ function EventFoot({
       {going && (
         <GoingPill label={past ? WENT_LABEL : undefined} onImage={onTile} className={onTile ? s.tilePill : undefined} />
       )}
-      <GoingFaces item={item} past={past} />
+      <GoingFaces item={item} past={past} onOpenPeople={onOpenPeople} />
       {access && (
         <span className={s.cardAccess}>
           {count > 0 && <span aria-hidden>·</span>}
@@ -96,6 +98,7 @@ export function EventCard({
   highlighted,
   onOpen,
   onPrepare,
+  onOpenPeople,
 }: {
   item: AllEventsItem;
   day: string;
@@ -104,6 +107,8 @@ export function EventCard({
   past?: boolean;
   live: boolean;
   highlighted: boolean;
+  /** On Past: the faces and "N went" open who went (P1). */
+  onOpenPeople?: () => void;
 } & EventPress) {
   const when = [`${item.startTime} ${item.zone}`, dayOfSpan(item, day)].filter(Boolean).join(' · ');
   return (
@@ -131,7 +136,7 @@ export function EventCard({
             <Place item={item} />
           </span>
         )}
-        <EventFoot item={item} going={going} past={past} />
+        <EventFoot item={item} going={going} past={past} onOpenPeople={onOpenPeople} />
       </span>
       <EventImage src={item.picture} className={s.thumb} />
     </button>

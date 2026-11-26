@@ -82,6 +82,7 @@ export function CityHeader({
   city,
   summary,
   eventCount,
+  zone,
   pastAsOf,
   onBack,
 }: {
@@ -89,6 +90,8 @@ export function CityHeader({
   summary: CitySummary | undefined;
   /** The events shown under the current filters. */
   eventCount: number;
+  /** The UTC offset every event in the list shares, else null: no "Times in" then (P13). */
+  zone: string | null;
   /** On Past (LAB-3418): today, so a date outside this year carries its year. */
   pastAsOf?: string;
   onBack: () => void;
@@ -113,7 +116,7 @@ export function CityHeader({
                   ? pastSpanLabel(summary.startDay, summary.endDay, pastAsOf)
                   : spanLabel(summary.startDay, summary.endDay)
               }`}
-            {summary?.zone && ` · Times in ${city} time (${summary.zone})`}
+            {zone && ` · Times in ${city} time (${zone})`}
           </p>
         </div>
       </div>

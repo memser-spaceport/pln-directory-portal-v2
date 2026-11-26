@@ -219,6 +219,46 @@ describe('EventDrawerView: an event that has ended (LAB-3426)', () => {
       expect(card()).toBeInTheDocument();
     });
 
+    it('initialStep="attendees" (a Past card’s faces, P1) opens on the list, loads it once, and Back shows the event', () => {
+      const onAttendeesOpen = jest.fn();
+      const { rerender } = render(view({ onAttendeesOpen, initialStep: 'attendees' }));
+      expect(screen.getByRole('heading', { name: '40 went to LabWeek Lisbon' })).toBeInTheDocument();
+      expect(screen.queryByTestId('ended-card')).not.toBeInTheDocument();
+      expect(onAttendeesOpen).toHaveBeenCalledTimes(1);
+      rerender(view({ onAttendeesOpen, initialStep: 'attendees' }));
+      expect(onAttendeesOpen).toHaveBeenCalledTimes(1);
+      fireEvent.click(screen.getByRole('button', { name: 'Back to event' }));
+      expect(card()).toBeInTheDocument();
+    });
+
+    it('opened on who went, previous / next wait for "Back to event", then step', () => {
+      const onNavigate = jest.fn();
+      render(
+        view({
+          initialStep: 'attendees',
+          sequence: ['before', 'labweek-lisbon', 'after'],
+          onNavigate,
+          raw: { uid: 'labweek-lisbon' },
+        }),
+      );
+      const toolbar = () => screen.getByTestId('event-drawer-toolbar');
+      expect(within(toolbar()).queryByRole('button', { name: /next/i })).toBeNull();
+      fireEvent.click(screen.getByRole('button', { name: 'Back to event' }));
+      fireEvent.click(within(toolbar()).getByRole('button', { name: /next/i }));
+      expect(onNavigate).toHaveBeenCalledWith('after', 'next');
+    });
+
+    it('signed out or in the embed, initialStep="attendees" opens on the event and loads no list', () => {
+      for (const props of [{ ...SIGNED_OUT, onSignIn: jest.fn() }, EMBED]) {
+        const onAttendeesOpen = jest.fn();
+        const { unmount } = render(view({ ...props, onAttendeesOpen, initialStep: 'attendees' }));
+        expect(card()).toBeInTheDocument();
+        expect(screen.queryByTestId('event-attendees')).not.toBeInTheDocument();
+        expect(onAttendeesOpen).not.toHaveBeenCalled();
+        unmount();
+      }
+    });
+
     it('its empty and error lines are in the past too', () => {
       const lines: [Partial<EventDrawerViewProps['attendees']>, string][] = [
         [{ search: 'zed' }, 'Nobody who went matches “zed”.'],

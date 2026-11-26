@@ -420,7 +420,8 @@
 
 /* A city chosen: the band becomes where you are and the way back. The dated list follows it with no heading between. */
 .cityHeader {
-  margin: 24px 0;
+  // The list starts right under the header, as in the prototype (P13).
+  margin-top: 24px;
 }
 
 .back {
@@ -493,8 +494,8 @@
   }
 }
 
-/* The When switch and Past's year, or the Calendar's title: as tall as the switch in each, and wide enough for the
-   switch with a year beside it, so the bar is the same on every tab and in every view (LAB-3418). On phones it fills
+/* The When switch and Past's year: as tall as the switch, and wide enough for the switch with a year beside it, so the
+   bar is the same on every tab and in every view (LAB-3418; Calendar has the switch too since LAB-3460). On phones it fills
    the row, with a second one under it for the year and Embed. */
 .toolbarStart {
   display: flex;
@@ -510,27 +511,6 @@
     min-width: 0;
     min-height: 74px;
   }
-}
-
-.toolbarHeading {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  min-width: 0;
-}
-
-.toolbarTitle {
-  margin: 0;
-  font-size: 20px;
-  line-height: 28px;
-  font-weight: 600;
-}
-
-.toolbarCount {
-  font-size: 14px;
-  line-height: 20px;
-  color: var(--foreground-neutral-secondary, #455468);
-  white-space: nowrap;
 }
 
 /* Embed (LAB-3352) and, from 1024px, Filters and the view switch. */
@@ -975,6 +955,28 @@
   min-width: 0;
 }
 
+// Facepile + "N went" as one press on a Past card (P1; the prototype's `.goingLink`): opens the drawer on who went.
+// The whole pair is the hit area; the count turns brand + underline on hover, the control lineage's hover.
+.goingLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: -2px -4px;
+  padding: 2px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+
+  &:hover .cardCount {
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+}
+
 // TeamFollowBlock's facepile, at 20px.
 .facepile {
   display: inline-flex;
@@ -1197,7 +1199,9 @@
   line-height: 16px;
   font-weight: 600;
   letter-spacing: 0.2px;
-  color: var(--foreground-success-primary, #0a9952);
+  // P5 (LAB-3418): Polina's green one step darker on the DS ramp, so the 11px text reads at 6.1:1 on its tint over a
+  // white card (green-600 #0a9952 was 3.4:1; green-700 #048746 still 4.2:1). Same hue; the tint is unchanged.
+  color: var(--semantic-success-800, #046a37);
   background: var(--background-success-subtle, rgba(10, 153, 82, 0.08));
   vertical-align: 1px;
 }

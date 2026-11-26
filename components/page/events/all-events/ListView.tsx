@@ -17,6 +17,8 @@ interface Props {
   highlightUid: string | null;
   onOpen: (uid: string) => void;
   onPrepare: (uid: string) => void;
+  /** Past: a card's faces and "N went" open the drawer on who went (P1). Left out where the list can't be opened. */
+  onOpenPeople?: (uid: string) => void;
   onClear: () => void;
 }
 
@@ -34,6 +36,7 @@ export function ListView({
   highlightUid,
   onOpen,
   onPrepare,
+  onOpenPeople,
   onClear,
 }: Props) {
   if (!events.length) return <EventsEmpty past={past} onClear={onClear} />;
@@ -60,6 +63,7 @@ export function ListView({
                     highlighted={item.uid === highlightUid}
                     onOpen={() => onOpen(item.uid)}
                     onPrepare={() => onPrepare(item.uid)}
+                    onOpenPeople={onOpenPeople && (() => onOpenPeople(item.uid))}
                   />
                 </li>
               ))}

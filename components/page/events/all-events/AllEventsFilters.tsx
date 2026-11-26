@@ -39,6 +39,8 @@ interface RailProps {
   events: AllEventsItem[];
   /** Signed in: "Events I'm going to" shows, with how many. Null signed out. */
   goingCount: number | null;
+  /** On Past it reads "Events I went to" (P14); the param stays `going`. */
+  past?: boolean;
   /** Phones: the sheet's own close. */
   onClose?: () => void;
   /** Desktop: the rail is closed by default; its header carries the way to close it again. */
@@ -56,7 +58,16 @@ interface RailProps {
  * service has synced the events' details, Access, Focus area, Topic and Host have none and stay hidden. Featured waits for
  * the backend to send it (phase 2, LAB-3281).
  */
-export function AllEventsFilterRail({ events, goingCount, onClose, onHide, onClear, onCityPicked }: RailProps) {
+export function AllEventsFilterRail({
+  events,
+  goingCount,
+  past = false,
+  onClose,
+  onHide,
+  onClear,
+  onCityPicked,
+}: RailProps) {
+  const goingLabel = goingFilterLabel(past);
   const { params } = useAllEventsFilterStore();
   const applied = readFilters(params);
 
@@ -84,7 +95,7 @@ export function AllEventsFilterRail({ events, goingCount, onClose, onHide, onCle
       {goingCount !== null && (
         <FilterSection title="Show">
           <GenericFilterToggle
-            label={goingCount ? `Events I'm going to (${goingCount})` : "Events I'm going to"}
+            label={goingCount ? `${goingLabel} (${goingCount})` : goingLabel}
             paramKey="going"
             filterStore={useAllEventsFilterStore}
           />
@@ -125,12 +136,15 @@ interface Chip {
   label: string;
 }
 
+/** "Events I'm going to", and on Past "Events I went to" (P14): the same filter, `?going=`, in the tense of the tab. */
+export const goingFilterLabel = (past: boolean) => (past ? 'Events I went to' : "Events I'm going to");
+
 /** Every applied filter as a chip. The city is left out when the city header already says it. */
-export function appliedChips(params: URLSearchParams, scopedCity: string | null): Chip[] {
+export function appliedChips(params: URLSearchParams, scopedCity: string | null, past = false): Chip[] {
   const f = readFilters(params);
   const chips: Chip[] = [];
   if (f.search) chips.push({ key: 'search', label: `“${f.search}”` });
-  if (f.going) chips.push({ key: 'going', label: "Events I'm going to" });
+  if (f.going) chips.push({ key: 'going', label: goingFilterLabel(past) });
   FACET_KEYS.forEach((key) => {
     if (key === 'city' && scopedCity) return;
     f[key].forEach((value) => chips.push({ key, value, label: facetLabel(key, value) }));
@@ -143,16 +157,19 @@ export function AppliedChips({
   params,
   scopedCity,
   railOpen,
+  past = false,
   onClear,
 }: {
   /** The page's state, as the page itself has it. */
   params: URLSearchParams;
   scopedCity: string | null;
   railOpen: boolean;
+  /** On Past, "Events I went to" (P14). */
+  past?: boolean;
   onClear: () => void;
 }) {
   const { setParam } = useAllEventsFilterStore();
-  const chips = appliedChips(params, scopedCity);
+  const chips = appliedChips(params, scopedCity, past);
   if (!chips.length) return null;
 
   const remove = (chip: Chip) => {

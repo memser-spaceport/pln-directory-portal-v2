@@ -188,7 +188,7 @@ export const useEventsAnalytics = () => {
     captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_VIEW_CHANGED, params);
   }
 
-  /** All Events (LAB-3418): the member switched Live & upcoming | Past, in List or Map. */
+  /** All Events (LAB-3418): the member switched Live & upcoming | Past, in List or Map, or in Calendar by a press (LAB-3460). */
   function onEventsWhenChanged(params: { when: 'upcoming' | 'past'; view: 'list' | 'calendar' | 'map' }) {
     captureEvent(ALL_EVENTS_ANALYTICS.ON_EVENTS_WHEN_CHANGED, params);
   }

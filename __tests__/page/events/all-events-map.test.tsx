@@ -130,6 +130,8 @@ jest.mock('@tanstack/react-query', () => ({
 }));
 jest.mock('@/services/events/hooks/useEventDrawerQueries', () => ({ usePrefetchEventDetail: () => jest.fn() }));
 jest.mock('@/components/core/ToastContainer', () => ({ toast: { success: jest.fn() } }));
+// The Calendar's month picker (LAB-3460) is react-calendar, which ships ESM only; its own suite has a stand-in.
+jest.mock('react-calendar', () => ({ __esModule: true, default: () => null }));
 
 function events(): AllEventsItem[] {
   return [

@@ -68,7 +68,12 @@ export function draftErrorState(error: unknown, text: string): LabosAgentDraftCa
   }
   if (status === 401) return { status: 'error', text, message: DRAFT_SIGN_IN_MESSAGE };
   if (status === 429) return { status: 'error', text, message: DRAFT_RATE_LIMITED_MESSAGE };
-  // 422 (`Input validation failed: …`), 5xx and no response: one plain message, not the API text.
+  // LAB-3457: a 503 (the permission check is down; nothing was sent) says so in the API's words, when it has some.
+  if (status === 503) {
+    const message = error instanceof IntroRequestError ? error.message : DRAFT_SEND_FAILED_MESSAGE;
+    return { status: 'error', text, message };
+  }
+  // 422 (`Input validation failed: …`), other 5xx and no response: one plain message, not the API text.
   return { status: 'error', text, message: DRAFT_SEND_FAILED_MESSAGE };
 }
 
@@ -85,5 +90,6 @@ export function draftConfirmErrorState(error: unknown, text: string): LabosAgent
   if (error.status === 404) return { status: 'error', text, message: messageForIntroRequestFailure(404, body) };
   if (error.status === 401) return { status: 'error', text, message: DRAFT_SIGN_IN_MESSAGE };
   if (error.status === 429) return { status: 'error', text, message: DRAFT_RATE_LIMITED_MESSAGE };
+  if (error.status === 503) return { status: 'error', text, message: error.bodyMessage || DRAFT_SEND_FAILED_MESSAGE };
   return { status: 'error', text, message: DRAFT_SEND_FAILED_MESSAGE };
 }

@@ -467,6 +467,64 @@ describe('LAB-3300: agent intro draft card', () => {
     expect(onAskSubmitted).not.toHaveBeenCalled();
   });
 
+  const RBAC_DOWN = 'Intro requests are not available right now. Please try again.';
+
+  it('LAB-3457: a C5 503 (permission check down, nothing sent) shows the API message, keeps Send, and does not retry', async () => {
+    customFetch
+      .mockResolvedValueOnce(fail(503, { statusCode: 503, message: RBAC_DOWN }))
+      .mockResolvedValueOnce(ok({ draftId: 'dr_1', status: 'sent', introRequestUid: 'ir-1' }));
+    await openWithDraft();
+    fireEvent.click(sendButton()!);
+
+    expect(await within(card()).findByText(RBAC_DOWN)).toBeInTheDocument();
+    expect(customFetch).toHaveBeenCalledTimes(1);
+    expect(field()).toHaveValue(DRAFT_TEXT);
+    expect(onSubmitFailed).toHaveBeenCalledWith(expect.objectContaining({ status: 503 }));
+
+    fireEvent.click(sendButton()!);
+    expect(
+      await within(card()).findByText('Your request is received. Someone from the team will reach out.'),
+    ).toBeInTheDocument();
+    expect(customFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('LAB-3457: a C3 503 on a turn that was not saved shows the API message; a 503 with no message, the plain one', async () => {
+    customFetch
+      .mockResolvedValueOnce(fail(503, { statusCode: 503, message: RBAC_DOWN }))
+      .mockResolvedValueOnce(fail(503, {}));
+    act(() =>
+      useLabosAgentStore.getState().actions.updateTurns(chatKey(context), () => [
+        {
+          id: 'turn-unsaved',
+          message: 'Help me write an intro request.',
+          status: 'done',
+          ...answer(),
+          cards: {},
+          draftCards: {},
+          startedAt: 1,
+          endedAt: 2,
+        },
+      ]),
+    );
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={qc}>
+        <LabosAgentRoot />
+      </QueryClientProvider>,
+    );
+    act(() => useLabosAgentStore.getState().actions.openAgent({ context }));
+    await screen.findByText('Here is a draft. Check it and press Send.');
+    fireEvent.click(sendButton()!);
+
+    expect(await within(card()).findByText(RBAC_DOWN)).toBeInTheDocument();
+    expect(customFetch.mock.calls[0][0]).toMatch(/\/v1\/intro-requests$/);
+    expect(customFetch).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(sendButton()!);
+    expect(await within(card()).findByText('The request could not be sent. Try again.')).toBeInTheDocument();
+    expect(customFetch).toHaveBeenCalledTimes(2);
+  });
+
   it('S3-R15: no response keeps the text and Send, and a second Send works', async () => {
     customFetch.mockRejectedValueOnce(new TypeError('Failed to fetch')).mockResolvedValueOnce(ok());
     await openWithDraft();

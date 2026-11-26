@@ -328,4 +328,38 @@ describe('RequestIntroDialog', () => {
     expect(await screen.findByText('This draft is closed.')).toBeInTheDocument();
     expect(onSent).not.toHaveBeenCalled();
   });
+
+  it('LAB-3457: a 503 (permission check down, nothing sent) shows the API message and keeps Send for a retry', async () => {
+    createIntroRequest
+      .mockRejectedValueOnce(
+        new IntroRequestError(503, 'Intro requests are not available right now. Please try again.'),
+      )
+      .mockResolvedValueOnce({ uid: 'ir-1' });
+    render(
+      <RequestIntroDialog
+        type="TEAM"
+        targetId="team-1"
+        targetName="Acme"
+        entryPoint="team-header"
+        onSent={onSent}
+        onClose={onClose}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText(FIELD_LABEL), {
+      target: { value: 'I lead fundraising at Acme and want advice on a seed round.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    expect(
+      await screen.findByText('Intro requests are not available right now. Please try again.'),
+    ).toBeInTheDocument();
+    expect(createIntroRequest).toHaveBeenCalledTimes(1);
+    expect(onSent).not.toHaveBeenCalled();
+    expect(onSubmitFailed).toHaveBeenCalledWith(expect.objectContaining({ status: 503 }));
+    expect(screen.getByRole('button', { name: 'Send' })).toBeEnabled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+    expect(await screen.findByRole('status')).toHaveTextContent(INTRO_REQUEST_RECEIVED_MESSAGE);
+    expect(createIntroRequest).toHaveBeenCalledTimes(2);
+  });
 });

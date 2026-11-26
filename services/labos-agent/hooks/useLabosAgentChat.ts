@@ -44,6 +44,9 @@ import { getLabosAgentClient, toChatContext } from '../labos-agent.service';
 import { refreshLabosAgentHistory } from './useLabosAgentThreads';
 import { chatKey, useLabosAgentStore } from '../store';
 
+/** LAB-3457: C5 answers that mean the backend has no saved draft to send: the card falls back to C3 once. */
+const C5_UNKNOWN_DRAFT: ReadonlySet<string> = new Set(['THREAD_NOT_FOUND', 'DRAFT_NOT_FOUND']);
+
 export type { LabosAgentTurn, LabosAgentTurnStatus };
 
 const NO_TURNS: LabosAgentTurn[] = [];
@@ -513,9 +516,10 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null, options
           const res = await getLabosAgentHistoryClient()
             .confirmDraft({ threadId, draftId, decision: 'send', text })
             .catch((err: unknown) => {
-              // The backend did not save this turn after all (its write failed or ran out of time), so C5 knows no
-              // such draft and nothing was sent. The draft goes as an unsaved one does, through C3, with no loop.
-              if (err instanceof LabosAgentError && err.code === 'DRAFT_NOT_FOUND') return null;
+              // The backend did not save this turn after all (its write failed or ran out of time), or the thread was
+              // deleted (another tab). C5 checks the thread before the draft, so it answers THREAD_NOT_FOUND or
+              // DRAFT_NOT_FOUND, and nothing was sent. The draft goes as an unsaved one does, through C3, once.
+              if (err instanceof LabosAgentError && C5_UNKNOWN_DRAFT.has(err.code)) return null;
               throw err;
             })
             .finally(() => refreshLabosAgentHistory(queryClient, threadId));

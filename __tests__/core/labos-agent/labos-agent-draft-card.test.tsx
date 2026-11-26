@@ -299,30 +299,47 @@ describe('LAB-3300: agent intro draft card', () => {
     expect(onSubmitFailed).not.toHaveBeenCalled();
   });
 
-  it('LAB-3457: a C5 404 DRAFT_NOT_FOUND (the turn was not saved after all) sends once with C3, with no failure loop', async () => {
-    customFetch
-      .mockResolvedValueOnce(
-        fail(404, { statusCode: 404, code: 'DRAFT_NOT_FOUND', message: 'The draft was not found.' }),
-      )
-      .mockResolvedValueOnce(ok());
-    await openWithDraft([draft({ target: { type: 'team', uid: 't-9', name: 'Ada Lovelace' } })]);
-    fireEvent.change(field(), { target: { value: '  My own words for the intro request.  ' } });
+  it.each(['DRAFT_NOT_FOUND', 'THREAD_NOT_FOUND'])(
+    'LAB-3457: a C5 404 %s (the turn was not saved after all, or the thread is gone) sends once with C3, with no failure loop',
+    async (code) => {
+      customFetch
+        .mockResolvedValueOnce(fail(404, { statusCode: 404, code, message: 'The draft was not found.' }))
+        .mockResolvedValueOnce(ok());
+      await openWithDraft([draft({ target: { type: 'team', uid: 't-9', name: 'Ada Lovelace' } })]);
+      fireEvent.change(field(), { target: { value: '  My own words for the intro request.  ' } });
+      fireEvent.click(sendButton()!);
+
+      expect(
+        await within(card()).findByText('Your request is received. Someone from the team will reach out.'),
+      ).toBeInTheDocument();
+      expect(customFetch).toHaveBeenCalledTimes(2);
+      expect(customFetch.mock.calls[0][0]).toMatch(/\/v1\/labos-agent\/drafts\/confirm$/);
+      const [url, init] = customFetch.mock.calls[1];
+      expect(url).toMatch(/\/v1\/intro-requests$/);
+      expect(JSON.parse(init.body)).toEqual({
+        type: 'TEAM',
+        targetId: 't-9',
+        text: 'My own words for the intro request.',
+      });
+      expect(sendButton()).not.toBeInTheDocument();
+      expect(screen.queryByText('The draft was not found.')).not.toBeInTheDocument();
+      expect(onSubmitFailed).not.toHaveBeenCalled();
+    },
+  );
+
+  it('LAB-3457: a C5 409 DRAFT_CLOSED with status cancelled shows the card cancelled, never sent', async () => {
+    customFetch.mockResolvedValue(
+      fail(409, { statusCode: 409, code: 'DRAFT_CLOSED', message: 'Closed', status: 'cancelled' }),
+    );
+    await openWithDraft();
     fireEvent.click(sendButton()!);
 
+    expect(await within(card()).findByText('Cancelled. Nothing was sent.')).toBeInTheDocument();
     expect(
-      await within(card()).findByText('Your request is received. Someone from the team will reach out.'),
-    ).toBeInTheDocument();
-    expect(customFetch).toHaveBeenCalledTimes(2);
-    expect(customFetch.mock.calls[0][0]).toMatch(/\/v1\/labos-agent\/drafts\/confirm$/);
-    const [url, init] = customFetch.mock.calls[1];
-    expect(url).toMatch(/\/v1\/intro-requests$/);
-    expect(JSON.parse(init.body)).toEqual({
-      type: 'TEAM',
-      targetId: 't-9',
-      text: 'My own words for the intro request.',
-    });
+      within(card()).queryByText('Your request is received. Someone from the team will reach out.'),
+    ).not.toBeInTheDocument();
     expect(sendButton()).not.toBeInTheDocument();
-    expect(screen.queryByText('The draft was not found.')).not.toBeInTheDocument();
+    expect(customFetch).toHaveBeenCalledTimes(1);
     expect(onSubmitFailed).not.toHaveBeenCalled();
   });
 

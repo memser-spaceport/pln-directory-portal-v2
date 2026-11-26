@@ -3,7 +3,7 @@
 import { createContext, useContext } from 'react';
 
 export interface EventFormContextValue {
-  /** The submit page, or the edit page (which adds Website Link and Social Handles). */
+  /** The submit page or the edit page. */
   variant: 'submit' | 'edit';
   /** A request is running: every control is disabled. */
   busy: boolean;

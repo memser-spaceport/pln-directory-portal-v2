@@ -12,7 +12,10 @@ import { FieldError } from './FieldError';
 import s from './EventForm.module.scss';
 import c from './HostSection.module.scss';
 
-/** "Host (N)": the host's name and optional email, then a row of the same for every co-host. N counts them all. */
+/**
+ * "Host (N)": the host's name and optional email, then a row of the same for every co-host. N counts them all. With
+ * co-hosts, every row has the same columns: the name, the email and the slot of the remove control.
+ */
 export function HostSection() {
   const {
     watch,
@@ -49,29 +52,33 @@ export function HostSection() {
           Add Co-Host
         </button>
       </div>
-      <div className={s.row}>
-        <FormField
-          name="hostName"
-          placeholder="Enter Host Name"
-          aria-label="Host name"
-          disabled={busy}
-          rules={{ onChange: () => clearErrors('hostName') }}
-        />
-        <FormField
-          name="hostEmail"
-          placeholder="Enter Host Email"
-          aria-label="Host email"
-          inputMode="email"
-          disabled={busy}
-          rules={{ onChange: () => clearErrors('hostEmail') }}
-        />
+      <div className={c.line} data-row="host">
+        <div className={s.row}>
+          <FormField
+            name="hostName"
+            placeholder="Enter Host Name"
+            aria-label="Host name"
+            disabled={busy}
+            rules={{ onChange: () => clearErrors('hostName') }}
+          />
+          <FormField
+            name="hostEmail"
+            placeholder="Enter Host Email"
+            aria-label="Host email"
+            inputMode="email"
+            disabled={busy}
+            rules={{ onChange: () => clearErrors('hostEmail') }}
+          />
+        </div>
+        {/* The host row keeps the width of the remove control, so its fields line up with the co-host fields. */}
+        {coHosts.length > 0 && <span className={c.slot} aria-hidden data-slot="remove" />}
       </div>
       {coHosts.length > 0 && (
         <ul className={c.rows} aria-label="Co-hosts">
           {coHosts.map((row, index) => {
             const rowErrors = errors.coHosts?.[index];
             return (
-              <li key={index} className={c.coHost}>
+              <li key={index} className={c.line}>
                 <div className={s.row}>
                   <div className={c.cell}>
                     <input

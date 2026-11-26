@@ -1246,6 +1246,8 @@ The time zone SHALL be picked from a searchable list (placeholder "Search timezo
 
 The description SHALL be optional rich text, opened with "Add Description", with the placeholder "Enter description" and the tools bold, italic, strikethrough, underline, link, two heading levels, bullet and numbered lists and four alignments. A description with no text SHALL be sent as empty. Wherever LabOS shows a description, it SHALL show only safe formatting.
 
+The event editor SHALL stop text input and trim pasted text at 10,000 characters (LAB-3442). The counter SHALL exclude HTML tags and count nonbreaking spaces as spaces. Submit SHALL also check the length.
+
 #### Scenario: A formatted description
 
 - **WHEN** the visitor types a heading and a bullet list and submits
@@ -1290,7 +1292,7 @@ When the form is sent with an agenda, in any mode, each session SHALL be inside 
 
 ### Requirement: Tags
 
-"Choose Event tag(s)" SHALL offer the chips "Talks & Presentation", "Hackathon", "Workshop", "Art Exhibition" and "Social Event", with "Talks & Presentation" selected on a new form, and a field "Type your tag here" where Enter adds a custom tag that can be removed. A custom tag that already exists SHALL be ignored.
+"Choose Event tag(s)" SHALL offer the chips "Talks & Presentation", "Hackathon", "Workshop", "Art Exhibition" and "Social Event", with "Talks & Presentation" selected on a new form. In "Type your tag here", Enter, a comma, or loss of focus SHALL add the text as a removable tag (LAB-3448). The field SHALL ignore empty tags and compare duplicates without regard to case.
 
 #### Scenario: A custom tag
 
@@ -1299,7 +1301,7 @@ When the form is sent with an agenda, in any mode, each session SHALL be inside 
 
 ### Requirement: Host and co-hosts
 
-The host section SHALL have a host name ("Enter Host Name") and an optional host email ("Enter Host Email"). "Add Co-Host" SHALL add a row with a name and an optional email, and each row SHALL have a remove control. The title SHALL read "Host (N)", where N counts the host and the co-hosts.
+The host section SHALL have a host name ("Enter Host Name") and an optional host email ("Enter Host Email"). "Add Co-Host" SHALL add a row with a name and an optional email, and each row SHALL have a remove control. The title SHALL read "Host (N)", where N counts the host and the co-hosts. The host and co-host fields SHALL align on desktop and at 375 pixels (LAB-3449).
 
 If the host email is not empty and is invalid, Submit and Save as draft SHALL stop and show "Enter a valid email" under the host email field (LAB-3453).
 
@@ -1318,7 +1320,7 @@ The registration link ("Enter Registration Link") SHALL be optional. A link type
 - **WHEN** the member submits a valid form
 - **THEN** the event is sent with `https://lu.ma/abc`
 
-### Requirement: Website link and social handles on the edit page
+### Requirement: Website link and social handles
 
 The submit and edit forms SHALL show "Website Link" ("Enter Website Link") after the host (LAB-3455), then "Social Handles" (LAB-3450). Social Handles SHALL be rows of a platform (X/Twitter, Discord, Bluesky, Mastodon, Telegram, Email) and a handle ("Enter your handle"), with "Add More" and a remove control. X/Twitter SHALL keep the stored value `twitter` (LAB-3452). A handle that is not a web address SHALL be turned into the platform's profile address when sent.
 

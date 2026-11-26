@@ -82,4 +82,15 @@ describe('HostSection', () => {
 
     expect(await screen.findByText('Enter a valid host name')).toBeInTheDocument();
   });
+
+  it('keeps the slot of the remove control in the host row only when co-hosts are shown', () => {
+    const { container } = renderSection(<HostSection />);
+    const hostRow = container.querySelector('[data-row="host"]')!;
+
+    expect(hostRow.querySelector('[data-slot="remove"]')).toBeNull();
+    addCoHost();
+
+    expect(hostRow.querySelector('[data-slot="remove"]')).toHaveAttribute('aria-hidden', 'true');
+    expect(hostRow.className).toBe(screen.getByRole('button', { name: 'Remove co-host 1' }).closest('li')!.className);
+  });
 });

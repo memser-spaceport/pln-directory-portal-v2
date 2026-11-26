@@ -68,7 +68,8 @@ export const AppSidebar = (props: Props) => {
   const access = useLabosAgentAccessState();
   const agentHistory = isLoggedIn && access === 'on';
   const huskyHistory = !isLoggedIn || access === 'off';
-  const agentThreads = useLabosAgentThreads({ enabled: agentHistory });
+  // While the search box has text, the rail loads the rest of T1 (capped), so search finds older chats too.
+  const agentThreads = useLabosAgentThreads({ enabled: agentHistory, loadAll: query.trim().length > 0 });
   const deleteAgentThread = useDeleteLabosAgentThread();
   // The document listeners below are set once; they read these.
   const refetchAgentRef = useRef(agentThreads.refetch);

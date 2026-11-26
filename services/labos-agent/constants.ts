@@ -19,6 +19,8 @@ export const LABOS_AGENT_ENDPOINTS = {
 
 /** LAB-3457: the T1 page size of the history rail (the backend allows 1 to 50); "Load more" asks for the next. */
 export const LABOS_AGENT_THREADS_PAGE_SIZE = 20;
+/** LAB-3457: while the History search has text, the rail loads T1 pages up to this many rows, so search covers them. */
+export const LABOS_AGENT_HISTORY_SEARCH_CAP = 500;
 
 /** C1 request limits. */
 export const LABOS_AGENT_MESSAGE_MAX = 2000;

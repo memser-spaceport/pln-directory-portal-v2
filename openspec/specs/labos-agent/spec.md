@@ -410,9 +410,10 @@ The context picker SHALL open with an "Add context" heading above its search fie
 
 LAB-3457 (backend contract T1, T2, T3, C5). `getLabosAgentHistoryClient()` SHALL return the live client, or the mock when the agent mock is selected. `listThreads` SHALL call `GET /v1/labos-agent/threads?page&limit`, `getThread` `GET /v1/labos-agent/threads/:threadId`, `deleteThread` `DELETE /v1/labos-agent/threads/:threadId`, and `confirmDraft` `POST /v1/labos-agent/drafts/confirm` with `{ threadId, draftId, decision }` and, for `send` only, the trimmed `text`. Every failure SHALL be a `LabosAgentError`; `THREAD_NOT_FOUND`, `DRAFT_NOT_FOUND` and `DRAFT_CLOSED` (with `draftStatus` `sent` or `cancelled`) SHALL keep their codes. A T1 row with no `threadId` SHALL drop out, a row with no `source` SHALL be `ai-search`, and a row with no title SHALL read "Untitled chat". A T2 turn with no `kind` SHALL be an old AI search turn; a saved action card with an unknown status SHALL read as `expired` and a saved draft with an unknown status as `cancelled`, so neither shows its buttons.
 
-The React Query hooks (`useLabosAgentThreads`, `useLabosAgentThread`, `useDeleteLabosAgentThread`, `useConfirmLabosAgentDraft`, keys `LabosAgentQueryKeys.THREADS` and `THREAD` with the member uid) SHALL ask only when the caller passes `enabled` (a member inside the gate). T1 SHALL ask for page 1 with 50 rows. T2 SHALL not retry `THREAD_NOT_FOUND`. A delete SHALL drop the row from the cached list, also when T3 answers `THREAD_NOT_FOUND`. A C5 answer SHALL write the draft's new status (and the sent text) into the cached thread. The mock history SHALL hold one old AI search thread and save each finished mock C1 turn sent with `persist: true`.
+The React Query hooks (`useLabosAgentThreads`, `useLabosAgentThread`, `useDeleteLabosAgentThread`, `useConfirmLabosAgentDraft`, keys `LabosAgentQueryKeys.THREADS` and `THREAD` with the member uid) SHALL ask only when the caller passes `enabled` (a member inside the gate). T1 SHALL ask a page of 20 rows at a time (`LABOS_AGENT_THREADS_PAGE_SIZE`), starting at page 1. With `loadAll` it SHALL load the next pages by itself up to 500 rows (`LABOS_AGENT_HISTORY_SEARCH_CAP`), and stop at a failed page. T2 SHALL not retry `THREAD_NOT_FOUND`. A delete SHALL drop the row from the cached list, also when T3 answers `THREAD_NOT_FOUND`. A C5 answer SHALL write the draft's new status (and the sent text) into the cached thread. The mock history SHALL hold one old AI search thread and save each finished mock C1 turn sent with `persist: true`.
 
 #### Scenario: A deleted thread
+
 - **GIVEN** a member inside the gate with thread `t-1` in the cached list
 - **WHEN** the delete answers 404 `THREAD_NOT_FOUND`
 - **THEN** `t-1` leaves the list and no error shows
@@ -424,6 +425,7 @@ LAB-3457. Every C1 request from the panel and from AI agent chat SHALL carry `pe
 The intro draft of a saved turn SHALL go to C5: Send posts `{ threadId, draftId, decision: 'send', text }` with the trimmed text, Cancel posts `{ threadId, draftId, decision: 'cancel' }` and closes the card whatever C5 answers. A C5 409 `DRAFT_CLOSED` SHALL show the card as it closed (`sent` or `cancelled`) with no Send and no failure event; `cancelled` SHALL never show as sent. C5's 403 and 404 SHALL show the API message, or the intro request texts when there is none, as with C3. A draft of a turn with no `savedIn` SHALL keep the C3 path (`POST /v1/intro-requests`).
 
 #### Scenario: A deleted thread on the next message
+
 - **GIVEN** a chat whose thread was deleted in another tab
 - **WHEN** the member sends a message and C1 answers 404 `THREAD_NOT_FOUND`
 - **THEN** the same message goes again in a new thread and the answer shows

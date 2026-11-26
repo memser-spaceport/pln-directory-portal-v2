@@ -114,6 +114,50 @@ describe('LAB-3457: the History rail inside the agent gate', () => {
     expect(screen.queryByRole('button', { name: 'Load more chats' })).not.toBeInTheDocument();
   });
 
+  it('search covers older chats: with text in the box it loads the remaining pages, with no Load more press', async () => {
+    history.listThreads
+      .mockResolvedValueOnce({ page: 1, limit: 20, total: 3, items: [row('t-1', 'First chat'), row('t-2', 'Second')] })
+      .mockResolvedValueOnce({ page: 2, limit: 20, total: 3, items: [row('t-3', 'Storage teams from June')] });
+    renderRail();
+    await screen.findByText('First chat');
+    expect(history.listThreads).toHaveBeenCalledTimes(1);
+
+    fireEvent.change(screen.getByLabelText('Search chats'), { target: { value: 'storage' } });
+    expect(await screen.findByText('Storage teams from June')).toBeInTheDocument();
+    expect(history.listThreads).toHaveBeenLastCalledWith({ page: 2, limit: 20 });
+    expect(screen.queryByText('First chat')).not.toBeInTheDocument();
+  });
+
+  it('the search load stops at 500 rows', async () => {
+    history.listThreads.mockImplementation(async ({ page = 1 } = {}) => ({
+      page,
+      limit: 20,
+      total: 10000,
+      items: Array.from({ length: 20 }, (_, i) => row(`t-${page}-${i}`, `Chat ${page}-${i}`)),
+    }));
+    renderRail();
+    await screen.findByText('Chat 1-0');
+    fireEvent.change(screen.getByLabelText('Search chats'), { target: { value: 'chat' } });
+    await waitFor(() => expect(history.listThreads).toHaveBeenCalledTimes(25), { timeout: 4000 });
+    await act(async () => {});
+    expect(history.listThreads).toHaveBeenCalledTimes(25);
+  });
+
+  it('a failed page while searching does not ask again and again', async () => {
+    history.listThreads
+      .mockResolvedValueOnce({ page: 1, limit: 20, total: 50, items: [row('t-1', 'First chat')] })
+      .mockRejectedValue(new Error('down'));
+    renderRail();
+    await screen.findByText('First chat');
+    fireEvent.change(screen.getByLabelText('Search chats'), { target: { value: 'first' } });
+    await waitFor(() => expect(history.listThreads).toHaveBeenCalledTimes(2));
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 50));
+    });
+    expect(history.listThreads).toHaveBeenCalledTimes(2);
+    expect(screen.getByText('First chat')).toBeInTheDocument();
+  });
+
   it('deletes with T3, not AI search’s delete; the open chat leaves for a new chat', async () => {
     mockParams = { id: 't-agent' };
     const newChat = jest.fn();

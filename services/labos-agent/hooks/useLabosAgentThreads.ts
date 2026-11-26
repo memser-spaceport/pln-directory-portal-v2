@@ -8,12 +8,12 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { useCurrentUserStore } from '@/services/auth/store';
 import type { LabosAgentThreadList, LabosAgentThreadListItem } from '@/types/labos-agent.types';
 
-import { LABOS_AGENT_THREADS_PAGE_SIZE, LabosAgentQueryKeys } from '../constants';
+import { LABOS_AGENT_HISTORY_SEARCH_CAP, LABOS_AGENT_THREADS_PAGE_SIZE, LabosAgentQueryKeys } from '../constants';
 import { LabosAgentError } from '../labos-agent.errors';
 import { getLabosAgentHistoryClient } from '../labos-agent.history';
 
@@ -35,9 +35,11 @@ export function threadRows(data: InfiniteData<LabosAgentThreadList> | undefined)
 
 /**
  * T1: the newest threads first, a page of `LABOS_AGENT_THREADS_PAGE_SIZE` at a time; `fetchNextPage` loads the next
- * one while `hasNextPage`. The rail searches and groups the loaded rows by date on the client.
+ * one while `hasNextPage`. The rail searches and groups the loaded rows by date on the client. With `loadAll` (the
+ * History search has text) it loads the next pages by itself, up to `LABOS_AGENT_HISTORY_SEARCH_CAP` rows, so search
+ * covers the member's chats as AI search's own list does. A failed page stops it (no loop).
  */
-export function useLabosAgentThreads({ enabled }: { enabled: boolean }) {
+export function useLabosAgentThreads({ enabled, loadAll = false }: { enabled: boolean; loadAll?: boolean }) {
   const uid = useCurrentUserStore((state) => state.currentUser?.uid);
   const query = useInfiniteQuery({
     queryKey: [LabosAgentQueryKeys.THREADS, uid],
@@ -51,6 +53,15 @@ export function useLabosAgentThreads({ enabled }: { enabled: boolean }) {
     enabled: enabled && !!uid,
   });
   const rows = useMemo(() => threadRows(query.data), [query.data]);
+
+  const { hasNextPage, isFetchingNextPage, isFetchNextPageError, fetchNextPage } = query;
+  const loadedRows = rows.length;
+  useEffect(() => {
+    if (!loadAll || !hasNextPage || isFetchingNextPage || isFetchNextPageError) return;
+    if (loadedRows >= LABOS_AGENT_HISTORY_SEARCH_CAP) return;
+    void fetchNextPage();
+  }, [loadAll, hasNextPage, isFetchingNextPage, isFetchNextPageError, loadedRows, fetchNextPage]);
+
   return { ...query, rows };
 }
 

@@ -61,10 +61,11 @@ beforeEach(() => scrollIntoView.mockClear());
 describe('sections', () => {
   it('keeps the old portal’s order on the submit page', () => {
     const { sections } = open();
-    expect(sections()).toHaveLength(8);
+    expect(sections()).toHaveLength(9);
     const order = sections().join(' > ');
     expect(order).toMatch(/^access > registration.* > profile.* > format.* > dates.* > description.* > tags.* > host/);
-    expect(screen.queryByText('Website Link')).toBeNull();
+    expect(sections().slice(-2)).toEqual(['host', 'website']);
+    expect(screen.getByText('Website Link')).toBeInTheDocument();
     expect(screen.queryByText('Social Handles')).toBeNull();
     expect(screen.queryByPlaceholderText('Enter your email')).toBeNull();
     expect(screen.queryByText(/Luma/)).toBeNull();

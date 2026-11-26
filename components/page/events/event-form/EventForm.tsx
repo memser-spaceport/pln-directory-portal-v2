@@ -113,7 +113,7 @@ export function EventForm({ variant, initialValues, onSend, onInvalid, renderAct
           <DescriptionSection />
           <TagsSection />
           <HostSection />
-          {variant === 'edit' && <WebsiteSection />}
+          <WebsiteSection />
           {variant === 'edit' && <SocialHandlesSection />}
           <div className={s.actions}>{renderActions({ busy })}</div>
         </form>

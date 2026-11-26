@@ -1318,7 +1318,7 @@ The registration link ("Enter Registration Link") SHALL be optional. A link type
 
 ### Requirement: Website link and social handles on the edit page
 
-The edit page SHALL also show "Website Link" ("Enter Website Link") and "Social Handles". Social Handles SHALL be rows of a platform (Twitter, Discord, Bluesky, Mastodon, Telegram, Email) and a handle ("Enter your handle"), with "Add More" and a remove control. A handle that is not a web address SHALL be turned into the platform's profile address when sent. The submit page SHALL NOT show these two.
+The submit and edit forms SHALL show "Website Link" ("Enter Website Link") after the host (LAB-3455). The edit form SHALL also show "Social Handles". Social Handles SHALL be rows of a platform (Twitter, Discord, Bluesky, Mastodon, Telegram, Email) and a handle ("Enter your handle"), with "Add More" and a remove control. A handle that is not a web address SHALL be turned into the platform's profile address when sent.
 
 #### Scenario: A Twitter handle
 

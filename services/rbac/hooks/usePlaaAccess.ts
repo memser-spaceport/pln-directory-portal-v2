@@ -1,5 +1,9 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
+
+import { AccessControlQueryKeys } from '@/services/access-control/constants';
+import { fetchMyAccess } from '@/services/access-control/access-control.service';
 import { usePermissions } from '@/services/rbac/hooks/usePermissions';
 import { canViewPlaa } from '@/services/rbac/utils/plaa/canViewPlaa';
 
@@ -15,10 +19,17 @@ export interface PlaaAccess {
  */
 export function usePlaaAccess(): PlaaAccess {
   const { permsSet, isLoading, isError } = usePermissions();
+  const { data: lookupFailed = false } = useQuery({
+    queryKey: [AccessControlQueryKeys.MY_ACCESS],
+    queryFn: fetchMyAccess,
+    enabled: false,
+    select: (access) => access.memberUid === '',
+  });
+  const hasError = isError || lookupFailed;
 
   return {
-    canView: !isLoading && !isError && canViewPlaa(permsSet),
+    canView: !isLoading && !hasError && canViewPlaa(permsSet),
     isLoading,
-    isError,
+    isError: hasError,
   };
 }

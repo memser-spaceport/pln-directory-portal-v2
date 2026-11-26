@@ -7,9 +7,9 @@ import { formatDateForApi } from '@/components/core/UpdatesPanel/IrlGatheringMod
 import { useLoginRedirect } from '@/components/core/login/utils/loginRedirect';
 import { toast } from '@/components/core/ToastContainer';
 import { useEventsAnalytics, type EventDrawerSource } from '@/analytics/events.analytics';
-import { useDebounce } from '@/hooks/useDebounce';
 import { useIrlGoingAccess } from '@/services/access-control/hooks/useIrlGoingAccess';
 import { useCurrentUserStore } from '@/services/auth/store';
+import { allEventsEventHref } from '@/services/events/all-events.filters';
 import { EMPTY_PLANS, toEventDetail } from '@/services/events/event-drawer.mappers';
 import { useMarkGoing, useRemoveGoing, useUpdateEventPlans } from '@/services/events/hooks/useEventDrawerMutations';
 import { useEventAttendees, useEventDetail, useMyGatheringPlans } from '@/services/events/hooks/useEventDrawerQueries';
@@ -19,7 +19,7 @@ import { MembersQueryKeys } from '@/services/members/constants';
 import type { ITeam } from '@/types/teams.types';
 import { SHOW_EVENT_DRAWER } from '@/utils/event-drawer';
 
-import type { EventAttendeesState } from './AttendeesModal';
+import type { EventAttendeesState } from './AttendeesView';
 import {
   EventDrawerView,
   type EventDrawerStatus,
@@ -38,6 +38,19 @@ export interface EventDrawerProps {
   onClose: () => void;
   /** The drawer closed after the member said they are going. The host shows "<event> is on your profile." (D8). */
   onGoing?: (notice: EventGoingNotice) => void;
+  /**
+   * LAB-3361: the uids of the list the drawer was opened from, in its order. With more than one, and `onNavigate`,
+   * the toolbar steps through them with previous / next.
+   */
+  sequence?: string[];
+  /** Previous / next pressed: open that event (the host sets `eventUid` to it). */
+  onNavigate?: (uid: string) => void;
+  /**
+   * The embed (LAB-3392), framed by another site: the drawer is signed out whoever is signed in (a framed page often
+   * has no LabOS cookies, and the Embed dialog's preview must not show the member's own), going is "RSVP on LabOS ↗"
+   * in a new tab, and nothing asks to sign in or opens the attendee list.
+   */
+  embed?: boolean;
 }
 
 /**
@@ -48,8 +61,25 @@ export interface EventDrawerProps {
  * Each host keeps its own `eventUid` state and renders `<EventDrawer eventUid={uid} … />` (design D2).
  */
 export function EventDrawer(props: EventDrawerProps) {
+  // The event previous / next stepped to: its drawer replaces the last one in place instead of sliding in again.
+  const [steppedTo, setSteppedTo] = useState<string | null>(null);
   if (!SHOW_EVENT_DRAWER || !props.eventUid) return null;
-  return <EventDrawerContainer key={props.eventUid} {...props} eventUid={props.eventUid} />;
+  const { onNavigate } = props;
+  return (
+    <EventDrawerContainer
+      key={props.eventUid}
+      {...props}
+      eventUid={props.eventUid}
+      animateIn={steppedTo !== props.eventUid}
+      onNavigate={
+        onNavigate &&
+        ((uid: string) => {
+          setSteppedTo(uid);
+          onNavigate(uid);
+        })
+      }
+    />
+  );
 }
 
 function EventDrawerContainer({
@@ -58,13 +88,18 @@ function EventDrawerContainer({
   initialStep,
   onClose,
   onGoing,
-}: EventDrawerProps & { eventUid: string }) {
-  const { currentUser } = useCurrentUserStore();
+  sequence,
+  onNavigate,
+  embed = false,
+  animateIn,
+}: EventDrawerProps & { eventUid: string; animateIn: boolean }) {
+  const { currentUser: signedInUser } = useCurrentUserStore();
+  const currentUser = embed ? null : signedInUser;
   const viewerUid = currentUser?.uid ?? null;
   const analytics = useEventsAnalytics();
   const goToLogin = useLoginRedirect();
 
-  const detailQuery = useEventDetail(eventUid);
+  const detailQuery = useEventDetail(eventUid, { anonymous: embed });
   const event = useMemo(() => (detailQuery.data ? toEventDetail(detailQuery.data) : null), [detailQuery.data]);
   const locationUid = event?.gathering?.uid ?? null;
 
@@ -101,11 +136,11 @@ function EventDrawerContainer({
 
   const [attendeesOpen, setAttendeesOpen] = useState(false);
   const [search, setSearch] = useState('');
-  const debouncedSearch = useDebounce(search, 300);
-  const attendeesQuery = useEventAttendees({ locationUid, eventUid, search: debouncedSearch, enabled: attendeesOpen });
+  // The search box (the shared SearchInput) waits until the member stops typing, so `search` is already debounced.
+  const attendeesQuery = useEventAttendees({ locationUid, eventUid, search, enabled: attendeesOpen });
   const attendees: EventAttendeesState = {
     rows: attendeesQuery.data?.pages.flatMap((p) => p.rows) ?? [],
-    isLoading: attendeesQuery.isLoading || search !== debouncedSearch,
+    isLoading: attendeesQuery.isLoading,
     isError: attendeesQuery.isError,
     hasNextPage: !!attendeesQuery.hasNextPage,
     isFetchingNextPage: attendeesQuery.isFetchingNextPage,
@@ -124,7 +159,8 @@ function EventDrawerContainer({
     if (openedRef.current) return;
     openedRef.current = true;
     analytics.onEventDrawerOpened({ eventUid, source });
-    recordMemberSignal({ action: 'view', entityType: 'event', entityId: eventUid });
+    // A view inside another site's embed is no member's signal.
+    if (!embed) recordMemberSignal({ action: 'view', entityType: 'event', entityId: eventUid });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -208,13 +244,11 @@ function EventDrawerContainer({
     return true;
   };
 
-  // LAB-3271: signed out, "Yes, I'm going" closes the drawer and opens the sign-in modal on this page.
-  const onSignIn = viewerUid
-    ? undefined
-    : () => {
-        onClose();
-        goToLogin();
-      };
+  // Signed out, "Yes, I'm going" and the going count open the sign-in modal over the drawer, which stays open (LAB-3368,
+  // LAB-3371), so a member who signs in is back on the same event. It used to close the drawer first (LAB-3271), but
+  // on the All Events page the close rewrites the address and Next dropped the `#login` push, so no sign-in opened.
+  // The embed never asks to sign in: inside another site's frame the sign-in can't keep the member (LAB-3392).
+  const onSignIn = viewerUid || embed ? undefined : () => goToLogin();
 
   return (
     <EventDrawerView
@@ -238,6 +272,17 @@ function EventDrawerContainer({
       onSave={onSave}
       onGoing={onGoing}
       onSignIn={onSignIn}
+      rsvpHref={embed ? allEventsEventHref(eventUid) : undefined}
+      sequence={sequence}
+      animateIn={animateIn}
+      onNavigate={
+        onNavigate &&
+        ((uid, direction) => {
+          analytics.onEventDrawerStepped({ eventUid: uid, direction, source });
+          onNavigate(uid);
+        })
+      }
+      onLinkCopied={() => analytics.onEventLinkCopied({ eventUid })}
     />
   );
 }

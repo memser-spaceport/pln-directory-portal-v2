@@ -38,6 +38,8 @@ export interface EventDetailsResponse {
    * location arrow. Optional: the BE does not sync it yet, so today it is missing for every event.
    */
   locationUrl?: string | null;
+  /** LAB-3403: the event's own IANA time zone. Optional: an older backend does not send it. */
+  timezone?: string | null;
 }
 
 /** `GET /v1/irl/events/:uid` (`ResponsePLEventDetailSchema`). 404 for an unknown or deleted event. */
@@ -54,6 +56,8 @@ export interface EventDetailResponse {
   banner: string | null;
   websiteUrl: string | null;
   externalId: string | null;
+  /** LAB-3403: the event's own IANA time zone, else its gathering's. Optional: an older backend does not send it. */
+  timezone?: string | null;
   resources: unknown[];
   location: {
     uid: string;
@@ -113,23 +117,29 @@ export interface EventDetail {
   name: string;
   startDate: string;
   endDate: string;
+  /** The event's own time zone, else its gathering's, else UTC. */
   timezone: string;
   /** Hidden when unknown. */
   mode: EventMode | null;
   /** Hidden when unknown. */
   access: EventAccess | null;
-  /** "19th Nov 2026, 18:00 - 19th Nov 2026, 21:00 (UTC -5:00)", in the gathering's timezone. */
+  /** "19th Nov 2026, 18:00 - 19th Nov 2026, 21:00 (UTC -5:00)", in `timezone`. */
   dateLine: string;
   address: string | null;
   /** LAB-3324: the venue's map link (for example Google Maps). Null when the event has none. */
   locationUrl: string | null;
   image: string | null;
+  /** The codes of the event's focus areas, e.g. "FA4" (LAB-3404). */
+  focusAreas: string[];
+  /** The topics: every tag that is not a focus area. */
   tags: EventTag[];
   hosts: string[];
   /** May hold HTML from the events sync; rendered through `SafeHtml`. */
   description: string | null;
   agenda: EventAgendaDay[];
   websiteUrl: string | null;
+  /** The event's id in the PL events app (LAB-3361). The drawer does not link it now (LAB-3420). Null when unknown. */
+  externalId: string | null;
   /**
    * LAB-3334: the link that the drawer's link row and "Register" open. It is `websiteUrl` when that is an `http` or
    * `https` address. Otherwise it is the link of the event's resource named "Registration" (name match ignores case

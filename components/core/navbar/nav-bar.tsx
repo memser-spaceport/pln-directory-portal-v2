@@ -18,12 +18,13 @@ import { HelpMenu } from '@/components/core/navbar/components/HelpMenu';
 import { DIRECTORY_LINKS, JOBS_LINK, DEMO_DAY_LINK, DEMO_DAY_ANALYTICS_LINK } from './constants/navLinks';
 
 import { useDemoDayAnalyticsAccess } from '@/services/rbac/hooks/useDemoDayAnalyticsAccess';
+import { useGetEventMenuItemLinks } from './hooks/useGetEventMenuItemLinks';
 
 import { NavLink } from './components/NavLink';
 import { NavItemWithMenu } from './components/NavItemWithMenu';
 import { MoreNavItems } from './components/navItems/MoreNavItems';
 import { PLInfraNavItems } from './components/navItems/PLInfraNavItems';
-import { AppLogo, ForumIcon, JobsIcon, DemoDayIcon, DirectoryIcon, MoreIcon, HomeIcon } from './components/icons';
+import { AppLogo, EventsIcon, JobsIcon, DemoDayIcon, DirectoryIcon, MoreIcon, HomeIcon } from './components/icons';
 import { useHasNewNews } from '@/services/team-news/hooks/useHasNewNews';
 
 import s from './NavBar.module.scss';
@@ -109,6 +110,8 @@ function Navbar(props: Readonly<INavbar>) {
 
   const { hasAccess: hasDemoDayAnalyticsAccess } = useDemoDayAnalyticsAccess();
 
+  const eventLinks = useGetEventMenuItemLinks();
+
   return (
     <NavigationMenu.Root className={s.Root}>
       <NavigationMenu.List className={s.List}>
@@ -145,7 +148,7 @@ function Navbar(props: Readonly<INavbar>) {
           onNavItemClickHandler={onNavItemClickHandler}
         />
 
-        {/* LAB-3172: Job Board and Events swapped places. Job Board is a top-level link here; Events is in More. */}
+        {/* LAB-3172: Job Board and Events swapped places. Then Events and Forum swapped: Events is here, Forum is in More. */}
         <NavigationMenu.Item className={s.menuItem}>
           <NavLink
             className={s.Trigger}
@@ -156,11 +159,13 @@ function Navbar(props: Readonly<INavbar>) {
           </NavLink>
         </NavigationMenu.Item>
 
-        <NavigationMenu.Item className={s.menuItem}>
-          <NavLink className={s.Trigger} href="/forum?cid=0" onClick={() => onNavItemClickHandler('/forum', 'Forum')}>
-            <ForumIcon /> Forum
-          </NavLink>
-        </NavigationMenu.Item>
+        <NavItemWithMenu
+          icon={<EventsIcon />}
+          label="Events"
+          items={eventLinks}
+          onNavItemClickHandler={onNavItemClickHandler}
+        />
+
         {hasDemoDayAnalyticsAccess ? (
           <NavItemWithMenu
             icon={<DemoDayIcon />}

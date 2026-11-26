@@ -81,6 +81,9 @@ import { FollowToast } from '../follow-shared/FollowToast';
 // modal, in its team variant — the PL team routes the request to the right
 // person on the team. One store, keyed by the team uid.
 import { RequestIntroButton } from '../intro-shared/RequestIntroButton';
+import { ActionsAreaCard, ActionsAreaOption, IntroOption, OfficeHoursPeople } from '../profile-shared/ActionsArea';
+// The team's office-hours holders, as profile-agent-actions models them (team-profile's own members carry none).
+import { TEAM_OFFICE_HOURS } from '../profile-agent-actions/mocks';
 import { useRequestIntro } from '../intro-shared/useRequestIntro';
 // The archive itself — the same component the teams grid's news chip opens, so
 // one team's news is one box wherever you reach it from.
@@ -127,6 +130,33 @@ const NEWS_PREVIEW_COUNT = 3;
  * `contactPress` — a host (profile-agent-actions) draws its own press where
  * Request an intro stands, in every seat; `className` is the seat's.
  */
+/**
+ * Where the visitor's Follow and Request an intro stand (review band
+ * "Actions"; member-profile's `ActionsAt`, with About for Bio). 2026-11-19
+ * added the last three after a manager's note that a header press with no
+ * context means nothing to a newcomer:
+ *   sections    Request an intro inside Contact Details, under a line saying
+ *               the PL team makes it; Ask AI and Follow stay in the header.
+ *   badges      Follow + Request an intro as a row under the badges.
+ *   badges-bio  the same row, and About leaves the header for its own card.
+ */
+/*   one         LAB-3383 (2026-11-24, the default): no Ask AI in any seat;
+ *               Follow (and the admin's Edit / Delete) in the header; one
+ *               "Meet <team>" card under the header with both flows as
+ *               separate options — Office hours with the people on the team
+ *               who take them (a row each, its own Schedule Meeting) and the
+ *               intro via the PL team. See profile-shared/ActionsArea. */
+type ActionsAt = 'one' | 'header' | 'header-bio' | 'bio' | 'sections' | 'badges' | 'badges-bio';
+const ACTIONS_AT_OPTIONS: [ActionsAt, string][] = [
+  ['one', 'One actions area (LAB-3383)'],
+  ['header', 'In header'],
+  ['header-bio', 'In header + About section'],
+  ['bio', 'Under About'],
+  ['sections', 'In sections'],
+  ['badges', 'Under badges'],
+  ['badges-bio', 'Under badges + About section'],
+];
+
 export default function TeamProfilePrototype({
   newsCallout = true,
   demoBarExtra,
@@ -174,8 +204,27 @@ export default function TeamProfilePrototype({
   const [view, setView] = useState<TeamPostRole>(initialView);
   /* Visitor seat: Follow and Request an intro in the header cluster (the Sep
      28 decision, default) or as a row under About, to compare. */
-  const [actionsAt, setActionsAt] = useState<'header' | 'bio'>('header');
+  /* LAB-3383's "One actions area" is the default; a host with its own contact
+     press (profile-agent-actions) keeps the header it was built around. */
+  const [actionsAt, setActionsAt] = useState<ActionsAt>(contactPress ? 'header' : 'one');
+  const oneArea = actionsAt === 'one';
+  /* Demo-only, "One actions area": whether anyone on the team takes office
+     hours (profile-agent-actions' TEAM_OFFICE_HOURS: Molly, David), and the
+     ticket's open question — does Request an intro show beside them? */
+  const [teamOh, setTeamOh] = useState<'some' | 'none'>('some');
+  const [introWithOh, setIntroWithOh] = useState<'show' | 'hide'>('show');
   const isTeamView = view !== 'public';
+  /* The seats whose Follow + Request an intro the review band's "Actions"
+     switch moves: the visitor, and the admin (2026-11-23, "Add Actions
+     states for the Admin state"), whose Ask AI · Edit · Delete stay in the
+     corner. Lead and Member have no intro press. */
+  const pressesMove = view === 'public' || view === 'admin';
+  /* "In header + About section" keeps the header's presses; only About moves. */
+  const inHeader = actionsAt === 'header' || actionsAt === 'header-bio';
+  /* Admin's presses in the corner: both in "In header", Follow alone in
+     "In sections" (the intro is in Contact Details), none otherwise. */
+  const adminFollowInCorner = view === 'admin' && (inHeader || actionsAt === 'sections' || actionsAt === 'one');
+  const adminIntroInCorner = view === 'admin' && inHeader;
   // Demo-only: with one mock team, flipping status is the only way to see the
   // inactive treatment at all. It lives in the demo bar with the view switch,
   // outside the page card — a prototype control, not something on the profile.
@@ -675,19 +724,22 @@ export default function TeamProfilePrototype({
      gradient glyph. One object in every seat. */
   // Glyph size per seat: 18 on desktop, 12 in the phone badge. `AiSearchIcon`
   // sizes itself inline, so CSS cannot resize it — the seat passes it.
-  const askAiButton = (seatClass?: string, iconSize = 18) => (
-    <Button
-      style="link"
-      variant="primary"
-      underline={false}
-      className={clsx(local.askAiBtn, seatClass)}
-      aria-label={`Ask AI about ${team.name}`}
-      onClick={openAiSearch}
-    >
-      <AiSearchIcon size={iconSize} />
-      <span>Ask AI</span>
-    </Button>
-  );
+  /* LAB-3383 "One actions area": Ask AI leaves the profile in every seat
+     (the ticket: "Ask AI is in no view"); the LabOS Agent is its door. */
+  const askAiButton = (seatClass?: string, iconSize = 18) =>
+    oneArea ? null : (
+      <Button
+        style="link"
+        variant="primary"
+        underline={false}
+        className={clsx(local.askAiBtn, seatClass)}
+        aria-label={`Ask AI about ${team.name}`}
+        onClick={openAiSearch}
+      >
+        <AiSearchIcon size={iconSize} />
+        <span>Ask AI</span>
+      </Button>
+    );
 
   if (!mounted) {
     return <div className={shell.teamDetail} />;
@@ -801,16 +853,11 @@ export default function TeamProfilePrototype({
           </div>
         </div>
 
-        {view === 'public' && (
+        {pressesMove && (
           <div className={local.demoGroup}>
             <span className={local.demoLabel}>Actions</span>
             <div className={local.demoSwitch}>
-              {(
-                [
-                  ['header', 'In header'],
-                  ['bio', 'Under bio'],
-                ] as const
-              ).map(([value, label]) => (
+              {ACTIONS_AT_OPTIONS.map(([value, label]) => (
                 <button
                   key={value}
                   type="button"
@@ -822,6 +869,51 @@ export default function TeamProfilePrototype({
               ))}
             </div>
           </div>
+        )}
+
+        {pressesMove && oneArea && (
+          <>
+            <div className={local.demoGroup}>
+              <span className={local.demoLabel}>Office hours on the team</span>
+              <div className={local.demoSwitch}>
+                {(
+                  [
+                    ['some', 'Some'],
+                    ['none', 'None'],
+                  ] as const
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`${local.demoBtn} ${teamOh === value ? local.demoBtnActive : ''}`}
+                    onClick={() => setTeamOh(value)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className={local.demoGroup}>
+              <span className={local.demoLabel}>Request an intro when office hours exist (open)</span>
+              <div className={local.demoSwitch}>
+                {(
+                  [
+                    ['show', 'Show'],
+                    ['hide', 'Hide'],
+                  ] as const
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`${local.demoBtn} ${introWithOh === value ? local.demoBtnActive : ''}`}
+                    onClick={() => setIntroWithOh(value)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
         )}
 
         <div className={local.demoGroup}>
@@ -956,8 +1048,17 @@ export default function TeamProfilePrototype({
                   team={team}
                   facts={MOCK_TEAM_FACTS}
                   status={status}
+                  aboutApart={pressesMove && (actionsAt === 'badges-bio' || actionsAt === 'header-bio')}
+                  afterBadges={
+                    pressesMove && (actionsAt === 'badges' || actionsAt === 'badges-bio') ? (
+                      <div className={`${local.bioActions} ${local.badgeActions}`}>
+                        {visitorIntro}
+                        {visitorFollow}
+                      </div>
+                    ) : undefined
+                  }
                   afterAbout={
-                    !isTeamView && actionsAt === 'bio' ? (
+                    pressesMove && actionsAt === 'bio' ? (
                       <div className={local.bioActions}>
                         {visitorIntro}
                         {visitorFollow}
@@ -976,12 +1077,14 @@ export default function TeamProfilePrototype({
                           {askAiButton(local.fromTablet)}
                           {/* Review band "Actions → Under bio" moves these two
                               under About (see `afterAbout`); Ask AI stays. */}
-                          {actionsAt === 'header' && (
+                          {inHeader && (
                             <>
                               {visitorFollow}
                               {visitorIntro}
                             </>
                           )}
+                          {/* "In sections": Follow stays; the intro is in Contact Details. */}
+                          {(actionsAt === 'sections' || oneArea) && visitorFollow}
                           {/* Phone: Ask AI beside Follow as the member page's
                               outlined badge ("Use the same badge for team
                               profile as well"): the same object in every seat
@@ -1010,17 +1113,15 @@ export default function TeamProfilePrototype({
                                     necessarily on the team): after Follow, as
                                     in the visitor's cluster, ahead of the
                                     management actions Edit / Delete. */}
-                                {view === 'admin' && (
-                                  <>
-                                    <FollowPill
-                                      following={following}
-                                      onToggle={handleFollowToggle}
-                                      name={team.name ?? 'this team'}
-                                      className={local.fromTablet}
-                                    />
-                                    {introPress(local.fromTablet)}
-                                  </>
+                                {adminFollowInCorner && (
+                                  <FollowPill
+                                    following={following}
+                                    onToggle={handleFollowToggle}
+                                    name={team.name ?? 'this team'}
+                                    className={local.fromTablet}
+                                  />
                                 )}
+                                {adminIntroInCorner && introPress(local.fromTablet)}
                               </>
                             }
                           />
@@ -1036,7 +1137,7 @@ export default function TeamProfilePrototype({
                           open={followersOpen}
                           onOpenChange={setFollowersOpen}
                           action={
-                            view === 'admin' ? (
+                            adminFollowInCorner ? (
                               <>
                                 <FollowPill
                                   following={following}
@@ -1044,7 +1145,7 @@ export default function TeamProfilePrototype({
                                   name={team.name ?? 'this team'}
                                   className={local.mobileOnly}
                                 />
-                                {introPress(local.mobileOnly)}
+                                {adminIntroInCorner && introPress(local.mobileOnly)}
                               </>
                             ) : undefined
                           }
@@ -1055,12 +1156,63 @@ export default function TeamProfilePrototype({
                 />
               </div>
 
+              {/* LAB-3383 "One actions area": both flows, first under the
+                  header, for the seats that have them (visitor, admin). */}
+              {pressesMove && oneArea && (
+                <ActionsAreaCard title={`Meet ${team.name ?? 'this team'}`}>
+                  {teamOh === 'some' && (
+                    <ActionsAreaOption
+                      title="Office hours"
+                      lede={<>Short 1:1 calls with people at {team.name ?? 'this team'} — no introduction needed.</>}
+                    >
+                      <OfficeHoursPeople
+                        size={isMobile ? 's' : 'xs'}
+                        people={TEAM_OFFICE_HOURS.map((p) => ({
+                          ...p,
+                          onBook: () => showListingToast(`Production opens ${p.name}'s booking link here.`),
+                        }))}
+                      />
+                    </ActionsAreaOption>
+                  )}
+                  {(teamOh === 'none' || introWithOh === 'show') && (
+                    <IntroOption
+                      lede={
+                        <>
+                          Don&apos;t know anyone at {team.name ?? 'this team'}? The PL team can introduce you to the
+                          right person.
+                        </>
+                      }
+                      name={team.name ?? 'this team'}
+                      requested={intro.requested(teamIntroUid)}
+                      onRequest={() =>
+                        intro.request({ uid: teamIntroUid, name: team.name ?? 'this team', kind: 'team' })
+                      }
+                      primary={teamOh === 'none'}
+                      size={isMobile ? 's' : 'xs'}
+                    />
+                  )}
+                </ActionsAreaCard>
+              )}
+
               {/* Fund details (team.isFund) */}
               {team?.isFund && <TeamInvestorView team={team} />}
 
               {/* Contact */}
               <div className={shell.teamDetail__container__contact}>
-                <TeamContactView team={team} />
+                <TeamContactView
+                  team={team}
+                  footer={
+                    pressesMove && actionsAt === 'sections' ? (
+                      <div className={local.contactIntro}>
+                        <p className={local.contactIntroText}>
+                          Don&apos;t know anyone at {team.name ?? 'this team'}? The PL team can introduce you to the
+                          right person.
+                        </p>
+                        {visitorIntro}
+                      </div>
+                    ) : undefined
+                  }
+                />
               </div>
 
               {/* Membership source + community affiliations — import-safe production view. */}

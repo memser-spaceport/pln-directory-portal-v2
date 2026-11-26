@@ -92,7 +92,13 @@ export default function AiSearchPagePrototype() {
   useEffect(() => {
     if (arrived.current) return;
     const params = new URLSearchParams(window.location.search);
-    const q = params.get('q')?.trim();
+    /* The agent's "Open in AI Search" (agent entry, LAB-3389) hands over every question of its chat as a
+       repeated `q`, all already answered: one new saved thread, in the history list, the agent's chat untouched. */
+    const qs = params
+      .getAll('q')
+      .map((x) => x.trim())
+      .filter(Boolean);
+    const q = qs[0];
     const about = params.get('about');
     const scope =
       about === 'member'
@@ -100,22 +106,27 @@ export default function AiSearchPagePrototype() {
         : about === 'team'
           ? teamScopeFromParams(params)
           : null;
+    /* `history=1`: arrive with the History rail open (the agent's "All AI Search chats", LAB-3389). */
+    const showHistory = params.get('history') === '1';
     if (!q) {
-      if (scope) {
+      if (scope || showHistory) {
         arrived.current = true;
-        setRequest({ nonce: Date.now(), scope });
+        setRequest({ nonce: Date.now(), scope, showHistory });
       }
       return;
     }
     arrived.current = true;
     const out = params.get('viewer') === 'out';
-    const turn = makeTurn(q, scope);
+    const answered = params.get('answered') === '1';
     const thread: ChatThread = {
       id: newThreadId(),
       createdAt: new Date(),
       scope,
       title: titleFor(q),
-      turns: [params.get('answered') === '1' ? { ...turn, shown: turn.answer, status: 'done' } : turn],
+      turns: qs.map((question) => {
+        const turn = makeTurn(question, scope);
+        return answered ? { ...turn, shown: turn.answer, status: 'done' as const } : turn;
+      }),
     };
     if (out) {
       setViewer('out');
@@ -130,7 +141,7 @@ export default function AiSearchPagePrototype() {
   /* Production's /husky layout titles the tab "AI Chat | Protocol Labs Directory". */
   useEffect(() => {
     const before = document.title;
-    document.title = 'AI Search | Protocol Labs Directory';
+    document.title = 'AI agent chat | Protocol Labs Directory';
     return () => {
       document.title = before;
     };

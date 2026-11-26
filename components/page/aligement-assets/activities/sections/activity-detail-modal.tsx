@@ -8,8 +8,8 @@ import { CloseIcon } from '@/components/icons';
 import { Activity, PopupLink } from '../types';
 import { isInfraOnlyActivity } from '../data';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
-import { ACTIVITY_FORM_URL, ACTIVITY_CONFIRM_TOAST } from '@/constants/plaa';
-import { toast } from '@/components/core/ToastContainer';
+import { activitySubmitUrl } from '../submit-url';
+import { useActivityConfirmToast } from '../confirm-toast';
 import { openPlaaBotForActivity } from '@/components/core/plaa-bot/plaa-bot.utils';
 import { PLAA_BOT_ANALYTICS_TARGET } from '@/components/core/plaa-bot/constants';
 
@@ -28,6 +28,7 @@ interface ActivityDetailModalProps {
  */
 export default function ActivityDetailModal({ isOpen, onClose, activity }: ActivityDetailModalProps) {
   const { onActivitiesModalLinkClicked } = useAlignmentAssetsAnalytics();
+  const showConfirmToast = useActivityConfirmToast();
 
   if (!activity) return null;
 
@@ -51,9 +52,8 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
   };
 
   const handleCtaClick = () => {
-    // Confirm CTA: acknowledge with a toast, no navigation.
     if (activity.cta === 'confirm') {
-      toast.success(ACTIVITY_CONFIRM_TOAST);
+      showConfirmToast(activity);
       return;
     }
 
@@ -70,11 +70,7 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
       return;
     }
 
-    // Submit CTA: open the submission form. Priority: ctaLink > submissionLink > ACTIVITY_FORM_URL
-    const url =
-      popupContent.ctaLink ||
-      (!activity.hasFormLink && popupContent.submissionLink ? popupContent.submissionLink.url : null) ||
-      ACTIVITY_FORM_URL;
+    const url = activitySubmitUrl(activity);
 
     onActivitiesModalLinkClicked(analyticsParams, 'Submit Activity Button', url);
 

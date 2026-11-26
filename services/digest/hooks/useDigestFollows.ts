@@ -19,9 +19,8 @@ export function useDigestFollows(stories: DigestStory[]) {
   const { mutate } = useFollowTeam();
   const analytics = useFollowAnalytics();
 
-  const toggle = (teamUid: string, teamName: string) => {
+  const act = (teamUid: string, teamName: string, action: 'follow' | 'unfollow') => {
     const was = Boolean(following[teamUid]);
-    const action = was ? 'unfollow' : 'follow';
     const set = (value: boolean) => setFollowing((current) => ({ ...current, [teamUid]: value }));
     set(!was);
     mutate(
@@ -43,5 +42,11 @@ export function useDigestFollows(stories: DigestStory[]) {
     );
   };
 
-  return { isFollowing: (teamUid: string) => Boolean(following[teamUid]), toggle };
+  return {
+    isFollowing: (teamUid: string) => Boolean(following[teamUid]),
+    toggle: (teamUid: string, teamName: string) => act(teamUid, teamName, following[teamUid] ? 'unfollow' : 'follow'),
+    // A Follow pressed before sign-in (LAB-3347), finished on the way back. Always a follow: the state here started
+    // signed out, so it can't tell whether the member already follows the team, and a toggle could unfollow it.
+    follow: (teamUid: string, teamName: string) => act(teamUid, teamName, 'follow'),
+  };
 }

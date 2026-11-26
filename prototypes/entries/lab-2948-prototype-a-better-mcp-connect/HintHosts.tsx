@@ -216,7 +216,7 @@ export function GeneralSearchHost({ hint }: { hint: ReactNode }) {
               className={dialogCss.fieldInput}
               type="text"
               defaultValue={GENERAL_TERM}
-              aria-label="Search or ask AI Search a question"
+              aria-label="Search or ask AI agent chat a question"
             />
           </div>
           <button type="button" className={dialogCss.close} aria-label="Close search">
@@ -227,7 +227,7 @@ export function GeneralSearchHost({ hint }: { hint: ReactNode }) {
         <div className={dialogCss.askBar}>
           <button type="button" className={dialogCss.askRow}>
             <Image className={dialogCss.askGlyph} src="/icons/ai-search.svg" alt="" width={20} height={20} />
-            <span className={dialogCss.askText}>Chat with AI Search about &ldquo;{GENERAL_TERM}&rdquo;</span>
+            <span className={dialogCss.askText}>Ask AI agent chat about &ldquo;{GENERAL_TERM}&rdquo;</span>
             <span className={dialogCss.askArrow}>
               <ArrowUpRightIcon />
             </span>

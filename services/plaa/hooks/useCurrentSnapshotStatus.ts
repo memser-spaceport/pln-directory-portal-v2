@@ -11,7 +11,10 @@ export interface SnapshotActivityItem {
   category: string;
   title: string;
   points: number;
+  siteActivityId: string | null;
 }
+
+export type SnapshotActivitiesStatus = 'loading' | 'ready' | 'unavailable';
 
 export interface CurrentSnapshotStatus {
   periodLabel: string;
@@ -23,6 +26,7 @@ export interface CurrentSnapshotStatus {
   activitiesCount: number;
   categoriesCount: number;
   activities: SnapshotActivityItem[];
+  activitiesStatus: SnapshotActivitiesStatus;
 }
 
 /** Falls back to calendar-math (round 1 = Feb 2025) while useCurrentRoundStats() is loading or unreachable. */
@@ -60,12 +64,13 @@ function usePeriodStatus() {
  */
 export function useCurrentSnapshotStatus(): CurrentSnapshotStatus {
   const { periodLabel, daysLeft, progressPct, snapshotPeriod } = usePeriodStatus();
-  const { data: snapshotData } = useSnapshotPoints(snapshotPeriod);
+  const { data: snapshotData, isLoading } = useSnapshotPoints(snapshotPeriod);
 
   const activities: SnapshotActivityItem[] = (snapshotData?.records ?? []).map((record) => ({
     category: record.category,
     title: record.activityName,
     points: Number(record.pointsCollectedPerSnapshot) || 0,
+    siteActivityId: record.siteActivityId,
   }));
   const pointsCollected = activities.reduce((sum, a) => sum + a.points, 0);
   const categoriesCount = new Set(activities.map((a) => a.category)).size;
@@ -78,5 +83,6 @@ export function useCurrentSnapshotStatus(): CurrentSnapshotStatus {
     activitiesCount: activities.length,
     categoriesCount,
     activities,
+    activitiesStatus: isLoading ? 'loading' : snapshotData ? 'ready' : 'unavailable',
   };
 }

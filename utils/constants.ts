@@ -890,10 +890,29 @@ export const EVENT_DRAWER_ANALYTICS = {
   ON_EVENT_NOT_GOING_MARKED: 'event-not-going-marked',
   ON_EVENT_PLANS_SAVED: 'event-plans-saved',
   ON_EVENT_ATTENDEES_OPENED: 'event-attendees-opened',
+  // LAB-3361: the drawer's toolbar.
+  ON_EVENT_LINK_COPIED: 'event-drawer-link-copied',
+  ON_EVENT_EVENTS_APP_OPENED: 'event-drawer-events-app-opened',
+  ON_EVENT_DRAWER_STEPPED: 'event-drawer-stepped',
   /** The owner's "Add event" on their profile (LAB-3218). */
   ON_PROFILE_EVENT_ADD_CLICKED: 'profile-event-add-clicked',
   /** The owner removed an event from the ⋯ menu on their profile (LAB-3218). */
   ON_PROFILE_EVENT_REMOVED: 'profile-event-removed',
+};
+
+/** The native All Events page (LAB-3247). Fired on a member's own change, never on landing from a link. */
+export const ALL_EVENTS_ANALYTICS = {
+  // LAB-3352: the Embed link, and loads of the embed page.
+  ON_EVENTS_EMBED_LINK_COPIED: 'events-embed-link-copied',
+  ON_EVENTS_EMBED_VIEWED: 'events-embed-viewed',
+  // LAB-3365: Copy code in the Embed dialog.
+  ON_EVENTS_EMBED_CODE_COPIED: 'events-embed-code-copied',
+  ON_EVENTS_VIEW_CHANGED: 'events-view-changed',
+  ON_EVENTS_FILTERS_APPLIED: 'events-filters-applied',
+  ON_EVENTS_CITY_SELECTED: 'events-city-selected',
+  // LAB-3394: setting the location from Near you.
+  ON_EVENTS_LOCATION_DIALOG_OPENED: 'events-location-dialog-opened',
+  ON_EVENTS_LOCATION_SAVED: 'events-location-saved',
 };
 
 export const EVENTS_ANALYTICS = {
@@ -2985,6 +3004,11 @@ export const DIGEST_ANALYTICS_EVENTS = {
   ON_DIGEST_TOPICS_SAVED: 'digest-topics-saved',
   ON_DIGEST_TOPICS_MODAL_OPENED: 'digest-topics-modal-opened',
   ON_DIGEST_TOPICS_SIGN_IN_PROMPTED: 'digest-topics-sign-in-prompted',
+  // A signed-out press that needs sign-in: a forum thread (LAB-3348), More / Less (LAB-3351), Follow, Comments, Open
+  // the forum, Sign in to personalize (LAB-3347).
+  ON_DIGEST_SIGN_IN_PROMPTED: 'digest-sign-in-prompted',
+  // LAB-3347: the reader's answer to the sign-in prompt: sign-in, sign-up or close.
+  ON_DIGEST_SIGN_IN_PROMPT_ANSWERED: 'digest-sign-in-prompt-answered',
   // LAB-3312: the digest email page (/digest/email), opened from the email footer.
   ON_DIGEST_EMAIL_PAGE_VIEWED: 'digest-email-page-viewed',
   ON_DIGEST_EMAIL_UNSUBSCRIBED: 'digest-email-unsubscribed',

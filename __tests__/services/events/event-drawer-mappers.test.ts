@@ -121,6 +121,28 @@ describe('event drawer mappers (LAB-3216)', () => {
       expect(event.viewer).toBeNull();
     });
 
+    it('splits focus areas from topics, once each, in any spelling (LAB-3404)', () => {
+      const base = eventResponse();
+      const tags = ['FA4', 'Talks', ' fa4 ', 'FA1', 'FA5'].map((name) => ({ name, color: null }));
+      const event = toEventDetail(eventResponse({ details: { ...base.details!, tags } }));
+      expect(event.focusAreas).toEqual(['FA4', 'FA1']);
+      expect(event.tags.map((t) => t.name)).toEqual(['Talks', 'FA5']);
+    });
+
+    it('prints the event in its own time zone, else the gathering’s, else UTC (LAB-3404)', () => {
+      const own = toEventDetail(eventResponse({ timezone: 'America/Chicago' }));
+      expect(own.timezone).toBe('America/Chicago');
+      expect(own.dateLine).toContain('(UTC -6:00)');
+      expect(own.agenda[0].items[0].time).toBe('3:00 AM - 4:00 AM');
+      expect(own.gathering?.timezone).toBe('Europe/Lisbon');
+      expect(toEventDetail(eventResponse()).timezone).toBe('Europe/Lisbon');
+      expect(toEventDetail(eventResponse({ timezone: null })).timezone).toBe('Europe/Lisbon');
+      expect(toEventDetail(eventResponse({ timezone: null, location: null })).timezone).toBe('UTC');
+      expect(toEventDetail(eventResponse({ timezone: 'America/Chicago', location: null })).timezone).toBe(
+        'America/Chicago',
+      );
+    });
+
     it('leaves empty tags, agenda and hosts empty', () => {
       const event = toEventDetail(bareEventResponse());
       expect(event.tags).toEqual([]);

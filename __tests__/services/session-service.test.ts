@@ -16,8 +16,8 @@ describe('browser session helpers', () => {
     const second = refreshSession();
     resolve({ ok: true, json: async () => ({ accessToken: 'a2', userInfo: { uid: 'm-1' } }) });
 
-    expect(await first).toEqual({ accessToken: 'a2', userInfo: { uid: 'm-1' } });
-    expect(await second).toEqual({ accessToken: 'a2', userInfo: { uid: 'm-1' } });
+    expect(await first).toEqual({ status: 'ok', session: { accessToken: 'a2', userInfo: { uid: 'm-1' } } });
+    expect(await second).toEqual({ status: 'ok', session: { accessToken: 'a2', userInfo: { uid: 'm-1' } } });
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock).toHaveBeenCalledWith('/api/auth/refresh', expect.objectContaining({ method: 'POST' }));
   });
@@ -31,16 +31,32 @@ describe('browser session helpers', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it('refreshSession: resolves expired only on 401', async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 401 });
+    expect(await refreshSession()).toEqual({ status: 'expired' });
+  });
+
   it.each<[string, () => void]>([
-    ['a 401', () => void fetchMock.mockResolvedValue({ ok: false, status: 401 })],
+    ['a 503', () => void fetchMock.mockResolvedValue({ ok: false, status: 503 })],
     ['a network error', () => void fetchMock.mockRejectedValue(new Error('offline'))],
     [
       'a body without userInfo',
-      () => void fetchMock.mockResolvedValue({ ok: true, json: async () => ({ accessToken: 'a' }) }),
+      () => void fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => ({ accessToken: 'a' }) }),
     ],
-  ])('refreshSession: resolves null on %s', async (_label, arrange) => {
+    [
+      'a body that is not JSON',
+      () =>
+        void fetchMock.mockResolvedValue({
+          ok: true,
+          status: 200,
+          json: async () => {
+            throw new Error('not json');
+          },
+        }),
+    ],
+  ])('refreshSession: resolves unavailable on %s', async (_label, arrange) => {
     arrange();
-    expect(await refreshSession()).toBeNull();
+    expect(await refreshSession()).toEqual({ status: 'unavailable' });
   });
 
   it('establishSession: posts the tokens as JSON and reports the result', async () => {

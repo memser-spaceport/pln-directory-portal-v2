@@ -10,6 +10,8 @@ import { decodeToken } from '@/utils/auth.utils';
 jest.mock('@/services/auth.service', () => ({
   checkIsValidToken: jest.fn(),
   renewAccessToken: jest.fn(),
+  isTransientRefreshFailure: (result: { transient?: boolean; status?: number } | null | undefined) =>
+    Boolean(result?.transient) || (result?.status ?? 0) === 429 || (result?.status ?? 0) >= 500,
 }));
 
 jest.mock('@/utils/auth.utils', () => ({
@@ -220,7 +222,6 @@ describe('proxy: host-only refreshToken/userInfo (authToken shared, AI_APPS_SHAR
   it.each<[string, Record<string, string>, () => void]>([
     ['no refresh token', { authToken: SESSION.authToken }, () => undefined],
     ['force logout', SESSION, () => void mockedCheck.mockResolvedValue({ forceLogout: true })],
-    ['an error', SESSION, () => void mockedCheck.mockRejectedValue(new Error('down'))],
   ])('clears host-only and shared copies of every session cookie on %s', async (_label, cookies, arrange) => {
     arrange();
     const spy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
@@ -237,6 +238,47 @@ describe('proxy: host-only refreshToken/userInfo (authToken shared, AI_APPS_SHAR
     );
     expect(setCookies(res!).filter((c) => !c.expired)).toEqual([]);
     spy.mockRestore();
+  });
+
+  it('keeps the session when the sign-in check fails, and answers 503 on a protected page', async () => {
+    mockedCheck.mockRejectedValue(new Error('timeout'));
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    const publicPage = await proxy(request('/home', SESSION));
+    const protectedPage = await proxy(request('/investors', SESSION));
+
+    expect(publicPage?.status).toBe(200);
+    expect(publicPage?.headers.get('x-middleware-request-isloggedin')).toBeNull();
+    expect(setCookies(publicPage!)).toEqual([]);
+    expect(protectedPage?.status).toBe(503);
+    expect(protectedPage?.headers.get('retry-after')).toBe('5');
+    expect(setCookies(protectedPage!)).toEqual([]);
+    spy.mockRestore();
+  });
+
+  it('keeps the session when the refresh call is an outage', async () => {
+    mockedCheck.mockResolvedValue({ active: false });
+    mockedRenew.mockResolvedValue({ ok: false, status: 503, data: null, transient: true });
+
+    const res = await proxy(request('/home', SESSION));
+
+    expect(res?.status).toBe(200);
+    expect(res?.headers.get('x-middleware-request-isloggedin')).toBeNull();
+    expect(setCookies(res!)).toEqual([]);
+  });
+
+  it('clears the session when the refresh token is rejected, including on a protected page', async () => {
+    mockedCheck.mockResolvedValue({ active: false });
+    mockedRenew.mockResolvedValue({ ok: false, status: 401, data: {}, transient: false });
+
+    const res = await proxy(request('/investors', SESSION));
+    const cleared = setCookies(res!).filter((c) => c.expired);
+
+    expect(res?.status).toBe(307);
+    expect(res?.headers.get('location')).toContain('/members');
+    for (const name of ['refreshToken', 'authToken', 'userInfo', 'sessionExpiresAt']) {
+      expect(cleared).toEqual(expect.arrayContaining([expect.objectContaining({ name, domain: undefined })]));
+    }
   });
 
   it('adds no Domain headers when COOKIE_DOMAIN is not set (local dev)', async () => {

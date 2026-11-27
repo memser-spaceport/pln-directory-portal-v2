@@ -1,35 +1,128 @@
 import { generateOAuth2State } from '@/utils/auth.utils';
 
-export const renewAccessToken = async (refreshToken: string) => {
-  const body = JSON.stringify({ refreshToken, grantType: 'refresh_token' });
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/auth/token`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    cache: 'no-store',
-    body,
-  });
+const INTROSPECT_TIMEOUT_MS = 3000;
+const INTROSPECT_RETRY_DELAYS_MS = [200, 500];
+const REFRESH_TIMEOUT_MS = 4000;
+const REFRESH_RETRY_DELAYS_MS = [200];
 
-  const result = await response.json();
-  return { ok: response?.ok, data: result, status: response?.status };
+/** The auth service did not give a definitive answer. The session must stay. */
+export class AuthServiceUnavailableError extends Error {
+  constructor(message = 'Authentication service unavailable') {
+    super(message);
+    this.name = 'AuthServiceUnavailableError';
+  }
+}
+
+export interface RenewAccessTokenResult {
+  ok: boolean;
+  data: {
+    accessToken?: string;
+    refreshToken?: string;
+    userInfo?: { uid?: string };
+  } | null;
+  status: number;
+  transient: boolean;
+}
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const isTransientHttpStatus = (status: number) => status === 429 || status >= 500;
+
+/** A mocked caller can omit `transient`. HTTP 429 and 5xx still count as an outage. */
+export const isTransientRefreshFailure = (result: { transient?: boolean; status?: number } | null | undefined) => {
+  if (!result) return false;
+  if (result.transient) return true;
+  const status = result.status ?? 0;
+  return status === 429 || status >= 500;
+};
+
+async function readJsonBody(response: Response): Promise<unknown> {
+  const text = await response.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+  timeoutMs: number,
+  retryDelaysMs: number[],
+): Promise<Response> {
+  const attempts = retryDelaysMs.length + 1;
+  let lastResponse: Response | null = null;
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    try {
+      const response = await fetch(url, { ...init, signal: AbortSignal.timeout(timeoutMs) });
+      if (!isTransientHttpStatus(response.status)) return response;
+      lastResponse = response;
+    } catch (error) {
+      lastError = error;
+      lastResponse = null;
+    }
+    if (attempt < attempts - 1) await wait(retryDelaysMs[attempt]);
+  }
+
+  if (lastResponse) return lastResponse;
+  const message = lastError instanceof Error ? lastError.message : 'Authentication service unavailable';
+  throw new AuthServiceUnavailableError(message);
+}
+
+export const renewAccessToken = async (refreshToken: string): Promise<RenewAccessTokenResult> => {
+  const body = JSON.stringify({ refreshToken, grantType: 'refresh_token' });
+  try {
+    const response = await fetchWithRetry(
+      `${process.env.DIRECTORY_API_URL}/v1/auth/token`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
+        body,
+      },
+      REFRESH_TIMEOUT_MS,
+      REFRESH_RETRY_DELAYS_MS,
+    );
+    const data = await readJsonBody(response);
+    const parsed = data && typeof data === 'object' ? (data as RenewAccessTokenResult['data']) : null;
+    const transient = isTransientHttpStatus(response.status) || (response.ok && parsed === null);
+    return { ok: response.ok && !transient, data: parsed, status: response.status, transient };
+  } catch {
+    return { ok: false, data: null, status: 0, transient: true };
+  }
 };
 
 export const checkIsValidToken = async (token: string) => {
   const headers = new Headers();
   headers.append('Content-Type', 'application/json');
-  const validateResponse = await fetch(`${process.env.AUTH_API_URL}/auth/introspect`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({ token }),
-    cache: 'no-store',
-  });
-  const validateResult = await validateResponse.json();
-  // console.log('auth.service validateResult', validateResult);
+  const validateResponse = await fetchWithRetry(
+    `${process.env.AUTH_API_URL}/auth/introspect`,
+    {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ token }),
+      cache: 'no-store',
+    },
+    INTROSPECT_TIMEOUT_MS,
+    INTROSPECT_RETRY_DELAYS_MS,
+  );
 
-  if (!validateResponse?.ok) {
-    return null;
+  if (isTransientHttpStatus(validateResponse.status)) {
+    throw new AuthServiceUnavailableError();
+  }
+  if (validateResponse.status >= 400 && validateResponse.status < 500) {
+    return { active: false };
   }
 
-  return validateResult;
+  const validateResult = await readJsonBody(validateResponse);
+  if (!validateResponse.ok || validateResult === null || typeof validateResult !== 'object') {
+    throw new AuthServiceUnavailableError();
+  }
+  return validateResult as { active?: boolean; forceLogout?: boolean };
 };
 
 export const createStateUid = async () => {

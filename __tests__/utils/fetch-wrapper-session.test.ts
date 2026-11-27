@@ -48,7 +48,7 @@ beforeEach(() => {
 describe('customFetch with an httpOnly refresh token', () => {
   it('renews through the server when the access token is gone, then calls with the new one', async () => {
     cookies({});
-    mockedRefresh.mockResolvedValue({ accessToken: 'access2', userInfo: { uid: 'm-1' } });
+    mockedRefresh.mockResolvedValue({ status: 'ok', session: { accessToken: 'access2', userInfo: { uid: 'm-1' } } });
     fetchMock.mockResolvedValue({ ok: true, status: 200 });
 
     await customFetch('https://api.test/x', { headers: {} }, true);
@@ -60,7 +60,7 @@ describe('customFetch with an httpOnly refresh token', () => {
 
   it('retries a 401 once with a renewed token', async () => {
     cookies({ authToken: JSON.stringify('old') });
-    mockedRefresh.mockResolvedValue({ accessToken: 'access2', userInfo: { uid: 'm-1' } });
+    mockedRefresh.mockResolvedValue({ status: 'ok', session: { accessToken: 'access2', userInfo: { uid: 'm-1' } } });
     fetchMock.mockResolvedValueOnce({ ok: false, status: 401 }).mockResolvedValueOnce({ ok: true, status: 200 });
 
     const res = await customFetch('https://api.test/x', { headers: {} }, true);
@@ -71,7 +71,7 @@ describe('customFetch with an httpOnly refresh token', () => {
 
   it('signs out and waits for the server sign-out before reloading when the refresh fails', async () => {
     cookies({ authToken: JSON.stringify('old') });
-    mockedRefresh.mockResolvedValue(null);
+    mockedRefresh.mockResolvedValue({ status: 'expired' });
     fetchMock.mockResolvedValue({ ok: false, status: 401 });
     let signedOut = false;
     mockedClear.mockImplementation(async () => {
@@ -84,6 +84,17 @@ describe('customFetch with an httpOnly refresh token', () => {
 
     expect(mockedClear).toHaveBeenCalled();
     expect(reload).toHaveBeenCalled();
+  });
+
+  it('does not sign out when the refresh is unavailable', async () => {
+    cookies({});
+    mockedRefresh.mockResolvedValue({ status: 'unavailable' });
+
+    const res = await customFetch('https://api.test/x', { headers: {} }, true);
+
+    expect(res?.status).toBe(503);
+    expect(mockedClear).not.toHaveBeenCalled();
+    expect(reload).not.toHaveBeenCalled();
   });
 
   it('signs out without calling the API when there is no session', async () => {
@@ -101,7 +112,7 @@ describe('customFetch with an httpOnly refresh token', () => {
 describe('getUserCredentialsInfo', () => {
   it('never returns a refresh token', async () => {
     cookies({});
-    mockedRefresh.mockResolvedValue({ accessToken: 'access2', userInfo: { uid: 'm-1' } });
+    mockedRefresh.mockResolvedValue({ status: 'ok', session: { accessToken: 'access2', userInfo: { uid: 'm-1' } } });
 
     const result = await getUserCredentialsInfo();
 
@@ -110,8 +121,21 @@ describe('getUserCredentialsInfo', () => {
 
   it('asks for login when the session cannot be renewed', async () => {
     cookies({});
-    mockedRefresh.mockResolvedValue(null);
+    mockedRefresh.mockResolvedValue({ status: 'expired' });
 
-    expect(await getUserCredentialsInfo()).toEqual(expect.objectContaining({ isLoginRequired: true }));
+    expect(await getUserCredentialsInfo()).toEqual(expect.objectContaining({ isLoginRequired: true, status: 401 }));
+  });
+
+  it('keeps the caller signed in when the refresh is unavailable', async () => {
+    cookies({});
+    mockedRefresh.mockResolvedValue({ status: 'unavailable' });
+
+    expect(await getUserCredentialsInfo()).toEqual({
+      isLoginRequired: false,
+      newAuthToken: null,
+      newUserInfo: null,
+      status: 503,
+    });
+    expect(mockedClear).not.toHaveBeenCalled();
   });
 });

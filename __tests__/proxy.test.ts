@@ -10,6 +10,8 @@ import { calculateExpiry, decodeToken } from '@/utils/auth.utils';
 jest.mock('@/services/auth.service', () => ({
   checkIsValidToken: jest.fn(),
   renewAccessToken: jest.fn(),
+  isTransientRefreshFailure: (result: { transient?: boolean; status?: number } | null | undefined) =>
+    Boolean(result?.transient) || (result?.status ?? 0) === 429 || (result?.status ?? 0) >= 500,
 }));
 
 jest.mock('@/utils/auth.utils', () => ({

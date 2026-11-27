@@ -36,7 +36,7 @@ beforeEach(() => {
 describe('UserInfoValidator with an httpOnly refresh token', () => {
   it('restores missing userInfo through the server refresh without signing out', async () => {
     mockedHasSession.mockReturnValue(true);
-    mockedRefresh.mockResolvedValue({ accessToken: 'a', userInfo: { uid: 'm-1' } });
+    mockedRefresh.mockResolvedValue({ status: 'ok', session: { accessToken: 'a', userInfo: { uid: 'm-1' } } });
 
     render(<UserInfoValidator userInfo={null} isLoggedIn authToken="a" />);
 
@@ -47,12 +47,23 @@ describe('UserInfoValidator with an httpOnly refresh token', () => {
 
   it('shows Session Expired and signs out when the session cannot be renewed', async () => {
     mockedHasSession.mockReturnValue(true);
-    mockedRefresh.mockResolvedValue(null);
+    mockedRefresh.mockResolvedValue({ status: 'expired' });
 
     render(<UserInfoValidator userInfo={null} isLoggedIn authToken="a" />);
 
     expect(await screen.findByText('Session Expired')).toBeInTheDocument();
     expect(mockedClear).toHaveBeenCalled();
+  });
+
+  it('keeps the session when the refresh is unavailable', async () => {
+    mockedHasSession.mockReturnValue(true);
+    mockedRefresh.mockResolvedValue({ status: 'unavailable' });
+
+    render(<UserInfoValidator userInfo={null} isLoggedIn authToken="a" />);
+
+    await waitFor(() => expect(mockedRefresh).toHaveBeenCalled());
+    expect(mockedClear).not.toHaveBeenCalled();
+    expect(screen.queryByText('Session Expired')).not.toBeInTheDocument();
   });
 
   it('does not try to refresh when there is no session marker', async () => {

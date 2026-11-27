@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { checkIsValidToken, renewAccessToken } from './services/auth.service';
+import { checkIsValidToken, isTransientRefreshFailure, renewAccessToken } from './services/auth.service';
 import { calculateExpiry, decodeToken } from './utils/auth.utils';
 import { isAiAppsRoute, isProtectedRoute, isPublishedAiAppRoute } from './utils/isProtectedRoute';
 import { clearSessionCookies, SESSION_SCOPE_COOKIE, sessionScopeValue } from './utils/sessionCookies';
@@ -96,6 +96,24 @@ function nextPage(requestHeaders: Headers): NextResponse {
   return NextResponse.next({ request: { headers: requestHeaders } });
 }
 
+/** The auth service did not answer. Keep the cookies. A protected page cannot render signed in. */
+function handleTransientAuthFailure(pathname: string, requestHeaders: Headers): NextResponse {
+  if (isProtectedRoute(pathname)) {
+    return new NextResponse('Service temporarily unavailable', {
+      status: 503,
+      headers: { 'Retry-After': '5' },
+    });
+  }
+  return nextPage(requestHeaders);
+}
+
+/** The auth service rejected the session. Clear it, and send a protected page to sign-in. */
+function clearSessionAndRespond(req: NextRequest, pathname: string, requestHeaders: Headers): NextResponse {
+  const response = isProtectedRoute(pathname) ? createLoginRedirect(req, pathname) : nextPage(requestHeaders);
+  clearSessionCookies(response);
+  return response;
+}
+
 // AI App deep links used to carry the open subpage as `?path=`; those links
 // are still shared and bookmarked, so send them to the segment form
 // (`/pl-infra-os/flywheels`), keeping every other param (e.g. `settings`).
@@ -143,15 +161,8 @@ export async function proxy(req: NextRequest) {
     if (authToken) {
       const validCheckResponse = await checkIsValidToken(authToken as string);
 
-      // Priority 1: Check for force logout (regardless of active status)
       if (validCheckResponse?.forceLogout) {
-        // Redirect to login if accessing protected route after force logout
-        if (isProtectedRoute(pathname)) {
-          return createLoginRedirect(req, pathname);
-        }
-        const response = nextPage(requestHeaders);
-        clearSessionCookies(response);
-        return response;
+        return clearSessionAndRespond(req, pathname, requestHeaders);
       }
 
       // Priority 2: Check if token is active
@@ -170,38 +181,28 @@ export async function proxy(req: NextRequest) {
     }
 
     if ((!authTokenFromCookie || !isValidAuthToken || !userInfo) && refreshTokenFromCookie) {
-      // console.log('middleware inside refresh token');
       const renewAccessTokenResponse = await renewAccessToken(refreshTokenFromCookie?.value.replace(/"/g, ''));
-      const { accessToken, refreshToken, userInfo } = renewAccessTokenResponse?.data;
+      const { accessToken, refreshToken, userInfo: renewedUser } = renewAccessTokenResponse?.data ?? {};
 
-      if (accessToken && refreshToken && userInfo && userInfo.uid) {
-        // Only set logged in if userInfo has a valid uid
+      if (accessToken && refreshToken && renewedUser?.uid) {
         setSignedInRequestHeaders(requestHeaders, {
           refreshToken: JSON.stringify(refreshToken),
           authToken: JSON.stringify(accessToken),
-          userInfo: encodeURIComponent(JSON.stringify(userInfo)),
+          userInfo: encodeURIComponent(JSON.stringify(renewedUser)),
         });
         const response = nextPage(requestHeaders);
-        setSessionCookies(response, req, { accessToken, refreshToken, userInfo });
+        setSessionCookies(response, req, { accessToken, refreshToken, userInfo: renewedUser });
         return response;
       }
-    } else {
-      // Redirect to login if accessing protected route with invalid tokens
-      if (isProtectedRoute(pathname)) {
-        return createLoginRedirect(req, pathname);
+      if (isTransientRefreshFailure(renewAccessTokenResponse)) {
+        return handleTransientAuthFailure(pathname, requestHeaders);
       }
-      const response = nextPage(requestHeaders);
-      clearSessionCookies(response);
-      return response;
+      return clearSessionAndRespond(req, pathname, requestHeaders);
     }
+
+    return clearSessionAndRespond(req, pathname, requestHeaders);
   } catch (err) {
     console.error(err);
-    // Redirect to login if accessing protected route and an error occurred
-    if (isProtectedRoute(pathname)) {
-      return createLoginRedirect(req, pathname);
-    }
-    const response = nextPage(requestHeaders);
-    clearSessionCookies(response);
-    return response;
+    return handleTransientAuthFailure(pathname, requestHeaders);
   }
 }

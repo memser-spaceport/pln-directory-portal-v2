@@ -27,22 +27,24 @@ export const customFetch = async (url: string, options: any, isIncludeToken: boo
     }
 
     if (!authToken) {
+      const session = await refreshSession();
+      if (session.status === 'expired') {
+        await signOutAndReload();
+        return;
+      }
+      if (session.status !== 'ok') {
+        return new Response(null, { status: 503 });
+      }
       try {
-        const session = await refreshSession();
-        if (!session) {
-          await signOutAndReload();
-          return;
-        }
         return await fetch(url, {
           ...options,
           headers: {
             ...options.headers,
-            Authorization: `Bearer ${session.accessToken}`,
+            Authorization: `Bearer ${session.session.accessToken}`,
           },
         });
-      } catch (error) {
-        await signOutAndReload();
-        return;
+      } catch {
+        return new Response(null, { status: 503 });
       }
     }
 
@@ -68,10 +70,17 @@ export const customFetch = async (url: string, options: any, isIncludeToken: boo
 
 /** Renews the session on the server (the refresh token is httpOnly) and repeats the call once. */
 const retryApi = async (url: string, options: any) => {
-  const session = hasSession() ? await refreshSession() : null;
-  if (!session) {
+  if (!hasSession()) {
     await signOutAndReload();
     return new Response(null, { status: 401 });
+  }
+  const session = await refreshSession();
+  if (session.status === 'expired') {
+    await signOutAndReload();
+    return new Response(null, { status: 401 });
+  }
+  if (session.status !== 'ok') {
+    return new Response(null, { status: 503 });
   }
 
   try {
@@ -79,12 +88,11 @@ const retryApi = async (url: string, options: any) => {
       ...options,
       headers: {
         ...options.headers,
-        Authorization: `Bearer ${session.accessToken}`,
+        Authorization: `Bearer ${session.session.accessToken}`,
       },
     });
-  } catch (error) {
-    await signOutAndReload();
-    return new Response(null, { status: 401 });
+  } catch {
+    return new Response(null, { status: 503 });
   }
 };
 
@@ -103,15 +111,23 @@ export const getUserCredentialsInfo = async () => {
     };
   } else if (hasSession()) {
     const session = await refreshSession();
-    if (!session) {
+    if (session.status === 'ok') {
       return {
-        isLoginRequired: true,
-        status: 401,
+        newUserInfo: session.session.userInfo,
+        newAuthToken: session.session.accessToken,
+      };
+    }
+    if (session.status === 'unavailable') {
+      return {
+        isLoginRequired: false,
+        newAuthToken: null,
+        newUserInfo: null,
+        status: 503,
       };
     }
     return {
-      newUserInfo: session.userInfo,
-      newAuthToken: session.accessToken,
+      isLoginRequired: true,
+      status: 401,
     };
   }
   return {

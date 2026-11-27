@@ -78,20 +78,16 @@ export function UserInfoValidator({ userInfo, isLoggedIn, authToken }: UserInfoV
       const attemptRestore = async () => {
         try {
           const session = await refreshSession();
-          if (session?.userInfo?.uid) {
-            // Refresh the page to reload with valid userInfo
+          if (session.status === 'ok' && session.session.userInfo?.uid) {
             router.refresh();
             return;
           }
-
-          // If refresh failed, show session expired modal
-          setShowSessionExpired(true);
-          // Clear cookies after showing modal
-          await clearAllAuthCookies();
+          if (session.status === 'expired') {
+            setShowSessionExpired(true);
+            await clearAllAuthCookies();
+          }
         } catch (error) {
           console.error('Failed to restore userInfo:', error);
-          setShowSessionExpired(true);
-          await clearAllAuthCookies();
         } finally {
           setIsValidating(false);
         }

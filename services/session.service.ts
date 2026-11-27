@@ -9,6 +9,11 @@ export interface RefreshedSession {
   userInfo: { uid: string; email?: string; name?: string };
 }
 
+export type RefreshSessionResult =
+  | { status: 'ok'; session: RefreshedSession }
+  | { status: 'expired' }
+  | { status: 'unavailable' };
+
 /**
  * Browser only. Hands the tokens the API just issued to LabOS's server, which stores them as the session cookies
  * (refreshToken httpOnly). Resolves false when the server refuses them.
@@ -32,21 +37,26 @@ export const establishSession = async (tokens: {
   }
 };
 
-let refreshInFlight: Promise<RefreshedSession | null> | null = null;
+let refreshInFlight: Promise<RefreshSessionResult> | null = null;
 
 /**
- * Browser only. Renews the session from the httpOnly refresh token; null when the session has ended. Concurrent
- * callers in a tab share one request, so parallel 401s never rotate the refresh token twice.
+ * Browser only. Renews the session from the httpOnly refresh token. `expired` is a rejected token (HTTP 401).
+ * `unavailable` is an outage: the caller must keep the session. Concurrent callers in a tab share one request,
+ * so parallel 401s never rotate the refresh token twice.
  */
-export const refreshSession = (): Promise<RefreshedSession | null> => {
+export const refreshSession = (): Promise<RefreshSessionResult> => {
   if (!refreshInFlight) {
     refreshInFlight = fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin', cache: 'no-store' })
       .then(async (response) => {
-        if (!response.ok) return null;
-        const data = await response.json();
-        return data?.accessToken && data?.userInfo?.uid ? (data as RefreshedSession) : null;
+        if (response.status === 401) return { status: 'expired' as const };
+        if (!response.ok) return { status: 'unavailable' as const };
+        const data = await response.json().catch(() => null);
+        if (data?.accessToken && data?.userInfo?.uid) {
+          return { status: 'ok' as const, session: data as RefreshedSession };
+        }
+        return { status: 'unavailable' as const };
       })
-      .catch(() => null)
+      .catch(() => ({ status: 'unavailable' as const }))
       .finally(() => {
         refreshInFlight = null;
       });

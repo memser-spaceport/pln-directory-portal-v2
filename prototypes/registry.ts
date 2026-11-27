@@ -287,6 +287,16 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/job-board-apply-steps/JobBoardPrototype'),
   },
   {
+    key: 'lab-3272-agent-job-apply',
+    status: 'ideation',
+    version: 1,
+    title: 'Job board: the agent drafts my application (LAB-3272)',
+    description:
+      'LabOS agent v0 for a job aspirant. Apply on a job page opens the agent, which offers to draft the application from the job post and the member profile. The member edits the draft in the card or asks the agent for changes. When the post asks for things the profile lacks (resume, GitHub), the agent offers to fill them from a resume as ticked old to new changes (mocked MCP profile tools). The member sends in LabOS, or copies the draft for a role that takes applications on the team site only. Write it myself opens the existing apply flow. States: ?state=page, offer, draft, gap, edit, sent, external. Mock data only.',
+    category: 'Jobs',
+    load: () => import('./entries/lab-3272-agent-job-apply/LabAgentJobApplyPrototype'),
+  },
+  {
     key: 'saving',
     status: 'progress',
     version: 1,

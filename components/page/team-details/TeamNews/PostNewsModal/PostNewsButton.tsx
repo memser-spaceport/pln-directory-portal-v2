@@ -21,10 +21,16 @@ const TIP_KEY = 'team_news_post_tip';
 interface Props {
   teamName: string;
   onPost: () => void;
+  /** The one-time "New" callout. Off on Home (LAB-3342, Polina in PR #3613). Off also keeps its dismissal for the
+   *  team page, where the callout still shows. */
+  showTip?: boolean;
+  /** Extra classes for the button, e.g. Home's 30px (32px on phones) box. */
+  className?: string;
 }
 
-export function PostNewsButton({ teamName, onPost }: Props) {
-  const { open: tipOpen, dismiss } = useOneTimeCallout(TIP_KEY);
+export function PostNewsButton({ teamName, onPost, showTip = true, className }: Props) {
+  const { open: calloutOpen, dismiss } = useOneTimeCallout(TIP_KEY);
+  const tipOpen = showTip && calloutOpen;
 
   return (
     <TooltipPrimitive.Provider delayDuration={0}>
@@ -35,9 +41,9 @@ export function PostNewsButton({ teamName, onPost }: Props) {
               size="xxs"
               style="fill"
               variant="primary"
-              className={local.postAction}
+              className={clsx(local.postAction, className)}
               onClick={() => {
-                dismiss();
+                if (showTip) dismiss();
                 onPost();
               }}
             >

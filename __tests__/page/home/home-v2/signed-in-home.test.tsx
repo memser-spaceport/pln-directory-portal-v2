@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom';
 import type { ReactElement } from 'react';
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { SignedInHome } from '@/components/page/home/HomeV2/SignedInHome';
@@ -87,6 +87,43 @@ jest.mock('@/services/team-news/hooks/useNewsDefaultTags', () => ({
   useNewsDefaultTags: () => ({ data: mockDefaultTags }),
   useApproveNewsDefaultTags: () => ({ mutate: jest.fn(), isPending: false }),
   useAutosaveNewsDefaultTags: () => ({ mutate: jest.fn() }),
+}));
+
+// ---- LAB-3342: a lead's "Post news" (the member record, each team, the publish call, the toast) ----
+
+let mockLeadRoles: unknown[] = [];
+jest.mock('@/services/members/hooks/useMember', () => ({
+  useMember: (uid: string | undefined) => ({
+    data: uid ? { memberInfo: { teamMemberRoles: mockLeadRoles } } : undefined,
+  }),
+}));
+jest.mock('@/services/teams.service', () => ({
+  getTeam: (uid: string) =>
+    Promise.resolve({ data: { formatedData: { id: uid, name: `Team ${uid}`, logo: undefined } } }),
+}));
+const mockPublish = jest.fn();
+jest.mock('@/services/team-news/hooks/useCreateTeamNewsPost', () => ({
+  useCreateTeamNewsPost: (teamUid: string) => ({
+    isPending: false,
+    mutateAsync: ({ teamUid: target, ...payload }: { teamUid?: string }) => mockPublish(target || teamUid, payload),
+  }),
+}));
+jest.mock('@/hooks/useOneTimeCallout', () => ({ useOneTimeCallout: () => ({ open: false, dismiss: jest.fn() }) }));
+jest.mock('@/components/core/ToastContainer', () => ({
+  toast: Object.assign(jest.fn(), { success: jest.fn(), error: jest.fn() }),
+}));
+jest.mock('@/components/form/FormEditor/FormEditor', () => ({
+  FormEditor: ({ name }: { name: string }) => {
+    const { useFormContext } = require('react-hook-form');
+    const { setValue, watch } = useFormContext();
+    return (
+      <textarea
+        aria-label="Body"
+        value={watch(name) ?? ''}
+        onChange={(e) => setValue(name, e.target.value, { shouldValidate: true })}
+      />
+    );
+  },
 }));
 
 // ---- The rail ----
@@ -271,6 +308,7 @@ beforeEach(() => {
   mockMemberNewsTags = ['storage'];
   mockDefaultTags = undefined;
   mockDeals = null;
+  mockLeadRoles = [];
   useCurrentUserStore.setState({ currentUser: { uid: 'user-1' } as never, isHydrated: true });
   window.history.replaceState(null, '', '/');
 });
@@ -643,6 +681,8 @@ describe('Network Updates: the cut', () => {
   let wide = true;
   let railBottom = 650;
   const originalMatchMedia = window.matchMedia;
+  // jsdom's own: put back after each test, so later suites (the form's waitFor) still have one.
+  const originalMutationObserver = global.MutationObserver;
 
   beforeEach(() => {
     resizeCallbacks = [];
@@ -684,7 +724,7 @@ describe('Network Updates: the cut', () => {
     jest.restoreAllMocks();
     window.matchMedia = originalMatchMedia;
     delete (global as unknown as { ResizeObserver?: unknown }).ResizeObserver;
-    delete (global as unknown as { MutationObserver?: unknown }).MutationObserver;
+    global.MutationObserver = originalMutationObserver;
   });
 
   const measure = () => act(() => resizeCallbacks.forEach((cb) => cb()));
@@ -1011,5 +1051,83 @@ describe('The signed-in rail', () => {
     const neuro = cards.find((c) => within(c).queryByRole('heading', { name: 'Neurotechnology' }))!;
     expect(within(neuro).queryByRole('link', { name: 'Projects' })).not.toBeInTheDocument();
     expect(within(neuro).getByRole('link', { name: 'Teams' })).toHaveAttribute('href', '/teams?focusAreas=Neurotech');
+  });
+});
+
+// LAB-3342 (design LAB-3316): a team lead's "Post news" at the end of the Network Updates header.
+describe('Network Updates: Post news for team leads', () => {
+  const head = () => screen.getByRole('heading', { level: 2, name: 'Network Updates' }).parentElement as HTMLElement;
+  const actions = () => head().lastElementChild as HTMLElement;
+  const asLead = (teams: string[] = ['team-lead']) => {
+    mockLeadRoles = teams.map((uid, i) => ({
+      teamUid: uid,
+      teamTitle: `Lead ${uid}`,
+      team: { uid, name: `Lead ${uid}` },
+      teamLead: true,
+      mainTeam: i === 0,
+    }));
+    useCurrentUserStore.setState({ currentUser: { uid: 'user-1', leadingTeams: teams } as never, isHydrated: true });
+  };
+
+  it('R1: a lead sees "Post news" in the header, right after the search icon', () => {
+    asLead();
+    renderHome([story('a', 'LAUNCH')]);
+    const search = within(actions()).getByRole('button', { name: 'Search news' });
+    const post = within(actions()).getByRole('button', { name: /Post news/ });
+    // Search first, then the button: the last thing in the header's actions.
+    expect(search.compareDocumentPosition(post) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(actions().lastElementChild).toContainElement(post);
+    expect(post).toHaveClass('homePostAction');
+    expect(actions()).toHaveClass('weekHeadActionsPair');
+  });
+
+  it('R2: a member or an admin who leads no team gets no button and nothing beside the search', () => {
+    useCurrentUserStore.setState({
+      currentUser: { uid: 'user-1', roles: ['DIRECTORYADMIN'], leadingTeams: [] } as never,
+      isHydrated: true,
+    });
+    renderHome([story('a', 'LAUNCH')]);
+    expect(screen.queryByRole('button', { name: /Post news/ })).toBeNull();
+    // Only the search is in the header's actions: no empty slot.
+    expect(actions().children).toHaveLength(1);
+    expect(within(actions()).getByRole('button', { name: 'Search news' })).toBeInTheDocument();
+  });
+
+  it('R8: the button sits in the title row, in the page flow (no floating button)', () => {
+    asLead();
+    renderHome([story('a', 'LAUNCH')]);
+    const post = screen.getByRole('button', { name: /Post news/ });
+    // In the same row as the title, not portalled out of the section and not a fixed overlay.
+    expect(head()).toHaveClass('sectionHead');
+    expect(head()).toContainElement(post);
+    expect(post.closest('section')).toHaveAttribute('aria-labelledby', 'home-week-title');
+  });
+
+  it('R6: after a post, the new story is first in the stream', async () => {
+    asLead();
+    const fresh = story('fresh', 'ANNOUNCEMENT', {
+      teamUid: 'team-lead',
+      teamName: 'Lead team-lead',
+      title: 'Brand new post',
+      eventDate: '2026-11-19T12:00:00.000Z',
+      createdAt: '2026-11-19T12:00:00.000Z',
+      sourceUrl: 'https://example.com/fresh',
+    });
+    mockPublish.mockResolvedValue(fresh);
+    renderHome([story('a', 'LAUNCH'), story('b', 'FUNDING')]);
+    expect(streamHeadlines()[0]).toBe('Headline a');
+
+    fireEvent.click(screen.getByRole('button', { name: /Post news/ }));
+    fireEvent.change(screen.getByLabelText('Headline'), { target: { value: 'Brand new post' } });
+    fireEvent.change(screen.getByLabelText('Link'), { target: { value: 'https://example.com/fresh' } });
+    const post = screen.getByRole('button', { name: 'Post' });
+    await waitFor(() => expect(post).toBeEnabled());
+    await act(async () => {
+      fireEvent.click(post);
+    });
+
+    await waitFor(() => expect(streamHeadlines()[0]).toBe('Brand new post'));
+    expect(mockPublish).toHaveBeenCalledWith('team-lead', expect.objectContaining({ title: 'Brand new post' }));
+    expect(streamHeadlines()).toEqual(['Brand new post', 'Headline a', 'Headline b']);
   });
 });

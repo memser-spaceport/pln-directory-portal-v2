@@ -1325,6 +1325,16 @@ $band-inset-phone: 24px;
   min-width: 0;
 }
 
+// Search, then a lead's "Post news" (LAB-3342): 8px apart, so the two read as one toolbar (LAB-3316 prototype).
+.weekHeadActionsPair.weekHeadActionsPair {
+  gap: 8px;
+
+  // The team page's `.postTrigger` has `margin-left: auto`. Here it would push the button away from the search.
+  > * {
+    margin-left: 0;
+  }
+}
+
 /* Multi-tag scope row under the pills: chips, count, Follow / Clear all, then "Narrow by" suggestions. */
 .tagScope {
   display: flex;

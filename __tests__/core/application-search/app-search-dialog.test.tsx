@@ -130,7 +130,7 @@ function renderSearch({ isLoggedIn = true } = {}) {
   return render(<ApplicationSearch isLoggedIn={isLoggedIn} userInfo={userInfo} authToken="token" />);
 }
 
-const field = () => screen.getByPlaceholderText('Search or ask AI Search a question');
+const field = () => screen.getByPlaceholderText('Search or ask AI agent chat a question');
 
 beforeEach(() => {
   isBelowTabletLandscape = false;
@@ -220,10 +220,10 @@ describeDialog('AppSearchDialog', () => {
     await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
 
     await user.type(field(), 'f');
-    expect(screen.queryByText(/Chat with AI Search about/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Ask AI agent chat about/)).not.toBeInTheDocument();
 
     await user.type(field(), 'i');
-    expect(screen.getByText(/Chat with AI Search about/)).toBeInTheDocument();
+    expect(screen.getByText(/Ask AI agent chat about/)).toBeInTheDocument();
   });
 
   it('does not resurrect a cleared term when the debounce settles', async () => {
@@ -234,7 +234,7 @@ describeDialog('AppSearchDialog', () => {
       renderSearch();
       fireEvent.keyDown(window, { key: 'k', metaKey: true });
       fireEvent.change(field(), { target: { value: 'fil' } });
-      expect(screen.getByText(/Chat with AI Search about/)).toBeInTheDocument();
+      expect(screen.getByText(/Ask AI agent chat about/)).toBeInTheDocument();
 
       fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
       expect(field()).toHaveValue('');
@@ -242,7 +242,7 @@ describeDialog('AppSearchDialog', () => {
       jest.advanceTimersByTime(1000);
 
       expect(field()).toHaveValue('');
-      expect(screen.queryByText(/Chat with AI Search about/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Ask AI agent chat about/)).not.toBeInTheDocument();
     } finally {
       jest.useRealTimers();
     }
@@ -255,7 +255,7 @@ describeDialog('AppSearchDialog', () => {
    * any of them.
    */
   describe('the scope hint', () => {
-    const HINT = 'Search members, teams, projects, events and forum posts, or chat with AI Search.';
+    const HINT = 'Search members, teams, projects, events and forum posts, or ask AI agent chat.';
 
     it('names what the field reaches before anything is typed', async () => {
       renderSearch();
@@ -270,7 +270,7 @@ describeDialog('AppSearchDialog', () => {
       openWithShortcut();
 
       await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
-      expect(screen.getByText('Sign in to keep your AI Search history.')).toBeInTheDocument();
+      expect(screen.getByText('Sign in to keep your AI agent chat history.')).toBeInTheDocument();
       expect(screen.getByText(HINT)).toBeInTheDocument();
     });
 
@@ -285,7 +285,7 @@ describeDialog('AppSearchDialog', () => {
 
       // Assert the results view actually replaced idle first: without this, a
       // render that never left idle would satisfy the absence below.
-      expect(screen.getByText(/Chat with AI Search about/)).toBeInTheDocument();
+      expect(screen.getByText(/Ask AI agent chat about/)).toBeInTheDocument();
       expect(screen.queryByText(HINT)).not.toBeInTheDocument();
     });
   });

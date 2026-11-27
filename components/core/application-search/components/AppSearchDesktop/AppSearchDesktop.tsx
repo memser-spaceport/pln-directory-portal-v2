@@ -143,7 +143,7 @@ export const AppSearchDesktop = ({ isLoggedIn }: Props) => {
           <p className={s.noResults}>
             No results for &ldquo;{searchTerm}&rdquo;
             <button type="button" className={s.askAi} onClick={() => openAi({ question: searchTerm })}>
-              Ask AI Search instead
+              Ask AI agent chat instead
             </button>
           </p>
         </div>
@@ -196,7 +196,7 @@ export const AppSearchDesktop = ({ isLoggedIn }: Props) => {
         type="button"
         className={s.aiBadge}
         onClick={() => openAi({ question: searchTerm.trim() || undefined })}
-        aria-label="Open AI Search"
+        aria-label="Open AI agent chat"
       >
         <span className={s.aiBadgeIcon} aria-hidden="true" />
         AI

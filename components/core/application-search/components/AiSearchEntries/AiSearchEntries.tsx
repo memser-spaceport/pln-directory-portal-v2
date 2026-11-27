@@ -24,7 +24,7 @@ export const AiSearchEntries = (props: Props) => {
       <button type="button" className={s.row} onClick={() => onAsk(question || undefined)}>
         <span className={s.aiIcon} aria-hidden="true" />
         <span className={s.text}>
-          {question ? <>Chat with AI Search about &ldquo;{question}&rdquo;</> : 'Ask AI Search a question'}
+          {question ? <>Ask AI agent chat about &ldquo;{question}&rdquo;</> : 'Ask AI agent chat a question'}
         </span>
         <ArrowUpRightIcon className={s.arrow} aria-hidden="true" />
       </button>

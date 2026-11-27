@@ -72,7 +72,7 @@ describe('AI Search new-chat page (ChatHome)', () => {
   it('shows the one-line scope sentence under the headline', async () => {
     mockPrompts(PROMPTS);
     renderHome();
-    expect(screen.getByText('Explore Protocol Labs with AI')).toBeInTheDocument();
+    expect(screen.getByText('Explore Protocol Labs with AI agent chat')).toBeInTheDocument();
     expect(screen.getByTestId('chat-home-scope')).toHaveTextContent(
       'Answers come from the directory: members, teams, projects, events and forum posts.',
     );
@@ -92,7 +92,7 @@ describe('AI Search new-chat page (ChatHome)', () => {
     renderHome();
     await act(async () => {});
     expect(screen.queryByTestId('chat-home-prompts')).not.toBeInTheDocument();
-    expect(screen.getByText('Explore Protocol Labs with AI')).toBeInTheDocument();
+    expect(screen.getByText('Explore Protocol Labs with AI agent chat')).toBeInTheDocument();
     expect(screen.getByTestId('chat-home-scope')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Go ahead, ask anything!')).toBeInTheDocument();
   });

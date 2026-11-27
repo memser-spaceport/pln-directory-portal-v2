@@ -40,7 +40,7 @@ export const RecentAiChats = (props: Props) => {
   return (
     <div className={s.root}>
       <div className={s.head}>
-        <div className={s.label}>Recent AI Search chats</div>
+        <div className={s.label}>Recent AI agent chats</div>
         <button
           type="button"
           className={s.showAll}

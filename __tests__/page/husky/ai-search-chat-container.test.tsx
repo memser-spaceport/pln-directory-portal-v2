@@ -60,7 +60,7 @@ import {
   VISIT_CHATS_STORAGE_KEY,
 } from '@/components/page/husky/constants/visitChats';
 
-const HOME_HEADLINE = 'Explore Protocol Labs with AI';
+const HOME_HEADLINE = 'Explore Protocol Labs with AI agent chat';
 
 const storedBlogChat = {
   type: 'blog',

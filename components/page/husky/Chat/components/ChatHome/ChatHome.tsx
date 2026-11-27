@@ -67,7 +67,7 @@ export const ChatHome = (props: Props) => {
   return (
     <div className={s.root}>
       <div className={s.header}>
-        <h3 className={s.title}>Explore Protocol Labs with AI</h3>
+        <h3 className={s.title}>Explore Protocol Labs with AI agent chat</h3>
         <p className={s.scope} data-testid="chat-home-scope">
           Answers come from the directory: members, teams, projects, events and forum posts.
         </p>

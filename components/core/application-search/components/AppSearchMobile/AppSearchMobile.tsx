@@ -128,7 +128,7 @@ export const AppSearchMobile = ({ isLoggedIn }: Props) => {
             <div className={s.inputSection}>
               <DebouncedInput
                 onChange={handleChange}
-                placeholder="Search or ask AI Search a question"
+                placeholder="Search or ask AI agent chat a question"
                 value={searchTerm}
               />
             </div>

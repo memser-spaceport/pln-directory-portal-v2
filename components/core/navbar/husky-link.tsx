@@ -22,7 +22,7 @@ const HuskyLink = () => {
 
   return (
     <>
-      <button onClick={onHuskyClickHandler} className="nb__right__husky" aria-label="Open AI Search">
+      <button onClick={onHuskyClickHandler} className="nb__right__husky" aria-label="Open AI agent chat">
         <img width={48} height={48} src="/images/husky/husky-logo.svg" alt="husky" />
       </button>
 

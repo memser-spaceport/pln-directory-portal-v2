@@ -205,7 +205,9 @@ describe('LAB-3457: AI agent chat in the header opens the same chat on the full 
 
     // Both turns went to C1 with one thread, saved (`persist`); that thread opens.
     const [first, second] = chat.mock.calls.map(([request]) => request);
-    expect(first).toMatchObject({ persist: true });
+    // QA1: C1 knows the turns come from the panel (`surface: 'panel'`).
+    expect(first).toMatchObject({ persist: true, surface: 'panel' });
+    expect(second).toMatchObject({ surface: 'panel' });
     expect(second.threadId).toBe(first.threadId);
     expect(openSpy).toHaveBeenCalledTimes(1);
     expect(openSpy).toHaveBeenCalledWith(`/ai-search/${first.threadId}`, '_blank');

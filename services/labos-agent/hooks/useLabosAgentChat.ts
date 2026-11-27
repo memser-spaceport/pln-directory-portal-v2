@@ -156,7 +156,7 @@ export interface LabosAgentChatOptions {
   threadId?: string;
   /** The page always sends its context (a chat scoped to one profile). Default: the panel's page chip (`readsPage`). */
   readsContext?: boolean;
-  /** For the agent events. Default `panel`. */
+  /** For the agent events and the C1 `surface`. Default `panel`. */
   surface?: LabosAgentSurface;
 }
 
@@ -242,7 +242,8 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null, options
         getLabosAgentClient().chat(
           // S6-F14: `mentions` in the order of the chips, only when the member picked some.
           // LAB-3362: `introDraft` only while an intro card waits. Its text never goes into an event or a log.
-          // LAB-3457: `persist` saves the finished turn in the thread, for the shared history.
+          // LAB-3457: `persist` saves the finished turn in the thread, for the shared history. `surface` (QA1) tells C1
+          // whether the turn comes from AI agent chat (`page`) or the panel, so a page intro with no target asks for @.
           {
             threadId: thread,
             chatId: id,
@@ -251,6 +252,7 @@ export function useLabosAgentChat(context: LabosAgentOpenContext | null, options
             ...(mentions ? { mentions } : {}),
             ...(introDraft ? { introDraft } : {}),
             persist: true,
+            surface,
           },
           {
             signal: controller.signal,

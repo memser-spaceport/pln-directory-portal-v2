@@ -72,6 +72,8 @@ export interface LabosAgentChatRequest {
   introDraft?: LabosAgentChatIntroDraft;
   /** LAB-3457: `true` saves the finished turn in thread `threadId` (T1, T2). A stopped or failed turn is not saved. */
   persist?: boolean;
+  /** LAB-3457 QA1: `page` from AI agent chat, `panel` from the panel. Absent works as `panel` (an older client). */
+  surface?: LabosAgentSurface;
 }
 
 /** LAB-3362 (contract 11.1): the target of a waiting intro card and its current text (1 to 3500 characters). */

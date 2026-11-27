@@ -1,0 +1,51 @@
+@import 'styles/media.scss';
+
+// Beside the dateline (Polina's design). Inline, so on a narrow screen the button wraps under the dateline; the
+// fallback text and field are blocks under the row.
+.root {
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+}
+
+.root .button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.fallback {
+  display: block;
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.field {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 420px;
+  margin-top: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-neutral-subtle, #e2e8f0);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  @include mobile-only {
+    max-width: none;
+  }
+}

@@ -24,6 +24,7 @@ import type { IFeedCommentCountsResponse } from '@/types/feed.types';
 import { DigestForum } from './DigestForum';
 import { DigestEvents } from './DigestEvents';
 import { DigestHeader } from './DigestHeader';
+import { DigestShareLink } from './DigestShareLink';
 import { DigestNetworkNews } from './DigestNetworkNews';
 import { DigestCaughtUp } from './DigestIssueEnd';
 import { DigestPostNews } from './DigestPostNews';
@@ -344,6 +345,7 @@ export function DigestPage({ issueUid, data, isLoggedIn }: Props) {
             sentAt={data.sentAt}
             storyCount={data.stories.length}
             firstName={data.firstName}
+            action={<DigestShareLink issueUid={issueUid} uid={signedIn ? currentUser?.uid : undefined} />}
           />
 
           {/* Under 1100px the topics section comes right after the header; from 1100px it opens the side column. */}

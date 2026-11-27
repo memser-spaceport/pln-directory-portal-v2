@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 import type { DigestFrequency } from '@/services/digest/digest.types';
 
 import s from './DigestPage.module.scss';
@@ -34,6 +36,8 @@ type Props = {
   sentAt: string;
   storyCount: number;
   firstName: string | null;
+  /** Beside the dateline: the signed-in reader's Copy link (LAB-3398). */
+  action?: ReactNode;
 };
 
 /**
@@ -41,13 +45,14 @@ type Props = {
  * page title and one line on what the digest is. Left-aligned, with no logo: the LabOS navigation already says where you
  * are.
  */
-export function DigestHeader({ frequency, sentAt, storyCount, firstName }: Props) {
+export function DigestHeader({ frequency, sentAt, storyCount, firstName, action }: Props) {
   const date = formatDigestDate(sentAt, 'date');
   return (
     <header>
       <p className={s.issueLine}>
         {frequency === 'weekly' ? 'Weekly digest' : 'Daily digest'}
         {date && ` · ${date}`} · {storyCount} {storyCount === 1 ? 'story' : 'stories'}
+        {action && <> {action}</>}
       </p>
       <div className={s.intro}>
         <h1 className={s.greeting}>Hi {firstName || 'there'},</h1>

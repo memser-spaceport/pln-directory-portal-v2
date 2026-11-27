@@ -19,6 +19,7 @@ export enum MembersQueryKeys {
   GET_DEMO_DAY_SUBSCRIPTION = 'GET_DEMO_DAY_SUBSCRIPTION',
   GET_SUGGESTED_CANDIDATES_EMAIL = 'GET_SUGGESTED_CANDIDATES_EMAIL',
   GET_UI_FLAGS = 'GET_UI_FLAGS',
+  GET_MY_INVITE_LINK = 'GET_MY_INVITE_LINK',
 }
 
 /* (`SHOW_CV_IMPORT` lived here, gating the CV importer on both of its hosts —

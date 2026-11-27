@@ -1,0 +1,41 @@
+@use 'styles/media.scss';
+
+.linkRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.linkField {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-neutral-subtle, #f8fafc);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  text-overflow: ellipsis;
+}
+
+.copyButton {
+  flex-shrink: 0;
+  min-width: 156px;
+}
+
+.note {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+
+  &:empty {
+    display: none;
+  }
+}

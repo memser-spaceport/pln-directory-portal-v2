@@ -4,6 +4,7 @@ import type { CSSProperties } from 'react';
 import { EventImage } from '@/components/page/events/EventImage/EventImage';
 import { GoingPill, WENT_LABEL } from '@/components/page/events/GoingPill/GoingPill';
 import { GoingFaces } from '@/components/page/events/all-events/GoingFaces';
+import { prefetchIntent } from '@/components/page/events/prefetchIntent';
 import { shortDate, spanLabel, timeRange } from '@/services/events/all-events.filters';
 import { eventPlace } from '@/services/events/event-facts';
 import type { AllEventsItem } from '@/services/events/all-events.types';
@@ -123,8 +124,7 @@ const placeOf = (e: AllEventsItem) => eventPlace(e.mode, e.city)?.text ?? '';
 function cardHandlers(e: AllEventsItem, { onOpen, onPrepare }: CalendarCardProps) {
   return {
     onClick: () => onOpen(e.uid),
-    onPointerEnter: () => onPrepare(e.uid),
-    onFocus: () => onPrepare(e.uid),
+    ...prefetchIntent(() => onPrepare(e.uid)),
   };
 }
 

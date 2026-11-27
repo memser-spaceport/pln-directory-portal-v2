@@ -146,7 +146,7 @@ When both links are valid, the page row SHALL show the website and the Registrat
 
 ### Requirement: The drawer never opens empty
 
-While the event loads, the drawer SHALL show the toolbar with Close, and placeholders shaped like the event (thumbnail and title, three fact rows, the going card). Pointing at or focusing a Home rail row or a profile event card that opens the drawer SHALL start loading that event.
+While the event loads, the drawer SHALL show the toolbar with Close, and placeholders shaped like the event (thumbnail and title, three fact rows, the going card). Pointing at or focusing a Home rail row, a profile event card or an All Events card that opens the drawer SHALL start loading that event. On a profile event card or an All Events card, pointing SHALL count only once the pointer has rested on that card for 150ms, and leaving the card first SHALL cancel it, so a list scrolled under the pointer loads nothing; focusing SHALL count at once. After the API answers any event read with 429 (too many requests), no event SHALL be loaded ahead, by pointing, focusing or the drawer's previous / next, for 60 seconds; opening an event SHALL still load it. A load ahead that failed SHALL NOT show in the drawer: opening that event SHALL load it again, on the placeholders.
 
 #### Scenario: The event is still loading
 
@@ -159,6 +159,12 @@ While the event loads, the drawer SHALL show the toolbar with Close, and placeho
 - **GIVEN** a signed-in member on Home
 - **WHEN** they point at an upcoming event row, then open it
 - **THEN** the event started loading when they pointed at the row
+
+#### Scenario: Scrolling past cards loads nothing ahead
+
+- **GIVEN** a member on Past of All Events, with the pointer over the list
+- **WHEN** they scroll, so the cards pass under the pointer, and stop with it on one card
+- **THEN** only the event of the card the pointer rests on, for 150ms or more, starts loading
 
 ### Requirement: The drawer shows the gathering and the event's attendees
 

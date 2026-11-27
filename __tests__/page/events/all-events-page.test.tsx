@@ -750,6 +750,55 @@ describe('the drawer', () => {
   });
 });
 
+// Scrolling Past (~600 cards) under the pointer passed it over every card, and each one was prefetched: 429s.
+describe('prefetch on the way to a press', () => {
+  const hover = (el: HTMLElement, ms: number) => {
+    fireEvent.pointerEnter(el);
+    act(() => jest.advanceTimersByTime(ms));
+  };
+
+  it('loads nothing while the pointer only passes over a card (under 150ms)', () => {
+    renderPage();
+    hover(card('DAI Summit'), 149);
+    fireEvent.pointerLeave(card('DAI Summit'));
+    hover(card('Community Call'), 100);
+    expect(prefetchEventDetail).not.toHaveBeenCalled();
+  });
+
+  it('loads the event once the pointer rests on its card for 150ms', () => {
+    renderPage();
+    hover(card('DAI Summit'), 150);
+    expect(prefetchEventDetail).toHaveBeenCalledTimes(1);
+    expect(prefetchEventDetail).toHaveBeenCalledWith('dai');
+  });
+
+  it('cancels when the pointer leaves the card, or moves on to another one, first', () => {
+    renderPage();
+    hover(card('DAI Summit'), 100);
+    fireEvent.pointerLeave(card('DAI Summit'));
+    act(() => jest.advanceTimersByTime(500));
+    expect(prefetchEventDetail).not.toHaveBeenCalled();
+
+    hover(card('DAI Summit'), 100);
+    hover(card('Community Call'), 150);
+    expect(prefetchEventDetail.mock.calls).toEqual([['call']]);
+  });
+
+  it('cancels when the page goes away first', () => {
+    const { unmount } = renderPage();
+    hover(card('DAI Summit'), 100);
+    unmount();
+    act(() => jest.advanceTimersByTime(500));
+    expect(prefetchEventDetail).not.toHaveBeenCalled();
+  });
+
+  it('loads at once on keyboard focus', () => {
+    renderPage();
+    fireEvent.focus(card('DAI Summit'));
+    expect(prefetchEventDetail).toHaveBeenCalledWith('dai');
+  });
+});
+
 describe('analytics', () => {
   it('records nothing on landing from a filtered link', () => {
     renderPage({}, '/events/all?mode=Online&city=Dubai');

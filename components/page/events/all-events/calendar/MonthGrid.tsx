@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 
+import { prefetchIntent } from '@/components/page/events/prefetchIntent';
 import type { AllEventsItem } from '@/services/events/all-events.types';
 
 import type { CalendarCardProps } from './WeekBoard';
@@ -94,8 +95,7 @@ export function MonthGrid({
                   }}
                   title={e.name}
                   onClick={() => cards.onOpen(e.uid)}
-                  onPointerEnter={() => cards.onPrepare(e.uid)}
-                  onFocus={() => cards.onPrepare(e.uid)}
+                  {...prefetchIntent(() => cards.onPrepare(e.uid))}
                 >
                   {starts && e.startTime ? `${e.startTime} ${e.name}` : e.name}
                 </button>

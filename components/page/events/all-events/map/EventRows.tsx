@@ -2,6 +2,7 @@ import clsx from 'clsx';
 
 import { GoingPill, WENT_LABEL } from '@/components/page/events/GoingPill/GoingPill';
 import { GoingFaces } from '@/components/page/events/all-events/GoingFaces';
+import { prefetchIntent } from '@/components/page/events/prefetchIntent';
 import { pastSpanLabel, spanLabel } from '@/services/events/all-events.filters';
 import type { AllEventsItem } from '@/services/events/all-events.types';
 
@@ -36,8 +37,7 @@ export function EventRows({
             className={clsx(m.row, e.uid === highlightUid && m.rowHighlight)}
             data-event-uid={e.uid}
             onClick={() => onOpen(e.uid)}
-            onPointerEnter={() => onPrepare(e.uid)}
-            onFocus={() => onPrepare(e.uid)}
+            {...prefetchIntent(() => onPrepare(e.uid))}
           >
             <span className={m.rowDate}>
               {pastAsOf ? pastSpanLabel(e.startDay, e.endDay, pastAsOf) : spanLabel(e.startDay, e.endDay)}

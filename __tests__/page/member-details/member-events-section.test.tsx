@@ -2,7 +2,7 @@
  * LAB-3217: the member profile's Events section, viewer view. Scenarios from the `profiles` spec delta of
  * `openspec/changes/lab-3211-event-drawer-and-profile-events`; copy strings are sentinels (design D8).
  */
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 const mockDrawer = jest.fn();
@@ -208,13 +208,19 @@ describe('MemberEventsSection (LAB-3217)', () => {
 });
 
 describe('prefetching the event before the press', () => {
-  it('loads the event when the pointer reaches a card, and on keyboard focus', () => {
+  beforeEach(() => jest.useFakeTimers());
+  afterEach(() => jest.useRealTimers());
+
+  it('loads the event once the pointer rests on a card for 150ms, and at once on keyboard focus', () => {
     mockPrefetchEvent.mockClear();
     renderSection();
     const [event] = UPCOMING;
     const press = screen.getByRole('button', { name: new RegExp(`^${event.name}, `) });
 
     fireEvent.pointerEnter(press);
+    act(() => jest.advanceTimersByTime(149));
+    expect(mockPrefetchEvent).not.toHaveBeenCalled();
+    act(() => jest.advanceTimersByTime(1));
     expect(mockPrefetchEvent).toHaveBeenCalledWith(event.uid);
 
     mockPrefetchEvent.mockClear();

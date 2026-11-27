@@ -472,7 +472,9 @@
 .toolbar {
   position: sticky;
   top: var(--app-header-height, 80px);
-  z-index: 5;
+  // One under the site header (.layout__header, 5): at 5 too it came later in the page and painted over the header's
+  // menus (More, search results, account). The year and month menus portal to the body, so they don't depend on it.
+  z-index: 4;
   display: flex;
   align-items: center;
   justify-content: space-between;

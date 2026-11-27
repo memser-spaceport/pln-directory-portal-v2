@@ -1,0 +1,20 @@
+@use 'styles/media';
+
+.root {
+  width: 300px;
+  max-width: 100%;
+  margin: 12px auto 0;
+  color: var(--foreground-neutral-secondary, #475569);
+  text-align: center;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.link {
+  color: var(--foreground-brand-primary, #156ff7);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

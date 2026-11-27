@@ -19,3 +19,16 @@
   margin-top: 8px;
   cursor: pointer;
 }
+
+/* LAB-3398: Members and Admin tabs for team leads and admins. */
+.tabs {
+  margin-bottom: 16px;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}

@@ -104,13 +104,27 @@ describe('AccountMenu — copy (LAB-2663)', () => {
     expect(mockBroadcastLogout).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps the item order: My profile, Changelog, Settings, Sign out', async () => {
+  it('keeps the item order: My profile, Invite, Changelog, Settings, Sign out', async () => {
     const menu = await openMenu();
 
     expect(
       within(menu)
         .getAllByRole('menuitem')
         .map((item) => item.textContent?.trim()),
-    ).toEqual(['My profile', 'Changelog', 'Settings', 'Sign out']);
+    ).toEqual(['My profile', 'Invite someone to LabOS', 'Changelog', 'Settings', 'Sign out']);
+  });
+
+  it('opens Settings → Invite from "Invite someone to LabOS" and sends no analytics event (LAB-3398)', async () => {
+    const menu = await openMenu();
+
+    const invite = within(menu).getByRole('menuitem', { name: /Invite someone to LabOS/ });
+    await userEvent.click(invite);
+    expect(mockPush).toHaveBeenCalledWith('/settings/invite');
+    expect(mockOnNavGetHelpItemClicked).not.toHaveBeenCalled();
+  });
+
+  it('renders nothing for a viewer with no session, so a signed-out visitor has no invite entry', () => {
+    const { container } = render(<AccountMenu userInfo={{} as never} authToken="" isLoggedIn={false} />);
+    expect(container).toBeEmptyDOMElement();
   });
 });

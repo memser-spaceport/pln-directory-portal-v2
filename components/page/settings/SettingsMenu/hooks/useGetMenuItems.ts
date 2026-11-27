@@ -79,6 +79,13 @@ export function useGetMenuItems(userInfo: IUserInfo) {
               },
             ]
           : []),
+        // The one destination for every invite entry point (LAB-3398).
+        {
+          name: 'invite',
+          url: '/settings/invite',
+          icon: '/icons/join-member.svg',
+          activeIcon: '/icons/add-user-blue.svg',
+        },
       ],
       teamAdminSettings: [
         { name: 'manage teams', url: '/settings/teams', icon: '/icons/team.svg', activeIcon: '/icons/teams-blue.svg' },

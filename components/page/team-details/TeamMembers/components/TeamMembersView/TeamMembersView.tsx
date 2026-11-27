@@ -1,7 +1,8 @@
 'use client';
 
 import isEmpty from 'lodash/isEmpty';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
@@ -14,6 +15,7 @@ import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import Image from 'next/image';
 
 import Modal from '@/components/core/modal';
+import { Tabs, type Tab } from '@/components/common/Tabs/Tabs';
 import {
   NoDataBlock,
   HeaderActionBtn,
@@ -38,15 +40,27 @@ interface Props {
 
 const MEMBERS_TO_SHOW = 3;
 
+const INVITE_SETTINGS_URL = '/settings/invite';
+
+/** LAB-3398 R7: team leads and admins see Members and Admin. Admin opens first. */
+export const TEAM_MEMBERS_TABS: Tab[] = [
+  { label: 'Members', value: 'members' },
+  { label: 'Admin', value: 'admin' },
+];
+
 export function TeamMembersView(props: Props) {
   const { team, userInfo, members, toggleIsEditMode, onEditMember } = props;
 
   const teamId = team?.id;
 
   const analytics = useTeamAnalytics();
+  const router = useRouter();
   const allMembersRef = useRef<HTMLDialogElement>(null);
 
-  const hasEditAccess = isTeamLeaderOrAdmin(userInfo, team?.id);
+  const canManageMembers = isTeamLeaderOrAdmin(userInfo, team?.id);
+  // An explicit choice stays while the viewer is on the page. Other viewers have no tabs.
+  const [tab, setTab] = useState<string>('admin');
+  const hasEditAccess = canManageMembers && tab === 'admin';
 
   const onSeeAllClickHandler = () => {
     allMembersRef?.current?.showModal();
@@ -70,12 +84,23 @@ export function TeamMembersView(props: Props) {
 
   return (
     <>
+      {canManageMembers && (
+        <div className={s.tabs} data-testid="team-members-tabs">
+          <Tabs tabs={TEAM_MEMBERS_TABS} value={tab} onValueChange={setTab} />
+        </div>
+      )}
       <DetailsSectionHeader title={noMembers ? 'Members' : `Members (${membersCount})`}>
         {hasEditAccess && (
-          <HeaderActionBtn onClick={toggleIsEditMode}>
-            <Image loading="lazy" alt="add" src="/icons/add-blue.svg" height={16} width={16} />
-            Add New
-          </HeaderActionBtn>
+          <div className={s.headerActions} data-testid="team-members-actions">
+            <HeaderActionBtn onClick={toggleIsEditMode}>
+              <Image loading="lazy" alt="add" src="/icons/add-blue.svg" height={16} width={16} />
+              Add New
+            </HeaderActionBtn>
+            <HeaderActionBtn onClick={() => router.push(INVITE_SETTINGS_URL)}>
+              <Image loading="lazy" alt="" src="/icons/add-user-blue.svg" height={16} width={17} />
+              Invite a teammate
+            </HeaderActionBtn>
+          </div>
         )}
       </DetailsSectionHeader>
 

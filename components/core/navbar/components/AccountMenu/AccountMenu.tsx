@@ -5,6 +5,7 @@ import { Avatar } from '@base-ui-components/react/avatar';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { IUserInfo } from '@/types/shared.types';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { useCommonAnalytics } from '@/analytics/common.analytics';
 import { clearAllAuthCookies } from '@/utils/third-party.helper';
@@ -53,7 +54,12 @@ export const AccountMenu = ({ userInfo }: Props) => {
       <Menu.Root modal={false}>
         <Menu.Trigger className={s.Button} ref={menuTriggerRef}>
           <Avatar.Root className={s.Avatar}>
-            <Avatar.Image src={currentUser?.profileImageUrl ?? defaultAvatarImage} width="40" height="40" className={s.Image} />
+            <Avatar.Image
+              src={currentUser?.profileImageUrl ?? defaultAvatarImage}
+              width="40"
+              height="40"
+              className={s.Image}
+            />
             <Avatar.Fallback className={s.Fallback}>{userInfo?.name}</Avatar.Fallback>
           </Avatar.Root>
           <ChevronDownIcon className={s.ButtonIcon} />
@@ -70,6 +76,10 @@ export const AccountMenu = ({ userInfo }: Props) => {
                 }}
               >
                 <UserIcon /> My profile
+              </Menu.Item>
+              {/* LAB-3398: every invite entry point opens Settings → Invite. */}
+              <Menu.Item className={s.Item} onClick={() => router.push('/settings/invite')}>
+                <Image src="/icons/join-member.svg" width={16} height={16} alt="" /> Invite someone to LabOS
               </Menu.Item>
               {/* "Get Support" used to sit here as well, opening the same modal
                   from a second and less-labelled door — 5 clicks in 90 days.

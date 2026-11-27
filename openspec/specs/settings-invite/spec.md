@@ -30,3 +30,14 @@ The page `/settings/invite` SHALL read `GET /v1/members/me/invite-link` with the
 
 - **WHEN** a signed-out visitor opens `/settings/invite`
 - **THEN** the app redirects to `/home?returnTo=settings-invite#login` and does not call the API
+
+### Requirement: Entry points open Settings → Invite
+
+The Settings Account group and the “Invite someone to LabOS” avatar menu item SHALL link to `/settings/invite`. The Members list SHALL show “Invite them” after a signed-in search with no results. The Team Members Admin tab SHALL show “Invite a teammate” beside “Add New” with the same role check.
+
+#### Scenario: Team tabs
+
+- **GIVEN** a lead of the current team or a directory admin
+- **THEN** the Members section opens on Admin and shows the member controls there
+- **GIVEN** another viewer
+- **THEN** the section does not show the Admin tab or its controls

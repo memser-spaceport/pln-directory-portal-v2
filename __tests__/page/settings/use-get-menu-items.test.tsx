@@ -105,6 +105,7 @@ describe('useGetMenuItems', () => {
 
     expect(result.current.account).toEqual([
       expect.objectContaining({ name: 'email & accounts', url: '/settings/accounts' }),
+      expect.objectContaining({ name: 'invite', url: '/settings/invite' }),
     ]);
     expect(result.current.teamAdminSettings).toEqual([
       expect.objectContaining({ name: 'manage teams', url: '/settings/teams' }),
@@ -120,7 +121,7 @@ describe('useGetMenuItems', () => {
     const { result } = renderHook(() => useGetMenuItems(userInfo));
     const all = Object.values(result.current).flat();
 
-    expect(all).toHaveLength(8);
+    expect(all).toHaveLength(9);
     all.forEach((item) => {
       expect(item.url).toMatch(/^\/settings\//);
       expect(item.icon).toMatch(/^\/icons\/.+\.svg$/);
@@ -157,6 +158,7 @@ describe('useGetMenuItems', () => {
       expect(result.current.account).toEqual([
         expect.objectContaining({ name: 'email & accounts', url: '/settings/accounts' }),
         expect.objectContaining({ name: 'MCP connections', url: '/settings/mcp' }),
+        expect.objectContaining({ name: 'invite', url: '/settings/invite' }),
       ]);
     });
 
@@ -175,7 +177,7 @@ describe('useGetMenuItems', () => {
       mockShowMcpPage = page;
       mockCanConnect = canConnect;
       const { result } = renderHook(() => useGetMenuItems(userInfo));
-      expect(names(result.current.account)).toEqual(['email & accounts']);
+      expect(names(result.current.account)).toEqual(['email & accounts', 'invite']);
     });
   });
 });

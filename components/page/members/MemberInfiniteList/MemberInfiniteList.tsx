@@ -13,6 +13,7 @@ import { CardsLoader } from '@/components/core/loaders/CardsLoader';
 import { ListLoader } from '@/components/core/loaders/ListLoader';
 import { MembersMobileFilters } from '@/components/page/members/MembersFilter/MembersMobileFilters';
 import EmptyResult from '@/components/core/empty-result';
+import { MembersInvitePrompt } from '@/components/page/members/MembersInvitePrompt';
 
 import MemberGridView from '../member-grid-view';
 import MemberListView from '../member-list-view';
@@ -54,6 +55,11 @@ const MemberInfiniteList = (props: any) => {
       </div>
       <MembersMobileFilters userInfo={userInfo} isUserLoggedIn={isUserLoggedIn} searchParams={searchParams} />
       {members?.length === 0 && <EmptyResult />}
+      <MembersInvitePrompt
+        searchBy={searchParams?.searchBy}
+        isUserLoggedIn={!!isUserLoggedIn}
+        resultsCount={members?.length ?? 0}
+      />
       <InfiniteScroll
         scrollableTarget="body"
         loader={null}

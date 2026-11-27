@@ -6,13 +6,24 @@ import { NextRequest } from 'next/server';
 import { POST as establish } from '@/app/api/auth/session/route';
 import { POST as refresh } from '@/app/api/auth/refresh/route';
 import { POST as logout } from '@/app/api/auth/logout/route';
-import { checkIsValidToken, renewAccessToken } from '@/services/auth.service';
+import { AuthServiceUnavailableError, checkIsValidToken, renewAccessToken } from '@/services/auth.service';
 import { decodeToken } from '@/utils/auth.utils';
 
-jest.mock('@/services/auth.service', () => ({
-  checkIsValidToken: jest.fn(),
-  renewAccessToken: jest.fn(),
-}));
+jest.mock('@/services/auth.service', () => {
+  class AuthServiceUnavailableError extends Error {
+    constructor(message = 'Authentication service unavailable') {
+      super(message);
+      this.name = 'AuthServiceUnavailableError';
+    }
+  }
+  return {
+    AuthServiceUnavailableError,
+    checkIsValidToken: jest.fn(),
+    renewAccessToken: jest.fn(),
+    isTransientRefreshFailure: (result: { transient?: boolean; status?: number } | null | undefined) =>
+      Boolean(result?.transient) || (result?.status ?? 0) === 429 || (result?.status ?? 0) >= 500,
+  };
+});
 
 jest.mock('@/utils/auth.utils', () => ({
   // Same arithmetic as the real helper; the real module can't be loaded here (circular import via fetch-wrapper).
@@ -134,6 +145,13 @@ describe('POST /api/auth/session', () => {
       expect(setCookies(res)).toEqual([]);
     },
   );
+
+  it('answers 503 and sets nothing when the auth service is unavailable', async () => {
+    mockedCheck.mockRejectedValue(new AuthServiceUnavailableError());
+    const res = await establish(post('/api/auth/session', { body: TOKENS }));
+    expect(res.status).toBe(503);
+    expect(setCookies(res)).toEqual([]);
+  });
 });
 
 describe('behind the ingress (request URL is the pod address)', () => {
@@ -198,11 +216,8 @@ describe('POST /api/auth/refresh', () => {
     );
   });
 
-  it.each<[string, () => void]>([
-    ['the API rejects the token', () => void mockedRenew.mockResolvedValue({ ok: false, status: 401, data: {} })],
-    ['the API is down', () => void mockedRenew.mockRejectedValue(new Error('down'))],
-  ])('answers 401 and clears the session when %s', async (_label, arrange) => {
-    arrange();
+  it('answers 401 and clears the session when the API rejects the token', async () => {
+    mockedRenew.mockResolvedValue({ ok: false, status: 401, data: {}, transient: false });
     const res = await refresh(post('/api/auth/refresh', { cookie }));
     const cleared = setCookies(res).filter((c) => c.expired);
 
@@ -211,6 +226,24 @@ describe('POST /api/auth/refresh', () => {
       expect(cleared).toEqual(expect.arrayContaining([expect.objectContaining({ name, domain: undefined })]));
     }
     expect(setCookies(res).filter((c) => !c.expired)).toEqual([]);
+  });
+
+  it.each<[string, () => void]>([
+    ['the API throws', () => void mockedRenew.mockRejectedValue(new Error('down'))],
+    [
+      'the API answers 503',
+      () => void mockedRenew.mockResolvedValue({ ok: false, status: 503, data: null, transient: true }),
+    ],
+    [
+      'the API answers 500 with no flag',
+      () => void mockedRenew.mockResolvedValue({ ok: false, status: 500, data: {} }),
+    ],
+  ])('answers 503 and keeps the session when %s', async (_label, arrange) => {
+    arrange();
+    const res = await refresh(post('/api/auth/refresh', { cookie }));
+
+    expect(res.status).toBe(503);
+    expect(setCookies(res)).toEqual([]);
   });
 
   it('answers 401 without calling the API when there is no refresh cookie', async () => {

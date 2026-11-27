@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { checkIsValidToken } from '@/services/auth.service';
+import { AuthServiceUnavailableError, checkIsValidToken } from '@/services/auth.service';
 import { decodeToken } from '@/utils/auth.utils';
 import { isSameOriginRequest, setSessionCookies } from '@/utils/sessionResponse';
 
@@ -44,6 +44,9 @@ export async function POST(req: NextRequest) {
     return response;
   } catch (err) {
     console.error('Session hand-off failed', err);
+    if (err instanceof AuthServiceUnavailableError) {
+      return NextResponse.json({ error: 'Authentication service unavailable' }, { status: 503 });
+    }
     return NextResponse.json({ error: 'Invalid session' }, { status: 400 });
   }
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { renewAccessToken } from '@/services/auth.service';
+import { isTransientRefreshFailure, renewAccessToken } from '@/services/auth.service';
 import { clearSessionCookies } from '@/utils/sessionCookies';
 import { isSameOriginRequest, setSessionCookies } from '@/utils/sessionResponse';
 
@@ -9,9 +9,13 @@ function sessionEnded() {
   return response;
 }
 
+function authUnavailable() {
+  return NextResponse.json({ error: 'Authentication service unavailable' }, { status: 503 });
+}
+
 /**
  * Renews the session from the httpOnly refresh token. The browser gets the new access token and user info; the
- * rotated refresh token only goes back into its httpOnly cookie. A failed renewal ends the session.
+ * rotated refresh token only goes back into its httpOnly cookie. A rejected token ends the session. An outage does not.
  */
 export async function POST(req: NextRequest) {
   if (!isSameOriginRequest(req)) {
@@ -26,6 +30,9 @@ export async function POST(req: NextRequest) {
   try {
     const renewed = await renewAccessToken(refreshTokenCookie);
     const { accessToken, refreshToken, userInfo } = renewed?.data ?? {};
+    if (isTransientRefreshFailure(renewed)) {
+      return authUnavailable();
+    }
     if (!renewed?.ok || !accessToken || !refreshToken || !userInfo?.uid) {
       return sessionEnded();
     }
@@ -35,6 +42,6 @@ export async function POST(req: NextRequest) {
     return response;
   } catch (err) {
     console.error('Session refresh failed', err);
-    return sessionEnded();
+    return authUnavailable();
   }
 }

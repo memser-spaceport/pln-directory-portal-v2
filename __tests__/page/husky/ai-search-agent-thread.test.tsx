@@ -233,7 +233,13 @@ describe('LAB-3457: a saved chat on AI agent chat', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Who leads them?' }));
     expect(await screen.findByText('Three people lead them.')).toBeInTheDocument();
     expect(chat).toHaveBeenCalledTimes(1);
-    expect(chat.mock.calls[0][0]).toMatchObject({ threadId: 't-1', message: 'Who leads them?', persist: true });
+    // QA1: C1 knows the turn comes from AI agent chat (`surface: 'page'`).
+    expect(chat.mock.calls[0][0]).toMatchObject({
+      threadId: 't-1',
+      message: 'Who leads them?',
+      persist: true,
+      surface: 'page',
+    });
     // The open intro card goes with the message (LAB-3362), as in a live chat.
     expect(chat.mock.calls[0][0].introDraft).toEqual({
       target: { type: 'team', uid: 't-9' },

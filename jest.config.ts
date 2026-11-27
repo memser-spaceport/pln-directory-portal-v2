@@ -35,6 +35,7 @@ const config: Config = {
     '<rootDir>/pl-design-system/',
     '<rootDir>/prototypes/',
     '<rootDir>/design-canvas/',
+    '/__fixtures__/',
   ],
   silent: true,
   // Add more setup options before each test is run

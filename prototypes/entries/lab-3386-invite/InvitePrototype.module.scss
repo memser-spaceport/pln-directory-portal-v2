@@ -1,0 +1,227 @@
+@use 'styles/media';
+
+.root {
+  min-height: 100dvh;
+  background: var(--background-neutral-subtle, #f1f5f9);
+}
+
+/* Review band: same look as the other entries' bars (lab-2948, gantry-impact-rating). Not design. */
+.protoBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 12px 16px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px dashed var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.protoTag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  background: var(--background-brand-subtle, rgba(27, 77, 255, 0.08));
+}
+
+.protoGroup {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--background-base-white, #fff);
+}
+
+.protoOption {
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  cursor: pointer;
+}
+
+.protoOptionActive {
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.protoCheck {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 16px;
+  cursor: pointer;
+}
+
+/* Avatar menu stage: a bare header strip so the open menu has its real anchor. */
+.menuStage {
+  min-height: 420px;
+}
+
+.fakeNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  padding: 0 24px;
+  background: var(--background-base-white, #fff);
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.fakeNavLogo {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Members search */
+.membersPage {
+  min-height: 480px;
+}
+
+.membersToolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.membersSearch {
+  min-width: 240px;
+}
+
+/* Production EmptyResult (.data-not-found), restyled from its own values. */
+.notFound {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: 31px auto 0;
+  width: 300px;
+  max-width: 100%;
+
+  @include media.breakpoint-1024 {
+    width: 417px;
+  }
+}
+
+.notFoundText {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #475569);
+  text-align: center;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.inlineLink {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--foreground-brand-primary, #156ff7);
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Team profile */
+.teamPage {
+  max-width: 736px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.teamName {
+  margin: 8px 0 16px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+}
+
+.teamTabs {
+  margin-bottom: 16px;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* Settings → Invite */
+.linkRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.linkField {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-neutral-subtle, #f8fafc);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  line-height: 20px;
+  text-overflow: ellipsis;
+
+  &:focus {
+    outline: none;
+    border-color: var(--border-brand-primary, #1b4dff);
+  }
+}
+
+/* DS Button is inline-block: an icon needs inline-flex to sit on the line (kit guide). */
+.copyButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-shrink: 0;
+  min-width: 156px;
+  white-space: nowrap;
+}
+
+.fallback {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

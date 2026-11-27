@@ -1,5 +1,7 @@
 import type { EventRoleSelection, Resource } from '@/components/core/UpdatesPanel/IrlGatheringModal/types';
 
+import type { EventStatus } from './event-submission.types';
+
 /**
  * The event drawer's wire and view types (LAB-3216).
  *
@@ -40,6 +42,13 @@ export interface EventDetailsResponse {
   locationUrl?: string | null;
   /** LAB-3403: the event's own IANA time zone. Optional: an older backend does not send it. */
   timezone?: string | null;
+  /**
+   * LAB-3451: the event's social handles by platform (`twitter`, `discord`, `bluesky`, `mastodon`, `telegram`,
+   * `email`), as the form stored them. Every viewer gets them. Optional: an older backend does not send them.
+   */
+  contactInfos?: Record<string, string[]> | null;
+  /** LAB-3454: how to find the venue, for example "8th floor". Every viewer gets it. Optional on an older backend. */
+  locationInstructions?: string | null;
 }
 
 /** `GET /v1/irl/events/:uid` (`ResponsePLEventDetailSchema`). 404 for an unknown or deleted event. */
@@ -50,15 +59,23 @@ export interface EventDetailResponse {
   type: string | null;
   startDate: string;
   endDate: string;
+  /** The approval status, sent to the event's submitter and a directory admin. Absent for other viewers. */
+  status?: EventStatus;
+  /** True when the dates carry no time of day. Absent on an API that has no all-day events. */
+  allDay?: boolean;
+  /** The event's own IANA time zone, else its gathering's (LAB-3403). Absent or null: the gathering's is used. */
+  timezone?: string | null;
   description: string | null;
   shortDescription: string | null;
   logo: string | null;
   banner: string | null;
   websiteUrl: string | null;
+  /** LAB-3456: the registration link the form stored. Optional: an older backend does not send it. */
+  registrationUrl?: string | null;
   externalId: string | null;
-  /** LAB-3403: the event's own IANA time zone, else its gathering's. Optional: an older backend does not send it. */
-  timezone?: string | null;
   resources: unknown[];
+  /** The event's own venue (LAB-3281). Null or absent when it has none, or on an older API. */
+  venue?: { address: string | null; latitude: number | null; longitude: number | null } | null;
   location: {
     uid: string;
     location: string;
@@ -92,6 +109,16 @@ export interface EventAgendaDay {
   items: { time: string; title: string; about?: string }[];
 }
 
+/** LAB-3451: one social handle of the event, ready to link. */
+export interface EventSocialLink {
+  /** The platform's form label, for example "Discord". */
+  platform: string;
+  /** An `http` or `https` address, or `mailto:` for an email. */
+  href: string;
+  /** The address without the scheme, for example "x.com/plabs", or the email address. */
+  label: string;
+}
+
 /** One event of the gathering, as the events picker needs it. */
 export interface EventGatheringEvent {
   uid: string;
@@ -119,15 +146,22 @@ export interface EventDetail {
   endDate: string;
   /** The event's own time zone, else its gathering's, else UTC. */
   timezone: string;
+  /** The approval status, when the backend sent it: only the submitter and a directory admin get one. */
+  status: EventStatus | null;
+  /** The dates carry no time of day: the drawer shows the days only. */
+  allDay: boolean;
   /** Hidden when unknown. */
   mode: EventMode | null;
   /** Hidden when unknown. */
   access: EventAccess | null;
-  /** "19th Nov 2026, 18:00 - 19th Nov 2026, 21:00 (UTC -5:00)", in `timezone`. */
+  /** "19th Nov 2026, 18:00 - 19th Nov 2026, 21:00 (UTC -5:00)", in `timezone`; days only when all-day. */
   dateLine: string;
+  /** The event's own venue address, else its gathering's location; never the catch-all "Others". */
   address: string | null;
   /** LAB-3324: the venue's map link (for example Google Maps). Null when the event has none. */
   locationUrl: string | null;
+  /** LAB-3454: how to find the venue, under the venue line. Null when the event has no venue or no instruction. */
+  locationInstructions: string | null;
   image: string | null;
   /** The codes of the event's focus areas, e.g. "FA4" (LAB-3404). */
   focusAreas: string[];
@@ -137,16 +171,26 @@ export interface EventDetail {
   /** May hold HTML from the events sync; rendered through `SafeHtml`. */
   description: string | null;
   agenda: EventAgendaDay[];
+  /** LAB-3451: the social handles that give a safe link, in their stored order. Empty when none. */
+  socials: EventSocialLink[];
   websiteUrl: string | null;
   /** The event's id in the PL events app (LAB-3361). The drawer does not link it now (LAB-3420). Null when unknown. */
   externalId: string | null;
   /**
-   * LAB-3334: the link that the drawer's link row and "Register" open. It is `websiteUrl` when that is an `http` or
-   * `https` address. Otherwise it is the link of the event's resource named "Registration" (name match ignores case
-   * and end spaces), when that is an `http` or `https` address. Null when neither is.
+   * LAB-3334: the link of the drawer's event page row. It is `websiteUrl` when that is an `http` or `https` address.
+   * Otherwise it is the registration link (`registrationUrl`). Null when neither is.
    */
   eventUrl: string | null;
+  /**
+   * LAB-3456: the registration link: the stored `registrationUrl`, else the link of the event's resource named
+   * "Registration" (name match ignores case and end spaces). Only an `http` or `https` address. Null when none.
+   */
+  registrationUrl: string | null;
+  /** LAB-3456: what Register opens: `registrationUrl`, else the website. Null when neither is. */
+  registerUrl: string | null;
   gathering: EventGathering | null;
+  /** Invite only by its access or by its type: a signed-out visitor does not see who went (LAB-3426). */
+  inviteOnly: boolean;
   goingCount: number;
   faces: EventPersonResponse[];
   /** The viewer's own attendance, or null when they are not going (or signed out). */

@@ -1,0 +1,52 @@
+.days,
+.items {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.days {
+  gap: 16px;
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.items {
+  gap: 8px;
+}
+
+.dayTitle {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.date {
+  font-weight: 400;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.item {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  overflow-wrap: anywhere;
+}
+
+.description {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+  overflow-wrap: anywhere;
+}

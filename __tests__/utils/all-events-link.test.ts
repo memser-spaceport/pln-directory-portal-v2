@@ -1,4 +1,4 @@
-import { allEventsLink, gatheringScheduleLink, isAllEventsPageOn } from '@/utils/all-events-link';
+import { allEventsLink, eventLink, gatheringScheduleLink, isAllEventsPageOn } from '@/utils/all-events-link';
 import { readFilters } from '@/services/events/all-events.filters';
 
 const flags = { page: true, drawer: true };
@@ -77,5 +77,28 @@ describe('IRL gathering links to the All Events page (LAB-3337)', () => {
         'https://25.labweek.io/x',
       );
     });
+  });
+});
+
+describe('one event, e.g. a global search result (LAB-3341)', () => {
+  const OLD = 'https://pln-events-dev.vercel.app/program/#ethcc';
+  beforeEach(() => {
+    flags.page = true;
+    flags.drawer = true;
+  });
+
+  it('opens the event on the All Events page, in the same tab, when the page is on', () => {
+    expect(eventLink('cmwx 1', OLD)).toEqual({ href: '/events/all?event=cmwx%201', newTab: false });
+  });
+
+  it('keeps the old events-app link in a new tab while the page is off', () => {
+    flags.page = false;
+    expect(eventLink('e1', OLD)).toEqual({ href: OLD, newTab: true });
+  });
+
+  it('has no link with neither a uid on the page nor an old link', () => {
+    expect(eventLink(null, OLD)).toEqual({ href: OLD, newTab: true });
+    flags.drawer = false;
+    expect(eventLink('e1', '  ')).toBeNull();
   });
 });

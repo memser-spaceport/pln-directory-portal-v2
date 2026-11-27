@@ -30,7 +30,7 @@ const INPUT_ID = 'search-popover-input';
 /* The field has two jobs and the placeholder is the only thing that says so
    at rest (Evernote and Mintlify: "Search or ask"). Exported for the header
    field, which is this field from tablet-landscape up. */
-export const SEARCH_PLACEHOLDER = 'Search or ask AI Search a question';
+export const SEARCH_PLACEHOLDER = 'Search or ask AI agent chat a question';
 
 const SECTION_ORDER: (keyof SearchResult)[] = ['top', 'members', 'teams', 'projects', 'forumThreads', 'events'];
 
@@ -236,7 +236,7 @@ export function SearchPopover({
             <button type="button" className={clsx(rs.searchItem, s.rowButton)} onClick={() => onAskAi(term)}>
               <AiSearchIcon className={s.rowIcon} />
               <span className={rs.searchItemText}>
-                {term ? <>Chat with AI Search about &ldquo;{term}&rdquo;</> : 'Ask AI Search a question'}
+                {term ? <>Ask AI agent chat about &ldquo;{term}&rdquo;</> : 'Ask AI agent chat a question'}
               </span>
               <span className={s.askArrow} aria-hidden="true">
                 <ArrowUpRightIcon />
@@ -307,7 +307,7 @@ export function SearchPopover({
                       className={clsx(sub.button, s.noResultsAsk, s.fieldOnly)}
                       onClick={() => onAskAi(term)}
                     >
-                      Ask AI Search instead
+                      Ask AI agent chat instead
                     </button>
                   )}
                 </div>
@@ -346,7 +346,7 @@ export function SearchPopover({
               {aiHistory && aiHistory.items.length > 0 && (
                 <div className={clsx(rs.root, s.idleSection)}>
                   <div className={s.aiHistoryHead}>
-                    <div className={rs.label}>Recent AI Search chats</div>
+                    <div className={rs.label}>Recent AI agent chats</div>
                     <button type="button" className={clsx(sub.button, s.aiHistoryAll)} onClick={aiHistory.onShowAll}>
                       All chats ({aiHistory.total})
                     </button>
@@ -372,7 +372,7 @@ export function SearchPopover({
                 Search members, teams, projects, events and forum posts.
                 {/* The band's resting job — say the offer exists — handed to
                     the badge it now points at. */}
-                {aiInField && <span className={s.fieldOnly}> Press AI to ask AI Search instead.</span>}
+                {aiInField && <span className={s.fieldOnly}> Press AI to ask AI agent chat instead.</span>}
               </p>
             </div>
           )}

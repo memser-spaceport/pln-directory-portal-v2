@@ -122,12 +122,16 @@ jest.mock('@/analytics/events.analytics', () => ({
   }),
 }));
 jest.mock('@/services/events/hooks/useMyUpcomingEventUids', () => ({ useMyUpcomingEventUids: () => ({ data: [] }) }));
+jest.mock('@/services/events/hooks/usePastEvents', () => ({ usePastEvents: () => ({ data: [] }) }));
+jest.mock('@/services/events/hooks/useMyPastEventUids', () => ({ useMyPastEventUids: () => ({ data: [] }) }));
 jest.mock('@tanstack/react-query', () => ({
   ...jest.requireActual('@tanstack/react-query'),
   useQueryClient: () => ({ setQueryData: jest.fn() }),
 }));
 jest.mock('@/services/events/hooks/useEventDrawerQueries', () => ({ usePrefetchEventDetail: () => jest.fn() }));
 jest.mock('@/components/core/ToastContainer', () => ({ toast: { success: jest.fn() } }));
+// The Calendar's month picker (LAB-3460) is react-calendar, which ships ESM only; its own suite has a stand-in.
+jest.mock('react-calendar', () => ({ __esModule: true, default: () => null }));
 
 function events(): AllEventsItem[] {
   return [
@@ -185,6 +189,42 @@ describe('map layout', () => {
     ]);
     expect(online.map((e) => e.uid)).toEqual(['call']);
     expect(unplaced.map((e) => e.uid)).toEqual(['south']);
+  });
+
+  it('puts a city with no known point on its first event’s venue (LAB-3458)', () => {
+    const london = [
+      item({ uid: 'yc', city: 'London', venuePoint: { lat: 51.5, lng: -0.12 } }),
+      item({ uid: 'yc2', city: 'London', startDate: '2030-12-04T09:00:00.000Z', venuePoint: null }),
+    ];
+    const { pins, unplaced } = mapLayout(london, {});
+    expect(pins).toEqual([
+      expect.objectContaining({ key: 'london', city: 'London', position: { lat: 51.5, lng: -0.12 } }),
+    ]);
+    expect(pins[0].events.map((e) => e.uid)).toEqual(['yc', 'yc2']);
+    expect(unplaced).toEqual([]);
+  });
+
+  it('keeps the city’s known point over a venue', () => {
+    const { pins } = mapLayout([item({ uid: 'l', venuePoint: { lat: 1, lng: 2 } })], { lisbon: LISBON });
+    expect(pins[0].position).toEqual({ lat: LISBON[0], lng: LISBON[1] });
+  });
+
+  it('pins an event with no city ("Others") on its own venue, named by the address', () => {
+    const orlando = { lat: 28.37, lng: -81.27 };
+    const { pins, unplaced } = mapLayout(
+      [
+        item({
+          uid: 'nona',
+          city: null,
+          place: 'Lake Nona, Orlando, FL, USA',
+          venuePoint: orlando,
+        }),
+        item({ uid: 'none', city: null, place: null, venuePoint: null }),
+      ],
+      {},
+    );
+    expect(pins).toEqual([expect.objectContaining({ city: 'Lake Nona', position: orlando })]);
+    expect(unplaced.map((e) => e.uid)).toEqual(['none']);
   });
 
   it('looks at the linked event’s city, else the only city, else every pin, else the world', () => {
@@ -320,6 +360,40 @@ describe('EventsMap', () => {
     expect(unplaced.textContent).not.toMatch(/going/);
   });
 
+  it('on Past: the same pins and lists, newest first, with years and "went" (LAB-3418)', async () => {
+    const past = [
+      item({
+        uid: 'old',
+        name: 'Old call',
+        city: null,
+        mode: 'Virtual',
+        startDay: '2028-12-30',
+        endDay: '2029-01-02',
+        startDate: '2028-12-30T09:00:00Z',
+        goingCount: 4,
+      }),
+      item({
+        uid: 'new',
+        name: 'New call',
+        city: null,
+        mode: 'Virtual',
+        startDay: '2030-11-01',
+        endDay: '2030-11-01',
+        startDate: '2030-11-01T09:00:00Z',
+        goingCount: 2,
+      }),
+      item({ uid: 'lis', name: 'Lisbon day', startDay: '2029-05-05', endDay: '2029-05-05' }),
+    ];
+    await renderMap({ events: past, pastAsOf: '2030-11-25', goingUids: new Set(['old', 'lis']) });
+    const rows = Array.from(document.querySelectorAll('ul [data-event-uid]'));
+    expect(rows.map((row) => row.getAttribute('data-event-uid'))).toEqual(['new', 'old']);
+    expect(rows[0]).toHaveTextContent(/^Nov 1New call2 went$/);
+    expect(rows[1]).toHaveTextContent(/^Dec 30, 2028 – Jan 2, 2029Old call4 wentWent$/);
+    const city = mockGoogle.markers.find((m) => m.title.startsWith('Lisbon:')) as FakeMarker;
+    expect(city.title).toBe('Lisbon: 1 event, you went. Zoom in to the events');
+    expect(eventMarker('Lisbon day').title).toBe('Lisbon day, May 5, 2029, you went');
+  });
+
   it('takes the pin off when the filters leave its city out', async () => {
     const { rerender } = await renderMap();
     const lisbon = marker('Lisbon');
@@ -362,6 +436,7 @@ describe('the page with a Maps key', () => {
         signedIn={false}
         viewerUid={null}
         memberCity={undefined}
+        serverNow={Date.now()}
         serverTodayIso="2030-12-01"
         submitHref="https://irl.example/submit"
       />,

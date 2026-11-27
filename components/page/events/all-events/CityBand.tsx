@@ -4,7 +4,7 @@ import clsx from 'clsx';
 import { useState } from 'react';
 
 import { ArrowBackIcon } from '@/components/icons';
-import { MAIN_CITY_COUNT, spanLabel, type CitySummary } from '@/services/events/all-events.filters';
+import { MAIN_CITY_COUNT, pastSpanLabel, spanLabel, type CitySummary } from '@/services/events/all-events.filters';
 
 import { PinIcon } from './icons';
 import s from './AllEventsPage.module.scss';
@@ -82,12 +82,18 @@ export function CityHeader({
   city,
   summary,
   eventCount,
+  zone,
+  pastAsOf,
   onBack,
 }: {
   city: string;
   summary: CitySummary | undefined;
   /** The events shown under the current filters. */
   eventCount: number;
+  /** The UTC offset every event in the list shares, else null: no "Times in" then (P13). */
+  zone: string | null;
+  /** On Past (LAB-3418): today, so a date outside this year carries its year. */
+  pastAsOf?: string;
   onBack: () => void;
 }) {
   return (
@@ -103,9 +109,14 @@ export function CityHeader({
             {city}
           </h2>
           <p className={s.cityHeaderMeta}>
-            {eventCount} upcoming {eventCount === 1 ? 'event' : 'events'}
-            {summary && ` · ${spanLabel(summary.startDay, summary.endDay)}`}
-            {summary?.zone && ` · Times in ${city} time (${summary.zone})`}
+            {eventCount} {pastAsOf ? 'past' : 'live & upcoming'} {eventCount === 1 ? 'event' : 'events'}
+            {summary &&
+              ` · ${
+                pastAsOf
+                  ? pastSpanLabel(summary.startDay, summary.endDay, pastAsOf)
+                  : spanLabel(summary.startDay, summary.endDay)
+              }`}
+            {zone && ` · Times in ${city} time (${zone})`}
           </p>
         </div>
       </div>

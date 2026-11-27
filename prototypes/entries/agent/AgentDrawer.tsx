@@ -38,7 +38,9 @@ import {
   itemPrompts,
   placeholder,
   rolePrompts,
+  VIEWERS,
   type Chat,
+  type ViewerKey,
   type Prompt,
   type Viewer,
 } from './script';
@@ -188,6 +190,7 @@ export function AgentDrawer({
   ask,
   send,
   openOnArrival = false,
+  openSeq = 0,
   pageReadable = true,
   aiSearchScope,
   handoffFailsOnce = false,
@@ -209,6 +212,8 @@ export function AgentDrawer({
   ask?: AskRequest | null;
   send?: SendRequest | null;
   openOnArrival?: boolean;
+  /** Bumped by the host page to open the agent (AI agent chat's "Open the agent", Undo). */
+  openSeq?: number;
 }) {
   const feedback = usePageFeedback();
   const [open, setOpen] = useState(openOnArrival);
@@ -245,7 +250,11 @@ export function AgentDrawer({
       return false;
     }
     const scoped = aiSearchScope && readingRef.current.some((r) => r.id === page.id);
-    window.open(aiSearchUrl(questions, scoped ? aiSearchScope : undefined), '_blank', 'noopener');
+    /* The member's role travels too, so AI agent chat knows which of these were actions the agent took
+       (they arrive as the agent's finished cards, never run again). */
+    const role = (Object.keys(VIEWERS) as ViewerKey[]).find((k) => VIEWERS[k] === viewer);
+    const extra: Record<string, string> = { ...(scoped ? aiSearchScope : {}), ...(role && role !== 'founder' ? { role } : {}) };
+    window.open(aiSearchUrl(questions, Object.keys(extra).length ? extra : undefined), '_blank', 'noopener');
     return true;
   };
   const readingRef = useRef(reading);
@@ -295,6 +304,12 @@ export function AgentDrawer({
     openAgent();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [send?.seq]);
+
+  /* The host page asked for the agent. */
+  useEffect(() => {
+    if (openSeq > 0) openAgent();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openSeq]);
 
   /* Ask AI: a fresh chat reading this page and the story. */
   useEffect(() => {

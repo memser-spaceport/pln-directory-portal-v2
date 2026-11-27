@@ -1,0 +1,40 @@
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* A host or co-host row: the name and the email, then the remove control (or its empty slot) at the right. */
+.line {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+
+  > :first-child {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* The empty place of the remove control in the host row: the width of `.iconButton`. */
+.slot {
+  flex: 0 0 40px;
+  width: 40px;
+}

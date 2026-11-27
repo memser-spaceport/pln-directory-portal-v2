@@ -121,28 +121,28 @@ export const parseMemberDetails = (members: IMemberResponse[], teamId: string, i
 };
 
 export const hidePreferences = (preferences: IMemberPreferences, member: IMember) => {
-  if (!preferences?.showEmail) {
+  if (preferences?.showEmail === false) {
     delete member['email'];
   }
-  if (!preferences?.showDiscord) {
+  if (preferences?.showDiscord === false) {
     delete member['discordHandle'];
   }
-  if (!preferences?.showGithubHandle) {
+  if (preferences?.showGithubHandle === false) {
     delete member['githubHandle'];
   }
-  if (!preferences?.showTelegram) {
+  if (preferences?.showTelegram === false) {
     delete member['telegramHandle'];
   }
-  if (!preferences?.showLinkedin) {
+  if (preferences?.showLinkedin === false) {
     delete member['linkedinHandle'];
   }
-  if (!preferences?.showGithubProjects) {
+  if (preferences?.showGithubProjects === false) {
     delete member['repositories'];
   }
-  if (!preferences?.showTwitter) {
+  if (preferences?.showTwitter === false) {
     delete member['twitter'];
   }
-  if (!preferences?.showBluesky) {
+  if (preferences?.showBluesky === false) {
     delete member['blueskyHandle'];
   }
 };

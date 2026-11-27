@@ -1,17 +1,31 @@
 import clsx from 'clsx';
+import Link from 'next/link';
 
 import btn from '@/components/common/Button/Button.module.scss';
 
 import s from './AllEventsPage.module.scss';
 
 /**
- * The title, one line about the page and "Submit an event". The submit link is production's `getSubmitEventUrl()`
- * (through the events portal's LabOS sign-in), passed in from the server.
+ * The title, one line about the page, "My Submissions" for a signed-in member, and "Submit an event". The server
+ * passes the links: with events submitted in LabOS, "Submit an event" opens the LabOS form in the same tab
+ * (`submitInApp`); otherwise it opens the submission portal in a new tab.
  *
  * On phones (Polina, 2026-11-24) "Submit an event" sits in the title row, so the actions take no row of their own.
  * The page has no link to the PL events app (LAB-3420): the event data will move here soon.
  */
-export function AllEventsHeader({ submitHref, onSubmitClick }: { submitHref: string; onSubmitClick?: () => void }) {
+export function AllEventsHeader({
+  submitHref,
+  submitInApp = false,
+  mySubmissionsHref,
+  onSubmitClick,
+}: {
+  submitHref: string;
+  /** The submit link stays in LabOS: same tab. */
+  submitInApp?: boolean;
+  /** The member's own submissions. Left out for a signed-out visitor and while events are not submitted in LabOS. */
+  mySubmissionsHref?: string;
+  onSubmitClick?: () => void;
+}) {
   return (
     <header className={s.header}>
       <div className={s.headerText}>
@@ -19,11 +33,15 @@ export function AllEventsHeader({ submitHref, onSubmitClick }: { submitHref: str
         <p className={s.lede}>Meetups and conferences across the Protocol Labs network.</p>
       </div>
       <div className={s.headerActions}>
+        {mySubmissionsHref && (
+          <Link href={mySubmissionsHref} className={s.textLink}>
+            My Submissions
+          </Link>
+        )}
         {/* The DS Button's classes on the link itself: a <button> inside an <a> is two controls. */}
         <a
           href={submitHref}
-          target="_blank"
-          rel="noreferrer"
+          {...(submitInApp ? {} : { target: '_blank', rel: 'noreferrer' })}
           className={clsx(btn.root, btn.small, btn.border, btn.neutral, s.btn)}
           onClick={onSubmitClick}
         >

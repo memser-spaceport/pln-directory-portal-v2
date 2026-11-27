@@ -1,0 +1,72 @@
+import { isEventEnded } from '@/services/events/event-ended';
+
+const at = (iso: string) => new Date(iso).getTime();
+
+describe('isEventEnded (LAB-3426)', () => {
+  it('has not ended one second before its end time, and has at it', () => {
+    expect(isEventEnded('2026-11-25T20:00:00.000Z', at('2026-11-25T19:59:59.000Z'))).toBe(false);
+    expect(isEventEnded('2026-11-25T20:00:00.000Z', at('2026-11-25T20:00:00.000Z'))).toBe(true);
+  });
+
+  it('has ended later on the same day, not from the next day', () => {
+    expect(isEventEnded('2026-11-25T10:00:00.000Z', at('2026-11-25T23:00:00.000Z'))).toBe(true);
+  });
+
+  it('a multi-day event has not ended on its last day until its end time', () => {
+    const end = '2026-12-05T18:00:00.000Z';
+    expect(isEventEnded(end, at('2026-12-04T23:00:00.000Z'))).toBe(false);
+    expect(isEventEnded(end, at('2026-12-05T17:59:59.000Z'))).toBe(false);
+    expect(isEventEnded(end, at('2026-12-05T18:00:00.000Z'))).toBe(true);
+  });
+
+  it('an event in another time zone ends at its own instant, whatever the day is elsewhere', () => {
+    // 9 PM in New York on Nov 25 is 2 AM UTC on Nov 26; 1 AM in Tokyo on Nov 26 is 4 PM UTC on Nov 25.
+    for (const end of ['2026-11-25T21:00:00-05:00', '2026-11-26T02:00:00.000Z']) {
+      expect(isEventEnded(end, at('2026-11-25T22:00:00.000Z'))).toBe(false);
+      expect(isEventEnded(end, at('2026-11-26T01:59:59.000Z'))).toBe(false);
+      expect(isEventEnded(end, at('2026-11-26T02:00:00.000Z'))).toBe(true);
+    }
+    expect(isEventEnded('2026-11-26T01:00:00+09:00', at('2026-11-25T15:59:59.000Z'))).toBe(false);
+    expect(isEventEnded('2026-11-26T01:00:00+09:00', at('2026-11-25T16:00:00.000Z'))).toBe(true);
+  });
+
+  it('never ends on an end that is not a date', () => {
+    expect(isEventEnded('', at('2026-11-25T20:00:00.000Z'))).toBe(false);
+    expect(isEventEnded('soon', at('2026-11-25T20:00:00.000Z'))).toBe(false);
+  });
+
+  it('never ends without an end', () => {
+    // `new Date(null)` is 1970, not an invalid date.
+    expect(isEventEnded(null, at('2026-11-25T20:00:00.000Z'))).toBe(false);
+    expect(isEventEnded(undefined, at('2026-11-25T20:00:00.000Z'))).toBe(false);
+  });
+
+  it('reads the clock when no time is given', () => {
+    jest.useFakeTimers({ now: at('2026-11-25T20:00:00.000Z') });
+    try {
+      expect(isEventEnded('2026-11-25T20:00:00.000Z')).toBe(true);
+      expect(isEventEnded('2026-11-25T20:00:01.000Z')).toBe(false);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+});
+
+describe('isEventEnded, an all-day event (LAB-3339 with LAB-3418)', () => {
+  it('ends with its last day in its own time zone, not at midnight UTC of it', () => {
+    // Jul 26 ends at 11:59:59 PM in Los Angeles: 06:59:59 UTC on Jul 27.
+    const ended = (iso: string) => isEventEnded('2030-07-26', at(iso), true, 'America/Los_Angeles');
+    expect(ended('2030-07-26T00:00:00.000Z')).toBe(false);
+    expect(ended('2030-07-27T06:59:59.000Z')).toBe(false);
+    expect(ended('2030-07-27T07:00:00.000Z')).toBe(true);
+  });
+
+  it('read as an instant, the same day would have ended at its start', () => {
+    expect(isEventEnded('2030-07-26', at('2030-07-26T12:00:00.000Z'))).toBe(true);
+    expect(isEventEnded('2030-07-26', at('2030-07-26T12:00:00.000Z'), true, 'UTC')).toBe(false);
+  });
+
+  it('an unreadable day never ends it', () => {
+    expect(isEventEnded('soon', at('2030-07-26T12:00:00.000Z'), true, 'UTC')).toBe(false);
+  });
+});

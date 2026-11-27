@@ -6,7 +6,6 @@ import clsx from 'clsx';
 import { Markdown } from '@/components/common/Markdown';
 import { Button } from '@/components/common/Button';
 import { Tag } from '@/components/ui/Tag';
-import { FollowupQuestions } from '@/components/core/husky/FollowupQuestions';
 import { ChatInput } from '@/components/core/husky/ChatInput';
 import { NotePencilIcon, ThumbsUpOutlinedIcon } from '@/components/icons';
 
@@ -15,10 +14,14 @@ import { buildAnswer, FEEDBACK_REASONS, type CannedAnswer } from './mocks';
 import type { AiSearchScope } from './scope';
 import type { AiSearchViewer } from './viewer';
 import { DirectoryResultsCards } from './DirectoryResultsCards';
+import { FollowUpList } from './FollowUpList';
 import { AnswerBlocks } from './AnswerBlocks';
 import { AnswerSources } from './AnswerSources';
 import { AnswerStatus, AnswerStatusVariantContext, thinkingMsFor } from './AnswerStatus';
 import s from './AnswerPanel.module.scss';
+import type { AgentReply } from '../home-v2-b/agentScript';
+import { AgentTurnView, type AgentView } from '../ai-search-page/agentActions';
+import type { ViewerKey } from '../agent/script';
 
 export type TurnStatus = 'thinking' | 'streaming' | 'done';
 export type FeedbackState = 'none' | 'up' | 'down' | 'sent';
@@ -30,6 +33,16 @@ export interface Turn extends CannedAnswer {
   shown: string;
   status: TurnStatus;
   feedback: FeedbackState;
+  /**
+   * Present when the agent answered instead (ai-search-page with agent actions on): its steps and confirm
+   * cards replace the answer's anatomy. See `ai-search-page/agentActions.tsx`.
+   */
+  agent?: AgentReply;
+  /** How the page treats that action: live cards, or the same cards finished (a past chat). */
+  agentView?: AgentView;
+  agentViewer?: ViewerKey;
+  /** Unused since 2026-11-26 (receipts were dropped with version 1). */
+  agentSummary?: string;
 }
 
 let nextId = 1;
@@ -82,6 +95,10 @@ interface AnswerPanelProps {
   InputComponent?: typeof ChatInput;
   /** Optional content right above the follow-up field (the MCP prototype puts its hint here). Nothing renders without it. */
   aboveInput?: React.ReactNode;
+  /** Handed to the input as its `footer` (unused since the Search | Agent switch was dropped, 2026-11-26). */
+  inputFooter?: React.ReactNode;
+  /** The follow-up field's placeholder; "Ask a follow-up" by default. */
+  inputPlaceholder?: string;
 }
 
 /**
@@ -129,6 +146,8 @@ export function AnswerPanel({
   layout = 'dialog',
   InputComponent = ChatInput,
   aboveInput,
+  inputFooter,
+  inputPlaceholder = 'Ask a follow-up',
 }: AnswerPanelProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
@@ -271,7 +290,8 @@ export function AnswerPanel({
         {aboveInput}
         <InputComponent
           ref={inputRef}
-          placeholder="Ask a follow-up"
+          placeholder={inputPlaceholder}
+          {...((inputFooter ? { footer: inputFooter } : {}) as object)}
           rows={1}
           defaultValue={draft}
           onChange={(e) => onDraftChange?.(e.target.value)}
@@ -316,7 +336,27 @@ function Message({
     <div className={s.message}>
       <h2 className={s.question}>{turn.question}</h2>
 
-      {turn.status === 'thinking' ? (
+      {turn.agent ? (
+        /* The agent answered: its steps and cards, as in the agent panel. No regenerate or thumbs: a
+           regenerated card would be a second copy of the same request. */
+        turn.status === 'thinking' ? (
+          <AnswerStatus hits={[]} sourceCount={0} />
+        ) : (
+          <div className={s.card}>
+            <AgentTurnView
+              reply={turn.agent}
+              view={turn.agentView ?? 'live'}
+              question={turn.question}
+              summary={turn.agentSummary}
+              viewer={turn.agentViewer ?? 'founder'}
+              streaming={streaming}
+              shown={turn.shown}
+              onSend={onFollowup}
+              busy={busy}
+            />
+          </div>
+        )
+      ) : turn.status === 'thinking' ? (
         <AnswerStatus hits={turn.sql} sourceCount={turn.sources.length} scoped={scoped} />
       ) : (
         <div className={s.card}>
@@ -366,11 +406,7 @@ function Message({
           )}
 
           {!streaming && turn.followUpQuestions.length > 0 && (
-            <FollowupQuestions
-              followupQuestions={turn.followUpQuestions}
-              onFollowupClicked={onFollowup}
-              isLoadingObject={busy}
-            />
+            <FollowUpList questions={turn.followUpQuestions} onPick={onFollowup} disabled={busy} />
           )}
 
           {!streaming && (

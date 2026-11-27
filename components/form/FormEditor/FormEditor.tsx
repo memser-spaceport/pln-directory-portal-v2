@@ -32,6 +32,8 @@ interface Props extends PropsWithChildren {
   enableMentions?: boolean;
   maxLength?: number;
   showCharCount?: boolean;
+  /** Opt in: typing and pasting stop at `maxLength`, counted as the counter counts. Off by default. */
+  hardLimit?: boolean;
   classes?: {
     label?: string;
   };
@@ -45,6 +47,11 @@ interface Props extends PropsWithChildren {
   onAnnotateImage?: (edit: NoteImageEdit) => void;
   onRemoveImage?: (removal: NoteImageRemoval) => void;
   externalImageDrop?: ExternalImageDrop;
+}
+
+/** The counter's length of the editor's HTML: the text with no tags, each `&nbsp;` as one space. */
+export function editorTextLength(html: string): number {
+  return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').length;
 }
 
 export const FormEditor = (props: Props) => {
@@ -61,6 +68,7 @@ export const FormEditor = (props: Props) => {
     enableMentions = true,
     maxLength,
     showCharCount = false,
+    hardLimit = false,
     onMentionInitiated,
     onMentionSearch,
     onMentionSelected,
@@ -80,9 +88,7 @@ export const FormEditor = (props: Props) => {
   } = useFormContext();
   const value = watch(name);
   const hasHadContent = useRef(false);
-  const charCount = showCharCount
-    ? ((value as string)?.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').length ?? 0)
-    : 0;
+  const charCount = showCharCount ? editorTextLength((value as string) ?? '') : 0;
   const isOverLimit = showCharCount && maxLength != null && charCount > maxLength;
 
   return (
@@ -105,6 +111,7 @@ export const FormEditor = (props: Props) => {
         placeholder={placeholder}
         autoFocus={autoFocus}
         enableMentions={simplified ? false : enableMentions}
+        {...(hardLimit && maxLength != null && { maxTextLength: maxLength, textLength: editorTextLength })}
         {...(simplified && { toolbarConfig: toolbarConfig ?? SIMPLIFIED_TOOLBAR })}
         onChange={(txt) => {
           const isEmptyContent = !txt || txt.replace(/<[^>]*>/g, '').trim() === '';

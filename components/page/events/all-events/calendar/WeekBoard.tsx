@@ -2,27 +2,19 @@ import clsx from 'clsx';
 import type { CSSProperties } from 'react';
 
 import { EventImage } from '@/components/page/events/EventImage/EventImage';
-import { GoingPill } from '@/components/page/events/GoingPill/GoingPill';
+import { GoingPill, WENT_LABEL } from '@/components/page/events/GoingPill/GoingPill';
 import { GoingFaces } from '@/components/page/events/all-events/GoingFaces';
-import { shortDate, spanLabel } from '@/services/events/all-events.filters';
+import { shortDate, spanLabel, timeRange } from '@/services/events/all-events.filters';
 import { eventPlace } from '@/services/events/event-facts';
 import type { AllEventsItem } from '@/services/events/all-events.types';
 
-import {
-  addDays,
-  byStart,
-  dayNumber,
-  eventsBetween,
-  isMultiDay,
-  safeColor,
-  spanColumns,
-  weekDays,
-  weekdayName,
-} from './weeks';
+import { addDays, byStart, dayNumber, eventsBetween, isMultiDay, spanColumns, weekDays, weekdayName } from './weeks';
 import k from './Calendar.module.scss';
 
 export interface CalendarCardProps {
   goingUids: Set<string>;
+  /** The events that have ended (LAB-3418): their cards read "N went" and "Went". */
+  pastUids: Set<string>;
   highlightUid: string | null;
   onOpen: (uid: string) => void;
   onPrepare: (uid: string) => void;
@@ -128,16 +120,6 @@ function DayHead({
 /** "Online", "Lisbon · also online", "Lisbon": the city, since the cards are narrow. */
 const placeOf = (e: AllEventsItem) => eventPlace(e.mode, e.city)?.text ?? '';
 
-/** "6:00 PM – 9:00 PM" in the event's time zone; the start alone when it ends when it starts. */
-const timeRange = (e: AllEventsItem) =>
-  e.endTime && e.endTime !== e.startTime ? `${e.startTime} – ${e.endTime}` : e.startTime;
-
-/** The first topic's colour as a faint wash over white. */
-const tint = (e: AllEventsItem): CSSProperties => {
-  const color = safeColor(e.tagColor);
-  return { background: `linear-gradient(${color}0f, ${color}0f), var(--background-base-white, #ffffff)` };
-};
-
 function cardHandlers(e: AllEventsItem, { onOpen, onPrepare }: CalendarCardProps) {
   return {
     onClick: () => onOpen(e.uid),
@@ -148,12 +130,13 @@ function cardHandlers(e: AllEventsItem, { onOpen, onPrepare }: CalendarCardProps
 
 /** A multi-day event: one card across its days. */
 function SpanCard({ event, style, ...cards }: CalendarCardProps & { event: AllEventsItem; style?: CSSProperties }) {
+  const past = cards.pastUids.has(event.uid);
   return (
     <button
       type="button"
       data-event-uid={event.uid}
       className={clsx(k.span, event.uid === cards.highlightUid && k.cardHighlight)}
-      style={{ ...style, ...tint(event) }}
+      style={style}
       {...cardHandlers(event, cards)}
     >
       <EventImage src={event.picture} className={k.spanThumb} />
@@ -162,22 +145,22 @@ function SpanCard({ event, style, ...cards }: CalendarCardProps & { event: AllEv
         <span className={k.cardMeta}>
           {[spanLabel(event.startDay, event.endDay), placeOf(event)].filter(Boolean).join(' · ')}
         </span>
-        <GoingFaces item={event} className={k.cardGoing} />
+        <GoingFaces item={event} past={past} className={k.cardGoing} />
       </span>
-      {cards.goingUids.has(event.uid) && <GoingPill />}
+      {cards.goingUids.has(event.uid) && <GoingPill label={past ? WENT_LABEL : undefined} />}
     </button>
   );
 }
 
-/** A one-day event: title, first topic + "+n", local time, place with its zone. */
+/** A one-day event: title, first topic + "+n", local time ("All day" without one), place with its zone. */
 function DayCard({ event, ...cards }: CalendarCardProps & { event: AllEventsItem }) {
   const [first, ...rest] = event.tags;
+  const past = cards.pastUids.has(event.uid);
   return (
     <button
       type="button"
       data-event-uid={event.uid}
       className={clsx(k.card, event.uid === cards.highlightUid && k.cardHighlight)}
-      style={tint(event)}
       {...cardHandlers(event, cards)}
     >
       <span className={k.cardTitle}>{event.name}</span>
@@ -187,10 +170,10 @@ function DayCard({ event, ...cards }: CalendarCardProps & { event: AllEventsItem
           {rest.length > 0 && <span className={k.cardTagMore}>+{rest.length}</span>}
         </span>
       )}
-      <span className={k.cardMeta}>{timeRange(event)}</span>
+      <span className={k.cardMeta}>{timeRange(event) || 'All day'}</span>
       <span className={k.cardMeta}>{[placeOf(event), event.zone].filter(Boolean).join(' · ')}</span>
-      <GoingFaces item={event} className={k.cardGoing} />
-      {cards.goingUids.has(event.uid) && <GoingPill />}
+      <GoingFaces item={event} past={past} className={k.cardGoing} />
+      {cards.goingUids.has(event.uid) && <GoingPill label={past ? WENT_LABEL : undefined} />}
     </button>
   );
 }

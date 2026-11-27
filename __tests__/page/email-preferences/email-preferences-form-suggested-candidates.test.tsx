@@ -16,13 +16,12 @@ jest.mock('@/components/page/email-preferences/components/SuggestedCandidatesEma
   SuggestedCandidatesEmail: () => <div data-testid="suggested-candidates-email" />,
 }));
 jest.mock('@/components/page/email-preferences/components/ForumDigest', () => ({ ForumDigest: () => null }));
-jest.mock('@/components/page/email-preferences/components/Newsletter', () => ({ Newsletter: () => null }));
+jest.mock('@/components/page/email-preferences/components/Newsletter', () => ({
+  Newsletter: () => <div>Newsletter</div>,
+}));
 jest.mock('@/components/page/email-preferences/components/DemoDayUpdates', () => ({ DemoDayUpdates: () => null }));
 jest.mock('@/components/page/email-preferences/components/InvestorCommunications', () => ({
   InvestorCommunications: () => null,
-}));
-jest.mock('@/services/access-control/hooks/useInvestorAccess', () => ({
-  useInvestorAccess: () => ({ isInvestor: false }),
 }));
 jest.mock('@/services/auth/store', () => ({ useCurrentUserStore: () => ({ currentUser: null }) }));
 jest.mock('@/services/members.service', () => ({ getMemberInfo: jest.fn() }));
@@ -64,5 +63,22 @@ describe('EmailPreferencesForm — Suggested Candidates gate', () => {
   it('hides it from a team lead while the flag is off', () => {
     renderForm({ uid: 'lead-1', leadingTeams: ['team-1'] });
     expect(screen.queryByTestId('suggested-candidates-email')).not.toBeInTheDocument();
+  });
+});
+
+describe('EmailPreferencesForm — Newsletter section', () => {
+  it('shows the section to an investor', () => {
+    renderForm({ uid: 'investor-1', leadingTeams: [] });
+    expect(screen.getByText('Newsletter')).toBeInTheDocument();
+  });
+
+  it('shows the section to a team lead', () => {
+    renderForm({ uid: 'lead-1', leadingTeams: ['team-1'] });
+    expect(screen.getByText('Newsletter')).toBeInTheDocument();
+  });
+
+  it('shows the section to a member with no investor policy', () => {
+    renderForm({ uid: 'member-1', leadingTeams: [] });
+    expect(screen.getByText('Newsletter')).toBeInTheDocument();
   });
 });

@@ -5,8 +5,10 @@ import {
   toEventAccess,
   toEventAttendee,
   toEventDetail,
+  toEventLinks,
   toEventUrl,
   toEventMode,
+  toEventSocials,
   toEventTag,
   toMyGatheringPlans,
 } from '@/services/events/event-drawer.mappers';
@@ -163,6 +165,19 @@ describe('event drawer mappers (LAB-3216)', () => {
       expect(toEventDetail(eventResponse({ details: null })).locationUrl).toBeNull();
     });
 
+    it('LAB-3458: shows the event’s own venue address before its gathering, and never "Others"', () => {
+      const venue = { address: 'Zhytomyr, Zhytomyr Oblast, Ukraine, 10000', latitude: 50.26, longitude: 28.67 };
+      const others = { ...eventResponse().location!, location: 'Others' };
+      expect(toEventDetail(eventResponse({ venue })).address).toBe('Zhytomyr, Zhytomyr Oblast, Ukraine, 10000');
+      expect(toEventDetail(eventResponse({ venue, location: others })).address).toBe(
+        'Zhytomyr, Zhytomyr Oblast, Ukraine, 10000',
+      );
+      expect(toEventDetail(eventResponse({ venue: null, location: others })).address).toBeNull();
+      expect(toEventDetail(eventResponse({ venue: { address: '  ', latitude: 1, longitude: 2 } })).address).toBe(
+        'Lisbon, Portugal',
+      );
+    });
+
     it('survives an event with no details and no location', () => {
       const event = toEventDetail(eventResponse({ details: null, location: null }));
       expect(event.gathering).toBeNull();
@@ -269,6 +284,33 @@ describe('event drawer mappers (LAB-3216)', () => {
       expect(event.websiteUrl).toBe('https://lu.ma/labweek');
     });
 
+    it('LAB-3456: keeps both links: the website as the page, the registration for Register', () => {
+      const site = 'https://lu.ma/labweek';
+      for (const raw of [
+        eventResponse({ websiteUrl: site, resources: [registration()] }),
+        eventResponse({ websiteUrl: site, registrationUrl: REG }),
+      ]) {
+        expect(toEventDetail(raw)).toMatchObject({ eventUrl: site, registrationUrl: REG, registerUrl: REG });
+      }
+      // The stored registration link wins over the resource; unsafe links never count.
+      expect(toEventLinks(site, 'https://reg.test/a', [registration()])).toEqual({
+        eventUrl: site,
+        registrationUrl: 'https://reg.test/a',
+        registerUrl: 'https://reg.test/a',
+      });
+      expect(toEventLinks('javascript:alert(1)', 'javascript:alert(2)', [])).toEqual({
+        eventUrl: null,
+        registrationUrl: null,
+        registerUrl: null,
+      });
+      expect(toEventLinks(site, null, [])).toEqual({ eventUrl: site, registrationUrl: null, registerUrl: site });
+      expect(toEventLinks(null, null, [registration()])).toEqual({
+        eventUrl: REG,
+        registrationUrl: REG,
+        registerUrl: REG,
+      });
+    });
+
     it('LAB-3334 R2: falls back to the Registration resource when websiteUrl is empty or not a web address', () => {
       for (const websiteUrl of [null, '', '   ', 'javascript:alert(1)', 'not a url']) {
         expect(toEventDetail(eventResponse({ websiteUrl, resources: [registration()] })).eventUrl).toBe(REG);
@@ -299,6 +341,53 @@ describe('event drawer mappers (LAB-3216)', () => {
         expect(toEventUrl('', [registration(name)])).toBe(REG);
       }
       expect(toEventUrl('', [registration('Registration link')])).toBeNull();
+    });
+  });
+
+  describe('LAB-3451: the social handles', () => {
+    it('links each handle by the form rule, with the form label, and an email as mailto', () => {
+      expect(
+        toEventSocials({
+          twitter: ['@plabs'],
+          discord: ['https://discord.gg/abc'],
+          telegram: ['labweek'],
+          email: ['team@pl.xyz'],
+        }),
+      ).toEqual([
+        { platform: expect.stringMatching(/Twitter/), href: 'https://x.com/plabs', label: 'x.com/plabs' },
+        { platform: 'Discord', href: 'https://discord.gg/abc', label: 'discord.gg/abc' },
+        { platform: 'Telegram', href: 'https://t.me/labweek', label: 't.me/labweek' },
+        { platform: 'Email', href: 'mailto:team@pl.xyz', label: 'team@pl.xyz' },
+      ]);
+    });
+
+    it('leaves out unsafe or empty handles, duplicates and bad input', () => {
+      expect(
+        toEventSocials({
+          twitter: ['', '  ', 'plabs', 'https://x.com/plabs'],
+          email: ['not an email', 'a@b.co?subject=x', 'javascript:alert(1)'],
+          other: ['ftp://x.test', 'javascript:alert(1)'],
+          bluesky: [42 as unknown as string],
+        }),
+      ).toEqual([{ platform: expect.stringMatching(/Twitter/), href: 'https://x.com/plabs', label: 'x.com/plabs' }]);
+      for (const bad of [null, undefined, 'x', [], 1]) expect(toEventSocials(bad)).toEqual([]);
+    });
+
+    it('reads them from details.contactInfos of the event read; none when absent', () => {
+      const base = eventResponse();
+      const event = toEventDetail({
+        ...base,
+        details: { ...base.details!, contactInfos: { bluesky: ['pl.bsky.social'] } },
+      });
+      expect(event.socials).toEqual([
+        {
+          platform: 'Bluesky',
+          href: 'https://bsky.app/profile/pl.bsky.social',
+          label: 'bsky.app/profile/pl.bsky.social',
+        },
+      ]);
+      expect(toEventDetail(eventResponse()).socials).toEqual([]);
+      expect(toEventDetail(bareEventResponse()).socials).toEqual([]);
     });
   });
 });

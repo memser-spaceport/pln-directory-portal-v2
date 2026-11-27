@@ -28,13 +28,34 @@
   }
 
   .messages {
-    padding-top: 24px;
-    padding-bottom: 24px;
+    padding-top: 32px;
+    padding-bottom: 32px;
   }
 
   .inputWrap {
     padding-bottom: 16px;
     border-top: 0;
+  }
+
+  /* Page spacing (2026-11-25, "spacing in the chat is poor"). The dialog's 16px between turns and 8px under
+     each question made a thread read as one block. On the page: 48px between turns so each question starts
+     a new section, 12px from a question to its answer, an 18px question at 26px line height (the dialog's
+     20px made two-line questions collide), and 16px between the parts of an answer. The dialog keeps its
+     own tighter values. */
+  .message + .message {
+    margin-top: 48px;
+  }
+
+  .question {
+    margin-bottom: 12px;
+
+    @include media.breakpoint-1024 {
+      line-height: 26px;
+    }
+  }
+
+  .card {
+    gap: 16px;
   }
 }
 

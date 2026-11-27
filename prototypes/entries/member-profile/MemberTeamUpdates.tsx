@@ -35,7 +35,7 @@ interface Props {
  * take the whole card, which answers "what did Lattice do?" when the question is
  * "what are they part of?".
  */
-export function MemberTeamUpdates({ teams }: Props) {
+export function MemberTeamUpdates({ teams, firstName }: Props & { firstName?: string }) {
   const items = useMemo(
     () =>
       teams
@@ -65,7 +65,8 @@ export function MemberTeamUpdates({ teams }: Props) {
         <span className={s.updatesIcon}>
           <NewsIcon />
         </span>
-        Updates from the team ({items.length})
+        {/* Anuj (2026-11-25): whose team. */}
+        Updates from {firstName ? `${firstName}’s` : 'the'} team ({items.length})
       </div>
 
       <ul className={s.updatesList}>

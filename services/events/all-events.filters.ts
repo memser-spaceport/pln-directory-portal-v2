@@ -16,19 +16,61 @@ import { focusAreaName } from './focus-areas';
  */
 export const MODE_LABEL: Record<EventMode, string> = { 'In-Person': 'In person', Virtual: 'Online', Hybrid: 'Hybrid' };
 
-/** The params that count as applied filters. `view`, `cal` and `event` are page state, not filters. */
-export const FILTER_PARAMS = ['search', 'going', 'mode', 'access', 'focus', 'topic', 'city', 'host'] as const;
+/** The params that count as applied filters. `view`, `cal`, `when`, `year` and `event` are page state, not filters. */
+export const FILTER_PARAMS = [
+  'search',
+  'going',
+  'featured',
+  'mode',
+  'access',
+  'focus',
+  'topic',
+  'city',
+  'host',
+] as const;
 export type FilterParam = (typeof FILTER_PARAMS)[number];
 export const isFilterParam = (key: string): key is FilterParam => (FILTER_PARAMS as readonly string[]).includes(key);
+
+/** `?when=past` shows the events that have ended, in List and Map (LAB-3418); anything else is Live & upcoming. */
+export const WHEN_PARAM = 'when';
+export const WHEN_PAST = 'past';
+/** `?year=2025` narrows Past to one year (LAB-3418). */
+export const YEAR_PARAM = 'year';
+/**
+ * `?month=2026-03`: the month the Calendar shows (LAB-3460). Not in the filter store: the calendar writes it itself. Never
+ * in an Embed link: an embed opens on today.
+ */
+export const MONTH_PARAM = 'month';
+
+/**
+ * The part of the address the server's HTML is made from, as a query (LAB-3418): on a link to Past, all of the page's
+ * state but the open event, so the page is Past from its first paint. Empty for any other address: its HTML is the plain
+ * page, and the browser reads the address itself.
+ */
+export function pastLandingQuery(searchParams: Record<string, string | string[] | undefined>): string {
+  const query = new URLSearchParams();
+  ['view', 'cal', WHEN_PARAM, YEAR_PARAM, ...FILTER_PARAMS].forEach((key) => {
+    const value = [searchParams[key]].flat()[0];
+    if (value) query.set(key, value);
+  });
+  return query.get(WHEN_PARAM) === WHEN_PAST && query.get('view') !== 'calendar' ? query.toString() : '';
+}
 
 /** The embed page's address (LAB-3352). */
 export const EVENTS_EMBED_PATH = '/events/embed';
 
 /**
- * What an embed link carries (LAB-3352): the view, the calendar mode and every filter but "Events I'm going to", which
- * needs a signed-in member. Never the open event. In the page's own order, so a copied link reads like the address.
+ * What an embed link carries (LAB-3352): the view, the calendar mode, Past and its year (LAB-3418) and every filter but
+ * "Events I'm going to", which needs a signed-in member. Never the open event. In the page's own order, so a copied link
+ * reads like the address.
  */
-export const EMBED_PARAMS = ['view', 'cal', ...FILTER_PARAMS.filter((key) => key !== 'going')] as const;
+export const EMBED_PARAMS = [
+  'view',
+  'cal',
+  WHEN_PARAM,
+  YEAR_PARAM,
+  ...FILTER_PARAMS.filter((key) => key !== 'going'),
+] as const;
 
 /**
  * The embed link's one choice that isn't the page's state (LAB-3392): with `details=labos` an event opens on LabOS in
@@ -56,7 +98,7 @@ export function embedQuery(params: URLSearchParams): string {
   return next.toString();
 }
 
-/** A filter param's values as analytics records them: the decoded list, `['true']` for going, the search text. */
+/** A filter param's values as analytics records them: the decoded list, `['true']` for a toggle, the search text. */
 export function filterValues(key: FilterParam, value: string | null | undefined): string[] {
   if (isFacetKey(key)) return decodeFilterValues(value ?? undefined);
   return value ? [value] : [];
@@ -71,12 +113,13 @@ export const FACET_KEYS = ['mode', 'access', 'focus', 'topic', 'city', 'host'] a
 export type FacetKey = (typeof FACET_KEYS)[number];
 const isFacetKey = (key: string): key is FacetKey => (FACET_KEYS as readonly string[]).includes(key);
 
-export type AllEventsFilters = { search: string; going: boolean } & Record<FacetKey, string[]>;
+export type AllEventsFilters = { search: string; going: boolean; featured: boolean } & Record<FacetKey, string[]>;
 
 export function readFilters(params: URLSearchParams): AllEventsFilters {
   return {
     search: params.get('search')?.trim() ?? '',
     going: params.get('going') === 'true',
+    featured: params.get('featured') === 'true',
     mode: decodeFilterValues(params.get('mode')),
     access: decodeFilterValues(params.get('access')),
     focus: decodeFilterValues(params.get('focus')),
@@ -89,19 +132,29 @@ export function readFilters(params: URLSearchParams): AllEventsFilters {
 /** One per applied value, as the Filters button and the phone pill count them. */
 export function countAppliedFilters(params: URLSearchParams): number {
   const f = readFilters(params);
-  return (f.search ? 1 : 0) + (f.going ? 1 : 0) + FACET_KEYS.reduce((n, key) => n + f[key].length, 0);
+  return (
+    (f.search ? 1 : 0) + (f.going ? 1 : 0) + (f.featured ? 1 : 0) + FACET_KEYS.reduce((n, key) => n + f[key].length, 0)
+  );
 }
 
 /**
+ * The `access` param's value for an event that takes RSVPs. It reads "RSVP" (LAB-3407), but links and embeds made when
+ * it read "Free" are on other sites, so the value in the address stays.
+ */
+const RSVP_ACCESS_VALUE = 'Free';
+const RSVP_ACCESS_LABEL = 'RSVP';
+
+/**
  * The values an event has for a facet: the words its card and drawer use ("Invite only", "In person"), except that a
- * focus area is its code. `facetLabel` gives what a reader sees.
+ * focus area is its code and RSVP access is `RSVP_ACCESS_VALUE`. `facetLabel` gives what a reader sees.
  */
 export function facetValues(item: AllEventsItem, key: FacetKey): string[] {
   switch (key) {
     case 'mode':
       return item.mode ? [MODE_LABEL[item.mode]] : [];
     case 'access':
-      return item.access ? [ACCESS_COPY[item.access].main] : [];
+      if (!item.access) return [];
+      return [item.access === 'FREE w/ RSVP' ? RSVP_ACCESS_VALUE : ACCESS_COPY[item.access].main];
     case 'focus':
       return item.focusAreas;
     case 'topic':
@@ -113,8 +166,15 @@ export function facetValues(item: AllEventsItem, key: FacetKey): string[] {
   }
 }
 
-/** What a reader sees for a facet's value: a focus area's name for its code (LAB-3404), any other value as it is. */
-export const facetLabel = (key: FacetKey, value: string) => (key === 'focus' ? focusAreaName(value) : value);
+/**
+ * What a reader sees for a facet's value: a focus area's name for its code (LAB-3404), "RSVP" for RSVP access
+ * (LAB-3407), any other value as it is.
+ */
+export function facetLabel(key: FacetKey, value: string): string {
+  if (key === 'focus') return focusAreaName(value);
+  if (key === 'access' && value.toLowerCase() === RSVP_ACCESS_VALUE.toLowerCase()) return RSVP_ACCESS_LABEL;
+  return value;
+}
 
 /** A facet's options with how many events carry each, most first. */
 export function facetOptions(items: AllEventsItem[], key: FacetKey) {
@@ -144,6 +204,7 @@ export function filterEvents(items: AllEventsItem[], f: AllEventsFilters, goingU
   return items.filter(
     (item) =>
       (!f.going || goingUids.has(item.uid)) &&
+      (!f.featured || item.featured) &&
       matchesSearch(item, f.search) &&
       FACET_KEYS.every((key) => matchesFacet(item, key, f[key])),
   );
@@ -185,13 +246,53 @@ export function groupByDay(items: AllEventsItem[], todayIso: string): { day: str
   }, []);
 }
 
-/** "Day 2 of 5" for a multi-day event on a given day; empty for a one-day event. */
+const yearOf = (isoDay: string) => isoDay.slice(0, 4);
+
+/** The year in the address; null for none, or for anything but four digits. */
+export function readYear(params: URLSearchParams): string | null {
+  const year = params.get(YEAR_PARAM) ?? '';
+  return /^\d{4}$/.test(year) ? year : null;
+}
+
+/** The years that have a past event, newest first. An event's year is that of its first day, as the list groups it. */
+export function pastYears(items: AllEventsItem[]): string[] {
+  return Array.from(new Set(items.map((item) => yearOf(item.startDay))))
+    .sort()
+    .reverse();
+}
+
+/** The events of one year; every event without one. */
+export function inYear(items: AllEventsItem[], year: string | null): AllEventsItem[] {
+  return year ? items.filter((item) => yearOf(item.startDay) === year) : items;
+}
+
+/** Past (LAB-3418): newest first, by first day and then by start. */
+export function sortPast(items: AllEventsItem[]): AllEventsItem[] {
+  return [...items].sort(
+    (a, b) => b.startDay.localeCompare(a.startDay) || new Date(b.startDate).getTime() - new Date(a.startDate).getTime(),
+  );
+}
+
+/** Past events grouped by their first day, newest first: nothing is under way, so no event moves to today. */
+export function groupPastByDay(items: AllEventsItem[]): { day: string; events: AllEventsItem[] }[] {
+  return sortPast(items).reduce<{ day: string; events: AllEventsItem[] }[]>((days, item) => {
+    const last = days[days.length - 1];
+    if (last?.day === item.startDay) last.events.push(item);
+    else days.push({ day: item.startDay, events: [item] });
+    return days;
+  }, []);
+}
+
+/**
+ * "Day 2 of 5" for a multi-day event on a given day; empty for a one-day event. The day can be outside the span: it is
+ * the viewer's, who may be east of the event on its last day, or have left the page open past its end.
+ */
 export function dayOfSpan(item: AllEventsItem, isoDay: string): string {
-  if (item.startDay === item.endDay) return '';
+  if (item.endDay <= item.startDay) return '';
   const dayMs = 86_400_000;
   const total = Math.round((atNoon(item.endDay).getTime() - atNoon(item.startDay).getTime()) / dayMs) + 1;
   const n = Math.round((atNoon(isoDay).getTime() - atNoon(item.startDay).getTime()) / dayMs) + 1;
-  return `Day ${n} of ${total}`;
+  return `Day ${Math.min(Math.max(n, 1), total)} of ${total}`;
 }
 
 /** Luma's date column: "Today" / "Tomorrow" / "Dec 3", with the weekday under it. */
@@ -215,7 +316,33 @@ export function spanLabel(startDay: string, endDay: string): string {
   return `${shortDate(startDay)} – ${shortDate(endDay)}`;
 }
 
-/** A Near you tile's when: "Thu, Nov 19 · 6:00 PM"; a multi-day event reads its span ("Tue, Dec 1 – 5"). */
+/** A past day's heading (LAB-3418): as `dayHeading`, with the year outside this one ("Nov 12, 2025"). */
+export function pastDayHeading(isoDay: string, todayIso: string): { label: string; weekday: string } {
+  const heading = dayHeading(isoDay, todayIso);
+  return yearOf(isoDay) === yearOf(todayIso) ? heading : { ...heading, label: `${heading.label}, ${yearOf(isoDay)}` };
+}
+
+/**
+ * A past span (LAB-3418): as `spanLabel`, with the year outside this one ("Dec 1 – 5, 2025"); a span over New Year
+ * carries a year on each end ("Dec 30, 2025 – Jan 2, 2026").
+ */
+export function pastSpanLabel(startDay: string, endDay: string, todayIso: string): string {
+  const [from, to] = [yearOf(startDay), yearOf(endDay)];
+  if (from !== to) return `${shortDate(startDay)}, ${from} – ${shortDate(endDay)}, ${to}`;
+  return from === yearOf(todayIso) ? spanLabel(startDay, endDay) : `${spanLabel(startDay, endDay)}, ${from}`;
+}
+
+/** A card's start in the event's time zone: "9:00 AM UTC+5:30". Empty for an all-day event. */
+export const startLabel = (item: AllEventsItem) => [item.startTime, item.zone].filter(Boolean).join(' ');
+
+/** "6:00 PM – 9:00 PM" in the event's time zone; the start alone when it ends when it starts. Empty when all-day. */
+export const timeRange = (item: AllEventsItem) =>
+  item.endTime && item.endTime !== item.startTime ? `${item.startTime} – ${item.endTime}` : item.startTime;
+
+/**
+ * A Near you tile's when: "Thu, Nov 19 · 6:00 PM"; a multi-day event reads its span ("Tue, Dec 1 – 5"); an all-day
+ * event reads its day with no time.
+ */
 export function whenLine(item: AllEventsItem, todayIso: string): string {
   const weekdayDate = (iso: string) =>
     atNoon(iso).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
@@ -223,7 +350,9 @@ export function whenLine(item: AllEventsItem, todayIso: string): string {
     if (item.startDay < todayIso) return `Today · ${dayOfSpan(item, todayIso)}`;
     return `${weekdayDate(item.startDay).split(',')[0]}, ${spanLabel(item.startDay, item.endDay)}`;
   }
-  return [item.startDay === todayIso ? 'Today' : weekdayDate(item.startDay), item.startTime].join(' · ');
+  return [item.startDay === todayIso ? 'Today' : weekdayDate(item.startDay), item.startTime]
+    .filter(Boolean)
+    .join(' · ');
 }
 
 /* ---------- Cities ---------- */
@@ -236,7 +365,7 @@ export interface CitySummary {
   eventCount: number;
   startDay: string;
   endDay: string;
-  /** "UTC+0", from the city's first event. */
+  /** "UTC+0", from the city's first event that has a time. Empty when every event there is all-day. */
   zone: string;
 }
 
@@ -253,11 +382,34 @@ export function topCities(items: AllEventsItem[]): CitySummary[] {
       eventCount: list.length,
       startDay: first.startDay,
       endDay: list.reduce((m, e) => (e.endDay > m ? e.endDay : m), first.endDay),
-      zone: first.zone,
+      zone: list.find((e) => e.zone)?.zone ?? '',
     };
   }).sort(
     (a, b) => b.eventCount - a.eventCount || a.startDay.localeCompare(b.startDay) || a.city.localeCompare(b.city),
   );
+}
+
+/**
+ * The UTC offset every event shares ("UTC+1"), else null: the city header says "Times in <city> time" only when the
+ * whole list is in one offset (P13). A city's events can sit either side of a clock change, or be online elsewhere.
+ */
+export function sharedZone(items: AllEventsItem[]): string | null {
+  // An all-day event has no zone and no times to read, so it never breaks the header.
+  const timed = items.filter((item) => item.zone);
+  const zone = timed[0]?.zone;
+  return zone && timed.every((item) => item.zone === zone) ? zone : null;
+}
+
+/** The span and the zone of one city's past events, newest first (LAB-3418); undefined with none. */
+export function pastCitySummary(city: string, items: AllEventsItem[]): CitySummary | undefined {
+  if (!items.length) return undefined;
+  return {
+    city,
+    eventCount: items.length,
+    startDay: items.reduce((m, e) => (e.startDay < m ? e.startDay : m), items[0].startDay),
+    endDay: items.reduce((m, e) => (e.endDay > m ? e.endDay : m), items[0].endDay),
+    zone: items.find((e) => e.zone)?.zone ?? '',
+  };
 }
 
 /**

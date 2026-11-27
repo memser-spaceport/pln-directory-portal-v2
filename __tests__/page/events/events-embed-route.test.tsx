@@ -26,6 +26,8 @@ jest.mock('@/components/page/events/all-events/AllEventsPage', () => ({
     signedIn: boolean;
     viewerUid: string | null;
     result: unknown;
+    serverNow: number;
+    initialQuery?: string;
   }) => (
     <div
       data-testid="all-events"
@@ -33,6 +35,8 @@ jest.mock('@/components/page/events/all-events/AllEventsPage', () => ({
       data-details-on-labos={String(props.detailsOnLabOs)}
       data-signed-in={String(props.signedIn)}
       data-viewer={String(props.viewerUid)}
+      data-server-now={String(props.serverNow)}
+      data-initial-query={String(props.initialQuery)}
       data-ok={String((props.result as { ok: boolean }).ok)}
     />
   ),
@@ -71,6 +75,22 @@ it('sends events to LabOS only for `details=labos` (LAB-3392)', async () => {
   expect(screen.getByTestId('all-events')).toHaveAttribute('data-details-on-labos', 'false');
 });
 
+it('hands the page a link to Past as it read it, and nothing of any other (LAB-3418)', async () => {
+  const { unmount } = render(await route({ when: 'past', year: '2025', details: 'labos' }));
+  expect(screen.getByTestId('all-events')).toHaveAttribute('data-initial-query', 'when=past&year=2025');
+  unmount();
+  render(await route({ view: 'map' }));
+  expect(screen.getByTestId('all-events')).toHaveAttribute('data-initial-query', '');
+});
+
 it('stays out of search results: `/events/all` is the page to index', () => {
   expect(metadata.robots).toEqual({ index: false, follow: true });
+});
+
+it('hands the page the server’s clock, for the Live pills of the first render (LAB-3425)', async () => {
+  jest.useFakeTimers({ now: new Date('2030-12-01T10:00:00Z') });
+  const page = await route();
+  jest.useRealTimers();
+  render(page);
+  expect(screen.getByTestId('all-events')).toHaveAttribute('data-server-now', String(Date.UTC(2030, 11, 1, 10)));
 });

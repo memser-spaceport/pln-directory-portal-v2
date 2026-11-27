@@ -107,7 +107,7 @@ export default function AiModeResultsPrototype() {
   /* Production's /husky layout titles the tab "AI Chat | Protocol Labs Directory". */
   useEffect(() => {
     const before = document.title;
-    document.title = 'AI Search | Protocol Labs Directory';
+    document.title = 'AI agent chat | Protocol Labs Directory';
     return () => {
       document.title = before;
     };

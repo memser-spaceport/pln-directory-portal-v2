@@ -26,7 +26,7 @@ const LocationCard = (props: any) => {
   function getFollowProperties(followers: any) {
     return {
       followers: followers ?? [],
-      isFollowing: followers?.some((follower: any) => follower.memberUid === userInfo?.uid),
+      isFollowing: followers?.some((follower: any) => follower.memberUid && follower.memberUid === userInfo?.uid),
     };
   }
 
@@ -82,7 +82,9 @@ const LocationCard = (props: any) => {
     if (!isSelfReadUnavailable) {
       return [];
     }
-    const ownFollow = followProperties?.followers?.find((follower: any) => follower.memberUid === userInfo?.uid);
+    const ownFollow = followProperties?.followers?.find(
+      (follower: any) => follower.memberUid && follower.memberUid === userInfo?.uid,
+    );
     return ownFollow?.uid ? [ownFollow.uid] : [];
   };
 

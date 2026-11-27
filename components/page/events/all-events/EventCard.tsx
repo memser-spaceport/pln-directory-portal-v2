@@ -3,13 +3,14 @@ import clsx from 'clsx';
 import { GlobeIcon } from '@/components/icons';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { EventImage } from '@/components/page/events/EventImage/EventImage';
-import { GoingPill } from '@/components/page/events/GoingPill/GoingPill';
-import { dayOfSpan, whenLine } from '@/services/events/all-events.filters';
+import { GoingPill, WENT_LABEL } from '@/components/page/events/GoingPill/GoingPill';
+import { dayOfSpan, startLabel, whenLine } from '@/services/events/all-events.filters';
 import { ACCESS_COPY, eventPlace } from '@/services/events/event-facts';
 import type { AllEventsItem } from '@/services/events/all-events.types';
 
 import { GoingFaces } from './GoingFaces';
 import { AccessIcon, PinIcon } from './icons';
+import { LivePill } from './LivePill';
 import s from './AllEventsPage.module.scss';
 
 /** What a card needs to open the drawer: the press, and the hover / focus that preloads it. */
@@ -40,7 +41,7 @@ function Hosts({ item, ellipsis }: { item: AllEventsItem; ellipsis?: boolean }) 
     <>
       <span className={s.hostFaces} aria-hidden>
         {item.hosts.slice(0, 2).map((host) => (
-          <img key={host} src={getDefaultAvatar(host)} alt="" width={16} height={16} />
+          <img key={host} src={getDefaultAvatar(host)} alt="" width={16} height={16} loading="lazy" />
         ))}
       </span>
       {ellipsis ? <span className={s.ellipsis}>{text}</span> : text}
@@ -50,17 +51,32 @@ function Hosts({ item, ellipsis }: { item: AllEventsItem; ellipsis?: boolean }) 
 
 /**
  * The Going pill, the faces and count when the event shows attendance, then how you get in when it isn't the usual
- * free RSVP: a glyph and a word in the meta ink, not a badge (prototype, 2026-11-17). On a tile the pill leaves the
- * foot for the picture, except on phones (`.tilePill`).
+ * RSVP: a glyph and a word in the meta ink, not a badge (prototype, 2026-11-17). On a tile the pill leaves the
+ * foot for the picture, except on phones (`.tilePill`). On Past (LAB-3418) the pill reads "Went", the count "N went",
+ * and how you got in no longer matters.
  */
-function EventFoot({ item, going, onTile }: { item: AllEventsItem; going: boolean; onTile?: boolean }) {
+function EventFoot({
+  item,
+  going,
+  past = false,
+  onTile,
+  onOpenPeople,
+}: {
+  item: AllEventsItem;
+  going: boolean;
+  past?: boolean;
+  onTile?: boolean;
+  onOpenPeople?: () => void;
+}) {
   const count = item.goingCount ?? 0;
-  const access = item.access && item.access !== 'FREE w/ RSVP' ? item.access : null;
+  const access = !past && item.access && item.access !== 'FREE w/ RSVP' ? item.access : null;
   if (!going && count === 0 && !access) return null;
   return (
     <span className={s.cardFoot}>
-      {going && <GoingPill onImage={onTile} className={onTile ? s.tilePill : undefined} />}
-      <GoingFaces item={item} />
+      {going && (
+        <GoingPill label={past ? WENT_LABEL : undefined} onImage={onTile} className={onTile ? s.tilePill : undefined} />
+      )}
+      <GoingFaces item={item} past={past} onOpenPeople={onOpenPeople} />
       {access && (
         <span className={s.cardAccess}>
           {count > 0 && <span aria-hidden>·</span>}
@@ -77,11 +93,24 @@ export function EventCard({
   item,
   day,
   going,
+  past = false,
+  live,
   highlighted,
   onOpen,
   onPrepare,
-}: { item: AllEventsItem; day: string; going: boolean; highlighted: boolean } & EventPress) {
-  const when = [`${item.startTime} ${item.zone}`, dayOfSpan(item, day)].filter(Boolean).join(' · ');
+  onOpenPeople,
+}: {
+  item: AllEventsItem;
+  day: string;
+  /** The viewer is going; on Past, they went. */
+  going: boolean;
+  past?: boolean;
+  live: boolean;
+  highlighted: boolean;
+  /** On Past: the faces and "N went" open who went (P1). */
+  onOpenPeople?: () => void;
+} & EventPress) {
+  const when = [startLabel(item), dayOfSpan(item, day)].filter(Boolean).join(' · ') || 'All day';
   return (
     <button
       type="button"
@@ -92,7 +121,10 @@ export function EventCard({
       onFocus={onPrepare}
     >
       <span className={s.cardBody}>
-        <span className={s.cardWhen}>{when}</span>
+        <span className={s.cardWhen}>
+          {live && <LivePill />}
+          {when}
+        </span>
         <span className={s.cardTitle}>{item.name}</span>
         {item.hosts.length > 0 && (
           <span className={s.cardMeta}>
@@ -104,7 +136,7 @@ export function EventCard({
             <Place item={item} />
           </span>
         )}
-        <EventFoot item={item} going={going} />
+        <EventFoot item={item} going={going} past={past} onOpenPeople={onOpenPeople} />
       </span>
       <EventImage src={item.picture} className={s.thumb} />
     </button>
@@ -119,9 +151,10 @@ export function EventTile({
   item,
   todayIso,
   going,
+  live,
   onOpen,
   onPrepare,
-}: { item: AllEventsItem; todayIso: string; going: boolean } & EventPress) {
+}: { item: AllEventsItem; todayIso: string; going: boolean; live: boolean } & EventPress) {
   return (
     <button
       type="button"
@@ -135,7 +168,10 @@ export function EventTile({
         <EventImage src={item.picture} className={s.tileFill} />
       </span>
       <span className={s.tileBody}>
-        <span className={s.tileWhen}>{whenLine(item, todayIso)}</span>
+        <span className={s.tileWhen}>
+          {live && <LivePill />}
+          {whenLine(item, todayIso)}
+        </span>
         <span className={s.tileTitle}>{item.name}</span>
         {item.hosts.length > 0 && (
           <span className={clsx(s.tileMeta, s.tileHost)}>

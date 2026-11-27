@@ -76,8 +76,10 @@ describe('EventDrawerView (LAB-3216)', () => {
       expect(screen.getByText('Lisbon, Portugal')).toBeInTheDocument();
       // LAB-3283: access is a fact row, and neither mode nor access is a badge.
       const access = screen.getByTestId('event-access');
-      expect(within(access).getByText('Free')).toBeInTheDocument();
-      expect(within(access).getByText('RSVP to save your spot')).toBeInTheDocument();
+      // LAB-3407: one line for an OPEN event, never "Free".
+      expect(within(access).getByText('RSVP to save your spot')).toHaveClass('factMain');
+      expect(access).toHaveTextContent(/^RSVP to save your spot$/);
+      expect(access.querySelector('.factSub')).toBeNull();
       expect(screen.queryByText('In-Person')).not.toBeInTheDocument();
       expect(screen.queryByText('FREE w/ RSVP')).not.toBeInTheDocument();
       const tags = screen.getByTestId('event-tags');
@@ -717,11 +719,27 @@ describe('EventDrawerView (LAB-3216)', () => {
     const resources = [{ name: 'Registration', link: REG, description: 'Registration URL' }];
     const register = () => within(screen.getByTestId('rsvp-card')).queryByRole('link', { name: 'Register' });
 
-    it('LAB-3334 R1: the link row and Register use websiteUrl when it is a web address', () => {
-      render(<Harness raw={eventResponse({ websiteUrl: SITE, resources })} />);
+    it('LAB-3334 R1: the link row and Register use websiteUrl when it is the only web address', () => {
+      render(<Harness raw={eventResponse({ websiteUrl: SITE })} />);
       const link = within(screen.getByTestId('event-link-row')).getByRole('link');
       expect(link).toHaveAttribute('href', SITE);
       expect(register()).toHaveAttribute('href', SITE);
+      expect(screen.queryByTestId('event-registration-row')).not.toBeInTheDocument();
+    });
+
+    it('LAB-3456: with a website and a Registration link, the link row shows the website and Register the registration', () => {
+      for (const raw of [
+        eventResponse({ websiteUrl: SITE, resources }),
+        eventResponse({ websiteUrl: SITE, registrationUrl: REG }),
+      ]) {
+        const { unmount } = render(<Harness raw={raw} />);
+        expect(within(screen.getByTestId('event-link-row')).getByRole('link')).toHaveAttribute('href', SITE);
+        const row = screen.getByTestId('event-registration-row');
+        expect(within(row).getByRole('link', { name: 'luma.com/n4ad0k9m' })).toHaveAttribute('href', REG);
+        expect(within(row).getByText('Registration')).toBeInTheDocument();
+        expect(register()).toHaveAttribute('href', REG);
+        unmount();
+      }
     });
 
     it('LAB-3334 R2: the link row and Register use the Registration link, in a new tab, when websiteUrl is not valid', () => {
@@ -881,5 +899,30 @@ describe('EventDrawerView (LAB-3216)', () => {
       render(<Harness canMarkGoing={false} plans={null} />);
       expect(screen.queryByTestId('rsvp-bar')).not.toBeInTheDocument();
     });
+  });
+});
+
+describe('EventDrawerView: Edit and an event that is not approved (LAB-3340)', () => {
+  const toolbar = () => within(screen.getByTestId('event-drawer-toolbar'));
+
+  it('shows "Edit" in the toolbar only when the host passes the edit page', () => {
+    const { unmount } = render(<Harness editHref="/events/edit/labweek-lisbon" />);
+    expect(toolbar().getByRole('link', { name: 'Edit' })).toHaveAttribute('href', '/events/edit/labweek-lisbon');
+    unmount();
+    render(<Harness />);
+    expect(toolbar().queryByRole('link', { name: 'Edit' })).not.toBeInTheDocument();
+  });
+
+  it('a submitted event shows its status and has no going card', () => {
+    render(<Harness raw={eventResponse({ status: 'PENDING' })} editHref="/events/edit/labweek-lisbon" />);
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Status: Submitted. Only you and directory admins see this event.',
+    );
+    expect(screen.queryByRole('button', { name: "Yes, I'm going" })).not.toBeInTheDocument();
+  });
+
+  it('an approved event has no status line', () => {
+    render(<Harness raw={eventResponse({ status: 'APPROVED' })} />);
+    expect(screen.queryByText(/Only you and directory admins/)).not.toBeInTheDocument();
   });
 });

@@ -29,12 +29,20 @@ jest.mock('@/services/events/all-events.service', () => ({
   getMemberProfileCity: (...a: unknown[]) => loads.city(...a),
 }));
 jest.mock('@/components/page/events/all-events/AllEventsPage', () => ({
-  AllEventsPage: (props: { memberCity: unknown; signedIn: boolean }) => (
-    <div data-testid="all-events" data-signed-in={String(props.signedIn)} data-city={String(props.memberCity)} />
+  AllEventsPage: (props: { memberCity: unknown; signedIn: boolean; serverNow: number; initialQuery?: string }) => (
+    <div
+      data-testid="all-events"
+      data-signed-in={String(props.signedIn)}
+      data-city={String(props.memberCity)}
+      data-server-now={String(props.serverNow)}
+      data-initial-query={String(props.initialQuery)}
+    />
   ),
 }));
 
-import Page from '@/app/events/all/page';
+import Route from '@/app/events/all/page';
+
+const Page = (query: Record<string, string | string[]> = {}) => Route({ searchParams: Promise.resolve(query) });
 
 beforeEach(() => {
   loads.events.mockResolvedValue({ ok: true, items: [] });
@@ -74,4 +82,30 @@ it('reads a signed-in member’s city with their token', async () => {
   render(await Page());
   expect(loads.city).toHaveBeenCalledWith('m1', 'tok');
   expect(screen.getByTestId('all-events')).toHaveAttribute('data-city', 'Lisbon');
+});
+
+it('hands the page a link to Past as it read it, without the open event, and nothing of any other address (LAB-3418)', async () => {
+  flags.page = true;
+  const read = async (query: Record<string, string | string[]>) => {
+    const { unmount } = render(await Page(query));
+    const initialQuery = screen.getByTestId('all-events').getAttribute('data-initial-query');
+    unmount();
+    return initialQuery;
+  };
+  expect(await read({ when: 'past', year: '2025', city: 'Paris', view: 'map', event: 'e1', utm_source: 'x' })).toBe(
+    'view=map&when=past&year=2025&city=Paris',
+  );
+  expect(await read({})).toBe('');
+  expect(await read({ view: 'calendar' })).toBe('');
+  expect(await read({ when: 'past', view: 'calendar' })).toBe('');
+  expect(await read({ year: '2025', city: 'Paris' })).toBe('');
+});
+
+it('hands the page the server’s clock, for the Live pills of the first render (LAB-3425)', async () => {
+  flags.page = true;
+  jest.useFakeTimers({ now: new Date('2030-12-01T10:00:00Z') });
+  const page = await Page();
+  jest.useRealTimers();
+  render(page);
+  expect(screen.getByTestId('all-events')).toHaveAttribute('data-server-now', String(Date.UTC(2030, 11, 1, 10)));
 });

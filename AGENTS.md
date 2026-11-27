@@ -8,14 +8,14 @@ Treat this repository as a **Next.js frontend monolith** using the App Router.
 
 - **Node.js:** **22.23.4** (`.nvmrc`, also the Docker `NODE_VERSION`). `package.json` `engines` is `22.x`, which Vercel uses to pick the runtime major; the Docker image builds on `node:22.23.4-alpine`. Bump `.nvmrc` and the Dockerfile together.
 - **Package manager:** npm (`package-lock.json`). `.npmrc` sets `legacy-peer-deps=true`.
-- **Next.js:** `16.4.3` (App Router)
+- **Next.js:** `16.4.6` (App Router)
 - **React / React DOM:** `19.2.5`
 - **TypeScript:** `^5` with `strict: true`
 - **Styling:** Sass (`sass`), CSS/SCSS modules, global SCSS in `app/globals.scss` and `styles/index.scss`
 - **Data fetching/cache:** native `fetch`, Next cache controls (`cache`, `next.tags`), TanStack Query (`@tanstack/react-query` v5)
 - **State:** Zustand (`^5`); URL query state with `nuqs`
 - **Validation/Form:** Zod, Yup, React Hook Form
-- **Testing:** Jest 29 (`npm test`, jsdom); Storybook 9 stories run as Vitest 3 browser tests (Playwright, Chromium) via `vitest.config.ts`
+- **Testing:** Jest 29 (`npm test`, jsdom; ESM-only packages such as `react-calendar` are transformed via `ESM_PACKAGES` in `jest.config.ts`); Storybook 9 stories run as Vitest 3 browser tests (Playwright, Chromium) via `vitest.config.ts`
 - **Lint/Format:** ESLint 9 flat config in `eslint.config.mjs` (`eslint-config-next/core-web-vitals`, Storybook plugin; ignores `pl-design-system/`), Prettier (`singleQuote: true`, `printWidth: 120`)
 
 ## Directory Map

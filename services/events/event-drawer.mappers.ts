@@ -1,5 +1,6 @@
 import { formatInTimeZone } from 'date-fns-tz';
 
+import { formatEventDateLine, safeTimezone } from './event-dates';
 import type { EventRole, EventRoleSelection, Resource } from '@/components/core/UpdatesPanel/IrlGatheringModal/types';
 import type {
   EventAccess,
@@ -11,9 +12,11 @@ import type {
   EventMode,
   EventRoleName,
   EventRolesPayload,
+  EventSocialLink,
   EventTag,
   MyGatheringPlans,
 } from './event-drawer.types';
+import { isValidEmail, normalizeSocialHandle, SOCIAL_PLATFORMS } from './event-form';
 import { toFocusAreaCode } from './focus-areas';
 
 /*
@@ -23,7 +26,7 @@ import { toFocusAreaCode } from './focus-areas';
  * normalised tolerantly here and left out when it can't be read.
  */
 
-const FALLBACK_TIMEZONE = 'UTC';
+export { formatEventDateLine };
 
 /** The PL events app's fixed tag colours (icon, background). */
 const DEFAULT_TAGS: Record<string, [string, string]> = {
@@ -104,37 +107,9 @@ export function toEventAccess(
   return normalizeKey(type) === 'INVITE ONLY' ? 'INVITE ONLY' : null;
 }
 
-function safeTimezone(timezone: string | null | undefined): string {
-  if (!timezone) return FALLBACK_TIMEZONE;
-  try {
-    formatInTimeZone(new Date(0), timezone, 'xxx');
-    return timezone;
-  } catch {
-    return FALLBACK_TIMEZONE;
-  }
-}
-
 function isValidDate(value: unknown): value is string | number {
   if (typeof value !== 'string' && typeof value !== 'number') return false;
   return !Number.isNaN(new Date(value).getTime());
-}
-
-/** "-05:00" → "-5:00", "+00:00" → "+0:00", as the events app prints it. */
-function utcOffset(date: Date, timezone: string): string {
-  const raw = formatInTimeZone(date, timezone, 'xxx');
-  const match = /^([+-])0?(\d{1,2}):(\d{2})$/.exec(raw);
-  return match ? `${match[1]}${match[2]}:${match[3]}` : raw;
-}
-
-/** "19th Nov 2026, 18:00 - 19th Nov 2026, 21:00 (UTC -5:00)". */
-export function formatEventDateLine(startDate: string, endDate: string, timezone: string): string {
-  if (!isValidDate(startDate)) return '';
-  const tz = safeTimezone(timezone);
-  const start = new Date(startDate);
-  const pattern = 'do MMM yyyy, HH:mm';
-  const startText = formatInTimeZone(start, tz, pattern);
-  const endText = isValidDate(endDate) ? ` - ${formatInTimeZone(new Date(endDate), tz, pattern)}` : '';
-  return `${startText}${endText} (UTC ${utcOffset(start, tz)})`;
 }
 
 interface AgendaSession {
@@ -197,6 +172,17 @@ function toResource(raw: unknown): Resource | null {
   };
 }
 
+/**
+ * The place line of the drawer: the event's own venue address; for an event with no venue, its gathering's location.
+ * The gathering "Others" is the events app's catch-all, not a place, so it is never shown.
+ */
+export function eventAddress(raw: Pick<EventDetailResponse, 'venue' | 'location'>): string | null {
+  const venue = raw.venue?.address?.trim();
+  if (venue) return venue;
+  const gathering = raw.location?.location?.trim();
+  return gathering && gathering.toLowerCase() !== 'others' ? gathering : null;
+}
+
 /** The URL as given (trimmed) when it is an `http` or `https` address, otherwise null. */
 export function httpUrlOrNull(url: unknown): string | null {
   if (typeof url !== 'string') return null;
@@ -212,6 +198,18 @@ export function httpUrlOrNull(url: unknown): string | null {
 
 const REGISTRATION_RESOURCE = 'registration';
 
+/** The link of the event-level resource named "Registration" (any case, end spaces ignored), when it is a web address. */
+function registrationResource(resources: unknown[] | null | undefined): string | null {
+  for (const raw of Array.isArray(resources) ? resources : []) {
+    if (!raw || typeof raw !== 'object') continue;
+    const r = raw as Record<string, unknown>;
+    if (typeof r.name !== 'string' || r.name.trim().toLowerCase() !== REGISTRATION_RESOURCE) continue;
+    const link = httpUrlOrNull(r.link);
+    if (link) return link;
+  }
+  return null;
+}
+
 /**
  * LAB-3334: the event's own link. `websiteUrl` comes first. When it is empty or not a web address, the link of the
  * event-level resource named "Registration" (any case, end spaces ignored) is the fallback. Some synced events (for
@@ -221,16 +219,62 @@ export function toEventUrl(
   websiteUrl: string | null | undefined,
   resources: unknown[] | null | undefined,
 ): string | null {
+  return toEventLinks(websiteUrl, null, resources).eventUrl;
+}
+
+/**
+ * LAB-3456: the event's links, one rule for the drawer and Preview. Only `http` and `https` addresses count.
+ * - `registrationUrl`: the registration link, else the "Registration" resource's link.
+ * - `eventUrl`: the event's own page row: the website, else the registration link (LAB-3334).
+ * - `registerUrl`: what Register opens: the registration link, else the website.
+ * With both a website and a registration link, the page row shows the website and Register opens the registration.
+ */
+export function toEventLinks(
+  websiteUrl: string | null | undefined,
+  registrationUrl: string | null | undefined,
+  resources: unknown[] | null | undefined,
+): Pick<EventDetail, 'eventUrl' | 'registrationUrl' | 'registerUrl'> {
   const website = httpUrlOrNull(websiteUrl);
-  if (website) return website;
-  for (const raw of Array.isArray(resources) ? resources : []) {
-    if (!raw || typeof raw !== 'object') continue;
-    const r = raw as Record<string, unknown>;
-    if (typeof r.name !== 'string' || r.name.trim().toLowerCase() !== REGISTRATION_RESOURCE) continue;
-    const link = httpUrlOrNull(r.link);
-    if (link) return link;
+  const registration = httpUrlOrNull(registrationUrl) ?? registrationResource(resources);
+  return { eventUrl: website ?? registration, registrationUrl: registration, registerUrl: registration ?? website };
+}
+
+/** "https://www.x.com/plabs/" → "x.com/plabs". */
+function linkLabel(href: string): string {
+  const { host, pathname, search } = new URL(href);
+  const path = pathname === '/' ? '' : pathname.replace(/\/$/, '');
+  return `${host.replace(/^www\./, '')}${path}${search}`;
+}
+
+/**
+ * LAB-3451: the event's social handles as links, by `normalizeSocialHandle()`, the form's own rule. An email becomes a
+ * `mailto:` link. A handle that gives no `http` or `https` address (or no valid email) is left out, so no other scheme
+ * reaches an `href`. Duplicates show once.
+ */
+export function toEventSocials(contactInfos: unknown): EventSocialLink[] {
+  if (!contactInfos || typeof contactInfos !== 'object' || Array.isArray(contactInfos)) return [];
+  const out: EventSocialLink[] = [];
+  const seen = new Set<string>();
+  for (const [platform, handles] of Object.entries(contactInfos as Record<string, unknown>)) {
+    const key = platform.trim().toLowerCase();
+    const name = SOCIAL_PLATFORMS.find((p) => p.value === key)?.label ?? platform.trim();
+    for (const handle of Array.isArray(handles) ? handles : []) {
+      if (typeof handle !== 'string' || !handle.trim()) continue;
+      let link: EventSocialLink | null = null;
+      if (key === 'email') {
+        const email = handle.trim().replace(/^mailto:/i, '');
+        if (isValidEmail(email) && !/[\s?#&/]/.test(email))
+          link = { platform: name, href: `mailto:${email}`, label: email };
+      } else {
+        const href = httpUrlOrNull(normalizeSocialHandle(key, handle));
+        if (href) link = { platform: name, href, label: linkLabel(href) };
+      }
+      if (!link || seen.has(link.href)) continue;
+      seen.add(link.href);
+      out.push(link);
+    }
   }
-  return null;
+  return out;
 }
 
 function uniqueNames(names: (string | null | undefined)[]): string[] {
@@ -252,11 +296,13 @@ function cityOf(location: string): string {
 export function toEventDetail(raw: EventDetailResponse): EventDetail {
   const details = raw.details;
   const timezone = safeTimezone(raw.timezone || raw.location?.timezone);
+  const allDay = raw.allDay === true;
   const partyHosts = uniqueNames([details?.host?.name, ...(details?.coHosts ?? []).map((h) => h.name)]);
   const hosts = partyHosts.length ? partyHosts : uniqueNames((raw.hosts ?? []).map((h) => h.name));
   const tagNames = uniqueNames((details?.tags ?? []).map((t) => t.name));
   const focusAreas = uniqueNames(tagNames.map(toFocusAreaCode));
   const tags = tagNames.filter((name) => !toFocusAreaCode(name)).map(toEventTag);
+  const access = toEventAccess(details?.accessOption, details?.accessType, raw.type);
 
   return {
     uid: raw.uid,
@@ -265,19 +311,23 @@ export function toEventDetail(raw: EventDetailResponse): EventDetail {
     endDate: raw.endDate,
     timezone,
     mode: toEventMode(details?.format, raw.type),
-    access: toEventAccess(details?.accessOption, details?.accessType, raw.type),
-    dateLine: formatEventDateLine(raw.startDate, raw.endDate, timezone),
-    address: raw.location?.location?.trim() || null,
+    access,
+    status: raw.status ?? null,
+    allDay,
+    dateLine: formatEventDateLine(raw.startDate, raw.endDate, timezone, allDay),
+    address: eventAddress(raw),
     locationUrl: details?.locationUrl?.trim() || null,
+    locationInstructions: (raw.venue?.address?.trim() && details?.locationInstructions?.trim()) || null,
     image: raw.logo || raw.banner || null,
     focusAreas,
     tags,
     hosts,
     description: raw.description?.trim() || raw.shortDescription?.trim() || null,
     agenda: toAgendaDays(details?.agenda ?? null, timezone),
+    socials: toEventSocials(details?.contactInfos),
     websiteUrl: raw.websiteUrl,
     externalId: raw.externalId || null,
-    eventUrl: toEventUrl(raw.websiteUrl, raw.resources),
+    ...toEventLinks(raw.websiteUrl, raw.registrationUrl, raw.resources),
     gathering: raw.location
       ? {
           uid: raw.location.uid,
@@ -293,6 +343,7 @@ export function toEventDetail(raw: EventDetailResponse): EventDetail {
           })),
         }
       : null,
+    inviteOnly: access === 'INVITE ONLY' || normalizeKey(raw.type) === 'INVITE ONLY',
     goingCount: raw.goingCount ?? 0,
     faces: (raw.faces ?? []).slice(0, 3),
     viewer: raw.viewerGoing && raw.viewer ? raw.viewer : null,

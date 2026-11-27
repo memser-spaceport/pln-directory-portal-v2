@@ -133,3 +133,20 @@
   border-radius: 2px;
   background: currentColor;
 }
+
+/* The footer slot (once the Search | Agent switch) at the bottom-left, opposite the send. The text clears it. */
+.withFooter .input {
+  padding-bottom: 52px;
+}
+
+.withFooter.home .input {
+  padding-bottom: 56px;
+}
+
+.footer {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+}

@@ -29,7 +29,7 @@ The page SHALL show the public gatherings when a signed-in guest or preferences 
 
 When the All Events page is on (`NEXT_PUBLIC_SHOW_EVENTS_PAGE_V2` and `NEXT_PUBLIC_SHOW_EVENT_DRAWER`), the gathering's "Schedule" button and the schedule link in an empty guest list SHALL open `/events/all` scoped to the gathering's city, in the same tab and without the outward arrow (LAB-3337). The city SHALL be the one the All Events page shows for the gathering ("london" → "London", "Lisbon, Portugal" → "Lisbon"). A gathering with no city ("Others") SHALL link to `/events/all`. The "View All Events" card SHALL open `/events/all` in the same tab.
 
-A gathering's own schedule link (`additionalInfo.schedule_url`) SHALL win over both, in a new tab. With either flag off, every link SHALL open the events app in a new tab, as before. "Submit an event" and "Manage events" SHALL stay on the events app.
+A gathering's own schedule link (`additionalInfo.schedule_url`) SHALL win over both, in a new tab. With either flag off, every link SHALL open the events app in a new tab, as before. With `NEXT_PUBLIC_EVENTS_LOCAL_SUBMIT` off, "Submit an event" and "Manage events" SHALL stay on the events app, in a new tab. With it on (LAB-3278), "Submit an event" SHALL open the LabOS submit form (`/events/submit`) and "Manage events" My Submissions (`/events/mine`), both in the same tab.
 
 #### Scenario: Schedule link with the All Events page on
 
@@ -48,3 +48,9 @@ A gathering's own schedule link (`additionalInfo.schedule_url`) SHALL win over b
 - **GIVEN** either flag is off
 - **WHEN** an admin clicks a schedule link or "View All Events"
 - **THEN** the events app opens in a new tab
+
+#### Scenario: Submit an event from a gathering
+
+- **GIVEN** a build with `NEXT_PUBLIC_EVENTS_LOCAL_SUBMIT=true`
+- **WHEN** a member clicks "Submit an event" on the IRL Gatherings page
+- **THEN** `/events/submit` opens in the same tab

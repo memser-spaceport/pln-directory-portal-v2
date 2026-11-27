@@ -3,17 +3,7 @@ import clsx from 'clsx';
 import type { AllEventsItem } from '@/services/events/all-events.types';
 
 import type { CalendarCardProps } from './WeekBoard';
-import {
-  WEEKDAYS,
-  byStart,
-  dayNumber,
-  eventsBetween,
-  longDay,
-  monthWeeks,
-  safeColor,
-  spanColumns,
-  type MonthRef,
-} from './weeks';
+import { WEEKDAYS, byStart, dayNumber, eventsBetween, longDay, monthWeeks, spanColumns, type MonthRef } from './weeks';
 import k from './Calendar.module.scss';
 
 /**
@@ -91,7 +81,6 @@ export function MonthGrid({
             {bars.map((e, row) => {
               const { start, end } = spanColumns(e, monday);
               const starts = e.startDay >= monday;
-              const color = safeColor(e.tagColor);
               return (
                 <button
                   key={e.uid}
@@ -101,15 +90,14 @@ export function MonthGrid({
                   style={{
                     gridColumn: `${start + 1} / ${end + 2}`,
                     gridRow: row + 2,
-                    background: `${color}1f`,
-                    borderLeftColor: starts ? color : 'transparent',
+                    borderLeftColor: starts ? undefined : 'transparent',
                   }}
                   title={e.name}
                   onClick={() => cards.onOpen(e.uid)}
                   onPointerEnter={() => cards.onPrepare(e.uid)}
                   onFocus={() => cards.onPrepare(e.uid)}
                 >
-                  {starts ? `${e.startTime} ${e.name}` : e.name}
+                  {starts && e.startTime ? `${e.startTime} ${e.name}` : e.name}
                 </button>
               );
             })}

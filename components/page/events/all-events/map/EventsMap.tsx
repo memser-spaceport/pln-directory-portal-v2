@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { createPortal } from 'react-dom';
 
 import { EventImage } from '@/components/page/events/EventImage/EventImage';
-import { spanLabel } from '@/services/events/all-events.filters';
+import { pastSpanLabel, spanLabel } from '@/services/events/all-events.filters';
 import type { AllEventsItem } from '@/services/events/all-events.types';
 import { useCityCoords } from '@/services/events/hooks/useCityCoords';
 import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_MAP_ID } from '@/utils/events-page';
@@ -56,13 +56,19 @@ function applyCamera({ libs, map }: Ready, camera: MapCamera) {
   }
 }
 
-const pinTitle = (pin: CityPin, going: boolean) => {
+const goingText = (going: boolean, past: boolean) => (!going ? '' : past ? ', you went' : ", you're going");
+
+const pinTitle = (pin: CityPin, going: boolean, past: boolean) => {
   const n = pin.events.length;
-  return `${pin.city}: ${n} ${n === 1 ? 'event' : 'events'}${going ? ", you're going" : ''}. Zoom in to the events`;
+  return `${pin.city}: ${n} ${n === 1 ? 'event' : 'events'}${goingText(going, past)}. Zoom in to the events`;
 };
 
-const eventPinTitle = ({ event }: EventPin, going: boolean) =>
-  `${event.name}, ${spanLabel(event.startDay, event.endDay)}${going ? ", you're going" : ''}`;
+const eventPinTitle = ({ event }: EventPin, going: boolean, pastAsOf: string | undefined) => {
+  const span = pastAsOf
+    ? pastSpanLabel(event.startDay, event.endDay, pastAsOf)
+    : spanLabel(event.startDay, event.endDay);
+  return `${event.name}, ${span}${goingText(going, !!pastAsOf)}`;
+};
 
 /** A marker per city (`city:<key>`) and per event (`event:<uid>`); the zoom decides which set is on the map. */
 const cityKey = (key: string) => `city:${key}`;
@@ -70,12 +76,16 @@ const eventKey = (uid: string) => `event:${uid}`;
 
 export function EventsMap({
   events,
+  pastAsOf,
   goingUids,
   highlightUid,
   onOpen,
   onPrepare,
 }: {
   events: AllEventsItem[];
+  /** On Past (LAB-3418): today, so a date outside this year carries its year and the marks read "went". */
+  pastAsOf?: string;
+  /** The events the viewer is going to; on Past, those they went to. */
   goingUids: Set<string>;
   /** The event a link landed on (`?event=`), or the last one opened: its pin is marked. */
   highlightUid?: string | null;
@@ -83,7 +93,11 @@ export function EventsMap({
   onPrepare: (uid: string) => void;
 }) {
   const coords = useCityCoords();
-  const { pins, online, unplaced } = useMemo(() => mapLayout(events, coords.data ?? {}), [events, coords.data]);
+  const past = !!pastAsOf;
+  const { pins, online, unplaced } = useMemo(
+    () => mapLayout(events, coords.data ?? {}, past),
+    [events, coords.data, past],
+  );
   const perEvent = useMemo(() => eventPins(pins), [pins]);
 
   // Google's map, made once the script has loaded (in its promise, never in render).
@@ -166,10 +180,10 @@ export function EventsMap({
     const wanted = new Map<string, { position: google.maps.LatLngLiteral; title: string; shown: boolean }>();
     for (const pin of pins) {
       const going = pin.events.some((e) => goingUids.has(e.uid));
-      wanted.set(cityKey(pin.key), { position: pin.position, title: pinTitle(pin, going), shown: !detail });
+      wanted.set(cityKey(pin.key), { position: pin.position, title: pinTitle(pin, going, past), shown: !detail });
     }
     for (const pin of perEvent) {
-      const title = eventPinTitle(pin, goingUids.has(pin.event.uid));
+      const title = eventPinTitle(pin, goingUids.has(pin.event.uid), pastAsOf);
       wanted.set(eventKey(pin.event.uid), { position: pin.position, title, shown: detail });
     }
     markers.forEach((marker, key) => {
@@ -189,7 +203,7 @@ export function EventsMap({
       const map = shown ? ready.map : null;
       if (marker.map !== map) marker.map = map;
     });
-  }, [ready, pins, perEvent, goingUids, hostFor, detail, highlightUid]);
+  }, [ready, pins, perEvent, goingUids, hostFor, detail, highlightUid, past, pastAsOf]);
   useEffect(() => {
     const markers = markersRef.current;
     return () => markers.forEach((marker) => (marker.map = null));
@@ -320,6 +334,7 @@ export function EventsMap({
           </h3>
           <EventRows
             events={online}
+            pastAsOf={pastAsOf}
             goingUids={goingUids}
             highlightUid={highlightUid}
             onOpen={onOpen}
@@ -334,6 +349,7 @@ export function EventsMap({
           </h3>
           <EventRows
             events={unplaced}
+            pastAsOf={pastAsOf}
             goingUids={goingUids}
             highlightUid={highlightUid}
             onOpen={onOpen}

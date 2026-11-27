@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Protocol Labs Directory frontend — a Next.js 16.4.3 (App Router) application for browsing and managing members, teams, projects, events, and forum content in the Protocol Labs network. Uses React 19.2.5, TypeScript, SCSS modules, and Zustand/React Query for state management. Node 22.23.4 (`.nvmrc` and the Dockerfile; `engines` `22.x`), npm (`package-lock.json`; `.npmrc` sets `legacy-peer-deps=true`).
+Protocol Labs Directory frontend — a Next.js 16.4.6 (App Router) application for browsing and managing members, teams, projects, events, and forum content in the Protocol Labs network. Uses React 19.2.5, TypeScript, SCSS modules, and Zustand/React Query for state management. Node 22.23.4 (`.nvmrc` and the Dockerfile; `engines` `22.x`), npm (`package-lock.json`; `.npmrc` sets `legacy-peer-deps=true`).
 
 ## Commands
 
@@ -83,7 +83,7 @@ To comment current-cycle Linear issues with related PostHog events, run the `pos
 
 ### Testing
 
-- **Jest 29** with `@testing-library/react` — tests live in `__tests__/` and mirror the source structure (e.g. `core/`, `page/`, `ui/`, `services/`, `utils/`, `hooks/`); `proxy.test.ts` covers `proxy.ts`. Jest ignores `pl-design-system/`, `prototypes/` and `design-canvas/`.
+- **Jest 29** with `@testing-library/react` — tests live in `__tests__/` and mirror the source structure (e.g. `core/`, `page/`, `ui/`, `services/`, `utils/`, `hooks/`); `proxy.test.ts` covers `proxy.ts`. Jest ignores `pl-design-system/`, `prototypes/` and `design-canvas/`. ESM-only packages (`react-calendar` and its dependencies) are transformed: add one to `ESM_PACKAGES` in `jest.config.ts` rather than mocking it.
 - **Storybook 9 + Vitest 3** — `vitest.config.ts` runs Storybook stories as browser tests via Playwright (Chromium)
 - Global mocks for `next/navigation`, `next/image`, `next/cache`, `@tanstack/react-query`, `nuqs`, `react-quill-new`, and `quill-image-uploader` are in `jest.setup.js`
 

@@ -421,3 +421,96 @@
 .prompts.prompts {
   padding: 0;
 }
+
+/* Requests on: "Try asking" and "Make a request" side by side, three compact rows each (Notion AI's home).
+   Rows are borderless and wash on hover, so six of them weigh less than four grey cards did. */
+.promptColumns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+
+  @include media.mobile-only {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+}
+
+.promptList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.promptRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 8px;
+  border: 0;
+  border-radius: 8px;
+  /* The fill TryToSearch's suggestion rows wear (#f8fafc), as its token pair. */
+  background: var(--background-neutral-secondary, #f8fafc);
+  color: var(--foreground-neutral-secondary, #455468);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    background: var(--background-neutral-hover, #f1f5f9);
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: -2px;
+  }
+}
+
+.promptIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.promptGlyph {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin: 2px;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+/* ---------- @mentions (the chat is the agent) ---------- */
+
+/* The agent's picker (agent/Agent.module.scss .picker) anchors to the field: above it in a thread, where the
+   field sits at the bottom of the page. */
+.mentionWrap {
+  position: relative;
+}
+
+/* New chat: the field sits under the headline, so the picker drops below it, over the prompts. */
+.mentionWrapHome.mentionWrapHome > [role='dialog'] {
+  top: calc(100% + 4px);
+  bottom: auto;
+}
+
+/* The scope chip (if any) and the mentioned items, in one wrapping row inside the field. */
+.mentionChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.mentionChipLabel {
+  max-width: 200px;
+}

@@ -894,11 +894,25 @@ export const ALL_EVENTS_ANALYTICS = {
   // LAB-3365: Copy code in the Embed dialog.
   ON_EVENTS_EMBED_CODE_COPIED: 'events-embed-code-copied',
   ON_EVENTS_VIEW_CHANGED: 'events-view-changed',
+  // LAB-3418: Live & upcoming | Past.
+  ON_EVENTS_WHEN_CHANGED: 'events-when-changed',
+  // LAB-3418: Past's year.
+  ON_EVENTS_YEAR_CHANGED: 'events-year-changed',
   ON_EVENTS_FILTERS_APPLIED: 'events-filters-applied',
   ON_EVENTS_CITY_SELECTED: 'events-city-selected',
   // LAB-3394: setting the location from Near you.
   ON_EVENTS_LOCATION_DIALOG_OPENED: 'events-location-dialog-opened',
   ON_EVENTS_LOCATION_SAVED: 'events-location-saved',
+};
+
+/** Submitting and managing events in LabOS: the submit form, the edit page and My Submissions. */
+export const EVENTS_SUBMIT_ANALYTICS = {
+  ON_EVENTS_SUBMIT_FORM_OPENED: 'events-submit-form-opened',
+  ON_EVENTS_SUBMIT_FORM_SUBMITTED: 'events-submit-form-submitted',
+  ON_EVENTS_SUBMIT_FORM_FAILED: 'events-submit-form-failed',
+  ON_EVENTS_MY_SUBMISSIONS_OPENED: 'events-my-submissions-opened',
+  ON_EVENTS_EVENT_EDITED: 'events-event-edited',
+  ON_EVENTS_EVENT_DELETED: 'events-event-deleted',
 };
 
 export const EVENTS_ANALYTICS = {

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { createPortal } from 'react-dom';
 
 import { EventImage } from '@/components/page/events/EventImage/EventImage';
+import { prefetchIntent } from '@/components/page/events/prefetchIntent';
 import { pastSpanLabel, spanLabel } from '@/services/events/all-events.filters';
 import type { AllEventsItem } from '@/services/events/all-events.types';
 import { useCityCoords } from '@/services/events/hooks/useCityCoords';
@@ -274,7 +275,7 @@ export function EventsMap({
                 data-event-pin={event.uid}
                 data-active={active || undefined}
                 data-going={going || undefined}
-                onPointerEnter={() => onPrepare(event.uid)}
+                onPointerEnter={prefetchIntent(() => onPrepare(event.uid)).onPointerEnter}
               >
                 <span className={m.eventPhoto}>
                   <EventImage src={event.picture} className={m.eventFill} />

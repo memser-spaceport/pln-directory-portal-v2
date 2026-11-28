@@ -1,4 +1,4 @@
-import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 
 import { useCurrentUserStore } from '@/services/auth/store';
 import { EventsQueryKeys } from '@/services/events/constants';
@@ -11,10 +11,26 @@ function retryEventDetail(failureCount: number, error: unknown) {
   return failureCount < 2 && !(error instanceof EventDetailError && error.status !== null && error.status < 500);
 }
 
+/** After the API answers an event read with 429 (too many requests), prefetching stops for this long. */
+export const PREFETCH_BACKOFF_MS = 60_000;
+
+/** Per query client: until when prefetching is paused. */
+const prefetchPausedUntil = new WeakMap<QueryClient, number>();
+
 function eventDetailQuery(eventUid: string | null | undefined, viewerUid: string | null) {
   return {
     queryKey: [EventsQueryKeys.EVENT_DETAIL, eventUid, viewerUid],
-    queryFn: () => getEventDetail(eventUid as string, !!viewerUid),
+    queryFn: async ({ client }: { client: QueryClient }) => {
+      try {
+        return await getEventDetail(eventUid as string, !!viewerUid);
+      } catch (error) {
+        // Any event read, a press's too: back off from prefetching, so the presses get through.
+        if (error instanceof EventDetailError && error.status === 429) {
+          prefetchPausedUntil.set(client, Date.now() + PREFETCH_BACKOFF_MS);
+        }
+        throw error;
+      }
+    },
     retry: retryEventDetail,
   };
 }
@@ -48,12 +64,16 @@ const PREFETCH_STALE_MS = 30_000;
 /**
  * Starts loading an event when the member points at or focuses a row that opens the drawer, so the drawer usually
  * opens filled instead of on its skeleton. Same query key as `useEventDetail`; a cached event isn't fetched again.
+ *
+ * Does nothing for `PREFETCH_BACKOFF_MS` after an event read got 429. A prefetch that failed doesn't show in the
+ * drawer: a query with no data that a new observer fetches reads as pending, not as its last error.
  */
 export function usePrefetchEventDetail({ anonymous = false }: ViewerOptions = {}) {
   const queryClient = useQueryClient();
   const viewerUid = useViewerUid(anonymous);
 
   return (eventUid: string) => {
+    if (Date.now() < (prefetchPausedUntil.get(queryClient) ?? 0)) return;
     void queryClient.prefetchQuery({ ...eventDetailQuery(eventUid, viewerUid), staleTime: PREFETCH_STALE_MS });
   };
 }

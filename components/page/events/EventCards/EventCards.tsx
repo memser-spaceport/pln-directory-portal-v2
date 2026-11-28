@@ -7,6 +7,7 @@ import type { ReactNode } from 'react';
 import grey from '@/components/common/profile/DetailsSection/components/DetailsSectionGreyContentContainer/DetailsSectionGreyContentContainer.module.scss';
 import { CheckIcon } from '@/components/icons';
 import { eventDay, eventMonth, eventRange } from '@/components/page/home/HomeV2/utils/upcomingEvents';
+import { prefetchIntent } from '@/components/page/events/prefetchIntent';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import type { ProfileEventPerson, ProfileEventRole } from '@/services/events/profile-events.types';
 
@@ -77,7 +78,10 @@ export interface UpcomingEventCardProps {
   countLabel: string;
   /** The title's press, which covers the card: opens the event drawer. */
   onOpen: () => void;
-  /** Pointer over or focus on the press, before it happens: prefetch the event so the drawer opens filled. */
+  /**
+   * Before the press: prefetch the event so the drawer opens filled. Called once the pointer has rested on the press for
+   * `PREFETCH_DWELL_MS`, or at once on focus.
+   */
   onIntent?: () => void;
   /** Top right, above the card's press (the owner's ⋯ menu). */
   menu?: ReactNode;
@@ -119,8 +123,7 @@ export function UpcomingEventCard({
             type="button"
             className={s.cardTitle}
             onClick={onOpen}
-            onPointerEnter={onIntent}
-            onFocus={onIntent}
+            {...(onIntent && prefetchIntent(onIntent))}
             aria-label={`${name}, ${when}`}
           >
             {name}

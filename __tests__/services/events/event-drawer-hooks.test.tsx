@@ -6,7 +6,13 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { EventsQueryKeys } from '@/services/events/constants';
 import * as service from '@/services/events/event-drawer.service';
 import { useMarkGoing, useRemoveGoing, useUpdateEventPlans } from '@/services/events/hooks/useEventDrawerMutations';
-import { useEventAttendees, useEventDetail, useMyGatheringPlans } from '@/services/events/hooks/useEventDrawerQueries';
+import {
+  PREFETCH_BACKOFF_MS,
+  useEventAttendees,
+  useEventDetail,
+  useMyGatheringPlans,
+  usePrefetchEventDetail,
+} from '@/services/events/hooks/useEventDrawerQueries';
 
 // The real React Query: the global mock in jest.setup.js ignores `enabled` and never settles a mutation.
 jest.unmock('@tanstack/react-query');
@@ -94,6 +100,86 @@ describe('event drawer hooks (LAB-3216)', () => {
       });
       await waitFor(() => expect(result.current.data?.pages).toHaveLength(2));
       expect(result.current.hasNextPage).toBe(false);
+    });
+  });
+
+  // Prod answered 429 to a scroll through Past that prefetched every card the pointer passed.
+  describe('prefetch', () => {
+    const EVENT = { uid: 'ev' } as never;
+    let now = 1_000_000;
+    beforeEach(() => {
+      now = 1_000_000;
+      jest.spyOn(Date, 'now').mockImplementation(() => now);
+    });
+    afterEach(() => jest.restoreAllMocks());
+
+    /** One page's client, its prefetch, and a press that opens the drawer on `uid`. */
+    function prefetchSetup() {
+      const { queryClient, wrapper } = setup();
+      const { result } = renderHook(() => usePrefetchEventDetail(), { wrapper });
+      const press = (uid: string) => renderHook(() => useEventDetail(uid), { wrapper }).result;
+      return { queryClient, prefetch: result.current, press };
+    }
+
+    it('stops prefetching for 60s after a prefetch got 429; a press still loads its event', async () => {
+      mocked.getEventDetail.mockRejectedValueOnce(new service.EventDetailError(429));
+      const { prefetch, press } = prefetchSetup();
+      prefetch('a');
+      await waitFor(() => expect(mocked.getEventDetail).toHaveBeenCalledTimes(1));
+      await act(async () => {});
+
+      prefetch('b');
+      now += PREFETCH_BACKOFF_MS - 1;
+      prefetch('c');
+      await act(async () => {});
+      expect(mocked.getEventDetail).toHaveBeenCalledTimes(1);
+
+      mocked.getEventDetail.mockResolvedValue(EVENT);
+      const pressed = press('b');
+      await waitFor(() => expect(pressed.current.data).toBe(EVENT));
+
+      now += 1;
+      prefetch('d');
+      await waitFor(() => expect(mocked.getEventDetail).toHaveBeenLastCalledWith('d', true));
+    });
+
+    it('stops prefetching after a press got 429 too', async () => {
+      mocked.getEventDetail.mockRejectedValueOnce(new service.EventDetailError(429));
+      const { prefetch, press } = prefetchSetup();
+      const pressed = press('a');
+      await waitFor(() => expect(pressed.current.isError).toBe(true));
+
+      prefetch('b');
+      await act(async () => {});
+      expect(mocked.getEventDetail).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps prefetching after other failures', async () => {
+      mocked.getEventDetail.mockRejectedValueOnce(new service.EventDetailError(403));
+      const { prefetch } = prefetchSetup();
+      prefetch('a');
+      await waitFor(() => expect(mocked.getEventDetail).toHaveBeenCalledTimes(1));
+      await act(async () => {});
+
+      mocked.getEventDetail.mockResolvedValue(EVENT);
+      prefetch('b');
+      await waitFor(() => expect(mocked.getEventDetail).toHaveBeenLastCalledWith('b', true));
+    });
+
+    it('a press on an event whose prefetch failed loads it afresh, never showing the failure', async () => {
+      mocked.getEventDetail.mockRejectedValueOnce(new service.EventDetailError(429));
+      const { prefetch, press } = prefetchSetup();
+      prefetch('a');
+      await waitFor(() => expect(mocked.getEventDetail).toHaveBeenCalledTimes(1));
+      await act(async () => {});
+
+      mocked.getEventDetail.mockResolvedValue(EVENT);
+      const pressed = press('a');
+      // The drawer reads `isError` first: it would show its error until the new read came back.
+      expect(pressed.current.isError).toBe(false);
+      expect(pressed.current.isPending).toBe(true);
+      await waitFor(() => expect(pressed.current.data).toBe(EVENT));
+      expect(mocked.getEventDetail).toHaveBeenCalledTimes(2);
     });
   });
 

@@ -55,4 +55,28 @@ describe('All Events styles (LAB-3418 design decisions)', () => {
     expect(header).not.toMatch(/margin(-bottom)?:\s*24px\s+0/);
     expect(header).not.toMatch(/margin-bottom/);
   });
+
+  // jsdom paints nothing, so this reads the numbers; QA checks the menus over the sticky toolbar in a browser.
+  it('the sticky toolbar stays under the site header, so the header’s menus open over it', () => {
+    const zIndex = (block: string) => Number(block.match(/\n\s*z-index:\s*(\d+);/)?.[1]);
+    const globals = readFileSync(path.join(__dirname, '../../../app/globals.scss'), 'utf8');
+    const start = globals.indexOf('\n.layout__header {');
+    const siteHeader = zIndex(globals.slice(start, globals.indexOf('\n}', start)));
+    expect(siteHeader).toBe(5);
+    expect(zIndex(rule('.toolbar'))).toBeLessThan(siteHeader);
+  });
+
+  it('the tablet filter bar scrolls under the sticky toolbar, not over it', () => {
+    const zIndex = (block: string) => Number(block.match(/\n\s*z-index:\s*(\d+);/)?.[1]);
+    const shared = readFileSync(
+      path.join(__dirname, '../../../components/common/filters/MobileFilterWrapper/MobileFilterWrapper.module.scss'),
+      'utf8',
+    );
+    const start = shared.indexOf('\n.root {');
+    // The shared bar is as high as the toolbar, so this page must lower it.
+    expect(zIndex(shared.slice(start, shared.indexOf('\n}', start)))).toBe(zIndex(rule('.toolbar')));
+    const bar = rule('.mobileBar');
+    const child = bar.slice(bar.indexOf('> div {'));
+    expect(zIndex(child.slice(0, child.indexOf('}')))).toBeLessThan(zIndex(rule('.toolbar')));
+  });
 });

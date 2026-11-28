@@ -472,7 +472,9 @@
 .toolbar {
   position: sticky;
   top: var(--app-header-height, 80px);
-  z-index: 5;
+  // One under the site header (.layout__header, 5): at 5 too it came later in the page and painted over the header's
+  // menus (More, search results, account). The year and month menus portal to the body, so they don't depend on it.
+  z-index: 4;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1328,6 +1330,9 @@
 
   > div {
     background: var(--background-neutral-subtle, #f1f5f9); // the page's own grey, so the sticky bar is not a band
+    // Under the toolbar (4): the shared filter bar is sticky at 4 too and comes later in the page, so at 640–1023px,
+    // where both show, it slid over the stuck toolbar while scrolling.
+    z-index: 3;
   }
 
   // The pills get the card border, so they keep a clear edge on the bar.

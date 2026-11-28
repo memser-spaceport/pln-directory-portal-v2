@@ -4,6 +4,7 @@ import { GlobeIcon } from '@/components/icons';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { EventImage } from '@/components/page/events/EventImage/EventImage';
 import { GoingPill, WENT_LABEL } from '@/components/page/events/GoingPill/GoingPill';
+import { prefetchIntent } from '@/components/page/events/prefetchIntent';
 import { dayOfSpan, startLabel, whenLine } from '@/services/events/all-events.filters';
 import { ACCESS_COPY, eventPlace } from '@/services/events/event-facts';
 import type { AllEventsItem } from '@/services/events/all-events.types';
@@ -117,8 +118,7 @@ export function EventCard({
       data-event-uid={item.uid}
       className={clsx(s.card, highlighted && s.highlight)}
       onClick={onOpen}
-      onPointerEnter={onPrepare}
-      onFocus={onPrepare}
+      {...prefetchIntent(onPrepare)}
     >
       <span className={s.cardBody}>
         <span className={s.cardWhen}>
@@ -156,14 +156,7 @@ export function EventTile({
   onPrepare,
 }: { item: AllEventsItem; todayIso: string; going: boolean; live: boolean } & EventPress) {
   return (
-    <button
-      type="button"
-      data-event-uid={item.uid}
-      className={s.tile}
-      onClick={onOpen}
-      onPointerEnter={onPrepare}
-      onFocus={onPrepare}
-    >
+    <button type="button" data-event-uid={item.uid} className={s.tile} onClick={onOpen} {...prefetchIntent(onPrepare)}>
       <span className={s.tileImage}>
         <EventImage src={item.picture} className={s.tileFill} />
       </span>

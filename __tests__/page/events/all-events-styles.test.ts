@@ -65,4 +65,18 @@ describe('All Events styles (LAB-3418 design decisions)', () => {
     expect(siteHeader).toBe(5);
     expect(zIndex(rule('.toolbar'))).toBeLessThan(siteHeader);
   });
+
+  it('the tablet filter bar scrolls under the sticky toolbar, not over it', () => {
+    const zIndex = (block: string) => Number(block.match(/\n\s*z-index:\s*(\d+);/)?.[1]);
+    const shared = readFileSync(
+      path.join(__dirname, '../../../components/common/filters/MobileFilterWrapper/MobileFilterWrapper.module.scss'),
+      'utf8',
+    );
+    const start = shared.indexOf('\n.root {');
+    // The shared bar is as high as the toolbar, so this page must lower it.
+    expect(zIndex(shared.slice(start, shared.indexOf('\n}', start)))).toBe(zIndex(rule('.toolbar')));
+    const bar = rule('.mobileBar');
+    const child = bar.slice(bar.indexOf('> div {'));
+    expect(zIndex(child.slice(0, child.indexOf('}')))).toBeLessThan(zIndex(rule('.toolbar')));
+  });
 });

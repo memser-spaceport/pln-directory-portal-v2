@@ -13,8 +13,8 @@ export type CityCoords = Record<string, [number, number]>;
 
 /**
  * Cities whose stored position is wrong (checked 2026-11-19 on dev's copy): Berlin sits in Düsseldorf, Lisbon in
- * Virginia, Healdsburg in Argentina, Colorado in Chicago and California at Singapore's longitude. Add any city found
- * wrong in review.
+ * Virginia, Healdsburg in Argentina, Colorado in Chicago and California at Singapore's longitude. San Francisco
+ * (LAB-3444) is pinned to its city point, so its events show on the map. Add any city found wrong in review.
  */
 export const CITY_COORD_FIXES: CityCoords = {
   berlin: [52.52, 13.405],
@@ -22,6 +22,7 @@ export const CITY_COORD_FIXES: CityCoords = {
   healdsburg: [38.6102, -122.8694],
   colorado: [39.7392, -104.9903],
   california: [36.7783, -119.4179],
+  'san francisco': [37.7749, -122.4194],
 };
 
 /**
@@ -84,4 +85,5 @@ async function loadCityCoords(): Promise<CityCoords> {
   return toCityCoords(Array.isArray(body) ? body : []);
 }
 
-export const getCityCoords = unstable_cache(loadCityCoords, ['events-city-coords'], { revalidate: 86400 });
+// The cache key must change when a fix changes the cached positions.
+export const getCityCoords = unstable_cache(loadCityCoords, ['events-city-coords-v2'], { revalidate: 86400 });

@@ -1005,6 +1005,13 @@ When a Maps key is configured, the Map view SHALL show a street map. Zoomed out 
 - **WHEN** the visitor opens the Map view
 - **THEN** the event is listed under the map in "Not on the map"
 
+#### Scenario: City with a known-wrong stored position
+
+- **GIVEN** the locations list stores San Francisco at latitude 37.78, longitude 122.42 (east)
+- **WHEN** the visitor opens the Map view
+- **THEN** the San Francisco pin sits at the city point 37.7749, -122.4194 (LAB-3444)
+- **AND** the pin groups its in-person and hybrid events
+
 #### Scenario: No Maps key
 
 - **GIVEN** the build has no Maps key
